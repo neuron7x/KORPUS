@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from pathlib import Path
 
 from korpus.application.ingestion import ExtractionSettings, IngestionService
@@ -14,16 +15,15 @@ from korpus.domain.models import (
     ReviewTransition,
     VersionCreate,
 )
-from korpus.infrastructure.object_store import LocalObjectStore
-from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.runtime import create_object_store, create_repository
 
 
 def main() -> None:
     settings = get_settings()
     policy = PolicyEngine()
-    repository = SqlRepository(settings.database_url, settings.resolved_audit_hmac_key, policy)
+    repository = create_repository(settings, policy)
     repository.initialize()
-    store = LocalObjectStore(settings.object_root)
+    store = create_object_store(settings)
     actor = Identity(
         subject="bootstrap",
         roles=frozenset({"admin", "curator", "reviewer", "user", "auditor"}),
@@ -34,7 +34,15 @@ def main() -> None:
         repository,
         store,
         policy,
-        ExtractionSettings(settings.ocr_enabled, settings.ocr_languages),
+        ExtractionSettings(
+            ocr_enabled=settings.ocr_enabled,
+            ocr_languages=settings.ocr_languages,
+            max_pdf_pages=settings.max_pdf_pages,
+            max_spans_per_document=settings.max_spans_per_document,
+            max_chunk_chars=settings.max_chunk_chars,
+            chunk_overlap_chars=settings.chunk_overlap_chars,
+        ),
+        review_separation_required=settings.review_separation_required,
     )
     fixture = Path("evals/fixtures/public_order.txt")
     result = service.ingest(
@@ -56,7 +64,7 @@ def main() -> None:
     print(f"database={settings.database_url}")
     print(f"document={result.document.id}")
     print(f"version={result.version.id}")
-    print(f"release={repository.corpus_release_id()}")
+    print(f"release={repository.corpus_release_id(actor, actor.corpora, date.today())}")
 
 
 if __name__ == "__main__":

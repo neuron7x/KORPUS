@@ -18,17 +18,17 @@ VAR.mkdir(exist_ok=True)
 
 def run(name: str, command: list[str], env: dict[str, str] | None = None) -> dict[str, object]:
     started = time.perf_counter()
-    completed = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
     output_path = VAR / f"assurance-{name}.log"
-    output_path.write_text(completed.stdout, encoding="utf-8")
+    with output_path.open("w", encoding="utf-8") as output_handle:
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=env,
+            text=True,
+            stdout=output_handle,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
     return {
         "name": name,
         "command": command,
@@ -66,7 +66,6 @@ def main() -> int:
             ],
         ),
         ("eval", [sys.executable, "scripts/run_evals.py"]),
-        ("mutation", [sys.executable, "scripts/run_mutation_tests.py"]),
         ("migration", [sys.executable, "scripts/run_migration_gate.py"]),
         ("scale", [sys.executable, "scripts/run_scale_probe.py"]),
         ("web", ["npm", "--prefix", "apps/web", "run", "build"]),
@@ -74,6 +73,32 @@ def main() -> int:
     with ThreadPoolExecutor(max_workers=len(parallel_commands)) as pool:
         futures = [pool.submit(run, name, command, environment) for name, command in parallel_commands]
         steps.extend(future.result() for future in futures)
+    if all(step["returncode"] == 0 for step in steps):
+        for shard_index in range(3):
+            steps.append(
+                run(
+                    f"mutation-{shard_index}",
+                    [
+                        sys.executable,
+                        "scripts/run_mutation_tests.py",
+                        "--shard-index",
+                        str(shard_index),
+                        "--shard-count",
+                        "3",
+                    ],
+                    environment,
+                )
+            )
+    if all(step["returncode"] == 0 for step in steps):
+        steps.append(
+            run(
+                "mutation-merge",
+                [sys.executable, "scripts/run_mutation_tests.py", "--merge", "--shard-count", "3"],
+                environment,
+            )
+        )
+    if all(step["returncode"] == 0 for step in steps):
+        steps.append(run("operational", [sys.executable, "scripts/run_operational_gate.py"], environment))
     test_summary: dict[str, object] = {}
     junit_path = VAR / "pytest.xml"
     if junit_path.is_file():
@@ -102,6 +127,7 @@ def main() -> int:
         "mutation": load_json(VAR / "mutation-report.json"),
         "migration": load_json(VAR / "migration-report.json"),
         "scale": load_json(VAR / "scale-report.json"),
+        "operational": load_json(VAR / "operational-gate.json"),
         "limitations": [
             "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
             "PostgreSQL integration is a GitLab service-container gate; local report may show it skipped.",

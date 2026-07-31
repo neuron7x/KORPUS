@@ -106,3 +106,29 @@ def test_postgres_rls_migration_is_default_deny_when_context_is_absent():
     assert "FORCE ROW LEVEL SECURITY" in migration
     assert "current_setting('korpus.clearance', true)" in migration
     assert "COALESCE" in migration
+
+
+class FailingSemanticSource:
+    def search(self, identity, query, corpus_ids, as_of, limit):
+        raise OSError("embedding gateway unavailable")
+
+
+def test_required_semantic_failure_never_silently_falls_back_to_lexical():
+    from korpus.application.retrieval import RetrievalUnavailable
+
+    lexical = _bundle("evacuation procedure", "d")
+    retriever = HybridLexicalRetriever(
+        FusionRepo(lexical, lexical),
+        candidate_budget=8,
+        weights=RetrievalWeights(
+            lexical=0.12, semantic=0.30, query_coverage=0.20, character=0.08,
+            authority=0.18, phrase=0.08, temporal=0.04,
+        ),
+        semantic_source=FailingSemanticSource(),
+    )
+    identity = Identity(
+        subject="u", roles=frozenset({"user"}), clearance=AccessTier.PUBLIC,
+        corpora=frozenset({"public"}),
+    )
+    with pytest.raises(RetrievalUnavailable, match="semantic retrieval"):
+        retriever.search(identity, "evacuation procedure", identity.corpora, date.today())

@@ -47,9 +47,22 @@ def upgrade() -> None:
             )
             """
         )
-        op.execute("CREATE POLICY evidence_span_insert ON evidence_spans FOR INSERT WITH CHECK (true)")
-        op.execute("CREATE POLICY evidence_span_update ON evidence_spans FOR UPDATE USING (true) WITH CHECK (true)")
-        op.execute("CREATE POLICY evidence_span_delete ON evidence_spans FOR DELETE USING (true)")
+        op.execute(
+            "CREATE POLICY evidence_span_insert ON evidence_spans FOR INSERT WITH CHECK "
+            "('admin' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')) "
+            "OR 'curator' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')))"
+        )
+        op.execute(
+            "CREATE POLICY evidence_span_update ON evidence_spans FOR UPDATE USING "
+            "('admin' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')) "
+            "OR 'curator' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ','))) "
+            "WITH CHECK ('admin' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')) "
+            "OR 'curator' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')))"
+        )
+        op.execute(
+            "CREATE POLICY evidence_span_delete ON evidence_spans FOR DELETE USING "
+            "('admin' = ANY(string_to_array(COALESCE(current_setting('korpus.roles', true), ''), ',')))"
+        )
 
 
 def downgrade() -> None:

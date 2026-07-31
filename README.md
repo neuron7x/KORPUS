@@ -1,4 +1,4 @@
-# KORPUS v2.0.0
+# KORPUS v3.0.0
 
 Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 
@@ -19,17 +19,18 @@ verified identity
   -> external HMAC checkpoint
 ```
 
-## What changed in v2
+## What changed in v3
 
-- database candidate retrieval replaced unbounded Python corpus scanning;
-- access and temporal predicates execute before text enters candidate memory;
-- historical supersession is evaluated in SQL for the requested `as_of` date;
-- audit anchoring uses a transactional outbox and crash recovery;
-- controlled environments refuse automatic schema creation and require Alembic migrations;
-- production answer policy requires a finite-sample validated calibration profile;
-- tests now include state machines, concurrency, metamorphic properties, noninterference, adversarial source/query cases, migration parity and mutation testing;
-- the frozen assurance dataset expanded to 30 cases with independent leakage, citation and determinism metrics;
-- local scale probes report bounded-candidate latency with environment and procedure provenance.
+- retrieval is a calibrated convex utility with explicit lexical, semantic, coverage, authority, phrase and temporal weights;
+- PostgreSQL FORCE RLS is an independent database barrier beneath application ABAC;
+- pgvector candidates fuse with bounded lexical candidates before deterministic reranking;
+- identity/release/config-scoped cache, admission control and circuit breakers bound operational work;
+- OIDC uses cached JWKS, mandatory `kid`, issuer/audience checks and asymmetric algorithm pinning;
+- S3 writes are content-addressed, checksummed and optionally governance-retained;
+- OpenTelemetry and Prometheus expose low-cardinality operational evidence without source/query identifiers;
+- audit checkpoints can be delivered through an idempotent remote monotonic HMAC anchor;
+- an explicit operational gate composes eval, mutation, migration and scale evidence without claiming production authorization;
+- fourteen critical first-order mutants must all be killed before release.
 
 ## Executable assurance gates
 
@@ -108,5 +109,7 @@ Read first:
 - `docs/assurance/TEST_STRATEGY.md`
 - `docs/assurance/ASSURANCE_CASE.md`
 - `docs/research/RESEARCH_PROVENANCE_2026.md`
-- `docs/architecture/SYSTEM_V2.md`
+- `docs/assurance/ITERATION_LEDGER_V3.md`
+- `docs/protocols/INTEGRATIONS_V3.md`
+- `docs/architecture/SYSTEM_V3.md`
 - `AGENTS.md`

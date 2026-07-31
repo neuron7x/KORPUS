@@ -75,9 +75,13 @@ api:assurance:
   script:
     - mkdir -p var/objects
     - PYTHONPATH=apps/api/src python scripts/run_evals.py
-    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py
+    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py --shard-index 0 --shard-count 3
+    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py --shard-index 1 --shard-count 3
+    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py --shard-index 2 --shard-count 3
+    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py --merge --shard-count 3
     - PYTHONPATH=apps/api/src python scripts/run_migration_gate.py
     - PYTHONPATH=apps/api/src python scripts/run_scale_probe.py
+    - PYTHONPATH=apps/api/src python scripts/run_operational_gate.py
   artifacts:
     when: always
     paths:
@@ -85,24 +89,29 @@ api:assurance:
       - var/mutation-report.json
       - var/migration-report.json
       - var/scale-report.json
+      - var/operational-gate.json
 
 api:postgres:
   stage: assurance
   image: python:3.12-slim
   services:
-    - name: postgres:17-alpine
+    - name: pgvector/pgvector:pg17
       alias: postgres
   variables:
     POSTGRES_DB: korpus_test
-    POSTGRES_USER: korpus
-    POSTGRES_PASSWORD: korpus-test-password
-    KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus:korpus-test-password@postgres:5432/korpus_test
-    KORPUS_DATABASE_URL: postgresql+psycopg://korpus:korpus-test-password@postgres:5432/korpus_test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres-test-password
+    KORPUS_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
+    KORPUS_POSTGRES_APP_ROLE: korpus_app
+    KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
+    KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
+    KORPUS_DATABASE_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
   before_script:
     - pip install -e 'apps/api[dev,postgres]'
     - python scripts/wait_for_database.py
   script:
     - cd apps/api && alembic upgrade head && cd ../..
+    - python scripts/prepare_postgres_test_role.py
     - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
 
 secret:scan:

@@ -5,7 +5,7 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Protocol
+from typing import Any, Protocol
 from uuid import UUID
 
 import httpx
@@ -23,7 +23,7 @@ class EmbeddingProvider(Protocol):
     def embed(self, text: str) -> list[float]: ...
 
 
-@dataclass(frozen=True)
+@dataclass
 class HttpEmbeddingProvider:
     """Vendor-neutral internal embedding service integration."""
 
@@ -32,20 +32,21 @@ class HttpEmbeddingProvider:
     dimensions: int
     token: str | None = None
     timeout_seconds: float = 5.0
+    client: Any | None = None
 
     def __post_init__(self) -> None:
         if not self.endpoint.startswith(("https://", "http://127.0.0.1", "http://localhost")):
             raise ValueError("embedding endpoint must use HTTPS or loopback HTTP")
         if not MODEL_PATTERN.fullmatch(self.model_id) or self.dimensions < 8:
             raise ValueError("invalid embedding model configuration")
+        if self.client is None:
+            headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+            self.client = httpx.Client(timeout=self.timeout_seconds, headers=headers)
 
     def embed(self, text: str) -> list[float]:
-        headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-        response = httpx.post(
+        response = self.client.post(
             self.endpoint,
             json={"model": self.model_id, "input": text},
-            headers=headers,
-            timeout=self.timeout_seconds,
         )
         response.raise_for_status()
         payload = response.json()
@@ -125,7 +126,7 @@ class PgVectorSemanticIndex:
                     "as_of": as_of,
                     "limit": limit,
                 },
-            )
+            ).all()
         return [(UUID(row.span_id), float(row.score)) for row in rows]
 
     def upsert(self, span_id: UUID, text: str, text_hash: str) -> None:

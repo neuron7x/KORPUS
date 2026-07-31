@@ -6,7 +6,7 @@ from datetime import date
 from korpus.domain.models import AccessTier, Identity
 
 from korpus.config import get_settings
-from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.runtime import create_repository
 
 
 def main() -> None:
@@ -14,7 +14,7 @@ def main() -> None:
     parser.add_argument("command", choices=["init-db", "verify-audit", "release-id"])
     args = parser.parse_args()
     settings = get_settings()
-    repository = SqlRepository(settings.database_url, settings.resolved_audit_hmac_key)
+    repository = create_repository(settings)
     repository.initialize()
     if args.command == "init-db":
         print("database initialized")

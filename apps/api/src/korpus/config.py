@@ -31,7 +31,12 @@ class Settings(BaseSettings):
     s3_endpoint_url: str | None = None
     s3_region: str | None = None
     s3_governance_retention_days: int = Field(default=0, ge=0, le=36500)
+    audit_anchor_mode: str = "file"
     audit_anchor_path: Path = Path("./var/audit-anchor.json")
+    audit_anchor_url: str | None = None
+    audit_anchor_token: str | None = None
+    audit_anchor_token_file: Path | None = None
+    audit_anchor_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     audit_hmac_key: str = "replace-local-audit-key"
     audit_hmac_key_file: Path | None = None
 
@@ -83,6 +88,13 @@ class Settings(BaseSettings):
     ocr_languages: str = "ukr+eng"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
 
+    @field_validator("audit_anchor_mode")
+    @classmethod
+    def validate_audit_anchor_mode(cls, value: str) -> str:
+        if value not in {"file", "http"}:
+            raise ValueError("audit_anchor_mode must be file or http")
+        return value
+
     @field_validator("object_store_mode")
     @classmethod
     def validate_object_store_mode(cls, value: str) -> str:
@@ -127,11 +139,15 @@ class Settings(BaseSettings):
                 raise ValueError("validated calibration profile is required")
             if not self.review_separation_required:
                 raise ValueError("controlled environments require reviewer separation")
+            if self.audit_anchor_mode != "http" or not self.audit_anchor_url:
+                raise ValueError("controlled environments require a remote HTTP audit anchor")
         if self.semantic_retrieval_enabled:
             if not self.database_url.startswith("postgresql"):
                 raise ValueError("semantic retrieval requires PostgreSQL/pgvector")
             if not self.embedding_endpoint or not self.embedding_model_id:
                 raise ValueError("semantic retrieval requires embedding endpoint and model id")
+        if self.audit_anchor_mode == "http" and not self.audit_anchor_url:
+            raise ValueError("audit_anchor_url is required for HTTP audit anchoring")
         if self.object_store_mode == "s3" and not self.s3_bucket:
             raise ValueError("s3_bucket is required for S3 object storage")
         if controlled and self.object_store_mode == "local":
@@ -157,6 +173,12 @@ class Settings(BaseSettings):
     @property
     def resolved_jwt_secret(self) -> str:
         return _read_secret_file(self.jwt_secret_file, self.jwt_secret)
+
+    @property
+    def resolved_audit_anchor_token(self) -> str | None:
+        if self.audit_anchor_token_file is None:
+            return self.audit_anchor_token
+        return _read_secret_file(self.audit_anchor_token_file, self.audit_anchor_token or "")
 
     @property
     def cors_origin_list(self) -> list[str]:

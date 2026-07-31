@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, Request
 
@@ -13,7 +13,6 @@ from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.config import Settings, get_settings
 from korpus.application.ports import ObjectStore
-from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 
@@ -44,7 +43,7 @@ def get_observability(request: Request) -> Observability:
     return request.app.state.observability
 
 
-def get_semantic_source(request: Request):
+def get_semantic_source(request: Request) -> Any | None:
     return request.app.state.semantic_source
 
 
@@ -75,7 +74,7 @@ def get_answer_service(
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
-    semantic_source=Depends(get_semantic_source),
+    semantic_source: Any | None = Depends(get_semantic_source),
 ) -> ExtractiveAnswerService:
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(settings.calibration_profile_path)  # type: ignore[arg-type]

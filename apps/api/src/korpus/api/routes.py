@@ -188,16 +188,19 @@ def create_answer(
     observability: Annotated[Observability, Depends(get_observability)],
 ) -> Answer:
     try:
-        with admission.acquire():
+        try:
+            with admission.acquire():
+                observability.admission_active.set(admission.snapshot().active)
+                with observability.measure_retrieval():
+                    answer = service.execute(identity, query)
+        finally:
             observability.admission_active.set(admission.snapshot().active)
-            with observability.measure_retrieval():
-                answer = service.execute(identity, query)
-            from korpus.application.risk import classify_query_risk
+        from korpus.application.risk import classify_query_risk
 
-            observability.observe_answer(
-                answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
-            )
-            return answer
+        observability.observe_answer(
+            answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
+        )
+        return answer
     except OverloadedError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

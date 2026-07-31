@@ -1,31 +1,36 @@
-# KORPUS v2.0.0 distribution contents
+# KORPUS v3.0.0 distribution contents
 
-This distribution is a research-grade GitLab-ready controlled-corpus engineering baseline.
+This distribution is a GitLab-ready operational-reference baseline for a controlled evidence platform.
 
 Included executable components:
 
-- FastAPI modular monolith with versioned OpenAPI contracts;
-- SQLite FTS5 and PostgreSQL GIN/`tsvector` bounded candidate retrieval;
-- pre-retrieval SQL ABAC, temporal validity and active-supersession predicates;
-- immutable canonical documents, versions, evidence spans and content-addressed objects;
+- FastAPI modular monolith with versioned contracts and server-derived identity;
+- SQLite FTS5 and PostgreSQL GIN/`tsvector` bounded lexical candidates;
+- pgvector semantic candidates with deterministic bounded fusion;
+- explicit convex ranking utility, BM25 parameters, MMR, per-version cap and deadlines;
+- reproducible weight tuning with nDCG, MRR, Recall and finite-sample risk gates;
+- risk-adaptive abstention and explicit dependency-outage decisions;
+- application ABAC plus PostgreSQL `FORCE ROW LEVEL SECURITY`;
+- immutable canonical documents, temporal versions, spans and content-addressed objects;
 - PDF embedded-text extraction, bounded OCR fallback and hostile-input limits;
-- quarantine, dual review, approval and optimistic-concurrency state transitions;
+- quarantine, separated review roles, approval and optimistic-concurrency transitions;
 - exact extractive claims with offsets, quote hashes and source hashes;
-- finite-sample calibration profile with fail-closed controlled mode;
-- persistent hash-chained audit, CAS head, external HMAC checkpoint and transactional outbox;
+- OIDC/JWKS, S3, embedding, pgvector, OpenTelemetry, Prometheus and remote-anchor adapters;
+- identity/release/config-bound cache, admission control and circuit breakers;
+- persistent hash-chained audit, CAS head, remote HMAC checkpoint and transactional outbox;
 - offline-capable dependency-free PWA;
-- 68-test verification lattice: properties, state machines, concurrency, temporal semantics and noninterference;
-- 30-case frozen assurance evaluation and 11-mutant critical mutation gate;
-- Alembic migration parity, indexed scale probe and PostgreSQL service-container test;
-- GitLab CI, CODEOWNERS, MR controls, dependency/secret scans and SBOM generation;
-- Dockerfiles, Compose support, runbooks and isolated Codex/Claude worktree protocol;
-- content-hashed assurance snapshots and deterministic repository manifest.
+- 108-test verification lattice: properties, state machines, races, temporal semantics and noninterference;
+- 30-case adversarial evaluation and 14-mutant critical mutation gate in three shards;
+- Alembic migration parity, indexed scale probe and PostgreSQL service-container gate;
+- GitLab CI, CODEOWNERS, MR controls, dependency/secret scans, SBOM and container builds;
+- isolated Codex/Claude worktree protocol, runbooks, machine-readable assurance and deterministic manifest.
 
 Not included because they require external authority or deployment-specific evidence:
 
-- the claimed 5,960-file real corpus;
+- the claimed 5,960-file real corpus and authoritative metadata;
 - document rights, classification decisions and appointed domain reviewers;
-- production identity provider, HSM/KMS and remote WORM/object-lock services;
+- production identity provider, embedding service, HSM/KMS, S3 object lock and remote anchor;
+- queue-backed automatic embedding reconciliation for corpus changes;
 - independent penetration-test and real-corpus OCR reports;
 - formal security profile, authorization/accreditation and operational SOC ownership;
-- validated production latency, concurrency, recovery and availability SLA.
+- validated production latency, concurrency, recovery, cost and availability SLA.

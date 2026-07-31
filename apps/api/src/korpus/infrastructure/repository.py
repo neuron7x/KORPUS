@@ -46,7 +46,7 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure.audit_anchor import AnchorError, FileAuditAnchorStore
+from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 
 metadata = MetaData()
 
@@ -174,6 +174,7 @@ class SqlRepository:
         audit_hmac_key: str,
         policy: PolicyEngine | None = None,
         audit_anchor_path: Path | None = None,
+        audit_anchor_store: AuditAnchorStore | None = None,
     ) -> None:
         connect_args = {"check_same_thread": False, "timeout": 30} if database_url.startswith("sqlite") else {}
         self.engine: Engine = create_engine(database_url, future=True, connect_args=connect_args, pool_pre_ping=True)
@@ -182,7 +183,9 @@ class SqlRepository:
         self.audit_key = audit_hmac_key.encode("utf-8")
         self.policy = policy or PolicyEngine()
         anchor_path = audit_anchor_path or Path("./var/audit-anchor.json")
-        self.anchor_store = FileAuditAnchorStore(anchor_path, self.audit_key)
+        self.anchor_store: AuditAnchorStore = audit_anchor_store or FileAuditAnchorStore(
+            anchor_path, self.audit_key
+        )
 
     @staticmethod
     def _configure_sqlite(dbapi_connection: Any, connection_record: Any) -> None:
@@ -212,7 +215,7 @@ class SqlRepository:
                 connection.execute(
                     insert(audit_heads).values(singleton_id=1, sequence=0, head_hash="0" * 64)
                 )
-        if not self.anchor_store.path.exists():
+        if not self.anchor_store.initialized():
             with self.engine.connect() as connection:
                 sequence, head_hash = connection.execute(
                     select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
@@ -226,8 +229,7 @@ class SqlRepository:
             with self.engine.begin() as connection:
                 connection.execute(sql_text("DROP TABLE IF EXISTS evidence_fts"))
         metadata.drop_all(self.engine)
-        if self.anchor_store.path.exists():
-            self.anchor_store.path.unlink()
+        self.anchor_store.reset()
         self.initialize()
 
     def create_document_bundle(
@@ -239,6 +241,7 @@ class SqlRepository:
         audit_payload: dict[str, Any],
     ) -> None:
         def operation(connection: Connection) -> tuple[None, tuple[int, str]]:
+            self._apply_postgres_identity(connection, actor)
             connection.execute(insert(documents).values(**self._document_values(document)))
             connection.execute(insert(versions).values(**self._version_values(version)))
             if records:
@@ -264,6 +267,7 @@ class SqlRepository:
         audit_payload: dict[str, Any],
     ) -> None:
         def operation(connection: Connection) -> tuple[None, tuple[int, str]]:
+            self._apply_postgres_identity(connection, actor)
             connection.execute(insert(versions).values(**self._version_values(version)))
             if records:
                 connection.execute(insert(spans), [self._span_values(record) for record in records])
@@ -673,12 +677,13 @@ class SqlRepository:
             sql_text(
                 "SELECT set_config('korpus.clearance', :clearance, true), "
                 "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true)"
+                "set_config('korpus.classifications', :classifications, true), set_config('korpus.roles', :roles, true)"
             ),
             {
                 "clearance": str(int(identity.clearance)),
                 "corpora": ",".join(sorted(identity.corpora)),
                 "classifications": ",".join(classifications),
+                "roles": ",".join(sorted(identity.roles)),
             },
         )
 

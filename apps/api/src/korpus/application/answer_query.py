@@ -6,7 +6,13 @@ from dataclasses import dataclass
 
 from korpus.application.ports import Repository, Retriever
 from korpus.application.policy import PolicyEngine
-from korpus.application.retrieval import AUTHORITY_PRIOR, RetrievalDeadlineExceeded, normalize_text, tokenize
+from korpus.application.retrieval import (
+    AUTHORITY_PRIOR,
+    RetrievalDeadlineExceeded,
+    RetrievalUnavailable,
+    normalize_text,
+    tokenize,
+)
 from korpus.application.risk import QueryRisk, classify_query_risk, risk_adjusted_thresholds
 from korpus.domain.models import (
     Answer,
@@ -125,6 +131,14 @@ class ExtractiveAnswerService:
                 release_id,
                 "retrieval_deadline_exceeded",
                 "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
+            )
+            self._audit(identity, query, answer, [], [], risk)
+            return answer
+        except RetrievalUnavailable:
+            answer = self._abstain(
+                release_id,
+                "retrieval_dependency_unavailable",
+                "Обов’язковий пошуковий контур недоступний; відповідь зупинено без слабшого fallback.",
             )
             self._audit(identity, query, answer, [], [], risk)
             return answer

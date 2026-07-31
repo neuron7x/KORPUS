@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "production_authorized": false,
+  "checks": {
+    "reports_present": true,
+    "eval_pass_rate": true,
+    "citation_integrity": true,
+    "access_noninterference": true,
+    "determinism": true,
+    "audit_chain": true,
+    "critical_mutation_score": true,
+    "critical_mutation_survivors": true,
+    "migration_table_parity": true,
+    "migration_required_tables": true,
+    "migration_audit_head": true,
+    "migration_fts5": true,
+    "scale_status": true,
+    "scale_metric_provenance": true,
+    "scale_top1": true,
+    "scale_candidate_bound": true,
+    "scale_local_p95": true
+  },
+  "failures": [],
+  "evidence_sha256": {
+    "eval": "623e55267334ad53af908df62638d54ee5a9012ede6eb60d38c5b9efee297969",
+    "mutation": "d12d30131ed86291152e446d1e5c7b29f376dd7acc403914745a9029f785e653",
+    "migration": "28a2a4e8ba050f2f2ae25c467d70aee5e92a97469f9a1234aacbedca7e4d26d3",
+    "scale": "74106946a167cc0c54ff9d34d80cdd01b53f1fe49f78eb412d049fccf1e3262a"
+  },
+  "interpretation": "Engineering release predicates passed; this is not corpus, security, regulatory, operational-SLA or military authorization."
+}

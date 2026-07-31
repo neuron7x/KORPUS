@@ -17,6 +17,7 @@ SOURCES = {
     "MUTATION_REPORT.json": "mutation-report.json",
     "MIGRATION_REPORT.json": "migration-report.json",
     "SCALE_REPORT.json": "scale-report.json",
+    "OPERATIONAL_GATE.json": "operational-gate.json",
 }
 
 
@@ -47,6 +48,7 @@ def assemble_ci_report() -> dict[str, object]:
     mutation_report = load_json(VAR / "mutation-report.json")
     migration_report = load_json(VAR / "migration-report.json")
     scale_report = load_json(VAR / "scale-report.json")
+    operational_report = load_json(VAR / "operational-gate.json")
     hard_pass = (
         suite.attrib.get("failures", "0") == "0"
         and suite.attrib.get("errors", "0") == "0"
@@ -56,6 +58,7 @@ def assemble_ci_report() -> dict[str, object]:
         and migration_report.get("table_set_match") is True
         and migration_report.get("sqlite_fts5_present") is True
         and scale_report.get("status") == "PASS"
+        and operational_report.get("status") == "PASS"
     )
     return {
         "schema_version": 2,
@@ -78,6 +81,7 @@ def assemble_ci_report() -> dict[str, object]:
         "mutation": mutation_report,
         "migration": migration_report,
         "scale": scale_report,
+        "operational": operational_report,
         "limitations": [
             "The package job runs only after required GitLab gates succeed; their logs remain GitLab artifacts.",
             "Synthetic evaluation does not authorize real restricted corpus deployment.",
@@ -117,7 +121,7 @@ def main() -> int:
 
     index = {
         "schema": "korpus.assurance-snapshot.v1",
-        "release": "v2.0.0",
+        "release": "v3.0.0",
         "status": "PASS",
         "records": records,
         "limitations": assurance.get("limitations", []),

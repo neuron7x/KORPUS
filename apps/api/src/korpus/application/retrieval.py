@@ -7,6 +7,7 @@ import unicodedata
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
+from typing import Any
 
 from korpus.application.ports import Repository, Retriever
 from korpus.domain.models import AuthorityClass, Identity, RetrievedEvidence
@@ -20,6 +21,10 @@ STOP_WORDS = {
 
 class RetrievalDeadlineExceeded(TimeoutError):
     """Raised when the deterministic retrieval budget is exhausted."""
+
+
+class RetrievalUnavailable(RuntimeError):
+    """Raised when a required retrieval dependency is unavailable."""
 
 
 def normalize_text(text: str) -> str:
@@ -287,7 +292,7 @@ class HybridLexicalRetriever(Retriever):
         diversity_lambda: float = 0.82,
         per_version_cap: int = 2,
         timeout_ms: int = 1200,
-        semantic_source=None,
+        semantic_source: Any | None = None,
     ) -> None:
         if candidate_budget < 8:
             raise ValueError("candidate_budget must be at least 8")
@@ -316,9 +321,12 @@ class HybridLexicalRetriever(Retriever):
         )
         semantic_by_span: dict[str, float] = {}
         if self.semantic_source is not None and self.weights.semantic > 0:
-            semantic_hits = self.semantic_source.search(
-                identity, text, corpus_ids, as_of, self.candidate_budget
-            )
+            try:
+                semantic_hits = self.semantic_source.search(
+                    identity, text, corpus_ids, as_of, self.candidate_budget
+                )
+            except Exception as exc:
+                raise RetrievalUnavailable("required semantic retrieval is unavailable") from exc
             semantic_by_span = {str(span_id): score for span_id, score in semantic_hits}
             missing_ids = [
                 span_id

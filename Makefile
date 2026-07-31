@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -46,6 +46,12 @@ migration-gate:
 scale:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_scale_probe.py
 
+operational-gate:
+	PYTHONPATH=apps/api/src $(PY) scripts/run_operational_gate.py
+
+assemble-assurance:
+	PYTHONPATH=apps/api/src $(PY) scripts/assemble_assurance.py
+
 assurance:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_research_assurance.py
 
@@ -58,7 +64,7 @@ audit-verify:
 validate:
 	python3 scripts/validate_repository.py
 
-check: validate api-test api-lint eval mutation migration-gate web-build
+check: validate api-test api-lint eval mutation migration-gate scale operational-gate web-build
 
 release: assurance snapshot validate package
 

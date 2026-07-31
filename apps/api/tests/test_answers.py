@@ -80,3 +80,24 @@ def test_partial_support_is_not_reported_as_full_coverage(client):
         json={"text": "Які дата, пароль, геолокація та біометрія містяться у записі?"},
     ).json()
     assert body["evidence_coverage"] < 1.0
+
+
+def test_required_retrieval_dependency_outage_abstains_fail_closed(client, admin_identity):
+    from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
+    from korpus.application.retrieval import RetrievalUnavailable
+    from korpus.domain.models import QueryRequest
+
+    class FailingRetriever:
+        def search(self, identity, text, corpus_ids, as_of, limit=8):
+            raise RetrievalUnavailable("required semantic retrieval is unavailable")
+
+    service = ExtractiveAnswerService(
+        client.app.state.repository,
+        FailingRetriever(),
+        client.app.state.policy,
+        AnswerPolicy(0.1, 0.1, 0.1, "outage-test"),
+    )
+    answer = service.execute(admin_identity, QueryRequest(text="Який порядок евакуації?"))
+    assert answer.status.value == "insufficient_evidence"
+    assert answer.decision_reason == "retrieval_dependency_unavailable"
+    assert answer.citations == []

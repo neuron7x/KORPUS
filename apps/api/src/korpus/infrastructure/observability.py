@@ -63,7 +63,7 @@ class Observability:
         self._tracer = self._configure_tracer(service_name, otlp_endpoint)
 
     @staticmethod
-    def _configure_tracer(service_name: str, endpoint: str | None):
+    def _configure_tracer(service_name: str, endpoint: str | None) -> Any:
         from opentelemetry import trace
 
         if endpoint:

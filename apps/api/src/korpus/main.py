@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -13,9 +14,8 @@ from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.config import Settings, get_settings
-from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.observability import Observability
-from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.runtime import create_object_store, create_repository
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
 from korpus.security.oidc import OIDCVerifier
 
@@ -24,14 +24,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
 
     @asynccontextmanager
-    async def lifespan(app: FastAPI):
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         policy = PolicyEngine()
-        repository = SqlRepository(
-            selected.database_url,
-            selected.resolved_audit_hmac_key,
-            policy,
-            selected.audit_anchor_path,
-        )
+        repository = create_repository(selected, policy)
         repository.initialize(create_schema=selected.schema_mode == "auto")
         app.state.policy = policy
         app.state.repository = repository
@@ -49,17 +44,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if selected.semantic_retrieval_enabled
             else None
         )
-        app.state.object_store = (
-            S3ObjectStore(
-                bucket=selected.s3_bucket or "",
-                prefix=selected.s3_prefix,
-                endpoint_url=selected.s3_endpoint_url,
-                region_name=selected.s3_region,
-                governance_retention_days=selected.s3_governance_retention_days,
-            )
-            if selected.object_store_mode == "s3"
-            else LocalObjectStore(selected.object_root)
-        )
+        app.state.object_store = create_object_store(selected)
         app.state.query_cache = EvidenceQueryCache(
             selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
         )
@@ -87,14 +72,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="KORPUS API",
-        version="2.0.0",
+        version="3.0.0",
         description="Evidence-bound controlled-corpus API",
         lifespan=lifespan,
     )
     app.dependency_overrides[get_settings] = lambda: selected
 
     @app.middleware("http")
-    async def request_identity(request: Request, call_next):
+    async def request_identity(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))[:128]
         started = time.monotonic()
         response: Response = await call_next(request)

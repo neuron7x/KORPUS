@@ -1,8 +1,8 @@
 from korpus.config import get_settings
-from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.runtime import create_repository
 
 settings = get_settings()
-repository = SqlRepository(settings.database_url, settings.resolved_audit_hmac_key)
+repository = create_repository(settings)
 repository.initialize()
 result = repository.verify_audit()
 print(result.model_dump_json(indent=2))

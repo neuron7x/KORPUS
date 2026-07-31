@@ -5,6 +5,7 @@ import os
 import re
 import tempfile
 from pathlib import Path
+from typing import Any
 
 HASH_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 KEY_PATTERN = re.compile(r"^[a-f0-9]{2}/[a-f0-9]{2}/[a-f0-9]{64}$")
@@ -78,7 +79,7 @@ class S3ObjectStore:
         endpoint_url: str | None = None,
         region_name: str | None = None,
         governance_retention_days: int = 0,
-        client=None,
+        client: Any | None = None,
     ) -> None:
         if not bucket or governance_retention_days < 0:
             raise ValueError("invalid S3 object store configuration")

@@ -111,3 +111,40 @@ def test_controlled_environment_requires_migration_managed_schema():
             oidc_jwks_url="https://id.example/jwks",
             audit_hmac_key="a" * 40,
         )
+
+
+def test_controlled_environment_requires_remote_audit_anchor(tmp_path: Path):
+    from korpus.application.calibration import CalibrationProfile
+
+    profile = CalibrationProfile(
+        profile_id="controlled-anchor-test",
+        dataset_sha256="a" * 64,
+        accepted_samples=2000,
+        observed_errors=0,
+        confidence_delta=0.05,
+        risk_limit=0.05,
+        minimum_score=0.4,
+        minimum_query_coverage=0.5,
+        minimum_support_score=0.35,
+        minimum_calibration_samples=200,
+        ranking_evaluated_queries=500,
+        ndcg_at_10=0.82,
+        mrr_at_10=0.86,
+        recall_at_20=0.94,
+    )
+    calibration = tmp_path / "calibration.json"
+    calibration.write_text(profile.model_dump_json())
+    with pytest.raises(ValueError, match="remote HTTP audit anchor"):
+        Settings(
+            environment="production",
+            schema_mode="migrations",
+            object_store_mode="s3",
+            s3_bucket="korpus-test",
+            auth_mode="oidc",
+            oidc_jwks_url="https://id.example/jwks",
+            jwt_issuer="https://id.example",
+            audit_hmac_key="a" * 40,
+            answer_policy_mode="calibrated",
+            calibration_profile_path=calibration,
+            review_separation_required=True,
+        )

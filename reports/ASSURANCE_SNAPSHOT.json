@@ -1,12 +1,12 @@
 {
   "schema": "korpus.assurance-snapshot.v1",
-  "release": "v2.0.0",
+  "release": "v3.0.0",
   "status": "PASS",
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 41608,
-      "sha256": "4cac97501a8d2e8f35f70aa894423f5e83d4ba5f32ac4e9045d017623adbbb80"
+      "bytes": 47404,
+      "sha256": "39b059bd40a8fabc9a84da9bbfbe0ef7f664ae15d75e2a1f2588ac5c0ac3eed2"
     },
     {
       "path": "reports/EVAL_REPORT.json",
@@ -15,23 +15,29 @@
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 28868,
-      "sha256": "2e2bfd6963181648a72e7650b9383cd4a0c8d484ae9529133873ad884e1d2634"
+      "bytes": 34572,
+      "sha256": "d12d30131ed86291152e446d1e5c7b29f376dd7acc403914745a9029f785e653"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
-      "bytes": 458,
-      "sha256": "3403afd6752d0112e5a519e87ca15541ebbb11b7de91884a1e8b497a4432c622"
+      "bytes": 496,
+      "sha256": "28a2a4e8ba050f2f2ae25c467d70aee5e92a97469f9a1234aacbedca7e4d26d3"
     },
     {
       "path": "reports/SCALE_REPORT.json",
       "bytes": 801,
-      "sha256": "610de59a178518c746db6c5038c183577d84e69be8490fc4a7e337b6760dd81a"
+      "sha256": "74106946a167cc0c54ff9d34d80cdd01b53f1fe49f78eb412d049fccf1e3262a"
+    },
+    {
+      "path": "reports/OPERATIONAL_GATE.json",
+      "bytes": 1161,
+      "sha256": "592f7cb90240f89d2f5de089c737903104664f07af685842a2de93e5b1135472"
     }
   ],
   "limitations": [
-    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
-    "PostgreSQL integration is a GitLab service-container gate; local report may show it skipped.",
-    "Synthetic evaluation does not authorize real restricted corpus deployment."
+    "PostgreSQL service-container integration remains a GitLab gate; one local test is skipped.",
+    "Ruff and mypy packages were unavailable in this runtime and remain mandatory GitLab jobs.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
   ]
 }
