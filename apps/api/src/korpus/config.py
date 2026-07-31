@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
+    retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
+    retrieval_cache_entries: int = Field(default=512, ge=1, le=100_000)
+    retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
     review_separation_required: bool = False
 
     max_upload_bytes: int = Field(default=50 * 1024 * 1024, ge=1024, le=500 * 1024 * 1024)

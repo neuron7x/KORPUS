@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from korpus.api.routes import router
+from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
@@ -30,6 +31,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.policy = policy
         app.state.repository = repository
         app.state.object_store = LocalObjectStore(selected.object_root)
+        app.state.query_cache = EvidenceQueryCache(
+            selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
+        )
         yield
         repository.engine.dispose()
 

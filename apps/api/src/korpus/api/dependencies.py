@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
+from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.policy import PolicyEngine
@@ -26,6 +27,10 @@ def get_repository(request: Request) -> SqlRepository:
 
 def get_object_store(request: Request) -> LocalObjectStore:
     return request.app.state.object_store
+
+
+def get_query_cache(request: Request) -> EvidenceQueryCache:
+    return request.app.state.query_cache
 
 
 def get_ingestion_service(
@@ -54,6 +59,7 @@ def get_answer_service(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
+    cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
 ) -> ExtractiveAnswerService:
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(settings.calibration_profile_path)  # type: ignore[arg-type]
@@ -70,11 +76,33 @@ def get_answer_service(
             minimum_support_score=settings.min_support_score,
             calibration_id="development-unvalidated",
         )
-    return ExtractiveAnswerService(
+    if settings.answer_policy_mode == "calibrated":
+        profile = CalibrationProfile.load(settings.calibration_profile_path)  # type: ignore[arg-type]
+        parameters = profile.bm25_parameters
+        weights = profile.retrieval_weights
+        candidate_budget = profile.retrieval_candidate_budget
+        timeout_ms = profile.retrieval_timeout_ms
+        diversity_lambda = profile.diversity_lambda
+        per_version_cap = profile.per_version_cap
+        configuration_id = profile.profile_id
+    else:
+        from korpus.application.retrieval import BM25Parameters, RetrievalWeights
+
+        parameters = BM25Parameters()
+        weights = RetrievalWeights()
+        candidate_budget = settings.retrieval_candidate_budget
+        timeout_ms = settings.retrieval_timeout_ms
+        diversity_lambda = 0.82
+        per_version_cap = 2
+        configuration_id = "development-default-ranking-v3"
+    base = HybridLexicalRetriever(
         repository,
-        HybridLexicalRetriever(
-            repository, candidate_budget=settings.retrieval_candidate_budget
-        ),
-        policy,
-        answer_policy,
+        parameters=parameters,
+        candidate_budget=candidate_budget,
+        weights=weights,
+        diversity_lambda=diversity_lambda,
+        per_version_cap=per_version_cap,
+        timeout_ms=timeout_ms,
     )
+    retriever = CachedRetriever(repository, base, cache, configuration_id)
+    return ExtractiveAnswerService(repository, retriever, policy, answer_policy)
