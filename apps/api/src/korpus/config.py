@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./var/korpus.db"
     schema_mode: str = "auto"
     object_root: Path = Path("./var/objects")
+    object_store_mode: str = "local"
+    s3_bucket: str | None = None
+    s3_prefix: str = "objects"
+    s3_endpoint_url: str | None = None
+    s3_region: str | None = None
+    s3_governance_retention_days: int = Field(default=0, ge=0, le=36500)
     audit_anchor_path: Path = Path("./var/audit-anchor.json")
     audit_hmac_key: str = "replace-local-audit-key"
     audit_hmac_key_file: Path | None = None
@@ -70,6 +76,13 @@ class Settings(BaseSettings):
     ocr_languages: str = "ukr+eng"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
 
+    @field_validator("object_store_mode")
+    @classmethod
+    def validate_object_store_mode(cls, value: str) -> str:
+        if value not in {"local", "s3"}:
+            raise ValueError("object_store_mode must be local or s3")
+        return value
+
     @field_validator("schema_mode")
     @classmethod
     def validate_schema_mode(cls, value: str) -> str:
@@ -107,6 +120,10 @@ class Settings(BaseSettings):
                 raise ValueError("validated calibration profile is required")
             if not self.review_separation_required:
                 raise ValueError("controlled environments require reviewer separation")
+        if self.object_store_mode == "s3" and not self.s3_bucket:
+            raise ValueError("s3_bucket is required for S3 object storage")
+        if controlled and self.object_store_mode == "local":
+            raise ValueError("controlled environments require durable S3-compatible object storage")
         if self.auth_mode == "jwt" and (
             len(self.resolved_jwt_secret) < 32 or self.resolved_jwt_secret.startswith("replace-")
         ):

@@ -105,6 +105,8 @@ def test_controlled_environment_requires_migration_managed_schema():
     with pytest.raises(ValueError, match="migration-managed schema"):
         Settings(
             environment="production",
+            object_store_mode="s3",
+            s3_bucket="korpus-test",
             auth_mode="oidc",
             oidc_jwks_url="https://id.example/jwks",
             audit_hmac_key="a" * 40,

@@ -47,6 +47,8 @@ def test_controlled_settings_reject_unvalidated_calibration(tmp_path: Path):
         Settings(
             environment="production",
             schema_mode="migrations",
+            object_store_mode="s3",
+            s3_bucket="korpus-test",
             auth_mode="oidc",
             oidc_jwks_url="https://id.example/jwks",
             jwt_issuer="https://id.example",
@@ -63,6 +65,8 @@ def test_controlled_settings_accept_valid_profile(tmp_path: Path):
     settings = Settings(
         environment="production",
         schema_mode="migrations",
+        object_store_mode="s3",
+        s3_bucket="korpus-test",
         auth_mode="oidc",
         oidc_jwks_url="https://id.example/jwks",
         jwt_issuer="https://id.example",

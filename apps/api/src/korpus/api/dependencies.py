@@ -12,6 +12,7 @@ from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.config import Settings, get_settings
+from korpus.application.ports import ObjectStore
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
@@ -27,7 +28,7 @@ def get_repository(request: Request) -> SqlRepository:
     return request.app.state.repository
 
 
-def get_object_store(request: Request) -> LocalObjectStore:
+def get_object_store(request: Request) -> ObjectStore:
     return request.app.state.object_store
 
 
@@ -45,7 +46,7 @@ def get_observability(request: Request) -> Observability:
 
 def get_ingestion_service(
     repository: Annotated[SqlRepository, Depends(get_repository)],
-    object_store: Annotated[LocalObjectStore, Depends(get_object_store)],
+    object_store: Annotated[ObjectStore, Depends(get_object_store)],
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
 ) -> IngestionService:

@@ -13,7 +13,7 @@ from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.config import Settings, get_settings
-from korpus.infrastructure.object_store import LocalObjectStore
+from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 from korpus.security.oidc import OIDCVerifier
@@ -34,7 +34,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         repository.initialize(create_schema=selected.schema_mode == "auto")
         app.state.policy = policy
         app.state.repository = repository
-        app.state.object_store = LocalObjectStore(selected.object_root)
+        app.state.object_store = (
+            S3ObjectStore(
+                bucket=selected.s3_bucket or "",
+                prefix=selected.s3_prefix,
+                endpoint_url=selected.s3_endpoint_url,
+                region_name=selected.s3_region,
+                governance_retention_days=selected.s3_governance_retention_days,
+            )
+            if selected.object_store_mode == "s3"
+            else LocalObjectStore(selected.object_root)
+        )
         app.state.query_cache = EvidenceQueryCache(
             selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
         )
