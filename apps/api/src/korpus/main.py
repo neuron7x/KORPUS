@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import uuid
 from contextlib import asynccontextmanager
 
@@ -13,6 +14,7 @@ from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
+from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 
 
@@ -38,6 +40,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.admission = AdmissionController(
             selected.max_concurrent_answers, selected.admission_wait_ms / 1000
         )
+        app.state.observability = Observability(
+            service_name=selected.service_name, otlp_endpoint=selected.otlp_endpoint
+        )
         yield
         repository.engine.dispose()
 
@@ -52,11 +57,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.middleware("http")
     async def request_identity(request: Request, call_next):
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))[:128]
+        started = time.monotonic()
         response: Response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Cache-Control"] = "no-store"
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        app.state.observability.observe_http(
+            request.method, route, response.status_code, time.monotonic() - started
+        )
         return response
 
     app.add_middleware(

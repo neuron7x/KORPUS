@@ -13,6 +13,7 @@ from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
+from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
@@ -36,6 +37,10 @@ def get_query_cache(request: Request) -> EvidenceQueryCache:
 
 def get_admission_controller(request: Request) -> AdmissionController:
     return request.app.state.admission
+
+
+def get_observability(request: Request) -> Observability:
+    return request.app.state.observability
 
 
 def get_ingestion_service(

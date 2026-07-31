@@ -4,12 +4,13 @@ import json
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 
 from korpus.api.dependencies import (
     get_admission_controller,
     get_answer_service,
     get_ingestion_service,
+    get_observability,
     get_policy,
     get_repository,
 )
@@ -30,6 +31,7 @@ from korpus.domain.models import (
     ReviewTransition,
     VersionCreate,
 )
+from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import ConcurrentWriteError, SqlRepository
 from korpus.security.auth import get_identity
 
@@ -65,6 +67,16 @@ def ready(repository: Annotated[SqlRepository, Depends(get_repository)]) -> dict
             detail={"database": repository.healthcheck(), "audit": audit.model_dump()},
         )
     return {"status": "ready", "audit_head": audit.head_sequence}
+
+
+@router.get("/metrics", include_in_schema=False)
+def metrics(
+    settings: Annotated[Settings, Depends(get_settings)],
+    observability: Annotated[Observability, Depends(get_observability)],
+) -> Response:
+    if not settings.metrics_enabled:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="metrics disabled")
+    return Response(observability.export_prometheus(), media_type="text/plain; version=0.0.4")
 
 
 @router.get("/v1/auth/me", response_model=Identity)
@@ -173,10 +185,19 @@ def create_answer(
     identity: IdentityDependency,
     service: Annotated[ExtractiveAnswerService, Depends(get_answer_service)],
     admission: Annotated[AdmissionController, Depends(get_admission_controller)],
+    observability: Annotated[Observability, Depends(get_observability)],
 ) -> Answer:
     try:
         with admission.acquire():
-            return service.execute(identity, query)
+            observability.admission_active.set(admission.snapshot().active)
+            with observability.measure_retrieval():
+                answer = service.execute(identity, query)
+            from korpus.application.risk import classify_query_risk
+
+            observability.observe_answer(
+                answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
+            )
+            return answer
     except OverloadedError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
