@@ -43,6 +43,7 @@ class CalibrationProfile(BaseModel):
     bm25_k1: float = Field(default=1.5, ge=0.1, le=4.0)
     bm25_b: float = Field(default=0.75, ge=0, le=1)
     weight_lexical: float = Field(default=0.42, ge=0, le=1)
+    weight_semantic: float = Field(default=0.0, ge=0, le=1)
     weight_query_coverage: float = Field(default=0.24, ge=0, le=1)
     weight_character: float = Field(default=0.10, ge=0, le=1)
     weight_authority: float = Field(default=0.14, ge=0, le=1)
@@ -65,6 +66,7 @@ class CalibrationProfile(BaseModel):
     def retrieval_weights(self) -> RetrievalWeights:
         return RetrievalWeights(
             lexical=self.weight_lexical,
+            semantic=self.weight_semantic,
             query_coverage=self.weight_query_coverage,
             character=self.weight_character,
             authority=self.weight_authority,

@@ -65,6 +65,7 @@ class RetrievalWeights:
     """
 
     lexical: float = 0.42
+    semantic: float = 0.00
     query_coverage: float = 0.24
     character: float = 0.10
     authority: float = 0.14
@@ -81,6 +82,7 @@ class RetrievalWeights:
     def as_tuple(self) -> tuple[float, ...]:
         return (
             self.lexical,
+            self.semantic,
             self.query_coverage,
             self.character,
             self.authority,
@@ -91,6 +93,7 @@ class RetrievalWeights:
     def as_dict(self) -> dict[str, float]:
         return {
             "lexical": self.lexical,
+            "semantic": self.semantic,
             "query_coverage": self.query_coverage,
             "character": self.character,
             "authority": self.authority,
@@ -114,6 +117,7 @@ AUTHORITY_PRIOR: dict[AuthorityClass, float] = {
 class ScoredCandidate:
     index: int
     lexical_score: float
+    semantic_score: float
     query_coverage: float
     character_score: float
     authority_score: float
@@ -129,6 +133,7 @@ class ScoredCandidate:
     def normalized_score(self) -> float:
         components = (
             self.lexical_normalized,
+            self.semantic_score,
             self.query_coverage,
             self.character_score,
             self.authority_score,
@@ -146,6 +151,7 @@ def score_candidates(
     parameters: BM25Parameters = BM25Parameters(),
     *,
     authority_scores: list[float] | None = None,
+    semantic_scores: list[float] | None = None,
     temporal_scores: list[float] | None = None,
     weights: RetrievalWeights = RetrievalWeights(),
 ) -> list[ScoredCandidate]:
@@ -155,11 +161,20 @@ def score_candidates(
         raise ValueError("texts and authority flags must have equal length")
     if authority_scores is None:
         authority_scores = [1.0 if value else 0.0 for value in official]
+    if semantic_scores is None:
+        semantic_scores = [0.0] * len(texts)
     if temporal_scores is None:
         temporal_scores = [0.0] * len(texts)
-    if len(authority_scores) != len(texts) or len(temporal_scores) != len(texts):
+    if (
+        len(authority_scores) != len(texts)
+        or len(semantic_scores) != len(texts)
+        or len(temporal_scores) != len(texts)
+    ):
         raise ValueError("component arrays must have equal length")
-    if any(not 0 <= value <= 1 for value in authority_scores + temporal_scores):
+    if any(
+        not 0 <= value <= 1
+        for value in authority_scores + semantic_scores + temporal_scores
+    ):
         raise ValueError("normalized component scores must be in [0, 1]")
 
     query_tokens = tokenize(query)
@@ -200,6 +215,7 @@ def score_candidates(
             ScoredCandidate(
                 index=index,
                 lexical_score=bm25,
+                semantic_score=semantic_scores[index],
                 query_coverage=query_coverage,
                 character_score=character_score,
                 authority_score=authority_scores[index],
@@ -271,6 +287,7 @@ class HybridLexicalRetriever(Retriever):
         diversity_lambda: float = 0.82,
         per_version_cap: int = 2,
         timeout_ms: int = 1200,
+        semantic_source=None,
     ) -> None:
         if candidate_budget < 8:
             raise ValueError("candidate_budget must be at least 8")
@@ -283,6 +300,7 @@ class HybridLexicalRetriever(Retriever):
         self.diversity_lambda = diversity_lambda
         self.per_version_cap = per_version_cap
         self.timeout_ms = timeout_ms
+        self.semantic_source = semantic_source
 
     def search(
         self,
@@ -296,16 +314,36 @@ class HybridLexicalRetriever(Retriever):
         candidates = self.repository.search_retrievable_spans(
             identity, corpus_ids, as_of, text, self.candidate_budget
         )
+        semantic_by_span: dict[str, float] = {}
+        if self.semantic_source is not None and self.weights.semantic > 0:
+            semantic_hits = self.semantic_source.search(
+                identity, text, corpus_ids, as_of, self.candidate_budget
+            )
+            semantic_by_span = {str(span_id): score for span_id, score in semantic_hits}
+            missing_ids = [
+                span_id
+                for span_id, _ in semantic_hits
+                if str(span_id) not in {str(span.id) for span, _, _ in candidates}
+            ]
+            if missing_ids:
+                candidates.extend(
+                    self.repository.get_retrievable_spans_by_ids(
+                        identity, corpus_ids, as_of, missing_ids
+                    )
+                )
         if (time.monotonic() - started) * 1000 > self.timeout_ms:
             raise RetrievalDeadlineExceeded("candidate retrieval exceeded deadline")
         if not candidates:
             return []
+        # Preserve first occurrence while fusing lexical and semantic candidates.
+        candidates = list({str(item[0].id): item for item in candidates}.values())
         component_scores = score_candidates(
             text,
             [span.text for span, _, _ in candidates],
             [version.authority.value.startswith("official_") for _, _, version in candidates],
             self.parameters,
             authority_scores=[AUTHORITY_PRIOR[version.authority] for _, _, version in candidates],
+            semantic_scores=[semantic_by_span.get(str(span.id), 0.0) for span, _, _ in candidates],
             temporal_scores=[
                 _temporal_specificity(version.publication_date, version.effective_from)
                 for _, _, version in candidates

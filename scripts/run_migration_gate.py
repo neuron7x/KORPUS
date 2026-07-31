@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, inspect, select
 
 ROOT = Path(__file__).resolve().parents[1]
 API = ROOT / "apps/api"
+sys.path.insert(0, str(API / "src"))
 
 
 def main() -> int:
@@ -56,7 +57,7 @@ def main() -> int:
             head = connection.execute(select(audit_heads.c.sequence, audit_heads.c.head_hash)).one()
         search_index_present = "evidence_fts" in actual_tables
         report = {
-            "migration": "0001_initial",
+            "migration": "head",
             "tables_expected": sorted(expected_tables),
             "tables_actual": sorted(actual_tables - ignored),
             "table_set_match": expected_tables == (actual_tables - ignored),

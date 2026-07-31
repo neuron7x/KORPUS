@@ -13,12 +13,17 @@ class JudgedCandidate:
     text: str
     relevance: int
     authority_score: float = 0.0
+    semantic_score: float = 0.0
     temporal_score: float = 0.0
 
     def __post_init__(self) -> None:
         if self.relevance < 0 or self.relevance > 3:
             raise ValueError("relevance must be an integer in [0, 3]")
-        if not 0 <= self.authority_score <= 1 or not 0 <= self.temporal_score <= 1:
+        if (
+            not 0 <= self.authority_score <= 1
+            or not 0 <= self.semantic_score <= 1
+            or not 0 <= self.temporal_score <= 1
+        ):
             raise ValueError("component scores must be in [0, 1]")
 
 
@@ -62,6 +67,7 @@ def _rank(query: JudgedQuery, weights: RetrievalWeights, bm25: BM25Parameters) -
         [candidate.authority_score >= 0.9 for candidate in query.candidates],
         bm25,
         authority_scores=[candidate.authority_score for candidate in query.candidates],
+        semantic_scores=[candidate.semantic_score for candidate in query.candidates],
         temporal_scores=[candidate.temporal_score for candidate in query.candidates],
         weights=weights,
     )
@@ -104,16 +110,19 @@ def _simplex_weight_candidates(step: float = 0.1) -> Iterable[RetrievalWeights]:
     if step <= 0 or step > 0.5 or not math.isclose(round(1 / step) * step, 1.0, abs_tol=1e-9):
         raise ValueError("step must evenly divide 1")
     units = round(1 / step)
-    # Keep authority and temporal priors nonzero; otherwise trusted-current evidence
-    # can be dominated by keyword stuffing.
-    for lexical, coverage, character, authority, phrase in itertools.product(range(units + 1), repeat=5):
-        temporal = units - lexical - coverage - character - authority - phrase
+    # Authority remains nonzero to resist keyword stuffing. Semantic may be zero
+    # when no independently validated embedding model exists.
+    for lexical, semantic, coverage, character, authority, phrase in itertools.product(
+        range(units + 1), repeat=6
+    ):
+        temporal = units - lexical - semantic - coverage - character - authority - phrase
         if temporal < 0:
             continue
-        if lexical < 2 or coverage < 1 or authority < 1:
+        if lexical < 1 or coverage < 1 or authority < 1:
             continue
         yield RetrievalWeights(
             lexical=lexical * step,
+            semantic=semantic * step,
             query_coverage=coverage * step,
             character=character * step,
             authority=authority * step,

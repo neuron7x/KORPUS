@@ -16,6 +16,7 @@ from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
 from korpus.security.oidc import OIDCVerifier
 
 
@@ -34,6 +35,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         repository.initialize(create_schema=selected.schema_mode == "auto")
         app.state.policy = policy
         app.state.repository = repository
+        app.state.semantic_source = (
+            PgVectorSemanticIndex(
+                repository.engine,
+                HttpEmbeddingProvider(
+                    endpoint=selected.embedding_endpoint or "",
+                    model_id=selected.embedding_model_id or "",
+                    dimensions=selected.embedding_dimensions,
+                    token=selected.embedding_token,
+                    timeout_seconds=selected.embedding_timeout_seconds,
+                ),
+            )
+            if selected.semantic_retrieval_enabled
+            else None
+        )
         app.state.object_store = (
             S3ObjectStore(
                 bucket=selected.s3_bucket or "",

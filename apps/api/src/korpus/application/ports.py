@@ -65,6 +65,14 @@ class Repository(Protocol):
         as_of: date,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]: ...
 
+    def get_retrievable_spans_by_ids(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        span_ids: list[UUID],
+    ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]: ...
+
     def search_retrievable_spans(
         self,
         identity: Identity,

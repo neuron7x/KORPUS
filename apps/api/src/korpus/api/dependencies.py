@@ -44,6 +44,10 @@ def get_observability(request: Request) -> Observability:
     return request.app.state.observability
 
 
+def get_semantic_source(request: Request):
+    return request.app.state.semantic_source
+
+
 def get_ingestion_service(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
@@ -71,6 +75,7 @@ def get_answer_service(
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
+    semantic_source=Depends(get_semantic_source),
 ) -> ExtractiveAnswerService:
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(settings.calibration_profile_path)  # type: ignore[arg-type]
@@ -100,7 +105,10 @@ def get_answer_service(
         from korpus.application.retrieval import BM25Parameters, RetrievalWeights
 
         parameters = BM25Parameters()
-        weights = RetrievalWeights()
+        weights = RetrievalWeights(
+            lexical=0.42 - settings.semantic_weight,
+            semantic=settings.semantic_weight,
+        )
         candidate_budget = settings.retrieval_candidate_budget
         timeout_ms = settings.retrieval_timeout_ms
         diversity_lambda = 0.82
@@ -114,6 +122,7 @@ def get_answer_service(
         diversity_lambda=diversity_lambda,
         per_version_cap=per_version_cap,
         timeout_ms=timeout_ms,
+        semantic_source=semantic_source,
     )
     retriever = CachedRetriever(repository, base, cache, configuration_id)
     return ExtractiveAnswerService(repository, retriever, policy, answer_policy)

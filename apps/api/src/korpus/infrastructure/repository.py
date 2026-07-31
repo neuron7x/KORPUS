@@ -108,6 +108,18 @@ spans = Table(
     UniqueConstraint("version_id", "ordinal", name="uq_span_version_ordinal"),
 )
 
+span_embeddings = Table(
+    "span_embeddings",
+    metadata,
+    Column("span_id", String(36), ForeignKey("evidence_spans.id", ondelete="CASCADE"), primary_key=True),
+    Column("model_id", String(200), primary_key=True),
+    Column("dimensions", Integer, nullable=False),
+    Column("embedding_json", Text, nullable=False),
+    Column("text_hash", String(64), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("dimensions > 0", name="ck_span_embedding_dimensions"),
+)
+
 audits = Table(
     "audit_events",
     metadata,
@@ -415,9 +427,31 @@ class SqlRepository:
         if not authorized_corpora:
             return []
         statement = self._retrievable_projection(identity, authorized_corpora, as_of)
-        with self.engine.connect() as connection:
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
             rows = connection.execute(statement).mappings().all()
         return self._materialize_current(rows, as_of)
+
+    def get_retrievable_spans_by_ids(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        span_ids: list[UUID],
+    ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
+        authorized_corpora = corpus_ids.intersection(identity.corpora)
+        if not authorized_corpora or not span_ids:
+            return []
+        string_ids = [str(value) for value in span_ids]
+        statement = self._retrievable_projection(identity, authorized_corpora, as_of).where(
+            spans.c.id.in_(string_ids)
+        )
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            rows = connection.execute(statement).mappings().all()
+        by_id = {row["span_id"]: row for row in rows}
+        ordered = [by_id[value] for value in string_ids if value in by_id]
+        return self._materialize_current(ordered, as_of)
 
     def search_retrievable_spans(
         self,
@@ -432,15 +466,16 @@ class SqlRepository:
         authorized_corpora = corpus_ids.intersection(identity.corpora)
         if not authorized_corpora:
             return []
-        span_ids = self._candidate_span_ids(
-            identity, authorized_corpora, as_of, query, candidate_limit * 4
-        )
-        if not span_ids:
-            return []
-        statement = self._retrievable_projection(identity, authorized_corpora, as_of).where(
-            spans.c.id.in_(span_ids)
-        )
-        with self.engine.connect() as connection:
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            span_ids = self._candidate_span_ids(
+                identity, authorized_corpora, as_of, query, candidate_limit * 4, connection
+            )
+            if not span_ids:
+                return []
+            statement = self._retrievable_projection(identity, authorized_corpora, as_of).where(
+                spans.c.id.in_(span_ids)
+            )
             rows = connection.execute(statement).mappings().all()
         by_id = {row["span_id"]: row for row in rows}
         ordered = [by_id[span_id] for span_id in span_ids if span_id in by_id]
@@ -540,6 +575,7 @@ class SqlRepository:
         as_of: date,
         query: str,
         limit: int,
+        connection: Connection | None = None,
     ) -> list[str]:
         from korpus.application.retrieval import tokenize
 
@@ -622,8 +658,29 @@ class SqlRepository:
             )
         else:
             raise RuntimeError(f"unsupported search dialect: {self.engine.dialect.name}")
-        with self.engine.connect() as connection:
+        if connection is not None:
             return [row.span_id for row in connection.execute(statement, parameters)]
+        with self.engine.begin() as owned_connection:
+            self._apply_postgres_identity(owned_connection, identity)
+            return [row.span_id for row in owned_connection.execute(statement, parameters)]
+
+    @staticmethod
+    def _apply_postgres_identity(connection: Connection, identity: Identity) -> None:
+        if connection.dialect.name != "postgresql":
+            return
+        classifications = SqlRepository._allowed_classifications(identity.clearance)
+        connection.execute(
+            sql_text(
+                "SELECT set_config('korpus.clearance', :clearance, true), "
+                "set_config('korpus.corpora', :corpora, true), "
+                "set_config('korpus.classifications', :classifications, true)"
+            ),
+            {
+                "clearance": str(int(identity.clearance)),
+                "corpora": ",".join(sorted(identity.corpora)),
+                "classifications": ",".join(classifications),
+            },
+        )
 
     def _initialize_search_index(self, connection: Connection) -> None:
         if self.engine.dialect.name == "sqlite":

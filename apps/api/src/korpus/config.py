@@ -58,6 +58,13 @@ class Settings(BaseSettings):
     min_support_score: float = Field(0.18, ge=0, le=1)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
+    semantic_retrieval_enabled: bool = False
+    semantic_weight: float = Field(default=0.0, ge=0, le=0.30)
+    embedding_endpoint: str | None = None
+    embedding_model_id: str | None = None
+    embedding_dimensions: int = Field(default=768, ge=8, le=4000)
+    embedding_token: str | None = None
+    embedding_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     retrieval_cache_entries: int = Field(default=512, ge=1, le=100_000)
     retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
     max_concurrent_answers: int = Field(default=16, ge=1, le=4096)
@@ -120,6 +127,11 @@ class Settings(BaseSettings):
                 raise ValueError("validated calibration profile is required")
             if not self.review_separation_required:
                 raise ValueError("controlled environments require reviewer separation")
+        if self.semantic_retrieval_enabled:
+            if not self.database_url.startswith("postgresql"):
+                raise ValueError("semantic retrieval requires PostgreSQL/pgvector")
+            if not self.embedding_endpoint or not self.embedding_model_id:
+                raise ValueError("semantic retrieval requires embedding endpoint and model id")
         if self.object_store_mode == "s3" and not self.s3_bucket:
             raise ValueError("s3_bucket is required for S3 object storage")
         if controlled and self.object_store_mode == "local":
