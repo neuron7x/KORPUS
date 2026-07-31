@@ -13,6 +13,7 @@ def test_jwt_auth_accepts_valid_token_and_rejects_invalid(tmp_path: Path):
         environment="test",
         database_url=f"sqlite:///{tmp_path / 'jwt.db'}",
         object_root=tmp_path / "objects",
+        audit_anchor_path=tmp_path / "anchor.json",
         auth_mode="jwt",
         jwt_secret="s" * 32,
         audit_hmac_key="audit-test",
@@ -31,4 +32,3 @@ def test_jwt_auth_accepts_valid_token_and_rejects_invalid(tmp_path: Path):
         response = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         assert response.json()["subject"] == "jwt-user"
-    app.state.repository.engine.dispose()

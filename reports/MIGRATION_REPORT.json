@@ -1,0 +1,23 @@
+{
+  "migration": "0001_initial",
+  "tables_expected": [
+    "audit_anchor_outbox",
+    "audit_events",
+    "audit_heads",
+    "document_versions",
+    "documents",
+    "evidence_spans"
+  ],
+  "tables_actual": [
+    "audit_anchor_outbox",
+    "audit_events",
+    "audit_heads",
+    "document_versions",
+    "documents",
+    "evidence_spans"
+  ],
+  "table_set_match": true,
+  "column_failures": {},
+  "audit_head_seeded": true,
+  "sqlite_fts5_present": true
+}

@@ -40,6 +40,8 @@ class PolicyEngine:
     def can_access_document(self, identity: Identity, document: DocumentRecord) -> PolicyDecision:
         if identity.clearance < document.access_tier:
             return PolicyDecision(False, "clearance below document access tier")
+        if document.classification.minimum_tier > identity.clearance:
+            return PolicyDecision(False, "clearance below classification minimum")
         if document.corpus_id not in identity.corpora:
             return PolicyDecision(False, "corpus not assigned to identity")
         return PolicyDecision(True, "authorized")

@@ -1,10 +1,16 @@
 from __future__ import annotations
 
+import hashlib
+import re
+import unicodedata
 from datetime import UTC, date, datetime
 from enum import IntEnum, StrEnum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+CORPUS_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
+ROLE_PATTERN = re.compile(r"^[a-z][a-z0-9:_-]{0,63}$")
 
 
 class AccessTier(IntEnum):
@@ -48,6 +54,14 @@ class Classification(StrEnum):
     INTERNAL = "internal"
     RESTRICTED = "restricted"
 
+    @property
+    def minimum_tier(self) -> AccessTier:
+        return {
+            Classification.PUBLIC: AccessTier.PUBLIC,
+            Classification.INTERNAL: AccessTier.AUTHENTICATED,
+            Classification.RESTRICTED: AccessTier.RESTRICTED,
+        }[self]
+
 
 class AnswerStatus(StrEnum):
     ANSWERED = "answered"
@@ -65,22 +79,52 @@ class Identity(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     subject: str = Field(min_length=1, max_length=200)
-    roles: frozenset[str] = Field(default_factory=frozenset)
+    roles: frozenset[str] = Field(default_factory=frozenset, max_length=32)
     clearance: AccessTier = AccessTier.PUBLIC
-    corpora: frozenset[str] = Field(default_factory=lambda: frozenset({"public"}))
+    corpora: frozenset[str] = Field(default_factory=lambda: frozenset({"public"}), max_length=64)
+
+    @field_validator("subject")
+    @classmethod
+    def normalize_subject(cls, value: str) -> str:
+        value = unicodedata.normalize("NFC", value.strip())
+        if any(ord(char) < 32 for char in value):
+            raise ValueError("subject contains control characters")
+        return value
+
+    @field_validator("roles")
+    @classmethod
+    def normalize_roles(cls, values: frozenset[str]) -> frozenset[str]:
+        normalized = frozenset(value.strip().lower() for value in values)
+        if any(not ROLE_PATTERN.fullmatch(value) for value in normalized):
+            raise ValueError("invalid role identifier")
+        return normalized
+
+    @field_validator("corpora")
+    @classmethod
+    def normalize_corpora(cls, values: frozenset[str]) -> frozenset[str]:
+        normalized = frozenset(value.strip().lower() for value in values)
+        if not normalized or any(not CORPUS_ID_PATTERN.fullmatch(value) for value in normalized):
+            raise ValueError("invalid corpus identifier")
+        return normalized
 
     def has_role(self, *roles: str) -> bool:
-        return bool(self.roles.intersection(roles))
+        return bool(self.roles.intersection(role.lower() for role in roles))
 
 
 class DocumentCreate(BaseModel):
     canonical_title: str = Field(min_length=3, max_length=500)
-    corpus_id: str = Field(default="public", pattern=r"^[a-z0-9][a-z0-9._-]{0,63}$")
+    corpus_id: str = Field(default="public", pattern=CORPUS_ID_PATTERN.pattern)
     issuer: str = Field(min_length=2, max_length=300)
     jurisdiction: str = Field(default="UA", min_length=2, max_length=50)
     document_type: str = Field(default="reference", min_length=2, max_length=100)
     access_tier: AccessTier = AccessTier.PUBLIC
     classification: Classification = Classification.PUBLIC
+
+    @model_validator(mode="after")
+    def validate_classification_tier(self) -> "DocumentCreate":
+        if self.access_tier < self.classification.minimum_tier:
+            raise ValueError("access_tier is below classification minimum")
+        return self
 
 
 class VersionCreate(BaseModel):
@@ -93,17 +137,20 @@ class VersionCreate(BaseModel):
     authority: AuthorityClass = AuthorityClass.UNKNOWN
     supersedes_version_id: UUID | None = None
 
-    @field_validator("effective_until")
-    @classmethod
-    def validate_dates(cls, value: date | None, info: object) -> date | None:
-        data = getattr(info, "data", {})
-        start = data.get("effective_from") if isinstance(data, dict) else None
-        if value is not None and start is not None and value < start:
+    @model_validator(mode="after")
+    def validate_dates(self) -> "VersionCreate":
+        if (
+            self.effective_until is not None
+            and self.effective_from is not None
+            and self.effective_until < self.effective_from
+        ):
             raise ValueError("effective_until cannot precede effective_from")
-        return value
+        return self
 
 
 class DocumentRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     id: UUID = Field(default_factory=uuid4)
     canonical_title: str
     corpus_id: str
@@ -116,6 +163,8 @@ class DocumentRecord(BaseModel):
 
 
 class DocumentVersionRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     id: UUID = Field(default_factory=uuid4)
     document_id: UUID
     revision: str
@@ -131,32 +180,58 @@ class DocumentVersionRecord(BaseModel):
     authority: AuthorityClass
     review_state: ReviewState = ReviewState.QUARANTINED
     supersedes_version_id: UUID | None = None
+    state_version: int = Field(default=0, ge=0)
+    metadata_reviewed_by: str | None = Field(default=None, max_length=200)
+    content_reviewed_by: str | None = Field(default=None, max_length=200)
+    approved_at: datetime | None = None
+    approved_by: str | None = Field(default=None, max_length=200)
+    is_current: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    def is_active(self, as_of: date) -> bool:
-        if self.rescinded_at is not None:
-            return False
+    def is_valid_on(self, as_of: date) -> bool:
         if self.effective_from is not None and as_of < self.effective_from:
             return False
-        return self.effective_until is None or as_of <= self.effective_until
+        if self.effective_until is not None and as_of > self.effective_until:
+            return False
+        if self.rescinded_at is not None and as_of >= self.rescinded_at.date():
+            return False
+        return True
 
 
 class EvidenceSpanRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     id: UUID = Field(default_factory=uuid4)
     version_id: UUID
     ordinal: int = Field(ge=0)
     page: int | None = Field(default=None, ge=1)
     section: str | None = Field(default=None, max_length=500)
     text: str = Field(min_length=1, max_length=12000)
+    text_hash: str = Field(default="", pattern=r"^(?:|[a-f0-9]{64})$")
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @model_validator(mode="after")
+    def derive_text_hash(self) -> "EvidenceSpanRecord":
+        expected = hashlib.sha256(self.text.encode("utf-8")).hexdigest()
+        if self.text_hash and self.text_hash != expected:
+            raise ValueError("text_hash does not match evidence text")
+        if not self.text_hash:
+            object.__setattr__(self, "text_hash", expected)
+        return self
 
 
 class RetrievedEvidence(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     span: EvidenceSpanRecord
     document: DocumentRecord
     version: DocumentVersionRecord
     score: float = Field(ge=0, le=1)
     query_coverage: float = Field(ge=0, le=1)
+    lexical_score: float = Field(default=0.0, ge=0)
+    character_score: float = Field(default=0.0, ge=0, le=1)
+    authority_bonus: float = Field(default=0.0, ge=0, le=1)
+    rank: int = Field(default=0, ge=0)
 
 
 class QueryRequest(BaseModel):
@@ -164,6 +239,24 @@ class QueryRequest(BaseModel):
     corpus_ids: list[str] = Field(default_factory=list, max_length=20)
     as_of: date = Field(default_factory=date.today)
     locale: str = Field(default="uk-UA", pattern=r"^[a-z]{2}(?:-[A-Z]{2})?$")
+
+    @field_validator("text")
+    @classmethod
+    def normalize_text(cls, value: str) -> str:
+        value = unicodedata.normalize("NFC", value.strip())
+        if any(char == "\x00" for char in value):
+            raise ValueError("query contains NUL")
+        return value
+
+    @field_validator("corpus_ids")
+    @classmethod
+    def validate_corpus_ids(cls, values: list[str]) -> list[str]:
+        normalized = [value.strip().lower() for value in values]
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("duplicate corpus identifiers")
+        if any(not CORPUS_ID_PATTERN.fullmatch(value) for value in normalized):
+            raise ValueError("invalid corpus identifier")
+        return normalized
 
 
 class Citation(BaseModel):
@@ -177,8 +270,19 @@ class Citation(BaseModel):
     page: int | None = None
     section: str | None = None
     quote: str = Field(min_length=1, max_length=1600)
+    quote_start: int = Field(ge=0)
+    quote_end: int = Field(gt=0)
+    quote_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
     source_uri: str | None = None
     source_hash: str
+
+    @model_validator(mode="after")
+    def validate_quote_offsets(self) -> "Citation":
+        if self.quote_end <= self.quote_start:
+            raise ValueError("quote_end must be greater than quote_start")
+        if hashlib.sha256(self.quote.encode("utf-8")).hexdigest() != self.quote_hash:
+            raise ValueError("quote_hash does not match quote")
+        return self
 
 
 class Claim(BaseModel):
@@ -188,6 +292,7 @@ class Claim(BaseModel):
     evidence_span_ids: tuple[UUID, ...] = Field(min_length=1)
     support_state: SupportState = SupportState.EXTRACTIVE
     support_score: float = Field(ge=0, le=1)
+    query_coverage: float = Field(ge=0, le=1)
 
 
 class Answer(BaseModel):
@@ -198,6 +303,8 @@ class Answer(BaseModel):
     citations: list[Citation] = Field(default_factory=list)
     retrieval_score: float = Field(ge=0, le=1)
     evidence_coverage: float = Field(ge=0, le=1)
+    decision_reason: str = Field(min_length=1, max_length=500)
+    calibration_id: str
     limitations: list[str] = Field(default_factory=list)
     corpus_release: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -205,13 +312,16 @@ class Answer(BaseModel):
 
 class ReviewTransition(BaseModel):
     target: ReviewState
-    note: str = Field(min_length=3, max_length=2000)
+    note: str = Field(min_length=12, max_length=2000)
 
 
 class AuditVerification(BaseModel):
     valid: bool
     event_count: int = Field(ge=0)
+    head_sequence: int = Field(ge=0)
+    anchor_valid: bool
     first_invalid_sequence: int | None = None
+    reason: str | None = None
 
 
 class IngestResult(BaseModel):

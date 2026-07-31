@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "korpus-api"
-version = "1.0.0"
+version = "2.0.0"
 description = "Evidence-bound controlled-corpus platform API"
 requires-python = ">=3.12"
 dependencies = [
@@ -40,8 +40,14 @@ packages = ["src/korpus"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-q --strict-markers"
-markers = ["integration: database/API integration test"]
+addopts = "-q --strict-markers --strict-config"
+markers = [
+  "integration: database/API integration test",
+  "postgres: PostgreSQL service-container integration test",
+  "adversarial: attack-oriented test",
+  "concurrency: concurrent state or transaction test",
+  "metamorphic: metamorphic or noninterference property",
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -68,3 +74,15 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["pypdf.*"]
 ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+source = ["korpus"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 82
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]

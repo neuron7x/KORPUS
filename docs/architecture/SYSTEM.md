@@ -1,40 +1,24 @@
 # System architecture
 
-## Trust path
+The current executable architecture is specified in `SYSTEM_V2.md`.
 
-```text
-verified identity
-  -> policy decision point
-  -> authorized corpus intersection
-  -> approved/current version filter
-  -> lexical retrieval and ranking
-  -> evidence sufficiency gate
-  -> extractive claim construction
-  -> immutable citation binding
-  -> hash-chained audit
-```
+## Source-of-truth boundaries
 
-The current executable implementation is a modular monolith. This is deliberate: authorization, retrieval, version validity, answer construction, and audit share transactional invariants that are easier to prove inside one process. Service extraction is allowed only after measured scaling pressure and contract tests exist.
+- protected GitLab `main`: source code, contracts and migrations;
+- SQL database: document metadata, immutable versions, review state, spans, audit chain and anchor outbox;
+- content-addressed object store: immutable uploaded bytes;
+- search index: derived, rebuildable candidate structure;
+- external audit anchor: independently stored checkpoint;
+- CI artifacts: tests, evals, mutation, migration, scale, SBOM and build evidence.
 
-## Source of truth
+Local worktrees and generated indexes are disposable. They are never authoritative state.
 
-- GitLab protected `main`: code and contracts.
-- SQL database: metadata, versions, spans, review state, audit chain.
-- Object store: immutable source bytes addressed by SHA-256.
-- Corpus release identifier: digest of all version identifiers, hashes, and review states.
-- CI artifacts: build outputs, SBOM, coverage and evaluation reports.
+## Extraction threshold
 
-Local worktrees are disposable and never authoritative.
+The modular monolith remains intentional because authorization, temporal selection, evidence construction and audit share transactional invariants. A service may be extracted only after:
 
-## Boundaries
-
-1. API boundary: validated Pydantic and JSON Schema contracts.
-2. Identity boundary: signed JWT or fixed local identity; no client-selected clearance.
-3. Corpus boundary: corpus assignment and access tier enforced before ranking.
-4. Source boundary: uploads enter quarantine and cannot answer until reviewed.
-5. Generation boundary: current implementation is extractive; external LLM providers are absent by design.
-6. Audit boundary: HMAC hash chain detects modification but does not replace WORM/remote anchoring.
-
-## Production extensions
-
-A controlled deployment should add PostgreSQL row-level security, S3-compatible object lock, OIDC/JWKS key rotation, malware/CDR pipeline, queue-backed ingestion, OpenSearch/pgvector hybrid retrieval, external timestamp anchoring, and a separately authorized model gateway.
+1. a versioned contract exists;
+2. deterministic replay exists;
+3. failure and rollback semantics are tested;
+4. cross-service authorization cannot widen access;
+5. measured scale pressure justifies the new failure surface.

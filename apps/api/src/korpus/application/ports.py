@@ -11,41 +11,67 @@ from korpus.domain.models import (
     EvidenceSpanRecord,
     Identity,
     RetrievedEvidence,
+    ReviewState,
 )
 
 
 class Repository(Protocol):
     def initialize(self) -> None: ...
 
-    def create_document(self, document: DocumentRecord) -> DocumentRecord: ...
-
     def create_document_bundle(
-        self, document: DocumentRecord, version: DocumentVersionRecord, spans: list[EvidenceSpanRecord]
+        self,
+        actor: Identity,
+        document: DocumentRecord,
+        version: DocumentVersionRecord,
+        spans: list[EvidenceSpanRecord],
+        audit_payload: dict[str, Any],
     ) -> None: ...
 
     def create_version_bundle(
-        self, version: DocumentVersionRecord, spans: list[EvidenceSpanRecord]
+        self,
+        actor: Identity,
+        version: DocumentVersionRecord,
+        spans: list[EvidenceSpanRecord],
+        audit_payload: dict[str, Any],
     ) -> None: ...
 
     def get_document(self, document_id: UUID) -> DocumentRecord | None: ...
 
     def list_documents(self, identity: Identity) -> list[DocumentRecord]: ...
 
-    def create_version(self, version: DocumentVersionRecord) -> DocumentVersionRecord: ...
-
     def get_version(self, version_id: UUID) -> DocumentVersionRecord | None: ...
 
-    def find_version_by_hash(self, source_hash: str) -> DocumentVersionRecord | None: ...
+    def find_version_by_hash(
+        self,
+        source_hash: str,
+        *,
+        corpus_id: str | None = None,
+        document_id: UUID | None = None,
+    ) -> DocumentVersionRecord | None: ...
 
-    def update_version(self, version: DocumentVersionRecord) -> DocumentVersionRecord: ...
-
-    def add_spans(self, spans: list[EvidenceSpanRecord]) -> None: ...
+    def transition_version(
+        self,
+        actor: Identity,
+        version_id: UUID,
+        expected_state: ReviewState,
+        target_state: ReviewState,
+        note: str,
+    ) -> DocumentVersionRecord: ...
 
     def list_retrievable_spans(
         self,
         identity: Identity,
         corpus_ids: frozenset[str],
         as_of: date,
+    ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]: ...
+
+    def search_retrievable_spans(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        query: str,
+        candidate_limit: int,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]: ...
 
     def append_audit(
@@ -59,13 +85,22 @@ class Repository(Protocol):
 
     def verify_audit(self) -> AuditVerification: ...
 
-    def corpus_release_id(self) -> str: ...
+    def corpus_release_id(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+    ) -> str: ...
+
+    def healthcheck(self) -> bool: ...
 
 
 class ObjectStore(Protocol):
     def put(self, content: bytes, source_hash: str, filename: str) -> str: ...
 
     def get(self, object_key: str) -> bytes: ...
+
+    def exists(self, object_key: str) -> bool: ...
 
 
 class Retriever(Protocol):

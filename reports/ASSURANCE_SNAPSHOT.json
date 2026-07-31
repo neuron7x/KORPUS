@@ -1,0 +1,37 @@
+{
+  "schema": "korpus.assurance-snapshot.v1",
+  "release": "v2.0.0",
+  "status": "PASS",
+  "records": [
+    {
+      "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
+      "bytes": 41608,
+      "sha256": "4cac97501a8d2e8f35f70aa894423f5e83d4ba5f32ac4e9045d017623adbbb80"
+    },
+    {
+      "path": "reports/EVAL_REPORT.json",
+      "bytes": 7602,
+      "sha256": "623e55267334ad53af908df62638d54ee5a9012ede6eb60d38c5b9efee297969"
+    },
+    {
+      "path": "reports/MUTATION_REPORT.json",
+      "bytes": 28868,
+      "sha256": "2e2bfd6963181648a72e7650b9383cd4a0c8d484ae9529133873ad884e1d2634"
+    },
+    {
+      "path": "reports/MIGRATION_REPORT.json",
+      "bytes": 458,
+      "sha256": "3403afd6752d0112e5a519e87ca15541ebbb11b7de91884a1e8b497a4432c622"
+    },
+    {
+      "path": "reports/SCALE_REPORT.json",
+      "bytes": 801,
+      "sha256": "610de59a178518c746db6c5038c183577d84e69be8490fc4a7e337b6760dd81a"
+    }
+  ],
+  "limitations": [
+    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
+    "PostgreSQL integration is a GitLab service-container gate; local report may show it skipped.",
+    "Synthetic evaluation does not authorize real restricted corpus deployment."
+  ]
+}

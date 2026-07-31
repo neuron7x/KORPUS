@@ -1,6 +1,7 @@
 stages:
   - validate
   - test
+  - assurance
   - security
   - build
   - package
@@ -10,6 +11,7 @@ variables:
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONUNBUFFERED: "1"
   KORPUS_ENVIRONMENT: "test"
+  KORPUS_SCHEMA_MODE: "auto"
   KORPUS_DATABASE_URL: "sqlite:///$CI_PROJECT_DIR/var/ci.db"
   KORPUS_OBJECT_ROOT: "$CI_PROJECT_DIR/var/objects"
   KORPUS_AUTH_MODE: "dev"
@@ -26,6 +28,7 @@ repository:validate:
   image: python:3.12-slim
   script:
     - python scripts/validate_repository.py
+    - python -m compileall -q apps/api/src scripts
 
 api:test:
   stage: test
@@ -34,17 +37,17 @@ api:test:
     - pip install -e 'apps/api[dev]'
   script:
     - mkdir -p var/objects
-    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-report=xml --cov-fail-under=85
-    - PYTHONPATH=apps/api/src python scripts/run_evals.py
+    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-fail-under=82 --junitxml=var/pytest.xml
   artifacts:
     when: always
     reports:
+      junit: var/pytest.xml
       coverage_report:
         coverage_format: cobertura
-        path: coverage.xml
+        path: var/coverage.xml
     paths:
-      - coverage.xml
-      - var/eval-report.json
+      - var/pytest.xml
+      - var/coverage.xml
 
 api:quality:
   stage: test
@@ -64,6 +67,44 @@ web:test:
     - npm --prefix apps/web run typecheck
     - npm --prefix apps/web run build
 
+api:assurance:
+  stage: assurance
+  image: python:3.12-slim
+  before_script:
+    - pip install -e 'apps/api[dev]'
+  script:
+    - mkdir -p var/objects
+    - PYTHONPATH=apps/api/src python scripts/run_evals.py
+    - PYTHONPATH=apps/api/src python scripts/run_mutation_tests.py
+    - PYTHONPATH=apps/api/src python scripts/run_migration_gate.py
+    - PYTHONPATH=apps/api/src python scripts/run_scale_probe.py
+  artifacts:
+    when: always
+    paths:
+      - var/eval-report.json
+      - var/mutation-report.json
+      - var/migration-report.json
+      - var/scale-report.json
+
+api:postgres:
+  stage: assurance
+  image: python:3.12-slim
+  services:
+    - name: postgres:17-alpine
+      alias: postgres
+  variables:
+    POSTGRES_DB: korpus_test
+    POSTGRES_USER: korpus
+    POSTGRES_PASSWORD: korpus-test-password
+    KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus:korpus-test-password@postgres:5432/korpus_test
+    KORPUS_DATABASE_URL: postgresql+psycopg://korpus:korpus-test-password@postgres:5432/korpus_test
+  before_script:
+    - pip install -e 'apps/api[dev,postgres]'
+    - python scripts/wait_for_database.py
+  script:
+    - cd apps/api && alembic upgrade head && cd ../..
+    - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
+
 secret:scan:
   stage: security
   image: zricethezav/gitleaks:v8.28.0
@@ -76,7 +117,7 @@ python:audit:
   before_script:
     - pip install pip-audit
   script:
-    - pip-audit -r apps/api/requirements.lock || test "$ALLOW_VULNERABLE_DEPENDENCIES" = "true"
+    - pip-audit -r apps/api/requirements.lock
 
 sbom:
   stage: security
@@ -91,7 +132,7 @@ container:build:
   image: docker:27
   services: [docker:27-dind]
   rules:
-    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_BRANCH || $CI_COMMIT_TAG'
   script:
     - docker build --pull -f apps/api/Dockerfile -t "$CI_REGISTRY_IMAGE/api:$CI_COMMIT_SHA" .
     - docker build --pull -f apps/web/Dockerfile -t "$CI_REGISTRY_IMAGE/web:$CI_COMMIT_SHA" .
@@ -99,9 +140,28 @@ container:build:
 source:package:
   stage: package
   image: alpine:3.21
+  needs:
+    - job: api:test
+      artifacts: true
+    - job: api:assurance
+      artifacts: true
+    - job: api:quality
+    - job: api:postgres
+    - job: web:test
+    - job: secret:scan
+    - job: python:audit
+    - job: sbom
+      artifacts: true
+    - job: container:build
   script:
-    - apk add --no-cache bash git zip
+    - apk add --no-cache bash git zip python3
+    - python3 scripts/snapshot_assurance.py
+    - python3 scripts/generate_manifest.py
     - bash scripts/package_repository.sh
   artifacts:
-    paths: [dist/]
+    paths:
+      - dist/
+      - reports/
+      - REPOSITORY_MANIFEST.json
+      - sbom.cdx.json
     expire_in: 30 days

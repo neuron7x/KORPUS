@@ -2,18 +2,18 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: api-install api-run api-test api-lint web-install web-run web-build bootstrap eval audit-verify validate check infra-secrets infra-up infra-support infra-down package clean
+.PHONY: api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
-	$(PIP) install -e 'apps/api[dev]'
+	$(PIP) install -e 'apps/api[dev,postgres]'
 
 api-run:
 	mkdir -p var/objects
 	$(PY) -m uvicorn korpus.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8000 --reload
 
 api-test:
-	$(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-report=term-missing --cov-fail-under=85
+	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-fail-under=82
 
 api-lint:
 	$(PY) -m ruff check apps/api/src apps/api/tests scripts
@@ -37,13 +37,30 @@ bootstrap:
 eval:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_evals.py
 
+mutation:
+	PYTHONPATH=apps/api/src $(PY) scripts/run_mutation_tests.py
+
+migration-gate:
+	PYTHONPATH=apps/api/src $(PY) scripts/run_migration_gate.py
+
+scale:
+	PYTHONPATH=apps/api/src $(PY) scripts/run_scale_probe.py
+
+assurance:
+	PYTHONPATH=apps/api/src $(PY) scripts/run_research_assurance.py
+
+snapshot:
+	PYTHONPATH=apps/api/src $(PY) scripts/snapshot_assurance.py
+
 audit-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_audit.py
 
 validate:
 	python3 scripts/validate_repository.py
 
-check: validate api-test api-lint eval
+check: validate api-test api-lint eval mutation migration-gate web-build
+
+release: assurance snapshot validate package
 
 infra-secrets:
 	bash scripts/init_local_secrets.sh
@@ -61,4 +78,4 @@ package:
 	bash scripts/package_repository.sh
 
 clean:
-	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage.xml var dist apps/web/.next
+	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage.xml var dist apps/web/dist apps/web/.next

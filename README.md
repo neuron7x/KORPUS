@@ -1,56 +1,71 @@
-# KORPUS
+# KORPUS v2.0.0
 
-Evidence-bound knowledge, training, and administrative platform for controlled Ukrainian document corpora.
+Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 
-KORPUS is not an autonomous operational decision-maker. It is a fail-closed document system that:
+KORPUS is not an autonomous operational decision-maker and does not treat an LLM as an authority. Its trust kernel ingests immutable sources, applies server-derived access policy before retrieval, selects temporally valid approved versions, emits exact extractive claims with content-bound citations, abstains under insufficient support, and records every decision in a recoverable tamper-evident audit ledger.
 
-- ingests PDF, text, Markdown, JSON, and HTML documents;
-- preserves source hashes and immutable document versions;
-- requires review before a source becomes answerable;
-- derives authorization from a verified server-side identity;
-- filters access before retrieval;
-- produces extractive, claim-to-span answers with immutable citations;
-- records actions in a tamper-evident hash-chained audit ledger;
-- supports frozen evaluations, adversarial tests, GitLab CI/CD, and isolated agent worktrees.
+## Implemented trust path
 
-## Verified executable scope
+```text
+verified identity
+  -> corpus / tier / classification policy
+  -> SQL temporal and review predicates
+  -> bounded database candidate index
+       SQLite FTS5 | PostgreSQL GIN tsvector
+  -> deterministic BM25 + character reranking
+  -> calibrated claim-support gate
+  -> exact extractive claim + citation offsets/hash
+  -> audit transaction + anchor outbox
+  -> external HMAC checkpoint
+```
 
-The repository contains a working vertical slice, not a claim of formal state authorization:
+## What changed in v2
 
-1. authenticated identity;
-2. ABAC policy decision;
-3. secure ingestion and optional OCR fallback;
-4. document/version/review lifecycle;
-5. approved-only, access-filtered lexical retrieval;
-6. evidence-bound extractive answers or explicit abstention;
-7. persistent audit chain;
-8. API, PWA, tests, evaluation runner, Docker, and GitLab pipeline.
+- database candidate retrieval replaced unbounded Python corpus scanning;
+- access and temporal predicates execute before text enters candidate memory;
+- historical supersession is evaluated in SQL for the requested `as_of` date;
+- audit anchoring uses a transactional outbox and crash recovery;
+- controlled environments refuse automatic schema creation and require Alembic migrations;
+- production answer policy requires a finite-sample validated calibration profile;
+- tests now include state machines, concurrency, metamorphic properties, noninterference, adversarial source/query cases, migration parity and mutation testing;
+- the frozen assurance dataset expanded to 30 cases with independent leakage, citation and determinism metrics;
+- local scale probes report bounded-candidate latency with environment and procedure provenance.
 
-The following remain deployment-specific and cannot be completed by source code alone: corpus rights, official reviewer appointments, data classification, security profile, independent penetration test, accreditation/authorization, production secrets, and operational ownership.
+## Executable assurance gates
+
+```bash
+make assurance
+```
+
+This runs repository validation, Python compilation, branch-aware tests, frozen evaluation, critical mutation testing, clean-database migration parity, local scale probe and web build. Ruff, mypy, dependency audit, secret scan, SBOM, containers and PostgreSQL integration are separate GitLab gates.
+
+Successful release evidence is promoted with `make snapshot` into content-hashed files under `reports/`. Passing these gates proves only the encoded predicates. It does not prove corpus rights, official authority, military security authorization, OCR fidelity on real documents, production SLA or accreditation.
 
 ## Repository map
 
 ```text
-apps/api/                  FastAPI modular monolith
-apps/web/                  Dependency-free offline-capable PWA
-packages/contracts/        Versioned boundary schemas
-infra/                     Docker, OpenTelemetry, deployment profiles
-scripts/                   Bootstrap, eval, worktree and validation tools
-evals/                     Frozen functional and adversarial fixtures
-docs/                      Architecture, governance, protocols and runbooks
+apps/api/                  FastAPI modular monolith and trust kernel
+apps/web/                  dependency-free offline-capable PWA
+packages/contracts/        versioned public boundary schemas
+infra/                     local infrastructure and observability
+scripts/                   assurance, migration, eval and packaging tools
+evals/                     frozen scenario and adversarial fixtures
+docs/assurance/            value function, verification lattice, assurance case
+docs/research/             primary-source research provenance
+docs/architecture/         system topology, security and data model
 agents/                    Codex / Claude Code execution contracts
-.gitlab/                   CODEOWNERS and merge-request controls
+.gitlab/                   CI, CODEOWNERS and MR controls
 ```
 
 ## Local start
 
-Requirements: Python 3.12+, Node 22+, Docker Compose.
+Requirements: Python 3.12+, Node 22+.
 
 ```bash
 cp .env.example .env
 make api-install
 make bootstrap
-make api-test
+make assurance
 make api-run
 ```
 
@@ -62,40 +77,36 @@ make web-run
 ```
 
 API: `http://127.0.0.1:8000`
+
 Web: `http://127.0.0.1:3000`
 OpenAPI: `http://127.0.0.1:8000/docs`
 
-The default local identity is read from environment variables. HTTP clients cannot select their own access tier. Production refuses `dev` authentication mode.
+The local identity is configuration-derived. Request bodies cannot select clearance, roles or corpus assignment.
 
-## Core invariants
+## Core killable invariants
 
-1. A source without provenance and an approved immutable version cannot answer a query.
-2. Authentication attributes are verified by the server; query bodies cannot expand authorization.
-3. Access filtering happens before ranking or generation.
-4. Every claim names one or more immutable evidence span identifiers.
-5. An answer cannot cite a rejected, quarantined, inactive, or inaccessible version.
-6. Retrieved text is data, never an instruction channel.
-7. Audit events form a verifiable hash chain.
-8. Agent-generated changes merge only through protected GitLab merge requests and independent verification.
-9. Unknown evidence state produces abstention, not fluent completion.
-10. Formal authorization is an external gate; it is never inferred from passing unit tests.
-
-## Common commands
-
-```bash
-make check              # repository validation, tests, lint, typecheck
-make bootstrap          # initialize DB and seed a reviewed public fixture
-make eval               # frozen evidence and access evaluation
-make audit-verify       # verify the persistent hash chain
-make infra-up           # generate secrets; start local API + PWA
-make infra-support      # also start optional PostgreSQL, Redis, MinIO and OpenTelemetry
-make package            # create deterministic source archive
-```
+1. Inaccessible text never enters ranking, answer, citation, metric or release identity.
+2. A quarantined, rejected, future, expired, rescinded or actively superseded version cannot answer.
+3. Every claim equals a cited substring and verifies by exact offsets and SHA-256.
+4. Retrieved text is data and cannot become a control instruction.
+5. Missing or uncalibrated support produces a named abstention.
+6. Metadata, versions, spans and audit event commit or roll back together.
+7. Audit ordering, predecessor relation, HMAC, database head and external anchor agree.
+8. Candidate work is bounded before application reranking.
+9. Fixed code, corpus release, calibration and query produce the same semantic output.
+10. Agent output cannot merge without independent verification and protected GitLab gates.
 
 ## Deployment modes
 
-- `local`: SQLite, local object directory, fixed development identity.
-- `controlled`: PostgreSQL/object storage, signed JWT identity, restricted egress.
-- `isolated`: private registry, local model gateway, no external provider calls, dedicated runners.
+- `local`: SQLite FTS5, local immutable object store, development identity.
+- `controlled`: migration-managed PostgreSQL, OIDC/JWKS, external object lock and restricted egress.
+- `isolated`: private registries and model gateway, dedicated runners, no public-provider data path.
 
-See `docs/architecture/SYSTEM.md`, `docs/architecture/SECURITY.md`, and `docs/protocols/REVIEW_AND_RELEASE.md`.
+Read first:
+
+- `docs/assurance/FIRST_PRINCIPLES.md`
+- `docs/assurance/TEST_STRATEGY.md`
+- `docs/assurance/ASSURANCE_CASE.md`
+- `docs/research/RESEARCH_PROVENANCE_2026.md`
+- `docs/architecture/SYSTEM_V2.md`
+- `AGENTS.md`

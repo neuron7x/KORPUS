@@ -1,4 +1,4 @@
-# Verification report
+# Verification report — KORPUS v2.0.0
 
 Verification date: 2026-07-31.
 
@@ -6,25 +6,33 @@ Verification date: 2026-07-31.
 
 | Gate | Procedure | Result |
 |---|---|---|
-| API functional tests | `pytest apps/api/tests` | 28/28 PASS |
-| Python coverage | `pytest --cov ... --cov-fail-under=85` | 87.98% PASS |
-| Frozen evaluation | `scripts/run_evals.py` | 5/5 PASS |
-| Access leakage | public identity vs restricted marker/corpus | PASS |
-| Prompt-injection null | instruction-like query without evidence | abstention PASS |
-| Version supersession | approved v2 excludes approved v1 | PASS |
-| Audit tampering | mutate first ledger event | detection PASS |
-| Local bootstrap | ingest + three review transitions | PASS |
-| Audit verification | verify bootstrapped ledger | 4 events, valid PASS |
-| Web validation | zero-dependency asset contract | PASS |
-| Web build | static PWA build | PASS |
-| Database migration | Alembic `0001_initial -> head` on SQLite | PASS |
-| Python syntax | `compileall` | PASS |
-| Repository contract | `scripts/validate_repository.py` | PASS after final generation |
+| Functional/property/state tests | `pytest apps/api/tests` | 68 collected; 67 PASS; 1 PostgreSQL-only SKIP |
+| Line coverage | Cobertura from branch-aware pytest | 88.88% |
+| Branch coverage | Cobertura from branch-aware pytest | 66.67% |
+| Frozen assurance evaluation | `scripts/run_evals.py` | 30/30 PASS |
+| Citation binding | exact substring, offsets, quote/source hash | 19 checks; 0 failures |
+| Access noninterference | public identity vs restricted corpus/markers | 0 leakage failures |
+| Determinism | repeated semantic outputs | 0 failures |
+| Critical mutation testing | `scripts/run_mutation_tests.py` | 11/11 mutants killed |
+| Review/version state machine | illegal transitions, optimistic races, supersession | PASS |
+| Audit integrity | mutation, truncation, concurrency, CAS head, HMAC anchor | PASS |
+| Transaction outbox recovery | failed external anchor then reconciliation | PASS |
+| Migration parity | clean Alembic upgrade vs SQLAlchemy metadata | PASS |
+| Search-index migration | SQLite FTS5 created from empty database | PASS |
+| Bounded retrieval | candidate generation cannot call full-corpus path | PASS |
+| Local scale probe | 5,000 synthetic spans; 80 queries; candidate budget 256 | PASS; local measurement only |
+| Web lint/typecheck/build | dependency-free validation and static PWA build | PASS |
+| Repository/syntax | repository contract, `compileall`, `git diff --check` | PASS |
+
+## Local scale measurement
+
+Latest release snapshot records the exact values and environment in `reports/SCALE_REPORT.json`. This is an `ANCHORED_LOCAL_MEASUREMENT`, not a production SLA. PostgreSQL network, concurrent load, real corpus morphology and disk behavior remain unmeasured locally.
 
 ## Not executed in this container
 
+- PostgreSQL service-container test: encoded in GitLab CI, locally skipped because no PostgreSQL service was available.
+- Ruff and mypy: jobs and strict configuration exist, but the local package registry did not expose the tools; result remains `UNKNOWN` until a connected runner executes them.
 - Docker image/Compose runtime: Docker executable unavailable.
-- Ruff and mypy: package registry available to this container did not expose the pinned tools. GitLab jobs are defined, but their result remains UNKNOWN until a connected runner executes them.
-- Independent penetration test, malware/CDR test, PostgreSQL load test and formal authorization: external gates, not inferable from repository tests.
+- Independent penetration test, malware/CDR validation, real-corpus OCR benchmark, rights/classification review and formal authorization/accreditation: external evidence obligations.
 
-This report proves the listed procedures only. It does not claim production accreditation or validate the real corpus.
+This report proves only the listed procedures against synthetic/reference fixtures. It does not claim operational authorization for restricted military data.

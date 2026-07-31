@@ -6,32 +6,42 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
-from korpus.api.dependencies import (
-    get_answer_service,
-    get_ingestion_service,
-    get_policy,
-    get_repository,
-)
+from korpus.api.dependencies import get_answer_service, get_ingestion_service, get_policy, get_repository
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.ingestion import IngestionService
 from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.config import Settings, get_settings
 from korpus.domain.models import (
     Answer,
     AuditVerification,
     DocumentCreate,
     DocumentRecord,
+    DocumentVersionRecord,
     Identity,
     IngestResult,
     QueryRequest,
     ReviewTransition,
     VersionCreate,
-    DocumentVersionRecord,
 )
-from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.repository import ConcurrentWriteError, SqlRepository
 from korpus.security.auth import get_identity
 
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
+
+
+async def _read_upload_limited(file: UploadFile, maximum_bytes: int) -> bytes:
+    chunks: list[bytes] = []
+    total = 0
+    while True:
+        chunk = await file.read(1024 * 1024)
+        if not chunk:
+            break
+        total += len(chunk)
+        if total > maximum_bytes:
+            raise ValueError("upload exceeds configured size limit")
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 @router.get("/health")
@@ -40,8 +50,14 @@ def health() -> dict[str, str]:
 
 
 @router.get("/ready")
-def ready(repository: Annotated[SqlRepository, Depends(get_repository)]) -> dict[str, str]:
-    return {"status": "ready", "corpus_release": repository.corpus_release_id()}
+def ready(repository: Annotated[SqlRepository, Depends(get_repository)]) -> dict[str, object]:
+    audit = repository.verify_audit()
+    if not repository.healthcheck() or not audit.valid:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"database": repository.healthcheck(), "audit": audit.model_dump()},
+        )
+    return {"status": "ready", "audit_head": audit.head_sequence}
 
 
 @router.get("/v1/auth/me", response_model=Identity)
@@ -66,6 +82,7 @@ def list_documents(
 async def ingest_document(
     identity: IdentityDependency,
     service: Annotated[IngestionService, Depends(get_ingestion_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
     document_json: Annotated[str, Form()],
     version_json: Annotated[str, Form()],
     file: Annotated[UploadFile, File()],
@@ -73,7 +90,7 @@ async def ingest_document(
     try:
         document = DocumentCreate.model_validate(json.loads(document_json))
         version = VersionCreate.model_validate(json.loads(version_json))
-        content = await file.read()
+        content = await _read_upload_limited(file, settings.max_upload_bytes)
         return service.ingest(
             identity,
             document,
@@ -99,12 +116,13 @@ async def ingest_document_version(
     document_id: UUID,
     identity: IdentityDependency,
     service: Annotated[IngestionService, Depends(get_ingestion_service)],
+    settings: Annotated[Settings, Depends(get_settings)],
     version_json: Annotated[str, Form()],
     file: Annotated[UploadFile, File()],
 ) -> IngestResult:
     try:
         version = VersionCreate.model_validate(json.loads(version_json))
-        content = await file.read()
+        content = await _read_upload_limited(file, settings.max_upload_bytes)
         return service.ingest_version(
             identity,
             document_id,
@@ -123,7 +141,7 @@ async def ingest_document_version(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
 
 
-@router.post("/v1/document-versions/{version_id}/review")
+@router.post("/v1/document-versions/{version_id}/review", response_model=DocumentVersionRecord)
 def review_version(
     version_id: UUID,
     transition: ReviewTransition,
@@ -136,6 +154,8 @@ def review_version(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except ConcurrentWriteError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import re
 from dataclasses import dataclass
 
 from korpus.application.ports import Repository, Retriever
 from korpus.application.policy import PolicyEngine
-from korpus.application.retrieval import tokenize
+from korpus.application.retrieval import normalize_text, tokenize
 from korpus.domain.models import (
     Answer,
     AnswerStatus,
@@ -17,20 +18,57 @@ from korpus.domain.models import (
     SupportState,
 )
 
-SENTENCE_PATTERN = re.compile(r"(?<=[.!?])\s+|\n+")
-INJECTION_MARKERS = (
-    "ignore previous",
-    "ігноруй поперед",
-    "system prompt",
-    "developer message",
-    "виконай інструкц",
+SENTENCE_PATTERN = re.compile(r"[^.!?\n]+(?:[.!?]+|$)", re.UNICODE)
+INJECTION_PATTERNS = (
+    re.compile(r"\bignore\s+(all\s+)?previous\b", re.I),
+    re.compile(r"ігноруй\s+(усі\s+)?поперед", re.I),
+    re.compile(r"\b(system|developer)\s+(prompt|message)\b", re.I),
+    re.compile(r"розкрий\s+(системн|прихован)", re.I),
+    re.compile(r"\bexecute\s+these\s+instructions\b", re.I),
 )
+
+
+@dataclass(frozen=True)
+class SentenceCandidate:
+    text: str
+    start: int
+    end: int
+    query_coverage: float
+
+
+def contains_control_injection(text: str) -> bool:
+    normalized = normalize_text(text)
+    return any(pattern.search(normalized) for pattern in INJECTION_PATTERNS)
+
+
+def sentence_candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
+    output: list[SentenceCandidate] = []
+    for match in SENTENCE_PATTERN.finditer(text):
+        raw = match.group(0)
+        leading = len(raw) - len(raw.lstrip())
+        trailing = len(raw.rstrip())
+        sentence = raw.strip()
+        if not sentence:
+            continue
+        sentence_tokens = set(tokenize(sentence))
+        coverage = len(query_tokens.intersection(sentence_tokens)) / max(len(query_tokens), 1)
+        output.append(
+            SentenceCandidate(
+                text=sentence,
+                start=match.start() + leading,
+                end=match.start() + trailing,
+                query_coverage=coverage,
+            )
+        )
+    return output
 
 
 @dataclass(frozen=True)
 class AnswerPolicy:
     minimum_score: float
     minimum_query_coverage: float
+    minimum_support_score: float
+    calibration_id: str
     max_claims: int = 4
 
     def eligible(self, evidence: list[RetrievedEvidence]) -> list[RetrievedEvidence]:
@@ -59,80 +97,95 @@ class ExtractiveAnswerService:
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
+        release_id = self.repository.corpus_release_id(identity, corpora, query.as_of)
+        if contains_control_injection(query.text):
+            answer = self._abstain(
+                release_id,
+                "query_control_injection",
+                "Запит містить інструкції керування моделлю замість предметного питання.",
+            )
+            self._audit(identity, query, answer, [], [])
+            return answer
+
         retrieved = self.retriever.search(identity, query.text, corpora, query.as_of)
         eligible = self.answer_policy.eligible(retrieved)
-        release_id = self.repository.corpus_release_id()
         if not eligible:
-            answer = Answer(
-                status=AnswerStatus.INSUFFICIENT_EVIDENCE,
-                text="У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
-                retrieval_score=max((item.score for item in retrieved), default=0.0),
-                evidence_coverage=0.0,
-                limitations=["Генерацію зупинено: доказовий поріг не пройдено."],
-                corpus_release=release_id,
+            answer = self._abstain(
+                release_id,
+                "retrieval_gate_failed",
+                "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
+                max((item.score for item in retrieved), default=0.0),
             )
             self._audit(identity, query, answer, retrieved, eligible)
             return answer
 
-        query_tokens = set(tokenize(query.text))
+        query_tokens = frozenset(tokenize(query.text))
         claims: list[Claim] = []
         citations: list[Citation] = []
         seen_sentences: set[str] = set()
-        seen_spans: set[str] = set()
+        covered_tokens: set[str] = set()
 
         for item in eligible:
-            sentences = [part.strip() for part in SENTENCE_PATTERN.split(item.span.text) if part.strip()]
-            ranked = sorted(
-                sentences,
-                key=lambda sentence: len(query_tokens.intersection(tokenize(sentence))),
-                reverse=True,
+            candidates = sorted(
+                sentence_candidates(item.span.text, query_tokens),
+                key=lambda candidate: (-candidate.query_coverage, candidate.start),
             )
-            sentence = next((candidate for candidate in ranked if candidate not in seen_sentences), None)
-            if sentence is None:
+            candidate = next(
+                (
+                    current
+                    for current in candidates
+                    if current.text not in seen_sentences
+                    and not contains_control_injection(current.text)
+                ),
+                None,
+            )
+            if candidate is None:
                 continue
-            # Retrieved content is quoted as data. Instruction-like strings never become control text.
-            if any(marker in sentence.casefold() for marker in INJECTION_MARKERS):
-                sentence = f"[Непридатний інструктивний фрагмент у джерелі вилучено з відповіді]"
-                continue
-            overlap = len(query_tokens.intersection(tokenize(sentence))) / max(len(query_tokens), 1)
-            if overlap < self.answer_policy.minimum_query_coverage:
+            support_score = min(item.score, candidate.query_coverage)
+            if (
+                candidate.query_coverage < self.answer_policy.minimum_query_coverage
+                or support_score < self.answer_policy.minimum_support_score
+            ):
                 continue
             claims.append(
                 Claim(
-                    text=sentence,
+                    text=candidate.text,
                     evidence_span_ids=(item.span.id,),
                     support_state=SupportState.EXTRACTIVE,
-                    support_score=min(1.0, max(overlap, item.score)),
+                    support_score=support_score,
+                    query_coverage=candidate.query_coverage,
                 )
             )
-            seen_sentences.add(sentence)
-            if str(item.span.id) not in seen_spans:
-                citations.append(
-                    Citation(
-                        document_id=item.document.id,
-                        version_id=item.version.id,
-                        span_id=item.span.id,
-                        title=item.document.canonical_title,
-                        revision=item.version.revision,
-                        page=item.span.page,
-                        section=item.span.section,
-                        quote=item.span.text[:1600],
-                        source_uri=item.version.source_uri,
-                        source_hash=item.version.source_hash,
-                    )
+            quote_hash = hashlib.sha256(candidate.text.encode("utf-8")).hexdigest()
+            citations.append(
+                Citation(
+                    document_id=item.document.id,
+                    version_id=item.version.id,
+                    span_id=item.span.id,
+                    title=item.document.canonical_title,
+                    revision=item.version.revision,
+                    page=item.span.page,
+                    section=item.span.section,
+                    quote=candidate.text,
+                    quote_start=candidate.start,
+                    quote_end=candidate.end,
+                    quote_hash=quote_hash,
+                    source_uri=item.version.source_uri,
+                    source_hash=item.version.source_hash,
                 )
-                seen_spans.add(str(item.span.id))
+            )
+            seen_sentences.add(candidate.text)
+            covered_tokens.update(set(tokenize(candidate.text)).intersection(query_tokens))
             if len(claims) >= self.answer_policy.max_claims:
                 break
 
-        if not claims:
-            answer = Answer(
-                status=AnswerStatus.INSUFFICIENT_EVIDENCE,
-                text="Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
-                retrieval_score=eligible[0].score,
-                evidence_coverage=0.0,
-                limitations=["Відсутній достатній claim-to-span overlap."],
-                corpus_release=release_id,
+        evidence_coverage = len(covered_tokens) / max(len(query_tokens), 1)
+        if not claims or evidence_coverage < self.answer_policy.minimum_query_coverage:
+            answer = self._abstain(
+                release_id,
+                "claim_support_gate_failed",
+                "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
+                max((item.score for item in eligible), default=0.0),
             )
         else:
             answer = Answer(
@@ -141,12 +194,34 @@ class ExtractiveAnswerService:
                 claims=claims,
                 citations=citations,
                 retrieval_score=max(item.score for item in eligible),
-                evidence_coverage=1.0,
-                limitations=["Відповідь екстрактивна: система не додає фактів поза цитованими фрагментами."],
+                evidence_coverage=evidence_coverage,
+                decision_reason="extractive_claims_passed_calibrated_gates",
+                calibration_id=self.answer_policy.calibration_id,
+                limitations=[
+                    "Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями."
+                ],
                 corpus_release=release_id,
             )
         self._audit(identity, query, answer, retrieved, eligible)
         return answer
+
+    def _abstain(
+        self,
+        release_id: str,
+        reason: str,
+        text: str,
+        retrieval_score: float = 0.0,
+    ) -> Answer:
+        return Answer(
+            status=AnswerStatus.INSUFFICIENT_EVIDENCE,
+            text=text,
+            retrieval_score=retrieval_score,
+            evidence_coverage=0.0,
+            decision_reason=reason,
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=["Генерацію зупинено fail-closed."],
+            corpus_release=release_id,
+        )
 
     def _audit(
         self,
@@ -163,11 +238,14 @@ class ExtractiveAnswerService:
             str(answer.id),
             {
                 "status": answer.status.value,
-                "query_hash": __import__("hashlib").sha256(query.text.encode()).hexdigest(),
+                "decision_reason": answer.decision_reason,
+                "query_hash": hashlib.sha256(query.text.encode("utf-8")).hexdigest(),
                 "requested_corpora": query.corpus_ids,
                 "retrieved": len(retrieved),
                 "eligible": len(eligible),
                 "citation_count": len(answer.citations),
+                "evidence_coverage": answer.evidence_coverage,
+                "calibration_id": answer.calibration_id,
                 "corpus_release": answer.corpus_release,
             },
         )
