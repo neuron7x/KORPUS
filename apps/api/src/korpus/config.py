@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     jwt_max_lifetime_minutes: int = Field(default=120, ge=5, le=1440)
     oidc_jwks_url: str | None = None
     oidc_algorithms: str = "RS256,ES256"
+    oidc_jwks_cache_seconds: int = Field(default=300, ge=30, le=86400)
+    oidc_http_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
+    oidc_clock_skew_seconds: int = Field(default=30, ge=0, le=300)
     dev_subject: str = "local-admin"
     dev_roles: str = "admin,curator,reviewer,instructor,user,auditor"
     dev_clearance: str = "restricted"

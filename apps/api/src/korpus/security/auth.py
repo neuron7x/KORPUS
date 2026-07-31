@@ -5,7 +5,7 @@ from typing import Annotated, Any
 from uuid import uuid4
 
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from korpus.config import Settings, get_settings
@@ -60,6 +60,7 @@ def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
 def get_identity(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
     settings: Annotated[Settings, Depends(get_settings)],
+    request: Request,
 ) -> Identity:
     if settings.auth_mode == "dev":
         return Identity(
@@ -81,16 +82,10 @@ def get_identity(
                 options={"require": ["sub", "exp", "iat", "nbf", "jti", "iss", "aud"]},
             )
         else:
-            jwk_client = jwt.PyJWKClient(settings.oidc_jwks_url or "")
-            signing_key = jwk_client.get_signing_key_from_jwt(credentials.credentials)
-            claims = jwt.decode(
-                credentials.credentials,
-                signing_key.key,
-                algorithms=settings.oidc_algorithm_list,
-                audience=settings.jwt_audience,
-                issuer=settings.jwt_issuer,
-                options={"require": ["sub", "exp", "iat", "iss", "aud"]},
-            )
+            verifier = getattr(request.app.state, "oidc_verifier", None)
+            if verifier is None:
+                raise jwt.InvalidTokenError("OIDC verifier is unavailable")
+            claims = verifier.verify(credentials.credentials)
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token") from exc
     _validate_lifetime(claims, settings)

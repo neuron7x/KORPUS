@@ -16,6 +16,7 @@ from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
+from korpus.security.oidc import OIDCVerifier
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -42,6 +43,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         app.state.observability = Observability(
             service_name=selected.service_name, otlp_endpoint=selected.otlp_endpoint
+        )
+        app.state.oidc_verifier = (
+            OIDCVerifier(
+                jwks_url=selected.oidc_jwks_url or "",
+                issuer=selected.jwt_issuer,
+                audience=selected.jwt_audience,
+                algorithms=selected.oidc_algorithm_list,
+                jwks_cache_seconds=selected.oidc_jwks_cache_seconds,
+                http_timeout_seconds=selected.oidc_http_timeout_seconds,
+                clock_skew_seconds=selected.oidc_clock_skew_seconds,
+            )
+            if selected.auth_mode == "oidc"
+            else None
         )
         yield
         repository.engine.dispose()
