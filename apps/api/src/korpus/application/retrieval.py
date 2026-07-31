@@ -2,19 +2,24 @@ from __future__ import annotations
 
 import math
 import re
+import time
 import unicodedata
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date
 
 from korpus.application.ports import Repository, Retriever
-from korpus.domain.models import Identity, RetrievedEvidence
+from korpus.domain.models import AuthorityClass, Identity, RetrievedEvidence
 
 TOKEN_PATTERN = re.compile(r"[\w'’\-]{2,}", re.UNICODE)
 STOP_WORDS = {
     "але", "без", "був", "була", "були", "для", "його", "коли", "про", "та", "так", "це", "що",
     "який", "яка", "яке", "які", "має", "мати", "the", "and", "for", "from", "that", "this", "with",
 }
+
+
+class RetrievalDeadlineExceeded(TimeoutError):
+    """Raised when the deterministic retrieval budget is exhausted."""
 
 
 def normalize_text(text: str) -> str:
@@ -43,6 +48,67 @@ class BM25Parameters:
     k1: float = 1.5
     b: float = 0.75
 
+    def __post_init__(self) -> None:
+        if not 0.1 <= self.k1 <= 4.0:
+            raise ValueError("BM25 k1 must be in [0.1, 4.0]")
+        if not 0.0 <= self.b <= 1.0:
+            raise ValueError("BM25 b must be in [0, 1]")
+
+
+@dataclass(frozen=True)
+class RetrievalWeights:
+    """Auditable convex utility function for evidence ranking.
+
+    Every component is normalized to [0, 1]. The weights form a convex
+    combination, so score meaning does not silently change when components are
+    added. Values are configuration/calibration inputs, not hidden constants.
+    """
+
+    lexical: float = 0.42
+    query_coverage: float = 0.24
+    character: float = 0.10
+    authority: float = 0.14
+    phrase: float = 0.06
+    temporal: float = 0.04
+
+    def __post_init__(self) -> None:
+        values = self.as_tuple()
+        if any(value < 0 or value > 1 for value in values):
+            raise ValueError("retrieval weights must be in [0, 1]")
+        if not math.isclose(sum(values), 1.0, rel_tol=0.0, abs_tol=1e-9):
+            raise ValueError("retrieval weights must sum to 1")
+
+    def as_tuple(self) -> tuple[float, ...]:
+        return (
+            self.lexical,
+            self.query_coverage,
+            self.character,
+            self.authority,
+            self.phrase,
+            self.temporal,
+        )
+
+    def as_dict(self) -> dict[str, float]:
+        return {
+            "lexical": self.lexical,
+            "query_coverage": self.query_coverage,
+            "character": self.character,
+            "authority": self.authority,
+            "phrase": self.phrase,
+            "temporal": self.temporal,
+        }
+
+
+AUTHORITY_PRIOR: dict[AuthorityClass, float] = {
+    AuthorityClass.OFFICIAL_UA: 1.00,
+    AuthorityClass.OFFICIAL_ALLIED: 0.92,
+    AuthorityClass.MANUFACTURER: 0.78,
+    AuthorityClass.APPROVED_TRAINING: 0.74,
+    AuthorityClass.ANALYTICAL: 0.46,
+    AuthorityClass.HISTORICAL: 0.30,
+    AuthorityClass.UNKNOWN: 0.00,
+}
+
 
 @dataclass(frozen=True)
 class ScoredCandidate:
@@ -50,30 +116,52 @@ class ScoredCandidate:
     lexical_score: float
     query_coverage: float
     character_score: float
-    authority_bonus: float
-    phrase_bonus: float
+    authority_score: float
+    phrase_score: float
+    temporal_score: float
+    weights: RetrievalWeights
+
+    @property
+    def lexical_normalized(self) -> float:
+        return 1 - math.exp(-self.lexical_score / 3)
 
     @property
     def normalized_score(self) -> float:
-        lexical = 1 - math.exp(-self.lexical_score / 3)
-        combined = (
-            lexical * 0.58
-            + self.query_coverage * 0.22
-            + self.character_score * 0.12
-            + self.authority_bonus
-            + self.phrase_bonus
+        components = (
+            self.lexical_normalized,
+            self.query_coverage,
+            self.character_score,
+            self.authority_score,
+            self.phrase_score,
+            self.temporal_score,
         )
+        combined = sum(weight * value for weight, value in zip(self.weights.as_tuple(), components))
         return min(1.0, max(0.0, combined))
 
 
 def score_candidates(
     query: str,
     texts: list[str],
-    official: list[bool],
+    official: list[bool] | None = None,
     parameters: BM25Parameters = BM25Parameters(),
+    *,
+    authority_scores: list[float] | None = None,
+    temporal_scores: list[float] | None = None,
+    weights: RetrievalWeights = RetrievalWeights(),
 ) -> list[ScoredCandidate]:
+    if official is None:
+        official = [False] * len(texts)
     if len(texts) != len(official):
         raise ValueError("texts and authority flags must have equal length")
+    if authority_scores is None:
+        authority_scores = [1.0 if value else 0.0 for value in official]
+    if temporal_scores is None:
+        temporal_scores = [0.0] * len(texts)
+    if len(authority_scores) != len(texts) or len(temporal_scores) != len(texts):
+        raise ValueError("component arrays must have equal length")
+    if any(not 0 <= value <= 1 for value in authority_scores + temporal_scores):
+        raise ValueError("normalized component scores must be in [0, 1]")
+
     query_tokens = tokenize(query)
     if not query_tokens or not texts:
         return []
@@ -84,6 +172,7 @@ def score_candidates(
     average_length = sum(len(tokens) for tokens in tokenized) / max(len(tokenized), 1)
     query_set = set(query_tokens)
     query_grams = character_ngrams(query)
+    normalized_query = normalize_text(query)
     scored: list[ScoredCandidate] = []
     for index, tokens in enumerate(tokenized):
         if not tokens:
@@ -106,40 +195,94 @@ def score_candidates(
             ) / denominator
         query_coverage = len(query_set.intersection(tokens)) / len(query_set)
         character_score = jaccard(query_grams, character_ngrams(texts[index]))
-        phrase_bonus = 0.08 if normalize_text(query) in normalize_text(texts[index]) else 0.0
-        authority_bonus = 0.06 if official[index] else 0.0
+        phrase_score = 1.0 if normalized_query in normalize_text(texts[index]) else 0.0
         scored.append(
             ScoredCandidate(
                 index=index,
                 lexical_score=bm25,
                 query_coverage=query_coverage,
                 character_score=character_score,
-                authority_bonus=authority_bonus,
-                phrase_bonus=phrase_bonus,
+                authority_score=authority_scores[index],
+                phrase_score=phrase_score,
+                temporal_score=temporal_scores[index],
+                weights=weights,
             )
         )
     return scored
 
 
-class HybridLexicalRetriever(Retriever):
-    """Deterministic BM25 + character-ngram retriever.
+def _temporal_specificity(item_date: date | None, effective_from: date | None) -> float:
+    if effective_from is not None:
+        return 1.0
+    if item_date is not None:
+        return 0.6
+    return 0.0
 
-    The repository performs the authorization filter in SQL before any text is
-    returned to this component. The retriever therefore cannot observe higher-
-    tier spans, which is the noninterference boundary.
-    """
+
+def diversify_evidence(
+    ranked: list[RetrievedEvidence],
+    *,
+    limit: int,
+    diversity_lambda: float = 0.82,
+    per_version_cap: int = 2,
+) -> list[RetrievedEvidence]:
+    """Maximal-marginal-relevance selection with deterministic tie-breaking."""
+
+    if not 0 <= diversity_lambda <= 1:
+        raise ValueError("diversity_lambda must be in [0, 1]")
+    if limit < 1 or per_version_cap < 1:
+        raise ValueError("limits must be positive")
+    selected: list[RetrievedEvidence] = []
+    remaining = list(ranked)
+    version_counts: defaultdict[str, int] = defaultdict(int)
+    grams = {str(item.span.id): character_ngrams(item.span.text) for item in ranked}
+    while remaining and len(selected) < limit:
+        admissible = [
+            item for item in remaining if version_counts[str(item.version.id)] < per_version_cap
+        ]
+        if not admissible:
+            break
+
+        def utility(item: RetrievedEvidence) -> tuple[float, float, str, int]:
+            redundancy = max(
+                (jaccard(grams[str(item.span.id)], grams[str(other.span.id)]) for other in selected),
+                default=0.0,
+            )
+            mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
+            return (mmr, item.score, item.version.source_hash, -item.span.ordinal)
+
+        winner = max(admissible, key=utility)
+        selected.append(winner)
+        version_counts[str(winner.version.id)] += 1
+        remaining.remove(winner)
+    return [item.model_copy(update={"rank": rank}) for rank, item in enumerate(selected, start=1)]
+
+
+class HybridLexicalRetriever(Retriever):
+    """Deterministic candidate retrieval + calibrated convex reranking + MMR."""
 
     def __init__(
         self,
         repository: Repository,
         parameters: BM25Parameters = BM25Parameters(),
         candidate_budget: int = 256,
+        *,
+        weights: RetrievalWeights = RetrievalWeights(),
+        diversity_lambda: float = 0.82,
+        per_version_cap: int = 2,
+        timeout_ms: int = 1200,
     ) -> None:
         if candidate_budget < 8:
             raise ValueError("candidate_budget must be at least 8")
+        if timeout_ms < 10:
+            raise ValueError("timeout_ms must be at least 10")
         self.repository = repository
         self.parameters = parameters
         self.candidate_budget = candidate_budget
+        self.weights = weights
+        self.diversity_lambda = diversity_lambda
+        self.per_version_cap = per_version_cap
+        self.timeout_ms = timeout_ms
 
     def search(
         self,
@@ -149,9 +292,12 @@ class HybridLexicalRetriever(Retriever):
         as_of: date,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
+        started = time.monotonic()
         candidates = self.repository.search_retrievable_spans(
             identity, corpus_ids, as_of, text, self.candidate_budget
         )
+        if (time.monotonic() - started) * 1000 > self.timeout_ms:
+            raise RetrievalDeadlineExceeded("candidate retrieval exceeded deadline")
         if not candidates:
             return []
         component_scores = score_candidates(
@@ -159,6 +305,12 @@ class HybridLexicalRetriever(Retriever):
             [span.text for span, _, _ in candidates],
             [version.authority.value.startswith("official_") for _, _, version in candidates],
             self.parameters,
+            authority_scores=[AUTHORITY_PRIOR[version.authority] for _, _, version in candidates],
+            temporal_scores=[
+                _temporal_specificity(version.publication_date, version.effective_from)
+                for _, _, version in candidates
+            ],
+            weights=self.weights,
         )
         output: list[RetrievedEvidence] = []
         for components in component_scores:
@@ -175,7 +327,7 @@ class HybridLexicalRetriever(Retriever):
                     query_coverage=components.query_coverage,
                     lexical_score=components.lexical_score,
                     character_score=components.character_score,
-                    authority_bonus=components.authority_bonus,
+                    authority_bonus=components.authority_score,
                 )
             )
         output.sort(
@@ -186,7 +338,14 @@ class HybridLexicalRetriever(Retriever):
                 item.span.ordinal,
             )
         )
-        return [item.model_copy(update={"rank": rank}) for rank, item in enumerate(output[:limit], start=1)]
+        if (time.monotonic() - started) * 1000 > self.timeout_ms:
+            raise RetrievalDeadlineExceeded("reranking exceeded deadline")
+        return diversify_evidence(
+            output,
+            limit=limit,
+            diversity_lambda=self.diversity_lambda,
+            per_version_cap=self.per_version_cap,
+        )
 
 
 LexicalRetriever = HybridLexicalRetriever
