@@ -21,6 +21,10 @@ def profile(**overrides):
         "minimum_query_coverage": 0.5,
         "minimum_support_score": 0.35,
         "minimum_calibration_samples": 200,
+        "ranking_evaluated_queries": 500,
+        "ndcg_at_10": 0.82,
+        "mrr_at_10": 0.86,
+        "recall_at_20": 0.94,
     }
     values.update(overrides)
     return CalibrationProfile(**values)
