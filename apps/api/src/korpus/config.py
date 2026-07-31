@@ -51,6 +51,8 @@ class Settings(BaseSettings):
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
     retrieval_cache_entries: int = Field(default=512, ge=1, le=100_000)
     retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
+    max_concurrent_answers: int = Field(default=16, ge=1, le=4096)
+    admission_wait_ms: int = Field(default=50, ge=0, le=10_000)
     review_separation_required: bool = False
 
     max_upload_bytes: int = Field(default=50 * 1024 * 1024, ge=1024, le=500 * 1024 * 1024)

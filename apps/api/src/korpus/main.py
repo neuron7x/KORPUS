@@ -10,6 +10,7 @@ from fastapi.responses import Response
 from korpus.api.routes import router
 from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
+from korpus.application.resilience import AdmissionController
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.repository import SqlRepository
@@ -33,6 +34,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.object_store = LocalObjectStore(selected.object_root)
         app.state.query_cache = EvidenceQueryCache(
             selected.retrieval_cache_entries, selected.retrieval_cache_ttl_seconds
+        )
+        app.state.admission = AdmissionController(
+            selected.max_concurrent_answers, selected.admission_wait_ms / 1000
         )
         yield
         repository.engine.dispose()

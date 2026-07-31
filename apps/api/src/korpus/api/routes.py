@@ -6,10 +6,17 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
-from korpus.api.dependencies import get_answer_service, get_ingestion_service, get_policy, get_repository
+from korpus.api.dependencies import (
+    get_admission_controller,
+    get_answer_service,
+    get_ingestion_service,
+    get_policy,
+    get_repository,
+)
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.ingestion import IngestionService
 from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.config import Settings, get_settings
 from korpus.domain.models import (
     Answer,
@@ -165,9 +172,17 @@ def create_answer(
     query: QueryRequest,
     identity: IdentityDependency,
     service: Annotated[ExtractiveAnswerService, Depends(get_answer_service)],
+    admission: Annotated[AdmissionController, Depends(get_admission_controller)],
 ) -> Answer:
     try:
-        return service.execute(identity, query)
+        with admission.acquire():
+            return service.execute(identity, query)
+    except OverloadedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="answer capacity exhausted",
+            headers={"Retry-After": "1"},
+        ) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
 

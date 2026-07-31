@@ -9,6 +9,7 @@ from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.policy import PolicyEngine
+from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.object_store import LocalObjectStore
@@ -31,6 +32,10 @@ def get_object_store(request: Request) -> LocalObjectStore:
 
 def get_query_cache(request: Request) -> EvidenceQueryCache:
     return request.app.state.query_cache
+
+
+def get_admission_controller(request: Request) -> AdmissionController:
+    return request.app.state.admission
 
 
 def get_ingestion_service(
