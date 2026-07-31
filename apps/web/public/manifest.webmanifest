@@ -1,0 +1,10 @@
+{
+  "name": "КОРПУС",
+  "short_name": "КОРПУС",
+  "description": "Evidence-bound controlled-corpus platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090a0c",
+  "theme_color": "#090a0c",
+  "lang": "uk-UA"
+}

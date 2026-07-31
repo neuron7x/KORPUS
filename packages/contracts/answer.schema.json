@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korpus.local/contracts/answer.v1.schema.json",
+  "title": "KORPUS Answer v1",
+  "type": "object",
+  "required": ["id", "status", "text", "claims", "citations", "retrieval_score", "evidence_coverage", "corpus_release", "created_at"],
+  "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "status": {"enum": ["answered", "insufficient_evidence", "access_denied", "requires_human_review"]},
+    "text": {"type": "string"},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "citations": {"type": "array", "items": {"$ref": "#/$defs/citation"}},
+    "retrieval_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "corpus_release": {"type": "string", "minLength": 16, "maxLength": 16},
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "required": ["text", "evidence_span_ids", "support_state", "support_score"],
+      "properties": {
+        "text": {"type": "string"},
+        "evidence_span_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "format": "uuid"}},
+        "support_state": {"enum": ["extractive", "unsupported"]},
+        "support_score": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "citation": {
+      "type": "object",
+      "required": ["document_id", "version_id", "span_id", "title", "revision", "quote", "source_hash"],
+      "properties": {
+        "document_id": {"type": "string", "format": "uuid"},
+        "version_id": {"type": "string", "format": "uuid"},
+        "span_id": {"type": "string", "format": "uuid"},
+        "title": {"type": "string"},
+        "revision": {"type": "string"},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "section": {"type": ["string", "null"]},
+        "quote": {"type": "string"},
+        "source_uri": {"type": ["string", "null"]},
+        "source_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

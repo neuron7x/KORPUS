@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090a0c">
+  <meta name="description" content="Evidence-bound controlled-corpus platform">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/styles.css">
+  <title>КОРПУС / Evidence Runtime</title>
+</head>
+<body>
+  <main>
+    <header><div><strong>КОРПУС</strong><span> / evidence runtime</span></div><div class="status">FAIL-CLOSED</div></header>
+    <section class="hero">
+      <p class="eyebrow">ДЖЕРЕЛО → ДОКАЗ → ВІДПОВІДЬ</p>
+      <h1>Перевірити,<br>а не повірити.</h1>
+      <p class="lead">Система відповідає лише з чинних затверджених фрагментів, доступних вашій ідентичності.</p>
+      <form id="query-form">
+        <label for="query">Запит до контрольованого корпусу</label>
+        <div class="query"><textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea><button id="submit">Знайти доказ</button></div>
+      </form>
+    </section>
+    <section id="result" class="panel hidden" aria-live="polite"></section>
+    <section class="grid">
+      <article><b>Authority</b><p>Чинність, редакція, issuer, supersession.</p></article>
+      <article><b>Access</b><p>Identity та policy перед retrieval.</p></article>
+      <article><b>Evidence</b><p>Claim прив’язаний до immutable span.</p></article>
+      <article><b>Audit</b><p>Кожна дія входить до hash chain.</p></article>
+    </section>
+  </main>
+  <script src="/config.js"></script>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
