@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 from korpus.application.ports import Repository, Retriever
 from korpus.application.policy import PolicyEngine
-from korpus.application.retrieval import normalize_text, tokenize
+from korpus.application.retrieval import AUTHORITY_PRIOR, RetrievalDeadlineExceeded, normalize_text, tokenize
+from korpus.application.risk import QueryRisk, classify_query_risk, risk_adjusted_thresholds
 from korpus.domain.models import (
     Answer,
     AnswerStatus,
@@ -71,12 +72,21 @@ class AnswerPolicy:
     calibration_id: str
     max_claims: int = 4
 
-    def eligible(self, evidence: list[RetrievedEvidence]) -> list[RetrievedEvidence]:
+    def eligible(
+        self, evidence: list[RetrievedEvidence], risk: QueryRisk = QueryRisk.STANDARD
+    ) -> list[RetrievedEvidence]:
+        thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.minimum_score,
+            minimum_query_coverage=self.minimum_query_coverage,
+            minimum_support_score=self.minimum_support_score,
+        )
         return [
             item
             for item in evidence
-            if item.score >= self.minimum_score
-            and item.query_coverage >= self.minimum_query_coverage
+            if item.score >= thresholds.minimum_score
+            and item.query_coverage >= thresholds.minimum_query_coverage
+            and AUTHORITY_PRIOR[item.version.authority] >= thresholds.minimum_authority
             and item.version.review_state.value == "approved"
             and item.version.authority.value != "unknown"
         ]
@@ -104,11 +114,21 @@ class ExtractiveAnswerService:
                 "query_control_injection",
                 "Запит містить інструкції керування моделлю замість предметного питання.",
             )
-            self._audit(identity, query, answer, [], [])
+            self._audit(identity, query, answer, [], [], classify_query_risk(query.text))
             return answer
 
-        retrieved = self.retriever.search(identity, query.text, corpora, query.as_of)
-        eligible = self.answer_policy.eligible(retrieved)
+        risk = classify_query_risk(query.text)
+        try:
+            retrieved = self.retriever.search(identity, query.text, corpora, query.as_of)
+        except RetrievalDeadlineExceeded:
+            answer = self._abstain(
+                release_id,
+                "retrieval_deadline_exceeded",
+                "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
+            )
+            self._audit(identity, query, answer, [], [], risk)
+            return answer
+        eligible = self.answer_policy.eligible(retrieved, risk)
         if not eligible:
             answer = self._abstain(
                 release_id,
@@ -119,6 +139,12 @@ class ExtractiveAnswerService:
             self._audit(identity, query, answer, retrieved, eligible)
             return answer
 
+        thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.answer_policy.minimum_score,
+            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
+            minimum_support_score=self.answer_policy.minimum_support_score,
+        )
         query_tokens = frozenset(tokenize(query.text))
         claims: list[Claim] = []
         citations: list[Citation] = []
@@ -143,8 +169,8 @@ class ExtractiveAnswerService:
                 continue
             support_score = min(item.score, candidate.query_coverage)
             if (
-                candidate.query_coverage < self.answer_policy.minimum_query_coverage
-                or support_score < self.answer_policy.minimum_support_score
+                candidate.query_coverage < thresholds.minimum_query_coverage
+                or support_score < thresholds.minimum_support_score
             ):
                 continue
             claims.append(
@@ -180,7 +206,7 @@ class ExtractiveAnswerService:
                 break
 
         evidence_coverage = len(covered_tokens) / max(len(query_tokens), 1)
-        if not claims or evidence_coverage < self.answer_policy.minimum_query_coverage:
+        if not claims or evidence_coverage < thresholds.minimum_query_coverage:
             answer = self._abstain(
                 release_id,
                 "claim_support_gate_failed",
@@ -202,7 +228,7 @@ class ExtractiveAnswerService:
                 ],
                 corpus_release=release_id,
             )
-        self._audit(identity, query, answer, retrieved, eligible)
+        self._audit(identity, query, answer, retrieved, eligible, risk)
         return answer
 
     def _abstain(
@@ -230,6 +256,7 @@ class ExtractiveAnswerService:
         answer: Answer,
         retrieved: list[RetrievedEvidence],
         eligible: list[RetrievedEvidence],
+        risk: QueryRisk = QueryRisk.STANDARD,
     ) -> None:
         self.repository.append_audit(
             identity,
@@ -247,5 +274,6 @@ class ExtractiveAnswerService:
                 "evidence_coverage": answer.evidence_coverage,
                 "calibration_id": answer.calibration_id,
                 "corpus_release": answer.corpus_release,
+                "query_risk": risk.value,
             },
         )
