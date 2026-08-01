@@ -21,3 +21,12 @@
 The first committed live run timed out at `page.goto(..., {waitUntil: "networkidle"})` despite a healthy service-worker application. Network idleness is not a stable readiness predicate for this topology. The repair restores the deterministic document `load` boundary and relies on explicit UI/API assertions before collecting measurements.
 
 The next live run proved that nginx CSP correctly blocks post-load inline `axe` injection. CSP remains unchanged; axe is installed through Playwright's pre-navigation init script, keeping the oracle outside the delivered runtime and avoiding an unsafe CSP exception.
+
+## Verified local result
+
+- Clean Chromium → nginx → FastAPI → application-role PostgreSQL gate: PASS (`1/1`).
+- Evidence schema: `korpus.web-api-live-boundary.v3`; validator: PASS.
+- Automated accessibility: serious `0`, critical `0`.
+- Responsive layout at 390 CSS pixels: content width `390`, horizontal overflow `0`.
+- Anchored local observations: navigation `395.1 ms`, LCP `222.4 ms`, CLS `0`, answer `187 ms`, same-origin transfer `20,287 bytes`, external origins `0`.
+- These observations are not a production SLO, comparative benchmark, or complete accessibility certification.
