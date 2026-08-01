@@ -204,6 +204,7 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
                 not isinstance(mutation.get("mutants"), int)
                 or mutation.get("mutants", 0) <= 0
                 or mutation.get("killed") != mutation.get("mutants")
+                or mutation.get("candidate_commit") != payload.get("candidate_commit")
                 or not DIGEST.fullmatch(str(mutation.get("sha256", "")))
             )
         )

@@ -181,13 +181,15 @@ def backup_receipt(path: Path, key_file: Path, key_id: str) -> dict[str, object]
     }
 
 
-def mutation_receipt(path: Path) -> dict[str, object]:
+def mutation_receipt(path: Path, expected_commit: str) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError("mutation report is not an object")
     required = ("mutants", "valid_mutants", "killed")
     if any(not isinstance(payload.get(name), int) for name in required):
         raise ValueError("mutation report counts are invalid")
+    if payload.get("candidate_commit") != expected_commit:
+        raise ValueError("mutation report candidate does not match assurance candidate")
     passed = (
         payload.get("mutation_score") == 1.0
         and payload["mutants"] > 0
@@ -202,6 +204,7 @@ def mutation_receipt(path: Path) -> dict[str, object]:
         "status": "PASS",
         "mutants": payload["mutants"],
         "killed": payload["killed"],
+        "candidate_commit": expected_commit,
         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
 
@@ -346,9 +349,12 @@ def main() -> int:
         Path(os.environ["KORPUS_BACKUP_ENCRYPTION_KEY_FILE"]),
         os.environ["KORPUS_BACKUP_KEY_ID"],
     )
+    report_candidate = candidate_commit()
     mutation_path = os.getenv("KORPUS_MUTATION_REPORT")
     mutation_result = (
-        mutation_receipt(Path(mutation_path)) if mutation_path is not None else None
+        mutation_receipt(Path(mutation_path), report_candidate)
+        if mutation_path is not None
+        else None
     )
     backup_duration = optional_duration("KORPUS_BACKUP_SECONDS")
     backup_result["duration_seconds"] = backup_duration
@@ -386,7 +392,7 @@ def main() -> int:
         "schema": "korpus.postgres-live-assurance.v1",
         "act_id": "KORPUS-ACT-01",
         "base_commit": os.environ["KORPUS_BASE_COMMIT"],
-        "candidate_commit": candidate_commit(),
+        "candidate_commit": report_candidate,
         "started_at_utc": started.isoformat(),
         "finished_at_utc": datetime.now(UTC).isoformat(),
         "environment": {

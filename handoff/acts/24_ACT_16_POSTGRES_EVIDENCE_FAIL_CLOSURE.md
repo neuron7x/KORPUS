@@ -6,7 +6,7 @@
 - Trust boundaries: PostgreSQL catalogs and live probes → assurance producer → JSON validator → independent verifier.
 - Allowed files: PostgreSQL assurance producer/validator, focused evidence tests, mutation harness, this contract and verifier index.
 - Forbidden files: frozen audit source, migrations, runtime authorization policy, production configuration and `production_authorized` state.
-- Killable invariants: exact single Alembic head; five-table missing-context zeros; public/restricted and compartment isolation; enabled and forced RLS with SELECT policy on every governed table; reviewed grant vocabulary and read-only migration state; non-skipped live JUnit; equal 64-hex state digests; internally consistent IAM-006 result; complete relevant mutation receipt.
+- Killable invariants: exact single Alembic head; five-table missing-context zeros; public/restricted and compartment isolation; enabled and forced RLS with SELECT policy on every governed table; reviewed grant vocabulary and read-only migration state; non-skipped live JUnit; equal 64-hex state digests; internally consistent IAM-006 result; complete relevant mutation receipt bound to the same candidate commit.
 - Adversarial cases: missing governed table, leaked public identity, disabled FORCE RLS, forged Alembic UPDATE grant, skipped live test, malformed/equal placeholder digest, contradictory IAM status/count, invalid or surviving mutant.
 - Acceptance predicates: every adversarial payload is rejected; stale pre-ACT-16 evidence is rejected; 29/29 mutation targets are killed; clean live PostgreSQL/backup/restore evidence generated after commit passes and binds final HEAD; `production_authorized=false`.
 - Migration/data impact: none; all databases, credentials and keys remain ephemeral.

@@ -90,6 +90,7 @@ def test_nonpositive_duration_is_rejected(monkeypatch: pytest.MonkeyPatch) -> No
 def test_mutation_receipt_requires_every_valid_mutant_to_be_killed(tmp_path: Path) -> None:
     path = tmp_path / "mutation.json"
     payload = {
+        "candidate_commit": "a" * 40,
         "mutation_score": 1.0,
         "mutants": 3,
         "valid_mutants": 3,
@@ -98,11 +99,13 @@ def test_mutation_receipt_requires_every_valid_mutant_to_be_killed(tmp_path: Pat
         "invalid": [],
     }
     path.write_text(json.dumps(payload), encoding="utf-8")
-    assert mutation_receipt(path)["status"] == "PASS"
+    assert mutation_receipt(path, "a" * 40)["status"] == "PASS"
+    with pytest.raises(ValueError, match="candidate"):
+        mutation_receipt(path, "b" * 40)
     payload["invalid"] = ["M03"]
     path.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError, match="complete mutant killing"):
-        mutation_receipt(path)
+        mutation_receipt(path, "a" * 40)
 
 
 def test_candidate_commit_uses_explicit_ci_provenance(
@@ -262,6 +265,7 @@ def valid_assurance_payload() -> dict[str, object]:
                 "status": "PASS",
                 "mutants": 29,
                 "killed": 29,
+                "candidate_commit": "b" * 40,
                 "sha256": "d" * 64,
             },
             "source_state_digest": "c" * 64,

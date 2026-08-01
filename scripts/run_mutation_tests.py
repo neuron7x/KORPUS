@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+
+
+def candidate_commit() -> str:
+    value = os.getenv("KORPUS_CANDIDATE_COMMIT") or os.getenv("CI_COMMIT_SHA")
+    if value is None:
+        value = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+    if not COMMIT_SHA.fullmatch(value):
+        raise ValueError("mutation candidate must be a full lowercase Git SHA-1")
+    return value
 
 
 @dataclass(frozen=True)
@@ -304,7 +317,8 @@ def summarize(results: list[dict[str, object]], *, shard_index: int | None, shar
     valid = sum(result["status"] in {"KILLED", "SURVIVED"} for result in results)
     score = killed / valid if valid else 0.0
     return {
-        "schema_version": 2,
+        "schema_version": 3,
+        "candidate_commit": candidate_commit(),
         "shard_index": shard_index,
         "shard_count": shard_count,
         "mutants": len(results),
@@ -329,6 +343,12 @@ def merge_shards(shard_count: int) -> dict[str, object]:
         if int(payload.get("shard_count", -1)) != shard_count:
             raise RuntimeError(f"shard count mismatch in {path}")
         results.extend(payload.get("results", []))
+    shard_commits = {
+        str(json.loads(path.read_text(encoding="utf-8")).get("candidate_commit"))
+        for path in shard_paths
+    }
+    if shard_commits != {candidate_commit()}:
+        raise RuntimeError(f"mutation shard candidate mismatch: {sorted(shard_commits)}")
     expected = {mutant.id for mutant in MUTANTS}
     actual = {str(result.get("id")) for result in results}
     if actual != expected or len(results) != len(MUTANTS):
