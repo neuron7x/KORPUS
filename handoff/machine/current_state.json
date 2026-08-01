@@ -71,5 +71,6 @@
     "Chat messages are context only and are not authoritative"
   ],
   "handoff_release": "v5.1.0",
-  "base_source_tree_sha256": "d5d446b318c3ade676d42609d293f41ef1e8205073737c097303ebeb1934ed44"
+  "base_source_tree_sha256": "d5d446b318c3ade676d42609d293f41ef1e8205073737c097303ebeb1934ed44",
+  "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json"
 }

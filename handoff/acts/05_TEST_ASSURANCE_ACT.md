@@ -21,3 +21,7 @@ They do not prove real-corpus correctness, production PostgreSQL behavior, produ
 ## Mandatory agent rule
 
 Every new behavior must add a plausible failure model and a test that kills it. Coverage increase without a killable invariant is insufficient.
+
+## v5.1.0 handoff extension verification
+
+The handoff extension was re-tested after adding the machine contracts and release-manifest repair. Authoritative numbers are in `handoff/evidence/HANDOFF_VERIFICATION.json`; they include the additional handoff and manifest regression tests. Product production authorization remains false.

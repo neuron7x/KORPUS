@@ -1,13 +1,8 @@
 {
-  "schema": "korpus.repository-manifest.v2",
-  "file_count": 330,
-  "root_sha256": "1a3d77598e4eadbfd2a7149440bc2f9fd5d1e4182c42218c84fb7ae456258dff",
+  "schema": "korpus.repository-manifest.v3",
+  "file_count": 323,
+  "root_sha256": "148243c2094295720b27e4f650aa66aa8a0aefff6a23d28105631e29230bea86",
   "files": [
-    {
-      "path": ".coverage",
-      "bytes": 331776,
-      "sha256": "7863c13160eb9bd21b1b2a0b044176215abaa7cfaad0c2b9ad8af821fc67375f"
-    },
     {
       "path": ".dockerignore",
       "bytes": 230,
@@ -24,6 +19,11 @@
       "sha256": "765333d0dc9a9afa05d3aa69bc39910919cce3ea32a189b0dd0d2d918bddc0c4"
     },
     {
+      "path": ".gitlab-ci.yml",
+      "bytes": 8976,
+      "sha256": "e5df7038ebda4c08b25ddb032c87c09ee1500b83b9d1489d2f67102ce8839718"
+    },
+    {
       "path": ".gitlab/CODEOWNERS",
       "bytes": 275,
       "sha256": "db4f38113c1f8981f159d695f4833d2df16748e285a9dd4760069652a5ddb125"
@@ -32,11 +32,6 @@
       "path": ".gitlab/merge_request_templates/default.md",
       "bytes": 543,
       "sha256": "3e3386b846bf20a41dd49e5b09db9f9647c4ba7fa843ce150628ecabd7ad83d7"
-    },
-    {
-      "path": ".gitlab-ci.yml",
-      "bytes": 8976,
-      "sha256": "e5df7038ebda4c08b25ddb032c87c09ee1500b83b9d1489d2f67102ce8839718"
     },
     {
       "path": ".trivyignore",
@@ -90,8 +85,8 @@
     },
     {
       "path": "RELEASE_V5_1.md",
-      "bytes": 659,
-      "sha256": "4aaa0f40b39ccf1cb496ee3ed37717c7982214ecfc94e33579c7762ca39d3d7d"
+      "bytes": 980,
+      "sha256": "adcbae302218a1b448fad7cc932ab7a1e2aebc806fea9ca9ecb9152d0ecd1895"
     },
     {
       "path": "SECURITY.md",
@@ -569,6 +564,11 @@
       "sha256": "5f4b10d8c34f52962ae7fda2529d2950668474488094e8a66ff920a1441e92a6"
     },
     {
+      "path": "apps/api/tests/test_manifest_generation.py",
+      "bytes": 1596,
+      "sha256": "2dc8e86e5f224483b63cab9ef37c1451e4622caac2d9324bb6fca0f241a41fe5"
+    },
+    {
       "path": "apps/api/tests/test_more_edges.py",
       "bytes": 2292,
       "sha256": "b7826912b8b6702d12ad196c063286d9d90fd82043bfa28f5c5a1abc07ec968f"
@@ -677,6 +677,11 @@
       "path": "apps/api/tests/test_structured_evidence_and_fuzz.py",
       "bytes": 3690,
       "sha256": "5cf7440acf0e9068be811245e90d22303cb3ff350676c565ed3d6e432b48f87c"
+    },
+    {
+      "path": "apps/api/tests/test_system_manifest_exclusions.py",
+      "bytes": 976,
+      "sha256": "bb9c7517f2e91858f45e94acc6d304940ca5be191bc520dabd52dcfca7abcb04"
     },
     {
       "path": "apps/api/tests/test_tuning.py",
@@ -1215,8 +1220,8 @@
     },
     {
       "path": "handoff/acts/05_TEST_ASSURANCE_ACT.md",
-      "bytes": 943,
-      "sha256": "0ccff140a10397619217c9c59e274a62b9827b1125e4924ef06ed08d9bddb690"
+      "bytes": 1276,
+      "sha256": "a220e6b1c5edef83a771c8890a387f6d954d2e50e7b7e92b4700a7e1c558b0dd"
     },
     {
       "path": "handoff/acts/06_CALIBRATION_WEIGHTS_ACT.md",
@@ -1231,32 +1236,17 @@
     {
       "path": "handoff/evidence/COVERAGE_HANDOFF.json",
       "bytes": 481287,
-      "sha256": "5c59b98736f4a27e9cef99da5093090c910d593c88fd627878f49a298b96b737"
+      "sha256": "b273838d34b691fd0775ea7bc4251eb3621de26f379ee4a75a9d5a3eda5ed56c"
     },
     {
       "path": "handoff/evidence/EVAL_HANDOFF.json",
       "bytes": 15360,
-      "sha256": "4db2b5b1c7bf61201f2dbfeb1c41050145dfbab3180cd544d309090fe57abd63"
-    },
-    {
-      "path": "handoff/evidence/EVAL_HANDOFF.log",
-      "bytes": 15361,
-      "sha256": "5ea8bc9d975c1fc967221907da134929fff3f8eabac6dedd21475c5ed07409e5"
+      "sha256": "9f6d449242961827862099ba259228eb6963de34352ad9d6ddbdea6e8d178a9b"
     },
     {
       "path": "handoff/evidence/HANDOFF_VERIFICATION.json",
-      "bytes": 3775,
-      "sha256": "b3d556e88749a3600e08f840c0c7e8a3cfa5cbc583e8dedeba3e1ebe9ab814e9"
-    },
-    {
-      "path": "handoff/evidence/INFRASTRUCTURE_VALIDATION.log",
-      "bytes": 192,
-      "sha256": "234d1f6c1900cf9717385aae5383342b7600378c537143eabc7798ed96cf086b"
-    },
-    {
-      "path": "handoff/evidence/KUBERNETES_VALIDATION.log",
-      "bytes": 379,
-      "sha256": "29ab473b7de733d0d7760b92b9a6a37b760ebeb37e1d47bb396d94158a1ddbc9"
+      "bytes": 1395,
+      "sha256": "e75b6ba7173b35545ce3c2c9be6311259d6da924ef854868e911423178bbe7b1"
     },
     {
       "path": "handoff/evidence/MIGRATION_HANDOFF.json",
@@ -1264,44 +1254,19 @@
       "sha256": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0"
     },
     {
-      "path": "handoff/evidence/MIGRATION_HANDOFF.log",
-      "bytes": 598,
-      "sha256": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0"
-    },
-    {
       "path": "handoff/evidence/MUTATION_HANDOFF.json",
       "bytes": 64025,
-      "sha256": "ad0104af23bba4be108e2bce291b76e888c97dfa1f8bae4ec50fb342be79c694"
-    },
-    {
-      "path": "handoff/evidence/MUTATION_HANDOFF.log",
-      "bytes": 185,
-      "sha256": "342012296e8b4e169654e1a7eb7f299cc92b3f5c72e012153e7254854fe95174"
+      "sha256": "3eee9b18a68a88c5535f0cb846f035093e55b4d7278ce2e9f9459867381620fe"
     },
     {
       "path": "handoff/evidence/PYTEST_HANDOFF.xml",
-      "bytes": 22384,
-      "sha256": "69d605c5eb495ac5906fdada537165dc84e1de0cbe7032d2b3a74af6d7977922"
-    },
-    {
-      "path": "handoff/evidence/REPOSITORY_VALIDATION.log",
-      "bytes": 74,
-      "sha256": "560efb43452fb93eaea1ed8c5ddad8a9349609760320f2c80e9e873011d7061f"
+      "bytes": 22795,
+      "sha256": "b3b9485fa720204414b9d3acb65ef8d04eb041d0abbbe39f175ddc48344bcc0d"
     },
     {
       "path": "handoff/evidence/SHA256SUMS",
-      "bytes": 1227,
-      "sha256": "879d3e1bdf0cfe9f6040c778415d34403814e50efb1c2cff514d7c703de507e5"
-    },
-    {
-      "path": "handoff/evidence/WEB_BUILD.log",
-      "bytes": 20,
-      "sha256": "c56e4cd8ddb86a69e8008285a020c988e4e8c7a34fddfe0d7e0cfdf81909caaa"
-    },
-    {
-      "path": "handoff/evidence/WEB_VALIDATE.log",
-      "bytes": 22,
-      "sha256": "9dfe518487ff79a299066774a796549ed717d4df57c2537c061798cfb2d6204b"
+      "bytes": 526,
+      "sha256": "12fc3321d53adc5ef9c35293536f12e30ad0616cf38c3415bf608847f5315bf2"
     },
     {
       "path": "handoff/machine/README.md",
@@ -1320,8 +1285,8 @@
     },
     {
       "path": "handoff/machine/current_state.json",
-      "bytes": 2224,
-      "sha256": "9b8e4569d2c5619cec07637d22d8dab0b642f852b367fa3ae4a71c267bb1be22"
+      "bytes": 2296,
+      "sha256": "c25cb749b35d9c5c5f9e2f1fb3d11077836b244eb6465ffddae2002991c8a6e3"
     },
     {
       "path": "handoff/machine/next_integrations.csv",
@@ -1515,8 +1480,8 @@
     },
     {
       "path": "scripts/build_system_manifest.py",
-      "bytes": 3592,
-      "sha256": "f3c8566919788e0d7e5921578f47230030935456e7caf93f036fc314c8f84e15"
+      "bytes": 3613,
+      "sha256": "b657a6b7b83615e3df36dde5deefbcc17b4f23ef4a38fdf134a46afc8f4683a4"
     },
     {
       "path": "scripts/create_agent_worktree.sh",
@@ -1530,8 +1495,8 @@
     },
     {
       "path": "scripts/generate_manifest.py",
-      "bytes": 1641,
-      "sha256": "52515615b09f9e7273f8a5ccc7f18d6c5e6d93220216f1da4cc1ae019a776c3e"
+      "bytes": 3449,
+      "sha256": "bec590d77bc51856564bb1a2193e78391429f3232745b8782c85fde0f6c7449f"
     },
     {
       "path": "scripts/generate_supply_chain_inventory.py",
@@ -1610,8 +1575,8 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 2891,
-      "sha256": "18a22c30268e91e01b25dc2f5f075f96ce7b483feccaf4ad08ab5ec3b5f267c0"
+      "bytes": 2912,
+      "sha256": "b45d9e7c95af7d9b0a16aeb31292b14617faa992c434e1e25dd8b355ee77d1e9"
     },
     {
       "path": "scripts/validate_infrastructure.py",

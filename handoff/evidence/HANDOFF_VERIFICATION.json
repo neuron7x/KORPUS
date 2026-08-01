@@ -1,15 +1,15 @@
 {
-  "schema": "korpus.local-handoff-verification.v1",
+  "schema": "korpus.local-handoff-verification.v2",
   "release": "v5.1.0",
   "base_product_release": "v5.0.0",
   "status": "PASS_WITH_CAVEATS",
   "tests": {
-    "collected": 0,
-    "passed": 0,
-    "skipped": 0,
+    "collected": 176,
+    "passed": 175,
+    "skipped": 1,
     "failures": 0,
     "errors": 0,
-    "seconds": 0.0
+    "seconds": 24.613
   },
   "coverage": {
     "combined_percent": 82.61523046092185,
@@ -41,80 +41,14 @@
     "kubernetes": "PASS_STATIC_ONLY",
     "web_validate": "PASS",
     "web_build": "PASS",
-    "handoff_contract": "PASS"
+    "handoff_contract": "PASS",
+    "manifest_tracked_only": "PASS",
+    "system_manifest_evidence_cycle": "PASS"
   },
   "production_authorized": false,
   "limitations": [
-    "Live PostgreSQL/pgvector integration remains skipped in this environment.",
-    "Docker/Kubernetes, production OIDC, S3/KMS, remote anchor and telemetry backends were not executed live.",
-    "Real-corpus calibration, independent security testing and formal authorization remain open.",
-    "The v5.1.0 release adds handoff documentation, machine contracts and a consistency test; it does not alter production authorization."
-  ],
-  "evidence": [
-    {
-      "path": "handoff/evidence/COVERAGE_HANDOFF.json",
-      "bytes": 481287,
-      "sha256": "5c59b98736f4a27e9cef99da5093090c910d593c88fd627878f49a298b96b737"
-    },
-    {
-      "path": "handoff/evidence/EVAL_HANDOFF.json",
-      "bytes": 15360,
-      "sha256": "4db2b5b1c7bf61201f2dbfeb1c41050145dfbab3180cd544d309090fe57abd63"
-    },
-    {
-      "path": "handoff/evidence/EVAL_HANDOFF.log",
-      "bytes": 15361,
-      "sha256": "5ea8bc9d975c1fc967221907da134929fff3f8eabac6dedd21475c5ed07409e5"
-    },
-    {
-      "path": "handoff/evidence/INFRASTRUCTURE_VALIDATION.log",
-      "bytes": 192,
-      "sha256": "234d1f6c1900cf9717385aae5383342b7600378c537143eabc7798ed96cf086b"
-    },
-    {
-      "path": "handoff/evidence/KUBERNETES_VALIDATION.log",
-      "bytes": 379,
-      "sha256": "29ab473b7de733d0d7760b92b9a6a37b760ebeb37e1d47bb396d94158a1ddbc9"
-    },
-    {
-      "path": "handoff/evidence/MIGRATION_HANDOFF.json",
-      "bytes": 598,
-      "sha256": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0"
-    },
-    {
-      "path": "handoff/evidence/MIGRATION_HANDOFF.log",
-      "bytes": 598,
-      "sha256": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0"
-    },
-    {
-      "path": "handoff/evidence/MUTATION_HANDOFF.json",
-      "bytes": 64025,
-      "sha256": "ad0104af23bba4be108e2bce291b76e888c97dfa1f8bae4ec50fb342be79c694"
-    },
-    {
-      "path": "handoff/evidence/MUTATION_HANDOFF.log",
-      "bytes": 185,
-      "sha256": "342012296e8b4e169654e1a7eb7f299cc92b3f5c72e012153e7254854fe95174"
-    },
-    {
-      "path": "handoff/evidence/PYTEST_HANDOFF.xml",
-      "bytes": 22384,
-      "sha256": "69d605c5eb495ac5906fdada537165dc84e1de0cbe7032d2b3a74af6d7977922"
-    },
-    {
-      "path": "handoff/evidence/REPOSITORY_VALIDATION.log",
-      "bytes": 74,
-      "sha256": "560efb43452fb93eaea1ed8c5ddad8a9349609760320f2c80e9e873011d7061f"
-    },
-    {
-      "path": "handoff/evidence/WEB_BUILD.log",
-      "bytes": 20,
-      "sha256": "c56e4cd8ddb86a69e8008285a020c988e4e8c7a34fddfe0d7e0cfdf81909caaa"
-    },
-    {
-      "path": "handoff/evidence/WEB_VALIDATE.log",
-      "bytes": 22,
-      "sha256": "9dfe518487ff79a299066774a796549ed717d4df57c2537c061798cfb2d6204b"
-    }
+    "Live PostgreSQL/pgvector integration remains skipped.",
+    "Docker/Kubernetes and external services were not executed live.",
+    "Real-corpus TEVV, independent security testing and authorization remain open."
   ]
 }

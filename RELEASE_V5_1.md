@@ -12,3 +12,5 @@ This release does not change production authorization. It adds a complete local 
 - executable handoff consistency verifier and tests.
 
 Base product semantics remain v5.0.0. Current status remains engineering baseline / controlled pilot only; production authorization is false.
+
+Release provenance was additionally hardened: `generate_manifest.py` now includes only Git-tracked/staged files in a worktree and excludes local coverage artifacts; gitless archives still enumerate their complete snapshot. System/source manifests exclude generated `handoff/evidence/` to prevent evidence-source cycles.
