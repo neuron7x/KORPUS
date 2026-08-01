@@ -1,0 +1,15 @@
+{
+  "valid": true,
+  "services": [
+    "api",
+    "clamav",
+    "migrate",
+    "minio",
+    "minio-init",
+    "otel-collector",
+    "postgres",
+    "web",
+    "worker"
+  ],
+  "failures": []
+}

@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "resources": 20,
+  "kinds": {
+    "ConfigMap": 1,
+    "Deployment": 3,
+    "HorizontalPodAutoscaler": 2,
+    "Job": 1,
+    "Kustomization": 1,
+    "Namespace": 1,
+    "NetworkPolicy": 4,
+    "PodDisruptionBudget": 2,
+    "Service": 2,
+    "ServiceAccount": 3
+  },
+  "note": "static topology validation only; cluster execution remains external evidence"
+}

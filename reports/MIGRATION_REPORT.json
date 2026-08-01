@@ -4,18 +4,22 @@
     "audit_anchor_outbox",
     "audit_events",
     "audit_heads",
+    "document_compartments",
     "document_versions",
     "documents",
     "evidence_spans",
+    "ingestion_jobs",
     "span_embeddings"
   ],
   "tables_actual": [
     "audit_anchor_outbox",
     "audit_events",
     "audit_heads",
+    "document_compartments",
     "document_versions",
     "documents",
     "evidence_spans",
+    "ingestion_jobs",
     "span_embeddings"
   ],
   "table_set_match": true,
