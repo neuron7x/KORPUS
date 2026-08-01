@@ -1,44 +1,201 @@
 <!doctype html>
 <html lang="uk">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090a0c">
-  <meta name="description" content="Evidence-bound controlled-corpus platform">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/styles.css">
-  <title>КОРПУС / Evidence Runtime</title>
-</head>
-<body>
-  <main>
-    <header><div><strong>КОРПУС</strong><span> / evidence runtime</span></div><div class="status">FAIL-CLOSED</div></header>
-    <section class="hero">
-      <p class="eyebrow">ДЖЕРЕЛО → ДОКАЗ → ВІДПОВІДЬ</p>
-      <h1>Перевірити,<br>а не повірити.</h1>
-      <p class="lead">Система відповідає лише з чинних затверджених фрагментів, доступних вашій ідентичності.</p>
-      <section class="authbar" aria-label="Автентифікація">
-        <div class="auth-actions"><button id="login" type="button">Увійти через OIDC</button><button id="logout" type="button" hidden>Вийти</button></div>
-        <p id="identity-state" class="limitation">Не автентифіковано.</p>
-        <details>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f2f0e9" />
+    <meta
+      name="description"
+      content="КОРПУС — доказова система роботи з контрольованими документами"
+    />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>КОРПУС — перевірити, а не повірити</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">До робочої області</a>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="КОРПУС, на початок сторінки">
+        <span class="brand-mark" aria-hidden="true">К</span>
+        <span>КОРПУС<small>evidence runtime</small></span>
+      </a>
+      <nav aria-label="Головна навігація">
+        <a href="#method">Метод</a><a href="#workspace">Перевірка</a
+        ><a href="#assurance">Гарантії</a>
+      </nav>
+      <span class="control-state"><i aria-hidden="true"></i> fail-closed</span>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="kicker">Джерело → доказ → відповідь</p>
+          <h1 id="hero-title">Перевірити,<br /><em>а не повірити.</em></h1>
+          <p class="lede">
+            КОРПУС відповідає лише з чинних затверджених фрагментів, доступних
+            вашій ідентичності. Якщо доказу недостатньо — система відмовляється
+            відповідати.
+          </p>
+          <a class="primary-link" href="#workspace"
+            >Відкрити перевірку <span aria-hidden="true">↘</span></a
+          >
+        </div>
+        <aside class="proof-card" aria-label="Принцип роботи">
+          <p class="proof-index">01 / TRUST PATH</p>
+          <ol>
+            <li><span>Identity</span><b>серверна</b></li>
+            <li><span>Access</span><b>до retrieval</b></li>
+            <li><span>Evidence</span><b>точна цитата</b></li>
+            <li><span>Audit</span><b>hash chain</b></li>
+          </ol>
+          <p>Жоден рейтинг чи модель не розширює права доступу.</p>
+        </aside>
+      </section>
+
+      <section id="method" class="method" aria-labelledby="method-title">
+        <header>
+          <p class="section-number">01</p>
+          <h2 id="method-title">
+            Доказова відповідь — це процес, а не стиль тексту.
+          </h2>
+        </header>
+        <div class="method-grid">
+          <article>
+            <span>01</span>
+            <h3>Встановити суб’єкта</h3>
+            <p>
+              OIDC identity та серверні entitlement-проєкції. Не довіряти ролям
+              із request body.
+            </p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Відсікти недоступне</h3>
+            <p>
+              ABAC, compartments і PostgreSQL FORCE RLS працюють до ранжування.
+            </p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Зв’язати твердження</h3>
+            <p>
+              Кожна відповідь дорівнює фрагменту джерела та перевіряється
+              offsets і hash.
+            </p>
+          </article>
+          <article>
+            <span>04</span>
+            <h3>Зберегти рішення</h3>
+            <p>Подія, стан бази й audit head узгоджуються транзакційно.</p>
+          </article>
+        </div>
+      </section>
+
+      <section
+        id="workspace"
+        class="workspace"
+        aria-labelledby="workspace-title"
+      >
+        <header class="workspace-head">
+          <div>
+            <p class="section-number">02</p>
+            <h2 id="workspace-title">Робоча перевірка</h2>
+          </div>
+          <div class="identity-shell" aria-label="Стан автентифікації">
+            <span id="identity-state">Перевіряємо сесію…</span>
+            <div class="auth-actions">
+              <button id="login" type="button">Увійти через OIDC</button
+              ><button id="logout" class="quiet-button" type="button" hidden>
+                Вийти
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <form id="query-form" class="query-form">
+          <label for="query">Запит до контрольованого корпусу</label>
+          <div class="query-box">
+            <textarea
+              id="query"
+              minlength="3"
+              maxlength="2000"
+              required
+              aria-describedby="query-help"
+              placeholder="Наприклад: що має містити запис журналу аудиту?"
+            ></textarea>
+            <div class="query-footer">
+              <span id="query-help">3–2000 символів · Ctrl/⌘ + Enter</span
+              ><button id="submit" type="submit">
+                Знайти доказ <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <section
+          id="result"
+          class="result"
+          aria-live="polite"
+          aria-atomic="false"
+          tabindex="-1"
+          hidden
+        ></section>
+
+        <details class="developer-access">
           <summary>Developer bearer fallback</summary>
-          <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
-          <div class="query"><input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token"><button id="check-auth" type="button">Перевірити</button></div>
+          <p>
+            Лише для локальної розробки. Token зберігається виключно в пам’яті
+            вкладки.
+          </p>
+          <label for="bearer-token">Короткоживучий access token</label>
+          <div class="token-row">
+            <input
+              id="bearer-token"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+            /><button id="check-auth" type="button">Перевірити</button>
+          </div>
         </details>
       </section>
-      <form id="query-form">
-        <label for="query">Запит до контрольованого корпусу</label>
-        <div class="query"><textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea><button id="submit">Знайти доказ</button></div>
-      </form>
-    </section>
-    <section id="result" class="panel hidden" aria-live="polite"></section>
-    <section class="grid">
-      <article><b>Authority</b><p>Чинність, редакція, issuer, supersession.</p></article>
-      <article><b>Access</b><p>Identity та policy перед retrieval.</p></article>
-      <article><b>Evidence</b><p>Claim прив’язаний до immutable span.</p></article>
-      <article><b>Audit</b><p>Кожна дія входить до hash chain.</p></article>
-    </section>
-  </main>
-  <script src="/config.js"></script>
-  <script type="module" src="/app.js"></script>
-</body>
+
+      <section
+        id="assurance"
+        class="assurance"
+        aria-labelledby="assurance-title"
+      >
+        <header>
+          <p class="section-number">03</p>
+          <h2 id="assurance-title">Що система доводить — і чого не обіцяє.</h2>
+        </header>
+        <div class="assurance-grid">
+          <article>
+            <h3>Доводить локально</h3>
+            <ul>
+              <li>недоступний текст не входить у retrieval;</li>
+              <li>цитата зв’язана з immutable source;</li>
+              <li>відсутній context закривається відмовою;</li>
+              <li>backup перевіряється після restore.</li>
+            </ul>
+          </article>
+          <article class="boundary">
+            <h3>Не є авторизацією</h3>
+            <ul>
+              <li>не підтверджує права на реальні документи;</li>
+              <li>не замінює незалежний security review;</li>
+              <li>не перетворює local benchmark на SLA;</li>
+              <li>не надає production authorization.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>КОРПУС / controlled evidence system</p>
+      <p>Стан контролю: <strong>production_authorized=false</strong></p>
+    </footer>
+    <script src="/config.js"></script>
+    <script type="module" src="/app.js"></script>
+  </body>
 </html>
