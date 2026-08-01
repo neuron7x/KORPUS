@@ -2,7 +2,7 @@
   "schema_version": 4,
   "status": "PASS",
   "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
-  "source_tree_sha256": "4f5ff4950f1a2882418c53a98c760e41d2cf5edca241469f01b6544254cc400e",
+  "source_tree_sha256": "d5d446b318c3ade676d42609d293f41ef1e8205073737c097303ebeb1934ed44",
   "checks": {
     "pytest": true,
     "coverage_line": true,
@@ -29,9 +29,9 @@
     "dataset_sha256": "af6e2e208a64d51f5d5d240185dc6ac6661d2b82d41897ac4dc15448404e4d64",
     "evaluation_protocol": "evals/EVALUATION_PROTOCOL.md",
     "evaluation_protocol_sha256": "116348d04d67bb3bf8024f767ebed54956fa6b88ef5969a4993fc89662cabd04",
-    "system_manifest_sha256": "d92c91e5af5e3272b284e0b6665f3cb7d971579bc09b905cf66021c56958e7f0",
-    "system_manifest_root_sha256": "c0169262de98329a5793ad961bc1c05c77b335597669c7a58c8fb7c8bafce0d0",
-    "source_commit": "0c04b9efef53f988056c4c9e2ed96afab4798bf9",
+    "system_manifest_sha256": "f8af47d143f4e20f84a8c0e2ad7ad361ac0c601859bde4f81065e9723532c4ee",
+    "system_manifest_root_sha256": "14d6874937ba14e15ad9a30b87fd0ed8eb3c73d10c0817259b3857bab98cce49",
+    "source_commit": "ce50279b88bcbb6a824766a382f2318370716db9",
     "calibration_status": "UNVALIDATED_TEST_FIXTURE",
     "passed": 30,
     "total": 30,
@@ -886,7 +886,7 @@
     },
     "failures": [],
     "evidence_sha256": {
-      "eval": "6e2e7c53fd8fc47b335017de5d6e8bc96cd2cffad317763640b3bc81cc062045",
+      "eval": "b458f69fa741cef79d76ace5bc0c745a179a5629195aa67c624f533753760689",
       "mutation": "1bbfd78a7d9b166605239aa6836dbec5922a401377cd433b8ca1ba73aaee6089",
       "migration": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0",
       "scale": "cae22a1cb9c4210781cc78fd4283c555f6b8deaf48c6d930f7deb59cd8c05be0"
@@ -894,11 +894,11 @@
     "interpretation": "Engineering release predicates passed; this is not corpus, security, regulatory, operational-SLA or military authorization."
   },
   "evidence_sha256": {
-    "eval": "6e2e7c53fd8fc47b335017de5d6e8bc96cd2cffad317763640b3bc81cc062045",
+    "eval": "b458f69fa741cef79d76ace5bc0c745a179a5629195aa67c624f533753760689",
     "mutation": "1bbfd78a7d9b166605239aa6836dbec5922a401377cd433b8ca1ba73aaee6089",
     "migration": "521760dd69eff99b71e0f0884fb9a43c9ade0d505400f90b41847e69b086c6b0",
     "scale": "cae22a1cb9c4210781cc78fd4283c555f6b8deaf48c6d930f7deb59cd8c05be0",
-    "operational": "ac573da13404fb536560876228813aa638666dd06b43b47cd1cbcd25d4e4d725"
+    "operational": "477ea124006570ec374b0ce1747c87d1c9d156a7d8d7cc72a46ce8c3bcd44c6a"
   },
   "quality_tooling": {
     "ruff": "NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB",
