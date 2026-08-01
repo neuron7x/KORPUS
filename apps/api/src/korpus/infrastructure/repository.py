@@ -631,7 +631,10 @@ class SqlRepository:
             rows = connection.execute(statement).mappings().all()
         by_id = {row["span_id"]: row for row in rows}
         ordered = [by_id[span_id] for span_id in span_ids if span_id in by_id]
-        return self._materialize_current(ordered, as_of)[:candidate_limit]
+        # Candidate SQL and the projection both enforce temporal/access predicates.
+        # Keep the wider ID probe to avoid authorization-filter starvation, but do
+        # not instantiate models that can never enter the bounded reranker.
+        return self._materialize_current(ordered[:candidate_limit], as_of)
 
     def _retrievable_projection(
         self, identity: Identity, authorized_corpora: frozenset[str], as_of: date
@@ -1011,11 +1014,69 @@ class SqlRepository:
         corpus_ids: frozenset[str],
         as_of: date,
     ) -> str:
-        retrievable = self.list_retrievable_spans(identity, corpus_ids, as_of)
-        unique_versions = {
-            (str(document.id), str(version.id), version.source_hash, version.review_state.value)
-            for _, document, version in retrievable
-        }
+        authorized_corpora = corpus_ids.intersection(identity.corpora)
+        if not authorized_corpora:
+            return hashlib.sha256(b"").hexdigest()[:16]
+        allowed_classifications = self._allowed_classifications(identity.clearance)
+        superseding = versions.alias("release_superseding_version")
+        active_superseder = (
+            select(1)
+            .where(superseding.c.supersedes_version_id == versions.c.id)
+            .where(superseding.c.review_state == ReviewState.APPROVED.value)
+            .where(
+                (superseding.c.effective_from.is_(None))
+                | (superseding.c.effective_from <= as_of)
+            )
+            .where(
+                (superseding.c.effective_until.is_(None))
+                | (superseding.c.effective_until >= as_of)
+            )
+            .where(
+                (superseding.c.rescinded_at.is_(None))
+                | (func.date(superseding.c.rescinded_at) > as_of)
+            )
+            .exists()
+        )
+        has_span = select(1).where(spans.c.version_id == versions.c.id).exists()
+        statement = (
+            select(
+                documents.c.id.label("document_id"),
+                versions.c.id.label("version_id"),
+                versions.c.source_hash,
+                versions.c.review_state,
+            )
+            .join(versions, versions.c.document_id == documents.c.id)
+            .where(versions.c.review_state == ReviewState.APPROVED.value)
+            .where(documents.c.corpus_id.in_(sorted(authorized_corpora)))
+            .where(documents.c.access_tier <= int(identity.clearance))
+            .where(documents.c.classification.in_(allowed_classifications))
+            .where(self._compartment_predicate(identity))
+            .where(
+                (versions.c.effective_from.is_(None))
+                | (versions.c.effective_from <= as_of)
+            )
+            .where(
+                (versions.c.effective_until.is_(None))
+                | (versions.c.effective_until >= as_of)
+            )
+            .where(
+                (versions.c.rescinded_at.is_(None))
+                | (func.date(versions.c.rescinded_at) > as_of)
+            )
+            .where(~active_superseder)
+            .where(has_span)
+        )
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            unique_versions = {
+                (
+                    str(row.document_id),
+                    str(row.version_id),
+                    str(row.source_hash),
+                    str(row.review_state),
+                )
+                for row in connection.execute(statement)
+            }
         digest = hashlib.sha256()
         for row in sorted(unique_versions):
             digest.update(":".join(row).encode("utf-8") + b"\n")

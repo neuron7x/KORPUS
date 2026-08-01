@@ -15,6 +15,7 @@ import time
 from datetime import date
 from pathlib import Path
 
+from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -32,6 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SPAN_COUNT = int(os.getenv("KORPUS_SCALE_SPANS", "5000"))
 ITERATIONS = int(os.getenv("KORPUS_SCALE_ITERATIONS", "80"))
 CANDIDATE_BUDGET = int(os.getenv("KORPUS_SCALE_CANDIDATES", "256"))
+QUERY = os.getenv("KORPUS_SCALE_QUERY", "ALPHA-OMEGA deterministic target")
+EXPECTED_MARKER = os.getenv("KORPUS_SCALE_EXPECTED_MARKER", "ALPHA-OMEGA")
 
 
 def percentile(values: list[float], quantile: float) -> float:
@@ -81,7 +84,10 @@ def main() -> int:
                 text=(
                     "ALPHA-OMEGA deterministic target evidence for bounded candidate retrieval."
                     if index == SPAN_COUNT // 2
-                    else f"Routine synthetic evidence fragment number {index} with common corpus language."
+                    else (
+                        f"Routine synthetic evidence fragment number {index} "
+                        "with common corpus language."
+                    )
                 ),
             )
             for index in range(SPAN_COUNT)
@@ -96,7 +102,7 @@ def main() -> int:
         )
         ingest_seconds = time.perf_counter() - started
         retriever = HybridLexicalRetriever(repository, candidate_budget=CANDIDATE_BUDGET)
-        query = "ALPHA-OMEGA deterministic target"
+        query = QUERY
         retriever.search(actor, query, actor.corpora, date.today())
         durations: list[float] = []
         top_hits = 0
@@ -104,15 +110,34 @@ def main() -> int:
             started = time.perf_counter_ns()
             result = retriever.search(actor, query, actor.corpora, date.today())
             durations.append((time.perf_counter_ns() - started) / 1_000_000)
-            top_hits += int(bool(result) and "ALPHA-OMEGA" in result[0].span.text)
+            top_hits += int(
+                bool(result)
+                and (not EXPECTED_MARKER or EXPECTED_MARKER in result[0].span.text)
+            )
         candidate_count = len(
             repository.search_retrievable_spans(
                 actor, actor.corpora, date.today(), query, CANDIDATE_BUDGET
             )
         )
+        cached_retriever = CachedRetriever(
+            repository,
+            retriever,
+            EvidenceQueryCache(maximum_entries=8, ttl_seconds=60),
+            configuration_id="scale-probe-v1",
+        )
+        cached_retriever.search(actor, query, actor.corpora, date.today())
+        cached_durations: list[float] = []
+        for _ in range(ITERATIONS):
+            started = time.perf_counter_ns()
+            cached_retriever.search(actor, query, actor.corpora, date.today())
+            cached_durations.append((time.perf_counter_ns() - started) / 1_000_000)
         report = {
-            "schema_version": 1,
-            "status": "PASS" if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET else "FAIL",
+            "schema_version": 2,
+            "status": (
+                "PASS"
+                if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET
+                else "FAIL"
+            ),
             "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
             "procedure": {
                 "database": "SQLite FTS5",
@@ -121,12 +146,16 @@ def main() -> int:
                 "warmup_queries": 1,
                 "candidate_budget": CANDIDATE_BUDGET,
                 "query": query,
+                "expected_top1_marker": EXPECTED_MARKER or None,
             },
             "results": {
                 "ingest_seconds": ingest_seconds,
                 "query_latency_ms_p50": statistics.median(durations),
                 "query_latency_ms_p95": percentile(durations, 0.95),
                 "query_latency_ms_max": max(durations),
+                "cached_query_latency_ms_p50": statistics.median(cached_durations),
+                "cached_query_latency_ms_p95": percentile(cached_durations, 0.95),
+                "cached_query_latency_ms_max": max(cached_durations),
                 "candidate_count": candidate_count,
                 "top1_recall": top_hits / ITERATIONS,
             },

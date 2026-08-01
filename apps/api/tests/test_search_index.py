@@ -44,3 +44,31 @@ def test_database_candidate_budget_is_a_hard_upper_bound(client):
     )
     assert 1 <= len(candidates) <= 8
     assert all("BUDGET-MARKER" in span.text for span, _, _ in candidates)
+
+
+def test_search_materializes_only_the_candidate_budget(client, monkeypatch):
+    for index in range(12):
+        result = ingest_text(
+            client,
+            title=f"Materialization document {index}",
+            text=f"MATERIALIZE-MARKER shared evidence {index}.",
+        )
+        approve(client, result["version"]["id"])
+    repository = client.app.state.repository
+    original = repository._materialize_current
+    observed_row_counts: list[int] = []
+
+    def recording_materializer(rows, as_of):
+        observed_row_counts.append(len(rows))
+        return original(rows, as_of)
+
+    monkeypatch.setattr(repository, "_materialize_current", recording_materializer)
+    candidates = repository.search_retrievable_spans(
+        client.identity_provider.current,
+        frozenset({"public"}),
+        date.today(),
+        "MATERIALIZE-MARKER shared evidence",
+        candidate_limit=8,
+    )
+    assert len(candidates) == 8
+    assert observed_row_counts == [8]

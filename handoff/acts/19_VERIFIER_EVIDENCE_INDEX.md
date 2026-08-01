@@ -19,6 +19,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | Repository contracts | `PYTHONPATH=apps/api/src make validate` | command output |
 | Migration/eval | `make migration-gate eval` | reports under ignored `var/` |
 | Type lock and deterministic discovery | install `apps/api/requirements.dev.lock` into a fresh venv with `--no-deps`, run `pip check`, then `MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src` | 44-file command output |
+| Retrieval performance | `PYTHONPATH=apps/api/src python scripts/run_scale_probe.py` | schema v2 `var/scale-report.json` |
 
 ## Falsification history
 
@@ -35,6 +36,8 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
   ACT-17 binds source discovery explicitly and repairs all 25 errors it exposed.
 - A Base64URL last-character mutation could decode to unchanged authenticated bytes because
   unused padding bits were ignored; ACT-18 rejects non-canonical session encodings.
+- Release-fingerprint cache validation materialized every retrievable span; ACT-19 derives the
+  same authorization-bound fingerprint from version rows and bounds candidate materialization.
 
 ## Claims that remain open
 
