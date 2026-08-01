@@ -102,9 +102,12 @@ services:
       KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_admin_password
       KORPUS_POSTGRES_APP_ROLE: korpus_app
       KORPUS_POSTGRES_APP_PASSWORD_FILE: /run/secrets/postgres_app_password
+      KORPUS_DATABASE_CAPABILITY_KEY_FILE: /run/secrets/database_capability_key
+      KORPUS_DATABASE_CAPABILITY_KEY_ID: local-development
     secrets:
     - postgres_admin_password
     - postgres_app_password
+    - database_capability_key
     depends_on:
       postgres:
         condition: service_healthy
@@ -113,7 +116,7 @@ services:
     command:
     - /bin/sh
     - -ec
-    - cd /app/apps/api && python -m alembic -c alembic.ini upgrade head && cd /app && python scripts/prepare_postgres_role.py
+    - cd /app/apps/api && python -m alembic -c alembic.ini upgrade head && cd /app && export KORPUS_DATABASE_CAPABILITY_KEY_NOT_BEFORE="$$(date -u -d '-1 minute' --iso-8601=seconds)" KORPUS_DATABASE_CAPABILITY_KEY_EXPIRES_AT="$$(date -u -d '+30 days' --iso-8601=seconds)" && python scripts/provision_postgres_capability_key.py && python scripts/prepare_postgres_role.py
   minio:
     restart: unless-stopped
     init: true
@@ -278,6 +281,8 @@ services:
       KORPUS_DATABASE_MAX_OVERFLOW: '8'
       KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
       KORPUS_DATABASE_STATEMENT_TIMEOUT_MS: '30000'
+      KORPUS_DATABASE_CAPABILITY_LOCAL_KEY_FILE: /run/secrets/database_capability_key
+      KORPUS_DATABASE_CAPABILITY_LOCAL_KEY_ID: local-development
       KORPUS_OBJECT_STORE_MODE: s3
       KORPUS_S3_BUCKET: korpus
       KORPUS_S3_PREFIX: objects
@@ -316,6 +321,7 @@ services:
     - audit_hmac_key
     - jwt_secret
     - metrics_token
+    - database_capability_key
     volumes:
     - audit-anchor:/audit
     depends_on:
@@ -374,6 +380,8 @@ services:
       KORPUS_SCHEMA_MODE: migrations
       KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_app:{password}@postgres:5432/korpus
       KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
+      KORPUS_DATABASE_CAPABILITY_LOCAL_KEY_FILE: /run/secrets/database_capability_key
+      KORPUS_DATABASE_CAPABILITY_LOCAL_KEY_ID: local-development
       KORPUS_DATABASE_POOL_SIZE: '8'
       KORPUS_DATABASE_MAX_OVERFLOW: '8'
       KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
@@ -416,6 +424,7 @@ services:
     - audit_hmac_key
     - jwt_secret
     - metrics_token
+    - database_capability_key
     volumes:
     - audit-anchor:/audit
     depends_on:
@@ -480,6 +489,8 @@ secrets:
     file: ./infra/secrets/jwt_secret.txt
   metrics_token:
     file: ./infra/secrets/metrics_token.txt
+  database_capability_key:
+    file: ./infra/secrets/database_capability_key.txt
 volumes:
   postgres-data: null
   minio-data: null

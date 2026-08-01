@@ -62,6 +62,17 @@ with engine.connect() as connection:
     connection.execute(text("REVOKE CREATE ON SCHEMA public FROM PUBLIC"))
     connection.execute(text(f"GRANT CONNECT ON DATABASE {database_sql} TO {role_sql}"))
     connection.execute(text(f"GRANT USAGE ON SCHEMA public TO {role_sql}"))
+    connection.execute(text(f"GRANT USAGE ON SCHEMA korpus_auth TO {role_sql}"))
+    connection.execute(
+        text(f"GRANT EXECUTE ON FUNCTION korpus_auth.activate(text) TO {role_sql}")
+    )
+    for signature in (
+        "korpus_auth.claims()",
+        "korpus_auth.claim_array(text)",
+        "korpus_auth.has_role(text)",
+        "korpus_auth.has_operation(text)",
+    ):
+        connection.execute(text(f"GRANT EXECUTE ON FUNCTION {signature} TO {role_sql}"))
     connection.execute(text(f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}"))
     connection.execute(text(f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}"))
     for table_name in READ_WRITE_TABLES:

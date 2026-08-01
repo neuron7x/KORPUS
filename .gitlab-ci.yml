@@ -209,6 +209,8 @@ api:postgres-and-restore:
     KORPUS_POSTGRES_APP_ROLE: korpus_app
     KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
     KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
+    KORPUS_DATABASE_CAPABILITY_KEY_FILE: /tmp/korpus-database-capability.key
+    KORPUS_DATABASE_CAPABILITY_KEY_ID: ci-ephemeral-capability
     KORPUS_DATABASE_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DATABASE_URL: postgresql://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DIR: "$CI_PROJECT_DIR/var/backups"
@@ -224,8 +226,14 @@ api:postgres-and-restore:
   script:
     - export PATH="/tmp/korpus-venv/bin:$PATH"
     - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_database_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
+    - python -c "import secrets, pathlib; pathlib.Path('/tmp/korpus-database-capability.key').write_text(secrets.token_hex(32))"
+    - chmod 600 "$KORPUS_DATABASE_CAPABILITY_KEY_FILE"
+    - export KORPUS_DATABASE_CAPABILITY_KEY_NOT_BEFORE="$(date -u -d '-1 minute' --iso-8601=seconds)"
+    - export KORPUS_DATABASE_CAPABILITY_KEY_EXPIRES_AT="$(date -u -d '+1 day' --iso-8601=seconds)"
+    - python scripts/provision_postgres_capability_key.py
     - python scripts/prepare_postgres_role.py
-    - pytest -q apps/api/tests/test_alembic_state.py apps/api/tests/test_postgres_integration.py -m postgres --junitxml=var/act-01/postgres-junit.xml
+    - pytest -q apps/api/tests/test_alembic_state.py apps/api/tests/test_postgres_integration.py apps/api/tests/test_postgres_capability_integration.py -m postgres --junitxml=var/act-01/postgres-junit.xml
+    - python scripts/run_database_capability_gate.py
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
     - export KORPUS_BACKUP_PATH="$(scripts/backup_postgres.sh)"
@@ -250,6 +258,8 @@ api:postgres-and-restore:
       - var/act-01/postgres-live-assurance.json
       - var/act-01/postgres-live-assurance.log
       - var/act-01/postgres-junit.xml
+      - var/act-25/database-capability-assurance.json
+      - var/act-25/database-capability-junit.xml
     reports:
       junit: var/act-01/postgres-junit.xml
 

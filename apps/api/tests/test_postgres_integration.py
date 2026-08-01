@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
+from itertools import count
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 from sqlalchemy import insert, select, text
@@ -29,6 +31,7 @@ from korpus.infrastructure.repository import (
     spans,
     versions,
 )
+from korpus.security.database_capability import DatabaseCapabilityIssuer
 
 SCRIPTS = Path(__file__).resolve().parents[3] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
@@ -36,11 +39,34 @@ from postgres_live_assurance import ddl_denial_receipt  # noqa: E402
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 POSTGRES_APP_ROLE = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
+CAPABILITY_KEY_FILE = os.getenv("KORPUS_DATABASE_CAPABILITY_KEY_FILE")
+CAPABILITY_KEY_ID = os.getenv("KORPUS_DATABASE_CAPABILITY_KEY_ID", "ci-ephemeral")
 pytestmark = pytest.mark.postgres
 
 
-@pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
+@pytest.mark.skipif(
+    not POSTGRES_URL or not CAPABILITY_KEY_FILE,
+    reason="PostgreSQL URL or capability key is not configured",
+)
 def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
+    assert CAPABILITY_KEY_FILE is not None
+    issuer = DatabaseCapabilityIssuer(
+        CAPABILITY_KEY_ID, Path(CAPABILITY_KEY_FILE).read_bytes().strip()
+    )
+    run_id = uuid4().hex
+    sequence = count(1)
+
+    def authorized(identity: Identity, *operations: str) -> Identity:
+        now = datetime.now(UTC)
+        capability = issuer.issue(
+            identity,
+            jti=f"postgres-integration-{run_id}-{next(sequence)}",
+            not_before=now - timedelta(seconds=5),
+            expires_at=now + timedelta(seconds=60),
+            operations=frozenset(operations or ("read",)),
+        )
+        return identity.model_copy(update={"database_capability": capability})
+
     repository = SqlRepository(
         POSTGRES_URL,
         "postgres-integration-audit-key",
@@ -129,10 +155,16 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             text=f"{marker} indexed evidence is retrievable only when authorized.",
         )
         repository.create_document_bundle(
-            actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
+            authorized(actor, "read", "write"),
+            document,
+            version,
+            [span],
+            {"integration": "postgres", "corpus": corpus},
         )
         with repository.engine.begin() as connection:
-            repository._apply_postgres_identity(connection, actor)
+            repository._apply_postgres_identity(
+                connection, authorized(actor, "read", "write")
+            )
             connection.execute(
                 insert(span_embeddings).values(
                     span_id=str(span.id),
@@ -168,7 +200,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         corpora=frozenset({"public"}),
     )
     result = HybridLexicalRetriever(repository, candidate_budget=8).search(
-        public_identity,
+        authorized(public_identity),
         "POSTGRES-PUBLIC indexed evidence",
         public_identity.corpora,
         date.today(),
@@ -176,7 +208,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     assert result and result[0].span.id == public_span.id
 
     with repository.engine.begin() as connection:
-        repository._apply_postgres_identity(connection, public_identity)
+        repository._apply_postgres_identity(connection, authorized(public_identity))
         visible_documents = set(connection.execute(select(documents.c.id)).scalars())
         visible_versions = set(connection.execute(select(versions.c.id)).scalars())
         visible_spans = set(connection.execute(select(spans.c.id)).scalars())
@@ -211,7 +243,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             compartments=compartments,
         )
         with repository.engine.begin() as connection:
-            repository._apply_postgres_identity(connection, identity)
+            repository._apply_postgres_identity(connection, authorized(identity))
             visible = str(compartment_document.id) in set(
                 connection.execute(select(documents.c.id)).scalars()
             )
@@ -245,18 +277,15 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
     assert set(ddl_denial_receipt(repository.engine).values()) == {"PASS"}
 
-    # IAM-006 is deliberately a detection test: arbitrary app-role SQL can broaden GUC claims.
+    # IAM-006 regression: arbitrary legacy GUC manipulation cannot activate authority.
     with repository.engine.begin() as connection:
         connection.execute(text("SELECT set_config('korpus.clearance','3',true)"))
         connection.execute(text("SELECT set_config('korpus.corpora','restricted-demo',true)"))
         connection.execute(text("SELECT set_config('korpus.classifications','restricted',true)"))
         connection.execute(text("SELECT set_config('korpus.compartments','omega',true)"))
-        assert (
-            connection.execute(
-                text("SELECT count(*) FROM documents WHERE corpus_id='restricted-demo'")
-            ).scalar_one()
-            > 0
-        )
+        assert connection.execute(
+            text("SELECT count(*) FROM documents WHERE corpus_id='restricted-demo'")
+        ).scalar_one() == 0
 
     assert repository.verify_audit().valid is True
     repository.close()

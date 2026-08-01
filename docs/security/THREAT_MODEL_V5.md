@@ -8,7 +8,7 @@ Corpus bytes and metadata; identity/entitlement data; reviewer authority; source
 
 1. browser ↔ reverse proxy/BFF;
 2. BFF/API ↔ OIDC provider;
-3. API/worker ↔ PostgreSQL application role;
+3. API/worker ↔ independent database-authorization broker ↔ PostgreSQL application role;
 4. quarantine ↔ scanner/parser worker;
 5. API/worker ↔ object store;
 6. API ↔ embedding service;
@@ -23,6 +23,7 @@ Corpus bytes and metadata; identity/entitlement data; reviewer authority; source
 | forged privileged OIDC claims | server-side entitlement projection; negative token tests; IdP conformance |
 | stolen browser session/CSRF | HttpOnly AES-GCM session, Secure host cookies, double-submit CSRF, TTL, logout/revocation tests |
 | cross-corpus leakage | ABAC + compartments + PostgreSQL FORCE RLS + non-superuser integration tests |
+| compromised API broadens DB claims | broker independently validates the original OIDC credential; transaction-bound signed capability; DB-private verification key; replay and arbitrary-SQL probes |
 | malicious upload/parser exploit | bounded streaming, MIME/signature checks, ClamAV, subprocess sandbox, page/time/output limits, fuzzing |
 | source forgery | Ed25519 detached signature bound to bytes and normative metadata; key validity/revocation |
 | reviewer self-authorization | separate subjects plus content-addressed scoped reviewer registry and recorded credential IDs |
@@ -34,4 +35,9 @@ Corpus bytes and metadata; identity/entitlement data; reviewer authority; source
 
 ## Residual uncertainty
 
-Unknown parser zero-days, insider misuse, compromised IdP/KMS/runner, covert channels, model-provider retention, and undiscovered attack classes cannot be eliminated by local tests. They require independent red-team, live telemetry, vendor controls, segmentation, rotation, and accountable residual-risk acceptance.
+Unknown parser zero-days, insider misuse, compromised IdP/broker/KMS/runner, covert channels,
+model-provider retention, and undiscovered attack classes cannot be eliminated by local tests.
+The repository proves the authorization protocol and database enforcement but not physical
+separation or deployment of the broker. Those claims require independent deployment inspection,
+red-team, live telemetry, key-rotation evidence, segmentation and accountable residual-risk
+acceptance.

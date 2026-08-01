@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: korpus-authorization-broker
+  namespace: korpus
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app.kubernetes.io/name: korpus-authorization-broker}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: korpus-authorization-broker, app.kubernetes.io/part-of: korpus}
+    spec:
+      serviceAccountName: korpus-authorization-broker
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: broker
+          image: registry.invalid/korpus/api@sha256:REPLACE_WITH_VERIFIED_DIGEST
+          command:
+            - uvicorn
+            - --factory
+            - korpus.authorization_broker:create_app_from_env
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8443"
+            - --ssl-keyfile
+            - /run/korpus-tls/tls.key
+            - --ssl-certfile
+            - /run/korpus-tls/tls.crt
+          envFrom:
+            - configMapRef: {name: korpus-config}
+          env:
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_ID
+              valueFrom: {secretKeyRef: {name: korpus-capability-signing-key, key: key-id}}
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_FILE
+              value: /run/korpus-capability/signing-key
+          ports:
+            - {name: https, containerPort: 8443, protocol: TCP}
+          readinessProbe:
+            httpGet: {path: /healthz, port: https, scheme: HTTPS}
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet: {path: /healthz, port: https, scheme: HTTPS}
+            periodSeconds: 15
+            timeoutSeconds: 3
+          resources:
+            requests: {cpu: 100m, memory: 128Mi, ephemeral-storage: 64Mi}
+            limits: {cpu: 500m, memory: 384Mi, ephemeral-storage: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: capability-key, mountPath: /run/korpus-capability, readOnly: true}
+            - {name: broker-tls, mountPath: /run/korpus-tls, readOnly: true}
+            - {name: governance, mountPath: /etc/korpus/governance, readOnly: true}
+      volumes:
+        - name: capability-key
+          secret: {secretName: korpus-capability-signing-key, defaultMode: 0400}
+        - name: broker-tls
+          secret: {secretName: korpus-authorization-broker-tls, defaultMode: 0400}
+        - name: governance
+          secret: {secretName: korpus-governance-bundle, defaultMode: 0400}

@@ -145,6 +145,9 @@ def get_identity(
     except jwt.PyJWTError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token") from exc
     _validate_lifetime(claims, settings)
-    if settings.auth_mode == "oidc":
-        return _oidc_identity(claims, settings)
-    return _identity_from_local_claims(claims)
+    identity = (
+        _oidc_identity(claims, settings)
+        if settings.auth_mode == "oidc"
+        else _identity_from_local_claims(claims)
+    )
+    return identity.model_copy(update={"authorization_credential": token})

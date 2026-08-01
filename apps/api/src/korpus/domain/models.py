@@ -8,6 +8,7 @@ from enum import IntEnum, StrEnum
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic.json_schema import SkipJsonSchema
 
 CORPUS_ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{0,63}$")
 ROLE_PATTERN = re.compile(r"^[a-z][a-z0-9:_-]{0,63}$")
@@ -83,6 +84,12 @@ class Identity(BaseModel):
     clearance: AccessTier = AccessTier.PUBLIC
     corpora: frozenset[str] = Field(default_factory=lambda: frozenset({"public"}), max_length=64)
     compartments: frozenset[str] = Field(default_factory=frozenset, max_length=64)
+    database_capability: SkipJsonSchema[str | None] = Field(
+        default=None, exclude=True, repr=False, max_length=8192
+    )
+    authorization_credential: SkipJsonSchema[str | None] = Field(
+        default=None, exclude=True, repr=False, max_length=16384
+    )
 
     @field_validator("subject")
     @classmethod

@@ -4,7 +4,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dir="$root/infra/secrets"
 mkdir -p "$dir"
 umask 077
-for name in postgres_admin_password postgres_app_password minio_root_password minio_app_secret_key audit_hmac_key jwt_secret metrics_token; do
+for name in postgres_admin_password postgres_app_password minio_root_password minio_app_secret_key audit_hmac_key jwt_secret metrics_token database_capability_key; do
   file="$dir/${name}.txt"
   if [[ ! -s "$file" ]]; then
     python3 - <<PY > "$file"

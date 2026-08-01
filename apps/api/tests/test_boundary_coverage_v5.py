@@ -195,9 +195,10 @@ class Governance:
 
 
 def test_pgvector_search_upsert_governance_and_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
-    from korpus.infrastructure.repository import SqlRepository
-
-    monkeypatch.setattr(SqlRepository, "_apply_postgres_identity", staticmethod(lambda connection, identity: None))
+    monkeypatch.setattr(
+        "korpus.infrastructure.semantic.activate_database_capability",
+        lambda connection, identity, provider: None,
+    )
     span_id = uuid4()
     provider = SimpleNamespace(
         model_id="m1",

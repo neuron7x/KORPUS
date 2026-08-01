@@ -26,6 +26,9 @@ spec:
           envFrom:
             - configMapRef: {name: korpus-config}
             - secretRef: {name: korpus-runtime-secrets}
+          env:
+            - name: KORPUS_DATABASE_CAPABILITY_WORKLOAD_CREDENTIAL_FILE
+              value: /run/korpus-workload-credential/token
           resources:
             requests: {cpu: 750m, memory: 1Gi, ephemeral-storage: 1Gi}
             limits: {cpu: "2", memory: 3Gi, ephemeral-storage: 4Gi}
@@ -36,6 +39,8 @@ spec:
           volumeMounts:
             - {name: tmp, mountPath: /tmp}
             - {name: governance, mountPath: /etc/korpus/governance, readOnly: true}
+            - {name: broker-ca, mountPath: /run/korpus-broker-ca, readOnly: true}
+            - {name: workload-credential, mountPath: /run/korpus-workload-credential, readOnly: true}
       volumes:
         - name: governance
           secret:
@@ -43,3 +48,7 @@ spec:
             defaultMode: 0400
         - name: tmp
           emptyDir: {sizeLimit: 2Gi}
+        - name: broker-ca
+          secret: {secretName: korpus-authorization-broker-ca, defaultMode: 0400}
+        - name: workload-credential
+          secret: {secretName: korpus-worker-oidc-credential, defaultMode: 0400}

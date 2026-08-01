@@ -21,10 +21,23 @@ spec:
       containers:
         - name: migrate
           image: registry.invalid/korpus/api@sha256:REPLACE_WITH_VERIFIED_DIGEST
-          args: [python, -m, alembic, -c, /app/apps/api/alembic.ini, upgrade, head]
+          command: [/bin/sh, -ec]
+          args:
+            - >-
+              cd /app/apps/api && python -m alembic -c alembic.ini upgrade head &&
+              cd /app && python scripts/provision_postgres_capability_key.py
           envFrom:
             - configMapRef: {name: korpus-config}
             - secretRef: {name: korpus-migration-secrets}
+          env:
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_ID
+              valueFrom: {secretKeyRef: {name: korpus-capability-signing-key, key: key-id}}
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_NOT_BEFORE
+              valueFrom: {secretKeyRef: {name: korpus-capability-signing-key, key: not-before}}
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_EXPIRES_AT
+              valueFrom: {secretKeyRef: {name: korpus-capability-signing-key, key: expires-at}}
+            - name: KORPUS_DATABASE_CAPABILITY_KEY_FILE
+              value: /run/korpus-capability/signing-key
           resources:
             requests: {cpu: 100m, memory: 256Mi}
             limits: {cpu: "1", memory: 1Gi}
@@ -32,3 +45,8 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: capability-key, mountPath: /run/korpus-capability, readOnly: true}
+      volumes:
+        - name: capability-key
+          secret: {secretName: korpus-capability-signing-key, defaultMode: 0400}

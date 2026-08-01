@@ -15,6 +15,10 @@ from sqlalchemy import Engine, text as sql_text
 from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
 from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.database_capability import (
+    DatabaseCapabilityProvider,
+    activate_database_capability,
+)
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
 
@@ -115,12 +119,14 @@ class PgVectorSemanticIndex:
         provider: EmbeddingProvider,
         *,
         corpus_governance: CorpusGovernanceProfile | None = None,
+        database_capability_provider: DatabaseCapabilityProvider | None = None,
     ) -> None:
         if engine.dialect.name != "postgresql":
             raise ValueError("pgvector integration requires PostgreSQL")
         self.engine = engine
         self.provider = provider
         self.corpus_governance = corpus_governance
+        self.database_capability_provider = database_capability_provider
 
     def search(
         self,
@@ -163,7 +169,9 @@ class PgVectorSemanticIndex:
         )
         classifications = SqlRepository._allowed_classifications(identity.clearance)
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            activate_database_capability(
+                connection, identity, self.database_capability_provider
+            )
             rows = connection.execute(
                 statement,
                 {
@@ -180,10 +188,10 @@ class PgVectorSemanticIndex:
         return [(UUID(row.span_id), float(row.score)) for row in rows]
 
     def upsert(self, identity: Identity, span_id: UUID, text: str, text_hash: str) -> None:
-        from korpus.infrastructure.repository import SqlRepository
-
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            activate_database_capability(
+                connection, identity, self.database_capability_provider
+            )
             corpus_row = connection.execute(
                 sql_text(
                     """
@@ -203,7 +211,9 @@ class PgVectorSemanticIndex:
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:
-            SqlRepository._apply_postgres_identity(connection, identity)
+            activate_database_capability(
+                connection, identity, self.database_capability_provider
+            )
             connection.execute(
                 sql_text(
                     """

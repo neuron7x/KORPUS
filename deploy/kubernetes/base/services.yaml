@@ -7,6 +7,13 @@ spec:
 ---
 apiVersion: v1
 kind: Service
+metadata: {name: korpus-authorization-broker, namespace: korpus}
+spec:
+  selector: {app.kubernetes.io/name: korpus-authorization-broker}
+  ports: [{name: https, port: 8443, targetPort: https}]
+---
+apiVersion: v1
+kind: Service
 metadata: {name: korpus-web, namespace: korpus}
 spec:
   selector: {app.kubernetes.io/name: korpus-web}

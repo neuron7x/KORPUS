@@ -308,7 +308,7 @@ else:
         connection.execute("CREATE TABLE alembic_version(version_num VARCHAR(255) PRIMARY KEY)")
         connection.execute(
             "INSERT INTO alembic_version(version_num) VALUES (?)",
-            ("0009_reviewer_credentials",),
+            ("0010_trusted_authorization_plane",),
         )
     restore_environment = {
         **environment,

@@ -51,6 +51,7 @@ spec:
           volumeMounts:
             - {name: tmp, mountPath: /tmp}
             - {name: governance, mountPath: /etc/korpus/governance, readOnly: true}
+            - {name: broker-ca, mountPath: /run/korpus-broker-ca, readOnly: true}
       volumes:
         - name: governance
           secret:
@@ -58,3 +59,5 @@ spec:
             defaultMode: 0400
         - name: tmp
           emptyDir: {sizeLimit: 512Mi}
+        - name: broker-ca
+          secret: {secretName: korpus-authorization-broker-ca, defaultMode: 0400}

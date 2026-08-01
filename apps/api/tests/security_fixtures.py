@@ -140,6 +140,8 @@ def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
     return path, hashlib.sha256(raw).hexdigest()
 
 def controlled_security_kwargs(tmp_path: Path) -> dict[str, object]:
+    broker_ca = tmp_path / "broker-ca.pem"
+    broker_ca.write_text("test-only-ca", encoding="utf-8")
     path, digest = write_entitlement_profile(tmp_path)
     source_path, source_digest = write_source_trust_profile(tmp_path)
     reviewer_path, reviewer_digest = write_reviewer_registry(tmp_path)
@@ -164,6 +166,8 @@ def controlled_security_kwargs(tmp_path: Path) -> dict[str, object]:
         "oidc_token_endpoint": "https://id.example/token",
         "oidc_client_id": "korpus-browser",
         "oidc_redirect_uri": "https://korpus.example/v1/auth/callback",
+        "database_capability_broker_url": "https://authz.example/v1/database-capabilities",
+        "database_capability_broker_ca_file": broker_ca,
     }
 
 

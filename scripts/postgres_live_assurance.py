@@ -11,12 +11,15 @@ import platform
 import re
 import subprocess
 import xml.etree.ElementTree as ET
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from uuid import uuid4
 
 from alembic_state import database_revisions, expected_heads, verify_revisions
 from backup_crypto import load_key
 from backup_manifest import sign, validate_fields
+from korpus.domain.models import AccessTier, Identity
+from korpus.security.database_capability import DatabaseCapabilityIssuer
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError
@@ -219,6 +222,29 @@ def optional_duration(name: str) -> float | None:
     return duration
 
 
+def capability_issuer() -> DatabaseCapabilityIssuer:
+    return DatabaseCapabilityIssuer(
+        os.environ["KORPUS_DATABASE_CAPABILITY_KEY_ID"],
+        Path(os.environ["KORPUS_DATABASE_CAPABILITY_KEY_FILE"]).read_bytes().strip(),
+    )
+
+
+def issue_capability(
+    issuer: DatabaseCapabilityIssuer,
+    identity: Identity,
+    *,
+    operations: frozenset[str] = frozenset({"read"}),
+) -> str:
+    now = datetime.now(UTC)
+    return issuer.issue(
+        identity,
+        jti=f"live-assurance-{uuid4()}",
+        not_before=now - timedelta(seconds=5),
+        expires_at=now + timedelta(seconds=60),
+        operations=operations,
+    )
+
+
 def main() -> int:
     started = datetime.now(UTC)
     source_admin = safe_url("KORPUS_SOURCE_ADMIN_URL")
@@ -230,6 +256,7 @@ def main() -> int:
     source_digest, source_counts = state_digest(source_admin)
     restored_digest, restored_counts = state_digest(restored_admin)
     app = create_engine(app_url)
+    issuer = capability_issuer()
     with app.begin() as connection:
         role = (
             connection.execute(
@@ -255,17 +282,14 @@ def main() -> int:
             table: connection.execute(text(f'SELECT count(*) FROM "{table}"')).scalar_one()
             for table in TABLES[:5]
         }
-        for key, value in (
-            ("roles", "user"),
-            ("clearance", "0"),
-            ("corpora", "public"),
-            ("classifications", "public"),
-            ("compartments", ""),
-        ):
-            connection.execute(
-                text("SELECT set_config(:key,:value,true)"),
-                {"key": f"korpus.{key}", "value": value},
-            )
+        public_capability = issue_capability(
+            issuer,
+            Identity(subject="live-public", roles=frozenset({"user"})),
+        )
+        connection.execute(
+            text("SELECT korpus_auth.activate(:capability)"),
+            {"capability": public_capability},
+        )
         public_rows = connection.execute(
             text("SELECT count(*) FROM documents WHERE corpus_id='public'")
         ).scalar_one()
@@ -289,17 +313,20 @@ def main() -> int:
     compartment_cases = {}
     for label, compartments in (("missing", ""), ("unrelated", "other"), ("exact", "omega")):
         with app.begin() as connection:
-            for key, value in (
-                ("roles", "user"),
-                ("clearance", "3"),
-                ("corpora", "restricted-demo"),
-                ("classifications", "restricted"),
-                ("compartments", compartments),
-            ):
-                connection.execute(
-                    text("SELECT set_config(:key,:value,true)"),
-                    {"key": f"korpus.{key}", "value": value},
-                )
+            compartment_capability = issue_capability(
+                issuer,
+                Identity(
+                    subject=f"live-compartment-{label}",
+                    roles=frozenset({"user"}),
+                    clearance=AccessTier.RESTRICTED,
+                    corpora=frozenset({"restricted-demo"}),
+                    compartments=frozenset({compartments}) if compartments else frozenset(),
+                ),
+            )
+            connection.execute(
+                text("SELECT korpus_auth.activate(:capability)"),
+                {"capability": compartment_capability},
+            )
             compartment_cases[label] = connection.execute(
                 text("SELECT count(*) FROM documents WHERE compartments_json LIKE '%omega%'")
             ).scalar_one()

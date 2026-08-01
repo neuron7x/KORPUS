@@ -6,6 +6,10 @@ from korpus.config import Settings
 from korpus.infrastructure.audit_anchor import FileAuditAnchorStore, HttpAuditAnchorStore
 from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.repository import SqlRepository
+from korpus.security.database_capability import (
+    HttpDatabaseCapabilityProvider,
+    LocalDatabaseCapabilityProvider,
+)
 
 
 def create_repository(settings: Settings, policy: PolicyEngine | None = None) -> SqlRepository:
@@ -20,6 +24,24 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         if settings.audit_anchor_mode == "http"
         else FileAuditAnchorStore(settings.audit_anchor_path, audit_key)
     )
+    capability_provider = (
+        HttpDatabaseCapabilityProvider(
+            settings.database_capability_broker_url,
+            timeout_seconds=settings.database_capability_broker_timeout_seconds,
+            ca_file=settings.database_capability_broker_ca_file,
+            workload_credential_file=settings.database_capability_workload_credential_file,
+        )
+        if settings.database_capability_broker_url is not None
+        else (
+            LocalDatabaseCapabilityProvider(
+                settings.database_capability_local_key_id,
+                settings.database_capability_local_key_file,
+            )
+            if settings.database_capability_local_key_file is not None
+            and settings.environment in {"local", "test", "development"}
+            else None
+        )
+    )
     return SqlRepository(
         settings.database_url,
         settings.resolved_audit_hmac_key,
@@ -33,6 +55,7 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         connect_timeout_seconds=settings.database_connect_timeout_seconds,
         statement_timeout_ms=settings.database_statement_timeout_ms,
         lock_timeout_ms=settings.database_lock_timeout_ms,
+        database_capability_provider=capability_provider,
     )
 
 

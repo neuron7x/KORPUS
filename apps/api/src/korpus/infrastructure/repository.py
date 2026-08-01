@@ -54,8 +54,12 @@ from korpus.domain.models import (
     ReviewState,
 )
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
+from korpus.security.database_capability import (
+    DatabaseCapabilityProvider,
+    activate_database_capability,
+)
 
-SCHEMA_REVISION = "0009_reviewer_credentials"
+SCHEMA_REVISION = "0010_trusted_authorization_plane"
 
 metadata = MetaData()
 
@@ -227,6 +231,7 @@ class SqlRepository:
         connect_timeout_seconds: int = 5,
         statement_timeout_ms: int = 30_000,
         lock_timeout_ms: int = 5_000,
+        database_capability_provider: DatabaseCapabilityProvider | None = None,
     ) -> None:
         engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         if database_url.startswith("sqlite"):
@@ -256,6 +261,7 @@ class SqlRepository:
         )
         self._sqlite_write_lock = threading.RLock()
         self._anchor_delivery_lock = threading.Lock()
+        self.database_capability_provider = database_capability_provider
 
     @staticmethod
     def _configure_sqlite(dbapi_connection: Any, connection_record: Any) -> None:
@@ -841,24 +847,9 @@ class SqlRepository:
             self._apply_postgres_identity(owned_connection, identity)
             return [row.span_id for row in owned_connection.execute(statement, parameters)]
 
-    @staticmethod
-    def _apply_postgres_identity(connection: Connection, identity: Identity) -> None:
-        if connection.dialect.name != "postgresql":
-            return
-        classifications = SqlRepository._allowed_classifications(identity.clearance)
-        connection.execute(
-            sql_text(
-                "SELECT set_config('korpus.clearance', :clearance, true), "
-                "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true), set_config('korpus.compartments', :compartments, true), set_config('korpus.roles', :roles, true)"
-            ),
-            {
-                "clearance": str(int(identity.clearance)),
-                "corpora": ",".join(sorted(identity.corpora)),
-                "classifications": ",".join(classifications),
-                "compartments": ",".join(sorted(identity.compartments)),
-                "roles": ",".join(sorted(identity.roles)),
-            },
+    def _apply_postgres_identity(self, connection: Connection, identity: Identity) -> None:
+        activate_database_capability(
+            connection, identity, self.database_capability_provider
         )
 
     def _initialize_search_index(self, connection: Connection) -> None:
@@ -1184,7 +1175,12 @@ class SqlRepository:
         try:
             self.anchor_store.close()
         finally:
-            self.engine.dispose()
+            try:
+                close_provider = getattr(self.database_capability_provider, "close", None)
+                if callable(close_provider):
+                    close_provider()
+            finally:
+                self.engine.dispose()
 
     def _transaction_with_anchor(
         self,

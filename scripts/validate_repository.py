@@ -100,6 +100,7 @@ MIGRATIONS = [
     "0007_near_duplicate_governance.py",
     "0008_extraction_quality_governance.py",
     "0009_reviewer_credentials.py",
+    "0010_trusted_authorization_plane.py",
 ]
 SKIP_PARTS = {".git", "node_modules", ".venv", "dist", "var", ".pytest_cache", "__pycache__"}
 

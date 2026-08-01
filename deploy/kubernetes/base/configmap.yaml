@@ -9,6 +9,14 @@ data:
   KORPUS_AUTH_MODE: oidc
   KORPUS_BROWSER_AUTH_ENABLED: "true"
   KORPUS_OIDC_JWKS_URL: https://idp.invalid/.well-known/jwks.json
+  KORPUS_DATABASE_CAPABILITY_BROKER_URL: https://korpus-authorization-broker.korpus.svc.cluster.local:8443/v1/database-capabilities
+  KORPUS_DATABASE_CAPABILITY_BROKER_CA_FILE: /run/korpus-broker-ca/ca.crt
+  KORPUS_BROKER_OIDC_JWKS_URL: https://idp.invalid/.well-known/jwks.json
+  KORPUS_BROKER_OIDC_ISSUER: https://idp.invalid
+  KORPUS_BROKER_OIDC_AUDIENCE: korpus-api
+  KORPUS_BROKER_REQUIRE_MFA: "true"
+  KORPUS_BROKER_ENTITLEMENT_PROFILE_PATH: /etc/korpus/governance/entitlements.json
+  KORPUS_BROKER_ENTITLEMENT_PROFILE_SHA256: REPLACE_WITH_VERIFIED_DIGEST
   KORPUS_ENTITLEMENT_PROFILE_PATH: /etc/korpus/governance/entitlements.json
   KORPUS_SOURCE_TRUST_PROFILE_PATH: /etc/korpus/governance/source-trust.json
   KORPUS_REVIEWER_REGISTRY_PATH: /etc/korpus/governance/reviewers.json

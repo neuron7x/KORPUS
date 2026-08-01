@@ -13,7 +13,7 @@ SPEC.loader.exec_module(alembic_state)
 
 
 def test_expected_head_comes_from_alembic_metadata() -> None:
-    assert alembic_state.expected_heads() == ("0009_reviewer_credentials",)
+    assert alembic_state.expected_heads() == ("0010_trusted_authorization_plane",)
 
 
 def test_missing_script_location_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:

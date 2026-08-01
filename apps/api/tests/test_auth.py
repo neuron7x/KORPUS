@@ -48,6 +48,30 @@ def test_controlled_environment_requires_oidc():
         Settings(environment="production", database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full", auth_mode="dev")
 
 
+def test_controlled_environment_forbids_local_database_capability_issuer(tmp_path: Path):
+    calibration = write_calibration_bundle(tmp_path)
+    key = tmp_path / "capability-key"
+    key.write_bytes(b"k" * 32)
+    with pytest.raises(ValueError, match="forbid an in-process capability issuer"):
+        Settings(
+            environment="production",
+            database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full",
+            schema_mode="migrations",
+            object_store_mode="s3",
+            s3_bucket="korpus-test",
+            s3_governance_retention_days=30,
+            auth_mode="oidc",
+            oidc_jwks_url="https://id.example/jwks",
+            jwt_issuer="https://id.example",
+            audit_hmac_key="a" * 40,
+            answer_policy_mode="calibrated",
+            review_separation_required=True,
+            database_capability_local_key_file=key,
+            **calibration,
+            **controlled_security_kwargs(tmp_path),
+        )
+
+
 def test_local_jwt_rejects_weak_secret():
     with pytest.raises(ValueError, match="JWT secret"):
         Settings(environment="test", auth_mode="jwt", jwt_secret="weak")

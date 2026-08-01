@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     database_connect_timeout_seconds: int = Field(default=5, ge=1, le=60)
     database_statement_timeout_ms: int = Field(default=30_000, ge=100, le=600_000)
     database_lock_timeout_ms: int = Field(default=5_000, ge=100, le=120_000)
+    database_capability_broker_url: str | None = None
+    database_capability_broker_ca_file: Path | None = None
+    database_capability_workload_credential_file: Path | None = None
+    database_capability_local_key_id: str = "local-development"
+    database_capability_local_key_file: Path | None = None
+    database_capability_broker_timeout_seconds: float = Field(default=3.0, gt=0, le=30)
     schema_mode: str = "auto"
     object_root: Path = Path("./var/objects")
     object_store_mode: str = "local"
@@ -250,6 +256,19 @@ class Settings(BaseSettings):
                 raise ValueError("OIDC authentication is required in controlled environments")
             if self.schema_mode != "migrations":
                 raise ValueError("controlled environments require migration-managed schema")
+            if not self.database_capability_broker_url or not self.database_capability_broker_url.startswith(
+                "https://"
+            ):
+                raise ValueError(
+                    "controlled environments require an HTTPS database capability broker"
+                )
+            if (
+                self.database_capability_broker_ca_file is None
+                or not self.database_capability_broker_ca_file.is_file()
+            ):
+                raise ValueError("controlled environments require the capability broker CA")
+            if self.database_capability_local_key_file is not None:
+                raise ValueError("controlled environments forbid an in-process capability issuer")
             if not self.oidc_jwks_url:
                 raise ValueError("OIDC JWKS URL is required")
             if not self.browser_auth_enabled:

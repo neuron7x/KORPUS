@@ -64,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     max_response_bytes=selected.embedding_max_response_bytes,
                 ),
                 corpus_governance=corpus_governance,
+                database_capability_provider=repository.database_capability_provider,
             )
             if selected.semantic_retrieval_enabled
             else None

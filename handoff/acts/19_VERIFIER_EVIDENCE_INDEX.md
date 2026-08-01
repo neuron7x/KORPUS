@@ -25,6 +25,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | Source authenticity | focused pytest with branch coverage threshold 100% plus mutation M31 | `var/source-authenticity-coverage.json`, JUnit |
 | Browser OIDC boundary | focused pytest with branch coverage threshold 100% plus mutations M30/M32/M33 | `var/browser-oidc-coverage.json`, JUnit |
 | Browser OIDC dynamic resilience | `PYTHONPATH=apps/api/src python scripts/run_oidc_resilience_gate.py` | `var/resilience/browser-oidc-resilience.json` |
+| Transaction-bound DB authorization | `python scripts/run_database_capability_gate.py` against a clean migrated PostgreSQL database | `var/act-25/database-capability-assurance.json`, JUnit |
 
 ## Falsification history
 
@@ -46,7 +47,9 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 
 ## Claims that remain open
 
-- `IAM-006` is `CONFIRMED_OPEN`: arbitrary SQL through `korpus_app` can broaden GUC claims.
+- The original `IAM-006` GUC escalation is locally falsified after ACT-25. Closure remains
+  blocked until an independent verifier confirms the broker is separately deployed, the API
+  has no signing key, and arbitrary SQL cannot obtain broader broker-issued capabilities.
 - JWT test mode is not production OIDC evidence.
 - Local anchored durations are not production SLAs.
 - GitLab pipeline and independent clean-room reproduction remain external gates.

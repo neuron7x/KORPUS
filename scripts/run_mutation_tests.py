@@ -317,6 +317,36 @@ MUTANTS = (
             "test_resilience_report_rejects_raw_codec_recovery_and_authorization_failures",
         ),
     ),
+    Mutant(
+        "M35_DATABASE_CAPABILITY_WEAK_KEY",
+        "apps/api/src/korpus/security/database_capability.py",
+        "if len(self.key) < 32:",
+        "if False:",
+        (
+            "apps/api/tests/test_database_capability.py::"
+            "test_issuer_rejects_invalid_key_material",
+        ),
+    ),
+    Mutant(
+        "M36_BROKER_CURATOR_DELETE_ESCALATION",
+        "apps/api/src/korpus/authorization_broker.py",
+        'if identity.has_role("admin"):',
+        "if True:",
+        (
+            "apps/api/tests/test_authorization_broker.py::"
+            "test_broker_derives_scope_from_verified_entitlements_not_request_body",
+        ),
+    ),
+    Mutant(
+        "M37_BROKER_INVALID_RESPONSE_ACCEPTANCE",
+        "apps/api/src/korpus/security/database_capability.py",
+        "if not isinstance(capability, str) or not 66 <= len(capability) <= 8192:",
+        "if False:",
+        (
+            "apps/api/tests/test_database_capability.py::"
+            "test_http_provider_fails_closed_without_credential_or_valid_response",
+        ),
+    ),
 )
 
 
