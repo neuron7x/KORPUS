@@ -5,6 +5,9 @@ const token = process.env.KORPUS_LIVE_BEARER_TOKEN;
 const candidateCommit = process.env.KORPUS_LIVE_CANDIDATE_COMMIT;
 const apiImageDigest = process.env.KORPUS_LIVE_API_IMAGE_DIGEST;
 const webImageDigest = process.env.KORPUS_LIVE_WEB_IMAGE_DIGEST;
+const database = JSON.parse(process.env.KORPUS_LIVE_DATABASE_RECEIPT ?? "{}");
+const query = process.env.KORPUS_LIVE_QUERY;
+const expectedEvidence = process.env.KORPUS_LIVE_EXPECTED_EVIDENCE;
 
 test("@live browser traverses nginx and the real API without storing authority", async ({
   page,
@@ -27,10 +30,13 @@ test("@live browser traverses nginx and the real API without storing authority",
   await expect(page.locator("#identity-state")).toContainText("live-boundary-user");
 
   const input = page.getByLabel("Запит до контрольованого корпусу");
-  await input.fill("перевірити відсутність непідтверджених доказів");
+  await input.fill(query ?? "перевірити відсутність непідтверджених доказів");
   await page.getByRole("button", { name: /Знайти доказ/ }).click();
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result")).toContainText(/Доказова відповідь|Відмова/);
+  if (expectedEvidence) {
+    await expect(page.locator("#result")).toContainText(expectedEvidence);
+  }
 
   const anonymous = responses.find(
     (response) =>
@@ -71,8 +77,8 @@ test("@live browser traverses nginx and the real API without storing authority",
     output,
     `${JSON.stringify(
       {
-        schema: "korpus.web-api-live-boundary.v1",
-        act_id: "KORPUS-ACT-07",
+        schema: "korpus.web-api-live-boundary.v2",
+        act_id: "KORPUS-ACT-09",
         candidate_commit: candidateCommit,
         started_at_utc: startedAt.toISOString(),
         finished_at_utc: new Date().toISOString(),
@@ -80,7 +86,8 @@ test("@live browser traverses nginx and the real API without storing authority",
           api: apiImageDigest,
           web: webImageDigest,
         },
-        topology: "chromium -> nginx -> fastapi -> sqlite",
+        topology: `chromium -> nginx -> fastapi -> ${database.mode}`,
+        database,
         cases: {
           anonymous_identity: 401,
           jwt_identity: 200,
@@ -88,9 +95,12 @@ test("@live browser traverses nginx and the real API without storing authority",
           forged_token: 401,
           security_headers: "PASS",
           browser_authority_storage: "EMPTY",
+          evidence_marker: expectedEvidence ? "PASS" : "NOT_APPLICABLE",
         },
         limitations: [
-          "SQLite is not evidence for PostgreSQL RLS behavior.",
+          database.mode === "postgres"
+            ? "This exercises JWT request identity and PostgreSQL RLS, not production OIDC."
+            : "SQLite is not evidence for PostgreSQL RLS behavior.",
           "Ephemeral JWT mode is not production OIDC evidence.",
           "Independent post-change verification is required.",
         ],
