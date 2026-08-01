@@ -78,6 +78,22 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
         and backup.get("cipher") == "AES-256-GCM"
     ):
         failures.append("predicate:backup")
+    restore = payload.get("restore", {})
+    durations = (
+        backup.get("duration_seconds") if isinstance(backup, dict) else None,
+        restore.get("duration_seconds") if isinstance(restore, dict) else None,
+        restore.get("verification_seconds") if isinstance(restore, dict) else None,
+    )
+    total = restore.get("total_recovery_seconds") if isinstance(restore, dict) else None
+    if (
+        not isinstance(restore, dict)
+        or restore.get("measurement") != "ANCHORED"
+        or any(not isinstance(value, (int, float)) or value <= 0 for value in durations)
+        or not isinstance(total, (int, float))
+        or total <= 0
+        or abs(total - sum(durations)) > 1e-9
+    ):
+        failures.append("predicate:recovery-timing")
     pytest_result = payload.get("pytest", {})
     if not isinstance(pytest_result, dict) or pytest_result.get("live_postgres") != "PASS":
         failures.append("predicate:pytest")

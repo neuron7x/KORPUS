@@ -236,6 +236,13 @@ def main() -> int:
         value is not None
         for value in (backup_result["duration_seconds"], restore_duration, verification_duration)
     )
+    total_recovery_duration = (
+        float(backup_result["duration_seconds"]) + restore_duration + verification_duration
+        if recovery_timing_anchored
+        and restore_duration is not None
+        and verification_duration is not None
+        else None
+    )
     same_state = source_digest == restored_digest and source_counts == restored_counts
     prerequisites_pass = all(
         (
@@ -279,6 +286,7 @@ def main() -> int:
         "restore": {
             "duration_seconds": restore_duration,
             "verification_seconds": verification_duration,
+            "total_recovery_seconds": total_recovery_duration,
             "measurement": "ANCHORED" if recovery_timing_anchored else "UNAVAILABLE",
         },
         "source_state_digest": source_digest,

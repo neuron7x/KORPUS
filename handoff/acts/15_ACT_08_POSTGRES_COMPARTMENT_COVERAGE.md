@@ -24,6 +24,8 @@
   evidence because it has no `git` executable. Candidate provenance now consumes an explicit
   full `KORPUS_CANDIDATE_COMMIT`/`CI_COMMIT_SHA`, validates its shape, and only uses local Git
   as a fallback; GitLab exports the pipeline commit explicitly.
+- Diff-attack correction: DB-11 now emits and validates positive anchored backup, restore,
+  verification, and arithmetically consistent total-recovery durations.
 - Commands executed: focused backup/restore pytest; infrastructure validator; shell syntax
   check; diff check. The first post-commit live chain failed closed at manifest validation and
   is retained in the task transcript; a clean rerun is required after commit.

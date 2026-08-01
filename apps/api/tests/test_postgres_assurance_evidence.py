@@ -129,6 +129,13 @@ def valid_assurance_payload() -> dict[str, object]:
                 "encrypted": True,
                 "manifest_verified": True,
                 "cipher": "AES-256-GCM",
+                "duration_seconds": 1.0,
+            },
+            "restore": {
+                "duration_seconds": 2.0,
+                "verification_seconds": 3.0,
+                "total_recovery_seconds": 6.0,
+                "measurement": "ANCHORED",
             },
             "pytest": {"live_postgres": "PASS"},
             "source_state_digest": "digest",
@@ -144,6 +151,10 @@ def valid_assurance_payload() -> dict[str, object]:
         (lambda value: value["backup"].update(manifest_verified=False), "predicate:backup"),
         (lambda value: value["pytest"].update(live_postgres="UNAVAILABLE"), "predicate:pytest"),
         (lambda value: value.update(restored_state_digest="different"), "predicate:state-digest"),
+        (
+            lambda value: value["restore"].update(total_recovery_seconds=5.0),
+            "predicate:recovery-timing",
+        ),
         (
             lambda value: value["application_role_properties"].update(rolbypassrls=True),
             "predicate:application-role",
