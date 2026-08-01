@@ -8,7 +8,7 @@ const report = JSON.parse(await readFile(path, "utf8"));
 const fail = (message) => {
   throw new Error(`invalid web/API live-boundary evidence: ${message}`);
 };
-if (report.schema !== "korpus.web-api-live-boundary.v4") fail("schema");
+if (report.schema !== "korpus.web-api-live-boundary.v5") fail("schema");
 if (report.act_id !== "KORPUS-ACT-09") fail("act_id");
 if (report.quality_act_id !== "KORPUS-ACT-13") fail("quality_act_id");
 if (!/^[0-9a-f]{40}$/.test(report.candidate_commit ?? "")) fail("candidate_commit");
@@ -29,6 +29,7 @@ if (JSON.stringify(report.cases) !== JSON.stringify(expectedCases)) fail("cases"
 if (report.browser?.engine !== "chromium") fail("browser_engine");
 if (!/^\d+\.\d+\.\d+\.\d+$/.test(report.browser?.version ?? ""))
   fail("browser_version");
+if (report.browser?.playwright_version !== "1.62.1") fail("playwright_version");
 if (!/Chrome\/\d+/.test(report.browser?.user_agent ?? "")) fail("browser_user_agent");
 if (report.browser?.device_scale_factor !== 1) fail("browser_device_scale_factor");
 if (report.browser?.context !== "EPHEMERAL_COLD") fail("browser_context");
@@ -36,6 +37,9 @@ if (report.quality?.accessibility?.serious !== 0) fail("accessibility_serious");
 if (report.quality?.accessibility?.critical !== 0) fail("accessibility_critical");
 if (report.quality?.layout?.viewport_width_css_px !== 390) fail("layout_viewport");
 if (report.quality?.layout?.horizontal_overflow_css_px !== 0) fail("layout_overflow");
+const contentWidth = report.quality?.layout?.content_width_css_px;
+if (!Number.isFinite(contentWidth) || contentWidth <= 0 || contentWidth > 390)
+  fail("layout_content_width");
 if (report.quality?.performance?.measurement !== "ANCHORED_LOCAL")
   fail("performance_measurement");
 if (JSON.stringify(report.quality?.performance?.external_origins) !== "[]")
@@ -59,6 +63,7 @@ for (const metric of [
   const value = report.quality?.performance?.[metric];
   const budget = expectedBudgets[metric];
   if (!Number.isFinite(value) || value < 0) fail(`${metric}_value`);
+  if (metric !== "cls" && value === 0) fail(`${metric}_unavailable`);
   if (value > budget) fail(`${metric}_exceeded`);
 }
 if (report.database?.mode === "postgres") {

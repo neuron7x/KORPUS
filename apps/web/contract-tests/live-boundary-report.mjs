@@ -10,7 +10,7 @@ const validator = fileURLToPath(
   new URL("../scripts/validate-live-boundary-report.mjs", import.meta.url),
 );
 const validReport = () => ({
-  schema: "korpus.web-api-live-boundary.v4",
+  schema: "korpus.web-api-live-boundary.v5",
   act_id: "KORPUS-ACT-09",
   quality_act_id: "KORPUS-ACT-13",
   candidate_commit: "a".repeat(40),
@@ -25,6 +25,7 @@ const validReport = () => ({
   browser: {
     engine: "chromium",
     version: "140.0.7339.16",
+    playwright_version: "1.62.1",
     user_agent: "Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36",
     device_scale_factor: 1,
     context: "EPHEMERAL_COLD",
@@ -132,6 +133,24 @@ for (const [name, mutate] of [
   }],
   ["persistent browser context", report => {
     report.browser.context = "PERSISTENT_WARM";
+  }],
+  ["missing Playwright provenance", report => {
+    report.browser.playwright_version = "";
+  }],
+  ["unavailable LCP", report => {
+    report.quality.performance.lcp_ms = 0;
+  }],
+  ["unavailable navigation timing", report => {
+    report.quality.performance.navigation_ms = 0;
+  }],
+  ["unavailable answer timing", report => {
+    report.quality.performance.answer_ms = 0;
+  }],
+  ["unavailable transfer measurement", report => {
+    report.quality.performance.same_origin_transfer_bytes = 0;
+  }],
+  ["contradictory content width", report => {
+    report.quality.layout.content_width_css_px = 391;
   }],
 ]) {
   test(`rejects ${name}`, async () => {

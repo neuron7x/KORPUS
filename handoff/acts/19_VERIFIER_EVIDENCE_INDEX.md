@@ -14,7 +14,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | Browser behavior | `npm --prefix apps/web run test:browser` | `var/web-act/browser-junit.xml` |
 | Built web runtime | `scripts/run_web_runtime_gate.sh` | `var/web-act/web-runtime-assurance.json` |
 | SQLite API smoke | `KORPUS_LIVE_DATABASE_MODE=sqlite scripts/run_web_api_boundary_gate.sh` | v2 boundary JSON/JUnit |
-| PostgreSQL vertical path, browser accessibility/layout/performance | `KORPUS_LIVE_DATABASE_MODE=postgres scripts/run_web_api_boundary_gate.sh` | schema v4 `var/web-act/web-api-live-boundary.json` |
+| PostgreSQL vertical path, browser accessibility/layout/performance | `KORPUS_LIVE_DATABASE_MODE=postgres scripts/run_web_api_boundary_gate.sh` | schema v5 `var/web-act/web-api-live-boundary.json` |
 | PostgreSQL RLS/restore | GitLab `api:postgres-and-restore` sequence or an equivalent clean-room execution | `var/act-01/postgres-live-assurance.json`, JUnit, manifest |
 | Repository contracts | `PYTHONPATH=apps/api/src make validate` | command output |
 | Migration/eval | `make migration-gate eval` | reports under ignored `var/` |

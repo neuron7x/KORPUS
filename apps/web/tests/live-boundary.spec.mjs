@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import axe from "axe-core";
 
 const token = process.env.KORPUS_LIVE_BEARER_TOKEN;
@@ -9,6 +9,9 @@ const webImageDigest = process.env.KORPUS_LIVE_WEB_IMAGE_DIGEST;
 const database = JSON.parse(process.env.KORPUS_LIVE_DATABASE_RECEIPT ?? "{}");
 const query = process.env.KORPUS_LIVE_QUERY;
 const expectedEvidence = process.env.KORPUS_LIVE_EXPECTED_EVIDENCE;
+const playwrightPackage = JSON.parse(
+  await readFile(new URL("../node_modules/@playwright/test/package.json", import.meta.url), "utf8"),
+);
 
 test("@live browser traverses nginx and the real API without storing authority", async ({
   browser,
@@ -32,6 +35,7 @@ test("@live browser traverses nginx and the real API without storing authority",
   const browserEnvironment = {
     engine: "chromium",
     version: browser.version(),
+    playwright_version: playwrightPackage.version,
     user_agent: await page.evaluate(() => navigator.userAgent),
     device_scale_factor: await page.evaluate(() => window.devicePixelRatio),
     context: "EPHEMERAL_COLD",
@@ -77,7 +81,8 @@ test("@live browser traverses nginx and the real API without storing authority",
   const quality = await page.evaluate((measuredAnswerDurationMs) => {
     const navigation = performance.getEntriesByType("navigation")[0];
     const lcpEntries = performance.getEntriesByType("largest-contentful-paint");
-    const lcp = lcpEntries.at(-1)?.startTime ?? navigation.domContentLoadedEventEnd;
+    const lcp = lcpEntries.at(-1)?.startTime;
+    if (!Number.isFinite(lcp)) throw new Error("largest-contentful-paint is unavailable");
     const transferredBytes = performance
       .getEntriesByType("resource")
       .filter((entry) => new URL(entry.name).origin === location.origin)
@@ -156,7 +161,7 @@ test("@live browser traverses nginx and the real API without storing authority",
     output,
     `${JSON.stringify(
       {
-        schema: "korpus.web-api-live-boundary.v4",
+        schema: "korpus.web-api-live-boundary.v5",
         act_id: "KORPUS-ACT-09",
         quality_act_id: "KORPUS-ACT-13",
         candidate_commit: candidateCommit,
