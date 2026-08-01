@@ -287,6 +287,26 @@ MUTANTS = (
             "test_key_authority_issuer_revocation_and_time_boundaries_fail_closed",
         ),
     ),
+    Mutant(
+        "M32_BROWSER_OIDC_TOKEN_TYPE_BYPASS",
+        "apps/api/src/korpus/security/browser_oidc.py",
+        'if not isinstance(token_type, str) or token_type.casefold() != "bearer":',
+        "if False:",
+        (
+            "apps/api/tests/test_browser_oidc_contract.py::"
+            "test_token_response_shape_and_lifetime_fail_closed",
+        ),
+    ),
+    Mutant(
+        "M33_BROWSER_SESSION_REVERSED_LIFETIME",
+        "apps/api/src/korpus/security/browser_oidc.py",
+        "if issued_at > now + 30 or expires_at <= now or expires_at <= issued_at:",
+        "if issued_at > now + 30 or expires_at <= now:",
+        (
+            "apps/api/tests/test_browser_oidc_contract.py::"
+            "test_authenticated_malformed_envelopes_are_rejected",
+        ),
+    ),
 )
 
 

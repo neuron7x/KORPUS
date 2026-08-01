@@ -108,6 +108,28 @@ api:source-authenticity:
     reports:
       junit: var/source-authenticity-junit.xml
 
+api:browser-oidc:
+  extends: .python-job
+  stage: test
+  script:
+    - >-
+      pytest -q
+      apps/api/tests/test_browser_oidc_contract.py
+      apps/api/tests/test_browser_oidc.py
+      --cov=korpus.security.browser_oidc
+      --cov-branch
+      --cov-report=json:var/browser-oidc-coverage.json
+      --cov-report=term-missing
+      --cov-fail-under=100
+      --junitxml=var/browser-oidc-junit.xml
+  artifacts:
+    when: always
+    paths:
+      - var/browser-oidc-coverage.json
+      - var/browser-oidc-junit.xml
+    reports:
+      junit: var/browser-oidc-junit.xml
+
 web:test:
   stage: test
   image: mcr.microsoft.com/playwright:v1.62.1-noble

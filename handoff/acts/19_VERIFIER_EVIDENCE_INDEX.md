@@ -23,6 +23,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | Semantic/source determinism | `PYTHONPATH=apps/api/src python scripts/run_determinism_gate.py` | `var/determinism/determinism-assurance.json` |
 | Adaptive retrieval critical path | dense `scripts/run_scale_probe.py` plus focused retrieval properties | ignored ACT-21 profile/scale receipts |
 | Source authenticity | focused pytest with branch coverage threshold 100% plus mutation M31 | `var/source-authenticity-coverage.json`, JUnit |
+| Browser OIDC boundary | focused pytest with branch coverage threshold 100% plus mutations M30/M32/M33 | `var/browser-oidc-coverage.json`, JUnit |
 
 ## Falsification history
 

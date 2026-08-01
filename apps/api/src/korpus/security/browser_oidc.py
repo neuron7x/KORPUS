@@ -74,9 +74,16 @@ class BrowserSessionCodec:
         now = int(self._clock())
         if data.get("v") != 1 or data.get("kind") != expected_kind:
             raise BrowserSessionError("browser session type mismatch")
-        if not isinstance(data.get("iat"), int) or not isinstance(data.get("exp"), int):
+        issued_at = data.get("iat")
+        expires_at = data.get("exp")
+        if (
+            not isinstance(issued_at, int)
+            or isinstance(issued_at, bool)
+            or not isinstance(expires_at, int)
+            or isinstance(expires_at, bool)
+        ):
             raise BrowserSessionError("browser session timestamps are invalid")
-        if data["iat"] > now + 30 or data["exp"] <= now:
+        if issued_at > now + 30 or expires_at <= now or expires_at <= issued_at:
             raise BrowserSessionError("browser session expired or not yet valid")
         payload = data.get("payload")
         if not isinstance(payload, dict):
@@ -163,22 +170,36 @@ class BrowserOIDCClient:
         }
         if self.client_secret is not None:
             data["client_secret"] = self.client_secret
-        response = self.client.post(
-            self.token_endpoint,
-            data=data,
-            headers={"Accept": "application/json"},
-        )
         try:
+            response = self.client.post(
+                self.token_endpoint,
+                data=data,
+                headers={"Accept": "application/json"},
+            )
             response.raise_for_status()
             payload = response.json()
         except (httpx.HTTPError, ValueError) as exc:
             raise BrowserSessionError("OIDC token exchange failed") from exc
+        if not isinstance(payload, dict):
+            raise BrowserSessionError("OIDC token response is invalid")
         access_token = payload.get("access_token")
         id_token = payload.get("id_token")
         expires_in = payload.get("expires_in", 300)
-        if not isinstance(access_token, str) or not isinstance(id_token, str):
+        token_type = payload.get("token_type")
+        if (
+            not isinstance(access_token, str)
+            or not access_token
+            or not isinstance(id_token, str)
+            or not id_token
+        ):
             raise BrowserSessionError("OIDC token response is incomplete")
-        if not isinstance(expires_in, int) or not 60 <= expires_in <= 86400:
+        if not isinstance(token_type, str) or token_type.casefold() != "bearer":
+            raise BrowserSessionError("OIDC token type is invalid")
+        if (
+            not isinstance(expires_in, int)
+            or isinstance(expires_in, bool)
+            or not 60 <= expires_in <= 86400
+        ):
             raise BrowserSessionError("OIDC token lifetime is invalid")
         return BrowserOIDCTokens(access_token, id_token, expires_in)
 
