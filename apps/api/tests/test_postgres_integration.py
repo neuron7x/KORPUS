@@ -29,6 +29,7 @@ from korpus.infrastructure.repository import (
 )
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
+POSTGRES_APP_ROLE = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
 pytestmark = pytest.mark.postgres
 
 
@@ -42,20 +43,33 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
         role = connection.execute(
-            text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")
+            text(
+                "SELECT current_user, rolsuper, rolbypassrls, rolcreatedb, "
+                "rolcreaterole, rolinherit FROM pg_roles WHERE rolname = current_user"
+            )
         ).one()
-    assert role.current_user == "korpus_app"
+    assert role.current_user == POSTGRES_APP_ROLE
     assert role.rolsuper is False
     assert role.rolbypassrls is False
+    assert role.rolcreatedb is False
+    assert role.rolcreaterole is False
+    assert role.rolinherit is False
 
     actor = Identity(
         subject="postgres-admin",
         roles=frozenset({"admin", "user"}),
         clearance=AccessTier.RESTRICTED,
         corpora=frozenset({"public", "restricted-demo"}),
+        compartments=frozenset({"omega"}),
     )
 
-    def create(corpus: str, tier: AccessTier, classification: Classification, marker: str):
+    def create(
+        corpus: str,
+        tier: AccessTier,
+        classification: Classification,
+        marker: str,
+        compartments=frozenset(),
+    ):
         document = DocumentRecord(
             canonical_title=f"PostgreSQL {corpus} source",
             corpus_id=corpus,
@@ -64,6 +78,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             document_type="order",
             access_tier=tier,
             classification=classification,
+            compartments=compartments,
         )
         version = DocumentVersionRecord(
             document_id=document.id,
@@ -106,6 +121,13 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         Classification.RESTRICTED,
         "POSTGRES-RESTRICTED",
     )
+    compartment_document, _, _ = create(
+        "restricted-demo",
+        AccessTier.RESTRICTED,
+        Classification.RESTRICTED,
+        "POSTGRES-COMPARTMENT",
+        frozenset({"omega"}),
+    )
     public_identity = Identity(
         subject="postgres-public",
         roles=frozenset({"user"}),
@@ -134,6 +156,25 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     assert str(restricted_version.id) not in visible_versions
     assert str(restricted_span.id) not in visible_spans
 
+    for compartments, expected in (
+        (frozenset(), False),
+        (frozenset({"other"}), False),
+        (frozenset({"omega"}), True),
+    ):
+        identity = Identity(
+            subject="postgres-restricted",
+            roles=frozenset({"user"}),
+            clearance=AccessTier.RESTRICTED,
+            corpora=frozenset({"restricted-demo"}),
+            compartments=compartments,
+        )
+        with repository.engine.begin() as connection:
+            repository._apply_postgres_identity(connection, identity)
+            visible = str(compartment_document.id) in set(
+                connection.execute(select(documents.c.id)).scalars()
+            )
+        assert visible is expected
+
     # Missing session identity fails closed across every corpus-bearing table.
     with repository.engine.connect() as connection:
         assert connection.execute(select(documents.c.id)).all() == []
@@ -145,6 +186,22 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     with pytest.raises(DBAPIError):
         with repository.engine.begin() as connection:
             connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
+    with pytest.raises(DBAPIError):
+        with repository.engine.begin() as connection:
+            connection.execute(text("CREATE TABLE app_role_must_not_create(id integer)"))
+
+    # IAM-006 is deliberately a detection test: arbitrary app-role SQL can broaden GUC claims.
+    with repository.engine.begin() as connection:
+        connection.execute(text("SELECT set_config('korpus.clearance','3',true)"))
+        connection.execute(text("SELECT set_config('korpus.corpora','restricted-demo',true)"))
+        connection.execute(text("SELECT set_config('korpus.classifications','restricted',true)"))
+        connection.execute(text("SELECT set_config('korpus.compartments','omega',true)"))
+        assert (
+            connection.execute(
+                text("SELECT count(*) FROM documents WHERE corpus_id='restricted-demo'")
+            ).scalar_one()
+            > 0
+        )
 
     assert repository.verify_audit().valid is True
     repository.close()

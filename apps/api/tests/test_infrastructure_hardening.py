@@ -249,6 +249,7 @@ def test_reconcile_failures_are_observable():
 def test_backup_restore_scripts_are_cwd_independent_and_key_bound(tmp_path: Path):
     import json
     import os
+    import sqlite3
 
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -301,9 +302,16 @@ else:
     assert len(manifest["manifest_hmac_sha256"]) == 64
     assert manifest["plaintext_bytes"] == len(b"PGDMP\x01korpus-infra-test")
 
+    restored_database = tmp_path / "restored.db"
+    with sqlite3.connect(restored_database) as connection:
+        connection.execute("CREATE TABLE alembic_version(version_num VARCHAR(255) PRIMARY KEY)")
+        connection.execute(
+            "INSERT INTO alembic_version(version_num) VALUES (?)",
+            ("0009_reviewer_credentials",),
+        )
     restore_environment = {
         **environment,
-        "KORPUS_RESTORE_DATABASE_URL": "postgresql://test.invalid/restored",
+        "KORPUS_RESTORE_DATABASE_URL": f"sqlite:///{restored_database}",
     }
     restored = subprocess.run(
         [str(ROOT / "scripts/restore_postgres.sh"), str(backup)],

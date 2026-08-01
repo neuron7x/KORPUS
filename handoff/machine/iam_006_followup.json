@@ -1,0 +1,13 @@
+{
+  "schema": "korpus.follow-up-contract.v1",
+  "id": "IAM-006",
+  "status": "CONFIRMED_OPEN",
+  "cause": "The application role can call set_config for korpus.* session GUCs and thereby broaden the claims consumed by RLS policies.",
+  "required_control": "Bind database authorization to a trust anchor independent of arbitrary values controlled by the application process, for example verified signed context in a security-definer boundary or structurally isolated per-authority roles.",
+  "acceptance_predicates": [
+    "Arbitrary SQL through the application role cannot broaden corpus, classification, clearance, role, or compartment authority.",
+    "Forged, replayed, expired, unrelated-session, and downgraded authorization contexts fail closed.",
+    "The verification mechanism and its signing or role-assumption authority are unavailable to the application role."
+  ],
+  "production_authorized": false
+}

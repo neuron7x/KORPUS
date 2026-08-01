@@ -44,7 +44,5 @@ actual_plain_bytes="$(python3 -c 'import json,sys; print(json.load(open(sys.argv
 pg_restore --list "$plain_tmp" >/dev/null
 pg_restore --dbname="$KORPUS_RESTORE_DATABASE_URL" \
   --clean --if-exists --no-owner --no-privileges --exit-on-error --single-transaction "$plain_tmp"
-psql "$KORPUS_RESTORE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc \
-  "SELECT CASE WHEN version_num = '0003_infrastructure_hardening' THEN 'ok' ELSE version_num END FROM alembic_version" \
-  | grep -qx ok
+python3 "$root/scripts/alembic_state.py" --database-url "$KORPUS_RESTORE_DATABASE_URL"
 printf 'restored backup encrypted under key id %s\n' "$manifest_key_id" >&2

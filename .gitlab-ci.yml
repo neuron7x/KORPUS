@@ -140,6 +140,7 @@ api:postgres-and-restore:
   before_script:
     - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates && rm -rf /var/lib/apt/lists/*
     - python3 -m venv /tmp/korpus-venv
+    - /tmp/korpus-venv/bin/pip install --requirement apps/api/requirements.lock
     - /tmp/korpus-venv/bin/pip install --no-deps --requirement apps/api/requirements.dev.lock
     - export PATH="/tmp/korpus-venv/bin:$PATH"
     - python scripts/wait_for_database.py
@@ -147,7 +148,7 @@ api:postgres-and-restore:
     - export PATH="/tmp/korpus-venv/bin:$PATH"
     - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_database_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
     - python scripts/prepare_postgres_role.py
-    - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
+    - pytest -q apps/api/tests/test_alembic_state.py apps/api/tests/test_postgres_integration.py -m postgres --junitxml=var/act-01/postgres-junit.xml
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
     - backup_path="$(scripts/backup_postgres.sh)"
@@ -158,10 +159,20 @@ api:postgres-and-restore:
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
     - python scripts/verify_postgres_restore.py
+    - export KORPUS_SOURCE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL"
+    - export KORPUS_RESTORED_ADMIN_URL="$KORPUS_DATABASE_URL"
+    - export KORPUS_BASE_COMMIT="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-$CI_COMMIT_BEFORE_SHA}"
+    - python scripts/postgres_live_assurance.py | tee var/act-01/postgres-live-assurance.log
+    - python scripts/validate_postgres_assurance.py var/act-01/postgres-live-assurance.json
   artifacts:
     when: always
     paths:
       - var/backups/*.json
+      - var/act-01/postgres-live-assurance.json
+      - var/act-01/postgres-live-assurance.log
+      - var/act-01/postgres-junit.xml
+    reports:
+      junit: var/act-01/postgres-junit.xml
 
 secret:scan:
   stage: security
