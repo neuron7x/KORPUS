@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -29,6 +30,10 @@ from korpus.infrastructure.repository import (
     versions,
 )
 
+SCRIPTS = Path(__file__).resolve().parents[3] / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+from postgres_live_assurance import ddl_denial_receipt  # noqa: E402
+
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 POSTGRES_APP_ROLE = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
 pytestmark = pytest.mark.postgres
@@ -55,6 +60,33 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     assert role.rolcreatedb is False
     assert role.rolcreaterole is False
     assert role.rolinherit is False
+    with repository.engine.connect() as connection:
+        assert connection.execute(
+            text("SELECT has_schema_privilege(current_user, 'public', 'CREATE')")
+        ).scalar_one() is False
+        assert connection.execute(
+            text("SELECT has_database_privilege(current_user, current_database(), 'CREATE')")
+        ).scalar_one() is False
+        assert (
+            connection.execute(
+                text(
+                    "SELECT count(*) FROM pg_class c "
+                    "JOIN pg_namespace n ON n.oid=c.relnamespace "
+                    "WHERE n.nspname='public' AND c.relname = ANY(:tables) "
+                    "AND pg_get_userbyid(c.relowner)=current_user"
+                ),
+                {
+                    "tables": [
+                        "documents",
+                        "document_versions",
+                        "evidence_spans",
+                        "span_embeddings",
+                        "document_compartments",
+                    ]
+                },
+            ).scalar_one()
+            == 0
+        )
 
     actor = Identity(
         subject="postgres-admin",
@@ -211,9 +243,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     with pytest.raises(DBAPIError):
         with repository.engine.begin() as connection:
             connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
-    with pytest.raises(DBAPIError):
-        with repository.engine.begin() as connection:
-            connection.execute(text("CREATE TABLE app_role_must_not_create(id integer)"))
+    assert set(ddl_denial_receipt(repository.engine).values()) == {"PASS"}
 
     # IAM-006 is deliberately a detection test: arbitrary app-role SQL can broaden GUC claims.
     with repository.engine.begin() as connection:

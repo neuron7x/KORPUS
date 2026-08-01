@@ -30,6 +30,17 @@ TABLES = (
     "audit_heads",
     "audit_events",
 )
+DDL_PROBES = {
+    "create_table": "CREATE TABLE app_role_must_not_create(id integer)",
+    "alter_table": "ALTER TABLE documents ADD COLUMN app_role_must_not_add integer",
+    "drop_table": "DROP TABLE documents",
+    "create_policy": "CREATE POLICY app_role_must_not_create ON documents USING (true)",
+    "create_schema": "CREATE SCHEMA app_role_must_not_create",
+    "create_extension": "CREATE EXTENSION pg_trgm",
+    "create_role": "CREATE ROLE app_role_must_not_create",
+    "alter_role": "ALTER ROLE postgres NOLOGIN",
+    "set_role": "SET ROLE postgres",
+}
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
 
 
@@ -43,6 +54,18 @@ def candidate_commit() -> str:
     if not COMMIT_SHA.fullmatch(value):
         raise ValueError("candidate commit must be a full lowercase Git SHA-1")
     return value
+
+
+def ddl_denial_receipt(engine) -> dict[str, str]:
+    receipt: dict[str, str] = {}
+    for identifier, statement in DDL_PROBES.items():
+        try:
+            with engine.begin() as connection:
+                connection.execute(text(statement))
+            receipt[identifier] = "FAIL"
+        except DBAPIError:
+            receipt[identifier] = "PASS"
+    return receipt
 
 
 def safe_url(name: str) -> str:
@@ -140,9 +163,19 @@ def main() -> int:
         role = (
             connection.execute(
                 text(
-                    "SELECT rolsuper, rolbypassrls, rolcreatedb, rolcreaterole, rolinherit "
+                    "SELECT rolsuper, rolbypassrls, rolcreatedb, rolcreaterole, rolinherit, "
+                    "has_schema_privilege(current_user,'public','CREATE') AS schema_create, "
+                    "has_database_privilege(current_user,current_database(),'CREATE') "
+                    "AS database_create, "
+                    "(SELECT count(*) FROM pg_class c JOIN pg_namespace n "
+                    "ON n.oid=c.relnamespace WHERE n.nspname='public' "
+                    "AND c.relname = ANY(:tables) "
+                    "AND pg_get_userbyid(c.relowner)=current_user) "
+                    "AS governed_table_ownership_count "
                     "FROM pg_roles WHERE rolname=current_user"
                 )
+                ,
+                {"tables": list(TABLES[:5])},
             )
             .mappings()
             .one()
@@ -182,12 +215,7 @@ def main() -> int:
             compartment_cases[label] = connection.execute(
                 text("SELECT count(*) FROM documents WHERE compartments_json LIKE '%omega%'")
             ).scalar_one()
-    try:
-        with app.begin() as connection:
-            connection.execute(text("CREATE TABLE app_role_must_not_create(id integer)"))
-        ddl_denied = False
-    except DBAPIError:
-        ddl_denied = True
+    ddl_denials = ddl_denial_receipt(app)
     try:
         with app.begin() as connection:
             connection.execute(text("UPDATE alembic_version SET version_num=version_num"))
@@ -247,9 +275,12 @@ def main() -> int:
     prerequisites_pass = all(
         (
             alembic_update_denied,
-            ddl_denied,
+            all(value == "PASS" for value in ddl_denials.values()),
             pytest_result["live_postgres"] == "PASS",
             backup_result["manifest_verified"] is True,
+            role["schema_create"] is False,
+            role["database_create"] is False,
+            role["governed_table_ownership_count"] == 0,
         )
     )
     report = {
@@ -280,7 +311,7 @@ def main() -> int:
         "compartment_cases": compartment_cases,
         "ddl_denial_cases": {
             "alembic_update": "PASS" if alembic_update_denied else "FAIL",
-            "privileged_ddl": "PASS" if ddl_denied else "FAIL",
+            **ddl_denials,
         },
         "backup": backup_result,
         "restore": {

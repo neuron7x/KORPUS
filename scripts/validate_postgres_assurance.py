@@ -54,8 +54,16 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
     role = payload.get("application_role_properties", {})
     if not isinstance(role, dict) or any(
         role.get(name) is not False
-        for name in ("rolsuper", "rolbypassrls", "rolcreatedb", "rolcreaterole", "rolinherit")
-    ):
+        for name in (
+            "rolsuper",
+            "rolbypassrls",
+            "rolcreatedb",
+            "rolcreaterole",
+            "rolinherit",
+            "schema_create",
+            "database_create",
+        )
+    ) or role.get("governed_table_ownership_count") != 0:
         failures.append("predicate:application-role")
     expected = payload.get("alembic_expected_heads")
     if payload.get("source_database_revision") != expected:
@@ -67,8 +75,22 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
     if not missing_counts or any(value != 0 for value in missing_counts.values()):
         failures.append("predicate:missing-context")
     ddl = payload.get("ddl_denial_cases", {})
-    if not isinstance(ddl, dict) or any(
-        ddl.get(name) != "PASS" for name in ("alembic_update", "privileged_ddl")
+    required_ddl = {
+        "alembic_update",
+        "create_table",
+        "alter_table",
+        "drop_table",
+        "create_policy",
+        "create_schema",
+        "create_extension",
+        "create_role",
+        "alter_role",
+        "set_role",
+    }
+    if (
+        not isinstance(ddl, dict)
+        or set(ddl) != required_ddl
+        or any(value != "PASS" for value in ddl.values())
     ):
         failures.append("predicate:ddl-denial")
     backup = payload.get("backup", {})

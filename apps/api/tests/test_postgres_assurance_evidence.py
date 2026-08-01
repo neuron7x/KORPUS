@@ -118,13 +118,29 @@ def valid_assurance_payload() -> dict[str, object]:
                     "rolcreatedb",
                     "rolcreaterole",
                     "rolinherit",
+                    "schema_create",
+                    "database_create",
                 )
             },
             "alembic_expected_heads": ["head"],
             "source_database_revision": ["head"],
             "restored_database_revision": ["head"],
             "rls_cases": {"missing_context_counts": {"documents": 0}},
-            "ddl_denial_cases": {"alembic_update": "PASS", "privileged_ddl": "PASS"},
+            "ddl_denial_cases": {
+                name: "PASS"
+                for name in (
+                    "alembic_update",
+                    "create_table",
+                    "alter_table",
+                    "drop_table",
+                    "create_policy",
+                    "create_schema",
+                    "create_extension",
+                    "create_role",
+                    "alter_role",
+                    "set_role",
+                )
+            },
             "backup": {
                 "encrypted": True,
                 "manifest_verified": True,
@@ -142,6 +158,7 @@ def valid_assurance_payload() -> dict[str, object]:
             "restored_state_digest": "digest",
         }
     )
+    payload["application_role_properties"]["governed_table_ownership_count"] = 0
     return payload
 
 
@@ -158,6 +175,10 @@ def valid_assurance_payload() -> dict[str, object]:
         (
             lambda value: value["application_role_properties"].update(rolbypassrls=True),
             "predicate:application-role",
+        ),
+        (
+            lambda value: value["ddl_denial_cases"].pop("set_role"),
+            "predicate:ddl-denial",
         ),
     ],
 )
