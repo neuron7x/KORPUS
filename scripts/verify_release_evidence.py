@@ -25,7 +25,7 @@ def main() -> int:
         raise SystemExit("release evidence is missing")
     assurance = json.loads(assurance_path.read_text(encoding="utf-8"))
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    expected_release = os.getenv("KORPUS_RELEASE_VERSION", "v4.0.0")
+    expected_release = os.getenv("KORPUS_RELEASE_VERSION", "v5.0.0")
     if assurance.get("status") != "PASS":
         failures.append("assurance status is not PASS")
     actual_digest = source_tree_digest("HEAD")

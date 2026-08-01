@@ -1,50 +1,52 @@
-# KORPUS v4.0.0 distribution contents
+# KORPUS v5.0.0 distribution contents
 
-GitLab-ready infrastructure-hardened baseline for a controlled evidence platform.
+Integrated engineering-assurance baseline for a controlled evidence platform. The distribution contains the executable project, the complete frozen v4 audit, v5 closure classification for all 99 findings, governance artifacts, deployment references and source-bound assurance evidence.
 
-## Included executable components
+## Executable components
 
-- FastAPI modular monolith with server-derived identity and versioned contracts;
-- application ABAC plus PostgreSQL `FORCE ROW LEVEL SECURITY` across every corpus table;
-- SQLite FTS5 and PostgreSQL GIN/`tsvector` bounded lexical retrieval;
-- optional pgvector semantic candidates gated by real calibration evidence;
-- deterministic ranking, risk-adaptive abstention, MMR and bounded candidate/deadline budgets;
-- immutable documents, temporal versions, evidence spans and content-addressed objects;
-- PDF/TXT/JSON/HTML ingestion, bounded OCR fallback and hostile-input limits;
-- separated review roles, optimistic concurrency and single-current-version enforcement;
-- exact extractive claims with offsets, quote hashes and source hashes;
-- cached/rotation-safe OIDC/JWKS verification;
-- S3-compatible SHA-256-verified storage with controlled object-lock checks;
-- persistent hash-chained audit, CAS head, remote HMAC checkpoint and transactional outbox;
-- bounded readiness and low-cardinality Prometheus/OpenTelemetry instrumentation;
-- direct `pg_dump`→AES-256-GCM backup streaming with authenticated manifest v4;
-- fail-closed restore with key-ID, HMAC, hash, byte-count and migration verification;
-- non-root, read-only, resource-bounded Compose services on separated edge/backend/egress networks;
-- rootless BuildKit OCI builds, Gitleaks, pip-audit, Trivy and Syft gates;
-- PostgreSQL downgrade/upgrade, non-superuser RLS and encrypted backup→new-database CI drill;
-- deterministic package from `git archive HEAD` with source-digest-bound assurance evidence;
-- dependency-free offline-capable PWA;
-- Codex/Claude isolated worktree protocol and operational runbooks.
+- FastAPI trust kernel with server-derived identity and content-addressed entitlement projection;
+- need-to-know compartments, application ABAC and PostgreSQL `FORCE ROW LEVEL SECURITY`;
+- opaque browser BFF session with OIDC authorization-code flow, PKCE, state, nonce and CSRF controls;
+- streamed quarantine ingestion, MIME/signature checks, ClamAV contract, isolated parser subprocess, bounded OCR and durable leased jobs;
+- immutable documents, temporal versions, source authenticity, near-duplicate and extraction-quality governance;
+- separate metadata/content/approval reviewer credentials with scope, expiry and revocation;
+- content-addressed corpus policy controlling classification, rights, operations, retention, legal hold and external embedding egress;
+- bounded lexical retrieval, optional calibration-bound semantic retrieval, deterministic ranking and explicit abstention;
+- exact claim-to-span evidence with offsets, quote/source hashes and contradiction checks;
+- hash-chained audit ledger, CAS head, durable anchor outbox and authenticated remote checkpoint contract;
+- same-origin dependency-free PWA;
+- Docker Compose development topology and Kubernetes/Kustomize production reference topology;
+- GitLab CI contracts, migrations, backup/restore tools, observability, validation and clean-room packaging;
+- complete v4 audit PDF/DOCX/Markdown/JSON/CSV and v5 machine-readable closure register.
 
-## Release evidence
+## Current local assurance evidence
 
-- 125 tests collected: 124 PASS, 1 live-PostgreSQL SKIP, 0 failures;
-- combined coverage 82.34%; statement coverage 86.72%; branch coverage 64.78%;
-- adversarial evaluation 30/30 PASS;
-- critical mutation gate 14/14 killed;
-- migration/schema parity PASS;
-- local scale probe PASS;
+- 172 tests collected: 171 PASS, 1 live-PostgreSQL SKIP, 0 failures/errors;
+- combined line coverage 87.00% and branch coverage 66.87%;
+- adversarial evaluation 30/30 PASS with 0 citation, leakage and determinism failures;
+- selected critical mutation gate 26/26 killed;
+- Alembic empty-database migration/schema parity PASS;
+- SQLite FTS5 bounded scale probe PASS on 5,000 synthetic spans;
 - operational composition gate PASS with `production_authorized=false`;
-- web and static infrastructure validation PASS.
+- web validation/typecheck/build PASS;
+- OpenAPI, repository, infrastructure, Kubernetes and 99-finding closure contracts PASS.
 
-## Deliberately not included or not proven locally
+All values above are local engineering measurements. They are not production SLA, independent TEVV or authorization.
 
-- the claimed 5,960-file real corpus and authoritative metadata;
-- document rights, classification decisions and appointed domain reviewers;
-- production OIDC, embedding, HSM/KMS, external S3/object lock, remote audit-anchor and telemetry services;
-- live Docker/Compose execution in the generation environment;
-- live PostgreSQL/pgvector and actual backup restore in the generation environment;
-- registry digest promotion for deployment images;
-- hash-pinned Python wheels;
-- independent penetration test, real-corpus OCR benchmark and malware/CDR assessment;
-- formal security profile, authorization/accreditation, SOC ownership or production SLA.
+## Audit closure state
+
+| State | Count | Meaning |
+|---|---:|---|
+| `CLOSED_LOCAL` | 20 | Frozen local acceptance predicate has executable evidence. |
+| `MITIGATED_LOCAL` | 33 | Material local control exists; live/corpus/independent acceptance remains. |
+| `EXTERNAL_DEBT` | 31 | Cannot be closed inside source code or this environment. |
+| `OPEN_TECH_DEBT` | 15 | Engineering implementation remains open. |
+
+## Deliberately not claimed
+
+- no claim that all possible vulnerabilities are known or removed;
+- no real 5,960-file corpus, rights/classification approval or domain-owner acceptance;
+- no live production proof for PostgreSQL/pgvector, Kubernetes, OIDC, S3 Object Lock, KMS/HSM, remote anchor or telemetry backend;
+- no independent pentest, AI red-team, parser/container assessment or real-corpus TEVV;
+- no signed production provenance, immutable registry promotion or legal license clearance;
+- no production SLO, load/soak/chaos, failover, PITR, measured RTO/RPO or formal authorization.

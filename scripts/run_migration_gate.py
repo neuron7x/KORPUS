@@ -38,6 +38,7 @@ def main() -> int:
             return 1
 
         from korpus.infrastructure.repository import audit_heads, metadata
+        from korpus.infrastructure import ingestion_jobs as _ingestion_jobs_module  # register queue table
 
         engine = create_engine(url)
         inspector = inspect(engine)

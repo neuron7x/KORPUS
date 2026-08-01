@@ -31,8 +31,41 @@ def normalize_text(text: str) -> str:
     return unicodedata.normalize("NFC", text).casefold()
 
 
-def tokenize(text: str) -> list[str]:
+UKRAINIAN_SUFFIXES = tuple(sorted({
+    "ування", "ювання", "овувати", "ювати", "еві", "ові", "ями", "ами", "ого", "ому",
+    "ими", "ій", "ою", "ею", "ення", "ання", "яння", "ість", "остей", "ати", "ити",
+    "увати", "ювати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
+    "а", "я", "і", "и", "е", "є", "ом", "ем", "ів", "їв", "ах", "ях", "ам", "ям",
+}, key=len, reverse=True))
+
+
+def _ukrainian_stem(token: str) -> str:
+    if len(token) < 5 or not any("а" <= char <= "я" or char in "іїєґ" for char in token):
+        return token
+    for suffix in UKRAINIAN_SUFFIXES:
+        if token.endswith(suffix) and len(token) - len(suffix) >= 4:
+            return token[:-len(suffix)]
+    return token
+
+
+def raw_tokens(text: str) -> list[str]:
     return [token for token in TOKEN_PATTERN.findall(normalize_text(text)) if token not in STOP_WORDS]
+
+
+def tokenize(text: str) -> list[str]:
+    return [_ukrainian_stem(token) for token in raw_tokens(text)]
+
+
+def candidate_terms(text: str) -> list[tuple[str, bool]]:
+    """Return exact and Ukrainian stem-prefix terms for candidate generation."""
+    result: list[tuple[str, bool]] = []
+    seen: set[tuple[str, bool]] = set()
+    for token in raw_tokens(text):
+        for value in ((token, False), (_ukrainian_stem(token), True)):
+            if len(value[0]) >= 2 and value not in seen:
+                seen.add(value)
+                result.append(value)
+    return result
 
 
 def character_ngrams(text: str, n: int = 3) -> frozenset[str]:
@@ -232,12 +265,13 @@ def score_candidates(
     return scored
 
 
-def _temporal_specificity(item_date: date | None, effective_from: date | None) -> float:
-    if effective_from is not None:
-        return 1.0
-    if item_date is not None:
-        return 0.6
-    return 0.0
+def _temporal_relevance(as_of: date, publication_date: date | None, effective_from: date | None) -> float:
+    reference = effective_from or publication_date
+    if reference is None or reference > as_of:
+        return 0.0
+    age_days = max(0, (as_of - reference).days)
+    # Recency is a weak ranking signal, never an authority decision. Half-life: ~4 years; floor 0.25.
+    return max(0.25, 1.0 / (1.0 + age_days / 1461.0))
 
 
 def diversify_evidence(
@@ -293,6 +327,7 @@ class HybridLexicalRetriever(Retriever):
         per_version_cap: int = 2,
         timeout_ms: int = 1200,
         semantic_source: Any | None = None,
+        authority_priors: dict[AuthorityClass, float] | None = None,
     ) -> None:
         if candidate_budget < 8:
             raise ValueError("candidate_budget must be at least 8")
@@ -306,6 +341,11 @@ class HybridLexicalRetriever(Retriever):
         self.per_version_cap = per_version_cap
         self.timeout_ms = timeout_ms
         self.semantic_source = semantic_source
+        self.authority_priors = dict(authority_priors or AUTHORITY_PRIOR)
+        if set(self.authority_priors) != set(AuthorityClass):
+            raise ValueError("authority priors must cover every AuthorityClass")
+        if any(not 0 <= value <= 1 for value in self.authority_priors.values()):
+            raise ValueError("authority priors must be in [0, 1]")
 
     def search(
         self,
@@ -350,10 +390,10 @@ class HybridLexicalRetriever(Retriever):
             [span.text for span, _, _ in candidates],
             [version.authority.value.startswith("official_") for _, _, version in candidates],
             self.parameters,
-            authority_scores=[AUTHORITY_PRIOR[version.authority] for _, _, version in candidates],
+            authority_scores=[self.authority_priors[version.authority] for _, _, version in candidates],
             semantic_scores=[semantic_by_span.get(str(span.id), 0.0) for span, _, _ in candidates],
             temporal_scores=[
-                _temporal_specificity(version.publication_date, version.effective_from)
+                _temporal_relevance(as_of, version.publication_date, version.effective_from)
                 for _, _, version in candidates
             ],
             weights=self.weights,

@@ -13,11 +13,17 @@ ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
 SOURCES = {
+    "PYTEST_REPORT.xml": "pytest.xml",
+    "COVERAGE_REPORT.xml": "coverage.xml",
+    "COVERAGE_REPORT.json": "coverage.json",
     "EVAL_REPORT.json": "eval-report.json",
     "MUTATION_REPORT.json": "mutation-report.json",
     "MIGRATION_REPORT.json": "migration-report.json",
     "SCALE_REPORT.json": "scale-report.json",
     "OPERATIONAL_GATE.json": "operational-gate.json",
+    "SUPPLY_CHAIN_INVENTORY.json": "supply-chain-inventory.json",
+    "INFRASTRUCTURE_VALIDATION.json": "infrastructure-validation.json",
+    "KUBERNETES_VALIDATION.json": "kubernetes-validation.json",
 }
 
 
@@ -121,7 +127,7 @@ def main() -> int:
 
     index = {
         "schema": "korpus.assurance-snapshot.v1",
-        "release": os.getenv("KORPUS_RELEASE_VERSION", "v4.0.0"),
+        "release": os.getenv("KORPUS_RELEASE_VERSION", "v5.0.0"),
         "status": "PASS",
         "records": records,
         "limitations": assurance.get("limitations", []),

@@ -18,7 +18,7 @@ def main() -> int:
     failures: list[str] = []
     compose = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
     services: dict[str, dict] = compose.get("services", {})
-    required = {"postgres", "migrate", "minio", "minio-init", "otel-collector", "api", "web"}
+    required = {"postgres", "migrate", "minio", "minio-init", "otel-collector", "clamav", "api", "worker", "web"}
     missing = sorted(required - services.keys())
     if missing:
         failures.append(f"missing services: {missing}")
@@ -61,6 +61,29 @@ def main() -> int:
         failures.append("api: read_only root filesystem missing")
 
 
+    worker = services.get("worker", {})
+    worker_env = worker.get("environment", {}) or {}
+    if worker.get("command") != ["python", "-m", "korpus.cli", "worker-loop", "--idle-seconds", "1"]:
+        failures.append("worker: durable ingestion command missing")
+    if str(worker_env.get("KORPUS_INGESTION_MODE", "")).lower() != "durable_async":
+        failures.append("worker: durable ingestion mode missing")
+    if set(worker.get("networks", []) or []) != {"backend", "egress"}:
+        failures.append("worker: must be isolated from edge network")
+    if not (worker.get("healthcheck", {}) or {}).get("disable"):
+        failures.append("worker: inherited HTTP healthcheck must be disabled")
+    if "clamav" not in (worker.get("depends_on", {}) or {}):
+        failures.append("worker: ClamAV dependency missing")
+    for key, expected in {
+        "KORPUS_INGESTION_MODE": "durable_async",
+        "KORPUS_MALWARE_SCAN_MODE": "clamd",
+        "KORPUS_PARSER_SANDBOX_ENABLED": "true",
+    }.items():
+        if str(env.get(key, "")).lower() != expected:
+            failures.append(f"api: {key} must be {expected}")
+    if "clamav" not in depends:
+        failures.append("api: ClamAV dependency missing")
+
+
     # Least-privilege object storage: the API must never mount MinIO root credentials.
     api_secret_text = json.dumps(api.get("secrets", []), sort_keys=True) + json.dumps(env, sort_keys=True)
     if "minio_root_password" in api_secret_text:
@@ -79,8 +102,13 @@ def main() -> int:
         for required_action in ("s3:GetBucketVersioning", "s3:GetObjectLockConfiguration"):
             if required_action not in actions:
                 failures.append(f"MinIO application policy missing durability check: {required_action}")
-        if "arn:aws:s3:::korpus/objects/*" not in resources:
-            failures.append("MinIO application policy is not restricted to objects prefix")
+        for prefix in ("arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"):
+            if prefix not in resources:
+                failures.append(f"MinIO application policy missing required restricted prefix: {prefix}")
+        if any(resource.endswith("/*") and resource not in {
+            "arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"
+        } for resource in resources):
+            failures.append("MinIO application policy includes an unexpected object prefix")
     except (OSError, json.JSONDecodeError) as exc:
         failures.append(f"MinIO application policy is missing or invalid: {exc}")
 

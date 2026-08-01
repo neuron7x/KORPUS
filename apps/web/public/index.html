@@ -16,6 +16,15 @@
       <p class="eyebrow">ДЖЕРЕЛО → ДОКАЗ → ВІДПОВІДЬ</p>
       <h1>Перевірити,<br>а не повірити.</h1>
       <p class="lead">Система відповідає лише з чинних затверджених фрагментів, доступних вашій ідентичності.</p>
+      <section class="authbar" aria-label="Автентифікація">
+        <div class="auth-actions"><button id="login" type="button">Увійти через OIDC</button><button id="logout" type="button" hidden>Вийти</button></div>
+        <p id="identity-state" class="limitation">Не автентифіковано.</p>
+        <details>
+          <summary>Developer bearer fallback</summary>
+          <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
+          <div class="query"><input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token"><button id="check-auth" type="button">Перевірити</button></div>
+        </details>
+      </section>
       <form id="query-form">
         <label for="query">Запит до контрольованого корпусу</label>
         <div class="query"><textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea><button id="submit">Знайти доказ</button></div>

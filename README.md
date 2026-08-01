@@ -1,4 +1,4 @@
-# KORPUS v4.0.0
+# KORPUS v5.0.0
 
 Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 
@@ -31,21 +31,18 @@ non-root nginx/PWA -- internal edge -- API
 
 Only the web proxy publishes a loopback host port. Backend networks are internal. Only the API joins the egress network.
 
-## What changed in v4
+## What changed in v5
 
-- Compose services are wired into runtime configuration and health-dependent startup.
-- Alembic migration and non-superuser role preparation precede API startup.
-- PostgreSQL `FORCE ROW LEVEL SECURITY` covers documents, versions, spans and embeddings.
-- MinIO uses a dedicated prefix-scoped application identity without object deletion rights.
-- Controlled S3 readiness verifies bucket versioning and object-lock capability.
-- Audit commit and remote anchoring are separated by a durable transactional outbox.
-- Readiness uses bounded head/history/outbox checks instead of scanning the full ledger.
-- PostgreSQL backup streams directly from `pg_dump` into AES-256-GCM; no plaintext backup file is created.
-- Backup manifest v4 is HMAC-authenticated and binds filename, hashes, byte counts, cipher and key ID.
-- Restore rejects manifest tampering, wrong key ID, wrong hashes/sizes and wrong Alembic head.
-- GitLab builds OCI archives with rootless BuildKit and requires dependency, secret, IaC and container scans plus SBOMs.
-- Packaging starts from committed `git archive HEAD` and rejects stale source-mismatched assurance evidence.
-- SQLite uses connection-per-unit-of-work semantics to prevent cross-lifecycle DB-handle leakage.
+- OIDC establishes identity; server-side content-addressed entitlements establish privileges.
+- Need-to-know compartments and PostgreSQL RLS filter inaccessible text before retrieval.
+- Browser access uses an opaque BFF session with PKCE, state, nonce and CSRF enforcement.
+- Uploads are streamed to quarantine and processed through malware scan, parser isolation, bounded OCR and durable leased jobs.
+- Source signatures, near-duplicate detection and extraction-quality warnings are mandatory review evidence in controlled mode.
+- Metadata, content and approval stages require separate scoped reviewer credentials with expiry and revocation.
+- Corpus policy controls classification, authority classes, OCR, indexing, citation, export, deletion, retention, legal hold and external embedding egress.
+- Calibration profiles bind parameters to the dataset, evaluation protocol, system manifest and model configuration.
+- Kubernetes/Kustomize provides a production reference topology with restricted Pod Security and default-deny networking.
+- The complete v4 audit is preserved and all 99 findings are classified into locally closed, locally mitigated, external debt or open technical debt.
 
 ## Executable gates
 
@@ -55,10 +52,10 @@ make assurance
 
 Local evidence for this release:
 
-- 125 tests collected: 124 PASS, 1 live-PostgreSQL SKIP, 0 failures;
-- combined coverage 82.34%; statement coverage 86.72%; branch coverage 64.78%;
+- 172 tests collected: 171 PASS, 1 live-PostgreSQL SKIP, 0 failures;
+- line coverage 87.00%; branch coverage 66.87%; combined gate coverage 82.60%;
 - adversarial evaluation 30/30 PASS;
-- critical mutations 14/14 killed;
+- selected critical mutation gate 26/26 killed across six isolated shards;
 - clean Alembic migration parity PASS;
 - local bounded scale probe PASS;
 - web validation/typecheck/build PASS;
@@ -102,6 +99,7 @@ infra/                     MinIO policies, telemetry and secrets contract
 scripts/                   migration, assurance, backup, restore and packaging tools
 evals/                     frozen adversarial fixtures
 reports/                   content-hashed release evidence
+docs/audit/                complete v4 audit and v5 99-finding closure
 docs/architecture/         system and security topology
 docs/assurance/            falsification strategy and audit ledger
 agents/                    Codex / Claude Code worktree contracts
@@ -125,7 +123,10 @@ agents/                    Codex / Claude Code worktree contracts
 
 ## Read first
 
-- `docs/architecture/SYSTEM_V4.md`
+- `FINAL_PACKAGE_CONTENTS.md`
+- `VERIFICATION_REPORT_V5.md`
+- `docs/audit/closure/KORPUS_v5_CLOSURE_SUMMARY.md`
+- `docs/architecture/SYSTEM_V5.md`
 - `docs/assurance/INFRASTRUCTURE_AUDIT_V4.md`
 - `docs/assurance/FIRST_PRINCIPLES.md`
 - `docs/assurance/TEST_STRATEGY.md`

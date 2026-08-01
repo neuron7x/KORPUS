@@ -74,9 +74,16 @@ def ingest_version(
 
 
 def transition(client: TestClient, version_id: str, target: str) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "target": target,
+        "note": f"independent verification completed for transition {target}",
+    }
+    if target == "metadata_reviewed":
+        payload["acknowledge_near_duplicate"] = True
+        payload["acknowledge_extraction_quality"] = True
     response = client.post(
         f"/v1/document-versions/{version_id}/review",
-        json={"target": target, "note": f"independent verification completed for transition {target}"},
+        json=payload,
     )
     assert response.status_code == 200, response.text
     return response.json()

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import re
 import time
 import threading
 from datetime import UTC, date, datetime
@@ -19,6 +20,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Float,
     Index,
     Integer,
     MetaData,
@@ -53,7 +55,7 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 
-SCHEMA_REVISION = "0003_infrastructure_hardening"
+SCHEMA_REVISION = "0009_reviewer_credentials"
 
 metadata = MetaData()
 
@@ -68,8 +70,16 @@ documents = Table(
     Column("document_type", String(100), nullable=False),
     Column("access_tier", Integer, nullable=False),
     Column("classification", String(32), nullable=False),
+    Column("compartments_json", Text, nullable=False, default="[]"),
     Column("created_at", DateTime(timezone=True), nullable=False),
     CheckConstraint("access_tier >= 0 AND access_tier <= 3", name="ck_document_access_tier"),
+)
+
+document_compartments = Table(
+    "document_compartments",
+    metadata,
+    Column("document_id", String(36), ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True),
+    Column("compartment", String(64), primary_key=True),
 )
 
 versions = Table(
@@ -88,13 +98,27 @@ versions = Table(
     Column("effective_until", Date),
     Column("rescinded_at", DateTime(timezone=True)),
     Column("authority", String(64), nullable=False),
+    Column("source_key_id", String(200)),
+    Column("source_signature_b64", Text),
+    Column("content_fingerprint", String(16), nullable=False, default="0000000000000000", index=True),
+    Column("near_duplicate_of_version_id", String(36), ForeignKey("document_versions.id")),
+    Column("near_duplicate_similarity", Float),
+    Column("near_duplicate_acknowledged_by", String(200)),
+    Column("extraction_text_chars", Integer, nullable=False, default=0),
+    Column("extraction_alnum_ratio", Float, nullable=False, default=0.0),
+    Column("extraction_replacement_ratio", Float, nullable=False, default=0.0),
+    Column("extraction_quality_flags_json", Text, nullable=False, default="[]"),
+    Column("extraction_quality_acknowledged_by", String(200)),
     Column("review_state", String(64), nullable=False),
     Column("supersedes_version_id", String(36), ForeignKey("document_versions.id")),
     Column("state_version", Integer, nullable=False, default=0),
     Column("metadata_reviewed_by", String(200)),
+    Column("metadata_reviewer_credential_id", String(200)),
     Column("content_reviewed_by", String(200)),
+    Column("content_reviewer_credential_id", String(200)),
     Column("approved_at", DateTime(timezone=True)),
     Column("approved_by", String(200)),
+    Column("approver_credential_id", String(200)),
     Column("is_current", Boolean, nullable=False, default=False, index=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint("document_id", "source_hash", name="uq_version_document_source_hash"),
@@ -298,6 +322,11 @@ class SqlRepository:
         def operation(connection: Connection) -> tuple[None, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
             connection.execute(insert(documents).values(**self._document_values(document)))
+            if document.compartments:
+                connection.execute(
+                    insert(document_compartments),
+                    [{"document_id": str(document.id), "compartment": value} for value in sorted(document.compartments)],
+                )
             connection.execute(insert(versions).values(**self._version_values(version)))
             if records:
                 connection.execute(insert(spans), [self._span_values(record) for record in records])
@@ -354,6 +383,7 @@ class SqlRepository:
             .where(documents.c.corpus_id.in_(sorted(identity.corpora)))
             .where(documents.c.access_tier <= int(identity.clearance))
             .where(documents.c.classification.in_(allowed_classifications))
+            .where(self._compartment_predicate(identity))
             .order_by(documents.c.created_at.desc(), documents.c.id)
         )
         with self.engine.begin() as connection:
@@ -369,6 +399,39 @@ class SqlRepository:
             self._apply_postgres_identity(connection, identity)
             row = connection.execute(statement).mappings().first()
         return self._version(row) if row else None
+
+    def find_near_duplicate(
+        self,
+        identity: Identity,
+        content_fingerprint: str,
+        *,
+        corpus_id: str | None = None,
+        document_id: UUID | None = None,
+        minimum_similarity: float = 0.90,
+    ) -> tuple[DocumentVersionRecord, float] | None:
+        from korpus.application.fingerprints import simhash_similarity
+
+        if not re.fullmatch(r"[a-f0-9]{16}", content_fingerprint):
+            raise ValueError("invalid content fingerprint")
+        if not 0.5 <= minimum_similarity <= 1.0:
+            raise ValueError("invalid near-duplicate threshold")
+        statement = select(versions).join(documents, versions.c.document_id == documents.c.id)
+        if corpus_id is not None:
+            if corpus_id not in identity.corpora and not identity.has_role("admin"):
+                return None
+            statement = statement.where(documents.c.corpus_id == corpus_id)
+        if document_id is not None:
+            statement = statement.where(versions.c.document_id == str(document_id))
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            rows = connection.execute(statement.limit(50_000)).mappings().all()
+        best: tuple[DocumentVersionRecord, float] | None = None
+        for row in rows:
+            candidate = self._version(row)
+            similarity = simhash_similarity(content_fingerprint, candidate.content_fingerprint)
+            if similarity >= minimum_similarity and (best is None or similarity > best[1]):
+                best = (candidate, similarity)
+        return best
 
     def find_version_by_hash(
         self,
@@ -400,6 +463,9 @@ class SqlRepository:
         expected_state: ReviewState,
         target_state: ReviewState,
         note: str,
+        acknowledge_near_duplicate: bool = False,
+        acknowledge_extraction_quality: bool = False,
+        reviewer_credential_id: str | None = None,
     ) -> DocumentVersionRecord:
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
@@ -417,9 +483,19 @@ class SqlRepository:
                 "state_version": current.state_version + 1,
             }
             if target_state is ReviewState.METADATA_REVIEWED:
+                if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:
+                    raise ValueError("near-duplicate finding must be explicitly acknowledged")
+                if current.extraction_quality_flags and not acknowledge_extraction_quality:
+                    raise ValueError("extraction-quality findings must be explicitly acknowledged")
                 changes["metadata_reviewed_by"] = actor.subject
+                changes["metadata_reviewer_credential_id"] = reviewer_credential_id
+                if current.near_duplicate_of_version_id is not None:
+                    changes["near_duplicate_acknowledged_by"] = actor.subject
+                if current.extraction_quality_flags:
+                    changes["extraction_quality_acknowledged_by"] = actor.subject
             elif target_state is ReviewState.CONTENT_REVIEWED:
                 changes["content_reviewed_by"] = actor.subject
+                changes["content_reviewer_credential_id"] = reviewer_credential_id
             elif target_state is ReviewState.APPROVED:
                 existing_row = connection.execute(
                     select(versions)
@@ -448,6 +524,7 @@ class SqlRepository:
                     {
                         "approved_at": datetime.now(UTC),
                         "approved_by": actor.subject,
+                        "approver_credential_id": reviewer_credential_id,
                         "is_current": True,
                     }
                 )
@@ -479,6 +556,13 @@ class SqlRepository:
                     "note": note,
                     "state_version": updated.state_version,
                     "approved_by": updated.approved_by,
+                    "reviewer_credential_id": reviewer_credential_id,
+                    "metadata_reviewer_credential_id": updated.metadata_reviewer_credential_id,
+                    "content_reviewer_credential_id": updated.content_reviewer_credential_id,
+                    "approver_credential_id": updated.approver_credential_id,
+                    "near_duplicate_acknowledged_by": updated.near_duplicate_acknowledged_by,
+                    "extraction_quality_flags": sorted(updated.extraction_quality_flags),
+                    "extraction_quality_acknowledged_by": updated.extraction_quality_acknowledged_by,
                 },
             )
             return updated, anchor
@@ -590,6 +674,7 @@ class SqlRepository:
                 documents.c.document_type,
                 documents.c.access_tier,
                 documents.c.classification,
+                documents.c.compartments_json,
                 documents.c.created_at.label("document_created_at"),
                 versions.c.id.label("version_id"),
                 versions.c.revision,
@@ -603,13 +688,27 @@ class SqlRepository:
                 versions.c.effective_until,
                 versions.c.rescinded_at,
                 versions.c.authority,
+                versions.c.source_key_id,
+                versions.c.source_signature_b64,
+                versions.c.content_fingerprint,
+                versions.c.near_duplicate_of_version_id,
+                versions.c.near_duplicate_similarity,
+                versions.c.near_duplicate_acknowledged_by,
+                versions.c.extraction_text_chars,
+                versions.c.extraction_alnum_ratio,
+                versions.c.extraction_replacement_ratio,
+                versions.c.extraction_quality_flags_json,
+                versions.c.extraction_quality_acknowledged_by,
                 versions.c.review_state,
                 versions.c.supersedes_version_id,
                 versions.c.state_version,
                 versions.c.metadata_reviewed_by,
+                versions.c.metadata_reviewer_credential_id,
                 versions.c.content_reviewed_by,
+                versions.c.content_reviewer_credential_id,
                 versions.c.approved_at,
                 versions.c.approved_by,
+                versions.c.approver_credential_id,
                 versions.c.is_current,
                 versions.c.created_at.label("version_created_at"),
             )
@@ -619,6 +718,7 @@ class SqlRepository:
             .where(documents.c.corpus_id.in_(sorted(authorized_corpora)))
             .where(documents.c.access_tier <= int(identity.clearance))
             .where(documents.c.classification.in_(allowed_classifications))
+            .where(self._compartment_predicate(identity))
             .where(~active_superseder)
             .order_by(documents.c.id, versions.c.created_at.desc(), spans.c.ordinal)
         )
@@ -645,9 +745,10 @@ class SqlRepository:
         limit: int,
         connection: Connection | None = None,
     ) -> list[str]:
-        from korpus.application.retrieval import tokenize
+        from korpus.application.retrieval import candidate_terms
 
-        terms = tokenize(query)
+        term_specs = candidate_terms(query)
+        terms = [value for value, _ in term_specs]
         if not terms:
             return []
         classifications = self._allowed_classifications(identity.clearance)
@@ -665,7 +766,10 @@ class SqlRepository:
             {f"class_{index}": value for index, value in enumerate(classifications)}
         )
         if self.engine.dialect.name == "sqlite":
-            match_query = " OR ".join(f'"{term.replace(chr(34), chr(34) * 2)}"' for term in terms)
+            match_query = " OR ".join(
+                f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")
+                for term, prefix in term_specs
+            )
             parameters["query"] = match_query
             statement = sql_text(
                 f"""
@@ -695,14 +799,16 @@ class SqlRepository:
                 """
             )
         elif self.engine.dialect.name == "postgresql":
-            parameters["query"] = " ".join(terms)
+            parameters["query"] = " | ".join(
+                f"{term}:*" if prefix else term for term, prefix in term_specs
+            )
             statement = sql_text(
                 f"""
                 SELECT s.id AS span_id
                 FROM evidence_spans s
                 JOIN document_versions v ON v.id = s.version_id
                 JOIN documents d ON d.id = v.document_id
-                WHERE to_tsvector('simple', s.text) @@ plainto_tsquery('simple', :query)
+                WHERE to_tsvector('simple', s.text) @@ to_tsquery('simple', :query)
                   AND v.review_state = 'approved'
                   AND d.corpus_id IN ({corpus_placeholders})
                   AND d.access_tier <= :clearance
@@ -719,7 +825,7 @@ class SqlRepository:
                       AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > CAST(:as_of AS date))
                   )
                 ORDER BY ts_rank_cd(
-                    to_tsvector('simple', s.text), plainto_tsquery('simple', :query)
+                    to_tsvector('simple', s.text), to_tsquery('simple', :query)
                 ) DESC, s.id
                 LIMIT :limit
                 """
@@ -741,12 +847,13 @@ class SqlRepository:
             sql_text(
                 "SELECT set_config('korpus.clearance', :clearance, true), "
                 "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true), set_config('korpus.roles', :roles, true)"
+                "set_config('korpus.classifications', :classifications, true), set_config('korpus.compartments', :compartments, true), set_config('korpus.roles', :roles, true)"
             ),
             {
                 "clearance": str(int(identity.clearance)),
                 "corpora": ",".join(sorted(identity.corpora)),
                 "classifications": ",".join(classifications),
+                "compartments": ",".join(sorted(identity.compartments)),
                 "roles": ",".join(sorted(identity.roles)),
             },
         )
@@ -922,6 +1029,20 @@ class SqlRepository:
                 return connection.execute(sql_text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
         except OperationalError:
             return None
+
+    def object_inventory(self) -> dict[str, set[str]]:
+        from korpus.infrastructure.ingestion_jobs import ingestion_jobs
+
+        with self.engine.begin() as connection:
+            content = {
+                str(row.object_key)
+                for row in connection.execute(select(versions.c.object_key)).all()
+            }
+            quarantine = {
+                str(row.staging_object_key)
+                for row in connection.execute(select(ingestion_jobs.c.staging_object_key)).all()
+            }
+        return {"content": content, "quarantine": quarantine}
 
     def healthcheck(self) -> bool:
         try:
@@ -1124,6 +1245,19 @@ class SqlRepository:
         ).encode("utf-8")
 
     @staticmethod
+    def _compartment_predicate(identity: Identity) -> Any:
+        unauthorized = (
+            select(1)
+            .select_from(document_compartments)
+            .where(document_compartments.c.document_id == documents.c.id)
+        )
+        if identity.compartments:
+            unauthorized = unauthorized.where(
+                document_compartments.c.compartment.not_in(sorted(identity.compartments))
+            )
+        return ~unauthorized.exists()
+
+    @staticmethod
     def _allowed_classifications(clearance: AccessTier) -> list[str]:
         allowed = [Classification.PUBLIC.value]
         if clearance >= AccessTier.AUTHENTICATED:
@@ -1149,6 +1283,7 @@ class SqlRepository:
             "document_type": record.document_type,
             "access_tier": int(record.access_tier),
             "classification": record.classification.value,
+            "compartments_json": json.dumps(sorted(record.compartments), separators=(",", ":")),
             "created_at": record.created_at,
         }
 
@@ -1168,13 +1303,27 @@ class SqlRepository:
             "effective_until": record.effective_until,
             "rescinded_at": record.rescinded_at,
             "authority": record.authority.value,
+            "source_key_id": record.source_key_id,
+            "source_signature_b64": record.source_signature_b64,
+            "content_fingerprint": record.content_fingerprint,
+            "near_duplicate_of_version_id": str(record.near_duplicate_of_version_id) if record.near_duplicate_of_version_id else None,
+            "near_duplicate_similarity": record.near_duplicate_similarity,
+            "near_duplicate_acknowledged_by": record.near_duplicate_acknowledged_by,
+            "extraction_text_chars": record.extraction_text_chars,
+            "extraction_alnum_ratio": record.extraction_alnum_ratio,
+            "extraction_replacement_ratio": record.extraction_replacement_ratio,
+            "extraction_quality_flags_json": json.dumps(sorted(record.extraction_quality_flags), separators=(",", ":")),
+            "extraction_quality_acknowledged_by": record.extraction_quality_acknowledged_by,
             "review_state": record.review_state.value,
             "supersedes_version_id": str(record.supersedes_version_id) if record.supersedes_version_id else None,
             "state_version": record.state_version,
             "metadata_reviewed_by": record.metadata_reviewed_by,
+            "metadata_reviewer_credential_id": record.metadata_reviewer_credential_id,
             "content_reviewed_by": record.content_reviewed_by,
+            "content_reviewer_credential_id": record.content_reviewer_credential_id,
             "approved_at": record.approved_at,
             "approved_by": record.approved_by,
+            "approver_credential_id": record.approver_credential_id,
             "is_current": record.is_current,
             "created_at": record.created_at,
         }
@@ -1203,6 +1352,7 @@ class SqlRepository:
             document_type=row["document_type"],
             access_tier=AccessTier(row["access_tier"]),
             classification=Classification(row["classification"]),
+            compartments=frozenset(json.loads(row.get("compartments_json") or "[]")),
             created_at=row["created_at"],
         )
 
@@ -1222,13 +1372,27 @@ class SqlRepository:
             effective_until=row["effective_until"],
             rescinded_at=row["rescinded_at"],
             authority=AuthorityClass(row["authority"]),
+            source_key_id=row.get("source_key_id"),
+            source_signature_b64=row.get("source_signature_b64"),
+            content_fingerprint=row.get("content_fingerprint") or "0" * 16,
+            near_duplicate_of_version_id=UUID(row["near_duplicate_of_version_id"]) if row.get("near_duplicate_of_version_id") else None,
+            near_duplicate_similarity=row.get("near_duplicate_similarity"),
+            near_duplicate_acknowledged_by=row.get("near_duplicate_acknowledged_by"),
+            extraction_text_chars=int(row.get("extraction_text_chars") or 0),
+            extraction_alnum_ratio=float(row.get("extraction_alnum_ratio") or 0.0),
+            extraction_replacement_ratio=float(row.get("extraction_replacement_ratio") or 0.0),
+            extraction_quality_flags=frozenset(json.loads(row.get("extraction_quality_flags_json") or "[]")),
+            extraction_quality_acknowledged_by=row.get("extraction_quality_acknowledged_by"),
             review_state=ReviewState(row["review_state"]),
             supersedes_version_id=UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None,
             state_version=row["state_version"],
             metadata_reviewed_by=row["metadata_reviewed_by"],
+            metadata_reviewer_credential_id=row.get("metadata_reviewer_credential_id"),
             content_reviewed_by=row["content_reviewed_by"],
+            content_reviewer_credential_id=row.get("content_reviewer_credential_id"),
             approved_at=row["approved_at"],
             approved_by=row["approved_by"],
+            approver_credential_id=row.get("approver_credential_id"),
             is_current=bool(row["is_current"]),
             created_at=row["created_at"],
         )
@@ -1244,6 +1408,7 @@ class SqlRepository:
             document_type=row["document_type"],
             access_tier=AccessTier(row["access_tier"]),
             classification=Classification(row["classification"]),
+            compartments=frozenset(json.loads(row.get("compartments_json") or "[]")),
             created_at=row["document_created_at"],
         )
 
@@ -1263,13 +1428,27 @@ class SqlRepository:
             effective_until=row["effective_until"],
             rescinded_at=row["rescinded_at"],
             authority=AuthorityClass(row["authority"]),
+            source_key_id=row.get("source_key_id"),
+            source_signature_b64=row.get("source_signature_b64"),
+            content_fingerprint=row.get("content_fingerprint") or "0" * 16,
+            near_duplicate_of_version_id=UUID(row["near_duplicate_of_version_id"]) if row.get("near_duplicate_of_version_id") else None,
+            near_duplicate_similarity=row.get("near_duplicate_similarity"),
+            near_duplicate_acknowledged_by=row.get("near_duplicate_acknowledged_by"),
+            extraction_text_chars=int(row.get("extraction_text_chars") or 0),
+            extraction_alnum_ratio=float(row.get("extraction_alnum_ratio") or 0.0),
+            extraction_replacement_ratio=float(row.get("extraction_replacement_ratio") or 0.0),
+            extraction_quality_flags=frozenset(json.loads(row.get("extraction_quality_flags_json") or "[]")),
+            extraction_quality_acknowledged_by=row.get("extraction_quality_acknowledged_by"),
             review_state=ReviewState(row["review_state"]),
             supersedes_version_id=UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None,
             state_version=row["state_version"],
             metadata_reviewed_by=row["metadata_reviewed_by"],
+            metadata_reviewer_credential_id=row.get("metadata_reviewer_credential_id"),
             content_reviewed_by=row["content_reviewed_by"],
+            content_reviewer_credential_id=row.get("content_reviewer_credential_id"),
             approved_at=row["approved_at"],
             approved_by=row["approved_by"],
+            approver_credential_id=row.get("approver_credential_id"),
             is_current=bool(row["is_current"]),
             created_at=row["version_created_at"],
         )

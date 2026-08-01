@@ -11,6 +11,7 @@ from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import issue_token
+from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 
 def test_query_contract_has_no_client_controlled_clearance():
@@ -116,26 +117,7 @@ def test_controlled_environment_requires_migration_managed_schema():
 
 
 def test_controlled_environment_requires_remote_audit_anchor(tmp_path: Path):
-    from korpus.application.calibration import CalibrationProfile
-
-    profile = CalibrationProfile(
-        profile_id="controlled-anchor-test",
-        dataset_sha256="a" * 64,
-        accepted_samples=2000,
-        observed_errors=0,
-        confidence_delta=0.05,
-        risk_limit=0.05,
-        minimum_score=0.4,
-        minimum_query_coverage=0.5,
-        minimum_support_score=0.35,
-        minimum_calibration_samples=200,
-        ranking_evaluated_queries=500,
-        ndcg_at_10=0.82,
-        mrr_at_10=0.86,
-        recall_at_20=0.94,
-    )
-    calibration = tmp_path / "calibration.json"
-    calibration.write_text(profile.model_dump_json())
+    calibration = write_calibration_bundle(tmp_path)
     with pytest.raises(ValueError, match="remote HTTP audit anchor"):
         Settings(
             environment="production",
@@ -149,6 +131,7 @@ def test_controlled_environment_requires_remote_audit_anchor(tmp_path: Path):
             jwt_issuer="https://id.example",
             audit_hmac_key="a" * 40,
             answer_policy_mode="calibrated",
-            calibration_profile_path=calibration,
             review_separation_required=True,
+            **calibration,
+            **controlled_security_kwargs(tmp_path),
         )

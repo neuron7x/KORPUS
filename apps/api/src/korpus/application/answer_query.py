@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import hashlib
-import re
 from dataclasses import dataclass
 
+from korpus.application.evidence import (
+    assess_control_injection,
+    contradiction_reason,
+    segment_sentences,
+)
 from korpus.application.ports import Repository, Retriever
 from korpus.application.policy import PolicyEngine
 from korpus.application.retrieval import (
     AUTHORITY_PRIOR,
     RetrievalDeadlineExceeded,
     RetrievalUnavailable,
-    normalize_text,
     tokenize,
 )
 from korpus.application.risk import QueryRisk, classify_query_risk, risk_adjusted_thresholds
@@ -25,15 +28,6 @@ from korpus.domain.models import (
     SupportState,
 )
 
-SENTENCE_PATTERN = re.compile(r"[^.!?\n]+(?:[.!?]+|$)", re.UNICODE)
-INJECTION_PATTERNS = (
-    re.compile(r"\bignore\s+(all\s+)?previous\b", re.I),
-    re.compile(r"ігноруй\s+(усі\s+)?поперед", re.I),
-    re.compile(r"\b(system|developer)\s+(prompt|message)\b", re.I),
-    re.compile(r"розкрий\s+(системн|прихован)", re.I),
-    re.compile(r"\bexecute\s+these\s+instructions\b", re.I),
-)
-
 
 @dataclass(frozen=True)
 class SentenceCandidate:
@@ -44,26 +38,19 @@ class SentenceCandidate:
 
 
 def contains_control_injection(text: str) -> bool:
-    normalized = normalize_text(text)
-    return any(pattern.search(normalized) for pattern in INJECTION_PATTERNS)
+    return assess_control_injection(text).blocked
 
 
 def sentence_candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
     output: list[SentenceCandidate] = []
-    for match in SENTENCE_PATTERN.finditer(text):
-        raw = match.group(0)
-        leading = len(raw) - len(raw.lstrip())
-        trailing = len(raw.rstrip())
-        sentence = raw.strip()
-        if not sentence:
-            continue
+    for sentence, start, end in segment_sentences(text):
         sentence_tokens = set(tokenize(sentence))
         coverage = len(query_tokens.intersection(sentence_tokens)) / max(len(query_tokens), 1)
         output.append(
             SentenceCandidate(
                 text=sentence,
-                start=match.start() + leading,
-                end=match.start() + trailing,
+                start=start,
+                end=end,
                 query_coverage=coverage,
             )
         )
@@ -114,11 +101,13 @@ class ExtractiveAnswerService:
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
         release_id = self.repository.corpus_release_id(identity, corpora, query.as_of)
-        if contains_control_injection(query.text):
+        injection = assess_control_injection(query.text)
+        if injection.blocked:
             answer = self._abstain(
                 release_id,
                 "query_control_injection",
-                "Запит містить інструкції керування моделлю замість предметного питання.",
+                "Запит містить інструкції керування системою замість предметного питання.",
+                limitations=[f"Injection signals: {', '.join(injection.reasons)}"],
             )
             self._audit(identity, query, answer, [], [], classify_query_risk(query.text))
             return answer
@@ -150,7 +139,7 @@ class ExtractiveAnswerService:
                 "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
                 max((item.score for item in retrieved), default=0.0),
             )
-            self._audit(identity, query, answer, retrieved, eligible)
+            self._audit(identity, query, answer, retrieved, eligible, risk)
             return answer
 
         thresholds = risk_adjusted_thresholds(
@@ -179,13 +168,12 @@ class ExtractiveAnswerService:
                 ),
                 None,
             )
-            if candidate is None:
+            if candidate is None or candidate.query_coverage < thresholds.minimum_query_coverage:
                 continue
-            support_score = min(item.score, candidate.query_coverage)
-            if (
-                candidate.query_coverage < thresholds.minimum_query_coverage
-                or support_score < thresholds.minimum_support_score
-            ):
+            # The claim is a byte-for-byte extract from the cited span. Support is therefore
+            # exact; relevance remains a separate query-coverage gate.
+            support_score = 1.0
+            if support_score < thresholds.minimum_support_score:
                 continue
             claims.append(
                 Claim(
@@ -219,31 +207,60 @@ class ExtractiveAnswerService:
             if len(claims) >= self.answer_policy.max_claims:
                 break
 
-        evidence_coverage = len(covered_tokens) / max(len(query_tokens), 1)
-        if not claims or evidence_coverage < thresholds.minimum_query_coverage:
+        query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
+        evidence_coverage = len(citations) / max(len(claims), 1) if claims else 0.0
+        if not claims or query_coverage < thresholds.minimum_query_coverage:
             answer = self._abstain(
                 release_id,
                 "claim_support_gate_failed",
                 "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
                 max((item.score for item in eligible), default=0.0),
+                query_coverage=query_coverage,
             )
         else:
-            answer = Answer(
-                status=AnswerStatus.ANSWERED,
-                text="\n\n".join(claim.text for claim in claims),
-                claims=claims,
-                citations=citations,
-                retrieval_score=max(item.score for item in eligible),
-                evidence_coverage=evidence_coverage,
-                decision_reason="extractive_claims_passed_calibrated_gates",
-                calibration_id=self.answer_policy.calibration_id,
-                limitations=[
-                    "Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями."
-                ],
-                corpus_release=release_id,
-            )
+            contradiction = self._find_contradiction(claims)
+            if contradiction is not None:
+                answer = Answer(
+                    status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+                    text="Затверджені джерела містять взаємно несумісні твердження; автоматичну відповідь зупинено.",
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="contradictory_authoritative_evidence",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[f"Conflict: {contradiction}"],
+                    corpus_release=release_id,
+                )
+            else:
+                answer = Answer(
+                    status=AnswerStatus.ANSWERED,
+                    text="\n\n".join(claim.text for claim in claims),
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="extractive_claims_passed_calibrated_gates",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[
+                        "Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями.",
+                        "Retrieval score є ranking utility, а не ймовірністю істинності.",
+                    ],
+                    corpus_release=release_id,
+                )
         self._audit(identity, query, answer, retrieved, eligible, risk)
         return answer
+
+    @staticmethod
+    def _find_contradiction(claims: list[Claim]) -> str | None:
+        for left_index, left in enumerate(claims):
+            for right in claims[left_index + 1 :]:
+                reason = contradiction_reason(left.text, right.text)
+                if reason is not None:
+                    return reason
+        return None
 
     def _abstain(
         self,
@@ -251,15 +268,19 @@ class ExtractiveAnswerService:
         reason: str,
         text: str,
         retrieval_score: float = 0.0,
+        *,
+        query_coverage: float = 0.0,
+        limitations: list[str] | None = None,
     ) -> Answer:
         return Answer(
             status=AnswerStatus.INSUFFICIENT_EVIDENCE,
             text=text,
             retrieval_score=retrieval_score,
             evidence_coverage=0.0,
+            query_coverage=query_coverage,
             decision_reason=reason,
             calibration_id=self.answer_policy.calibration_id,
-            limitations=["Генерацію зупинено fail-closed."],
+            limitations=["Генерацію зупинено fail-closed.", *(limitations or [])],
             corpus_release=release_id,
         )
 
@@ -286,6 +307,8 @@ class ExtractiveAnswerService:
                 "eligible": len(eligible),
                 "citation_count": len(answer.citations),
                 "evidence_coverage": answer.evidence_coverage,
+                "query_coverage": answer.query_coverage,
+                "retrieval_score_kind": answer.retrieval_score_kind,
                 "calibration_id": answer.calibration_id,
                 "corpus_release": answer.corpus_release,
                 "query_risk": risk.value,

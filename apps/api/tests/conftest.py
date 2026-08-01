@@ -59,6 +59,8 @@ def client(tmp_path: Path, admin_identity: Identity) -> Iterator[TestClient]:
         audit_anchor_path=tmp_path / "audit-anchor.json",
         audit_hmac_key="test-audit-key",
         auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
         min_retrieval_score=0.08,
         min_query_coverage=0.15,
         min_support_score=0.08,

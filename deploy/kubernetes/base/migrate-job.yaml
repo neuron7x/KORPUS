@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: korpus-migrate
+  namespace: korpus
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata: {labels: {app.kubernetes.io/name: korpus-migrate}}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: korpus-api
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: migrate
+          image: registry.invalid/korpus/api@sha256:REPLACE_WITH_VERIFIED_DIGEST
+          args: [python, -m, alembic, -c, /app/apps/api/alembic.ini, upgrade, head]
+          envFrom:
+            - configMapRef: {name: korpus-config}
+            - secretRef: {name: korpus-migration-secrets}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}

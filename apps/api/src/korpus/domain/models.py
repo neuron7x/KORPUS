@@ -82,6 +82,7 @@ class Identity(BaseModel):
     roles: frozenset[str] = Field(default_factory=frozenset, max_length=32)
     clearance: AccessTier = AccessTier.PUBLIC
     corpora: frozenset[str] = Field(default_factory=lambda: frozenset({"public"}), max_length=64)
+    compartments: frozenset[str] = Field(default_factory=frozenset, max_length=64)
 
     @field_validator("subject")
     @classmethod
@@ -99,13 +100,19 @@ class Identity(BaseModel):
             raise ValueError("invalid role identifier")
         return normalized
 
-    @field_validator("corpora")
+    @field_validator("corpora", "compartments")
     @classmethod
     def normalize_corpora(cls, values: frozenset[str]) -> frozenset[str]:
         normalized = frozenset(value.strip().lower() for value in values)
-        if not normalized or any(not CORPUS_ID_PATTERN.fullmatch(value) for value in normalized):
-            raise ValueError("invalid corpus identifier")
+        if any(not CORPUS_ID_PATTERN.fullmatch(value) for value in normalized):
+            raise ValueError("invalid corpus or compartment identifier")
         return normalized
+
+    @model_validator(mode="after")
+    def validate_identity_scope(self) -> "Identity":
+        if not self.corpora:
+            raise ValueError("identity must have at least one corpus")
+        return self
 
     def has_role(self, *roles: str) -> bool:
         return bool(self.roles.intersection(role.lower() for role in roles))
@@ -119,6 +126,15 @@ class DocumentCreate(BaseModel):
     document_type: str = Field(default="reference", min_length=2, max_length=100)
     access_tier: AccessTier = AccessTier.PUBLIC
     classification: Classification = Classification.PUBLIC
+    compartments: frozenset[str] = Field(default_factory=frozenset, max_length=64)
+
+    @field_validator("compartments")
+    @classmethod
+    def validate_compartments(cls, values: frozenset[str]) -> frozenset[str]:
+        normalized = frozenset(value.strip().lower() for value in values)
+        if any(not CORPUS_ID_PATTERN.fullmatch(value) for value in normalized):
+            raise ValueError("invalid compartment identifier")
+        return normalized
 
     @model_validator(mode="after")
     def validate_classification_tier(self) -> "DocumentCreate":
@@ -135,6 +151,8 @@ class VersionCreate(BaseModel):
     effective_from: date | None = None
     effective_until: date | None = None
     authority: AuthorityClass = AuthorityClass.UNKNOWN
+    source_key_id: str | None = Field(default=None, min_length=3, max_length=200)
+    source_signature_b64: str | None = Field(default=None, min_length=40, max_length=200)
     supersedes_version_id: UUID | None = None
 
     @model_validator(mode="after")
@@ -159,6 +177,7 @@ class DocumentRecord(BaseModel):
     document_type: str
     access_tier: AccessTier
     classification: Classification
+    compartments: frozenset[str] = Field(default_factory=frozenset)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -178,13 +197,27 @@ class DocumentVersionRecord(BaseModel):
     effective_until: date | None = None
     rescinded_at: datetime | None = None
     authority: AuthorityClass
+    source_key_id: str | None = None
+    source_signature_b64: str | None = None
+    content_fingerprint: str = Field(default="0" * 16, pattern=r"^[a-f0-9]{16}$")
+    near_duplicate_of_version_id: UUID | None = None
+    near_duplicate_similarity: float | None = Field(default=None, ge=0, le=1)
+    near_duplicate_acknowledged_by: str | None = Field(default=None, max_length=200)
+    extraction_text_chars: int = Field(default=0, ge=0)
+    extraction_alnum_ratio: float = Field(default=0.0, ge=0, le=1)
+    extraction_replacement_ratio: float = Field(default=0.0, ge=0, le=1)
+    extraction_quality_flags: frozenset[str] = Field(default_factory=frozenset, max_length=16)
+    extraction_quality_acknowledged_by: str | None = Field(default=None, max_length=200)
     review_state: ReviewState = ReviewState.QUARANTINED
     supersedes_version_id: UUID | None = None
     state_version: int = Field(default=0, ge=0)
     metadata_reviewed_by: str | None = Field(default=None, max_length=200)
+    metadata_reviewer_credential_id: str | None = Field(default=None, max_length=200)
     content_reviewed_by: str | None = Field(default=None, max_length=200)
+    content_reviewer_credential_id: str | None = Field(default=None, max_length=200)
     approved_at: datetime | None = None
     approved_by: str | None = Field(default=None, max_length=200)
+    approver_credential_id: str | None = Field(default=None, max_length=200)
     is_current: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -302,7 +335,9 @@ class Answer(BaseModel):
     claims: list[Claim] = Field(default_factory=list)
     citations: list[Citation] = Field(default_factory=list)
     retrieval_score: float = Field(ge=0, le=1)
+    retrieval_score_kind: str = Field(default="ranking_utility", pattern=r"^[a-z0-9_]{3,64}$")
     evidence_coverage: float = Field(ge=0, le=1)
+    query_coverage: float = Field(default=0.0, ge=0, le=1)
     decision_reason: str = Field(min_length=1, max_length=500)
     calibration_id: str
     limitations: list[str] = Field(default_factory=list)
@@ -313,6 +348,8 @@ class Answer(BaseModel):
 class ReviewTransition(BaseModel):
     target: ReviewState
     note: str = Field(min_length=12, max_length=2000)
+    acknowledge_near_duplicate: bool = False
+    acknowledge_extraction_quality: bool = False
 
 
 class AuditVerification(BaseModel):
@@ -330,3 +367,52 @@ class IngestResult(BaseModel):
     span_count: int = Field(ge=0)
     extraction_method: str
     duplicate: bool = False
+
+
+class IngestionJobState(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    RETRYABLE = "retryable"
+    DEAD_LETTER = "dead_letter"
+
+
+class IngestionJobKind(StrEnum):
+    DOCUMENT = "document"
+    VERSION = "version"
+
+
+class IngestionJobRecord(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    id: UUID = Field(default_factory=uuid4)
+    kind: IngestionJobKind
+    actor: Identity
+    document: DocumentCreate | None = None
+    document_id: UUID | None = None
+    version: VersionCreate
+    filename: str = Field(min_length=1, max_length=500)
+    mime_type: str = Field(min_length=1, max_length=200)
+    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    staging_object_key: str = Field(min_length=1, max_length=1000)
+    state: IngestionJobState = IngestionJobState.QUEUED
+    attempts: int = Field(default=0, ge=0)
+    max_attempts: int = Field(default=3, ge=1, le=20)
+    lease_owner: str | None = Field(default=None, max_length=200)
+    lease_expires_at: datetime | None = None
+    result: IngestResult | None = None
+    error_code: str | None = Field(default=None, max_length=200)
+    error_detail: str | None = Field(default=None, max_length=2000)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+    @model_validator(mode="after")
+    def validate_target(self) -> "IngestionJobRecord":
+        if self.kind is IngestionJobKind.DOCUMENT:
+            if self.document is None or self.document_id is not None:
+                raise ValueError("document ingestion job requires document payload only")
+        elif self.document is not None or self.document_id is None:
+            raise ValueError("version ingestion job requires document_id only")
+        if self.state is IngestionJobState.SUCCEEDED and self.result is None:
+            raise ValueError("succeeded ingestion job requires result")
+        return self

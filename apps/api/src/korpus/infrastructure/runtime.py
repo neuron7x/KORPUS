@@ -51,3 +51,22 @@ def create_object_store(settings: Settings) -> ObjectStore:
             max_object_bytes=settings.max_upload_bytes,
         )
     return LocalObjectStore(settings.object_root, max_object_bytes=settings.max_upload_bytes)
+
+
+def create_quarantine_store(settings: Settings) -> ObjectStore:
+    if settings.object_store_mode == "s3":
+        return S3ObjectStore(
+            bucket=settings.s3_bucket or "",
+            prefix=settings.s3_quarantine_prefix,
+            endpoint_url=settings.s3_endpoint_url,
+            region_name=settings.s3_region,
+            governance_retention_days=settings.s3_governance_retention_days,
+            force_path_style=settings.s3_force_path_style,
+            connect_timeout_seconds=settings.s3_connect_timeout_seconds,
+            read_timeout_seconds=settings.s3_read_timeout_seconds,
+            max_attempts=settings.s3_max_attempts,
+            max_object_bytes=settings.max_upload_bytes,
+        )
+    return LocalObjectStore(
+        settings.quarantine_object_root, max_object_bytes=settings.max_upload_bytes
+    )

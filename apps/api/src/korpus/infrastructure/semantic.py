@@ -14,6 +14,7 @@ from sqlalchemy import Engine, text as sql_text
 
 from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
+from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
 
@@ -100,11 +101,18 @@ class HttpEmbeddingProvider:
 class PgVectorSemanticIndex:
     """Authorized pgvector candidate source with RLS as an independent barrier."""
 
-    def __init__(self, engine: Engine, provider: EmbeddingProvider) -> None:
+    def __init__(
+        self,
+        engine: Engine,
+        provider: EmbeddingProvider,
+        *,
+        corpus_governance: CorpusGovernanceProfile | None = None,
+    ) -> None:
         if engine.dialect.name != "postgresql":
             raise ValueError("pgvector integration requires PostgreSQL")
         self.engine = engine
         self.provider = provider
+        self.corpus_governance = corpus_governance
 
     def search(
         self,
@@ -119,6 +127,8 @@ class PgVectorSemanticIndex:
         authorized = corpus_ids.intersection(identity.corpora)
         if not authorized or limit < 1:
             return []
+        if self.corpus_governance is not None:
+            self.corpus_governance.require_external_embedding(frozenset(authorized))
         vector = self.provider.embed(query)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         statement = sql_text(
@@ -164,6 +174,24 @@ class PgVectorSemanticIndex:
     def upsert(self, identity: Identity, span_id: UUID, text: str, text_hash: str) -> None:
         from korpus.infrastructure.repository import SqlRepository
 
+        with self.engine.begin() as connection:
+            SqlRepository._apply_postgres_identity(connection, identity)
+            corpus_row = connection.execute(
+                sql_text(
+                    """
+                    SELECT d.corpus_id
+                    FROM evidence_spans s
+                    JOIN document_versions v ON v.id = s.version_id
+                    JOIN documents d ON d.id = v.document_id
+                    WHERE s.id = :span_id
+                    """
+                ),
+                {"span_id": str(span_id)},
+            ).first()
+        if corpus_row is None:
+            raise PermissionError("embedding target is not visible to the identity")
+        if self.corpus_governance is not None:
+            self.corpus_governance.require_external_embedding(frozenset({str(corpus_row.corpus_id)}))
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:

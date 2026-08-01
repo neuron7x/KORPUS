@@ -2,8 +2,8 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-version="${KORPUS_RELEASE_VERSION:-v4.0.0}"
-name="korpus-infrastructure-hardened-${version}"
+version="${KORPUS_RELEASE_VERSION:-v5.0.0}"
+name="KORPUS_FINAL_ASSURANCE_${version}"
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"

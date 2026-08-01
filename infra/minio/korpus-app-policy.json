@@ -26,7 +26,8 @@
         "s3:PutObjectRetention"
       ],
       "Resource": [
-        "arn:aws:s3:::korpus/objects/*"
+        "arn:aws:s3:::korpus/objects/*",
+        "arn:aws:s3:::korpus/quarantine/*"
       ]
     }
   ]

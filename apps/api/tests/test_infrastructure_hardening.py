@@ -11,6 +11,7 @@ from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import get_identity
+from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -43,6 +44,8 @@ def test_metrics_token_is_fail_closed(tmp_path: Path):
         audit_anchor_path=tmp_path / "anchor.json",
         audit_hmac_key="metrics-audit-key",
         auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
         metrics_token="metrics-secret",
     )
     app = create_app(settings)
@@ -63,6 +66,8 @@ def test_readiness_fails_when_anchor_backlog_exceeds_budget(tmp_path: Path, monk
         audit_anchor_path=tmp_path / "anchor.json",
         audit_hmac_key="backlog-audit-key",
         auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
         audit_max_pending_events=0,
         audit_reconcile_interval_seconds=60,
     )
@@ -92,6 +97,8 @@ def test_migration_mode_refuses_unversioned_schema(tmp_path: Path):
         audit_anchor_path=tmp_path / "anchor.json",
         audit_hmac_key="schema-audit-key",
         auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
     )
     app = create_app(settings)
     with TestClient(app):
@@ -108,10 +115,7 @@ def test_migration_mode_refuses_unversioned_schema(tmp_path: Path):
 def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path: Path):
     import pytest
 
-    calibration = tmp_path / "calibration.json"
-    from apps.api.tests.test_calibration import profile
-
-    calibration.write_text(profile().model_dump_json())
+    calibration = write_calibration_bundle(tmp_path)
     base = dict(
         environment="production",
         schema_mode="migrations",
@@ -125,10 +129,11 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
         audit_anchor_mode="http",
         audit_anchor_url="https://anchor.example/v1/head",
         answer_policy_mode="calibrated",
-        calibration_profile_path=calibration,
+        **calibration,
         review_separation_required=True,
         metrics_token="metrics-token",
         cors_origins="https://korpus.example",
+        **controlled_security_kwargs(tmp_path),
     )
     with pytest.raises(ValueError, match="require PostgreSQL"):
         Settings(database_url=f"sqlite:///{tmp_path / 'bad.db'}", audit_anchor_token="token", **base)
@@ -138,10 +143,7 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
 
 def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
     import pytest
-    from apps.api.tests.test_calibration import profile
-
-    calibration = tmp_path / "calibration.json"
-    calibration.write_text(profile(weight_semantic=0.0).model_dump_json())
+    calibration = write_calibration_bundle(tmp_path, weight_semantic=0.0)
     with pytest.raises(ValueError, match="calibration assigns zero semantic weight"):
         Settings(
             environment="test",
@@ -151,7 +153,7 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
             embedding_endpoint="http://127.0.0.1:9009/embed",
             embedding_model_id="test-model",
             answer_policy_mode="calibrated",
-            calibration_profile_path=calibration,
+            **calibration,
         )
 
 
@@ -210,10 +212,7 @@ def test_unknown_environment_cannot_bypass_controlled_profile():
 
 
 def test_controlled_database_requires_server_identity_verification(tmp_path: Path):
-    from apps.api.tests.test_calibration import profile
-
-    calibration = tmp_path / "calibration.json"
-    calibration.write_text(profile().model_dump_json())
+    calibration = write_calibration_bundle(tmp_path)
     with pytest.raises(ValueError, match="sslmode=verify-full"):
         Settings(
             environment="production",
@@ -230,7 +229,7 @@ def test_controlled_database_requires_server_identity_verification(tmp_path: Pat
             audit_anchor_url="https://anchor.example/v1/head",
             audit_anchor_token="anchor-token",
             answer_policy_mode="calibrated",
-            calibration_profile_path=calibration,
+            **calibration,
             review_separation_required=True,
             metrics_token="metrics-token",
             cors_origins="https://korpus.example",

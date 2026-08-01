@@ -65,7 +65,9 @@ class Settings(BaseSettings):
     audit_hmac_key: str = "replace-local-audit-key"
     audit_hmac_key_file: Path | None = None
 
-    auth_mode: str = "dev"
+    auth_mode: str = "disabled"
+    bind_host: str = "127.0.0.1"
+    dev_mode_acknowledgement: str | None = None
     jwt_secret: str = "replace-local-jwt-secret"
     jwt_secret_file: Path | None = None
     jwt_issuer: str = "korpus-local"
@@ -76,13 +78,47 @@ class Settings(BaseSettings):
     oidc_jwks_cache_seconds: int = Field(default=300, ge=30, le=86400)
     oidc_http_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     oidc_clock_skew_seconds: int = Field(default=30, ge=0, le=300)
-    dev_subject: str = "local-admin"
-    dev_roles: str = "admin,curator,reviewer,instructor,user,auditor"
-    dev_clearance: str = "restricted"
-    dev_corpora: str = "public,training,administrative,restricted-demo"
+    oidc_required_acr: str | None = None
+    oidc_require_mfa: bool = False
+    oidc_max_auth_age_seconds: int = Field(default=3600, ge=60, le=86400)
+    oidc_authorization_endpoint: str | None = None
+    oidc_token_endpoint: str | None = None
+    oidc_end_session_endpoint: str | None = None
+    oidc_client_id: str | None = None
+    oidc_client_secret: str | None = None
+    oidc_client_secret_file: Path | None = None
+    oidc_redirect_uri: str | None = None
+    oidc_scopes: str = "openid profile"
+    browser_auth_enabled: bool = False
+    browser_session_key: str | None = None
+    browser_session_key_file: Path | None = None
+    browser_session_ttl_seconds: int = Field(default=1800, ge=300, le=43200)
+    browser_flow_ttl_seconds: int = Field(default=600, ge=60, le=1800)
+    browser_cookie_secure: bool = True
+    browser_session_cookie: str = "__Host-korpus_session"
+    browser_flow_cookie: str = "__Host-korpus_flow"
+    browser_csrf_cookie: str = "__Host-korpus_csrf"
+    entitlement_profile_path: Path | None = None
+    entitlement_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    source_trust_profile_path: Path | None = None
+    source_trust_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    require_source_signatures: bool = False
+    reviewer_registry_path: Path | None = None
+    reviewer_registry_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    corpus_governance_profile_path: Path | None = None
+    corpus_governance_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    dev_subject: str = "local-user"
+    dev_roles: str = "user"
+    dev_clearance: str = "public"
+    dev_corpora: str = "public"
+    dev_compartments: str = ""
 
     answer_policy_mode: str = "development"
     calibration_profile_path: Path | None = None
+    calibration_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    calibration_dataset_path: Path | None = None
+    calibration_system_manifest_path: Path | None = None
+    calibration_evaluation_protocol_path: Path | None = None
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
@@ -102,6 +138,11 @@ class Settings(BaseSettings):
     retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
     max_concurrent_answers: int = Field(default=16, ge=1, le=4096)
     max_concurrent_ingestions: int = Field(default=2, ge=1, le=128)
+    ingestion_mode: str = "synchronous"
+    ingestion_job_max_attempts: int = Field(default=3, ge=1, le=20)
+    ingestion_job_lease_seconds: int = Field(default=300, ge=30, le=7200)
+    quarantine_object_root: Path = Path("./var/quarantine")
+    s3_quarantine_prefix: str = "quarantine"
     metrics_enabled: bool = True
     metrics_token: str | None = None
     metrics_token_file: Path | None = None
@@ -112,6 +153,15 @@ class Settings(BaseSettings):
     review_separation_required: bool = False
 
     max_upload_bytes: int = Field(default=50 * 1024 * 1024, ge=1024, le=500 * 1024 * 1024)
+    malware_scan_mode: str = "disabled"
+    clamd_host: str = "clamav"
+    clamd_port: int = Field(default=3310, ge=1, le=65535)
+    malware_scan_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+    parser_sandbox_enabled: bool = False
+    parser_timeout_seconds: int = Field(default=120, ge=5, le=900)
+    parser_memory_limit_mb: int = Field(default=768, ge=128, le=8192)
+    parser_output_limit_bytes: int = Field(default=64 * 1024 * 1024, ge=1024 * 1024, le=256 * 1024 * 1024)
+    ocr_total_timeout_seconds: int = Field(default=300, ge=10, le=3600)
     max_pdf_pages: int = Field(default=500, ge=1, le=10_000)
     max_spans_per_document: int = Field(default=20_000, ge=1, le=100_000)
     max_chunk_chars: int = Field(default=1400, ge=100, le=12_000)
@@ -153,8 +203,22 @@ class Settings(BaseSettings):
     @field_validator("auth_mode")
     @classmethod
     def validate_auth_mode(cls, value: str) -> str:
-        if value not in {"dev", "jwt", "oidc"}:
-            raise ValueError("auth_mode must be dev, jwt, or oidc")
+        if value not in {"disabled", "dev", "jwt", "oidc"}:
+            raise ValueError("auth_mode must be disabled, dev, jwt, or oidc")
+        return value
+
+    @field_validator("ingestion_mode")
+    @classmethod
+    def validate_ingestion_mode(cls, value: str) -> str:
+        if value not in {"synchronous", "durable_async"}:
+            raise ValueError("ingestion_mode must be synchronous or durable_async")
+        return value
+
+    @field_validator("malware_scan_mode")
+    @classmethod
+    def validate_malware_scan_mode(cls, value: str) -> str:
+        if value not in {"disabled", "clamd"}:
+            raise ValueError("malware_scan_mode must be disabled or clamd")
         return value
 
     @field_validator("answer_policy_mode")
@@ -167,6 +231,15 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_security_and_calibration(self) -> "Settings":
         controlled = self.environment in {"production", "controlled", "isolated"}
+        if self.auth_mode == "dev":
+            if self.environment not in {"local", "test", "development"}:
+                raise ValueError("OIDC authentication is required in controlled environments; dev authentication is forbidden")
+            if self.dev_mode_acknowledgement != "I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE":
+                raise ValueError("dev authentication requires explicit acknowledgement")
+            if self.bind_host not in {"127.0.0.1", "::1", "localhost", "testserver"}:
+                raise ValueError("dev authentication requires loopback-only binding")
+        if self.auth_mode == "disabled" and controlled:
+            raise ValueError("controlled environments cannot disable authentication")
         if controlled:
             if not self.database_url.startswith("postgresql"):
                 raise ValueError("controlled environments require PostgreSQL")
@@ -179,6 +252,41 @@ class Settings(BaseSettings):
                 raise ValueError("controlled environments require migration-managed schema")
             if not self.oidc_jwks_url:
                 raise ValueError("OIDC JWKS URL is required")
+            if not self.browser_auth_enabled:
+                raise ValueError("controlled environments require browser OIDC/BFF authentication")
+            required_browser = {
+                "authorization endpoint": self.oidc_authorization_endpoint,
+                "token endpoint": self.oidc_token_endpoint,
+                "client id": self.oidc_client_id,
+                "redirect URI": self.oidc_redirect_uri,
+            }
+            browser_missing = [name for name, value in required_browser.items() if not value]
+            if browser_missing:
+                raise ValueError(f"browser OIDC settings are missing: {', '.join(browser_missing)}")
+            if not self.resolved_browser_session_key or len(self.resolved_browser_session_key) < 32:
+                raise ValueError("controlled browser sessions require a strong session key")
+            if not self.browser_cookie_secure:
+                raise ValueError("controlled browser session cookies must be Secure")
+            if not self.oidc_redirect_uri.startswith("https://"):
+                raise ValueError("controlled OIDC redirect URI must use HTTPS")
+            if self.entitlement_profile_path is None or not self.entitlement_profile_path.is_file():
+                raise ValueError("controlled environments require a server-side entitlement profile")
+            if not self.entitlement_profile_sha256:
+                raise ValueError("controlled environments require an entitlement profile digest")
+            if not self.require_source_signatures:
+                raise ValueError("controlled environments require detached source signatures")
+            if self.source_trust_profile_path is None or not self.source_trust_profile_path.is_file():
+                raise ValueError("controlled environments require a source trust profile")
+            if not self.source_trust_profile_sha256:
+                raise ValueError("controlled environments require a source trust profile digest")
+            if self.reviewer_registry_path is None or not self.reviewer_registry_path.is_file():
+                raise ValueError("controlled environments require a reviewer credential registry")
+            if not self.reviewer_registry_sha256:
+                raise ValueError("controlled environments require a reviewer registry digest")
+            if self.corpus_governance_profile_path is None or not self.corpus_governance_profile_path.is_file():
+                raise ValueError("controlled environments require a corpus governance profile")
+            if not self.corpus_governance_profile_sha256:
+                raise ValueError("controlled environments require a corpus governance profile digest")
             if len(self.resolved_audit_hmac_key) < 32 or self.resolved_audit_hmac_key.startswith("replace-"):
                 raise ValueError("production audit key is missing or weak")
             if self.answer_policy_mode != "calibrated" or self.calibration_profile_path is None:
@@ -201,8 +309,26 @@ class Settings(BaseSettings):
                 raise ValueError("controlled S3 endpoints must use HTTPS")
             if self.s3_governance_retention_days < 1:
                 raise ValueError("controlled object storage requires governance retention")
+            if self.ingestion_mode != "durable_async":
+                raise ValueError("controlled environments require durable asynchronous ingestion")
+            if self.malware_scan_mode != "clamd":
+                raise ValueError("controlled environments require fail-closed malware scanning")
+            if not self.parser_sandbox_enabled:
+                raise ValueError("controlled environments require parser process isolation")
             if self.otlp_endpoint and not self.otlp_endpoint.startswith("https://"):
                 raise ValueError("controlled OTLP endpoints must use HTTPS")
+        if self.browser_auth_enabled:
+            if self.auth_mode != "oidc":
+                raise ValueError("browser authentication requires OIDC mode")
+            required = [self.oidc_authorization_endpoint, self.oidc_token_endpoint, self.oidc_client_id, self.oidc_redirect_uri]
+            if any(not value for value in required):
+                raise ValueError("browser OIDC endpoints, client id, and redirect URI are required")
+            if not self.resolved_browser_session_key or len(self.resolved_browser_session_key) < 32:
+                raise ValueError("browser session key must contain at least 32 characters")
+            if not self.oidc_authorization_endpoint.startswith("https://") or not self.oidc_token_endpoint.startswith("https://"):
+                raise ValueError("OIDC browser endpoints must use HTTPS")
+            if not self.oidc_redirect_uri.startswith(("https://", "http://127.0.0.1", "http://localhost", "http://testserver")):
+                raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
         if self.semantic_retrieval_enabled:
             if not self.database_url.startswith("postgresql"):
                 raise ValueError("semantic retrieval requires PostgreSQL/pgvector")
@@ -228,10 +354,42 @@ class Settings(BaseSettings):
             raise ValueError("JWT secret is missing or weak")
         if self.chunk_overlap_chars >= self.max_chunk_chars:
             raise ValueError("chunk overlap must be smaller than chunk size")
+        if self.entitlement_profile_path is not None:
+            from korpus.security.entitlements import EntitlementProfile
+            EntitlementProfile.load(self.entitlement_profile_path, self.entitlement_profile_sha256)
+        if self.source_trust_profile_path is not None:
+            from korpus.security.source_authenticity import SourceTrustProfile
+            SourceTrustProfile.load(self.source_trust_profile_path, self.source_trust_profile_sha256)
+        if self.require_source_signatures and self.source_trust_profile_path is None:
+            raise ValueError("source signatures require a source trust profile")
+        if self.reviewer_registry_path is not None:
+            from korpus.security.reviewers import ReviewerRegistry
+            ReviewerRegistry.load(self.reviewer_registry_path, self.reviewer_registry_sha256)
+        if self.corpus_governance_profile_path is not None:
+            from korpus.security.corpus_governance import CorpusGovernanceProfile
+            CorpusGovernanceProfile.load(
+                self.corpus_governance_profile_path, self.corpus_governance_profile_sha256
+            )
         if self.answer_policy_mode == "calibrated":
-            if self.calibration_profile_path is None or not self.calibration_profile_path.is_file():
-                raise ValueError("calibration profile file is missing")
-            profile = CalibrationProfile.load(self.calibration_profile_path)
+            required_artifacts = {
+                "profile": self.calibration_profile_path,
+                "dataset": self.calibration_dataset_path,
+                "system manifest": self.calibration_system_manifest_path,
+                "evaluation protocol": self.calibration_evaluation_protocol_path,
+            }
+            missing = [name for name, path in required_artifacts.items() if path is None or not path.is_file()]
+            if missing:
+                raise ValueError(f"calibration artifacts are missing: {', '.join(missing)}")
+            if not self.calibration_profile_sha256:
+                raise ValueError("calibration profile digest is required")
+            profile = CalibrationProfile.load(
+                self.calibration_profile_path, expected_sha256=self.calibration_profile_sha256
+            )
+            profile.validate_artifact_bindings(
+                dataset=self.calibration_dataset_path,
+                system_manifest=self.calibration_system_manifest_path,
+                evaluation_protocol=self.calibration_evaluation_protocol_path,
+            )
             if not profile.deployment_valid:
                 raise ValueError("calibration profile does not satisfy finite-sample risk gate")
             if profile.weight_semantic > 0 and not self.semantic_retrieval_enabled:
@@ -259,6 +417,21 @@ class Settings(BaseSettings):
     @property
     def resolved_embedding_token(self) -> str | None:
         return _read_optional_secret_file(self.embedding_token_file, self.embedding_token)
+
+    @property
+    def resolved_oidc_client_secret(self) -> str | None:
+        return _read_optional_secret_file(self.oidc_client_secret_file, self.oidc_client_secret)
+
+    @property
+    def resolved_browser_session_key(self) -> str | None:
+        return _read_optional_secret_file(self.browser_session_key_file, self.browser_session_key)
+
+    @property
+    def oidc_scope_list(self) -> list[str]:
+        scopes = [part.strip() for part in self.oidc_scopes.split() if part.strip()]
+        if "openid" not in scopes:
+            scopes.insert(0, "openid")
+        return scopes
 
     @property
     def cors_origin_list(self) -> list[str]:

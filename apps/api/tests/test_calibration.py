@@ -7,6 +7,7 @@ import pytest
 
 from korpus.application.calibration import CalibrationProfile
 from korpus.config import Settings
+from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 
 def profile(**overrides):
@@ -41,8 +42,7 @@ def test_finite_sample_risk_bound_is_monotone_and_fail_closed():
 
 
 def test_controlled_settings_reject_unvalidated_calibration(tmp_path: Path):
-    path = tmp_path / "calibration.json"
-    path.write_text(profile(accepted_samples=20, observed_errors=0).model_dump_json())
+    calibration = write_calibration_bundle(tmp_path, accepted_samples=20, observed_errors=0)
     with pytest.raises(ValueError, match="finite-sample risk gate"):
         Settings(
             environment="production",
@@ -59,16 +59,16 @@ def test_controlled_settings_reject_unvalidated_calibration(tmp_path: Path):
             audit_anchor_url="https://anchor.example/v1/head",
             audit_anchor_token="anchor-test-token",
             answer_policy_mode="calibrated",
-            calibration_profile_path=path,
             review_separation_required=True,
             metrics_token="metrics-test-token",
             cors_origins="https://korpus.example",
+            **calibration,
+            **controlled_security_kwargs(tmp_path),
         )
 
 
 def test_controlled_settings_accept_valid_profile(tmp_path: Path):
-    path = tmp_path / "calibration.json"
-    path.write_text(profile().model_dump_json())
+    calibration = write_calibration_bundle(tmp_path)
     settings = Settings(
         environment="production",
         database_url="postgresql+psycopg://user:pass@db/korpus?sslmode=verify-full",
@@ -84,13 +84,33 @@ def test_controlled_settings_accept_valid_profile(tmp_path: Path):
         audit_anchor_url="https://anchor.example/v1/head",
         audit_anchor_token="anchor-test-token",
         answer_policy_mode="calibrated",
-        calibration_profile_path=path,
         review_separation_required=True,
         metrics_token="metrics-test-token",
         cors_origins="https://korpus.example",
+        **calibration,
+        **controlled_security_kwargs(tmp_path),
     )
     assert settings.answer_policy_mode == "calibrated"
     assert settings.review_separation_required is True
+
+
+def test_calibration_profile_and_bound_artifacts_reject_tampering(tmp_path: Path):
+    calibration = write_calibration_bundle(tmp_path)
+    settings = Settings(answer_policy_mode="calibrated", **calibration)
+    assert settings.answer_policy_mode == "calibrated"
+
+    dataset = calibration["calibration_dataset_path"]
+    assert isinstance(dataset, Path)
+    dataset.write_text("tampered", encoding="utf-8")
+    with pytest.raises(ValueError, match="dataset digest mismatch"):
+        Settings(answer_policy_mode="calibrated", **calibration)
+
+    calibration = write_calibration_bundle(tmp_path / "second")
+    profile_path = calibration["calibration_profile_path"]
+    assert isinstance(profile_path, Path)
+    profile_path.write_text(profile_path.read_text(encoding="utf-8") + " ", encoding="utf-8")
+    with pytest.raises(ValueError, match="profile digest mismatch"):
+        Settings(answer_policy_mode="calibrated", **calibration)
 
 
 def test_dataset_digest_is_content_addressed(tmp_path: Path):

@@ -46,8 +46,14 @@ def main() -> int:
     environment = os.environ.copy()
     environment["PYTHONPATH"] = str(ROOT / "apps/api/src")
     steps = [
+        run("openapi", [sys.executable, "scripts/openapi_contract.py"], environment),
+        run("audit-closure", [sys.executable, "scripts/build_audit_closure.py"], environment),
+        run("desired-state", [sys.executable, "scripts/generate_desired_state.py", "--check"], environment),
+        run("supply-chain-inventory", [sys.executable, "scripts/generate_supply_chain_inventory.py"], environment),
         run("repository", [sys.executable, "scripts/validate_repository.py"], environment),
-        run("compile", [sys.executable, "-m", "compileall", "-q", "apps/api/src", "scripts"], environment),
+        run("infrastructure", [sys.executable, "scripts/validate_infrastructure.py"], environment),
+        run("kubernetes", [sys.executable, "scripts/validate_kubernetes.py"], environment),
+        run("compile", [sys.executable, "-m", "compileall", "-q", "apps/api/src", "apps/api/migrations", "scripts"], environment),
     ]
     parallel_commands = [
         (
@@ -74,27 +80,14 @@ def main() -> int:
         futures = [pool.submit(run, name, command, environment) for name, command in parallel_commands]
         steps.extend(future.result() for future in futures)
     if all(step["returncode"] == 0 for step in steps):
-        for shard_index in range(3):
-            steps.append(
-                run(
-                    f"mutation-{shard_index}",
-                    [
-                        sys.executable,
-                        "scripts/run_mutation_tests.py",
-                        "--shard-index",
-                        str(shard_index),
-                        "--shard-count",
-                        "3",
-                    ],
-                    environment,
-                )
-            )
-    if all(step["returncode"] == 0 for step in steps):
+        mutation_environment = environment.copy()
+        mutation_environment["PYTHON"] = sys.executable
+        mutation_environment["KORPUS_MUTATION_SHARDS"] = "6"
         steps.append(
             run(
-                "mutation-merge",
-                [sys.executable, "scripts/run_mutation_tests.py", "--merge", "--shard-count", "3"],
-                environment,
+                "mutation",
+                ["bash", "scripts/run_mutation_shards.sh"],
+                mutation_environment,
             )
         )
     if all(step["returncode"] == 0 for step in steps):

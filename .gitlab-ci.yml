@@ -7,11 +7,7 @@ workflow:
 default:
   interruptible: true
   timeout: 30m
-  retry:
-    max: 1
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
+  retry: 0
 
 stages:
   - validate
@@ -32,6 +28,8 @@ variables:
   KORPUS_DATABASE_URL: "sqlite:///$CI_PROJECT_DIR/var/ci.db"
   KORPUS_OBJECT_ROOT: "$CI_PROJECT_DIR/var/objects"
   KORPUS_AUTH_MODE: "dev"
+  KORPUS_DEV_MODE_ACKNOWLEDGEMENT: "I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE"
+  KORPUS_BIND_HOST: "127.0.0.1"
   KORPUS_AUDIT_HMAC_KEY: "ci-only-audit-key"
   KORPUS_JWT_SECRET: "ci-only-jwt-key"
 
@@ -47,13 +45,22 @@ repository:validate:
   before_script:
     - python -m pip install 'PyYAML==6.0.3'
   script:
+    - python scripts/openapi_contract.py
+    - python scripts/build_audit_closure.py
+    - python scripts/generate_desired_state.py --check
+    - python scripts/generate_supply_chain_inventory.py
     - python scripts/validate_repository.py
     - python scripts/validate_infrastructure.py
+    - python scripts/validate_kubernetes.py
     - python -m compileall -q apps/api/src apps/api/migrations scripts
   artifacts:
     when: always
     paths:
       - var/infrastructure-validation.json
+      - var/kubernetes-validation.json
+      - contracts/openapi.json
+      - docs/audit/closure/
+      - var/supply-chain-inventory.json
 
 api:test:
   extends: .python-job
@@ -94,11 +101,9 @@ api:assurance:
   timeout: 45m
   script:
     - mkdir -p var/objects
+    - python scripts/build_system_manifest.py --output var/system-manifest.json
     - python scripts/run_evals.py
-    - python scripts/run_mutation_tests.py --shard-index 0 --shard-count 3
-    - python scripts/run_mutation_tests.py --shard-index 1 --shard-count 3
-    - python scripts/run_mutation_tests.py --shard-index 2 --shard-count 3
-    - python scripts/run_mutation_tests.py --merge --shard-count 3
+    - KORPUS_MUTATION_SHARDS=6 PYTHON=python scripts/run_mutation_shards.sh
     - python scripts/run_migration_gate.py
     - python scripts/run_scale_probe.py
     - python scripts/run_operational_gate.py
@@ -197,8 +202,6 @@ container:build:
   image:
     name: moby/buildkit:v0.30.0-rootless
     entrypoint: [""]
-  variables:
-    BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
   script:
     - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/api/Dockerfile --output type=oci,dest=api-image.tar
     - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/web/Dockerfile --output type=oci,dest=web-image.tar

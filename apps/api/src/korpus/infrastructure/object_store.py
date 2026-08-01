@@ -63,6 +63,41 @@ class LocalObjectStore:
                 os.unlink(temporary_name)
         return key
 
+    def put_path(self, path: Path, source_hash: str, filename: str) -> str:
+        del filename
+        if not HASH_PATTERN.fullmatch(source_hash):
+            raise ValueError("invalid source hash")
+        if path.stat().st_size > self.max_object_bytes:
+            raise ValueError("object exceeds configured size limit")
+        hasher = hashlib.sha256()
+        key = f"{source_hash[:2]}/{source_hash[2:4]}/{source_hash}"
+        destination = self._resolve(key)
+        destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if destination.exists():
+            with destination.open("rb") as existing:
+                for chunk in iter(lambda: existing.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+            if hasher.hexdigest() != source_hash:
+                raise RuntimeError("content-address collision")
+            return key
+        fd, temporary_name = tempfile.mkstemp(prefix=".object-", dir=destination.parent)
+        try:
+            with path.open("rb") as source, os.fdopen(fd, "wb") as target:
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+                    target.write(chunk)
+                target.flush()
+                os.fsync(target.fileno())
+            if hasher.hexdigest() != source_hash:
+                raise ValueError("source hash does not match file")
+            os.chmod(temporary_name, 0o600)
+            os.replace(temporary_name, destination)
+            _fsync_directory(destination.parent)
+        finally:
+            if os.path.exists(temporary_name):
+                os.unlink(temporary_name)
+        return key
+
     def get(self, object_key: str) -> bytes:
         path = self._resolve(object_key)
         if path.stat().st_size > self.max_object_bytes:
@@ -73,8 +108,42 @@ class LocalObjectStore:
             raise RuntimeError("local object integrity verification failed")
         return content
 
+    def get_to_path(self, object_key: str, destination: Path) -> None:
+        source = self._resolve(object_key)
+        if source.stat().st_size > self.max_object_bytes:
+            raise RuntimeError("local object exceeds configured read limit")
+        destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        hasher = hashlib.sha256()
+        descriptor, temporary_name = tempfile.mkstemp(prefix=".download-", dir=destination.parent)
+        try:
+            with source.open("rb") as read_handle, os.fdopen(descriptor, "wb") as write_handle:
+                for chunk in iter(lambda: read_handle.read(1024 * 1024), b""):
+                    hasher.update(chunk)
+                    write_handle.write(chunk)
+                write_handle.flush()
+                os.fsync(write_handle.fileno())
+            expected = object_key.rsplit("/", 1)[-1]
+            if hasher.hexdigest() != expected:
+                raise RuntimeError("local object integrity verification failed")
+            os.chmod(temporary_name, 0o600)
+            os.replace(temporary_name, destination)
+            _fsync_directory(destination.parent)
+        finally:
+            if os.path.exists(temporary_name):
+                os.unlink(temporary_name)
+
     def exists(self, object_key: str) -> bool:
         return self._resolve(object_key).is_file()
+
+    def list_keys(self) -> set[str]:
+        keys: set[str] = set()
+        for path in self.root.rglob("*"):
+            if not path.is_file() or path.name.startswith("."):
+                continue
+            relative = path.relative_to(self.root).as_posix()
+            if KEY_PATTERN.fullmatch(relative):
+                keys.add(relative)
+        return keys
 
     def healthcheck(self) -> bool:
         try:
@@ -215,6 +284,42 @@ class S3ObjectStore:
         self._verify_head(written, source_hash, len(content))
         return key
 
+    def put_path(self, path: Path, source_hash: str, filename: str) -> str:
+        del filename
+        if path.stat().st_size > self.max_object_bytes:
+            raise ValueError("object exceeds configured size limit")
+        hasher = hashlib.sha256()
+        with path.open("rb") as verify:
+            for chunk in iter(lambda: verify.read(1024 * 1024), b""):
+                hasher.update(chunk)
+        if hasher.hexdigest() != source_hash:
+            raise ValueError("source hash does not match file")
+        key = self._key(source_hash)
+        head = self._head(key)
+        if head is not None:
+            self._verify_head(head, source_hash, path.stat().st_size)
+            return key
+        kwargs: dict[str, Any] = {
+            "Bucket": self.bucket,
+            "Key": key,
+            "ChecksumSHA256": base64.b64encode(bytes.fromhex(source_hash)).decode("ascii"),
+            "Metadata": {"sha256": source_hash},
+            "ContentType": "application/octet-stream",
+            "ServerSideEncryption": "AES256",
+        }
+        if self.governance_retention_days:
+            kwargs.update(
+                ObjectLockMode="GOVERNANCE",
+                ObjectLockRetainUntilDate=datetime.now(UTC) + timedelta(days=self.governance_retention_days),
+            )
+        with path.open("rb") as body:
+            self.client.put_object(Body=body, **kwargs)
+        written = self._head(key)
+        if written is None:
+            raise RuntimeError("S3 object missing after write")
+        self._verify_head(written, source_hash, path.stat().st_size)
+        return key
+
     def get(self, object_key: str) -> bytes:
         source_hash = self._validate_key(object_key)
         response = self.client.get_object(Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED")
@@ -249,9 +354,74 @@ class S3ObjectStore:
             raise RuntimeError("S3 response checksum mismatch")
         return content
 
+    def get_to_path(self, object_key: str, destination: Path) -> None:
+        source_hash = self._validate_key(object_key)
+        response = self.client.get_object(Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED")
+        declared = response.get("ContentLength")
+        if declared is not None and int(declared) > self.max_object_bytes:
+            close = getattr(response.get("Body"), "close", None)
+            if callable(close):
+                close()
+            raise RuntimeError("S3 object exceeds configured read limit")
+        destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        descriptor, temporary_name = tempfile.mkstemp(prefix=".download-", dir=destination.parent)
+        body = response["Body"]
+        hasher = hashlib.sha256()
+        total = 0
+        try:
+            with os.fdopen(descriptor, "wb") as handle:
+                while True:
+                    chunk = body.read(min(1024 * 1024, self.max_object_bytes + 1 - total))
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > self.max_object_bytes:
+                        raise RuntimeError("S3 object exceeds configured read limit")
+                    hasher.update(chunk)
+                    handle.write(chunk)
+                handle.flush()
+                os.fsync(handle.fileno())
+            if hasher.hexdigest() != source_hash:
+                raise RuntimeError("S3 object integrity verification failed")
+            expected = response.get("Metadata", {}).get("sha256")
+            if expected != source_hash:
+                raise RuntimeError("S3 object integrity metadata mismatch")
+            encoded = response.get("ChecksumSHA256")
+            if encoded and encoded != base64.b64encode(bytes.fromhex(source_hash)).decode("ascii"):
+                raise RuntimeError("S3 response checksum mismatch")
+            os.chmod(temporary_name, 0o600)
+            os.replace(temporary_name, destination)
+        finally:
+            close = getattr(body, "close", None)
+            if callable(close):
+                close()
+            if os.path.exists(temporary_name):
+                os.unlink(temporary_name)
+
     def exists(self, object_key: str) -> bool:
         self._validate_key(object_key)
         return self._head(object_key) is not None
+
+    def list_keys(self) -> set[str]:
+        prefix = f"{self.prefix}/" if self.prefix else ""
+        token: str | None = None
+        keys: set[str] = set()
+        while True:
+            kwargs: dict[str, Any] = {"Bucket": self.bucket, "Prefix": prefix, "MaxKeys": 1000}
+            if token:
+                kwargs["ContinuationToken"] = token
+            response = self.client.list_objects_v2(**kwargs)
+            for item in response.get("Contents", []):
+                key = str(item.get("Key", ""))
+                if key:
+                    self._validate_key(key)
+                    keys.add(key)
+            if not response.get("IsTruncated"):
+                break
+            token = response.get("NextContinuationToken")
+            if not token:
+                raise RuntimeError("S3 inventory pagination is truncated without continuation token")
+        return keys
 
     def healthcheck(self) -> bool:
         try:

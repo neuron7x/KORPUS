@@ -25,6 +25,7 @@ from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.repository import SqlRepository
 
 DATASET = Path("evals/datasets/assurance.jsonl")
+PROTOCOL = Path("evals/EVALUATION_PROTOCOL.md")
 
 
 def _approve(ingestion: IngestionService, actor: Identity, version_id: Any) -> None:
@@ -95,6 +96,11 @@ def _projection(answer: Any) -> dict[str, Any]:
 def main() -> None:
     rows = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines() if line.strip()]
     dataset_hash = hashlib.sha256(DATASET.read_bytes()).hexdigest()
+    protocol_hash = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
+    from build_system_manifest import build as build_system_manifest
+    system_manifest = build_system_manifest()
+    system_manifest_bytes = (json.dumps(system_manifest, indent=2, sort_keys=True) + "\n").encode()
+    system_manifest_hash = hashlib.sha256(system_manifest_bytes).hexdigest()
     with tempfile.TemporaryDirectory(prefix="korpus-eval-") as directory:
         root = Path(directory)
         policy = PolicyEngine()
@@ -185,7 +191,7 @@ def main() -> None:
             policy,
             AnswerPolicy(
                 minimum_score=0.08,
-                minimum_query_coverage=0.15,
+                minimum_query_coverage=0.50,
                 minimum_support_score=0.08,
                 calibration_id=f"frozen-assurance:{dataset_hash[:12]}",
             ),
@@ -256,6 +262,10 @@ def main() -> None:
                     "reason_ok": reason_ok,
                     "leaked": leaked,
                     "deterministic": deterministic,
+                    "retrieval_score": first.retrieval_score if "first" in locals() else 0.0,
+                    "query_coverage": first.query_coverage if "first" in locals() else 0.0,
+                    "decision_reason": first.decision_reason if "first" in locals() else "access_denied",
+                    "claims": [claim.text for claim in first.claims] if "first" in locals() else [],
                 }
             )
 
@@ -264,6 +274,11 @@ def main() -> None:
             "schema": 2,
             "dataset": str(DATASET),
             "dataset_sha256": dataset_hash,
+            "evaluation_protocol": str(PROTOCOL),
+            "evaluation_protocol_sha256": protocol_hash,
+            "system_manifest_sha256": system_manifest_hash,
+            "system_manifest_root_sha256": system_manifest["manifest_root_sha256"],
+            "source_commit": system_manifest["commit"],
             "calibration_status": "UNVALIDATED_TEST_FIXTURE",
             "passed": passed,
             "total": len(rows),
@@ -281,6 +296,7 @@ def main() -> None:
             "details": details,
         }
         Path("var").mkdir(exist_ok=True)
+        Path("var/system-manifest.json").write_bytes(system_manifest_bytes)
         Path("var/eval-report.json").write_text(
             json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
         )

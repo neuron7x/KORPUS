@@ -1,11 +1,11 @@
 {
   "name": "@korpus/web",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "lint": "node scripts/validate.mjs",
-    "typecheck": "node scripts/validate.mjs",
+    "lint": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
+    "typecheck": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
     "build": "node scripts/build.mjs",
     "start": "node scripts/serve.mjs dist"
   },

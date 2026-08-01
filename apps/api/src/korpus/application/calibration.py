@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, model_validator
 
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights
+from korpus.domain.models import AuthorityClass
 
 
 class CalibrationProfile(BaseModel):
@@ -18,9 +19,11 @@ class CalibrationProfile(BaseModel):
     2. a finite-sample upper confidence bound for accepted-answer error.
     """
 
-    schema_version: int = Field(default=2, ge=2, le=2)
+    schema_version: int = Field(default=3, ge=3, le=3)
     profile_id: str = Field(min_length=3, max_length=120)
     dataset_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    system_manifest_sha256: str = Field(default="0" * 64, pattern=r"^[a-f0-9]{64}$")
+    evaluation_protocol_sha256: str = Field(default="0" * 64, pattern=r"^[a-f0-9]{64}$")
 
     accepted_samples: int = Field(ge=0)
     observed_errors: int = Field(ge=0)
@@ -49,6 +52,13 @@ class CalibrationProfile(BaseModel):
     weight_authority: float = Field(default=0.14, ge=0, le=1)
     weight_phrase: float = Field(default=0.06, ge=0, le=1)
     weight_temporal: float = Field(default=0.04, ge=0, le=1)
+    authority_official_ua: float = Field(default=1.00, ge=0, le=1)
+    authority_official_allied: float = Field(default=0.92, ge=0, le=1)
+    authority_manufacturer: float = Field(default=0.78, ge=0, le=1)
+    authority_approved_training: float = Field(default=0.74, ge=0, le=1)
+    authority_analytical: float = Field(default=0.46, ge=0, le=1)
+    authority_historical: float = Field(default=0.30, ge=0, le=1)
+    authority_unknown: float = Field(default=0.00, ge=0, le=1)
     diversity_lambda: float = Field(default=0.82, ge=0, le=1)
     per_version_cap: int = Field(default=2, ge=1, le=8)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
@@ -77,6 +87,19 @@ class CalibrationProfile(BaseModel):
     @property
     def bm25_parameters(self) -> BM25Parameters:
         return BM25Parameters(k1=self.bm25_k1, b=self.bm25_b)
+
+
+    @property
+    def authority_priors(self) -> dict[AuthorityClass, float]:
+        return {
+            AuthorityClass.OFFICIAL_UA: self.authority_official_ua,
+            AuthorityClass.OFFICIAL_ALLIED: self.authority_official_allied,
+            AuthorityClass.MANUFACTURER: self.authority_manufacturer,
+            AuthorityClass.APPROVED_TRAINING: self.authority_approved_training,
+            AuthorityClass.ANALYTICAL: self.authority_analytical,
+            AuthorityClass.HISTORICAL: self.authority_historical,
+            AuthorityClass.UNKNOWN: self.authority_unknown,
+        }
 
     @property
     def empirical_error(self) -> float:
@@ -111,8 +134,26 @@ class CalibrationProfile(BaseModel):
         return self.ranking_valid and self.selective_answering_valid
 
     @classmethod
-    def load(cls, path: Path) -> "CalibrationProfile":
-        return cls.model_validate_json(path.read_text(encoding="utf-8"))
+    def load(cls, path: Path, expected_sha256: str | None = None) -> "CalibrationProfile":
+        raw = path.read_bytes()
+        if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
+            raise ValueError("calibration profile digest mismatch")
+        return cls.model_validate_json(raw)
+
+    def validate_artifact_bindings(
+        self, *, dataset: Path, system_manifest: Path, evaluation_protocol: Path
+    ) -> None:
+        bindings = {
+            "dataset": (dataset, self.dataset_sha256),
+            "system manifest": (system_manifest, self.system_manifest_sha256),
+            "evaluation protocol": (evaluation_protocol, self.evaluation_protocol_sha256),
+        }
+        for label, (path, expected) in bindings.items():
+            if not path.is_file():
+                raise ValueError(f"calibration {label} artifact is missing")
+            actual = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual != expected:
+                raise ValueError(f"calibration {label} digest mismatch")
 
     @staticmethod
     def dataset_digest(path: Path) -> str:

@@ -25,8 +25,9 @@ def test_approved_document_produces_exact_claim_bound_citation(client):
     claim = body["claims"][0]
     citation = body["citations"][0]
     assert claim["text"] == citation["quote"]
-    assert claim["support_score"] <= claim["query_coverage"]
-    assert claim["support_score"] <= body["retrieval_score"]
+    assert claim["support_score"] == 1.0
+    assert 0 < claim["query_coverage"] <= 1.0
+    assert body["retrieval_score_kind"] == "ranking_utility"
     assert claim["evidence_span_ids"][0] == citation["span_id"]
     assert hashlib.sha256(citation["quote"].encode()).hexdigest() == citation["quote_hash"]
     assert citation["quote_end"] > citation["quote_start"]

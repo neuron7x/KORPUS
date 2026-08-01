@@ -44,6 +44,8 @@ class PolicyEngine:
             return PolicyDecision(False, "clearance below classification minimum")
         if document.corpus_id not in identity.corpora:
             return PolicyDecision(False, "corpus not assigned to identity")
+        if not document.compartments.issubset(identity.compartments):
+            return PolicyDecision(False, "need-to-know compartment not assigned")
         return PolicyDecision(True, "authorized")
 
     def resolve_corpora(self, identity: Identity, requested: list[str]) -> frozenset[str]:

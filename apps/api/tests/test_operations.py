@@ -8,7 +8,7 @@ import pytest
 from korpus.application.operations import OperationalReleaseGate, jensen_shannon_divergence
 
 
-POLICY = Path("config/operations/reference-v4.json")
+POLICY = Path("config/operations/reference-v5.json")
 
 
 def passing_reports() -> dict:
@@ -29,9 +29,11 @@ def passing_reports() -> dict:
                 "audit_anchor_outbox",
                 "audit_events",
                 "audit_heads",
+                "document_compartments",
                 "documents",
                 "document_versions",
                 "evidence_spans",
+                "ingestion_jobs",
                 "span_embeddings",
             ],
         },

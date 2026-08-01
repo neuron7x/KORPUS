@@ -40,15 +40,15 @@ MUTANTS = (
     Mutant(
         "M02_QUERY_INJECTION_BYPASS",
         "apps/api/src/korpus/application/answer_query.py",
-        "return any(pattern.search(normalized) for pattern in INJECTION_PATTERNS)",
-        "return False",
+        "if injection.blocked:",
+        "if False:",
         ("apps/api/tests/test_answers.py::test_query_control_injection_abstains_before_retrieval",),
     ),
     Mutant(
-        "M03_SUPPORT_MAX_INSTEAD_OF_MIN",
+        "M03_EXACT_SUPPORT_REMOVED",
         "apps/api/src/korpus/application/answer_query.py",
-        "support_score = min(item.score, candidate.query_coverage)",
-        "support_score = max(item.score, candidate.query_coverage)",
+        "support_score = 1.0",
+        "support_score = 0.0",
         ("apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation",),
     ),
     Mutant(
@@ -127,6 +127,96 @@ MUTANTS = (
         'raise RetrievalUnavailable("required semantic retrieval is unavailable") from exc',
         'semantic_hits = []',
         ("apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical",),
+    ),
+    Mutant(
+        "M15_TOKEN_PRIVILEGE_TRUST",
+        "apps/api/src/korpus/security/entitlements.py",
+        "roles=grant.roles,",
+        "roles=frozenset(claims.get('roles', grant.roles)),",
+        ("apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims",),
+    ),
+    Mutant(
+        "M16_MALWARE_SCAN_BYPASS",
+        "apps/api/src/korpus/application/ingestion.py",
+        "self.malware_scanner.scan(path)",
+        "None",
+        ("apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",),
+    ),
+    Mutant(
+        "M17_SOURCE_SIGNATURE_BYPASS",
+        "apps/api/src/korpus/security/source_authenticity.py",
+        "public_key.verify(signature, self.signed_payload(issuer=issuer, version=version, source_hash=source_hash))",
+        "None",
+        ("apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata",),
+    ),
+    Mutant(
+        "M18_CALIBRATION_BINDING_BYPASS",
+        "apps/api/src/korpus/application/calibration.py",
+        "if actual != expected:",
+        "if False:",
+        ("apps/api/tests/test_calibration.py::test_calibration_profile_and_bound_artifacts_reject_tampering",),
+    ),
+    Mutant(
+        "M19_NEAR_DUPLICATE_ACK_BYPASS",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:",
+        "if False:",
+        ("apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",),
+    ),
+    Mutant(
+        "M20_EXTRACTION_QUALITY_ACK_BYPASS",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "if current.extraction_quality_flags and not acknowledge_extraction_quality:",
+        "if False:",
+        ("apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement",),
+    ),
+    Mutant(
+        "M21_CSRF_GATE_BYPASS",
+        "apps/api/src/korpus/main.py",
+        """if (
+                    not isinstance(expected_csrf, str)
+                    or not supplied_csrf
+                    or not csrf_cookie
+                    or not secrets.compare_digest(supplied_csrf, expected_csrf)
+                    or not secrets.compare_digest(csrf_cookie, expected_csrf)
+                ):""",
+        "if False:",
+        ("apps/api/tests/test_browser_oidc.py::test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf",),
+    ),
+    Mutant(
+        "M22_PARSER_SANDBOX_BYPASS",
+        "apps/api/src/korpus/application/ingestion.py",
+        "if self.extraction.parser_sandbox_enabled:",
+        "if False:",
+        ("apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser",),
+    ),
+    Mutant(
+        "M23_INGESTION_LEASE_BYPASS",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "ingestion_jobs.c.lease_expires_at < current,",
+        "True,",
+        ("apps/api/tests/test_durable_ingestion_jobs.py::test_job_lease_is_exclusive",),
+    ),
+    Mutant(
+        "M24_REVIEWER_REVOCATION_BYPASS",
+        "apps/api/src/korpus/security/reviewers.py",
+        "if grant.revoked or target not in grant.stages:",
+        "if target not in grant.stages:",
+        ("apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",),
+    ),
+    Mutant(
+        "M25_REVIEWER_SCOPE_BYPASS",
+        "apps/api/src/korpus/security/reviewers.py",
+        "if document.corpus_id not in grant.corpora or version.authority not in grant.authorities:",
+        "if False:",
+        ("apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",),
+    ),
+    Mutant(
+        "M26_EXTERNAL_EMBEDDING_EGRESS_BYPASS",
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "if denied:",
+        "if False:",
+        ("apps/api/tests/test_corpus_governance.py::test_ingestion_authority_classification_ocr_and_egress_are_governed",),
     ),
 )
 

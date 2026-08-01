@@ -49,6 +49,8 @@ def test_controlled_review_separation_is_subject_based(tmp_path):
         audit_anchor_path=tmp_path / "anchor.json",
         audit_hmac_key="test-audit-key",
         auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
         review_separation_required=True,
     )
     identities = {
