@@ -88,12 +88,20 @@ api:quality:
 
 web:test:
   stage: test
-  image: node:22.16.0-alpine
+  image: mcr.microsoft.com/playwright:v1.62.1-noble
   script:
     - npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
     - npm --prefix apps/web run lint
     - npm --prefix apps/web run typecheck
     - npm --prefix apps/web run build
+    - npm --prefix apps/web run test:browser
+  artifacts:
+    when: always
+    paths:
+      - var/web-act/browser-junit.xml
+      - var/web-act/playwright/
+    reports:
+      junit: var/web-act/browser-junit.xml
 
 api:assurance:
   extends: .python-job

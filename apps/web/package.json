@@ -7,8 +7,11 @@
     "lint": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
     "typecheck": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
     "build": "node scripts/build.mjs",
+    "test:browser": "playwright test",
     "start": "node scripts/serve.mjs dist"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "axe-core": "4.12.1"
+  }
 }
