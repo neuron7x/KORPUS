@@ -10,7 +10,7 @@ const validator = fileURLToPath(
   new URL("../scripts/validate-live-boundary-report.mjs", import.meta.url),
 );
 const validReport = () => ({
-  schema: "korpus.web-api-live-boundary.v2",
+  schema: "korpus.web-api-live-boundary.v3",
   act_id: "KORPUS-ACT-09",
   candidate_commit: "a".repeat(40),
   started_at_utc: "2026-08-01T00:00:00.000Z",
@@ -29,6 +29,30 @@ const validReport = () => ({
     security_headers: "PASS",
     browser_authority_storage: "EMPTY",
     evidence_marker: "NOT_APPLICABLE",
+  },
+  quality: {
+    accessibility: { serious: 0, critical: 0 },
+    layout: {
+      viewport_width_css_px: 390,
+      content_width_css_px: 390,
+      horizontal_overflow_css_px: 0,
+    },
+    performance: {
+      measurement: "ANCHORED_LOCAL",
+      navigation_ms: 100,
+      lcp_ms: 90,
+      cls: 0,
+      answer_ms: 200,
+      same_origin_transfer_bytes: 30_000,
+      external_origins: [],
+    },
+    budgets: {
+      navigation_ms: 5_000,
+      lcp_ms: 4_000,
+      cls: 0.1,
+      answer_ms: 10_000,
+      same_origin_transfer_bytes: 150_000,
+    },
   },
   limitations: ["one", "two", "three"],
   production_authorized: false,
@@ -72,6 +96,21 @@ for (const [name, mutate] of [
   ["unbound PostgreSQL mode", report => {
     report.database = { mode: "postgres" };
     report.cases.evidence_marker = "PASS";
+  }],
+  ["serious accessibility violation", report => {
+    report.quality.accessibility.serious = 1;
+  }],
+  ["horizontal overflow", report => {
+    report.quality.layout.horizontal_overflow_css_px = 1;
+  }],
+  ["external browser origin", report => {
+    report.quality.performance.external_origins = ["https://tracker.invalid"];
+  }],
+  ["performance budget breach", report => {
+    report.quality.performance.lcp_ms = 4_001;
+  }],
+  ["non-finite performance metric", report => {
+    report.quality.performance.cls = null;
   }],
 ]) {
   test(`rejects ${name}`, async () => {

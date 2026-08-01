@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
+import axe from "axe-core";
 
 const token = process.env.KORPUS_LIVE_BEARER_TOKEN;
 const candidateCommit = process.env.KORPUS_LIVE_CANDIDATE_COMMIT;
@@ -15,6 +16,14 @@ test("@live browser traverses nginx and the real API without storing authority",
 }) => {
   test.skip(!token, "KORPUS_LIVE_BEARER_TOKEN is required for the composed live gate");
   const startedAt = new Date();
+  await page.addInitScript(() => {
+    window.__korpusLiveMetrics = { cls: 0 };
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!entry.hadRecentInput) window.__korpusLiveMetrics.cls += entry.value;
+      }
+    }).observe({ type: "layout-shift", buffered: true });
+  });
   expect(candidateCommit).toMatch(/^[0-9a-f]{40}$/);
   expect(apiImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
   expect(webImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
@@ -23,7 +32,7 @@ test("@live browser traverses nginx and the real API without storing authority",
     if (response.url().includes("/api/v1/")) responses.push(response);
   });
 
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
   await page.getByText("Developer bearer fallback").click();
   await page.getByLabel("Короткоживучий access token").fill(token);
   await page.getByRole("button", { name: "Перевірити", exact: true }).click();
@@ -31,12 +40,74 @@ test("@live browser traverses nginx and the real API without storing authority",
 
   const input = page.getByLabel("Запит до контрольованого корпусу");
   await input.fill(query ?? "перевірити відсутність непідтверджених доказів");
+  const answerStarted = Date.now();
   await page.getByRole("button", { name: /Знайти доказ/ }).click();
   await expect(page.locator("#result")).toBeVisible();
   await expect(page.locator("#result")).toContainText(/Доказова відповідь|Відмова/);
   if (expectedEvidence) {
     await expect(page.locator("#result")).toContainText(expectedEvidence);
   }
+  const answerDurationMs = Date.now() - answerStarted;
+
+  await page.addScriptTag({ content: axe.source });
+  const accessibility = await page.evaluate(async () => {
+    const results = await window.axe.run(document, {
+      resultTypes: ["violations"],
+      runOnly: {
+        type: "tag",
+        values: ["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"],
+      },
+    });
+    return {
+      serious: results.violations.filter((item) => item.impact === "serious").length,
+      critical: results.violations.filter((item) => item.impact === "critical").length,
+    };
+  });
+  expect(accessibility).toEqual({ serious: 0, critical: 0 });
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const quality = await page.evaluate((measuredAnswerDurationMs) => {
+    const navigation = performance.getEntriesByType("navigation")[0];
+    const lcpEntries = performance.getEntriesByType("largest-contentful-paint");
+    const lcp = lcpEntries.at(-1)?.startTime ?? navigation.domContentLoadedEventEnd;
+    const transferredBytes = performance
+      .getEntriesByType("resource")
+      .filter((entry) => new URL(entry.name).origin === location.origin)
+      .reduce((total, entry) => total + entry.transferSize, 0);
+    return {
+      layout: {
+        viewport_width_css_px: document.documentElement.clientWidth,
+        content_width_css_px: document.documentElement.scrollWidth,
+        horizontal_overflow_css_px: Math.max(
+          0,
+          document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        ),
+      },
+      performance: {
+        measurement: "ANCHORED_LOCAL",
+        navigation_ms: navigation.loadEventEnd,
+        lcp_ms: lcp,
+        cls: window.__korpusLiveMetrics.cls,
+        answer_ms: measuredAnswerDurationMs,
+        same_origin_transfer_bytes: transferredBytes,
+        external_origins: [
+          ...new Set(
+            performance
+              .getEntriesByType("resource")
+              .map((entry) => new URL(entry.name).origin)
+              .filter((origin) => origin !== location.origin),
+          ),
+        ],
+      },
+    };
+  }, answerDurationMs);
+  expect(quality.layout.horizontal_overflow_css_px).toBe(0);
+  expect(quality.performance.external_origins).toEqual([]);
+  expect(quality.performance.navigation_ms).toBeLessThanOrEqual(5_000);
+  expect(quality.performance.lcp_ms).toBeLessThanOrEqual(4_000);
+  expect(quality.performance.cls).toBeLessThanOrEqual(0.1);
+  expect(quality.performance.answer_ms).toBeLessThanOrEqual(10_000);
+  expect(quality.performance.same_origin_transfer_bytes).toBeLessThanOrEqual(150_000);
 
   const anonymous = responses.find(
     (response) =>
@@ -77,7 +148,7 @@ test("@live browser traverses nginx and the real API without storing authority",
     output,
     `${JSON.stringify(
       {
-        schema: "korpus.web-api-live-boundary.v2",
+        schema: "korpus.web-api-live-boundary.v3",
         act_id: "KORPUS-ACT-09",
         candidate_commit: candidateCommit,
         started_at_utc: startedAt.toISOString(),
@@ -96,6 +167,17 @@ test("@live browser traverses nginx and the real API without storing authority",
           security_headers: "PASS",
           browser_authority_storage: "EMPTY",
           evidence_marker: expectedEvidence ? "PASS" : "NOT_APPLICABLE",
+        },
+        quality: {
+          accessibility,
+          ...quality,
+          budgets: {
+            navigation_ms: 5_000,
+            lcp_ms: 4_000,
+            cls: 0.1,
+            answer_ms: 10_000,
+            same_origin_transfer_bytes: 150_000,
+          },
         },
         limitations: [
           database.mode === "postgres"
