@@ -179,6 +179,20 @@ api:determinism:
     paths:
       - var/determinism/determinism-assurance.json
 
+api:oidc-resilience:
+  extends: .python-job
+  stage: assurance
+  script:
+    - >-
+      KORPUS_OIDC_SOAK_OPERATIONS=5000
+      KORPUS_OIDC_SOAK_WORKERS=32
+      KORPUS_OIDC_RECOVERY_OPERATIONS=200
+      python scripts/run_oidc_resilience_gate.py
+  artifacts:
+    when: always
+    paths:
+      - var/resilience/browser-oidc-resilience.json
+
 api:postgres-and-restore:
   stage: assurance
   image:

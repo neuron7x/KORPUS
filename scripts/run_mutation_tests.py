@@ -307,6 +307,16 @@ MUTANTS = (
             "test_authenticated_malformed_envelopes_are_rejected",
         ),
     ),
+    Mutant(
+        "M34_OIDC_RESILIENCE_RAW_EXCEPTION_BYPASS",
+        "scripts/run_oidc_resilience_gate.py",
+        'if results.get("raw_exceptions") != 0:',
+        "if False:",
+        (
+            "apps/api/tests/test_oidc_resilience_gate.py::"
+            "test_resilience_report_rejects_raw_codec_recovery_and_authorization_failures",
+        ),
+    ),
 )
 
 
