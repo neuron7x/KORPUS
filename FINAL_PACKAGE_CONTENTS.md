@@ -23,3 +23,13 @@
 ## Interpretation boundary
 
 The package is a complete engineering baseline for the frozen repository scope. It does not assert discovery of every possible vulnerability and does not self-authorize production. External evidence remains mandatory where identified in the closure and debt registers.
+
+## Local agent handoff
+
+- `handoff/START_HERE_UA.md`
+- `handoff/acts/`
+- `handoff/plans/`
+- `handoff/prompts/`
+- `handoff/machine/`
+- `scripts/verify_handoff_contract.py`
+- `RELEASE_V5_1.md`

@@ -1,0 +1,51 @@
+{
+  "schema": "korpus.calibration-weights.v1",
+  "status": "ENGINEERING_DEFAULT_NOT_PRODUCTION_CALIBRATED",
+  "provenance": {
+    "weights_source": "apps/api/src/korpus/application/retrieval.py::RetrievalWeights",
+    "profile_source": "apps/api/src/korpus/application/calibration.py::CalibrationProfile",
+    "config_source": "apps/api/src/korpus/config.py::Settings"
+  },
+  "bm25": {
+    "k1": 1.5,
+    "b": 0.75
+  },
+  "retrieval_weights": {
+    "lexical": 0.42,
+    "semantic": 0.0,
+    "query_coverage": 0.24,
+    "character": 0.1,
+    "authority": 0.14,
+    "phrase": 0.06,
+    "temporal": 0.04
+  },
+  "authority_priors": {
+    "official_ua": 1.0,
+    "official_allied": 0.92,
+    "manufacturer": 0.78,
+    "approved_training": 0.74,
+    "analytical": 0.46,
+    "historical": 0.3,
+    "unknown": 0.0
+  },
+  "selection": {
+    "diversity_lambda": 0.82,
+    "per_version_cap": 2,
+    "candidate_budget": 256,
+    "retrieval_timeout_ms": 1200
+  },
+  "development_answer_gates": {
+    "minimum_retrieval_score": 0.18,
+    "minimum_query_coverage_runtime_default": 0.25,
+    "minimum_query_coverage_frozen_eval": 0.5,
+    "minimum_support_score": 0.18
+  },
+  "production_profile_minimums": {
+    "accepted_answer_samples": 200,
+    "ranking_queries": 100,
+    "minimum_ndcg_at_10": 0.7,
+    "minimum_recall_at_20": 0.85,
+    "semantic_weight_activation_requires_bound_profile": true
+  },
+  "calibration_note": "All values are engineering defaults or code-level gates. They are not claimed optimal for a real Ukrainian military corpus."
+}

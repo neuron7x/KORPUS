@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -61,6 +61,10 @@ snapshot:
 audit-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_audit.py
 
+handoff-verify:
+	PYTHONPATH=apps/api/src $(PY) scripts/verify_handoff_contract.py
+
+
 openapi:
 	PYTHONPATH=apps/api/src $(PY) scripts/openapi_contract.py
 
@@ -76,7 +80,7 @@ supply-chain-inventory:
 kubernetes-validate:
 	python3 scripts/validate_kubernetes.py
 
-validate: openapi audit-closure desired-state supply-chain-inventory
+validate: handoff-verify openapi audit-closure desired-state supply-chain-inventory
 	python3 scripts/validate_repository.py
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

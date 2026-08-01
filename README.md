@@ -134,3 +134,7 @@ agents/                    Codex / Claude Code worktree contracts
 - `docs/runbooks/BACKUP_RESTORE.md`
 - `docs/runbooks/OPERATIONS.md`
 - `AGENTS.md`
+
+## Local Claude Code / Codex handoff
+
+Start with `handoff/START_HERE_UA.md`. The chat is not authoritative; Git objects, manifests, machine reports and audit registers are.

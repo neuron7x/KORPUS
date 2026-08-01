@@ -1,0 +1,75 @@
+{
+  "schema": "korpus.local-handoff-state.v1",
+  "base_release": "v5.0.0",
+  "base_commit": "5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60",
+  "production_authorized": false,
+  "verification": {
+    "tests_collected": 172,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "line_coverage": 0.87,
+    "branch_coverage": 0.6687,
+    "adversarial_passed": 30,
+    "adversarial_total": 30,
+    "citation_failures": 0,
+    "leakage_failures": 0,
+    "determinism_failures": 0,
+    "critical_mutants_killed": 26,
+    "critical_mutants_total": 26,
+    "scale_probe": {
+      "schema_version": 1,
+      "status": "PASS",
+      "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
+      "procedure": {
+        "database": "SQLite FTS5",
+        "spans": 5000,
+        "iterations": 80,
+        "warmup_queries": 1,
+        "candidate_budget": 256,
+        "query": "ALPHA-OMEGA deterministic target"
+      },
+      "results": {
+        "ingest_seconds": 0.09749950799960061,
+        "query_latency_ms_p50": 2.3154315,
+        "query_latency_ms_p95": 2.782631,
+        "query_latency_ms_max": 4.60238,
+        "candidate_count": 1,
+        "top1_recall": 1.0
+      },
+      "environment": {
+        "python": "3.13.5",
+        "platform": "Linux-6.12.13-x86_64-with-glibc2.41",
+        "processor": "UNKNOWN"
+      },
+      "limitations": [
+        "Synthetic local probe; not a production SLA.",
+        "PostgreSQL network, concurrency and disk behavior are not represented."
+      ]
+    }
+  },
+  "audit": {
+    "findings_total": 99,
+    "status_counts": {
+      "CLOSED_LOCAL": 20,
+      "EXTERNAL_DEBT": 31,
+      "MITIGATED_LOCAL": 33,
+      "OPEN_TECH_DEBT": 15
+    },
+    "remaining_total": 79,
+    "remaining_by_severity": {
+      "P0": 21,
+      "P1": 48,
+      "P2": 10
+    }
+  },
+  "ssot_order": [
+    "Git commit/tag and repository manifest",
+    "Executable code, migrations, configuration and machine reports",
+    "Machine-readable audit closure and remaining-debt registers",
+    "Human-readable handoff acts and runbooks",
+    "Chat messages are context only and are not authoritative"
+  ],
+  "handoff_release": "v5.1.0",
+  "base_source_tree_sha256": "d5d446b318c3ade676d42609d293f41ef1e8205073737c097303ebeb1934ed44"
+}
