@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import json
 import secrets
@@ -39,7 +40,7 @@ class BrowserSessionCodec:
         padding = "=" * (-len(value) % 4)
         try:
             return base64.urlsafe_b64decode(value + padding)
-        except (ValueError, base64.binascii.Error) as exc:
+        except (ValueError, binascii.Error) as exc:
             raise BrowserSessionError("invalid browser session encoding") from exc
 
     def seal(self, kind: str, payload: dict[str, Any], *, ttl_seconds: int) -> str:

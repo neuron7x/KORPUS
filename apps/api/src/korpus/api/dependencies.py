@@ -25,6 +25,14 @@ from korpus.security.corpus_governance import CorpusGovernanceProfile
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
 
+def _calibration_profile(settings: Settings) -> CalibrationProfile:
+    path = settings.calibration_profile_path
+    digest = settings.calibration_profile_sha256
+    if path is None or digest is None:
+        raise RuntimeError("calibrated answer policy requires a validated profile")
+    return CalibrationProfile.load(path, digest)
+
+
 def get_policy(request: Request) -> PolicyEngine:
     return request.app.state.policy
 
@@ -143,10 +151,9 @@ def get_answer_service(
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
     semantic_source: Any | None = Depends(get_semantic_source),
 ) -> ExtractiveAnswerService:
+    profile: CalibrationProfile | None = None
     if settings.answer_policy_mode == "calibrated":
-        profile = CalibrationProfile.load(
-            settings.calibration_profile_path, settings.calibration_profile_sha256
-        )  # type: ignore[arg-type]
+        profile = _calibration_profile(settings)
         answer_policy = AnswerPolicy(
             minimum_score=profile.minimum_score,
             minimum_query_coverage=profile.minimum_query_coverage,
@@ -161,9 +168,8 @@ def get_answer_service(
             calibration_id="development-unvalidated",
         )
     if settings.answer_policy_mode == "calibrated":
-        profile = CalibrationProfile.load(
-            settings.calibration_profile_path, settings.calibration_profile_sha256
-        )  # type: ignore[arg-type]
+        if profile is None:
+            raise RuntimeError("calibrated answer policy profile was not loaded")
         parameters = profile.bm25_parameters
         weights = profile.retrieval_weights
         candidate_budget = profile.retrieval_candidate_budget

@@ -51,7 +51,7 @@ class PolicyEngine:
     def resolve_corpora(self, identity: Identity, requested: list[str]) -> frozenset[str]:
         self.require(identity, "answer:read")
         if not requested:
-            return identity.corpora
+            return frozenset(identity.corpora)
         requested_set = frozenset(requested)
         unauthorized = requested_set.difference(identity.corpora)
         if unauthorized:

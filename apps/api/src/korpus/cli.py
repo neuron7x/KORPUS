@@ -9,9 +9,11 @@ from datetime import date
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
-from korpus.config import get_settings
+from korpus.application.ports import ObjectStore
+from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
+from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.runtime import create_object_store, create_quarantine_store, create_repository
 from korpus.security.auth import issue_token
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
@@ -20,7 +22,12 @@ from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 
-def _ingestion_service(settings, repository, object_store, policy) -> IngestionService:
+def _ingestion_service(
+    settings: Settings,
+    repository: SqlRepository,
+    object_store: ObjectStore,
+    policy: PolicyEngine,
+) -> IngestionService:
     scanner = (
         ClamdInstreamScanner(
             settings.clamd_host,

@@ -9,7 +9,7 @@ import threading
 from datetime import UTC, date, datetime
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, Sequence, TypeVar
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -37,7 +37,7 @@ from sqlalchemy import (
     update,
     text as sql_text,
 )
-from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.engine import Connection
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.pool import NullPool
 
@@ -724,7 +724,7 @@ class SqlRepository:
         )
 
     def _materialize_current(
-        self, rows: list[Any], as_of: date
+        self, rows: Sequence[Any], as_of: date
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
         authorized: list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]] = []
         for row in rows:
@@ -1047,7 +1047,7 @@ class SqlRepository:
     def healthcheck(self) -> bool:
         try:
             with self.engine.connect() as connection:
-                return connection.execute(select(1)).scalar_one() == 1
+                return bool(connection.execute(select(1)).scalar_one() == 1)
         except OperationalError:
             return False
 

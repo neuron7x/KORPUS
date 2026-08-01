@@ -57,7 +57,9 @@ class TuningResult:
 
 
 def _dcg(grades: list[int]) -> float:
-    return sum((2**grade - 1) / math.log2(index + 2) for index, grade in enumerate(grades))
+    return float(
+        sum((2**grade - 1) / math.log2(index + 2) for index, grade in enumerate(grades))
+    )
 
 
 def _rank(query: JudgedQuery, weights: RetrievalWeights, bm25: BM25Parameters) -> list[int]:

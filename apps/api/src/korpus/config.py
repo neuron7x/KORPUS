@@ -267,7 +267,8 @@ class Settings(BaseSettings):
                 raise ValueError("controlled browser sessions require a strong session key")
             if not self.browser_cookie_secure:
                 raise ValueError("controlled browser session cookies must be Secure")
-            if not self.oidc_redirect_uri.startswith("https://"):
+            redirect_uri = self.oidc_redirect_uri
+            if redirect_uri is None or not redirect_uri.startswith("https://"):
                 raise ValueError("controlled OIDC redirect URI must use HTTPS")
             if self.entitlement_profile_path is None or not self.entitlement_profile_path.is_file():
                 raise ValueError("controlled environments require a server-side entitlement profile")
@@ -325,9 +326,19 @@ class Settings(BaseSettings):
                 raise ValueError("browser OIDC endpoints, client id, and redirect URI are required")
             if not self.resolved_browser_session_key or len(self.resolved_browser_session_key) < 32:
                 raise ValueError("browser session key must contain at least 32 characters")
-            if not self.oidc_authorization_endpoint.startswith("https://") or not self.oidc_token_endpoint.startswith("https://"):
+            authorization_endpoint = self.oidc_authorization_endpoint
+            token_endpoint = self.oidc_token_endpoint
+            if (
+                authorization_endpoint is None
+                or token_endpoint is None
+                or not authorization_endpoint.startswith("https://")
+                or not token_endpoint.startswith("https://")
+            ):
                 raise ValueError("OIDC browser endpoints must use HTTPS")
-            if not self.oidc_redirect_uri.startswith(("https://", "http://127.0.0.1", "http://localhost", "http://testserver")):
+            redirect_uri = self.oidc_redirect_uri
+            if redirect_uri is None or not redirect_uri.startswith(
+                ("https://", "http://127.0.0.1", "http://localhost", "http://testserver")
+            ):
                 raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
         if self.semantic_retrieval_enabled:
             if not self.database_url.startswith("postgresql"):

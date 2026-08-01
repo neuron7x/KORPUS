@@ -7,7 +7,7 @@ import re
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 HASH_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 KEY_PATTERN = re.compile(r"^[a-f0-9]{2}/[a-f0-9]{2}/[a-f0-9]{64}$")
@@ -233,9 +233,12 @@ class S3ObjectStore:
     def _head(self, key: str) -> dict[str, Any] | None:
         try:
             try:
-                return self.client.head_object(Bucket=self.bucket, Key=key, ChecksumMode="ENABLED")
+                return cast(
+                    dict[str, Any],
+                    self.client.head_object(Bucket=self.bucket, Key=key, ChecksumMode="ENABLED"),
+                )
             except TypeError:
-                return self.client.head_object(Bucket=self.bucket, Key=key)
+                return cast(dict[str, Any], self.client.head_object(Bucket=self.bucket, Key=key))
         except Exception as exc:
             if self._error_code(exc) in {"404", "NoSuchKey", "NotFound"}:
                 return None

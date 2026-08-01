@@ -65,13 +65,18 @@ class HttpEmbeddingProvider:
     def embed(self, text: str) -> list[float]:
         if not text or len(text) > 12_000:
             raise ValueError("embedding input length is invalid")
+        client = self.client
+        if client is None:
+            raise RuntimeError("embedding client is unavailable")
 
         def operation() -> list[float]:
-            response = self.client.post(self.endpoint, json={"model": self.model_id, "input": text})
+            response = client.post(self.endpoint, json={"model": self.model_id, "input": text})
             response.raise_for_status()
             if len(response.content) > self.max_response_bytes:
                 raise RuntimeError("embedding response exceeds configured limit")
-            payload = response.json()
+            payload: object = response.json()
+            if not isinstance(payload, dict):
+                raise RuntimeError("embedding service returned invalid payload")
             vector = payload.get("embedding")
             if not isinstance(vector, list) or len(vector) != self.dimensions:
                 raise RuntimeError("embedding service returned invalid dimensions")
@@ -83,12 +88,15 @@ class HttpEmbeddingProvider:
                 raise RuntimeError("embedding service returned zero vector")
             return [value / norm for value in values]
 
-        return self._circuit.call(operation)
+        return list(self._circuit.call(operation))
 
     def healthcheck(self) -> bool:
+        client = self.client
+        if client is None:
+            return False
         try:
-            response = self.client.get(self.endpoint, headers={"Accept": "application/json"})
-            return response.status_code < 500
+            response = client.get(self.endpoint, headers={"Accept": "application/json"})
+            return bool(response.status_code < 500)
         except Exception:
             return False
 

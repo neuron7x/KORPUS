@@ -298,7 +298,7 @@ def list_documents(
         policy.require(identity, "document:list")
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
-    return repository.list_documents(identity)
+    return list(repository.list_documents(identity))
 
 
 @router.post("/v1/documents/ingest", response_model=IngestResult, status_code=status.HTTP_201_CREATED)

@@ -38,7 +38,7 @@ class SentenceCandidate:
 
 
 def contains_control_injection(text: str) -> bool:
-    return assess_control_injection(text).blocked
+    return bool(assess_control_injection(text).blocked)
 
 
 def sentence_candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
@@ -259,7 +259,7 @@ class ExtractiveAnswerService:
             for right in claims[left_index + 1 :]:
                 reason = contradiction_reason(left.text, right.text)
                 if reason is not None:
-                    return reason
+                    return str(reason)
         return None
 
     def _abstain(
