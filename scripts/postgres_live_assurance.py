@@ -18,6 +18,7 @@ from alembic_state import database_revisions, expected_heads, verify_revisions
 from backup_crypto import load_key
 from backup_manifest import sign, validate_fields
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import DBAPIError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,7 +57,7 @@ def candidate_commit() -> str:
     return value
 
 
-def ddl_denial_receipt(engine) -> dict[str, str]:
+def ddl_denial_receipt(engine: Engine) -> dict[str, str]:
     receipt: dict[str, str] = {}
     for identifier, statement in DDL_PROBES.items():
         try:
@@ -257,16 +258,18 @@ def main() -> int:
         Path(os.environ["KORPUS_BACKUP_ENCRYPTION_KEY_FILE"]),
         os.environ["KORPUS_BACKUP_KEY_ID"],
     )
-    backup_result["duration_seconds"] = optional_duration("KORPUS_BACKUP_SECONDS")
+    backup_duration = optional_duration("KORPUS_BACKUP_SECONDS")
+    backup_result["duration_seconds"] = backup_duration
     restore_duration = optional_duration("KORPUS_RESTORE_SECONDS")
     verification_duration = optional_duration("KORPUS_VERIFY_SECONDS")
     recovery_timing_anchored = all(
         value is not None
-        for value in (backup_result["duration_seconds"], restore_duration, verification_duration)
+        for value in (backup_duration, restore_duration, verification_duration)
     )
     total_recovery_duration = (
-        float(backup_result["duration_seconds"]) + restore_duration + verification_duration
+        backup_duration + restore_duration + verification_duration
         if recovery_timing_anchored
+        and backup_duration is not None
         and restore_duration is not None
         and verification_duration is not None
         else None

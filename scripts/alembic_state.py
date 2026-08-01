@@ -21,7 +21,10 @@ class MigrationStateError(RuntimeError):
 
 def expected_heads(config_path: Path = ALEMBIC_INI) -> tuple[str, ...]:
     config = Config(str(config_path))
-    script_location = Path(config.get_main_option("script_location"))
+    configured_location = config.get_main_option("script_location")
+    if not configured_location:
+        raise MigrationStateError("DB-01_MIGRATION_GRAPH: Alembic script_location is missing")
+    script_location = Path(configured_location)
     if not script_location.is_absolute():
         script_location = config_path.parent / script_location
     config.set_main_option("script_location", str(script_location.resolve()))

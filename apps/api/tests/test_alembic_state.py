@@ -16,6 +16,20 @@ def test_expected_head_comes_from_alembic_metadata() -> None:
     assert alembic_state.expected_heads() == ("0009_reviewer_credentials",)
 
 
+def test_missing_script_location_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    class MissingLocationConfig:
+        def __init__(self, _: str) -> None:
+            pass
+
+        @staticmethod
+        def get_main_option(_: str) -> None:
+            return None
+
+    monkeypatch.setattr(alembic_state, "Config", MissingLocationConfig)
+    with pytest.raises(alembic_state.MigrationStateError, match="script_location is missing"):
+        alembic_state.expected_heads()
+
+
 def test_obsolete_revision_is_rejected() -> None:
     with pytest.raises(alembic_state.MigrationStateError, match="DB-01_SCHEMA_REVISION"):
         alembic_state.verify_revisions(["0003_infrastructure_hardening"])

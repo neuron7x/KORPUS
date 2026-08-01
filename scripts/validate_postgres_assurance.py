@@ -107,13 +107,19 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
         restore.get("verification_seconds") if isinstance(restore, dict) else None,
     )
     total = restore.get("total_recovery_seconds") if isinstance(restore, dict) else None
+    numeric_durations = [
+        float(value)
+        for value in durations
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0
+    ]
     if (
         not isinstance(restore, dict)
         or restore.get("measurement") != "ANCHORED"
-        or any(not isinstance(value, (int, float)) or value <= 0 for value in durations)
+        or len(numeric_durations) != len(durations)
         or not isinstance(total, (int, float))
+        or isinstance(total, bool)
         or total <= 0
-        or abs(total - sum(durations)) > 1e-9
+        or abs(total - sum(numeric_durations)) > 1e-9
     ):
         failures.append("predicate:recovery-timing")
     pytest_result = payload.get("pytest", {})

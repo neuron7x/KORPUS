@@ -1,9 +1,11 @@
 -r requirements.runtime.lock
+ast-serialize==0.6.0
 coverage==7.13.3
 iniconfig==2.3.0
+librt==0.13.0
 mypy==2.3.0
 mypy-extensions==1.1.0
-pathspec==0.12.1
+pathspec==1.1.1
 pluggy==1.6.0
 Pygments==2.20.0
 pytest==9.0.2
