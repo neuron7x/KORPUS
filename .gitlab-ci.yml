@@ -160,10 +160,10 @@ api:postgres-and-restore:
     - pytest -q apps/api/tests/test_alembic_state.py apps/api/tests/test_postgres_integration.py -m postgres --junitxml=var/act-01/postgres-junit.xml
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
-    - backup_path="$(scripts/backup_postgres.sh)"
+    - export KORPUS_BACKUP_PATH="$(scripts/backup_postgres.sh)"
     - psql 'postgresql://postgres:postgres-test-password@postgres:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
     - export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@postgres:5432/korpus_restore'
-    - scripts/restore_postgres.sh "$backup_path"
+    - scripts/restore_postgres.sh "$KORPUS_BACKUP_PATH"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
@@ -171,6 +171,7 @@ api:postgres-and-restore:
     - export KORPUS_SOURCE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL"
     - export KORPUS_RESTORED_ADMIN_URL="$KORPUS_DATABASE_URL"
     - export KORPUS_BASE_COMMIT="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-$CI_COMMIT_BEFORE_SHA}"
+    - export KORPUS_POSTGRES_JUNIT="$CI_PROJECT_DIR/var/act-01/postgres-junit.xml"
     - python scripts/postgres_live_assurance.py | tee var/act-01/postgres-live-assurance.log
     - python scripts/validate_postgres_assurance.py var/act-01/postgres-live-assurance.json
   artifacts:

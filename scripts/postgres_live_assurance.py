@@ -4,14 +4,18 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import os
 import platform
 import subprocess
+import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
 from pathlib import Path
 
 from alembic_state import database_revisions, expected_heads, verify_revisions
+from backup_crypto import load_key
+from backup_manifest import sign, validate_fields
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import DBAPIError
 
@@ -49,6 +53,62 @@ def state_digest(url: str) -> tuple[str, dict[str, int]]:
     engine.dispose()
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
     return hashlib.sha256(encoded).hexdigest(), counts
+
+
+def pytest_receipt(path: Path) -> dict[str, object]:
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
+    totals = {
+        name: sum(int(suite.attrib.get(name, "0")) for suite in suites)
+        for name in ("tests", "failures", "errors", "skipped")
+    }
+    status = (
+        "PASS"
+        if totals["tests"] > 0 and totals["failures"] == 0 and totals["errors"] == 0
+        else "FAIL"
+    )
+    return {"live_postgres": status, **totals, "receipt": path.name}
+
+
+def backup_receipt(path: Path, key_file: Path, key_id: str) -> dict[str, object]:
+    manifest_path = Path(f"{path}.json")
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("backup manifest is not an object")
+    validate_fields(payload, expected_file=path.name, expected_key_id=key_id)
+    encrypted_digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            encrypted_digest.update(chunk)
+    if encrypted_digest.hexdigest() != payload["sha256"]:
+        raise ValueError("encrypted backup checksum mismatch")
+    if path.stat().st_size != payload["bytes"]:
+        raise ValueError("encrypted backup size mismatch")
+    if not hmac.compare_digest(
+        str(payload["manifest_hmac_sha256"]), sign(payload, load_key(key_file))
+    ):
+        raise ValueError("backup manifest authentication failed")
+    return {
+        "encrypted": payload["encrypted"],
+        "cipher": payload["cipher"],
+        "manifest_verified": True,
+        "encrypted_sha256": payload["sha256"],
+        "encrypted_bytes": payload["bytes"],
+        "plaintext_sha256": payload["plaintext_sha256"],
+        "plaintext_bytes": payload["plaintext_bytes"],
+        "key_id": payload["key_id"],
+        "manifest": manifest_path.name,
+    }
+
+
+def optional_duration(name: str) -> float | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    duration = float(value)
+    if duration <= 0:
+        raise ValueError(f"{name} must be positive")
+    return duration
 
 
 def main() -> int:
@@ -114,6 +174,12 @@ def main() -> int:
         ddl_denied = False
     except DBAPIError:
         ddl_denied = True
+    try:
+        with app.begin() as connection:
+            connection.execute(text("UPDATE alembic_version SET version_num=version_num"))
+        alembic_update_denied = False
+    except DBAPIError:
+        alembic_update_denied = True
     app.dispose()
     admin = create_engine(source_admin)
     with admin.connect() as connection:
@@ -143,7 +209,28 @@ def main() -> int:
             text("SELECT extversion FROM pg_extension WHERE extname='vector'")
         ).scalar_one()
     admin.dispose()
+    pytest_result = pytest_receipt(Path(os.environ["KORPUS_POSTGRES_JUNIT"]))
+    backup_result = backup_receipt(
+        Path(os.environ["KORPUS_BACKUP_PATH"]),
+        Path(os.environ["KORPUS_BACKUP_ENCRYPTION_KEY_FILE"]),
+        os.environ["KORPUS_BACKUP_KEY_ID"],
+    )
+    backup_result["duration_seconds"] = optional_duration("KORPUS_BACKUP_SECONDS")
+    restore_duration = optional_duration("KORPUS_RESTORE_SECONDS")
+    verification_duration = optional_duration("KORPUS_VERIFY_SECONDS")
+    recovery_timing_anchored = all(
+        value is not None
+        for value in (backup_result["duration_seconds"], restore_duration, verification_duration)
+    )
     same_state = source_digest == restored_digest and source_counts == restored_counts
+    prerequisites_pass = all(
+        (
+            alembic_update_denied,
+            ddl_denied,
+            pytest_result["live_postgres"] == "PASS",
+            backup_result["manifest_verified"] is True,
+        )
+    )
     report = {
         "schema": "korpus.postgres-live-assurance.v1",
         "act_id": "KORPUS-ACT-01",
@@ -173,22 +260,18 @@ def main() -> int:
         },
         "compartment_cases": compartment_cases,
         "ddl_denial_cases": {
-            "alembic_update": "PASS",
+            "alembic_update": "PASS" if alembic_update_denied else "FAIL",
             "privileged_ddl": "PASS" if ddl_denied else "FAIL",
         },
-        "backup": {
-            "encrypted": True,
-            "manifest_verified": True,
-            "duration_seconds": float(os.getenv("KORPUS_BACKUP_SECONDS", "0")),
-        },
+        "backup": backup_result,
         "restore": {
-            "duration_seconds": float(os.getenv("KORPUS_RESTORE_SECONDS", "0")),
-            "verification_seconds": float(os.getenv("KORPUS_VERIFY_SECONDS", "0")),
-            "measurement": "ANCHORED",
+            "duration_seconds": restore_duration,
+            "verification_seconds": verification_duration,
+            "measurement": "ANCHORED" if recovery_timing_anchored else "UNAVAILABLE",
         },
         "source_state_digest": source_digest,
         "restored_state_digest": restored_digest,
-        "pytest": {"live_postgres": "PASS"},
+        "pytest": pytest_result,
         "iam_006_probe": {
             "status": "CONFIRMED_OPEN" if broadened else "NOT_REPRODUCED",
             "broadened_restricted_rows": broadened,
@@ -198,10 +281,13 @@ def main() -> int:
             "independent post-change verification",
             "GitLab pipeline",
             "mutation shard for changed critical Python modules",
-        ],
+        ]
+        + ([] if recovery_timing_anchored else ["anchored recovery timing"]),
         "production_authorized": False,
         "verdict": "PASS_WITH_CAVEATS"
-        if same_state and all(value == 0 for value in missing.values())
+        if prerequisites_pass
+        and same_state
+        and all(value == 0 for value in missing.values())
         else "FAIL",
     }
     output = ROOT / "var/act-01/postgres-live-assurance.json"
