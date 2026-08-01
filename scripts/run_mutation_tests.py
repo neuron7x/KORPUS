@@ -245,6 +245,15 @@ MUTANTS = (
             "apps/api/tests/test_postgres_assurance_evidence.py::test_validator_rejects_manufactured_pass",
         ),
     ),
+    Mutant(
+        "M30_BROWSER_SESSION_CANONICAL_ENCODING_BYPASS",
+        "apps/api/src/korpus/security/browser_oidc.py",
+        "if BrowserSessionCodec._encode(decoded) != value:",
+        "if False:",
+        (
+            "apps/api/tests/test_browser_oidc.py::test_browser_session_codec_rejects_tampering_and_expiry",
+        ),
+    ),
 )
 
 

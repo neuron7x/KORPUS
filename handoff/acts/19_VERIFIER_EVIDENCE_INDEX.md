@@ -33,6 +33,8 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
   grant and IAM fields; the validator and mutation surface now fail closed on those receipts.
 - The earlier mypy invocation could treat local modules as an untyped installed dependency;
   ACT-17 binds source discovery explicitly and repairs all 25 errors it exposed.
+- A Base64URL last-character mutation could decode to unchanged authenticated bytes because
+  unused padding bits were ignored; ACT-18 rejects non-canonical session encodings.
 
 ## Claims that remain open
 

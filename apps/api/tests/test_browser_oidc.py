@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -109,6 +110,18 @@ def test_browser_session_codec_rejects_tampering_and_expiry():
     replacement = "A" if token[-1] != "A" else "B"
     with pytest.raises(BrowserSessionError):
         codec.open(token[:-1] + replacement, expected_kind="session")
+
+    padding = "=" * (-len(token) % 4)
+    raw = base64.urlsafe_b64decode(token + padding)
+    aliases = [
+        token[:-1] + character
+        for character in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+        if character != token[-1]
+        and base64.urlsafe_b64decode(token[:-1] + character + padding) == raw
+    ]
+    assert aliases, "fixture must expose a non-canonical Base64URL alias"
+    with pytest.raises(BrowserSessionError, match="encoding"):
+        codec.open(aliases[0], expected_kind="session")
     clock[0] = 1031.0
     with pytest.raises(BrowserSessionError, match="expired"):
         codec.open(token, expected_kind="session")

@@ -39,9 +39,12 @@ class BrowserSessionCodec:
     def _decode(value: str) -> bytes:
         padding = "=" * (-len(value) % 4)
         try:
-            return base64.urlsafe_b64decode(value + padding)
+            decoded = base64.urlsafe_b64decode(value + padding)
         except (ValueError, binascii.Error) as exc:
             raise BrowserSessionError("invalid browser session encoding") from exc
+        if BrowserSessionCodec._encode(decoded) != value:
+            raise BrowserSessionError("invalid browser session encoding")
+        return decoded
 
     def seal(self, kind: str, payload: dict[str, Any], *, ttl_seconds: int) -> str:
         if not kind or ttl_seconds < 1:
