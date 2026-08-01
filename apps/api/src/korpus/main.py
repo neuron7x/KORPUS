@@ -182,29 +182,39 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         supplied = request.headers.get("X-Request-ID", "")
         request_id = supplied if REQUEST_ID_PATTERN.fullmatch(supplied) else str(uuid.uuid4())
         request.state.request_id = request_id
-        if request.method in {"POST", "PUT", "PATCH", "DELETE"} and selected.browser_auth_enabled:
-            session_cookie = request.cookies.get(selected.browser_session_cookie)
-            if session_cookie:
-                codec = getattr(app.state, "browser_session_codec", None)
-                try:
-                    session = codec.open(session_cookie, expected_kind="session") if codec else {}
-                    expected_csrf = session.get("csrf")
-                except BrowserSessionError:
-                    return JSONResponse({"detail": "invalid browser session"}, status_code=401)
-                supplied_csrf = request.headers.get("X-CSRF-Token", "")
-                csrf_cookie = request.cookies.get(selected.browser_csrf_cookie, "")
-                if (
-                    not isinstance(expected_csrf, str)
-                    or not supplied_csrf
-                    or not csrf_cookie
-                    or not secrets.compare_digest(supplied_csrf, expected_csrf)
-                    or not secrets.compare_digest(csrf_cookie, expected_csrf)
-                ):
-                    return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)
         started = time.monotonic()
         status_code = 500
         try:
-            response = await call_next(request)
+            response: Response | None = None
+            if (
+                request.method in {"POST", "PUT", "PATCH", "DELETE"}
+                and selected.browser_auth_enabled
+            ):
+                session_cookie = request.cookies.get(selected.browser_session_cookie)
+                if session_cookie:
+                    codec = getattr(app.state, "browser_session_codec", None)
+                    try:
+                        session = codec.open(session_cookie, expected_kind="session") if codec else {}
+                        expected_csrf = session.get("csrf")
+                    except BrowserSessionError:
+                        response = JSONResponse(
+                            {"detail": "invalid browser session"}, status_code=401
+                        )
+                    if response is None:
+                        supplied_csrf = request.headers.get("X-CSRF-Token", "")
+                        csrf_cookie = request.cookies.get(selected.browser_csrf_cookie, "")
+                        if (
+                            not isinstance(expected_csrf, str)
+                            or not supplied_csrf
+                            or not csrf_cookie
+                            or not secrets.compare_digest(supplied_csrf, expected_csrf)
+                            or not secrets.compare_digest(csrf_cookie, expected_csrf)
+                        ):
+                            response = JSONResponse(
+                                {"detail": "CSRF validation failed"}, status_code=403
+                            )
+            if response is None:
+                response = await call_next(request)
             status_code = response.status_code
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Content-Type-Options"] = "nosniff"

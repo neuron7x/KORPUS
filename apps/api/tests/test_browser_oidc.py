@@ -162,6 +162,37 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
 
         blocked = client.post("/v1/auth/logout")
         assert blocked.status_code == 403
+        assert blocked.headers["X-Request-ID"]
+        assert blocked.headers["X-Content-Type-Options"] == "nosniff"
+        assert blocked.headers["Referrer-Policy"] == "no-referrer"
+        assert blocked.headers["Cache-Control"] == "no-store"
         csrf = client.cookies.get("__Host-korpus_csrf")
         logout = client.post("/v1/auth/logout", headers={"X-CSRF-Token": csrf})
         assert logout.status_code == 204
+
+
+def test_rejected_browser_session_is_observed_and_correlated(tmp_path: Path):
+    app = create_app(_settings(tmp_path))
+    with TestClient(app) as client:
+        observations = []
+        original = app.state.observability.observe_http
+
+        def capture(method: str, route: str, status: int, duration: float) -> None:
+            observations.append((method, route, status, duration))
+            original(method, route, status, duration)
+
+        app.state.observability.observe_http = capture
+        client.cookies.set("__Host-korpus_session", "invalid-session")
+        response = client.post(
+            "/v1/auth/logout",
+            headers={"X-Request-ID": "csrf-rejection-test"},
+        )
+        assert response.status_code == 401
+        assert response.headers["X-Request-ID"] == "csrf-rejection-test"
+        assert response.headers["X-Content-Type-Options"] == "nosniff"
+        assert response.headers["Referrer-Policy"] == "no-referrer"
+        assert response.headers["Cache-Control"] == "no-store"
+        assert observations
+        assert observations[-1][0] == "POST"
+        assert observations[-1][2] == 401
+        assert observations[-1][3] >= 0
