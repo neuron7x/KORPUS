@@ -20,6 +20,10 @@
 - Causal repair: omit `--file` so PostgreSQL's documented default stdout stream feeds
   authenticated encryption; the test double now models real file-option semantics, and the
   infrastructure validator rejects reintroduction of `--file=-`.
+- Second pre-fix failure: the PostgreSQL gate image completed restore but could not emit
+  evidence because it has no `git` executable. Candidate provenance now consumes an explicit
+  full `KORPUS_CANDIDATE_COMMIT`/`CI_COMMIT_SHA`, validates its shape, and only uses local Git
+  as a fallback; GitLab exports the pipeline commit explicitly.
 - Commands executed: focused backup/restore pytest; infrastructure validator; shell syntax
   check; diff check. The first post-commit live chain failed closed at manifest validation and
   is retained in the task transcript; a clean rerun is required after commit.

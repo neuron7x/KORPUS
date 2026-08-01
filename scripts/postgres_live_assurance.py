@@ -8,6 +8,7 @@ import hmac
 import json
 import os
 import platform
+import re
 import subprocess
 import xml.etree.ElementTree as ET
 from datetime import UTC, datetime
@@ -29,6 +30,19 @@ TABLES = (
     "audit_heads",
     "audit_events",
 )
+COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+
+
+def candidate_commit() -> str:
+    """Resolve immutable provenance without assuming Git exists in the gate image."""
+    value = os.getenv("KORPUS_CANDIDATE_COMMIT") or os.getenv("CI_COMMIT_SHA")
+    if value is None:
+        value = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+    if not COMMIT_SHA.fullmatch(value):
+        raise ValueError("candidate commit must be a full lowercase Git SHA-1")
+    return value
 
 
 def safe_url(name: str) -> str:
@@ -235,9 +249,7 @@ def main() -> int:
         "schema": "korpus.postgres-live-assurance.v1",
         "act_id": "KORPUS-ACT-01",
         "base_commit": os.environ["KORPUS_BASE_COMMIT"],
-        "candidate_commit": subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
-        ).strip(),
+        "candidate_commit": candidate_commit(),
         "started_at_utc": started.isoformat(),
         "finished_at_utc": datetime.now(UTC).isoformat(),
         "environment": {

@@ -171,6 +171,7 @@ api:postgres-and-restore:
     - export KORPUS_SOURCE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL"
     - export KORPUS_RESTORED_ADMIN_URL="$KORPUS_DATABASE_URL"
     - export KORPUS_BASE_COMMIT="${CI_MERGE_REQUEST_DIFF_BASE_SHA:-$CI_COMMIT_BEFORE_SHA}"
+    - export KORPUS_CANDIDATE_COMMIT="$CI_COMMIT_SHA"
     - export KORPUS_POSTGRES_JUNIT="$CI_PROJECT_DIR/var/act-01/postgres-junit.xml"
     - python scripts/postgres_live_assurance.py | tee var/act-01/postgres-live-assurance.log
     - python scripts/validate_postgres_assurance.py var/act-01/postgres-live-assurance.json

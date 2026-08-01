@@ -14,6 +14,7 @@ from backup_crypto import load_key  # noqa: E402
 from backup_manifest import sign  # noqa: E402
 from postgres_live_assurance import (  # noqa: E402
     backup_receipt,
+    candidate_commit,
     optional_duration,
     pytest_receipt,
 )
@@ -81,6 +82,26 @@ def test_nonpositive_duration_is_rejected(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setenv("KORPUS_BACKUP_SECONDS", "0")
     with pytest.raises(ValueError, match="must be positive"):
         optional_duration("KORPUS_BACKUP_SECONDS")
+
+
+def test_candidate_commit_uses_explicit_ci_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    expected = "a" * 40
+    monkeypatch.setenv("KORPUS_CANDIDATE_COMMIT", expected)
+    monkeypatch.setattr(
+        "postgres_live_assurance.subprocess.check_output",
+        lambda *args, **kwargs: pytest.fail("Git must not be invoked"),
+    )
+    assert candidate_commit() == expected
+
+
+def test_candidate_commit_rejects_unverifiable_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("KORPUS_CANDIDATE_COMMIT", "HEAD")
+    with pytest.raises(ValueError, match="full lowercase Git SHA-1"):
+        candidate_commit()
 
 
 def valid_assurance_payload() -> dict[str, object]:
