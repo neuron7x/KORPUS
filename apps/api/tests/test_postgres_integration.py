@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 import os
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
-from sqlalchemy import select, text
+from sqlalchemy import insert, select, text
+from sqlalchemy.exc import DBAPIError
 
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
@@ -18,7 +20,13 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure.repository import SqlRepository, spans
+from korpus.infrastructure.repository import (
+    SqlRepository,
+    documents,
+    span_embeddings,
+    spans,
+    versions,
+)
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 pytestmark = pytest.mark.postgres
@@ -34,10 +42,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
         role = connection.execute(
-            text(
-                "SELECT current_user, rolsuper, rolbypassrls "
-                "FROM pg_roles WHERE rolname = current_user"
-            )
+            text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")
         ).one()
     assert role.current_user == "korpus_app"
     assert role.rolsuper is False
@@ -78,10 +83,24 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         repository.create_document_bundle(
             actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
         )
-        return span
+        with repository.engine.begin() as connection:
+            repository._apply_postgres_identity(connection, actor)
+            connection.execute(
+                insert(span_embeddings).values(
+                    span_id=str(span.id),
+                    model_id="integration-model",
+                    dimensions=2,
+                    embedding_json=json.dumps([0.0, 1.0]),
+                    text_hash=span.text_hash,
+                    created_at=datetime.now(UTC),
+                )
+            )
+        return document, version, span
 
-    public_span = create("public", AccessTier.PUBLIC, Classification.PUBLIC, "POSTGRES-PUBLIC")
-    create(
+    public_document, public_version, public_span = create(
+        "public", AccessTier.PUBLIC, Classification.PUBLIC, "POSTGRES-PUBLIC"
+    )
+    restricted_document, restricted_version, restricted_span = create(
         "restricted-demo",
         AccessTier.RESTRICTED,
         Classification.RESTRICTED,
@@ -103,7 +122,29 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
 
     with repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, public_identity)
-        visible_text = connection.execute(select(spans.c.text)).scalars().all()
-    assert any("POSTGRES-PUBLIC" in value for value in visible_text)
-    assert all("POSTGRES-RESTRICTED" not in value for value in visible_text)
+        visible_documents = set(connection.execute(select(documents.c.id)).scalars())
+        visible_versions = set(connection.execute(select(versions.c.id)).scalars())
+        visible_spans = set(connection.execute(select(spans.c.id)).scalars())
+        visible_embeddings = set(connection.execute(select(span_embeddings.c.span_id)).scalars())
+    assert visible_documents == {str(public_document.id)}
+    assert visible_versions == {str(public_version.id)}
+    assert visible_spans == {str(public_span.id)}
+    assert visible_embeddings == {str(public_span.id)}
+    assert str(restricted_document.id) not in visible_documents
+    assert str(restricted_version.id) not in visible_versions
+    assert str(restricted_span.id) not in visible_spans
+
+    # Missing session identity fails closed across every corpus-bearing table.
+    with repository.engine.connect() as connection:
+        assert connection.execute(select(documents.c.id)).all() == []
+        assert connection.execute(select(versions.c.id)).all() == []
+        assert connection.execute(select(spans.c.id)).all() == []
+        assert connection.execute(select(span_embeddings.c.span_id)).all() == []
+
+    # The application role can read but cannot forge migration state.
+    with pytest.raises(DBAPIError):
+        with repository.engine.begin() as connection:
+            connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
+
     assert repository.verify_audit().valid is True
+    repository.close()

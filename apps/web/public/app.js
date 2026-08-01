@@ -2,7 +2,7 @@ const form = document.querySelector("#query-form");
 const query = document.querySelector("#query");
 const submit = document.querySelector("#submit");
 const result = document.querySelector("#result");
-const apiUrl = window.KORPUS_CONFIG?.apiUrl ?? "http://127.0.0.1:8000";
+const apiUrl = window.KORPUS_CONFIG?.apiUrl ?? "/api";
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);

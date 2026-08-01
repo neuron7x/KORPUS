@@ -4,18 +4,22 @@ import hashlib
 import hmac
 import json
 import time
+import threading
 from datetime import UTC, date, datetime
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Callable, TypeVar
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     Column,
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     String,
@@ -33,6 +37,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.pool import NullPool
 
 from korpus.application.policy import PolicyEngine
 from korpus.domain.models import (
@@ -47,6 +52,8 @@ from korpus.domain.models import (
     ReviewState,
 )
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
+
+SCHEMA_REVISION = "0003_infrastructure_hardening"
 
 metadata = MetaData()
 
@@ -92,7 +99,18 @@ versions = Table(
     Column("created_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint("document_id", "source_hash", name="uq_version_document_source_hash"),
     CheckConstraint("state_version >= 0", name="ck_version_state_version"),
+    CheckConstraint("effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from", name="ck_version_effective_window"),
+    CheckConstraint("NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"),
 )
+
+Index(
+    "uq_current_version_per_document",
+    versions.c.document_id,
+    unique=True,
+    sqlite_where=versions.c.is_current.is_(True),
+    postgresql_where=versions.c.is_current.is_(True),
+)
+Index("ix_document_versions_validity", versions.c.document_id, versions.c.review_state, versions.c.effective_from, versions.c.effective_until)
 
 spans = Table(
     "evidence_spans",
@@ -123,7 +141,7 @@ span_embeddings = Table(
 audits = Table(
     "audit_events",
     metadata,
-    Column("sequence", Integer, primary_key=True),
+    Column("sequence", BigInteger, primary_key=True),
     Column("event_id", String(36), nullable=False, unique=True),
     Column("event_schema_version", Integer, nullable=False, default=1),
     Column("occurred_at", DateTime(timezone=True), nullable=False),
@@ -141,7 +159,7 @@ audit_anchor_outbox = Table(
     metadata,
     Column(
         "sequence",
-        Integer,
+        BigInteger,
         ForeignKey("audit_events.sequence", ondelete="CASCADE"),
         primary_key=True,
     ),
@@ -154,10 +172,12 @@ audit_heads = Table(
     "audit_heads",
     metadata,
     Column("singleton_id", Integer, primary_key=True),
-    Column("sequence", Integer, nullable=False),
+    Column("sequence", BigInteger, nullable=False),
     Column("head_hash", String(64), nullable=False),
     CheckConstraint("singleton_id = 1", name="ck_audit_head_singleton"),
 )
+
+Index("ix_audit_anchor_outbox_pending", audit_anchor_outbox.c.delivered_at, audit_anchor_outbox.c.created_at, audit_anchor_outbox.c.sequence)
 
 
 class ConcurrentWriteError(RuntimeError):
@@ -175,9 +195,33 @@ class SqlRepository:
         policy: PolicyEngine | None = None,
         audit_anchor_path: Path | None = None,
         audit_anchor_store: AuditAnchorStore | None = None,
+        *,
+        pool_size: int = 8,
+        max_overflow: int = 8,
+        pool_timeout_seconds: float = 10.0,
+        pool_recycle_seconds: int = 1800,
+        connect_timeout_seconds: int = 5,
+        statement_timeout_ms: int = 30_000,
+        lock_timeout_ms: int = 5_000,
     ) -> None:
-        connect_args = {"check_same_thread": False, "timeout": 30} if database_url.startswith("sqlite") else {}
-        self.engine: Engine = create_engine(database_url, future=True, connect_args=connect_args, pool_pre_ping=True)
+        engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
+        if database_url.startswith("sqlite"):
+            engine_options["connect_args"] = {"check_same_thread": False, "timeout": max(1, connect_timeout_seconds)}
+            # SQLite is a local/test profile. Avoid retaining DB-API handles across
+            # application lifecycles and threads; each unit of work owns its connection.
+            engine_options["poolclass"] = NullPool
+        elif database_url.startswith("postgresql"):
+            engine_options.update(
+                pool_size=pool_size,
+                max_overflow=max_overflow,
+                pool_timeout=pool_timeout_seconds,
+                pool_recycle=pool_recycle_seconds,
+                connect_args={
+                    "connect_timeout": connect_timeout_seconds,
+                    "options": f"-c statement_timeout={statement_timeout_ms} -c lock_timeout={lock_timeout_ms}",
+                },
+            )
+        self.engine = create_engine(database_url, **engine_options)
         if database_url.startswith("sqlite"):
             event.listen(self.engine, "connect", self._configure_sqlite)
         self.audit_key = audit_hmac_key.encode("utf-8")
@@ -186,6 +230,8 @@ class SqlRepository:
         self.anchor_store: AuditAnchorStore = audit_anchor_store or FileAuditAnchorStore(
             anchor_path, self.audit_key
         )
+        self._sqlite_write_lock = threading.RLock()
+        self._anchor_delivery_lock = threading.Lock()
 
     @staticmethod
     def _configure_sqlite(dbapi_connection: Any, connection_record: Any) -> None:
@@ -205,6 +251,11 @@ class SqlRepository:
             missing = set(metadata.tables).difference(actual)
             if missing:
                 raise RuntimeError(f"database schema is not migrated: missing {sorted(missing)}")
+            revision = self.schema_revision()
+            if revision != SCHEMA_REVISION:
+                raise RuntimeError(
+                    f"database schema revision mismatch: expected {SCHEMA_REVISION}, got {revision or 'none'}"
+                )
         with self.engine.begin() as connection:
             head = connection.execute(
                 select(audit_heads.c.singleton_id).where(audit_heads.c.singleton_id == 1)
@@ -222,7 +273,11 @@ class SqlRepository:
                 ).one()
             if sequence == 0:
                 self.anchor_store.write(0, head_hash)
-        self.reconcile_audit_anchor()
+        try:
+            self.reconcile_audit_anchor()
+        except AnchorError:
+            # The committed outbox is authoritative; background reconciliation repairs the anchor.
+            pass
 
     def reset(self) -> None:
         if self.engine.dialect.name == "sqlite":
@@ -284,8 +339,9 @@ class SqlRepository:
 
         self._transaction_with_anchor(operation)
 
-    def get_document(self, document_id: UUID) -> DocumentRecord | None:
-        with self.engine.connect() as connection:
+    def get_document(self, identity: Identity, document_id: UUID) -> DocumentRecord | None:
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
             row = connection.execute(
                 select(documents).where(documents.c.id == str(document_id))
             ).mappings().first()
@@ -300,19 +356,23 @@ class SqlRepository:
             .where(documents.c.classification.in_(allowed_classifications))
             .order_by(documents.c.created_at.desc(), documents.c.id)
         )
-        with self.engine.connect() as connection:
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
             rows = connection.execute(statement).mappings().all()
         return [self._document(row) for row in rows]
 
-    def get_version(self, version_id: UUID) -> DocumentVersionRecord | None:
-        with self.engine.connect() as connection:
-            row = connection.execute(
-                select(versions).where(versions.c.id == str(version_id))
-            ).mappings().first()
+    def get_version(self, identity: Identity, version_id: UUID) -> DocumentVersionRecord | None:
+        statement = select(versions).join(documents, versions.c.document_id == documents.c.id).where(
+            versions.c.id == str(version_id)
+        )
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            row = connection.execute(statement).mappings().first()
         return self._version(row) if row else None
 
     def find_version_by_hash(
         self,
+        identity: Identity,
         source_hash: str,
         *,
         corpus_id: str | None = None,
@@ -326,7 +386,10 @@ class SqlRepository:
                 documents.c.corpus_id == corpus_id
             )
         statement = statement.where(versions.c.source_hash == source_hash).limit(1)
-        with self.engine.connect() as connection:
+        if document_id is not None:
+            statement = statement.join(documents, versions.c.document_id == documents.c.id)
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
             row = connection.execute(statement).mappings().first()
         return self._version(row) if row else None
 
@@ -339,6 +402,7 @@ class SqlRepository:
         note: str,
     ) -> DocumentVersionRecord:
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
+            self._apply_postgres_identity(connection, actor)
             row = connection.execute(
                 select(versions).where(versions.c.id == str(version_id))
             ).mappings().first()
@@ -727,27 +791,34 @@ class SqlRepository:
 
         return self._transaction_with_anchor(operation)
 
-    def reconcile_audit_anchor(self) -> int:
-        """Deliver committed audit checkpoints to the external anchor.
+    def reconcile_audit_anchor(self, *, limit: int | None = None) -> int:
+        """Deliver committed checkpoints from the transactional outbox.
 
-        The database transaction records an outbox row atomically with every
-        audit event. A crash between commit and file anchoring is therefore
-        recoverable without replaying the business operation.
+        The business transaction never depends on remote anchor availability.
+        Concurrent PostgreSQL workers claim rows with SKIP LOCKED; delivery is
+        idempotent at the anchor contract.
         """
+        if not self._anchor_delivery_lock.acquire(blocking=False):
+            return 0
+        try:
+            return self._reconcile_audit_anchor_locked(limit=limit)
+        finally:
+            self._anchor_delivery_lock.release()
+
+    def _reconcile_audit_anchor_locked(self, *, limit: int | None = None) -> int:
         delivered = 0
-        while True:
+        while limit is None or delivered < limit:
             with self.engine.connect() as connection:
                 row = connection.execute(
-                    select(
-                        audit_anchor_outbox.c.sequence,
-                        audit_anchor_outbox.c.head_hash,
-                    )
+                    select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
                     .where(audit_anchor_outbox.c.delivered_at.is_(None))
                     .order_by(audit_anchor_outbox.c.sequence)
                     .limit(1)
                 ).one_or_none()
             if row is None:
                 return delivered
+            # Never hold a database transaction or row lock across network I/O.
+            # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
             self.anchor_store.write(row.sequence, row.head_hash)
             with self.engine.begin() as connection:
                 result = connection.execute(
@@ -757,6 +828,7 @@ class SqlRepository:
                     .values(delivered_at=datetime.now(UTC))
                 )
                 delivered += int(result.rowcount == 1)
+        return delivered
 
     def verify_audit(self) -> AuditVerification:
         with self.engine.connect() as connection:
@@ -842,9 +914,95 @@ class SqlRepository:
             digest.update(":".join(row).encode("utf-8") + b"\n")
         return digest.hexdigest()[:16]
 
+    def schema_revision(self) -> str | None:
+        try:
+            with self.engine.connect() as connection:
+                if "alembic_version" not in inspect(connection).get_table_names():
+                    return None
+                return connection.execute(sql_text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+        except OperationalError:
+            return None
+
     def healthcheck(self) -> bool:
+        try:
+            with self.engine.connect() as connection:
+                return connection.execute(select(1)).scalar_one() == 1
+        except OperationalError:
+            return False
+
+    def readiness_snapshot(
+        self, *, max_pending_events: int, max_pending_age_seconds: float
+    ) -> dict[str, object]:
+        now = datetime.now(UTC)
         with self.engine.connect() as connection:
-            return connection.execute(select(1)).scalar_one() == 1
+            database_ok = connection.execute(select(1)).scalar_one() == 1
+            head_sequence, head_hash = connection.execute(
+                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
+            ).one()
+            pending_count, oldest_pending = connection.execute(
+                select(func.count(), func.min(audit_anchor_outbox.c.created_at)).where(
+                    audit_anchor_outbox.c.delivered_at.is_(None)
+                )
+            ).one()
+        oldest_age = 0.0
+        if oldest_pending is not None:
+            if oldest_pending.tzinfo is None:
+                oldest_pending = oldest_pending.replace(tzinfo=UTC)
+            oldest_age = max(0.0, (now - oldest_pending).total_seconds())
+        anchor = self.anchor_store.read()
+        anchor_not_ahead = anchor.sequence <= head_sequence
+        if anchor.sequence == 0:
+            anchor_matches_history = anchor.head_hash == "0" * 64
+        elif anchor_not_ahead:
+            with self.engine.connect() as connection:
+                historical_hash = connection.execute(
+                    select(audits.c.event_hash).where(audits.c.sequence == anchor.sequence)
+                ).scalar_one_or_none()
+            anchor_matches_history = historical_hash is not None and hmac.compare_digest(
+                historical_hash, anchor.head_hash
+            )
+        else:
+            anchor_matches_history = False
+        anchor_gap = max(0, int(head_sequence) - int(anchor.sequence))
+        with self.engine.connect() as connection:
+            recoverable_gap = connection.execute(
+                select(func.count()).select_from(audit_anchor_outbox).where(
+                    audit_anchor_outbox.c.sequence > anchor.sequence,
+                    audit_anchor_outbox.c.delivered_at.is_(None),
+                )
+            ).scalar_one()
+        anchor_recoverable = int(recoverable_gap) == anchor_gap
+        pending_ok = int(pending_count) <= max_pending_events and oldest_age <= max_pending_age_seconds
+        revision = self.schema_revision()
+        return {
+            "database": database_ok,
+            "schema_revision": revision,
+            "expected_schema_revision": SCHEMA_REVISION,
+            "schema_current": revision in {None, SCHEMA_REVISION},
+            "audit_head_sequence": int(head_sequence),
+            "audit_head_hash": head_hash,
+            "anchor_sequence": int(anchor.sequence),
+            "anchor_not_ahead": anchor_not_ahead,
+            "anchor_matches_history": anchor_matches_history,
+            "anchor_gap_events": anchor_gap,
+            "anchor_gap_recoverable": anchor_recoverable,
+            "pending_anchor_events": int(pending_count),
+            "oldest_pending_seconds": oldest_age,
+            "outbox_within_budget": pending_ok,
+            "ready": bool(
+                database_ok
+                and anchor_not_ahead
+                and anchor_matches_history
+                and anchor_recoverable
+                and pending_ok
+            ),
+        }
+
+    def close(self) -> None:
+        try:
+            self.anchor_store.close()
+        finally:
+            self.engine.dispose()
 
     def _transaction_with_anchor(
         self,
@@ -852,19 +1010,25 @@ class SqlRepository:
         retries: int = 8,
     ) -> T:
         last_error: Exception | None = None
-        for attempt in range(retries):
-            try:
-                with self.engine.begin() as connection:
-                    result, _anchor = operation(connection)
-                self.reconcile_audit_anchor()
-                return result
-            except ConcurrentWriteError as exc:
-                last_error = exc
-            except OperationalError as exc:
-                if "locked" not in str(exc).lower() and "serialization" not in str(exc).lower():
-                    raise
-                last_error = exc
-            time.sleep(0.002 * (2**attempt))
+        write_guard = self._sqlite_write_lock if self.engine.dialect.name == "sqlite" else nullcontext()
+        with write_guard:
+            for attempt in range(retries):
+                try:
+                    with self.engine.begin() as connection:
+                        result, _anchor = operation(connection)
+                    try:
+                        self.reconcile_audit_anchor(limit=1)
+                    except (AnchorError, OSError, TimeoutError):
+                        # Commit succeeded. The durable outbox is retried by the lifecycle worker.
+                        pass
+                    return result
+                except ConcurrentWriteError as exc:
+                    last_error = exc
+                except OperationalError as exc:
+                    if "locked" not in str(exc).lower() and "serialization" not in str(exc).lower():
+                        raise
+                    last_error = exc
+                time.sleep(0.002 * (2**attempt))
         raise ConcurrentWriteError("transaction retry budget exhausted") from last_error
 
     def _append_audit_in_connection(

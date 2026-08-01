@@ -67,9 +67,9 @@ class IngestionService:
         if document_data.corpus_id not in actor.corpora and not actor.has_role("admin"):
             raise PermissionError("actor cannot ingest into unassigned corpus")
         digest = self._validate_and_hash(content)
-        duplicate = self.repository.find_version_by_hash(digest, corpus_id=document_data.corpus_id)
+        duplicate = self.repository.find_version_by_hash(actor, digest, corpus_id=document_data.corpus_id)
         if duplicate is not None:
-            duplicate_document = self.repository.get_document(duplicate.document_id)
+            duplicate_document = self.repository.get_document(actor, duplicate.document_id)
             if duplicate_document is None or not self.policy.can_access_document(actor, duplicate_document).allowed:
                 raise ValueError("duplicate source content already exists")
             return IngestResult(
@@ -104,13 +104,13 @@ class IngestionService:
         content: bytes,
     ) -> IngestResult:
         self.policy.require(actor, "document:ingest")
-        document = self.repository.get_document(document_id)
+        document = self.repository.get_document(actor, document_id)
         if document is None:
             raise LookupError("document not found")
         if not self.policy.can_access_document(actor, document).allowed:
             raise PermissionError("actor cannot access target document")
         digest = self._validate_and_hash(content)
-        duplicate = self.repository.find_version_by_hash(digest, document_id=document.id)
+        duplicate = self.repository.find_version_by_hash(actor, digest, document_id=document.id)
         if duplicate is not None:
             return IngestResult(
                 document=document,
@@ -120,7 +120,7 @@ class IngestionService:
                 duplicate=True,
             )
         if version_data.supersedes_version_id is not None:
-            superseded = self.repository.get_version(version_data.supersedes_version_id)
+            superseded = self.repository.get_version(actor, version_data.supersedes_version_id)
             if superseded is None or superseded.document_id != document.id:
                 raise ValueError("supersedes_version_id must reference the same canonical document")
 
@@ -143,7 +143,7 @@ class IngestionService:
         version_id: UUID,
         transition: ReviewTransition,
     ) -> DocumentVersionRecord:
-        version = self.repository.get_version(version_id)
+        version = self.repository.get_version(actor, version_id)
         if version is None:
             raise LookupError("version not found")
         permission = "document:review_metadata" if transition.target is ReviewState.METADATA_REVIEWED else "document:review"

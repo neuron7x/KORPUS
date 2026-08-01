@@ -46,18 +46,23 @@ def test_controlled_settings_reject_unvalidated_calibration(tmp_path: Path):
     with pytest.raises(ValueError, match="finite-sample risk gate"):
         Settings(
             environment="production",
+            database_url="postgresql+psycopg://user:pass@db/korpus?sslmode=verify-full",
             schema_mode="migrations",
             object_store_mode="s3",
             s3_bucket="korpus-test",
+            s3_governance_retention_days=30,
             auth_mode="oidc",
             oidc_jwks_url="https://id.example/jwks",
             jwt_issuer="https://id.example",
             audit_hmac_key="a" * 40,
             audit_anchor_mode="http",
             audit_anchor_url="https://anchor.example/v1/head",
+            audit_anchor_token="anchor-test-token",
             answer_policy_mode="calibrated",
             calibration_profile_path=path,
             review_separation_required=True,
+            metrics_token="metrics-test-token",
+            cors_origins="https://korpus.example",
         )
 
 
@@ -66,18 +71,23 @@ def test_controlled_settings_accept_valid_profile(tmp_path: Path):
     path.write_text(profile().model_dump_json())
     settings = Settings(
         environment="production",
+        database_url="postgresql+psycopg://user:pass@db/korpus?sslmode=verify-full",
         schema_mode="migrations",
         object_store_mode="s3",
         s3_bucket="korpus-test",
+        s3_governance_retention_days=30,
         auth_mode="oidc",
         oidc_jwks_url="https://id.example/jwks",
         jwt_issuer="https://id.example",
         audit_hmac_key="a" * 40,
         audit_anchor_mode="http",
         audit_anchor_url="https://anchor.example/v1/head",
+        audit_anchor_token="anchor-test-token",
         answer_policy_mode="calibrated",
         calibration_profile_path=path,
         review_separation_required=True,
+        metrics_token="metrics-test-token",
+        cors_origins="https://korpus.example",
     )
     assert settings.answer_policy_mode == "calibrated"
     assert settings.review_separation_required is True

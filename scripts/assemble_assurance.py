@@ -21,30 +21,7 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def source_tree_digest() -> str:
-    hasher = hashlib.sha256()
-    roots = [
-        ROOT / "apps/api/src",
-        ROOT / "apps/api/tests",
-        ROOT / "scripts",
-        ROOT / "config",
-        ROOT / "evals",
-        ROOT / ".gitlab-ci.yml",
-    ]
-    files: list[Path] = []
-    for root in roots:
-        if root.is_file():
-            files.append(root)
-        elif root.is_dir():
-            files.extend(path for path in root.rglob("*") if path.is_file() and "__pycache__" not in path.parts)
-    for path in sorted(files):
-        relative = path.relative_to(ROOT).as_posix().encode()
-        hasher.update(len(relative).to_bytes(4, "big"))
-        hasher.update(relative)
-        content = path.read_bytes()
-        hasher.update(len(content).to_bytes(8, "big"))
-        hasher.update(content)
-    return hasher.hexdigest()
+from source_digest import source_tree_digest
 
 
 def main() -> int:
@@ -69,7 +46,7 @@ def main() -> int:
         "operational": loaded["operational"].get("status") == "PASS",
     }
     report = {
-        "schema_version": 3,
+        "schema_version": 4,
         "status": "PASS" if all(checks.values()) else "FAIL",
         "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
         "source_tree_sha256": source_tree_digest(),
@@ -86,7 +63,7 @@ def main() -> int:
             "mypy": "NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB",
         },
         "limitations": [
-            "PostgreSQL service-container integration remains a GitLab gate; one local test is skipped.",
+            "PostgreSQL/pgvector, backup-restore, and container execution remain GitLab gates; one local test is skipped.",
             "Ruff and mypy packages were unavailable in this runtime and remain mandatory GitLab jobs.",
             "Synthetic local scale evidence is not a production SLA.",
             "Passing software gates is not corpus, cyber, regulatory or military authorization.",

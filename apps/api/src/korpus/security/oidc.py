@@ -24,9 +24,10 @@ class OIDCVerifier:
             raise ValueError("OIDC JWKS URL must use HTTPS")
         if not issuer.startswith("https://"):
             raise ValueError("OIDC issuer must use HTTPS")
-        if not algorithms or any(algorithm.startswith("HS") or algorithm == "none" for algorithm in algorithms):
-            raise ValueError("OIDC algorithms must be asymmetric and explicitly pinned")
-        self.issuer = issuer.rstrip("/")
+        allowed_algorithms = {"RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512", "EdDSA"}
+        if not algorithms or len(set(algorithms)) != len(algorithms) or any(algorithm not in allowed_algorithms for algorithm in algorithms):
+            raise ValueError("OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned")
+        self.issuer = issuer
         self.audience = audience
         self.algorithms = tuple(algorithms)
         self.clock_skew_seconds = clock_skew_seconds
@@ -60,3 +61,8 @@ class OIDCVerifier:
         if not isinstance(claims.get("aud"), (str, list)):
             raise jwt.InvalidAudienceError("aud claim has invalid type")
         return claims
+
+    def close(self) -> None:
+        close = getattr(self.client, "close", None)
+        if callable(close):
+            close()

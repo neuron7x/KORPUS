@@ -7,7 +7,7 @@ from pathlib import Path
 from korpus.application.operations import OperationalReleaseGate
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = ROOT / "config/operations/reference-v3.json"
+POLICY = ROOT / "config/operations/reference-v4.json"
 REPORT_PATHS = {
     "eval": ROOT / "var/eval-report.json",
     "mutation": ROOT / "var/mutation-report.json",

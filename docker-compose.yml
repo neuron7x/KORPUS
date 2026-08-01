@@ -1,88 +1,312 @@
+name: korpus
+
+x-service-hardening: &service-hardening
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  pids_limit: 256
+  ulimits:
+    nofile:
+      soft: 65536
+      hard: 65536
+  stop_grace_period: 30s
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
 services:
-  api:
+  postgres:
+    <<: *service-hardening
+    image: pgvector/pgvector:0.8.5-pg17-trixie
+    mem_limit: 2g
+    cpus: 2.0
+    shm_size: 256m
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - effective_cache_size=1GB
+      - -c
+      - work_mem=8MB
+      - -c
+      - maintenance_work_mem=128MB
+      - -c
+      - wal_compression=on
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - idle_in_transaction_session_timeout=60000
+      - -c
+      - log_min_duration_statement=1000
+    environment:
+      POSTGRES_DB: korpus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+      POSTGRES_INITDB_ARGS: --data-checksums --auth-host=scram-sha-256
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    secrets:
+      - postgres_admin_password
+    expose:
+      - "5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d korpus"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  migrate:
+    <<: *service-hardening
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    restart: "no"
+    mem_limit: 512m
+    cpus: 1.0
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1770,uid=10001,gid=10001
     environment:
       KORPUS_ENVIRONMENT: local
-      KORPUS_DATABASE_URL: sqlite:////data/korpus.db
-      KORPUS_OBJECT_ROOT: /data/objects
-      KORPUS_AUTH_MODE: dev
-      KORPUS_AUDIT_HMAC_KEY_FILE: /run/secrets/audit_hmac_key
-      KORPUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
-      KORPUS_CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
-    secrets: [audit_hmac_key, jwt_secret]
-    ports: ["127.0.0.1:8000:8000"]
-    volumes: ["app-data:/data"]
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    ports: ["127.0.0.1:3000:8080"]
+      KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://postgres:{password}@postgres:5432/korpus
+      KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_admin_password
+      KORPUS_POSTGRES_APP_ROLE: korpus_app
+      KORPUS_POSTGRES_APP_PASSWORD_FILE: /run/secrets/postgres_app_password
+    secrets:
+      - postgres_admin_password
+      - postgres_app_password
     depends_on:
-      api:
+      postgres:
         condition: service_healthy
-
-  postgres:
-    profiles: ["support"]
-    image: pgvector/pgvector:pg17
-    environment:
-      POSTGRES_DB: korpus
-      POSTGRES_USER: korpus
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    secrets: [postgres_password]
-    ports: ["127.0.0.1:5432:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U korpus"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  redis:
-    profiles: ["support"]
-    image: redis:7.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
-    ports: ["127.0.0.1:6379:6379"]
-    volumes: ["redis-data:/data"]
+    networks:
+      - backend
+    command:
+      - /bin/sh
+      - -ec
+      - >-
+        cd /app/apps/api &&
+        python -m alembic -c alembic.ini upgrade head &&
+        cd /app &&
+        python scripts/prepare_postgres_role.py
 
   minio:
-    profiles: ["support"]
+    <<: *service-hardening
     image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    mem_limit: 1g
+    cpus: 1.0
     command: server /data --console-address :9001
     environment:
       MINIO_ROOT_USER: korpus-local
-      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_password
-    secrets: [minio_password]
-    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
-    volumes: ["minio-data:/data"]
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_root_password
+    secrets:
+      - minio_root_password
+    expose:
+      - "9000"
+      - "9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:9000/minio/health/ready >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  minio-init:
+    <<: *service-hardening
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    restart: "no"
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1770
+    secrets:
+      - minio_root_password
+      - minio_app_access_key
+      - minio_app_secret_key
+    volumes:
+      - ./infra/minio/korpus-app-policy.json:/config/korpus-app-policy.json:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - backend
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - >-
+        mc alias set local http://minio:9000 korpus-local "$$(cat /run/secrets/minio_root_password)" &&
+        mc mb --ignore-existing --with-lock local/korpus &&
+        mc version enable local/korpus &&
+        mc anonymous set none local/korpus &&
+        (mc admin user remove local "$$(cat /run/secrets/minio_app_access_key)" >/dev/null 2>&1 || true) &&
+        (mc admin policy remove local korpus-app >/dev/null 2>&1 || true) &&
+        mc admin user add local "$$(cat /run/secrets/minio_app_access_key)" "$$(cat /run/secrets/minio_app_secret_key)" &&
+        mc admin policy create local korpus-app /config/korpus-app-policy.json &&
+        mc admin policy attach local korpus-app --user "$$(cat /run/secrets/minio_app_access_key)"
 
   otel-collector:
-    profiles: ["support"]
-    image: otel/opentelemetry-collector-contrib:0.127.0
+    <<: *service-hardening
+    image: otel/opentelemetry-collector-contrib:0.157.0
+    mem_limit: 512m
+    cpus: 0.5
     command: ["--config=/etc/otelcol/config.yaml"]
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1770
     volumes:
       - ./infra/otel-collector.yaml:/etc/otelcol/config.yaml:ro
-    ports: ["127.0.0.1:4317:4317", "127.0.0.1:4318:4318"]
+    expose:
+      - "4317"
+      - "4318"
+      - "13133"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "/otelcol-contrib", "validate", "--config=/etc/otelcol/config.yaml"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  api:
+    <<: *service-hardening
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    mem_limit: 2g
+    cpus: 2.0
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1770,uid=10001,gid=10001
+    environment:
+      KORPUS_ENVIRONMENT: local
+      KORPUS_SCHEMA_MODE: migrations
+      KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_app:{password}@postgres:5432/korpus
+      KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
+      KORPUS_DATABASE_POOL_SIZE: "8"
+      KORPUS_DATABASE_MAX_OVERFLOW: "8"
+      KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: "10"
+      KORPUS_DATABASE_STATEMENT_TIMEOUT_MS: "30000"
+      KORPUS_OBJECT_STORE_MODE: s3
+      KORPUS_S3_BUCKET: korpus
+      KORPUS_S3_PREFIX: objects
+      KORPUS_S3_ENDPOINT_URL: http://minio:9000
+      KORPUS_S3_REGION: us-east-1
+      KORPUS_S3_FORCE_PATH_STYLE: "true"
+      KORPUS_S3_CONNECT_TIMEOUT_SECONDS: "3"
+      KORPUS_S3_READ_TIMEOUT_SECONDS: "15"
+      AWS_ACCESS_KEY_ID_FILE: /run/secrets/minio_app_access_key
+      AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/minio_app_secret_key
+      KORPUS_AUTH_MODE: dev
+      KORPUS_AUDIT_ANCHOR_MODE: file
+      KORPUS_AUDIT_ANCHOR_PATH: /audit/audit-anchor.json
+      KORPUS_AUDIT_HMAC_KEY_FILE: /run/secrets/audit_hmac_key
+      KORPUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
+      KORPUS_METRICS_TOKEN_FILE: /run/secrets/metrics_token
+      KORPUS_OTLP_ENDPOINT: http://otel-collector:4317
+      KORPUS_CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      KORPUS_TRUSTED_HOSTS: localhost,127.0.0.1,testserver
+      KORPUS_AUDIT_RECONCILE_INTERVAL_SECONDS: "2"
+      KORPUS_AUDIT_MAX_PENDING_EVENTS: "64"
+      KORPUS_AUDIT_MAX_PENDING_AGE_SECONDS: "30"
+    secrets:
+      - source: postgres_app_password
+        target: postgres_app_password
+      - source: minio_app_access_key
+        target: minio_app_access_key
+      - source: minio_app_secret_key
+        target: minio_app_secret_key
+      - audit_hmac_key
+      - jwt_secret
+      - metrics_token
+    volumes:
+      - audit-anchor:/audit
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      otel-collector:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks:
+      - edge
+      - backend
+      - egress
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 10s
+      timeout: 4s
+      retries: 12
+      start_period: 20s
+
+  web:
+    <<: *service-hardening
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1770,uid=101,gid=101
+    ports:
+      - "127.0.0.1:3000:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - edge
 
 secrets:
-  postgres_password:
-    file: ./infra/secrets/postgres_password.txt
-  minio_password:
-    file: ./infra/secrets/minio_password.txt
+  postgres_admin_password:
+    file: ./infra/secrets/postgres_admin_password.txt
+  postgres_app_password:
+    file: ./infra/secrets/postgres_app_password.txt
+  minio_app_access_key:
+    file: ./infra/secrets/minio_app_access_key.txt
+  minio_app_secret_key:
+    file: ./infra/secrets/minio_app_secret_key.txt
+  minio_root_password:
+    file: ./infra/secrets/minio_root_password.txt
   audit_hmac_key:
     file: ./infra/secrets/audit_hmac_key.txt
   jwt_secret:
     file: ./infra/secrets/jwt_secret.txt
+  metrics_token:
+    file: ./infra/secrets/metrics_token.txt
 
 volumes:
-  app-data:
   postgres-data:
-  redis-data:
   minio-data:
+  audit-anchor:
+
+networks:
+  edge:
+    internal: true
+  backend:
+    internal: true
+  egress:

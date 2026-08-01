@@ -121,7 +121,7 @@ def main() -> int:
 
     index = {
         "schema": "korpus.assurance-snapshot.v1",
-        "release": "v3.0.0",
+        "release": os.getenv("KORPUS_RELEASE_VERSION", "v4.0.0"),
         "status": "PASS",
         "records": records,
         "limitations": assurance.get("limitations", []),

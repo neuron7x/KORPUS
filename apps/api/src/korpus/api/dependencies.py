@@ -39,6 +39,10 @@ def get_admission_controller(request: Request) -> AdmissionController:
     return request.app.state.admission
 
 
+def get_ingestion_admission_controller(request: Request) -> AdmissionController:
+    return request.app.state.ingestion_admission
+
+
 def get_observability(request: Request) -> Observability:
     return request.app.state.observability
 

@@ -44,7 +44,7 @@ def test_signed_token_contains_server_verified_identity():
 
 def test_controlled_environment_requires_oidc():
     with pytest.raises(ValueError, match="OIDC authentication"):
-        Settings(environment="production", auth_mode="dev")
+        Settings(environment="production", database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full", auth_mode="dev")
 
 
 def test_local_jwt_rejects_weak_secret():
@@ -105,8 +105,10 @@ def test_controlled_environment_requires_migration_managed_schema():
     with pytest.raises(ValueError, match="migration-managed schema"):
         Settings(
             environment="production",
+            database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full",
             object_store_mode="s3",
             s3_bucket="korpus-test",
+            s3_governance_retention_days=30,
             auth_mode="oidc",
             oidc_jwks_url="https://id.example/jwks",
             audit_hmac_key="a" * 40,
@@ -137,9 +139,11 @@ def test_controlled_environment_requires_remote_audit_anchor(tmp_path: Path):
     with pytest.raises(ValueError, match="remote HTTP audit anchor"):
         Settings(
             environment="production",
+            database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full",
             schema_mode="migrations",
             object_store_mode="s3",
             s3_bucket="korpus-test",
+            s3_governance_retention_days=30,
             auth_mode="oidc",
             oidc_jwks_url="https://id.example/jwks",
             jwt_issuer="https://id.example",

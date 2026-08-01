@@ -9,12 +9,7 @@ from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, gene
 
 
 class Observability:
-    """Low-cardinality metrics and optional OpenTelemetry traces.
-
-    Subject, corpus, query, document, and span identifiers are deliberately not
-    metric labels. They belong in the tamper-evident audit stream, not a time
-    series database.
-    """
+    """Low-cardinality metrics and optional OpenTelemetry traces."""
 
     def __init__(
         self,
@@ -60,12 +55,35 @@ class Observability:
             "Currently active answer operations.",
             registry=self.registry,
         )
-        self._tracer = self._configure_tracer(service_name, otlp_endpoint)
+        self.answer_admission_active = self.admission_active
+        self.ingestion_admission_active = Gauge(
+            "korpus_ingestion_admission_active",
+            "Currently active ingestion operations.",
+            registry=self.registry,
+        )
+        self.audit_anchor_pending = Gauge(
+            "korpus_audit_anchor_pending",
+            "Committed audit checkpoints awaiting external anchoring.",
+            registry=self.registry,
+        )
+        self.audit_anchor_oldest_seconds = Gauge(
+            "korpus_audit_anchor_oldest_pending_seconds",
+            "Age of the oldest unanchored checkpoint.",
+            registry=self.registry,
+        )
+        self.audit_anchor_reconcile_failures = Counter(
+            "korpus_audit_anchor_reconcile_failures_total",
+            "Audit-anchor reconciliation failures.",
+            ["error_class"],
+            registry=self.registry,
+        )
+        self._provider, self._tracer = self._configure_tracer(service_name, otlp_endpoint)
 
     @staticmethod
-    def _configure_tracer(service_name: str, endpoint: str | None) -> Any:
+    def _configure_tracer(service_name: str, endpoint: str | None) -> tuple[Any | None, Any]:
         from opentelemetry import trace
 
+        provider: Any | None = None
         if endpoint:
             from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
             from opentelemetry.sdk.resources import Resource
@@ -76,10 +94,12 @@ class Observability:
             if current.__class__.__name__ == "ProxyTracerProvider":
                 provider = TracerProvider(resource=Resource.create({"service.name": service_name}))
                 provider.add_span_processor(
-                    BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint, insecure=endpoint.startswith("http://")))
+                    BatchSpanProcessor(
+                        OTLPSpanExporter(endpoint=endpoint, insecure=endpoint.startswith("http://"))
+                    )
                 )
                 trace.set_tracer_provider(provider)
-        return trace.get_tracer(service_name)
+        return provider, trace.get_tracer(service_name)
 
     @contextlib.contextmanager
     def span(self, name: str, attributes: dict[str, Any] | None = None) -> Iterator[Any]:
@@ -101,8 +121,18 @@ class Observability:
         self.http_latency.labels(method=method, route=route).observe(duration_seconds)
 
     def observe_answer(self, status: str, reason: str, risk: str) -> None:
-        # reason is a closed enum-like set created by the application, not user input.
         self.answers.labels(status=status, reason=reason, risk=risk).inc()
+
+    def observe_anchor_backlog(self, pending: int, oldest_seconds: float) -> None:
+        self.audit_anchor_pending.set(pending)
+        self.audit_anchor_oldest_seconds.set(oldest_seconds)
+
+    def observe_anchor_reconcile_failure(self, error: BaseException) -> None:
+        self.audit_anchor_reconcile_failures.labels(error_class=type(error).__name__).inc()
 
     def export_prometheus(self) -> bytes:
         return generate_latest(self.registry)
+
+    def close(self) -> None:
+        if self._provider is not None:
+            self._provider.shutdown()

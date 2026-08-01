@@ -34,6 +34,8 @@ class AuditAnchorStore(Protocol):
 
     def reset(self) -> None: ...
 
+    def close(self) -> None: ...
+
 
 class _SignedAnchorCodec:
     def __init__(self, key: bytes) -> None:
@@ -110,6 +112,11 @@ class FileAuditAnchorStore:
                     os.fsync(handle.fileno())
                 os.chmod(temporary_name, 0o600)
                 os.replace(temporary_name, self.path)
+                directory_fd = os.open(self.path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+                try:
+                    os.fsync(directory_fd)
+                finally:
+                    os.close(directory_fd)
             finally:
                 if os.path.exists(temporary_name):
                     os.unlink(temporary_name)
@@ -131,6 +138,9 @@ class FileAuditAnchorStore:
         with self._locked():
             if self.path.exists():
                 self.path.unlink()
+
+    def close(self) -> None:
+        return None
 
 
 class HttpAuditAnchorStore:
@@ -155,7 +165,12 @@ class HttpAuditAnchorStore:
         self.endpoint = endpoint.rstrip("/")
         self.codec = _SignedAnchorCodec(key)
         headers = {"Authorization": f"Bearer {token}"} if token else {}
-        self.client = client or httpx.Client(timeout=timeout_seconds, headers=headers)
+        self.client = client or httpx.Client(
+            timeout=httpx.Timeout(timeout_seconds),
+            headers=headers,
+            limits=httpx.Limits(max_connections=8, max_keepalive_connections=4),
+            transport=httpx.HTTPTransport(retries=2),
+        )
 
     def initialized(self) -> bool:
         response = self.client.get(self.endpoint)
@@ -196,6 +211,11 @@ class HttpAuditAnchorStore:
 
     def reset(self) -> None:
         raise AnchorError("remote audit anchor reset is forbidden")
+
+    def close(self) -> None:
+        close = getattr(self.client, "close", None)
+        if callable(close):
+            close()
 
     @staticmethod
     def _raise_for_status(response: Any) -> None:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -11,6 +12,7 @@ from uuid import UUID
 import httpx
 from sqlalchemy import Engine, text as sql_text
 
+from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
@@ -21,17 +23,25 @@ class EmbeddingProvider(Protocol):
     dimensions: int
 
     def embed(self, text: str) -> list[float]: ...
+    def healthcheck(self) -> bool: ...
+    def close(self) -> None: ...
 
 
 @dataclass
 class HttpEmbeddingProvider:
-    """Vendor-neutral internal embedding service integration."""
+    """Bounded vendor-neutral embedding integration.
+
+    The service is not authoritative. Failures open a circuit and retrieval
+    falls back to the lexical path rather than blocking corpus access.
+    """
 
     endpoint: str
     model_id: str
     dimensions: int
     token: str | None = None
     timeout_seconds: float = 5.0
+    max_attempts: int = 3
+    max_response_bytes: int = 2 * 1024 * 1024
     client: Any | None = None
 
     def __post_init__(self) -> None:
@@ -39,34 +49,56 @@ class HttpEmbeddingProvider:
             raise ValueError("embedding endpoint must use HTTPS or loopback HTTP")
         if not MODEL_PATTERN.fullmatch(self.model_id) or self.dimensions < 8:
             raise ValueError("invalid embedding model configuration")
+        if self.max_attempts < 1 or self.max_response_bytes < 1024:
+            raise ValueError("invalid embedding resilience limits")
         if self.client is None:
             headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-            self.client = httpx.Client(timeout=self.timeout_seconds, headers=headers)
+            self.client = httpx.Client(
+                timeout=httpx.Timeout(self.timeout_seconds),
+                headers=headers,
+                limits=httpx.Limits(max_connections=16, max_keepalive_connections=8),
+                transport=httpx.HTTPTransport(retries=self.max_attempts - 1),
+            )
+        self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
     def embed(self, text: str) -> list[float]:
-        response = self.client.post(
-            self.endpoint,
-            json={"model": self.model_id, "input": text},
-        )
-        response.raise_for_status()
-        payload = response.json()
-        vector = payload.get("embedding")
-        if not isinstance(vector, list) or len(vector) != self.dimensions:
-            raise RuntimeError("embedding service returned invalid dimensions")
-        values = [float(value) for value in vector]
-        norm = sum(value * value for value in values) ** 0.5
-        if norm == 0 or any(not (-1e6 < value < 1e6) for value in values):
-            raise RuntimeError("embedding service returned invalid vector")
-        return [value / norm for value in values]
+        if not text or len(text) > 12_000:
+            raise ValueError("embedding input length is invalid")
+
+        def operation() -> list[float]:
+            response = self.client.post(self.endpoint, json={"model": self.model_id, "input": text})
+            response.raise_for_status()
+            if len(response.content) > self.max_response_bytes:
+                raise RuntimeError("embedding response exceeds configured limit")
+            payload = response.json()
+            vector = payload.get("embedding")
+            if not isinstance(vector, list) or len(vector) != self.dimensions:
+                raise RuntimeError("embedding service returned invalid dimensions")
+            values = [float(value) for value in vector]
+            if any(not math.isfinite(value) or abs(value) >= 1e6 for value in values):
+                raise RuntimeError("embedding service returned invalid vector")
+            norm = sum(value * value for value in values) ** 0.5
+            if norm == 0:
+                raise RuntimeError("embedding service returned zero vector")
+            return [value / norm for value in values]
+
+        return self._circuit.call(operation)
+
+    def healthcheck(self) -> bool:
+        try:
+            response = self.client.get(self.endpoint, headers={"Accept": "application/json"})
+            return response.status_code < 500
+        except Exception:
+            return False
+
+    def close(self) -> None:
+        close = getattr(self.client, "close", None)
+        if callable(close):
+            close()
 
 
 class PgVectorSemanticIndex:
-    """Authorized pgvector candidate source.
-
-    Authorization predicates are repeated in SQL and PostgreSQL RLS is expected
-    as a second independent barrier. Returned similarity is normalized cosine
-    similarity in [0, 1].
-    """
+    """Authorized pgvector candidate source with RLS as an independent barrier."""
 
     def __init__(self, engine: Engine, provider: EmbeddingProvider) -> None:
         if engine.dialect.name != "postgresql":
@@ -129,10 +161,13 @@ class PgVectorSemanticIndex:
             ).all()
         return [(UUID(row.span_id), float(row.score)) for row in rows]
 
-    def upsert(self, span_id: UUID, text: str, text_hash: str) -> None:
+    def upsert(self, identity: Identity, span_id: UUID, text: str, text_hash: str) -> None:
+        from korpus.infrastructure.repository import SqlRepository
+
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:
+            SqlRepository._apply_postgres_identity(connection, identity)
             connection.execute(
                 sql_text(
                     """
@@ -160,6 +195,12 @@ class PgVectorSemanticIndex:
                     "created_at": datetime.now(UTC),
                 },
             )
+
+    def healthcheck(self) -> bool:
+        return self.provider.healthcheck()
+
+    def close(self) -> None:
+        self.provider.close()
 
     @staticmethod
     def index_ddl(model_id: str, dimensions: int, *, m: int = 16, ef_construction: int = 64) -> str:

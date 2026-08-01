@@ -2,11 +2,11 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
-	$(PIP) install -e 'apps/api[dev,postgres]'
+	$(PIP) install --no-deps --requirement apps/api/requirements.dev.lock
 
 api-run:
 	mkdir -p var/objects
@@ -63,6 +63,16 @@ audit-verify:
 
 validate:
 	python3 scripts/validate_repository.py
+	python3 scripts/validate_infrastructure.py
+
+infra-validate:
+	python3 scripts/validate_infrastructure.py
+
+backup-postgres:
+	scripts/backup_postgres.sh
+
+restore-postgres:
+	scripts/restore_postgres.sh "$(BACKUP)"
 
 check: validate api-test api-lint eval mutation migration-gate scale operational-gate web-build
 
@@ -72,10 +82,10 @@ infra-secrets:
 	bash scripts/init_local_secrets.sh
 
 infra-up: infra-secrets
-	docker compose up -d api web
+	docker compose up -d --wait web
 
 infra-support: infra-secrets
-	docker compose --profile support up -d
+	docker compose up -d --wait postgres minio otel-collector migrate minio-init
 
 infra-down:
 	docker compose down

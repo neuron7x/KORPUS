@@ -127,14 +127,14 @@ def test_committed_audit_anchor_failure_is_recoverable_without_replaying_event(
         raise AnchorError("forced anchor outage")
 
     monkeypatch.setattr(repository.anchor_store, "write", fail_write)
-    with pytest.raises(AnchorError, match="forced anchor outage"):
-        repository.append_audit(
-            admin_identity,
-            "recoverable.anchor.probe",
-            "test",
-            "one",
-            {"probe": True},
-        )
+    event_hash = repository.append_audit(
+        admin_identity,
+        "recoverable.anchor.probe",
+        "test",
+        "one",
+        {"probe": True},
+    )
+    assert len(event_hash) == 64
     with repository.engine.connect() as connection:
         event_count = connection.execute(select(audits.c.sequence)).all()
     assert len(event_count) == 1

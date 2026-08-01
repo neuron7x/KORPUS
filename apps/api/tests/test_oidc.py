@@ -66,3 +66,18 @@ def test_oidc_rejects_symmetric_or_insecure_configuration():
             audience="api",
             algorithms=["HS256"],
         )
+
+
+def test_oidc_rejects_symmetric_unknown_and_duplicate_algorithms():
+    import pytest
+    from korpus.security.oidc import OIDCVerifier
+
+    for algorithms in (["HS256"], ["none"], ["RS256", "RS256"], ["CUSTOM"]):
+        with pytest.raises(ValueError, match="asymmetric"):
+            OIDCVerifier(
+                jwks_url="https://id.example/jwks",
+                issuer="https://id.example/",
+                audience="korpus-api",
+                algorithms=algorithms,
+                client=object(),
+            )

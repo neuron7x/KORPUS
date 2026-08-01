@@ -31,7 +31,20 @@ class FakeS3:
 
     def get_object(self, Bucket, Key, ChecksumMode):
         item = self.objects[(Bucket, Key)]
-        return {"Body": BytesIO(item["Body"]), "Metadata": item["Metadata"]}
+        return {
+            "Body": BytesIO(item["Body"]),
+            "Metadata": item["Metadata"],
+            "ContentLength": len(item["Body"]),
+        }
+
+    def list_objects_v2(self, Bucket, Prefix, MaxKeys):
+        return {"KeyCount": 0}
+
+    def get_bucket_versioning(self, Bucket):
+        return {"Status": "Enabled"}
+
+    def get_object_lock_configuration(self, Bucket):
+        return {"ObjectLockConfiguration": {"ObjectLockEnabled": "Enabled"}}
 
 
 def test_s3_store_is_content_addressed_idempotent_and_integrity_checked():
@@ -52,3 +65,29 @@ def test_s3_store_is_content_addressed_idempotent_and_integrity_checked():
 def test_s3_store_rejects_hash_mismatch():
     with pytest.raises(ValueError):
         S3ObjectStore(bucket="bucket", client=FakeS3()).put(b"x", "a" * 64, "x")
+
+
+def test_s3_store_rejects_unsafe_prefix_and_bounded_reads():
+    with pytest.raises(ValueError, match="invalid S3"):
+        S3ObjectStore(bucket="bucket", prefix="../escape", client=FakeS3())
+    client = FakeS3()
+    store = S3ObjectStore(bucket="bucket", prefix="objects", max_object_bytes=4, client=client)
+    content = b"12345"
+    digest = hashlib.sha256(content).hexdigest()
+    key = store.put(content, digest, "x")
+    with pytest.raises(RuntimeError, match="read limit"):
+        store.get(key)
+
+
+def test_s3_healthchecks_application_prefix_permission():
+    assert S3ObjectStore(bucket="bucket", prefix="objects", client=FakeS3()).healthcheck() is True
+
+
+def test_s3_healthcheck_requires_versioning_and_object_lock_when_retention_enabled():
+    client = FakeS3()
+    store = S3ObjectStore(
+        bucket="bucket", prefix="objects", governance_retention_days=30, client=client
+    )
+    assert store.healthcheck() is True
+    client.get_bucket_versioning = lambda Bucket: {"Status": "Suspended"}
+    assert store.healthcheck() is False
