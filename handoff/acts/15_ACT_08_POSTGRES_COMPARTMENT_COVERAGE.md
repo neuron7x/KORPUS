@@ -26,10 +26,21 @@
   as a fallback; GitLab exports the pipeline commit explicitly.
 - Diff-attack correction: DB-11 now emits and validates positive anchored backup, restore,
   verification, and arithmetically consistent total-recovery durations.
-- Commands executed: focused backup/restore pytest; infrastructure validator; shell syntax
-  check; diff check. The first post-commit live chain failed closed at manifest validation and
-  is retained in the task transcript; a clean rerun is required after commit.
+- Commands executed: focused backup/restore pytest; 14 evidence and mutation tests;
+  infrastructure validator; targeted Ruff; shell syntax and diff checks; clean PostgreSQL
+  17.10/pgvector 0.8.5 migration, live RLS pytest, encrypted backup, restore into a new
+  database, post-restore verifier, evidence generator and deterministic validator.
+- Final live observations: current head `0009_reviewer_credentials` on source and restore;
+  application role has all five prohibited role flags false; missing-context counts are zero
+  for all five governed corpus relations; compartment cases are missing=0, unrelated=0,
+  exact=1; source and restore digest are identical; JUnit reports one live test and no skips;
+  measured backup=0.425923s, restore=0.944987s, verification=0.513206s,
+  total=1.884116s. Measurements are local `ANCHORED`, not a production SLA.
 - Evidence generated: transient JUnit, sanitized live-assurance JSON, and authenticated
   backup manifest only. Ciphertext, plaintext and encryption keys are not retained.
 - Residual uncertainty: IAM-006 remains `CONFIRMED_OPEN`; this test does not prevent a compromised application process from setting broader GUC claims.
-- Verdict: `PASS_WITH_CAVEATS` only after post-commit live execution; `production_authorized=false`.
+- Unexecuted gates: independent post-change verification, GitLab pipeline, and relevant
+  mutation shard. Local script mypy was unavailable because the existing environment lacks
+  `pathspec.patterns.gitignore`.
+- Verdict: `PASS_WITH_CAVEATS`; independent verification remains required and
+  `production_authorized=false`.
