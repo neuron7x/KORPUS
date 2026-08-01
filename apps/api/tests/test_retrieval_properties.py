@@ -55,3 +55,20 @@ def test_score_bounds_hold_over_seeded_random_inputs():
 def test_character_ngrams_are_deterministic_and_nonempty_for_text():
     assert character_ngrams("Перевірка") == character_ngrams("ПЕРЕВІРКА")
     assert character_ngrams("abc") == frozenset({"abc"})
+
+
+def test_precomputed_character_grams_are_ranking_equivalent():
+    query = "deterministic evidence"
+    texts = ["deterministic evidence record", "unrelated weather record"]
+    expected = score_candidates(query, texts)
+    observed = score_candidates(
+        query,
+        texts,
+        character_gram_sets=[character_ngrams(text) for text in texts],
+    )
+    assert observed == expected
+
+
+def test_precomputed_character_grams_must_cover_every_text():
+    with __import__("pytest").raises(ValueError, match="character gram sets"):
+        score_candidates("query", ["first", "second"], character_gram_sets=[frozenset()])

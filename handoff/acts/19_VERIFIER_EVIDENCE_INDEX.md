@@ -21,6 +21,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | Type lock and deterministic discovery | install `apps/api/requirements.dev.lock` into a fresh venv with `--no-deps`, run `pip check`, then `MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src` | 44-file command output |
 | Retrieval performance | `PYTHONPATH=apps/api/src python scripts/run_scale_probe.py` | schema v2 `var/scale-report.json` |
 | Semantic/source determinism | `PYTHONPATH=apps/api/src python scripts/run_determinism_gate.py` | `var/determinism/determinism-assurance.json` |
+| Adaptive retrieval critical path | dense `scripts/run_scale_probe.py` plus focused retrieval properties | ignored ACT-21 profile/scale receipts |
 
 ## Falsification history
 

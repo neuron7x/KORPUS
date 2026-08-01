@@ -34,7 +34,7 @@ def normalize_text(text: str) -> str:
 UKRAINIAN_SUFFIXES = tuple(sorted({
     "ування", "ювання", "овувати", "ювати", "еві", "ові", "ями", "ами", "ого", "ому",
     "ими", "ій", "ою", "ею", "ення", "ання", "яння", "ість", "остей", "ати", "ити",
-    "увати", "ювати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
+    "увати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
     "а", "я", "і", "и", "е", "є", "ом", "ем", "ів", "їв", "ах", "ях", "ам", "ям",
 }, key=len, reverse=True))
 
@@ -178,7 +178,10 @@ class ScoredCandidate:
             self.phrase_score,
             self.temporal_score,
         )
-        combined = sum(weight * value for weight, value in zip(self.weights.as_tuple(), components))
+        combined = sum(
+            weight * value
+            for weight, value in zip(self.weights.as_tuple(), components, strict=True)
+        )
         return min(1.0, max(0.0, combined))
 
 
@@ -192,6 +195,7 @@ def score_candidates(
     semantic_scores: list[float] | None = None,
     temporal_scores: list[float] | None = None,
     weights: RetrievalWeights = RetrievalWeights(),
+    character_gram_sets: list[frozenset[str]] | None = None,
 ) -> list[ScoredCandidate]:
     if official is None:
         official = [False] * len(texts)
@@ -209,6 +213,8 @@ def score_candidates(
         or len(temporal_scores) != len(texts)
     ):
         raise ValueError("component arrays must have equal length")
+    if character_gram_sets is not None and len(character_gram_sets) != len(texts):
+        raise ValueError("character gram sets and texts must have equal length")
     if any(
         not 0 <= value <= 1
         for value in authority_scores + semantic_scores + temporal_scores
@@ -247,7 +253,12 @@ def score_candidates(
                 frequency * (parameters.k1 + 1)
             ) / denominator
         query_coverage = len(query_set.intersection(tokens)) / len(query_set)
-        character_score = jaccard(query_grams, character_ngrams(texts[index]))
+        text_grams = (
+            character_gram_sets[index]
+            if character_gram_sets is not None
+            else character_ngrams(texts[index])
+        )
+        character_score = jaccard(query_grams, text_grams)
         phrase_score = 1.0 if normalized_query in normalize_text(texts[index]) else 0.0
         scored.append(
             ScoredCandidate(
@@ -280,6 +291,7 @@ def diversify_evidence(
     limit: int,
     diversity_lambda: float = 0.82,
     per_version_cap: int = 2,
+    character_grams_by_span: dict[str, frozenset[str]] | None = None,
 ) -> list[RetrievedEvidence]:
     """Maximal-marginal-relevance selection with deterministic tie-breaking."""
 
@@ -290,7 +302,13 @@ def diversify_evidence(
     selected: list[RetrievedEvidence] = []
     remaining = list(ranked)
     version_counts: defaultdict[str, int] = defaultdict(int)
-    grams = {str(item.span.id): character_ngrams(item.span.text) for item in ranked}
+    grams = (
+        {str(item.span.id): character_ngrams(item.span.text) for item in ranked}
+        if character_grams_by_span is None
+        else character_grams_by_span
+    )
+    if any(str(item.span.id) not in grams for item in ranked):
+        raise ValueError("character gram inventory must cover every ranked span")
     while remaining and len(selected) < limit:
         admissible = [
             item for item in remaining if version_counts[str(item.version.id)] < per_version_cap
@@ -368,10 +386,11 @@ class HybridLexicalRetriever(Retriever):
             except Exception as exc:
                 raise RetrievalUnavailable("required semantic retrieval is unavailable") from exc
             semantic_by_span = {str(span_id): score for span_id, score in semantic_hits}
+            candidate_ids = {str(span.id) for span, _, _ in candidates}
             missing_ids = [
                 span_id
                 for span_id, _ in semantic_hits
-                if str(span_id) not in {str(span.id) for span, _, _ in candidates}
+                if str(span_id) not in candidate_ids
             ]
             if missing_ids:
                 candidates.extend(
@@ -385,6 +404,7 @@ class HybridLexicalRetriever(Retriever):
             return []
         # Preserve first occurrence while fusing lexical and semantic candidates.
         candidates = list({str(item[0].id): item for item in candidates}.values())
+        character_gram_sets = [character_ngrams(span.text) for span, _, _ in candidates]
         component_scores = score_candidates(
             text,
             [span.text for span, _, _ in candidates],
@@ -397,6 +417,7 @@ class HybridLexicalRetriever(Retriever):
                 for _, _, version in candidates
             ],
             weights=self.weights,
+            character_gram_sets=character_gram_sets,
         )
         output: list[RetrievedEvidence] = []
         for components in component_scores:
@@ -431,6 +452,10 @@ class HybridLexicalRetriever(Retriever):
             limit=limit,
             diversity_lambda=self.diversity_lambda,
             per_version_cap=self.per_version_cap,
+            character_grams_by_span={
+                str(candidate[0].id): grams
+                for candidate, grams in zip(candidates, character_gram_sets, strict=True)
+            },
         )
 
 

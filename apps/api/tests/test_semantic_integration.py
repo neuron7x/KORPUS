@@ -32,7 +32,11 @@ def test_repository_protocol_can_materialize_authorized_semantic_ids(client):
 
 from datetime import date
 
-from korpus.application.retrieval import HybridLexicalRetriever, RetrievalWeights
+from korpus.application.retrieval import (
+    HybridLexicalRetriever,
+    RetrievalWeights,
+    diversify_evidence,
+)
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -99,6 +103,40 @@ def test_semantic_candidates_are_authorized_materialized_and_fused():
     )
     result = retriever.search(identity, "evacuation procedure", identity.corpora, date.today())
     assert any(item.span.id == semantic[0].id for item in result)
+
+
+def test_retrieval_builds_character_grams_once_per_candidate(monkeypatch):
+    import korpus.application.retrieval as retrieval
+
+    lexical = _bundle("lexical evacuation evidence", "c")
+    semantic = _bundle("semantic evacuation procedure", "d")
+    retriever = HybridLexicalRetriever(
+        FusionRepo(lexical, semantic),
+        candidate_budget=8,
+        weights=RetrievalWeights(
+            lexical=0.12, semantic=0.30, query_coverage=0.20, character=0.08,
+            authority=0.18, phrase=0.08, temporal=0.04,
+        ),
+        semantic_source=SemanticSource(semantic[0].id),
+    )
+    identity = Identity(
+        subject="u", roles=frozenset({"user"}), clearance=AccessTier.PUBLIC,
+        corpora=frozenset({"public"}),
+    )
+    original = retrieval.character_ngrams
+    calls = 0
+
+    def counted(text, n=3):
+        nonlocal calls
+        calls += 1
+        return original(text, n)
+
+    monkeypatch.setattr(retrieval, "character_ngrams", counted)
+    result = retriever.search(identity, "evacuation procedure", identity.corpora, date.today())
+    assert len(result) == 2
+    assert calls == 3  # one query plus one construction for each of two candidates
+    with pytest.raises(ValueError, match="inventory must cover"):
+        diversify_evidence(result, limit=2, character_grams_by_span={})
 
 
 def test_postgres_rls_migration_is_default_deny_when_context_is_absent():
