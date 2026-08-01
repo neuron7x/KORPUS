@@ -51,6 +51,11 @@ test("@live browser traverses nginx and the real API without storing authority",
   });
 
   await page.goto("/", { waitUntil: "load" });
+  await page.waitForFunction(
+    () => Number.isFinite(window.__korpusLiveMetrics?.lcp),
+    undefined,
+    { timeout: 5_000 },
+  );
   await page.getByText("Developer bearer fallback").click();
   await page.getByLabel("Короткоживучий access token").fill(token);
   await page.getByRole("button", { name: "Перевірити", exact: true }).click();
