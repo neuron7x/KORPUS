@@ -11,7 +11,7 @@
 - Acceptance predicates: every adversarial receipt is rejected; valid schema-v4 receipt passes; normal and clean PostgreSQL live browser tests pass; final report SHA equals Git HEAD and remains non-authorizing.
 - Migration/data impact: none.
 - Rollback: revert the bounded ACT-14 commits; no state migration is required.
-- Commands executed: web lint/static budget validation; 21 report-contract tests; normal Playwright suite (7 passed, live test environment-skipped); clean committed PostgreSQL live gate remains required.
+- Commands executed: web lint/static budget validation; 21 report-contract tests; normal Playwright suite (7 passed, live test environment-skipped); clean Chromium/nginx/API/PostgreSQL live gate (1 passed); schema-v4 validator.
 - Evidence artifacts: `var/web-act/web-api-live-boundary.json` and JUnit only.
 - Gates not executed: independent clean-room verifier, production browser population, production network and GitLab pipeline.
 - Remaining uncertainty/debt: browser identification makes local evidence reproducible but does not turn one local observation into a population percentile or production SLO.
@@ -19,3 +19,11 @@
 ## Reproduced defect
 
 Schema v3 accepted a report after increasing both a measured value and its report-local budget. Because producer-controlled thresholds cannot authorize their own result, performance budgets are moved into exact validator constants in schema v4.
+
+## Verified local result
+
+- Schema-v4 contract matrix: PASS (`21/21`), including rejection of an inflated producer-controlled budget and substituted/missing browser provenance.
+- Clean live PostgreSQL browser gate: PASS (`1/1`).
+- Browser receipt: Chromium `150.0.7871.128`, ephemeral cold context, device scale factor `1`.
+- Anchored observations: navigation `328.6 ms`, LCP `190 ms`, CLS `0`, answer `167 ms`, transfer `20,287 bytes`, external origins `0`.
+- Verdict remains `PASS_WITH_CAVEATS`; `production_authorized=false`; independent reproduction remains required.
