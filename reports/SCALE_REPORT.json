@@ -11,10 +11,10 @@
     "query": "ALPHA-OMEGA deterministic target"
   },
   "results": {
-    "ingest_seconds": 0.07435087000067142,
-    "query_latency_ms_p50": 1.2686785,
-    "query_latency_ms_p95": 1.658106,
-    "query_latency_ms_max": 1.963798,
+    "ingest_seconds": 0.09065526100039278,
+    "query_latency_ms_p50": 2.0166560000000002,
+    "query_latency_ms_p95": 2.981157,
+    "query_latency_ms_max": 9.301849,
     "candidate_count": 1,
     "top1_recall": 1.0
   },

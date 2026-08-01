@@ -1,12 +1,12 @@
 {
   "schema": "korpus.assurance-snapshot.v1",
-  "release": "v3.0.0",
+  "release": "v4.0.0",
   "status": "PASS",
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 47404,
-      "sha256": "39b059bd40a8fabc9a84da9bbfbe0ef7f664ae15d75e2a1f2588ac5c0ac3eed2"
+      "bytes": 46474,
+      "sha256": "10caf626094e3455a467b35378ada818ed2040fd2f95f5c521bc0ab56ac6b443"
     },
     {
       "path": "reports/EVAL_REPORT.json",
@@ -15,8 +15,8 @@
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 34572,
-      "sha256": "d12d30131ed86291152e446d1e5c7b29f376dd7acc403914745a9029f785e653"
+      "bytes": 33614,
+      "sha256": "6e357013eda344ce934150e3eb5037886c240e2074ad82e7564c53d7dee2c0d1"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
@@ -25,17 +25,17 @@
     },
     {
       "path": "reports/SCALE_REPORT.json",
-      "bytes": 801,
-      "sha256": "74106946a167cc0c54ff9d34d80cdd01b53f1fe49f78eb412d049fccf1e3262a"
+      "bytes": 810,
+      "sha256": "1e0d2ae05856bfe676901cc614d8ed3d6f82f917ac81af503292dd08aef8c503"
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1161,
-      "sha256": "592f7cb90240f89d2f5de089c737903104664f07af685842a2de93e5b1135472"
+      "sha256": "42366cad34c76f6f7780c13917c9bfce2f791babf6e346c2d60f19ac8fd1d219"
     }
   ],
   "limitations": [
-    "PostgreSQL service-container integration remains a GitLab gate; one local test is skipped.",
+    "PostgreSQL/pgvector, backup-restore, and container execution remain GitLab gates; one local test is skipped.",
     "Ruff and mypy packages were unavailable in this runtime and remain mandatory GitLab jobs.",
     "Synthetic local scale evidence is not a production SLA.",
     "Passing software gates is not corpus, cyber, regulatory or military authorization."
