@@ -86,6 +86,28 @@ api:quality:
     - ruff check apps/api/src apps/api/tests apps/api/migrations scripts
     - MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src
 
+api:source-authenticity:
+  extends: .python-job
+  stage: test
+  script:
+    - >-
+      pytest -q
+      apps/api/tests/test_source_authenticity_contract.py
+      apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata
+      --cov=korpus.security.source_authenticity
+      --cov-branch
+      --cov-report=json:var/source-authenticity-coverage.json
+      --cov-report=term-missing
+      --cov-fail-under=100
+      --junitxml=var/source-authenticity-junit.xml
+  artifacts:
+    when: always
+    paths:
+      - var/source-authenticity-coverage.json
+      - var/source-authenticity-junit.xml
+    reports:
+      junit: var/source-authenticity-junit.xml
+
 web:test:
   stage: test
   image: mcr.microsoft.com/playwright:v1.62.1-noble

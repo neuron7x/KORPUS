@@ -79,10 +79,12 @@ class SourceTrustProfile(BaseModel):
             raise ValueError("source signing key issuer mismatch")
         if key.authorities and version.authority not in key.authorities:
             raise ValueError("source signing key is not authorized for this authority class")
-        reference = version.publication_date or version.effective_from or date.today()
-        if key.valid_from and reference < key.valid_from:
+        reference = version.publication_date or version.effective_from
+        if reference is None and (key.valid_from or key.valid_until):
+            raise ValueError("dated source signature is required for a time-bounded key")
+        if key.valid_from and reference is not None and reference < key.valid_from:
             raise ValueError("source signature predates key validity")
-        if key.valid_until and reference > key.valid_until:
+        if key.valid_until and reference is not None and reference > key.valid_until:
             raise ValueError("source signature postdates key validity")
         try:
             signature = base64.b64decode(version.source_signature_b64, validate=True)

@@ -277,6 +277,16 @@ MUTANTS = (
             "apps/api/tests/test_browser_oidc.py::test_browser_session_codec_rejects_tampering_and_expiry",
         ),
     ),
+    Mutant(
+        "M31_BOUNDED_SOURCE_KEY_WITHOUT_SIGNED_DATE",
+        "apps/api/src/korpus/security/source_authenticity.py",
+        "if reference is None and (key.valid_from or key.valid_until):",
+        "if False:",
+        (
+            "apps/api/tests/test_source_authenticity_contract.py::"
+            "test_key_authority_issuer_revocation_and_time_boundaries_fail_closed",
+        ),
+    ),
 )
 
 
