@@ -81,8 +81,18 @@ MUTANTS = (
     Mutant(
         "M06_RELEASE_SCOPE_BROADENED",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "retrievable = self.list_retrievable_spans(identity, corpus_ids, as_of)",
-        "retrievable = self.list_retrievable_spans(identity.model_copy(update={'clearance': AccessTier.RESTRICTED, 'corpora': frozenset({'public', 'restricted-demo'})}), frozenset({'public', 'restricted-demo'}), as_of)",
+        (
+            "authorized_corpora = corpus_ids.intersection(identity.corpora)\n"
+            "        if not authorized_corpora:\n"
+            '            return hashlib.sha256(b"").hexdigest()[:16]'
+        ),
+        (
+            "identity = identity.model_copy(update={\"clearance\": AccessTier.RESTRICTED, "
+            "\"corpora\": frozenset({\"public\", \"restricted-demo\"})})\n"
+            "        authorized_corpora = frozenset({\"public\", \"restricted-demo\"})\n"
+            "        if not authorized_corpora:\n"
+            '            return hashlib.sha256(b"").hexdigest()[:16]'
+        ),
         ("apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",),
     ),
     Mutant(

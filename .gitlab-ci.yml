@@ -125,6 +125,16 @@ api:assurance:
       - var/scale-report.json
       - var/operational-gate.json
 
+api:determinism:
+  extends: .python-job
+  stage: assurance
+  script:
+    - KORPUS_DETERMINISM_REPETITIONS=3 python scripts/run_determinism_gate.py
+  artifacts:
+    when: always
+    paths:
+      - var/determinism/determinism-assurance.json
+
 api:postgres-and-restore:
   stage: assurance
   image:
