@@ -8,8 +8,9 @@ const report = JSON.parse(await readFile(path, "utf8"));
 const fail = (message) => {
   throw new Error(`invalid web/API live-boundary evidence: ${message}`);
 };
-if (report.schema !== "korpus.web-api-live-boundary.v3") fail("schema");
+if (report.schema !== "korpus.web-api-live-boundary.v4") fail("schema");
 if (report.act_id !== "KORPUS-ACT-09") fail("act_id");
+if (report.quality_act_id !== "KORPUS-ACT-13") fail("quality_act_id");
 if (!/^[0-9a-f]{40}$/.test(report.candidate_commit ?? "")) fail("candidate_commit");
 for (const name of ["api", "web"]) {
   if (!/^sha256:[0-9a-f]{64}$/.test(report.images?.[name] ?? ""))
@@ -25,6 +26,12 @@ const expectedCases = {
   evidence_marker: report.database?.mode === "postgres" ? "PASS" : "NOT_APPLICABLE",
 };
 if (JSON.stringify(report.cases) !== JSON.stringify(expectedCases)) fail("cases");
+if (report.browser?.engine !== "chromium") fail("browser_engine");
+if (!/^\d+\.\d+\.\d+\.\d+$/.test(report.browser?.version ?? ""))
+  fail("browser_version");
+if (!/Chrome\/\d+/.test(report.browser?.user_agent ?? "")) fail("browser_user_agent");
+if (report.browser?.device_scale_factor !== 1) fail("browser_device_scale_factor");
+if (report.browser?.context !== "EPHEMERAL_COLD") fail("browser_context");
 if (report.quality?.accessibility?.serious !== 0) fail("accessibility_serious");
 if (report.quality?.accessibility?.critical !== 0) fail("accessibility_critical");
 if (report.quality?.layout?.viewport_width_css_px !== 390) fail("layout_viewport");
@@ -33,6 +40,15 @@ if (report.quality?.performance?.measurement !== "ANCHORED_LOCAL")
   fail("performance_measurement");
 if (JSON.stringify(report.quality?.performance?.external_origins) !== "[]")
   fail("external_origins");
+const expectedBudgets = {
+  navigation_ms: 5_000,
+  lcp_ms: 4_000,
+  cls: 0.1,
+  answer_ms: 10_000,
+  same_origin_transfer_bytes: 150_000,
+};
+if (JSON.stringify(report.quality?.budgets) !== JSON.stringify(expectedBudgets))
+  fail("performance_budgets");
 for (const metric of [
   "navigation_ms",
   "lcp_ms",
@@ -41,9 +57,8 @@ for (const metric of [
   "same_origin_transfer_bytes",
 ]) {
   const value = report.quality?.performance?.[metric];
-  const budget = report.quality?.budgets?.[metric];
+  const budget = expectedBudgets[metric];
   if (!Number.isFinite(value) || value < 0) fail(`${metric}_value`);
-  if (!Number.isFinite(budget) || budget <= 0) fail(`${metric}_budget`);
   if (value > budget) fail(`${metric}_exceeded`);
 }
 if (report.database?.mode === "postgres") {

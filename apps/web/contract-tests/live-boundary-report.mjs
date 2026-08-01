@@ -10,8 +10,9 @@ const validator = fileURLToPath(
   new URL("../scripts/validate-live-boundary-report.mjs", import.meta.url),
 );
 const validReport = () => ({
-  schema: "korpus.web-api-live-boundary.v3",
+  schema: "korpus.web-api-live-boundary.v4",
   act_id: "KORPUS-ACT-09",
+  quality_act_id: "KORPUS-ACT-13",
   candidate_commit: "a".repeat(40),
   started_at_utc: "2026-08-01T00:00:00.000Z",
   finished_at_utc: "2026-08-01T00:00:01.000Z",
@@ -21,6 +22,13 @@ const validReport = () => ({
   },
   topology: "chromium -> nginx -> fastapi -> sqlite",
   database: { mode: "sqlite" },
+  browser: {
+    engine: "chromium",
+    version: "140.0.7339.16",
+    user_agent: "Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36",
+    device_scale_factor: 1,
+    context: "EPHEMERAL_COLD",
+  },
   cases: {
     anonymous_identity: 401,
     jwt_identity: 200,
@@ -111,6 +119,19 @@ for (const [name, mutate] of [
   }],
   ["non-finite performance metric", report => {
     report.quality.performance.cls = null;
+  }],
+  ["producer-inflated performance budget", report => {
+    report.quality.performance.lcp_ms = 8_000;
+    report.quality.budgets.lcp_ms = 9_000;
+  }],
+  ["substituted browser engine", report => {
+    report.browser.engine = "unknown";
+  }],
+  ["missing browser version", report => {
+    report.browser.version = "";
+  }],
+  ["persistent browser context", report => {
+    report.browser.context = "PERSISTENT_WARM";
   }],
 ]) {
   test(`rejects ${name}`, async () => {

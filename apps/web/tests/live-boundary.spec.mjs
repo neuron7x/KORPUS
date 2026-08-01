@@ -11,6 +11,7 @@ const query = process.env.KORPUS_LIVE_QUERY;
 const expectedEvidence = process.env.KORPUS_LIVE_EXPECTED_EVIDENCE;
 
 test("@live browser traverses nginx and the real API without storing authority", async ({
+  browser,
   page,
   context,
 }) => {
@@ -28,6 +29,13 @@ test("@live browser traverses nginx and the real API without storing authority",
   expect(candidateCommit).toMatch(/^[0-9a-f]{40}$/);
   expect(apiImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
   expect(webImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
+  const browserEnvironment = {
+    engine: "chromium",
+    version: browser.version(),
+    user_agent: await page.evaluate(() => navigator.userAgent),
+    device_scale_factor: await page.evaluate(() => window.devicePixelRatio),
+    context: "EPHEMERAL_COLD",
+  };
   const responses = [];
   page.on("response", (response) => {
     if (response.url().includes("/api/v1/")) responses.push(response);
@@ -148,8 +156,9 @@ test("@live browser traverses nginx and the real API without storing authority",
     output,
     `${JSON.stringify(
       {
-        schema: "korpus.web-api-live-boundary.v3",
+        schema: "korpus.web-api-live-boundary.v4",
         act_id: "KORPUS-ACT-09",
+        quality_act_id: "KORPUS-ACT-13",
         candidate_commit: candidateCommit,
         started_at_utc: startedAt.toISOString(),
         finished_at_utc: new Date().toISOString(),
@@ -159,6 +168,7 @@ test("@live browser traverses nginx and the real API without storing authority",
         },
         topology: `chromium -> nginx -> fastapi -> ${database.mode}`,
         database,
+        browser: browserEnvironment,
         cases: {
           anonymous_identity: 401,
           jwt_identity: 200,
