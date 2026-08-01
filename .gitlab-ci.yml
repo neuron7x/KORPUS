@@ -84,7 +84,7 @@ api:quality:
   stage: test
   script:
     - ruff check apps/api/src apps/api/tests apps/api/migrations scripts
-    - mypy apps/api/src
+    - MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src
 
 web:test:
   stage: test

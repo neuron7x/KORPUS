@@ -18,7 +18,7 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 | PostgreSQL RLS/restore | GitLab `api:postgres-and-restore` sequence or an equivalent clean-room execution | `var/act-01/postgres-live-assurance.json`, JUnit, manifest |
 | Repository contracts | `PYTHONPATH=apps/api/src make validate` | command output |
 | Migration/eval | `make migration-gate eval` | reports under ignored `var/` |
-| Type lock | install `apps/api/requirements.dev.lock` into a fresh venv with `--no-deps`, then `pip check` and `mypy apps/api/src` | command output |
+| Type lock and deterministic discovery | install `apps/api/requirements.dev.lock` into a fresh venv with `--no-deps`, run `pip check`, then `MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src` | 44-file command output |
 
 ## Falsification history
 
@@ -31,6 +31,8 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
   and two mandatory no-deps packages were absent.
 - The pre-ACT-16 PostgreSQL validator accepted present-but-unchecked compartment, FORCE-RLS,
   grant and IAM fields; the validator and mutation surface now fail closed on those receipts.
+- The earlier mypy invocation could treat local modules as an untyped installed dependency;
+  ACT-17 binds source discovery explicitly and repairs all 25 errors it exposed.
 
 ## Claims that remain open
 

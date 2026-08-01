@@ -7,6 +7,7 @@ import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from typing import cast
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -137,8 +138,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         max_pending_age_seconds=selected.audit_max_pending_age_seconds,
                     )
                     observability.observe_anchor_backlog(
-                        int(snapshot["pending_anchor_events"]),
-                        float(snapshot["oldest_pending_seconds"]),
+                        int(cast(int | str, snapshot["pending_anchor_events"])),
+                        float(cast(float | int | str, snapshot["oldest_pending_seconds"])),
                     )
                 except Exception as exc:
                     # Readiness exposes the backlog; the metric preserves failure visibility.

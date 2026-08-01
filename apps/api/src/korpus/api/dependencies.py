@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastapi import Depends, Request
 
@@ -34,39 +34,39 @@ def _calibration_profile(settings: Settings) -> CalibrationProfile:
 
 
 def get_policy(request: Request) -> PolicyEngine:
-    return request.app.state.policy
+    return cast(PolicyEngine, request.app.state.policy)
 
 
 def get_repository(request: Request) -> SqlRepository:
-    return request.app.state.repository
+    return cast(SqlRepository, request.app.state.repository)
 
 
 def get_object_store(request: Request) -> ObjectStore:
-    return request.app.state.object_store
+    return cast(ObjectStore, request.app.state.object_store)
 
 
 def get_quarantine_store(request: Request) -> ObjectStore:
-    return request.app.state.quarantine_store
+    return cast(ObjectStore, request.app.state.quarantine_store)
 
 
 def get_ingestion_job_queue(request: Request) -> SqlIngestionJobQueue:
-    return request.app.state.ingestion_jobs
+    return cast(SqlIngestionJobQueue, request.app.state.ingestion_jobs)
 
 
 def get_query_cache(request: Request) -> EvidenceQueryCache:
-    return request.app.state.query_cache
+    return cast(EvidenceQueryCache, request.app.state.query_cache)
 
 
 def get_admission_controller(request: Request) -> AdmissionController:
-    return request.app.state.admission
+    return cast(AdmissionController, request.app.state.admission)
 
 
 def get_ingestion_admission_controller(request: Request) -> AdmissionController:
-    return request.app.state.ingestion_admission
+    return cast(AdmissionController, request.app.state.ingestion_admission)
 
 
 def get_observability(request: Request) -> Observability:
-    return request.app.state.observability
+    return cast(Observability, request.app.state.observability)
 
 
 def get_semantic_source(request: Request) -> Any | None:

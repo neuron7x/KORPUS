@@ -8,7 +8,7 @@ import tempfile
 import jwt
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Callable, TypeVar
+from typing import Annotated, Callable, TypeVar, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, Request, Response, UploadFile, status
@@ -148,7 +148,10 @@ def ready(
     payload = {**snapshot, "object_store": object_store_ok, "schema_current": schema_ok, "ready": is_ready}
     if not is_ready:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
-    return {"status": "ready", "audit_head": int(snapshot["audit_head_sequence"])}
+    return {
+        "status": "ready",
+        "audit_head": int(cast(int | str, snapshot["audit_head_sequence"])),
+    }
 
 
 @router.get("/metrics", include_in_schema=False)

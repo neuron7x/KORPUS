@@ -17,7 +17,7 @@ api-test:
 
 api-lint:
 	$(PY) -m ruff check apps/api/src apps/api/tests scripts
-	$(PY) -m mypy apps/api/src
+	MYPYPATH=apps/api/src $(PY) -m mypy --config-file apps/api/pyproject.toml --explicit-package-bases apps/api/src
 
 web-install:
 	npm --prefix apps/web ci

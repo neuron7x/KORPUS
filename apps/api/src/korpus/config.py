@@ -391,15 +391,26 @@ class Settings(BaseSettings):
             missing = [name for name, path in required_artifacts.items() if path is None or not path.is_file()]
             if missing:
                 raise ValueError(f"calibration artifacts are missing: {', '.join(missing)}")
+            profile_path = self.calibration_profile_path
+            dataset_path = self.calibration_dataset_path
+            system_manifest_path = self.calibration_system_manifest_path
+            evaluation_protocol_path = self.calibration_evaluation_protocol_path
+            if (
+                profile_path is None
+                or dataset_path is None
+                or system_manifest_path is None
+                or evaluation_protocol_path is None
+            ):
+                raise ValueError("calibration artifacts are missing after validation")
             if not self.calibration_profile_sha256:
                 raise ValueError("calibration profile digest is required")
             profile = CalibrationProfile.load(
-                self.calibration_profile_path, expected_sha256=self.calibration_profile_sha256
+                profile_path, expected_sha256=self.calibration_profile_sha256
             )
             profile.validate_artifact_bindings(
-                dataset=self.calibration_dataset_path,
-                system_manifest=self.calibration_system_manifest_path,
-                evaluation_protocol=self.calibration_evaluation_protocol_path,
+                dataset=dataset_path,
+                system_manifest=system_manifest_path,
+                evaluation_protocol=evaluation_protocol_path,
             )
             if not profile.deployment_valid:
                 raise ValueError("calibration profile does not satisfy finite-sample risk gate")

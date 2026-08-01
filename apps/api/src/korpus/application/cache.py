@@ -6,7 +6,6 @@ import time
 from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date
-from typing import cast
 
 from korpus.application.ports import Repository, Retriever
 from korpus.application.retrieval import normalize_text
@@ -126,9 +125,6 @@ class CachedRetriever(Retriever):
         cached = self.cache.get(key)
         if cached is not None:
             return list(cached)
-        result = cast(
-            list[RetrievedEvidence],
-            self.delegate.search(identity, text, corpus_ids, as_of, limit),
-        )
+        result = self.delegate.search(identity, text, corpus_ids, as_of, limit)
         self.cache.put(key, result)
         return result

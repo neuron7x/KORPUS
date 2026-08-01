@@ -340,24 +340,29 @@ class IngestionService:
         return digest
 
     def _extract_path(self, path: Path, filename: str, mime_type: str) -> tuple[list[dict[str, object]], str]:
-        kwargs = dict(
-            path=path,
-            filename=filename,
-            mime_type=mime_type,
-            ocr_enabled=self.extraction.ocr_enabled,
-            ocr_languages=self.extraction.ocr_languages,
-            max_pdf_pages=self.extraction.max_pdf_pages,
-            ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
-        )
         if self.extraction.parser_sandbox_enabled:
             pages, method = extract_pages_sandboxed(
-                **kwargs,
+                path=path,
+                filename=filename,
+                mime_type=mime_type,
+                ocr_enabled=self.extraction.ocr_enabled,
+                ocr_languages=self.extraction.ocr_languages,
+                max_pdf_pages=self.extraction.max_pdf_pages,
+                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
                 timeout_seconds=self.extraction.parser_timeout_seconds,
                 memory_limit_mb=self.extraction.parser_memory_limit_mb,
                 output_limit_bytes=self.extraction.parser_output_limit_bytes,
             )
         else:
-            pages, method = extract_pages_from_path(**kwargs)
+            pages, method = extract_pages_from_path(
+                path=path,
+                filename=filename,
+                mime_type=mime_type,
+                ocr_enabled=self.extraction.ocr_enabled,
+                ocr_languages=self.extraction.ocr_languages,
+                max_pdf_pages=self.extraction.max_pdf_pages,
+                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
+            )
         return (
             make_spans(
                 pages,
