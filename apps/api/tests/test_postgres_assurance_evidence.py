@@ -17,6 +17,8 @@ from postgres_live_assurance import (  # noqa: E402
     candidate_commit,
     optional_duration,
     pytest_receipt,
+    mutation_receipt,
+    security_predicates_pass,
 )
 from validate_postgres_assurance import validate_payload  # noqa: E402
 
@@ -63,6 +65,7 @@ def test_backup_receipt_rejects_ciphertext_tampering(tmp_path: Path) -> None:
         ('tests="2" failures="0" errors="0" skipped="0"', "PASS"),
         ('tests="2" failures="1" errors="0" skipped="0"', "FAIL"),
         ('tests="0" failures="0" errors="0" skipped="0"', "FAIL"),
+        ('tests="2" failures="0" errors="0" skipped="1"', "FAIL"),
     ],
 )
 def test_pytest_receipt_fails_closed(
@@ -82,6 +85,24 @@ def test_nonpositive_duration_is_rejected(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setenv("KORPUS_BACKUP_SECONDS", "0")
     with pytest.raises(ValueError, match="must be positive"):
         optional_duration("KORPUS_BACKUP_SECONDS")
+
+
+def test_mutation_receipt_requires_every_valid_mutant_to_be_killed(tmp_path: Path) -> None:
+    path = tmp_path / "mutation.json"
+    payload = {
+        "mutation_score": 1.0,
+        "mutants": 3,
+        "valid_mutants": 3,
+        "killed": 3,
+        "survived": [],
+        "invalid": [],
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    assert mutation_receipt(path)["status"] == "PASS"
+    payload["invalid"] = ["M03"]
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(ValueError, match="complete mutant killing"):
+        mutation_receipt(path)
 
 
 def test_candidate_commit_uses_explicit_ci_provenance(
@@ -104,6 +125,45 @@ def test_candidate_commit_rejects_unverifiable_value(
         candidate_commit()
 
 
+def test_security_predicates_require_force_rls_and_compartment_isolation() -> None:
+    role = {
+        name: False
+        for name in (
+            "rolsuper",
+            "rolbypassrls",
+            "rolcreatedb",
+            "rolcreaterole",
+            "rolinherit",
+            "schema_create",
+            "database_create",
+        )
+    }
+    role["governed_table_ownership_count"] = 0
+    policies = [
+        {
+            "tablename": name,
+            "cmd": "SELECT",
+            "rls_enabled": True,
+            "force_rls": True,
+        }
+        for name in (
+            "documents",
+            "document_versions",
+            "evidence_spans",
+            "span_embeddings",
+            "document_compartments",
+        )
+    ]
+    compartments = {"missing": 0, "unrelated": 0, "exact": 1}
+    assert security_predicates_pass(role, compartments, policies, 1, 0) is True
+    policies[0]["force_rls"] = False
+    assert security_predicates_pass(role, compartments, policies, 1, 0) is False
+    policies[0]["force_rls"] = True
+    assert security_predicates_pass(
+        role, {"missing": 1, "unrelated": 0, "exact": 1}, policies, 1, 0
+    ) is False
+
+
 def valid_assurance_payload() -> dict[str, object]:
     payload = {name: {} for name in __import__("validate_postgres_assurance").REQUIRED}
     payload.update(
@@ -122,10 +182,48 @@ def valid_assurance_payload() -> dict[str, object]:
                     "database_create",
                 )
             },
+            "schema": "korpus.postgres-live-assurance.v1",
+            "act_id": "KORPUS-ACT-01",
+            "base_commit": "a" * 40,
+            "candidate_commit": "b" * 40,
             "alembic_expected_heads": ["head"],
             "source_database_revision": ["head"],
             "restored_database_revision": ["head"],
-            "rls_cases": {"missing_context_counts": {"documents": 0}},
+            "rls_cases": {
+                "missing_context_counts": {
+                    name: 0
+                    for name in (
+                        "documents",
+                        "document_versions",
+                        "evidence_spans",
+                        "span_embeddings",
+                        "document_compartments",
+                    )
+                },
+                "public_identity_public_rows": 1,
+                "public_identity_restricted_rows": 0,
+                "cross_corpus_direct_sql_restricted_rows": 1,
+            },
+            "compartment_cases": {"missing": 0, "unrelated": 0, "exact": 1},
+            "table_policy_inventory": [
+                {
+                    "schemaname": "public",
+                    "tablename": name,
+                    "cmd": "SELECT",
+                    "rls_enabled": True,
+                    "force_rls": True,
+                }
+                for name in (
+                    "documents",
+                    "document_versions",
+                    "evidence_spans",
+                    "span_embeddings",
+                    "document_compartments",
+                )
+            ],
+            "grant_inventory": [
+                {"table_name": "alembic_version", "privilege_type": "SELECT"}
+            ],
             "ddl_denial_cases": {
                 name: "PASS"
                 for name in (
@@ -153,9 +251,26 @@ def valid_assurance_payload() -> dict[str, object]:
                 "total_recovery_seconds": 6.0,
                 "measurement": "ANCHORED",
             },
-            "pytest": {"live_postgres": "PASS"},
-            "source_state_digest": "digest",
-            "restored_state_digest": "digest",
+            "pytest": {
+                "live_postgres": "PASS",
+                "tests": 1,
+                "failures": 0,
+                "errors": 0,
+                "skipped": 0,
+            },
+            "mutation": {
+                "status": "PASS",
+                "mutants": 29,
+                "killed": 29,
+                "sha256": "d" * 64,
+            },
+            "source_state_digest": "c" * 64,
+            "restored_state_digest": "c" * 64,
+            "iam_006_probe": {
+                "status": "CONFIRMED_OPEN",
+                "broadened_restricted_rows": 1,
+                "trust_anchor_independent_of_application": False,
+            },
         }
     )
     payload["application_role_properties"]["governed_table_ownership_count"] = 0
@@ -167,6 +282,7 @@ def valid_assurance_payload() -> dict[str, object]:
     [
         (lambda value: value["backup"].update(manifest_verified=False), "predicate:backup"),
         (lambda value: value["pytest"].update(live_postgres="UNAVAILABLE"), "predicate:pytest"),
+        (lambda value: value["pytest"].update(skipped=1), "predicate:pytest"),
         (lambda value: value.update(restored_state_digest="different"), "predicate:state-digest"),
         (
             lambda value: value["restore"].update(total_recovery_seconds=5.0),
@@ -179,6 +295,32 @@ def valid_assurance_payload() -> dict[str, object]:
         (
             lambda value: value["ddl_denial_cases"].pop("set_role"),
             "predicate:ddl-denial",
+        ),
+        (
+            lambda value: value.update(compartment_cases={"missing": 1, "unrelated": 0, "exact": 1}),
+            "predicate:compartment-isolation",
+        ),
+        (
+            lambda value: value["rls_cases"].update(
+                public_identity_restricted_rows=1
+            ),
+            "predicate:cross-corpus",
+        ),
+        (
+            lambda value: value["table_policy_inventory"][0].update(force_rls=False),
+            "predicate:policy-inventory",
+        ),
+        (
+            lambda value: value["grant_inventory"].append(
+                {"table_name": "alembic_version", "privilege_type": "UPDATE"}
+            ),
+            "predicate:grant-inventory",
+        ),
+        (
+            lambda value: value["iam_006_probe"].update(
+                status="NOT_REPRODUCED", broadened_restricted_rows=1
+            ),
+            "predicate:iam-006",
         ),
     ],
 )

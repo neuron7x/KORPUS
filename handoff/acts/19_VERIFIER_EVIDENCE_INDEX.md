@@ -29,6 +29,8 @@ historical; bounded ACT commits 03–11 are independently revertible and listed 
 - Old assurance JSON is rejected after privilege predicates expand; results are not inherited.
 - The prior dev lock could not import mypy because its pinned pathspec violated mypy metadata
   and two mandatory no-deps packages were absent.
+- The pre-ACT-16 PostgreSQL validator accepted present-but-unchecked compartment, FORCE-RLS,
+  grant and IAM fields; the validator and mutation surface now fail closed on those receipts.
 
 ## Claims that remain open
 

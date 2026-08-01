@@ -218,6 +218,33 @@ MUTANTS = (
         "if False:",
         ("apps/api/tests/test_corpus_governance.py::test_ingestion_authority_classification_ocr_and_egress_are_governed",),
     ),
+    Mutant(
+        "M27_POSTGRES_FORCE_RLS_RECEIPT_BYPASS",
+        "scripts/postgres_live_assurance.py",
+        'and policy.get("force_rls") is True',
+        "and True",
+        (
+            "apps/api/tests/test_postgres_assurance_evidence.py::test_security_predicates_require_force_rls_and_compartment_isolation",
+        ),
+    ),
+    Mutant(
+        "M28_POSTGRES_COMPARTMENT_RECEIPT_BYPASS",
+        "scripts/postgres_live_assurance.py",
+        'compartment_cases == {"missing": 0, "unrelated": 0, "exact": 1}',
+        "True",
+        (
+            "apps/api/tests/test_postgres_assurance_evidence.py::test_security_predicates_require_force_rls_and_compartment_isolation",
+        ),
+    ),
+    Mutant(
+        "M29_POSTGRES_EVIDENCE_IAM_BYPASS",
+        "scripts/validate_postgres_assurance.py",
+        "if not (consistent_open or consistent_not_reproduced):",
+        "if False:",
+        (
+            "apps/api/tests/test_postgres_assurance_evidence.py::test_validator_rejects_manufactured_pass",
+        ),
+    ),
 )
 
 

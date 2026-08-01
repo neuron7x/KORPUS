@@ -31,6 +31,7 @@ TABLES = (
     "audit_heads",
     "audit_events",
 )
+GOVERNED_TABLES = TABLES[:5]
 DDL_PROBES = {
     "create_table": "CREATE TABLE app_role_must_not_create(id integer)",
     "alter_table": "ALTER TABLE documents ADD COLUMN app_role_must_not_add integer",
@@ -69,6 +70,44 @@ def ddl_denial_receipt(engine: Engine) -> dict[str, str]:
     return receipt
 
 
+def security_predicates_pass(
+    role: dict[str, object],
+    compartment_cases: dict[str, int],
+    policies: list[dict[str, object]],
+    public_rows: int,
+    public_restricted_rows: int,
+) -> bool:
+    """Evaluate the security receipt independently from report serialization."""
+    role_denials = (
+        "rolsuper",
+        "rolbypassrls",
+        "rolcreatedb",
+        "rolcreaterole",
+        "rolinherit",
+        "schema_create",
+        "database_create",
+    )
+    return all(
+        (
+            all(role.get(name) is False for name in role_denials),
+            role.get("governed_table_ownership_count") == 0,
+            public_rows > 0,
+            public_restricted_rows == 0,
+            compartment_cases == {"missing": 0, "unrelated": 0, "exact": 1},
+            all(
+                any(
+                    policy.get("tablename") == table
+                    and policy.get("cmd") == "SELECT"
+                    and policy.get("rls_enabled") is True
+                    and policy.get("force_rls") is True
+                    for policy in policies
+                )
+                for table in GOVERNED_TABLES
+            ),
+        )
+    )
+
+
 def safe_url(name: str) -> str:
     value = os.environ[name]
     return value.replace("postgresql://", "postgresql+psycopg://", 1)
@@ -102,7 +141,10 @@ def pytest_receipt(path: Path) -> dict[str, object]:
     }
     status = (
         "PASS"
-        if totals["tests"] > 0 and totals["failures"] == 0 and totals["errors"] == 0
+        if totals["tests"] > 0
+        and totals["failures"] == 0
+        and totals["errors"] == 0
+        and totals["skipped"] == 0
         else "FAIL"
     )
     return {"live_postgres": status, **totals, "receipt": path.name}
@@ -136,6 +178,31 @@ def backup_receipt(path: Path, key_file: Path, key_id: str) -> dict[str, object]
         "plaintext_bytes": payload["plaintext_bytes"],
         "key_id": payload["key_id"],
         "manifest": manifest_path.name,
+    }
+
+
+def mutation_receipt(path: Path) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("mutation report is not an object")
+    required = ("mutants", "valid_mutants", "killed")
+    if any(not isinstance(payload.get(name), int) for name in required):
+        raise ValueError("mutation report counts are invalid")
+    passed = (
+        payload.get("mutation_score") == 1.0
+        and payload["mutants"] > 0
+        and payload["valid_mutants"] == payload["mutants"]
+        and payload["killed"] == payload["mutants"]
+        and payload.get("survived") == []
+        and payload.get("invalid") == []
+    )
+    if not passed:
+        raise ValueError("mutation report does not prove complete mutant killing")
+    return {
+        "status": "PASS",
+        "mutants": payload["mutants"],
+        "killed": payload["killed"],
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
 
 
@@ -186,6 +253,23 @@ def main() -> int:
             for table in TABLES[:5]
         }
         for key, value in (
+            ("roles", "user"),
+            ("clearance", "0"),
+            ("corpora", "public"),
+            ("classifications", "public"),
+            ("compartments", ""),
+        ):
+            connection.execute(
+                text("SELECT set_config(:key,:value,true)"),
+                {"key": f"korpus.{key}", "value": value},
+            )
+        public_rows = connection.execute(
+            text("SELECT count(*) FROM documents WHERE corpus_id='public'")
+        ).scalar_one()
+        public_restricted_rows = connection.execute(
+            text("SELECT count(*) FROM documents WHERE corpus_id='restricted-demo'")
+        ).scalar_one()
+        for key, value in (
             ("roles", "admin,user"),
             ("clearance", "3"),
             ("corpora", "public,restricted-demo"),
@@ -230,8 +314,12 @@ def main() -> int:
             dict(row)
             for row in connection.execute(
                 text(
-                    "SELECT schemaname,tablename,policyname,cmd,roles,qual,with_check "
-                    "FROM pg_policies WHERE schemaname='public' "
+                    "SELECT p.schemaname,p.tablename,p.policyname,p.cmd,p.roles,p.qual,"
+                    "p.with_check,c.relrowsecurity AS rls_enabled,"
+                    "c.relforcerowsecurity AS force_rls "
+                    "FROM pg_policies p JOIN pg_namespace n ON n.nspname=p.schemaname "
+                    "JOIN pg_class c ON c.relnamespace=n.oid AND c.relname=p.tablename "
+                    "WHERE p.schemaname='public' "
                     "ORDER BY tablename,policyname"
                 )
             ).mappings()
@@ -258,6 +346,10 @@ def main() -> int:
         Path(os.environ["KORPUS_BACKUP_ENCRYPTION_KEY_FILE"]),
         os.environ["KORPUS_BACKUP_KEY_ID"],
     )
+    mutation_path = os.getenv("KORPUS_MUTATION_REPORT")
+    mutation_result = (
+        mutation_receipt(Path(mutation_path)) if mutation_path is not None else None
+    )
     backup_duration = optional_duration("KORPUS_BACKUP_SECONDS")
     backup_result["duration_seconds"] = backup_duration
     restore_duration = optional_duration("KORPUS_RESTORE_SECONDS")
@@ -281,9 +373,13 @@ def main() -> int:
             all(value == "PASS" for value in ddl_denials.values()),
             pytest_result["live_postgres"] == "PASS",
             backup_result["manifest_verified"] is True,
-            role["schema_create"] is False,
-            role["database_create"] is False,
-            role["governed_table_ownership_count"] == 0,
+            security_predicates_pass(
+                dict(role),
+                compartment_cases,
+                policies,
+                public_rows,
+                public_restricted_rows,
+            ),
         )
     )
     report = {
@@ -309,6 +405,8 @@ def main() -> int:
         "grant_inventory": grants,
         "rls_cases": {
             "missing_context_counts": missing,
+            "public_identity_public_rows": public_rows,
+            "public_identity_restricted_rows": public_restricted_rows,
             "cross_corpus_direct_sql_restricted_rows": broadened,
         },
         "compartment_cases": compartment_cases,
@@ -326,6 +424,7 @@ def main() -> int:
         "source_state_digest": source_digest,
         "restored_state_digest": restored_digest,
         "pytest": pytest_result,
+        "mutation": mutation_result or {"status": "UNAVAILABLE"},
         "iam_006_probe": {
             "status": "CONFIRMED_OPEN" if broadened else "NOT_REPRODUCED",
             "broadened_restricted_rows": broadened,
@@ -334,8 +433,12 @@ def main() -> int:
         "unexecuted_gates": [
             "independent post-change verification",
             "GitLab pipeline",
-            "mutation shard for changed critical Python modules",
         ]
+        + (
+            []
+            if mutation_result is not None
+            else ["mutation shard for changed critical Python modules"]
+        )
         + ([] if recovery_timing_anchored else ["anchored recovery timing"]),
         "production_authorized": False,
         "verdict": "PASS_WITH_CAVEATS"

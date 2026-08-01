@@ -37,6 +37,15 @@ REQUIRED = [
     "production_authorized",
     "verdict",
 ]
+COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
+DIGEST = re.compile(r"[0-9a-f]{64}")
+GOVERNED_TABLES = {
+    "documents",
+    "document_versions",
+    "evidence_spans",
+    "span_embeddings",
+    "document_compartments",
+}
 
 
 def validate_payload(payload: dict[str, object]) -> list[str]:
@@ -46,6 +55,15 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
         failures.append("invalid:verdict")
     if payload.get("production_authorized") is not False:
         failures.append("invalid:production_authorized")
+    if payload.get("schema") != "korpus.postgres-live-assurance.v1":
+        failures.append("invalid:schema")
+    if payload.get("act_id") != "KORPUS-ACT-01":
+        failures.append("invalid:act-id")
+    if any(
+        not COMMIT_SHA.fullmatch(str(payload.get(name, "")))
+        for name in ("base_commit", "candidate_commit")
+    ):
+        failures.append("invalid:commit-provenance")
     if re.search(r"postgres(?:ql)?://[^/\s]*:[^@\s]*@", json.dumps(payload)):
         failures.append("secret:credential-bearing-url")
     if failures or verdict == "FAIL":
@@ -66,14 +84,57 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
     ) or role.get("governed_table_ownership_count") != 0:
         failures.append("predicate:application-role")
     expected = payload.get("alembic_expected_heads")
+    if not isinstance(expected, list) or len(expected) != 1 or not expected[0]:
+        failures.append("predicate:expected-head")
     if payload.get("source_database_revision") != expected:
         failures.append("predicate:source-revision")
     if payload.get("restored_database_revision") != expected:
         failures.append("predicate:restored-revision")
     rls = payload.get("rls_cases", {})
     missing_counts = rls.get("missing_context_counts", {}) if isinstance(rls, dict) else {}
-    if not missing_counts or any(value != 0 for value in missing_counts.values()):
+    if set(missing_counts) != GOVERNED_TABLES or any(
+        value != 0 for value in missing_counts.values()
+    ):
         failures.append("predicate:missing-context")
+    if (
+        not isinstance(rls, dict)
+        or not isinstance(rls.get("public_identity_public_rows"), int)
+        or isinstance(rls.get("public_identity_public_rows"), bool)
+        or rls.get("public_identity_public_rows", 0) <= 0
+        or rls.get("public_identity_restricted_rows") != 0
+    ):
+        failures.append("predicate:cross-corpus")
+    compartments = payload.get("compartment_cases")
+    if compartments != {"missing": 0, "unrelated": 0, "exact": 1}:
+        failures.append("predicate:compartment-isolation")
+    policies = payload.get("table_policy_inventory")
+    if not isinstance(policies, list) or any(
+        not isinstance(policy, dict) for policy in policies
+    ):
+        failures.append("predicate:policy-inventory")
+    else:
+        protected_tables = {
+            str(policy.get("tablename"))
+            for policy in policies
+            if policy.get("schemaname") == "public"
+            and policy.get("cmd") == "SELECT"
+            and policy.get("rls_enabled") is True
+            and policy.get("force_rls") is True
+        }
+        if not GOVERNED_TABLES.issubset(protected_tables):
+            failures.append("predicate:policy-inventory")
+    grants = payload.get("grant_inventory")
+    if not isinstance(grants, list) or not grants or any(
+        not isinstance(grant, dict)
+        or set(grant) != {"table_name", "privilege_type"}
+        or grant.get("privilege_type") not in {"SELECT", "INSERT", "UPDATE", "DELETE"}
+        or (
+            grant.get("table_name") == "alembic_version"
+            and grant.get("privilege_type") != "SELECT"
+        )
+        for grant in grants
+    ):
+        failures.append("predicate:grant-inventory")
     ddl = payload.get("ddl_denial_cases", {})
     required_ddl = {
         "alembic_update",
@@ -123,10 +184,63 @@ def validate_payload(payload: dict[str, object]) -> list[str]:
     ):
         failures.append("predicate:recovery-timing")
     pytest_result = payload.get("pytest", {})
-    if not isinstance(pytest_result, dict) or pytest_result.get("live_postgres") != "PASS":
+    if (
+        not isinstance(pytest_result, dict)
+        or pytest_result.get("live_postgres") != "PASS"
+        or not isinstance(pytest_result.get("tests"), int)
+        or pytest_result.get("tests", 0) <= 0
+        or pytest_result.get("failures") != 0
+        or pytest_result.get("errors") != 0
+        or pytest_result.get("skipped") != 0
+    ):
         failures.append("predicate:pytest")
-    if payload.get("source_state_digest") != payload.get("restored_state_digest"):
+    mutation = payload.get("mutation")
+    if mutation is not None and (
+        not isinstance(mutation, dict)
+        or mutation.get("status") not in {"PASS", "UNAVAILABLE"}
+        or (
+            mutation.get("status") == "PASS"
+            and (
+                not isinstance(mutation.get("mutants"), int)
+                or mutation.get("mutants", 0) <= 0
+                or mutation.get("killed") != mutation.get("mutants")
+                or not DIGEST.fullmatch(str(mutation.get("sha256", "")))
+            )
+        )
+    ):
+        failures.append("predicate:mutation")
+    source_digest = str(payload.get("source_state_digest", ""))
+    restored_digest = str(payload.get("restored_state_digest", ""))
+    if (
+        not DIGEST.fullmatch(source_digest)
+        or source_digest != restored_digest
+    ):
         failures.append("predicate:state-digest")
+    iam = payload.get("iam_006_probe")
+    if not isinstance(iam, dict):
+        failures.append("predicate:iam-006")
+    else:
+        broadened = iam.get("broadened_restricted_rows")
+        status = iam.get("status")
+        independent = iam.get("trust_anchor_independent_of_application")
+        consistent_open = (
+            status == "CONFIRMED_OPEN"
+            and isinstance(broadened, int)
+            and not isinstance(broadened, bool)
+            and broadened > 0
+            and independent is False
+        )
+        consistent_not_reproduced = (
+            status == "NOT_REPRODUCED"
+            and broadened == 0
+            and isinstance(independent, bool)
+        )
+        if isinstance(rls, dict) and rls.get(
+            "cross_corpus_direct_sql_restricted_rows"
+        ) != broadened:
+            failures.append("predicate:iam-006")
+        if not (consistent_open or consistent_not_reproduced):
+            failures.append("predicate:iam-006")
     return failures
 
 

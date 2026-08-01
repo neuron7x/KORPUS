@@ -24,6 +24,6 @@ The first committed schema-v5 live run failed because Chromium returned no LCP t
 
 ## Post-repair evidence
 
-The committed `9a96646da034310ff067c81170b6caa8b4010bfb` candidate completed the clean PostgreSQL vertical gate with Chromium `150.0.7871.128` and Playwright `1.62.1`. The validated receipt recorded an observed LCP of `1576 ms`, navigation `413.4 ms`, CLS `0`, answer latency `236 ms`, same-origin transfer `20287 bytes`, zero serious/critical accessibility findings and zero horizontal overflow at a `390 px` viewport. These are `ANCHORED_LOCAL` single-run measurements, not production percentiles or an SLA.
+The committed candidate completed the clean PostgreSQL vertical gate with Chromium and the lock-bound Playwright release. Exact tool versions, timings, image digests and candidate SHA are intentionally read from the regenerated `var/web-act/web-api-live-boundary.json` rather than duplicated as mutable prose. The receipt must record an observed LCP, zero serious/critical accessibility findings and zero horizontal overflow at the mobile viewport. Measurements are `ANCHORED_LOCAL` single-run observations, not production percentiles or an SLA.
 
-The generated report retained `production_authorized=false` and `PASS_WITH_CAVEATS`; independent post-change verification remains required. Because this contract update changes the candidate commit, both browser and PostgreSQL/restore machine receipts must be regenerated against the final committed SHA before handoff.
+The generated report must retain `production_authorized=false` and cannot exceed `PASS_WITH_CAVEATS`; independent post-change verification remains required. At handoff, its `candidate_commit` must equal `git rev-parse HEAD`.
