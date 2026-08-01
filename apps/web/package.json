@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.mjs",
-    "lint": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
-    "typecheck": "node --check public/app.js && node --check public/sw.js && node scripts/validate.mjs",
+    "lint": "node --check public/app.js && node --check public/sw.js && node --check scripts/build.mjs && node --check scripts/verify-runtime.mjs && node --check scripts/validate-runtime-report.mjs && node --check contract-tests/runtime-report.mjs && node scripts/validate.mjs",
+    "typecheck": "npm run lint",
     "build": "node scripts/build.mjs",
+    "verify:runtime": "node scripts/verify-runtime.mjs",
+    "validate:runtime-report": "node scripts/validate-runtime-report.mjs",
+    "test:runtime-report": "node --test contract-tests/runtime-report.mjs",
     "test:browser": "playwright test",
     "start": "node scripts/serve.mjs dist"
   },

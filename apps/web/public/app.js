@@ -124,30 +124,32 @@ form.addEventListener("submit", async (event) => {
   submit.textContent = "Перевірка…";
   result.hidden = true;
   activeRequest?.abort();
-  activeRequest = new AbortController();
-  const timeout = window.setTimeout(
-    () => activeRequest.abort("timeout"),
-    15000,
-  );
+  const controller = new AbortController();
+  activeRequest = controller;
+  const timeout = window.setTimeout(() => controller.abort("timeout"), 15000);
   try {
     const response = await fetch(`${apiUrl}/v1/answers`, {
       method: "POST",
       headers: authHeaders({ "Content-Type": "application/json" }, "POST"),
       credentials: "same-origin",
       body: JSON.stringify({ text: query.value.trim() }),
-      signal: activeRequest.signal,
+      signal: controller.signal,
     });
     if (!response.ok) throw new Error(`API ${response.status}`);
-    render(await response.json());
+    const answer = await response.json();
+    if (activeRequest === controller) render(answer);
   } catch (error) {
+    if (activeRequest !== controller) return;
     result.innerHTML = `<h2>Помилка</h2><p>${escapeHtml(error instanceof Error ? error.message : "Невідома помилка")}</p>`;
     result.hidden = false;
     result.classList.add("error");
   } finally {
     window.clearTimeout(timeout);
-    activeRequest = undefined;
-    submit.disabled = false;
-    submit.textContent = "Знайти доказ";
+    if (activeRequest === controller) {
+      activeRequest = undefined;
+      submit.disabled = false;
+      submit.textContent = "Знайти доказ";
+    }
   }
 });
 

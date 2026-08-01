@@ -131,3 +131,75 @@ test("a stalled answer request fails closed after the bounded timeout", async ({
     page.getByRole("button", { name: /Знайти доказ/ }),
   ).toBeEnabled();
 });
+
+test("installed shell remains usable offline without substituting HTML for assets", async ({
+  page,
+  context,
+}) => {
+  await routeIdentity(page);
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((resolve) =>
+        navigator.serviceWorker.addEventListener("controllerchange", resolve, {
+          once: true,
+        }),
+      );
+    }
+  });
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: /Перевірити/ })).toBeVisible();
+  const missingAsset = await page.evaluate(async () => {
+    try {
+      const response = await fetch("/not-a-shell-asset.css");
+      return { ok: response.ok, type: response.headers.get("content-type") };
+    } catch {
+      return { ok: false, type: null };
+    }
+  });
+  expect(missingAsset.ok).toBe(false);
+  expect(missingAsset.type ?? "").not.toContain("text/html");
+});
+
+test("a superseded request cannot overwrite or abort the latest result", async ({
+  page,
+}) => {
+  await routeIdentity(page);
+  let firstRequestSeen;
+  const firstSeen = new Promise((resolve) => {
+    firstRequestSeen = resolve;
+  });
+  await page.route("**/api/v1/answers", async (route) => {
+    const text = JSON.parse(route.request().postData()).text;
+    if (text === "перший") {
+      firstRequestSeen();
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "answered",
+        text: text === "перший" ? "застарілий результат" : "актуальний результат",
+        retrieval_score: 1,
+        evidence_coverage: 1,
+        corpus_release: "test-release",
+        limitations: [],
+        citations: [],
+      }),
+    });
+  });
+  await page.goto("/");
+  const input = page.getByLabel("Запит до контрольованого корпусу");
+  await input.fill("перший");
+  await page.getByRole("button", { name: /Знайти доказ/ }).click();
+  await firstSeen;
+  await input.fill("другий");
+  await input.press("Control+Enter");
+  await expect(page.getByText("актуальний результат")).toBeVisible();
+  await page.waitForTimeout(600);
+  await expect(page.getByText("застарілий результат")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Знайти доказ/ })).toBeEnabled();
+});

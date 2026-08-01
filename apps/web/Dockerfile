@@ -12,6 +12,7 @@ COPY apps/web/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /src/dist /usr/share/nginx/html
 RUN mkdir -p /tmp/nginx/client_temp /tmp/nginx/proxy_temp /tmp/nginx/fastcgi_temp /tmp/nginx/uwsgi_temp /tmp/nginx/scgi_temp \
     && chown -R nginx:nginx /tmp/nginx /usr/share/nginx/html \
+    && chmod 0444 /etc/nginx/nginx.conf \
     && chmod -R a-w /usr/share/nginx/html
 USER nginx:nginx
 EXPOSE 8080

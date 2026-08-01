@@ -94,6 +94,7 @@ web:test:
     - npm --prefix apps/web run lint
     - npm --prefix apps/web run typecheck
     - npm --prefix apps/web run build
+    - npm --prefix apps/web run test:runtime-report
     - npm --prefix apps/web run test:browser
   artifacts:
     when: always

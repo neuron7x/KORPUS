@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korpus.invalid/schemas/web-runtime-assurance.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "act_id",
+    "candidate_commit",
+    "started_at_utc",
+    "finished_at_utc",
+    "environment",
+    "cases",
+    "failures",
+    "production_authorized",
+    "verdict",
+    "caveat"
+  ],
+  "properties": {
+    "schema": { "const": "korpus.web-runtime-assurance.v1" },
+    "act_id": { "const": "KORPUS-ACT-04" },
+    "candidate_commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "started_at_utc": { "type": "string", "format": "date-time" },
+    "finished_at_utc": { "type": "string", "format": "date-time" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_origin", "node_version", "image", "image_digest", "nginx_version"],
+      "properties": {
+        "base_origin": { "type": "string", "pattern": "^https?://" },
+        "node_version": { "type": "string" },
+        "image": { "type": "string", "minLength": 1 },
+        "image_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "nginx_version": { "type": "string", "pattern": "^nginx/[0-9]+\\.[0-9]+\\.[0-9]+$" }
+      }
+    },
+    "cases": { "type": "array", "minItems": 7, "maxItems": 7, "items": { "type": "object" } },
+    "failures": { "type": "array", "items": { "type": "string" } },
+    "production_authorized": { "const": false },
+    "verdict": { "enum": ["PASS_WITH_CAVEATS", "FAIL"] },
+    "caveat": { "const": "Independent post-change verification is required." }
+  }
+}

@@ -1,0 +1,18 @@
+# ACT-04 — Web runtime and offline-shell assurance
+
+- Issue ID: `KORPUS-ACT-04`.
+- Value hypothesis: the conference interface is suitable for technical review only when its built container, HTTP boundary, cache lifecycle, and offline behavior are executable predicates rather than source-level assumptions.
+- Trust boundaries: image filesystem permissions ↔ non-root nginx; nginx location selection ↔ inherited response headers; build inputs ↔ service-worker cache identity; failed network ↔ offline shell; asset request ↔ HTML navigation fallback.
+- Allowed files: `apps/web/`, `.gitlab-ci.yml`, this act, and transient `var/web-act/` evidence.
+- Forbidden files: backend authorization, frozen audit source, production data, credentials, production authorization, and historical evidence.
+- Killable invariants: the runtime image starts as `nginx:nginx`; nginx can read its configuration without write access; every tested response retains the exact security-header set; HTML/config are `no-store`; the worker is `no-cache`; shell cache identity changes with shell content; worker activation preserves unrelated origin caches; offline navigation remains usable; a failed asset request never receives the HTML shell; a superseded request cannot overwrite or abort the latest result; the report cannot authorize production.
+- Adversarial cases: unreadable root-owned runtime configuration; nginx `add_header` shadowing in child locations; stale hard-coded cache generation; browser termination before an unawaited cache write; deletion of unrelated Cache Storage namespaces; offline missing CSS receiving `index.html`; late response/timeout races; credential-bearing verifier URL; missing commit/image identity; server-version disclosure.
+- Acceptance predicates: the candidate image is healthy; seven runtime paths pass exact status/content/cache/header predicates; seven browser tests pass including offline navigation, asset non-substitution, and latest-request concurrency; the cache digest is derived from shell bytes; evidence is bound to commit/image/nginx identities, passes its deterministic validator, and reports `production_authorized=false`; independent post-change verification remains required.
+- Rollback: revert the bounded ACT-04 commit, rebuild the web image, and redeploy the prior immutable image digest. There is no database migration or persistent-data impact. Existing service-worker caches are self-cleaning on activation.
+- Migration impact: none.
+- Pre-fix evidence: image `korpus-web-act04-prefx` exited with `open() "/etc/nginx/nginx.conf" failed (13: Permission denied)`; source inspection showed child `add_header` directives at cache-policy locations without an inheritance merge rule.
+- Commands executed: `docker build`; `docker run`; `docker inspect`; HTTP `curl` matrix; `npm --prefix apps/web run lint`; `npm --prefix apps/web run build`; `npm --prefix apps/web run test:browser`; `npm --prefix apps/web run verify:runtime`.
+- Evidence generated: `var/web-act/web-runtime-assurance.json`, `var/web-act/browser-junit.xml`, and Playwright failure traces/screenshots when a predicate fails. Generated evidence and test artifacts remain uncommitted.
+- Unexecuted gates: GitLab runtime execution and an independent clean-environment reproduction remain unexecuted locally until the candidate is pushed and reviewed.
+- Residual uncertainty: the runtime probe uses an isolated local Docker network and a disposable upstream placeholder; it does not establish production topology, TLS-edge behavior, CDN behavior, real OIDC behavior, or production authorization.
+- Verdict: `PASS_WITH_CAVEATS` — independent post-change verification is required.

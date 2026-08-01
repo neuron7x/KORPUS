@@ -88,4 +88,38 @@ const manifest = JSON.parse(
 );
 if (!manifest.name || !manifest.start_url || manifest.display !== "standalone")
   throw new Error("PWA manifest contract failed");
+const serviceWorker = await readFile(
+  new URL("../public/sw.js", import.meta.url),
+  "utf8",
+);
+for (const marker of [
+  "korpus-shell-__SHELL_DIGEST__",
+  'event.request.mode === "navigate"',
+  "await cache.put",
+  "Response.error()",
+  "self.skipWaiting()",
+  "self.clients.claim()",
+]) {
+  if (!serviceWorker.includes(marker))
+    throw new Error(`service worker contract failed: ${marker}`);
+}
+const nginx = await readFile(new URL("../nginx.conf", import.meta.url), "utf8");
+for (const marker of [
+  "add_header_inherit merge;",
+  'add_header Content-Security-Policy "',
+  "server_tokens off;",
+  'location = /index.html { add_header Cache-Control "no-store" always; }',
+  'location = /sw.js { add_header Cache-Control "no-cache" always; }',
+]) {
+  if (!nginx.includes(marker))
+    throw new Error(`nginx runtime contract failed: ${marker}`);
+}
+const dockerfile = await readFile(
+  new URL("../Dockerfile", import.meta.url),
+  "utf8",
+);
+for (const marker of ["chmod 0444 /etc/nginx/nginx.conf", "USER nginx:nginx"]) {
+  if (!dockerfile.includes(marker))
+    throw new Error(`container runtime contract failed: ${marker}`);
+}
 console.log("web validation passed");
