@@ -19,3 +19,5 @@
 ## Reproduced defect
 
 Schema v4 used `navigation.domContentLoadedEventEnd` when no LCP entry existed, then serialized the fallback as `lcp_ms`. It also accepted zero-valued navigation, answer and transfer measurements and did not cross-check reported content width against the viewport.
+
+The first committed schema-v5 live run failed because Chromium returned no LCP through `performance.getEntriesByType`. The repair uses the specified pre-navigation buffered `PerformanceObserver`; no lifecycle-timestamp fallback is restored.

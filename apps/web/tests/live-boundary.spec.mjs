@@ -21,12 +21,17 @@ test("@live browser traverses nginx and the real API without storing authority",
   test.skip(!token, "KORPUS_LIVE_BEARER_TOKEN is required for the composed live gate");
   const startedAt = new Date();
   await page.addInitScript(() => {
-    window.__korpusLiveMetrics = { cls: 0 };
+    window.__korpusLiveMetrics = { cls: 0, lcp: null };
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (!entry.hadRecentInput) window.__korpusLiveMetrics.cls += entry.value;
       }
     }).observe({ type: "layout-shift", buffered: true });
+    new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      const latest = entries.at(-1);
+      if (latest) window.__korpusLiveMetrics.lcp = latest.startTime;
+    }).observe({ type: "largest-contentful-paint", buffered: true });
   });
   await page.addInitScript({ content: axe.source });
   expect(candidateCommit).toMatch(/^[0-9a-f]{40}$/);
@@ -80,8 +85,7 @@ test("@live browser traverses nginx and the real API without storing authority",
   await page.setViewportSize({ width: 390, height: 844 });
   const quality = await page.evaluate((measuredAnswerDurationMs) => {
     const navigation = performance.getEntriesByType("navigation")[0];
-    const lcpEntries = performance.getEntriesByType("largest-contentful-paint");
-    const lcp = lcpEntries.at(-1)?.startTime;
+    const lcp = window.__korpusLiveMetrics.lcp;
     if (!Number.isFinite(lcp)) throw new Error("largest-contentful-paint is unavailable");
     const transferredBytes = performance
       .getEntriesByType("resource")
