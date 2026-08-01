@@ -38,7 +38,7 @@ trap cleanup EXIT INT TERM
 
 # No plaintext dump file is created: pg_dump bytes flow directly into authenticated encryption.
 pg_dump --dbname="$KORPUS_BACKUP_DATABASE_URL" \
-  --format=custom --compress=6 --no-owner --no-privileges --file=- \
+  --format=custom --compress=6 --no-owner --no-privileges \
   | python3 "$root/scripts/backup_crypto.py" encrypt-stdin - "$encrypted_tmp" \
       --key-file "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE" --metadata-file "$plain_meta_tmp"
 

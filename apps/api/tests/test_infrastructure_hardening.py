@@ -257,12 +257,12 @@ def test_backup_restore_scripts_are_cwd_independent_and_key_bound(tmp_path: Path
     pg_dump.write_text(
         """#!/usr/bin/env python3
 import pathlib, sys
-arg = next(value for value in sys.argv[1:] if value.startswith('--file='))
 payload = b'PGDMP\\x01korpus-infra-test'
-if arg == '--file=-':
-    sys.stdout.buffer.write(payload)
+file_args = [value for value in sys.argv[1:] if value.startswith('--file=')]
+if file_args:
+    pathlib.Path(file_args[0].split('=', 1)[1]).write_bytes(payload)
 else:
-    pathlib.Path(arg.split('=', 1)[1]).write_bytes(payload)
+    sys.stdout.buffer.write(payload)
 """,
         encoding="utf-8",
     )
@@ -301,6 +301,7 @@ else:
     assert manifest["bytes"] == backup.stat().st_size
     assert len(manifest["manifest_hmac_sha256"]) == 64
     assert manifest["plaintext_bytes"] == len(b"PGDMP\x01korpus-infra-test")
+    assert not (tmp_path / "-").exists()
 
     restored_database = tmp_path / "restored.db"
     with sqlite3.connect(restored_database) as connection:

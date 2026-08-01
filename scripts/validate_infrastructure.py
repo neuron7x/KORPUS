@@ -148,7 +148,7 @@ def main() -> int:
     restore_text = (ROOT / "scripts/restore_postgres.sh").read_text(encoding="utf-8")
     if "KORPUS_BACKUP_KEY_ID" not in backup_text or "KORPUS_BACKUP_KEY_ID" not in restore_text:
         failures.append("backup/restore: encryption key identity must be mandatory")
-    if "--file=-" not in backup_text or "encrypt-stdin" not in backup_text:
+    if "--file=-" in backup_text or "encrypt-stdin" not in backup_text:
         failures.append("backup_postgres.sh: plaintext-free streaming backup pipeline missing")
     if "backup_manifest.py" not in backup_text or "backup_manifest.py" not in restore_text:
         failures.append("backup/restore: authenticated manifest verification missing")
