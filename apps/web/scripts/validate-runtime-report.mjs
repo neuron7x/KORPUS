@@ -10,6 +10,7 @@ const expectedPaths = [
   "/sw.js",
   "/styles.css",
   "/route-that-does-not-exist",
+  "/asset-that-does-not-exist.css",
   "/healthz",
 ];
 const fail = (message) => {

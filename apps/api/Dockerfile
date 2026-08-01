@@ -32,7 +32,8 @@ RUN groupadd --gid 10001 korpus \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin korpus \
     && mkdir -p /data/objects /audit /tmp/korpus \
     && chown -R 10001:10001 /data /audit /tmp/korpus \
-    && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts \
+    && chmod -R a=rX /app/apps /app/scripts \
+    && chmod 0555 /app \
     && chmod 0555 /usr/local/bin/korpus-entrypoint
 
 USER 10001:10001

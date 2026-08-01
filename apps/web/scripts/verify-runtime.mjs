@@ -35,7 +35,8 @@ const cases = [
   { path: "/config.js", status: 200, contentType: "application/javascript", cache: "no-store" },
   { path: "/sw.js", status: 200, contentType: "application/javascript", cache: "no-cache" },
   { path: "/styles.css", status: 200, contentType: "text/css", cache: "public, max-age=300" },
-  { path: "/route-that-does-not-exist", status: 200, contentType: "text/html", cache: "no-store" },
+  { path: "/route-that-does-not-exist", status: 200, contentType: "text/html", cache: "no-store", accept: "text/html" },
+  { path: "/asset-that-does-not-exist.css", status: 404, contentType: "text/html", cache: null },
   { path: "/healthz", status: 200, contentType: "application/json", cache: null },
 ];
 
@@ -48,6 +49,7 @@ for (const expected of cases) {
   let response;
   try {
     response = await fetch(new URL(expected.path, base), {
+      headers: expected.accept ? { Accept: expected.accept } : {},
       redirect: "manual",
       signal: AbortSignal.timeout(5_000),
     });

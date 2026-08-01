@@ -179,6 +179,8 @@ def main() -> int:
         failures.append("API Dockerfile does not install exact runtime lock")
     if "USER 10001:10001" not in api_docker:
         failures.append("API Dockerfile does not run as fixed non-root UID")
+    if "chmod -R a=rX /app/apps /app/scripts" not in api_docker:
+        failures.append("API Dockerfile does not normalize copied runtime permissions")
 
     web_docker = (ROOT / "apps/web/Dockerfile").read_text(encoding="utf-8")
     if "npm ci" not in web_docker or "USER nginx:nginx" not in web_docker:

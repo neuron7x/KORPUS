@@ -34,7 +34,7 @@
         "nginx_version": { "type": "string", "pattern": "^nginx/[0-9]+\\.[0-9]+\\.[0-9]+$" }
       }
     },
-    "cases": { "type": "array", "minItems": 7, "maxItems": 7, "items": { "type": "object" } },
+    "cases": { "type": "array", "minItems": 8, "maxItems": 8, "items": { "type": "object" } },
     "failures": { "type": "array", "items": { "type": "string" } },
     "production_authorized": { "const": false },
     "verdict": { "enum": ["PASS_WITH_CAVEATS", "FAIL"] },
