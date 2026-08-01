@@ -20,7 +20,11 @@
 - Rollback: revert the bounded ACT-11 commit and restore the prior dev lock.
 - Migration impact: none.
 - Evidence generated: command output only; no secrets or databases.
-- Unexecuted gates: fresh post-commit lock recreation, full GitLab pipeline, independent verifier.
+- Executed gates: a fresh Python 3.12 venv installed the complete dev lock with `--no-deps`;
+  `pip check`, mypy import, scoped mypy, scoped Ruff, 22 focused tests and Alembic graph
+  inspection passed. The prior Alembic path-separator warning was removed.
+- Unexecuted gates: full GitLab pipeline and independent verifier.
 - Residual uncertainty: repository-wide Ruff debt and unrelated historical script type errors
   are not converted into closure by this act.
-- Verdict: not assigned before post-commit clean execution; `production_authorized=false`.
+- Verdict: `PASS_WITH_CAVEATS`; independent post-change verification is required and
+  `production_authorized=false`.

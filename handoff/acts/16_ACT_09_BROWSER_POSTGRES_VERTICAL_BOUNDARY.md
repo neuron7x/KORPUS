@@ -24,7 +24,12 @@
 - Migration impact: none; existing migrations are executed in a disposable tmpfs database.
 - Evidence generated: `var/web-act/web-api-live-boundary.json` and JUnit only. Tokens,
   credentials, database files and fixture content outside the sanitized report are transient.
-- Unexecuted gates: live modes, broader regressions, GitLab pipeline, independent verifier.
+- Executed gates: SQLite and PostgreSQL modes each passed 1/1 live Chromium test; the
+  PostgreSQL v2 report bound API, web and PostgreSQL image digests, PostgreSQL 17.10,
+  pgvector 0.8.5 and Alembic head `0009_reviewer_credentials`. API suite, seven non-live
+  browser tests, web build and report mutation tests passed.
+- Unexecuted gates: GitLab pipeline and independent verifier.
 - Residual uncertainty: JWT is not production OIDC; IAM-006 remains `CONFIRMED_OPEN`; a
   compromised application process can still broaden GUC claims through arbitrary SQL.
-- Verdict: not assigned before post-commit live execution; `production_authorized=false`.
+- Verdict: `PASS_WITH_CAVEATS`; independent post-change verification is required and
+  `production_authorized=false`.

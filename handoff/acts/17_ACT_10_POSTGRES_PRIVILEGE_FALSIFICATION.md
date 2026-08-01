@@ -22,8 +22,12 @@
 - Migration impact: none.
 - Evidence generated: refreshed sanitized ACT-01 JSON/JUnit only; no database, key, password,
   token or connection URL is retained.
-- Unexecuted gates: live post-commit execution, broader regression, mutation tool shard,
-  GitLab pipeline and independent verifier.
+- Executed gates: clean PostgreSQL source/restore cycle passed; application-role schema and
+  database CREATE were false, governed-table ownership count was zero, and all ten exact
+  denial identifiers passed. API suite, repository/infrastructure/Kubernetes validators,
+  migration gate and 30/30 deterministic eval cases passed.
+- Unexecuted gates: external mutation tool shard, GitLab pipeline and independent verifier.
 - Residual uncertainty: these probes do not mitigate IAM-006; arbitrary application-role SQL
   can still broaden values in the current GUC authorization context.
-- Verdict: not assigned before post-commit live execution; `production_authorized=false`.
+- Verdict: `PASS_WITH_CAVEATS`; independent post-change verification is required and
+  `production_authorized=false`.
