@@ -174,12 +174,12 @@ MUTANTS = (
         "M21_CSRF_GATE_BYPASS",
         "apps/api/src/korpus/main.py",
         """if (
-                    not isinstance(expected_csrf, str)
-                    or not supplied_csrf
-                    or not csrf_cookie
-                    or not secrets.compare_digest(supplied_csrf, expected_csrf)
-                    or not secrets.compare_digest(csrf_cookie, expected_csrf)
-                ):""",
+                            not isinstance(expected_csrf, str)
+                            or not supplied_csrf
+                            or not csrf_cookie
+                            or not secrets.compare_digest(supplied_csrf, expected_csrf)
+                            or not secrets.compare_digest(csrf_cookie, expected_csrf)
+                        ):""",
         "if False:",
         ("apps/api/tests/test_browser_oidc.py::test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf",),
     ),
