@@ -19,3 +19,5 @@
 ## Reproduced failure
 
 The first committed live run timed out at `page.goto(..., {waitUntil: "networkidle"})` despite a healthy service-worker application. Network idleness is not a stable readiness predicate for this topology. The repair restores the deterministic document `load` boundary and relies on explicit UI/API assertions before collecting measurements.
+
+The next live run proved that nginx CSP correctly blocks post-load inline `axe` injection. CSP remains unchanged; axe is installed through Playwright's pre-navigation init script, keeping the oracle outside the delivered runtime and avoiding an unsafe CSP exception.

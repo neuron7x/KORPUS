@@ -24,6 +24,7 @@ test("@live browser traverses nginx and the real API without storing authority",
       }
     }).observe({ type: "layout-shift", buffered: true });
   });
+  await page.addInitScript({ content: axe.source });
   expect(candidateCommit).toMatch(/^[0-9a-f]{40}$/);
   expect(apiImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
   expect(webImageDigest).toMatch(/^sha256:[0-9a-f]{64}$/);
@@ -49,7 +50,6 @@ test("@live browser traverses nginx and the real API without storing authority",
   }
   const answerDurationMs = Date.now() - answerStarted;
 
-  await page.addScriptTag({ content: axe.source });
   const accessibility = await page.evaluate(async () => {
     const results = await window.axe.run(document, {
       resultTypes: ["violations"],
