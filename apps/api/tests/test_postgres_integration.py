@@ -22,6 +22,7 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.repository import (
     SqlRepository,
+    document_compartments,
     documents,
     span_embeddings,
     spans,
@@ -148,10 +149,19 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         visible_versions = set(connection.execute(select(versions.c.id)).scalars())
         visible_spans = set(connection.execute(select(spans.c.id)).scalars())
         visible_embeddings = set(connection.execute(select(span_embeddings.c.span_id)).scalars())
+        visible_compartments = set(
+            connection.execute(
+                select(
+                    document_compartments.c.document_id,
+                    document_compartments.c.compartment,
+                )
+            ).all()
+        )
     assert visible_documents == {str(public_document.id)}
     assert visible_versions == {str(public_version.id)}
     assert visible_spans == {str(public_span.id)}
     assert visible_embeddings == {str(public_span.id)}
+    assert visible_compartments == set()
     assert str(restricted_document.id) not in visible_documents
     assert str(restricted_version.id) not in visible_versions
     assert str(restricted_span.id) not in visible_spans
@@ -173,7 +183,21 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             visible = str(compartment_document.id) in set(
                 connection.execute(select(documents.c.id)).scalars()
             )
+            visible_compartment_rows = set(
+                connection.execute(
+                    select(
+                        document_compartments.c.document_id,
+                        document_compartments.c.compartment,
+                    ).where(
+                        document_compartments.c.document_id
+                        == str(compartment_document.id)
+                    )
+                ).all()
+            )
         assert visible is expected
+        assert bool(visible_compartment_rows) is expected
+        if expected:
+            assert visible_compartment_rows == {(str(compartment_document.id), "omega")}
 
     # Missing session identity fails closed across every corpus-bearing table.
     with repository.engine.connect() as connection:
@@ -181,6 +205,7 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         assert connection.execute(select(versions.c.id)).all() == []
         assert connection.execute(select(spans.c.id)).all() == []
         assert connection.execute(select(span_embeddings.c.span_id)).all() == []
+        assert connection.execute(select(document_compartments.c.document_id)).all() == []
 
     # The application role can read but cannot forge migration state.
     with pytest.raises(DBAPIError):
