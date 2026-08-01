@@ -1,7 +1,7 @@
 {
   "schema": "korpus.repository-manifest.v2",
   "file_count": 286,
-  "root_sha256": "6d86f932f9311a8fd200369564eb4d0a060e592e7dbf93a21311b24ad54ed34e",
+  "root_sha256": "51ed8382b32e6e49d27f1e2dbcd21973a2e1954c398f21d91018346067f02023",
   "files": [
     {
       "path": ".dockerignore",
@@ -1201,7 +1201,7 @@
     {
       "path": "reports/ASSURANCE_SNAPSHOT.json",
       "bytes": 2483,
-      "sha256": "d688682e54aa24d9b29dccb865e194008b1a54811edc4adb224f1609a3539c26"
+      "sha256": "dd28dc13bf83de93e6ae8a0b7d83ffaef111491b952a12064f6f937745822911"
     },
     {
       "path": "reports/COVERAGE_REPORT.json",
@@ -1216,7 +1216,7 @@
     {
       "path": "reports/EVAL_REPORT.json",
       "bytes": 15360,
-      "sha256": "6e2e7c53fd8fc47b335017de5d6e8bc96cd2cffad317763640b3bc81cc062045"
+      "sha256": "b458f69fa741cef79d76ace5bc0c745a179a5629195aa67c624f533753760689"
     },
     {
       "path": "reports/INFRASTRUCTURE_VALIDATION.json",
@@ -1241,7 +1241,7 @@
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1161,
-      "sha256": "ac573da13404fb536560876228813aa638666dd06b43b47cd1cbcd25d4e4d725"
+      "sha256": "477ea124006570ec374b0ce1747c87d1c9d156a7d8d7cc72a46ce8c3bcd44c6a"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
@@ -1251,7 +1251,7 @@
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
       "bytes": 85323,
-      "sha256": "8687d5ff990e05b4dca808ef34131284229b42f53356add28bb401c7d24a3c13"
+      "sha256": "bb366d62a191e0b9bebd47fc94ad4fa1a7362fe78194545a0470fff1483198e3"
     },
     {
       "path": "reports/SCALE_REPORT.json",
@@ -1300,8 +1300,8 @@
     },
     {
       "path": "scripts/build_system_manifest.py",
-      "bytes": 1951,
-      "sha256": "108a9010b83291891e1625710cd1432babb1cd15f4be09c49ac76596aad2ed0d"
+      "bytes": 3592,
+      "sha256": "f3c8566919788e0d7e5921578f47230030935456e7caf93f036fc314c8f84e15"
     },
     {
       "path": "scripts/create_agent_worktree.sh",
@@ -1395,8 +1395,8 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 1375,
-      "sha256": "4729e06c0f7b5caff528d40c0c29fdc58f7ef1a72d27884670bc94d9fa75cbd2"
+      "bytes": 2891,
+      "sha256": "18a22c30268e91e01b25dc2f5f075f96ce7b483feccaf4ad08ab5ec3b5f267c0"
     },
     {
       "path": "scripts/validate_infrastructure.py",
