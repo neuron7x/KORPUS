@@ -15,3 +15,7 @@
 - Evidence artifacts: `var/web-act/web-api-live-boundary.json` and live JUnit; token and database state remain transient.
 - Gates not executed: manual assistive-technology review, production network measurements, independent clean-room verification and GitLab pipeline.
 - Remaining uncertainty/debt: axe is a bounded automated oracle; local timings are anchored observations, not production SLOs or complete WCAG/Core Web Vitals certification.
+
+## Reproduced failure
+
+The first committed live run timed out at `page.goto(..., {waitUntil: "networkidle"})` despite a healthy service-worker application. Network idleness is not a stable readiness predicate for this topology. The repair restores the deterministic document `load` boundary and relies on explicit UI/API assertions before collecting measurements.

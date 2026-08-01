@@ -32,7 +32,7 @@ test("@live browser traverses nginx and the real API without storing authority",
     if (response.url().includes("/api/v1/")) responses.push(response);
   });
 
-  await page.goto("/", { waitUntil: "networkidle" });
+  await page.goto("/", { waitUntil: "load" });
   await page.getByText("Developer bearer fallback").click();
   await page.getByLabel("Короткоживучий access token").fill(token);
   await page.getByRole("button", { name: "Перевірити", exact: true }).click();
