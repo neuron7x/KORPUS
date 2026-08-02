@@ -160,6 +160,33 @@ def main() -> int:
             422,
         )
 
+        browse = client.post("/v1/search", json={"text": question}).json()
+        report.check("browsing reaches the source", browse["status"], "answered")
+        blocked = client.post("/v1/search", json={"text": secret_question}).json()
+        report.check(
+            "browsing does not bypass the tier", blocked["results"], []
+        )
+
+        feedback = client.post(
+            "/v1/feedback",
+            json={"trace_id": answer["trace_id"], "verdict": "helpful"},
+        ).json()
+        report.check("a correction is recorded", feedback["recorded"], True)
+
+        report.check(
+            "an anonymous reader cannot read the trail",
+            client.get(f"/v1/audit/{answer['trace_id']}").status_code,
+            403,
+        )
+        trail = client.get(
+            f"/v1/audit/{answer['trace_id']}", headers={"Authorization": "Bearer cmd"}
+        ).json()
+        report.check(
+            "an auditor can reconstruct the decision",
+            [event["event"] for event in trail["events"]],
+            ["answer.completed", "answer.feedback"],
+        )
+
         report.check("readiness is green", client.get("/ready").json()["status"], "ready")
         report.check(
             "the audit trail recorded the answers",

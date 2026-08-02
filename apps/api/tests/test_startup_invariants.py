@@ -17,6 +17,7 @@ def settings(**overrides: object) -> Settings:
         "environment": "development",
         "log_level": "INFO",
         "llm_provider": "stub",
+        "corpus_path": Path("/tmp/korpus-settings-probe.sqlite3"),
     }
     base.update(overrides)
     return Settings(**base)  # type: ignore[arg-type]
@@ -121,3 +122,60 @@ async def test_audit_sink_is_bounded() -> None:
         await sink.record("answer.completed", {"n": index})
     assert len(sink.events) == 10
     assert sink.events[-1][1]["n"] == 49
+
+
+def test_operational_limits_are_bounded_by_configuration() -> None:
+    """Every knob an operator can turn has an edge it cannot be turned past."""
+    for field, value in (
+        ("max_answer_spans", 0),
+        ("max_answer_spans", 51),
+        ("candidate_multiplier", 0),
+        ("generator_timeout_seconds", 0),
+        ("generator_timeout_seconds", 301),
+        ("rate_limit_burst", 0),
+        ("rate_limit_per_second", -1),
+        ("circuit_failure_threshold", 0),
+        ("circuit_cooldown_seconds", 0),
+        ("max_search_results", 0),
+        ("max_search_results", 101),
+    ):
+        with pytest.raises(ValueError):
+            settings(**{field: value})
+
+
+def test_configured_limits_reach_the_running_service(tmp_path: Path) -> None:
+    """A knob that changes nothing is worse than no knob: it invites a false belief."""
+    from conftest import CORPUS, make_span
+    from fastapi.testclient import TestClient
+    from korpus.api import routes
+    from korpus.domain.access import Principal
+    from korpus.domain.models import AccessTier
+    from korpus.infrastructure.in_memory import StaticPrincipalResolver
+    from korpus.infrastructure.lexical import LexicalRetriever
+    from korpus.main import create_app
+
+    configured = settings(
+        corpus_path=tmp_path / "korpus.sqlite3",
+        max_answer_spans=2,
+        rate_limit_burst=1,
+        rate_limit_per_second=0,
+        circuit_failure_threshold=1,
+    )
+    app = create_app(configured)
+    assert routes._bucket.capacity == 1
+    assert routes._breaker.threshold == 1
+
+    routes._resolver = StaticPrincipalResolver(
+        anonymous=Principal(
+            subject_id="anonymous",
+            tier=AccessTier.PUBLIC,
+            authorized_corpora=frozenset({CORPUS}),
+        )
+    )
+    routes._retriever = LexicalRetriever(
+        [make_span(text="порядок евакуації поранених") for _ in range(5)]
+    )
+    client = TestClient(app)
+    answer = client.post("/v1/answers", json={"text": "порядок евакуації"}).json()
+    assert len(answer["citations"]) == 2
+    assert client.post("/v1/answers", json={"text": "порядок евакуації"}).status_code == 429

@@ -8,28 +8,14 @@ generator see anything. Every exit path records one audit event.
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
 from uuid import uuid4
 
+from korpus.application.evidence import EvidenceLimits, gather
 from korpus.application.ports import AuditSink, Clock, Generator, Retriever
 from korpus.application.verification import verify
-from korpus.domain.access import Principal, allowed_tiers, authorize, in_scope, readable
-from korpus.domain.authority import (
-    conflicting_versions,
-    deduplicate_by_version,
-    is_current,
-    may_govern,
-    order_by_precedence,
-)
-from korpus.domain.models import (
-    Answer,
-    AnswerStatus,
-    Citation,
-    Claim,
-    EvidenceSpan,
-    Query,
-    ReviewState,
-)
+from korpus.domain.access import Principal
+from korpus.domain.authority import conflicting_versions
+from korpus.domain.models import Answer, AnswerStatus, Citation, Claim, Query
 
 ABSTENTION_TEXT = "У перевіреному корпусі недостатньо даних для надійної відповіді."
 ACCESS_DENIED_TEXT = "Запитаний корпус недоступний для вашого рівня доступу."
@@ -64,22 +50,22 @@ class AnswerQuery:
         self._policy = policy
         self._clock = clock
 
-    def eligible(self, spans: list[EvidenceSpan], now: datetime) -> list[EvidenceSpan]:
-        """The product promise in one expression: approved, scored, current, governing."""
-        return [
-            span
-            for span in spans
-            if span.retrieval_score >= self._policy.minimum_score
-            and span.review_state is ReviewState.APPROVED
-            and is_current(span, now)
-            and may_govern(span)
-        ]
+    @property
+    def limits(self) -> EvidenceLimits:
+        return EvidenceLimits(
+            minimum_score=self._policy.minimum_score,
+            maximum_spans=self._policy.maximum_spans,
+            candidate_multiplier=self._policy.candidate_multiplier,
+        )
 
     async def execute(self, query: Query, principal: Principal) -> Answer:
         trace_id = uuid4()
 
-        decision = authorize(principal, query.corpus_ids)
-        if not decision.allowed:
+        gathered = await gather(
+            self._retriever, query, principal, self.limits, self._clock.now()
+        )
+        decision = gathered.decision
+        if gathered.denied:
             answer = Answer(
                 trace_id=trace_id,
                 status=AnswerStatus.ACCESS_DENIED,
@@ -99,30 +85,10 @@ class AnswerQuery:
             )
             return answer
 
-        tiers = allowed_tiers(principal.tier)
-        retrieved = await self._retriever.search(
-            query,
-            tiers,
-            decision.scope,
-            self._policy.maximum_spans * self._policy.candidate_multiplier,
-        )
-
-        # Defence in depth: a defective or swapped retriever must not widen disclosure.
-        # Both bounds it was given are re-checked against what it actually returned.
-        leaked = [
-            span
-            for span in retrieved
-            if not readable(span, principal) or not in_scope(span, decision.scope)
-        ]
-        visible = [
-            span
-            for span in retrieved
-            if readable(span, principal) and in_scope(span, decision.scope)
-        ]
-        if leaked:
+        if gathered.breached:
             await self._audit.record(
                 "evidence.tier_violation",
-                {"trace_id": str(trace_id), "spans": len(leaked)},
+                {"trace_id": str(trace_id), "spans": gathered.leaked},
             )
             answer = Answer(
                 trace_id=trace_id,
@@ -131,13 +97,10 @@ class AnswerQuery:
                 confidence=0,
                 limitations=["Ретривер повернув матеріал поза рівнем доступу читача."],
             )
-            await self._record(answer, principal, len(retrieved), 0)
+            await self._record(answer, principal, gathered.retrieved, 0)
             return answer
 
-        now = self._clock.now()
-        eligible = order_by_precedence(deduplicate_by_version(self.eligible(visible, now)))
-        eligible = eligible[: self._policy.maximum_spans]
-
+        eligible = gathered.spans
         if len(eligible) < self._policy.minimum_approved_spans:
             answer = Answer(
                 trace_id=trace_id,
@@ -146,7 +109,7 @@ class AnswerQuery:
                 confidence=0,
                 limitations=["Відповідь не згенеровано без належного джерела."],
             )
-            await self._record(answer, principal, len(retrieved), len(eligible))
+            await self._record(answer, principal, gathered.retrieved, len(eligible))
             return answer
 
         citations: list[Citation] = [span.citation for span in eligible]
@@ -161,7 +124,7 @@ class AnswerQuery:
                 confidence=0,
                 limitations=["Генератор відповіді недоступний."],
             )
-            await self._record(answer, principal, len(retrieved), len(eligible))
+            await self._record(answer, principal, gathered.retrieved, len(eligible))
             return answer
 
         result = verify(claims, citations, eligible, principal)
@@ -188,7 +151,7 @@ class AnswerQuery:
                 citation_coverage=result.coverage,
                 limitations=limitations or ["Відповідь не пройшла перевірку посилань."],
             )
-            await self._record(answer, principal, len(retrieved), len(eligible))
+            await self._record(answer, principal, gathered.retrieved, len(eligible))
             return answer
 
         answer = Answer(
@@ -201,7 +164,7 @@ class AnswerQuery:
             citation_coverage=result.coverage,
             limitations=limitations,
         )
-        await self._record(answer, principal, len(retrieved), len(eligible))
+        await self._record(answer, principal, gathered.retrieved, len(eligible))
         return answer
 
     async def _record(

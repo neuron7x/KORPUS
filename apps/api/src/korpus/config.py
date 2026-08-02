@@ -29,6 +29,17 @@ class Settings(BaseSettings):
     openai_balanced_model: str = "gpt-5.6-terra"
     openai_router_model: str = "gpt-5.6-luna"
     min_retrieval_score: float = Field(0.72, ge=0, le=1)
+    # Operational limits. They live here rather than in the code because an operator
+    # under load must be able to change them without a release, and because a number
+    # nobody can find is a number nobody can defend.
+    max_answer_spans: int = Field(8, ge=1, le=50)
+    candidate_multiplier: int = Field(8, ge=1, le=64)
+    generator_timeout_seconds: float = Field(30.0, gt=0, le=300)
+    rate_limit_burst: int = Field(30, ge=1, le=10_000)
+    rate_limit_per_second: float = Field(1.0, ge=0, le=1000)
+    circuit_failure_threshold: int = Field(5, ge=1, le=100)
+    circuit_cooldown_seconds: float = Field(30.0, gt=0, le=3600)
+    max_search_results: int = Field(20, ge=1, le=100)
     # Where the corpus and audit trail live. Anchored like the env file: a relative
     # path would put the database wherever the service happened to be started.
     corpus_path: Path = Path(__file__).resolve().parents[4] / "data" / "korpus.sqlite3"

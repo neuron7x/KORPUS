@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -9,7 +10,7 @@ from korpus.api.routes import get_resolver, router
 from korpus.config import Settings, get_settings
 from korpus.domain.models import Answer, AnswerStatus
 from korpus.infrastructure.lexical import LexicalRetriever
-from korpus.infrastructure.resilience import DurableAuditSink
+from korpus.infrastructure.resilience import CircuitBreaker, DurableAuditSink, TokenBucket
 from korpus.infrastructure.store import CorpusStore
 
 log = logging.getLogger(__name__)
@@ -69,6 +70,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     routes._store = store
     routes._retriever = retriever
     routes._audit = DurableAuditSink(store)
+    # Operational limits come from configuration, not from the defaults baked into
+    # the primitives: an operator changing them must not have to change the code.
+    routes._breaker = CircuitBreaker(
+        threshold=resolved.circuit_failure_threshold,
+        cooldown=timedelta(seconds=resolved.circuit_cooldown_seconds),
+    )
+    routes._bucket = TokenBucket(
+        capacity=resolved.rate_limit_burst,
+        refill_per_second=resolved.rate_limit_per_second,
+    )
 
     application = FastAPI(
         title="Korpus API",

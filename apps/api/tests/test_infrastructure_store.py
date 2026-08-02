@@ -362,3 +362,28 @@ def test_a_re_tiering_approval_survives_a_rebuild(tmp_path: Path) -> None:
     kept = next(iter(recovered.spans()))
     assert kept.review_state is ReviewState.APPROVED
     assert kept.access_tier is AccessTier.REVIEWED
+
+
+def test_an_unreadable_audit_payload_is_reported_not_hidden(tmp_path: Path) -> None:
+    """A corrupt row must not silently vanish from the trail an auditor is reading."""
+    store = open_store(tmp_path)
+    store.record_audit("answer.completed", {"trace_id": "abc"})
+    store._connection.execute(
+        "UPDATE audit SET payload = ? WHERE event = ?",
+        ('{"trace_id": "abc", broken', "answer.completed"),
+    )
+    events = store.audit_for("abc")
+    assert events == [
+        {"recorded": events[0]["recorded"], "event": "answer.completed",
+         "payload": {"unreadable": True}}
+    ]
+
+
+def test_the_trail_returns_only_the_trace_that_was_asked_for(tmp_path: Path) -> None:
+    """An auditor asking about one answer must not be handed everyone else's."""
+    store = open_store(tmp_path)
+    store.record_audit("answer.completed", {"trace_id": "aaa", "status": "answered"})
+    store.record_audit("answer.completed", {"trace_id": "bbb", "status": "access_denied"})
+    events = store.audit_for("aaa")
+    assert len(events) == 1
+    assert events[0]["payload"]["trace_id"] == "aaa"

@@ -166,8 +166,8 @@
       "id": "models-09",
       "file": "apps/api/src/korpus/domain/models.py",
       "description": "query accepts unknown fields — a client could name its own tier again",
-      "old": "    model_config = ConfigDict(extra=\"forbid\")",
-      "new": "    model_config = ConfigDict(extra=\"allow\")"
+      "old": "    model_config = ConfigDict(extra=\"forbid\")\n\n    text: str = Field(min_length=3, max_length=4000)",
+      "new": "    model_config = ConfigDict(extra=\"allow\")\n\n    text: str = Field(min_length=3, max_length=4000)"
     },
     {
       "id": "models-10",
@@ -233,39 +233,32 @@
       "new": "            empty=False,"
     },
     {
-      "id": "answer-01",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "review-state gate removed — unapproved material becomes citable",
-      "old": "            and span.review_state is ReviewState.APPROVED",
-      "new": "            and True"
-    },
-    {
       "id": "answer-02",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "score gate removed",
-      "old": "            if span.retrieval_score >= self._policy.minimum_score",
-      "new": "            if True"
+      "old": "        if span.retrieval_score >= minimum_score",
+      "new": "        if True"
     },
     {
       "id": "answer-03",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "score threshold becomes exclusive at the boundary",
-      "old": "            if span.retrieval_score >= self._policy.minimum_score",
-      "new": "            if span.retrieval_score > self._policy.minimum_score"
+      "old": "        if span.retrieval_score >= minimum_score",
+      "new": "        if span.retrieval_score > minimum_score"
     },
     {
       "id": "answer-04",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "superseded and expired sources become eligible",
-      "old": "            and is_current(span, now)",
-      "new": "            and True"
+      "old": "        and is_current(span, now)",
+      "new": "        and True"
     },
     {
       "id": "answer-05",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "adversary material becomes eligible",
-      "old": "            and may_govern(span)",
-      "new": "            and True"
+      "old": "        and may_govern(span)",
+      "new": "        and True"
     },
     {
       "id": "answer-06",
@@ -273,28 +266,6 @@
       "description": "abstention threshold off by one",
       "old": "        if len(eligible) < self._policy.minimum_approved_spans:",
       "new": "        if len(eligible) <= self._policy.minimum_approved_spans - 1 and False:"
-    },
-    {
-      "id": "answer-07",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "leaked evidence no longer detected",
-      "old": "        leaked = [\n            span\n            for span in retrieved\n            if not readable(span, principal) or not in_scope(span, decision.scope)\n        ]",
-      "new": "        leaked: list[EvidenceSpan] = []"
-    },
-    {
-      "id": "answer-08",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "unreadable or out-of-scope spans stay in the evidence set — provably equivalent: the leak branch returns before `visible` is read",
-      "old": "        visible = [\n            span\n            for span in retrieved\n            if readable(span, principal) and in_scope(span, decision.scope)\n        ]",
-      "new": "        visible = list(retrieved)",
-      "equivalent": true
-    },
-    {
-      "id": "answer-09",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "corpus authorization ignored",
-      "old": "        if not decision.allowed:",
-      "new": "        if False:"
     },
     {
       "id": "answer-11",
@@ -313,17 +284,10 @@
     },
     {
       "id": "answer-13",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "duplicate chunks of one version cited as independent sources",
-      "old": "        eligible = order_by_precedence(deduplicate_by_version(self.eligible(visible, now)))",
-      "new": "        eligible = order_by_precedence(self.eligible(visible, now))"
-    },
-    {
-      "id": "answer-14",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "evidence cap removed",
-      "old": "        eligible = eligible[: self._policy.maximum_spans]",
-      "new": "        eligible = eligible[:]"
+      "old": "    ranked = order_by_precedence(\n        deduplicate_by_version(eligible(retrieved, now, limits.minimum_score))\n    )",
+      "new": "    ranked = order_by_precedence(eligible(retrieved, now, limits.minimum_score))"
     },
     {
       "id": "answer-15",
@@ -469,15 +433,15 @@
       "id": "routes-03",
       "file": "apps/api/src/korpus/api/routes.py",
       "description": "not-ready no longer returns 503",
-      "old": "        response.status_code = 503",
-      "new": "        response.status_code = 200"
+      "old": "    if not serving:\n        response.status_code = 503",
+      "new": "    if not serving:\n        response.status_code = 200"
     },
     {
       "id": "routes-04",
       "file": "apps/api/src/korpus/api/routes.py",
       "description": "configured retrieval threshold bypassed",
-      "old": "        policy=AnswerPolicy(minimum_score=settings.min_retrieval_score),",
-      "new": "        policy=AnswerPolicy(minimum_score=0.0),"
+      "old": "    return AnswerPolicy(\n        minimum_score=settings.min_retrieval_score,",
+      "new": "    return AnswerPolicy(\n        minimum_score=0.0,"
     },
     {
       "id": "startup-01",
@@ -508,13 +472,6 @@
       "new": "    return True"
     },
     {
-      "id": "answer-21",
-      "file": "apps/api/src/korpus/application/answer_query.py",
-      "description": "candidate set narrowed back to the answer cap — better-matching unapproved chunks crowd out the governing source",
-      "old": "            self._policy.maximum_spans * self._policy.candidate_multiplier,",
-      "new": "            self._policy.maximum_spans,"
-    },
-    {
       "id": "answer-22",
       "file": "apps/api/src/korpus/application/answer_query.py",
       "description": "a single uncited claim no longer blocks the answer",
@@ -523,10 +480,10 @@
     },
     {
       "id": "answer-23",
-      "file": "apps/api/src/korpus/application/answer_query.py",
+      "file": "apps/api/src/korpus/application/evidence.py",
       "description": "out-of-scope evidence no longer counted as a leak",
-      "old": "            if not readable(span, principal) or not in_scope(span, decision.scope)",
-      "new": "            if not readable(span, principal)"
+      "old": "        if not readable(span, principal) or not in_scope(span, decision.scope)",
+      "new": "        if not readable(span, principal)"
     },
     {
       "id": "verify-07",
@@ -756,15 +713,15 @@
       "id": "routes-06",
       "file": "apps/api/src/korpus/api/routes.py",
       "description": "rate limit not enforced",
-      "old": "    if not _bucket.allow(principal.subject_id, utcnow()):",
-      "new": "    if False:"
+      "old": "    if not _bucket.allow(principal.subject_id, utcnow()):\n        response.status_code = 429\n        if _audit is not None:",
+      "new": "    if False:\n        response.status_code = 429\n        if _audit is not None:"
     },
     {
       "id": "routes-07",
       "file": "apps/api/src/korpus/api/routes.py",
       "description": "a throttled request reports success",
-      "old": "        response.status_code = 429",
-      "new": "        response.status_code = 200"
+      "old": "        response.status_code = 429\n        if _audit is not None:",
+      "new": "        response.status_code = 200\n        if _audit is not None:"
     },
     {
       "id": "routes-08",
@@ -835,6 +792,139 @@
       "description": "journal operations are all replayed as inserts",
       "old": "                if operation == \"review\":",
       "new": "                if False:"
+    },
+    {
+      "id": "evidence-01",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "description": "the shared gate stops re-checking what the retriever returned",
+      "old": "    leaked = [\n        span\n        for span in retrieved\n        if not readable(span, principal) or not in_scope(span, decision.scope)\n    ]",
+      "new": "    leaked: list[EvidenceSpan] = []"
+    },
+    {
+      "id": "evidence-02",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "description": "the gate stops filtering by review state",
+      "old": "        and span.review_state is ReviewState.APPROVED",
+      "new": "        and True"
+    },
+    {
+      "id": "evidence-03",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "description": "the gate stops capping the evidence set",
+      "old": "        spans=ranked[: limits.maximum_spans],",
+      "new": "        spans=ranked,"
+    },
+    {
+      "id": "evidence-04",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "description": "candidates are no longer over-fetched before eligibility",
+      "old": "        limits.maximum_spans * limits.candidate_multiplier,",
+      "new": "        limits.maximum_spans,"
+    },
+    {
+      "id": "evidence-05",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "description": "an unauthorized corpus request proceeds to retrieval",
+      "old": "    if not decision.allowed:\n        return Gathered(decision=decision, spans=[], retrieved=0, leaked=0)",
+      "new": "    if False:\n        return Gathered(decision=decision, spans=[], retrieved=0, leaked=0)"
+    },
+    {
+      "id": "search-01",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "browsing returns sources it was told were out of bounds",
+      "old": "    elif gathered.breached:",
+      "new": "    elif False:"
+    },
+    {
+      "id": "search-02",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "browsing is not rate limited",
+      "old": "    if not _bucket.allow(principal.subject_id, utcnow()):\n        response.status_code = 429\n        return SearchResponse(",
+      "new": "    if False:\n        response.status_code = 429\n        return SearchResponse("
+    },
+    {
+      "id": "search-03",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "truncation is never reported, so a reader believes they saw everything",
+      "old": "            truncated=gathered.retrieved > len(gathered.spans),",
+      "new": "            truncated=False,"
+    },
+    {
+      "id": "search-04",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "browsing ignores the configured result limit",
+      "old": "        maximum_spans=settings.max_search_results,",
+      "new": "        maximum_spans=1000,"
+    },
+    {
+      "id": "audit-01",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "anyone can read what other people asked",
+      "old": "    if TIER_ORDER[principal.tier] < TIER_ORDER[AUDIT_MINIMUM_TIER]:",
+      "new": "    if False:"
+    },
+    {
+      "id": "audit-02",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "an unknown trace is reported as an empty success",
+      "old": "    if not events:\n        response.status_code = 404",
+      "new": "    if not events:\n        response.status_code = 200"
+    },
+    {
+      "id": "audit-03",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "the trail returns events belonging to other traces",
+      "old": "                (f'%\"trace_id\": \"{trace_id}\"%', limit),",
+      "new": "                ('%', limit),"
+    },
+    {
+      "id": "feedback-01",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "feedback is silently dropped when it cannot be recorded",
+      "old": "    if _audit is None:\n        response.status_code = 503\n        return {\"recorded\": False, \"reason\": \"audit_unavailable\"}",
+      "new": "    if _audit is None:\n        return {\"recorded\": True, \"trace_id\": str(report.trace_id)}"
+    },
+    {
+      "id": "feedback-02",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "the verdict is not recorded with the correction",
+      "old": "            \"verdict\": report.verdict.value,",
+      "new": "            \"verdict\": \"helpful\","
+    },
+    {
+      "id": "config-06",
+      "file": "apps/api/src/korpus/config.py",
+      "description": "the configured answer cap is ignored",
+      "old": "    max_answer_spans: int = Field(8, ge=1, le=50)",
+      "new": "    max_answer_spans: int = Field(50, ge=1, le=50)"
+    },
+    {
+      "id": "config-07",
+      "file": "apps/api/src/korpus/config.py",
+      "description": "the rate limit burst can be set to anything",
+      "old": "    rate_limit_burst: int = Field(30, ge=1, le=10_000)",
+      "new": "    rate_limit_burst: int = Field(30)"
+    },
+    {
+      "id": "routes-09",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "configured operational limits never reach the answer policy",
+      "old": "        maximum_spans=settings.max_answer_spans,",
+      "new": "        maximum_spans=8,"
+    },
+    {
+      "id": "startup-06",
+      "file": "apps/api/src/korpus/main.py",
+      "description": "the configured rate limit is replaced by the default",
+      "old": "    routes._bucket = TokenBucket(\n        capacity=resolved.rate_limit_burst,\n        refill_per_second=resolved.rate_limit_per_second,\n    )",
+      "new": "    routes._bucket = TokenBucket()"
+    },
+    {
+      "id": "startup-07",
+      "file": "apps/api/src/korpus/main.py",
+      "description": "the configured circuit threshold is replaced by the default",
+      "old": "    routes._breaker = CircuitBreaker(\n        threshold=resolved.circuit_failure_threshold,\n        cooldown=timedelta(seconds=resolved.circuit_cooldown_seconds),\n    )",
+      "new": "    routes._breaker = CircuitBreaker()"
     }
   ]
 }

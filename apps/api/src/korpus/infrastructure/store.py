@@ -302,6 +302,30 @@ class CorpusStore:
             row = self._connection.execute("SELECT COUNT(*) AS n FROM audit").fetchone()
         return int(row["n"])
 
+    def audit_for(self, trace_id: str, limit: int = 200) -> list[dict[str, object]]:
+        """Every recorded event that carries this trace id, oldest first.
+
+        The auditor's question is "why was this shown", and it is answered from the
+        trail rather than by re-running the pipeline against a corpus that has since
+        changed.
+        """
+        with self._lock:
+            rows = self._connection.execute(
+                "SELECT recorded, event, payload FROM audit "
+                "WHERE payload LIKE ? ORDER BY id ASC LIMIT ?",
+                (f'%"trace_id": "{trace_id}"%', limit),
+            ).fetchall()
+        events: list[dict[str, object]] = []
+        for row in rows:
+            try:
+                payload = json.loads(row["payload"])
+            except json.JSONDecodeError:
+                payload = {"unreadable": True}
+            events.append(
+                {"recorded": row["recorded"], "event": row["event"], "payload": payload}
+            )
+        return events
+
     def healthy(self) -> bool:
         try:
             self._verify_integrity()

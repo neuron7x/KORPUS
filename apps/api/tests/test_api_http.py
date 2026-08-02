@@ -142,3 +142,12 @@ def test_a_registered_token_is_the_only_way_to_raise_a_tier(client) -> None:  # 
     assert granted.json()["status"] == "answered"
     anonymous = client.post("/v1/answers", json={"text": "перевірений порядок"})
     assert anonymous.json()["status"] == "insufficient_evidence"
+
+
+def test_the_default_answer_cap_is_eight_sources(client) -> None:  # type: ignore[no-untyped-def]
+    """The shipped default, asserted through behaviour rather than through the field."""
+    for _ in range(12):
+        routes._retriever.add(make_span(text="порядок евакуації поранених"))
+    body = client.post("/v1/answers", json={"text": "порядок евакуації"}).json()
+    assert body["status"] == "answered"
+    assert len(body["citations"]) == 8

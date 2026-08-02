@@ -78,6 +78,11 @@ curl -s localhost:8000/v1/answers \
 | `access_denied` | запитано корпус, якого читач не має; індекс не чіпали |
 | `requires_human_review` | відповідь затримано: нецитоване твердження, збій генератора, порушення доступу |
 
+Параметри експлуатації (усі в `.env`, усі з межами): `MAX_ANSWER_SPANS`,
+`CANDIDATE_MULTIPLIER`, `GENERATOR_TIMEOUT_SECONDS`, `RATE_LIMIT_BURST`,
+`RATE_LIMIT_PER_SECOND`, `CIRCUIT_FAILURE_THRESHOLD`, `CIRCUIT_COOLDOWN_SECONDS`,
+`MAX_SEARCH_RESULTS`, `MIN_RETRIEVAL_SCORE`, `CORPUS_PATH`.
+
 Рівень доступу **не передається в запиті** — він походить від токена:
 
 ```bash
@@ -85,6 +90,35 @@ curl -s localhost:8000/v1/answers -H 'Authorization: Bearer <token>' ...
 ```
 
 Спроба назвати власний рівень (`"user_tier": "restricted"`) відхиляється з 422.
+
+## 3a. Дійти до джерела без відповіді
+
+```bash
+curl -s localhost:8000/v1/search -H 'Content-Type: application/json' \
+  -d '{"text":"порядок евакуації"}' | jq '.results[].citation.title'
+```
+
+Той самий гейт, що й у відповіді — авторизація, тіри, корпуси, затвердження,
+чинність, пріоритет джерела — але **без моделі в контурі**. Працює, коли запобіжник
+генератора розімкнений: саме тоді читачеві потрібен сам документ, а не переказ.
+`truncated: true` означає, що знайдено більше, ніж показано.
+
+## 3b. Зворотний зв'язок і слід рішення
+
+```bash
+curl -s localhost:8000/v1/feedback -H 'Content-Type: application/json' \
+  -d '{"trace_id":"<з відповіді>","verdict":"dangerous","comment":"…"}'
+```
+
+`helpful | wrong | incomplete | dangerous` — «небезпечно» окремою категорією, бо
+«неправильно» і «через це могли загинути» не можна складати в одне число. Нічого не
+застосовується автоматично: це свідчення про систему, а не зміна в ній.
+
+Відновити, чому відповідь була показана (потрібен рівень `reviewed` або вищий):
+
+```bash
+curl -s localhost:8000/v1/audit/<trace_id> -H 'Authorization: Bearer <token>' | jq
+```
 
 ## 4. Калібрування порогу
 

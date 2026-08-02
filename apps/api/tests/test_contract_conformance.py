@@ -120,3 +120,34 @@ def test_authorized_principal_reaches_restricted_material(client) -> None:  # ty
     ).json()
     assert body["status"] == "answered"
     assert any(c["chunk_id"] == str(secret.chunk_id) for c in body["citations"])
+
+
+@pytest.fixture(scope="module")
+def search_validator() -> Draft202012Validator:
+    schema = json.loads((CONTRACTS / "search.schema.json").read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def test_search_result_conforms(client, search_validator) -> None:  # type: ignore[no-untyped-def]
+    routes._retriever.add(make_span(text="порядок евакуації поранених"))
+    body = client.post("/v1/search", json={"text": "порядок евакуації"}).json()
+    assert body["status"] == "answered"
+    assert_conforms(search_validator, body)
+
+
+def test_empty_search_conforms(client, search_validator) -> None:  # type: ignore[no-untyped-def]
+    body = client.post("/v1/search", json={"text": "радіочастотний план"}).json()
+    assert body["status"] == "insufficient_evidence"
+    assert_conforms(search_validator, body)
+
+
+def test_denied_search_conforms_and_carries_nothing(client, search_validator) -> None:  # type: ignore[no-untyped-def]
+    routes._retriever.add(make_span(text="таємний порядок", tier=AccessTier.RESTRICTED))
+    body = client.post(
+        "/v1/search",
+        json={"text": "таємний порядок", "corpus_ids": [str(uuid4())]},
+    ).json()
+    assert body["status"] == "access_denied"
+    assert body["results"] == []
+    assert_conforms(search_validator, body)

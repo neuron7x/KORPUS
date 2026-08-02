@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://korpus.local/contracts/search.schema.json",
+  "title": "EvidenceBrowse",
+  "description": "Wire shape of POST /v1/search — reaching the source without generating anything. Enforced against live responses by tests/test_contract_conformance.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["trace_id", "status", "results", "truncated", "limitations"],
+  "properties": {
+    "trace_id": {"type": "string", "format": "uuid"},
+    "status": {"enum": ["answered", "insufficient_evidence", "access_denied", "requires_human_review"]},
+    "truncated": {"type": "boolean"},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["citation", "score", "authority"],
+        "properties": {
+          "score": {"type": "number", "minimum": 0, "maximum": 1},
+          "authority": {"enum": ["official_ua", "official_allied", "manufacturer", "approved_training", "analytical", "adversary", "historical", "unknown"]},
+          "citation": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["document_id", "chunk_id", "title", "quote"],
+            "properties": {
+              "document_id": {"type": "string", "format": "uuid"},
+              "chunk_id": {"type": "string", "format": "uuid"},
+              "title": {"type": "string", "minLength": 1},
+              "revision": {"type": ["string", "null"]},
+              "page": {"type": ["integer", "null"], "minimum": 1},
+              "section": {"type": ["string", "null"]},
+              "quote": {"type": "string", "minLength": 1, "maxLength": 1200},
+              "source_uri": {"type": ["string", "null"]}
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$comment": "A refusal returns no sources: browsing must not become the way around the gate that answering enforces.",
+      "if": {"properties": {"status": {"enum": ["insufficient_evidence", "access_denied", "requires_human_review"]}}, "required": ["status"]},
+      "then": {"properties": {"results": {"maxItems": 0}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "answered"}}, "required": ["status"]},
+      "then": {"properties": {"results": {"minItems": 1}}}
+    }
+  ]
+}

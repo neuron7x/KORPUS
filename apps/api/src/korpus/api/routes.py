@@ -3,9 +3,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Response
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery
+from korpus.application.evidence import EvidenceLimits, gather
 from korpus.config import Settings, get_settings
-from korpus.domain.access import Principal
-from korpus.domain.models import AccessTier, Answer, AnswerStatus, Query
+from korpus.domain.access import TIER_ORDER, Principal
+from korpus.domain.models import (
+    AccessTier,
+    Answer,
+    AnswerStatus,
+    Feedback,
+    Query,
+    SearchHit,
+    SearchResponse,
+)
 from korpus.infrastructure.in_memory import (
     EvidenceBoundStubGenerator,
     StaticPrincipalResolver,
@@ -30,6 +39,9 @@ SettingsDependency = Annotated[Settings, Depends(get_settings)]
 OPEN_CORPUS = UUID("00000000-0000-4000-8000-000000000001")
 
 RATE_LIMITED_TEXT = "Забагато запитів. Спробуйте за хвилину."
+# Reading the audit trail is itself a privileged act: it describes what other people
+# asked and what they were shown.
+AUDIT_MINIMUM_TIER = AccessTier.REVIEWED
 
 # Process-local wiring. Replacing these with database-backed adapters is a change
 # here and nowhere else — the domain depends on ports, not on these objects.
@@ -52,12 +64,21 @@ def get_resolver() -> StaticPrincipalResolver:
     return _resolver
 
 
+def policy_from(settings: Settings) -> AnswerPolicy:
+    return AnswerPolicy(
+        minimum_score=settings.min_retrieval_score,
+        maximum_spans=settings.max_answer_spans,
+        candidate_multiplier=settings.candidate_multiplier,
+        generator_timeout_seconds=settings.generator_timeout_seconds,
+    )
+
+
 def answer_service(settings: SettingsDependency) -> AnswerQuery:
     return AnswerQuery(
         retriever=_retriever,
         generator=GuardedGenerator(EvidenceBoundStubGenerator(), _breaker),
         audit=_audit,  # type: ignore[arg-type]  # None only before create_app wires it
-        policy=AnswerPolicy(minimum_score=settings.min_retrieval_score),
+        policy=policy_from(settings),
         clock=_clock,
     )
 
@@ -125,3 +146,120 @@ async def create_answer(
             limitations=["Перевищено дозволену частоту запитів."],
         )
     return await service.execute(query, principal)
+
+
+@router.post("/v1/search", response_model=SearchResponse)
+async def search(
+    query: Query,
+    settings: SettingsDependency,
+    principal: Annotated[Principal, Depends(current_principal)],
+    response: Response,
+) -> SearchResponse:
+    """Reach the source without generating anything.
+
+    Same gate as an answer — authorize, search inside the authorized bounds, re-check,
+    filter by approval and validity, rank by authority — and no model in the path. It
+    keeps working when the generator is down, which is when a reader most needs the
+    document itself rather than a summary of it.
+    """
+    if not _bucket.allow(principal.subject_id, utcnow()):
+        response.status_code = 429
+        return SearchResponse(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            limitations=["Перевищено дозволену частоту запитів."],
+        )
+
+    limits = EvidenceLimits(
+        minimum_score=settings.min_retrieval_score,
+        maximum_spans=settings.max_search_results,
+        candidate_multiplier=settings.candidate_multiplier,
+    )
+    gathered = await gather(_retriever, query, principal, limits, _clock.now())
+
+    if gathered.denied:
+        result = SearchResponse(
+            status=AnswerStatus.ACCESS_DENIED,
+            limitations=["Запит не виконувався: доступ до корпусу не надано."],
+        )
+    elif gathered.breached:
+        result = SearchResponse(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            limitations=["Ретривер повернув матеріал поза межами доступу читача."],
+        )
+    elif not gathered.spans:
+        result = SearchResponse(status=AnswerStatus.INSUFFICIENT_EVIDENCE)
+    else:
+        result = SearchResponse(
+            status=AnswerStatus.ANSWERED,
+            results=[
+                SearchHit(
+                    citation=span.citation,
+                    score=span.retrieval_score,
+                    authority=span.authority,
+                )
+                for span in gathered.spans
+            ],
+            truncated=gathered.retrieved > len(gathered.spans),
+        )
+
+    if _audit is not None:
+        await _audit.record(
+            "search.completed",
+            {
+                "trace_id": str(result.trace_id),
+                "subject_id": principal.subject_id,
+                "principal_tier": principal.tier.value,
+                "status": result.status.value,
+                "results": len(result.results),
+                "retrieved": gathered.retrieved,
+            },
+        )
+    return result
+
+
+@router.post("/v1/feedback")
+async def feedback(
+    report: Feedback,
+    principal: Annotated[Principal, Depends(current_principal)],
+    response: Response,
+) -> dict[str, object]:
+    """A correction from the person who had to act on the answer.
+
+    Recorded against the trace id, so a reviewer can pull the decision it refers to.
+    Nothing is auto-applied: feedback is evidence about the system, not a change to it.
+    """
+    if not _bucket.allow(principal.subject_id, utcnow()):
+        response.status_code = 429
+        return {"recorded": False, "reason": "rate_limited"}
+    if _audit is None:
+        response.status_code = 503
+        return {"recorded": False, "reason": "audit_unavailable"}
+    await _audit.record(
+        "answer.feedback",
+        {
+            "trace_id": str(report.trace_id),
+            "subject_id": principal.subject_id,
+            "verdict": report.verdict.value,
+            "comment": report.comment,
+        },
+    )
+    return {"recorded": True, "trace_id": str(report.trace_id)}
+
+
+@router.get("/v1/audit/{trace_id}")
+async def audit_trail(
+    trace_id: str,
+    principal: Annotated[Principal, Depends(current_principal)],
+    response: Response,
+) -> dict[str, object]:
+    """Reconstruct why an answer was shown, for someone entitled to ask."""
+    if TIER_ORDER[principal.tier] < TIER_ORDER[AUDIT_MINIMUM_TIER]:
+        response.status_code = 403
+        return {"status": AnswerStatus.ACCESS_DENIED.value, "events": []}
+    if _store is None:
+        response.status_code = 503
+        return {"status": "degraded", "events": []}
+    events = _store.audit_for(trace_id)
+    if not events:
+        response.status_code = 404
+    return {"status": "ok" if events else "not_found", "events": events}

@@ -109,6 +109,52 @@ class Answer(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+class SearchHit(BaseModel):
+    """One source a reader is allowed to open, with the score that surfaced it."""
+
+    model_config = ConfigDict(frozen=True)
+
+    citation: Citation
+    score: float = Field(ge=0, le=1)
+    authority: AuthorityClass
+
+
+class SearchResponse(BaseModel):
+    """Browsing the corpus without generating anything.
+
+    The degraded mode SYSTEM.md requires: when the generator is unavailable a reader
+    must still be able to reach the source. Same status vocabulary as an answer, so a
+    client does not learn a second one.
+    """
+
+    trace_id: UUID = Field(default_factory=uuid4)
+    status: AnswerStatus
+    results: list[SearchHit] = Field(default_factory=list)
+    truncated: bool = False
+    limitations: list[str] = Field(default_factory=list)
+
+
+class FeedbackVerdict(StrEnum):
+    HELPFUL = "helpful"
+    WRONG = "wrong"
+    DANGEROUS = "dangerous"
+    INCOMPLETE = "incomplete"
+
+
+class Feedback(BaseModel):
+    """A correction from the person who had to act on the answer.
+
+    `dangerous` exists as its own verdict because "wrong" and "would have got someone
+    hurt" must not aggregate into one number.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    trace_id: UUID
+    verdict: FeedbackVerdict
+    comment: str | None = Field(default=None, max_length=2000)
+
+
 class Query(BaseModel):
     """Client-supplied request.
 

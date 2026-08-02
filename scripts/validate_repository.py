@@ -12,6 +12,7 @@ REQUIRED = [
     "docs/protocols/INGESTION.md",
     "docs/governance/RISK_REGISTER.md",
     "packages/contracts/answer.schema.json",
+    "packages/contracts/search.schema.json",
     "agents/prompts/researcher.md",
     # The instruments are artifacts too: if the eval runner or the mutation catalogue
     # disappears, the pipeline stays green while measuring nothing.

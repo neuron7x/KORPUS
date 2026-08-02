@@ -268,3 +268,32 @@ def test_generated_corpora_actually_exercise_the_answered_path() -> None:
     )
     status, _, _ = answer_for(corpus, principal, "порядок евакуації", [])
     assert status is AnswerStatus.ANSWERED
+
+
+@PROFILE
+@given(
+    corpus=st.lists(spans(), max_size=8),
+    principal=principals(),
+    question=st.lists(st.sampled_from(WORDS), min_size=1, max_size=3),
+)
+def test_browsing_obeys_the_same_bounds_as_answering(
+    corpus: list[EvidenceSpan], principal: Principal, question: list[str]
+) -> None:
+    """Two products, one gate: whatever search returns, an answer could have cited."""
+    from korpus.application.evidence import EvidenceLimits, gather
+
+    gathered = asyncio.run(
+        gather(
+            LexicalRetriever(corpus),
+            Query(text=" ".join(question)),
+            principal,
+            EvidenceLimits(),
+            NOW,
+        )
+    )
+    for span in gathered.spans:
+        assert TIER_ORDER[span.access_tier] <= TIER_ORDER[principal.tier]
+        assert span.corpus_id in principal.authorized_corpora
+        assert span.review_state is ReviewState.APPROVED
+        assert span.authority not in NON_GOVERNING
+        assert span.superseded_by is None
