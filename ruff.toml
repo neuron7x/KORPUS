@@ -20,3 +20,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # where real infrastructure will be injected, and a test that reached it through a
 # public setter would be testing a setter written for tests.
 "apps/api/tests/*" = ["SLF001"]
+# main.py wires the API module's process-local adapters at startup. That assignment
+# is the composition root; naming it "private" from outside the package would only
+# move the same coupling behind a setter written for one caller.
+"apps/api/src/korpus/main.py" = ["SLF001"]

@@ -1,7 +1,12 @@
 {
   "$comment": "The floor for the dataset. A fixture set that shrinks, or that stops covering an outcome, fails the eval job instead of quietly measuring less.",
   "seed.jsonl": {
-    "cases": 10,
-    "statuses": ["answered", "insufficient_evidence", "access_denied", "requires_human_review"]
+    "cases": 12,
+    "statuses": [
+      "answered",
+      "insufficient_evidence",
+      "access_denied",
+      "requires_human_review"
+    ]
   }
 }

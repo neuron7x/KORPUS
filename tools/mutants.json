@@ -597,6 +597,209 @@
       "description": "audit sink unbounded — any caller can drive memory growth",
       "old": "        self.events: deque[tuple[str, dict[str, object]]] = deque(maxlen=capacity)",
       "new": "        self.events: deque[tuple[str, dict[str, object]]] = deque()"
+    },
+    {
+      "id": "store-01",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "duplicate chunk raises instead of being reported as already present",
+      "old": "        except sqlite3.IntegrityError:\n            return False",
+      "new": "        except sqlite3.IntegrityError:\n            return True"
+    },
+    {
+      "id": "store-02",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "integrity check accepts any result",
+      "old": "        if result is None or result[0] != \"ok\":",
+      "new": "        if False:"
+    },
+    {
+      "id": "store-03",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "a corrupt database is deleted instead of quarantined",
+      "old": "            self.path.rename(quarantine)",
+      "new": "            self.path.unlink()"
+    },
+    {
+      "id": "store-04",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "recovery is not reported, so a rebuilt corpus looks like a healthy one",
+      "old": "        self.recovered = True",
+      "new": "        self.recovered = False"
+    },
+    {
+      "id": "store-05",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "the journal is not written, so nothing can be rebuilt from it",
+      "old": "        self._append_journal(span, content_sha256, moment)",
+      "new": "        pass"
+    },
+    {
+      "id": "store-06",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "connection bound to one thread — every threadpool request fails",
+      "old": "        connection = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)",
+      "new": "        connection = sqlite3.connect(self.path, isolation_level=None)"
+    },
+    {
+      "id": "store-07",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "an unreadable journal line aborts the whole recovery",
+      "old": "            except (json.JSONDecodeError, ValueError) as error:",
+      "new": "            except json.JSONDecodeError as error:"
+    },
+    {
+      "id": "store-08",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "supersession touches every chunk regardless of version",
+      "old": "                \"UPDATE chunks SET superseded_by = ? WHERE document_version_id = ?\",\n                (str(replacement), str(version_id)),",
+      "new": "                \"UPDATE chunks SET superseded_by = ?\",\n                (str(replacement),),"
+    },
+    {
+      "id": "ingest-01",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "description": "imported material is searchable before any reviewer sees it",
+      "old": "    review_state: ReviewState = ReviewState.QUARANTINED",
+      "new": "    review_state: ReviewState = ReviewState.APPROVED"
+    },
+    {
+      "id": "ingest-02",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "description": "chunk identity stops depending on content",
+      "old": "        chunk_id = uuid5(NAMESPACE, f\"chunk:{version_id}:{content_hash(block)}:{index}\")",
+      "new": "        chunk_id = uuid4()"
+    },
+    {
+      "id": "ingest-03",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "description": "an overlong paragraph is quoted past the citation limit",
+      "old": "        quote = block if len(block) <= MAX_QUOTE else block[: MAX_QUOTE - 1].rstrip() + \"…\"",
+      "new": "        quote = block"
+    },
+    {
+      "id": "ingest-04",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "description": "binary formats are ingested as if they were text",
+      "old": "    if path.suffix.lower() not in {\".txt\", \".md\"}:",
+      "new": "    if False:"
+    },
+    {
+      "id": "ingest-05",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "description": "revision no longer distinguishes versions of one document",
+      "old": "    version_id = uuid5(NAMESPACE, f\"version:{document_id}:{descriptor.revision or '-'}\")",
+      "new": "    version_id = uuid5(NAMESPACE, f\"version:{document_id}\")"
+    },
+    {
+      "id": "resil-01",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "circuit opens one failure late",
+      "old": "        if self.failures >= self.threshold:",
+      "new": "        if self.failures > self.threshold:"
+    },
+    {
+      "id": "resil-02",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "circuit never refuses",
+      "old": "        return now - self.opened_at >= self.cooldown",
+      "new": "        return True"
+    },
+    {
+      "id": "resil-03",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "cooldown ignored — the circuit reopens immediately",
+      "old": "        return now - self.opened_at >= self.cooldown",
+      "new": "        return False"
+    },
+    {
+      "id": "resil-04",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "rate limiter admits a request it has no token for",
+      "old": "        if tokens < 1.0:",
+      "new": "        if tokens < 0.0:"
+    },
+    {
+      "id": "resil-05",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "bucket refills past its capacity, so the burst limit stops holding",
+      "old": "        tokens = min(float(self.capacity), tokens + elapsed * self.refill_per_second)",
+      "new": "        tokens = tokens + elapsed * self.refill_per_second"
+    },
+    {
+      "id": "resil-06",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "an audit write failure breaks the request it was recording",
+      "old": "        except Exception as error:  # noqa: BLE001 — recording must never break serving",
+      "new": "        except ValueError as error:"
+    },
+    {
+      "id": "resil-07",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "an open circuit still calls the dependency",
+      "old": "            raise CircuitOpen(\"generator circuit is open\")",
+      "new": "            pass"
+    },
+    {
+      "id": "resil-08",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "failures through the guard are not counted",
+      "old": "            self.breaker.record_failure(utcnow())",
+      "new": "            pass"
+    },
+    {
+      "id": "resil-09",
+      "file": "apps/api/src/korpus/infrastructure/resilience.py",
+      "description": "idle subjects are never forgotten — the limiter becomes the leak",
+      "old": "        stale = [s for s, (_, last) in self._state.items() if now - last > older_than]",
+      "new": "        stale: list[str] = []"
+    },
+    {
+      "id": "routes-06",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "rate limit not enforced",
+      "old": "    if not _bucket.allow(principal.subject_id, utcnow()):",
+      "new": "    if False:"
+    },
+    {
+      "id": "routes-07",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "a throttled request reports success",
+      "old": "        response.status_code = 429",
+      "new": "        response.status_code = 200"
+    },
+    {
+      "id": "routes-08",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "readiness ignores a broken store",
+      "old": "    store_healthy = _store.healthy() if _store is not None else False",
+      "new": "    store_healthy = True"
+    },
+    {
+      "id": "startup-04",
+      "file": "apps/api/src/korpus/main.py",
+      "description": "the error handler leaks the exception to the caller",
+      "old": "            limitations=[\"Запит не оброблено через внутрішню помилку.\"],",
+      "new": "            limitations=[f\"{type(error).__name__}: {error}\"],"
+    },
+    {
+      "id": "startup-05",
+      "file": "apps/api/src/korpus/main.py",
+      "description": "the index is not rebuilt from the store on start",
+      "old": "    for span in store.spans():\n        retriever.add(span)\n        loaded += 1",
+      "new": "    for span in []:\n        retriever.add(span)\n        loaded += 1"
+    },
+    {
+      "id": "config-04",
+      "file": "apps/api/src/korpus/config.py",
+      "description": "an out-of-range calibrated threshold is applied",
+      "old": "    if not 0.0 <= value <= 1.0:",
+      "new": "    if False:"
+    },
+    {
+      "id": "config-05",
+      "file": "apps/api/src/korpus/config.py",
+      "description": "the frozen calibration is never loaded",
+      "old": "    calibrated = calibrated_threshold()",
+      "new": "    calibrated = None"
     }
   ]
 }

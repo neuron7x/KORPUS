@@ -70,6 +70,25 @@ api:evals:
     paths:
       - eval-report.json
 
+# The threshold that decides when the system speaks is recomputed from the eval set
+# and compared against the frozen file. Drift is a red pipeline, not a surprise.
+api:calibration:
+  stage: test
+  image: python:3.12-slim
+  cache:
+    key:
+      files:
+        - apps/api/pyproject.toml
+    paths:
+      - .cache/pip/
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -e 'apps/api[dev]'
+  script:
+    - python scripts/calibrate.py --verify
+
 # The gate that makes coverage mean something. Fails on: kill rate under the recorded
 # floor, a catalogue entry whose pattern no longer exists, or a shrinking catalogue.
 api:mutation:

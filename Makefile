@@ -1,5 +1,5 @@
-.PHONY: api-install api-run api-test api-cov api-lint evals mutation mutation-baseline \
-        web-install web-run check gate infra-up infra-down
+.PHONY: api-install api-run api-test api-cov api-lint evals calibration recalibrate \
+        mutation mutation-baseline web-install web-run check gate infra-up infra-down
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -28,6 +28,13 @@ api-lint:
 evals:
 	apps/api/.venv/bin/python scripts/run_evals.py
 
+# Recompute the retrieval threshold and compare it with the frozen file.
+calibration:
+	apps/api/.venv/bin/python scripts/calibrate.py --verify
+
+recalibrate:
+	apps/api/.venv/bin/python scripts/calibrate.py
+
 # Coverage says a line ran; this says the suite notices when the line is wrong.
 mutation:
 	apps/api/.venv/bin/python tools/mutation.py
@@ -49,7 +56,7 @@ check:
 	pnpm --dir apps/web typecheck
 
 # What CI runs. `check` is the fast loop; `gate` is what a merge has to survive.
-gate: check api-cov evals mutation
+gate: check api-cov evals calibration mutation
 
 infra-up:
 	docker compose up -d

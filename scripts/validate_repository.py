@@ -21,6 +21,9 @@ REQUIRED = [
     "tools/mutation.py",
     "tools/mutants.json",
     "tools/mutation_baseline.json",
+    "scripts/ingest.py",
+    "scripts/calibrate.py",
+    "config/calibration.json",
 ]
 
 

@@ -80,10 +80,9 @@ def test_create_app_serves_the_settings_it_validated() -> None:
     from korpus.domain.models import AccessTier
     from korpus.infrastructure.in_memory import InMemoryAuditSink, StaticPrincipalResolver
     from korpus.infrastructure.lexical import LexicalRetriever
+    from korpus.infrastructure.resilience import TokenBucket
     from korpus.main import create_app
 
-    routes._retriever = LexicalRetriever([make_span(text="порядок евакуації поранених")])
-    routes._audit = InMemoryAuditSink()
     routes._resolver = StaticPrincipalResolver(
         anonymous=Principal(
             subject_id="anonymous",
@@ -92,7 +91,13 @@ def test_create_app_serves_the_settings_it_validated() -> None:
         )
     )
     strict = settings(min_retrieval_score=0.99)
-    with TestClient(create_app(strict)) as client:
+    app = create_app(strict)
+    # After create_app: it rebuilds the index from the store, and an empty corpus
+    # would abstain for the wrong reason — hiding whether the threshold was applied.
+    routes._retriever = LexicalRetriever([make_span(text="порядок евакуації поранених")])
+    routes._audit = InMemoryAuditSink()
+    routes._bucket = TokenBucket()
+    with TestClient(app) as client:
         # Three of four query terms match: 0.75 — above the default floor, below 0.99.
         body = client.post(
             "/v1/answers", json={"text": "порядок евакуації поранених негайно"}

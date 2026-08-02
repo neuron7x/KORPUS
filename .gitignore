@@ -19,3 +19,6 @@ data/quarantine/
 data/extracted/
 *.log
 .DS_Store
+data/*.sqlite3*
+data/*.corrupt-*
+data/corpus-journal.jsonl

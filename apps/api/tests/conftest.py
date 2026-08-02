@@ -84,7 +84,7 @@ def now() -> datetime:
 
 
 @pytest.fixture
-def client():  # type: ignore[no-untyped-def]
+def client(tmp_path):  # type: ignore[no-untyped-def]
     """A client over a freshly wired app.
 
     The API holds process-local singletons on purpose (they are the seam where real
@@ -94,17 +94,11 @@ def client():  # type: ignore[no-untyped-def]
     """
     from fastapi.testclient import TestClient
     from korpus.api import routes
-    from korpus.config import get_settings
-    from korpus.infrastructure.in_memory import (
-        InMemoryAuditSink,
-        StaticPrincipalResolver,
-        SystemClock,
-    )
-    from korpus.infrastructure.lexical import LexicalRetriever
+    from korpus.config import Settings, get_settings
+    from korpus.infrastructure.in_memory import StaticPrincipalResolver, SystemClock
+    from korpus.infrastructure.resilience import CircuitBreaker, TokenBucket
     from korpus.main import create_app
 
-    routes._retriever = LexicalRetriever()
-    routes._audit = InMemoryAuditSink()
     # Rebuilt exactly as the module wires it in production: an anonymous caller holds
     # the open corpus and nothing else. A fixture that granted more would test a
     # system nobody deploys.
@@ -117,7 +111,19 @@ def client():  # type: ignore[no-untyped-def]
         )
     )
     routes._clock = SystemClock()
+    # The breaker and the bucket are process-global by design; a test that inherited
+    # another test's tripped circuit would fail for a reason that is not its own.
+    routes._breaker = CircuitBreaker()
+    routes._bucket = TokenBucket()
     get_settings.cache_clear()
-    with TestClient(create_app()) as test_client:
+    settings = Settings(
+        environment="test",
+        log_level="WARNING",
+        llm_provider="stub",
+        corpus_path=tmp_path / "korpus.sqlite3",
+    )
+    with TestClient(create_app(settings)) as test_client:
         yield test_client
+    if routes._store is not None:
+        routes._store.close()
     get_settings.cache_clear()
