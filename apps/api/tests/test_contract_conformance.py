@@ -79,6 +79,9 @@ def test_review_response_conforms(client, validator) -> None:  # type: ignore[no
     finally:
         routes.EvidenceBoundStubGenerator = original  # type: ignore[misc]
     assert body["status"] == "requires_human_review"
+    # A hold hands nothing over: the reviewer reads the evidence from the audit trail.
+    assert body["citations"] == []
+    assert body["claims"] == []
     assert_conforms(validator, body)
 
 

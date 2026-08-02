@@ -357,7 +357,7 @@
       "id": "answer-19",
       "file": "apps/api/src/korpus/application/answer_query.py",
       "description": "generator failure answered instead of held",
-      "old": "        except Exception:  # noqa: BLE001 — a failed generator must not produce an answer",
+      "old": "        except Exception:  # noqa: BLE001 — a failed or hanging generator must not answer",
       "new": "        except ZeroDivisionError:"
     },
     {
@@ -562,6 +562,41 @@
       "description": "a generator that produced nothing is answered as an empty answer",
       "old": "        if result.integrity_breach or result.unsupported or result.empty:",
       "new": "        if result.integrity_breach or result.unsupported:"
+    },
+    {
+      "id": "routes-05",
+      "file": "apps/api/src/korpus/api/routes.py",
+      "description": "readiness leaks an index census to unauthenticated callers",
+      "old": "        \"corpus_loaded\": corpus_loaded,",
+      "new": "        \"corpus_loaded\": _retriever.size,"
+    },
+    {
+      "id": "answer-25",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "description": "a held answer ships the evidence it was held for",
+      "old": "                status=AnswerStatus.REQUIRES_HUMAN_REVIEW,\n                text=REVIEW_TEXT,\n                confidence=0,\n                citation_coverage=result.coverage,",
+      "new": "                status=AnswerStatus.REQUIRES_HUMAN_REVIEW,\n                text=REVIEW_TEXT,\n                confidence=0,\n                citations=citations,\n                claims=claims,\n                citation_coverage=result.coverage,"
+    },
+    {
+      "id": "startup-03",
+      "file": "apps/api/src/korpus/main.py",
+      "description": "the app serves settings other than the ones the startup guard validated",
+      "old": "    application.dependency_overrides[get_settings] = lambda: resolved",
+      "new": "    application.dependency_overrides.clear()"
+    },
+    {
+      "id": "config-03",
+      "file": "apps/api/src/korpus/config.py",
+      "description": "env file resolved from the process working directory again",
+      "old": "        env_file=Path(__file__).resolve().parents[4] / \".env\",",
+      "new": "        env_file=\".env\","
+    },
+    {
+      "id": "memory-05",
+      "file": "apps/api/src/korpus/infrastructure/in_memory.py",
+      "description": "audit sink unbounded — any caller can drive memory growth",
+      "old": "        self.events: deque[tuple[str, dict[str, object]]] = deque(maxlen=capacity)",
+      "new": "        self.events: deque[tuple[str, dict[str, object]]] = deque()"
     }
   ]
 }

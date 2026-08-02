@@ -39,6 +39,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         description="Evidence-first retrieval, learning, and document-assistance API.",
     )
     application.include_router(router)
+    # The app serves the same Settings object that was just validated. Without this
+    # override the dependency resolves get_settings() again and a caller-tightened
+    # configuration — including the one the startup guard just checked — is discarded.
+    application.dependency_overrides[get_settings] = lambda: resolved
     return application
 
 

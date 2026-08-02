@@ -6,6 +6,7 @@ validity, rank by authority, apply the evidence threshold, and only then let a
 generator see anything. Every exit path records one audit event.
 """
 
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import uuid4
@@ -40,6 +41,7 @@ class AnswerPolicy:
     minimum_score: float = 0.72
     minimum_approved_spans: int = 1
     maximum_spans: int = 8
+    generator_timeout_seconds: float = 30.0
     # Candidates are fetched wider than the answer, because eligibility is decided
     # here and not in the index: asking for exactly `maximum_spans` lets unapproved,
     # superseded or adversary-authored chunks with a better lexical match crowd the
@@ -149,14 +151,14 @@ class AnswerQuery:
 
         citations: list[Citation] = [span.citation for span in eligible]
         try:
-            claims: list[Claim] = await self._generator.compose(query, eligible)
-        except Exception:  # noqa: BLE001 — a failed generator must not produce an answer
+            async with asyncio.timeout(self._policy.generator_timeout_seconds):
+                claims: list[Claim] = await self._generator.compose(query, eligible)
+        except Exception:  # noqa: BLE001 — a failed or hanging generator must not answer
             answer = Answer(
                 trace_id=trace_id,
                 status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
                 text=REVIEW_TEXT,
                 confidence=0,
-                citations=citations,
                 limitations=["Генератор відповіді недоступний."],
             )
             await self._record(answer, principal, len(retrieved), len(eligible))
@@ -175,15 +177,16 @@ class AnswerQuery:
         # response, and a threshold that cannot be set to anything but 1.0 without
         # breaking the promise is not a setting, it is a hole with a dial on it.
         if result.integrity_breach or result.unsupported or result.empty:
+            # A held answer returns no evidence to the caller. The reviewer reads it
+            # from the audit trail; shipping the quotes with the refusal would hand
+            # over exactly the material the hold exists to withhold.
             answer = Answer(
                 trace_id=trace_id,
                 status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
                 text=REVIEW_TEXT,
-                claims=claims,
-                citations=citations,
                 confidence=0,
                 citation_coverage=result.coverage,
-                limitations=limitations or ["Покриття цитатами нижче порогу."],
+                limitations=limitations or ["Відповідь не пройшла перевірку посилань."],
             )
             await self._record(answer, principal, len(retrieved), len(eligible))
             return answer

@@ -19,7 +19,9 @@ def test_readiness_reports_degraded_on_an_empty_corpus(client) -> None:  # type:
     response = client.get("/ready")
     assert response.status_code == 503
     assert response.json()["status"] == "degraded"
-    assert response.json()["corpus_spans"] == 0
+    assert response.json()["corpus_loaded"] is False
+    # Unauthenticated readiness must not double as an index census.
+    assert "corpus_spans" not in response.json()
 
 
 def test_readiness_turns_green_once_the_corpus_is_loaded(client) -> None:  # type: ignore[no-untyped-def]
@@ -27,7 +29,7 @@ def test_readiness_turns_green_once_the_corpus_is_loaded(client) -> None:  # typ
     response = client.get("/ready")
     assert response.status_code == 200
     assert response.json()["status"] == "ready"
-    assert response.json()["corpus_spans"] == 1
+    assert response.json()["corpus_loaded"] is True
 
 
 def test_answer_endpoint_abstains_by_default(client) -> None:  # type: ignore[no-untyped-def]

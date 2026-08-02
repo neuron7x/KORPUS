@@ -6,6 +6,7 @@ stubs: each one refuses to do the part it cannot do, instead of approximating it
 
 from __future__ import annotations
 
+from collections import deque
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -54,8 +55,15 @@ class EvidenceBoundStubGenerator:
 
 
 class InMemoryAuditSink:
-    def __init__(self) -> None:
-        self.events: list[tuple[str, dict[str, object]]] = []
+    """Bounded on purpose.
+
+    An unbounded list on a process-global sink is a memory leak that any
+    unauthenticated caller can drive, and it retains subject identifiers with no
+    eviction path. The real sink is durable and append-only; this one forgets.
+    """
+
+    def __init__(self, capacity: int = 1000) -> None:
+        self.events: deque[tuple[str, dict[str, object]]] = deque(maxlen=capacity)
 
     async def record(self, event: str, payload: dict[str, object]) -> None:
         self.events.append((event, payload))

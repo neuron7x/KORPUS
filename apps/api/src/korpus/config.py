@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field
@@ -6,10 +7,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # Anchored to the repository, not to the process working directory. A relative
+    # ".env" means the production guard silently does not fire when the service is
+    # started from anywhere but the repo root.
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[4] / ".env",
+        extra="ignore",
+    )
 
     environment: Literal["development", "test", "staging", "production"] = "development"
-    log_level: str = "INFO"
+    log_level: Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] = "INFO"
     llm_provider: Literal["stub", "openai", "local"] = "stub"
     openai_quality_model: str = "gpt-5.6-sol"
     openai_balanced_model: str = "gpt-5.6-terra"

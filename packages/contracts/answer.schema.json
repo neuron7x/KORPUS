@@ -75,8 +75,9 @@
       "then": {"properties": {"citations": {"maxItems": 0}, "claims": {"maxItems": 0}, "confidence": {"const": 0}}}
     },
     {
+      "$comment": "A held answer discloses nothing: the reviewer reads the evidence from the audit trail, not from the refused response.",
       "if": {"properties": {"status": {"const": "requires_human_review"}}, "required": ["status"]},
-      "then": {"properties": {"confidence": {"const": 0}}}
+      "then": {"properties": {"confidence": {"const": 0}, "citations": {"maxItems": 0}, "claims": {"maxItems": 0}}}
     }
   ]
 }

@@ -78,9 +78,11 @@ async def ready(settings: SettingsDependency, response: Response) -> dict[str, o
     corpus_loaded = bool(_retriever.size)
     if not corpus_loaded:
         response.status_code = 503
+    # Deliberately no index census: the exact number of indexed spans is information
+    # about the corpus, and this endpoint is unauthenticated by design.
     return {
         "status": "ready" if corpus_loaded else "degraded",
-        "corpus_spans": _retriever.size,
+        "corpus_loaded": corpus_loaded,
         "environment": settings.environment,
         "generator": settings.llm_provider,
     }
