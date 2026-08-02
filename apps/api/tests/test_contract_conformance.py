@@ -14,7 +14,6 @@ from uuid import uuid4
 import pytest
 from conftest import CORPUS, make_span
 from jsonschema import Draft202012Validator
-
 from korpus.api import routes
 from korpus.domain.access import Principal
 from korpus.domain.models import AccessTier
@@ -109,7 +108,7 @@ def test_restricted_material_is_absent_from_a_public_answer(client) -> None:  # 
 def test_authorized_principal_reaches_restricted_material(client) -> None:  # type: ignore[no-untyped-def]
     secret = make_span(text="порядок евакуації таємний", tier=AccessTier.RESTRICTED)
     routes._retriever.add(secret)
-    routes._resolver._table["cmd-token"] = Principal(  # noqa: SLF001 - test wiring
+    routes._resolver._table["cmd-token"] = Principal(
         subject_id="commander",
         tier=AccessTier.RESTRICTED,
         authorized_corpora=frozenset({CORPUS}),

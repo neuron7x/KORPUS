@@ -11,7 +11,6 @@ from uuid import UUID, uuid4
 
 import pytest
 from conftest import CORPUS, NOW, make_principal, make_span
-
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery
 from korpus.domain.models import (
     AccessTier,

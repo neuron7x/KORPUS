@@ -82,7 +82,7 @@ def run_suite(tree: Path) -> int:
     try:
         return subprocess.run(
             command, cwd=tree, capture_output=True, text=True,
-            timeout=SUITE_TIMEOUT_SECONDS,
+            timeout=SUITE_TIMEOUT_SECONDS, check=False,
         ).returncode
     except subprocess.TimeoutExpired:
         return 124

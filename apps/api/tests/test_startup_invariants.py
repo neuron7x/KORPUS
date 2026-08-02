@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from korpus.config import Settings
 from korpus.infrastructure.in_memory import StaticPrincipalResolver
 from korpus.main import UnsafeConfiguration, enforce_startup_invariants
@@ -76,7 +75,6 @@ def test_create_app_serves_the_settings_it_validated() -> None:
     """
     from conftest import CORPUS, make_span
     from fastapi.testclient import TestClient
-
     from korpus.api import routes
     from korpus.domain.access import Principal
     from korpus.domain.models import AccessTier

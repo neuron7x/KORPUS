@@ -4,7 +4,6 @@ from datetime import timedelta
 from uuid import uuid4
 
 from conftest import NOW, make_span
-
 from korpus.domain.authority import (
     AUTHORITY_RANK,
     conflicting_versions,

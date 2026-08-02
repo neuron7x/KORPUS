@@ -3,7 +3,6 @@
 from uuid import uuid4
 
 from conftest import make_principal, make_span
-
 from korpus.domain.access import (
     TIER_ORDER,
     DenialReason,

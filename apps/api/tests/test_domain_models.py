@@ -8,9 +8,8 @@ from uuid import uuid4
 
 import pytest
 from conftest import make_span
-from pydantic import ValidationError
-
 from korpus.domain.models import Citation, Claim, EvidenceSpan, Query
+from pydantic import ValidationError
 
 
 def test_citation_rejects_empty_quote() -> None:

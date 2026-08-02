@@ -2,7 +2,6 @@
 
 import pytest
 from conftest import make_principal, make_span
-
 from korpus.application.verification import verify
 from korpus.domain.models import AccessTier, Claim
 

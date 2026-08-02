@@ -4,7 +4,6 @@ from uuid import uuid4
 
 import pytest
 from conftest import CORPUS, make_span
-
 from korpus.domain.models import AccessTier, Query
 from korpus.infrastructure.lexical import LexicalRetriever, coverage_score, normalize
 

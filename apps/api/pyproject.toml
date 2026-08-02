@@ -34,12 +34,8 @@ testpaths = ["tests"]
 addopts = "-q --strict-markers"
 asyncio_mode = "auto"
 
-[tool.ruff]
-target-version = "py312"
-line-length = 100
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP", "SIM"]
+# Lint configuration lives in the repository-root ruff.toml so that every path —
+# apps, scripts and tools — is checked under identical rules in CI and locally.
 
 [tool.mypy]
 python_version = "3.12"

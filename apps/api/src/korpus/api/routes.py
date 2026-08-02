@@ -2,7 +2,6 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Response
-
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery
 from korpus.config import Settings, get_settings
 from korpus.domain.access import Principal

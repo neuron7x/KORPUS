@@ -3,7 +3,6 @@
 from uuid import uuid4
 
 from conftest import CORPUS, make_span
-
 from korpus.api import routes
 from korpus.domain.access import Principal
 from korpus.domain.models import AccessTier
@@ -63,7 +62,7 @@ def test_unknown_bearer_token_falls_back_to_anonymous(client) -> None:  # type: 
 
 
 def test_known_token_raises_the_reachable_tier(client) -> None:  # type: ignore[no-untyped-def]
-    routes._resolver._table["reviewer"] = Principal(  # noqa: SLF001 - test wiring
+    routes._resolver._table["reviewer"] = Principal(
         subject_id="reviewer-1",
         tier=AccessTier.REVIEWED,
         authorized_corpora=frozenset({CORPUS}),
@@ -83,7 +82,7 @@ def test_a_non_bearer_scheme_is_not_accepted_as_a_token(client) -> None:  # type
     `Basic  reviewer` puts a valid token exactly where a bearer token would sit, so a
     parser that slices without checking the scheme authenticates it.
     """
-    routes._resolver._table["reviewer"] = Principal(  # noqa: SLF001 - test wiring
+    routes._resolver._table["reviewer"] = Principal(
         subject_id="reviewer-1",
         tier=AccessTier.REVIEWED,
         authorized_corpora=frozenset({CORPUS}),

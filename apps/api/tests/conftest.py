@@ -10,7 +10,6 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
-
 from korpus.domain.access import Principal
 from korpus.domain.models import (
     AccessTier,
@@ -94,7 +93,6 @@ def client():  # type: ignore[no-untyped-def]
     access-control assertion depend on execution order.
     """
     from fastapi.testclient import TestClient
-
     from korpus.api import routes
     from korpus.config import get_settings
     from korpus.infrastructure.in_memory import (

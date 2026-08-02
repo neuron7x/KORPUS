@@ -1,0 +1,22 @@
+# One lint configuration for the whole repository.
+#
+# It lives at the root on purpose. With the config buried in apps/api/pyproject.toml,
+# scripts/ and tools/ were governed by whatever pyproject.toml ruff found by walking
+# up the filesystem — on a developer machine that was a stray file in the home
+# directory, and in CI it was ruff's defaults. The same command produced nine errors
+# in the pipeline and none locally.
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "EXE", "PLW", "SLF", "BLE"]
+# RUF001-003 flag Cyrillic letters as "ambiguous unicode". Product copy is Ukrainian
+# by design (AGENTS.md), so this rule would fire on every user-facing string in the
+# system. Suppressed once here rather than with a hundred inline noqa comments.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[lint.per-file-ignores]
+# Tests rewire the API module's process-local adapters on purpose: that is the seam
+# where real infrastructure will be injected, and a test that reached it through a
+# public setter would be testing a setter written for tests.
+"apps/api/tests/*" = ["SLF001"]
