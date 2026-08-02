@@ -24,3 +24,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # is the composition root; naming it "private" from outside the package would only
 # move the same coupling behind a setter written for one caller.
 "apps/api/src/korpus/main.py" = ["SLF001"]
+# The acceptance run drives the deployed application through its own composition
+# root: it must reach the adapters create_app installed, or it would be testing a
+# second wiring that no operator uses.
+"scripts/acceptance.py" = ["SLF001"]

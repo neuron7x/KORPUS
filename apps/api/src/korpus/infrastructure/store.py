@@ -202,16 +202,62 @@ class CorpusStore:
                 )
         except sqlite3.IntegrityError:
             return False
-        self._append_journal(span, content_sha256, moment)
+        record = json.loads(span.model_dump_json())
+        record["op"] = "add"
+        record["content_sha256"] = content_sha256
+        record["ingested_at"] = moment.isoformat()
+        self._append_journal(record)
         return True
 
-    def _append_journal(self, span: EvidenceSpan, content_sha256: str, now: datetime) -> None:
-        """Append-only mirror of every accepted chunk, used to rebuild the database."""
-        record = json.loads(span.model_dump_json())
-        record["content_sha256"] = content_sha256
-        record["ingested_at"] = now.isoformat()
+    def _append_journal(self, record: dict[str, object]) -> None:
+        """Append-only log of every accepted change, used to rebuild the database.
+
+        Every operation is journalled, not only insertion: a review decision or a
+        supersession that lived solely in the database would be lost by the very
+        recovery that is supposed to preserve the corpus.
+        """
         with self.journal.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    def approve(
+        self,
+        version_id: UUID,
+        reviewer: str,
+        access_tier: AccessTier | None = None,
+        now: datetime | None = None,
+    ) -> int:
+        """Move every chunk of a version into `approved`, optionally re-tiering it.
+
+        Approval is a state transition, not a re-import: chunk identity comes from
+        content, so importing the same file again inserts nothing and would leave the
+        document quarantined while the operator believed it had been released.
+        """
+        moment = now or datetime.now(UTC)
+        with self._lock:
+            if access_tier is None:
+                cursor = self._connection.execute(
+                    "UPDATE chunks SET review_state = ? WHERE document_version_id = ?",
+                    (ReviewState.APPROVED.value, str(version_id)),
+                )
+            else:
+                cursor = self._connection.execute(
+                    "UPDATE chunks SET review_state = ?, access_tier = ? "
+                    "WHERE document_version_id = ?",
+                    (ReviewState.APPROVED.value, access_tier.value, str(version_id)),
+                )
+            changed = int(cursor.rowcount)
+        if changed:
+            self._append_journal(
+                {
+                    "op": "review",
+                    "document_version_id": str(version_id),
+                    "review_state": ReviewState.APPROVED.value,
+                    "access_tier": access_tier.value if access_tier else None,
+                    "reviewer": reviewer,
+                    "at": moment.isoformat(),
+                }
+            )
+        return changed
 
     def supersede(self, version_id: UUID, replacement: UUID) -> int:
         """Mark every chunk of a version as superseded. Content is never rewritten."""
@@ -220,7 +266,16 @@ class CorpusStore:
                 "UPDATE chunks SET superseded_by = ? WHERE document_version_id = ?",
                 (str(replacement), str(version_id)),
             )
-            return int(cursor.rowcount)
+            changed = int(cursor.rowcount)
+        if changed:
+            self._append_journal(
+                {
+                    "op": "supersede",
+                    "document_version_id": str(version_id),
+                    "superseded_by": str(replacement),
+                }
+            )
+        return changed
 
     def record_audit(self, event: str, payload: dict[str, object]) -> None:
         with self._lock:
@@ -266,21 +321,64 @@ class CorpusStore:
                 continue
             try:
                 record = json.loads(line)
-                content_sha256 = record.pop("content_sha256", "")
-                ingested_at = record.pop("ingested_at", None)
-                span = EvidenceSpan.model_validate(record)
-            except (json.JSONDecodeError, ValueError) as error:
+            except json.JSONDecodeError as error:
                 log.error("skipping unreadable journal line: %s", error)
                 continue
-            moment = datetime.fromisoformat(ingested_at) if ingested_at else datetime.now(UTC)
+            # Operations are replayed in the order they were accepted, so a chunk that
+            # was ingested, approved and later superseded comes back in that state.
+            operation = record.pop("op", "add")
             try:
-                with self._lock:
-                    self._connection.execute(
-                        "INSERT INTO chunks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                        _span_to_row(span, content_sha256, moment),
-                    )
-                restored += 1
-            except sqlite3.IntegrityError:
+                if operation == "review":
+                    self._replay_review(record)
+                elif operation == "supersede":
+                    self._replay_supersede(record)
+                else:
+                    restored += self._replay_add(record)
+            except (KeyError, ValueError) as error:
+                log.error("skipping unreplayable journal line (%s): %s", operation, error)
                 continue
         log.info("restored %d chunks from journal", restored)
         return restored
+
+    def _replay_add(self, record: dict[str, object]) -> int:
+        content_sha256 = str(record.pop("content_sha256", ""))
+        ingested_at = record.pop("ingested_at", None)
+        span = EvidenceSpan.model_validate(record)
+        moment = (
+            datetime.fromisoformat(str(ingested_at)) if ingested_at else datetime.now(UTC)
+        )
+        try:
+            with self._lock:
+                self._connection.execute(
+                    "INSERT INTO chunks VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                    _span_to_row(span, content_sha256, moment),
+                )
+        except sqlite3.IntegrityError:
+            return 0
+        return 1
+
+    def _replay_review(self, record: dict[str, object]) -> None:
+        tier = record.get("access_tier")
+        with self._lock:
+            if tier is None:
+                self._connection.execute(
+                    "UPDATE chunks SET review_state = ? WHERE document_version_id = ?",
+                    (str(record["review_state"]), str(record["document_version_id"])),
+                )
+            else:
+                self._connection.execute(
+                    "UPDATE chunks SET review_state = ?, access_tier = ? "
+                    "WHERE document_version_id = ?",
+                    (
+                        str(record["review_state"]),
+                        str(tier),
+                        str(record["document_version_id"]),
+                    ),
+                )
+
+    def _replay_supersede(self, record: dict[str, object]) -> None:
+        with self._lock:
+            self._connection.execute(
+                "UPDATE chunks SET superseded_by = ? WHERE document_version_id = ?",
+                (str(record["superseded_by"]), str(record["document_version_id"])),
+            )

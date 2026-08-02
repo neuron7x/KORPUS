@@ -630,7 +630,7 @@
       "id": "store-05",
       "file": "apps/api/src/korpus/infrastructure/store.py",
       "description": "the journal is not written, so nothing can be rebuilt from it",
-      "old": "        self._append_journal(span, content_sha256, moment)",
+      "old": "        self._append_journal(record)",
       "new": "        pass"
     },
     {
@@ -643,9 +643,9 @@
     {
       "id": "store-07",
       "file": "apps/api/src/korpus/infrastructure/store.py",
-      "description": "an unreadable journal line aborts the whole recovery",
-      "old": "            except (json.JSONDecodeError, ValueError) as error:",
-      "new": "            except json.JSONDecodeError as error:"
+      "description": "an unreplayable journal record aborts the whole recovery",
+      "old": "            except (KeyError, ValueError) as error:",
+      "new": "            except KeyError as error:"
     },
     {
       "id": "store-08",
@@ -800,6 +800,41 @@
       "description": "the frozen calibration is never loaded",
       "old": "    calibrated = calibrated_threshold()",
       "new": "    calibrated = None"
+    },
+    {
+      "id": "store-09",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "approval touches every version in the corpus",
+      "old": "                    \"UPDATE chunks SET review_state = ? WHERE document_version_id = ?\",\n                    (ReviewState.APPROVED.value, str(version_id)),",
+      "new": "                    \"UPDATE chunks SET review_state = ?\",\n                    (ReviewState.APPROVED.value,),"
+    },
+    {
+      "id": "store-10",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "an approval is not journalled and is lost by recovery",
+      "old": "        if changed:\n            self._append_journal(\n                {\n                    \"op\": \"review\",",
+      "new": "        if False:\n            self._append_journal(\n                {\n                    \"op\": \"review\","
+    },
+    {
+      "id": "store-11",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "a supersession is not journalled and a retired revision comes back live",
+      "old": "        if changed:\n            self._append_journal(\n                {\n                    \"op\": \"supersede\",",
+      "new": "        if False:\n            self._append_journal(\n                {\n                    \"op\": \"supersede\","
+    },
+    {
+      "id": "store-12",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "approval silently re-tiers the document when no tier was stated",
+      "old": "            if access_tier is None:",
+      "new": "            if False:"
+    },
+    {
+      "id": "store-13",
+      "file": "apps/api/src/korpus/infrastructure/store.py",
+      "description": "journal operations are all replayed as inserts",
+      "old": "                if operation == \"review\":",
+      "new": "                if False:"
     }
   ]
 }

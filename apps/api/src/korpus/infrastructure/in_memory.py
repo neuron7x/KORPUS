@@ -106,6 +106,11 @@ class StaticPrincipalResolver:
             subject_id="anonymous", tier=AccessTier.PUBLIC
         )
 
+    def trust(self, token: str, principal: Principal) -> None:
+        """Register a token. Explicit method rather than a table poked from outside:
+        the development resolver is still the only place identity is decided."""
+        self._table[token] = principal
+
     async def resolve(self, credentials: str | None) -> Principal:
         if credentials is None:
             return self._anonymous

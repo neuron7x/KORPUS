@@ -23,6 +23,8 @@ REQUIRED = [
     "tools/mutation_baseline.json",
     "scripts/ingest.py",
     "scripts/calibrate.py",
+    "scripts/acceptance.py",
+    "docs/runbooks/OPERATING.md",
     "config/calibration.json",
 ]
 

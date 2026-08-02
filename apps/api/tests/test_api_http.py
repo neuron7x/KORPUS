@@ -121,3 +121,24 @@ def test_denied_corpus_request_returns_a_denial_not_an_abstention(client) -> Non
         json={"text": "порядок евакуації", "corpus_ids": [str(uuid4())]},
     ).json()
     assert body["status"] == "access_denied"
+
+
+def test_a_registered_token_is_the_only_way_to_raise_a_tier(client) -> None:  # type: ignore[no-untyped-def]
+    """Registration is an explicit act on the resolver, not a mutation of its table."""
+    routes._resolver.trust(
+        "medic",
+        Principal(
+            subject_id="medic-1",
+            tier=AccessTier.REVIEWED,
+            authorized_corpora=frozenset({CORPUS}),
+        ),
+    )
+    routes._retriever.add(make_span(text="перевірений порядок", tier=AccessTier.REVIEWED))
+    granted = client.post(
+        "/v1/answers",
+        json={"text": "перевірений порядок"},
+        headers={"Authorization": "Bearer medic"},
+    )
+    assert granted.json()["status"] == "answered"
+    anonymous = client.post("/v1/answers", json={"text": "перевірений порядок"})
+    assert anonymous.json()["status"] == "insufficient_evidence"

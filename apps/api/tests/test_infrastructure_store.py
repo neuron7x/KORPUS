@@ -229,3 +229,136 @@ def test_rebuild_works_when_the_file_vanished_entirely(tmp_path: Path) -> None:
     assert revived.recovered is True
     assert revived.count() == 1
     assert not list(tmp_path.glob("korpus.corrupt-*"))
+
+
+def test_approval_is_a_transition_not_a_reimport(tmp_path: Path) -> None:
+    """The defect an acceptance run caught: re-importing the same file changes nothing.
+
+    Chunk identity comes from content, so the second import inserts zero rows and the
+    document stays quarantined while the operator believes it was released.
+    """
+    store = open_store(tmp_path)
+    version = uuid4()
+    span = make_span(version_id=version, review=ReviewState.QUARANTINED)
+    store.add(span, "sha")
+    assert store.add(span, "sha") is False  # a re-import is a no-op
+    assert next(iter(store.spans())).review_state is ReviewState.QUARANTINED
+
+    assert store.approve(version, reviewer="сержант") == 1
+    assert next(iter(store.spans())).review_state is ReviewState.APPROVED
+
+
+def test_approval_can_re_tier_the_document(tmp_path: Path) -> None:
+    from korpus.domain.models import AccessTier
+
+    store = open_store(tmp_path)
+    version = uuid4()
+    store.add(make_span(version_id=version, review=ReviewState.QUARANTINED), "sha")
+    store.approve(version, reviewer="сержант", access_tier=AccessTier.REVIEWED)
+    kept = next(iter(store.spans()))
+    assert kept.review_state is ReviewState.APPROVED
+    assert kept.access_tier is AccessTier.REVIEWED
+
+
+def test_approval_without_a_tier_leaves_the_tier_alone(tmp_path: Path) -> None:
+    from korpus.domain.models import AccessTier
+
+    store = open_store(tmp_path)
+    version = uuid4()
+    store.add(
+        make_span(version_id=version, review=ReviewState.QUARANTINED, tier=AccessTier.REVIEWED),
+        "sha",
+    )
+    store.approve(version, reviewer="сержант")
+    assert next(iter(store.spans())).access_tier is AccessTier.REVIEWED
+
+
+def test_approving_an_unknown_version_changes_nothing(tmp_path: Path) -> None:
+    store = open_store(tmp_path)
+    store.add(make_span(), "sha")
+    assert store.approve(uuid4(), reviewer="сержант") == 0
+
+
+def test_an_approval_survives_a_rebuild(tmp_path: Path) -> None:
+    """Recovery must restore the corpus as it was, not as it was first imported."""
+    store = open_store(tmp_path)
+    version = uuid4()
+    store.add(make_span(version_id=version, review=ReviewState.QUARANTINED), "sha")
+    store.approve(version, reviewer="сержант")
+    store.close()
+
+    (tmp_path / "korpus.sqlite3").write_bytes(b"destroyed" * 100)
+    recovered = open_store(tmp_path)
+    assert recovered.recovered is True
+    assert next(iter(recovered.spans())).review_state is ReviewState.APPROVED
+
+
+def test_a_supersession_survives_a_rebuild(tmp_path: Path) -> None:
+    """A retired revision that came back live would put a stale order back in force."""
+    store = open_store(tmp_path)
+    version, replacement = uuid4(), uuid4()
+    store.add(make_span(version_id=version), "sha")
+    store.supersede(version, replacement)
+    store.close()
+
+    (tmp_path / "korpus.sqlite3").write_bytes(b"destroyed" * 100)
+    recovered = open_store(tmp_path)
+    assert next(iter(recovered.spans())).superseded_by == replacement
+
+
+def test_replay_ignores_a_review_record_missing_its_version(tmp_path: Path) -> None:
+    store = open_store(tmp_path)
+    store.add(make_span(), "sha")
+    with store.journal.open("a", encoding="utf-8") as handle:
+        handle.write('{"op": "review", "review_state": "approved"}\n')
+    # Closed before the file is damaged: a live connection would write the page cache
+    # back and the test would pass without any recovery having happened.
+    store.close()
+    (tmp_path / "korpus.sqlite3").write_bytes(b"destroyed" * 100)
+    recovered = open_store(tmp_path)
+    assert recovered.count() == 1
+
+
+def test_a_legacy_journal_line_without_an_operation_is_read_as_an_insert(
+    tmp_path: Path,
+) -> None:
+    """Journals written before operations were tagged must still rebuild."""
+    import json as json_module
+
+    store = open_store(tmp_path)
+    span = make_span()
+    record = json_module.loads(span.model_dump_json())
+    record["content_sha256"] = "sha"
+    record["ingested_at"] = "2026-08-02T12:00:00+00:00"
+    store.journal.write_text(
+        json_module.dumps(record, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    store.close()
+    (tmp_path / "korpus.sqlite3").write_bytes(b"destroyed" * 100)
+    recovered = open_store(tmp_path)
+    assert recovered.count() == 1
+
+
+def test_superseding_an_unknown_version_writes_nothing(tmp_path: Path) -> None:
+    """No rows changed means no journal entry: recovery must not replay a no-op."""
+    store = open_store(tmp_path)
+    store.add(make_span(), "sha")
+    lines_before = len(store.journal.read_text(encoding="utf-8").splitlines())
+    assert store.supersede(uuid4(), uuid4()) == 0
+    assert len(store.journal.read_text(encoding="utf-8").splitlines()) == lines_before
+
+
+def test_a_re_tiering_approval_survives_a_rebuild(tmp_path: Path) -> None:
+    from korpus.domain.models import AccessTier
+
+    store = open_store(tmp_path)
+    version = uuid4()
+    store.add(make_span(version_id=version, review=ReviewState.QUARANTINED), "sha")
+    store.approve(version, reviewer="сержант", access_tier=AccessTier.REVIEWED)
+    store.close()
+
+    (tmp_path / "korpus.sqlite3").write_bytes(b"destroyed" * 100)
+    recovered = open_store(tmp_path)
+    kept = next(iter(recovered.spans()))
+    assert kept.review_state is ReviewState.APPROVED
+    assert kept.access_tier is AccessTier.REVIEWED

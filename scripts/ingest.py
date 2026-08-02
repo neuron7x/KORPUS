@@ -7,10 +7,13 @@ reviewer approves it, and this tool will not approve on the operator's behalf.
 
     python3 scripts/ingest.py doc.md --title "Настанова X" --authority official_ua
     python3 scripts/ingest.py doc.md --title "Наказ Y" --review approved --tier reviewed
+    python3 scripts/ingest.py --approve <version-uuid> --reviewer "Сержант Б."
     python3 scripts/ingest.py --supersede <version-uuid> --replacement <version-uuid>
 
 Re-running the same file is safe: chunk identity is derived from content, so the
-second run inserts nothing and says so.
+second run inserts nothing and says so. That is also why approval is `--approve` and
+not a second import with a different flag: the second import would change nothing
+while looking like it had.
 """
 
 from __future__ import annotations
@@ -59,14 +62,53 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--revision", default=None)
     parser.add_argument("--source-uri", default=None)
     parser.add_argument("--store", type=Path, default=None, help="database path override")
+    parser.add_argument(
+        "--approve",
+        type=UUID,
+        default=None,
+        help="version to release for citation (a reviewer's act, not an import flag)",
+    )
+    parser.add_argument("--reviewer", default=None, help="who approves; required with --approve")
     parser.add_argument("--supersede", type=UUID, default=None, help="version to retire")
     parser.add_argument("--replacement", type=UUID, default=None, help="version that replaces it")
     return parser
 
 
 def main() -> int:
-    args = build_parser().parse_args()
+    parser = build_parser()
+    args = parser.parse_args()
+    # Whether --tier was typed matters for --approve: an unstated tier must leave the
+    # existing one alone rather than silently resetting it to the flag's default.
+    args.tier_given = any(arg.startswith("--tier") for arg in sys.argv[1:])
     store = CorpusStore(Path(args.store) if args.store else Path(get_settings().corpus_path))
+
+    if args.approve:
+        if not args.reviewer:
+            print(
+                "--approve requires --reviewer: an approval belongs to a person",
+                file=sys.stderr,
+            )
+            return 2
+        tier = AccessTier(args.tier) if args.tier_given else None
+        released = store.approve(args.approve, args.reviewer, tier)
+        store.record_audit(
+            "corpus.approved",
+            {
+                "document_version_id": str(args.approve),
+                "reviewer": args.reviewer,
+                "chunks": released,
+                "access_tier": tier.value if tier else "unchanged",
+            },
+        )
+        print(
+            json.dumps(
+                {"approved_chunks": released, "reviewer": args.reviewer}, ensure_ascii=False
+            )
+        )
+        if released == 0:
+            print("жоден фрагмент не змінив стан — перевірте ідентифікатор версії", file=sys.stderr)
+            return 1
+        return 0
 
     if args.supersede:
         if not args.replacement:
