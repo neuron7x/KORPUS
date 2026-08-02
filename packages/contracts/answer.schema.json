@@ -2,22 +2,54 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://korpus.local/contracts/answer.schema.json",
   "title": "EvidenceBoundAnswer",
+  "description": "Wire shape of POST /v1/answers. Enforced against live responses by tests/test_contract_conformance.py, so drift between this file and the API is a red test, not a discovery in production.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["status", "text", "citations", "confidence", "limitations"],
+  "required": [
+    "id",
+    "trace_id",
+    "status",
+    "text",
+    "claims",
+    "citations",
+    "confidence",
+    "citation_coverage",
+    "limitations",
+    "created_at"
+  ],
   "properties": {
+    "id": {"type": "string", "format": "uuid"},
+    "trace_id": {"type": "string", "format": "uuid"},
     "status": {"enum": ["answered", "insufficient_evidence", "access_denied", "requires_human_review"]},
     "text": {"type": "string"},
     "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "citation_coverage": {"type": "number", "minimum": 0, "maximum": 1},
     "limitations": {"type": "array", "items": {"type": "string"}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "citation_indexes"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1, "maxLength": 2000},
+          "citation_indexes": {
+            "type": "array",
+            "items": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
     "citations": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["document_id", "title", "quote"],
+        "required": ["document_id", "chunk_id", "title", "quote"],
         "properties": {
           "document_id": {"type": "string", "format": "uuid"},
+          "chunk_id": {"type": "string", "format": "uuid"},
           "title": {"type": "string", "minLength": 1},
           "revision": {"type": ["string", "null"]},
           "page": {"type": ["integer", "null"], "minimum": 1},
@@ -27,6 +59,24 @@
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "$comment": "An answered response must carry at least one citation. Abstention and denial must carry none: a refusal that ships evidence has already disclosed it.",
+      "if": {"properties": {"status": {"const": "answered"}}, "required": ["status"]},
+      "then": {"properties": {"citations": {"minItems": 1}, "citation_coverage": {"minimum": 0.95}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "insufficient_evidence"}}, "required": ["status"]},
+      "then": {"properties": {"citations": {"maxItems": 0}, "confidence": {"const": 0}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "access_denied"}}, "required": ["status"]},
+      "then": {"properties": {"citations": {"maxItems": 0}, "claims": {"maxItems": 0}, "confidence": {"const": 0}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "requires_human_review"}}, "required": ["status"]},
+      "then": {"properties": {"confidence": {"const": 0}}}
+    }
+  ]
 }
-
