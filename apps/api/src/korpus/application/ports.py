@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Protocol
+from uuid import UUID
 
 from korpus.domain.access import Principal
 from korpus.domain.models import AccessTier, Claim, EvidenceSpan, Query
@@ -10,12 +11,14 @@ class Retriever(Protocol):
         self,
         query: Query,
         allowed_tiers: frozenset[AccessTier],
+        allowed_corpora: frozenset[UUID],
         limit: int = 8,
     ) -> list[EvidenceSpan]:
-        """Search inside the authorized tiers only.
+        """Search inside the authorized tiers and corpora only.
 
-        `allowed_tiers` is an argument rather than a post-filter so an adapter backed
-        by separate per-tier indexes can honour it at the index boundary (ADR-0004).
+        Both bounds are arguments rather than post-filters so an adapter backed by
+        separate per-tier indexes or per-corpus buckets can honour them at the index
+        boundary (ADR-0004). An empty corpus set means an empty result — never "all".
         """
         ...
 

@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 
-from conftest import make_span
+from conftest import CORPUS, make_span
 
 from korpus.api import routes
 from korpus.domain.access import Principal
@@ -53,11 +53,18 @@ def test_unknown_bearer_token_falls_back_to_anonymous(client) -> None:  # type: 
     )
     assert response.json()["status"] == "insufficient_evidence"
     assert response.json()["citations"] == []
+    # The tier the request was actually served at, not merely the answer it produced:
+    # a forged token that silently resolved to a higher tier would abstain here too.
+    _, payload = routes._audit.events[-1]
+    assert payload["principal_tier"] == "public"
+    assert payload["subject_id"] == "anonymous"
 
 
 def test_known_token_raises_the_reachable_tier(client) -> None:  # type: ignore[no-untyped-def]
     routes._resolver._table["reviewer"] = Principal(  # noqa: SLF001 - test wiring
-        subject_id="reviewer-1", tier=AccessTier.REVIEWED
+        subject_id="reviewer-1",
+        tier=AccessTier.REVIEWED,
+        authorized_corpora=frozenset({CORPUS}),
     )
     routes._retriever.add(make_span(text="перевірений порядок", tier=AccessTier.REVIEWED))
     response = client.post(
@@ -75,7 +82,9 @@ def test_a_non_bearer_scheme_is_not_accepted_as_a_token(client) -> None:  # type
     parser that slices without checking the scheme authenticates it.
     """
     routes._resolver._table["reviewer"] = Principal(  # noqa: SLF001 - test wiring
-        subject_id="reviewer-1", tier=AccessTier.REVIEWED
+        subject_id="reviewer-1",
+        tier=AccessTier.REVIEWED,
+        authorized_corpora=frozenset({CORPUS}),
     )
     routes._retriever.add(make_span(text="перевірений порядок", tier=AccessTier.REVIEWED))
     response = client.post(

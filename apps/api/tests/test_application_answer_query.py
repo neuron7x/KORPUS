@@ -7,10 +7,10 @@ or answer with citations. A green suite here means those four are distinguishabl
 from __future__ import annotations
 
 from datetime import timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
-from conftest import NOW, make_principal, make_span
+from conftest import CORPUS, NOW, make_principal, make_span
 
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery
 from korpus.domain.models import (
@@ -64,9 +64,10 @@ class LeakingRetriever:
         self,
         query: Query,
         allowed_tiers: frozenset[AccessTier],
+        allowed_corpora: frozenset[UUID],
         limit: int = 8,
     ) -> list[EvidenceSpan]:
-        del query, allowed_tiers, limit
+        del query, allowed_tiers, allowed_corpora, limit
         return list(self._spans)
 
 
@@ -74,17 +75,22 @@ class RecordingRetriever(InMemoryRetriever):
     def __init__(self, spans: list[EvidenceSpan] | None = None) -> None:
         super().__init__(spans)
         self.seen_tiers: frozenset[AccessTier] | None = None
+        self.seen_corpora: frozenset[UUID] | None = None
+        self.seen_limit = 0
         self.calls = 0
 
     async def search(
         self,
         query: Query,
         allowed_tiers: frozenset[AccessTier],
+        allowed_corpora: frozenset[UUID],
         limit: int = 8,
     ) -> list[EvidenceSpan]:
         self.seen_tiers = allowed_tiers
+        self.seen_corpora = allowed_corpora
+        self.seen_limit = limit
         self.calls += 1
-        return await super().search(query, allowed_tiers, limit)
+        return await super().search(query, allowed_tiers, allowed_corpora, limit)
 
 
 def build(
@@ -186,6 +192,85 @@ async def test_denies_a_corpus_the_principal_does_not_hold() -> None:
     assert answer.status is AnswerStatus.ACCESS_DENIED
     assert answer.citations == []
     assert sink.events[0][1]["denial_reason"] == "corpus_not_authorized"
+
+
+async def test_omitting_corpus_ids_does_not_widen_the_search(  ) -> None:
+    """Naming no corpus means "my grant", not "everything".
+
+    The first cut enforced authorization only against callers polite enough to declare
+    what they were reaching for: omit the optional field and every corpus at your tier
+    was searched. This is that hole, kept open by a test.
+    """
+    foreign = make_span(text="порядок евакуації", corpus_id=uuid4())
+    service, _ = build([foreign])
+    answer = await service.execute(Query(text="порядок евакуації"), make_principal())
+    assert answer.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert answer.citations == []
+
+
+async def test_a_principal_without_a_grant_reads_nothing() -> None:
+    service, _ = build([make_span()])
+    answer = await service.execute(
+        Query(text="питання"), make_principal(corpora=frozenset())
+    )
+    assert answer.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+
+
+async def test_retriever_is_told_which_corpora_it_may_search() -> None:
+    retriever = RecordingRetriever([])
+    service, _ = build(retriever=retriever)
+    await service.execute(Query(text="питання"), make_principal())
+    assert retriever.seen_corpora == frozenset({CORPUS})
+
+
+async def test_evidence_outside_the_grant_is_dropped_even_if_the_index_returns_it() -> None:
+    foreign = make_span(corpus_id=uuid4())
+    service, sink = build(retriever=LeakingRetriever([foreign]))
+    answer = await service.execute(Query(text="питання"), make_principal())
+    assert answer.status is AnswerStatus.REQUIRES_HUMAN_REVIEW
+    assert answer.citations == []
+    assert any(event == "evidence.tier_violation" for event, _ in sink.events)
+
+
+async def test_candidates_are_fetched_wider_than_the_answer() -> None:
+    """Eligibility is decided here, so the candidate set must not be cut by the index.
+
+    Eight unapproved chunks match the query better than the one approved source. When
+    the retriever was asked for exactly `maximum_spans`, the governing document never
+    reached the filter and the system abstained while holding the answer.
+    """
+    question = "порядок евакуації поранених негайно"
+    # Each decoy matches all four query terms (score 1.0); the approved source matches
+    # three of four (0.75) — above the 0.72 floor, but ranked ninth.
+    decoys = [
+        make_span(text=question, review=ReviewState.QUARANTINED) for _ in range(8)
+    ]
+    official = make_span(text="порядок евакуації поранених")
+    from korpus.infrastructure.lexical import LexicalRetriever
+
+    service, _ = build(retriever=LexicalRetriever([*decoys, official]),
+                       policy=AnswerPolicy(maximum_spans=8))
+    answer = await service.execute(Query(text=question), make_principal())
+    assert answer.status is AnswerStatus.ANSWERED
+    assert answer.citations[0].chunk_id == official.chunk_id
+
+
+async def test_one_uncited_claim_in_twenty_blocks_the_answer() -> None:
+    """Coverage 0.95 clears the floor; the promise still fails, so the answer is held."""
+
+    class NineteenOfTwenty:
+        async def compose(
+            self, query: Query, evidence: list[EvidenceSpan]
+        ) -> list[Claim]:
+            del query, evidence
+            cited = [Claim(text=f"твердження {i}", citation_indexes=(0,)) for i in range(19)]
+            return [*cited, Claim(text="БЕЗ ДЖЕРЕЛА")]
+
+    service, _ = build([make_span()], generator=NineteenOfTwenty())
+    answer = await service.execute(Query(text="питання"), make_principal())
+    assert answer.citation_coverage == pytest.approx(0.95)
+    assert answer.status is AnswerStatus.REQUIRES_HUMAN_REVIEW
+    assert "БЕЗ ДЖЕРЕЛА" not in answer.text
 
 
 async def test_denial_happens_before_retrieval() -> None:
@@ -340,9 +425,10 @@ async def test_evidence_set_is_capped_even_when_the_retriever_overruns() -> None
             self,
             query: Query,
             allowed_tiers: frozenset[AccessTier],
+            allowed_corpora: frozenset[UUID],
             limit: int = 8,
         ) -> list[EvidenceSpan]:
-            del query, allowed_tiers, limit
+            del query, allowed_tiers, allowed_corpora, limit
             return list(self._spans)
 
     spans = [make_span() for _ in range(12)]
@@ -388,6 +474,6 @@ async def test_stub_retriever_honours_the_tier_argument() -> None:
         [make_span(tier=AccessTier.RESTRICTED), make_span(tier=AccessTier.PUBLIC)]
     )
     found = await retriever.search(
-        Query(text="питання"), frozenset({AccessTier.PUBLIC}), limit=8
+        Query(text="питання"), frozenset({AccessTier.PUBLIC}), frozenset({CORPUS}), limit=8
     )
     assert [span.access_tier for span in found] == [AccessTier.PUBLIC]

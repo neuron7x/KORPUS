@@ -12,7 +12,7 @@ from uuid import uuid4
 
 from korpus.application.ports import AuditSink, Clock, Generator, Retriever
 from korpus.application.verification import verify
-from korpus.domain.access import Principal, allowed_tiers, authorize, readable
+from korpus.domain.access import Principal, allowed_tiers, authorize, in_scope, readable
 from korpus.domain.authority import (
     conflicting_versions,
     deduplicate_by_version,
@@ -39,8 +39,12 @@ REVIEW_TEXT = "Відповідь затримано: потрібна пере�
 class AnswerPolicy:
     minimum_score: float = 0.72
     minimum_approved_spans: int = 1
-    minimum_citation_coverage: float = 0.95
     maximum_spans: int = 8
+    # Candidates are fetched wider than the answer, because eligibility is decided
+    # here and not in the index: asking for exactly `maximum_spans` lets unapproved,
+    # superseded or adversary-authored chunks with a better lexical match crowd the
+    # governing source out of the candidate set before it is ever examined.
+    candidate_multiplier: int = 8
 
 
 class AnswerQuery:
@@ -94,11 +98,25 @@ class AnswerQuery:
             return answer
 
         tiers = allowed_tiers(principal.tier)
-        retrieved = await self._retriever.search(query, tiers, self._policy.maximum_spans)
+        retrieved = await self._retriever.search(
+            query,
+            tiers,
+            decision.scope,
+            self._policy.maximum_spans * self._policy.candidate_multiplier,
+        )
 
         # Defence in depth: a defective or swapped retriever must not widen disclosure.
-        leaked = [span for span in retrieved if not readable(span, principal)]
-        visible = [span for span in retrieved if readable(span, principal)]
+        # Both bounds it was given are re-checked against what it actually returned.
+        leaked = [
+            span
+            for span in retrieved
+            if not readable(span, principal) or not in_scope(span, decision.scope)
+        ]
+        visible = [
+            span
+            for span in retrieved
+            if readable(span, principal) and in_scope(span, decision.scope)
+        ]
         if leaked:
             await self._audit.record(
                 "evidence.tier_violation",
@@ -152,8 +170,11 @@ class AnswerQuery:
                 f"Джерела рівної сили розходяться: {len(conflicts)} фрагменти."
             )
 
-        below_threshold = result.coverage < self._policy.minimum_citation_coverage
-        if result.integrity_breach or below_threshold:
+        # Any unsupported claim blocks. There is deliberately no ratio to tune: a
+        # 0.95 floor let one uncited sentence in twenty ship inside an `answered`
+        # response, and a threshold that cannot be set to anything but 1.0 without
+        # breaking the promise is not a setting, it is a hole with a dial on it.
+        if result.integrity_breach or result.unsupported or result.empty:
             answer = Answer(
                 trace_id=trace_id,
                 status=AnswerStatus.REQUIRES_HUMAN_REVIEW,

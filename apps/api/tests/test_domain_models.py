@@ -118,6 +118,38 @@ def test_claim_without_citations_is_representable_and_unsupported() -> None:
     assert Claim(text="твердження").citation_indexes == ()
 
 
+def test_naive_validity_timestamp_is_read_as_utc() -> None:
+    """A tz-naive value used to crash the whole request when compared to the clock."""
+    from datetime import UTC, datetime
+
+    span = make_span(valid_until=datetime(2026, 8, 2, 12, 0))
+    assert span.valid_until is not None
+    assert span.valid_until.tzinfo is not None
+    assert span.valid_until == datetime(2026, 8, 2, 12, 0, tzinfo=UTC)
+
+
+def test_aware_validity_timestamp_is_left_alone() -> None:
+    from datetime import UTC, datetime
+
+    moment = datetime(2026, 8, 2, 15, 0, tzinfo=UTC)
+    assert make_span(valid_until=moment).valid_until == moment
+
+
+def test_evidence_span_requires_a_corpus() -> None:
+    with pytest.raises(ValidationError):
+        EvidenceSpan(  # type: ignore[call-arg]
+            citation=make_span().citation,
+            chunk_id=uuid4(),
+            document_id=uuid4(),
+            document_version_id=uuid4(),
+            text="текст",
+            retrieval_score=0.9,
+            access_tier="public",
+            review_state="approved",
+            authority="official_ua",
+        )
+
+
 def test_evidence_span_requires_chunk_identity() -> None:
     with pytest.raises(ValidationError):
         EvidenceSpan(  # type: ignore[call-arg]

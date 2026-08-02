@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class AccessTier(StrEnum):
@@ -52,6 +52,9 @@ class EvidenceSpan(BaseModel):
     chunk_id: UUID
     document_id: UUID
     document_version_id: UUID
+    # Corpus membership is part of the evidence, not a lookup table beside it. A span
+    # that belongs to no corpus cannot be authorized, so it cannot be indexed.
+    corpus_id: UUID
     text: str = Field(min_length=1)
     retrieval_score: float = Field(ge=0, le=1)
     access_tier: AccessTier
@@ -59,6 +62,18 @@ class EvidenceSpan(BaseModel):
     authority: AuthorityClass
     valid_until: datetime | None = None
     superseded_by: UUID | None = None
+
+    @field_validator("valid_until")
+    @classmethod
+    def _require_timezone(cls, value: datetime | None) -> datetime | None:
+        """A naive timestamp compared against an aware clock raises TypeError mid-request.
+
+        Ingestion sources hand over both shapes, so the boundary coerces instead of
+        trusting: naive input is read as UTC, which is what the corpus records use.
+        """
+        if value is not None and value.tzinfo is None:
+            return value.replace(tzinfo=UTC)
+        return value
 
 
 class AnswerStatus(StrEnum):

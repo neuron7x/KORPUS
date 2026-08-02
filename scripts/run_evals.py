@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import json
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,12 +26,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery  # noqa: E402
+from korpus.application.ports import Generator  # noqa: E402
 from korpus.domain.access import Principal  # noqa: E402
 from korpus.domain.models import (  # noqa: E402
     AccessTier,
     AnswerStatus,
     AuthorityClass,
     Citation,
+    Claim,
     EvidenceSpan,
     Query,
     ReviewState,
@@ -41,6 +44,35 @@ from korpus.infrastructure.in_memory import (  # noqa: E402
     InMemoryAuditSink,
 )
 from korpus.infrastructure.lexical import LexicalRetriever  # noqa: E402
+
+# Fixtures are validated against this whitelist before anything runs. A misspelled
+# expectation used to be silently optional: `expected_min_citaions` disabled the
+# assertion and the case still passed.
+ALLOWED_KEYS = {
+    "id", "query", "principal", "corpus", "request_unheld_corpus", "generator",
+    "expected_status", "expected_min_citations", "expected_min_coverage",
+    "expected_first_chunk", "forbidden_text", "rationale",
+}
+REQUIRED_KEYS = {"id", "query", "expected_status", "rationale"}
+ALLOWED_CORPUS_KEYS = {
+    "chunk", "document", "version", "corpus", "granted", "text", "quote", "title",
+    "page", "score", "access_tier", "review_state", "authority", "valid_until",
+    "superseded_by",
+}
+
+
+class UncitedGenerator:
+    """Declared by a fixture that needs the human-review path, not a hidden default."""
+
+    async def compose(self, query: Query, evidence: list[EvidenceSpan]) -> list[Claim]:
+        del query, evidence
+        return [Claim(text="Твердження без джерела.", citation_indexes=())]
+
+
+GENERATORS: dict[str, Callable[[], Generator]] = {
+    "stub": EvidenceBoundStubGenerator,
+    "uncited": UncitedGenerator,
+}
 
 NAMESPACE = UUID("6ba7b810-9dad-11d1-80b4-00c04fd430c8")
 CLOCK = datetime(2026, 8, 2, 12, 0, tzinfo=UTC)
@@ -65,6 +97,7 @@ def build_span(case_id: str, entry: dict[str, Any]) -> EvidenceSpan:
     document = stable_uuid(f"{case_id}:{entry.get('document', entry['chunk'])}")
     version = stable_uuid(f"{case_id}:{entry.get('version', entry['chunk'])}")
     valid_until = entry.get("valid_until")
+    corpus = stable_uuid(f"{case_id}:{entry.get('corpus', 'default')}")
     return EvidenceSpan(
         citation=Citation(
             document_id=document,
@@ -76,6 +109,7 @@ def build_span(case_id: str, entry: dict[str, Any]) -> EvidenceSpan:
         chunk_id=chunk,
         document_id=document,
         document_version_id=version,
+        corpus_id=corpus,
         text=entry["text"],
         retrieval_score=float(entry.get("score", 1.0)),
         access_tier=AccessTier(entry.get("access_tier", "public")),
@@ -92,14 +126,22 @@ async def run_case(case: dict[str, Any]) -> CaseResult:
     retriever = LexicalRetriever(spans)
     service = AnswerQuery(
         retriever=retriever,
-        generator=EvidenceBoundStubGenerator(),
+        generator=GENERATORS[case.get("generator", "stub")](),
         audit=InMemoryAuditSink(),
         policy=AnswerPolicy(),
         clock=FixedClock(CLOCK),
     )
+    # The reader is granted exactly the corpora this case's own fixtures declare, so a
+    # scope defect shows up as a failing case rather than as a wider search.
+    granted = frozenset(
+        stable_uuid(f"{case_id}:{entry.get('corpus', 'default')}")
+        for entry in case.get("corpus", [])
+        if entry.get("granted", True)
+    )
     principal = Principal(
         subject_id=case.get("principal", {}).get("subject_id", "eval"),
         tier=AccessTier(case.get("principal", {}).get("tier", "public")),
+        authorized_corpora=granted,
     )
     corpus_ids = [uuid4()] if case.get("request_unheld_corpus") else []
     answer = await service.execute(Query(text=case["query"], corpus_ids=corpus_ids), principal)
@@ -138,6 +180,28 @@ async def run_case(case: dict[str, Any]) -> CaseResult:
     )
 
 
+def validate_case(case: dict[str, Any], where: str) -> None:
+    """Reject a fixture the runner would otherwise half-execute."""
+    unknown = set(case) - ALLOWED_KEYS
+    if unknown:
+        raise SystemExit(f"{where}: unknown fixture keys {sorted(unknown)}")
+    missing = REQUIRED_KEYS - set(case)
+    if missing:
+        raise SystemExit(f"{where}: missing required keys {sorted(missing)}")
+    try:
+        AnswerStatus(case["expected_status"])
+    except ValueError as error:
+        raise SystemExit(f"{where}: {error}") from error
+    if case.get("generator", "stub") not in GENERATORS:
+        raise SystemExit(f"{where}: unknown generator {case['generator']!r}")
+    for entry in case.get("corpus", []):
+        unknown_entry = set(entry) - ALLOWED_CORPUS_KEYS
+        if unknown_entry:
+            raise SystemExit(f"{where}: unknown corpus keys {sorted(unknown_entry)}")
+        if "chunk" not in entry or "text" not in entry:
+            raise SystemExit(f"{where}: a corpus entry needs 'chunk' and 'text'")
+
+
 def load(dataset: Path) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
     for number, line in enumerate(dataset.read_text(encoding="utf-8").splitlines(), 1):
@@ -145,9 +209,14 @@ def load(dataset: Path) -> list[dict[str, Any]]:
         if not stripped:
             continue
         try:
-            cases.append(json.loads(stripped))
+            case = json.loads(stripped)
         except json.JSONDecodeError as error:
             raise SystemExit(f"{dataset}:{number}: malformed JSON — {error}") from error
+        validate_case(case, f"{dataset.name}:{number}")
+        cases.append(case)
+    identifiers = [case["id"] for case in cases]
+    if len(set(identifiers)) != len(identifiers):
+        raise SystemExit(f"{dataset}: duplicate case ids")
     return cases
 
 
@@ -164,8 +233,18 @@ async def main() -> int:
         return 2
 
     cases = load(dataset)
-    if len(cases) < args.min_cases:
-        print(f"FAIL: {len(cases)} cases loaded, at least {args.min_cases} required")
+    manifest_path = dataset.parent / "manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    expected_cases = int(manifest.get(dataset.name, {}).get("cases", args.min_cases))
+    if len(cases) < expected_cases:
+        print(f"FAIL: {len(cases)} cases loaded, {expected_cases} recorded in manifest.json")
+        return 2
+    required_statuses = set(manifest.get(dataset.name, {}).get("statuses", []))
+    covered = {case["expected_status"] for case in cases}
+    if not required_statuses <= covered:
+        print(f"FAIL: dataset no longer covers {sorted(required_statuses - covered)}")
         return 2
 
     results = [await run_case(case) for case in cases]

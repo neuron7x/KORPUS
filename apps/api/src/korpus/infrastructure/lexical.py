@@ -53,38 +53,30 @@ class LexicalRetriever:
     outside the principal's authorization is never ranked, logged or returned.
     """
 
-    def __init__(
-        self,
-        spans: list[EvidenceSpan] | None = None,
-        corpus_of: dict[UUID, UUID] | None = None,
-    ) -> None:
+    def __init__(self, spans: list[EvidenceSpan] | None = None) -> None:
         self._spans = list(spans or [])
-        # document_id -> corpus_id. Absent means "not assigned to a named corpus".
-        self._corpus_of = dict(corpus_of or {})
 
     @property
     def size(self) -> int:
         return len(self._spans)
 
-    def add(self, span: EvidenceSpan, corpus_id: UUID | None = None) -> None:
+    def add(self, span: EvidenceSpan) -> None:
         self._spans.append(span)
-        if corpus_id is not None:
-            self._corpus_of[span.document_id] = corpus_id
 
     async def search(
         self,
         query: Query,
         allowed_tiers: frozenset[AccessTier],
+        allowed_corpora: frozenset[UUID],
         limit: int = 8,
     ) -> list[EvidenceSpan]:
         tokens = normalize(query.text)
-        requested = set(query.corpus_ids)
         results: list[tuple[float, str, EvidenceSpan]] = []
 
         for span in self._spans:
             if span.access_tier not in allowed_tiers:
                 continue
-            if requested and self._corpus_of.get(span.document_id) not in requested:
+            if span.corpus_id not in allowed_corpora:
                 continue
             score = coverage_score(tokens, normalize(span.text))
             if score <= 0:

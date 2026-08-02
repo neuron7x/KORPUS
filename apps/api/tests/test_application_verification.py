@@ -82,6 +82,23 @@ def test_mixed_valid_and_invalid_indexes_do_not_support_a_claim() -> None:
     assert result.integrity_breach is True
 
 
+def test_misaligned_citation_and_evidence_lists_are_a_breach_not_a_crash() -> None:
+    """Indexes are validated against one list and dereferenced into another.
+
+    If the two ever differ in length, the difference is either an IndexError inside a
+    request or a silent authorization bypass. Both are refused here.
+    """
+    first, second = make_span(), make_span(tier=AccessTier.RESTRICTED)
+    result = verify(
+        [Claim(text="a", citation_indexes=(1,))],
+        [first.citation, second.citation],
+        [first],
+        make_principal(tier=AccessTier.PUBLIC),
+    )
+    assert result.integrity_breach is True
+    assert result.coverage == 0.0
+
+
 def test_limitations_are_populated_for_a_human_reader() -> None:
     span = make_span()
     result = verify([Claim(text="a")], [span.citation], [span], make_principal())

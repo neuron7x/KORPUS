@@ -41,6 +41,9 @@ class AccessDecision:
     allowed: bool
     reason: DenialReason | None = None
     denied_corpora: tuple[UUID, ...] = ()
+    # The corpora this request may search. Empty means: nothing is searchable, which
+    # is the correct answer for a principal holding no grant.
+    scope: frozenset[UUID] = frozenset()
 
 
 def allowed_tiers(principal: AccessTier) -> frozenset[AccessTier]:
@@ -54,8 +57,11 @@ def authorize(principal: Principal, requested_corpora: list[UUID]) -> AccessDeci
 
     An explicitly requested corpus that the principal does not hold is a denial, not
     a silent empty result: the user asked a direct question and deserves a direct no.
-    Corpora that were never requested are filtered silently, so the answer path never
-    reveals the existence of material above the principal's tier.
+
+    Omitting the field is NOT a wildcard. The search scope of a request that names no
+    corpus is the principal's own grant — otherwise the whole authorization model
+    would be opt-in, enforced only against callers polite enough to declare what they
+    are reaching for.
     """
     denied = tuple(c for c in requested_corpora if c not in principal.authorized_corpora)
     if denied:
@@ -64,7 +70,13 @@ def authorize(principal: Principal, requested_corpora: list[UUID]) -> AccessDeci
             reason=DenialReason.CORPUS_NOT_AUTHORIZED,
             denied_corpora=denied,
         )
-    return AccessDecision(allowed=True)
+    scope = frozenset(requested_corpora) if requested_corpora else principal.authorized_corpora
+    return AccessDecision(allowed=True, scope=scope)
+
+
+def in_scope(span: EvidenceSpan, scope: frozenset[UUID]) -> bool:
+    """Redundant corpus check over whatever the retriever returned, mirroring `readable`."""
+    return span.corpus_id in scope
 
 
 def readable(span: EvidenceSpan, principal: Principal) -> bool:

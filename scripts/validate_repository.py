@@ -17,6 +17,7 @@ REQUIRED = [
     # disappears, the pipeline stays green while measuring nothing.
     "scripts/run_evals.py",
     "evals/datasets/seed.jsonl",
+    "evals/datasets/manifest.json",
     "tools/mutation.py",
     "tools/mutants.json",
     "tools/mutation_baseline.json",
@@ -31,14 +32,24 @@ def check_schemas() -> None:
 def check_eval_dataset() -> None:
     """A dataset that parses but holds nothing is the quiet failure mode."""
     dataset = ROOT / "evals/datasets/seed.jsonl"
+    manifest = json.loads((ROOT / "evals/datasets/manifest.json").read_text(encoding="utf-8"))
     cases = [line for line in dataset.read_text(encoding="utf-8").splitlines() if line.strip()]
     if not cases:
         raise SystemExit("eval dataset is empty — a run over zero cases cannot pass")
-    for number, line in enumerate(cases, 1):
-        case = json.loads(line)
-        for field in ("id", "query", "expected_status"):
+    parsed = [json.loads(line) for line in cases]
+    for number, case in enumerate(parsed, 1):
+        for field in ("id", "query", "expected_status", "rationale"):
             if field not in case:
                 raise SystemExit(f"evals/datasets/seed.jsonl:{number}: missing '{field}'")
+    floor = manifest.get("seed.jsonl", {})
+    if len(parsed) < int(floor.get("cases", 0)):
+        raise SystemExit(
+            f"eval dataset shrank to {len(parsed)} cases, manifest records {floor['cases']}"
+        )
+    covered = {case["expected_status"] for case in parsed}
+    missing = set(floor.get("statuses", [])) - covered
+    if missing:
+        raise SystemExit(f"eval dataset no longer covers: {sorted(missing)}")
 
 
 def check_mutation_catalogue() -> None:

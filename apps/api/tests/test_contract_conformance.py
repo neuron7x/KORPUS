@@ -12,7 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 import pytest
-from conftest import make_span
+from conftest import CORPUS, make_span
 from jsonschema import Draft202012Validator
 
 from korpus.api import routes
@@ -107,7 +107,9 @@ def test_authorized_principal_reaches_restricted_material(client) -> None:  # ty
     secret = make_span(text="порядок евакуації таємний", tier=AccessTier.RESTRICTED)
     routes._retriever.add(secret)
     routes._resolver._table["cmd-token"] = Principal(  # noqa: SLF001 - test wiring
-        subject_id="commander", tier=AccessTier.RESTRICTED
+        subject_id="commander",
+        tier=AccessTier.RESTRICTED,
+        authorized_corpora=frozenset({CORPUS}),
     )
     body = client.post(
         "/v1/answers",

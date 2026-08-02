@@ -32,8 +32,8 @@ api:quality:
     - python -m pip install --upgrade pip
     - pip install -e 'apps/api[dev]'
   script:
-    - ruff check apps/api/src apps/api/tests
-    - mypy apps/api/src
+    - ruff check apps/api/src apps/api/tests scripts tools
+    - MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml apps/api/src scripts tools
     - pytest apps/api/tests --junitxml=api-junit.xml --cov=korpus --cov-branch
       --cov-report=xml --cov-fail-under=99
   artifacts:

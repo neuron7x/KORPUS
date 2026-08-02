@@ -64,15 +64,18 @@ def deduplicate_by_version(spans: list[EvidenceSpan]) -> list[EvidenceSpan]:
 
 
 def conflicting_versions(spans: list[EvidenceSpan]) -> tuple[EvidenceSpan, ...]:
-    """Spans of equal top authority drawn from different documents.
+    """Spans of equal top authority drawn from different document *versions*.
 
-    Exposed rather than hidden: SYSTEM.md requires conflicts to be shown, and a
-    silently dropped competing source is how a stale order stays in force.
+    Two live versions of one document are the sharpest conflict there is — that is a
+    revision that was never superseded — so keying on document identity alone missed
+    exactly the case the function is named after. Exposed rather than hidden:
+    SYSTEM.md requires conflicts to be shown, and a silently dropped competing source
+    is how a stale order stays in force.
     """
     if not spans:
         return ()
     ordered = order_by_precedence(spans)
     top = AUTHORITY_RANK[ordered[0].authority]
     peers = [s for s in ordered if AUTHORITY_RANK[s.authority] == top]
-    documents = {str(s.document_id) for s in peers}
-    return tuple(peers) if len(documents) > 1 else ()
+    versions = {str(s.document_version_id) for s in peers}
+    return tuple(peers) if len(versions) > 1 else ()

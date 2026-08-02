@@ -1,11 +1,12 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, Header, Response
 
 from korpus.application.answer_query import AnswerPolicy, AnswerQuery
 from korpus.config import Settings, get_settings
 from korpus.domain.access import Principal
-from korpus.domain.models import Answer, Query
+from korpus.domain.models import AccessTier, Answer, Query
 from korpus.infrastructure.in_memory import (
     EvidenceBoundStubGenerator,
     InMemoryAuditSink,
@@ -20,9 +21,19 @@ SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
 # Process-local singletons. Replacing them with database-backed adapters is a wiring
 # change here and nowhere else — the domain depends on ports, not on these objects.
+# The corpus an unauthenticated caller may read. Named explicitly rather than implied
+# by "no corpus filter", because an implied wildcard is how the whole index leaks.
+OPEN_CORPUS = UUID("00000000-0000-4000-8000-000000000001")
+
 _retriever = LexicalRetriever()
 _audit = InMemoryAuditSink()
-_resolver = StaticPrincipalResolver()
+_resolver = StaticPrincipalResolver(
+    anonymous=Principal(
+        subject_id="anonymous",
+        tier=AccessTier.PUBLIC,
+        authorized_corpora=frozenset({OPEN_CORPUS}),
+    )
+)
 _clock = SystemClock()
 
 
@@ -35,10 +46,7 @@ def answer_service(settings: SettingsDependency) -> AnswerQuery:
         retriever=_retriever,
         generator=EvidenceBoundStubGenerator(),
         audit=_audit,
-        policy=AnswerPolicy(
-            minimum_score=settings.min_retrieval_score,
-            minimum_citation_coverage=settings.min_citation_coverage,
-        ),
+        policy=AnswerPolicy(minimum_score=settings.min_retrieval_score),
         clock=_clock,
     )
 

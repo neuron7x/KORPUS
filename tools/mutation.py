@@ -24,8 +24,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,17 +37,13 @@ BASELINE = ROOT / "tools/mutation_baseline.json"
 _VENV_PYTHON = ROOT / "apps/api/.venv/bin/python"
 # Local runs use the project venv; CI has the package installed into the image python.
 INTERPRETER = str(_VENV_PYTHON) if _VENV_PYTHON.exists() else sys.executable
-PYTEST = [
-    INTERPRETER,
-    "-m",
-    "pytest",
-    str(ROOT / "apps/api/tests"),
-    "-x",
-    "-q",
-    "--no-header",
-    "-p",
-    "no:cacheprovider",
-]
+# One mutant must not outlive the run. A defect that makes the suite hang would
+# otherwise consume the whole CI budget and be reported as nothing at all.
+SUITE_TIMEOUT_SECONDS = 300
+IGNORED = shutil.ignore_patterns(
+    ".git", ".venv", "node_modules", ".next", "__pycache__",
+    ".mypy_cache", ".pytest_cache", ".ruff_cache", ".pnpm-store", "htmlcov",
+)
 
 
 @dataclass
@@ -63,53 +61,82 @@ class Mutant:
     mutant that suddenly becomes killable means the code moved under it.
     """
 
-    @property
-    def path(self) -> Path:
-        return ROOT / self.file
+    def path_in(self, tree: Path) -> Path:
+        return tree / self.file
 
 
 def load_mutants() -> list[Mutant]:
     raw = json.loads(CATALOGUE.read_text(encoding="utf-8"))
-    return [Mutant(**entry) for entry in raw["mutants"]]
+    return [
+        Mutant(**{k: v for k, v in entry.items() if not k.startswith("$")})
+        for entry in raw["mutants"]
+    ]
 
 
-def run_suite() -> int:
-    return subprocess.run(PYTEST, cwd=ROOT, capture_output=True, text=True).returncode
+def run_suite(tree: Path) -> int:
+    """Run the suite inside `tree`. Timeout counts as detection, not as survival."""
+    command = [
+        INTERPRETER, "-m", "pytest", str(tree / "apps/api/tests"),
+        "-x", "-q", "--no-header", "-p", "no:cacheprovider",
+    ]
+    try:
+        return subprocess.run(
+            command, cwd=tree, capture_output=True, text=True,
+            timeout=SUITE_TIMEOUT_SECONDS,
+        ).returncode
+    except subprocess.TimeoutExpired:
+        return 124
 
 
-def apply_and_run(mutant: Mutant) -> tuple[str, int | None]:
-    """Returns (outcome, exit_code). The original file is always restored."""
-    original = mutant.path.read_text(encoding="utf-8")
+def apply_and_run(mutant: Mutant, tree: Path) -> tuple[str, int | None]:
+    """Mutate a scratch copy of the repository, never the working tree.
+
+    Editing the real files in place means a SIGTERM — which is exactly what a CI job
+    timeout sends — leaves the defect written to disk and the run reports nothing.
+    """
+    target = mutant.path_in(tree)
+    original = target.read_text(encoding="utf-8")
     occurrences = original.count(mutant.old)
     if occurrences == 0:
         return "stale", None
     if occurrences > 1:
         return "ambiguous", None
     try:
-        mutant.path.write_text(original.replace(mutant.old, mutant.new, 1), encoding="utf-8")
-        code = run_suite()
+        target.write_text(original.replace(mutant.old, mutant.new, 1), encoding="utf-8")
+        code = run_suite(tree)
     finally:
-        mutant.path.write_text(original, encoding="utf-8")
-        assert mutant.path.read_text(encoding="utf-8") == original
+        target.write_text(original, encoding="utf-8")
+    if code == 124:
+        return "timeout", code
     return ("killed" if code != 0 else "survived"), code
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--only", default=None, help="substring filter on id or file")
+    parser.add_argument(
+        "--only",
+        dest="subset",
+        default=None,
+        help="substring filter on id or file; a subset run never enforces the floor",
+    )
     parser.add_argument("--update-baseline", action="store_true")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     mutants = load_mutants()
-    if args.only:
-        mutants = [m for m in mutants if args.only in m.id or args.only in m.file]
+    if args.subset:
+        mutants = [m for m in mutants if args.subset in m.id or args.subset in m.file]
     if not mutants:
         print("FAIL: no mutants selected")
         return 2
 
-    baseline_code = run_suite()
+    scratch = Path(tempfile.mkdtemp(prefix="korpus-mutation-"))
+    tree = scratch / "repo"
+    shutil.copytree(ROOT, tree, ignore=IGNORED, symlinks=True)
+
+    baseline_code = run_suite(tree)
     if baseline_code != 0:
+        shutil.rmtree(scratch, ignore_errors=True)
         print(f"FAIL: the suite is red before mutation (exit {baseline_code})")
         return 2
 
@@ -117,11 +144,16 @@ def main() -> int:
     survived: list[Mutant] = []
     stale: list[str] = []
     ambiguous: list[str] = []
+    timeouts: list[str] = []
     broken_equivalence: list[str] = []
 
     for mutant in mutants:
-        outcome, _ = apply_and_run(mutant)
-        if outcome == "stale":
+        outcome, _ = apply_and_run(mutant, tree)
+        if outcome == "timeout":
+            timeouts.append(mutant.id)
+            killed.append(mutant.id)
+            marker = "timeout"
+        elif outcome == "stale":
             stale.append(mutant.id)
             marker = "STALE"
         elif outcome == "ambiguous":
@@ -153,7 +185,10 @@ def main() -> int:
                 {
                     "minimum_kill_rate": round(rate, 4),
                     "catalogue_size": len(load_mutants()),
-                    "note": "Ratchet floor. Raise it when the suite improves; never lower it silently.",
+                    "note": (
+                        "Ratchet floor. Raise it when the suite improves; "
+                        "never lower it quietly."
+                    ),
                 },
                 indent=2,
             )
@@ -161,7 +196,25 @@ def main() -> int:
             encoding="utf-8",
         )
         print(f"baseline updated to {rate:.4f} over {len(load_mutants())} mutants")
+        shutil.rmtree(scratch, ignore_errors=True)
         return 0
+
+    # Failure reasons are collected before printing, so the JSON report is valid JSON
+    # in every outcome — a report that turns into prose on failure is unparseable by
+    # the one consumer that matters, the pipeline reading it.
+    failures: list[str] = []
+    if stale or ambiguous:
+        failures.append(f"catalogue out of date — stale={stale} ambiguous={ambiguous}")
+    if broken_equivalence:
+        failures.append(
+            "mutants marked equivalent were killed, the proof no longer holds: "
+            f"{broken_equivalence}"
+        )
+    expected_size = int(baseline.get("catalogue_size", len(mutants)))
+    if not args.subset and len(mutants) < expected_size:
+        failures.append(f"catalogue shrank from {expected_size} to {len(mutants)} mutants")
+    if not args.subset and rate + 1e-9 < floor:
+        failures.append(f"kill rate {rate:.4f} below floor {floor:.4f}")
 
     summary = {
         "scored": scored,
@@ -169,34 +222,26 @@ def main() -> int:
         "survived": len(survived),
         "kill_rate": round(rate, 4),
         "floor": floor,
+        "subset": bool(args.subset),
         "stale": stale,
         "ambiguous": ambiguous,
+        "timeouts": timeouts,
         "survivors": [{"id": m.id, "file": m.file, "description": m.description} for m in survived],
+        "failures": failures,
+        "verdict": "fail" if failures else "pass",
     }
     if args.json:
         print(json.dumps(summary, ensure_ascii=False, indent=2))
     else:
-        print(f"\nkilled {len(killed)}/{scored} = {rate:.4f} (floor {floor:.4f})")
+        scope = " [SUBSET — floor not enforced]" if args.subset else ""
+        print(f"\nkilled {len(killed)}/{scored} = {rate:.4f} (floor {floor:.4f}){scope}")
         for mutant in survived:
             print(f"  survivor: {mutant.id} — {mutant.description} [{mutant.file}]")
+        for reason in failures:
+            print(f"FAIL: {reason}")
 
-    if stale or ambiguous:
-        print(f"FAIL: catalogue out of date — stale={stale} ambiguous={ambiguous}")
-        return 3
-    if broken_equivalence:
-        print(
-            "FAIL: mutants marked equivalent were killed — the proof no longer holds: "
-            f"{broken_equivalence}"
-        )
-        return 3
-    expected_size = int(baseline.get("catalogue_size", len(mutants)))
-    if not args.only and len(mutants) < expected_size:
-        print(f"FAIL: catalogue shrank from {expected_size} to {len(mutants)} mutants")
-        return 3
-    if rate + 1e-9 < floor:
-        print(f"FAIL: kill rate {rate:.4f} below floor {floor:.4f}")
-        return 1
-    return 0
+    shutil.rmtree(scratch, ignore_errors=True)
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

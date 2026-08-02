@@ -64,7 +64,7 @@
     {
       "$comment": "An answered response must carry at least one citation. Abstention and denial must carry none: a refusal that ships evidence has already disclosed it.",
       "if": {"properties": {"status": {"const": "answered"}}, "required": ["status"]},
-      "then": {"properties": {"citations": {"minItems": 1}, "citation_coverage": {"minimum": 0.95}}}
+      "then": {"properties": {"citations": {"minItems": 1}, "citation_coverage": {"const": 1}}}
     },
     {
       "if": {"properties": {"status": {"const": "insufficient_evidence"}}, "required": ["status"]},

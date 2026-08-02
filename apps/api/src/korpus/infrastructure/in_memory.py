@@ -7,6 +7,7 @@ stubs: each one refuses to do the part it cannot do, instead of approximating it
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from uuid import UUID
 
 from korpus.domain.access import Principal
 from korpus.domain.models import AccessTier, Claim, EvidenceSpan, Query
@@ -22,10 +23,15 @@ class InMemoryRetriever:
         self,
         query: Query,
         allowed_tiers: frozenset[AccessTier],
+        allowed_corpora: frozenset[UUID],
         limit: int = 8,
     ) -> list[EvidenceSpan]:
         del query
-        visible = [span for span in self.spans if span.access_tier in allowed_tiers]
+        visible = [
+            span
+            for span in self.spans
+            if span.access_tier in allowed_tiers and span.corpus_id in allowed_corpora
+        ]
         ranked = sorted(
             visible, key=lambda item: (-item.retrieval_score, str(item.chunk_id))
         )
@@ -80,9 +86,17 @@ class StaticPrincipalResolver:
 
     development_only = True
 
-    def __init__(self, table: dict[str, Principal] | None = None) -> None:
+    def __init__(
+        self,
+        table: dict[str, Principal] | None = None,
+        anonymous: Principal | None = None,
+    ) -> None:
         self._table = dict(table or {})
-        self._anonymous = Principal(subject_id="anonymous", tier=AccessTier.PUBLIC)
+        # An anonymous caller holds whatever grant the deployment chose to give it —
+        # by default nothing, so a missing wiring step denies rather than opens.
+        self._anonymous = anonymous or Principal(
+            subject_id="anonymous", tier=AccessTier.PUBLIC
+        )
 
     async def resolve(self, credentials: str | None) -> Principal:
         if credentials is None:

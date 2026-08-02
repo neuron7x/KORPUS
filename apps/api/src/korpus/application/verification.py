@@ -45,6 +45,16 @@ def verify(
     unsupported: list[int] = []
     out_of_range: list[int] = []
     unauthorized: list[int] = []
+    # Citations are derived from evidence one-to-one. If the two lists ever disagree,
+    # an index validated against one and dereferenced into the other is either a crash
+    # or a silent authorization bypass — so the disagreement itself is the breach.
+    if len(citations) != len(evidence):
+        return VerificationResult(
+            coverage=0.0,
+            unsupported=tuple(range(len(claims))),
+            out_of_range=tuple(range(len(claims))),
+            limitations=("Набір цитат не відповідає набору доказів.",),
+        )
     valid_range = range(len(citations))
 
     for position, claim in enumerate(claims):

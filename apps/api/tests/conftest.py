@@ -21,10 +21,14 @@ from korpus.domain.models import (
 )
 
 NOW = datetime(2026, 8, 2, 12, 0, tzinfo=UTC)
+# The corpus every fixture belongs to unless a test says otherwise, and the one every
+# fixture principal is granted. Tests about scope override one side and not the other.
+CORPUS = UUID("00000000-0000-4000-8000-000000000001")
 
 
 def make_span(
     *,
+    corpus_id: UUID | None = None,
     quote: str = "Пункт 4.2 визначає порядок дій.",
     text: str | None = None,
     score: float = 0.91,
@@ -52,6 +56,7 @@ def make_span(
         chunk_id=chunk,
         document_id=document,
         document_version_id=version_id or uuid4(),
+        corpus_id=corpus_id or CORPUS,
         text=text if text is not None else quote,
         retrieval_score=score,
         access_tier=tier,
@@ -64,10 +69,14 @@ def make_span(
 
 def make_principal(
     tier: AccessTier = AccessTier.PUBLIC,
-    corpora: frozenset[UUID] = frozenset(),
+    corpora: frozenset[UUID] | None = None,
     subject_id: str = "soldier-1",
 ) -> Principal:
-    return Principal(subject_id=subject_id, tier=tier, authorized_corpora=corpora)
+    return Principal(
+        subject_id=subject_id,
+        tier=tier,
+        authorized_corpora=frozenset({CORPUS}) if corpora is None else corpora,
+    )
 
 
 @pytest.fixture
@@ -98,7 +107,17 @@ def client():  # type: ignore[no-untyped-def]
 
     routes._retriever = LexicalRetriever()
     routes._audit = InMemoryAuditSink()
-    routes._resolver = StaticPrincipalResolver()
+    # Rebuilt exactly as the module wires it in production: an anonymous caller holds
+    # the open corpus and nothing else. A fixture that granted more would test a
+    # system nobody deploys.
+    assert routes.OPEN_CORPUS == CORPUS
+    routes._resolver = StaticPrincipalResolver(
+        anonymous=Principal(
+            subject_id="anonymous",
+            tier=AccessTier.PUBLIC,
+            authorized_corpora=frozenset({routes.OPEN_CORPUS}),
+        )
+    )
     routes._clock = SystemClock()
     get_settings.cache_clear()
     with TestClient(create_app()) as test_client:

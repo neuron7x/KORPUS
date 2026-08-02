@@ -103,11 +103,19 @@ def test_conflict_between_equal_authority_documents_is_exposed() -> None:
     assert len(conflicting_versions([first, second])) == 2
 
 
-def test_no_conflict_when_one_document_dominates() -> None:
-    document = uuid4()
-    first = make_span(document_id=document, authority=AuthorityClass.OFFICIAL_UA)
-    second = make_span(document_id=document, authority=AuthorityClass.OFFICIAL_UA)
+def test_no_conflict_between_two_chunks_of_one_version() -> None:
+    document, version = uuid4(), uuid4()
+    first = make_span(document_id=document, version_id=version)
+    second = make_span(document_id=document, version_id=version)
     assert conflicting_versions([first, second]) == ()
+
+
+def test_two_live_versions_of_one_document_are_a_conflict() -> None:
+    """The sharpest case: a revision that was never marked as superseding the old one."""
+    document = uuid4()
+    old = make_span(document_id=document, version_id=uuid4())
+    new = make_span(document_id=document, version_id=uuid4())
+    assert len(conflicting_versions([old, new])) == 2
 
 
 def test_no_conflict_between_different_authority_levels() -> None:

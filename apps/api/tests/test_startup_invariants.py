@@ -63,4 +63,4 @@ def test_thresholds_are_bounded_by_configuration() -> None:
     with pytest.raises(ValueError):
         Settings(min_retrieval_score=1.5)  # type: ignore[call-arg]
     with pytest.raises(ValueError):
-        Settings(min_citation_coverage=-0.1)  # type: ignore[call-arg]
+        Settings(min_retrieval_score=-0.1)  # type: ignore[call-arg]

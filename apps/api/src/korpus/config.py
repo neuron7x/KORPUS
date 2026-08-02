@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     openai_balanced_model: str = "gpt-5.6-terra"
     openai_router_model: str = "gpt-5.6-luna"
     min_retrieval_score: float = Field(0.72, ge=0, le=1)
-    min_citation_coverage: float = Field(0.95, ge=0, le=1)
 
 
 @lru_cache

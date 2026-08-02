@@ -15,9 +15,13 @@ api-cov:
 	apps/api/.venv/bin/pytest apps/api/tests --cov=korpus --cov-branch \
 	  --cov-report=term-missing --cov-fail-under=99
 
+# `mypy apps/api/src` from the repository root silently ignores [tool.mypy] in
+# apps/api/pyproject.toml: strict mode was never applied, and an untyped function
+# passed the gate. The config file is named explicitly here and in CI.
 api-lint:
-	apps/api/.venv/bin/ruff check apps/api/src apps/api/tests
-	apps/api/.venv/bin/mypy apps/api/src
+	apps/api/.venv/bin/ruff check apps/api/src apps/api/tests scripts tools
+	MYPYPATH=apps/api/src apps/api/.venv/bin/mypy --config-file apps/api/pyproject.toml \
+	  apps/api/src scripts tools
 
 # Fixtures replayed through the real pipeline. Exits non-zero on an empty dataset,
 # because a run with nothing in it prints the same "0 failures" as a passing one.
@@ -45,7 +49,7 @@ check:
 	pnpm --dir apps/web typecheck
 
 # What CI runs. `check` is the fast loop; `gate` is what a merge has to survive.
-gate: check evals mutation
+gate: check api-cov evals mutation
 
 infra-up:
 	docker compose up -d
