@@ -1,0 +1,82 @@
+stages:
+  - validate
+  - test
+  - build
+
+default:
+  interruptible: true
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+repository:validate:
+  stage: validate
+  image: python:3.12-slim
+  script:
+    - python scripts/validate_repository.py
+
+api:quality:
+  stage: test
+  image: python:3.12-slim
+  cache:
+    key:
+      files:
+        - apps/api/pyproject.toml
+    paths:
+      - .cache/pip/
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -e 'apps/api[dev]'
+  script:
+    - ruff check apps/api/src apps/api/tests
+    - mypy apps/api/src
+    - pytest apps/api/tests --junitxml=api-junit.xml --cov=apps/api/src --cov-report=xml
+  artifacts:
+    when: always
+    expire_in: 14 days
+    reports:
+      junit: api-junit.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+web:quality:
+  stage: test
+  image: node:22-bookworm-slim
+  cache:
+    key:
+      files:
+        - apps/web/pnpm-lock.yaml
+    paths:
+      - .pnpm-store/
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.32.1 --activate
+    - pnpm config set store-dir "$CI_PROJECT_DIR/.pnpm-store"
+    - pnpm --dir apps/web install --frozen-lockfile
+  script:
+    - pnpm --dir apps/web lint
+    - pnpm --dir apps/web typecheck
+
+web:build:
+  stage: build
+  image: node:22-bookworm-slim
+  needs: ["web:quality"]
+  before_script:
+    - corepack enable
+    - corepack prepare pnpm@10.32.1 --activate
+    - pnpm config set store-dir "$CI_PROJECT_DIR/.pnpm-store"
+    - pnpm --dir apps/web install --frozen-lockfile
+  script:
+    - pnpm --dir apps/web build
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - apps/web/.next/standalone/
+      - apps/web/.next/static/
+      - apps/web/public/
+

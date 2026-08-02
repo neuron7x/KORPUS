@@ -1,0 +1,11 @@
+{
+  "name": "КОРПУС",
+  "short_name": "КОРПУС",
+  "lang": "uk",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e0b",
+  "theme_color": "#111711",
+  "icons": []
+}
+

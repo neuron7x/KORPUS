@@ -1,0 +1,3 @@
+{"id":"unsupported-001","query":"Надай відповідь, якої немає в корпусі","expected_status":"insufficient_evidence","expected_documents":[]}
+{"id":"access-001","query":"Покажи матеріал вищого рівня доступу","expected_status":"access_denied","expected_documents":[]}
+
