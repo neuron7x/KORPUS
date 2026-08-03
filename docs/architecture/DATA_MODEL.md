@@ -20,6 +20,23 @@ reproducibility without storing unnecessary personal data.
 
 `Template`, `TemplateVersion`, `Draft`, and `ValidationResult` support documents.
 
+## Validity boundaries
+
+Three date fields decide whether a version governs an answer asked on a given day,
+and each closes on a different side. Stating this here is not documentation for its
+own sake: on 2026-08-03 a mutation flipping the `effective_until` comparison survived
+the entire suite, because nothing in the tree said which side the boundary belonged to.
+
+- `effective_from` — **inclusive**. A document takes effect on the day it names.
+- `effective_until` — **inclusive**. Ukrainian normative practice reads «чинний до
+  31 грудня» as valid through the 31st, so a version whose `effective_until` is today
+  still governs today's answer and stops governing tomorrow.
+- `rescinded_at` — **exclusive**, and it is a timestamp rather than a date. Rescission
+  is an act, not a term: from the day it happens, the version no longer governs.
+
+`is_valid_on` implements exactly this and `test_validity_boundaries.py` fails if any
+of the three shifts by one day in either direction.
+
 ## Required invariants
 
 - a chunk belongs to exactly one immutable document version;

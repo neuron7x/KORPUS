@@ -252,6 +252,27 @@ MUTANTS = (
         "if False:",
         ("apps/api/tests/test_corpus_governance.py::test_ingestion_authority_classification_ocr_and_egress_are_governed",),
     ),
+    Mutant(
+        # Shifts the end of a document's validity by one day. This exact mutation was
+        # run against the tree on 2026-08-03 and survived the whole suite: nothing
+        # stated which side of the boundary the last day belonged to, so an expired
+        # order could still govern an answer and no test objected.
+        "M27_VALIDITY_END_BOUNDARY_SHIFT",
+        "apps/api/src/korpus/domain/models.py",
+        "if self.effective_until is not None and as_of > self.effective_until:",
+        "if self.effective_until is not None and as_of >= self.effective_until:",
+        ("apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",),
+    ),
+    Mutant(
+        # The mirror image: rescission is an act, not a term, so its boundary is open
+        # on the day it happens. Flipping it would keep a rescinded order in force for
+        # one more day.
+        "M28_RESCISSION_BOUNDARY_SHIFT",
+        "apps/api/src/korpus/domain/models.py",
+        "return self.rescinded_at is None or as_of < self.rescinded_at.date()",
+        "return self.rescinded_at is None or as_of <= self.rescinded_at.date()",
+        ("apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission",),
+    ),
 )
 
 

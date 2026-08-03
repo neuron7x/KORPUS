@@ -134,6 +134,40 @@ def test_mypy_is_invoked_so_that_its_configuration_applies(where: str, command) 
     )
 
 
+def test_the_repository_walk_skips_everything_gitignore_excludes() -> None:
+    """`validate_repository` walks the filesystem but claims to describe the repository.
+
+    Anything a tool drops inside the checkout therefore counts as repository content.
+    The first pipeline in which that job ran with a locked environment failed on five
+    pip wheels under `.cache/pip`, which CI puts there by setting PIP_CACHE_DIR to
+    `$CI_PROJECT_DIR/.cache/pip`. Keeping the two lists in step is what stops the next
+    ignored directory from turning into a red gate about nothing.
+    """
+    ignored_dirs = {
+        line.rstrip("/").strip()
+        for line in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+        if line.strip().endswith("/") and not line.strip().startswith("#")
+    }
+    source = (ROOT / "scripts/validate_repository.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    skip: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "SKIP_PARTS" for t in node.targets
+        ):
+            skip = {
+                element.value
+                for element in getattr(node.value, "elts", [])
+                if isinstance(element, ast.Constant) and isinstance(element.value, str)
+            }
+    assert skip, "SKIP_PARTS is no longer a literal set — this test cannot read it"
+    missing = sorted(ignored_dirs - skip)
+    assert not missing, (
+        "these directories are gitignored but still walked by validate_repository, so "
+        f"whatever a tool writes there becomes a repository-validation failure: {missing}"
+    )
+
+
 def _imports_korpus(script: Path, seen: frozenset[Path] = frozenset()) -> bool:
     """True if `script` imports korpus.* directly or through another repo script.
 

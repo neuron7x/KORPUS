@@ -101,7 +101,28 @@ MIGRATIONS = [
     "0008_extraction_quality_governance.py",
     "0009_reviewer_credentials.py",
 ]
-SKIP_PARTS = {".git", "node_modules", ".venv", "dist", "var", ".pytest_cache", "__pycache__"}
+# Everything .gitignore excludes as a directory, plus .git itself. This walk asks
+# "what is in the repository", but it walks the *filesystem*, so anything a tool
+# happens to drop in the checkout counts as repository content. In CI that is
+# PIP_CACHE_DIR = $CI_PROJECT_DIR/.cache/pip: the first pipeline where this job had a
+# locked environment reported five pip wheels as "repository file exceeds 5 MB".
+# Kept in step with .gitignore by test_gate_parity.py, which fails when .gitignore
+# grows a directory pattern that is not listed here.
+SKIP_PARTS = {
+    ".git",
+    ".venv",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".cache",
+    "htmlcov",
+    "node_modules",
+    ".next",
+    "dist",
+    "build",
+    "var",
+}
 
 
 def load_json(path: Path, errors: list[str]) -> object | None:
