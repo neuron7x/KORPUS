@@ -13,7 +13,10 @@ DEFAULT = ROOT / "contracts/openapi.json"
 
 def canonical_contract() -> str:
     app = create_app(Settings(environment="test", auth_mode="disabled"))
-    return json.dumps(app.openapi(), ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+    contract = json.dumps(
+        app.openapi(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return contract + "\n"
 
 
 def main() -> None:

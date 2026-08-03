@@ -12,8 +12,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
-from korpus.security.entitlements import EntitlementProfile
 from korpus.security.browser_oidc import BrowserSessionError
+from korpus.security.entitlements import EntitlementProfile
 
 bearer = HTTPBearer(auto_error=False)
 _LOOPBACKS = {"127.0.0.1", "::1", "localhost", "testclient", "testserver"}
@@ -53,7 +53,9 @@ def _identity_from_local_claims(claims: dict[str, Any]) -> Identity:
             ),
         )
     except (KeyError, TypeError, ValueError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid identity claims") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid identity claims"
+        ) from exc
 
 
 def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
@@ -61,9 +63,15 @@ def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
         issued = datetime.fromtimestamp(float(claims["iat"]), tz=UTC)
         expires = datetime.fromtimestamp(float(claims["exp"]), tz=UTC)
     except (KeyError, TypeError, ValueError, OSError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token timestamps") from exc
-    if expires <= issued or expires - issued > timedelta(minutes=settings.jwt_max_lifetime_minutes):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token lifetime exceeds policy")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token timestamps"
+        ) from exc
+    if expires <= issued or expires - issued > timedelta(
+        minutes=settings.jwt_max_lifetime_minutes
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="token lifetime exceeds policy"
+        )
 
 
 @lru_cache(maxsize=16)
@@ -83,18 +91,24 @@ def _oidc_identity(claims: dict[str, Any], settings: Settings) -> Identity:
         )
         return profile.resolve(claims)
     except (OSError, ValueError, PermissionError) as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="identity has no active entitlement") from exc
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="identity has no active entitlement"
+        ) from exc
 
 
 def _dev_identity(settings: Settings, request: Request) -> Identity:
     client_host = request.client.host if request.client is not None else ""
     if client_host not in _LOOPBACKS:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="dev auth is loopback-only")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="dev auth is loopback-only"
+        )
     return Identity(
         subject=settings.dev_subject,
         roles=frozenset(role.strip() for role in settings.dev_roles.split(",") if role.strip()),
         clearance=AccessTier.parse(settings.dev_clearance),
-        corpora=frozenset(corpus.strip() for corpus in settings.dev_corpora.split(",") if corpus.strip()),
+        corpora=frozenset(
+            corpus.strip() for corpus in settings.dev_corpora.split(",") if corpus.strip()
+        ),
         compartments=frozenset(
             value.strip() for value in settings.dev_compartments.split(",") if value.strip()
         ),
@@ -107,7 +121,9 @@ def get_identity(
     request: Request,
 ) -> Identity:
     if settings.auth_mode == "disabled":
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="authentication disabled"
+        )
     if settings.auth_mode == "dev":
         return _dev_identity(settings, request)
     token = credentials.credentials if credentials is not None else None
@@ -124,9 +140,13 @@ def get_identity(
                 request.state.cookie_authenticated = True
                 request.state.browser_csrf = session.get("csrf")
             except BrowserSessionError as exc:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid browser session") from exc
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid browser session"
+                ) from exc
     if token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required"
+        )
     try:
         if settings.auth_mode == "jwt":
             claims = jwt.decode(
@@ -143,7 +163,9 @@ def get_identity(
                 raise jwt.InvalidTokenError("OIDC verifier is unavailable")
             claims = verifier.verify(token)
     except jwt.PyJWTError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token"
+        ) from exc
     _validate_lifetime(claims, settings)
     if settings.auth_mode == "oidc":
         return _oidc_identity(claims, settings)

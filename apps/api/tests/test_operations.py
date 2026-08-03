@@ -4,9 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-
 from korpus.application.operations import OperationalReleaseGate, jensen_shannon_divergence
-
 
 POLICY = Path("config/operations/reference-v5.json")
 
@@ -57,7 +55,9 @@ def test_js_divergence_is_bounded_symmetric_and_identity_zero():
     assert 0 < forward <= 1
 
 
-@pytest.mark.parametrize("left,right", [([], []), ([0, 0], [1, 0]), ([1, -1], [1, 1]), ([1], [1, 2])])
+@pytest.mark.parametrize(
+    "left,right", [([], []), ([0, 0], [1, 0]), ([1, -1], [1, 1]), ([1], [1, 2])]
+)
 def test_js_divergence_rejects_undefined_inputs(left, right):
     with pytest.raises(ValueError):
         jensen_shannon_divergence(left, right)

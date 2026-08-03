@@ -4,19 +4,41 @@ import hashlib
 import json
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Any, Protocol
 from uuid import UUID
 
 import httpx
-from sqlalchemy import Engine, text as sql_text
+from sqlalchemy import Engine
+from sqlalchemy import text as sql_text
 
 from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
+
+
+class EmbeddingHttpResponse(Protocol):
+    """Minimal response surface consumed from the embedding transport."""
+
+    @property
+    def status_code(self) -> int: ...
+
+    @property
+    def content(self) -> bytes: ...
+
+    def raise_for_status(self) -> object: ...
+    def json(self) -> Any: ...
+
+
+class EmbeddingHttpClient(Protocol):
+    """Minimal transport surface satisfied by ``httpx.Client`` and test doubles."""
+
+    def post(self, url: str, *, json: Any) -> EmbeddingHttpResponse: ...
+    def get(self, url: str, *, headers: Mapping[str, str]) -> EmbeddingHttpResponse: ...
 
 
 class EmbeddingProvider(Protocol):
@@ -43,7 +65,7 @@ class HttpEmbeddingProvider:
     timeout_seconds: float = 5.0
     max_attempts: int = 3
     max_response_bytes: int = 2 * 1024 * 1024
-    client: Any | None = None
+    client: EmbeddingHttpClient | None = None
 
     def __post_init__(self) -> None:
         if not self.endpoint.startswith(("https://", "http://127.0.0.1", "http://localhost")):
@@ -60,6 +82,7 @@ class HttpEmbeddingProvider:
                 limits=httpx.Limits(max_connections=16, max_keepalive_connections=8),
                 transport=httpx.HTTPTransport(retries=self.max_attempts - 1),
             )
+        self._client: EmbeddingHttpClient = self.client
         self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
     def embed(self, text: str) -> list[float]:
@@ -67,7 +90,9 @@ class HttpEmbeddingProvider:
             raise ValueError("embedding input length is invalid")
 
         def operation() -> list[float]:
-            response = self.client.post(self.endpoint, json={"model": self.model_id, "input": text})
+            response = self._client.post(
+                self.endpoint, json={"model": self.model_id, "input": text}
+            )
             response.raise_for_status()
             if len(response.content) > self.max_response_bytes:
                 raise RuntimeError("embedding response exceeds configured limit")
@@ -87,13 +112,13 @@ class HttpEmbeddingProvider:
 
     def healthcheck(self) -> bool:
         try:
-            response = self.client.get(self.endpoint, headers={"Accept": "application/json"})
+            response = self._client.get(self.endpoint, headers={"Accept": "application/json"})
             return response.status_code < 500
         except Exception:
             return False
 
     def close(self) -> None:
-        close = getattr(self.client, "close", None)
+        close = getattr(self._client, "close", None)
         if callable(close):
             close()
 
@@ -134,7 +159,8 @@ class PgVectorSemanticIndex:
         statement = sql_text(
             """
             SELECT s.id AS span_id,
-                   GREATEST(0.0, LEAST(1.0, 1.0 - (e.embedding_vector <=> CAST(:vector AS vector)))) AS score
+                   GREATEST(0.0, LEAST(1.0, 1.0 - (e.embedding_vector <=> \
+CAST(:vector AS vector)))) AS score
             FROM span_embeddings e
             JOIN evidence_spans s ON s.id = e.span_id
             JOIN document_versions v ON v.id = s.version_id
@@ -200,7 +226,8 @@ class PgVectorSemanticIndex:
                 sql_text(
                     """
                     INSERT INTO span_embeddings(
-                        span_id, model_id, dimensions, embedding_json, embedding_vector, text_hash, created_at
+                        span_id, model_id, dimensions, embedding_json, embedding_vector, \
+text_hash, created_at
                     ) VALUES (
                         :span_id, :model_id, :dimensions, :embedding_json,
                         CAST(:vector AS vector), :text_hash, :created_at
@@ -240,7 +267,8 @@ class PgVectorSemanticIndex:
         escaped_model = model_id.replace("'", "''")
         return (
             f"CREATE INDEX IF NOT EXISTS ix_span_embedding_hnsw_{suffix} "
-            f"ON span_embeddings USING hnsw ((embedding_vector::vector({dimensions})) vector_cosine_ops) "
+            f"ON span_embeddings USING hnsw "
+            f"((embedding_vector::vector({dimensions})) vector_cosine_ops) "
             f"WITH (m = {m}, ef_construction = {ef_construction}) "
             f"WHERE model_id = '{escaped_model}' AND dimensions = {dimensions};"
         )

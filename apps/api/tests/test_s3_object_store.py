@@ -1,13 +1,15 @@
 import hashlib
 from io import BytesIO
+from typing import ClassVar
 
 import pytest
-
 from korpus.infrastructure.object_store import S3ObjectStore
 
 
 class NotFound(Exception):
-    response = {"Error": {"Code": "404"}}
+    # botocore raises client errors carrying a shared `response` mapping on the class.
+    # ClassVar states the sharing that already exists; it does not move the attribute.
+    response: ClassVar[dict[str, dict[str, str]]] = {"Error": {"Code": "404"}}
 
 
 class FakeS3:
@@ -18,8 +20,8 @@ class FakeS3:
     def head_object(self, Bucket, Key):
         try:
             item = self.objects[(Bucket, Key)]
-        except KeyError:
-            raise NotFound()
+        except KeyError as missing:
+            raise NotFound() from missing
         return {"Metadata": item["Metadata"]}
 
     def put_object(self, **kwargs):

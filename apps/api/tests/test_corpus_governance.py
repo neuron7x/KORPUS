@@ -4,8 +4,13 @@ import hashlib
 from pathlib import Path
 
 import pytest
-
-from korpus.domain.models import AccessTier, AuthorityClass, Classification, DocumentCreate, VersionCreate
+from korpus.domain.models import (
+    AccessTier,
+    AuthorityClass,
+    Classification,
+    DocumentCreate,
+    VersionCreate,
+)
 from korpus.security.corpus_governance import (
     CorpusGovernanceProfile,
     CorpusOperation,
@@ -29,7 +34,9 @@ def _policy(*, operations: frozenset[CorpusOperation]) -> CorpusPolicy:
 def test_corpus_governance_is_content_addressed_and_fail_closed(tmp_path: Path):
     profile = CorpusGovernanceProfile(
         profile_id="governance-v1",
-        corpora={"public": _policy(operations=frozenset({CorpusOperation.INDEX, CorpusOperation.CITE}))},
+        corpora={
+            "public": _policy(operations=frozenset({CorpusOperation.INDEX, CorpusOperation.CITE}))
+        },
     )
     path = tmp_path / "governance.json"
     raw = profile.model_dump_json().encode("utf-8")
@@ -44,7 +51,9 @@ def test_corpus_governance_is_content_addressed_and_fail_closed(tmp_path: Path):
 def test_ingestion_authority_classification_ocr_and_egress_are_governed():
     profile = CorpusGovernanceProfile(
         profile_id="governance-v1",
-        corpora={"public": _policy(operations=frozenset({CorpusOperation.INDEX, CorpusOperation.CITE}))},
+        corpora={
+            "public": _policy(operations=frozenset({CorpusOperation.INDEX, CorpusOperation.CITE}))
+        },
     )
     document = DocumentCreate(
         canonical_title="Governed",
@@ -74,7 +83,9 @@ def test_legal_hold_cannot_enable_deletion():
             deep=True,
         ).model_validate(
             {
-                **_policy(operations=frozenset({CorpusOperation.INDEX, CorpusOperation.DELETE})).model_dump(),
+                **_policy(
+                    operations=frozenset({CorpusOperation.INDEX, CorpusOperation.DELETE})
+                ).model_dump(),
                 "legal_hold": True,
             }
         )

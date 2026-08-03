@@ -6,9 +6,6 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
-from sqlalchemy import insert, select, text
-from sqlalchemy.exc import DBAPIError
-
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -27,6 +24,8 @@ from korpus.infrastructure.repository import (
     spans,
     versions,
 )
+from sqlalchemy import insert, select, text
+from sqlalchemy.exc import DBAPIError
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 pytestmark = pytest.mark.postgres
@@ -42,7 +41,10 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
         role = connection.execute(
-            text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")
+            text(
+                "SELECT current_user, rolsuper, rolbypassrls "
+                "FROM pg_roles WHERE rolname = current_user"
+            )
         ).one()
     assert role.current_user == "korpus_app"
     assert role.rolsuper is False
@@ -142,9 +144,8 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         assert connection.execute(select(span_embeddings.c.span_id)).all() == []
 
     # The application role can read but cannot forge migration state.
-    with pytest.raises(DBAPIError):
-        with repository.engine.begin() as connection:
-            connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
+    with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+        connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
 
     assert repository.verify_audit().valid is True
     repository.close()

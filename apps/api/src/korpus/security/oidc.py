@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 import secrets
+from datetime import UTC, datetime
 from typing import Any
 
 import jwt
@@ -46,7 +46,9 @@ class OIDCVerifier:
             or len(set(algorithms)) != len(algorithms)
             or any(algorithm not in allowed_algorithms for algorithm in algorithms)
         ):
-            raise ValueError("OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned")
+            raise ValueError(
+                "OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned"
+            )
         if max_auth_age_seconds < 60:
             raise ValueError("max_auth_age_seconds is too small")
         self.issuer = issuer
@@ -111,7 +113,10 @@ class OIDCVerifier:
         except (KeyError, TypeError, ValueError, OSError) as exc:
             raise jwt.InvalidTokenError("auth_time claim is invalid") from exc
         age = (datetime.now(UTC) - auth_time).total_seconds()
-        if age < -self.clock_skew_seconds or age > self.max_auth_age_seconds + self.clock_skew_seconds:
+        if (
+            age < -self.clock_skew_seconds
+            or age > self.max_auth_age_seconds + self.clock_skew_seconds
+        ):
             raise jwt.InvalidTokenError("authentication age exceeds policy")
         if self.required_acr is not None and claims.get("acr") != self.required_acr:
             raise jwt.InvalidTokenError("acr does not satisfy policy")

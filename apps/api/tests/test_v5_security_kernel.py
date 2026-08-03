@@ -10,14 +10,22 @@ from types import SimpleNamespace
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
-
-from apps.api.tests.helpers import approve, ingest_text
-from korpus.application.evidence import assess_control_injection, contradiction_reason, segment_sentences
+from korpus.application.evidence import (
+    assess_control_injection,
+    contradiction_reason,
+    segment_sentences,
+)
 from korpus.domain.models import AccessTier, DocumentCreate, Identity
 from korpus.infrastructure.extraction import extract_pages_from_path
 from korpus.security.entitlements import EntitlementGrant, EntitlementProfile
 from korpus.security.oidc import OIDCVerifier
-from korpus.security.scanning import ClamdInstreamScanner, MalwareDetectedError, MalwareScannerUnavailable
+from korpus.security.scanning import (
+    ClamdInstreamScanner,
+    MalwareDetectedError,
+    MalwareScannerUnavailable,
+)
+
+from apps.api.tests.helpers import approve, ingest_text
 
 
 def test_entitlement_projection_ignores_privileged_token_claims(tmp_path: Path):
@@ -62,10 +70,13 @@ def test_entitlement_profile_digest_and_deny_list_are_fail_closed(tmp_path: Path
 
 
 def test_compartment_noninterference_is_enforced_before_retrieval(client, admin_identity):
-    admin_with_compartment = admin_identity.model_copy(update={"compartments": frozenset({"operations"})})
+    admin_with_compartment = admin_identity.model_copy(
+        update={"compartments": frozenset({"operations"})}
+    )
     client.identity_provider.current = admin_with_compartment  # type: ignore[attr-defined]
     result = ingest_text(client, title="Operations restricted", text="Операційний маркер ZETA-741.")
-    # Re-ingest with compartment through the raw contract because the helper intentionally stays minimal.
+    # Re-ingest with compartment through the raw contract because the helper
+    # intentionally stays minimal.
     document_id = result["document"]["id"]
     # Existing document has no compartment; create a separate compartmented document.
     response = client.post(
@@ -264,7 +275,8 @@ def test_oidc_assurance_requires_acr_mfa_and_recent_authentication():
 
 def test_ukrainian_morphology_and_temporal_relevance_are_explicit():
     from datetime import date
-    from korpus.application.retrieval import candidate_terms, tokenize, _temporal_relevance
+
+    from korpus.application.retrieval import _temporal_relevance, candidate_terms, tokenize
 
     assert tokenize("документами") == tokenize("документ")
     terms = candidate_terms("документами")
@@ -277,6 +289,7 @@ def test_ukrainian_morphology_and_temporal_relevance_are_explicit():
 def test_authority_priors_are_profile_inputs_not_hidden_constants():
     from korpus.application.calibration import CalibrationProfile
     from korpus.domain.models import AuthorityClass
+
     from apps.api.tests.test_calibration import profile
 
     calibrated = profile(authority_historical=0.11, authority_unknown=0.02)
@@ -288,17 +301,20 @@ def test_authority_priors_are_profile_inputs_not_hidden_constants():
 def test_detached_source_signature_binds_content_and_metadata(tmp_path):
     import base64
     import hashlib
+
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     from korpus.application.ingestion import ExtractionSettings, IngestionService
     from korpus.application.policy import PolicyEngine
-    from korpus.domain.models import AccessTier, AuthorityClass, DocumentCreate, Identity, VersionCreate
+    from korpus.domain.models import AccessTier, AuthorityClass, Identity, VersionCreate
     from korpus.infrastructure.object_store import LocalObjectStore
     from korpus.infrastructure.repository import SqlRepository
     from korpus.security.source_authenticity import SourceTrustKey, SourceTrustProfile
 
     private = Ed25519PrivateKey.generate()
-    public = private.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    public = private.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
     trust = SourceTrustProfile(
         profile_id="source-test",
         keys={
@@ -336,7 +352,10 @@ def test_detached_source_signature_binds_content_and_metadata(tmp_path):
         trust.signed_payload(issuer="Official Issuer", version=unsigned, source_hash=digest)
     )
     signed = unsigned.model_copy(
-        update={"source_key_id": "issuer-key", "source_signature_b64": base64.b64encode(signature).decode()}
+        update={
+            "source_key_id": "issuer-key",
+            "source_signature_b64": base64.b64encode(signature).decode(),
+        }
     )
     result = service.ingest(
         actor,
@@ -363,7 +382,7 @@ def test_detached_source_signature_binds_content_and_metadata(tmp_path):
 def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Path):
     from korpus.application.ingestion import ExtractionSettings, IngestionService
     from korpus.application.policy import PolicyEngine
-    from korpus.domain.models import AuthorityClass, DocumentCreate, VersionCreate
+    from korpus.domain.models import AuthorityClass, VersionCreate
     from korpus.infrastructure.object_store import LocalObjectStore
     from korpus.infrastructure.repository import SqlRepository
 

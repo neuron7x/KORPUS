@@ -7,10 +7,17 @@ def test_openapi_contract_exposes_evidence_and_decision_provenance(client):
     assert not {"clearance", "roles", "user_tier"}.intersection(query.get("properties", {}))
 
     answer_properties = schema["components"]["schemas"]["Answer"]["properties"]
-    assert {"decision_reason", "calibration_id", "corpus_release", "evidence_coverage"} <= set(answer_properties)
+    assert {
+        "decision_reason",
+        "calibration_id",
+        "corpus_release",
+        "evidence_coverage",
+    } <= set(answer_properties)
 
     citation_properties = schema["components"]["schemas"]["Citation"]["properties"]
-    assert {"quote_start", "quote_end", "quote_hash", "source_hash", "span_id"} <= set(citation_properties)
+    assert {"quote_start", "quote_end", "quote_hash", "source_hash", "span_id"} <= set(
+        citation_properties
+    )
 
 
 def test_contract_rejects_duplicate_or_invalid_corpus_ids(client):

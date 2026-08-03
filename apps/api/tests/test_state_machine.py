@@ -34,7 +34,6 @@ def test_approval_is_reachable_only_through_both_review_stages():
 
 def test_controlled_review_separation_is_subject_based(tmp_path):
     from fastapi.testclient import TestClient
-
     from korpus.config import Settings
     from korpus.domain.models import AccessTier, Identity
     from korpus.main import create_app
@@ -123,4 +122,9 @@ def test_controlled_review_separation_is_subject_based(tmp_path):
         assert approved.status_code == 200
         body = approved.json()
         assert body["approved_by"] == "approver-c"
-        assert len({body["metadata_reviewed_by"], body["content_reviewed_by"], body["approved_by"]}) == 3
+        reviewers = {
+            body["metadata_reviewed_by"],
+            body["content_reviewed_by"],
+            body["approved_by"],
+        }
+        assert len(reviewers) == 3

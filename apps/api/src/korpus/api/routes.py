@@ -5,21 +5,34 @@ import hmac
 import json
 import os
 import tempfile
-import jwt
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated, Callable, TypeVar
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, Request, Response, UploadFile, status
+import jwt
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
 
 from korpus.api.dependencies import (
     get_admission_controller,
     get_answer_service,
-    get_ingestion_admission_controller,
     get_durable_ingestion_coordinator,
+    get_ingestion_admission_controller,
     get_ingestion_job_queue,
     get_ingestion_service,
     get_object_store,
@@ -41,21 +54,20 @@ from korpus.domain.models import (
     DocumentRecord,
     DocumentVersionRecord,
     Identity,
-    IngestResult,
     IngestionJobRecord,
+    IngestResult,
     QueryRequest,
     ReviewTransition,
     VersionCreate,
 )
+from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import ConcurrentWriteError, SqlRepository
-from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.security.auth import get_identity
 from korpus.security.browser_oidc import BrowserSessionError
 
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
-T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -94,7 +106,7 @@ async def _spool_upload_limited(file: UploadFile, maximum_bytes: int) -> SpoolUp
         await file.close()
 
 
-async def _run_bounded_ingestion(
+async def _run_bounded_ingestion[T](
     admission: AdmissionController,
     observability: Observability,
     operation: Callable[[], T],
@@ -145,10 +157,17 @@ def ready(
         else True
     )
     is_ready = bool(snapshot["ready"] and object_store_ok and schema_ok)
-    payload = {**snapshot, "object_store": object_store_ok, "schema_current": schema_ok, "ready": is_ready}
+    payload = {
+        **snapshot,
+        "object_store": object_store_ok,
+        "schema_current": schema_ok,
+        "ready": is_ready,
+    }
     if not is_ready:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
-    return {"status": "ready", "audit_head": int(snapshot["audit_head_sequence"])}
+    # readiness_snapshot always stores an int under this key (repository.readiness_snapshot)
+    audit_head = int(snapshot["audit_head_sequence"])  # type: ignore[call-overload]
+    return {"status": "ready", "audit_head": audit_head}
 
 
 @router.get("/metrics", include_in_schema=False)
@@ -184,11 +203,16 @@ def browser_login(
     return_to: Annotated[str, Query(max_length=1024)] = "/",
 ) -> Response:
     if not settings.browser_auth_enabled:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled"
+        )
     client = getattr(request.app.state, "browser_oidc_client", None)
     codec = getattr(request.app.state, "browser_session_codec", None)
     if client is None or codec is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="browser authentication unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="browser authentication unavailable",
+        )
     flow = client.new_flow()
     flow_cookie = codec.seal(
         "flow",
@@ -221,17 +245,23 @@ def browser_callback(
     state_value: Annotated[str, Query(alias="state", min_length=16, max_length=512)],
 ) -> Response:
     if not settings.browser_auth_enabled:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled"
+        )
     flow_cookie = request.cookies.get(settings.browser_flow_cookie)
     client = getattr(request.app.state, "browser_oidc_client", None)
     codec = getattr(request.app.state, "browser_session_codec", None)
     verifier = getattr(request.app.state, "oidc_verifier", None)
     if not flow_cookie or client is None or codec is None or verifier is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC flow state unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC flow state unavailable"
+        )
     try:
         flow = codec.open(flow_cookie, expected_kind="flow")
         expected_state = flow.get("state")
-        if not isinstance(expected_state, str) or not hmac.compare_digest(expected_state, state_value):
+        if not isinstance(expected_state, str) or not hmac.compare_digest(
+            expected_state, state_value
+        ):
             raise BrowserSessionError("OIDC state mismatch")
         tokens = client.exchange(code, str(flow.get("code_verifier", "")))
         id_claims = verifier.verify(
@@ -250,8 +280,13 @@ def browser_callback(
             ttl_seconds=ttl,
         )
     except (BrowserSessionError, ValueError, jwt.PyJWTError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC callback validation failed") from exc
-    response = RedirectResponse(_safe_return_path(str(flow.get("return_to", "/"))), status_code=status.HTTP_303_SEE_OTHER)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC callback validation failed"
+        ) from exc
+    response = RedirectResponse(
+        _safe_return_path(str(flow.get("return_to", "/"))),
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
     response.delete_cookie(settings.browser_flow_cookie, path="/v1/auth")
     response.set_cookie(
         settings.browser_session_cookie,
@@ -301,7 +336,9 @@ def list_documents(
     return repository.list_documents(identity)
 
 
-@router.post("/v1/documents/ingest", response_model=IngestResult, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/v1/documents/ingest", response_model=IngestResult, status_code=status.HTTP_201_CREATED
+)
 async def ingest_document(
     identity: IdentityDependency,
     service: Annotated[IngestionService, Depends(get_ingestion_service)],
@@ -313,7 +350,9 @@ async def ingest_document(
     file: Annotated[UploadFile, File()],
 ) -> IngestResult:
     if settings.ingestion_mode != "synchronous":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs"
+        )
     try:
         document = DocumentCreate.model_validate(json.loads(document_json))
         version = VersionCreate.model_validate(json.loads(version_json))
@@ -341,7 +380,9 @@ async def ingest_document(
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -360,7 +401,9 @@ async def ingest_document_version(
     file: Annotated[UploadFile, File()],
 ) -> IngestResult:
     if settings.ingestion_mode != "synchronous":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs"
+        )
     try:
         version = VersionCreate.model_validate(json.loads(version_json))
         filename = file.filename or "upload.bin"
@@ -389,7 +432,9 @@ async def ingest_document_version(
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -408,7 +453,9 @@ async def submit_document_ingestion_job(
     file: Annotated[UploadFile, File()],
 ) -> IngestionJobRecord:
     if settings.ingestion_mode != "durable_async":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled"
+        )
     try:
         document = DocumentCreate.model_validate(json.loads(document_json))
         version = VersionCreate.model_validate(json.loads(version_json))
@@ -436,7 +483,9 @@ async def submit_document_ingestion_job(
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -455,7 +504,9 @@ async def submit_version_ingestion_job(
     file: Annotated[UploadFile, File()],
 ) -> IngestionJobRecord:
     if settings.ingestion_mode != "durable_async":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled"
+        )
     try:
         version = VersionCreate.model_validate(json.loads(version_json))
         filename = file.filename or "upload.bin"
@@ -484,7 +535,9 @@ async def submit_version_ingestion_job(
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.get("/v1/ingestion-jobs/{job_id}", response_model=IngestionJobRecord)

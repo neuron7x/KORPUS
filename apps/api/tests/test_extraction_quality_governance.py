@@ -7,7 +7,10 @@ def test_low_quality_extraction_requires_explicit_reviewer_acknowledgement(clien
     result = ingest_text(
         client,
         title="Damaged OCR sample",
-        text="Нормативний текст \ufffd\ufffd\ufffd із пошкодженими символами та контрольованою перевіркою.",
+        text=(
+            "Нормативний текст \ufffd\ufffd\ufffd "
+            "із пошкодженими символами та контрольованою перевіркою."
+        ),
     )
     version = result["version"]
     assert "replacement_characters" in version["extraction_quality_flags"]
@@ -15,7 +18,10 @@ def test_low_quality_extraction_requires_explicit_reviewer_acknowledgement(clien
 
     blocked = client.post(
         f"/v1/document-versions/{version['id']}/review",
-        json={"target": "metadata_reviewed", "note": "metadata review without quality acknowledgement"},
+        json={
+            "target": "metadata_reviewed",
+            "note": "metadata review without quality acknowledgement",
+        },
     )
     assert blocked.status_code == 409
     assert "extraction-quality" in blocked.text

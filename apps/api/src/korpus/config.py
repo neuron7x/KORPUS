@@ -160,7 +160,9 @@ class Settings(BaseSettings):
     parser_sandbox_enabled: bool = False
     parser_timeout_seconds: int = Field(default=120, ge=5, le=900)
     parser_memory_limit_mb: int = Field(default=768, ge=128, le=8192)
-    parser_output_limit_bytes: int = Field(default=64 * 1024 * 1024, ge=1024 * 1024, le=256 * 1024 * 1024)
+    parser_output_limit_bytes: int = Field(
+        default=64 * 1024 * 1024, ge=1024 * 1024, le=256 * 1024 * 1024
+    )
     ocr_total_timeout_seconds: int = Field(default=300, ge=10, le=3600)
     max_pdf_pages: int = Field(default=500, ge=1, le=10_000)
     max_spans_per_document: int = Field(default=20_000, ge=1, le=100_000)
@@ -229,11 +231,14 @@ class Settings(BaseSettings):
         return value
 
     @model_validator(mode="after")
-    def validate_security_and_calibration(self) -> "Settings":
+    def validate_security_and_calibration(self) -> Settings:
         controlled = self.environment in {"production", "controlled", "isolated"}
         if self.auth_mode == "dev":
             if self.environment not in {"local", "test", "development"}:
-                raise ValueError("OIDC authentication is required in controlled environments; dev authentication is forbidden")
+                raise ValueError(
+                    "OIDC authentication is required in controlled environments; "
+                    "dev authentication is forbidden"
+                )
             if self.dev_mode_acknowledgement != "I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE":
                 raise ValueError("dev authentication requires explicit acknowledgement")
             if self.bind_host not in {"127.0.0.1", "::1", "localhost", "testserver"}:
@@ -243,7 +248,10 @@ class Settings(BaseSettings):
         if controlled:
             if not self.database_url.startswith("postgresql"):
                 raise ValueError("controlled environments require PostgreSQL")
-            database_query = parse_qs(urlparse(self.database_url.replace("postgresql+psycopg", "postgresql", 1)).query)
+            normalized_database_url = self.database_url.replace(
+                "postgresql+psycopg", "postgresql", 1
+            )
+            database_query = parse_qs(urlparse(normalized_database_url).query)
             if database_query.get("sslmode", [""])[0] != "verify-full":
                 raise ValueError("controlled PostgreSQL connections require sslmode=verify-full")
             if self.auth_mode != "oidc":
@@ -267,15 +275,21 @@ class Settings(BaseSettings):
                 raise ValueError("controlled browser sessions require a strong session key")
             if not self.browser_cookie_secure:
                 raise ValueError("controlled browser session cookies must be Secure")
-            if not self.oidc_redirect_uri.startswith("https://"):
+            # browser_missing above already rejected an unset redirect URI.
+            if not (self.oidc_redirect_uri or "").startswith("https://"):
                 raise ValueError("controlled OIDC redirect URI must use HTTPS")
             if self.entitlement_profile_path is None or not self.entitlement_profile_path.is_file():
-                raise ValueError("controlled environments require a server-side entitlement profile")
+                raise ValueError(
+                    "controlled environments require a server-side entitlement profile"
+                )
             if not self.entitlement_profile_sha256:
                 raise ValueError("controlled environments require an entitlement profile digest")
             if not self.require_source_signatures:
                 raise ValueError("controlled environments require detached source signatures")
-            if self.source_trust_profile_path is None or not self.source_trust_profile_path.is_file():
+            if (
+                self.source_trust_profile_path is None
+                or not self.source_trust_profile_path.is_file()
+            ):
                 raise ValueError("controlled environments require a source trust profile")
             if not self.source_trust_profile_sha256:
                 raise ValueError("controlled environments require a source trust profile digest")
@@ -283,11 +297,19 @@ class Settings(BaseSettings):
                 raise ValueError("controlled environments require a reviewer credential registry")
             if not self.reviewer_registry_sha256:
                 raise ValueError("controlled environments require a reviewer registry digest")
-            if self.corpus_governance_profile_path is None or not self.corpus_governance_profile_path.is_file():
+            if (
+                self.corpus_governance_profile_path is None
+                or not self.corpus_governance_profile_path.is_file()
+            ):
                 raise ValueError("controlled environments require a corpus governance profile")
             if not self.corpus_governance_profile_sha256:
-                raise ValueError("controlled environments require a corpus governance profile digest")
-            if len(self.resolved_audit_hmac_key) < 32 or self.resolved_audit_hmac_key.startswith("replace-"):
+                raise ValueError(
+                    "controlled environments require a corpus governance profile digest"
+                )
+            if (
+                len(self.resolved_audit_hmac_key) < 32
+                or self.resolved_audit_hmac_key.startswith("replace-")
+            ):
                 raise ValueError("production audit key is missing or weak")
             if self.answer_policy_mode != "calibrated" or self.calibration_profile_path is None:
                 raise ValueError("validated calibration profile is required")
@@ -300,8 +322,13 @@ class Settings(BaseSettings):
             if not self.metrics_enabled:
                 raise ValueError("controlled environments require operational metrics")
             if not self.resolved_metrics_token:
-                raise ValueError("controlled environments require an authenticated metrics endpoint")
-            if any(origin == "*" or not origin.startswith("https://") for origin in self.cors_origin_list):
+                raise ValueError(
+                    "controlled environments require an authenticated metrics endpoint"
+                )
+            if any(
+                origin == "*" or not origin.startswith("https://")
+                for origin in self.cors_origin_list
+            ):
                 raise ValueError("controlled CORS origins must be explicit HTTPS origins")
             if not self.trusted_host_list or "*" in self.trusted_host_list:
                 raise ValueError("controlled environments require explicit trusted hosts")
@@ -320,14 +347,31 @@ class Settings(BaseSettings):
         if self.browser_auth_enabled:
             if self.auth_mode != "oidc":
                 raise ValueError("browser authentication requires OIDC mode")
-            required = [self.oidc_authorization_endpoint, self.oidc_token_endpoint, self.oidc_client_id, self.oidc_redirect_uri]
+            required = [
+                self.oidc_authorization_endpoint,
+                self.oidc_token_endpoint,
+                self.oidc_client_id,
+                self.oidc_redirect_uri,
+            ]
             if any(not value for value in required):
                 raise ValueError("browser OIDC endpoints, client id, and redirect URI are required")
             if not self.resolved_browser_session_key or len(self.resolved_browser_session_key) < 32:
                 raise ValueError("browser session key must contain at least 32 characters")
-            if not self.oidc_authorization_endpoint.startswith("https://") or not self.oidc_token_endpoint.startswith("https://"):
+            # The `required` guard above already rejected unset endpoints and redirect URI.
+            authorization_endpoint = self.oidc_authorization_endpoint or ""
+            token_endpoint = self.oidc_token_endpoint or ""
+            redirect_uri = self.oidc_redirect_uri or ""
+            if not authorization_endpoint.startswith("https://") or not token_endpoint.startswith(
+                "https://"
+            ):
                 raise ValueError("OIDC browser endpoints must use HTTPS")
-            if not self.oidc_redirect_uri.startswith(("https://", "http://127.0.0.1", "http://localhost", "http://testserver")):
+            loopback_prefixes = (
+                "https://",
+                "http://127.0.0.1",
+                "http://localhost",
+                "http://testserver",
+            )
+            if not redirect_uri.startswith(loopback_prefixes):
                 raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
         if self.semantic_retrieval_enabled:
             if not self.database_url.startswith("postgresql"):
@@ -359,7 +403,9 @@ class Settings(BaseSettings):
             EntitlementProfile.load(self.entitlement_profile_path, self.entitlement_profile_sha256)
         if self.source_trust_profile_path is not None:
             from korpus.security.source_authenticity import SourceTrustProfile
-            SourceTrustProfile.load(self.source_trust_profile_path, self.source_trust_profile_sha256)
+            SourceTrustProfile.load(
+                self.source_trust_profile_path, self.source_trust_profile_sha256
+            )
         if self.require_source_signatures and self.source_trust_profile_path is None:
             raise ValueError("source signatures require a source trust profile")
         if self.reviewer_registry_path is not None:
@@ -371,31 +417,51 @@ class Settings(BaseSettings):
                 self.corpus_governance_profile_path, self.corpus_governance_profile_sha256
             )
         if self.answer_policy_mode == "calibrated":
+            profile_path = self.calibration_profile_path
+            dataset_path = self.calibration_dataset_path
+            manifest_path = self.calibration_system_manifest_path
+            protocol_path = self.calibration_evaluation_protocol_path
             required_artifacts = {
-                "profile": self.calibration_profile_path,
-                "dataset": self.calibration_dataset_path,
-                "system manifest": self.calibration_system_manifest_path,
-                "evaluation protocol": self.calibration_evaluation_protocol_path,
+                "profile": profile_path,
+                "dataset": dataset_path,
+                "system manifest": manifest_path,
+                "evaluation protocol": protocol_path,
             }
-            missing = [name for name, path in required_artifacts.items() if path is None or not path.is_file()]
-            if missing:
+            missing = [
+                name
+                for name, path in required_artifacts.items()
+                if path is None or not path.is_file()
+            ]
+            # Every `is None` disjunct is implied by a non-empty `missing`; they only
+            # narrow the type.
+            if (
+                missing
+                or profile_path is None
+                or dataset_path is None
+                or manifest_path is None
+                or protocol_path is None
+            ):
                 raise ValueError(f"calibration artifacts are missing: {', '.join(missing)}")
             if not self.calibration_profile_sha256:
                 raise ValueError("calibration profile digest is required")
             profile = CalibrationProfile.load(
-                self.calibration_profile_path, expected_sha256=self.calibration_profile_sha256
+                profile_path, expected_sha256=self.calibration_profile_sha256
             )
             profile.validate_artifact_bindings(
-                dataset=self.calibration_dataset_path,
-                system_manifest=self.calibration_system_manifest_path,
-                evaluation_protocol=self.calibration_evaluation_protocol_path,
+                dataset=dataset_path,
+                system_manifest=manifest_path,
+                evaluation_protocol=protocol_path,
             )
             if not profile.deployment_valid:
                 raise ValueError("calibration profile does not satisfy finite-sample risk gate")
             if profile.weight_semantic > 0 and not self.semantic_retrieval_enabled:
-                raise ValueError("calibration profile requires semantic retrieval but it is disabled")
+                raise ValueError(
+                    "calibration profile requires semantic retrieval but it is disabled"
+                )
             if self.semantic_retrieval_enabled and profile.weight_semantic <= 0:
-                raise ValueError("semantic retrieval is enabled but calibration assigns zero semantic weight")
+                raise ValueError(
+                    "semantic retrieval is enabled but calibration assigns zero semantic weight"
+                )
         return self
 
     @property

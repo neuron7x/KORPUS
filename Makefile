@@ -15,9 +15,15 @@ api-run:
 api-test:
 	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-fail-under=82
 
+# `mypy apps/api/src` from the repository root did not type-check this project.
+# The [tool.mypy] section lives in apps/api/pyproject.toml, and mypy only reads a
+# pyproject.toml it finds in the *current* directory — so the strict flags were never
+# applied. Passing a source path also overrode packages = ["korpus"], which left mypy
+# unable to resolve korpus.* at all: the run reported 136 import-not-found errors
+# instead of the 42 real strict violations underneath them (probed 2026-08-03).
 api-lint:
-	$(PY) -m ruff check apps/api/src apps/api/tests scripts
-	$(PY) -m mypy apps/api/src
+	$(PY) -m ruff check apps/api/src apps/api/tests apps/api/migrations scripts
+	MYPYPATH=apps/api/src $(PY) -m mypy --config-file apps/api/pyproject.toml
 
 web-install:
 	npm --prefix apps/web ci

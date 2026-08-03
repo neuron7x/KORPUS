@@ -6,11 +6,11 @@ from pathlib import Path
 import jwt
 import pytest
 from fastapi.testclient import TestClient
-
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import issue_token
+
 from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 
@@ -45,7 +45,11 @@ def test_signed_token_contains_server_verified_identity():
 
 def test_controlled_environment_requires_oidc():
     with pytest.raises(ValueError, match="OIDC authentication"):
-        Settings(environment="production", database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full", auth_mode="dev")
+        Settings(
+            environment="production",
+            database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full",
+            auth_mode="dev",
+        )
 
 
 def test_local_jwt_rejects_weak_secret():
@@ -92,14 +96,26 @@ def test_jwt_auth_rejects_expired_wrong_audience_and_overlong_lifetime(tmp_path:
         "nbf": now,
         "jti": "jti-1",
     }
-    expired = jwt.encode({**base, "exp": now - timedelta(seconds=1)}, settings.jwt_secret, algorithm="HS256")
-    wrong_aud = jwt.encode({**base, "aud": "wrong", "exp": now + timedelta(minutes=5)}, settings.jwt_secret, algorithm="HS256")
-    overlong = jwt.encode({**base, "exp": now + timedelta(minutes=61)}, settings.jwt_secret, algorithm="HS256")
-    valid = jwt.encode({**base, "exp": now + timedelta(minutes=5)}, settings.jwt_secret, algorithm="HS256")
+    expired = jwt.encode(
+        {**base, "exp": now - timedelta(seconds=1)}, settings.jwt_secret, algorithm="HS256"
+    )
+    wrong_aud = jwt.encode(
+        {**base, "aud": "wrong", "exp": now + timedelta(minutes=5)},
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+    overlong = jwt.encode(
+        {**base, "exp": now + timedelta(minutes=61)}, settings.jwt_secret, algorithm="HS256"
+    )
+    valid = jwt.encode(
+        {**base, "exp": now + timedelta(minutes=5)}, settings.jwt_secret, algorithm="HS256"
+    )
     with TestClient(app) as api:
         for token in (expired, wrong_aud, overlong):
-            assert api.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"}).status_code == 401
-        assert api.get("/v1/auth/me", headers={"Authorization": f"Bearer {valid}"}).status_code == 200
+            rejected = api.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+            assert rejected.status_code == 401
+        accepted = api.get("/v1/auth/me", headers={"Authorization": f"Bearer {valid}"})
+        assert accepted.status_code == 200
 
 
 def test_controlled_environment_requires_migration_managed_schema():

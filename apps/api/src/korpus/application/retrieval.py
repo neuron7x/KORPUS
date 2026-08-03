@@ -34,7 +34,7 @@ def normalize_text(text: str) -> str:
 UKRAINIAN_SUFFIXES = tuple(sorted({
     "ування", "ювання", "овувати", "ювати", "еві", "ові", "ями", "ами", "ого", "ому",
     "ими", "ій", "ою", "ею", "ення", "ання", "яння", "ість", "остей", "ати", "ити",
-    "увати", "ювати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
+    "увати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
     "а", "я", "і", "и", "е", "є", "ом", "ем", "ів", "їв", "ах", "ях", "ам", "ям",
 }, key=len, reverse=True))
 
@@ -49,7 +49,9 @@ def _ukrainian_stem(token: str) -> str:
 
 
 def raw_tokens(text: str) -> list[str]:
-    return [token for token in TOKEN_PATTERN.findall(normalize_text(text)) if token not in STOP_WORDS]
+    return [
+        token for token in TOKEN_PATTERN.findall(normalize_text(text)) if token not in STOP_WORDS
+    ]
 
 
 def tokenize(text: str) -> list[str]:
@@ -140,6 +142,13 @@ class RetrievalWeights:
         }
 
 
+# Both dataclasses are frozen with float-only fields, so one shared instance is
+# indistinguishable from a fresh one per call. Module-level singletons keep the
+# calibrated defaults in a single named place instead of re-running __post_init__
+# validation on every call.
+DEFAULT_BM25_PARAMETERS = BM25Parameters()
+DEFAULT_RETRIEVAL_WEIGHTS = RetrievalWeights()
+
 AUTHORITY_PRIOR: dict[AuthorityClass, float] = {
     AuthorityClass.OFFICIAL_UA: 1.00,
     AuthorityClass.OFFICIAL_ALLIED: 0.92,
@@ -178,7 +187,12 @@ class ScoredCandidate:
             self.phrase_score,
             self.temporal_score,
         )
-        combined = sum(weight * value for weight, value in zip(self.weights.as_tuple(), components))
+        # as_tuple() and components are both the same fixed seven axes, in the same
+        # order, so strict=True can never fire here.
+        combined = sum(
+            weight * value
+            for weight, value in zip(self.weights.as_tuple(), components, strict=True)
+        )
         return min(1.0, max(0.0, combined))
 
 
@@ -186,12 +200,12 @@ def score_candidates(
     query: str,
     texts: list[str],
     official: list[bool] | None = None,
-    parameters: BM25Parameters = BM25Parameters(),
+    parameters: BM25Parameters = DEFAULT_BM25_PARAMETERS,
     *,
     authority_scores: list[float] | None = None,
     semantic_scores: list[float] | None = None,
     temporal_scores: list[float] | None = None,
-    weights: RetrievalWeights = RetrievalWeights(),
+    weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS,
 ) -> list[ScoredCandidate]:
     if official is None:
         official = [False] * len(texts)
@@ -265,12 +279,15 @@ def score_candidates(
     return scored
 
 
-def _temporal_relevance(as_of: date, publication_date: date | None, effective_from: date | None) -> float:
+def _temporal_relevance(
+    as_of: date, publication_date: date | None, effective_from: date | None
+) -> float:
     reference = effective_from or publication_date
     if reference is None or reference > as_of:
         return 0.0
     age_days = max(0, (as_of - reference).days)
-    # Recency is a weak ranking signal, never an authority decision. Half-life: ~4 years; floor 0.25.
+    # Recency is a weak ranking signal, never an authority decision.
+    # Half-life: ~4 years; floor 0.25.
     return max(0.25, 1.0 / (1.0 + age_days / 1461.0))
 
 
@@ -300,7 +317,10 @@ def diversify_evidence(
 
         def utility(item: RetrievedEvidence) -> tuple[float, float, str, int]:
             redundancy = max(
-                (jaccard(grams[str(item.span.id)], grams[str(other.span.id)]) for other in selected),
+                (
+                    jaccard(grams[str(item.span.id)], grams[str(other.span.id)])
+                    for other in selected
+                ),
                 default=0.0,
             )
             mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
@@ -319,10 +339,10 @@ class HybridLexicalRetriever(Retriever):
     def __init__(
         self,
         repository: Repository,
-        parameters: BM25Parameters = BM25Parameters(),
+        parameters: BM25Parameters = DEFAULT_BM25_PARAMETERS,
         candidate_budget: int = 256,
         *,
-        weights: RetrievalWeights = RetrievalWeights(),
+        weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS,
         diversity_lambda: float = 0.82,
         per_version_cap: int = 2,
         timeout_ms: int = 1200,
@@ -390,7 +410,9 @@ class HybridLexicalRetriever(Retriever):
             [span.text for span, _, _ in candidates],
             [version.authority.value.startswith("official_") for _, _, version in candidates],
             self.parameters,
-            authority_scores=[self.authority_priors[version.authority] for _, _, version in candidates],
+            authority_scores=[
+                self.authority_priors[version.authority] for _, _, version in candidates
+            ],
             semantic_scores=[semantic_by_span.get(str(span.id), 0.0) for span, _, _ in candidates],
             temporal_scores=[
                 _temporal_relevance(as_of, version.publication_date, version.effective_from)

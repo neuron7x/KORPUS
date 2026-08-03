@@ -33,7 +33,7 @@ def test_irrelevant_documents_do_not_displace_exact_relevant_document():
     query = "кожен запис журналу дата відповідальна особа"
     target = "Кожен запис журналу має містити дату та відповідальну особу."
     noise = [f"Нерелевантний текст про погоду номер {index}." for index in range(200)]
-    ranking = _ranking(query, noise + [target])
+    ranking = _ranking(query, [*noise, target])
     assert ranking[0] == target
 
 

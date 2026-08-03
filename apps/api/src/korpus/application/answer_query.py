@@ -8,8 +8,8 @@ from korpus.application.evidence import (
     contradiction_reason,
     segment_sentences,
 )
-from korpus.application.ports import Repository, Retriever
 from korpus.application.policy import PolicyEngine
+from korpus.application.ports import Repository, Retriever
 from korpus.application.retrieval import (
     AUTHORITY_PRIOR,
     RetrievalDeadlineExceeded,
@@ -127,7 +127,8 @@ class ExtractiveAnswerService:
             answer = self._abstain(
                 release_id,
                 "retrieval_dependency_unavailable",
-                "Обов’язковий пошуковий контур недоступний; відповідь зупинено без слабшого fallback.",
+                "Обов’язковий пошуковий контур недоступний;"
+                " відповідь зупинено без слабшого fallback.",
             )
             self._audit(identity, query, answer, [], [], risk)
             return answer
@@ -222,7 +223,10 @@ class ExtractiveAnswerService:
             if contradiction is not None:
                 answer = Answer(
                     status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                    text="Затверджені джерела містять взаємно несумісні твердження; автоматичну відповідь зупинено.",
+                    text=(
+                        "Затверджені джерела містять взаємно несумісні твердження;"
+                        " автоматичну відповідь зупинено."
+                    ),
                     claims=claims,
                     citations=citations,
                     retrieval_score=max(item.score for item in eligible),
@@ -245,7 +249,8 @@ class ExtractiveAnswerService:
                     decision_reason="extractive_claims_passed_calibrated_gates",
                     calibration_id=self.answer_policy.calibration_id,
                     limitations=[
-                        "Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями.",
+                        "Відповідь екстрактивна: система не додає фактів"
+                        " поза точними цитованими реченнями.",
                         "Retrieval score є ranking utility, а не ймовірністю істинності.",
                     ],
                     corpus_release=release_id,

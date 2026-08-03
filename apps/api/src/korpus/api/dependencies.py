@@ -10,55 +10,64 @@ from korpus.application.calibration import CalibrationProfile
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
 from korpus.application.policy import PolicyEngine
+from korpus.application.ports import ObjectStore
 from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.config import Settings, get_settings
-from korpus.application.ports import ObjectStore
-from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
+from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
+from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
-from korpus.security.reviewers import ReviewerRegistry
-from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
 
 def get_policy(request: Request) -> PolicyEngine:
-    return request.app.state.policy
+    policy: PolicyEngine = request.app.state.policy
+    return policy
 
 
 def get_repository(request: Request) -> SqlRepository:
-    return request.app.state.repository
+    repository: SqlRepository = request.app.state.repository
+    return repository
 
 
 def get_object_store(request: Request) -> ObjectStore:
-    return request.app.state.object_store
+    object_store: ObjectStore = request.app.state.object_store
+    return object_store
 
 
 def get_quarantine_store(request: Request) -> ObjectStore:
-    return request.app.state.quarantine_store
+    quarantine_store: ObjectStore = request.app.state.quarantine_store
+    return quarantine_store
 
 
 def get_ingestion_job_queue(request: Request) -> SqlIngestionJobQueue:
-    return request.app.state.ingestion_jobs
+    ingestion_jobs: SqlIngestionJobQueue = request.app.state.ingestion_jobs
+    return ingestion_jobs
 
 
 def get_query_cache(request: Request) -> EvidenceQueryCache:
-    return request.app.state.query_cache
+    query_cache: EvidenceQueryCache = request.app.state.query_cache
+    return query_cache
 
 
 def get_admission_controller(request: Request) -> AdmissionController:
-    return request.app.state.admission
+    admission: AdmissionController = request.app.state.admission
+    return admission
 
 
 def get_ingestion_admission_controller(request: Request) -> AdmissionController:
-    return request.app.state.ingestion_admission
+    ingestion_admission: AdmissionController = request.app.state.ingestion_admission
+    return ingestion_admission
 
 
 def get_observability(request: Request) -> Observability:
-    return request.app.state.observability
+    observability: Observability = request.app.state.observability
+    return observability
 
 
 def get_semantic_source(request: Request) -> Any | None:
@@ -98,11 +107,15 @@ def get_ingestion_service(
         ),
         require_source_signature=settings.require_source_signatures,
         reviewer_registry=(
-            ReviewerRegistry.load(settings.reviewer_registry_path, settings.reviewer_registry_sha256)
+            ReviewerRegistry.load(
+                settings.reviewer_registry_path, settings.reviewer_registry_sha256
+            )
             if settings.reviewer_registry_path is not None
             else None
         ),
-        require_reviewer_credentials=settings.environment in {"production", "controlled", "isolated"},
+        require_reviewer_credentials=(
+            settings.environment in {"production", "controlled", "isolated"}
+        ),
         corpus_governance=(
             CorpusGovernanceProfile.load(
                 settings.corpus_governance_profile_path, settings.corpus_governance_profile_sha256
@@ -132,7 +145,11 @@ def get_durable_ingestion_coordinator(
     settings: SettingsDependency,
 ) -> DurableIngestionCoordinator:
     return DurableIngestionCoordinator(
-        queue, quarantine_store, repository, policy, max_attempts=settings.ingestion_job_max_attempts
+        queue,
+        quarantine_store,
+        repository,
+        policy,
+        max_attempts=settings.ingestion_job_max_attempts,
     )
 
 
@@ -141,12 +158,14 @@ def get_answer_service(
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
-    semantic_source: Any | None = Depends(get_semantic_source),
+    semantic_source: Annotated[Any | None, Depends(get_semantic_source)],
 ) -> ExtractiveAnswerService:
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(
-            settings.calibration_profile_path, settings.calibration_profile_sha256
-        )  # type: ignore[arg-type]
+            # calibrated mode is rejected at settings validation unless the path is set
+            settings.calibration_profile_path,  # type: ignore[arg-type]
+            settings.calibration_profile_sha256,
+        )
         answer_policy = AnswerPolicy(
             minimum_score=profile.minimum_score,
             minimum_query_coverage=profile.minimum_query_coverage,
@@ -162,8 +181,10 @@ def get_answer_service(
         )
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(
-            settings.calibration_profile_path, settings.calibration_profile_sha256
-        )  # type: ignore[arg-type]
+            # calibrated mode is rejected at settings validation unless the path is set
+            settings.calibration_profile_path,  # type: ignore[arg-type]
+            settings.calibration_profile_sha256,
+        )
         parameters = profile.bm25_parameters
         weights = profile.retrieval_weights
         candidate_budget = profile.retrieval_candidate_budget

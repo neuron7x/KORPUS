@@ -81,7 +81,10 @@ def main() -> int:
                 text=(
                     "ALPHA-OMEGA deterministic target evidence for bounded candidate retrieval."
                     if index == SPAN_COUNT // 2
-                    else f"Routine synthetic evidence fragment number {index} with common corpus language."
+                    else (
+                        f"Routine synthetic evidence fragment number {index} "
+                        "with common corpus language."
+                    )
                 ),
             )
             for index in range(SPAN_COUNT)
@@ -112,7 +115,11 @@ def main() -> int:
         )
         report = {
             "schema_version": 1,
-            "status": "PASS" if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET else "FAIL",
+            "status": (
+                "PASS"
+                if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET
+                else "FAIL"
+            ),
             "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
             "procedure": {
                 "database": "SQLite FTS5",

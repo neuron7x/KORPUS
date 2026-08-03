@@ -1,5 +1,4 @@
 import pytest
-
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.domain.models import AccessTier, Identity
 

@@ -23,7 +23,7 @@ class SourceTrustKey(BaseModel):
     revoked: bool = False
 
     @model_validator(mode="after")
-    def validate_dates(self) -> "SourceTrustKey":
+    def validate_dates(self) -> SourceTrustKey:
         if self.valid_from and self.valid_until and self.valid_until < self.valid_from:
             raise ValueError("source trust key validity interval is invalid")
         raw = base64.b64decode(self.public_key_b64, validate=True)
@@ -38,7 +38,7 @@ class SourceTrustProfile(BaseModel):
     keys: dict[str, SourceTrustKey]
 
     @model_validator(mode="after")
-    def validate_keys(self) -> "SourceTrustProfile":
+    def validate_keys(self) -> SourceTrustProfile:
         if not self.keys:
             raise ValueError("source trust profile requires at least one key")
         for identifier, key in self.keys.items():
@@ -47,7 +47,7 @@ class SourceTrustProfile(BaseModel):
         return self
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "SourceTrustProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> SourceTrustProfile:
         raw = path.read_bytes()
         if expected_sha256 and hashlib.sha256(raw).hexdigest() != expected_sha256:
             raise ValueError("source trust profile digest mismatch")
@@ -57,15 +57,23 @@ class SourceTrustProfile(BaseModel):
     def signed_payload(*, issuer: str, version: VersionCreate, source_hash: str) -> bytes:
         payload = {
             "authority": version.authority.value,
-            "effective_from": version.effective_from.isoformat() if version.effective_from else None,
-            "effective_until": version.effective_until.isoformat() if version.effective_until else None,
+            "effective_from": (
+                version.effective_from.isoformat() if version.effective_from else None
+            ),
+            "effective_until": (
+                version.effective_until.isoformat() if version.effective_until else None
+            ),
             "issuer": issuer,
-            "publication_date": version.publication_date.isoformat() if version.publication_date else None,
+            "publication_date": (
+                version.publication_date.isoformat() if version.publication_date else None
+            ),
             "publication_identifier": version.publication_identifier,
             "revision": version.revision,
             "source_hash": source_hash,
             "source_uri": version.source_uri,
-            "supersedes_version_id": str(version.supersedes_version_id) if version.supersedes_version_id else None,
+            "supersedes_version_id": (
+                str(version.supersedes_version_id) if version.supersedes_version_id else None
+            ),
         }
         return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -87,6 +95,9 @@ class SourceTrustProfile(BaseModel):
         try:
             signature = base64.b64decode(version.source_signature_b64, validate=True)
             public_key = Ed25519PublicKey.from_public_bytes(base64.b64decode(key.public_key_b64))
-            public_key.verify(signature, self.signed_payload(issuer=issuer, version=version, source_hash=source_hash))
+            public_key.verify(
+                signature,
+                self.signed_payload(issuer=issuer, version=version, source_hash=source_hash),
+            )
         except (ValueError, InvalidSignature) as exc:
             raise ValueError("source signature verification failed") from exc

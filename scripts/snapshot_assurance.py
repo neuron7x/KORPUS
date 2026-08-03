@@ -60,7 +60,9 @@ def assemble_ci_report() -> dict[str, object]:
         and suite.attrib.get("errors", "0") == "0"
         and eval_report.get("status_accuracy") == 1.0
         and eval_report.get("leakage_failures") == 0
-        and mutation_report.get("mutation_score") == 1.0
+        # Over the whole catalogue: an INVALID mutant leaves mutation_score's
+        # denominator and would otherwise keep the figure at 1.000 (ADR-0008).
+        and mutation_report.get("mutation_score_over_catalogue") == 1.0
         and migration_report.get("table_set_match") is True
         and migration_report.get("sqlite_fts5_present") is True
         and scale_report.get("status") == "PASS"
@@ -89,7 +91,10 @@ def assemble_ci_report() -> dict[str, object]:
         "scale": scale_report,
         "operational": operational_report,
         "limitations": [
-            "The package job runs only after required GitLab gates succeed; their logs remain GitLab artifacts.",
+            (
+                "The package job runs only after required GitLab gates succeed; "
+                "their logs remain GitLab artifacts."
+            ),
             "Synthetic evaluation does not authorize real restricted corpus deployment.",
         ],
     }
@@ -103,7 +108,9 @@ def main() -> int:
 
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"
-    assurance_path.write_text(json.dumps(assurance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    assurance_path.write_text(
+        json.dumps(assurance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     records: list[dict[str, object]] = [
         {
             "path": assurance_path.relative_to(ROOT).as_posix(),

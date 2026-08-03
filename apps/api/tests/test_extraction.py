@@ -4,7 +4,6 @@ import random
 import string
 
 import pytest
-
 from korpus.infrastructure.extraction import ExtractedPage, extract_pages, make_spans
 
 
@@ -28,7 +27,7 @@ def test_empty_malformed_and_type_confused_documents_fail_closed():
         extract_pages(b"", "a.txt", "text/plain", False, "eng")
     with pytest.raises(ValueError, match="signature"):
         extract_pages(b"not a pdf", "a.pdf", "application/pdf", False, "eng")
-    with pytest.raises(ValueError, match="requires .pdf"):
+    with pytest.raises(ValueError, match=r"requires .pdf"):
         extract_pages(b"plain", "a.txt", "application/pdf", False, "eng")
     with pytest.raises(ValueError, match="valid UTF-8"):
         extract_pages(b"\xff\xfe", "a.txt", "text/plain", False, "eng")
@@ -55,7 +54,11 @@ def test_chunking_invariants_hold_over_seeded_random_corpus():
     alphabet = string.ascii_letters + " абвгдеєжзиіїйклмнопрстуфхцчшщьюя"
     for _ in range(200):
         paragraphs = [
-            "".join(random_source.choice(alphabet) for _ in range(random_source.randint(1, 900))).strip() or "x"
+            "".join(
+                random_source.choice(alphabet)
+                for _ in range(random_source.randint(1, 900))
+            ).strip()
+            or "x"
             for _ in range(random_source.randint(1, 8))
         ]
         page = ExtractedPage(page=1, text="\n\n".join(paragraphs))

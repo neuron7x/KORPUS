@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Callable, Generator, TypeVar
+from typing import TypeVar
 
 
 class OverloadedError(RuntimeError):

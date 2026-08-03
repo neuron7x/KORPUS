@@ -17,7 +17,10 @@ def ingest_text(
     revision: str = "1.0",
     effective_from: date | None = None,
     effective_until: date | None = None,
-    text: str = "Підрозділ веде журнал перевірок. Кожен запис має містити дату та відповідальну особу.",
+    text: str = (
+        "Підрозділ веде журнал перевірок. "
+        "Кожен запис має містити дату та відповідальну особу."
+    ),
 ) -> dict[str, object]:
     version: dict[str, object] = {
         "revision": revision,
@@ -39,7 +42,8 @@ def ingest_text(
                     "jurisdiction": "UA",
                     "document_type": "order",
                     "access_tier": access_tier,
-                    "classification": classification or ("public" if access_tier == 0 else "restricted"),
+                    "classification": classification
+                    or ("public" if access_tier == 0 else "restricted"),
                 }
             ),
             "version_json": json.dumps(version),

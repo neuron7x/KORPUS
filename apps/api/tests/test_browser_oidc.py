@@ -6,7 +6,6 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi.testclient import TestClient
-
 from korpus.config import Settings
 from korpus.main import create_app
 from korpus.security.browser_oidc import (
@@ -152,7 +151,10 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
         )
         assert callback.status_code == 303, callback.text
         combined_cookies = callback.headers.get_list("set-cookie")
-        assert any("__Host-korpus_session=" in value and "HttpOnly" in value for value in combined_cookies)
+        assert any(
+            "__Host-korpus_session=" in value and "HttpOnly" in value
+            for value in combined_cookies
+        )
         assert all("access-token" not in value for value in combined_cookies)
 
         identity = client.get("/v1/auth/me")

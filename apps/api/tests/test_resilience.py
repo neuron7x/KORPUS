@@ -1,7 +1,6 @@
 import threading
 
 import pytest
-
 from korpus.application.resilience import (
     AdmissionController,
     CircuitBreaker,
@@ -24,9 +23,8 @@ def test_admission_controller_is_bounded_and_recovers():
     thread = threading.Thread(target=holder)
     thread.start()
     assert entered.wait(1)
-    with pytest.raises(OverloadedError):
-        with controller.acquire():
-            pass
+    with pytest.raises(OverloadedError), controller.acquire():
+        pass
     release.set()
     thread.join()
     with controller.acquire():

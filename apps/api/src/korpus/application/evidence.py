@@ -12,7 +12,9 @@ _HOMOGLYPHS = str.maketrans({
     "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "у": "y", "х": "x", "і": "i", "ј": "j",
     "А": "A", "Е": "E", "О": "O", "Р": "P", "С": "C", "У": "Y", "Х": "X", "І": "I", "Ј": "J",
 })
-_ROLE_MARKER = re.compile(r"(?:^|\n)\s*(system|developer|assistant|tool|користувач|система)\s*[:>]", re.I)
+_ROLE_MARKER = re.compile(
+    r"(?:^|\n)\s*(system|developer|assistant|tool|користувач|система)\s*[:>]", re.I
+)
 _OVERRIDE = re.compile(
     r"\b(ignore|disregard|override|forget|bypass|reveal|exfiltrate|execute|follow)\b|"
     r"\b(ігноруй|забудь|обійди|розкрий|виконай|дотримуйся|перезапиши)\b",
@@ -24,7 +26,11 @@ _CONTROL_TARGET = re.compile(
     re.I,
 )
 _ENCODING_EVASION = re.compile(r"(?:base64|rot13|unicode|hex|\\u[0-9a-f]{4}|&#x?[0-9a-f]+;)", re.I)
-_TOOL_DIRECTIVE = re.compile(r"\b(call|invoke|run|open|download|upload|send|post|delete)\s+(?:the\s+)?(?:tool|function|url|file|request)\b", re.I)
+_TOOL_DIRECTIVE = re.compile(
+    r"\b(call|invoke|run|open|download|upload|send|post|delete)\s+"
+    r"(?:the\s+)?(?:tool|function|url|file|request)\b",
+    re.I,
+)
 
 _ABBREVIATIONS = {
     "р.", "ст.", "п.", "пп.", "рис.", "табл.", "ім.", "напр.", "див.", "т.д.", "т.п.",
@@ -32,7 +38,11 @@ _ABBREVIATIONS = {
 }
 _SENTENCE_END = {".", "!", "?", "…"}
 _NEGATIONS = {"не", "ні", "немає", "заборонено", "not", "no", "never", "prohibited", "forbidden"}
-_NUMBER_UNIT = re.compile(r"(?P<number>[+-]?\d+(?:[.,]\d+)?)\s*(?P<unit>%|мм|см|км|мс|м|с|хв|год|днів?|грн|usd|uah|kg|кг|кпа|kpa|па|pa|°c)?", re.I)
+_NUMBER_UNIT = re.compile(
+    r"(?P<number>[+-]?\d+(?:[.,]\d+)?)\s*"
+    r"(?P<unit>%|мм|см|км|мс|м|с|хв|год|днів?|грн|usd|uah|kg|кг|кпа|kpa|па|pa|°c)?",
+    re.I,
+)
 
 
 @dataclass(frozen=True)
@@ -43,7 +53,8 @@ class InjectionAssessment:
 
 
 def canonical_control_text(text: str) -> str:
-    return unicodedata.normalize("NFKC", text).translate(_ZERO_WIDTH).translate(_HOMOGLYPHS).casefold()
+    normalized = unicodedata.normalize("NFKC", text)
+    return normalized.translate(_ZERO_WIDTH).translate(_HOMOGLYPHS).casefold()
 
 
 def assess_control_injection(text: str) -> InjectionAssessment:
@@ -86,11 +97,20 @@ def segment_sentences(text: str) -> list[tuple[str, int, int]]:
         if char in _SENTENCE_END:
             prefix = text[max(start, index - 12): index + 1].strip().casefold()
             token = prefix.split()[-1] if prefix.split() else ""
-            decimal = char == "." and index > 0 and index + 1 < length and text[index - 1].isdigit() and text[index + 1].isdigit()
+            decimal = (
+                char == "."
+                and index > 0
+                and index + 1 < length
+                and text[index - 1].isdigit()
+                and text[index + 1].isdigit()
+            )
             boundary = not decimal and token not in _ABBREVIATIONS
         elif char == "\n":
             next_chunk = text[index + 1:index + 12]
-            boundary = bool(re.match(r"\s*(?:[-•*]|\d+[.)]|[А-ЯA-Z][.)])\s+", next_chunk)) or text[index:index + 2] == "\n\n"
+            boundary = (
+                bool(re.match(r"\s*(?:[-•*]|\d+[.)]|[А-ЯA-Z][.)])\s+", next_chunk))
+                or text[index:index + 2] == "\n\n"
+            )
         if boundary:
             end = index + 1
             raw = text[start:end]

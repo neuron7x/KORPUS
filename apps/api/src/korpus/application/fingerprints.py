@@ -12,7 +12,9 @@ def simhash64(text: str) -> str:
         return "0" * 16
     vector = [0] * 64
     for token, weight in Counter(tokens).items():
-        digest = int.from_bytes(hashlib.blake2b(token.encode("utf-8"), digest_size=8).digest(), "big")
+        digest = int.from_bytes(
+            hashlib.blake2b(token.encode("utf-8"), digest_size=8).digest(), "big"
+        )
         for bit in range(64):
             vector[bit] += weight if digest & (1 << bit) else -weight
     value = sum((1 << bit) for bit, score in enumerate(vector) if score >= 0)

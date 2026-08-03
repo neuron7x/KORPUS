@@ -20,7 +20,7 @@ class AccessTier(IntEnum):
     RESTRICTED = 3
 
     @classmethod
-    def parse(cls, value: str | int | "AccessTier") -> "AccessTier":
+    def parse(cls, value: str | int | AccessTier) -> AccessTier:
         if isinstance(value, cls):
             return value
         if isinstance(value, int):
@@ -109,7 +109,7 @@ class Identity(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def validate_identity_scope(self) -> "Identity":
+    def validate_identity_scope(self) -> Identity:
         if not self.corpora:
             raise ValueError("identity must have at least one corpus")
         return self
@@ -137,7 +137,7 @@ class DocumentCreate(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def validate_classification_tier(self) -> "DocumentCreate":
+    def validate_classification_tier(self) -> DocumentCreate:
         if self.access_tier < self.classification.minimum_tier:
             raise ValueError("access_tier is below classification minimum")
         return self
@@ -156,7 +156,7 @@ class VersionCreate(BaseModel):
     supersedes_version_id: UUID | None = None
 
     @model_validator(mode="after")
-    def validate_dates(self) -> "VersionCreate":
+    def validate_dates(self) -> VersionCreate:
         if (
             self.effective_until is not None
             and self.effective_from is not None
@@ -226,9 +226,11 @@ class DocumentVersionRecord(BaseModel):
             return False
         if self.effective_until is not None and as_of > self.effective_until:
             return False
-        if self.rescinded_at is not None and as_of >= self.rescinded_at.date():
-            return False
-        return True
+        # De Morgan of the guard `rescinded_at is not None and as_of >= rescinded_at.date()`:
+        # the boundary stays exclusive on the rescission day itself (a document is not
+        # valid on the date it was rescinded), and `rescinded_at.date()` is still only
+        # evaluated when `rescinded_at` is set.
+        return self.rescinded_at is None or as_of < self.rescinded_at.date()
 
 
 class EvidenceSpanRecord(BaseModel):
@@ -244,7 +246,7 @@ class EvidenceSpanRecord(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @model_validator(mode="after")
-    def derive_text_hash(self) -> "EvidenceSpanRecord":
+    def derive_text_hash(self) -> EvidenceSpanRecord:
         expected = hashlib.sha256(self.text.encode("utf-8")).hexdigest()
         if self.text_hash and self.text_hash != expected:
             raise ValueError("text_hash does not match evidence text")
@@ -310,7 +312,7 @@ class Citation(BaseModel):
     source_hash: str
 
     @model_validator(mode="after")
-    def validate_quote_offsets(self) -> "Citation":
+    def validate_quote_offsets(self) -> Citation:
         if self.quote_end <= self.quote_start:
             raise ValueError("quote_end must be greater than quote_start")
         if hashlib.sha256(self.quote.encode("utf-8")).hexdigest() != self.quote_hash:
@@ -407,7 +409,7 @@ class IngestionJobRecord(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @model_validator(mode="after")
-    def validate_target(self) -> "IngestionJobRecord":
+    def validate_target(self) -> IngestionJobRecord:
         if self.kind is IngestionJobKind.DOCUMENT:
             if self.document is None or self.document_id is not None:
                 raise ValueError("document ingestion job requires document payload only")

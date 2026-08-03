@@ -115,7 +115,9 @@ class Observability:
             finally:
                 self.retrieval_latency.observe(time.monotonic() - started)
 
-    def observe_http(self, method: str, route: str, status_code: int, duration_seconds: float) -> None:
+    def observe_http(
+        self, method: str, route: str, status_code: int, duration_seconds: float
+    ) -> None:
         status_class = f"{status_code // 100}xx"
         self.http_requests.labels(method=method, route=route, status_class=status_class).inc()
         self.http_latency.labels(method=method, route=route).observe(duration_seconds)

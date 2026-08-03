@@ -9,14 +9,15 @@ from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
-
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.object_store import LocalObjectStore
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
 
 
 class FakeResponse:
-    def __init__(self, payload: object, *, status_code: int = 200, content: bytes | None = None) -> None:
+    def __init__(
+        self, payload: object, *, status_code: int = 200, content: bytes | None = None
+    ) -> None:
         self._payload = payload
         self.status_code = status_code
         self.content = content if content is not None else json.dumps(payload).encode()
@@ -116,7 +117,10 @@ def test_embedding_provider_normalization_validation_health_and_close() -> None:
     ]
     for payload, message in cases:
         failing = HttpEmbeddingProvider(
-            "https://embed.example/v1", "model-v1", 8, client=FakeEmbeddingClient(FakeResponse(payload))
+            "https://embed.example/v1",
+            "model-v1",
+            8,
+            client=FakeEmbeddingClient(FakeResponse(payload)),
         )
         with pytest.raises(RuntimeError, match=message):
             failing.embed("query")
@@ -134,7 +138,9 @@ def test_embedding_provider_normalization_validation_health_and_close() -> None:
     )
     assert unhealthy.healthcheck() is False
     with pytest.raises(ValueError, match="resilience"):
-        HttpEmbeddingProvider("https://embed.example/v1", "model-v1", 8, max_attempts=0, client=client)
+        HttpEmbeddingProvider(
+            "https://embed.example/v1", "model-v1", 8, max_attempts=0, client=client
+        )
 
 
 class FakeResult:
@@ -197,7 +203,11 @@ class Governance:
 def test_pgvector_search_upsert_governance_and_lifecycle(monkeypatch: pytest.MonkeyPatch) -> None:
     from korpus.infrastructure.repository import SqlRepository
 
-    monkeypatch.setattr(SqlRepository, "_apply_postgres_identity", staticmethod(lambda connection, identity: None))
+    monkeypatch.setattr(
+        SqlRepository,
+        "_apply_postgres_identity",
+        staticmethod(lambda connection, identity: None),
+    )
     span_id = uuid4()
     provider = SimpleNamespace(
         model_id="m1",
@@ -215,8 +225,13 @@ def test_pgvector_search_upsert_governance_and_lifecycle(monkeypatch: pytest.Mon
         clearance=AccessTier.PUBLIC,
         corpora=frozenset({"public"}),
     )
-    assert index.search(identity, "query", frozenset({"denied"}), __import__("datetime").date.today(), 5) == []
-    result = index.search(identity, "query", frozenset({"public"}), __import__("datetime").date.today(), 5)
+    denied = index.search(
+        identity, "query", frozenset({"denied"}), __import__("datetime").date.today(), 5
+    )
+    assert denied == []
+    result = index.search(
+        identity, "query", frozenset({"public"}), __import__("datetime").date.today(), 5
+    )
     assert result == [(span_id, 0.75)]
     index.upsert(identity, span_id, "text", hashlib.sha256(b"text").hexdigest())
     assert governance.calls == [frozenset({"public"}), frozenset({"public"})]
@@ -244,7 +259,11 @@ def test_parser_worker_success_and_failure(monkeypatch: pytest.MonkeyPatch, tmp_
         "max_pdf_pages": 10,
         "ocr_total_timeout_seconds": 5,
     }
-    monkeypatch.setattr(parser_worker, "extract_pages_from_path", lambda *args, **kwargs: ([ExtractedPage(1, "ok")], "plain_text"))
+    monkeypatch.setattr(
+        parser_worker,
+        "extract_pages_from_path",
+        lambda *args, **kwargs: ([ExtractedPage(1, "ok")], "plain_text"),
+    )
     monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(request)))
     output = io.StringIO()
     monkeypatch.setattr(sys, "stdout", output)
@@ -311,7 +330,13 @@ def _cli_settings() -> SimpleNamespace:
     )
 
 
-def _run_cli(monkeypatch: pytest.MonkeyPatch, command: list[str], *, content: set[str] | None = None, quarantine: set[str] | None = None):
+def _run_cli(
+    monkeypatch: pytest.MonkeyPatch,
+    command: list[str],
+    *,
+    content: set[str] | None = None,
+    quarantine: set[str] | None = None,
+):
     from korpus import cli
 
     repository = DummyRepository()
@@ -325,7 +350,9 @@ def _run_cli(monkeypatch: pytest.MonkeyPatch, command: list[str], *, content: se
     return cli, repository, content_store, quarantine_store
 
 
-def test_cli_read_commands_close_all_resources(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_read_commands_close_all_resources(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     cli, repository, content, quarantine = _run_cli(monkeypatch, ["init-db"])
     cli.main()
     assert "database initialized" in capsys.readouterr().out
@@ -348,7 +375,9 @@ def test_cli_read_commands_close_all_resources(monkeypatch: pytest.MonkeyPatch, 
     assert repository.closed and content.closed and quarantine.closed
 
 
-def test_cli_reconciliation_and_worker_boundaries(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+def test_cli_reconciliation_and_worker_boundaries(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     cli, repository, content, quarantine = _run_cli(
         monkeypatch,
         ["reconcile-objects"],
@@ -361,7 +390,9 @@ def test_cli_reconciliation_and_worker_boundaries(monkeypatch: pytest.MonkeyPatc
     assert report["quarantine_orphaned"] == ["orphan-q"]
     assert repository.closed and content.closed and quarantine.closed
 
-    cli, repository, content, quarantine = _run_cli(monkeypatch, ["reconcile-objects"], content={"present"}, quarantine=set())
+    cli, repository, content, quarantine = _run_cli(
+        monkeypatch, ["reconcile-objects"], content={"present"}, quarantine=set()
+    )
     with pytest.raises(SystemExit) as exc:
         cli.main()
     assert exc.value.code == 2
@@ -379,7 +410,9 @@ def test_cli_reconciliation_and_worker_boundaries(monkeypatch: pytest.MonkeyPatc
         def run_once(self) -> SimpleNamespace:
             return SimpleNamespace(job=None, claimed=False)
 
-    cli, repository, content, quarantine = _run_cli(monkeypatch, ["worker-once", "--worker-id", "w1"])
+    cli, repository, content, quarantine = _run_cli(
+        monkeypatch, ["worker-once", "--worker-id", "w1"]
+    )
     monkeypatch.setattr(cli, "SqlIngestionJobQueue", Queue)
     monkeypatch.setattr(cli, "IngestionWorker", Worker)
     monkeypatch.setattr(cli, "_ingestion_service", lambda *args: object())
@@ -387,7 +420,9 @@ def test_cli_reconciliation_and_worker_boundaries(monkeypatch: pytest.MonkeyPatc
     assert capsys.readouterr().out.strip() == "no queued job"
     assert repository.closed and content.closed and quarantine.closed
 
-    cli, repository, content, quarantine = _run_cli(monkeypatch, ["worker-loop", "--idle-seconds", "0"])
+    cli, repository, content, quarantine = _run_cli(
+        monkeypatch, ["worker-loop", "--idle-seconds", "0"]
+    )
     monkeypatch.setattr(cli, "SqlIngestionJobQueue", Queue)
     monkeypatch.setattr(cli, "IngestionWorker", Worker)
     monkeypatch.setattr(cli, "_ingestion_service", lambda *args: object())
@@ -426,7 +461,11 @@ class PaginatedS3:
         del kwargs
         self.calls += 1
         if self.calls == 1:
-            return {"Contents": [{"Key": "objects/aa/bb/" + "a" * 64}], "IsTruncated": True, "NextContinuationToken": "n"}
+            return {
+                "Contents": [{"Key": "objects/aa/bb/" + "a" * 64}],
+                "IsTruncated": True,
+                "NextContinuationToken": "n",
+            }
         return {"Contents": [{"Key": "objects/cc/dd/" + "c" * 64}], "IsTruncated": False}
 
     def close(self) -> None:
@@ -435,14 +474,19 @@ class PaginatedS3:
 
 def test_s3_path_download_inventory_and_cleanup(tmp_path: Path) -> None:
     client = PaginatedS3()
-    store = __import__("korpus.infrastructure.object_store", fromlist=["S3ObjectStore"]).S3ObjectStore(
-        bucket="bucket", prefix="objects", client=client
+    object_store = __import__(
+        "korpus.infrastructure.object_store", fromlist=["S3ObjectStore"]
     )
+    store = object_store.S3ObjectStore(bucket="bucket", prefix="objects", client=client)
     content = b"downloaded"
     digest = hashlib.sha256(content).hexdigest()
     key = f"objects/{digest[:2]}/{digest[2:4]}/{digest}"
     body = ClosingBody(content)
-    client.get_object = lambda **kwargs: {"Body": body, "Metadata": {"sha256": digest}, "ContentLength": len(content)}
+    client.get_object = lambda **kwargs: {
+        "Body": body,
+        "Metadata": {"sha256": digest},
+        "ContentLength": len(content),
+    }
     destination = tmp_path / "target" / "file"
     store.get_to_path(key, destination)
     assert destination.read_bytes() == content

@@ -32,7 +32,17 @@ def main() -> None:
     by_kind: dict[str, list[dict[str, Any]]] = {}
     for doc in docs:
         by_kind.setdefault(str(doc.get("kind")), []).append(doc)
-    required = {"Namespace", "Deployment", "Service", "Job", "NetworkPolicy", "PodDisruptionBudget", "HorizontalPodAutoscaler", "ServiceAccount", "ConfigMap"}
+    required = {
+        "Namespace",
+        "Deployment",
+        "Service",
+        "Job",
+        "NetworkPolicy",
+        "PodDisruptionBudget",
+        "HorizontalPodAutoscaler",
+        "ServiceAccount",
+        "ConfigMap",
+    }
     missing = required - set(by_kind)
     if missing:
         fail(f"missing Kubernetes resource kinds: {sorted(missing)}")
@@ -51,7 +61,10 @@ def main() -> None:
         if pod_spec.get("automountServiceAccountToken") is not False:
             fail(f"{metadata.get('name')}: service-account token must be disabled")
         pod_security = pod_spec.get("securityContext", {})
-        if pod_security.get("runAsNonRoot") is not True or pod_security.get("seccompProfile", {}).get("type") != "RuntimeDefault":
+        if (
+            pod_security.get("runAsNonRoot") is not True
+            or pod_security.get("seccompProfile", {}).get("type") != "RuntimeDefault"
+        ):
             fail(f"{metadata.get('name')}: restricted pod security missing")
         containers = pod_spec.get("containers", [])
         if not containers:
@@ -74,7 +87,11 @@ def main() -> None:
         fail("API, worker and web deployments are required")
 
     policies = by_kind["NetworkPolicy"]
-    if not any(policy.get("metadata", {}).get("name") == "default-deny" and policy.get("spec", {}).get("podSelector") == {} for policy in policies):
+    if not any(
+        policy.get("metadata", {}).get("name") == "default-deny"
+        and policy.get("spec", {}).get("podSelector") == {}
+        for policy in policies
+    ):
         fail("default-deny NetworkPolicy missing")
     config = by_kind["ConfigMap"][0].get("data", {})
     expected = {

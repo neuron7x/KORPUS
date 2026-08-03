@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import itertools
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights, score_candidates
 
@@ -57,7 +57,9 @@ class TuningResult:
 
 
 def _dcg(grades: list[int]) -> float:
-    return sum((2**grade - 1) / math.log2(index + 2) for index, grade in enumerate(grades))
+    # int.__pow__ is typed as returning Any in typeshed; narrow the gain at the source.
+    gains: list[int] = [2**grade - 1 for grade in grades]
+    return sum(gain / math.log2(index + 2) for index, gain in enumerate(gains))
 
 
 def _rank(query: JudgedQuery, weights: RetrievalWeights, bm25: BM25Parameters) -> list[int]:
@@ -92,7 +94,9 @@ def evaluate_ranking(
         ideal = sorted((candidate.relevance for candidate in query.candidates), reverse=True)
         ideal_dcg = _dcg(ideal[:10])
         ndcg_values.append(_dcg(grades[:10]) / ideal_dcg if ideal_dcg else 0.0)
-        first_relevant = next((rank for rank, grade in enumerate(grades[:10], start=1) if grade > 0), None)
+        first_relevant = next(
+            (rank for rank, grade in enumerate(grades[:10], start=1) if grade > 0), None
+        )
         reciprocal_ranks.append(0.0 if first_relevant is None else 1 / first_relevant)
         total_relevant = sum(candidate.relevance > 0 for candidate in query.candidates)
         retrieved_relevant = sum(grade > 0 for grade in grades[:20])
@@ -150,9 +154,15 @@ def tune_ranking(
         for weights in _simplex_weight_candidates(weight_step):
             metrics = evaluate_ranking(queries, weights, bm25)
             # Recall is a hard capability term; MRR and nDCG differentiate top ranks.
-            utility = 0.50 * metrics.ndcg_at_10 + 0.30 * metrics.recall_at_20 + 0.20 * metrics.mrr_at_10
+            utility = (
+                0.50 * metrics.ndcg_at_10 + 0.30 * metrics.recall_at_20 + 0.20 * metrics.mrr_at_10
+            )
             candidate = TuningResult(weights=weights, bm25=bm25, metrics=metrics, utility=utility)
-            if best is None or (candidate.utility, candidate.metrics.recall_at_20, candidate.weights.as_tuple()) > (
+            if best is None or (
+                candidate.utility,
+                candidate.metrics.recall_at_20,
+                candidate.weights.as_tuple(),
+            ) > (
                 best.utility,
                 best.metrics.recall_at_20,
                 best.weights.as_tuple(),

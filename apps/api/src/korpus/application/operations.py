@@ -3,9 +3,10 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 
 def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> float:
@@ -21,12 +22,14 @@ def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> 
         raise ValueError("drift distributions must have positive mass")
     p = [value / left_total for value in left]
     q = [value / right_total for value in right]
-    midpoint = [(a + b) / 2 for a, b in zip(p, q)]
+    # len(left) == len(right) is enforced above, so p, q and midpoint all have the
+    # same length and strict=True can never fire on either zip.
+    midpoint = [(a + b) / 2 for a, b in zip(p, q, strict=True)]
 
     def kl(source: Sequence[float], target: Sequence[float]) -> float:
         return sum(
             value * math.log2(value / comparison)
-            for value, comparison in zip(source, target)
+            for value, comparison in zip(source, target, strict=True)
             if value > 0
         )
 
@@ -75,7 +78,7 @@ class OperationalReleaseGate:
         self.policy = policy
 
     @classmethod
-    def load(cls, path: Path) -> "OperationalReleaseGate":
+    def load(cls, path: Path) -> OperationalReleaseGate:
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
             raise ValueError("operational policy must be an object")

@@ -22,10 +22,13 @@ def _git(*args: str) -> bytes:
 
 def _git_paths(ref: str) -> list[Path] | None:
     try:
-        names = [item.decode() for item in _git("ls-tree", "-r", "-z", "--name-only", ref).split(b"\0") if item]
+        listing = _git("ls-tree", "-r", "-z", "--name-only", ref).split(b"\0")
+        names = [item.decode() for item in listing if item]
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
-    return sorted((Path(name) for name in names if _included(name)), key=lambda value: value.as_posix())
+    return sorted(
+        (Path(name) for name in names if _included(name)), key=lambda value: value.as_posix()
+    )
 
 
 def _archive_paths() -> list[Path]:
@@ -62,7 +65,11 @@ def source_tree_digest(ref: str = "HEAD") -> str:
     hasher = hashlib.sha256()
     for relative_path in paths:
         relative = relative_path.as_posix().encode("utf-8")
-        content = _git("show", f"{ref}:{relative_path.as_posix()}") if git_paths is not None else (ROOT / relative_path).read_bytes()
+        content = (
+            _git("show", f"{ref}:{relative_path.as_posix()}")
+            if git_paths is not None
+            else (ROOT / relative_path).read_bytes()
+        )
         hasher.update(len(relative).to_bytes(4, "big"))
         hasher.update(relative)
         hasher.update(len(content).to_bytes(8, "big"))

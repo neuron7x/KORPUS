@@ -12,7 +12,9 @@ class AuthorizationError(PermissionError):
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     "user": frozenset({"answer:read", "document:list"}),
     "instructor": frozenset({"answer:read", "document:list", "training:manage"}),
-    "curator": frozenset({"answer:read", "document:list", "document:ingest", "document:review_metadata"}),
+    "curator": frozenset(
+        {"answer:read", "document:list", "document:ingest", "document:review_metadata"}
+    ),
     "reviewer": frozenset({"answer:read", "document:list", "document:review", "document:approve"}),
     "auditor": frozenset({"audit:read", "audit:verify", "document:list"}),
     "admin": frozenset({"*"}),

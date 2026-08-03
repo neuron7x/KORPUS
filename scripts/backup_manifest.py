@@ -21,7 +21,8 @@ KEY_ID = re.compile(r"[A-Za-z0-9._:-]+")
 
 def canonical_bytes(payload: dict[str, Any]) -> bytes:
     unsigned = {key: value for key, value in payload.items() if key != "manifest_hmac_sha256"}
-    return json.dumps(unsigned, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    canonical = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+    return canonical.encode("utf-8")
 
 
 def sign(payload: dict[str, Any], key: bytes) -> str:
@@ -35,7 +36,9 @@ def validate_fields(payload: dict[str, Any], *, expected_file: str, expected_key
         raise ValueError("backup manifest cipher mismatch")
     if payload.get("file") != expected_file:
         raise ValueError("backup manifest filename mismatch")
-    if payload.get("key_id") != expected_key_id or not KEY_ID.fullmatch(str(payload.get("key_id", ""))):
+    if payload.get("key_id") != expected_key_id or not KEY_ID.fullmatch(
+        str(payload.get("key_id", ""))
+    ):
         raise ValueError("backup key id mismatch")
     for name in ("sha256", "plaintext_sha256", "manifest_hmac_sha256"):
         if not HEX64.fullmatch(str(payload.get(name, ""))):
@@ -77,7 +80,9 @@ def verify(args: argparse.Namespace) -> int:
     if not isinstance(payload, dict):
         raise SystemExit("backup manifest is not an object")
     try:
-        validate_fields(payload, expected_file=args.expected_file, expected_key_id=args.expected_key_id)
+        validate_fields(
+            payload, expected_file=args.expected_file, expected_key_id=args.expected_key_id
+        )
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     expected_hmac = sign(payload, key)

@@ -60,18 +60,32 @@ def main() -> int:
         "lockfiles": [
             {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS
         ],
-        "components": sorted(components.values(), key=lambda item: (str(item["type"]), str(item["name"]), str(item["version"]))),
+        "components": sorted(
+            components.values(),
+            key=lambda item: (str(item["type"]), str(item["name"]), str(item["version"])),
+        ),
         "limitations": [
-            "Package licenses are not asserted without authoritative package metadata and legal review.",
+            (
+                "Package licenses are not asserted without authoritative package "
+                "metadata and legal review."
+            ),
             "Python lock files are exact-version pins but may not contain artifact hashes.",
-            "Container operating-system packages are produced by the CI SBOM gate, not this source inventory.",
+            (
+                "Container operating-system packages are produced by the CI SBOM gate, "
+                "not this source inventory."
+            ),
         ],
     }
     target = ROOT / "var/supply-chain-inventory.json"
     target.parent.mkdir(exist_ok=True)
     target.parent.mkdir(exist_ok=True)
     target.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": output["status"], "components": len(output["components"]), "path": str(target.relative_to(ROOT))}, indent=2))
+    summary = {
+        "status": output["status"],
+        "components": len(output["components"]),
+        "path": str(target.relative_to(ROOT)),
+    }
+    print(json.dumps(summary, indent=2))
     return 0
 
 

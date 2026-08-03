@@ -29,7 +29,11 @@ PROTOCOL = Path("evals/EVALUATION_PROTOCOL.md")
 
 
 def _approve(ingestion: IngestionService, actor: Identity, version_id: Any) -> None:
-    for state in (ReviewState.METADATA_REVIEWED, ReviewState.CONTENT_REVIEWED, ReviewState.APPROVED):
+    for state in (
+        ReviewState.METADATA_REVIEWED,
+        ReviewState.CONTENT_REVIEWED,
+        ReviewState.APPROVED,
+    ):
         ingestion.transition(
             actor,
             version_id,
@@ -94,7 +98,8 @@ def _projection(answer: Any) -> dict[str, Any]:
 
 
 def main() -> None:
-    rows = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines() if line.strip()]
+    dataset_lines = DATASET.read_text(encoding="utf-8").splitlines()
+    rows = [json.loads(line) for line in dataset_lines if line.strip()]
     dataset_hash = hashlib.sha256(DATASET.read_bytes()).hexdigest()
     protocol_hash = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
     from build_system_manifest import build as build_system_manifest
@@ -131,7 +136,9 @@ def main() -> None:
             corpora=frozenset({"public", "training"}),
         )
         identities = {"public": public, "authenticated": authenticated, "admin": admin}
-        ingestion = IngestionService(repository, store, policy, ExtractionSettings(False, "ukr+eng"))
+        ingestion = IngestionService(
+            repository, store, policy, ExtractionSettings(False, "ukr+eng")
+        )
         _ingest(
             ingestion,
             admin,
@@ -231,15 +238,27 @@ def main() -> None:
                 reason_ok = row.get("expected_reason") in {None, first.decision_reason}
                 for citation in first.citations:
                     citation_checks += 1
-                    accessible = repository.list_retrievable_spans(identity, identity.corpora, query.as_of)
-                    match = next((span for span, _, _ in accessible if span.id == citation.span_id), None)
+                    accessible = repository.list_retrievable_spans(
+                        identity, identity.corpora, query.as_of
+                    )
+                    match = next(
+                        (span for span, _, _ in accessible if span.id == citation.span_id),
+                        None,
+                    )
                     valid = (
                         match is not None
                         and match.text[citation.quote_start : citation.quote_end] == citation.quote
-                        and hashlib.sha256(citation.quote.encode()).hexdigest() == citation.quote_hash
+                        and hashlib.sha256(citation.quote.encode()).hexdigest()
+                        == citation.quote_hash
                     )
                     citation_failures += int(not valid)
-                ok = actual == row["expected_status"] and quote_ok and reason_ok and not leaked and deterministic
+                ok = (
+                    actual == row["expected_status"]
+                    and quote_ok
+                    and reason_ok
+                    and not leaked
+                    and deterministic
+                )
             except AuthorizationError:
                 actual = "access_denied"
                 ok = actual == row["expected_status"]
@@ -264,7 +283,9 @@ def main() -> None:
                     "deterministic": deterministic,
                     "retrieval_score": first.retrieval_score if "first" in locals() else 0.0,
                     "query_coverage": first.query_coverage if "first" in locals() else 0.0,
-                    "decision_reason": first.decision_reason if "first" in locals() else "access_denied",
+                    "decision_reason": (
+                        first.decision_reason if "first" in locals() else "access_denied"
+                    ),
                     "claims": [claim.text for claim in first.claims] if "first" in locals() else [],
                 }
             )

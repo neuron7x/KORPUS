@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app

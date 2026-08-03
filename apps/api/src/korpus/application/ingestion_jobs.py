@@ -6,14 +6,13 @@ from pathlib import Path
 from uuid import UUID
 
 from korpus.application.ingestion import IngestionService
-from korpus.application.ports import ObjectStore
 from korpus.application.policy import PolicyEngine
+from korpus.application.ports import ObjectStore
 from korpus.domain.models import (
     DocumentCreate,
     Identity,
     IngestionJobKind,
     IngestionJobRecord,
-    IngestionJobState,
     VersionCreate,
 )
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue

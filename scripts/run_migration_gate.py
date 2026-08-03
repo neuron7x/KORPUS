@@ -23,7 +23,8 @@ def main() -> int:
         environment = os.environ.copy()
         environment["KORPUS_DATABASE_URL"] = url
         environment["PYTHONPATH"] = str(API / "src")
-        command = [sys.executable, "-m", "alembic", "-c", str(API / "alembic.ini"), "upgrade", "head"]
+        alembic_config = str(API / "alembic.ini")
+        command = [sys.executable, "-m", "alembic", "-c", alembic_config, "upgrade", "head"]
         completed = subprocess.run(
             command,
             cwd=API,
@@ -37,14 +38,28 @@ def main() -> int:
             print(completed.stdout)
             return 1
 
+        # Tables attach themselves to the shared MetaData at import time, so the set
+        # of "expected" tables is really the set of modules this file happens to have
+        # imported. With only repository imported, ingestion_jobs was missing from
+        # expectations while present in the database, and the gate reported
+        # table_set_match=false — a red gate accusing the schema of a defect that
+        # belonged to the gate. Every module that defines tables must be imported here.
+        import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers tables)
         from korpus.infrastructure.repository import audit_heads, metadata
-        from korpus.infrastructure import ingestion_jobs as _ingestion_jobs_module  # register queue table
 
         engine = create_engine(url)
         inspector = inspect(engine)
         actual_tables = set(inspector.get_table_names())
         expected_tables = set(metadata.tables)
-        ignored = {"alembic_version", "evidence_fts", "evidence_fts_config", "evidence_fts_content", "evidence_fts_data", "evidence_fts_docsize", "evidence_fts_idx"}
+        ignored = {
+            "alembic_version",
+            "evidence_fts",
+            "evidence_fts_config",
+            "evidence_fts_content",
+            "evidence_fts_data",
+            "evidence_fts_docsize",
+            "evidence_fts_idx",
+        }
         table_failures: dict[str, object] = {}
         for table_name in sorted(expected_tables):
             actual_columns = {column["name"] for column in inspector.get_columns(table_name)}

@@ -30,7 +30,10 @@ def test_duplicate_content_is_deduplicated_only_inside_same_corpus(client, admin
         title="Same bytes restricted",
         corpus_id="restricted-demo",
         access_tier=3,
-        text="Підрозділ веде журнал перевірок. Кожен запис має містити дату та відповідальну особу.",
+        text=(
+            "Підрозділ веде журнал перевірок. "
+            "Кожен запис має містити дату та відповідальну особу."
+        ),
     )
     assert restricted["version"]["id"] != first["version"]["id"]
     assert restricted["duplicate"] is False
@@ -47,7 +50,10 @@ def test_unknown_authority_cannot_be_approved(client):
         assert response.status_code == 200
     response = client.post(
         f"/v1/document-versions/{version_id}/review",
-        json={"target": "approved", "note": "independent approval attempted with unknown authority"},
+        json={
+            "target": "approved",
+            "note": "independent approval attempted with unknown authority",
+        },
     )
     assert response.status_code == 409
 

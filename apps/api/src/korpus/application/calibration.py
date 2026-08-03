@@ -65,11 +65,13 @@ class CalibrationProfile(BaseModel):
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
 
     @model_validator(mode="after")
-    def validate_profile(self) -> "CalibrationProfile":
+    def validate_profile(self) -> CalibrationProfile:
         if self.observed_errors > self.accepted_samples:
             raise ValueError("observed_errors cannot exceed accepted_samples")
-        self.retrieval_weights  # force convex-weight validation
-        self.bm25_parameters
+        # Reading these properties raises if the weights are not convex or BM25 is
+        # out of range. The values are discarded: only the validation runs here.
+        _convex_weight_check = self.retrieval_weights
+        _bm25_range_check = self.bm25_parameters
         return self
 
     @property
@@ -134,7 +136,7 @@ class CalibrationProfile(BaseModel):
         return self.ranking_valid and self.selective_answering_valid
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "CalibrationProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> CalibrationProfile:
         raw = path.read_bytes()
         if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
             raise ValueError("calibration profile digest mismatch")
@@ -169,7 +171,12 @@ class DevelopmentCalibration:
     minimum_query_coverage: float
     minimum_support_score: float
 
-    def __init__(self, minimum_score: float, minimum_query_coverage: float, minimum_support_score: float) -> None:
+    def __init__(
+        self,
+        minimum_score: float,
+        minimum_query_coverage: float,
+        minimum_support_score: float,
+    ) -> None:
         self.minimum_score = minimum_score
         self.minimum_query_coverage = minimum_query_coverage
         self.minimum_support_score = minimum_support_score

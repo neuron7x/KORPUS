@@ -39,11 +39,15 @@ variables:
     - python -m pip install --no-deps --requirement apps/api/requirements.dev.lock
     - python -m pip check
 
+# This job installed PyYAML alone, but four of its eight steps import korpus.* —
+# which imports pydantic. On the first real pipeline run it died at step one with
+# ModuleNotFoundError: No module named 'pydantic'. Because every later job sits in a
+# later stage with no `needs`, all thirteen of them were skipped: the pipeline
+# reported failure without executing a single test, lint, eval or scan. It now shares
+# the same locked environment as every other Python job.
 repository:validate:
+  extends: .python-job
   stage: validate
-  image: python:3.12.13-slim-bookworm
-  before_script:
-    - python -m pip install 'PyYAML==6.0.3'
   script:
     - python scripts/openapi_contract.py
     - python scripts/build_audit_closure.py
@@ -84,7 +88,11 @@ api:quality:
   stage: test
   script:
     - ruff check apps/api/src apps/api/tests apps/api/migrations scripts
-    - mypy apps/api/src
+    # `mypy apps/api/src` never applied [tool.mypy] from apps/api/pyproject.toml —
+    # mypy only reads a pyproject.toml in the current directory — and passing a path
+    # overrode packages = ["korpus"], so the run could not resolve the project's own
+    # imports. See docs/adr/0008-executable-gates.md.
+    - MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml
 
 web:test:
   stage: test

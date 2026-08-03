@@ -1,5 +1,6 @@
-from apps.api.tests.conftest import set_identity
 from korpus.domain.models import AccessTier, Identity
+
+from apps.api.tests.conftest import set_identity
 
 
 def test_document_and_audit_routes_are_denied_without_permissions(client):

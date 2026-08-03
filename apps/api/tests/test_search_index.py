@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import date
 
-from apps.api.tests.helpers import approve, ingest_text
 from korpus.application.retrieval import HybridLexicalRetriever
+
+from apps.api.tests.helpers import approve, ingest_text
 
 
 def test_retrieval_uses_database_candidate_index_not_full_scan(client, monkeypatch):

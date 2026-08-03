@@ -1,13 +1,26 @@
 from __future__ import annotations
 
-import json
 import threading
 from contextlib import nullcontext
 from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Column, DateTime, Index, Integer, String, Table, Text, and_, func, insert, or_, select, update
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    Table,
+    Text,
+    and_,
+    func,
+    insert,
+    or_,
+    select,
+    update,
+)
 from sqlalchemy.engine import Engine
 
 from korpus.domain.models import (
@@ -20,7 +33,6 @@ from korpus.domain.models import (
     VersionCreate,
 )
 from korpus.infrastructure.repository import metadata
-
 
 ingestion_jobs = Table(
     "ingestion_jobs",
@@ -113,56 +125,55 @@ class SqlIngestionJobQueue:
             raise ValueError("invalid worker lease")
         current = now or datetime.now(UTC)
         guard = self._sqlite_lock if self.engine.dialect.name == "sqlite" else nullcontext()
-        with guard:
-            with self.engine.begin() as connection:
-                worker = Identity(
-                    subject=worker_id,
-                    roles=frozenset({"worker"}),
-                    corpora=frozenset({"public"}),
+        with guard, self.engine.begin() as connection:
+            worker = Identity(
+                subject=worker_id,
+                roles=frozenset({"worker"}),
+                corpora=frozenset({"public"}),
+            )
+            self._apply_identity(connection, worker)
+            eligible = or_(
+                ingestion_jobs.c.state == IngestionJobState.QUEUED.value,
+                ingestion_jobs.c.state == IngestionJobState.RETRYABLE.value,
+                and_(
+                    ingestion_jobs.c.state == IngestionJobState.RUNNING.value,
+                    ingestion_jobs.c.lease_expires_at.is_not(None),
+                    ingestion_jobs.c.lease_expires_at < current,
+                ),
+            )
+            statement = (
+                select(ingestion_jobs)
+                .where(eligible)
+                .where(ingestion_jobs.c.attempts < ingestion_jobs.c.max_attempts)
+                .order_by(ingestion_jobs.c.created_at, ingestion_jobs.c.id)
+                .limit(1)
+            )
+            if connection.dialect.name == "postgresql":
+                statement = statement.with_for_update(skip_locked=True)
+            row = connection.execute(statement).mappings().first()
+            if row is None:
+                return None
+            result = connection.execute(
+                update(ingestion_jobs)
+                .where(ingestion_jobs.c.id == row["id"])
+                .where(ingestion_jobs.c.state == row["state"])
+                .where(ingestion_jobs.c.attempts == row["attempts"])
+                .values(
+                    state=IngestionJobState.RUNNING.value,
+                    attempts=int(row["attempts"]) + 1,
+                    lease_owner=worker_id,
+                    lease_expires_at=current + timedelta(seconds=lease_seconds),
+                    error_code=None,
+                    error_detail=None,
+                    updated_at=current,
                 )
-                self._apply_identity(connection, worker)
-                eligible = or_(
-                    ingestion_jobs.c.state == IngestionJobState.QUEUED.value,
-                    ingestion_jobs.c.state == IngestionJobState.RETRYABLE.value,
-                    and_(
-                        ingestion_jobs.c.state == IngestionJobState.RUNNING.value,
-                        ingestion_jobs.c.lease_expires_at.is_not(None),
-                        ingestion_jobs.c.lease_expires_at < current,
-                    ),
-                )
-                statement = (
-                    select(ingestion_jobs)
-                    .where(eligible)
-                    .where(ingestion_jobs.c.attempts < ingestion_jobs.c.max_attempts)
-                    .order_by(ingestion_jobs.c.created_at, ingestion_jobs.c.id)
-                    .limit(1)
-                )
-                if connection.dialect.name == "postgresql":
-                    statement = statement.with_for_update(skip_locked=True)
-                row = connection.execute(statement).mappings().first()
-                if row is None:
-                    return None
-                result = connection.execute(
-                    update(ingestion_jobs)
-                    .where(ingestion_jobs.c.id == row["id"])
-                    .where(ingestion_jobs.c.state == row["state"])
-                    .where(ingestion_jobs.c.attempts == row["attempts"])
-                    .values(
-                        state=IngestionJobState.RUNNING.value,
-                        attempts=int(row["attempts"]) + 1,
-                        lease_owner=worker_id,
-                        lease_expires_at=current + timedelta(seconds=lease_seconds),
-                        error_code=None,
-                        error_detail=None,
-                        updated_at=current,
-                    )
-                )
-                if result.rowcount != 1:
-                    raise IngestionJobConflict("ingestion job claim changed concurrently")
-                updated = connection.execute(
-                    select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
-                ).mappings().one()
-                return self._record(updated)
+            )
+            if result.rowcount != 1:
+                raise IngestionJobConflict("ingestion job claim changed concurrently")
+            updated = connection.execute(
+                select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
+            ).mappings().one()
+            return self._record(updated)
 
     def complete(
         self,
@@ -174,7 +185,9 @@ class SqlIngestionJobQueue:
     ) -> IngestionJobRecord:
         current = now or datetime.now(UTC)
         with self.engine.begin() as connection:
-            worker = Identity(subject=worker_id, roles=frozenset({"worker"}), corpora=frozenset({"public"}))
+            worker = Identity(
+                subject=worker_id, roles=frozenset({"worker"}), corpora=frozenset({"public"})
+            )
             self._apply_identity(connection, worker)
             changed = connection.execute(
                 update(ingestion_jobs)
@@ -208,7 +221,9 @@ class SqlIngestionJobQueue:
     ) -> IngestionJobRecord:
         current = now or datetime.now(UTC)
         with self.engine.begin() as connection:
-            worker = Identity(subject=worker_id, roles=frozenset({"worker"}), corpora=frozenset({"public"}))
+            worker = Identity(
+                subject=worker_id, roles=frozenset({"worker"}), corpora=frozenset({"public"})
+            )
             self._apply_identity(connection, worker)
             row = connection.execute(
                 select(ingestion_jobs)
@@ -273,7 +288,11 @@ class SqlIngestionJobQueue:
             id=UUID(row["id"]),
             kind=IngestionJobKind(row["kind"]),
             actor=Identity.model_validate_json(row["actor_json"]),
-            document=DocumentCreate.model_validate_json(row["document_json"]) if row["document_json"] else None,
+            document=(
+                DocumentCreate.model_validate_json(row["document_json"])
+                if row["document_json"]
+                else None
+            ),
             document_id=UUID(row["document_id"]) if row["document_id"] else None,
             version=VersionCreate.model_validate_json(row["version_json"]),
             filename=row["filename"],
@@ -285,7 +304,9 @@ class SqlIngestionJobQueue:
             max_attempts=int(row["max_attempts"]),
             lease_owner=row["lease_owner"],
             lease_expires_at=row["lease_expires_at"],
-            result=IngestResult.model_validate_json(row["result_json"]) if row["result_json"] else None,
+            result=(
+                IngestResult.model_validate_json(row["result_json"]) if row["result_json"] else None
+            ),
             error_code=row["error_code"],
             error_detail=row["error_detail"],
             created_at=row["created_at"],

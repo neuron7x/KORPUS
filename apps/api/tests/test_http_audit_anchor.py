@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-
 from korpus.infrastructure.audit_anchor import AnchorError, HttpAuditAnchorStore
 
 
@@ -66,7 +65,9 @@ def test_remote_anchor_is_monotonic_idempotent_and_authenticated():
     assert anchor.initialized() is True
     assert anchor.read().sequence == 1
     assert anchor.read().head_hash == "1" * 64
-    assert all(header["Idempotency-Key"].startswith("audit-anchor-v1:") for header in server.put_headers)
+    assert all(
+        header["Idempotency-Key"].startswith("audit-anchor-v1:") for header in server.put_headers
+    )
 
 
 def test_remote_anchor_rejects_conflicting_same_sequence():

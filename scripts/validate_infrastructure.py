@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-import sys
 from pathlib import Path
 
 import yaml
@@ -18,7 +17,17 @@ def main() -> int:
     failures: list[str] = []
     compose = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
     services: dict[str, dict] = compose.get("services", {})
-    required = {"postgres", "migrate", "minio", "minio-init", "otel-collector", "clamav", "api", "worker", "web"}
+    required = {
+        "postgres",
+        "migrate",
+        "minio",
+        "minio-init",
+        "otel-collector",
+        "clamav",
+        "api",
+        "worker",
+        "web",
+    }
     missing = sorted(required - services.keys())
     if missing:
         failures.append(f"missing services: {missing}")
@@ -63,7 +72,8 @@ def main() -> int:
 
     worker = services.get("worker", {})
     worker_env = worker.get("environment", {}) or {}
-    if worker.get("command") != ["python", "-m", "korpus.cli", "worker-loop", "--idle-seconds", "1"]:
+    expected_worker_command = ["python", "-m", "korpus.cli", "worker-loop", "--idle-seconds", "1"]
+    if worker.get("command") != expected_worker_command:
         failures.append("worker: durable ingestion command missing")
     if str(worker_env.get("KORPUS_INGESTION_MODE", "")).lower() != "durable_async":
         failures.append("worker: durable ingestion mode missing")
@@ -85,7 +95,8 @@ def main() -> int:
 
 
     # Least-privilege object storage: the API must never mount MinIO root credentials.
-    api_secret_text = json.dumps(api.get("secrets", []), sort_keys=True) + json.dumps(env, sort_keys=True)
+    api_secrets_json = json.dumps(api.get("secrets", []), sort_keys=True)
+    api_secret_text = api_secrets_json + json.dumps(env, sort_keys=True)
     if "minio_root_password" in api_secret_text:
         failures.append("api: MinIO root credentials must not be mounted")
     for name in ("minio_app_access_key", "minio_app_secret_key"):
@@ -95,16 +106,28 @@ def main() -> int:
     try:
         policy_text = policy_path.read_text(encoding="utf-8")
         policy = json.loads(policy_text)
-        actions = {action for statement in policy.get("Statement", []) for action in statement.get("Action", [])}
-        resources = {resource for statement in policy.get("Statement", []) for resource in statement.get("Resource", [])}
+        actions = {
+            action
+            for statement in policy.get("Statement", [])
+            for action in statement.get("Action", [])
+        }
+        resources = {
+            resource
+            for statement in policy.get("Statement", [])
+            for resource in statement.get("Resource", [])
+        }
         if "s3:DeleteObject" in actions or "s3:*" in actions:
             failures.append("MinIO application policy permits destructive/wildcard object access")
         for required_action in ("s3:GetBucketVersioning", "s3:GetObjectLockConfiguration"):
             if required_action not in actions:
-                failures.append(f"MinIO application policy missing durability check: {required_action}")
+                failures.append(
+                    f"MinIO application policy missing durability check: {required_action}"
+                )
         for prefix in ("arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"):
             if prefix not in resources:
-                failures.append(f"MinIO application policy missing required restricted prefix: {prefix}")
+                failures.append(
+                    f"MinIO application policy missing required restricted prefix: {prefix}"
+                )
         if any(resource.endswith("/*") and resource not in {
             "arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"
         } for resource in resources):
@@ -126,7 +149,8 @@ def main() -> int:
     for required_ci in ("moby/buildkit", "gitleaks", "trivy", "syft", "verify_postgres_restore.py"):
         if required_ci not in ci_text:
             failures.append(f"GitLab CI missing required gate: {required_ci}")
-    if 'api:postgres-and-restore:\n  stage: assurance\n  image:\n    name:' not in ci_text or 'entrypoint: [""]' not in ci_text:
+    postgres_job_header = 'api:postgres-and-restore:\n  stage: assurance\n  image:\n    name:'
+    if postgres_job_header not in ci_text or 'entrypoint: [""]' not in ci_text:
         failures.append("PostgreSQL CI job must clear the database image entrypoint")
 
     package_text = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
@@ -135,14 +159,19 @@ def main() -> int:
     if "verify_release_evidence.py" not in package_text:
         failures.append("release packaging must reject stale assurance evidence")
     if 'rm -rf "$tmp/reports"' not in package_text:
-        failures.append("release packaging must replace committed reports instead of nesting stale evidence")
+        failures.append(
+            "release packaging must replace committed reports instead of nesting stale evidence"
+        )
 
     for script_name in ("backup_postgres.sh", "restore_postgres.sh"):
         text_value = (ROOT / "scripts" / script_name).read_text(encoding="utf-8")
         if "KORPUS_BACKUP_ENCRYPTION_KEY_FILE" not in text_value:
             failures.append(f"{script_name}: encrypted backup key is not mandatory")
     manifest_text = (ROOT / "scripts/backup_manifest.py").read_text(encoding="utf-8")
-    if "korpus-postgres-backup-v4" not in manifest_text or "manifest_hmac_sha256" not in manifest_text:
+    if (
+        "korpus-postgres-backup-v4" not in manifest_text
+        or "manifest_hmac_sha256" not in manifest_text
+    ):
         failures.append("backup_manifest.py: authenticated current manifest schema missing")
     backup_text = (ROOT / "scripts/backup_postgres.sh").read_text(encoding="utf-8")
     restore_text = (ROOT / "scripts/restore_postgres.sh").read_text(encoding="utf-8")
@@ -175,7 +204,11 @@ def main() -> int:
             failures.append(f".dockerignore missing {required_pattern}")
 
     api_docker = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
-    if "requirements.runtime.lock" not in api_docker or "pip install --no-cache-dir --no-deps --requirement" not in api_docker or "pip check" not in api_docker:
+    if (
+        "requirements.runtime.lock" not in api_docker
+        or "pip install --no-cache-dir --no-deps --requirement" not in api_docker
+        or "pip check" not in api_docker
+    ):
         failures.append("API Dockerfile does not install exact runtime lock")
     if "USER 10001:10001" not in api_docker:
         failures.append("API Dockerfile does not run as fixed non-root UID")

@@ -10,21 +10,25 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, Response
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from korpus.api.routes import router
 from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.config import Settings, get_settings
-from korpus.infrastructure.observability import Observability
-from korpus.infrastructure.runtime import create_object_store, create_quarantine_store, create_repository
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
+from korpus.infrastructure.observability import Observability
+from korpus.infrastructure.runtime import (
+    create_object_store,
+    create_quarantine_store,
+    create_repository,
+)
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
-from korpus.security.oidc import OIDCVerifier
 from korpus.security.browser_oidc import BrowserOIDCClient, BrowserSessionCodec, BrowserSessionError
 from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.oidc import OIDCVerifier
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
@@ -136,9 +140,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         max_pending_events=selected.audit_max_pending_events,
                         max_pending_age_seconds=selected.audit_max_pending_age_seconds,
                     )
+                    pending_events = snapshot["pending_anchor_events"]
+                    oldest_pending_seconds = snapshot["oldest_pending_seconds"]
+                    # readiness_snapshot is declared dict[str, object]; these two keys
+                    # carry int/float (repository.py:1112-1113). Narrowing belongs in the
+                    # repository return type, which is out of scope for this change.
                     observability.observe_anchor_backlog(
-                        int(snapshot["pending_anchor_events"]),
-                        float(snapshot["oldest_pending_seconds"]),
+                        int(pending_events),  # type: ignore[call-overload]
+                        float(oldest_pending_seconds),  # type: ignore[arg-type]
                     )
                 except Exception as exc:
                     # Readiness exposes the backlog; the metric preserves failure visibility.

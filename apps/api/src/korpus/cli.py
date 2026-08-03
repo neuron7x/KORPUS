@@ -9,18 +9,28 @@ from datetime import date
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
-from korpus.config import get_settings
+from korpus.application.ports import ObjectStore, Repository
+from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
-from korpus.infrastructure.runtime import create_object_store, create_quarantine_store, create_repository
+from korpus.infrastructure.runtime import (
+    create_object_store,
+    create_quarantine_store,
+    create_repository,
+)
 from korpus.security.auth import issue_token
+from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
-from korpus.security.reviewers import ReviewerRegistry
-from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 
-def _ingestion_service(settings, repository, object_store, policy) -> IngestionService:
+def _ingestion_service(
+    settings: Settings,
+    repository: Repository,
+    object_store: ObjectStore,
+    policy: PolicyEngine,
+) -> IngestionService:
     scanner = (
         ClamdInstreamScanner(
             settings.clamd_host,
@@ -59,11 +69,15 @@ def _ingestion_service(settings, repository, object_store, policy) -> IngestionS
         ),
         require_source_signature=settings.require_source_signatures,
         reviewer_registry=(
-            ReviewerRegistry.load(settings.reviewer_registry_path, settings.reviewer_registry_sha256)
+            ReviewerRegistry.load(
+                settings.reviewer_registry_path, settings.reviewer_registry_sha256
+            )
             if settings.reviewer_registry_path is not None
             else None
         ),
-        require_reviewer_credentials=settings.environment in {"production", "controlled", "isolated"},
+        require_reviewer_credentials=(
+            settings.environment in {"production", "controlled", "isolated"}
+        ),
         corpus_governance=(
             CorpusGovernanceProfile.load(
                 settings.corpus_governance_profile_path, settings.corpus_governance_profile_sha256
@@ -83,7 +97,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(prog="korpus")
     parser.add_argument(
         "command",
-        choices=["init-db", "verify-audit", "release-id", "issue-token", "reconcile-objects", "worker-once", "worker-loop"],
+        choices=[
+            "init-db",
+            "verify-audit",
+            "release-id",
+            "issue-token",
+            "reconcile-objects",
+            "worker-once",
+            "worker-loop",
+        ],
     )
     parser.add_argument("--worker-id")
     parser.add_argument("--idle-seconds", type=float, default=1.0)
@@ -119,7 +141,9 @@ def main() -> None:
         if args.command in {"release-id", "issue-token"}:
             identity = Identity(
                 subject=settings.dev_subject,
-                roles=frozenset(role.strip() for role in settings.dev_roles.split(",") if role.strip()),
+                roles=frozenset(
+                    role.strip() for role in settings.dev_roles.split(",") if role.strip()
+                ),
                 clearance=AccessTier.parse(settings.dev_clearance),
                 corpora=frozenset(
                     corpus.strip() for corpus in settings.dev_corpora.split(",") if corpus.strip()

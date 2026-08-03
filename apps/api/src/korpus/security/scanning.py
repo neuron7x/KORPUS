@@ -49,7 +49,9 @@ class ClamdInstreamScanner:
         if size > self.max_bytes:
             raise ValueError("object exceeds malware scanner size limit")
         try:
-            with socket.create_connection((self.host, self.port), timeout=self.timeout_seconds) as connection:
+            with socket.create_connection(
+                (self.host, self.port), timeout=self.timeout_seconds
+            ) as connection:
                 connection.settimeout(self.timeout_seconds)
                 connection.sendall(b"zINSTREAM\0")
                 sent = 0

@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import json
-
-import pytest
 from concurrent.futures import ThreadPoolExecutor
 
+from korpus.infrastructure.repository import audits
 from sqlalchemy import delete, select, text
 
 from apps.api.tests.helpers import approve, ingest_text
-from korpus.infrastructure.repository import audits
 
 
 def test_audit_chain_and_external_anchor_verify(client):
@@ -36,7 +34,8 @@ def test_audit_anchor_detects_tail_truncation(client):
     ingest_text(client)
     repository = client.app.state.repository
     with repository.engine.begin() as connection:
-        last = connection.execute(select(audits.c.sequence).order_by(audits.c.sequence.desc()).limit(1)).scalar_one()
+        newest = select(audits.c.sequence).order_by(audits.c.sequence.desc()).limit(1)
+        last = connection.execute(newest).scalar_one()
         connection.execute(delete(audits).where(audits.c.sequence == last))
     body = client.get("/v1/audit/verify").json()
     assert body["valid"] is False

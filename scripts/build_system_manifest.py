@@ -7,7 +7,15 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED_PREFIXES = (".git/", "var/", "dist/", "reports/", "handoff/evidence/", ".pytest_cache/", "apps/web/dist/")
+EXCLUDED_PREFIXES = (
+    ".git/",
+    "var/",
+    "dist/",
+    "reports/",
+    "handoff/evidence/",
+    ".pytest_cache/",
+    "apps/web/dist/",
+)
 EXCLUDED_NAMES = {"REPOSITORY_MANIFEST.json"}
 
 

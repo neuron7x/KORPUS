@@ -4,7 +4,6 @@ import hashlib
 from pathlib import Path
 
 import pytest
-
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.policy import PolicyEngine
 from korpus.domain.models import (

@@ -4,9 +4,9 @@ import hashlib
 from pathlib import Path
 
 import pytest
-
 from korpus.application.calibration import CalibrationProfile
 from korpus.config import Settings
+
 from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 
@@ -116,4 +116,7 @@ def test_calibration_profile_and_bound_artifacts_reject_tampering(tmp_path: Path
 def test_dataset_digest_is_content_addressed(tmp_path: Path):
     dataset = tmp_path / "dataset.jsonl"
     dataset.write_bytes(b'{"id":"x"}\n')
-    assert CalibrationProfile.dataset_digest(dataset) == hashlib.sha256(dataset.read_bytes()).hexdigest()
+    assert (
+        CalibrationProfile.dataset_digest(dataset)
+        == hashlib.sha256(dataset.read_bytes()).hexdigest()
+    )

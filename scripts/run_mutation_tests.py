@@ -54,8 +54,16 @@ MUTANTS = (
     Mutant(
         "M04_AUDIT_PREDECESSOR_BYPASS",
         "apps/api/src/korpus/infrastructure/repository.py",
-        'if row["previous_hash"] != previous_hash or not hmac.compare_digest(expected_hash, row["event_hash"]):',
-        'if not hmac.compare_digest(expected_hash, row["event_hash"]):',
+        (
+            'if row["previous_hash"] != previous_hash or not hmac.compare_digest(\n'
+            '                expected_hash, row["event_hash"]\n'
+            '            ):'
+        ),
+        (
+            'if not hmac.compare_digest(\n'
+            '                expected_hash, row["event_hash"]\n'
+            '            ):'
+        ),
         ("apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",),
     ),
     Mutant(
@@ -69,7 +77,12 @@ MUTANTS = (
         "M06_RELEASE_SCOPE_BROADENED",
         "apps/api/src/korpus/infrastructure/repository.py",
         "retrievable = self.list_retrievable_spans(identity, corpus_ids, as_of)",
-        "retrievable = self.list_retrievable_spans(identity.model_copy(update={'clearance': AccessTier.RESTRICTED, 'corpora': frozenset({'public', 'restricted-demo'})}), frozenset({'public', 'restricted-demo'}), as_of)",
+        (
+            "retrievable = self.list_retrievable_spans("
+            "identity.model_copy(update={'clearance': AccessTier.RESTRICTED, "
+            "'corpora': frozenset({'public', 'restricted-demo'})}), "
+            "frozenset({'public', 'restricted-demo'}), as_of)"
+        ),
         ("apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",),
     ),
     Mutant(
@@ -82,7 +95,10 @@ MUTANTS = (
     Mutant(
         "M08_OBJECT_HASH_CHECK_REMOVED",
         "apps/api/src/korpus/infrastructure/object_store.py",
-        'if hashlib.sha256(content).hexdigest() != source_hash:\n            raise ValueError("source hash does not match content")',
+        (
+            "if hashlib.sha256(content).hexdigest() != source_hash:\n"
+            '            raise ValueError("source hash does not match content")'
+        ),
         "if False:\n            raise ValueError(\"source hash does not match content\")",
         ("apps/api/tests/test_more_edges.py::test_object_store_is_content_addressed_atomic_and_filename_independent",),
     ),
@@ -145,7 +161,13 @@ MUTANTS = (
     Mutant(
         "M17_SOURCE_SIGNATURE_BYPASS",
         "apps/api/src/korpus/security/source_authenticity.py",
-        "public_key.verify(signature, self.signed_payload(issuer=issuer, version=version, source_hash=source_hash))",
+        (
+            "public_key.verify(\n"
+            "                signature,\n"
+            "                self.signed_payload("
+            "issuer=issuer, version=version, source_hash=source_hash),\n"
+            "            )"
+        ),
         "None",
         ("apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata",),
     ),
@@ -159,8 +181,14 @@ MUTANTS = (
     Mutant(
         "M19_NEAR_DUPLICATE_ACK_BYPASS",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:",
-        "if False:",
+        (
+            "                    current.near_duplicate_of_version_id is not None\n"
+            "                    and not acknowledge_near_duplicate\n"
+        ),
+        (
+            "                    False\n"
+            "                    and False\n"
+        ),
         ("apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",),
     ),
     Mutant(
@@ -207,8 +235,14 @@ MUTANTS = (
     Mutant(
         "M25_REVIEWER_SCOPE_BYPASS",
         "apps/api/src/korpus/security/reviewers.py",
-        "if document.corpus_id not in grant.corpora or version.authority not in grant.authorities:",
-        "if False:",
+        (
+            "                document.corpus_id not in grant.corpora\n"
+            "                or version.authority not in grant.authorities\n"
+        ),
+        (
+            "                False\n"
+            "                or False\n"
+        ),
         ("apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",),
     ),
     Mutant(
@@ -222,7 +256,16 @@ MUTANTS = (
 
 
 def copy_repository(destination: Path) -> None:
-    ignored = shutil.ignore_patterns(".git", ".pytest_cache", "__pycache__", ".coverage", "var", "dist", "node_modules", ".venv")
+    ignored = shutil.ignore_patterns(
+        ".git",
+        ".pytest_cache",
+        "__pycache__",
+        ".coverage",
+        "var",
+        "dist",
+        "node_modules",
+        ".venv",
+    )
     shutil.copytree(ROOT, destination, ignore=ignored, dirs_exist_ok=True)
 
 
@@ -263,12 +306,14 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
         }
 
 
-def summarize(results: list[dict[str, object]], *, shard_index: int | None, shard_count: int) -> dict[str, object]:
+def summarize(
+    results: list[dict[str, object]], *, shard_index: int | None, shard_count: int
+) -> dict[str, object]:
     killed = sum(result["status"] == "KILLED" for result in results)
     valid = sum(result["status"] in {"KILLED", "SURVIVED"} for result in results)
     score = killed / valid if valid else 0.0
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "shard_index": shard_index,
         "shard_count": shard_count,
         "mutants": len(results),
@@ -277,13 +322,24 @@ def summarize(results: list[dict[str, object]], *, shard_index: int | None, shar
         "survived": [result["id"] for result in results if result["status"] == "SURVIVED"],
         "invalid": [result["id"] for result in results if result["status"] == "INVALID"],
         "mutation_score": score,
+        # mutation_score divides by the mutants that still *apply*. A mutant whose
+        # target line was reformatted stops applying, leaves the denominator, and the
+        # score stays 1.0 while the catalogue quietly shrinks — which is exactly what
+        # happened on 2026-08-03, when four security mutants (M04, M17, M19, M25) went
+        # INVALID after a lint pass rewrapped their lines and the report still read
+        # 1.000. The exit code was correct; the number in the artefact was not, and the
+        # artefact is what release evidence carries. This second figure divides by the
+        # whole catalogue, so an unapplied mutant is visible in the score itself.
+        "mutation_score_over_catalogue": killed / len(results) if results else 0.0,
         "results": results,
     }
 
 
 def merge_shards(shard_count: int) -> dict[str, object]:
     shard_dir = ROOT / "var/mutation-shards"
-    shard_paths = [shard_dir / f"shard-{index}-of-{shard_count}.json" for index in range(shard_count)]
+    shard_paths = [
+        shard_dir / f"shard-{index}-of-{shard_count}.json" for index in range(shard_count)
+    ]
     missing = [str(path) for path in shard_paths if not path.is_file()]
     if missing:
         raise RuntimeError(f"missing mutation shards: {missing}")
@@ -297,7 +353,8 @@ def merge_shards(shard_count: int) -> dict[str, object]:
     actual = {str(result.get("id")) for result in results}
     if actual != expected or len(results) != len(MUTANTS):
         raise RuntimeError(
-            f"mutation shard coverage mismatch: missing={sorted(expected - actual)} extra={sorted(actual - expected)}"
+            f"mutation shard coverage mismatch: "
+            f"missing={sorted(expected - actual)} extra={sorted(actual - expected)}"
         )
     ordered = sorted(results, key=lambda item: str(item["id"]))
     report = summarize(ordered, shard_index=None, shard_count=shard_count)
@@ -321,10 +378,7 @@ def main() -> int:
         report = merge_shards(args.shard_count)
         output = ROOT / "var/mutation-report.json"
     else:
-        if args.shard_index is None:
-            shard_index = 0
-        else:
-            shard_index = args.shard_index
+        shard_index = 0 if args.shard_index is None else args.shard_index
         if not 0 <= shard_index < args.shard_count:
             raise SystemExit("--shard-index must satisfy 0 <= index < shard-count")
         selected = list(MUTANTS[shard_index::args.shard_count])
@@ -335,12 +389,14 @@ def main() -> int:
             shard_count=args.shard_count,
         )
         if args.shard_count > 1:
-            output = ROOT / "var/mutation-shards" / f"shard-{shard_index}-of-{args.shard_count}.json"
+            shard_name = f"shard-{shard_index}-of-{args.shard_count}.json"
+            output = ROOT / "var/mutation-shards" / shard_name
         else:
             output = ROOT / "var/mutation-report.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({key: value for key, value in report.items() if key != "results"}, ensure_ascii=False, indent=2))
+    summary = {key: value for key, value in report.items() if key != "results"}
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
     expected = len(MUTANTS) if args.merge or args.shard_count == 1 else len(report["results"])
     return 0 if report["mutation_score"] == 1.0 and report["valid_mutants"] == expected else 1
 

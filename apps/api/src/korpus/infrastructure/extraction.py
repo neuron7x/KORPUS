@@ -46,14 +46,17 @@ class _VisibleTextParser(HTMLParser):
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth += 1
         elif self._ignored_depth == 0 and tag.casefold() in {
-            "p", "div", "section", "article", "header", "footer", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6"
+            "p", "div", "section", "article", "header", "footer", "br", "li", "tr",
+            "h1", "h2", "h3", "h4", "h5", "h6",
         }:
             self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth = max(0, self._ignored_depth - 1)
-        elif self._ignored_depth == 0 and tag.casefold() in {"p", "div", "section", "article", "li", "tr"}:
+        elif self._ignored_depth == 0 and tag.casefold() in {
+            "p", "div", "section", "article", "li", "tr",
+        }:
             self.parts.append("\n")
 
     def handle_data(self, data: str) -> None:
@@ -133,13 +136,18 @@ def _remaining(deadline: float) -> float:
     return remaining
 
 
-def _ocr_pdf_path(path: Path, languages: str, deadline: float, max_pages: int) -> list[ExtractedPage]:
+def _ocr_pdf_path(
+    path: Path, languages: str, deadline: float, max_pages: int
+) -> list[ExtractedPage]:
     pages: list[ExtractedPage] = []
     with tempfile.TemporaryDirectory(prefix="korpus-ocr-") as directory:
         root = Path(directory)
         prefix = root / "page"
         subprocess.run(
-            ["pdftoppm", "-png", "-r", "220", "-f", "1", "-l", str(max_pages), str(path), str(prefix)],
+            [
+                "pdftoppm", "-png", "-r", "220", "-f", "1",
+                "-l", str(max_pages), str(path), str(prefix),
+            ],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -157,7 +165,9 @@ def _ocr_pdf_path(path: Path, languages: str, deadline: float, max_pages: int) -
                 timeout=_remaining(deadline),
                 env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"},
             )
-            pages.append(ExtractedPage(page=index, text=_normalize(completed.stdout.decode("utf-8"))))
+            pages.append(
+                ExtractedPage(page=index, text=_normalize(completed.stdout.decode("utf-8")))
+            )
     return pages
 
 
@@ -234,7 +244,9 @@ def extract_pages(
     if not content:
         raise ValueError("empty document")
     suffix = Path(filename).suffix or ".bin"
-    with tempfile.NamedTemporaryFile(prefix="korpus-extract-", suffix=suffix, delete=False) as handle:
+    with tempfile.NamedTemporaryFile(
+        prefix="korpus-extract-", suffix=suffix, delete=False
+    ) as handle:
         handle.write(content)
         path = Path(handle.name)
     try:
@@ -298,9 +310,14 @@ def extract_pages_sandboxed(
             text=True,
             capture_output=True,
             timeout=timeout_seconds,
+            # Explicitly no CalledProcessError: the returncode is inspected below and the
+            # worker's stderr is turned into the ValueError message the caller expects.
+            check=False,
             env=environment,
             cwd=str(path.parent),
-            preexec_fn=lambda: _sandbox_limits(memory_limit_mb, timeout_seconds, output_limit_bytes),
+            preexec_fn=lambda: _sandbox_limits(
+                memory_limit_mb, timeout_seconds, output_limit_bytes
+            ),
         )
     except subprocess.TimeoutExpired as exc:
         raise ValueError("parser sandbox timeout") from exc
@@ -363,7 +380,9 @@ def make_spans(
                     buffer = proposal
                     continue
                 if buffer:
-                    output.append({"ordinal": ordinal, "page": page.page, "section": None, "text": buffer})
+                    output.append(
+                        {"ordinal": ordinal, "page": page.page, "section": None, "text": buffer}
+                    )
                     ordinal += 1
                     previous_tail = buffer[-overlap_chars:] if overlap_chars else ""
                 buffer = f"{previous_tail} {piece}".strip()

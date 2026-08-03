@@ -149,7 +149,8 @@ def main() -> int:
     init_text = (ROOT / "apps/api/src/korpus/__init__.py").read_text(encoding="utf-8")
     if f'__version__ = "{RELEASE_VERSION}"' not in init_text:
         errors.append(f"runtime __version__ must be {RELEASE_VERSION}")
-    readme = (ROOT / "README.md").read_text(encoding="utf-8") if (ROOT / "README.md").is_file() else ""
+    readme_path = ROOT / "README.md"
+    readme = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
     if not readme.startswith("# KORPUS v5.0.0"):
         errors.append("README release header must be KORPUS v5.0.0")
 

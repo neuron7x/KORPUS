@@ -1,9 +1,20 @@
 -r requirements.runtime.lock
+# ast-serialize and librt are runtime dependencies of mypy 2.x. The install target
+# uses --no-deps, so anything mypy needs must be pinned here by name: without these
+# two lines `python -m mypy` aborted with ModuleNotFoundError: No module named
+# 'librt' on a clean checkout, and `make api-lint` — and therefore `make check` —
+# could not run at all.
+ast-serialize==0.6.0
 coverage==7.13.3
 iniconfig==2.3.0
+librt==0.13.0
 mypy==2.3.0
 mypy-extensions==1.1.0
-pathspec==0.12.1
+# pathspec was pinned at 0.12.1, below the >=1.0.0 that mypy 2.3.0 declares. With
+# --no-deps nothing enforced that bound, so the pin silently shipped an interpreter
+# error (mypy.modulefinder importing pathspec.patterns.gitignore) instead of a
+# resolution failure at install time.
+pathspec==1.0.0
 pluggy==1.6.0
 Pygments==2.20.0
 pytest==9.0.2

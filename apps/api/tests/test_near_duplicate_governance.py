@@ -7,12 +7,18 @@ def test_near_duplicate_requires_explicit_metadata_acknowledgement(client):
     first = ingest_text(
         client,
         title="Baseline procedure",
-        text="Підрозділ веде журнал перевірок щодня. Кожен запис містить дату, номер та відповідальну особу.",
+        text=(
+            "Підрозділ веде журнал перевірок щодня. "
+            "Кожен запис містить дату, номер та відповідальну особу."
+        ),
     )
     second = ingest_text(
         client,
         title="Copied procedure",
-        text="Підрозділ веде журнал перевірок щодня. Кожен запис містить дату, номер і відповідальну особу.",
+        text=(
+            "Підрозділ веде журнал перевірок щодня. "
+            "Кожен запис містить дату, номер і відповідальну особу."
+        ),
     )
     version = second["version"]
     assert version["near_duplicate_of_version_id"] == first["version"]["id"]

@@ -4,13 +4,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from fastapi.testclient import TestClient
 import pytest
-
+from fastapi.testclient import TestClient
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import get_identity
+
 from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -136,7 +136,9 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
         **controlled_security_kwargs(tmp_path),
     )
     with pytest.raises(ValueError, match="require PostgreSQL"):
-        Settings(database_url=f"sqlite:///{tmp_path / 'bad.db'}", audit_anchor_token="token", **base)
+        Settings(
+            database_url=f"sqlite:///{tmp_path / 'bad.db'}", audit_anchor_token="token", **base
+        )
     with pytest.raises(ValueError, match="anchor authentication"):
         Settings(database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full", **base)
 
@@ -159,6 +161,7 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
 
 def test_backup_crypto_roundtrip_and_tamper_detection(tmp_path: Path):
     from cryptography.exceptions import InvalidTag
+
     from scripts.backup_crypto import decrypt, encrypt, load_key
 
     key_path = tmp_path / "key.hex"
@@ -242,7 +245,8 @@ def test_reconcile_failures_are_observable():
     observability = Observability()
     observability.observe_anchor_reconcile_failure(TimeoutError("anchor timeout"))
     exported = observability.export_prometheus().decode("utf-8")
-    assert 'korpus_audit_anchor_reconcile_failures_total{error_class="TimeoutError"} 1.0' in exported
+    metric = 'korpus_audit_anchor_reconcile_failures_total{error_class="TimeoutError"} 1.0'
+    assert metric in exported
     observability.close()
 
 

@@ -33,7 +33,11 @@ def main() -> int:
     if missing:
         raise SystemExit(f"missing desired-state inputs: {missing}")
     records = [
-        {"path": path.relative_to(ROOT).as_posix(), "sha256": digest(path), "bytes": path.stat().st_size}
+        {
+            "path": path.relative_to(ROOT).as_posix(),
+            "sha256": digest(path),
+            "bytes": path.stat().st_size,
+        }
         for path in sorted(set(paths))
     ]
     root = hashlib.sha256()
@@ -44,17 +48,22 @@ def main() -> int:
         "release": "v5.0.0",
         "root_sha256": root.hexdigest(),
         "records": records,
-        "interpretation": "Source desired-state fingerprint only; live cluster drift requires external reconciliation.",
+        "interpretation": (
+            "Source desired-state fingerprint only; "
+            "live cluster drift requires external reconciliation."
+        ),
     }
     target = ROOT / "config/operations/desired-state-v5.json"
     rendered = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
     if args.check:
         if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
-            print(json.dumps({"valid": False, "reason": "desired-state manifest is stale"}, indent=2))
+            stale = {"valid": False, "reason": "desired-state manifest is stale"}
+            print(json.dumps(stale, indent=2))
             return 1
     else:
         target.write_text(rendered, encoding="utf-8")
-    print(json.dumps({"valid": True, "records": len(records), "root_sha256": output["root_sha256"]}, indent=2))
+    summary = {"valid": True, "records": len(records), "root_sha256": output["root_sha256"]}
+    print(json.dumps(summary, indent=2))
     return 0
 
 
