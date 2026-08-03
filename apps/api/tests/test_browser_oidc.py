@@ -101,13 +101,41 @@ def _settings(tmp_path: Path) -> Settings:
 
 
 def test_browser_session_codec_rejects_tampering_and_expiry():
+    """Every position, not just the last one.
+
+    This test used to change the final character of the token. base64 pads: when the
+    payload length is not a multiple of three, the last character carries bits that no
+    input byte uses, so several different characters decode to identical bytes and the
+    signature still verifies. The token is not fixed across runs, so whether the last
+    character happened to be significant varied — the test failed roughly one run in
+    five, and read as flake rather than as a test asserting something it could not
+    guarantee.
+
+    Sweeping every position is both deterministic and a stronger claim: any single
+    character change that alters the token at all must be rejected.
+    """
     clock = [1000.0]
     codec = BrowserSessionCodec("x" * 40, clock=lambda: clock[0])
     token = codec.seal("session", {"access_token": "a", "csrf": "c"}, ttl_seconds=30)
     assert codec.open(token, expected_kind="session")["access_token"] == "a"
-    replacement = "A" if token[-1] != "A" else "B"
-    with pytest.raises(BrowserSessionError):
-        codec.open(token[:-1] + replacement, expected_kind="session")
+
+    accepted: list[int] = []
+    for index in range(len(token)):
+        original = token[index]
+        if original in "._-":  # structural separators, not payload
+            continue
+        replacement = "A" if original != "A" else "B"
+        tampered = token[:index] + replacement + token[index + 1 :]
+        try:
+            codec.open(tampered, expected_kind="session")
+        except BrowserSessionError:
+            continue
+        accepted.append(index)
+    assert not accepted, (
+        f"the codec accepted a token with a changed character at {accepted}; "
+        "a single-character edit anywhere in a signed token must not verify"
+    )
+
     clock[0] = 1031.0
     with pytest.raises(BrowserSessionError, match="expired"):
         codec.open(token, expected_kind="session")
