@@ -1,7 +1,7 @@
 """infrastructure hardening, schema invariants, and complete corpus RLS
 
 Revision ID: 0003_infrastructure_hardening
-Revises: 0002_database_defense_and_vectors
+Revises: 0002_db_defense_and_vectors
 """
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0003_infrastructure_hardening"
-down_revision: str | None = "0002_database_defense_and_vectors"
+down_revision: str | None = "0002_db_defense_and_vectors"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

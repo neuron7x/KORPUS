@@ -160,7 +160,7 @@ api:postgres-and-restore:
     - python scripts/wait_for_database.py
   script:
     - export PATH="/tmp/korpus-venv/bin:$PATH"
-    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_database_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
+    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
     - python scripts/prepare_postgres_role.py
     - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"

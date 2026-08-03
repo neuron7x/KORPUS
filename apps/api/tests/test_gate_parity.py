@@ -228,3 +228,41 @@ def test_every_ci_job_that_runs_korpus_code_installs_the_locked_environment() ->
         "these CI jobs run code that imports korpus.* without installing the locked "
         f"environment, so they die on the first import: {offenders}"
     )
+
+
+def test_no_migration_revision_exceeds_the_alembic_version_column() -> None:
+    """Alembic stores the current revision in version_num VARCHAR(32), fixed width.
+
+    SQLite ignores declared VARCHAR lengths, so a 33-character revision id runs fine
+    locally and forever; PostgreSQL raises StringDataRightTruncation. The first
+    pipeline that reached a real database died on
+    `UPDATE alembic_version SET version_num='0002_database_defense_and_vectors'`,
+    which means no migration past 0001 had ever been applied to PostgreSQL — and the
+    RLS, pgvector, backup and restore work sitting behind those migrations had never
+    executed anywhere.
+    """
+    limit = 32
+    offenders: list[tuple[str, int]] = []
+    for path in sorted((ROOT / "apps/api/migrations/versions").glob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            target = None
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+                target = node.target.id
+            elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+                first = node.targets[0]
+                target = first.id if isinstance(first, ast.Name) else None
+            if target not in {"revision", "down_revision"}:
+                continue
+            value = node.value
+            if (
+                isinstance(value, ast.Constant)
+                and isinstance(value.value, str)
+                and len(value.value) > limit
+            ):
+                offenders.append((value.value, len(value.value)))
+    assert not offenders, (
+        f"these revision identifiers exceed alembic's version_num VARCHAR({limit}), so "
+        f"the migration applying them fails on PostgreSQL while passing on SQLite: "
+        f"{offenders}"
+    )

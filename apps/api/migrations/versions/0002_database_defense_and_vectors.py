@@ -1,6 +1,6 @@
 """database defense-in-depth and semantic index substrate
 
-Revision ID: 0002_database_defense_and_vectors
+Revision ID: 0002_db_defense_and_vectors
 Revises: 0001_initial
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "0002_database_defense_and_vectors"
+revision: str = "0002_db_defense_and_vectors"
 down_revision: str | None = "0001_initial"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
