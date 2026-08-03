@@ -257,15 +257,21 @@ def test_backup_restore_scripts_are_cwd_independent_and_key_bound(tmp_path: Path
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     pg_dump = bin_dir / "pg_dump"
+    # This double used to accept --file=- and treat it as "write to stdout", which is
+    # what the backup script passed and what nobody had ever checked against a real
+    # pg_dump. On PostgreSQL 17 that flag produced an empty stdout — the first real
+    # run of this job encrypted zero bytes — so the double was certifying a pipeline
+    # that could not work. It now behaves like the tool: no --file means stdout, and
+    # --file=<path> writes there. Passing --file=- would write a file named "-".
     pg_dump.write_text(
         """#!/usr/bin/env python3
 import pathlib, sys
-arg = next(value for value in sys.argv[1:] if value.startswith('--file='))
 payload = b'PGDMP\\x01korpus-infra-test'
-if arg == '--file=-':
+target = next((value for value in sys.argv[1:] if value.startswith('--file=')), None)
+if target is None:
     sys.stdout.buffer.write(payload)
 else:
-    pathlib.Path(arg.split('=', 1)[1]).write_bytes(payload)
+    pathlib.Path(target.split('=', 1)[1]).write_bytes(payload)
 """,
         encoding="utf-8",
     )

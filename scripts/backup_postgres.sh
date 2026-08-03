@@ -36,14 +36,27 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# No plaintext dump file is created: pg_dump bytes flow directly into authenticated encryption.
+# No plaintext dump file is created: pg_dump bytes flow directly into authenticated
+# encryption. `--file=-` was removed on 2026-08-03: pg_dump wrote a file literally
+# named "-" in the working directory and left stdout empty, so the pipeline encrypted
+# zero bytes and the run only failed three steps later, in manifest validation, as
+# "invalid backup manifest field: plaintext_bytes". Omitting the flag is the
+# documented way to send the archive to stdout. This path had never executed before —
+# the job died at migration 0001 until today.
 pg_dump --dbname="$KORPUS_BACKUP_DATABASE_URL" \
-  --format=custom --compress=6 --no-owner --no-privileges --file=- \
+  --format=custom --compress=6 --no-owner --no-privileges \
   | python3 "$root/scripts/backup_crypto.py" encrypt-stdin - "$encrypted_tmp" \
       --key-file "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE" --metadata-file "$plain_meta_tmp"
 
 plain_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha256"])' "$plain_meta_tmp")"
 plain_size="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["bytes"])' "$plain_meta_tmp")"
+# Fail here, where the cause is still legible, rather than in manifest validation.
+# An empty dump means pg_dump produced nothing on stdout — a backup of a database
+# that was never read is worse than no backup, because it restores cleanly.
+if [[ "$plain_size" -le 0 ]]; then
+  echo "pg_dump produced no output: refusing to write an empty backup" >&2
+  exit 65
+fi
 encrypted_sha="$(sha256sum "$encrypted_tmp" | awk '{print $1}')"
 encrypted_size="$(wc -c < "$encrypted_tmp" | tr -d ' ')"
 mv "$encrypted_tmp" "$final"

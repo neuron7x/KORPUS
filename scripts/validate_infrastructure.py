@@ -177,8 +177,17 @@ def main() -> int:
     restore_text = (ROOT / "scripts/restore_postgres.sh").read_text(encoding="utf-8")
     if "KORPUS_BACKUP_KEY_ID" not in backup_text or "KORPUS_BACKUP_KEY_ID" not in restore_text:
         failures.append("backup/restore: encryption key identity must be mandatory")
-    if "--file=-" not in backup_text or "encrypt-stdin" not in backup_text:
+    # The property is "no plaintext dump ever lands on disk", not "this flag is
+    # present". Requiring --file=- pinned the one spelling that does not work: on
+    # PostgreSQL 17 it wrote a file named "-" and left stdout empty, so the backup
+    # encrypted nothing. Check for the streaming consumer and against any --file at all.
+    if "encrypt-stdin" not in backup_text:
         failures.append("backup_postgres.sh: plaintext-free streaming backup pipeline missing")
+    backup_code = "\n".join(
+        line for line in backup_text.splitlines() if not line.lstrip().startswith("#")
+    )
+    if "--file=" in backup_code:
+        failures.append("backup_postgres.sh: pg_dump must stream to stdout, not --file")
     if "backup_manifest.py" not in backup_text or "backup_manifest.py" not in restore_text:
         failures.append("backup/restore: authenticated manifest verification missing")
 
