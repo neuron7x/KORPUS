@@ -247,8 +247,12 @@ container:build:
     name: moby/buildkit:v0.30.0-rootless
     entrypoint: [""]
   script:
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/api/Dockerfile --output type=oci,dest=api-image.tar
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/web/Dockerfile --output type=oci,dest=web-image.tar
+    # type=docker, not type=oci: trivy's --input reads a docker-save tarball or an OCI
+    # *directory*, and rejected the OCI archive with "file manifest.json not found in
+    # tar". One format both trivy and syft read is worth more than the OCI archive's
+    # marginal advantages here — syft handles either, trivy does not.
+    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/api/Dockerfile --output type=docker,name=korpus-api,dest=api-image.tar
+    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/web/Dockerfile --output type=docker,name=korpus-web,dest=web-image.tar
   artifacts:
     paths:
       - api-image.tar
@@ -280,8 +284,8 @@ container:sbom:
     - job: container:build
       artifacts: true
   script:
-    - /syft oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
-    - /syft oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+    - /syft docker-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
+    - /syft docker-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
   artifacts:
     paths:
       - api-sbom.cdx.json
