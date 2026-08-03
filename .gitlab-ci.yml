@@ -226,7 +226,12 @@ source:sbom:
     name: anchore/syft:v1.44.0-debug
     entrypoint: [""]
   script:
-    - syft dir:. -o cyclonedx-json=source-sbom.cdx.json
+    # The -debug image has a shell but does not put syft on PATH, so the plain
+    # invocation exits 127. Locating it and failing loudly when it is absent
+    # beats hardcoding a path that the next image revision may move.
+    - SYFT="$(command -v syft || find / -maxdepth 3 -name syft -type f 2>/dev/null | head -1)"
+    - test -n "$SYFT" || { echo 'syft binary not found in image' >&2; exit 1; }
+    - "$SYFT" dir:. -o cyclonedx-json=source-sbom.cdx.json
   artifacts:
     paths: [source-sbom.cdx.json]
 
@@ -269,8 +274,10 @@ container:sbom:
     - job: container:build
       artifacts: true
   script:
-    - syft oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
-    - syft oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+    - SYFT="$(command -v syft || find / -maxdepth 3 -name syft -type f 2>/dev/null | head -1)"
+    - test -n "$SYFT" || { echo 'syft binary not found in image' >&2; exit 1; }
+    - "$SYFT" oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
+    - "$SYFT" oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
   artifacts:
     paths:
       - api-sbom.cdx.json
