@@ -36,6 +36,13 @@ variables:
 .python-job:
   image: python:3.12.13-slim-bookworm
   before_script:
+    # python:*-slim ships without git. test_manifest_generation asserts that the
+    # release manifest lists only git-tracked files — it shells out to git, and on the
+    # first pipeline where api:test actually ran it died with
+    # FileNotFoundError: 'git'. Skipping that test instead would be worse: it is the
+    # check that keeps build artefacts out of the manifest, and a skipped test reads
+    # green in every report.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git && rm -rf /var/lib/apt/lists/*
     - python -m pip install --no-deps --requirement apps/api/requirements.dev.lock
     - python -m pip check
 
