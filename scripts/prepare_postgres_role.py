@@ -8,7 +8,21 @@ from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
 
-READ_WRITE_TABLES = ("documents", "document_versions", "evidence_spans", "span_embeddings")
+# Every table the application touches has to appear in exactly one of these lists —
+# the role starts from REVOKE ALL, so an omission is a runtime InsufficientPrivilege
+# rather than a lax grant. Two tables added by later migrations were missing:
+# document_compartments (0004) and ingestion_jobs (0005). Nothing caught it because
+# the SQLite configuration has no roles at all, and the PostgreSQL job had never run
+# past migration 0001. test_postgres_role_grants.py now fails when a table exists in
+# the metadata and in none of these lists.
+READ_WRITE_TABLES = (
+    "documents",
+    "document_versions",
+    "document_compartments",
+    "evidence_spans",
+    "span_embeddings",
+    "ingestion_jobs",
+)
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
 
