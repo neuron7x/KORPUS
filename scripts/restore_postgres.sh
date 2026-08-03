@@ -44,7 +44,45 @@ actual_plain_bytes="$(python3 -c 'import json,sys; print(json.load(open(sys.argv
 pg_restore --list "$plain_tmp" >/dev/null
 pg_restore --dbname="$KORPUS_RESTORE_DATABASE_URL" \
   --clean --if-exists --no-owner --no-privileges --exit-on-error --single-transaction "$plain_tmp"
-psql "$KORPUS_RESTORE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc \
-  "SELECT CASE WHEN version_num = '0003_infrastructure_hardening' THEN 'ok' ELSE version_num END FROM alembic_version" \
-  | grep -qx ok
-printf 'restored backup encrypted under key id %s\n' "$manifest_key_id" >&2
+# The expected revision used to be the literal '0003_infrastructure_hardening', and
+# the comparison was `| grep -qx ok`: once migration 0004 existed the check could
+# never pass again, and when it failed it failed *silently* — grep -q prints nothing,
+# so the job died with exit 1 and no line saying why. Nobody saw it because this
+# script had never run: the job died at migration 0001 until 2026-08-03.
+#
+# The head is now derived from the migration files themselves — the revision that no
+# other migration names as its down_revision — so it cannot drift again, and a
+# mismatch says which revision was found and which was expected.
+expected_head="$(python3 - "$root/apps/api/migrations/versions" <<'PY'
+import ast, pathlib, sys
+
+revisions, parents = set(), set()
+for path in sorted(pathlib.Path(sys.argv[1]).glob("*.py")):
+    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+        target = None
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            target = node.target.id
+        elif isinstance(node, ast.Assign) and len(node.targets) == 1:
+            first = node.targets[0]
+            target = first.id if isinstance(first, ast.Name) else None
+        value = getattr(node, "value", None)
+        if not isinstance(value, ast.Constant) or not isinstance(value.value, str):
+            continue
+        if target == "revision":
+            revisions.add(value.value)
+        elif target == "down_revision":
+            parents.add(value.value)
+heads = sorted(revisions - parents)
+if len(heads) != 1:
+    raise SystemExit(f"expected exactly one migration head, found {heads}")
+print(heads[0])
+PY
+)"
+actual_head="$(psql "$KORPUS_RESTORE_DATABASE_URL" -v ON_ERROR_STOP=1 -Atc \
+  "SELECT version_num FROM alembic_version")"
+if [[ "$actual_head" != "$expected_head" ]]; then
+  echo "restored database is at migration '$actual_head', expected '$expected_head'" >&2
+  exit 65
+fi
+printf 'restored backup encrypted under key id %s at migration %s\n' \
+  "$manifest_key_id" "$actual_head" >&2

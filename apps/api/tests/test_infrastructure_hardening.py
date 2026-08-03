@@ -277,8 +277,36 @@ else:
     )
     pg_restore = bin_dir / "pg_restore"
     pg_restore.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    # This double printed the literal "ok" — the answer the old restore check looked
+    # for, not anything a database would say. The check itself compared against a
+    # hardcoded '0003_infrastructure_hardening', so from migration 0004 onward it
+    # could only ever fail, and it failed through `grep -q`, which prints nothing.
+    # The double now answers with the real head, read from the migration files, so
+    # the test exercises the comparison instead of pre-agreeing with it.
     psql = bin_dir / "psql"
-    psql.write_text("#!/bin/sh\nprintf 'ok\\n'\n", encoding="utf-8")
+    psql.write_text(
+        "#!/usr/bin/env python3\n"
+        "import ast, pathlib, sys\n"
+        f"versions = pathlib.Path({str(ROOT / 'apps/api/migrations/versions')!r})\n"
+        "revisions, parents = set(), set()\n"
+        "for path in sorted(versions.glob('*.py')):\n"
+        "    for node in ast.parse(path.read_text(encoding='utf-8')).body:\n"
+        "        target = None\n"
+        "        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):\n"
+        "            target = node.target.id\n"
+        "        elif isinstance(node, ast.Assign) and len(node.targets) == 1:\n"
+        "            first = node.targets[0]\n"
+        "            target = first.id if isinstance(first, ast.Name) else None\n"
+        "        value = getattr(node, 'value', None)\n"
+        "        if not isinstance(value, ast.Constant) or not isinstance(value.value, str):\n"
+        "            continue\n"
+        "        if target == 'revision':\n"
+        "            revisions.add(value.value)\n"
+        "        elif target == 'down_revision':\n"
+        "            parents.add(value.value)\n"
+        "print(sorted(revisions - parents)[0])\n",
+        encoding="utf-8",
+    )
     for executable in (pg_dump, pg_restore, psql):
         executable.chmod(0o755)
 
