@@ -219,7 +219,11 @@ infrastructure:scan:
 source:sbom:
   stage: security
   image:
-    name: anchore/syft:v1.44.0
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug
     entrypoint: [""]
   script:
     - syft dir:. -o cyclonedx-json=source-sbom.cdx.json
@@ -255,7 +259,11 @@ container:scan:
 container:sbom:
   stage: verify-image
   image:
-    name: anchore/syft:v1.44.0
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug
     entrypoint: [""]
   needs:
     - job: container:build
