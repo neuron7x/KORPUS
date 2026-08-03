@@ -184,7 +184,14 @@ secret:scan:
     name: zricethezav/gitleaks:v8.30.1
     entrypoint: [""]
   script:
+    # --baseline-path accepts six findings already in history and nothing else:
+    # each is pinned to commit, file, rule and line, so a new secret — or the same
+    # text in a new commit — still fails. They are prose in the audit CSVs that the
+    # generic-api-key heuristic reads as high-entropy tokens; verified by reading
+    # the lines. Excluding the paths instead would have silenced those files for
+    # good, including a real credential added to them later.
     - gitleaks detect --source . --no-banner --redact --exit-code 1
+        --baseline-path .gitleaks-baseline.json
 
 python:audit:
   stage: security
@@ -192,7 +199,11 @@ python:audit:
   before_script:
     - python -m pip install 'pip-audit==2.10.1'
   script:
-    - pip-audit --strict --disable-pip -r apps/api/requirements.runtime.lock
+    # --disable-pip requires either hashes in the requirements file or --no-deps;
+    # without one of them pip-audit refuses to start, which is how this job spent
+    # its whole existence: it had never run, so nothing had ever been audited.
+    # The lock is fully resolved, so --no-deps audits exactly what ships.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
 
 infrastructure:scan:
   stage: security
@@ -200,7 +211,10 @@ infrastructure:scan:
     name: aquasec/trivy:0.70.0
     entrypoint: [""]
   script:
-    - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore .
+    # .trivyignore.yaml carries the one exception with a path scope and an expiry,
+    # which the flat .trivyignore format cannot express — it can only switch a rule
+    # off everywhere.
+    - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml .
 
 source:sbom:
   stage: security
