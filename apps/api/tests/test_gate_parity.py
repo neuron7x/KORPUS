@@ -266,3 +266,40 @@ def test_no_migration_revision_exceeds_the_alembic_version_column() -> None:
         f"the migration applying them fails on PostgreSQL while passing on SQLite: "
         f"{offenders}"
     )
+
+
+def test_the_ci_configuration_is_parseable_yaml() -> None:
+    """A .gitlab-ci.yml that does not parse produces a pipeline with zero jobs.
+
+    On 2026-08-03 an edit left `- "$SYFT" dir:. -o ...` in a script block. YAML reads
+    that as a double-quoted scalar followed by stray text and rejects the document.
+    GitLab accepted the push, created a pipeline, and marked it failed with no jobs,
+    no yaml_errors field and nothing in the UI to read — indistinguishable from a
+    runner or quota problem. The cause only surfaced by POSTing to the pipeline API,
+    which returns the parser message.
+
+    The other gate-parity tests read this file with regexes and would happily keep
+    passing on a broken document, so the parse itself has to be asserted.
+    """
+    yaml = pytest.importorskip(
+        "yaml", reason="PyYAML is in requirements.runtime.lock; a missing parser here "
+        "means the environment is wrong, not that the check is optional"
+    )
+    document = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    assert isinstance(document, dict), ".gitlab-ci.yml did not parse into a mapping"
+    reserved = {"workflow", "default", "stages", "variables", "include"}
+    jobs = [k for k in document if not k.startswith(".") and k not in reserved]
+    assert len(jobs) >= 10, (
+        f"only {len(jobs)} jobs parsed out of .gitlab-ci.yml — a truncated or "
+        f"mis-nested document would look exactly like this: {jobs}"
+    )
+    for job in jobs:
+        body = document[job]
+        assert isinstance(body, dict), f"job {job!r} did not parse into a mapping"
+        for key in ("script", "before_script", "after_script"):
+            if key in body:
+                assert isinstance(body[key], list), (
+                    f"{job}.{key} parsed as {type(body[key]).__name__}, not a list of "
+                    "commands — the usual cause is an unquoted line starting with a "
+                    "quote or brace"
+                )

@@ -230,8 +230,8 @@ source:sbom:
     # invocation exits 127. Locating it and failing loudly when it is absent
     # beats hardcoding a path that the next image revision may move.
     - SYFT="$(command -v syft || find / -maxdepth 3 -name syft -type f 2>/dev/null | head -1)"
-    - test -n "$SYFT" || { echo 'syft binary not found in image' >&2; exit 1; }
-    - "$SYFT" dir:. -o cyclonedx-json=source-sbom.cdx.json
+    - if [ -z "$SYFT" ]; then echo 'syft binary not found in image' >&2; exit 1; fi
+    - '"$SYFT" dir:. -o cyclonedx-json=source-sbom.cdx.json'
   artifacts:
     paths: [source-sbom.cdx.json]
 
@@ -275,9 +275,9 @@ container:sbom:
       artifacts: true
   script:
     - SYFT="$(command -v syft || find / -maxdepth 3 -name syft -type f 2>/dev/null | head -1)"
-    - test -n "$SYFT" || { echo 'syft binary not found in image' >&2; exit 1; }
-    - "$SYFT" oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
-    - "$SYFT" oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+    - if [ -z "$SYFT" ]; then echo 'syft binary not found in image' >&2; exit 1; fi
+    - '"$SYFT" oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json'
+    - '"$SYFT" oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json'
   artifacts:
     paths:
       - api-sbom.cdx.json
