@@ -356,6 +356,41 @@ def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
     return chunks
 
 
+#: Structural headings of Ukrainian normative acts, anchored to the start of a line and
+#: bounded in length. A citation that says only "page 4" is not an address a reader can
+#: check against a printed order; "Стаття 12" is. Bare numbered clauses ("1. …") are
+#: deliberately excluded: in these documents they are the clause itself far more often
+#: than a heading, and a wrong section is worse than none.
+_SECTION_HEADING = re.compile(
+    r"^[ \t]*("
+    r"(?:РОЗДІЛ|Розділ|ГЛАВА|Глава|СТАТТЯ|Стаття|ПУНКТ|Пункт|ДОДАТОК|Додаток|ЧАСТИНА|Частина)"
+    r"[ \t]+[^\n]{0,80}"
+    r"|§[ \t]*\d+[^\n]{0,60}"
+    r")[ \t]*$",
+    re.MULTILINE,
+)
+
+
+def section_markers(text: str) -> list[tuple[int, str]]:
+    """Offsets of structural headings within a page, in document order."""
+
+    return [
+        (match.start(1), " ".join(match.group(1).split()))
+        for match in _SECTION_HEADING.finditer(text)
+    ]
+
+
+def _section_at(markers: list[tuple[int, str]], offset: int) -> str | None:
+    """The last heading at or before `offset`; None before the first heading."""
+
+    label: str | None = None
+    for start, value in markers:
+        if start > offset:
+            break
+        label = value
+    return label
+
+
 def _cut_point(window: str, minimum: int) -> int:
     """Where to end a window so it stops on a boundary the document itself has."""
     for separator in ("\n\n", "\n", ". ", " "):
@@ -392,17 +427,28 @@ def make_spans(
     ordinal = 0
     for page in pages:
         text = page.text
+        markers = section_markers(text)
         position = 0
         while position < len(text):
             end = min(len(text), position + max_chars)
             if end < len(text):
                 end = position + _cut_point(text[position:end], max_chars // 4)
-            chunk = text[position:end].strip()
+            raw = text[position:end]
+            chunk = raw.strip()
             if chunk:
+                offset = position + (len(raw) - len(raw.lstrip()))
                 if len(output) >= max_spans:
                     raise ValueError("document exceeds maximum span count")
+                # The section is the heading in force where the span starts, so a
+                # citation can be checked against a printed order rather than only
+                # against this database.
                 output.append(
-                    {"ordinal": ordinal, "page": page.page, "section": None, "text": chunk}
+                    {
+                        "ordinal": ordinal,
+                        "page": page.page,
+                        "section": _section_at(markers, offset),
+                        "text": chunk,
+                    }
                 )
                 ordinal += 1
             if end >= len(text):

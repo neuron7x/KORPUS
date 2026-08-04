@@ -340,6 +340,11 @@ class Citation(BaseModel):
     quote_start: int = Field(ge=0)
     quote_end: int = Field(gt=0)
     quote_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    #: Hash of the *span* the quote was taken from. `quote_hash` is a hash of the quote
+    #: itself and proves only that the quote matches itself; this is the link that ties
+    #: the quote to a passage a reader can fetch (`GET /v1/spans/{id}`) and from there
+    #: to the document `source_hash` covers.
+    span_hash: str = Field(default="", pattern=r"^(?:|[a-f0-9]{64})$")
     source_uri: str | None = None
     source_hash: str
 

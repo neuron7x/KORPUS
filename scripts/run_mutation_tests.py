@@ -518,8 +518,8 @@ MUTANTS = (
         # to the head of the next with a space, quoted verbatim with a matching hash.
         "M54_SPAN_SEAM_MANUFACTURES_TEXT",
         "apps/api/src/korpus/infrastructure/extraction.py",
-        "            chunk = text[position:end].strip()",
-        '            chunk = (text[position:end] + " " + text[end : end + 20]).strip()',
+        "            chunk = raw.strip()",
+        '            chunk = (raw + " " + text[end : end + 20]).strip()',
         ("apps/api/tests/test_quote_provenance.py::test_every_span_is_a_slice_of_its_page",),
     ),
     Mutant(
@@ -918,6 +918,52 @@ MUTANTS = (
         "        if False:",
         (
             "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_that_disagrees_at_its_own_position_is_invalid",
+        ),
+    ),
+    Mutant(
+        "M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER",
+        "apps/api/src/korpus/api/routes.py",
+        "    rows = repository.get_retrievable_spans_by_ids(\n"
+        "        identity, identity.corpora, effective, [span_id]\n"
+        "    )",
+        "    rows = repository.get_retrievable_spans_by_ids(\n"
+        "        identity.model_copy(update={'clearance': 3, "
+        "'corpora': frozenset({'public', 'restricted-demo'})}),\n"
+        "        frozenset({'public', 'restricted-demo'}), effective, [span_id]\n"
+        "    )",
+        (
+            "apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited",
+        ),
+    ),
+    Mutant(
+        "M99_SPAN_LISTING_IGNORES_THE_DATE",
+        "apps/api/src/korpus/api/routes.py",
+        "    effective = as_of or datetime.now(UTC).date()\n"
+        "    rows = [\n"
+        "        (span, document, version)",
+        "    effective = date(1900, 1, 1)\n"
+        "    rows = [\n"
+        "        (span, document, version)",
+        (
+            "apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern",
+        ),
+    ),
+    Mutant(
+        "M100_CITATION_SPAN_HASH_NOT_BOUND_TO_THE_SPAN",
+        "apps/api/src/korpus/application/answer_query.py",
+        "                    span_hash=item.span.text_hash,",
+        '                    span_hash="",',
+        (
+            "apps/api/tests/test_span_lookup.py::test_the_answer_citation_resolves_to_a_span_that_contains_the_quote",
+        ),
+    ),
+    Mutant(
+        "M101_SECTION_NEVER_RECORDED",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        '                        "section": _section_at(markers, offset),',
+        '                        "section": None,',
+        (
+            "apps/api/tests/test_span_lookup.py::test_a_span_carries_the_section_it_sits_under",
         ),
     ),
 )

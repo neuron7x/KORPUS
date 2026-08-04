@@ -305,6 +305,7 @@ class ExtractiveAnswerService:
                     quote_start=candidate.start,
                     quote_end=candidate.end,
                     quote_hash=quote_hash,
+                    span_hash=item.span.text_hash,
                     source_uri=item.version.source_uri,
                     source_hash=item.version.source_hash,
                 )
