@@ -40,6 +40,7 @@ _ABBREVIATIONS = {
 }
 _SENTENCE_END = {".", "!", "?", "…"}
 _NEGATIONS = {"не", "ні", "немає", "заборонено", "not", "no", "never", "prohibited", "forbidden"}
+_NUMERAL = re.compile(r"[+-]?\d+(?:[.,]\d+)?")
 _NUMBER_UNIT = re.compile(
     r"(?P<number>[+-]?\d+(?:[.,]\d+)?)\s*"
     r"(?P<unit>%|мм|см|км|мс|м|с|хв|год|днів?|грн|usd|uah|kg|кг|кпа|kpa|па|pa|°c)?",
@@ -151,7 +152,14 @@ def proposition_signature(text: str) -> PropositionSignature:
         except InvalidOperation:
             continue
         quantities.add((value, (match.group("unit") or "").casefold()))
-    return PropositionSignature(tokens.difference(_NEGATIONS), negated, frozenset(quantities))
+    # Numerals are removed from the content set because they are already carried by
+    # `quantities`, and leaving them in makes the similarity measure fight the check
+    # that depends on it: two statements of one rule that differ *only* in the number
+    # score as less alike precisely when the disagreement is sharpest ("строк … 24 год"
+    # against "строк … 72 год" measured 0.50 against a 0.55 floor, so a numeric
+    # conflict inside one span was never reached).
+    content = {token for token in tokens.difference(_NEGATIONS) if not _NUMERAL.fullmatch(token)}
+    return PropositionSignature(frozenset(content), negated, frozenset(quantities))
 
 
 @dataclass(frozen=True)
@@ -218,4 +226,26 @@ def contradiction_reason(left: str, right: str, minimum_overlap: float = 0.55) -
     for unit in set(by_unit_a).intersection(by_unit_b):
         if by_unit_a[unit].isdisjoint(by_unit_b[unit]):
             return f"numeric_conflict:{unit or 'unitless'}"
+    return None
+
+
+def refuting_sentence(claim: str, evidence_text: str) -> tuple[str, str] | None:
+    """Find a sentence of `evidence_text` that contradicts `claim`.
+
+    Contradiction used to be looked for only *between* the sentences an answer had
+    already selected, so a span whose next sentence reversed the one quoted passed as
+    `answered` (destruction stage B2, §2.0.1). The sentence a reader sees when they
+    open the source is part of the evidence whether the extractor picked it or not.
+
+    Identity is excluded rather than treated as agreement: the same sentence appearing
+    twice is the extractor citing one passage, not the corpus saying two things.
+    """
+
+    reference = normalize_text(claim)
+    for sentence, _start, _end in segment_sentences(evidence_text):
+        if normalize_text(sentence) == reference:
+            continue
+        reason = contradiction_reason(claim, sentence)
+        if reason is not None:
+            return sentence, reason
     return None

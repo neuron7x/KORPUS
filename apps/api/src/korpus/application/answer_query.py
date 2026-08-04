@@ -8,6 +8,7 @@ from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
     contradiction_reason,
+    refuting_sentence,
     segment_sentences,
     verify_claim_support,
 )
@@ -202,7 +203,7 @@ class ExtractiveAnswerService:
                 query_coverage=query_coverage,
             )
         else:
-            contradiction = self._find_contradiction(claims, citations)
+            contradiction = self._find_contradiction(claims, citations, eligible)
             if contradiction is not None:
                 answer = Answer(
                     status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
@@ -476,13 +477,31 @@ class ExtractiveAnswerService:
         return confined, outranked
 
     @staticmethod
-    def _find_contradiction(claims: list[Claim], citations: list[Citation]) -> str | None:
+    def _find_contradiction(
+        claims: list[Claim],
+        citations: list[Citation],
+        eligible: list[RetrievedEvidence],
+    ) -> str | None:
         """Two live versions of one document conflict whatever their text says.
 
         Textual contradiction detection is lexical and numeric: two versions of the
         same order that disagree only in a date, a annex reference or a signature block
         pass it silently. Which of them governs is not a question the system may answer
         by ranking — the corpus is in a state a human has to resolve.
+
+        The last check reads the *whole* text of every eligible span, not just the
+        sentences extraction happened to select. A span whose next sentence reversed
+        the one quoted used to answer cleanly (destruction stage B2): the reader
+        opening the source saw the reversal, the system that sent them there did not.
+        Whether the second sentence is a genuine conflict or an exception carved out of
+        the first is not decidable lexically, and it is not the system's decision to
+        make — both readings end at the same place, a human reading the passage.
+
+        The scan covers eligible spans rather than only cited ones. An eligible span
+        already cleared relevance, currency and the top authority class; a refutation
+        sitting in one the extractor did not happen to quote is still the corpus
+        disagreeing with itself, and narrowing the scan to citations would let the
+        selection step decide which contradictions count.
         """
         versions_by_document: dict[UUID, set[UUID]] = {}
         for citation in citations:
@@ -496,6 +515,12 @@ class ExtractiveAnswerService:
                 reason = contradiction_reason(left.text, right.text)
                 if reason is not None:
                     return reason
+        for claim in claims:
+            for item in eligible:
+                refutation = refuting_sentence(claim.text, item.span.text)
+                if refutation is not None:
+                    _sentence, reason = refutation
+                    return f"refuted_by_evidence:{reason}"
         return None
 
     def _abstain(

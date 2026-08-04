@@ -806,6 +806,12 @@ class SqlRepository:
         active_superseder = (
             select(1)
             .where(superseding.c.supersedes_version_id == versions.c.id)
+            # Second line of the same rule the ingest path states: a successor belongs
+            # to the same canonical document. The application refuses to write a
+            # crossing edge; this refuses to honour one, because a row already in the
+            # database, an import from another tool, or a future path that forgets the
+            # check would otherwise let any document remove any other from retrieval.
+            .where(superseding.c.document_id == versions.c.document_id)
             .where(superseding.c.review_state == ReviewState.APPROVED.value)
             .where(
                 (superseding.c.effective_from.is_(None))

@@ -136,6 +136,16 @@ class IngestionService:
             raise PermissionError("corpus governance profile is unavailable")
         if document_data.corpus_id not in actor.corpora and not actor.has_role("admin"):
             raise PermissionError("actor cannot ingest into unassigned corpus")
+        if version_data.supersedes_version_id is not None:
+            # Supersession is an edge inside one canonical document. On this path the
+            # document is being created now, so it has no predecessors and the edge can
+            # only point at somebody else's — which is how a foreign upload took an
+            # approved order out of retrieval while it stayed is_current in the database
+            # (destruction stage B3). The sibling path, which adds a version to an
+            # existing document, checks ownership; this one accepted anything.
+            raise ValueError(
+                "a newly created document cannot supersede a version of another document"
+            )
         if not document_data.compartments.issubset(actor.compartments) and not actor.has_role(
             "admin"
         ):

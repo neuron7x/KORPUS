@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -716,6 +717,78 @@ MUTANTS = (
             "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
         ),
     ),
+    Mutant(
+        "M77_SPAN_SELF_REFUTATION_IGNORED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "                if refutation is not None:",
+        "                if False:",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer",
+        ),
+    ),
+    Mutant(
+        "M78_REFUTATION_LOOKS_ONLY_AT_SELECTED_SENTENCES",
+        "apps/api/src/korpus/application/evidence.py",
+        "    for sentence, _start, _end in segment_sentences(evidence_text):",
+        "    for sentence, _start, _end in segment_sentences(claim):",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer",
+        ),
+    ),
+    Mutant(
+        "M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS",
+        "apps/api/src/korpus/application/answer_query.py",
+        "            for item in eligible:\n"
+        "                refutation = refuting_sentence(claim.text, item.span.text)",
+        "            for item in [\n"
+        "                found\n"
+        "                for found in eligible\n"
+        "                if found.span.id in {citation.span_id for citation in citations}\n"
+        "            ]:\n"
+        "                refutation = refuting_sentence(claim.text, item.span.text)",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones",
+        ),
+    ),
+    Mutant(
+        "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
+        "apps/api/src/korpus/application/evidence.py",
+        "    content = {token for token in tokens.difference(_NEGATIONS) "
+        "if not _NUMERAL.fullmatch(token)}",
+        "    content = set(tokens.difference(_NEGATIONS))",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_a_numeric_reversal_inside_one_span_stops_the_answer",
+        ),
+    ),
+    Mutant(
+        "M81_NEW_DOCUMENT_MAY_SUPERSEDE_A_FOREIGN_VERSION",
+        "apps/api/src/korpus/application/ingestion.py",
+        "        if version_data.supersedes_version_id is not None:\n"
+        "            # Supersession is an edge inside one canonical document.",
+        "        if False:\n"
+        "            # Supersession is an edge inside one canonical document.",
+        (
+            "apps/api/tests/test_foreign_supersession.py::test_a_new_document_cannot_declare_itself_successor_of_another",
+        ),
+    ),
+    Mutant(
+        "M82_SQL_HONOURS_A_CROSSING_SUPERSESSION_EDGE",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "            .where(superseding.c.document_id == versions.c.document_id)",
+        "",
+        (
+            "apps/api/tests/test_foreign_supersession.py::test_a_crossing_edge_already_in_the_database_is_not_honoured",
+        ),
+    ),
+    Mutant(
+        "M83_ENTITLEMENT_CACHE_FROZEN_FOR_PROCESS_LIFETIME",
+        "apps/api/src/korpus/security/auth.py",
+        "        path, digest, hashlib.sha256(Path(path).read_bytes()).hexdigest()",
+        '        path, digest, "constant"',
+        (
+            "apps/api/tests/test_entitlement_revocation.py::test_revocation_on_disk_denies_the_subject_without_a_restart",
+        ),
+    ),
 )
 
 
@@ -842,13 +915,64 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--shard-index", type=int)
     parser.add_argument("--shard-count", type=int, default=1)
     parser.add_argument("--merge", action="store_true")
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=1,
+        help="run this many mutants concurrently; each still gets its own copy of the tree",
+    )
+    parser.add_argument(
+        "--only",
+        default="",
+        help=(
+            "comma-separated mutant ids to run as a probe. Writes var/mutation-probe.json "
+            "and never var/mutation-report.json: a partial run is a development aid, not "
+            "the gate, and must not be able to stand in for one."
+        ),
+    )
     return parser.parse_args()
+
+
+def run_selected(mutants: list[Mutant], jobs: int) -> list[dict[str, object]]:
+    """Run mutants, preserving catalogue order in the results regardless of jobs.
+
+    Each mutant already works in its own copy of the tree, so concurrency changes
+    wall-clock and nothing else. Order is restored explicitly because a report whose
+    contents depend on scheduling cannot be compared between runs.
+    """
+
+    if jobs <= 1:
+        return [run_mutant(mutant) for mutant in mutants]
+    with ThreadPoolExecutor(max_workers=jobs) as pool:
+        return list(pool.map(run_mutant, mutants))
 
 
 def main() -> int:
     args = parse_args()
     if args.shard_count < 1:
         raise SystemExit("--shard-count must be >= 1")
+    if args.jobs < 1:
+        raise SystemExit("--jobs must be >= 1")
+    if args.only:
+        requested = [name.strip() for name in args.only.split(",") if name.strip()]
+        by_id = {mutant.id: mutant for mutant in MUTANTS}
+        unknown = [name for name in requested if name not in by_id]
+        if unknown:
+            raise SystemExit(f"unknown mutant ids: {unknown}")
+        results = run_selected([by_id[name] for name in requested], args.jobs)
+        report = summarize(results, shard_index=None, shard_count=1)
+        report["probe"] = True
+        output = ROOT / "var/mutation-probe.json"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(
+            json.dumps(
+                {key: value for key, value in report.items() if key != "results"},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0 if report["mutation_score"] == 1.0 else 1
     if args.merge:
         report = merge_shards(args.shard_count)
         output = ROOT / "var/mutation-report.json"
@@ -857,7 +981,7 @@ def main() -> int:
         if not 0 <= shard_index < args.shard_count:
             raise SystemExit("--shard-index must satisfy 0 <= index < shard-count")
         selected = list(MUTANTS[shard_index::args.shard_count])
-        results = [run_mutant(mutant) for mutant in selected]
+        results = run_selected(selected, args.jobs)
         report = summarize(
             results,
             shard_index=shard_index if args.shard_count > 1 else None,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -75,8 +76,35 @@ def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
 
 
 @lru_cache(maxsize=16)
-def _load_entitlement_profile(path: str, digest: str | None) -> EntitlementProfile:
+def _load_entitlement_profile(
+    path: str, digest: str | None, content_key: str
+) -> EntitlementProfile:
+    """Parse the profile. `content_key` is part of the cache key, not of the load."""
+
+    del content_key
     return EntitlementProfile.load(Path(path), digest)
+
+
+def load_entitlement_profile(path: str, digest: str | None) -> EntitlementProfile:
+    """Load the entitlement profile, honouring revocations written since start-up.
+
+    The cache used to be keyed on the path alone, which froze the profile for the life
+    of the process: a subject added to `deny_subjects` on disk kept every right it had
+    (probe: `REVOCATION IGNORED ['reviewer']`), and nothing — not `/ready`, not a new
+    request — re-read the file. Restarting the API is not a revocation mechanism.
+
+    The key is the file's content, so a revocation takes effect on the next request and
+    an unchanged file is still parsed once. Reading the bytes on each call is
+    deliberate and is the whole cost of the check; parsing and validation, which are
+    the expensive parts, stay cached. A pinned digest that no longer matches raises
+    rather than falling back to the profile already in memory: refusing to serve a
+    changed profile is the fail-closed direction, and continuing to serve the old one
+    is precisely the behaviour being removed.
+    """
+
+    return _load_entitlement_profile(
+        path, digest, hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    )
 
 
 def _oidc_identity(claims: dict[str, Any], settings: Settings) -> Identity:
@@ -86,7 +114,7 @@ def _oidc_identity(claims: dict[str, Any], settings: Settings) -> Identity:
             detail="server-side entitlement profile is unavailable",
         )
     try:
-        profile = _load_entitlement_profile(
+        profile = load_entitlement_profile(
             str(settings.entitlement_profile_path.resolve()), settings.entitlement_profile_sha256
         )
         return profile.resolve(claims)
