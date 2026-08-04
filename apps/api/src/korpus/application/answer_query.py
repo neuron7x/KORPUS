@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from uuid import UUID
 
 from korpus.application.evidence import (
     SupportVerdict,
@@ -172,6 +173,7 @@ class ExtractiveAnswerService:
             minimum_query_coverage=self.answer_policy.minimum_query_coverage,
             minimum_support_score=self.answer_policy.minimum_support_score,
         )
+        eligible, outranked = self._confine_to_top_authority(eligible)
         query_tokens = frozenset(tokenize(query.text))
         claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
 
@@ -194,7 +196,7 @@ class ExtractiveAnswerService:
                 query_coverage=query_coverage,
             )
         else:
-            contradiction = self._find_contradiction(claims)
+            contradiction = self._find_contradiction(claims, citations)
             if contradiction is not None:
                 answer = Answer(
                     status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
@@ -227,6 +229,7 @@ class ExtractiveAnswerService:
                         "Відповідь екстрактивна: система не додає фактів"
                         " поза точними цитованими реченнями.",
                         "Retrieval score є ranking utility, а не ймовірністю істинності.",
+                        *self._source_limitations(citations, outranked),
                     ],
                     corpus_release=release_id,
                 )
@@ -385,7 +388,64 @@ class ExtractiveAnswerService:
         )
 
     @staticmethod
-    def _find_contradiction(claims: list[Claim]) -> str | None:
+    def _source_limitations(
+        citations: list[Citation], outranked: list[RetrievedEvidence]
+    ) -> list[str]:
+        """Name what the ranking discarded and what the citation list double-counts."""
+        limitations: list[str] = []
+        if outranked:
+            classes = sorted({item.version.authority.value for item in outranked})
+            limitations.append(
+                f"Не використано {len(outranked)} джерел нижчого рангу"
+                f" ({', '.join(classes)}): ранг джерела не перебивається схожістю."
+            )
+        per_version: dict[UUID, int] = {}
+        for citation in citations:
+            per_version[citation.version_id] = per_version.get(citation.version_id, 0) + 1
+        repeated = sum(1 for count in per_version.values() if count > 1)
+        if repeated:
+            limitations.append(
+                f"{repeated} версій цитовано більше ніж один раз:"
+                " кілька цитат з однієї версії — це одне джерело, а не кілька."
+            )
+        return limitations
+
+    @staticmethod
+    def _confine_to_top_authority(
+        eligible: list[RetrievedEvidence],
+    ) -> tuple[list[RetrievedEvidence], list[RetrievedEvidence]]:
+        """Keep only the strongest authority class present, and say how many were dropped.
+
+        Authority was one term of a convex sum, so an analytical passage that matched
+        the query well could sit beside — and contradict — the official order it
+        comments on. Two consequences followed: the weaker source was cited as if it
+        were equal, and `_find_contradiction` compared it against the stronger one and
+        pushed the whole answer to REQUIRES_HUMAN_REVIEW. A lower-ranked source cannot
+        overrule a higher-ranked one, so it also cannot veto it.
+        """
+        if not eligible:
+            return [], []
+        top = max(AUTHORITY_PRIOR[item.version.authority] for item in eligible)
+        confined = [item for item in eligible if AUTHORITY_PRIOR[item.version.authority] == top]
+        outranked = [item for item in eligible if AUTHORITY_PRIOR[item.version.authority] < top]
+        return confined, outranked
+
+    @staticmethod
+    def _find_contradiction(claims: list[Claim], citations: list[Citation]) -> str | None:
+        """Two live versions of one document conflict whatever their text says.
+
+        Textual contradiction detection is lexical and numeric: two versions of the
+        same order that disagree only in a date, a annex reference or a signature block
+        pass it silently. Which of them governs is not a question the system may answer
+        by ranking — the corpus is in a state a human has to resolve.
+        """
+        versions_by_document: dict[UUID, set[UUID]] = {}
+        for citation in citations:
+            versions_by_document.setdefault(citation.document_id, set()).add(citation.version_id)
+        ordered = sorted(versions_by_document.items(), key=lambda entry: str(entry[0]))
+        for document_id, version_ids in ordered:
+            if len(version_ids) > 1:
+                return f"multiple_current_versions:{document_id}"
         for left_index, left in enumerate(claims):
             for right in claims[left_index + 1 :]:
                 reason = contradiction_reason(left.text, right.text)

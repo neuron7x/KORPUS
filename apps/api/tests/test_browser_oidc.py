@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -139,6 +140,37 @@ def test_browser_session_codec_rejects_tampering_and_expiry():
     clock[0] = 1031.0
     with pytest.raises(BrowserSessionError, match="expired"):
         codec.open(token, expected_kind="session")
+
+
+def test_the_codec_rejects_a_second_spelling_of_the_same_token():
+    """Unpadded base64 is malleable at the tail; AES-GCM cannot see it.
+
+    When the sealed byte length is not a multiple of three, the final character holds
+    bits no byte uses, so a different character decodes to identical plaintext and the
+    cipher authenticates it. That made the sweep above pass or fail depending on the
+    random nonce — one run in five. The decoder now rejects any spelling it would not
+    itself produce, so the token-to-bytes mapping is one-to-one and the sweep is a
+    statement about the codec rather than about luck.
+    """
+    codec = BrowserSessionCodec("x" * 40, clock=lambda: 1000.0)
+    token = codec.seal("session", {"access_token": "a", "csrf": "c"}, ttl_seconds=30)
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    decoded = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+
+    variants = [
+        token[:-1] + char
+        for char in alphabet
+        if char != token[-1]
+        and base64.urlsafe_b64decode(token[:-1] + char + "=" * (-len(token) % 4)) == decoded
+    ]
+
+    assert variants, (
+        "this token happens to have no equivalent spelling; the property under test "
+        "is only exercised when the payload length is not a multiple of three"
+    )
+    for variant in variants:
+        with pytest.raises(BrowserSessionError):
+            codec.open(variant, expected_kind="session")
 
 
 def test_oidc_authorization_url_uses_state_nonce_and_s256_pkce():

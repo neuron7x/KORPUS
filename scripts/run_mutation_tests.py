@@ -366,6 +366,63 @@ MUTANTS = (
         ),
         ("apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim",),
     ),
+    Mutant(
+        # Puts authority back into the convex sum, where a 0.0756 prior gap loses to
+        # lexical similarity.
+        "M38_AUTHORITY_BACK_TO_A_SCORE_TERM",
+        "apps/api/src/korpus/application/retrieval.py",
+        (
+            "            return (\n"
+            "                priors[item.version.authority],\n"
+            "                mmr,\n"
+        ),
+        (
+            "            return (\n"
+            "                0.0,\n"
+            "                mmr,\n"
+        ),
+        ("apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",),
+    ),
+    Mutant(
+        "M39_LOWER_RANK_CAN_VETO_AGAIN",
+        "apps/api/src/korpus/application/answer_query.py",
+        "        eligible, outranked = self._confine_to_top_authority(eligible)",
+        "        outranked: list[RetrievedEvidence] = []",
+        ("apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer",),
+    ),
+    Mutant(
+        "M40_VERSION_CONFLICT_CHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "            if len(version_ids) > 1:",
+        "            if False:",
+        ("apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human",),
+    ),
+    Mutant(
+        # One version cited twice reads as two independent sources.
+        "M41_PER_VERSION_CAP_WIDENED",
+        "apps/api/src/korpus/application/retrieval.py",
+        "    per_version_cap: int = 1,",
+        "    per_version_cap: int = 2,",
+        ("apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match",),
+    ),
+    Mutant(
+        # The same cap, but the value the application is wired with rather than the
+        # function default; the two drifted apart before.
+        "M43_WIRED_PER_VERSION_CAP_WIDENED",
+        "apps/api/src/korpus/api/dependencies.py",
+        "        per_version_cap = 1",
+        "        per_version_cap = 2",
+        ("apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version",),
+    ),
+    Mutant(
+        # Unpadded base64 accepts a second spelling of the same bytes, so a session
+        # cookie is not one string.
+        "M42_TOKEN_CANONICALITY_CHECK_REMOVED",
+        "apps/api/src/korpus/security/browser_oidc.py",
+        'if base64.urlsafe_b64encode(decoded).rstrip(b"=").decode("ascii") != value:',
+        "if False:",
+        ("apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token",),
+    ),
 )
 
 

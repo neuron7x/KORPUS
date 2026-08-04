@@ -204,7 +204,7 @@ def get_answer_service(
         candidate_budget = settings.retrieval_candidate_budget
         timeout_ms = settings.retrieval_timeout_ms
         diversity_lambda = 0.82
-        per_version_cap = 2
+        per_version_cap = 1
         configuration_id = "development-default-ranking-v5"
         authority_priors = None
     base = HybridLexicalRetriever(

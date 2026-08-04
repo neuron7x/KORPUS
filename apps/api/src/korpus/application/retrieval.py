@@ -296,14 +296,24 @@ def diversify_evidence(
     *,
     limit: int,
     diversity_lambda: float = 0.82,
-    per_version_cap: int = 2,
+    per_version_cap: int = 1,
+    authority_priors: dict[AuthorityClass, float] | None = None,
 ) -> list[RetrievedEvidence]:
-    """Maximal-marginal-relevance selection with deterministic tie-breaking."""
+    """Maximal-marginal-relevance selection, ordered by authority class first.
+
+    Authority used to be one term of a convex sum with weight 0.14, which makes it a
+    quantity that similarity can outbid: the prior gap between OFFICIAL_UA and
+    ANALYTICAL is 0.0756, so a well-matched analytical passage outranked the order it
+    contradicts. Rank is now lexicographic — authority class first, marginal relevance
+    only as a tie-break inside the class — so no amount of lexical similarity promotes
+    a weaker source above a stronger one.
+    """
 
     if not 0 <= diversity_lambda <= 1:
         raise ValueError("diversity_lambda must be in [0, 1]")
     if limit < 1 or per_version_cap < 1:
         raise ValueError("limits must be positive")
+    priors = authority_priors or AUTHORITY_PRIOR
     selected: list[RetrievedEvidence] = []
     remaining = list(ranked)
     version_counts: defaultdict[str, int] = defaultdict(int)
@@ -315,7 +325,7 @@ def diversify_evidence(
         if not admissible:
             break
 
-        def utility(item: RetrievedEvidence) -> tuple[float, float, str, int]:
+        def utility(item: RetrievedEvidence) -> tuple[float, float, float, str, int]:
             redundancy = max(
                 (
                     jaccard(grams[str(item.span.id)], grams[str(other.span.id)])
@@ -324,7 +334,13 @@ def diversify_evidence(
                 default=0.0,
             )
             mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
-            return (mmr, item.score, item.version.source_hash, -item.span.ordinal)
+            return (
+                priors[item.version.authority],
+                mmr,
+                item.score,
+                item.version.source_hash,
+                -item.span.ordinal,
+            )
 
         winner = max(admissible, key=utility)
         selected.append(winner)
@@ -344,7 +360,7 @@ class HybridLexicalRetriever(Retriever):
         *,
         weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS,
         diversity_lambda: float = 0.82,
-        per_version_cap: int = 2,
+        per_version_cap: int = 1,
         timeout_ms: int = 1200,
         semantic_source: Any | None = None,
         authority_priors: dict[AuthorityClass, float] | None = None,
@@ -440,6 +456,7 @@ class HybridLexicalRetriever(Retriever):
             )
         output.sort(
             key=lambda item: (
+                -self.authority_priors[item.version.authority],
                 -item.score,
                 -item.query_coverage,
                 item.version.source_hash,
@@ -453,6 +470,7 @@ class HybridLexicalRetriever(Retriever):
             limit=limit,
             diversity_lambda=self.diversity_lambda,
             per_version_cap=self.per_version_cap,
+            authority_priors=self.authority_priors,
         )
 
 

@@ -60,7 +60,7 @@ class CalibrationProfile(BaseModel):
     authority_historical: float = Field(default=0.30, ge=0, le=1)
     authority_unknown: float = Field(default=0.00, ge=0, le=1)
     diversity_lambda: float = Field(default=0.82, ge=0, le=1)
-    per_version_cap: int = Field(default=2, ge=1, le=8)
+    per_version_cap: int = Field(default=1, ge=1, le=8)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
 
