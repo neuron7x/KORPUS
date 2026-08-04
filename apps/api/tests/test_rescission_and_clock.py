@@ -116,7 +116,9 @@ def test_withdrawing_twice_is_refused_as_already_withdrawn(client: TestClient) -
     )
     assert current is not None
     assert current.rescinded_at is not None
-    assert current.rescinded_at.isoformat() == stamped, (
+    # Compared as instants, not as strings: the API serialises UTC as `…Z` and psycopg
+    # returns `…+00:00` for the same moment, so a string comparison tests the driver.
+    assert current.rescinded_at == datetime.fromisoformat(str(stamped).replace("Z", "+00:00")), (
         "the second attempt must not move the date the first one recorded"
     )
 

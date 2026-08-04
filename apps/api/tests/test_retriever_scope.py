@@ -39,7 +39,7 @@ from korpus.domain.models import (
 from korpus.infrastructure.repository import audits
 from sqlalchemy import select
 
-from apps.api.tests.conftest import set_identity
+from apps.api.tests.conftest import privileged_connection, set_identity
 
 LEAK = "БЕТА-ВИТІК"
 
@@ -124,7 +124,7 @@ def _ask(client: TestClient) -> dict[str, object]:
 
 
 def _audit_actions(client: TestClient) -> list[str]:
-    with client.app.state.repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         rows = connection.execute(select(audits.c.action, audits.c.payload_json)).all()
     return [row.action for row in rows]
 

@@ -59,7 +59,12 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 
-SCHEMA_REVISION = "0009_reviewer_credentials"
+#: The alembic head this code expects. `initialize(create_schema=False)` — the
+#: production path — refuses to start on anything else. It is pinned by
+#: test_schema_revision_pin.py against the migration graph, because it drifted once:
+#: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
+#: refused to start while every SQLite test stayed green.
+SCHEMA_REVISION = "0010_revision_identity"
 
 metadata = MetaData()
 
@@ -1229,13 +1234,39 @@ class SqlRepository:
                 anchor_valid=False,
                 reason=str(exc),
             )
-        anchor_valid = anchor.sequence == head_sequence and anchor.head_hash == head_hash
+        if anchor.sequence > head_sequence:
+            # The anchor was written for events the database no longer has: a restore
+            # from an older backup, or lost committed rows. This is the failure the
+            # anchor exists to catch.
+            return AuditVerification(
+                valid=False,
+                event_count=len(rows),
+                head_sequence=head_sequence,
+                anchor_valid=False,
+                reason="external audit anchor is ahead of the database head",
+            )
+        anchor_at_position = (
+            head_hash
+            if anchor.sequence == head_sequence
+            else (rows[anchor.sequence - 1]["event_hash"] if anchor.sequence >= 1 else "0" * 64)
+        )
+        if anchor.head_hash != anchor_at_position:
+            return AuditVerification(
+                valid=False,
+                event_count=len(rows),
+                head_sequence=head_sequence,
+                anchor_valid=False,
+                first_invalid_sequence=anchor.sequence or None,
+                reason="external audit anchor mismatch",
+            )
+        pending = head_sequence - anchor.sequence
         return AuditVerification(
-            valid=anchor_valid,
+            valid=True,
             event_count=len(rows),
             head_sequence=head_sequence,
-            anchor_valid=anchor_valid,
-            reason=None if anchor_valid else "external audit anchor mismatch",
+            anchor_valid=pending == 0,
+            anchor_pending=pending,
+            reason=None if pending == 0 else f"{pending} checkpoints awaiting anchor delivery",
         )
 
     def corpus_release_id(
@@ -1429,11 +1460,25 @@ class SqlRepository:
         resource_id: str | None,
         payload: dict[str, Any],
     ) -> tuple[int, str]:
-        head_sequence, previous_hash = connection.execute(
-            select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
-                audit_heads.c.singleton_id == 1
-            )
-        ).one()
+        head_statement = select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+            audit_heads.c.singleton_id == 1
+        )
+        if connection.dialect.name == "postgresql":
+            # A hash chain is serial by construction: every append has to read the head
+            # its predecessor wrote. The optimistic form — read, then update guarded by
+            # the value read — is correct but degrades badly under contention, because
+            # every loser retries against a head that has moved again. Forty concurrent
+            # appends exhausted the eight-retry budget and raised
+            # `ConcurrentWriteError: transaction retry budget exhausted` on PostgreSQL;
+            # SQLite serialises writes behind its own lock, so the suite never saw it.
+            # Since answering writes an audit event and an answer without one is refused
+            # by design, that failure mode denies service under exactly the load it is
+            # most likely to meet.
+            #
+            # Taking the row lock first makes the queue explicit: writers wait instead
+            # of colliding, and the guarded UPDATE below stays as the second line.
+            head_statement = head_statement.with_for_update()
+        head_sequence, previous_hash = connection.execute(head_statement).one()
         sequence = head_sequence + 1
         occurred_at = datetime.now(UTC)
         event_id = str(uuid4())

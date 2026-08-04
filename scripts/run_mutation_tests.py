@@ -880,6 +880,46 @@ MUTANTS = (
             "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
         ),
     ),
+    Mutant(
+        "M94_SCHEMA_REVISION_PIN_UNCHECKED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        'SCHEMA_REVISION = "0010_revision_identity"',
+        'SCHEMA_REVISION = "0009_reviewer_credentials"',
+        (
+            "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
+        ),
+    ),
+    Mutant(
+        "M95_DELAYED_ANCHOR_REPORTED_AS_BROKEN_CHAIN",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        pending = head_sequence - anchor.sequence\n"
+        "        return AuditVerification(\n"
+        "            valid=True,",
+        "        pending = head_sequence - anchor.sequence\n"
+        "        return AuditVerification(\n"
+        "            valid=pending == 0,",
+        (
+            "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid",
+        ),
+    ),
+    Mutant(
+        "M96_ANCHOR_AHEAD_OF_HEAD_ACCEPTED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if anchor.sequence > head_sequence:",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_ahead_of_the_head_is_invalid",
+        ),
+    ),
+    Mutant(
+        "M97_ANCHOR_POSITION_HASH_NOT_COMPARED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if anchor.head_hash != anchor_at_position:",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_that_disagrees_at_its_own_position_is_invalid",
+        ),
+    ),
 )
 
 

@@ -28,6 +28,7 @@ from korpus.domain.models import AuthorityClass, DocumentVersionRecord
 from korpus.infrastructure.repository import versions
 from sqlalchemy import update
 
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text
 
 DAY = date(2026, 6, 15)
@@ -190,8 +191,7 @@ def test_rescission_removes_the_document_from_search_on_its_own_day(
     result = ingest_text(client, text=BODY)
     version_id = result["version"]["id"]
     approve(client, version_id)
-    repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         connection.execute(
             update(versions)
             .where(versions.c.id == version_id)
@@ -229,14 +229,14 @@ def test_the_candidate_query_alone_excludes_an_invalid_version(
     approve(client, version_id)
     repository = client.app.state.repository
     if field == "rescinded_at":
-        with repository.engine.begin() as connection:
+        with privileged_connection(client) as connection:
             connection.execute(
                 update(versions)
                 .where(versions.c.id == version_id)
                 .values(rescinded_at=datetime(DAY.year, DAY.month, DAY.day, 9, 30, tzinfo=UTC))
             )
 
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         candidates = repository._candidate_span_ids(
             admin_identity, frozenset({"public"}), asked_on, MARKER, 20, connection
         )

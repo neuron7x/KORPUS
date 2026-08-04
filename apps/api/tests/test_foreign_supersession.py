@@ -23,6 +23,7 @@ from fastapi.testclient import TestClient
 from korpus.domain.models import Identity
 from sqlalchemy import text
 
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text
 
 VICTIM_MARKER = "ПОТЕРПІЛИЙ"
@@ -123,7 +124,7 @@ def test_a_crossing_edge_already_in_the_database_is_not_honoured(
     approve(client, attacker["version"]["id"])
 
     repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         connection.execute(
             text(
                 "UPDATE document_versions SET supersedes_version_id = :victim WHERE id = :attacker"

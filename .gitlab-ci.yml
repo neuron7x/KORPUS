@@ -176,7 +176,12 @@ api:postgres-and-restore:
     - export PATH="/tmp/korpus-venv/bin:$PATH"
     - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
     - python scripts/prepare_postgres_role.py
-    - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
+    # The whole suite against the migrated database, not only the postgres-marked test.
+    # Every closure in this tree was proved on SQLite; the first run of this line found
+    # a schema revision pin the code had outgrown, an audit verdict that called a
+    # delayed anchor a broken chain, and forty concurrent appends exhausting the retry
+    # budget — none of which SQLite can show.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
     - backup_path="$(scripts/backup_postgres.sh)"

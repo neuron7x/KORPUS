@@ -27,12 +27,19 @@ from korpus.infrastructure.repository import (
 from sqlalchemy import insert, select, text
 from sqlalchemy.exc import DBAPIError
 
+from apps.api.tests.conftest import reset_database
+
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 pytestmark = pytest.mark.postgres
 
 
 @pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
 def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
+    # This test signs its audit events with its own key, so any event another test
+    # left behind reads as a hash mismatch — which is the chain check working, not a
+    # finding. It shares the database with the rest of the suite when the whole suite
+    # runs on PostgreSQL, so it starts from an empty one.
+    reset_database()
     repository = SqlRepository(
         POSTGRES_URL,
         "postgres-integration-audit-key",
@@ -75,6 +82,8 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
             review_state=ReviewState.APPROVED,
+            # An approved version governs from a stated date, in both dialects.
+            publication_date=date(2020, 1, 1),
             is_current=True,
         )
         span = EvidenceSpanRecord(

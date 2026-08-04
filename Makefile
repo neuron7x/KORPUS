@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -47,6 +47,14 @@ eval:
 
 mutation:
 	PYTHONPATH=apps/api/src PYTHON=$(PY) KORPUS_MUTATION_SHARDS=6 scripts/run_mutation_shards.sh
+
+# The suite against a migrated PostgreSQL database, in a throwaway container. Not part
+# of `check`: it needs docker, and `check` has to run where docker does not. It is a
+# required CI job instead — the closures in this tree were proved on SQLite, and the
+# two dialects have separate implementations of the currency filters, the retrieval
+# projection and the audit head update.
+postgres-suite:
+	scripts/run_postgres_suite.sh
 
 migration-gate:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_migration_gate.py

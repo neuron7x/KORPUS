@@ -21,6 +21,7 @@ from datetime import date
 
 from fastapi.testclient import TestClient
 
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text, transition
 
 MARKER = "МЕЖА"
@@ -93,7 +94,7 @@ def test_the_projection_ignores_an_unbounded_version_already_in_the_database(
     version_id = result["version"]["id"]
     approve(client, version_id)
     repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         connection.execute(
             sql(
                 "UPDATE document_versions SET effective_from = NULL, publication_date = NULL "
@@ -129,7 +130,7 @@ def test_the_candidate_sql_excludes_an_unbounded_version(client: TestClient) -> 
     version_id = result["version"]["id"]
     approve(client, version_id)
     repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         connection.execute(
             sql(
                 "UPDATE document_versions SET effective_from = NULL, publication_date = NULL "

@@ -401,10 +401,25 @@ class RescissionRequest(BaseModel):
 
 
 class AuditVerification(BaseModel):
+    """Two questions, kept apart: is the chain intact, and is the anchor current.
+
+    They used to be one. `valid` was false whenever the external anchor was not exactly
+    at the head, so a burst of concurrent appends — the anchor is delivered from an
+    outbox, outside the business transaction, by design — made `/v1/audit/verify`
+    report the audit as broken while nothing was wrong. Observed on PostgreSQL with 40
+    concurrent appends; SQLite serialises writes enough to hide it.
+
+    An anchor *behind* the head is undelivered work and is reported as
+    `anchor_pending`. An anchor that disagrees with the event at its own position, or
+    that sits ahead of the head, is a real finding: the first means the chain was
+    rewritten under it, the second means the database lost committed rows.
+    """
+
     valid: bool
     event_count: int = Field(ge=0)
     head_sequence: int = Field(ge=0)
     anchor_valid: bool
+    anchor_pending: int = Field(default=0, ge=0)
     first_invalid_sequence: int | None = None
     reason: str | None = None
 
