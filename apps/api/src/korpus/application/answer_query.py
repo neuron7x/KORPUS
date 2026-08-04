@@ -37,6 +37,15 @@ class SentenceCandidate:
     query_coverage: float
 
 
+@dataclass(frozen=True)
+class ScopeBreach:
+    """Evidence the retriever returned that the reader was never authorized to see."""
+
+    version_id: str
+    kind: str
+    detail: str
+
+
 def contains_control_injection(text: str) -> bool:
     return assess_control_injection(text).blocked
 
@@ -132,6 +141,13 @@ class ExtractiveAnswerService:
             )
             self._audit(identity, query, answer, [], [], risk)
             return answer
+
+        breaches = self._scope_breaches(identity, corpora, retrieved)
+        if breaches:
+            answer = self._breach(release_id, breaches)
+            self._audit(identity, query, answer, retrieved, [], risk, breaches=breaches)
+            return answer
+
         eligible = self.answer_policy.eligible(retrieved, risk)
         if not eligible:
             answer = self._abstain(
@@ -258,6 +274,59 @@ class ExtractiveAnswerService:
         self._audit(identity, query, answer, retrieved, eligible, risk)
         return answer
 
+    def _scope_breaches(
+        self,
+        identity: Identity,
+        corpora: frozenset[str],
+        retrieved: list[RetrievedEvidence],
+    ) -> list[ScopeBreach]:
+        """Re-check, in the application layer, what the retriever claims is in scope.
+
+        `Retriever` is a port. Today the only adapter narrows the query in SQL, but a
+        second adapter, a cache returning a neighbouring reader's rows, or a defect in
+        the one adapter that exists would widen disclosure with nothing above it
+        objecting. The check is deliberately not a filter: silently dropping the row
+        would answer from the remainder and leave the defective adapter in service.
+        """
+        breaches: list[ScopeBreach] = []
+        for item in retrieved:
+            document = item.document
+            version_id = str(item.version.id)
+            if document.corpus_id not in corpora:
+                breaches.append(
+                    ScopeBreach(
+                        version_id,
+                        "corpus_out_of_scope",
+                        f"corpus {document.corpus_id} was not authorized for this query",
+                    )
+                )
+                continue
+            decision = self.policy_engine.can_access_document(identity, document)
+            if not decision.allowed:
+                breaches.append(ScopeBreach(version_id, "reader_not_cleared", decision.reason))
+        return breaches
+
+    def _breach(self, release_id: str, breaches: list[ScopeBreach]) -> Answer:
+        kinds = sorted({breach.kind for breach in breaches})
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Пошуковий контур повернув матеріал поза дозволеною областю читача;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="retriever_scope_breach",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Це не брак доказів, а порушення цілісності доступу в шарі пошуку.",
+                f"Breach kinds: {', '.join(kinds)}.",
+                f"Affected versions: {len(breaches)}.",
+            ],
+            corpus_release=release_id,
+        )
+
     @staticmethod
     def _find_contradiction(claims: list[Claim]) -> str | None:
         for left_index, left in enumerate(claims):
@@ -297,7 +366,29 @@ class ExtractiveAnswerService:
         retrieved: list[RetrievedEvidence],
         eligible: list[RetrievedEvidence],
         risk: QueryRisk = QueryRisk.STANDARD,
+        *,
+        breaches: list[ScopeBreach] | None = None,
     ) -> None:
+        if breaches:
+            self.repository.append_audit(
+                identity,
+                "answer.scope_breach",
+                "answer",
+                str(answer.id),
+                {
+                    "decision_reason": answer.decision_reason,
+                    "breaches": [
+                        {
+                            "version_id": breach.version_id,
+                            "kind": breach.kind,
+                            "detail": breach.detail,
+                        }
+                        for breach in breaches
+                    ],
+                    "requested_corpora": query.corpus_ids,
+                    "reader_clearance": int(identity.clearance),
+                },
+            )
         self.repository.append_audit(
             identity,
             "answer.completed",

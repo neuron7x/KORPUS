@@ -273,6 +273,70 @@ MUTANTS = (
         "return self.rescinded_at is None or as_of <= self.rescinded_at.date()",
         ("apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission",),
     ),
+    Mutant(
+        # The same three boundaries exist a second time, in the SQL that picks
+        # candidates. Only the domain copy was defended: a candidate the query drops
+        # can never be restored by `_materialize_current`, so this shift expires an
+        # order a day early and the domain never gets to disagree.
+        "M29_SQL_VALIDITY_END_SHIFT",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "AND (v.effective_until IS NULL OR v.effective_until >= :as_of)",
+        "AND (v.effective_until IS NULL OR v.effective_until > :as_of)",
+        ("apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",),
+    ),
+    Mutant(
+        "M30_SQL_VALIDITY_START_SHIFT",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "AND (v.effective_from IS NULL OR v.effective_from <= :as_of)",
+        "AND (v.effective_from IS NULL OR v.effective_from < :as_of)",
+        ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
+    ),
+    Mutant(
+        "M31_SQL_RESCISSION_SHIFT",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
+        "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)",
+        # Behaviourally this one is equivalent — `_materialize_current` re-checks the
+        # domain and the answer is unchanged — so only the test that asserts the SQL
+        # layer on its own can kill it.
+        ("apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version",),
+    ),
+    Mutant(
+        # Removes the application-layer scope re-check. Nothing above the retrieval
+        # port would object to a row from a corpus the reader never requested.
+        "M32_RETRIEVER_CORPUS_RECHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "if document.corpus_id not in corpora:",
+        "if False:",
+        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
+    ),
+    Mutant(
+        "M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "if not decision.allowed:",
+        "if False:",
+        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
+    ),
+    Mutant(
+        # Turns the breach into a silent filter — the failure mode the check exists to
+        # prevent: the answer looks normal and the defective adapter stays in service.
+        "M34_SCOPE_BREACH_DOWNGRADED_TO_FILTER",
+        "apps/api/src/korpus/application/answer_query.py",
+        (
+            "        breaches = self._scope_breaches(identity, corpora, retrieved)\n"
+            "        if breaches:"
+        ),
+        (
+            "        breaches = self._scope_breaches(identity, corpora, retrieved)\n"
+            "        retrieved = [\n"
+            "            item\n"
+            "            for item in retrieved\n"
+            "            if str(item.version.id) not in {b.version_id for b in breaches}\n"
+            "        ]\n"
+            "        if False:"
+        ),
+        ("apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch",),
+    ),
 )
 
 
