@@ -55,8 +55,8 @@ MUTANTS = (
     Mutant(
         "M03_EXACT_SUPPORT_REMOVED",
         "apps/api/src/korpus/application/answer_query.py",
-        "support_score = 1.0",
-        "support_score = 0.0",
+        "            support_score = extractive_support(candidate.text, item.span.text)",
+        "            support_score = 0.0",
         ("apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation",),
     ),
     Mutant(
@@ -965,6 +965,22 @@ MUTANTS = (
         (
             "apps/api/tests/test_span_lookup.py::test_a_span_carries_the_section_it_sits_under",
         ),
+    ),
+    Mutant(
+        "M102_SUPPORT_GATE_CANNOT_FAIL",
+        "apps/api/src/korpus/application/answer_query.py",
+        "            support_score = extractive_support(candidate.text, item.span.text)",
+        "            support_score = 1.0",
+        (
+            "apps/api/tests/test_support_gate.py::test_the_extraction_step_drops_a_claim_below_the_support_threshold",
+        ),
+    ),
+    Mutant(
+        "M103_EMPTY_CLAIM_TRIVIALLY_SUPPORTED",
+        "apps/api/src/korpus/application/evidence.py",
+        "    if not tokens:\n        return 0.0",
+        "    if not tokens:\n        return 1.0",
+        ("apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support",),
     ),
 )
 

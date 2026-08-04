@@ -8,6 +8,7 @@ from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
     contradiction_reason,
+    extractive_support,
     refuting_sentence,
     segment_sentences,
     verify_claim_support,
@@ -263,7 +264,7 @@ class ExtractiveAnswerService:
 
         for item in eligible:
             candidates = sorted(
-                sentence_candidates(item.span.text, query_tokens),
+                self._candidates(item.span.text, query_tokens),
                 key=lambda candidate: (-candidate.query_coverage, candidate.start),
             )
             candidate = next(
@@ -277,9 +278,13 @@ class ExtractiveAnswerService:
             )
             if candidate is None or candidate.query_coverage < thresholds.minimum_query_coverage:
                 continue
-            # The claim is a byte-for-byte extract from the cited span. Support is therefore
-            # exact; relevance remains a separate query-coverage gate.
-            support_score = 1.0
+            # Measured rather than asserted. It used to be the constant 1.0 against a
+            # threshold clamped to at most 1.0, so the branch below was unreachable in
+            # every configuration and `SupportState.UNSUPPORTED` was produced nowhere.
+            # For a byte-for-byte extract the value is 1.0 by construction; it moves
+            # only if extraction stops being exact, which is the case the gate exists
+            # for. Relevance remains a separate query-coverage gate.
+            support_score = extractive_support(candidate.text, item.span.text)
             if support_score < thresholds.minimum_support_score:
                 continue
             claims.append(
@@ -315,6 +320,18 @@ class ExtractiveAnswerService:
             if len(claims) >= self.answer_policy.max_claims:
                 break
         return claims, citations, covered_tokens
+
+    @staticmethod
+    def _candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
+        """Seam for the support gate's adversary.
+
+        The gate exists for the case where extraction stops producing byte-for-byte
+        extracts. No such extraction exists in the tree, so the case is produced by
+        substituting this method — without a seam the gate would again be a branch
+        nothing can reach, which is the defect being fixed.
+        """
+
+        return sentence_candidates(text, query_tokens)
 
     def _scope_breaches(
         self,

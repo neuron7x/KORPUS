@@ -229,6 +229,28 @@ def contradiction_reason(left: str, right: str, minimum_overlap: float = 0.55) -
     return None
 
 
+def extractive_support(claim: str, span_text: str) -> float:
+    """How much of a claim its cited span actually carries, in [0, 1].
+
+    `support_score` was the constant 1.0 and the thresholds are clamped to at most 1.0,
+    so `support_score < minimum_support_score` was false for every configuration: the
+    gate could not fail, `SupportState.UNSUPPORTED` was produced nowhere, and deleting
+    the two lines changed no test (destruction stage, 2026-08-03). A predicate that
+    cannot be false is not a safeguard; it is a claim about one.
+
+    Measured as the share of the claim's content tokens present in the span. For a
+    verbatim extract this is 1.0 by construction, which is the point: the number does
+    not move while extraction is exact, and it falls the moment a claim carries
+    anything its span does not — which is what the gate is for.
+    """
+
+    tokens = frozenset(tokenize(normalize_text(claim)))
+    if not tokens:
+        return 0.0
+    available = frozenset(tokenize(normalize_text(span_text)))
+    return len(tokens.intersection(available)) / len(tokens)
+
+
 def refuting_sentence(claim: str, evidence_text: str) -> tuple[str, str] | None:
     """Find a sentence of `evidence_text` that contradicts `claim`.
 
