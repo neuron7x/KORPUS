@@ -801,7 +801,9 @@
       "v5_evidence": [
         "apps/web/public/index.html",
         "apps/web/public/app.js",
-        "apps/web/scripts/validate.mjs"
+        "apps/web/scripts/validate.mjs",
+        "apps/api/tests/test_web_score_presentation.py::test_the_ui_states_that_the_score_is_not_a_probability",
+        ".gitlab-ci.yml::web:test"
       ],
       "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },
@@ -1595,7 +1597,7 @@
       "acceptance_predicate": "Zero unexplained divergence; injected drift detected within SLA.",
       "v5_status": "MITIGATED_LOCAL",
       "v5_evidence": [
-        "korpus CLI reconcile-objects",
+        "apps/api/src/korpus/cli.py",
         "apps/api/tests/test_durable_ingestion_jobs.py::test_object_inventory_reconciliation_detects_missing_and_orphaned_files"
       ],
       "v5_remaining_acceptance": "Zero unexplained divergence; injected drift detected within SLA."
@@ -1628,7 +1630,8 @@
       "acceptance_predicate": "Release has zero unexplained flaky tests over defined window.",
       "v5_status": "CLOSED_LOCAL",
       "v5_evidence": [
-        ".gitlab-ci.yml::default.retry=0"
+        ".gitlab-ci.yml",
+        "apps/api/tests/test_gate_parity.py::test_ci_does_not_retry_failing_jobs"
       ],
       "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },

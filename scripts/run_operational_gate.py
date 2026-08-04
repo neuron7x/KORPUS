@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from korpus.application.operations import OperationalReleaseGate
+from korpus.application.provenance import compute_source_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = ROOT / "config/operations/reference-v5.json"
@@ -25,7 +26,11 @@ def main() -> int:
         name: json.loads(path.read_text(encoding="utf-8"))
         for name, path in REPORT_PATHS.items()
     }
-    result = OperationalReleaseGate.load(POLICY).evaluate(reports, REPORT_PATHS)
+    # Recomputed here, never read from the artifacts: a digest the reports supply
+    # would only prove they agree with themselves.
+    result = OperationalReleaseGate.load(POLICY).evaluate(
+        reports, REPORT_PATHS, source_digest=compute_source_digest(ROOT)
+    )
     output = ROOT / "var/operational-gate.json"
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(result.as_dict(), ensure_ascii=False, indent=2) + "\n")

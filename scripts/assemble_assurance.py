@@ -3,13 +3,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.assurance import evaluate_assurance  # noqa: E402  (path set above)
+from korpus.application.provenance import compute_source_digest  # noqa: E402
+
 VAR = ROOT / "var"
+POLICY = ROOT / "config/operations/reference-v5.json"
 REPORTS = {
     "eval": VAR / "eval-report.json",
     "mutation": VAR / "mutation-report.json",
@@ -24,33 +31,37 @@ def digest(path: Path) -> str:
 
 
 def main() -> int:
-    required = [*REPORTS.values(), VAR / "pytest.xml", VAR / "coverage.xml"]
+    required = [
+        *REPORTS.values(),
+        VAR / "pytest.xml",
+        VAR / "coverage.xml",
+        VAR / "quality-report.json",
+    ]
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
         print(json.dumps({"status": "FAIL", "missing": missing}, indent=2))
         return 1
     loaded = {name: json.loads(path.read_text()) for name, path in REPORTS.items()}
+    quality = json.loads((VAR / "quality-report.json").read_text())
     junit_root = ET.parse(VAR / "pytest.xml").getroot()
     suite = junit_root if junit_root.tag == "testsuite" else junit_root.find("testsuite")
     if suite is None:
         raise SystemExit("invalid JUnit report")
     coverage = ET.parse(VAR / "coverage.xml").getroot()
-    checks = {
-        "pytest": suite.attrib.get("failures") == "0" and suite.attrib.get("errors") == "0",
-        "coverage_line": float(coverage.attrib.get("line-rate", 0)) >= 0.82,
-        "eval": loaded["eval"].get("pass_rate") == 1.0,
-        # Over the whole catalogue, not over the mutants that still apply. A mutant
-        # whose target line was reformatted goes INVALID and drops out of
-        # mutation_score's denominator, which then reads 1.000 for a catalogue that
-        # shrank — observed 2026-08-03 with four security mutants. See ADR-0008.
-        "mutation": loaded["mutation"].get("mutation_score_over_catalogue") == 1.0,
-        "migration": loaded["migration"].get("table_set_match") is True,
-        "scale": loaded["scale"].get("status") == "PASS",
-        "operational": loaded["operational"].get("status") == "PASS",
-    }
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    result = evaluate_assurance(
+        policy,
+        suite.attrib,
+        coverage.attrib,
+        loaded,
+        quality,
+        compute_source_digest(ROOT),
+    )
+    checks = dict(result.checks)
     report = {
-        "schema_version": 4,
-        "status": "PASS" if all(checks.values()) else "FAIL",
+        "schema_version": 5,
+        "status": result.status,
+        "failures": list(result.failures),
         "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
         "source_tree_sha256": source_tree_digest(),
         "checks": checks,
@@ -64,18 +75,16 @@ def main() -> int:
         },
         **loaded,
         "evidence_sha256": {name: digest(path) for name, path in REPORTS.items()},
+        # Recorded executions, not a declaration of intent: an unexecuted tool now
+        # keeps the aggregate verdict red (quality_tooling_executed).
         "quality_tooling": {
-            "ruff": "NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB",
-            "mypy": "NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB",
+            name: {key: value for key, value in tool.items() if key != "output_tail"}
+            for name, tool in quality.get("tools", {}).items()
         },
         "limitations": [
             (
                 "PostgreSQL/pgvector, backup-restore, and container execution remain "
                 "GitLab gates; one local test is skipped."
-            ),
-            (
-                "Ruff and mypy packages were unavailable in this runtime and remain "
-                "mandatory GitLab jobs."
             ),
             "Synthetic local scale evidence is not a production SLA.",
             "Passing software gates is not corpus, cyber, regulatory or military authorization.",

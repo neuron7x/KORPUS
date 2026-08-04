@@ -13,6 +13,10 @@ for (const marker of ['Authorization', '/v1/auth/me', '/v1/auth/login', '/v1/aut
   if (!js.includes(marker)) throw new Error(`web security contract failed: ${marker}`);
 }
 if (/localStorage|sessionStorage/.test(js)) throw new Error("persistent token storage detected");
+// RAG-019: retrieval_score is a ranking utility, not a calibrated probability. The UI
+// renders it as a number, so the sentence that says what it is not must travel with it.
+if (!js.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
+if (js.includes("retrieval_score") && !js.includes("Ranking utility")) throw new Error("score rendered without its non-probability label");
 if (!js.includes('readCookie("__Host-korpus_csrf")')) throw new Error("CSRF double-submit cookie contract missing");
 if ((js.match(/document\.cookie/g) ?? []).length !== 1) throw new Error("browser must read only the CSRF cookie surface");
 if (/readCookie\(["']__Host-korpus_session/.test(js)) throw new Error("HttpOnly session cookie must not be read by JavaScript");

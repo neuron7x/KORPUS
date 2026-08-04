@@ -89,14 +89,52 @@ def _ruff_paths(command: str) -> list[str]:
     return [t for t in tokens[start:] if not t.startswith("-")]
 
 
-def test_ruff_covers_the_same_paths_locally_and_in_ci() -> None:
-    """A path linted only in CI is a rule the author cannot satisfy before pushing."""
-    local = next(c for c in _makefile_recipe("api-lint") if "ruff" in c)
-    remote = next(c for c in _ci_script("api:quality") if "ruff" in c)
-    assert _ruff_paths(local) == _ruff_paths(remote), (
-        "make api-lint and api:quality lint different paths; "
-        f"local={_ruff_paths(local)} ci={_ruff_paths(remote)}"
+QUALITY_GATE = ROOT / "scripts/run_quality_gate.py"
+
+
+def _quality_gate_command(name: str) -> list[str]:
+    """Read the RUFF/MYPY command literal out of scripts/run_quality_gate.py."""
+    tree = ast.parse(QUALITY_GATE.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == name for target in node.targets
+        ):
+            return [
+                element.value
+                for element in getattr(node.value, "elts", [])
+                if isinstance(element, ast.Constant) and isinstance(element.value, str)
+            ]
+    pytest.fail(f"{QUALITY_GATE.name} no longer defines {name} as a list literal")
+
+
+def test_both_entry_points_run_the_same_quality_gate() -> None:
+    """Parity by construction: one script, invoked from both places.
+
+    Textual comparison of two independent command lines could only ever detect the
+    drift after it was written down twice. Since 2026-08-04 the tools are invoked in
+    exactly one place — and that place records the run, which is what the assurance
+    aggregator requires as evidence.
+    """
+    local = _makefile_recipe("api-lint")
+    remote = _ci_script("api:quality")
+    assert any("scripts/run_quality_gate.py" in line for line in local), (
+        f"make api-lint no longer runs the quality gate script: {local}"
     )
+    assert any("scripts/run_quality_gate.py" in line for line in remote), (
+        f"api:quality no longer runs the quality gate script: {remote}"
+    )
+    assert not any("ruff" in line or "mypy" in line for line in local + remote), (
+        "ruff/mypy are invoked directly again; a second invocation site can drift "
+        "from the recorded one and leave the aggregate verdict describing a run "
+        "that did not happen"
+    )
+
+
+def test_the_quality_gate_lints_every_directory_that_holds_korpus_code() -> None:
+    """A directory nobody lints is a directory where the rules do not exist."""
+    linted = set(_ruff_paths(" ".join(_quality_gate_command("RUFF"))))
+    required = {"apps/api/src", "apps/api/tests", "apps/api/migrations", "scripts"}
+    assert required <= linted, f"unlinted source directories: {sorted(required - linted)}"
 
 
 def test_ruff_configuration_is_resolved_from_the_repository_root() -> None:
@@ -108,30 +146,43 @@ def test_ruff_configuration_is_resolved_from_the_repository_root() -> None:
     )
 
 
-@pytest.mark.parametrize(
-    ("where", "command"),
-    [
-        ("Makefile:api-lint", lambda: next(c for c in _makefile_recipe("api-lint") if "mypy" in c)),
-        ("ci:api:quality", lambda: next(c for c in _ci_script("api:quality") if "mypy" in c)),
-    ],
-)
-def test_mypy_is_invoked_so_that_its_configuration_applies(where: str, command) -> None:
+def test_mypy_is_invoked_so_that_its_configuration_applies() -> None:
     """`mypy apps/api/src` reads neither the strict flags nor packages = ["korpus"]."""
-    invocation = command()
-    assert "--config-file" in invocation, (
-        f"{where}: mypy is called without --config-file, so [tool.mypy] in "
+    tokens = _quality_gate_command("MYPY")
+    assert "--config-file" in tokens, (
+        "mypy is called without --config-file, so [tool.mypy] in "
         "apps/api/pyproject.toml does not apply and strict mode is silently off"
     )
-    assert "MYPYPATH=" in invocation, (
-        f"{where}: mypy is called without MYPYPATH, so it cannot resolve korpus.*"
-    )
-    tokens = shlex.split(invocation)
     tail = tokens[tokens.index("--config-file") + 2 :]
-    positional = [t for t in tail if not t.startswith("-")]
+    positional = [token for token in tail if not token.startswith("-")]
     assert not positional, (
-        f"{where}: passing {positional} overrides packages = ['korpus'] from the "
-        "config file, which leaves mypy unable to resolve the project's own imports"
+        f"passing {positional} overrides packages = ['korpus'] from the config file, "
+        "which leaves mypy unable to resolve the project's own imports"
     )
+    source = QUALITY_GATE.read_text(encoding="utf-8")
+    assert 'MYPYPATH' in source, (
+        "the quality gate no longer sets MYPYPATH, so mypy cannot resolve korpus.*"
+    )
+
+
+def test_ci_does_not_retry_failing_jobs() -> None:
+    """OPS-002: a retried job turns a reproducible failure into an intermittent one.
+
+    Automatic retry is indistinguishable from a fix in the pipeline UI, and the
+    flakiness it hides is exactly the signal the destruction stage relies on — one
+    test that failed once in five runs turned out to be a real base64 defect.
+    """
+    document = pytest.importorskip("yaml").safe_load(CI.read_text(encoding="utf-8"))
+    assert document.get("default", {}).get("retry") == 0, (
+        "default.retry is not 0: failing jobs would be re-run, and an intermittent "
+        "green would close a defect that is still there"
+    )
+    retried = [
+        job
+        for job, body in document.items()
+        if isinstance(body, dict) and body.get("retry") not in (None, 0)
+    ]
+    assert not retried, f"these jobs override retry: {retried}"
 
 
 def test_the_repository_walk_skips_everything_gitignore_excludes() -> None:

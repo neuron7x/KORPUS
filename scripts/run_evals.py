@@ -10,6 +10,7 @@ from typing import Any
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -315,6 +316,7 @@ def main() -> None:
             "abstain_actual": abstain_actual,
             "audit_valid": repository.verify_audit().valid,
             "details": details,
+            PROVENANCE_KEY: stamp(Path(__file__).resolve().parents[1], "scripts/run_evals.py"),
         }
         Path("var").mkdir(exist_ok=True)
         Path("var/system-manifest.json").write_bytes(system_manifest_bytes)

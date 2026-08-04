@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -21,9 +21,11 @@ api-test:
 # applied. Passing a source path also overrode packages = ["korpus"], which left mypy
 # unable to resolve korpus.* at all: the run reported 136 import-not-found errors
 # instead of the 42 real strict violations underneath them (probed 2026-08-03).
+# Runs both tools and records the run in var/quality-report.json. The aggregate
+# assurance verdict requires that recording: a declared-but-unexecuted tool used to
+# sit next to "status": "PASS" (destruction stage 2026-08-03).
 api-lint:
-	$(PY) -m ruff check apps/api/src apps/api/tests apps/api/migrations scripts
-	MYPYPATH=apps/api/src $(PY) -m mypy --config-file apps/api/pyproject.toml
+	PYTHONPATH=apps/api/src $(PY) scripts/run_quality_gate.py
 
 web-install:
 	npm --prefix apps/web ci

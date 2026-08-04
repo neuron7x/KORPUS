@@ -18,6 +18,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import (  # noqa: E402  (path set above)
+    PROVENANCE_KEY,
+    read_provenance,
+    stamp,
+)
 
 
 @dataclass(frozen=True)
@@ -543,6 +550,172 @@ MUTANTS = (
         "    as_of: date = Field(default_factory=date.today)",
         ("apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone",),
     ),
+    Mutant(
+        "M59_PROVENANCE_DIGEST_NOT_COMPARED",
+        "apps/api/src/korpus/application/provenance.py",
+        "        if provenance.source_digest != expected_digest:",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_evidence_from_a_foreign_tree",
+        ),
+    ),
+    Mutant(
+        "M60_GATE_ASSUMES_PROVENANCE_WHEN_ABSENT",
+        "apps/api/src/korpus/application/operations.py",
+        '            else (False, ("source digest was not supplied to the gate",))',
+        "            else (True, ())",
+        (
+            "apps/api/tests/test_evidence_provenance.py::test_gate_without_a_digest_cannot_pass",
+        ),
+    ),
+    Mutant(
+        "M61_MISSING_PROVENANCE_TREATED_AS_VALID",
+        "apps/api/src/korpus/application/provenance.py",
+        '            reasons.append(f"{name}: {error}")',
+        "            pass",
+        (
+            "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_reports_without_provenance",
+        ),
+    ),
+    Mutant(
+        "M62_DIGEST_DROPS_LENGTH_FRAMING",
+        "apps/api/src/korpus/application/provenance.py",
+        '        hasher.update(len(relative).to_bytes(4, "big"))\n'
+        "        hasher.update(relative)\n"
+        '        hasher.update(len(content).to_bytes(8, "big"))\n'
+        "        hasher.update(content)",
+        "        hasher.update(relative)\n        hasher.update(content)",
+        (
+            "apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content",
+        ),
+    ),
+    Mutant(
+        "M63_ZERO_TESTS_COUNTS_AS_A_RUN",
+        "apps/api/src/korpus/application/assurance.py",
+        '        "tests_executed": executed_tests >= _as_int(settings["minimum_tests"]),',
+        '        "tests_executed": True,',
+        (
+            "apps/api/tests/test_assurance_aggregation.py::test_zero_tests_is_not_a_successful_run",
+        ),
+    ),
+    Mutant(
+        "M64_SKIPPED_SUITE_COUNTS_AS_EXECUTED",
+        "apps/api/src/korpus/application/assurance.py",
+        "    executed_without_skips = executed_tests - max(skipped, 0)",
+        "    executed_without_skips = executed_tests",
+        (
+            "apps/api/tests/test_assurance_aggregation.py::test_a_suite_that_skipped_almost_everything_is_not_a_run",
+        ),
+    ),
+    Mutant(
+        "M65_UNEXECUTED_QUALITY_TOOLING_PASSES",
+        "apps/api/src/korpus/application/assurance.py",
+        '        "quality_tooling_executed": tools_passed,',
+        '        "quality_tooling_executed": True,',
+        (
+            "apps/api/tests/test_assurance_aggregation.py::test_declared_but_unexecuted_tooling_cannot_pass",
+        ),
+    ),
+    Mutant(
+        "M66_QUALITY_TOOL_EXIT_CODE_IGNORED",
+        "apps/api/src/korpus/application/assurance.py",
+        '        and _as_int(recorded_tools[tool].get("exit_code")) == 0',
+        "        and True",
+        (
+            "apps/api/tests/test_assurance_aggregation.py::test_a_tool_reporting_pass_with_a_nonzero_exit_code_is_rejected",
+        ),
+    ),
+    Mutant(
+        "M67_AGGREGATOR_IGNORES_EVIDENCE_ORIGIN",
+        "apps/api/src/korpus/application/assurance.py",
+        '        "evidence_provenance": provenance_ok,',
+        '        "evidence_provenance": True,',
+        (
+            "apps/api/tests/test_assurance_aggregation.py::test_evidence_from_a_foreign_tree_fails_the_aggregate",
+        ),
+    ),
+    Mutant(
+        "M68_OVERLAY_PATCHES_SILENTLY_DROPPED",
+        "apps/api/src/korpus/application/deployment.py",
+        '            raise RenderError(f"{directory}: patch target {target} matches no resource")',
+        "            continue",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_a_patch_matching_nothing_is_refused",
+        ),
+    ),
+    Mutant(
+        "M69_ONLY_BASE_IS_DISCOVERED",
+        "apps/api/src/korpus/application/deployment.py",
+        '    return sorted(path.parent for path in deploy_root.rglob("kustomization.yaml"))',
+        '    return sorted(path.parent for path in deploy_root.glob("kustomization.yaml"))',
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_the_repository_ships_a_production_overlay_that_is_validated",
+        ),
+    ),
+    Mutant(
+        "M70_MUTABLE_ROOT_FILESYSTEM_ACCEPTED",
+        "apps/api/src/korpus/application/deployment.py",
+        '        if security.get("readOnlyRootFilesystem") is not True:',
+        "        if False:",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
+        ),
+    ),
+    Mutant(
+        "M71_FLOATING_IMAGE_TAG_ACCEPTED",
+        "apps/api/src/korpus/application/deployment.py",
+        '        if "@sha256:" not in image:',
+        "        if False:",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
+        ),
+    ),
+    Mutant(
+        "M72_UNSUPPORTED_KUSTOMIZE_FIELDS_IGNORED",
+        "apps/api/src/korpus/application/deployment.py",
+        "    unsupported = set(spec) - SUPPORTED_KUSTOMIZATION_FIELDS",
+        "    unsupported = set()",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_an_unsupported_kustomization_field_is_refused",
+        ),
+    ),
+    Mutant(
+        "M73_CITED_EVIDENCE_NOT_OPENED",
+        "apps/api/src/korpus/application/evidence_registry.py",
+        "        if not path.exists():",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::test_a_missing_file_is_reported",
+        ),
+    ),
+    Mutant(
+        "M74_CITED_TEST_NAME_NOT_RESOLVED",
+        "apps/api/src/korpus/application/evidence_registry.py",
+        "        if selector not in _defined_names(path):",
+        "        if False:",
+        (
+            "apps/api/tests/test_evidence_registry.py::test_a_deleted_test_inside_an_existing_file_is_reported",
+        ),
+    ),
+    Mutant(
+        "M75_PROSE_COUNTS_AS_CLOSURE",
+        "apps/api/src/korpus/application/evidence_registry.py",
+        "        if statuses.get(finding_id) in executable_statuses and not any(",
+        "        if False and not any(",
+        (
+            "apps/api/tests/test_evidence_registry.py::test_closure_claimed_on_prose_alone_is_rejected",
+        ),
+    ),
+    Mutant(
+        "M76_UNCALIBRATED_SCORE_DISCLAIMER_UNGUARDED",
+        "apps/web/scripts/validate.mjs",
+        'if (!js.includes("Ranking utility не є ймовірністю правильності")) '
+        'throw new Error("uncalibrated score disclaimer missing");',
+        "",
+        (
+            "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer",
+        ),
+    ),
 )
 
 
@@ -623,6 +796,7 @@ def summarize(
         # whole catalogue, so an unapplied mutant is visible in the score itself.
         "mutation_score_over_catalogue": killed / len(results) if results else 0.0,
         "results": results,
+        PROVENANCE_KEY: stamp(ROOT, "scripts/run_mutation_tests.py"),
     }
 
 
@@ -635,10 +809,20 @@ def merge_shards(shard_count: int) -> dict[str, object]:
     if missing:
         raise RuntimeError(f"missing mutation shards: {missing}")
     results: list[dict[str, object]] = []
+    # Sharding splits the catalogue across processes; nothing but this check stops
+    # the merged report from stitching together shards run against different trees
+    # (a stale shard left in var/ from an earlier commit merges silently otherwise).
+    current_digest = read_provenance({PROVENANCE_KEY: stamp(ROOT, "merge")}).source_digest
     for path in shard_paths:
         payload = json.loads(path.read_text(encoding="utf-8"))
         if int(payload.get("shard_count", -1)) != shard_count:
             raise RuntimeError(f"shard count mismatch in {path}")
+        shard_digest = read_provenance(payload).source_digest
+        if shard_digest != current_digest:
+            raise RuntimeError(
+                f"shard {path.name} was produced from a different source tree "
+                f"({shard_digest[:12]}… != {current_digest[:12]}…)"
+            )
         results.extend(payload.get("results", []))
     expected = {mutant.id for mutant in MUTANTS}
     actual = {str(result.get("id")) for result in results}

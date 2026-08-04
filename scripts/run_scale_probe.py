@@ -15,6 +15,7 @@ import time
 from datetime import date
 from pathlib import Path
 
+from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -146,6 +147,7 @@ def main() -> int:
                 "Synthetic local probe; not a production SLA.",
                 "PostgreSQL network, concurrency and disk behavior are not represented.",
             ],
+            PROVENANCE_KEY: stamp(ROOT, "scripts/run_scale_probe.py"),
         }
         output = ROOT / "var/scale-report.json"
         output.parent.mkdir(parents=True, exist_ok=True)

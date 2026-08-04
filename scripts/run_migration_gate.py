@@ -45,6 +45,7 @@ def main() -> int:
         # table_set_match=false — a red gate accusing the schema of a defect that
         # belonged to the gate. Every module that defines tables must be imported here.
         import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers tables)
+        from korpus.application.provenance import PROVENANCE_KEY, stamp
         from korpus.infrastructure.repository import audit_heads, metadata
 
         engine = create_engine(url)
@@ -80,6 +81,7 @@ def main() -> int:
             "column_failures": table_failures,
             "audit_head_seeded": head.sequence == 0 and head.head_hash == "0" * 64,
             "sqlite_fts5_present": search_index_present,
+            PROVENANCE_KEY: stamp(ROOT, "scripts/run_migration_gate.py"),
         }
         output = ROOT / "var/migration-report.json"
         output.parent.mkdir(parents=True, exist_ok=True)

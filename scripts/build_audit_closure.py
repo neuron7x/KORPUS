@@ -3,10 +3,17 @@ from __future__ import annotations
 
 import csv
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.evidence_registry import (  # noqa: E402  (path set above)
+    verify_closure_registry,
+)
+
 SOURCE = ROOT / "docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json"
 OUT_DIR = ROOT / "docs/audit/closure"
 
@@ -213,6 +220,9 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/web/public/index.html",
         "apps/web/public/app.js",
         "apps/web/scripts/validate.mjs",
+        "apps/api/tests/test_web_score_presentation.py"
+        "::test_the_ui_states_that_the_score_is_not_a_probability",
+        ".gitlab-ci.yml::web:test",
     ],
     "RAG-020": ["apps/api/src/korpus/application/calibration.py", "evals/EVALUATION_PROTOCOL.md"],
     "INF-002": ["deploy/kubernetes", "scripts/validate_kubernetes.py"],
@@ -265,11 +275,14 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/src/korpus/security/corpus_governance.py",
     ],
     "DATA-004": [
-        "korpus CLI reconcile-objects",
+        "apps/api/src/korpus/cli.py",
         "apps/api/tests/test_durable_ingestion_jobs.py"
         "::test_object_inventory_reconciliation_detects_missing_and_orphaned_files",
     ],
-    "OPS-002": [".gitlab-ci.yml::default.retry=0"],
+    "OPS-002": [
+        ".gitlab-ci.yml",
+        "apps/api/tests/test_gate_parity.py::test_ci_does_not_retry_failing_jobs",
+    ],
 }
 
 
@@ -302,9 +315,20 @@ def main() -> None:
             f"extra={sorted(classified-source_ids)}"
         )
 
+    # Counting evidence entries proved nothing: the registry named files without
+    # anyone opening them (destruction stage 2026-08-03). Every citation is now
+    # resolved, and a CLOSED finding must cite a test that exists.
+    statuses = {item["id"]: status_for(item["id"]) for item in findings}
+    unresolved = verify_closure_registry(ROOT, EVIDENCE, statuses)
+    if unresolved:
+        raise RuntimeError(
+            "the closure registry cites evidence that does not resolve:\n  "
+            + "\n  ".join(unresolved)
+        )
+
     output = []
     for item in findings:
-        status = status_for(item["id"])
+        status = statuses[item["id"]]
         evidence = EVIDENCE.get(item["id"], [])
         if status in {"CLOSED_LOCAL", "MITIGATED_LOCAL"} and not evidence:
             raise RuntimeError(f"local status lacks evidence: {item['id']}")

@@ -34,6 +34,13 @@
     "maximum_local_p95_ms": 50.0,
     "metric_status": "ANCHORED_LOCAL_MEASUREMENT"
   },
+  "assurance": {
+    "minimum_tests": 250,
+    "minimum_executed_tests": 245,
+    "minimum_line_rate": 0.82,
+    "minimum_branch_rate": 0.75,
+    "required_quality_tools": ["ruff", "mypy"]
+  },
   "drift": {
     "maximum_js_divergence": 0.08,
     "minimum_observations": 1000

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from korpus.application.provenance import verify_reports
+
 
 def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> float:
     """Symmetric bounded distribution drift in bits, with explicit normalization."""
@@ -88,6 +90,7 @@ class OperationalReleaseGate:
         self,
         reports: Mapping[str, Mapping[str, Any]],
         evidence_paths: Mapping[str, Path] | None = None,
+        source_digest: str | None = None,
     ) -> GateResult:
         missing = [name for name in self.REQUIRED_REPORTS if name not in reports]
         if missing:
@@ -109,8 +112,19 @@ class OperationalReleaseGate:
         required_tables = set(migration_policy["required_tables"])
         actual_tables = set(migration.get("tables_actual", []))
 
+        # A report is evidence about a tree, not about the world: unless it was
+        # produced by the tree being gated, its numbers describe something else.
+        # No digest supplied means the binding cannot be checked, which fails
+        # closed rather than degrading to "assume it matches".
+        provenance_ok, provenance_reasons = (
+            verify_reports({name: reports[name] for name in self.REQUIRED_REPORTS}, source_digest)
+            if source_digest is not None
+            else (False, ("source digest was not supplied to the gate",))
+        )
+
         checks = {
             "reports_present": True,
+            "evidence_provenance": provenance_ok,
             "eval_pass_rate": float(evaluation.get("pass_rate", -1))
             >= float(eval_policy["minimum_pass_rate"]),
             "citation_integrity": int(evaluation.get("citation_failures", -1))
@@ -143,7 +157,7 @@ class OperationalReleaseGate:
             )
             <= float(scale_policy["maximum_local_p95_ms"]),
         }
-        failures = tuple(name for name, passed in checks.items() if not passed)
+        failures = tuple(name for name, passed in checks.items() if not passed) + provenance_reasons
         evidence_hashes = {
             name: sha256_file(path)
             for name, path in (evidence_paths or {}).items()
