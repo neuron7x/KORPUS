@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from cryptography.exceptions import InvalidSignature
@@ -87,7 +87,7 @@ class SourceTrustProfile(BaseModel):
             raise ValueError("source signing key issuer mismatch")
         if key.authorities and version.authority not in key.authorities:
             raise ValueError("source signing key is not authorized for this authority class")
-        reference = version.publication_date or version.effective_from or date.today()
+        reference = version.publication_date or version.effective_from or datetime.now(UTC).date()
         if key.valid_from and reference < key.valid_from:
             raise ValueError("source signature predates key validity")
         if key.valid_until and reference > key.valid_until:

@@ -61,6 +61,7 @@ from korpus.domain.models import (
     IngestionJobRecord,
     IngestResult,
     QueryRequest,
+    RescissionRequest,
     ReviewTransition,
     VersionCreate,
 )
@@ -579,6 +580,33 @@ def review_version(
     except ConcurrentWriteError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post(
+    "/v1/document-versions/{version_id}/rescission", response_model=DocumentVersionRecord
+)
+def rescind_version(
+    version_id: UUID,
+    request_body: RescissionRequest,
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+) -> DocumentVersionRecord:
+    """Take an approved version out of force from a date, without rewriting review state."""
+    try:
+        policy.require(identity, "document:approve")
+        return repository.rescind_version(
+            identity,
+            version_id,
+            note=request_body.note,
+            rescinded_at=request_body.rescinded_at,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except (ConcurrentWriteError, ValueError) as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 

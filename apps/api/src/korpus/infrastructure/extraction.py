@@ -356,6 +356,15 @@ def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
     return chunks
 
 
+def _cut_point(window: str, minimum: int) -> int:
+    """Where to end a window so it stops on a boundary the document itself has."""
+    for separator in ("\n\n", "\n", ". ", " "):
+        cut = window.rfind(separator)
+        if cut >= minimum:
+            return cut + len(separator)
+    return len(window)
+
+
 def make_spans(
     pages: list[ExtractedPage],
     max_chars: int = 1400,
@@ -363,6 +372,18 @@ def make_spans(
     *,
     max_spans: int = 20_000,
 ) -> list[dict[str, object]]:
+    """Every span is a slice of its page, never assembled from two of them.
+
+    The previous implementation joined the tail of one span to the head of the next
+    with a space (`f"{previous_tail} {piece}"`) and paragraphs with a blank line. Both
+    manufacture text: a sentence that exists in no document comes out of the answer as
+    a verbatim quote, stamped with `quote_hash` and `source_hash`. Reproduced end to
+    end on 2026-08-03 — `status=answered`, `quote in source == False`,
+    `support_score=1.0`. Since a citation is the one thing KORPUS promises to get
+    right, spans are now slices `page.text[start:end]`, so being a substring of the
+    document is a property of the construction and not of a later check. The assertion
+    at the end is there for the day someone changes the construction.
+    """
     if max_chars < 100:
         raise ValueError("max_chars is too small")
     if overlap_chars < 0 or overlap_chars >= max_chars:
@@ -370,33 +391,30 @@ def make_spans(
     output: list[dict[str, object]] = []
     ordinal = 0
     for page in pages:
-        paragraphs = [part.strip() for part in re.split(r"\n\s*\n", page.text) if part.strip()]
-        buffer = ""
-        previous_tail = ""
-        for paragraph in paragraphs:
-            for piece in _hard_chunks(paragraph, max_chars, overlap_chars):
-                proposal = f"{buffer}\n\n{piece}".strip() if buffer else piece
-                if len(proposal) <= max_chars:
-                    buffer = proposal
-                    continue
-                if buffer:
-                    output.append(
-                        {"ordinal": ordinal, "page": page.page, "section": None, "text": buffer}
-                    )
-                    ordinal += 1
-                    previous_tail = buffer[-overlap_chars:] if overlap_chars else ""
-                buffer = f"{previous_tail} {piece}".strip()
-                if len(buffer) > max_chars:
-                    buffer = buffer[-max_chars:]
+        text = page.text
+        position = 0
+        while position < len(text):
+            end = min(len(text), position + max_chars)
+            if end < len(text):
+                end = position + _cut_point(text[position:end], max_chars // 4)
+            chunk = text[position:end].strip()
+            if chunk:
                 if len(output) >= max_spans:
                     raise ValueError("document exceeds maximum span count")
-        if buffer:
-            output.append({"ordinal": ordinal, "page": page.page, "section": None, "text": buffer})
-            ordinal += 1
-        if len(output) > max_spans:
-            raise ValueError("document exceeds maximum span count")
+                output.append(
+                    {"ordinal": ordinal, "page": page.page, "section": None, "text": chunk}
+                )
+                ordinal += 1
+            if end >= len(text):
+                break
+            # Step forward by at least one character so a pathological page cannot
+            # spin here, and keep the overlap so no local window is lost at a seam.
+            position = max(position + 1, end - overlap_chars)
     if not output:
         raise ValueError("document yielded no evidence spans")
     if any(len(str(span["text"])) > max_chars for span in output):
         raise AssertionError("chunking invariant violated")
+    by_page = {page.page: page.text for page in pages}
+    if any(str(span["text"]) not in by_page[span["page"]] for span in output):  # type: ignore[index]
+        raise AssertionError("span is not a substring of its page")
     return output

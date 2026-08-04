@@ -4,7 +4,7 @@ import argparse
 import os
 import socket
 import time
-from datetime import date
+from datetime import UTC, datetime
 
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
@@ -153,7 +153,11 @@ def main() -> None:
                 ),
             )
             if args.command == "release-id":
-                print(repository.corpus_release_id(identity, identity.corpora, date.today()))
+                print(
+                    repository.corpus_release_id(
+                        identity, identity.corpora, datetime.now(UTC).date()
+                    )
+                )
             else:
                 print(issue_token(identity, settings))
             return

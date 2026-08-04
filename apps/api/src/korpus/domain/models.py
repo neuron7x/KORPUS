@@ -284,7 +284,11 @@ class RetrievedEvidence(BaseModel):
 class QueryRequest(BaseModel):
     text: str = Field(min_length=3, max_length=4000)
     corpus_ids: list[str] = Field(default_factory=list, max_length=20)
-    as_of: date = Field(default_factory=date.today)
+    # Not date.today(): that reads the host's local calendar, so the same question at
+    # the same instant was answered differently by two replicas in different zones —
+    # reproduced with TZ=Etc/GMT+12 against UTC on 2026-08-03. Validity is a property
+    # of the corpus, not of where the process runs.
+    as_of: date = Field(default_factory=lambda: datetime.now(UTC).date())
     locale: str = Field(default="uk-UA", pattern=r"^[a-z]{2}(?:-[A-Z]{2})?$")
 
     @field_validator("text")
@@ -371,6 +375,13 @@ class ReviewTransition(BaseModel):
         if self.access_tier is not None and self.target is not ReviewState.APPROVED:
             raise ValueError("access_tier may only be set on approval")
         return self
+
+
+class RescissionRequest(BaseModel):
+    """Withdrawal by the issuing authority — an act, not a review verdict."""
+
+    note: str = Field(min_length=12, max_length=2000)
+    rescinded_at: datetime | None = None
 
 
 class AuditVerification(BaseModel):

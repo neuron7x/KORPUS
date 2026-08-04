@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -59,7 +59,7 @@ class ReviewerRegistry(BaseModel):
         version: DocumentVersionRecord,
         as_of: date | None = None,
     ) -> str:
-        current = as_of or date.today()
+        current = as_of or datetime.now(UTC).date()
         grants = self.subjects.get(subject, ())
         for grant in grants:
             if grant.revoked or target not in grant.stages:

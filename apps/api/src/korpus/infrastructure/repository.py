@@ -673,6 +673,67 @@ class SqlRepository:
 
         return self._transaction_with_anchor(operation)
 
+    def rescind_version(
+        self,
+        actor: Identity,
+        version_id: UUID,
+        *,
+        note: str,
+        rescinded_at: datetime | None = None,
+    ) -> DocumentVersionRecord:
+        """Record that the issuing authority withdrew a document.
+
+        `rescinded_at` was read when deciding validity, had a mutant in the catalogue
+        and appeared in the import protocol, but no code path ever wrote it. The only
+        way to take an order out of force was REJECTED — a review verdict, not a
+        withdrawal: no reviewer mandate, no separation of duties, and irreversible. An
+        act by the body that issued a document is an ordinary event in a normative
+        corpus, and the system could not represent it.
+        """
+        stamp = rescinded_at or datetime.now(UTC)
+
+        def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
+            self._apply_postgres_identity(connection, actor)
+            row = connection.execute(
+                select(versions).where(versions.c.id == str(version_id))
+            ).mappings().first()
+            if row is None:
+                raise LookupError("version not found")
+            current = self._version(row)
+            if current.review_state is not ReviewState.APPROVED:
+                raise ValueError("only an approved version can be rescinded")
+            if current.rescinded_at is not None:
+                raise ValueError("version is already rescinded")
+            result = connection.execute(
+                update(versions)
+                .where(versions.c.id == str(version_id))
+                .where(versions.c.state_version == current.state_version)
+                .where(versions.c.rescinded_at.is_(None))
+                .values(rescinded_at=stamp, state_version=current.state_version + 1)
+            )
+            if result.rowcount != 1:
+                raise ConcurrentWriteError("optimistic rescission failed")
+            updated = self._version(
+                connection.execute(
+                    select(versions).where(versions.c.id == str(version_id))
+                ).mappings().one()
+            )
+            anchor = self._append_audit_in_connection(
+                connection,
+                actor,
+                "document.rescinded",
+                "document_version",
+                str(version_id),
+                {
+                    "note": note,
+                    "rescinded_at": self._iso(stamp),
+                    "state_version": updated.state_version,
+                },
+            )
+            return updated, anchor
+
+        return self._transaction_with_anchor(operation)
+
     def list_retrievable_spans(
         self,
         identity: Identity,

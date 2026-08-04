@@ -177,6 +177,12 @@ class ExtractiveAnswerService:
         query_tokens = frozenset(tokenize(query.text))
         claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
 
+        unsourced = self._unsourced_quotes(eligible, citations)
+        if unsourced:
+            answer = self._unsourced_answer(release_id, unsourced)
+            self._audit(identity, query, answer, retrieved, eligible, risk)
+            return answer
+
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
         support = verify_claim_support(
             [(index, claim.evidence_span_ids) for index, claim in enumerate(claims)],
@@ -357,6 +363,45 @@ class ExtractiveAnswerService:
                 "Це не брак доказів, а порушення цілісності доступу в шарі пошуку.",
                 f"Breach kinds: {', '.join(kinds)}.",
                 f"Affected versions: {len(breaches)}.",
+            ],
+            corpus_release=release_id,
+        )
+
+    @staticmethod
+    def _unsourced_quotes(
+        eligible: list[RetrievedEvidence], citations: list[Citation]
+    ) -> list[str]:
+        """A quote must occur verbatim in the span it names.
+
+        `make_spans` now slices the page, so this holds by construction — but the
+        construction is exactly what failed before: spans were assembled by joining the
+        tail of one to the head of the next, and the manufactured sentence left the
+        system as a verbatim citation with a matching `quote_hash`. The hash proves the
+        quote matches itself, not the document. This is the check that would have
+        caught it, and it stays as the second line for whatever changes chunking next.
+        """
+        span_text = {str(item.span.id): item.span.text for item in eligible}
+        return [
+            str(citation.span_id)
+            for citation in citations
+            if citation.quote not in span_text.get(str(citation.span_id), "")
+        ]
+
+    def _unsourced_answer(self, release_id: str, span_ids: list[str]) -> Answer:
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Цитата не знайдена дослівно у фрагменті, на який посилається;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="citation_not_present_in_source",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Хеш цитати доводить збіг цитати із самою собою, не з документом.",
+                f"Affected spans: {len(span_ids)}.",
             ],
             corpus_release=release_id,
         )

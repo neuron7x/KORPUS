@@ -12,6 +12,21 @@ This document records work that cannot be converted into PASS by local code or s
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 
+## Domain-invariant debt (2026-08-04)
+
+Eighteen of the twenty-seven canonical invariants recorded in
+`docs/audit/INVARIANT_DIFF_2026-08-03.md` are closed by code, each with a failing test
+and a mutant in `scripts/run_mutation_tests.py`. One is met by a stronger mechanism and
+deliberately not ported verbatim. One — `superseded-never-current` — stays open: the
+canonical reading takes an order out of force the moment anyone uploads a draft
+successor, which is a denial of service triggered by ordinary work. It needs a process
+owner's decision, not more code. Register: `docs/audit/INVARIANT_CLOSURE_2026-08-04.md`.
+
+Closure was demonstrated on SQLite in the test profile. The PostgreSQL branches of the
+validity queries, `pg_stat_database` checksum counting and `PRAGMA`-equivalent
+integrity probing carry no executable evidence in that run — same category as the live
+PostgreSQL debt below.
+
 ## External acceptance debt
 
 - formal production and restricted-data authorization with a named risk owner;

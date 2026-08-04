@@ -505,6 +505,44 @@ MUTANTS = (
         "        pass",
         ("apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission",),
     ),
+    Mutant(
+        # Restores the seam that manufactured sentences: the tail of one span joined
+        # to the head of the next with a space, quoted verbatim with a matching hash.
+        "M54_SPAN_SEAM_MANUFACTURES_TEXT",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "            chunk = text[position:end].strip()",
+        '            chunk = (text[position:end] + " " + text[end : end + 20]).strip()',
+        ("apps/api/tests/test_quote_provenance.py::test_every_span_is_a_slice_of_its_page",),
+    ),
+    Mutant(
+        "M55_QUOTE_SOURCE_CHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "        unsourced = self._unsourced_quotes(eligible, citations)",
+        "        unsourced: list[str] = []",
+        ("apps/api/tests/test_quote_provenance.py::test_a_quote_absent_from_its_span_stops_the_answer",),
+    ),
+    Mutant(
+        "M56_RESCISSION_STATE_GUARD_REMOVED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "            if current.rescinded_at is not None:",
+        "            if False:",
+        ("apps/api/tests/test_rescission_and_clock.py::test_withdrawing_twice_is_refused_as_already_withdrawn",),
+    ),
+    Mutant(
+        "M57_RESCISSION_NOT_WRITTEN",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                .values(rescinded_at=stamp, state_version=current.state_version + 1)",
+        "                .values(state_version=current.state_version + 1)",
+        ("apps/api/tests/test_rescission_and_clock.py::test_an_approved_order_can_be_withdrawn",),
+    ),
+    Mutant(
+        # Back to the host calendar: the answer depends on where the process runs.
+        "M58_AS_OF_READS_LOCAL_CLOCK",
+        "apps/api/src/korpus/domain/models.py",
+        "    as_of: date = Field(default_factory=lambda: datetime.now(UTC).date())",
+        "    as_of: date = Field(default_factory=date.today)",
+        ("apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone",),
+    ),
 )
 
 
