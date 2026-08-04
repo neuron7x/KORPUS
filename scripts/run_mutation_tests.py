@@ -789,6 +789,43 @@ MUTANTS = (
             "apps/api/tests/test_entitlement_revocation.py::test_revocation_on_disk_denies_the_subject_without_a_restart",
         ),
     ),
+    Mutant(
+        "M84_LEAKAGE_DENOMINATOR_NOT_REQUIRED_BY_GATE",
+        "apps/api/src/korpus/application/operations.py",
+        '            "access_noninterference_measured": int(evaluation.get("leakage_checks", -1))\n'
+        '            >= int(eval_policy["minimum_leakage_checks"]),',
+        '            "access_noninterference_measured": True,',
+        (
+            "apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure",
+        ),
+    ),
+    Mutant(
+        "M85_WITHHELD_SET_COMPUTED_AS_EMPTY",
+        "apps/api/src/korpus/application/noninterference.py",
+        "        if span.id not in visible",
+        "        if False",
+        (
+            "apps/api/tests/test_noninterference_measurement.py::test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything",
+        ),
+    ),
+    Mutant(
+        "M86_QUOTED_WITHHELD_TEXT_NOT_A_LEAK",
+        "apps/api/src/korpus/application/noninterference.py",
+        "        if item.text and any(citation.quote in item.text for citation in citations):",
+        "        if False:",
+        (
+            "apps/api/tests/test_noninterference_measurement.py::test_an_answer_quoting_withheld_text_is_recognised_as_a_leak",
+        ),
+    ),
+    Mutant(
+        "M87_WITHHELD_IDENTIFIERS_NOT_SEARCHED",
+        "apps/api/src/korpus/application/noninterference.py",
+        "            if identifier in serialized_answer:",
+        "            if False:",
+        (
+            "apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak",
+        ),
+    ),
 )
 
 

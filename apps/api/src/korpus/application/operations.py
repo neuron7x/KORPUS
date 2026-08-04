@@ -131,6 +131,12 @@ class OperationalReleaseGate:
             <= int(eval_policy["maximum_citation_failures"]),
             "access_noninterference": int(evaluation.get("leakage_failures", -1))
             <= int(eval_policy["maximum_leakage_failures"]),
+            # The failure count is only evidence if something was withheld from the
+            # subject in the first place. Injecting a real training → PUBLIC disclosure
+            # once produced leakage_failures=0 over a denominator of 2 of 30 rows, and
+            # every gate above stayed green (destruction stage, 2026-08-03).
+            "access_noninterference_measured": int(evaluation.get("leakage_checks", -1))
+            >= int(eval_policy["minimum_leakage_checks"]),
             "determinism": int(evaluation.get("determinism_failures", -1))
             <= int(eval_policy["maximum_determinism_failures"]),
             "audit_chain": bool(evaluation.get("audit_valid"))

@@ -9,6 +9,7 @@ from typing import Any
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.noninterference import leaked_material, withheld_material
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
@@ -210,6 +211,7 @@ def main() -> None:
         citation_checks = 0
         citation_failures = 0
         leakage_failures = 0
+        leakage_checks = 0
         determinism_failures = 0
         answered_expected = answered_actual = 0
         abstain_expected = abstain_actual = 0
@@ -230,7 +232,12 @@ def main() -> None:
                     determinism_failures += 1
                 serialized = first.model_dump_json()
                 forbidden = row.get("forbidden", [])
-                leaked = any(marker in serialized for marker in forbidden)
+                withheld = withheld_material(repository, admin, identity, query.as_of)
+                leakage_checks += int(bool(withheld))
+                leak_reasons = leaked_material(
+                    serialized, first.citations, withheld, extra_markers=forbidden
+                )
+                leaked = bool(leak_reasons)
                 leakage_failures += int(leaked)
                 expected_quote = row.get("expected_quote")
                 quote_ok = expected_quote is None or any(
@@ -308,6 +315,7 @@ def main() -> None:
             "status_accuracy": status_correct / max(len(rows), 1),
             "citation_checks": citation_checks,
             "citation_failures": citation_failures,
+            "leakage_checks": leakage_checks,
             "leakage_failures": leakage_failures,
             "determinism_failures": determinism_failures,
             "answered_expected": answered_expected,
@@ -329,6 +337,10 @@ def main() -> None:
             or citation_failures
             or leakage_failures
             or determinism_failures
+            # A leakage count of zero over zero rows that had anything to leak is not
+            # evidence of non-interference; it is the metric reporting that it never
+            # ran. The old denominator was 2 of 30 and nothing said so.
+            or not leakage_checks
             or not report["audit_valid"]
         ):
             raise SystemExit(1)

@@ -5,6 +5,7 @@
     "minimum_pass_rate": 1.0,
     "maximum_citation_failures": 0,
     "maximum_leakage_failures": 0,
+    "minimum_leakage_checks": 20,
     "maximum_determinism_failures": 0,
     "require_audit_valid": true
   },
@@ -39,7 +40,10 @@
     "minimum_executed_tests": 245,
     "minimum_line_rate": 0.82,
     "minimum_branch_rate": 0.75,
-    "required_quality_tools": ["ruff", "mypy"]
+    "required_quality_tools": [
+      "ruff",
+      "mypy"
+    ]
   },
   "drift": {
     "maximum_js_divergence": 0.08,

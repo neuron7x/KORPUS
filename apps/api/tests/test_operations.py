@@ -40,6 +40,7 @@ def passing_reports() -> dict:
             "pass_rate": 1.0,
             "citation_failures": 0,
             "leakage_failures": 0,
+            "leakage_checks": 26,
             "determinism_failures": 0,
             "audit_valid": True,
         },
