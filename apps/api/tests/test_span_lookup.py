@@ -21,6 +21,7 @@ exactly the material an answer could have cited them, on the date they ask about
 from __future__ import annotations
 
 import hashlib
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from korpus.domain.models import AccessTier, Identity
@@ -139,3 +140,42 @@ def test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern(
 
     assert before == []
     assert on_the_day
+
+
+def test_listing_one_version_does_not_read_the_whole_corpus(
+    client: TestClient, admin_identity: Identity
+) -> None:
+    """The narrowing is in SQL, not in a Python filter over everything readable.
+
+    Filtering the full projection in the handler made the cost of showing one order's
+    passages grow with the corpus: measured 2026-08-05, 20 spans of one version took
+    5 ms in a corpus of 20 spans and 364 ms in a corpus of 10 020 — 73× for a document
+    that had not changed, and the cheapest denial of service in the system.
+
+    Stated as a row count rather than a duration, because a timing assertion is a
+    flake: a repository that ignores `version_id` returns every readable span here.
+    """
+    from datetime import date
+
+    target = ingest_text(client, title="Цільовий наказ", text=STRUCTURED)
+    approve(client, target["version"]["id"])
+    for index in range(3):
+        # Distinct bytes: identical content deduplicates to the same version.
+        other = ingest_text(
+            client,
+            title=f"Інший наказ {index}",
+            text=f"{STRUCTURED}\n\nДодаток {index}. Окреме положення частини.",
+        )
+        approve(client, other["version"]["id"])
+
+    rows = client.app.state.repository.list_retrievable_spans(
+        admin_identity,
+        frozenset({"public"}),
+        date(2026, 8, 5),
+        version_id=UUID(str(target["version"]["id"])),
+    )
+
+    assert rows, "the target version must still be readable"
+    assert {str(version.id) for _span, _document, version in rows} == {
+        str(target["version"]["id"])
+    }

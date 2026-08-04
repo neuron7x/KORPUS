@@ -939,11 +939,9 @@ MUTANTS = (
         "M99_SPAN_LISTING_IGNORES_THE_DATE",
         "apps/api/src/korpus/api/routes.py",
         "    effective = as_of or datetime.now(UTC).date()\n"
-        "    rows = [\n"
-        "        (span, document, version)",
+        "    rows = repository.list_retrievable_spans(",
         "    effective = date(1900, 1, 1)\n"
-        "    rows = [\n"
-        "        (span, document, version)",
+        "    rows = repository.list_retrievable_spans(",
         (
             "apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern",
         ),
@@ -981,6 +979,44 @@ MUTANTS = (
         "    if not tokens:\n        return 0.0",
         "    if not tokens:\n        return 1.0",
         ("apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support",),
+    ),
+    Mutant(
+        "M104_VERSION_NARROWING_DROPPED_FROM_SQL",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if version_id is not None:\n"
+        "            statement = statement.where(versions.c.id == str(version_id))",
+        "        if False:\n"
+        "            statement = statement.where(versions.c.id == str(version_id))",
+        (
+            "apps/api/tests/test_span_lookup.py::"
+            "test_listing_one_version_does_not_read_the_whole_corpus",
+        ),
+    ),
+    Mutant(
+        "M105_ANCHOR_DELIVERY_WALKS_ONE_ROW_PER_PASS",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                .order_by(audit_anchor_outbox.c.sequence.desc())\n"
+        "                .limit(1)\n"
+        "            ).one_or_none()",
+        "                .order_by(audit_anchor_outbox.c.sequence)\n"
+        "                .limit(1)\n"
+        "            ).one_or_none()",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_one_pass_clears_a_backlog_larger_than_the_batch",
+        ),
+    ),
+    Mutant(
+        "M106_SUPERSEDED_CHECKPOINTS_LEFT_PENDING",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "            .where(audit_anchor_outbox.c.sequence <= row.sequence)\n"
+        "            .values(delivered_at=datetime.now(UTC))",
+        "            .where(audit_anchor_outbox.c.sequence == row.sequence)\n"
+        "            .values(delivered_at=datetime.now(UTC))",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_delivery_reports_how_many_checkpoints_it_closed",
+        ),
     ),
 )
 

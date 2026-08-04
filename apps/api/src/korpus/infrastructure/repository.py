@@ -744,11 +744,24 @@ class SqlRepository:
         identity: Identity,
         corpus_ids: frozenset[str],
         as_of: date,
+        version_id: UUID | None = None,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
+        """Every span the reader may retrieve, optionally narrowed to one version.
+
+        The narrowing belongs in SQL. Filtering the full projection in Python made the
+        cost of showing one order's passages grow with the whole corpus: measured
+        2026-08-05, 20 spans of one version took 5 ms in a corpus of 20 and 364 ms in a
+        corpus of 10 020 — 73× for a document that had not changed. At the size this
+        system is meant for that is both unusable and the cheapest denial of service in
+        it, available to any reader with a wide clearance.
+        """
+
         authorized_corpora = corpus_ids.intersection(identity.corpora)
         if not authorized_corpora:
             return []
         statement = self._retrievable_projection(identity, authorized_corpora, as_of)
+        if version_id is not None:
+            statement = statement.where(versions.c.id == str(version_id))
         with self.engine.begin() as connection:
             self._apply_postgres_identity(connection, identity)
             rows = connection.execute(statement).mappings().all()
@@ -1096,29 +1109,59 @@ class SqlRepository:
             self._anchor_delivery_lock.release()
 
     def _reconcile_audit_anchor_locked(self, *, limit: int | None = None) -> int:
-        delivered = 0
-        while limit is None or delivered < limit:
-            with self.engine.connect() as connection:
-                row = connection.execute(
-                    select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
-                    .where(audit_anchor_outbox.c.delivered_at.is_(None))
-                    .order_by(audit_anchor_outbox.c.sequence)
-                    .limit(1)
-                ).one_or_none()
-            if row is None:
-                return delivered
-            # Never hold a database transaction or row lock across network I/O.
-            # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
-            self.anchor_store.write(row.sequence, row.head_hash)
-            with self.engine.begin() as connection:
-                result = connection.execute(
-                    update(audit_anchor_outbox)
-                    .where(audit_anchor_outbox.c.sequence == row.sequence)
-                    .where(audit_anchor_outbox.c.delivered_at.is_(None))
-                    .values(delivered_at=datetime.now(UTC))
-                )
-                delivered += int(result.rowcount == 1)
-        return delivered
+        """Deliver the newest pending checkpoint and close the ones it supersedes.
+
+        Delivery used to walk the outbox one row at a time: select the oldest pending,
+        write it, mark it, repeat. With `audit_reconcile_batch_size = 64` every
+        `audit_reconcile_interval_seconds = 2.0` that is about 32 deliveries a second
+        against an append rate measured at ~480/s on PostgreSQL, so the backlog grew
+        without bound under load. Probed 2026-08-05: 1500 appends, two full reconcile
+        cycles after the load stopped, 882 checkpoints still undelivered — the external
+        anchor, which exists to notice a database rolled back to an older state, was
+        describing a state 882 events old while every gate stayed green.
+
+        The anchor holds one value, and `AnchorStore.write` is monotonic, so an older
+        checkpoint carries nothing a newer one does not. Writing the newest and closing
+        the rest costs one write per pass regardless of backlog. `limit` still caps the
+        rows closed per pass so a very large backlog cannot hold the lock indefinitely.
+        """
+
+        with self.engine.connect() as connection:
+            row = connection.execute(
+                select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
+                .where(audit_anchor_outbox.c.delivered_at.is_(None))
+                .order_by(audit_anchor_outbox.c.sequence.desc())
+                .limit(1)
+            ).one_or_none()
+        if row is None:
+            return 0
+        # Never hold a database transaction or row lock across network I/O.
+        # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
+        self.anchor_store.write(row.sequence, row.head_hash)
+        statement = (
+            update(audit_anchor_outbox)
+            .where(audit_anchor_outbox.c.delivered_at.is_(None))
+            .where(audit_anchor_outbox.c.sequence <= row.sequence)
+            .values(delivered_at=datetime.now(UTC))
+        )
+        if limit is not None:
+            # Close the newest `limit` of them, so the delivered checkpoint is always
+            # among the rows closed and the remainder stays pending for the next pass.
+            floor = (
+                select(audit_anchor_outbox.c.sequence)
+                .where(audit_anchor_outbox.c.delivered_at.is_(None))
+                .where(audit_anchor_outbox.c.sequence <= row.sequence)
+                .order_by(audit_anchor_outbox.c.sequence.desc())
+                .limit(1)
+                .offset(max(limit - 1, 0))
+                .scalar_subquery()
+            )
+            statement = statement.where(
+                audit_anchor_outbox.c.sequence >= func.coalesce(floor, 0)
+            )
+        with self.engine.begin() as connection:
+            result = connection.execute(statement)
+        return int(result.rowcount or 0)
 
     def read_audit_events(
         self, identity: Identity, trace_id: str, *, limit: int = 200

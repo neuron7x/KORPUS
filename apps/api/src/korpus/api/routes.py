@@ -724,13 +724,9 @@ def list_version_spans(
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     effective = as_of or datetime.now(UTC).date()
-    rows = [
-        (span, document, version)
-        for span, document, version in repository.list_retrievable_spans(
-            identity, identity.corpora, effective
-        )
-        if version.id == version_id
-    ]
+    rows = repository.list_retrievable_spans(
+        identity, identity.corpora, effective, version_id=version_id
+    )
     rows.sort(key=lambda row: row[0].ordinal)
     return [DisclosedSpan.build(*row) for row in rows[offset : offset + limit]]
 
