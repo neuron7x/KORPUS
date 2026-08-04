@@ -457,8 +457,14 @@ MUTANTS = (
         # only resembles.
         "M48_REVISION_IGNORED_IN_DEDUP",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "        if revision is not None:\n            statement = statement.where(versions.c.revision == revision)",
-        "        if False:\n            statement = statement.where(versions.c.revision == revision)",
+        (
+            "        if revision is not None:\n"
+            "            statement = statement.where(versions.c.revision == revision)"
+        ),
+        (
+            "        if False:\n"
+            "            statement = statement.where(versions.c.revision == revision)"
+        ),
         ("apps/api/tests/test_governance_boundaries.py::test_the_same_bytes_under_a_new_revision_are_a_new_version",),
     ),
 )
