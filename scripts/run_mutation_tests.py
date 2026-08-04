@@ -337,6 +337,35 @@ MUTANTS = (
         ),
         ("apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch",),
     ),
+    Mutant(
+        # Restores the ratio that counted citations instead of statements: it exceeds
+        # 1.0 whenever a claim carries two citations, and `le=1` turns that into a 500.
+        "M35_COVERAGE_COUNTS_CITATIONS_AGAIN",
+        "apps/api/src/korpus/application/evidence.py",
+        "    coverage = (total - len(unsupported)) / total",
+        "    coverage = len(available) / total",
+        ("apps/api/tests/test_citation_alignment.py::test_extra_citations_do_not_push_coverage_above_one",),
+    ),
+    Mutant(
+        "M36_MISALIGNMENT_GATE_REMOVED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "if claims and not support.aligned:",
+        "if False:",
+        ("apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising",),
+    ),
+    Mutant(
+        # Partial credit: a claim with one carried span and one dangling reference
+        # would count as supported.
+        "M37_PARTIAL_REFERENCE_EARNS_CREDIT",
+        "apps/api/src/korpus/application/evidence.py",
+        "        missing = referenced.difference(available)",
+        (
+            "        missing = (\n"
+            "            set() if referenced & available else referenced.difference(available)\n"
+            "        )"
+        ),
+        ("apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim",),
+    ),
 )
 
 

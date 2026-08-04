@@ -4,9 +4,11 @@ import hashlib
 from dataclasses import dataclass
 
 from korpus.application.evidence import (
+    SupportVerdict,
     assess_control_injection,
     contradiction_reason,
     segment_sentences,
+    verify_claim_support,
 )
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import Repository, Retriever
@@ -16,7 +18,12 @@ from korpus.application.retrieval import (
     RetrievalUnavailable,
     tokenize,
 )
-from korpus.application.risk import QueryRisk, classify_query_risk, risk_adjusted_thresholds
+from korpus.application.risk import (
+    QueryRisk,
+    RiskThresholds,
+    classify_query_risk,
+    risk_adjusted_thresholds,
+)
 from korpus.domain.models import (
     Answer,
     AnswerStatus,
@@ -166,6 +173,79 @@ class ExtractiveAnswerService:
             minimum_support_score=self.answer_policy.minimum_support_score,
         )
         query_tokens = frozenset(tokenize(query.text))
+        claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
+
+        query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
+        support = verify_claim_support(
+            [(index, claim.evidence_span_ids) for index, claim in enumerate(claims)],
+            [citation.span_id for citation in citations],
+        )
+        evidence_coverage = support.coverage
+        if claims and not support.aligned:
+            answer = self._misaligned(release_id, support)
+            self._audit(identity, query, answer, retrieved, eligible, risk, support=support)
+            return answer
+        if not claims or query_coverage < thresholds.minimum_query_coverage:
+            answer = self._abstain(
+                release_id,
+                "claim_support_gate_failed",
+                "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
+                max((item.score for item in eligible), default=0.0),
+                query_coverage=query_coverage,
+            )
+        else:
+            contradiction = self._find_contradiction(claims)
+            if contradiction is not None:
+                answer = Answer(
+                    status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+                    text=(
+                        "Затверджені джерела містять взаємно несумісні твердження;"
+                        " автоматичну відповідь зупинено."
+                    ),
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="contradictory_authoritative_evidence",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[f"Conflict: {contradiction}"],
+                    corpus_release=release_id,
+                )
+            else:
+                answer = Answer(
+                    status=AnswerStatus.ANSWERED,
+                    text="\n\n".join(claim.text for claim in claims),
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="extractive_claims_passed_calibrated_gates",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[
+                        "Відповідь екстрактивна: система не додає фактів"
+                        " поза точними цитованими реченнями.",
+                        "Retrieval score є ranking utility, а не ймовірністю істинності.",
+                    ],
+                    corpus_release=release_id,
+                )
+        self._audit(identity, query, answer, retrieved, eligible, risk)
+        return answer
+
+    def _extract(
+        self,
+        eligible: list[RetrievedEvidence],
+        query_tokens: frozenset[str],
+        thresholds: RiskThresholds,
+    ) -> tuple[list[Claim], list[Citation], set[str]]:
+        """Build claim/citation pairs from eligible evidence.
+
+        Kept separate from `execute` so that the alignment check downstream has an
+        adversary: a substituted extraction can emit a claim that references a span the
+        answer does not carry, which is exactly the condition `verify_claim_support`
+        exists to catch and which the coupled loop could never produce.
+        """
         claims: list[Claim] = []
         citations: list[Citation] = []
         seen_sentences: set[str] = set()
@@ -223,56 +303,7 @@ class ExtractiveAnswerService:
             covered_tokens.update(set(tokenize(candidate.text)).intersection(query_tokens))
             if len(claims) >= self.answer_policy.max_claims:
                 break
-
-        query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
-        evidence_coverage = len(citations) / max(len(claims), 1) if claims else 0.0
-        if not claims or query_coverage < thresholds.minimum_query_coverage:
-            answer = self._abstain(
-                release_id,
-                "claim_support_gate_failed",
-                "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
-                max((item.score for item in eligible), default=0.0),
-                query_coverage=query_coverage,
-            )
-        else:
-            contradiction = self._find_contradiction(claims)
-            if contradiction is not None:
-                answer = Answer(
-                    status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                    text=(
-                        "Затверджені джерела містять взаємно несумісні твердження;"
-                        " автоматичну відповідь зупинено."
-                    ),
-                    claims=claims,
-                    citations=citations,
-                    retrieval_score=max(item.score for item in eligible),
-                    evidence_coverage=evidence_coverage,
-                    query_coverage=query_coverage,
-                    decision_reason="contradictory_authoritative_evidence",
-                    calibration_id=self.answer_policy.calibration_id,
-                    limitations=[f"Conflict: {contradiction}"],
-                    corpus_release=release_id,
-                )
-            else:
-                answer = Answer(
-                    status=AnswerStatus.ANSWERED,
-                    text="\n\n".join(claim.text for claim in claims),
-                    claims=claims,
-                    citations=citations,
-                    retrieval_score=max(item.score for item in eligible),
-                    evidence_coverage=evidence_coverage,
-                    query_coverage=query_coverage,
-                    decision_reason="extractive_claims_passed_calibrated_gates",
-                    calibration_id=self.answer_policy.calibration_id,
-                    limitations=[
-                        "Відповідь екстрактивна: система не додає фактів"
-                        " поза точними цитованими реченнями.",
-                        "Retrieval score є ranking utility, а не ймовірністю істинності.",
-                    ],
-                    corpus_release=release_id,
-                )
-        self._audit(identity, query, answer, retrieved, eligible, risk)
-        return answer
+        return claims, citations, covered_tokens
 
     def _scope_breaches(
         self,
@@ -327,6 +358,32 @@ class ExtractiveAnswerService:
             corpus_release=release_id,
         )
 
+    def _misaligned(self, release_id: str, support: SupportVerdict) -> Answer:
+        """A claim that points outside the answer's own citations carries no evidence.
+
+        The previous shape of this computation could produce `evidence_coverage > 1`
+        and raise `ValidationError` inside the response model — a 500 where the value
+        function requires an abstention. Coverage is reported as 0.0 here because a
+        partially referenced answer earns no partial credit.
+        """
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Твердження посилаються на докази поза набором цитат цієї відповіді;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="citation_evidence_misalignment",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Відповідь не містить тверджень: жодне з них не доведене власними цитатами.",
+                *support.reasons[:8],
+            ],
+            corpus_release=release_id,
+        )
+
     @staticmethod
     def _find_contradiction(claims: list[Claim]) -> str | None:
         for left_index, left in enumerate(claims):
@@ -368,7 +425,20 @@ class ExtractiveAnswerService:
         risk: QueryRisk = QueryRisk.STANDARD,
         *,
         breaches: list[ScopeBreach] | None = None,
+        support: SupportVerdict | None = None,
     ) -> None:
+        if support is not None and not support.aligned:
+            self.repository.append_audit(
+                identity,
+                "answer.citation_misalignment",
+                "answer",
+                str(answer.id),
+                {
+                    "decision_reason": answer.decision_reason,
+                    "unsupported_claims": list(support.unsupported_claim_indexes),
+                    "reasons": list(support.reasons[:8]),
+                },
+            )
         if breaches:
             self.repository.append_audit(
                 identity,

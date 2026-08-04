@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from uuid import UUID
 
 from korpus.application.retrieval import normalize_text, tokenize
 
@@ -150,6 +152,52 @@ def proposition_signature(text: str) -> PropositionSignature:
             continue
         quantities.add((value, (match.group("unit") or "").casefold()))
     return PropositionSignature(tokens.difference(_NEGATIONS), negated, frozenset(quantities))
+
+
+@dataclass(frozen=True)
+class SupportVerdict:
+    """How much of an answer is actually carried by the citations it ships with.
+
+    `evidence_coverage` used to be `len(citations) / len(claims)`, which counts
+    documents rather than statements: two citations on one claim produced 1.0 with a
+    second claim standing on nothing, and the ratio could exceed 1.0 and trip the
+    response model's `le=1` into a 500 — an unhandled crash where an abstention was
+    required. The denominator here is claims, the numerator is claims whose every
+    referenced span is present among the answer's own citations, and a claim that
+    references a span the answer does not carry earns no partial credit.
+    """
+
+    coverage: float
+    unsupported_claim_indexes: tuple[int, ...]
+    reasons: tuple[str, ...]
+
+    @property
+    def aligned(self) -> bool:
+        return not self.unsupported_claim_indexes
+
+
+def verify_claim_support(
+    claims: Sequence[tuple[int, Sequence[UUID]]], cited_span_ids: Collection[UUID]
+) -> SupportVerdict:
+    """Check every claim's span references against the spans the answer cites."""
+    available = frozenset(cited_span_ids)
+    unsupported: list[int] = []
+    reasons: list[str] = []
+    for index, span_ids in claims:
+        referenced = frozenset(span_ids)
+        if not referenced:
+            unsupported.append(index)
+            reasons.append(f"claim {index}: no evidence reference")
+            continue
+        missing = referenced.difference(available)
+        if missing:
+            unsupported.append(index)
+            reasons.append(f"claim {index}: out_of_range span reference")
+    total = len(claims)
+    if total == 0:
+        return SupportVerdict(0.0, (), ())
+    coverage = (total - len(unsupported)) / total
+    return SupportVerdict(coverage, tuple(unsupported), tuple(reasons))
 
 
 def contradiction_reason(left: str, right: str, minimum_overlap: float = 0.55) -> str | None:
