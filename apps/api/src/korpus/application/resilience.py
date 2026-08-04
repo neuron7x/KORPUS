@@ -28,25 +28,61 @@ class AdmissionSnapshot:
     capacity: int
     active: int
     rejected: int
+    per_subject_limit: int = 0
+    subject_rejected: int = 0
 
 
 class AdmissionController:
-    """Bounded concurrency gate; overload is explicit, never unbounded queueing."""
+    """Bounded concurrency gate with a per-subject share of that bound.
 
-    def __init__(self, capacity: int, wait_timeout_seconds: float = 0.05) -> None:
+    The global bound alone is not isolation: one subject issuing `capacity` concurrent
+    queries takes the whole service, and every other reader is refused with 503. Rate
+    limiting lived only in nginx keyed on `$binary_remote_addr`, which is bypassed by
+    reaching `api:8000` directly, shared by everyone behind one NAT, and blind to who
+    authenticated. The subject is the unit the system authorizes, so it is the unit the
+    capacity is divided between.
+    """
+
+    def __init__(
+        self,
+        capacity: int,
+        wait_timeout_seconds: float = 0.05,
+        *,
+        per_subject_limit: int | None = None,
+    ) -> None:
         if capacity < 1 or wait_timeout_seconds < 0:
             raise ValueError("invalid admission limits")
+        if per_subject_limit is not None and per_subject_limit < 1:
+            raise ValueError("per_subject_limit must be positive")
         self.capacity = capacity
         self.wait_timeout_seconds = wait_timeout_seconds
+        # Default: no single subject may hold more than half the service, and never
+        # fewer than one slot, so a capacity of 1 still admits somebody.
+        self.per_subject_limit = per_subject_limit or max(1, capacity // 2)
         self._semaphore = threading.BoundedSemaphore(capacity)
         self._lock = threading.Lock()
         self._active = 0
         self._rejected = 0
+        self._subject_rejected = 0
+        self._by_subject: dict[str, int] = {}
 
     @contextmanager
-    def acquire(self) -> Generator[None, None, None]:
-        admitted = self._semaphore.acquire(timeout=self.wait_timeout_seconds)
+    def acquire(self, subject: str | None = None) -> Generator[None, None, None]:
+        if subject is not None:
+            with self._lock:
+                held = self._by_subject.get(subject, 0)
+                if held >= self.per_subject_limit:
+                    self._subject_rejected += 1
+                    self._rejected += 1
+                    raise OverloadedError("per-subject capacity exhausted")
+                self._by_subject[subject] = held + 1
+        try:
+            admitted = self._semaphore.acquire(timeout=self.wait_timeout_seconds)
+        except BaseException:
+            self._release_subject(subject)
+            raise
         if not admitted:
+            self._release_subject(subject)
             with self._lock:
                 self._rejected += 1
             raise OverloadedError("answer capacity exhausted")
@@ -57,11 +93,30 @@ class AdmissionController:
         finally:
             with self._lock:
                 self._active -= 1
+            self._release_subject(subject)
             self._semaphore.release()
+
+    def _release_subject(self, subject: str | None) -> None:
+        if subject is None:
+            return
+        with self._lock:
+            remaining = self._by_subject.get(subject, 0) - 1
+            # The map must not grow with every subject ever seen: an unbounded dict
+            # keyed on an attacker-chosen string is its own denial of service.
+            if remaining > 0:
+                self._by_subject[subject] = remaining
+            else:
+                self._by_subject.pop(subject, None)
 
     def snapshot(self) -> AdmissionSnapshot:
         with self._lock:
-            return AdmissionSnapshot(self.capacity, self._active, self._rejected)
+            return AdmissionSnapshot(
+                self.capacity,
+                self._active,
+                self._rejected,
+                self.per_subject_limit,
+                self._subject_rejected,
+            )
 
 
 T = TypeVar("T")

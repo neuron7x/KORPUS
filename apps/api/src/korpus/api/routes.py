@@ -114,10 +114,11 @@ async def _run_bounded_ingestion[T](
     admission: AdmissionController,
     observability: Observability,
     operation: Callable[[], T],
+    subject: str | None = None,
 ) -> T:
     def execute() -> T:
         try:
-            with admission.acquire():
+            with admission.acquire(subject):
                 observability.ingestion_admission_active.set(admission.snapshot().active)
                 return operation()
         finally:
@@ -367,7 +368,8 @@ async def ingest_document(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: service.ingest_path(
+                subject=identity.subject,
+                operation=lambda: service.ingest_path(
                     identity,
                     document,
                     version,
@@ -417,7 +419,8 @@ async def ingest_document_version(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: service.ingest_version_path(
+                subject=identity.subject,
+                operation=lambda: service.ingest_version_path(
                     identity,
                     document_id,
                     version,
@@ -470,7 +473,8 @@ async def submit_document_ingestion_job(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: coordinator.submit_document(
+                subject=identity.subject,
+                operation=lambda: coordinator.submit_document(
                     identity,
                     document,
                     version,
@@ -520,7 +524,8 @@ async def submit_version_ingestion_job(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: coordinator.submit_version(
+                subject=identity.subject,
+                operation=lambda: coordinator.submit_version(
                     identity,
                     document_id,
                     version,
@@ -587,7 +592,7 @@ def create_answer(
 ) -> Answer:
     try:
         try:
-            with admission.acquire():
+            with admission.acquire(identity.subject):
                 observability.answer_admission_active.set(admission.snapshot().active)
                 with observability.measure_retrieval():
                     answer = service.execute(identity, query)
@@ -631,3 +636,28 @@ def verify_audit(
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     return repository.verify_audit()
+
+
+@router.get("/v1/audit/events")
+def read_audit_events(
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+    trace_id: Annotated[str, Query(min_length=1, max_length=128)],
+    limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+) -> list[dict[str, object]]:
+    """One request's events, for an auditor.
+
+    `verify_audit` returns a single verdict over the whole chain, which cannot answer
+    why one answer was withheld. Reading is scoped to a trace so the question an
+    investigator actually has — what happened during this request — does not require
+    exporting the table.
+    """
+    try:
+        policy.require(identity, "audit:read")
+    except AuthorizationError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    try:
+        return repository.read_audit_events(identity, trace_id, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

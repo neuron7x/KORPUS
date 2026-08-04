@@ -17,6 +17,7 @@ from korpus.api.routes import router
 from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
+from korpus.application.trace import reset_trace_id, set_trace_id
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
@@ -191,6 +192,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         supplied = request.headers.get("X-Request-ID", "")
         request_id = supplied if REQUEST_ID_PATTERN.fullmatch(supplied) else str(uuid.uuid4())
         request.state.request_id = request_id
+        trace_token = set_trace_id(request_id)
         if request.method in {"POST", "PUT", "PATCH", "DELETE"} and selected.browser_auth_enabled:
             session_cookie = request.cookies.get(selected.browser_session_cookie)
             if session_cookie:
@@ -221,6 +223,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-store"
             return response
         finally:
+            reset_trace_id(trace_token)
             route = getattr(request.scope.get("route"), "path", "unmatched")
             if hasattr(app.state, "observability"):
                 app.state.observability.observe_http(

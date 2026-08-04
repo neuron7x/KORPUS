@@ -41,10 +41,11 @@ from sqlalchemy import (
     text as sql_text,
 )
 from sqlalchemy.engine import Connection, RowMapping
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
 from korpus.application.policy import PolicyEngine
+from korpus.application.trace import TRACE_ID_PATTERN, current_trace_id
 from korpus.domain.models import (
     AccessTier,
     AuditVerification,
@@ -1047,6 +1048,57 @@ class SqlRepository:
                 delivered += int(result.rowcount == 1)
         return delivered
 
+    def read_audit_events(
+        self, identity: Identity, trace_id: str, *, limit: int = 200
+    ) -> list[dict[str, object]]:
+        """The events of one request, in order, for an auditor who holds `audit:read`.
+
+        Matching is a substring test against the canonical payload rather than a JSON
+        operator, because the payload column is portable text and the canonical form
+        (sorted keys, no spaces) makes the encoding of one key exact. The cost is a
+        scan; at audit volumes that is acceptable, and it is named here rather than
+        hidden. Authorisation is the caller's: this method assumes the permission check
+        already happened.
+        """
+        if not TRACE_ID_PATTERN.fullmatch(trace_id):
+            raise ValueError("invalid trace id")
+        if limit < 1 or limit > 1000:
+            raise ValueError("limit out of range")
+        needle = json.dumps({"trace_id": trace_id}, separators=(",", ":"))[1:-1]
+        statement = (
+            select(
+                audits.c.sequence,
+                audits.c.event_id,
+                audits.c.occurred_at,
+                audits.c.actor_subject,
+                audits.c.action,
+                audits.c.resource_type,
+                audits.c.resource_id,
+                audits.c.payload_json,
+            )
+            .where(audits.c.payload_json.contains(needle))
+            .order_by(audits.c.sequence)
+            .limit(limit)
+        )
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            rows = connection.execute(statement).mappings().all()
+        return [
+            {
+                "sequence": int(row["sequence"]),
+                "event_id": str(row["event_id"]),
+                "occurred_at": self._iso(row["occurred_at"])
+                if isinstance(row["occurred_at"], datetime)
+                else str(row["occurred_at"]),
+                "actor_subject": str(row["actor_subject"]),
+                "action": str(row["action"]),
+                "resource_type": str(row["resource_type"]),
+                "resource_id": None if row["resource_id"] is None else str(row["resource_id"]),
+                "payload": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
+
     def verify_audit(self) -> AuditVerification:
         with self.engine.connect() as connection:
             rows = connection.execute(select(audits).order_by(audits.c.sequence)).mappings().all()
@@ -1161,12 +1213,40 @@ class SqlRepository:
         return {"content": content, "quarantine": quarantine}
 
     def healthcheck(self) -> bool:
+        """Reachable is not the same as intact.
+
+        `SELECT 1` answers whether a connection can be opened; a database whose pages
+        are corrupt but still readable answers it happily, and readiness reported
+        healthy right up to the query that returns wrong rows. The engine-specific
+        integrity probe below is the cheapest check that can actually fail: SQLite
+        walks its pages, PostgreSQL is asked for a checksum-failure count it maintains
+        itself. Any error is unhealthy — this must fail closed.
+        """
         try:
             with self.engine.connect() as connection:
                 probe: object = connection.execute(select(1)).scalar_one()
-                return probe == 1
-        except OperationalError:
+                if probe != 1:
+                    return False
+                return self._integrity_ok(connection)
+        except (OperationalError, DatabaseError):
             return False
+
+    def _integrity_ok(self, connection: Connection) -> bool:
+        dialect = self.engine.dialect.name
+        if dialect == "sqlite":
+            # quick_check does the structural pass without the full page scan; it
+            # returns the single row 'ok' when the file is sound.
+            rows = connection.execute(sql_text("PRAGMA quick_check(1)")).scalars().all()
+            return [str(row).lower() for row in rows] == ["ok"]
+        if dialect == "postgresql":
+            row = connection.execute(
+                sql_text(
+                    "SELECT coalesce(sum(checksum_failures), 0) FROM pg_stat_database"
+                    " WHERE datname = current_database()"
+                )
+            ).scalar_one()
+            return int(row) == 0
+        return True
 
     def readiness_snapshot(
         self, *, max_pending_events: int, max_pending_age_seconds: float
@@ -1290,8 +1370,12 @@ class SqlRepository:
         sequence = head_sequence + 1
         occurred_at = datetime.now(UTC)
         event_id = str(uuid4())
+        trace_id = current_trace_id()
+        # Inside the payload, not beside it: the payload is hashed, so an event cannot
+        # be re-attributed to another request without breaking the chain.
+        stamped = payload if trace_id is None else {**payload, "trace_id": trace_id}
         payload_json = json.dumps(
-            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+            stamped, ensure_ascii=False, sort_keys=True, separators=(",", ":")
         )
         canonical = self._audit_canonical(
             sequence=sequence,

@@ -467,6 +467,44 @@ MUTANTS = (
         ),
         ("apps/api/tests/test_governance_boundaries.py::test_the_same_bytes_under_a_new_revision_are_a_new_version",),
     ),
+    Mutant(
+        # Back to a global bound: one subject takes the service.
+        "M49_PER_SUBJECT_SHARE_REMOVED",
+        "apps/api/src/korpus/application/resilience.py",
+        "                if held >= self.per_subject_limit:",
+        "                if False:",
+        ("apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service",),
+    ),
+    Mutant(
+        # The share is taken and never returned — a slow denial of service.
+        "M50_SUBJECT_SLOT_LEAKED",
+        "apps/api/src/korpus/application/resilience.py",
+        "            self._release_subject(subject)\n            self._semaphore.release()",
+        "            self._semaphore.release()",
+        ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_per_subject_share_is_returned_when_the_work_finishes",),
+    ),
+    Mutant(
+        "M51_INTEGRITY_PROBE_REMOVED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                return self._integrity_ok(connection)",
+        "                return True",
+        ("apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database",),
+    ),
+    Mutant(
+        # A scoped read that ignores its scope returns another request's events.
+        "M52_AUDIT_TRACE_SCOPE_IGNORED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "            .where(audits.c.payload_json.contains(needle))",
+        "            .where(audits.c.sequence >= 1)",
+        ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",),
+    ),
+    Mutant(
+        "M53_AUDIT_READ_PERMISSION_DROPPED",
+        "apps/api/src/korpus/api/routes.py",
+        '        policy.require(identity, "audit:read")',
+        "        pass",
+        ("apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission",),
+    ),
 )
 
 
