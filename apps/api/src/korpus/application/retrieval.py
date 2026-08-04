@@ -156,6 +156,7 @@ AUTHORITY_PRIOR: dict[AuthorityClass, float] = {
     AuthorityClass.APPROVED_TRAINING: 0.74,
     AuthorityClass.ANALYTICAL: 0.46,
     AuthorityClass.HISTORICAL: 0.30,
+    AuthorityClass.ADVERSARY: 0.00,
     AuthorityClass.UNKNOWN: 0.00,
 }
 

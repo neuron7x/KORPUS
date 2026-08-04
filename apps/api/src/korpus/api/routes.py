@@ -43,7 +43,11 @@ from korpus.api.dependencies import (
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.ingestion import IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
-from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.application.policy import (
+    AuthorizationError,
+    PolicyEngine,
+    UnauthorizedCorporaError,
+)
 from korpus.application.ports import ObjectStore
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.config import Settings, get_settings
@@ -561,7 +565,9 @@ def review_version(
 ) -> DocumentVersionRecord:
     try:
         return service.transition(identity, version_id, transition)
-    except AuthorizationError as exc:
+    except PermissionError as exc:
+        # AuthorizationError is one of these; so is an approver reaching for a tier
+        # above their own clearance, which is a refusal rather than a server fault.
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
@@ -598,6 +604,17 @@ def create_answer(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="answer capacity exhausted",
             headers={"Retry-After": "1"},
+        ) from exc
+    except UnauthorizedCorporaError as exc:
+        # Typed, and in the order the reader asked: a refusal that does not say which
+        # corpus was refused cannot be acted on by the reader or by an operator.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "reason": exc.reason,
+                "denied_corpora": exc.denied,
+                "requested_corpora": exc.requested,
+            },
         ) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc

@@ -46,7 +46,19 @@ class AuthorityClass(StrEnum):
     APPROVED_TRAINING = "approved_training"
     ANALYTICAL = "analytical"
     HISTORICAL = "historical"
+    ADVERSARY = "adversary"
     UNKNOWN = "unknown"
+
+    @property
+    def is_normative(self) -> bool:
+        """Whether a source of this class may govern an answer.
+
+        ADVERSARY exists so that captured or hostile material can be held, searched
+        and shown as what it is. It is never normative — the rule lived only in prose
+        in docs/governance/DATA_GOVERNANCE.md, where nothing executed it. UNKNOWN is
+        not normative either: unclassified provenance is not a source class.
+        """
+        return self not in {AuthorityClass.ADVERSARY, AuthorityClass.UNKNOWN}
 
 
 class Classification(StrEnum):
@@ -352,6 +364,13 @@ class ReviewTransition(BaseModel):
     note: str = Field(min_length=12, max_length=2000)
     acknowledge_near_duplicate: bool = False
     acknowledge_extraction_quality: bool = False
+    access_tier: AccessTier | None = None
+
+    @model_validator(mode="after")
+    def validate_tier_target(self) -> ReviewTransition:
+        if self.access_tier is not None and self.target is not ReviewState.APPROVED:
+            raise ValueError("access_tier may only be set on approval")
+        return self
 
 
 class AuditVerification(BaseModel):

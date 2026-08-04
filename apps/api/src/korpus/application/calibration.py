@@ -58,6 +58,7 @@ class CalibrationProfile(BaseModel):
     authority_approved_training: float = Field(default=0.74, ge=0, le=1)
     authority_analytical: float = Field(default=0.46, ge=0, le=1)
     authority_historical: float = Field(default=0.30, ge=0, le=1)
+    authority_adversary: float = Field(default=0.00, ge=0, le=1)
     authority_unknown: float = Field(default=0.00, ge=0, le=1)
     diversity_lambda: float = Field(default=0.82, ge=0, le=1)
     per_version_cap: int = Field(default=1, ge=1, le=8)
@@ -100,6 +101,7 @@ class CalibrationProfile(BaseModel):
             AuthorityClass.APPROVED_TRAINING: self.authority_approved_training,
             AuthorityClass.ANALYTICAL: self.authority_analytical,
             AuthorityClass.HISTORICAL: self.authority_historical,
+            AuthorityClass.ADVERSARY: self.authority_adversary,
             AuthorityClass.UNKNOWN: self.authority_unknown,
         }
 

@@ -26,6 +26,7 @@
     "approved_training": 0.74,
     "analytical": 0.46,
     "historical": 0.3,
+    "adversary": 0.0,
     "unknown": 0.0
   },
   "selection": {

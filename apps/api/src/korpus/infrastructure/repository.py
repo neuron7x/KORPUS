@@ -141,7 +141,7 @@ versions = Table(
     Column("approver_credential_id", String(200)),
     Column("is_current", Boolean, nullable=False, default=False, index=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
-    UniqueConstraint("document_id", "source_hash", name="uq_version_document_source_hash"),
+    UniqueConstraint("document_id", "revision", name="uq_version_document_revision"),
     CheckConstraint("state_version >= 0", name="ck_version_state_version"),
     CheckConstraint(
         "effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from",
@@ -499,8 +499,19 @@ class SqlRepository:
         *,
         corpus_id: str | None = None,
         document_id: UUID | None = None,
+        revision: str | None = None,
     ) -> DocumentVersionRecord | None:
+        """Identical bytes under a different revision are a different version.
+
+        Deduplication keyed on content alone treats a re-issue as an upload of
+        something already held: the ingest returns the existing row, and the revision
+        number, effective dates and supersession edge that came with the re-issue are
+        discarded without a word. A revision is the corpus's own name for a distinct
+        state of a document, so it splits versions even when the bytes match.
+        """
         statement = select(versions)
+        if revision is not None:
+            statement = statement.where(versions.c.revision == revision)
         if document_id is not None:
             statement = statement.where(versions.c.document_id == str(document_id))
         elif corpus_id is not None:
@@ -525,7 +536,17 @@ class SqlRepository:
         acknowledge_near_duplicate: bool = False,
         acknowledge_extraction_quality: bool = False,
         reviewer_credential_id: str | None = None,
+        access_tier: AccessTier | None = None,
     ) -> DocumentVersionRecord:
+        """Approval may carry the access tier the approver decided on.
+
+        Approval is where a human takes responsibility for a document entering the
+        corpus, and the tier is part of that decision — but it could only be set at
+        ingestion, by whoever uploaded the file. An approver who judged a document more
+        restricted than it was filed as had no way to say so, and the tier that stood
+        was the uploader's.
+        """
+
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
             row = connection.execute(
@@ -593,6 +614,20 @@ class SqlRepository:
                         "is_current": True,
                     }
                 )
+                if access_tier is not None:
+                    document_row = connection.execute(
+                        select(documents).where(documents.c.id == str(current.document_id))
+                    ).mappings().one()
+                    document = self._document(document_row)
+                    if access_tier < document.classification.minimum_tier:
+                        raise ValueError("access_tier is below classification minimum")
+                    if int(access_tier) > int(actor.clearance):
+                        raise PermissionError("approver cannot assign a tier above own clearance")
+                    connection.execute(
+                        update(documents)
+                        .where(documents.c.id == str(current.document_id))
+                        .values(access_tier=int(access_tier))
+                    )
             elif target_state is ReviewState.REJECTED:
                 changes["is_current"] = False
 
@@ -630,6 +665,7 @@ class SqlRepository:
                     "extraction_quality_acknowledged_by": (
                         updated.extraction_quality_acknowledged_by
                     ),
+                    "applied_access_tier": None if access_tier is None else int(access_tier),
                 },
             )
             return updated, anchor

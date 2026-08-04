@@ -423,6 +423,44 @@ MUTANTS = (
         "if False:",
         ("apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token",),
     ),
+    Mutant(
+        # Makes captured material normative — the rule that lived only in prose.
+        "M44_ADVERSARY_BECOMES_NORMATIVE",
+        "apps/api/src/korpus/domain/models.py",
+        "        return self not in {AuthorityClass.ADVERSARY, AuthorityClass.UNKNOWN}",
+        "        return self is not AuthorityClass.UNKNOWN",
+        ("apps/api/tests/test_governance_boundaries.py::test_an_adversary_source_cannot_be_approved",),
+    ),
+    Mutant(
+        "M45_APPROVER_TIER_DISCARDED",
+        "apps/api/src/korpus/application/ingestion.py",
+        "            access_tier=transition.access_tier,",
+        "            access_tier=None,",
+        ("apps/api/tests/test_governance_boundaries.py::test_the_approver_sets_the_access_tier",),
+    ),
+    Mutant(
+        "M46_APPROVER_TIER_ABOVE_CLEARANCE_ALLOWED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                    if int(access_tier) > int(actor.clearance):",
+        "                    if False:",
+        ("apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance",),
+    ),
+    Mutant(
+        "M47_DENIED_CORPORA_UNTYPED_AGAIN",
+        "apps/api/src/korpus/application/policy.py",
+        "            raise UnauthorizedCorporaError(requested, denied)",
+        '            raise AuthorizationError("requested corpora exceed identity authorization")',
+        ("apps/api/tests/test_governance_boundaries.py::test_an_unheld_corpus_denies_the_request_and_names_which",),
+    ),
+    Mutant(
+        # Deduplication on bytes alone: the re-issue disappears into the version it
+        # only resembles.
+        "M48_REVISION_IGNORED_IN_DEDUP",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "        if revision is not None:\n            statement = statement.where(versions.c.revision == revision)",
+        "        if False:\n            statement = statement.where(versions.c.revision == revision)",
+        ("apps/api/tests/test_governance_boundaries.py::test_the_same_bytes_under_a_new_revision_are_a_new_version",),
+    ),
 )
 
 

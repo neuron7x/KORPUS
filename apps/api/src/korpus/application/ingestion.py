@@ -143,7 +143,7 @@ class IngestionService:
         digest = self._validate_path_and_hash(path, source_hash)
         self._verify_source(document_data.issuer, version_data, digest)
         duplicate = self.repository.find_version_by_hash(
-            actor, digest, corpus_id=document_data.corpus_id
+            actor, digest, corpus_id=document_data.corpus_id, revision=version_data.revision
         )
         if duplicate is not None:
             duplicate_document = self.repository.get_document(actor, duplicate.document_id)
@@ -236,7 +236,9 @@ class IngestionService:
             raise PermissionError("corpus governance profile is unavailable")
         digest = self._validate_path_and_hash(path, source_hash)
         self._verify_source(document.issuer, version_data, digest)
-        duplicate = self.repository.find_version_by_hash(actor, digest, document_id=document.id)
+        duplicate = self.repository.find_version_by_hash(
+            actor, digest, document_id=document.id, revision=version_data.revision
+        )
         if duplicate is not None:
             return IngestResult(
                 document=document,
@@ -294,8 +296,8 @@ class IngestionService:
                 f"invalid review transition {version.review_state.value}"
                 f" -> {transition.target.value}"
             )
-        if transition.target is ReviewState.APPROVED and version.authority.value == "unknown":
-            raise ValueError("unknown authority cannot be approved")
+        if transition.target is ReviewState.APPROVED and not version.authority.is_normative:
+            raise ValueError(f"{version.authority.value} authority cannot be approved")
         if self.review_separation_required:
             if (
                 transition.target is ReviewState.CONTENT_REVIEWED
@@ -334,6 +336,7 @@ class IngestionService:
             acknowledge_near_duplicate=transition.acknowledge_near_duplicate,
             acknowledge_extraction_quality=transition.acknowledge_extraction_quality,
             reviewer_credential_id=reviewer_credential_id,
+            access_tier=transition.access_tier,
         )
 
 

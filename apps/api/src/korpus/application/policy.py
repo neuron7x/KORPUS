@@ -9,6 +9,23 @@ class AuthorizationError(PermissionError):
     pass
 
 
+class UnauthorizedCorporaError(AuthorizationError):
+    """One requested corpus the reader does not hold denies the whole request.
+
+    The refusal existed but carried only a sentence. A reader could not tell which of
+    the corpora they named was refused, and the set was a `frozenset`, so the order in
+    which they asked was lost before anything could report it. Both matter: the reason
+    is what an operator acts on, and the order is what the reader recognises.
+    """
+
+    reason = "requested_corpora_not_held"
+
+    def __init__(self, requested: list[str], denied: list[str]) -> None:
+        self.requested = list(requested)
+        self.denied = list(denied)
+        super().__init__(f"requested corpora not held: {', '.join(denied)}")
+
+
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     "user": frozenset({"answer:read", "document:list"}),
     "instructor": frozenset({"answer:read", "document:list", "training:manage"}),
@@ -54,8 +71,7 @@ class PolicyEngine:
         self.require(identity, "answer:read")
         if not requested:
             return identity.corpora
-        requested_set = frozenset(requested)
-        unauthorized = requested_set.difference(identity.corpora)
-        if unauthorized:
-            raise AuthorizationError("requested corpora exceed identity authorization")
-        return requested_set
+        denied = [corpus for corpus in requested if corpus not in identity.corpora]
+        if denied:
+            raise UnauthorizedCorporaError(requested, denied)
+        return frozenset(requested)

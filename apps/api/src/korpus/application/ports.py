@@ -6,6 +6,7 @@ from typing import Any, Protocol
 from uuid import UUID
 
 from korpus.domain.models import (
+    AccessTier,
     AuditVerification,
     DocumentRecord,
     DocumentVersionRecord,
@@ -59,6 +60,7 @@ class Repository(Protocol):
         *,
         corpus_id: str | None = None,
         document_id: UUID | None = None,
+        revision: str | None = None,
     ) -> DocumentVersionRecord | None: ...
 
     def transition_version(
@@ -71,6 +73,7 @@ class Repository(Protocol):
         acknowledge_near_duplicate: bool = False,
         acknowledge_extraction_quality: bool = False,
         reviewer_credential_id: str | None = None,
+        access_tier: AccessTier | None = None,
     ) -> DocumentVersionRecord: ...
 
     def list_retrievable_spans(

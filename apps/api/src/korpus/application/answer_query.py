@@ -98,7 +98,7 @@ class AnswerPolicy:
             and item.query_coverage >= thresholds.minimum_query_coverage
             and AUTHORITY_PRIOR[item.version.authority] >= thresholds.minimum_authority
             and item.version.review_state.value == "approved"
-            and item.version.authority.value != "unknown"
+            and item.version.authority.is_normative
         ]
 
 
