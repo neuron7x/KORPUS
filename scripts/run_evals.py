@@ -61,6 +61,10 @@ def _ingest(
         revision=revision,
         authority=AuthorityClass.OFFICIAL_UA,
         effective_from=effective_from,
+        # An approved version has to say when it starts to govern; the frozen fixtures
+        # are dated well before every `as_of` in the dataset so the lower bound is
+        # satisfied without changing which edition any row resolves to.
+        publication_date=date(2024, 1, 1),
         supersedes_version_id=supersedes,
     )
     if document_id is None:

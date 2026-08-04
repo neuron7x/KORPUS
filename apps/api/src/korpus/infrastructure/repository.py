@@ -814,8 +814,8 @@ class SqlRepository:
             .where(superseding.c.document_id == versions.c.document_id)
             .where(superseding.c.review_state == ReviewState.APPROVED.value)
             .where(
-                (superseding.c.effective_from.is_(None))
-                | (superseding.c.effective_from <= as_of)
+                func.coalesce(superseding.c.effective_from, superseding.c.publication_date)
+                <= as_of
             )
             .where(
                 (superseding.c.effective_until.is_(None))
@@ -956,14 +956,14 @@ class SqlRepository:
                   AND d.corpus_id IN ({corpus_placeholders})
                   AND d.access_tier <= :clearance
                   AND d.classification IN ({class_placeholders})
-                  AND (v.effective_from IS NULL OR v.effective_from <= :as_of)
+                  AND COALESCE(v.effective_from, v.publication_date) <= :as_of
                   AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
                   AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
                   AND NOT EXISTS (
                     SELECT 1 FROM document_versions sv
                     WHERE sv.supersedes_version_id = v.id
                       AND sv.review_state = 'approved'
-                      AND (sv.effective_from IS NULL OR sv.effective_from <= :as_of)
+                      AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
                       AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
                       AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
                   )
@@ -989,14 +989,14 @@ class SqlRepository:
                   AND d.corpus_id IN ({corpus_placeholders})
                   AND d.access_tier <= :clearance
                   AND d.classification IN ({class_placeholders})
-                  AND (v.effective_from IS NULL OR v.effective_from <= {as_of_date})
+                  AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
                   AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
                   AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
                   AND NOT EXISTS (
                     SELECT 1 FROM document_versions sv
                     WHERE sv.supersedes_version_id = v.id
                       AND sv.review_state = 'approved'
-                      AND (sv.effective_from IS NULL OR sv.effective_from <= {as_of_date})
+                      AND COALESCE(sv.effective_from, sv.publication_date) <= {as_of_date}
                       AND (sv.effective_until IS NULL OR sv.effective_until >= {as_of_date})
                       AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > {as_of_date})
                   )

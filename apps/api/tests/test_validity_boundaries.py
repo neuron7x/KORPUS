@@ -43,6 +43,10 @@ def _version(**overrides: object) -> DocumentVersionRecord:
         "object_key": "objects/test",
         "mime_type": "text/plain",
         "authority": AuthorityClass.OFFICIAL_UA,
+        # A version with neither effective_from nor publication_date governs no date
+        # at all (test_currency_lower_bound.py); these cases are about the upper
+        # bound and the rescission boundary, so the lower one is pinned in the past.
+        "publication_date": date(2020, 1, 1),
     }
     fields.update(overrides)
     return DocumentVersionRecord.model_validate(fields)

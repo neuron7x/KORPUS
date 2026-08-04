@@ -73,6 +73,9 @@ def main() -> int:
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
             review_state=ReviewState.APPROVED,
+            # An approved version governs from a stated date; without one the candidate
+            # query excludes it and the probe measures an empty corpus at full speed.
+            publication_date=date(2020, 1, 1),
             is_current=True,
         )
         records = [

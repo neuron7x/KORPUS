@@ -589,6 +589,12 @@ class ExtractiveAnswerService:
                     "reader_clearance": int(identity.clearance),
                 },
             )
+        thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.answer_policy.minimum_score,
+            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
+            minimum_support_score=self.answer_policy.minimum_support_score,
+        )
         self.repository.append_audit(
             identity,
             "answer.completed",
@@ -608,5 +614,29 @@ class ExtractiveAnswerService:
                 "calibration_id": answer.calibration_id,
                 "corpus_release": answer.corpus_release,
                 "query_risk": risk.value,
+                # Counts cannot answer the question an investigation has. Which edition
+                # governed, which passage was quoted, on what date and against which
+                # bar were all absent from the record, so "why was this answered and
+                # that withheld" was unreconstructable once the answer object was gone.
+                # The date is recorded even for abstentions: `as_of` decides which
+                # edition is current, and an abstention on the wrong date looks exactly
+                # like an abstention on an empty corpus.
+                "as_of": query.as_of.isoformat(),
+                "thresholds": {
+                    "minimum_score": thresholds.minimum_score,
+                    "minimum_query_coverage": thresholds.minimum_query_coverage,
+                    "minimum_support_score": thresholds.minimum_support_score,
+                    "minimum_authority": thresholds.minimum_authority,
+                },
+                "citations": [
+                    {
+                        "document_id": str(citation.document_id),
+                        "version_id": str(citation.version_id),
+                        "span_id": str(citation.span_id),
+                        "revision": citation.revision,
+                        "quote_hash": citation.quote_hash,
+                    }
+                    for citation in answer.citations
+                ],
             },
         )

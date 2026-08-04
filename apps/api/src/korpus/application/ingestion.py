@@ -308,6 +308,16 @@ class IngestionService:
             )
         if transition.target is ReviewState.APPROVED and not version.authority.is_normative:
             raise ValueError(f"{version.authority.value} authority cannot be approved")
+        if transition.target is ReviewState.APPROVED and version.in_force_from is None:
+            # Approving a version makes it answer "which rules applied on date X". With
+            # neither effective_from nor publication_date it answered for every past
+            # date, including dates before it existed. The date is a fact about the
+            # order that the curator has in front of them; refusing here is cheaper than
+            # a citation that is wrong in a way the reader cannot see.
+            raise ValueError(
+                "an approved version must state effective_from or publication_date: "
+                "without one it would govern every past date"
+            )
         if self.review_separation_required:
             if (
                 transition.target is ReviewState.CONTENT_REVIEWED

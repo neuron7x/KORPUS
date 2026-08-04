@@ -92,7 +92,13 @@ def test_compartment_noninterference_is_enforced_before_retrieval(client, admin_
                 "classification": "public",
                 "compartments": ["operations"],
             }),
-            "version_json": json.dumps({"revision": "1", "authority": "official_ua"}),
+            "version_json": json.dumps(
+                {
+                    "revision": "1",
+                    "authority": "official_ua",
+                    "publication_date": "2020-01-01",
+                }
+            ),
         },
         files={"file": ("compartment.txt", b"Compartment marker OMEGA-991.", "text/plain")},
     )

@@ -295,8 +295,8 @@ MUTANTS = (
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "AND (v.effective_from IS NULL OR v.effective_from <= :as_of)",
-        "AND (v.effective_from IS NULL OR v.effective_from < :as_of)",
+        "AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "AND COALESCE(v.effective_from, v.publication_date) < :as_of",
         ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
     ),
     Mutant(
@@ -824,6 +824,60 @@ MUTANTS = (
         "            if False:",
         (
             "apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak",
+        ),
+    ),
+    Mutant(
+        "M88_AUDIT_DOES_NOT_NAME_THE_GOVERNING_VERSION",
+        "apps/api/src/korpus/application/answer_query.py",
+        '                        "version_id": str(citation.version_id),',
+        '                        "version_id": "",',
+        (
+            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on",
+        ),
+    ),
+    Mutant(
+        "M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR",
+        "apps/api/src/korpus/application/answer_query.py",
+        '                "as_of": query.as_of.isoformat(),',
+        '                "as_of": "",',
+        (
+            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for",
+        ),
+    ),
+    Mutant(
+        "M90_CURRENCY_HAS_NO_LOWER_BOUND",
+        "apps/api/src/korpus/domain/models.py",
+        "        if lower_bound is None or as_of < lower_bound:",
+        "        if lower_bound is not None and as_of < lower_bound:",
+        (
+            "apps/api/tests/test_currency_lower_bound.py::test_the_projection_ignores_an_unbounded_version_already_in_the_database",
+        ),
+    ),
+    Mutant(
+        "M91_PUBLICATION_DATE_NOT_A_LOWER_BOUND",
+        "apps/api/src/korpus/domain/models.py",
+        "        return self.effective_from or self.publication_date",
+        "        return self.effective_from",
+        (
+            "apps/api/tests/test_currency_lower_bound.py::test_publication_date_serves_as_the_lower_bound_when_effective_from_is_absent",
+        ),
+    ),
+    Mutant(
+        "M92_APPROVAL_ACCEPTS_A_VERSION_THAT_GOVERNS_EVERY_PAST_DATE",
+        "apps/api/src/korpus/application/ingestion.py",
+        "        if transition.target is ReviewState.APPROVED and version.in_force_from is None:",
+        "        if False:",
+        (
+            "apps/api/tests/test_currency_lower_bound.py::test_a_version_with_no_lower_bound_at_all_cannot_be_approved",
+        ),
+    ),
+    Mutant(
+        "M93_SQL_IGNORES_THE_LOWER_BOUND",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                  AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "                  AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
+        (
+            "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
         ),
     ),
 )

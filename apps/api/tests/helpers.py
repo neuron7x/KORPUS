@@ -17,6 +17,10 @@ def ingest_text(
     revision: str = "1.0",
     effective_from: date | None = None,
     effective_until: date | None = None,
+    # An approved version must state when it starts to govern (see
+    # test_currency_lower_bound.py); fixtures that do not care about dates get a
+    # date in the past, and the tests that do care pass their own or None.
+    publication_date: date | None = date(2020, 1, 1),
     text: str = (
         "Підрозділ веде журнал перевірок. "
         "Кожен запис має містити дату та відповідальну особу."
@@ -31,6 +35,8 @@ def ingest_text(
         version["effective_from"] = effective_from.isoformat()
     if effective_until is not None:
         version["effective_until"] = effective_until.isoformat()
+    if publication_date is not None:
+        version["publication_date"] = publication_date.isoformat()
     response = client.post(
         "/v1/documents/ingest",
         data={
@@ -62,8 +68,11 @@ def ingest_version(
     text: str,
     supersedes_version_id: str | None = None,
     effective_from: date | None = None,
+    publication_date: date | None = date(2020, 1, 1),
 ) -> dict[str, object]:
     version: dict[str, object] = {"revision": revision, "authority": "official_ua"}
+    if publication_date is not None:
+        version["publication_date"] = publication_date.isoformat()
     if supersedes_version_id is not None:
         version["supersedes_version_id"] = supersedes_version_id
     if effective_from is not None:

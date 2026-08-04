@@ -233,8 +233,24 @@ class DocumentVersionRecord(BaseModel):
     is_current: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+    @property
+    def in_force_from(self) -> date | None:
+        """The first date this version governs, or None if it never says.
+
+        `effective_from = NULL` used to mean "no lower bound", so a version approved
+        today was cited as governing on 1900-01-01 and answered "which rules applied on
+        that date" with itself. Many orders state only a date of issue, so
+        `publication_date` stands in when a separate commencement date is absent; an
+        approved version with neither is refused at the approval transition, and this
+        property returning None is what the projections use to exclude one that reached
+        the database another way.
+        """
+
+        return self.effective_from or self.publication_date
+
     def is_valid_on(self, as_of: date) -> bool:
-        if self.effective_from is not None and as_of < self.effective_from:
+        lower_bound = self.in_force_from
+        if lower_bound is None or as_of < lower_bound:
             return False
         if self.effective_until is not None and as_of > self.effective_until:
             return False
