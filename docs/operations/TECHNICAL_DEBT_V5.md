@@ -41,16 +41,37 @@ PostgreSQL debt below.
 
 ## Open engineering debt
 
-- hash-locked Python dependency artifacts and fully immutable container/tool image digests;
 - decomposition of the large SQL repository and security configuration validator;
-- removal or narrowing of broad exception handlers in critical paths;
 - corpus-scale table, number, unit and formula evaluation;
 - embedding backfill/model-migration orchestration and drift monitoring;
 - production SIEM export, retention and correlation integration;
-- executable retention/deletion/legal-hold scheduler and reconciliation;
 - reviewer/admin web workflows and accessibility validation;
 - live-serving OpenTelemetry health probe and durable telemetry backend;
 - environment drift and cost/capacity governance against a real cluster;
 - complete dependency/license inventory with legal review.
+
+### Closed 2026-08-05
+
+A register that still lists closed work is a register nobody can act on, so entries
+leave this list only with the mechanism that keeps them closed.
+
+- **hash-locked dependency artifacts** — both lock files carry sha256 for all 68
+  artifacts and every install site passes `--require-hashes` (Makefile, two CI steps,
+  the API Dockerfile). Two tests hold it: one that every pin carries a hash, one that
+  every install enforces them, since pip ignores `--hash` lines without the flag.
+- **broad exception handlers in critical paths** — reading all fourteen showed they
+  already re-raise, degrade or record. What was missing was anything holding the next
+  one to it. `test_exception_handling_discipline.py` refuses a handler that returns a
+  value indistinguishable from success, a bare `except:`, or an empty body; probed
+  against five swallow shapes.
+- **executable retention/deletion/legal-hold scheduler and reconciliation** —
+  `application/retention.py` computes a disposition per document (HELD, RETAINED,
+  ELIGIBLE, AWAITING_DECISION, UNGOVERNED) and `scripts/plan_retention.py` writes the
+  plan and reconciles it against storage. It deletes nothing and is not a timer: in a
+  corpus that answers "which order was in force on date X", automatic deletion would
+  be data loss driven by a config field. `AWAITING_DECISION` exists because keeping
+  expired material quietly reports a clean posture over something nobody ruled on.
+  Mutants M121–M123 cover legal hold outranking the timer, deletion without
+  permission, and an ungoverned corpus being treated as governed.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

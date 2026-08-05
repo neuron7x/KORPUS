@@ -1139,6 +1139,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M121_LEGAL_HOLD_DOES_NOT_OUTRANK_THE_TIMER",
+        "apps/api/src/korpus/application/retention.py",
+        "        if policy.legal_hold:",
+        "        if False:",
+        (
+            "apps/api/tests/test_retention_planning.py::"
+            "test_legal_hold_outranks_the_retention_period",
+        ),
+    ),
+    Mutant(
+        "M122_EXPIRED_MATERIAL_DELETED_WITHOUT_PERMISSION",
+        "apps/api/src/korpus/application/retention.py",
+        "        elif CorpusOperation.DELETE in policy.allowed_operations:",
+        "        elif True:",
+        (
+            "apps/api/tests/test_retention_planning.py::"
+            "test_a_document_past_its_period_without_delete_permission_awaits_a_decision",
+        ),
+    ),
+    Mutant(
+        "M123_UNGOVERNED_CORPUS_TREATED_AS_GOVERNED",
+        "apps/api/src/korpus/application/retention.py",
+        "        if policy is None:",
+        "        if False:",
+        (
+            "apps/api/tests/test_retention_planning.py::"
+            "test_a_corpus_with_no_policy_is_ungoverned_rather_than_assumed_safe",
+        ),
+    ),
+    Mutant(
         "M119_REVIEW_TRANSITION_SKIPS_ENTITLEMENT",
         "apps/api/src/korpus/application/ingestion.py",
         "        if not self.policy.can_access_document(actor, document).allowed:\n"

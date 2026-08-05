@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -78,6 +78,12 @@ assurance:
 
 snapshot:
 	PYTHONPATH=apps/api/src $(PY) scripts/snapshot_assurance.py
+
+# A plan, not a scheduler: it computes dispositions and deletes nothing. Exit 2 means
+# material is past its retention period with no deletion permission, or sits in a
+# corpus with no governance policy — decisions nobody has made, not code faults.
+retention-plan:
+	PYTHONPATH=apps/api/src $(PY) scripts/plan_retention.py
 
 audit-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_audit.py
