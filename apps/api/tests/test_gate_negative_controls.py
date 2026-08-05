@@ -126,10 +126,36 @@ def test_the_operational_gate_can_fail_on_each_predicate(predicate: str) -> None
     )
 
 
+def _passing_recovery() -> dict[str, Any]:
+    """A drill report shaped like the one measure_recovery.py writes in CI.
+
+    ci-fixture, not production-like: the fixture is what CI can produce, and the
+    predicates assert that it was measured and declared honestly, not that its
+    numbers meet an objective nobody has declared (admission ground 2.9).
+    """
+    return {
+        "schema_version": 1,
+        "scale_class": "ci-fixture",
+        "rto_seconds": 12.5,
+        "rpo_seconds": 0.0,
+        "lost_events": 0,
+        "provenance": {
+            "backup_bytes": 40960,
+            "plaintext_bytes": 131072,
+            "document_rows": 2,
+            "audit_event_rows": 7,
+            "engine_version": "170004",
+            "measured_at": "2026-08-05T09:00:00+00:00",
+            "writes_after_backup": 5,
+        },
+    }
+
+
 def _assurance_inputs() -> dict[str, Any]:
     reports = _stamped(passing_reports())
     reports["operational"] = {"status": "PASS"}
     reports["mutation"]["mutation_score_over_catalogue"] = 1.0
+    reports["recovery"] = _passing_recovery()
     return {
         "policy": {
             "assurance": {
@@ -184,6 +210,30 @@ ASSURANCE_BREAKERS: dict[str, Any] = {
     | {"reports": inputs["reports"] | {"scale": inputs["reports"]["scale"] | {"status": "FAIL"}}},
     "operational": lambda inputs: inputs
     | {"reports": inputs["reports"] | {"operational": {"status": "FAIL"}}},
+    # No drill at all — the state every release before 2026-08-05 was assembled in.
+    "recovery_drill_executed": lambda inputs: inputs
+    | {"reports": {k: v for k, v in inputs["reports"].items() if k != "recovery"}},
+    # A duration with nothing to interpret it against: how much data, on what engine.
+    "recovery_provenance_complete": lambda inputs: inputs
+    | {
+        "reports": inputs["reports"]
+        | {
+            "recovery": inputs["reports"]["recovery"]
+            | {
+                "provenance": {
+                    k: v
+                    for k, v in inputs["reports"]["recovery"]["provenance"].items()
+                    if k != "document_rows"
+                }
+            }
+        }
+    },
+    # The TEVV failure mode transplanted: a fixture relabelled as the real thing.
+    "recovery_scale_not_overstated": lambda inputs: inputs
+    | {
+        "reports": inputs["reports"]
+        | {"recovery": inputs["reports"]["recovery"] | {"scale_class": "production-like"}}
+    },
 }
 
 

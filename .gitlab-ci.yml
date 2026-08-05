@@ -208,18 +208,40 @@ api:postgres-and-restore:
     - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
+    # The drill seeds its own corpus. It used to back up whatever the pytest run above
+    # had left behind, which was two rows until the suite started cleaning up after
+    # itself — then a correct backup and a correct restore failed verification.
+    - KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
     - backup_path="$(scripts/backup_postgres.sh)"
     - psql 'postgresql://postgres:postgres-test-password@postgres:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
     - export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@postgres:5432/korpus_restore'
+    # Writes after the backup are what makes the loss figure a measurement: without
+    # them a restore loses nothing however broken it is. These rows are expected to be
+    # absent from the restored copy, and the drill fails if it cannot write them —
+    # a silently skipped seed would report the same zero as a perfect restore.
+    - KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - restore_started=$(date +%s.%N)
     - scripts/restore_postgres.sh "$backup_path"
+    - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
     - python scripts/verify_postgres_restore.py
+    # The runbook has asked for restore duration against the declared RTO since v5 and
+    # nothing recorded it: a restore that took six hours passed every check here. The
+    # drill now emits duration, lost writes and the provenance that makes them mean
+    # something, and source:package refuses to assemble a release without it.
+    # Source is the database the backup came from, not the restored copy: comparing a
+    # copy with itself would report zero loss no matter what was lost.
+    # Counted through korpus_app, the least-privilege role the service runs as, not
+    # through postgres: RLS does not apply to a superuser, so a superuser count is a
+    # number about the table rather than about what the application can recover.
+    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
   artifacts:
     when: always
     paths:
       - var/backups/*.json
+      - var/recovery-report.json
 
 secret:scan:
   stage: security

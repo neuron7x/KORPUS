@@ -1116,6 +1116,41 @@ MUTANTS = (
             "test_a_wide_interval_is_refused_even_on_a_real_corpus",
         ),
     ),
+    Mutant(
+        "M116_RECOVERY_SCALE_CLAIM_TAKEN_ON_TRUST",
+        "apps/api/src/korpus/application/recovery.py",
+        (
+            "        if rows < PRODUCTION_LIKE_MINIMUM_ROWS and "
+            "plaintext < PRODUCTION_LIKE_MINIMUM_BYTES:"
+        ),
+        "        if False:",
+        (
+            "apps/api/tests/test_recovery_measurement.py::"
+            "test_a_fixture_cannot_promote_itself_by_editing_a_string",
+        ),
+    ),
+    Mutant(
+        "M117_MISSING_RECOVERY_DRILL_READS_AS_EXECUTED",
+        "apps/api/src/korpus/application/recovery.py",
+        "        return self.status != MISSING",
+        "        return True",
+        (
+            "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",
+        ),
+    ),
+    Mutant(
+        "M118_RECOVERY_PROVENANCE_NOT_REQUIRED",
+        "apps/api/src/korpus/application/recovery.py",
+        (
+            "    absent = [field for field in REQUIRED_PROVENANCE "
+            'if provenance.get(field) in (None, "")]'
+        ),
+        "    absent = []",
+        (
+            "apps/api/tests/test_recovery_measurement.py::"
+            "test_a_duration_without_provenance_is_not_a_measurement",
+        ),
+    ),
 )
 
 

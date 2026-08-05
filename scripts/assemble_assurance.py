@@ -24,6 +24,10 @@ REPORTS = {
     "scale": VAR / "scale-report.json",
     "operational": VAR / "operational-gate.json",
 }
+# Produced by api:postgres-and-restore, which needs docker. Not in `required`: its
+# absence has to reach the verdict as a failed predicate that names what is missing,
+# not as a crash listing a path. The verdict is FAIL either way — that is the point.
+OPTIONAL_REPORTS = {"recovery": VAR / "recovery-report.json"}
 
 
 def digest(path: Path) -> str:
@@ -42,6 +46,13 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "missing": missing}, indent=2))
         return 1
     loaded = {name: json.loads(path.read_text()) for name, path in REPORTS.items()}
+    loaded.update(
+        {
+            name: json.loads(path.read_text())
+            for name, path in OPTIONAL_REPORTS.items()
+            if path.is_file()
+        }
+    )
     quality = json.loads((VAR / "quality-report.json").read_text())
     junit_root = ET.parse(VAR / "pytest.xml").getroot()
     suite = junit_root if junit_root.tag == "testsuite" else junit_root.find("testsuite")
@@ -74,7 +85,11 @@ def main() -> int:
             "branch_rate": float(coverage.attrib.get("branch-rate", 0)),
         },
         **loaded,
-        "evidence_sha256": {name: digest(path) for name, path in REPORTS.items()},
+        "evidence_sha256": {
+            name: digest(path)
+            for name, path in (*REPORTS.items(), *OPTIONAL_REPORTS.items())
+            if path.is_file()
+        },
         # Recorded executions, not a declaration of intent: an unexecuted tool now
         # keeps the aggregate verdict red (quality_tooling_executed).
         "quality_tooling": {

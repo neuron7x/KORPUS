@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from korpus.application.provenance import verify_reports
+from korpus.application.recovery import classify_recovery
 
 PROVENANCE_BOUND_REPORTS = ("eval", "mutation", "migration", "scale")
 
@@ -90,6 +91,13 @@ def evaluate_assurance(
         name for name in PROVENANCE_BOUND_REPORTS if name not in reports
     )
 
+    # A release without evidence that the data can come back is a release that has
+    # never been asked the question. The drill runs in the PostgreSQL job, so a local
+    # assembly without docker cannot reach PASS — deliberately: the release gate in
+    # SLO_AND_RELEASE_POLICY_V5.md requires a rehearsed rollback, and "we have a
+    # script for it" is what that requirement exists to reject.
+    recovery = classify_recovery(reports.get("recovery"))
+
     checks = {
         # "No test failed" is true of a run with no tests. Execution is a separate
         # predicate from outcome and must be asserted first.
@@ -113,6 +121,9 @@ def evaluate_assurance(
         "migration": reports.get("migration", {}).get("table_set_match") is True,
         "scale": reports.get("scale", {}).get("status") == "PASS",
         "operational": reports.get("operational", {}).get("status") == "PASS",
+        "recovery_drill_executed": recovery.executed,
+        "recovery_provenance_complete": recovery.provenance_complete,
+        "recovery_scale_not_overstated": recovery.scale_not_overstated,
     }
     reasons = tuple(name for name, ok in checks.items() if not ok) + provenance_reasons
     if missing_reports:

@@ -62,8 +62,19 @@ with engine.begin() as connection:
     connection.execute(
         text("SELECT set_config('korpus.classifications', 'public,internal,restricted', true)")
     )
-    if connection.execute(text("SELECT count(*) FROM documents")).scalar_one() < 2:
-        raise SystemExit("restored corpus rows are missing")
+    # `count(*) >= 2` passed for as long as the pytest run before it happened to leave
+    # rows behind, and failed on 2026-08-05 when the suite cleaned up after itself —
+    # with a correct backup and a correct restore. The drill now seeds its own rows and
+    # asserts those came back: anything else in the database is another job's data and
+    # says nothing about whether recovery worked.
+    seeded = connection.execute(
+        text("SELECT count(*) FROM documents WHERE canonical_title LIKE 'recovery-drill%'")
+    ).scalar_one()
+    if seeded < 3:
+        raise SystemExit(
+            f"restored database has {seeded} of 3 recovery-drill documents: the "
+            "backup was taken from a database the drill had not populated"
+        )
     audit_head_query = text("SELECT count(*) FROM audit_heads WHERE singleton_id=1")
     if connection.execute(audit_head_query).scalar_one() != 1:
         raise SystemExit("restored audit head is missing")

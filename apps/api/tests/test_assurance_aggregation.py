@@ -48,6 +48,23 @@ def reports() -> dict:
         "migration": {"table_set_match": True, PROVENANCE_KEY: provenance()},
         "scale": {"status": "PASS", PROVENANCE_KEY: provenance()},
         "operational": {"status": "PASS"},
+        # A release with no rehearsed restore is a release nobody has asked the
+        # question of. Every assembly before 2026-08-05 ran without this key.
+        "recovery": {
+            "scale_class": "ci-fixture",
+            "rto_seconds": 12.5,
+            "rpo_seconds": 0.0,
+            "lost_events": 0,
+            "provenance": {
+                "backup_bytes": 40960,
+                "plaintext_bytes": 131072,
+                "document_rows": 2,
+                "audit_event_rows": 7,
+                "engine_version": "170004",
+                "measured_at": "2026-08-05T09:00:00+00:00",
+                "writes_after_backup": 5,
+            },
+        },
     }
 
 

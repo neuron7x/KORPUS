@@ -41,7 +41,16 @@ def test_the_shipped_register_withholds_and_says_why() -> None:
     verdict = evaluate_admission(ROOT, load_register(REGISTER))
 
     assert verdict.production_authorized is False
-    assert set(verdict.open_grounds) == {"2.5", "2.6", "2.7", "superseded-never-current"}
+    # 2.9 joined on 2026-08-05: the recovery drill is now measured, and the absence of
+    # a declared RTO/RPO became a named ground with an owner instead of a sentence in
+    # a runbook that nothing read.
+    assert set(verdict.open_grounds) == {
+        "2.5",
+        "2.6",
+        "2.7",
+        "2.9",
+        "superseded-never-current",
+    }
     assert verdict.problems == (), verdict.problems
 
 
