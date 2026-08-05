@@ -768,3 +768,31 @@ def test_every_document_lookup_is_followed_by_an_access_decision() -> None:
         "these functions read a document without deciding whether the actor may have "
         f"it: {offenders} — get_document does not filter by corpus"
     )
+
+
+def test_scripts_reading_installed_metadata_run_under_the_locked_interpreter() -> None:
+    """`python3 script.py` asks the system environment, not the locked one.
+
+    generate_supply_chain_inventory.py reads license expressions from installed
+    distributions. Invoked with a bare interpreter it resolved five of sixty-eight and
+    reported the rest as unknown — a number that described the invocation rather than
+    the supply chain. Under the venv the lock builds, all sixty-eight resolve.
+    """
+    metadata_readers = [
+        path.name
+        for path in sorted((ROOT / "scripts").glob("*.py"))
+        if "importlib.metadata" in path.read_text(encoding="utf-8")
+    ]
+    assert metadata_readers, "no script reads installed metadata; this test is out of date"
+
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    offenders = [
+        f"{name}: {line.strip()}"
+        for name in metadata_readers
+        for line in makefile.splitlines()
+        if name in line and line.lstrip().startswith("python3 ")
+    ]
+    assert not offenders, (
+        "these recipes read installed distribution metadata with the system "
+        f"interpreter, so the answer depends on the machine: {offenders}"
+    )

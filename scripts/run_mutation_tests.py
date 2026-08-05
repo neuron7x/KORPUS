@@ -1139,6 +1139,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M124_EXPORT_SHIPS_A_SEQUENCE_GAP",
+        "apps/api/src/korpus/application/audit_export.py",
+        "        if current.sequence != previous.sequence + 1:",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_export.py::"
+            "test_a_sequence_gap_inside_the_batch_is_refused",
+        ),
+    ),
+    Mutant(
+        "M125_EXPORT_SHIPS_A_BROKEN_CHAIN_LINK",
+        "apps/api/src/korpus/application/audit_export.py",
+        "        if current.previous_hash != previous.event_hash:",
+        "        if False:",
+        (
+            "apps/api/tests/test_audit_export.py::"
+            "test_a_broken_link_is_refused_even_when_the_sequences_are_consecutive",
+        ),
+    ),
+    Mutant(
+        "M126_EXPORT_LEAKS_PAYLOADS_BY_DEFAULT",
+        "apps/api/src/korpus/application/audit_export.py",
+        "                payload=json.loads(canonical) if include_payload else None,",
+        "                payload=json.loads(canonical),",
+        (
+            "apps/api/tests/test_audit_export.py::"
+            "test_payloads_are_excluded_unless_asked_for",
+        ),
+    ),
+    Mutant(
         "M121_LEGAL_HOLD_DOES_NOT_OUTRANK_THE_TIMER",
         "apps/api/src/korpus/application/retention.py",
         "        if policy.legal_hold:",

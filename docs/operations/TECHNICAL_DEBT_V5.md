@@ -44,11 +44,10 @@ PostgreSQL debt below.
 - decomposition of the large SQL repository and security configuration validator;
 - corpus-scale table, number, unit and formula evaluation;
 - embedding backfill/model-migration orchestration and drift monitoring;
-- production SIEM export, retention and correlation integration;
 - reviewer/admin web workflows and accessibility validation;
 - live-serving OpenTelemetry health probe and durable telemetry backend;
 - environment drift and cost/capacity governance against a real cluster;
-- complete dependency/license inventory with legal review.
+- legal review of the declared dependency licenses.
 
 ### Closed 2026-08-05
 
@@ -73,5 +72,22 @@ leave this list only with the mechanism that keeps them closed.
   expired material quietly reports a clean posture over something nobody ruled on.
   Mutants M121–M123 cover legal hold outranking the timer, deletion without
   permission, and an ungoverned corpus being treated as governed.
+- **SIEM export** — `application/audit_export.py` builds resumable, gap-evident
+  batches and `scripts/export_audit.py` writes JSON Lines with a manifest and a
+  cursor. It refuses to ship a batch whose sequences jump or whose hash links do not
+  join: a collector cannot detect a missing event by itself, so a gap shipped quietly
+  becomes a clean audit trail over a hole. Payloads stay behind by default — they
+  quote corpus material and a SIEM is routinely a lower-classification system — and
+  the digest travels instead. The manifest states what an HMAC link does *not* prove:
+  a collector cannot detect rewriting by whoever holds the key; that remains the
+  external anchor's job. Mutants M124–M126. Correlation into a specific SIEM product
+  remains external, like every other integration with a system nobody here operates.
+- **dependency license inventory** — read from installed distribution metadata:
+  68 of 68 components now carry a declared license where all 68 read UNKNOWN. Legal
+  review stays open and is listed above, because a publisher's declaration is not
+  clearance for this delivery. The generator exits non-zero when a pinned package is
+  absent from the environment, since running it under a bare interpreter resolved five
+  of sixty-eight and reported the rest as unknown — a number describing the invocation
+  rather than the supply chain. A parity test keeps it on the locked interpreter.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

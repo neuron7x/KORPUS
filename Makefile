@@ -101,8 +101,11 @@ audit-closure:
 desired-state:
 	python3 scripts/generate_desired_state.py --check
 
+# $(PY), not python3: this reads license metadata from the installed distributions, so
+# a bare interpreter resolves whichever packages happen to be on the system — five of
+# sixty-eight, when this was written. The lock is the environment it must be asked in.
 supply-chain-inventory:
-	python3 scripts/generate_supply_chain_inventory.py
+	PYTHONPATH=apps/api/src $(PY) scripts/generate_supply_chain_inventory.py
 
 kubernetes-validate:
 	python3 scripts/validate_kubernetes.py
