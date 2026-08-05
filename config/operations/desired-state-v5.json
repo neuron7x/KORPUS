@@ -1,17 +1,17 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v5.0.0",
-  "root_sha256": "5bd3133f9630ed18c5c1550b0b1b8d2dc32929fbd859dec3a8e5baa2df18b07e",
+  "root_sha256": "da177ce881830efef53d92beae77415e2f2b6a5642611baecc8e20bba8e1e5ed",
   "records": [
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "3ac344e186a77d3c7d5bc3f5f1207d3da2e613f84774a3d686f37d257678b2ba",
-      "bytes": 19568
+      "sha256": "cbb19221c3a749bb37f1c6211b8a810f2e58ca8c858b6b893edd62bbd788eb1a",
+      "bytes": 20360
     },
     {
       "path": "apps/api/Dockerfile",
-      "sha256": "8925d70c20acf29ca64e8ab743254514997ed8cf6ebd57741c95cfd855372357",
-      "bytes": 1759
+      "sha256": "7c2dc01875fa20488d184e90c31f7cac82b4c8a0f8ecbee743cd79db410e87ae",
+      "bytes": 1831
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -25,8 +25,8 @@
     },
     {
       "path": "apps/web/Dockerfile",
-      "sha256": "19e404342fa0ac673602d4a311b64f513a53b3d20b159d39fcb4b37d18256c6d",
-      "bytes": 1109
+      "sha256": "3f4efb613e7859d45d315954344fffe7d9da58f1751c039434c83b9861280fb1",
+      "bytes": 1253
     },
     {
       "path": "deploy/kubernetes/base/api-deployment.yaml",
@@ -90,8 +90,8 @@
     },
     {
       "path": "docker-compose.yml",
-      "sha256": "c45ac83ff6a7ee9394e7ee8a91c3569c8a3bd7880a41cda0ef015888da3e23bd",
-      "bytes": 13506
+      "sha256": "d1580f9951175eb9cad5fc10daf83484974b3c48e89136dab591e760ad85b423",
+      "bytes": 13866
     },
     {
       "path": "infra/minio/korpus-app-policy.json",

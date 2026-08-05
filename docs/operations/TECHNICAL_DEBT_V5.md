@@ -4,11 +4,10 @@ This document records work that cannot be converted into PASS by local code or s
 
 ## Frozen audit debt counts (reclassified 2026-08-05)
 
-- 76/99 findings remain non-closed in the frozen audit scope.
+- 75/99 findings remain non-closed in the frozen audit scope.
 - 39 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
 - 31 are `EXTERNAL_DEBT`: they require independent people, systems, infrastructure or authorization.
-- 6 are `OPEN_TECH_DEBT`: repository engineering work remains.
-- remaining severity: P0 20, P1 46, P2 10.
+- 5 are `OPEN_TECH_DEBT`: repository engineering work remains.
 
 The counts above were stale for a day. `build_audit_closure.py` classifies by a static
 set, so nine findings closed or mitigated on 2026-08-05 still read as open engineering
@@ -28,10 +27,15 @@ is named below rather than counted as finished:
 | COD-004 | branch coverage 0.7726, gated where produced | the 0.13 gap to line coverage |
 | AUD-004 | resumable, gap-evident export | the SIEM that receives it |
 
+SUP-001 closed later the same day: every image in the pipeline, the compose file and
+both Dockerfiles is pinned by digest with its tag kept beside it for readability. The
+concrete cost of tags had shown up hours earlier, when a kaniko version that does not
+exist reached a queued pipeline — a digest cannot be invented, and cannot be repointed
+at different bytes afterwards.
+
 Still `OPEN_TECH_DEBT`: RAG-009 (regex risk classifier), RAG-016 (embedding model
-migration executed against a real index), SUP-001 (immutable image digests, not tags),
-COD-001 (SqlRepository at 1855 lines), WEB-001 (reviewer workflows), OPS-004
-(environment drift against a real cluster).
+migration executed against a real index), COD-001 (SqlRepository at 1855 lines),
+WEB-001 (reviewer workflows), OPS-004 (environment drift against a real cluster).
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 

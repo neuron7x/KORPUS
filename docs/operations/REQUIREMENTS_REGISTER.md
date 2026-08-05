@@ -2,7 +2,7 @@
 
 Згенеровано `scripts/export_requirements.py`. Не редагувати вручну — джерело це `korpus/infrastructure_requirements.py` та `korpus/controlled_requirements.py`.
 
-Усього вимог: **258**.
+Усього вимог: **268**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -79,6 +79,7 @@
 | `compose.api.depends_on.migrate` | the API waits for migrate | — |
 | `compose.api.depends_on.minio-init` | the API waits for minio-init | — |
 | `compose.api.depends_on.otel-collector` | the API waits for otel-collector | — |
+| `compose.api.digest_pinned` | api pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.api.egress_network` | the API has a dedicated egress network | — |
 | `compose.api.exact_image_tag` | api pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.api.ingestion_mode` | the API uses durable asynchronous ingestion | — |
@@ -96,6 +97,7 @@
 | `compose.api.s3_path_style` | the API addresses S3 by path style | — |
 | `compose.api.schema_mode` | the API runs migration-managed schema | — |
 | `compose.api.unprivileged` | api does not run privileged | a privileged container is the host |
+| `compose.clamav.digest_pinned` | clamav pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.clamav.exact_image_tag` | clamav pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.clamav.init` | clamav runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.clamav.no_host_ports` | clamav publishes no host ports | a published port is reachable from wherever the host is |
@@ -103,6 +105,7 @@
 | `compose.clamav.present` | the clamav service is defined | — |
 | `compose.clamav.resource_ceiling` | clamav declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.clamav.unprivileged` | clamav does not run privileged | a privileged container is the host |
+| `compose.migrate.digest_pinned` | migrate pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.migrate.exact_image_tag` | migrate pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.migrate.init` | migrate runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.migrate.no_host_ports` | migrate publishes no host ports | a published port is reachable from wherever the host is |
@@ -110,6 +113,7 @@
 | `compose.migrate.present` | the migrate service is defined | — |
 | `compose.migrate.resource_ceiling` | migrate declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.migrate.unprivileged` | migrate does not run privileged | a privileged container is the host |
+| `compose.minio-init.digest_pinned` | minio-init pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.minio-init.exact_image_tag` | minio-init pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.minio-init.init` | minio-init runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.minio-init.no_host_ports` | minio-init publishes no host ports | a published port is reachable from wherever the host is |
@@ -117,6 +121,7 @@
 | `compose.minio-init.present` | the minio-init service is defined | — |
 | `compose.minio-init.resource_ceiling` | minio-init declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.minio-init.unprivileged` | minio-init does not run privileged | a privileged container is the host |
+| `compose.minio.digest_pinned` | minio pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.minio.exact_image_tag` | minio pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.minio.init` | minio runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.minio.no_host_ports` | minio publishes no host ports | a published port is reachable from wherever the host is |
@@ -126,6 +131,7 @@
 | `compose.minio.unprivileged` | minio does not run privileged | a privileged container is the host |
 | `compose.network.backend.internal` | the backend network is internal | an external bridge exposes every service on it to the host network |
 | `compose.network.edge.internal` | the edge network is internal | an external bridge exposes every service on it to the host network |
+| `compose.otel-collector.digest_pinned` | otel-collector pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.otel-collector.exact_image_tag` | otel-collector pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.otel-collector.init` | otel-collector runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.otel-collector.no_host_ports` | otel-collector publishes no host ports | a published port is reachable from wherever the host is |
@@ -134,6 +140,7 @@
 | `compose.otel-collector.resource_ceiling` | otel-collector declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.otel-collector.unprivileged` | otel-collector does not run privileged | a privileged container is the host |
 | `compose.postgres.capabilities` | postgres adds no Linux capability beyond the documented set | — |
+| `compose.postgres.digest_pinned` | postgres pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.postgres.exact_image_tag` | postgres pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.postgres.init` | postgres runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
 | `compose.postgres.no_host_ports` | postgres publishes no host ports | a published port is reachable from wherever the host is |
@@ -141,6 +148,7 @@
 | `compose.postgres.present` | the postgres service is defined | — |
 | `compose.postgres.resource_ceiling` | postgres declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.postgres.unprivileged` | postgres does not run privileged | a privileged container is the host |
+| `compose.web.digest_pinned` | web pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.web.edge_only` | web is isolated to the internal edge network | — |
 | `compose.web.exact_image_tag` | web pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.web.init` | web runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
@@ -151,6 +159,7 @@
 | `compose.web.unprivileged` | web does not run privileged | a privileged container is the host |
 | `compose.worker.clamav` | the worker waits for ClamAV | — |
 | `compose.worker.command` | the worker runs the durable ingestion loop | — |
+| `compose.worker.digest_pinned` | worker pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
 | `compose.worker.exact_image_tag` | worker pins an exact image tag | latest is whatever the registry served that morning |
 | `compose.worker.healthcheck_disabled` | the worker disables the inherited HTTP healthcheck | an HTTP probe against a loop that serves nothing reports permanent failure |
 | `compose.worker.ingestion_mode` | the worker runs in durable asynchronous mode | — |
@@ -173,6 +182,7 @@
 | `ci.gate.trivy` | the pipeline runs trivy | — |
 | `ci.gate.verify_postgres_restore` | the pipeline runs verify_postgres_restore.py | — |
 | `ci.image_built_unprivileged` | the container image is built by a job that needs no privileged capabilities | buildkit needs a nested mount namespace, which on a plain docker executor requires SYS_ADMIN — privileged escape under a different flag name. The requirement is that the image is built unprivileged, not which tool does it |
+| `ci.images_digest_pinned` | every CI image is pinned by digest | a tag can be repointed; the pipeline's claim is reproducibility |
 | `ci.no_global_cache` | the assurance pipeline declares no global cache | a cache carries state between runs, and evidence must come from the tree |
 | `ci.postgres_job.database_is_a_service` | the PostgreSQL job attaches the database as a service rather than borrowing its image | an image borrowed for its server binaries brings its interpreter with it |
 | `ci.postgres_job.present` | the PostgreSQL job exists | — |

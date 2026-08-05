@@ -209,7 +209,7 @@
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
       "lines": null,
-      "max_complexity": 11
+      "max_complexity": 12
     },
     "apps/api/src/korpus/main.py": {
       "lines": 245,
@@ -276,7 +276,7 @@
       "max_complexity": 3
     },
     "scripts/build_audit_closure.py": {
-      "lines": 477,
+      "lines": 484,
       "max_complexity": 17
     },
     "scripts/build_system_manifest.py": {
@@ -468,6 +468,30 @@
         "worst_function": "main"
       },
       "reason": "evidence lists for nine findings reclassified after the day's closures; the file is a register and grows with the register"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure_requirements.py",
+      "on": "2026-08-05",
+      "from": {
+        "lines": null,
+        "max_complexity": 11
+      },
+      "to": {
+        "lines": 634,
+        "max_complexity": 12,
+        "worst_function": "_service_requirements"
+      },
+      "reason": "the per-service register gained the digest-pinning requirement (SUP-001); one more generated entry per service is one more comprehension"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 484,
+        "max_complexity": 17,
+        "worst_function": "main"
+      },
+      "reason": "SUP-001 evidence list"
     }
   ],
   "line_exempt": {

@@ -4,10 +4,10 @@ This register classifies all 99 v4 findings without converting missing external 
 
 | Status | Count | Meaning |
 |---|---:|---|
-| CLOSED_LOCAL | 23 | Executable local acceptance predicate passed. |
+| CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
 | MITIGATED_LOCAL | 39 | Material control exists; live, corpus, or independent acceptance remains. |
 | EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
-| OPEN_TECH_DEBT | 6 | Engineering implementation remains open. |
+| OPEN_TECH_DEBT | 5 | Engineering implementation remains open. |
 
 ## Remaining blockers
 
@@ -59,7 +59,6 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SRE-005 · P1 · EXTERNAL_DEBT** — Немає production load/concurrency endurance test
 - **SRE-006 · P1 · MITIGATED_LOCAL** — Readiness має невизначену degraded-mode policy
 - **SRE-007 · P1 · EXTERNAL_DEBT** — Немає data/corpus release rollback drill
-- **SUP-001 · P0 · OPEN_TECH_DEBT** — Container/CI images pinned tags, not immutable digests
 - **SUP-003 · P0 · EXTERNAL_DEBT** — Немає signed build provenance і artifact signing
 - **SUP-005 · P1 · EXTERNAL_DEBT** — Security scanners не були виконані в локальному аудиті
 - **SUP-006 · P1 · MITIGATED_LOCAL** — Static security analysis coverage incomplete

@@ -37,7 +37,11 @@ REQUIRED_SERVICES = frozenset(
         "web",
     }
 )
-EXACT_TAG = re.compile(r"^[^:@\s]+:[^:@\s]+$")
+# `name:tag` or `name:tag@sha256:…`. The digest form is what SUP-001 asked for; the
+# tag stays beside it because a diff that says only "64 hex characters changed" tells
+# a reviewer nothing about which version moved.
+EXACT_TAG = re.compile(r"^[^:@\s]+:[^:@\s]+(?:@sha256:[0-9a-f]{64})?$")
+DIGEST_PINNED = re.compile(r"@sha256:[0-9a-f]{64}$")
 ALLOWED_POSTGRES_CAPABILITIES = frozenset(
     {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"}
 )
@@ -214,6 +218,16 @@ def _service_requirements() -> list[Requirement]:
                         and not str(c.service(n)["image"]).endswith(":latest")
                     ),
                     "latest is whatever the registry served that morning",
+                ),
+                _requirement(
+                    f"compose.{name}.digest_pinned",
+                    "docker-compose",
+                    f"{name} pins its image by digest",
+                    lambda c, n=name: not c.service(n).get("image")
+                    or bool(DIGEST_PINNED.search(str(c.service(n)["image"]))),
+                    "a tag is a name the registry may repoint; a digest is the bytes. "
+                    "SUP-001, and the reason a version number invented on 2026-08-05 "
+                    "reached a pipeline before anything noticed",
                 ),
                 _requirement(
                     f"compose.{name}.no_host_ports",
@@ -460,6 +474,18 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "buildkit needs a nested mount namespace, which on a plain docker executor "
         "requires SYS_ADMIN — privileged escape under a different flag name. The "
         "requirement is that the image is built unprivileged, not which tool does it",
+    ),
+    _requirement(
+        "ci.images_digest_pinned",
+        "gitlab-ci",
+        "every CI image is pinned by digest",
+        lambda c: all(
+            "@sha256:" in line
+            for line in c.ci_directives
+            if re.match(r"^\s*(?:image:|name:)\s*\S+/\S+|^\s*image:\s*\w+:", line)
+            and "korpus" not in line
+        ),
+        "a tag can be repointed; the pipeline's claim is reproducibility",
     ),
     _requirement(
         "ci.postgres_job.present",

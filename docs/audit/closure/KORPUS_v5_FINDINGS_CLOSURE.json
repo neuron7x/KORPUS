@@ -4,13 +4,13 @@
   "target_release": "v5.0.0",
   "scope_claim": "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded local predicate has executable evidence; it is not production authorization.",
   "counts": {
-    "CLOSED_LOCAL": 23,
+    "CLOSED_LOCAL": 24,
     "EXTERNAL_DEBT": 31,
     "MITIGATED_LOCAL": 39,
-    "OPEN_TECH_DEBT": 6
+    "OPEN_TECH_DEBT": 5
   },
   "remaining_by_severity": {
-    "P0": 20,
+    "P0": 19,
     "P1": 46,
     "P2": 10
   },
@@ -1147,9 +1147,15 @@
       "required_action": "Resolve and pin digest; automated verified update PRs; policy enforcement.",
       "tools_methods": "Renovate/Dependabot; cosign; registry policy",
       "acceptance_predicate": "All release inputs are digest-pinned and provenance records exact digests.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "All release inputs are digest-pinned and provenance records exact digests."
+      "v5_status": "CLOSED_LOCAL",
+      "v5_evidence": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",
+        "apps/api/tests/test_gate_parity.py::test_every_ci_image_pins_an_exact_tag"
+      ],
+      "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },
     {
       "id": "SUP-002",

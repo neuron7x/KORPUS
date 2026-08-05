@@ -27,8 +27,9 @@ CLOSED_LOCAL = {
     "SUP-004", "COD-010", "OPS-002",
     # 2026-08-05: lock files carry sha256 for all 68 artefacts and every install site
     # passes --require-hashes; the validator's complexity is 5 and 57 where it was 102
-    # and 103; every broad handler must re-raise, degrade or record.
-    "SUP-002", "COD-002", "COD-003",
+    # and 103; every broad handler must re-raise, degrade or record; every image in the
+    # pipeline, the compose file and both Dockerfiles is pinned by digest.
+    "SUP-002", "COD-002", "COD-003", "SUP-001",
 }
 
 MITIGATED_LOCAL = {
@@ -66,7 +67,6 @@ EXTERNAL_DEBT = {
 
 OPEN_TECH_DEBT = {
     "RAG-009", "RAG-016",
-    "SUP-001",
     "COD-001",
     "WEB-001", "OPS-004",
 }
@@ -253,6 +253,13 @@ EVIDENCE: dict[str, list[str]] = {
         "scripts/validate_infrastructure.py",
     ],
     "COD-005": ["scripts/run_mutation_tests.py", "var/mutation-report.json"],
+    "SUP-001": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",
+        "apps/api/tests/test_gate_parity.py::test_every_ci_image_pins_an_exact_tag",
+    ],
     "SUP-002": [
         "apps/api/requirements.runtime.lock",
         "apps/api/requirements.dev.lock",

@@ -924,3 +924,11 @@ def test_every_ci_image_pins_an_exact_tag() -> None:
         f"these CI images do not pin a version: {unpinned}. `latest` is whatever the "
         "registry served that morning, in a pipeline whose claim is reproducibility"
     )
+
+    # SUP-001. A tag is a name the registry may repoint at any time; a digest is the
+    # bytes. The version invented on 2026-08-05 reached a queued pipeline before
+    # anything caught it, and a digest could not have been invented at all.
+    without_digest = [image for image in images if "@sha256:" not in image]
+    assert not without_digest, (
+        f"these CI images are pinned by tag alone: {without_digest}"
+    )

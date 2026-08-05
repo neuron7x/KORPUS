@@ -1139,6 +1139,17 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "                    lambda c, n=name: not c.service(n).get(\"image\")\n"
+        "                    or bool(DIGEST_PINNED.search(str(c.service(n)[\"image\"]))),",
+        "                    lambda c, n=name: True,",
+        (
+            "apps/api/tests/test_image_pinning.py::"
+            "test_a_tag_without_a_digest_is_refused",
+        ),
+    ),
+    Mutant(
         "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
         '        if relative.startswith("infra/secrets/") and path.suffix == ".txt":',
