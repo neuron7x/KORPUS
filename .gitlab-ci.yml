@@ -316,6 +316,13 @@ source:sbom:
 
 container:build:
   stage: build
+  # Rootless buildkit needs an unprivileged user namespace, which the default docker
+  # seccomp profile blocks: "rootlesskit:parent error: failed to start the child:
+  # fork/exec /proc/self/exe: operation not permitted". The relaxation lives on a
+  # runner reached only by this tag, so seccomp stays enforced for every other job —
+  # `privileged: true` remains forbidden and validate_infrastructure.py still checks it.
+  tags:
+    - korpus-buildkit
   image:
     name: moby/buildkit:v0.30.0-rootless
     entrypoint: [""]

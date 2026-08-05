@@ -824,3 +824,40 @@ def test_every_module_is_in_the_budget() -> None:
         f"these modules have no recorded ceiling: {report['unbudgeted']}"
     )
     assert report["status"] == "PASS", report["violations"]
+
+
+def test_the_relaxed_seccomp_runner_is_reached_by_exactly_one_job() -> None:
+    """A security relaxation must not spread past the job that needs it.
+
+    Rootless buildkit cannot create a user namespace under the default docker seccomp
+    profile, so `container:build` runs on a runner registered with
+    `seccomp=unconfined`. That runner is reached only by the `korpus-buildkit` tag.
+    Tagging a second job would silently move it onto a host with weaker isolation, and
+    nothing else in the pipeline needs it.
+
+    `privileged: true` stays forbidden regardless — validate_infrastructure.py checks
+    that, and this is the weaker relaxation that made keeping the ban possible.
+    """
+    text = CI.read_text(encoding="utf-8")
+    # Job names contain a colon (`container:build`), so the header is everything up to
+    # the final one — splitting on the first produced "container" and made the test
+    # fail against a correct pipeline.
+    tagged = [
+        block.split("\n", 1)[0].rstrip(":")
+        for block in re.split(r"\n(?=\S)", text)
+        if not block.startswith((".", "#", " ")) and "korpus-buildkit" in block
+    ]
+    assert tagged == ["container:build"], (
+        f"the relaxed-seccomp runner is reachable from {tagged}; it must serve only "
+        "the job that cannot run without it"
+    )
+    # Non-comment lines only: the first version matched the phrase inside the comment
+    # that explains why privileged mode is banned, so documenting the ban broke the
+    # check on the ban. Fifth instance today of a guard reading text instead of the
+    # thing it guards.
+    directives = [
+        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    ]
+    assert not any("privileged: true" in line for line in directives), (
+        "a privileged runner would make the tag pointless and is banned outright"
+    )
