@@ -6,8 +6,8 @@
   "counts": {
     "CLOSED_LOCAL": 24,
     "EXTERNAL_DEBT": 31,
-    "MITIGATED_LOCAL": 39,
-    "OPEN_TECH_DEBT": 5
+    "MITIGATED_LOCAL": 40,
+    "OPEN_TECH_DEBT": 4
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -630,8 +630,13 @@
       "required_action": "Train/evaluate transparent risk classifier або rule DSL з broad test corpus; fail-closed unknown.",
       "tools_methods": "Property/adversarial tests; confusion matrix",
       "acceptance_predicate": "Per-class precision/recall + worst-group metrics на blind set.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard"
+      ],
       "v5_remaining_acceptance": "Per-class precision/recall + worst-group metrics на blind set."
     },
     {

@@ -45,6 +45,8 @@ MITIGATED_LOCAL = {
     "DATA-001", "DATA-002", "DATA-004",
     # 2026-08-05: a material local control now exists; the residue is external or
     # partial, and named as such in TECHNICAL_DEBT_V5.md rather than counted as closed.
+    "RAG-009",   # rules carry examples and the unknown class fails closed; a trained
+                 # classifier on a blind set with per-class metrics remains
     "RAG-013",   # numbers, units and tables detected; formula structure remains
     "RAG-017",   # embedding drift has four states; online answer-quality does not
     "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
@@ -66,7 +68,7 @@ EXTERNAL_DEBT = {
 }
 
 OPEN_TECH_DEBT = {
-    "RAG-009", "RAG-016",
+    "RAG-016",
     "COD-001",
     "WEB-001", "OPS-004",
 }
@@ -284,6 +286,14 @@ EVIDENCE: dict[str, list[str]] = {
         "scripts/check_coverage_thresholds.py",
         "apps/api/tests/test_gate_parity.py"
         "::test_the_coverage_thresholds_are_checked_where_coverage_is_produced",
+    ],
+    "RAG-009": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
     ],
     "RAG-013": [
         "apps/api/src/korpus/application/numeric_integrity.py",

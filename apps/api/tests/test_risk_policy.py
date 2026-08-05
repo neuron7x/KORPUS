@@ -6,7 +6,10 @@ from korpus.domain.models import AuthorityClass
 def test_query_risk_classifier_is_deterministic_and_conservative():
     assert classify_query_risk("Який порядок дій визначає наказ?") is QueryRisk.OPERATIONAL
     assert classify_query_risk("Яка редакція чинна станом на сьогодні?") is QueryRisk.TEMPORAL
-    assert classify_query_risk("Що містить документ?") is QueryRisk.STANDARD
+    # Was STANDARD until 2026-08-05. An unrecognised query is now UNCLASSIFIED and
+    # scored at the stricter setting: falling to the loosest thresholds in the system
+    # was fail-open in the one place the design is otherwise fail-closed (RAG-009).
+    assert classify_query_risk("Що містить документ?") is QueryRisk.UNCLASSIFIED
 
 
 def test_risk_thresholds_are_monotone():

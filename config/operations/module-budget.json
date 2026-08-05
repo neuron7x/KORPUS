@@ -128,8 +128,12 @@
       "max_complexity": 22
     },
     "apps/api/src/korpus/application/risk.py": {
-      "lines": 69,
-      "max_complexity": 5
+      "lines": 87,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/risk_rules.py": {
+      "lines": 163,
+      "max_complexity": 4
     },
     "apps/api/src/korpus/application/table_integrity.py": {
       "lines": 122,
@@ -276,7 +280,7 @@
       "max_complexity": 3
     },
     "scripts/build_audit_closure.py": {
-      "lines": 484,
+      "lines": 494,
       "max_complexity": 17
     },
     "scripts/build_system_manifest.py": {
@@ -492,6 +496,48 @@
         "worst_function": "main"
       },
       "reason": "SUP-001 evidence list"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "scripts/build_audit_closure.py",
+          "metric": "lines",
+          "from": 484,
+          "to": 494
+        }
+      ],
+      "reason": "RAG-009: the risk classifier became a register of rules with examples"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "lines",
+          "from": 67,
+          "to": 72
+        }
+      ],
+      "reason": "RAG-009 closure: risk.py gained the docstring stating what UNCLASSIFIED costs"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "lines",
+          "from": 72,
+          "to": 87
+        },
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "max_complexity",
+          "from": 3,
+          "to": 4
+        }
+      ],
+      "reason": "UNCLASSIFIED gained its own threshold branch and the argument for why coverage does not move with it"
     }
   ],
   "line_exempt": {

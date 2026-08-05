@@ -1139,6 +1139,35 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M150_UNKNOWN_QUERY_FAILS_OPEN",
+        "apps/api/src/korpus/application/risk.py",
+        "    if risk is QueryRisk.UNCLASSIFIED:",
+        "    if False:",
+        (
+            "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
+        ),
+    ),
+    Mutant(
+        "M151_UNRECOGNISED_QUERY_READS_AS_ORDINARY",
+        "apps/api/src/korpus/application/risk_rules.py",
+        "    return QueryRisk.UNCLASSIFIED, None",
+        "    return QueryRisk.STANDARD, None",
+        (
+            "apps/api/tests/test_risk_rules.py::"
+            "test_an_unrecognised_query_is_unclassified_not_standard",
+        ),
+    ),
+    Mutant(
+        "M152_REPHRASED_PERMISSION_QUESTION_SLIPS_THROUGH",
+        "apps/api/src/korpus/application/risk_rules.py",
+        '            r"\\b(чи можу|чи може|чи маю|чи повинен|чи потрібно|як діяти"',
+        '            r"\\b(ZZ-nothing-matches-this|чи повинен|чи потрібно|як діяти"',
+        (
+            "apps/api/tests/test_risk_rules.py::"
+            "test_a_rephrased_operational_question_is_still_operational",
+        ),
+    ),
+    Mutant(
         "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
         "apps/api/src/korpus/infrastructure_requirements.py",
         "                    lambda c, n=name: not c.service(n).get(\"image\")\n"

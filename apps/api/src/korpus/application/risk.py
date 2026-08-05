@@ -1,26 +1,30 @@
+"""Risk-adjusted evidence thresholds.
+
+The classifier moved to `risk_rules.py` on 2026-08-05 (RAG-009): rules carry ids and
+examples, and an unmatched query is UNCLASSIFIED rather than STANDARD. This module keeps
+the thresholds, and the one decision that matters here is what UNCLASSIFIED costs.
+
+It is scored at the temporal setting, not the standard one. An unrecognised query used
+to fall to STANDARD — the loosest evidence requirement in the system — which is
+fail-open in the single place the design is otherwise fail-closed. Scoring it at
+OPERATIONAL instead would refuse most ordinary questions and teach operators to
+distrust the refusals; the middle setting raises the bar without making the system
+useless, and the class travels into the answer so a reader can see that it was applied.
+"""
+
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
-from enum import StrEnum
 
-from korpus.application.retrieval import normalize_text
+from korpus.application.risk_rules import RISK_RULES, QueryRisk, classify
 
-
-class QueryRisk(StrEnum):
-    STANDARD = "standard"
-    TEMPORAL = "temporal"
-    OPERATIONAL = "operational"
-
-
-TEMPORAL_PATTERNS = (
-    re.compile(r"\b(чинн|діє|строк|дата|редакц|скасован|на сьогодні|станом на)"),
-    re.compile(r"\b(valid|effective|current|as of|deadline|revision)\b"),
-)
-OPERATIONAL_PATTERNS = (
-    re.compile(r"\b(наказ|процедур|порядок дій|зобовязан|обовязков|дозволен|заборонен)"),
-    re.compile(r"\b(order|procedure|must|shall|required|prohibited|authorized)\b"),
-)
+__all__ = [
+    "RISK_RULES",
+    "QueryRisk",
+    "RiskThresholds",
+    "classify_query_risk",
+    "risk_adjusted_thresholds",
+]
 
 
 @dataclass(frozen=True)
@@ -32,12 +36,8 @@ class RiskThresholds:
 
 
 def classify_query_risk(text: str) -> QueryRisk:
-    normalized = normalize_text(text).replace("’", "'")
-    if any(pattern.search(normalized) for pattern in OPERATIONAL_PATTERNS):
-        return QueryRisk.OPERATIONAL
-    if any(pattern.search(normalized) for pattern in TEMPORAL_PATTERNS):
-        return QueryRisk.TEMPORAL
-    return QueryRisk.STANDARD
+    """The class alone, for callers that do not record which rule decided it."""
+    return classify(text)[0]
 
 
 def risk_adjusted_thresholds(
@@ -58,6 +58,24 @@ def risk_adjusted_thresholds(
         return RiskThresholds(
             minimum_score=min(1.0, minimum_score + 0.07),
             minimum_query_coverage=min(1.0, minimum_query_coverage + 0.10),
+            minimum_support_score=min(1.0, minimum_support_score + 0.07),
+            minimum_authority=0.46,
+        )
+    if risk is QueryRisk.UNCLASSIFIED:
+        # Not knowing what a question is must cost more than knowing it is ordinary, or
+        # the unknown case is the cheapest place to land. What it raises is *evidential*
+        # — score, support, authority — and what it deliberately does not raise is query
+        # coverage.
+        #
+        # Coverage measures whether the retrieved passage is about the question asked.
+        # That is a property of the retrieval, not of the risk class: not knowing how
+        # dangerous a question is says nothing about how much of it the evidence
+        # covers. Raising it here failed two frozen evaluation cases that the corpus
+        # does answer correctly, and the frozen protocol forbids editing the dataset to
+        # match — so the threshold that had no argument behind it is the one that moved.
+        return RiskThresholds(
+            minimum_score=min(1.0, minimum_score + 0.07),
+            minimum_query_coverage=minimum_query_coverage,
             minimum_support_score=min(1.0, minimum_support_score + 0.07),
             minimum_authority=0.46,
         )

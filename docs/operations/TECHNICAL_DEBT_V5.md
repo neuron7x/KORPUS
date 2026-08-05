@@ -5,9 +5,9 @@ This document records work that cannot be converted into PASS by local code or s
 ## Frozen audit debt counts (reclassified 2026-08-05)
 
 - 75/99 findings remain non-closed in the frozen audit scope.
-- 39 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
+- 40 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
 - 31 are `EXTERNAL_DEBT`: they require independent people, systems, infrastructure or authorization.
-- 5 are `OPEN_TECH_DEBT`: repository engineering work remains.
+- 4 are `OPEN_TECH_DEBT`: repository engineering work remains.
 
 The counts above were stale for a day. `build_audit_closure.py` classifies by a static
 set, so nine findings closed or mitigated on 2026-08-05 still read as open engineering
@@ -33,9 +33,20 @@ concrete cost of tags had shown up hours earlier, when a kaniko version that doe
 exist reached a queued pipeline — a digest cannot be invented, and cannot be repointed
 at different bytes afterwards.
 
-Still `OPEN_TECH_DEBT`: RAG-009 (regex risk classifier), RAG-016 (embedding model
-migration executed against a real index), COD-001 (SqlRepository at 1855 lines),
-WEB-001 (reviewer workflows), OPS-004 (environment drift against a real cluster).
+RAG-009 followed: the risk classifier is a register of rules carrying ids, rationales
+and their own examples, and an unmatched query is UNCLASSIFIED rather than STANDARD.
+Two defects sat behind that finding and only one was about regular expressions. The
+second was direction: an unrecognised query fell to the loosest evidence thresholds in
+the system, which is fail-open in the one place this design is otherwise fail-closed.
+UNCLASSIFIED is now scored at the temporal setting — stricter than ordinary, not so
+strict that operators learn to ignore refusals. What stays open is the acceptance
+predicate the audit actually states: a trained classifier on a blind set with per-class
+precision, recall and worst-group metrics, which needs annotated queries nobody here
+has. That is `MITIGATED_LOCAL`, not closed.
+
+Still `OPEN_TECH_DEBT`: RAG-016 (embedding model migration executed against a real
+index), COD-001 (SqlRepository at 1855 lines), WEB-001 (reviewer workflows), OPS-004
+(environment drift against a real cluster).
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 

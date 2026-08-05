@@ -5,9 +5,9 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 39 | Material control exists; live, corpus, or independent acceptance remains. |
+| MITIGATED_LOCAL | 40 | Material control exists; live, corpus, or independent acceptance remains. |
 | EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
-| OPEN_TECH_DEBT | 5 | Engineering implementation remains open. |
+| OPEN_TECH_DEBT | 4 | Engineering implementation remains open. |
 
 ## Remaining blockers
 
@@ -29,7 +29,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **RAG-003 · P0 · EXTERNAL_DEBT** — Немає human gold standard та inter-annotator agreement
 - **RAG-005 · P1 · MITIGATED_LOCAL** — Немає contradiction resolution між джерелами
 - **RAG-007 · P1 · MITIGATED_LOCAL** — Authority priors є неперевіреними константами
-- **RAG-009 · P1 · OPEN_TECH_DEBT** — Risk classifier є regex heuristic
+- **RAG-009 · P1 · MITIGATED_LOCAL** — Risk classifier є regex heuristic
 - **RAG-010 · P1 · MITIGATED_LOCAL** — Prompt/control injection detector має лише пʼять regex patterns
 - **RAG-011 · P1 · MITIGATED_LOCAL** — Sentence segmentation непридатна для складних нормативних документів
 - **RAG-012 · P1 · MITIGATED_LOCAL** — Lexical retrieval не має української морфології та domain analysis
