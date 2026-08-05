@@ -15,6 +15,7 @@ reading the wrong configuration, which no amount of running it can detect.
 from __future__ import annotations
 
 import ast
+import json
 import re
 import shlex
 import subprocess
@@ -796,3 +797,30 @@ def test_scripts_reading_installed_metadata_run_under_the_locked_interpreter() -
         "these recipes read installed distribution metadata with the system "
         f"interpreter, so the answer depends on the machine: {offenders}"
     )
+
+
+def test_the_module_budget_is_enforced_in_both_entry_points() -> None:
+    """A ceiling nothing checks is a note, not a ratchet."""
+    assert "module-budget" in _makefile_prerequisites("validate"), (
+        "make validate no longer enforces the module budget"
+    )
+    assert any(
+        "check_module_budget.py" in line for line in _ci_script("repository:validate")
+    ), "repository:validate no longer enforces the module budget"
+
+
+def test_every_module_is_in_the_budget() -> None:
+    """"Not yet budgeted" is how a file reaches two thousand lines unnoticed."""
+    result = subprocess.run(
+        [sys.executable, "scripts/check_module_budget.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PYTHONPATH": str(ROOT / "apps/api/src"), "PATH": "/usr/bin:/bin"},
+    )
+    report = json.loads(result.stdout)
+    assert report["unbudgeted"] == [], (
+        f"these modules have no recorded ceiling: {report['unbudgeted']}"
+    )
+    assert report["status"] == "PASS", report["violations"]

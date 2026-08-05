@@ -41,7 +41,7 @@ PostgreSQL debt below.
 
 ## Open engineering debt
 
-- decomposition of the large SQL repository and security configuration validator;
+- decomposition of the SQL repository (1855 lines, worst function complexity 23);
 - corpus-scale table and formula evaluation;
 - embedding backfill and model-migration execution against a real index;
 - reviewer/admin web workflows, and contrast/focus-order validation against a rendered page;
@@ -126,5 +126,23 @@ leave this list only with the mechanism that keeps them closed.
   shell failed four of them when the rules were first run — the interface had been
   fully verified for what it must not leak and not at all for whether it could be
   operated. Contrast and focus order need a rendered page and stay open above.
+- **security configuration validator** — the thirty conditions a controlled deployment
+  must satisfy moved out of `Settings.validate_security_and_calibration` into
+  `korpus/controlled_requirements.py` as a declared list. Measured complexity of that
+  method fell from 103 to 57.
+
+  The number is not the benefit. The benefit is that the conditions are now a document
+  that reads start to finish — for an engineer, for the §2.5 assessor, for whoever
+  signs the authorisation — instead of control flow to be traced, and the list sits at
+  the same granularity as the tests that weaken it one entry at a time. Order is
+  preserved exactly, because a configuration violating several conditions reports the
+  first, and the 43 tests pinning those messages were written before the move: they
+  passed unchanged, which is what makes the refactor evidence rather than hope.
+
+  Growth is now ratcheted. `scripts/check_module_budget.py` records today's line count
+  and worst-function complexity for all 94 modules; shrinking is free, growth fails,
+  and a new module without a recorded ceiling fails too — "not yet budgeted" is how a
+  file reaches two thousand lines unnoticed. Three negative controls. Decomposing the
+  repository itself stays open above, with its measurement written down.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

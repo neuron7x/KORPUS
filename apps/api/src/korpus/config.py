@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from korpus.application.calibration import CalibrationProfile
+from korpus.controlled_requirements import first_unmet
 
 
 def _read_secret_file(path: Path | None, fallback: str) -> str:
@@ -246,104 +246,13 @@ class Settings(BaseSettings):
         if self.auth_mode == "disabled" and controlled:
             raise ValueError("controlled environments cannot disable authentication")
         if controlled:
-            if not self.database_url.startswith("postgresql"):
-                raise ValueError("controlled environments require PostgreSQL")
-            normalized_database_url = self.database_url.replace(
-                "postgresql+psycopg", "postgresql", 1
-            )
-            database_query = parse_qs(urlparse(normalized_database_url).query)
-            if database_query.get("sslmode", [""])[0] != "verify-full":
-                raise ValueError("controlled PostgreSQL connections require sslmode=verify-full")
-            if self.auth_mode != "oidc":
-                raise ValueError("OIDC authentication is required in controlled environments")
-            if self.schema_mode != "migrations":
-                raise ValueError("controlled environments require migration-managed schema")
-            if not self.oidc_jwks_url:
-                raise ValueError("OIDC JWKS URL is required")
-            if not self.browser_auth_enabled:
-                raise ValueError("controlled environments require browser OIDC/BFF authentication")
-            required_browser = {
-                "authorization endpoint": self.oidc_authorization_endpoint,
-                "token endpoint": self.oidc_token_endpoint,
-                "client id": self.oidc_client_id,
-                "redirect URI": self.oidc_redirect_uri,
-            }
-            browser_missing = [name for name, value in required_browser.items() if not value]
-            if browser_missing:
-                raise ValueError(f"browser OIDC settings are missing: {', '.join(browser_missing)}")
-            if not self.resolved_browser_session_key or len(self.resolved_browser_session_key) < 32:
-                raise ValueError("controlled browser sessions require a strong session key")
-            if not self.browser_cookie_secure:
-                raise ValueError("controlled browser session cookies must be Secure")
-            # browser_missing above already rejected an unset redirect URI.
-            if not (self.oidc_redirect_uri or "").startswith("https://"):
-                raise ValueError("controlled OIDC redirect URI must use HTTPS")
-            if self.entitlement_profile_path is None or not self.entitlement_profile_path.is_file():
-                raise ValueError(
-                    "controlled environments require a server-side entitlement profile"
-                )
-            if not self.entitlement_profile_sha256:
-                raise ValueError("controlled environments require an entitlement profile digest")
-            if not self.require_source_signatures:
-                raise ValueError("controlled environments require detached source signatures")
-            if (
-                self.source_trust_profile_path is None
-                or not self.source_trust_profile_path.is_file()
-            ):
-                raise ValueError("controlled environments require a source trust profile")
-            if not self.source_trust_profile_sha256:
-                raise ValueError("controlled environments require a source trust profile digest")
-            if self.reviewer_registry_path is None or not self.reviewer_registry_path.is_file():
-                raise ValueError("controlled environments require a reviewer credential registry")
-            if not self.reviewer_registry_sha256:
-                raise ValueError("controlled environments require a reviewer registry digest")
-            if (
-                self.corpus_governance_profile_path is None
-                or not self.corpus_governance_profile_path.is_file()
-            ):
-                raise ValueError("controlled environments require a corpus governance profile")
-            if not self.corpus_governance_profile_sha256:
-                raise ValueError(
-                    "controlled environments require a corpus governance profile digest"
-                )
-            if (
-                len(self.resolved_audit_hmac_key) < 32
-                or self.resolved_audit_hmac_key.startswith("replace-")
-            ):
-                raise ValueError("production audit key is missing or weak")
-            if self.answer_policy_mode != "calibrated" or self.calibration_profile_path is None:
-                raise ValueError("validated calibration profile is required")
-            if not self.review_separation_required:
-                raise ValueError("controlled environments require reviewer separation")
-            if self.audit_anchor_mode != "http" or not self.audit_anchor_url:
-                raise ValueError("controlled environments require a remote HTTP audit anchor")
-            if not self.resolved_audit_anchor_token:
-                raise ValueError("controlled environments require audit anchor authentication")
-            if not self.metrics_enabled:
-                raise ValueError("controlled environments require operational metrics")
-            if not self.resolved_metrics_token:
-                raise ValueError(
-                    "controlled environments require an authenticated metrics endpoint"
-                )
-            if any(
-                origin == "*" or not origin.startswith("https://")
-                for origin in self.cors_origin_list
-            ):
-                raise ValueError("controlled CORS origins must be explicit HTTPS origins")
-            if not self.trusted_host_list or "*" in self.trusted_host_list:
-                raise ValueError("controlled environments require explicit trusted hosts")
-            if self.s3_endpoint_url and not self.s3_endpoint_url.startswith("https://"):
-                raise ValueError("controlled S3 endpoints must use HTTPS")
-            if self.s3_governance_retention_days < 1:
-                raise ValueError("controlled object storage requires governance retention")
-            if self.ingestion_mode != "durable_async":
-                raise ValueError("controlled environments require durable asynchronous ingestion")
-            if self.malware_scan_mode != "clamd":
-                raise ValueError("controlled environments require fail-closed malware scanning")
-            if not self.parser_sandbox_enabled:
-                raise ValueError("controlled environments require parser process isolation")
-            if self.otlp_endpoint and not self.otlp_endpoint.startswith("https://"):
-                raise ValueError("controlled OTLP endpoints must use HTTPS")
+            # Thirty conditions, moved to korpus/controlled_requirements.py as a list
+            # that can be read start to finish. Order is preserved exactly: a
+            # configuration violating several reports the first, and the tests that
+            # pinned those messages were written before the move.
+            unmet = first_unmet(self)
+            if unmet is not None:
+                raise ValueError(unmet.message)
         if self.browser_auth_enabled:
             if self.auth_mode != "oidc":
                 raise ValueError("browser authentication requires OIDC mode")

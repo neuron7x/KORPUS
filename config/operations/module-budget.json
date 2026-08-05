@@ -1,0 +1,383 @@
+{
+  "schema_version": 1,
+  "note": "A ratchet: these are today's measurements, and they may only be lowered. Growth fails the gate; a reduction is recorded here deliberately so it is visible in review instead of absorbed.",
+  "recorded_at": "2026-08-05",
+  "modules": {
+    "apps/api/src/korpus/__init__.py": {
+      "lines": 1,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/dependencies.py": {
+      "lines": 222,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/api/routes.py": {
+      "lines": 809,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/application/admission.py": {
+      "lines": 125,
+      "max_complexity": 13
+    },
+    "apps/api/src/korpus/application/answer_query.py": {
+      "lines": 660,
+      "max_complexity": 19
+    },
+    "apps/api/src/korpus/application/assurance.py": {
+      "lines": 135,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/audit_export.py": {
+      "lines": 166,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/cache.py": {
+      "lines": 130,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/calibration.py": {
+      "lines": 184,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/deployment.py": {
+      "lines": 303,
+      "max_complexity": 23
+    },
+    "apps/api/src/korpus/application/embedding_coverage.py": {
+      "lines": 150,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/evidence.py": {
+      "lines": 273,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/application/evidence_registry.py": {
+      "lines": 160,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/extraction_quality.py": {
+      "lines": 51,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/fingerprints.py": {
+      "lines": 28,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/gate_inventory.py": {
+      "lines": 67,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/ingestion.py": {
+      "lines": 490,
+      "max_complexity": 19
+    },
+    "apps/api/src/korpus/application/ingestion_jobs.py": {
+      "lines": 222,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/noninterference.py": {
+      "lines": 99,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/numeric_integrity.py": {
+      "lines": 135,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/operations.py": {
+      "lines": 211,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/policy.py": {
+      "lines": 77,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/ports.py": {
+      "lines": 161,
+      "max_complexity": 1
+    },
+    "apps/api/src/korpus/application/provenance.py": {
+      "lines": 185,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/recovery.py": {
+      "lines": 154,
+      "max_complexity": 15
+    },
+    "apps/api/src/korpus/application/resilience.py": {
+      "lines": 178,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/retention.py": {
+      "lines": 172,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/retrieval.py": {
+      "lines": 478,
+      "max_complexity": 22
+    },
+    "apps/api/src/korpus/application/risk.py": {
+      "lines": 69,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/tevv.py": {
+      "lines": 140,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/trace.py": {
+      "lines": 32,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/application/tuning.py": {
+      "lines": 172,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/cli.py": {
+      "lines": 191,
+      "max_complexity": 17
+    },
+    "apps/api/src/korpus/config.py": {
+      "lines": 426,
+      "max_complexity": 59
+    },
+    "apps/api/src/korpus/controlled_requirements.py": {
+      "lines": 249,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/domain/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/domain/models.py": {
+      "lines": 486,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/infrastructure/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/infrastructure/audit_anchor.py": {
+      "lines": 229,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/infrastructure/extraction.py": {
+      "lines": 466,
+      "max_complexity": 21
+    },
+    "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
+      "lines": 314,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/infrastructure/object_store.py": {
+      "lines": 468,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/infrastructure/observability.py": {
+      "lines": 166,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/parser_worker.py": {
+      "lines": 35,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/repository.py": {
+      "lines": 1855,
+      "max_complexity": 23
+    },
+    "apps/api/src/korpus/infrastructure/runtime.py": {
+      "lines": 72,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/semantic.py": {
+      "lines": 274,
+      "max_complexity": 13
+    },
+    "apps/api/src/korpus/main.py": {
+      "lines": 245,
+      "max_complexity": 30
+    },
+    "apps/api/src/korpus/security/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/security/auth.py": {
+      "lines": 200,
+      "max_complexity": 16
+    },
+    "apps/api/src/korpus/security/browser_oidc.py": {
+      "lines": 196,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/security/corpus_governance.py": {
+      "lines": 89,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/security/entitlements.py": {
+      "lines": 111,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/security/oidc.py": {
+      "lines": 132,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/security/reviewers.py": {
+      "lines": 77,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/security/scanning.py": {
+      "lines": 90,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/security/source_authenticity.py": {
+      "lines": 103,
+      "max_complexity": 14
+    },
+    "scripts/assemble_assurance.py": {
+      "lines": 120,
+      "max_complexity": 12
+    },
+    "scripts/backup_crypto.py": {
+      "lines": 163,
+      "max_complexity": 10
+    },
+    "scripts/backup_manifest.py": {
+      "lines": 120,
+      "max_complexity": 12
+    },
+    "scripts/bootstrap_local.py": {
+      "lines": 83,
+      "max_complexity": 3
+    },
+    "scripts/build_audit_closure.py": {
+      "lines": 414,
+      "max_complexity": 17
+    },
+    "scripts/build_system_manifest.py": {
+      "lines": 102,
+      "max_complexity": 11
+    },
+    "scripts/check_coverage_thresholds.py": {
+      "lines": 87,
+      "max_complexity": 8
+    },
+    "scripts/check_module_budget.py": {
+      "lines": 132,
+      "max_complexity": 11
+    },
+    "scripts/export_audit.py": {
+      "lines": 124,
+      "max_complexity": 7
+    },
+    "scripts/generate_desired_state.py": {
+      "lines": 94,
+      "max_complexity": 14
+    },
+    "scripts/generate_manifest.py": {
+      "lines": 103,
+      "max_complexity": 6
+    },
+    "scripts/generate_supply_chain_inventory.py": {
+      "lines": 160,
+      "max_complexity": 13
+    },
+    "scripts/measure_recovery.py": {
+      "lines": 146,
+      "max_complexity": 6
+    },
+    "scripts/openapi_contract.py": {
+      "lines": 43,
+      "max_complexity": 5
+    },
+    "scripts/plan_retention.py": {
+      "lines": 98,
+      "max_complexity": 7
+    },
+    "scripts/prepare_postgres_role.py": {
+      "lines": 100,
+      "max_complexity": 4
+    },
+    "scripts/prepare_postgres_test_role.py": {
+      "lines": 10,
+      "max_complexity": 0
+    },
+    "scripts/run_evals.py": {
+      "lines": 376,
+      "max_complexity": 22
+    },
+    "scripts/run_migration_gate.py": {
+      "lines": 99,
+      "max_complexity": 10
+    },
+    "scripts/run_mutation_tests.py": {
+      "lines": 1500,
+      "max_complexity": 21
+    },
+    "scripts/run_operational_gate.py": {
+      "lines": 43,
+      "max_complexity": 5
+    },
+    "scripts/run_quality_gate.py": {
+      "lines": 115,
+      "max_complexity": 6
+    },
+    "scripts/run_research_assurance.py": {
+      "lines": 185,
+      "max_complexity": 19
+    },
+    "scripts/run_scale_probe.py": {
+      "lines": 163,
+      "max_complexity": 10
+    },
+    "scripts/seed_recovery_fixture.py": {
+      "lines": 96,
+      "max_complexity": 8
+    },
+    "scripts/snapshot_assurance.py": {
+      "lines": 149,
+      "max_complexity": 8
+    },
+    "scripts/source_digest.py": {
+      "lines": 81,
+      "max_complexity": 10
+    },
+    "scripts/validate_infrastructure.py": {
+      "lines": 261,
+      "max_complexity": 100
+    },
+    "scripts/validate_kubernetes.py": {
+      "lines": 71,
+      "max_complexity": 10
+    },
+    "scripts/validate_repository.py": {
+      "lines": 204,
+      "max_complexity": 33
+    },
+    "scripts/verify_audit.py": {
+      "lines": 9,
+      "max_complexity": 0
+    },
+    "scripts/verify_handoff_contract.py": {
+      "lines": 154,
+      "max_complexity": 35
+    },
+    "scripts/verify_postgres_restore.py": {
+      "lines": 82,
+      "max_complexity": 13
+    },
+    "scripts/verify_release_evidence.py": {
+      "lines": 53,
+      "max_complexity": 11
+    },
+    "scripts/wait_for_database.py": {
+      "lines": 27,
+      "max_complexity": 0
+    }
+  }
+}
