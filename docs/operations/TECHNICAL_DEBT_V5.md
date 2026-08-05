@@ -195,7 +195,6 @@ PostgreSQL debt below.
 - the transactional core of the SQL repository (1047 lines, down from 1855): CRUD,
   review transitions, audit append, readiness and the RLS session context still share
   one class, because splitting them splits a transaction;
-- the kubernetes validator still holds its checks inline;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;
 - embedding backfill and model-migration execution against a real index;
 - corpus and entitlement administration in the web consoles; browser-driven E2E role
@@ -300,6 +299,31 @@ leave this list only with the mechanism that keeps them closed.
   and a new module without a recorded ceiling fails too — "not yet budgeted" is how a
   file reaches two thousand lines unnoticed. Three negative controls. Decomposing the
   repository itself stays open above, with its measurement written down.
+- **kubernetes validator** — the fourth and last of the inline validators became a
+  register. `manifest_violations` was twenty checks in one function, and the length was
+  the least of it: a failure said "korpus-api: root filesystem must be read-only" with
+  nothing connecting that sentence to a rule an assessor can cite or an owner can mark
+  accepted-with-risk, and a mutant could reach the function but not one check inside it.
+  `korpus/kubernetes_requirements.py` generates per-workload and per-container
+  requirements from the rendered document set, so an id names one container of one
+  workload — `k8s.workload.korpus-api.container.0.read_only_root`. A requirement now
+  carries two sentences: `statement` is positive, because a register is read start to
+  finish and a list of negations is read wrong under pressure; `failure` is what the
+  operator is told, verbatim from the inline version, and it can name what was actually
+  found.
+
+  The first draft restated REQUIRED_KINDS instead of importing it, and named five kinds
+  where the deployment names nine while dropping seven of the eleven required config
+  keys. A register that gates a smaller set than the deployment needs reads exactly like
+  one that gates the right set. The constants stay in `application/deployment.py` and
+  are imported.
+
+  Thirty-one deployment tests passed unchanged, which is what makes this a refactor
+  rather than a rewrite with the tests adjusted to fit. M70 and M71 moved with their
+  targets; M134–M137 are new, and M137 survived its first probe — the test counted the
+  config requirements and asserted the base deployment passes, and a register can name
+  every key while asserting nothing about their values. The register is now part of
+  `REQUIREMENTS_REGISTER.md`: 319 requirements where there were 258.
 - **infrastructure validator, and one register for every requirement** —
   `validate_infrastructure.main` held about a hundred checks inline and measured a
   cyclomatic complexity of 102. It is now 5: the checks live in

@@ -228,3 +228,111 @@ def test_one_walk_answers_every_filesystem_question() -> None:
     assert context.oversized == []
     assert context.placeholders == []
     assert context.tracked_secrets == []
+
+
+def test_the_kubernetes_register_states_the_same_rules_as_the_gate() -> None:
+    """The register and the gate must be one thing, not two that agree today.
+
+    `manifest_violations` is now a projection of `kubernetes_requirements`, so the only
+    way they can disagree is if someone reintroduces an inline check. The first draft of
+    the register restated REQUIRED_KINDS instead of importing it and named five kinds
+    where the deployment names nine — a register that gates a smaller set than the
+    deployment needs reads exactly like one that gates the right set.
+    """
+    from korpus.application.deployment import (
+        REQUIRED_KINDS,
+        REQUIRED_PRODUCTION_CONFIG,
+        REQUIRED_WORKLOADS,
+        render_kustomization,
+    )
+    from korpus.kubernetes_requirements import (
+        KubernetesContext,
+        kubernetes_requirements,
+        manifest_violations,
+    )
+
+    root = Path(__file__).resolve().parents[3]
+    rendered = render_kustomization(root / "deploy/kubernetes/base", root)
+    requirements = kubernetes_requirements(KubernetesContext.build(rendered))
+
+    assert manifest_violations(rendered) == []
+    assert not duplicate_ids(requirements)
+    # One requirement per required config key, not one for "the config".
+    config_ids = {r.id for r in requirements if r.subject == "ConfigMap"}
+    assert len(config_ids) == len(REQUIRED_PRODUCTION_CONFIG)
+    statements = " ".join(r.statement for r in requirements)
+    for kind in REQUIRED_KINDS:
+        assert kind in statements
+    for workload in REQUIRED_WORKLOADS:
+        assert any(r.subject == workload for r in requirements), workload
+
+
+def test_an_empty_render_reports_one_failure_rather_than_the_whole_register() -> None:
+    """Twenty failures describing an empty input is a report nobody reads to the end."""
+    from korpus.kubernetes_requirements import (
+        KubernetesContext,
+        kubernetes_requirements,
+        manifest_violations,
+    )
+
+    requirements = kubernetes_requirements(KubernetesContext.build([]))
+
+    assert len(requirements) == 1
+    assert manifest_violations([]) == ["no Kubernetes resources"]
+
+
+def test_a_failure_names_one_container_of_one_workload() -> None:
+    """The id is what an assessor cites and what a mutant reaches.
+
+    "the deployment has a violation" cannot be marked accepted-with-risk by an owner;
+    `k8s.workload.korpus-api.container.0.read_only_root` can.
+    """
+    from korpus.kubernetes_requirements import KubernetesContext, kubernetes_requirements
+
+    document = {
+        "kind": "Deployment",
+        "metadata": {"name": "korpus-api"},
+        "spec": {"template": {"spec": {"containers": [{"image": "x"}, {"image": "y"}]}}},
+    }
+    requirements = kubernetes_requirements(KubernetesContext.build([document]))
+
+    identifiers = {r.id for r in requirements}
+    assert "k8s.workload.korpus-api.container.0.read_only_root" in identifiers
+    assert "k8s.workload.korpus-api.container.1.read_only_root" in identifiers
+
+
+def test_a_deployed_configuration_that_drifts_from_policy_is_reported() -> None:
+    """A register that lists the config keys is not the same as one that checks them.
+
+    The first version of this test counted the requirements and asserted the base
+    deployment passes. Mutant M137 replaced the config predicate with `True` and
+    survived: a register can name every key and still assert nothing about their values.
+    """
+    from korpus.application.deployment import REQUIRED_PRODUCTION_CONFIG
+    from korpus.kubernetes_requirements import manifest_violations
+
+    key, value = next(iter(REQUIRED_PRODUCTION_CONFIG.items()))
+    configmap = {
+        "kind": "ConfigMap",
+        "metadata": {"name": "korpus-config"},
+        "data": {**REQUIRED_PRODUCTION_CONFIG, key: "wrong"},
+    }
+
+    violations = manifest_violations([configmap])
+
+    assert f"secure production config missing: {key}={value}" in violations
+    # And the ones that are correct are not reported, or the message means nothing.
+    for other_key, other_value in REQUIRED_PRODUCTION_CONFIG.items():
+        if other_key != key:
+            assert f"secure production config missing: {other_key}={other_value}" not in violations
+
+
+def test_a_missing_configmap_reports_every_required_key() -> None:
+    """Absent configuration is not compliant configuration."""
+    from korpus.application.deployment import REQUIRED_PRODUCTION_CONFIG
+    from korpus.kubernetes_requirements import manifest_violations
+
+    violations = manifest_violations([{"kind": "Namespace", "metadata": {"name": "korpus"}}])
+
+    for key, value in REQUIRED_PRODUCTION_CONFIG.items():
+        assert f"secure production config missing: {key}={value}" in violations

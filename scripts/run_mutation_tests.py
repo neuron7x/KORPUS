@@ -669,21 +669,69 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Moved with the invariants to kubernetes_requirements.py on 2026-08-05. The
+        # predicate is stated positively there, so the mutant is `True` rather than
+        # `False`: a requirement that always holds is the same defect as a check that
+        # never fires.
         "M70_MUTABLE_ROOT_FILESYSTEM_ACCEPTED",
-        "apps/api/src/korpus/application/deployment.py",
-        '        if security.get("readOnlyRootFilesystem") is not True:',
-        "        if False:",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: security.get("readOnlyRootFilesystem") is True,',
+        "            holds=lambda context: True,",
         (
             "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
         ),
     ),
     Mutant(
         "M71_FLOATING_IMAGE_TAG_ACCEPTED",
-        "apps/api/src/korpus/application/deployment.py",
-        '        if "@sha256:" not in image:',
-        "        if False:",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: "@sha256:" in image,',
+        "            holds=lambda context: True,",
         (
             "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
+        ),
+    ),
+    Mutant(
+        "M134_DROPPED_CAPABILITY_SUBSET_ACCEPTED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: security.get("capabilities", {}).get("drop")'
+        ' == ["ALL"],',
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_deployment_rendering_refusals.py::"
+            "test_a_container_that_loosens_its_own_context_is_reported",
+        ),
+    ),
+    Mutant(
+        "M135_EMPTY_RENDER_TREATED_AS_CLEAN",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "            holds=lambda context: bool(context.documents),",
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_an_empty_render_reports_one_failure_rather_than_the_whole_register",
+        ),
+    ),
+    Mutant(
+        "M136_MISSING_RESOURCE_KINDS_IGNORED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "            holds=lambda context: not (REQUIRED_KINDS - set(context.by_kind)),",
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_missing_workloads_are_reported",
+        ),
+    ),
+    Mutant(
+        # Survived its first probe against
+        # test_the_kubernetes_register_states_the_same_rules_as_the_gate, which counted
+        # the config requirements and asserted the base deployment passes. A register
+        # can name every key and still assert nothing about their values.
+        "M137_PRODUCTION_CONFIG_NOT_REQUIRED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "        return lambda context: context.config.get(key) == value",
+        "        return lambda context: True",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_a_deployed_configuration_that_drifts_from_policy_is_reported",
         ),
     ),
     Mutant(

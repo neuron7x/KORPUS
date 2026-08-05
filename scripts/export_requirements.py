@@ -5,9 +5,15 @@
 list of properties it claims — not a program that produces that list as a side effect
 of running, and not a hundred `if` statements to be traced.
 
-Three registers feed it: the infrastructure substrate, the repository contract, and the
-conditions under which a controlled deployment may run at all. They were separate
-accidents of where the code happened to live; to a reader they are one document.
+Four registers feed it: the infrastructure substrate, the repository contract, the
+conditions under which a controlled deployment may run at all, and the Kubernetes
+topology. They were separate accidents of where the code happened to live; to a reader
+they are one document.
+
+The Kubernetes entries are rendered from `deploy/kubernetes/base`, because per-workload
+and per-container requirements are generated from a document set rather than written
+out. That makes the exported list a description of *this* deployment — which is the
+honest reading, and the register says so where a reader will see it.
 """
 from __future__ import annotations
 
@@ -18,9 +24,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
+from korpus.application.deployment import render_kustomization  # noqa: E402
 from korpus.application.requirements import as_catalogue, duplicate_ids  # noqa: E402
 from korpus.controlled_requirements import CONTROLLED_REQUIREMENTS  # noqa: E402
 from korpus.infrastructure_requirements import INFRASTRUCTURE_REQUIREMENTS  # noqa: E402
+from korpus.kubernetes_requirements import (  # noqa: E402
+    KubernetesContext,
+    kubernetes_requirements,
+)
 from korpus.repository_requirements import REPOSITORY_REQUIREMENTS  # noqa: E402
 
 OUTPUT = ROOT / "docs/operations/REQUIREMENTS_REGISTER.md"
@@ -38,14 +49,17 @@ def main() -> int:
     ]
     infrastructure = as_catalogue(INFRASTRUCTURE_REQUIREMENTS)
     repository = as_catalogue(REPOSITORY_REQUIREMENTS)
+    rendered = render_kustomization(ROOT / "deploy/kubernetes/base", ROOT)
+    deployment_requirements = kubernetes_requirements(KubernetesContext.build(rendered))
+    kubernetes = as_catalogue(deployment_requirements)
     duplicates = duplicate_ids(
-        (*INFRASTRUCTURE_REQUIREMENTS, *REPOSITORY_REQUIREMENTS)
+        (*INFRASTRUCTURE_REQUIREMENTS, *REPOSITORY_REQUIREMENTS, *deployment_requirements)
     )
     if duplicates:
         print(json.dumps({"status": "FAIL", "duplicate_ids": duplicates}, indent=2))
         return 1
 
-    entries = infrastructure + repository + controlled
+    entries = infrastructure + repository + kubernetes + controlled
     subjects: dict[str, list[dict[str, str]]] = {}
     for entry in entries:
         subjects.setdefault(str(entry["subject"]), []).append(entry)
@@ -54,7 +68,12 @@ def main() -> int:
         "# Реєстр вимог КОРПУСу",
         "",
         "Згенеровано `scripts/export_requirements.py`. Не редагувати вручну — джерело "
-        "це `korpus/infrastructure_requirements.py` та `korpus/controlled_requirements.py`.",
+        "це `korpus/infrastructure_requirements.py`, `korpus/repository_requirements.py`, "
+        "`korpus/kubernetes_requirements.py` та `korpus/controlled_requirements.py`.",
+        "",
+        "Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні "
+        "правила породжуються з набору документів, тому перелік описує саме це "
+        "розгортання, а не Kubernetes узагалі.",
         "",
         f"Усього вимог: **{len(entries)}**.",
         "",

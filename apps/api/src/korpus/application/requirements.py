@@ -43,6 +43,16 @@ class Requirement:
     statement: str
     holds: Callable[[Any], bool]
     rationale: str = ""
+    #: What an operator is told when this requirement is unmet, when that differs from
+    #: the statement. The statement is positive so the register reads as a list of
+    #: properties; a failure often has to name what was actually found — which kinds
+    #: were missing, which value the config carried — and that sentence cannot be
+    #: written in advance for a register generated from a document set.
+    failure: str = ""
+
+    @property
+    def message(self) -> str:
+        return self.failure or self.statement
 
     def evaluate(self, context: Any) -> bool:
         """A predicate that raises has not been satisfied.

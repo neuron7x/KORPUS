@@ -201,103 +201,20 @@ def discover_kustomizations(deploy_root: Path) -> list[Path]:
     return sorted(path.parent for path in deploy_root.rglob("kustomization.yaml"))
 
 
-def _workload_violations(resource: Mapping[str, Any]) -> list[str]:
-    name = resource.get("metadata", {}).get("name", "<unnamed>")
-    pod_spec = resource.get("spec", {}).get("template", {}).get("spec", {})
-    problems: list[str] = []
-    if pod_spec.get("automountServiceAccountToken") is not False:
-        problems.append(f"{name}: service-account token must be disabled")
-    pod_security = pod_spec.get("securityContext", {})
-    if (
-        pod_security.get("runAsNonRoot") is not True
-        or pod_security.get("seccompProfile", {}).get("type") != "RuntimeDefault"
-    ):
-        problems.append(f"{name}: restricted pod security missing")
-    containers = pod_spec.get("containers", [])
-    if not containers:
-        problems.append(f"{name}: no containers")
-    for container in containers:
-        image = str(container.get("image", ""))
-        if "@sha256:" not in image:
-            problems.append(f"{name}: image must be digest-addressed, got {image!r}")
-        security = container.get("securityContext", {})
-        if security.get("allowPrivilegeEscalation") is not False:
-            problems.append(f"{name}: privilege escalation must be disabled")
-        if security.get("readOnlyRootFilesystem") is not True:
-            problems.append(f"{name}: root filesystem must be read-only")
-        if security.get("capabilities", {}).get("drop") != ["ALL"]:
-            problems.append(f"{name}: all capabilities must be dropped")
-        resources = container.get("resources", {})
-        if not resources.get("requests") or not resources.get("limits"):
-            problems.append(f"{name}: resource requests/limits required")
-    return problems
-
-
 def manifest_violations(documents: Iterable[Mapping[str, Any]]) -> list[str]:
-    """State the deployment invariants over a *rendered* document set."""
+    """State the deployment invariants over a *rendered* document set.
 
-    documents = list(documents)
-    if not documents:
-        return ["no Kubernetes resources"]
-    by_kind: dict[str, list[Mapping[str, Any]]] = {}
-    for document in documents:
-        by_kind.setdefault(str(document.get("kind")), []).append(document)
+    The invariants themselves moved to `korpus/kubernetes_requirements.py` on
+    2026-08-05 — the fourth and last validator to become a register, so that a failure
+    has an id an assessor can cite and a mutant can reach one check rather than one
+    function. This stays as the entry point the gate script, both test modules and the
+    mutation catalogue name.
 
-    problems: list[str] = []
-    missing = REQUIRED_KINDS - set(by_kind)
-    if missing:
-        problems.append(f"missing Kubernetes resource kinds: {sorted(missing)}")
+    Imported inside the function because the register reads REQUIRED_KINDS,
+    REQUIRED_WORKLOADS and REQUIRED_PRODUCTION_CONFIG from this module: those are facts
+    about the deployment and belong beside the renderer. A module-level import here
+    would be the cycle.
+    """
+    from korpus.kubernetes_requirements import manifest_violations as evaluate
 
-    namespaces = by_kind.get("Namespace", [])
-    if namespaces:
-        labels = namespaces[0].get("metadata", {}).get("labels", {})
-        if labels.get("pod-security.kubernetes.io/enforce") != "restricted":
-            problems.append("namespace must enforce restricted Pod Security")
-
-    workload_names = set()
-    for resource in [*by_kind.get("Deployment", []), *by_kind.get("Job", [])]:
-        workload_names.add(resource.get("metadata", {}).get("name"))
-        problems.extend(_workload_violations(resource))
-    absent = REQUIRED_WORKLOADS - workload_names
-    if absent:
-        problems.append(f"required workloads missing: {sorted(absent)}")
-
-    if not any(
-        policy.get("metadata", {}).get("name") == "default-deny"
-        and policy.get("spec", {}).get("podSelector") == {}
-        for policy in by_kind.get("NetworkPolicy", [])
-    ):
-        problems.append("default-deny NetworkPolicy missing")
-
-    configmaps = by_kind.get("ConfigMap", [])
-    config = configmaps[0].get("data", {}) if configmaps else {}
-    for key, value in REQUIRED_PRODUCTION_CONFIG.items():
-        if config.get(key) != value:
-            problems.append(f"secure production config missing: {key}={value}")
-
-    for workload in ("korpus-api", "korpus-worker"):
-        deployment = next(
-            (
-                item
-                for item in by_kind.get("Deployment", [])
-                if item.get("metadata", {}).get("name") == workload
-            ),
-            None,
-        )
-        if deployment is None:
-            continue
-        pod_spec = deployment.get("spec", {}).get("template", {}).get("spec", {})
-        volumes = {volume.get("name"): volume for volume in pod_spec.get("volumes", [])}
-        governance = volumes.get("governance", {}).get("secret", {})
-        if governance.get("secretName") != "korpus-governance-bundle":
-            problems.append(f"{workload}: content-addressed governance secret volume missing")
-        containers = pod_spec.get("containers", [])
-        mounts = containers[0].get("volumeMounts", []) if containers else []
-        if not any(
-            mount.get("name") == "governance"
-            and mount.get("mountPath") == "/etc/korpus/governance"
-            and mount.get("readOnly") is True
-            for mount in mounts
-        ):
-            problems.append(f"{workload}: governance bundle must be mounted read-only")
-    return problems
+    return evaluate(documents)

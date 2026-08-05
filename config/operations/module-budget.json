@@ -48,7 +48,7 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/application/deployment.py": {
-      "lines": 303,
+      "lines": 220,
       "max_complexity": 23
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
@@ -121,7 +121,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/requirements.py": {
-      "lines": 123,
+      "lines": 133,
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/resilience.py": {
@@ -243,6 +243,11 @@
       "lines": null,
       "max_complexity": 12
     },
+    "apps/api/src/korpus/kubernetes_requirements.py": {
+      "lines": null,
+      "max_complexity": 6,
+      "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
+    },
     "apps/api/src/korpus/main.py": {
       "lines": 245,
       "max_complexity": 30
@@ -334,7 +339,7 @@
       "max_complexity": 7
     },
     "scripts/export_requirements.py": {
-      "lines": 91,
+      "lines": 110,
       "max_complexity": 8
     },
     "scripts/generate_desired_state.py": {
