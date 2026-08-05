@@ -1139,6 +1139,30 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M119_REVIEW_TRANSITION_SKIPS_ENTITLEMENT",
+        "apps/api/src/korpus/application/ingestion.py",
+        "        if not self.policy.can_access_document(actor, document).allowed:\n"
+        '            raise PermissionError("actor cannot access target document")\n'
+        "        permission = (",
+        "        permission = (",
+        (
+            "apps/api/tests/test_repository_access_refusals.py::"
+            "test_a_reviewer_cannot_transition_a_version_from_another_corpus",
+        ),
+    ),
+    Mutant(
+        "M120_QUEUED_VERSION_SKIPS_ENTITLEMENT",
+        "apps/api/src/korpus/application/ingestion_jobs.py",
+        "        if not self.policy.can_access_document(actor, document).allowed:\n"
+        '            raise PermissionError("actor cannot access target document")\n'
+        "        key = self.quarantine_store.put_path(path, source_hash, filename)",
+        "        key = self.quarantine_store.put_path(path, source_hash, filename)",
+        (
+            "apps/api/tests/test_repository_access_refusals.py::"
+            "test_a_version_cannot_be_queued_against_a_document_in_another_corpus",
+        ),
+    ),
+    Mutant(
         "M118_RECOVERY_PROVENANCE_NOT_REQUIRED",
         "apps/api/src/korpus/application/recovery.py",
         (

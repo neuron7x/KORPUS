@@ -293,6 +293,19 @@ class IngestionService:
         version = self.repository.get_version(actor, version_id)
         if version is None:
             raise LookupError("version not found")
+        # Holding a review role is not the same as being entitled to this corpus.
+        # Neither get_version nor get_document filters by corpus — on PostgreSQL
+        # row-level security refuses first, on SQLite nothing does — so a reviewer for
+        # one corpus could drive another corpus's version through its review states,
+        # including approval, given only the version id. The document is fetched here
+        # rather than inside the reviewer-credential branch below, because the access
+        # decision applies to every transition, not only the three that need a
+        # credential.
+        document = self.repository.get_document(actor, version.document_id)
+        if document is None:
+            raise LookupError("document not found")
+        if not self.policy.can_access_document(actor, document).allowed:
+            raise PermissionError("actor cannot access target document")
         permission = (
             "document:review_metadata"
             if transition.target is ReviewState.METADATA_REVIEWED
@@ -335,9 +348,6 @@ class IngestionService:
             ReviewState.CONTENT_REVIEWED,
             ReviewState.APPROVED,
         }:
-            document = self.repository.get_document(actor, version.document_id)
-            if document is None:
-                raise LookupError("document not found")
             if self.reviewer_registry is not None:
                 reviewer_credential_id = self.reviewer_registry.authorize(
                     subject=actor.subject,

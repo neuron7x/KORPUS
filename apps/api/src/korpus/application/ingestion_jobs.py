@@ -100,6 +100,14 @@ class DurableIngestionCoordinator:
         document = self.repository.get_document(actor, document_id)
         if document is None:
             raise LookupError("document not found")
+        # `get_document` returns the row; it does not decide access. Every other caller
+        # in this layer follows it with this check, and this one did not — so an actor
+        # holding document:ingest could queue a version against a document in a corpus
+        # they hold no entitlement to. On PostgreSQL row-level security would have
+        # refused first, which is exactly what made the gap invisible: the control
+        # existed in one dialect and the application relied on it without saying so.
+        if not self.policy.can_access_document(actor, document).allowed:
+            raise PermissionError("actor cannot access target document")
         key = self.quarantine_store.put_path(path, source_hash, filename)
         job = IngestionJobRecord(
             kind=IngestionJobKind.VERSION,

@@ -81,6 +81,9 @@ api:test:
     # could not complete; nobody saw it because the pipeline never reached the package
     # stage until 2026-08-03.
     - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82 --junitxml=var/pytest.xml
+    # Both policy minimums, checked where the numbers are produced rather than in
+    # source:package four stages later.
+    - python scripts/check_coverage_thresholds.py
   artifacts:
     when: always
     reports:

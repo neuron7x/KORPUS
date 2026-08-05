@@ -12,8 +12,13 @@ api-run:
 	mkdir -p var/objects
 	$(PY) -m uvicorn korpus.main:app --app-dir apps/api/src --host 127.0.0.1 --port 8000 --reload
 
+# --cov-fail-under bounds one combined number. The release policy states line and
+# branch minimums separately, and the only thing that read the branch one ran at the
+# very end of the pipeline — so branch coverage sat below policy for as long as anyone
+# had been writing tests. check_coverage_thresholds.py reads both from the policy.
 api-test:
-	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-fail-under=82
+	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=json:var/coverage.json --cov-fail-under=82
+	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
 
 # `mypy apps/api/src` from the repository root did not type-check this project.
 # The [tool.mypy] section lives in apps/api/pyproject.toml, and mypy only reads a

@@ -663,3 +663,108 @@ def test_every_job_running_the_suite_uses_the_production_interpreter() -> None:
         f"{offenders} — a service tested on one Python and shipped on another has "
         "been tested somewhere else"
     )
+
+
+def test_the_coverage_thresholds_are_checked_where_coverage_is_produced() -> None:
+    """A predicate evaluated only at the end of the pipeline is evaluated only rarely.
+
+    `coverage_branch` lives in the release aggregator, which runs in `source:package`
+    from artefacts produced four stages earlier — so on 2026-08-05, the first pipeline
+    that ever reached that job, branch coverage turned out to have been below policy
+    for as long as anyone had been writing tests. `--cov-fail-under` had not caught it
+    because it bounds one combined line-and-branch number, not the two the policy
+    states separately.
+    """
+    for label, lines in (
+        ("make api-test", _makefile_recipe("api-test")),
+        ("api:test", _ci_script("api:test")),
+    ):
+        assert any("scripts/check_coverage_thresholds.py" in line for line in lines), (
+            f"{label} no longer checks the policy coverage minimums: {lines}"
+        )
+        assert any("--cov-report=json" in line for line in lines), (
+            f"{label} does not produce the JSON report the threshold check reads"
+        )
+
+
+def test_the_coverage_thresholds_are_not_a_second_copy_of_the_policy() -> None:
+    """Two places holding the same number is one place holding a stale one.
+
+    The first version of this test looked for `= 0.xx` and passed while the file said
+    `"line": 0.50` — a guard reading past the thing it guards, for the second time
+    today. It now resolves the `minimums` literal by ast and requires every value to
+    come from the policy.
+    """
+    tree = ast.parse((ROOT / "scripts/check_coverage_thresholds.py").read_text(encoding="utf-8"))
+    literal = next(
+        (
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == "minimums" for t in node.targets)
+            and isinstance(node.value, ast.Dict)
+        ),
+        None,
+    )
+    assert literal is not None, "check_coverage_thresholds.py no longer builds `minimums`"
+    constants = [
+        ast.unparse(value)
+        for value in literal.values
+        if not (
+            isinstance(value, ast.Call)
+            and "policy" in ast.unparse(value)
+            and "minimum_" in ast.unparse(value)
+        )
+    ]
+    assert not constants, (
+        f"these thresholds do not come from the policy: {constants} — a second copy of "
+        "a number is a second thing to forget, and the drift looks like a passing build"
+    )
+
+
+APPLICATION = ROOT / "apps/api/src/korpus/application"
+
+
+def _functions_calling(source: str, attribute: str) -> list[ast.FunctionDef]:
+    """Functions whose body contains a call to `<something>.<attribute>(...)`."""
+    tree = ast.parse(source)
+    found = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            continue
+        for inner in ast.walk(node):
+            if (
+                isinstance(inner, ast.Call)
+                and isinstance(inner.func, ast.Attribute)
+                and inner.func.attr == attribute
+            ):
+                found.append(node)
+                break
+    return found
+
+
+def test_every_document_lookup_is_followed_by_an_access_decision() -> None:
+    """`get_document` returns the row; it does not decide who may have it.
+
+    `list_documents` filters by corpus, clearance, classification and compartment.
+    `get_document` filters by nothing — on PostgreSQL row-level security refuses
+    first, and on SQLite nothing does. Every caller in the application layer is
+    therefore responsible for `policy.can_access_document`, and on 2026-08-05 one of
+    them was not doing it: `IngestionJobService.submit_version` would queue a version
+    against a document in a corpus the actor held no entitlement to. The control
+    existed in one dialect and the application leaned on it without saying so.
+
+    Asserted structurally rather than by testing each route, because the defect is a
+    caller that forgets — including one written next week.
+    """
+    offenders: list[str] = []
+    for path in sorted(APPLICATION.glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        for function in _functions_calling(source, "get_document"):
+            body = ast.unparse(function)
+            if "can_access_document" not in body:
+                offenders.append(f"{path.name}::{function.name}")
+    assert not offenders, (
+        "these functions read a document without deciding whether the actor may have "
+        f"it: {offenders} — get_document does not filter by corpus"
+    )
