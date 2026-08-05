@@ -42,8 +42,8 @@ PostgreSQL debt below.
 ## Open engineering debt
 
 - decomposition of the large SQL repository and security configuration validator;
-- corpus-scale table, number, unit and formula evaluation;
-- embedding backfill/model-migration orchestration and drift monitoring;
+- corpus-scale table and formula evaluation;
+- embedding backfill and model-migration execution against a real index;
 - reviewer/admin web workflows and accessibility validation;
 - live-serving OpenTelemetry health probe and durable telemetry backend;
 - environment drift and cost/capacity governance against a real cluster;
@@ -89,5 +89,26 @@ leave this list only with the mechanism that keeps them closed.
   absent from the environment, since running it under a bare interpreter resolved five
   of sixty-eight and reported the rest as unknown — a number describing the invocation
   rather than the supply chain. A parity test keeps it on the locked interpreter.
+- **number and unit evaluation** — `application/numeric_integrity.py`. Every existing
+  extraction predicate fires on visibly broken text; the failure that changes what an
+  order *says* leaves the text clean. "не менше 300 м" read as "не менше 3 00 м" has a
+  fine alphanumeric ratio, no replacement characters and no long tokens: quotable,
+  citable, and wrong by two orders of magnitude. Five forms are detected — a number
+  split by a space, a Cyrillic letter standing in for a digit, two decimal separators
+  in one passage, a unit pushed past a line break, an inverted range — and each is
+  paired with an ordinary passage that must *not* fire, because a flag a reviewer sees
+  everywhere is a flag nobody reads. They join `extraction_quality_flags`, which
+  already blocks a review transition until acknowledged, so the detection changes a
+  decision rather than filling a field. Mutants M127–M128. Table and formula structure
+  remain open above.
+- **embedding drift monitoring** — `application/embedding_coverage.py`. Retrieval
+  filters vectors by the active model id, so a model change yields no semantic
+  candidates rather than wrong ones, and the lexical half answers alone from a
+  narrower set than the calibrated profile assumed. Four states are distinguished
+  because the operator's next move differs: COMPLETE, BACKFILL_REQUIRED,
+  MODEL_MIGRATION_REQUIRED and STALE_VECTORS — stale ranked above missing, since
+  missing produces silence and stale produces confidence about text the document no
+  longer contains. An empty corpus reports 0.0 coverage, not 1.0. Required-semantic
+  mode refuses an incomplete index instead of degrading. Mutants M129–M131.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

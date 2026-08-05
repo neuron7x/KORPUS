@@ -1139,6 +1139,56 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M127_SPLIT_NUMBER_NOT_FLAGGED",
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "    for match in SPLIT_NUMBER.finditer(text):",
+        "    for match in []:",
+        (
+            "apps/api/tests/test_numeric_integrity.py::"
+            "test_a_number_split_by_a_space_is_flagged",
+        ),
+    ),
+    Mutant(
+        "M128_NUMERIC_DAMAGE_NEVER_REACHES_REVIEW",
+        "apps/api/src/korpus/application/extraction_quality.py",
+        "    flags.update(assess_numeric_integrity(text).flags)",
+        "    pass",
+        (
+            "apps/api/tests/test_numeric_integrity.py::"
+            "test_numeric_damage_reaches_the_reviewer_through_the_extraction_quality_gate",
+        ),
+    ),
+    Mutant(
+        "M129_EMPTY_INDEX_REPORTS_FULL_COVERAGE",
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "        if self.spans_total == 0:\n            return 0.0",
+        "        if self.spans_total == 0:\n            return 1.0",
+        (
+            "apps/api/tests/test_embedding_coverage.py::"
+            "test_an_empty_corpus_covers_nothing_rather_than_everything",
+        ),
+    ),
+    Mutant(
+        "M130_STALE_VECTORS_RANKED_BELOW_MISSING",
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "    elif spans_stale_text > 0:",
+        "    elif False:",
+        (
+            "apps/api/tests/test_embedding_coverage.py::"
+            "test_a_stale_vector_outranks_a_missing_one",
+        ),
+    ),
+    Mutant(
+        "M131_REQUIRED_SEMANTIC_MODE_FALLS_BACK_SILENTLY",
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "    if coverage.complete:",
+        "    if True:",
+        (
+            "apps/api/tests/test_embedding_coverage.py::"
+            "test_required_semantic_mode_refuses_an_incomplete_index",
+        ),
+    ),
+    Mutant(
         "M124_EXPORT_SHIPS_A_SEQUENCE_GAP",
         "apps/api/src/korpus/application/audit_export.py",
         "        if current.sequence != previous.sequence + 1:",
