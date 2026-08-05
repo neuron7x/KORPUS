@@ -511,3 +511,34 @@ def test_the_closure_builder_still_resolves_produced_artefacts() -> None:
         "build_audit_closure.py runs after api:assurance; skipping produced artefacts "
         "there leaves every var/ citation unresolved by anyone"
     )
+
+
+def test_every_job_that_runs_the_suite_has_git_in_its_image() -> None:
+    """test_manifest_generation shells out to git; three images so far lacked it.
+
+    `python:*-slim` and `pgvector/pgvector` both ship without git, and the failure is
+    FileNotFoundError at collection time — not a skip, not a warning. .python-job
+    installs it and says why in a comment, but a comment does not reach a job that
+    declares its own image: api:postgres-and-restore repeated the identical failure on
+    the first pipeline that reached it (2026-08-05, #38).
+
+    Skipping the test where git is absent would be worse than the failure: it is what
+    keeps build artefacts out of the release manifest, and a skip reads green.
+    """
+    text = CI.read_text(encoding="utf-8")
+    offenders = []
+    for block in re.split(r"\n(?=\S)", text):
+        header = block.split("\n", 1)[0]
+        if not header.endswith(":") or header.startswith(("#", " ")):
+            continue
+        name = header[:-1]
+        if not re.search(r"pytest[^\n]*apps/api/tests", block):
+            continue
+        if name == ".python-job" or "extends: .python-job" in block:
+            continue
+        if not re.search(r"apt-get install[^\n]*\bgit\b", block):
+            offenders.append(name)
+    assert not offenders, (
+        f"these jobs run the suite in an image with no git, so "
+        f"test_manifest_generation dies at collection: {offenders}"
+    )

@@ -186,7 +186,12 @@ api:postgres-and-restore:
     KORPUS_BACKUP_ENCRYPTION_KEY_FILE: "$CI_PROJECT_DIR/var/backup-encryption.key"
     KORPUS_BACKUP_KEY_ID: "ci-ephemeral-v4"
   before_script:
-    - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates && rm -rf /var/lib/apt/lists/*
+    # git is here for the same reason it is in .python-job: this job runs the whole
+    # suite, and test_manifest_generation shells out to git to assert the release
+    # manifest lists only tracked files. The pgvector image has no git, so the first
+    # pipeline that reached this job died on it. The knowledge existed — as a comment
+    # in .python-job, which this job does not extend. test_gate_parity now asserts it.
+    - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates git && rm -rf /var/lib/apt/lists/*
     - python3 -m venv /tmp/korpus-venv
     - /tmp/korpus-venv/bin/pip install --no-deps --requirement apps/api/requirements.dev.lock
     - export PATH="/tmp/korpus-venv/bin:$PATH"
