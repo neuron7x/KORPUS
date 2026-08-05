@@ -35,12 +35,17 @@ def main() -> int:
         failures.append("assurance snapshot release/status mismatch")
     for record in snapshot.get("records", []):
         path = ROOT / str(record.get("path", ""))
-        if not path.is_file() or path.stat().st_size != record.get("bytes") or sha256(path) != record.get("sha256"):
+        if (
+            not path.is_file()
+            or path.stat().st_size != record.get("bytes")
+            or sha256(path) != record.get("sha256")
+        ):
             failures.append(f"snapshot record mismatch: {record.get('path')}")
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1
-    print(json.dumps({"valid": True, "release": expected_release, "source_tree_sha256": actual_digest}, indent=2))
+    summary = {"valid": True, "release": expected_release, "source_tree_sha256": actual_digest}
+    print(json.dumps(summary, indent=2))
     return 0
 
 

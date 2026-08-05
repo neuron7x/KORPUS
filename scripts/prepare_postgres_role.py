@@ -8,8 +8,21 @@ from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
 
-
-READ_WRITE_TABLES = ("documents", "document_versions", "evidence_spans", "span_embeddings")
+# Every table the application touches has to appear in exactly one of these lists —
+# the role starts from REVOKE ALL, so an omission is a runtime InsufficientPrivilege
+# rather than a lax grant. Two tables added by later migrations were missing:
+# document_compartments (0004) and ingestion_jobs (0005). Nothing caught it because
+# the SQLite configuration has no roles at all, and the PostgreSQL job had never run
+# past migration 0001. test_postgres_role_grants.py now fails when a table exists in
+# the metadata and in none of these lists.
+READ_WRITE_TABLES = (
+    "documents",
+    "document_versions",
+    "document_compartments",
+    "evidence_spans",
+    "span_embeddings",
+    "ingestion_jobs",
+)
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
 
@@ -60,7 +73,10 @@ with engine.connect() as connection:
     connection.execute(text(f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}"))
     for table_name in READ_WRITE_TABLES:
         connection.execute(
-            text(f"GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE {quoted_identifier(table_name)} TO {role_sql}")
+            text(
+                f"GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "
+                f"{quoted_identifier(table_name)} TO {role_sql}"
+            )
         )
     for table_name in AUDIT_APPEND_TABLES:
         connection.execute(
@@ -68,12 +84,17 @@ with engine.connect() as connection:
         )
     for table_name in AUDIT_MUTABLE_TABLES:
         connection.execute(
-            text(f"GRANT SELECT, INSERT, UPDATE ON TABLE {quoted_identifier(table_name)} TO {role_sql}")
+            text(
+                f"GRANT SELECT, INSERT, UPDATE ON TABLE "
+                f"{quoted_identifier(table_name)} TO {role_sql}"
+            )
         )
     connection.execute(text(f"GRANT SELECT ON TABLE alembic_version TO {role_sql}"))
     # No blanket/default privileges: a new migration remains inaccessible until reviewed here.
     connection.execute(text(f"ALTER ROLE {role_sql} SET statement_timeout = '60s'"))
     connection.execute(text(f"ALTER ROLE {role_sql} SET lock_timeout = '5s'"))
-    connection.execute(text(f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout = '60s'"))
+    connection.execute(
+        text(f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout = '60s'")
+    )
 engine.dispose()
 print(f"prepared least-privilege non-superuser PostgreSQL role: {app_role} on {database}")

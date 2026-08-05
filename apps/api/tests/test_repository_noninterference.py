@@ -5,7 +5,9 @@ from datetime import date
 from apps.api.tests.helpers import approve, ingest_text
 
 
-def test_public_candidate_scores_are_unchanged_by_restricted_corpus(client, admin_identity, public_identity):
+def test_public_candidate_scores_are_unchanged_by_restricted_corpus(
+    client, admin_identity, public_identity
+):
     public = ingest_text(
         client,
         title="Public reference",
@@ -16,7 +18,9 @@ def test_public_candidate_scores_are_unchanged_by_restricted_corpus(client, admi
 
     repository = client.app.state.repository
     retriever = HybridLexicalRetriever(repository)
-    before = retriever.search(public_identity, "дата відповідальна особа", frozenset({"public"}), date.today())
+    before = retriever.search(
+        public_identity, "дата відповідальна особа", frozenset({"public"}), date.today()
+    )
 
     restricted = ingest_text(
         client,
@@ -26,7 +30,9 @@ def test_public_candidate_scores_are_unchanged_by_restricted_corpus(client, admi
         text="дата відповідальна особа " * 200 + "SECRET-SIDE-CHANNEL",
     )
     approve(client, restricted["version"]["id"])
-    after = retriever.search(public_identity, "дата відповідальна особа", frozenset({"public"}), date.today())
+    after = retriever.search(
+        public_identity, "дата відповідальна особа", frozenset({"public"}), date.today()
+    )
 
     before_projection = [(item.span.id, item.score, item.rank) for item in before]
     after_projection = [(item.span.id, item.score, item.rank) for item in after]

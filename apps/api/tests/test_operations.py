@@ -4,11 +4,34 @@ import json
 from pathlib import Path
 
 import pytest
-
-from korpus.application.operations import OperationalReleaseGate, jensen_shannon_divergence
-
+from korpus.application.operations import (
+    GateResult,
+    OperationalReleaseGate,
+    jensen_shannon_divergence,
+)
+from korpus.application.provenance import PROVENANCE_KEY
 
 POLICY = Path("config/operations/reference-v5.json")
+TREE_DIGEST = "c" * 64
+
+
+def evaluate(reports: dict) -> GateResult:
+    """Evaluate with provenance satisfied, so other predicates are what is tested.
+
+    Provenance itself is attacked in test_evidence_provenance.py.
+    """
+
+    for report in reports.values():
+        report.setdefault(
+            PROVENANCE_KEY,
+            {
+                "schema_version": 1,
+                "source_digest": TREE_DIGEST,
+                "generator": "test",
+                "generated_at": "2026-08-04T00:00:00+00:00",
+            },
+        )
+    return OperationalReleaseGate.load(POLICY).evaluate(reports, source_digest=TREE_DIGEST)
 
 
 def passing_reports() -> dict:
@@ -17,6 +40,7 @@ def passing_reports() -> dict:
             "pass_rate": 1.0,
             "citation_failures": 0,
             "leakage_failures": 0,
+            "leakage_checks": 26,
             "determinism_failures": 0,
             "audit_valid": True,
         },
@@ -57,14 +81,16 @@ def test_js_divergence_is_bounded_symmetric_and_identity_zero():
     assert 0 < forward <= 1
 
 
-@pytest.mark.parametrize("left,right", [([], []), ([0, 0], [1, 0]), ([1, -1], [1, 1]), ([1], [1, 2])])
+@pytest.mark.parametrize(
+    "left,right", [([], []), ([0, 0], [1, 0]), ([1, -1], [1, 1]), ([1], [1, 2])]
+)
 def test_js_divergence_rejects_undefined_inputs(left, right):
     with pytest.raises(ValueError):
         jensen_shannon_divergence(left, right)
 
 
 def test_operational_gate_passes_encoded_engineering_predicates_only():
-    result = OperationalReleaseGate.load(POLICY).evaluate(passing_reports())
+    result = evaluate(passing_reports())
     assert result.passed is True
     assert result.production_authorized is False
     assert all(result.checks.values())
@@ -81,7 +107,7 @@ def test_operational_gate_passes_encoded_engineering_predicates_only():
 def test_operational_gate_fails_closed_on_trust_regression(section, key, value, failed_check):
     reports = passing_reports()
     reports[section][key] = value
-    result = OperationalReleaseGate.load(POLICY).evaluate(reports)
+    result = evaluate(reports)
     assert result.passed is False
     assert failed_check in result.failures
 

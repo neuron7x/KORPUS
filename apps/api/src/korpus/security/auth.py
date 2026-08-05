@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -12,8 +13,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
-from korpus.security.entitlements import EntitlementProfile
 from korpus.security.browser_oidc import BrowserSessionError
+from korpus.security.entitlements import EntitlementProfile
 
 bearer = HTTPBearer(auto_error=False)
 _LOOPBACKS = {"127.0.0.1", "::1", "localhost", "testclient", "testserver"}
@@ -53,7 +54,9 @@ def _identity_from_local_claims(claims: dict[str, Any]) -> Identity:
             ),
         )
     except (KeyError, TypeError, ValueError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid identity claims") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid identity claims"
+        ) from exc
 
 
 def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
@@ -61,14 +64,47 @@ def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
         issued = datetime.fromtimestamp(float(claims["iat"]), tz=UTC)
         expires = datetime.fromtimestamp(float(claims["exp"]), tz=UTC)
     except (KeyError, TypeError, ValueError, OSError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token timestamps") from exc
-    if expires <= issued or expires - issued > timedelta(minutes=settings.jwt_max_lifetime_minutes):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="token lifetime exceeds policy")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token timestamps"
+        ) from exc
+    if expires <= issued or expires - issued > timedelta(
+        minutes=settings.jwt_max_lifetime_minutes
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="token lifetime exceeds policy"
+        )
 
 
 @lru_cache(maxsize=16)
-def _load_entitlement_profile(path: str, digest: str | None) -> EntitlementProfile:
+def _load_entitlement_profile(
+    path: str, digest: str | None, content_key: str
+) -> EntitlementProfile:
+    """Parse the profile. `content_key` is part of the cache key, not of the load."""
+
+    del content_key
     return EntitlementProfile.load(Path(path), digest)
+
+
+def load_entitlement_profile(path: str, digest: str | None) -> EntitlementProfile:
+    """Load the entitlement profile, honouring revocations written since start-up.
+
+    The cache used to be keyed on the path alone, which froze the profile for the life
+    of the process: a subject added to `deny_subjects` on disk kept every right it had
+    (probe: `REVOCATION IGNORED ['reviewer']`), and nothing — not `/ready`, not a new
+    request — re-read the file. Restarting the API is not a revocation mechanism.
+
+    The key is the file's content, so a revocation takes effect on the next request and
+    an unchanged file is still parsed once. Reading the bytes on each call is
+    deliberate and is the whole cost of the check; parsing and validation, which are
+    the expensive parts, stay cached. A pinned digest that no longer matches raises
+    rather than falling back to the profile already in memory: refusing to serve a
+    changed profile is the fail-closed direction, and continuing to serve the old one
+    is precisely the behaviour being removed.
+    """
+
+    return _load_entitlement_profile(
+        path, digest, hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    )
 
 
 def _oidc_identity(claims: dict[str, Any], settings: Settings) -> Identity:
@@ -78,23 +114,29 @@ def _oidc_identity(claims: dict[str, Any], settings: Settings) -> Identity:
             detail="server-side entitlement profile is unavailable",
         )
     try:
-        profile = _load_entitlement_profile(
+        profile = load_entitlement_profile(
             str(settings.entitlement_profile_path.resolve()), settings.entitlement_profile_sha256
         )
         return profile.resolve(claims)
     except (OSError, ValueError, PermissionError) as exc:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="identity has no active entitlement") from exc
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="identity has no active entitlement"
+        ) from exc
 
 
 def _dev_identity(settings: Settings, request: Request) -> Identity:
     client_host = request.client.host if request.client is not None else ""
     if client_host not in _LOOPBACKS:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="dev auth is loopback-only")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="dev auth is loopback-only"
+        )
     return Identity(
         subject=settings.dev_subject,
         roles=frozenset(role.strip() for role in settings.dev_roles.split(",") if role.strip()),
         clearance=AccessTier.parse(settings.dev_clearance),
-        corpora=frozenset(corpus.strip() for corpus in settings.dev_corpora.split(",") if corpus.strip()),
+        corpora=frozenset(
+            corpus.strip() for corpus in settings.dev_corpora.split(",") if corpus.strip()
+        ),
         compartments=frozenset(
             value.strip() for value in settings.dev_compartments.split(",") if value.strip()
         ),
@@ -107,7 +149,9 @@ def get_identity(
     request: Request,
 ) -> Identity:
     if settings.auth_mode == "disabled":
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="authentication disabled"
+        )
     if settings.auth_mode == "dev":
         return _dev_identity(settings, request)
     token = credentials.credentials if credentials is not None else None
@@ -124,9 +168,13 @@ def get_identity(
                 request.state.cookie_authenticated = True
                 request.state.browser_csrf = session.get("csrf")
             except BrowserSessionError as exc:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid browser session") from exc
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid browser session"
+                ) from exc
     if token is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required"
+        )
     try:
         if settings.auth_mode == "jwt":
             claims = jwt.decode(
@@ -143,7 +191,9 @@ def get_identity(
                 raise jwt.InvalidTokenError("OIDC verifier is unavailable")
             claims = verifier.verify(token)
     except jwt.PyJWTError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token"
+        ) from exc
     _validate_lifetime(claims, settings)
     if settings.auth_mode == "oidc":
         return _oidc_identity(claims, settings)

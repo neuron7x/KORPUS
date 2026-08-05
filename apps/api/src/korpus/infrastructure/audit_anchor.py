@@ -7,10 +7,11 @@ import json
 import os
 import tempfile
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator, Protocol
+from typing import Any, Protocol
 
 import httpx
 
@@ -112,7 +113,9 @@ class FileAuditAnchorStore:
                     os.fsync(handle.fileno())
                 os.chmod(temporary_name, 0o600)
                 os.replace(temporary_name, self.path)
-                directory_fd = os.open(self.path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+                directory_fd = os.open(
+                    self.path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+                )
                 try:
                     os.fsync(directory_fd)
                 finally:

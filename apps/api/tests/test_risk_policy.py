@@ -17,7 +17,10 @@ def test_risk_thresholds_are_monotone():
         QueryRisk.TEMPORAL, minimum_score=0.2, minimum_query_coverage=0.3, minimum_support_score=0.2
     )
     operational = risk_adjusted_thresholds(
-        QueryRisk.OPERATIONAL, minimum_score=0.2, minimum_query_coverage=0.3, minimum_support_score=0.2
+        QueryRisk.OPERATIONAL,
+        minimum_score=0.2,
+        minimum_query_coverage=0.3,
+        minimum_support_score=0.2,
     )
     assert standard.minimum_score < temporal.minimum_score < operational.minimum_score
     assert standard.minimum_authority < temporal.minimum_authority < operational.minimum_authority

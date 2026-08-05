@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.config import Settings
@@ -64,7 +63,7 @@ def _worker(client: TestClient, worker_id: str = "worker-1") -> IngestionWorker:
 def test_durable_job_submission_is_non_parsing_and_worker_completes(tmp_path: Path):
     app = create_app(_settings(tmp_path))
     app.dependency_overrides[get_identity] = _admin
-    payload = "Кожен запис має містити дату та відповідальну особу.".encode("utf-8")
+    payload = "Кожен запис має містити дату та відповідальну особу.".encode()
     with TestClient(app) as client:
         response = client.post(
             "/v1/ingestion-jobs/documents",
@@ -165,8 +164,11 @@ def test_job_lease_is_exclusive(tmp_path: Path):
         assert second is None
 
 
-def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(tmp_path, admin_identity):
+def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(
+    tmp_path, admin_identity
+):
     import hashlib
+
     from korpus.application.ingestion import ExtractionSettings, IngestionService
     from korpus.application.policy import PolicyEngine
     from korpus.domain.models import AuthorityClass, DocumentCreate, VersionCreate
@@ -175,7 +177,10 @@ def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(tmp_
 
     policy = PolicyEngine()
     repository = SqlRepository(
-        f"sqlite:///{tmp_path / 'inventory.db'}", "inventory-audit", policy, tmp_path / "anchor.json"
+        f"sqlite:///{tmp_path / 'inventory.db'}",
+        "inventory-audit",
+        policy,
+        tmp_path / "anchor.json",
     )
     repository.initialize()
     store = LocalObjectStore(tmp_path / "objects")

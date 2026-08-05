@@ -9,8 +9,11 @@ from typing import Any
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.noninterference import leaked_material, withheld_material
 from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
+from korpus.application.tevv import evaluate_tevv
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -29,7 +32,11 @@ PROTOCOL = Path("evals/EVALUATION_PROTOCOL.md")
 
 
 def _approve(ingestion: IngestionService, actor: Identity, version_id: Any) -> None:
-    for state in (ReviewState.METADATA_REVIEWED, ReviewState.CONTENT_REVIEWED, ReviewState.APPROVED):
+    for state in (
+        ReviewState.METADATA_REVIEWED,
+        ReviewState.CONTENT_REVIEWED,
+        ReviewState.APPROVED,
+    ):
         ingestion.transition(
             actor,
             version_id,
@@ -55,6 +62,10 @@ def _ingest(
         revision=revision,
         authority=AuthorityClass.OFFICIAL_UA,
         effective_from=effective_from,
+        # An approved version has to say when it starts to govern; the frozen fixtures
+        # are dated well before every `as_of` in the dataset so the lower bound is
+        # satisfied without changing which edition any row resolves to.
+        publication_date=date(2024, 1, 1),
         supersedes_version_id=supersedes,
     )
     if document_id is None:
@@ -94,7 +105,14 @@ def _projection(answer: Any) -> dict[str, Any]:
 
 
 def main() -> None:
-    rows = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines() if line.strip()]
+    dataset_lines = DATASET.read_text(encoding="utf-8").splitlines()
+    rows = [json.loads(line) for line in dataset_lines if line.strip()]
+    # A dataset declares its corpus in a leading record, or it is a fixture. Kept in
+    # the dataset rather than in this script so a fixture cannot become a measurement
+    # by changing a flag in the harness.
+    corpus_declaration = None
+    if rows and rows[0].get("record") == "corpus":
+        corpus_declaration = rows.pop(0)
     dataset_hash = hashlib.sha256(DATASET.read_bytes()).hexdigest()
     protocol_hash = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
     from build_system_manifest import build as build_system_manifest
@@ -131,7 +149,9 @@ def main() -> None:
             corpora=frozenset({"public", "training"}),
         )
         identities = {"public": public, "authenticated": authenticated, "admin": admin}
-        ingestion = IngestionService(repository, store, policy, ExtractionSettings(False, "ukr+eng"))
+        ingestion = IngestionService(
+            repository, store, policy, ExtractionSettings(False, "ukr+eng")
+        )
         _ingest(
             ingestion,
             admin,
@@ -202,6 +222,7 @@ def main() -> None:
         citation_checks = 0
         citation_failures = 0
         leakage_failures = 0
+        leakage_checks = 0
         determinism_failures = 0
         answered_expected = answered_actual = 0
         abstain_expected = abstain_actual = 0
@@ -222,7 +243,12 @@ def main() -> None:
                     determinism_failures += 1
                 serialized = first.model_dump_json()
                 forbidden = row.get("forbidden", [])
-                leaked = any(marker in serialized for marker in forbidden)
+                withheld = withheld_material(repository, admin, identity, query.as_of)
+                leakage_checks += int(bool(withheld))
+                leak_reasons = leaked_material(
+                    serialized, first.citations, withheld, extra_markers=forbidden
+                )
+                leaked = bool(leak_reasons)
                 leakage_failures += int(leaked)
                 expected_quote = row.get("expected_quote")
                 quote_ok = expected_quote is None or any(
@@ -231,15 +257,27 @@ def main() -> None:
                 reason_ok = row.get("expected_reason") in {None, first.decision_reason}
                 for citation in first.citations:
                     citation_checks += 1
-                    accessible = repository.list_retrievable_spans(identity, identity.corpora, query.as_of)
-                    match = next((span for span, _, _ in accessible if span.id == citation.span_id), None)
+                    accessible = repository.list_retrievable_spans(
+                        identity, identity.corpora, query.as_of
+                    )
+                    match = next(
+                        (span for span, _, _ in accessible if span.id == citation.span_id),
+                        None,
+                    )
                     valid = (
                         match is not None
                         and match.text[citation.quote_start : citation.quote_end] == citation.quote
-                        and hashlib.sha256(citation.quote.encode()).hexdigest() == citation.quote_hash
+                        and hashlib.sha256(citation.quote.encode()).hexdigest()
+                        == citation.quote_hash
                     )
                     citation_failures += int(not valid)
-                ok = actual == row["expected_status"] and quote_ok and reason_ok and not leaked and deterministic
+                ok = (
+                    actual == row["expected_status"]
+                    and quote_ok
+                    and reason_ok
+                    and not leaked
+                    and deterministic
+                )
             except AuthorizationError:
                 actual = "access_denied"
                 ok = actual == row["expected_status"]
@@ -264,12 +302,28 @@ def main() -> None:
                     "deterministic": deterministic,
                     "retrieval_score": first.retrieval_score if "first" in locals() else 0.0,
                     "query_coverage": first.query_coverage if "first" in locals() else 0.0,
-                    "decision_reason": first.decision_reason if "first" in locals() else "access_denied",
+                    "decision_reason": (
+                        first.decision_reason if "first" in locals() else "access_denied"
+                    ),
                     "claims": [claim.text for claim in first.claims] if "first" in locals() else [],
                 }
             )
 
         passed = sum(int(item["ok"]) for item in details)
+        # `calibration_status` used to be the constant UNVALIDATED_TEST_FIXTURE: it
+        # said the right thing, and it would have said the same thing about a real
+        # measurement. It is decided now, from what the dataset declares about its
+        # corpus and from how much 30 observations actually constrain the answer.
+        tevv_policy = json.loads(
+            Path("config/operations/reference-v5.json").read_text(encoding="utf-8")
+        )["tevv"]
+        tevv = evaluate_tevv(
+            passed=passed,
+            total=len(rows),
+            corpus_declaration=corpus_declaration,
+            maximum_interval_width=float(tevv_policy["maximum_interval_width"]),
+            minimum_observations=int(tevv_policy["minimum_observations"]),
+        )
         report = {
             "schema": 2,
             "dataset": str(DATASET),
@@ -279,13 +333,15 @@ def main() -> None:
             "system_manifest_sha256": system_manifest_hash,
             "system_manifest_root_sha256": system_manifest["manifest_root_sha256"],
             "source_commit": system_manifest["commit"],
-            "calibration_status": "UNVALIDATED_TEST_FIXTURE",
+            "calibration_status": tevv.calibration_status,
+            "tevv": tevv.as_dict(),
             "passed": passed,
             "total": len(rows),
             "pass_rate": passed / max(len(rows), 1),
             "status_accuracy": status_correct / max(len(rows), 1),
             "citation_checks": citation_checks,
             "citation_failures": citation_failures,
+            "leakage_checks": leakage_checks,
             "leakage_failures": leakage_failures,
             "determinism_failures": determinism_failures,
             "answered_expected": answered_expected,
@@ -294,6 +350,7 @@ def main() -> None:
             "abstain_actual": abstain_actual,
             "audit_valid": repository.verify_audit().valid,
             "details": details,
+            PROVENANCE_KEY: stamp(Path(__file__).resolve().parents[1], "scripts/run_evals.py"),
         }
         Path("var").mkdir(exist_ok=True)
         Path("var/system-manifest.json").write_bytes(system_manifest_bytes)
@@ -306,6 +363,10 @@ def main() -> None:
             or citation_failures
             or leakage_failures
             or determinism_failures
+            # A leakage count of zero over zero rows that had anything to leak is not
+            # evidence of non-interference; it is the metric reporting that it never
+            # ran. The old denominator was 2 of 30 and nothing said so.
+            or not leakage_checks
             or not report["audit_valid"]
         ):
             raise SystemExit(1)

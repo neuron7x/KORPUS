@@ -1,5 +1,9 @@
-ARG NODE_IMAGE=node:22.16.0-alpine
-ARG NGINX_IMAGE=nginx:1.29.8-alpine
+# Pinned to the newest patch of each line. The previous pins carried eleven HIGH
+# advisories in the alpine base layer alone — c-ares, curl, libcurl, libcrypto3,
+# libssl3 — reported by container:scan the first time it managed to read the
+# image, on 2026-08-03. The API image was clean; this one was not.
+ARG NODE_IMAGE=node:22.23.2-alpine
+ARG NGINX_IMAGE=nginx:1.31.3-alpine
 FROM ${NODE_IMAGE} AS build
 WORKDIR /src
 COPY apps/web/package*.json ./

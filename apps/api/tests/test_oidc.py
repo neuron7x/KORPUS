@@ -4,7 +4,6 @@ from types import SimpleNamespace
 import jwt
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
-
 from korpus.security.oidc import OIDCVerifier
 
 

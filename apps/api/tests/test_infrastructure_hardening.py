@@ -4,13 +4,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from fastapi.testclient import TestClient
 import pytest
-
+from fastapi.testclient import TestClient
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import get_identity
+
 from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -136,7 +136,9 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
         **controlled_security_kwargs(tmp_path),
     )
     with pytest.raises(ValueError, match="require PostgreSQL"):
-        Settings(database_url=f"sqlite:///{tmp_path / 'bad.db'}", audit_anchor_token="token", **base)
+        Settings(
+            database_url=f"sqlite:///{tmp_path / 'bad.db'}", audit_anchor_token="token", **base
+        )
     with pytest.raises(ValueError, match="anchor authentication"):
         Settings(database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full", **base)
 
@@ -159,6 +161,7 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
 
 def test_backup_crypto_roundtrip_and_tamper_detection(tmp_path: Path):
     from cryptography.exceptions import InvalidTag
+
     from scripts.backup_crypto import decrypt, encrypt, load_key
 
     key_path = tmp_path / "key.hex"
@@ -242,7 +245,8 @@ def test_reconcile_failures_are_observable():
     observability = Observability()
     observability.observe_anchor_reconcile_failure(TimeoutError("anchor timeout"))
     exported = observability.export_prometheus().decode("utf-8")
-    assert 'korpus_audit_anchor_reconcile_failures_total{error_class="TimeoutError"} 1.0' in exported
+    metric = 'korpus_audit_anchor_reconcile_failures_total{error_class="TimeoutError"} 1.0'
+    assert metric in exported
     observability.close()
 
 
@@ -253,22 +257,56 @@ def test_backup_restore_scripts_are_cwd_independent_and_key_bound(tmp_path: Path
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     pg_dump = bin_dir / "pg_dump"
+    # This double used to accept --file=- and treat it as "write to stdout", which is
+    # what the backup script passed and what nobody had ever checked against a real
+    # pg_dump. On PostgreSQL 17 that flag produced an empty stdout — the first real
+    # run of this job encrypted zero bytes — so the double was certifying a pipeline
+    # that could not work. It now behaves like the tool: no --file means stdout, and
+    # --file=<path> writes there. Passing --file=- would write a file named "-".
     pg_dump.write_text(
         """#!/usr/bin/env python3
 import pathlib, sys
-arg = next(value for value in sys.argv[1:] if value.startswith('--file='))
 payload = b'PGDMP\\x01korpus-infra-test'
-if arg == '--file=-':
+target = next((value for value in sys.argv[1:] if value.startswith('--file=')), None)
+if target is None:
     sys.stdout.buffer.write(payload)
 else:
-    pathlib.Path(arg.split('=', 1)[1]).write_bytes(payload)
+    pathlib.Path(target.split('=', 1)[1]).write_bytes(payload)
 """,
         encoding="utf-8",
     )
     pg_restore = bin_dir / "pg_restore"
     pg_restore.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    # This double printed the literal "ok" — the answer the old restore check looked
+    # for, not anything a database would say. The check itself compared against a
+    # hardcoded '0003_infrastructure_hardening', so from migration 0004 onward it
+    # could only ever fail, and it failed through `grep -q`, which prints nothing.
+    # The double now answers with the real head, read from the migration files, so
+    # the test exercises the comparison instead of pre-agreeing with it.
     psql = bin_dir / "psql"
-    psql.write_text("#!/bin/sh\nprintf 'ok\\n'\n", encoding="utf-8")
+    psql.write_text(
+        "#!/usr/bin/env python3\n"
+        "import ast, pathlib, sys\n"
+        f"versions = pathlib.Path({str(ROOT / 'apps/api/migrations/versions')!r})\n"
+        "revisions, parents = set(), set()\n"
+        "for path in sorted(versions.glob('*.py')):\n"
+        "    for node in ast.parse(path.read_text(encoding='utf-8')).body:\n"
+        "        target = None\n"
+        "        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):\n"
+        "            target = node.target.id\n"
+        "        elif isinstance(node, ast.Assign) and len(node.targets) == 1:\n"
+        "            first = node.targets[0]\n"
+        "            target = first.id if isinstance(first, ast.Name) else None\n"
+        "        value = getattr(node, 'value', None)\n"
+        "        if not isinstance(value, ast.Constant) or not isinstance(value.value, str):\n"
+        "            continue\n"
+        "        if target == 'revision':\n"
+        "            revisions.add(value.value)\n"
+        "        elif target == 'down_revision':\n"
+        "            parents.add(value.value)\n"
+        "print(sorted(revisions - parents)[0])\n",
+        encoding="utf-8",
+    )
     for executable in (pg_dump, pg_restore, psql):
         executable.chmod(0o755)
 

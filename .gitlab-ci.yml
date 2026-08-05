@@ -36,19 +36,31 @@ variables:
 .python-job:
   image: python:3.12.13-slim-bookworm
   before_script:
-    - python -m pip install --no-deps --requirement apps/api/requirements.dev.lock
+    # python:*-slim ships without git. test_manifest_generation asserts that the
+    # release manifest lists only git-tracked files — it shells out to git, and on the
+    # first pipeline where api:test actually ran it died with
+    # FileNotFoundError: 'git'. Skipping that test instead would be worse: it is the
+    # check that keeps build artefacts out of the manifest, and a skipped test reads
+    # green in every report.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
 
+# This job installed PyYAML alone, but four of its eight steps import korpus.* —
+# which imports pydantic. On the first real pipeline run it died at step one with
+# ModuleNotFoundError: No module named 'pydantic'. Because every later job sits in a
+# later stage with no `needs`, all thirteen of them were skipped: the pipeline
+# reported failure without executing a single test, lint, eval or scan. It now shares
+# the same locked environment as every other Python job.
 repository:validate:
+  extends: .python-job
   stage: validate
-  image: python:3.12.13-slim-bookworm
-  before_script:
-    - python -m pip install 'PyYAML==6.0.3'
   script:
     - python scripts/openapi_contract.py
-    - python scripts/build_audit_closure.py
     - python scripts/generate_desired_state.py --check
     - python scripts/generate_supply_chain_inventory.py
+    # A ratchet on module size and function complexity: growth fails, shrinking is free.
+    - python scripts/check_module_budget.py
     - python scripts/validate_repository.py
     - python scripts/validate_infrastructure.py
     - python scripts/validate_kubernetes.py
@@ -59,7 +71,6 @@ repository:validate:
       - var/infrastructure-validation.json
       - var/kubernetes-validation.json
       - contracts/openapi.json
-      - docs/audit/closure/
       - var/supply-chain-inventory.json
 
 api:test:
@@ -67,7 +78,14 @@ api:test:
   stage: test
   script:
     - mkdir -p var/objects
-    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-fail-under=82 --junitxml=var/pytest.xml
+    # snapshot_assurance.py requires var/coverage.json alongside the XML. Only the XML
+    # was ever produced, so that script — and the release packaging that calls it —
+    # could not complete; nobody saw it because the pipeline never reached the package
+    # stage until 2026-08-03.
+    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82 --junitxml=var/pytest.xml
+    # Both policy minimums, checked where the numbers are produced rather than in
+    # source:package four stages later.
+    - python scripts/check_coverage_thresholds.py
   artifacts:
     when: always
     reports:
@@ -78,13 +96,27 @@ api:test:
     paths:
       - var/pytest.xml
       - var/coverage.xml
+      - var/coverage.json
 
 api:quality:
   extends: .python-job
   stage: test
   script:
-    - ruff check apps/api/src apps/api/tests apps/api/migrations scripts
-    - mypy apps/api/src
+    # Both tools run inside run_quality_gate.py, which records command, exit code and
+    # violation count in var/quality-report.json. The assurance aggregator requires
+    # that recording: before 2026-08-04 it printed "ruff": "NOT_EXECUTED …" beside
+    # "status": "PASS", so a job that never ran and a job that passed were the same
+    # evidence downstream.
+    #
+    # `mypy apps/api/src` never applied [tool.mypy] from apps/api/pyproject.toml —
+    # mypy only reads a pyproject.toml in the current directory — and passing a path
+    # overrode packages = ["korpus"], so the run could not resolve the project's own
+    # imports. See docs/adr/0008-executable-gates.md.
+    - python scripts/run_quality_gate.py
+  artifacts:
+    when: always
+    paths:
+      - var/quality-report.json
 
 web:test:
   stage: test
@@ -116,11 +148,36 @@ api:assurance:
       - var/scale-report.json
       - var/operational-gate.json
 
+# The closure registry cites `var/mutation-report.json` for COD-005. That file is
+# produced by api:assurance, and this check used to run in `repository:validate` —
+# the first stage, before any producer had executed. It could not pass in a pipeline
+# and never had: every push from d894a89 (2026-08-04) to 2458942 (2026-08-05) failed
+# here, which skipped all thirteen remaining jobs. Locally it passed only because a
+# report from an earlier run was still lying in var/ (`make clean` reproduces the
+# failure). A check that consumes a produced artefact belongs after its producer, and
+# `needs: artifacts: true` is what makes the file present rather than incidental.
+audit:closure:
+  extends: .python-job
+  stage: security
+  needs:
+    - job: api:assurance
+      artifacts: true
+  script:
+    - python scripts/build_audit_closure.py
+  artifacts:
+    when: always
+    paths:
+      - docs/audit/closure/
+
+# Ran on the image's own python3 until 2026-08-05, which on trixie is 3.13 — so the
+# only job that exercised PostgreSQL tested a different interpreter from the one the
+# production image ships (3.12.13) and from every other job here. Nothing said so; the
+# hashed lock did, by refusing a cp313 wheel against cp312 hashes. The client tools
+# have to be pg17 to dump a pg17 server, so they come from pgdg rather than the job
+# moving to the database's image.
 api:postgres-and-restore:
   stage: assurance
-  image:
-    name: pgvector/pgvector:0.8.5-pg17-trixie
-    entrypoint: [""]
+  image: python:3.12.13-slim-bookworm
   services:
     - name: pgvector/pgvector:0.8.5-pg17-trixie
       alias: postgres
@@ -138,38 +195,83 @@ api:postgres-and-restore:
     KORPUS_BACKUP_ENCRYPTION_KEY_FILE: "$CI_PROJECT_DIR/var/backup-encryption.key"
     KORPUS_BACKUP_KEY_ID: "ci-ephemeral-v4"
   before_script:
-    - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates && rm -rf /var/lib/apt/lists/*
-    - python3 -m venv /tmp/korpus-venv
-    - /tmp/korpus-venv/bin/pip install --no-deps --requirement apps/api/requirements.dev.lock
-    - export PATH="/tmp/korpus-venv/bin:$PATH"
+    # git: test_manifest_generation shells out to it to assert the release manifest
+    # lists only tracked files, and slim images ship without it.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git curl ca-certificates gnupg && rm -rf /var/lib/apt/lists/*
+    - install -d /usr/share/postgresql-common/pgdg
+    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    - echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+    - python -m pip check
     - python scripts/wait_for_database.py
   script:
-    - export PATH="/tmp/korpus-venv/bin:$PATH"
-    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_database_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
+    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
     - python scripts/prepare_postgres_role.py
-    - pytest -q apps/api/tests/test_postgres_integration.py -m postgres
+    # The whole suite against the migrated database, not only the postgres-marked test.
+    # Every closure in this tree was proved on SQLite; the first run of this line found
+    # a schema revision pin the code had outgrown, an audit verdict that called a
+    # delayed anchor a broken chain, and forty concurrent appends exhausting the retry
+    # budget — none of which SQLite can show.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
+    # The drill seeds its own corpus. It used to back up whatever the pytest run above
+    # had left behind, which was two rows until the suite started cleaning up after
+    # itself — then a correct backup and a correct restore failed verification.
+    - KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
     - backup_path="$(scripts/backup_postgres.sh)"
     - psql 'postgresql://postgres:postgres-test-password@postgres:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
     - export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@postgres:5432/korpus_restore'
+    # Writes after the backup are what makes the loss figure a measurement: without
+    # them a restore loses nothing however broken it is. These rows are expected to be
+    # absent from the restored copy, and the drill fails if it cannot write them —
+    # a silently skipped seed would report the same zero as a perfect restore.
+    - KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - restore_started=$(date +%s.%N)
     - scripts/restore_postgres.sh "$backup_path"
+    - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
     - python scripts/verify_postgres_restore.py
+    # The runbook has asked for restore duration against the declared RTO since v5 and
+    # nothing recorded it: a restore that took six hours passed every check here. The
+    # drill now emits duration, lost writes and the provenance that makes them mean
+    # something, and source:package refuses to assemble a release without it.
+    # Source is the database the backup came from, not the restored copy: comparing a
+    # copy with itself would report zero loss no matter what was lost.
+    # Counted through korpus_app, the least-privilege role the service runs as, not
+    # through postgres: RLS does not apply to a superuser, so a superuser count is a
+    # number about the table rather than about what the application can recover.
+    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
   artifacts:
     when: always
     paths:
       - var/backups/*.json
+      - var/recovery-report.json
 
 secret:scan:
   stage: security
+  # GitLab clones 20 commits deep by default. gitleaks fingerprints are
+  # commit:file:rule:line, so under a shallow clone the CSV findings are attributed to
+  # whichever commit happens to be the boundary — the baseline stops matching and six
+  # accepted false positives come back as failures. The scan is a claim about the
+  # whole history; it needs the whole history.
+  variables:
+    GIT_DEPTH: "0"
   image:
     name: zricethezav/gitleaks:v8.30.1
     entrypoint: [""]
   script:
+    # --baseline-path accepts six findings already in history and nothing else:
+    # each is pinned to commit, file, rule and line, so a new secret — or the same
+    # text in a new commit — still fails. They are prose in the audit CSVs that the
+    # generic-api-key heuristic reads as high-entropy tokens; verified by reading
+    # the lines. Excluding the paths instead would have silenced those files for
+    # good, including a real credential added to them later.
     - gitleaks detect --source . --no-banner --redact --exit-code 1
+        --baseline-path .gitleaks-baseline.json
 
 python:audit:
   stage: security
@@ -177,7 +279,11 @@ python:audit:
   before_script:
     - python -m pip install 'pip-audit==2.10.1'
   script:
-    - pip-audit --strict --disable-pip -r apps/api/requirements.runtime.lock
+    # --disable-pip requires either hashes in the requirements file or --no-deps;
+    # without one of them pip-audit refuses to start, which is how this job spent
+    # its whole existence: it had never run, so nothing had ever been audited.
+    # The lock is fully resolved, so --no-deps audits exactly what ships.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
 
 infrastructure:scan:
   stage: security
@@ -185,26 +291,51 @@ infrastructure:scan:
     name: aquasec/trivy:0.70.0
     entrypoint: [""]
   script:
-    - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore .
+    # .trivyignore.yaml carries the one exception with a path scope and an expiry,
+    # which the flat .trivyignore format cannot express — it can only switch a rule
+    # off everywhere.
+    - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml .
 
 source:sbom:
   stage: security
   image:
-    name: anchore/syft:v1.44.0
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug
     entrypoint: [""]
   script:
-    - syft dir:. -o cyclonedx-json=source-sbom.cdx.json
+    # /syft, not syft: the image's PATH is
+    # /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/busybox and the
+    # binary sits at the root — read from the image config in the registry, after a
+    # bare `syft` exited 127 and a `command -v || find` fallback exited 1 under set -e.
+    - /syft dir:. -o cyclonedx-json=source-sbom.cdx.json
   artifacts:
     paths: [source-sbom.cdx.json]
 
 container:build:
   stage: build
+  # kaniko, not rootless buildkit. Buildkit needs a nested mount namespace, and on a
+  # plain docker executor that fails twice over: first the seccomp profile blocks
+  # `fork/exec /proc/self/exe`, then `mount src=proc` is refused outright. Both are
+  # fixable with SYS_ADMIN, which is privileged escape in everything but the flag name
+  # — taking that route would have satisfied the letter of the ban on `privileged:
+  # true` while removing exactly the isolation the ban exists for.
+  #
+  # kaniko builds in userspace with no daemon and no capabilities beyond an ordinary
+  # container's, which is what it was written for. The gate keeps its meaning: the
+  # image is built by an unprivileged job.
   image:
-    name: moby/buildkit:v0.30.0-rootless
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   script:
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/api/Dockerfile --output type=oci,dest=api-image.tar
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/web/Dockerfile --output type=oci,dest=web-image.tar
+    # --no-push --tarPath: the pipeline scans and signs a local tarball; nothing is
+    # published from here. type=docker layout, because trivy's --input reads a
+    # docker-save tarball or an OCI *directory* and rejected the OCI archive with
+    # "file manifest.json not found in tar". syft reads either; trivy does not.
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/api/Dockerfile" --destination korpus-api --no-push --tarPath api-image.tar --single-snapshot --custom-platform linux/amd64
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/web/Dockerfile" --destination korpus-web --no-push --tarPath web-image.tar --single-snapshot --custom-platform linux/amd64
   artifacts:
     paths:
       - api-image.tar
@@ -226,30 +357,41 @@ container:scan:
 container:sbom:
   stage: verify-image
   image:
-    name: anchore/syft:v1.44.0
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug
     entrypoint: [""]
   needs:
     - job: container:build
       artifacts: true
   script:
-    - syft oci-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
-    - syft oci-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+    - /syft docker-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
+    - /syft docker-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
   artifacts:
     paths:
       - api-sbom.cdx.json
       - web-sbom.cdx.json
 
 source:package:
+  # The aggregator now evaluates its predicates through korpus.application.assurance
+  # (so they are unit-testable and mutable), which means this job imports korpus.* and
+  # needs the locked environment — the same defect class as repository:validate in
+  # ADR-0008, caught here by test_gate_parity before it reached a pipeline.
+  extends: .python-job
   stage: package
-  image: alpine:3.22.1
   needs:
     - job: repository:validate
+      artifacts: true
+    - job: audit:closure
       artifacts: true
     - job: api:test
       artifacts: true
     - job: api:assurance
       artifacts: true
     - job: api:quality
+      artifacts: true
     - job: api:postgres-and-restore
       artifacts: true
     - job: web:test
@@ -262,9 +404,9 @@ source:package:
     - job: container:sbom
       artifacts: true
   script:
-    - apk add --no-cache bash git zip python3 py3-yaml
-    - PYTHONPATH=scripts python3 scripts/assemble_assurance.py
-    - python3 scripts/snapshot_assurance.py
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
+    - PYTHONPATH=scripts python scripts/assemble_assurance.py
+    - python scripts/snapshot_assurance.py
     - bash scripts/package_repository.sh
   artifacts:
     paths:

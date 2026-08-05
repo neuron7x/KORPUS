@@ -3,8 +3,8 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from korpus.security.entitlements import EntitlementGrant, EntitlementProfile
 from korpus.domain.models import AccessTier
+from korpus.security.entitlements import EntitlementGrant, EntitlementProfile
 
 
 def write_entitlement_profile(tmp_path: Path) -> tuple[Path, str]:
@@ -31,10 +31,11 @@ def write_entitlement_profile(tmp_path: Path) -> tuple[Path, str]:
 
 def write_source_trust_profile(tmp_path: Path) -> tuple[Path, str]:
     import base64
+
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-    from korpus.security.source_authenticity import SourceTrustKey, SourceTrustProfile
     from korpus.domain.models import AuthorityClass
+    from korpus.security.source_authenticity import SourceTrustKey, SourceTrustProfile
 
     private = Ed25519PrivateKey.generate()
     public_raw = private.public_key().public_bytes(
@@ -56,7 +57,7 @@ def write_source_trust_profile(tmp_path: Path) -> tuple[Path, str]:
     raw = profile.model_dump_json().encode("utf-8")
     path.write_bytes(raw)
     # Private key is returned indirectly for tests only, never written by production helpers.
-    setattr(write_source_trust_profile, "last_private_key", private)
+    write_source_trust_profile.last_private_key = private
     return path, hashlib.sha256(raw).hexdigest()
 
 
@@ -83,7 +84,9 @@ def write_reviewer_registry(tmp_path: Path) -> tuple[Path, str]:
         registry_id="test-reviewers-v1",
         subjects={
             "admin-test": (grant,),
-            "metadata-reviewer": (grant.model_copy(update={"credential_id": "metadata-credential"}),),
+            "metadata-reviewer": (
+                grant.model_copy(update={"credential_id": "metadata-credential"}),
+            ),
             "content-reviewer": (grant.model_copy(update={"credential_id": "content-credential"}),),
             "approver-test": (grant.model_copy(update={"credential_id": "approver-credential"}),),
         },
@@ -98,7 +101,9 @@ def write_reviewer_registry(tmp_path: Path) -> tuple[Path, str]:
 def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
     from korpus.domain.models import AuthorityClass, Classification
     from korpus.security.corpus_governance import (
-        CorpusGovernanceProfile, CorpusOperation, CorpusPolicy,
+        CorpusGovernanceProfile,
+        CorpusOperation,
+        CorpusPolicy,
     )
 
     common = CorpusPolicy(
@@ -176,7 +181,9 @@ def write_calibration_bundle(tmp_path: Path, **profile_overrides: object) -> dic
     protocol = tmp_path / "evaluation-protocol.md"
     dataset.write_text('{"id":"calibration-case","query":"test"}\n', encoding="utf-8")
     system_manifest.write_text('{"schema":1,"source":"test-fixture"}\n', encoding="utf-8")
-    protocol.write_text("# Frozen evaluation protocol\n\nNo post-hoc threshold edits.\n", encoding="utf-8")
+    protocol.write_text(
+        "# Frozen evaluation protocol\n\nNo post-hoc threshold edits.\n", encoding="utf-8"
+    )
     values: dict[str, object] = {
         "profile_id": "calibration-test-v3",
         "dataset_sha256": hashlib.sha256(dataset.read_bytes()).hexdigest(),

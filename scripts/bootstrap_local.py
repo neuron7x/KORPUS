@@ -53,14 +53,26 @@ def main() -> None:
             issuer="KORPUS Demonstration Authority",
             document_type="demonstration_order",
         ),
-        VersionCreate(revision="1.0", publication_identifier="DEMO-001", authority=AuthorityClass.OFFICIAL_UA),
+        VersionCreate(
+            revision="1.0",
+            publication_identifier="DEMO-001",
+            authority=AuthorityClass.OFFICIAL_UA,
+        ),
         fixture.name,
         "text/plain",
         fixture.read_bytes(),
     )
     if not result.duplicate:
-        for state in (ReviewState.METADATA_REVIEWED, ReviewState.CONTENT_REVIEWED, ReviewState.APPROVED):
-            service.transition(actor, result.version.id, ReviewTransition(target=state, note="bootstrap fixture review"))
+        for state in (
+            ReviewState.METADATA_REVIEWED,
+            ReviewState.CONTENT_REVIEWED,
+            ReviewState.APPROVED,
+        ):
+            service.transition(
+                actor,
+                result.version.id,
+                ReviewTransition(target=state, note="bootstrap fixture review"),
+            )
     print(f"database={settings.database_url}")
     print(f"document={result.document.id}")
     print(f"version={result.version.id}")

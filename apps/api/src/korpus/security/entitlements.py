@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from korpus.domain.models import AccessTier, Identity, ROLE_PATTERN, CORPUS_ID_PATTERN
+from korpus.domain.models import CORPUS_ID_PATTERN, ROLE_PATTERN, AccessTier, Identity
 
 
 class EntitlementGrant(BaseModel):
@@ -52,14 +52,14 @@ class EntitlementProfile(BaseModel):
     deny_subjects: frozenset[str] = Field(default_factory=frozenset)
 
     @model_validator(mode="after")
-    def validate_profile(self) -> "EntitlementProfile":
+    def validate_profile(self) -> EntitlementProfile:
         overlap = set(self.subjects).intersection(self.deny_subjects)
         if overlap:
             raise ValueError("denied subjects cannot have explicit grants")
         return self
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "EntitlementProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> EntitlementProfile:
         raw = path.read_bytes()
         digest = hashlib.sha256(raw).hexdigest()
         if expected_sha256 is not None and digest != expected_sha256:

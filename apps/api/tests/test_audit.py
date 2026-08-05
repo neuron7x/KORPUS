@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import json
-
-import pytest
 from concurrent.futures import ThreadPoolExecutor
 
+from korpus.infrastructure.repository import audits
 from sqlalchemy import delete, select, text
 
+from apps.api.tests.conftest import privileged_connection
 from apps.api.tests.helpers import approve, ingest_text
-from korpus.infrastructure.repository import audits
 
 
 def test_audit_chain_and_external_anchor_verify(client):
@@ -24,8 +23,7 @@ def test_audit_chain_and_external_anchor_verify(client):
 
 def test_audit_chain_detects_payload_tampering(client):
     ingest_text(client)
-    repository = client.app.state.repository
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         connection.execute(text("UPDATE audit_events SET payload_json='{}' WHERE sequence=1"))
     body = client.get("/v1/audit/verify").json()
     assert body["valid"] is False
@@ -34,9 +32,9 @@ def test_audit_chain_detects_payload_tampering(client):
 
 def test_audit_anchor_detects_tail_truncation(client):
     ingest_text(client)
-    repository = client.app.state.repository
-    with repository.engine.begin() as connection:
-        last = connection.execute(select(audits.c.sequence).order_by(audits.c.sequence.desc()).limit(1)).scalar_one()
+    with privileged_connection(client) as connection:
+        newest = select(audits.c.sequence).order_by(audits.c.sequence.desc()).limit(1)
+        last = connection.execute(newest).scalar_one()
         connection.execute(delete(audits).where(audits.c.sequence == last))
     body = client.get("/v1/audit/verify").json()
     assert body["valid"] is False
@@ -89,7 +87,7 @@ def test_audit_chain_rejects_re_signed_broken_predecessor_link(client, admin_ide
             str(index),
             {"index": index},
         )
-    with repository.engine.begin() as connection:
+    with privileged_connection(client) as connection:
         row = connection.execute(select(audits).where(audits.c.sequence == 2)).mappings().one()
         forged_previous = "f" * 64
         canonical = repository._audit_canonical(

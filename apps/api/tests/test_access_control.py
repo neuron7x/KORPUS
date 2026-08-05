@@ -27,7 +27,9 @@ def test_restricted_document_never_enters_public_retrieval(client, admin_identit
     approve(client, result["version"]["id"])
 
     repository = client.app.state.repository
-    public_rows = repository.list_retrievable_spans(public_identity, frozenset({"public"}), date.today())
+    public_rows = repository.list_retrievable_spans(
+        public_identity, frozenset({"public"}), date.today()
+    )
     assert all(document.corpus_id == "public" for _, document, _ in public_rows)
 
     set_identity(client, public_identity)
@@ -38,9 +40,13 @@ def test_restricted_document_never_enters_public_retrieval(client, admin_identit
     assert response.json()["citations"] == []
 
 
-def test_restricted_corpus_update_does_not_change_public_release(client, admin_identity, public_identity):
+def test_restricted_corpus_update_does_not_change_public_release(
+    client, admin_identity, public_identity
+):
     set_identity(client, public_identity)
-    before = client.post("/v1/answers", json={"text": "невідомий публічний запит"}).json()["corpus_release"]
+    before = client.post(
+        "/v1/answers", json={"text": "невідомий публічний запит"}
+    ).json()["corpus_release"]
 
     set_identity(client, admin_identity)
     restricted = ingest_text(
@@ -53,11 +59,15 @@ def test_restricted_corpus_update_does_not_change_public_release(client, admin_i
     approve(client, restricted["version"]["id"])
 
     set_identity(client, public_identity)
-    after = client.post("/v1/answers", json={"text": "невідомий публічний запит"}).json()["corpus_release"]
+    after = client.post(
+        "/v1/answers", json={"text": "невідомий публічний запит"}
+    ).json()["corpus_release"]
     assert before == after
 
 
-def test_access_is_monotone_in_clearance(client, admin_identity, authenticated_identity, public_identity):
+def test_access_is_monotone_in_clearance(
+    client, admin_identity, authenticated_identity, public_identity
+):
     set_identity(client, admin_identity)
     public = ingest_text(client, title="Public", text="PUBLIC-MARKER доступний усім.")
     approve(client, public["version"]["id"])
@@ -72,9 +82,15 @@ def test_access_is_monotone_in_clearance(client, admin_identity, authenticated_i
     approve(client, training["version"]["id"])
 
     repository = client.app.state.repository
-    public_rows = repository.list_retrievable_spans(public_identity, public_identity.corpora, date.today())
-    auth_rows = repository.list_retrievable_spans(authenticated_identity, authenticated_identity.corpora, date.today())
-    admin_rows = repository.list_retrievable_spans(admin_identity, admin_identity.corpora, date.today())
+    public_rows = repository.list_retrievable_spans(
+        public_identity, public_identity.corpora, date.today()
+    )
+    auth_rows = repository.list_retrievable_spans(
+        authenticated_identity, authenticated_identity.corpora, date.today()
+    )
+    admin_rows = repository.list_retrievable_spans(
+        admin_identity, admin_identity.corpora, date.today()
+    )
     public_ids = {span.id for span, _, _ in public_rows}
     auth_ids = {span.id for span, _, _ in auth_rows}
     admin_ids = {span.id for span, _, _ in admin_rows}
