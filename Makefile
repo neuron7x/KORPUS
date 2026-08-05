@@ -96,7 +96,10 @@ supply-chain-inventory:
 kubernetes-validate:
 	python3 scripts/validate_kubernetes.py
 
-validate: handoff-verify openapi audit-closure desired-state supply-chain-inventory
+# audit-closure is deliberately NOT here: it resolves citations that include
+# var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
+# it ran first and passed only on a tree where an earlier run had left the file behind.
+validate: handoff-verify openapi desired-state supply-chain-inventory
 	python3 scripts/validate_repository.py
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -110,7 +113,7 @@ backup-postgres:
 restore-postgres:
 	scripts/restore_postgres.sh "$(BACKUP)"
 
-check: validate api-test api-lint eval mutation migration-gate scale operational-gate web-build
+check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate web-build
 
 release: assurance snapshot validate package
 

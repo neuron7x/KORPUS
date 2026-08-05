@@ -47,7 +47,6 @@ def main() -> int:
     environment["PYTHONPATH"] = str(ROOT / "apps/api/src")
     steps = [
         run("openapi", [sys.executable, "scripts/openapi_contract.py"], environment),
-        run("audit-closure", [sys.executable, "scripts/build_audit_closure.py"], environment),
         run(
             "desired-state",
             [sys.executable, "scripts/generate_desired_state.py", "--check"],
@@ -112,6 +111,14 @@ def main() -> int:
                 ["bash", "scripts/run_mutation_shards.sh"],
                 mutation_environment,
             )
+        )
+    # audit-closure resolves every citation in the closure registry, and COD-005 cites
+    # var/mutation-report.json. It used to be the second step of this run, before the
+    # mutation shards existed — so it read whatever a previous run had left in var/,
+    # or failed outright on a clean tree. It belongs after its producer.
+    if all(step["returncode"] == 0 for step in steps):
+        steps.append(
+            run("audit-closure", [sys.executable, "scripts/build_audit_closure.py"], environment)
         )
     if all(step["returncode"] == 0 for step in steps):
         steps.append(

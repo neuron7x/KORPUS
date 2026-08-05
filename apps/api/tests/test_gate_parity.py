@@ -49,6 +49,19 @@ def _makefile_recipe(target: str) -> list[str]:
     return out
 
 
+def _makefile_prerequisites(target: str) -> list[str]:
+    """Return the prerequisite list of one Makefile target, in declared order.
+
+    Order is the payload: `check` runs its prerequisites left to right, so a gate that
+    reads a file another gate writes has to appear after it.
+    """
+    for line in MAKEFILE.read_text(encoding="utf-8").splitlines():
+        match = re.match(rf"^{re.escape(target)}\s*:([^=].*)?$", line)
+        if match:
+            return (match.group(1) or "").split()
+    pytest.fail(f"Makefile has no target {target!r} — this test is out of date")
+
+
 def _ci_script(job: str) -> list[str]:
     """Return the `script:` lines of one CI job, without parsing YAML.
 
@@ -354,3 +367,132 @@ def test_the_ci_configuration_is_parseable_yaml() -> None:
                     "commands — the usual cause is an unquoted line starting with a "
                     "quote or brace"
                 )
+
+
+CLOSURE_BUILDER = ROOT / "scripts/build_audit_closure.py"
+
+
+def _cited_runtime_artefacts() -> set[str]:
+    """Paths under var/ that the closure registry cites as evidence.
+
+    Read from the EVIDENCE literal by ast, not from a duplicate list here: a copy
+    would keep asserting about citations that had already moved.
+    """
+    tree = ast.parse(CLOSURE_BUILDER.read_text(encoding="utf-8"))
+    cited: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        else:
+            continue
+        if not any(isinstance(t, ast.Name) and t.id == "EVIDENCE" for t in targets):
+            continue
+        if node.value is None:
+            continue
+        for value in ast.walk(node.value):
+            if (
+                isinstance(value, ast.Constant)
+                and isinstance(value.value, str)
+                and value.value.startswith("var/")
+            ):
+                cited.add(value.value)
+    if not cited:
+        pytest.fail(
+            f"{CLOSURE_BUILDER.name} no longer cites any produced artefact; if that is "
+            "deliberate, delete these tests rather than leaving them vacuously green"
+        )
+    return cited
+
+
+def _ci_producers(artefact: str) -> set[str]:
+    """CI jobs whose `artifacts:` publish the given path."""
+    text = CI.read_text(encoding="utf-8")
+    producers: set[str] = set()
+    for block in re.split(r"\n(?=\S)", text):
+        header = block.split("\n", 1)[0]
+        if not header.endswith(":") or header.startswith((".", "#", " ")):
+            continue
+        if re.search(rf"^\s+- {re.escape(artefact)}\s*$", block, re.MULTILINE):
+            producers.add(header[:-1])
+    return producers
+
+
+def test_the_closure_check_runs_after_whatever_produces_the_evidence_it_resolves() -> None:
+    """The registry cites var/mutation-report.json; api:assurance produces it.
+
+    `build_audit_closure.py` used to run in `repository:validate`, the first stage —
+    before any producer existed. Every pipeline from d894a89 to 2458942 died there
+    with "cited evidence does not exist", which skipped the other thirteen jobs, so
+    twelve commits of PostgreSQL, gate and admission work were never once exercised
+    by CI. Locally the same command passed, because a report from an earlier run was
+    still sitting in var/: `make clean && make audit-closure` reproduces the failure.
+
+    Ordering is the invariant, and `needs: artifacts: true` is what carries the file.
+    """
+    text = CI.read_text(encoding="utf-8")
+    consumers = [
+        block.split(":", 1)[0]
+        for block in re.split(r"\n(?=\S)", text)
+        if not block.startswith((".", "#", " "))
+        and re.search(r"^\s+- .*build_audit_closure\.py", block, re.MULTILINE)
+    ]
+    assert consumers, ".gitlab-ci.yml no longer runs build_audit_closure.py anywhere"
+    for artefact in _cited_runtime_artefacts():
+        producers = _ci_producers(artefact)
+        assert producers, (
+            f"the closure registry cites {artefact}, and no CI job publishes it as an "
+            "artefact — the check can only pass on a runner that happens to have it"
+        )
+        for consumer in consumers:
+            block = next(
+                b for b in re.split(r"\n(?=\S)", text) if b.startswith(f"{consumer}:")
+            )
+            needed = set(re.findall(r"-\s+job:\s*(\S+)", block))
+            assert needed & producers, (
+                f"{consumer} resolves {artefact} but declares no needs on any of its "
+                f"producers {sorted(producers)}; stage order alone does not download "
+                "the artefact"
+            )
+            assert "artifacts: true" in block, (
+                f"{consumer} needs a producer of {artefact} without artifacts: true, "
+                "so the file is absent at runtime"
+            )
+
+
+def test_local_check_resolves_closure_evidence_only_after_producing_it() -> None:
+    """`make check` on a clean tree must not depend on leftovers in var/.
+
+    The Makefile had `audit-closure` as a prerequisite of `validate`, which is the
+    first item of `check` — so the citation was resolved before `mutation` had run.
+    The order held only because var/ survived between runs, which is exactly the
+    state a fresh clone or a CI runner does not have.
+    """
+    order = _makefile_prerequisites("check")
+    assert "audit-closure" in order, "make check no longer resolves the closure registry"
+    assert "mutation" in order, "make check no longer runs the mutation gate"
+    assert order.index("mutation") < order.index("audit-closure"), (
+        f"make check resolves the closure registry before producing its evidence: {order}"
+    )
+    assert "audit-closure" not in _makefile_prerequisites("validate"), (
+        "audit-closure is a prerequisite of validate again; validate runs first in "
+        "check, so the citation would be resolved before the report exists"
+    )
+
+
+def test_the_assurance_runner_resolves_closure_evidence_only_after_producing_it() -> None:
+    """Third executor of the same registry, same ordering requirement.
+
+    `scripts/run_research_assurance.py` ran audit-closure as its second step and the
+    mutation shards last. On a clean tree that run reported FAIL for a reason that had
+    nothing to do with the code under test; on a dirty tree it reported PASS against a
+    report produced by an earlier commit.
+    """
+    text = (ROOT / "scripts/run_research_assurance.py").read_text(encoding="utf-8")
+    closure = text.index("build_audit_closure.py")
+    mutation = text.index("run_mutation_shards.sh")
+    assert mutation < closure, (
+        "run_research_assurance.py resolves the closure registry before running the "
+        "mutation shards that produce the report it cites"
+    )
