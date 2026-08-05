@@ -316,23 +316,26 @@ source:sbom:
 
 container:build:
   stage: build
-  # Rootless buildkit needs an unprivileged user namespace, which the default docker
-  # seccomp profile blocks: "rootlesskit:parent error: failed to start the child:
-  # fork/exec /proc/self/exe: operation not permitted". The relaxation lives on a
-  # runner reached only by this tag, so seccomp stays enforced for every other job —
-  # `privileged: true` remains forbidden and validate_infrastructure.py still checks it.
-  tags:
-    - korpus-buildkit
+  # kaniko, not rootless buildkit. Buildkit needs a nested mount namespace, and on a
+  # plain docker executor that fails twice over: first the seccomp profile blocks
+  # `fork/exec /proc/self/exe`, then `mount src=proc` is refused outright. Both are
+  # fixable with SYS_ADMIN, which is privileged escape in everything but the flag name
+  # — taking that route would have satisfied the letter of the ban on `privileged:
+  # true` while removing exactly the isolation the ban exists for.
+  #
+  # kaniko builds in userspace with no daemon and no capabilities beyond an ordinary
+  # container's, which is what it was written for. The gate keeps its meaning: the
+  # image is built by an unprivileged job.
   image:
-    name: moby/buildkit:v0.30.0-rootless
+    name: gcr.io/kaniko-project/executor:v1.25.0-debug
     entrypoint: [""]
   script:
-    # type=docker, not type=oci: trivy's --input reads a docker-save tarball or an OCI
-    # *directory*, and rejected the OCI archive with "file manifest.json not found in
-    # tar". One format both trivy and syft read is worth more than the OCI archive's
-    # marginal advantages here — syft handles either, trivy does not.
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/api/Dockerfile --output type=docker,name=korpus-api,dest=api-image.tar
-    - buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --opt filename=apps/web/Dockerfile --output type=docker,name=korpus-web,dest=web-image.tar
+    # --no-push --tarPath: the pipeline scans and signs a local tarball; nothing is
+    # published from here. type=docker layout, because trivy's --input reads a
+    # docker-save tarball or an OCI *directory* and rejected the OCI archive with
+    # "file manifest.json not found in tar". syft reads either; trivy does not.
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/api/Dockerfile" --destination korpus-api --no-push --tarPath api-image.tar --single-snapshot --custom-platform linux/amd64
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/web/Dockerfile" --destination korpus-web --no-push --tarPath web-image.tar --single-snapshot --custom-platform linux/amd64
   artifacts:
     paths:
       - api-image.tar

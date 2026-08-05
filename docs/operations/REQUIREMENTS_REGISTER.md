@@ -168,11 +168,11 @@
 |---|---|---|
 | `ci.forbidden.docker` | no job uses docker:dind | docker-in-docker and privileged mode both hand the host to the job |
 | `ci.forbidden.privileged` | no job uses privileged: true | docker-in-docker and privileged mode both hand the host to the job |
-| `ci.gate.buildkit` | the pipeline runs moby/buildkit | — |
 | `ci.gate.gitleaks` | the pipeline runs gitleaks | — |
 | `ci.gate.syft` | the pipeline runs syft | — |
 | `ci.gate.trivy` | the pipeline runs trivy | — |
 | `ci.gate.verify_postgres_restore` | the pipeline runs verify_postgres_restore.py | — |
+| `ci.image_built_unprivileged` | the container image is built by a job that needs no privileged capabilities | buildkit needs a nested mount namespace, which on a plain docker executor requires SYS_ADMIN — privileged escape under a different flag name. The requirement is that the image is built unprivileged, not which tool does it |
 | `ci.no_global_cache` | the assurance pipeline declares no global cache | a cache carries state between runs, and evidence must come from the tree |
 | `ci.postgres_job.database_is_a_service` | the PostgreSQL job attaches the database as a service rather than borrowing its image | an image borrowed for its server binaries brings its interpreter with it |
 | `ci.postgres_job.present` | the PostgreSQL job exists | — |

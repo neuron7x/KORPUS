@@ -448,8 +448,19 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             f"the pipeline runs {gate}",
             lambda c, g=gate: g in c.ci_text,
         )
-        for gate in ("moby/buildkit", "gitleaks", "trivy", "syft", "verify_postgres_restore.py")
+        for gate in ("gitleaks", "trivy", "syft", "verify_postgres_restore.py")
     ],
+    _requirement(
+        "ci.image_built_unprivileged",
+        "gitlab-ci",
+        "the container image is built by a job that needs no privileged capabilities",
+        lambda c: any(
+            builder in c.ci_text for builder in ("kaniko-project/executor", "moby/buildkit")
+        ),
+        "buildkit needs a nested mount namespace, which on a plain docker executor "
+        "requires SYS_ADMIN — privileged escape under a different flag name. The "
+        "requirement is that the image is built unprivileged, not which tool does it",
+    ),
     _requirement(
         "ci.postgres_job.present",
         "gitlab-ci",

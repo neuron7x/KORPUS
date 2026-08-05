@@ -826,17 +826,17 @@ def test_every_module_is_in_the_budget() -> None:
     assert report["status"] == "PASS", report["violations"]
 
 
-def test_the_relaxed_seccomp_runner_is_reached_by_exactly_one_job() -> None:
-    """A security relaxation must not spread past the job that needs it.
+def test_no_job_reaches_a_relaxed_runner() -> None:
+    """The relaxation was removed rather than scoped, once a tool existed that needs none.
 
-    Rootless buildkit cannot create a user namespace under the default docker seccomp
-    profile, so `container:build` runs on a runner registered with
-    `seccomp=unconfined`. That runner is reached only by the `korpus-buildkit` tag.
-    Tagging a second job would silently move it onto a host with weaker isolation, and
-    nothing else in the pipeline needs it.
+    Rootless buildkit failed twice on a plain docker executor: the seccomp profile
+    blocked `fork/exec /proc/self/exe`, and then `mount src=proc` was refused. Both are
+    fixable with SYS_ADMIN, which is privileged escape under a different flag name —
+    it would have satisfied the letter of the ban on `privileged: true` while removing
+    exactly the isolation the ban exists for.
 
-    `privileged: true` stays forbidden regardless — validate_infrastructure.py checks
-    that, and this is the weaker relaxation that made keeping the ban possible.
+    kaniko builds in userspace with no daemon and no capabilities beyond an ordinary
+    container's, so no job needs a relaxed runner and none may quietly acquire one.
     """
     text = CI.read_text(encoding="utf-8")
     # Job names contain a colon (`container:build`), so the header is everything up to
@@ -847,9 +847,10 @@ def test_the_relaxed_seccomp_runner_is_reached_by_exactly_one_job() -> None:
         for block in re.split(r"\n(?=\S)", text)
         if not block.startswith((".", "#", " ")) and "korpus-buildkit" in block
     ]
-    assert tagged == ["container:build"], (
-        f"the relaxed-seccomp runner is reachable from {tagged}; it must serve only "
-        "the job that cannot run without it"
+    assert tagged == [], (
+        f"these jobs reach the relaxed-seccomp runner: {tagged}. Nothing needs it since "
+        "the image build moved to kaniko; a job acquiring the tag is a job asking for "
+        "weaker isolation without saying why"
     )
     # Non-comment lines only: the first version matched the phrase inside the comment
     # that explains why privileged mode is banned, so documenting the ban broke the
