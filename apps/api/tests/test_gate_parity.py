@@ -893,3 +893,34 @@ def test_the_requirements_register_is_current() -> None:
     assert register.read_text(encoding="utf-8") == before, (
         "the requirements register is stale; run `make requirements-register`"
     )
+
+
+def test_every_ci_image_pins_an_exact_tag() -> None:
+    """A tag that does not exist fails at pull time, after the pipeline has queued.
+
+    Written after `gcr.io/kaniko-project/executor:v1.25.0-debug` was pinned without
+    checking that the tag existed: the job died in `prepare_executor` with "manifest
+    unknown", which is a slower and more confusing way to learn a version number was
+    invented than reading it here.
+
+    Existence still cannot be asserted offline — that is what the registry answers. The
+    property that can be held here is that every image names a specific version, so
+    `latest` cannot drift under a pipeline whose whole claim is reproducibility.
+    """
+    text = CI.read_text(encoding="utf-8")
+    images = [
+        match.group(1).strip()
+        for match in re.finditer(r"^\s*(?:image:|name:)\s*([^\s#]+)\s*$", text, re.M)
+        if "/" in match.group(1) or ":" in match.group(1)
+    ]
+    assert images, ".gitlab-ci.yml declares no images — this test is out of date"
+
+    unpinned = [
+        image
+        for image in images
+        if image.endswith(":latest") or ":" not in image.rsplit("/", 1)[-1]
+    ]
+    assert not unpinned, (
+        f"these CI images do not pin a version: {unpinned}. `latest` is whatever the "
+        "registry served that morning, in a pipeline whose claim is reproducibility"
+    )

@@ -327,7 +327,7 @@ container:build:
   # container's, which is what it was written for. The gate keeps its meaning: the
   # image is built by an unprivileged job.
   image:
-    name: gcr.io/kaniko-project/executor:v1.25.0-debug
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   script:
     # --no-push --tarPath: the pipeline scans and signs a local tarball; nothing is
