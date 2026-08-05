@@ -352,8 +352,8 @@
       "max_complexity": 10
     },
     "scripts/validate_infrastructure.py": {
-      "lines": 261,
-      "max_complexity": 100
+      "lines": 268,
+      "max_complexity": 102
     },
     "scripts/validate_kubernetes.py": {
       "lines": 71,
@@ -418,6 +418,16 @@
         "worst_function": "_attestation_problems"
       },
       "reason": "the attestation contract gained four checks after a probe showed every blocking ground could be cleared by editing one JSON file: document existence, digest match, a past ISO date, and refusal of a self-signed independent assessment"
+    },
+    {
+      "path": "scripts/validate_infrastructure.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 268,
+        "max_complexity": 102,
+        "worst_function": "main"
+      },
+      "reason": "the forbidden-construct check now reads directives instead of raw text, after the comment documenting the privileged-mode ban tripped that ban"
     }
   ],
   "line_exempt": {

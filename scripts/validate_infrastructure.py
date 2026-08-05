@@ -143,8 +143,15 @@ def main() -> int:
     ci_text = (ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8")
     if "\ncache:\n" in ci_text:
         failures.append("GitLab CI global cache is forbidden in the assurance pipeline")
+    # Directives only. Matching the raw text meant the comment explaining *why*
+    # privileged mode is banned tripped the ban on privileged mode — a check reading
+    # its own documentation as a violation, found 2026-08-05 when that comment was
+    # written. The rule is about what the pipeline does, not about what it says.
+    ci_directives = [
+        line for line in ci_text.splitlines() if not line.lstrip().startswith("#")
+    ]
     for forbidden in ("privileged: true", "docker:dind"):
-        if forbidden in ci_text:
+        if any(forbidden in line for line in ci_directives):
             failures.append(f"GitLab CI forbidden construct present: {forbidden}")
     for required_ci in ("moby/buildkit", "gitleaks", "trivy", "syft", "verify_postgres_restore.py"):
         if required_ci not in ci_text:
