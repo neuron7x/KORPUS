@@ -9,6 +9,7 @@ from korpus.application.provenance import compute_source_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 POLICY = ROOT / "config/operations/reference-v5.json"
+ADMISSION = ROOT / "config/operations/admission-grounds.json"
 REPORT_PATHS = {
     "eval": ROOT / "var/eval-report.json",
     "mutation": ROOT / "var/mutation-report.json",
@@ -28,7 +29,7 @@ def main() -> int:
     }
     # Recomputed here, never read from the artifacts: a digest the reports supply
     # would only prove they agree with themselves.
-    result = OperationalReleaseGate.load(POLICY).evaluate(
+    result = OperationalReleaseGate.load(POLICY, ADMISSION, ROOT).evaluate(
         reports, REPORT_PATHS, source_digest=compute_source_digest(ROOT)
     )
     output = ROOT / "var/operational-gate.json"

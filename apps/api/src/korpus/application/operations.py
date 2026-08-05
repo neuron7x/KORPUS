@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from korpus.application.admission import evaluate_admission, load_register
 from korpus.application.provenance import verify_reports
 
 
@@ -49,6 +50,7 @@ class GateResult:
     failures: tuple[str, ...]
     evidence_sha256: Mapping[str, str]
     production_authorized: bool = False
+    admission: Mapping[str, Any] | None = None
 
     @property
     def passed(self) -> bool:
@@ -59,6 +61,7 @@ class GateResult:
             "schema_version": 1,
             "status": self.status,
             "production_authorized": self.production_authorized,
+            "admission": dict(self.admission) if self.admission is not None else None,
             "checks": dict(self.checks),
             "failures": list(self.failures),
             "evidence_sha256": dict(self.evidence_sha256),
@@ -74,17 +77,37 @@ class OperationalReleaseGate:
 
     REQUIRED_REPORTS = ("eval", "mutation", "migration", "scale")
 
-    def __init__(self, policy: Mapping[str, Any]) -> None:
+    def __init__(
+        self,
+        policy: Mapping[str, Any],
+        admission_register: Mapping[str, Any] | None = None,
+        root: Path | None = None,
+    ) -> None:
         if int(policy.get("schema_version", 0)) != 1:
             raise ValueError("unsupported operational policy schema")
         self.policy = policy
+        # `production_authorized` used to be the literal False in the result. The answer
+        # was right and unfalsifiable: nothing said what would have to be true instead,
+        # and nobody could tell "still withheld" from "nobody looked". It is now computed
+        # from the register of grounds, which states for each one who owns the evidence
+        # and what class it must be. Absent a register the verdict stays false — a gate
+        # that cannot see the grounds does not get to authorize anything.
+        self.admission_register = admission_register
+        self.root = root or Path.cwd()
 
     @classmethod
-    def load(cls, path: Path) -> OperationalReleaseGate:
+    def load(
+        cls, path: Path, admission_path: Path | None = None, root: Path | None = None
+    ) -> OperationalReleaseGate:
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
             raise ValueError("operational policy must be an object")
-        return cls(value)
+        register = (
+            load_register(admission_path)
+            if admission_path is not None and admission_path.is_file()
+            else None
+        )
+        return cls(value, register, root)
 
     def evaluate(
         self,
@@ -169,10 +192,20 @@ class OperationalReleaseGate:
             for name, path in (evidence_paths or {}).items()
             if path.is_file()
         }
+        admission = (
+            evaluate_admission(self.root, self.admission_register)
+            if self.admission_register is not None
+            else None
+        )
         return GateResult(
             status="PASS" if not failures else "FAIL",
             checks=checks,
             failures=failures,
             evidence_sha256=evidence_hashes,
-            production_authorized=False,
+            # Engineering predicates passing is a precondition, never the authorization:
+            # the grounds that withhold this system are not engineering grounds.
+            production_authorized=bool(
+                not failures and admission is not None and admission.production_authorized
+            ),
+            admission=admission.as_dict() if admission is not None else None,
         )

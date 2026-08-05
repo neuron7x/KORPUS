@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "register_id": "korpus-admission-grounds-v1",
+  "source_document": "docs/operations/ADMISSION_BOUNDARY_2026-08-03.md",
+  "note": "production_authorized is computed from this register. A ground is cleared only by evidence of the class it names; prose and assertions are not evidence (ADR-0008).",
+  "grounds": [
+    {
+      "id": "2.5",
+      "title": "Автентифікація не пройшла незалежної оцінки",
+      "kind": "external_assessment",
+      "owner": "стороння організація з безпекової оцінки",
+      "clearing_criterion": "звіт сторонньої організації про оцінку OIDC, ротації ключів, entitlements і governance корпусів, із переліком перевіреного та знайденого",
+      "status": "open",
+      "evidence": null,
+      "note": "Внутрішні тести писав той самий процес, що й код. Змагальний набір усередині дерева (test_auth_adversarial.py) зменшує підставу, але не знімає: він теж написаний тут."
+    },
+    {
+      "id": "2.6",
+      "title": "Немає TEVV на справжньому корпусі",
+      "kind": "measurement",
+      "owner": "власник корпусу разом з інженерією",
+      "clearing_criterion": "прогін евалів на реальному масиві документів із реальними запитами, calibration_status != UNVALIDATED_TEST_FIXTURE, і звіт із межами похибки",
+      "status": "open",
+      "evidence": null,
+      "note": "Показник, отриманий на фікстурі, не переноситься на бойові дані."
+    },
+    {
+      "id": "2.7",
+      "title": "Питання класифікації та прав не вирішені",
+      "kind": "owner_decision",
+      "owner": "власник матеріалу",
+      "clearing_criterion": "підписане рішення про те, який матеріал система має право приймати, зберігати і відтворювати, і хто це визначає",
+      "status": "open",
+      "evidence": null,
+      "note": "Не інженерна підстава; зняти інженерними засобами не можна."
+    },
+    {
+      "id": "2.8",
+      "title": "Гейти мусять бути здатні почервоніти",
+      "kind": "engineering",
+      "owner": "інженерія",
+      "clearing_criterion": "для кожного предиката, який повідомляють гейти випуску, існує випадок, що робить саме його хибним, і перелік предикатів читається з коду",
+      "status": "cleared",
+      "evidence": [
+        "apps/api/tests/test_gate_negative_controls.py::test_every_gate_predicate_has_a_negative_control",
+        "apps/api/tests/test_gate_negative_controls.py::test_every_assurance_predicate_has_a_negative_control",
+        "apps/api/tests/test_gate_negative_controls.py::test_the_operational_gate_can_fail_on_each_predicate",
+        "apps/api/tests/test_gate_negative_controls.py::test_the_assurance_aggregator_can_fail_on_each_predicate"
+      ],
+      "note": "Закрито 05.08.2026. Вимога стоїть далі: новий предикат без негативного контролю валить збірку."
+    },
+    {
+      "id": "superseded-never-current",
+      "title": "Чи знімає завантаження чернетки наступника чинність попередньої версії",
+      "kind": "owner_decision",
+      "owner": "власник процесу",
+      "clearing_criterion": "рішення про те, чи має завантаження нової редакції призупиняти чинність попередньої до її затвердження",
+      "status": "open",
+      "evidence": null,
+      "note": "Канон A знімає чинність щойно будь-хто завантажив чернетку — це відмова в обслуговуванні від звичайної робочої дії. Лінія B знімає лише після затвердження. Поведінку B лишено свідомо."
+    }
+  ]
+}

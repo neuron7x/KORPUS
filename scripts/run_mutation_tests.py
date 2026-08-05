@@ -1018,6 +1018,74 @@ MUTANTS = (
             "test_delivery_reports_how_many_checkpoints_it_closed",
         ),
     ),
+    Mutant(
+        "M107_GATE_INVENTORY_REPORTS_NOTHING",
+        "apps/api/src/korpus/application/gate_inventory.py",
+        "    return _dictionary_keys(OperationalReleaseGate.evaluate, \"checks\")",
+        "    return ()",
+        (
+            "apps/api/tests/test_gate_negative_controls.py::"
+            "test_every_gate_predicate_has_a_negative_control",
+        ),
+    ),
+    Mutant(
+        "M108_GATE_INVENTORY_MISSES_ASSURANCE_PREDICATES",
+        "apps/api/src/korpus/application/gate_inventory.py",
+        "    return _dictionary_keys(evaluate_assurance, \"checks\")",
+        "    return ()",
+        (
+            "apps/api/tests/test_gate_negative_controls.py::"
+            "test_every_assurance_predicate_has_a_negative_control",
+        ),
+    ),
+    Mutant(
+        "M109_EXTERNAL_GROUND_CLEARED_WITHOUT_ATTESTATION",
+        "apps/api/src/korpus/application/admission.py",
+        "        if kind in EXTERNAL_KINDS:\n"
+        "            problems.extend(_attestation_problems(ground))",
+        "        if False:\n"
+        "            problems.extend(_attestation_problems(ground))",
+        (
+            "apps/api/tests/test_admission_register.py::"
+            "test_an_external_ground_cannot_be_cleared_by_editing_the_register",
+        ),
+    ),
+    Mutant(
+        "M110_OPEN_GROUNDS_DO_NOT_WITHHOLD",
+        "apps/api/src/korpus/application/admission.py",
+        "    authorized = not open_grounds and not problems",
+        "    authorized = not problems",
+        (
+            "apps/api/tests/test_admission_register.py::"
+            "test_the_shipped_register_withholds_and_says_why",
+        ),
+    ),
+    Mutant(
+        "M111_CLEARED_GROUND_EVIDENCE_NOT_RESOLVED",
+        "apps/api/src/korpus/application/admission.py",
+        "            problems.extend(\n"
+        '                f"{identifier}: {message}" '
+        "for message in verify_references(root, evidence)\n"
+        "            )",
+        "            problems.extend(())",
+        (
+            "apps/api/tests/test_admission_register.py::"
+            "test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused",
+        ),
+    ),
+    Mutant(
+        "M112_GATE_AUTHORIZES_WITHOUT_A_REGISTER",
+        "apps/api/src/korpus/application/operations.py",
+        "            production_authorized=bool(\n"
+        "                not failures and admission is not None "
+        "and admission.production_authorized\n"
+        "            ),",
+        "            production_authorized=bool(not failures),",
+        (
+            "apps/api/tests/test_operations.py::"
+            "test_operational_gate_passes_encoded_engineering_predicates_only",
+        ),
+    ),
 )
 
 
