@@ -569,3 +569,58 @@ def test_the_desired_state_manifest_matches_the_files_it_fingerprints() -> None:
         "the desired-state manifest no longer matches its inputs; regenerate it with "
         f"`python3 scripts/generate_desired_state.py`:\n{result.stdout}"
     )
+
+
+LOCK_FILES = (
+    ROOT / "apps/api/requirements.runtime.lock",
+    ROOT / "apps/api/requirements.dev.lock",
+)
+
+
+def test_every_pinned_dependency_carries_a_hash() -> None:
+    """A version pin says which release to fetch; a hash says which bytes.
+
+    pip-audit warned about this on every run — "users are encouraged to fully hash
+    their pinned dependencies" — and the warning scrolled past in a job that was
+    skipped for two days anyway. Without hashes, `pip install -r lock` reproduces the
+    build only for as long as nobody replaces an artefact on the index.
+    """
+    unhashed: list[str] = []
+    for path in LOCK_FILES:
+        text = path.read_text(encoding="utf-8")
+        # One requirement is a pin line plus its continuation lines; the next pin
+        # starts at column zero.
+        pin = r"^([\w.\-\[\]]+==[^\s\\]+)([^\n]*(?:\n[ \t].*)*)"
+        for block in re.finditer(pin, text, re.M):
+            if "--hash=sha256:" not in block.group(2):
+                unhashed.append(f"{path.name}: {block.group(1)}")
+    assert not unhashed, (
+        "these pins name a version but not the bytes, so the install is reproducible "
+        f"only while the index is: {sorted(set(unhashed))}"
+    )
+
+
+def test_every_install_of_a_lock_file_requires_those_hashes() -> None:
+    """Hashes in the file do nothing unless the installer is told to enforce them.
+
+    pip silently ignores --hash lines without --require-hashes: the lock would look
+    hardened in review and install anything at runtime — the shape of defect this
+    repository keeps finding, where the artefact says one thing and the execution
+    says another.
+    """
+    offenders: list[str] = []
+    for path, text in (
+        ("Makefile", MAKEFILE.read_text(encoding="utf-8")),
+        (".gitlab-ci.yml", CI.read_text(encoding="utf-8")),
+        ("apps/api/Dockerfile", (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")),
+    ):
+        for line in text.splitlines():
+            # Matching "pip install" missed the Makefile entirely, which invokes
+            # $(PIP): the first version of this test passed while the Makefile
+            # installed unverified — a check that reads past the thing it guards.
+            installs_lock = re.search(r"\binstall\b", line) and ".lock" in line
+            if installs_lock and "--require-hashes" not in line:
+                offenders.append(f"{path}: {line.strip()}")
+    assert not offenders, (
+        f"pip ignores --hash entries unless --require-hashes is passed: {offenders}"
+    )

@@ -43,7 +43,7 @@ variables:
     # check that keeps build artefacts out of the manifest, and a skipped test reads
     # green in every report.
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends git && rm -rf /var/lib/apt/lists/*
-    - python -m pip install --no-deps --requirement apps/api/requirements.dev.lock
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - python -m pip check
 
 # This job installed PyYAML alone, but four of its eight steps import korpus.* —
@@ -193,7 +193,7 @@ api:postgres-and-restore:
     # in .python-job, which this job does not extend. test_gate_parity now asserts it.
     - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates git && rm -rf /var/lib/apt/lists/*
     - python3 -m venv /tmp/korpus-venv
-    - /tmp/korpus-venv/bin/pip install --no-deps --requirement apps/api/requirements.dev.lock
+    - /tmp/korpus-venv/bin/pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
     - export PATH="/tmp/korpus-venv/bin:$PATH"
     - python scripts/wait_for_database.py
   script:

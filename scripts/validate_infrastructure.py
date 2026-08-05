@@ -213,12 +213,18 @@ def main() -> int:
             failures.append(f".dockerignore missing {required_pattern}")
 
     api_docker = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
+    # --require-hashes is part of the predicate, not a detail of the command line: a
+    # pinned version says which release to fetch, and the hash says which bytes. Without
+    # it the image is reproducible only for as long as nobody replaces an artefact on
+    # the index, which is the supply-chain assumption this project cannot make.
     if (
         "requirements.runtime.lock" not in api_docker
-        or "pip install --no-cache-dir --no-deps --requirement" not in api_docker
+        or "pip install --no-cache-dir --no-deps --require-hashes --requirement" not in api_docker
         or "pip check" not in api_docker
     ):
-        failures.append("API Dockerfile does not install exact runtime lock")
+        failures.append(
+            "API Dockerfile does not install the runtime lock with pinned hashes"
+        )
     if "USER 10001:10001" not in api_docker:
         failures.append("API Dockerfile does not run as fixed non-root UID")
 

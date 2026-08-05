@@ -18,8 +18,13 @@ def sha256(path: Path) -> str:
 def main() -> int:
     components: dict[tuple[str, str], dict[str, object]] = {}
     for lock in LOCKS:
-        for raw in lock.read_text(encoding="utf-8").splitlines():
-            line = raw.strip()
+        # A hashed requirement spans several physical lines joined by a backslash.
+        # Parsing them separately made every `--hash=` line look like a dependency
+        # whose name was "--hash=sha256:..." and killed the inventory outright, which
+        # is how this file found out that hashes had arrived.
+        joined = lock.read_text(encoding="utf-8").replace("\\\n", " ")
+        for raw in joined.splitlines():
+            line = " ".join(raw.split())
             if not line or line.startswith("#") or line.startswith("-r "):
                 continue
             match = PIN.match(line)

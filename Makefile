@@ -6,7 +6,7 @@ PIP := apps/api/.venv/bin/pip
 
 api-install:
 	python3 -m venv apps/api/.venv
-	$(PIP) install --no-deps --requirement apps/api/requirements.dev.lock
+	$(PIP) install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
 
 api-run:
 	mkdir -p var/objects

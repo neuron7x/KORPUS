@@ -19,7 +19,7 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY apps/api/requirements.runtime.lock /tmp/requirements.runtime.lock
-RUN python -m pip install --no-cache-dir --no-deps --requirement /tmp/requirements.runtime.lock \
+RUN python -m pip install --no-cache-dir --no-deps --require-hashes --requirement /tmp/requirements.runtime.lock \
     && python -m pip check
 
 COPY apps/api/src /app/apps/api/src
