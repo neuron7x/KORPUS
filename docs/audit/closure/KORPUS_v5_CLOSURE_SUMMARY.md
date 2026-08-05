@@ -5,9 +5,9 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 40 | Material control exists; live, corpus, or independent acceptance remains. |
+| MITIGATED_LOCAL | 41 | Material control exists; live, corpus, or independent acceptance remains. |
 | EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
-| OPEN_TECH_DEBT | 4 | Engineering implementation remains open. |
+| OPEN_TECH_DEBT | 3 | Engineering implementation remains open. |
 
 ## Remaining blockers
 
@@ -36,7 +36,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **RAG-013 · P1 · MITIGATED_LOCAL** — Немає тестів таблиць, чисел, одиниць і формул
 - **RAG-014 · P1 · EXTERNAL_DEBT** — Scale evidence не репрезентує production
 - **RAG-015 · P1 · MITIGATED_LOCAL** — Embedding integration може створити data egress
-- **RAG-016 · P1 · OPEN_TECH_DEBT** — Немає доказу synchronization/model migration embeddings
+- **RAG-016 · P1 · MITIGATED_LOCAL** — Немає доказу synchronization/model migration embeddings
 - **RAG-017 · P1 · MITIGATED_LOCAL** — Немає drift/online quality monitoring
 - **RAG-018 · P1 · MITIGATED_LOCAL** — Немає захисту від corpus/RAG poisoning як процесу
 - **RAG-020 · P2 · MITIGATED_LOCAL** — Малі мінімальні вибірки не гарантують domain coverage

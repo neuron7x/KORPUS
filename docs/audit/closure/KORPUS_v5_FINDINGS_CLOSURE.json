@@ -6,8 +6,8 @@
   "counts": {
     "CLOSED_LOCAL": 24,
     "EXTERNAL_DEBT": 31,
-    "MITIGATED_LOCAL": 40,
-    "OPEN_TECH_DEBT": 4
+    "MITIGATED_LOCAL": 41,
+    "OPEN_TECH_DEBT": 3
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -758,8 +758,13 @@
       "required_action": "Embedding job ledger, text_hash/model version reconciliation, blue-green index migration.",
       "tools_methods": "Queue; pgvector inventory; consistency checker",
       "acceptance_predicate": "100% approved spans have correct model/text hash before semantic weight activation.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py::test_rollback_is_checked_before_it_is_needed"
+      ],
       "v5_remaining_acceptance": "100% approved spans have correct model/text hash before semantic weight activation."
     },
     {

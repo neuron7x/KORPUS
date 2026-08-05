@@ -48,6 +48,8 @@ MITIGATED_LOCAL = {
     "RAG-009",   # rules carry examples and the unknown class fails closed; a trained
                  # classifier on a blind set with per-class metrics remains
     "RAG-013",   # numbers, units and tables detected; formula structure remains
+    "RAG-016",   # blue-green plan, resumable batches, switch/retire/rollback rules;
+                 # executing it against a real index stays external
     "RAG-017",   # embedding drift has four states; online answer-quality does not
     "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
     "SUP-009",   # 68/68 licenses read from metadata; legal review is external
@@ -68,7 +70,6 @@ EXTERNAL_DEBT = {
 }
 
 OPEN_TECH_DEBT = {
-    "RAG-016",
     "COD-001",
     "WEB-001", "OPS-004",
 }
@@ -300,6 +301,15 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/src/korpus/application/table_integrity.py",
         "apps/api/tests/test_numeric_integrity.py",
         "apps/api/tests/test_table_integrity.py",
+    ],
+    "RAG-016": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_rollback_is_checked_before_it_is_needed",
     ],
     "RAG-017": [
         "apps/api/src/korpus/application/embedding_coverage.py",

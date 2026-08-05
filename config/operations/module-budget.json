@@ -55,6 +55,10 @@
       "lines": 150,
       "max_complexity": 5
     },
+    "apps/api/src/korpus/application/embedding_migration.py": {
+      "lines": 223,
+      "max_complexity": 10
+    },
     "apps/api/src/korpus/application/evidence.py": {
       "lines": 273,
       "max_complexity": 11
@@ -284,7 +288,7 @@
       "max_complexity": 3
     },
     "scripts/build_audit_closure.py": {
-      "lines": 494,
+      "lines": 504,
       "max_complexity": 17
     },
     "scripts/build_system_manifest.py": {
@@ -554,6 +558,18 @@
         }
       ],
       "reason": "COD-001: the audit read side moved out of the repository"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "scripts/build_audit_closure.py",
+          "metric": "lines",
+          "from": 494,
+          "to": 504
+        }
+      ],
+      "reason": "RAG-016: the migration plan and its evidence list"
     }
   ],
   "line_exempt": {

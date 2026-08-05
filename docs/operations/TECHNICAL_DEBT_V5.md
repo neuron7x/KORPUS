@@ -59,9 +59,21 @@ evidence from a tree that no longer existed and reported "generated from a diffe
 source tree" — accurate, and three steps from the cause. A failed run now removes its
 report: absent evidence and stale evidence must not be the same state.
 
-Still `OPEN_TECH_DEBT`: RAG-016 (embedding model migration executed against a real
-index), COD-001 (the transactional core of SqlRepository), WEB-001 (reviewer
-workflows), OPS-004 (environment drift against a real cluster).
+RAG-016 followed: `application/embedding_migration.py` plans a blue-green move as
+resumable batches and states what may not happen before what. The failure it prevents
+is not a slow migration but a *mixed* one — retrieval filters vectors by model id, so
+during a re-embed the active model covers a moving subset of the corpus, every answer
+comes from a candidate set the calibrated profile never described, and nothing reports
+an error because a filter that matches nothing is not an error. The switch requires
+100% coverage and no stale vectors, which is the finding's own acceptance predicate;
+retire happens only after the switch, because the old population is the only thing that
+can answer while the new one is incomplete; and rollback availability is checked before
+it is needed rather than during an incident. Executing the plan against a real index
+and embedding service is external evidence, so this is MITIGATED_LOCAL. Mutants
+M153–M155.
+
+Still `OPEN_TECH_DEBT`: COD-001 (the transactional core of SqlRepository), WEB-001
+(reviewer workflows), OPS-004 (environment drift against a real cluster).
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 

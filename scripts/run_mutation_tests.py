@@ -1139,6 +1139,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M153_SWITCH_ALLOWED_ON_INCOMPLETE_INDEX",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "    if spans_embedded_target < spans_total:",
+        "    if False:",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_the_switch_requires_complete_coverage",
+        ),
+    ),
+    Mutant(
+        "M154_RETIRE_ALLOWED_BEFORE_SWITCH",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "    if not switched:",
+        "    if False:",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_retiring_before_the_switch_is_refused",
+        ),
+    ),
+    Mutant(
+        "M155_RESUME_SKIPS_A_GAP",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "        if batch.index not in done:",
+        "        if batch.index < max(done, default=-1):",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_resume_returns_the_first_gap_not_the_next_index",
+        ),
+    ),
+    Mutant(
         "M150_UNKNOWN_QUERY_FAILS_OPEN",
         "apps/api/src/korpus/application/risk.py",
         "    if risk is QueryRisk.UNCLASSIFIED:",
