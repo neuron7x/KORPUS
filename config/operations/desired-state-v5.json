@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v5.0.0",
-  "root_sha256": "459ef91c00eb68fa0b015ce3f8162e883501e050f72e22d8bf84b4ca30f50c37",
+  "root_sha256": "0c147b352c8fb6ab7286bbffc7e9a019dca987cb4360ccd680734547981c1e43",
   "records": [
     {
       "path": ".gitlab-ci.yml",
@@ -20,7 +20,7 @@
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "02a274d164fe43ffee0a8e51b18eb18be856c106751937f0d713d7cf5dd0b7dc",
+      "sha256": "fc9d15db5a6c89ab197c5c25427d8777768658efbf1e69be9788adfa825b0ebc",
       "bytes": 1096
     },
     {
