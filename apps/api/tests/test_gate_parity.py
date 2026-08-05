@@ -496,3 +496,18 @@ def test_the_assurance_runner_resolves_closure_evidence_only_after_producing_it(
         "run_research_assurance.py resolves the closure registry before running the "
         "mutation shards that produce the report it cites"
     )
+
+
+def test_the_closure_builder_still_resolves_produced_artefacts() -> None:
+    """The relaxation belongs to the early callers, not to the one that runs last.
+
+    `verify_closure_registry(..., include_produced=False)` exists so `api:test` can
+    check the registry before anything has produced var/. If `build_audit_closure.py`
+    ever passed the same flag, no executor would resolve COD-005's mutation report at
+    all and the registry would read closed against a file nobody writes.
+    """
+    text = (ROOT / "scripts/build_audit_closure.py").read_text(encoding="utf-8")
+    assert "include_produced=False" not in text, (
+        "build_audit_closure.py runs after api:assurance; skipping produced artefacts "
+        "there leaves every var/ citation unresolved by anyone"
+    )

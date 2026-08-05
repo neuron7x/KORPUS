@@ -44,8 +44,52 @@ def _registry() -> tuple[dict[str, list[str]], dict[str, str]]:
 
 
 def test_the_shipped_registry_cites_only_evidence_that_exists() -> None:
+    """Tree citations only: this test runs in `api:test`, before anything produces var/.
+
+    It used to check produced artefacts too and passed on every developer machine,
+    because an earlier `make mutation` had left var/mutation-report.json behind. In
+    CI it failed — but only once `repository:validate` stopped failing earlier and
+    let `api:test` run at all (2026-08-05, pipeline #37). That a produced artefact
+    has a producer, and that whoever resolves it runs after it, is asserted in
+    test_gate_parity.py; here it would only assert that someone had run make.
+    """
     evidence, statuses = _registry()
-    assert verify_closure_registry(ROOT, evidence, statuses) == []
+    assert verify_closure_registry(ROOT, evidence, statuses, include_produced=False) == []
+
+
+def test_a_produced_artifact_is_still_checked_when_the_caller_runs_after_its_producer() -> None:
+    """The relaxation is scoped: with the flag on, a missing produced file is reported.
+
+    build_audit_closure.py runs in `audit:closure`, after api:assurance, and calls
+    with the default. If that path stopped reporting, COD-005 would cite a mutation
+    report nobody produced and the registry would read closed.
+    """
+    problems = verify_closure_registry(
+        ROOT,
+        {"COD-005": ["var/does-not-exist-report.json"]},
+        {"COD-005": "MITIGATED_LOCAL"},
+    )
+    assert problems and "does not exist" in problems[0]
+    assert (
+        verify_closure_registry(
+            ROOT,
+            {"COD-005": ["var/does-not-exist-report.json"]},
+            {"COD-005": "MITIGATED_LOCAL"},
+            include_produced=False,
+        )
+        == []
+    )
+
+
+def test_the_relaxation_cannot_excuse_a_missing_test() -> None:
+    """include_produced=False must not become a way to skip tree evidence."""
+    problems = verify_closure_registry(
+        ROOT,
+        {"COD-005": ["apps/api/tests/test_does_not_exist.py"]},
+        {"COD-005": "MITIGATED_LOCAL"},
+        include_produced=False,
+    )
+    assert problems and "does not exist" in problems[0]
 
 
 def test_a_missing_file_is_reported() -> None:

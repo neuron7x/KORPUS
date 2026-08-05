@@ -24,6 +24,21 @@ from pathlib import Path
 TEST_ROOT = "apps/api/tests/"
 CI_FILE = ".gitlab-ci.yml"
 
+# A citation names one of two different things, and conflating them cost a week of
+# pipelines. `apps/api/tests/test_x.py` is *in the tree*: every clone has it, and its
+# absence is a defect anywhere. `var/mutation-report.json` is *produced by a run*: it
+# does not exist in a fresh checkout and its absence before the producing job is the
+# normal state, not a defect. Checking both in one place meant the check could only
+# pass where a previous run had left files behind — green locally, red in CI from
+# d894a89 to 12b550b, and red in a fresh clone for anyone who ever tried.
+PRODUCED_PREFIX = "var/"
+
+
+def is_produced_artifact(reference: str) -> bool:
+    """True when the citation names a file a run writes, not a file the tree carries."""
+
+    return split_reference(reference)[0].startswith(PRODUCED_PREFIX)
+
 
 def split_reference(reference: str) -> tuple[str, str | None]:
     """Split ``path::selector`` into its parts; parametrization is stripped."""
@@ -62,11 +77,23 @@ def _defined_names(path: Path) -> set[str]:
     return names
 
 
-def verify_references(root: Path, references: Iterable[str]) -> list[str]:
-    """Return one message per citation that does not resolve."""
+def verify_references(
+    root: Path,
+    references: Iterable[str],
+    *,
+    include_produced: bool = True,
+) -> list[str]:
+    """Return one message per citation that does not resolve.
+
+    ``include_produced=False`` skips citations of run-produced artefacts, for callers
+    that run before the producing step. It never skips a tree file: a caller cannot
+    use this flag to excuse a missing test.
+    """
 
     problems: list[str] = []
     for reference in references:
+        if not include_produced and is_produced_artifact(reference):
+            continue
         relative, selector = split_reference(reference)
         path = root / relative
         if not path.exists():
@@ -102,14 +129,26 @@ def verify_closure_registry(
     evidence: Mapping[str, Iterable[str]],
     statuses: Mapping[str, str],
     executable_statuses: frozenset[str] = frozenset({"CLOSED_LOCAL"}),
+    *,
+    include_produced: bool = True,
 ) -> list[str]:
-    """Verify every citation, and require executable evidence where closure is claimed."""
+    """Verify every citation, and require executable evidence where closure is claimed.
+
+    ``include_produced=False`` is for callers that run before the artefacts a run
+    produces exist — the tree citations are still checked in full. The requirement
+    that a produced artefact have a producer, and that whoever resolves it runs
+    later, is enforced separately in ``test_gate_parity.py``: relaxing it here would
+    otherwise let a citation name a file nothing ever writes.
+    """
 
     problems: list[str] = []
     for finding_id in sorted(evidence):
         references = list(evidence[finding_id])
         problems.extend(
-            f"{finding_id}: {message}" for message in verify_references(root, references)
+            f"{finding_id}: {message}"
+            for message in verify_references(
+                root, references, include_produced=include_produced
+            )
         )
         if statuses.get(finding_id) in executable_statuses and not any(
             is_executable_evidence(reference) for reference in references
