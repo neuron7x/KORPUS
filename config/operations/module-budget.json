@@ -64,7 +64,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/application/extraction_quality.py": {
-      "lines": 51,
+      "lines": 57,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/fingerprints.py": {
@@ -126,6 +126,10 @@
     "apps/api/src/korpus/application/risk.py": {
       "lines": 69,
       "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/table_integrity.py": {
+      "lines": 122,
+      "max_complexity": 14
     },
     "apps/api/src/korpus/application/tevv.py": {
       "lines": 140,
@@ -268,8 +272,8 @@
       "max_complexity": 8
     },
     "scripts/check_module_budget.py": {
-      "lines": 132,
-      "max_complexity": 11
+      "lines": 141,
+      "max_complexity": 13
     },
     "scripts/export_audit.py": {
       "lines": 124,
@@ -316,7 +320,7 @@
       "max_complexity": 10
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 1500,
+      "lines": null,
       "max_complexity": 21
     },
     "scripts/run_operational_gate.py": {
@@ -379,5 +383,30 @@
       "lines": 27,
       "max_complexity": 0
     }
+  },
+  "raised": [
+    {
+      "path": "apps/api/src/korpus/application/extraction_quality.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 57,
+        "max_complexity": 9,
+        "worst_function": "assess_extraction_quality"
+      },
+      "reason": "numeric and table integrity predicates joined the flag set; the growth is two imports and the comment explaining what the other predicates cannot see"
+    },
+    {
+      "path": "scripts/check_module_budget.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 138,
+        "max_complexity": 13,
+        "worst_function": "main"
+      },
+      "reason": "the ratchet grew the null-ceiling branch that lets a registry file expand; recorded here because raising a ceiling is always an edit somebody makes on purpose, including when the file being raised is the ratchet itself"
+    }
+  ],
+  "line_exempt": {
+    "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry."
   }
 }

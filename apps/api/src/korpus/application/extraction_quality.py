@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 
 from korpus.application.numeric_integrity import assess_numeric_integrity
+from korpus.application.table_integrity import assess_table_integrity
 
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 _REPEATED_SYMBOL = re.compile(r"([^\w\s])\1{19,}", re.UNICODE)
@@ -43,6 +44,11 @@ def assess_extraction_quality(text: str) -> ExtractionQuality:
     # flags land in the same set, so they reach the reviewer through the same gate —
     # an approval cannot proceed until someone acknowledges them.
     flags.update(assess_numeric_integrity(text).flags)
+    # A table flattened into prose reads as a sentence and says something else: a row
+    # that lost a column shifts its figures left, so a value is quoted under another
+    # column's heading. Neither the character predicates nor the numeric ones can see
+    # it — a correct number in the wrong column is a correct number.
+    flags.update(assess_table_integrity(text).flags)
     return ExtractionQuality(
         text_chars=total,
         alnum_ratio=round(alnum_ratio, 6),

@@ -83,7 +83,13 @@ def main() -> int:
     violations: list[str] = []
     for path, measured in sorted(measurements.items()):
         ceiling = budget.get(path, {"lines": DEFAULT_LINES, "max_complexity": DEFAULT_COMPLEXITY})
-        if int(measured["lines"]) > int(ceiling["lines"]):
+        # A registry — the mutant catalogue, a rule table — grows every time the system
+        # gains a check, which is to say every time it gets better. A line ceiling there
+        # penalises the behaviour the ratchet exists to encourage. The exemption is
+        # `"lines": null`, and it is per-file with a reason recorded beside it, because
+        # a blanket exemption is how a ratchet stops holding anything. Complexity is
+        # never exempt: a registry that grew a branch is no longer a registry.
+        if ceiling["lines"] is not None and int(measured["lines"]) > int(ceiling["lines"]):
             violations.append(
                 f"{path}: {measured['lines']} lines exceeds the recorded ceiling "
                 f"{ceiling['lines']}"
@@ -104,7 +110,10 @@ def main() -> int:
         for path, measured in sorted(measurements.items())
         if path in budget
         and (
-            int(measured["lines"]) < int(budget[path]["lines"])
+            (
+                budget[path]["lines"] is not None
+                and int(measured["lines"]) < int(budget[path]["lines"])
+            )
             or int(measured["max_complexity"]) < int(budget[path]["max_complexity"])
         )
     ]

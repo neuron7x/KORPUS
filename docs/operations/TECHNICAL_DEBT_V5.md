@@ -42,7 +42,7 @@ PostgreSQL debt below.
 ## Open engineering debt
 
 - decomposition of the SQL repository (1855 lines, worst function complexity 23);
-- corpus-scale table and formula evaluation;
+- formula evaluation, and table structure recovered from PDF layout rather than flagged;
 - embedding backfill and model-migration execution against a real index;
 - reviewer/admin web workflows, and contrast/focus-order validation against a rendered page;
 - a durable telemetry backend and its retention;
@@ -144,5 +144,20 @@ leave this list only with the mechanism that keeps them closed.
   and a new module without a recorded ceiling fails too — "not yet budgeted" is how a
   file reaches two thousand lines unnoticed. Three negative controls. Decomposing the
   repository itself stays open above, with its measurement written down.
+- **table evaluation** — `application/table_integrity.py`. Norms live in tables, and
+  PDF extraction has no notion of a cell. The failure is not that a flattened table
+  looks broken: a row that loses a column shifts its figures left, so a value is quoted
+  under another column's heading. The passage stays grammatical, the citation resolves
+  to real bytes, and the answer states a norm that does not exist. Neither the
+  character predicates nor `numeric_integrity` can see it — a correct number in the
+  wrong column is a correct number.
+
+  Blocks of table-like rows that disagree about their own column count are flagged, and
+  the flag joins the same review gate. The first version of the module had the
+  membership rule backwards: a row needed three columns to belong to a block, so the row
+  that *lost* one broke the block instead of making it ragged, and every damaged table
+  read as clean. Nine paired tests — each damage case beside an ordinary passage that
+  must not fire — plus mutants M132–M134. Recovering the original cell structure, as
+  opposed to detecting its loss, needs layout-aware extraction and stays open above.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

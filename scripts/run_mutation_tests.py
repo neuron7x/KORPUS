@@ -1139,6 +1139,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M132_RAGGED_TABLE_READS_AS_INTACT",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "        if len(widths) > 1:",
+        "        if False:",
+        (
+            "apps/api/tests/test_table_integrity.py::"
+            "test_a_row_that_lost_a_column_is_flagged",
+        ),
+    ),
+    Mutant(
+        "M133_TABLE_DAMAGE_NEVER_REACHES_REVIEW",
+        "apps/api/src/korpus/application/extraction_quality.py",
+        "    flags.update(assess_table_integrity(text).flags)",
+        "    pass",
+        (
+            "apps/api/tests/test_table_integrity.py::"
+            "test_table_damage_reaches_the_reviewer_through_the_extraction_quality_gate",
+        ),
+    ),
+    Mutant(
+        "M134_PROSE_FLAGGED_AS_A_BROKEN_TABLE",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "COLUMN_GAP = re.compile(r\"(?: {2,}|\\t+)\")",
+        "COLUMN_GAP = re.compile(r\"(?: +|\\t+)\")",
+        (
+            "apps/api/tests/test_table_integrity.py::"
+            "test_wrapped_prose_with_single_spaces_is_not_a_table",
+        ),
+    ),
+    Mutant(
         "M127_SPLIT_NUMBER_NOT_FLAGGED",
         "apps/api/src/korpus/application/numeric_integrity.py",
         "    for match in SPLIT_NUMBER.finditer(text):",
