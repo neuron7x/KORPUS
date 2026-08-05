@@ -1139,6 +1139,39 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M143_REQUIREMENTS_STOP_AT_THE_FIRST_FAILURE",
+        "apps/api/src/korpus/application/requirements.py",
+        "    unmet = tuple(requirement for requirement in listed "
+        "if not requirement.evaluate(context))",
+        "    unmet = tuple(listed[:1]) if listed and not listed[0].evaluate(context) else ()",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_all_requirements_are_evaluated_not_just_up_to_the_first_failure",
+        ),
+    ),
+    Mutant(
+        "M144_A_BROKEN_PREDICATE_COUNTS_AS_SATISFIED",
+        "apps/api/src/korpus/application/requirements.py",
+        "        except Exception:  # noqa: BLE001 - the predicate's own failure is the answer\n"
+        "            return False",
+        "        except Exception:  # noqa: BLE001 - the predicate's own failure is the answer\n"
+        "            return True",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_a_predicate_that_raises_fails_its_own_requirement",
+        ),
+    ),
+    Mutant(
+        "M145_DUPLICATE_REQUIREMENT_IDS_UNDETECTED",
+        "apps/api/src/korpus/application/requirements.py",
+        "    return sorted(identifier for identifier, count in seen.items() if count > 1)",
+        "    return []",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_duplicate_ids_are_actually_detected",
+        ),
+    ),
+    Mutant(
         "M139_UNSIGNED_ATTESTATION_ACCEPTED",
         "apps/api/src/korpus/security/attestors.py",
         "        if not key_id or not signature_b64:",

@@ -111,6 +111,10 @@
       "lines": 154,
       "max_complexity": 15
     },
+    "apps/api/src/korpus/application/requirements.py": {
+      "lines": 123,
+      "max_complexity": 3
+    },
     "apps/api/src/korpus/application/resilience.py": {
       "lines": 178,
       "max_complexity": 9
@@ -203,6 +207,10 @@
       "lines": 274,
       "max_complexity": 13
     },
+    "apps/api/src/korpus/infrastructure_requirements.py": {
+      "lines": null,
+      "max_complexity": 11
+    },
     "apps/api/src/korpus/main.py": {
       "lines": 245,
       "max_complexity": 30
@@ -210,6 +218,10 @@
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
       "max_complexity": 0
+    },
+    "apps/api/src/korpus/security/attestors.py": {
+      "lines": 176,
+      "max_complexity": 17
     },
     "apps/api/src/korpus/security/auth.py": {
       "lines": 200,
@@ -278,6 +290,10 @@
     "scripts/export_audit.py": {
       "lines": 124,
       "max_complexity": 7
+    },
+    "scripts/export_requirements.py": {
+      "lines": 87,
+      "max_complexity": 8
     },
     "scripts/generate_desired_state.py": {
       "lines": 94,
@@ -352,8 +368,8 @@
       "max_complexity": 10
     },
     "scripts/validate_infrastructure.py": {
-      "lines": 268,
-      "max_complexity": 102
+      "lines": 62,
+      "max_complexity": 5
     },
     "scripts/validate_kubernetes.py": {
       "lines": 71,
@@ -382,10 +398,6 @@
     "scripts/wait_for_database.py": {
       "lines": 27,
       "max_complexity": 0
-    },
-    "apps/api/src/korpus/security/attestors.py": {
-      "lines": 176,
-      "max_complexity": 17
     }
   },
   "raised": [
@@ -431,6 +443,7 @@
     }
   ],
   "line_exempt": {
-    "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry."
+    "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry.",
+    "apps/api/src/korpus/infrastructure_requirements.py": "A register of requirements is data. It grows by one entry every time the system states another property about itself, which is the behaviour the ratchet exists to encourage. Complexity stays capped."
   }
 }

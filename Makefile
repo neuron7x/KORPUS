@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -84,6 +84,11 @@ snapshot:
 # corpus with no governance policy — decisions nobody has made, not code faults.
 # A ratchet, not a target: modules may shrink freely, growth fails. "Not yet in the
 # budget" is how a file gets to two thousand lines without anyone noticing.
+# The register as a document: §2.5 asks an outside party to judge this system, and the
+# first thing they need is the list of properties it claims about itself.
+requirements-register:
+	PYTHONPATH=apps/api/src $(PY) scripts/export_requirements.py
+
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
 
@@ -118,7 +123,7 @@ kubernetes-validate:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory module-budget
+validate: handoff-verify openapi desired-state supply-chain-inventory module-budget requirements-register
 	python3 scripts/validate_repository.py
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

@@ -861,3 +861,28 @@ def test_the_relaxed_seccomp_runner_is_reached_by_exactly_one_job() -> None:
     assert not any("privileged: true" in line for line in directives), (
         "a privileged runner would make the tag pointless and is banned outright"
     )
+
+
+def test_the_requirements_register_is_current() -> None:
+    """A generated document that drifts is worse than none: it reads as authoritative.
+
+    §2.5 asks an outside assessor to judge this system, and the register is the first
+    thing they read. Regenerating it in `validate` means a requirement added without
+    regenerating fails the gate rather than leaving the document quietly one behind.
+    """
+    register = ROOT / "docs/operations/REQUIREMENTS_REGISTER.md"
+    before = register.read_text(encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "scripts/export_requirements.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PYTHONPATH": str(ROOT / "apps/api/src"), "PATH": "/usr/bin:/bin"},
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert register.read_text(encoding="utf-8") == before, (
+        "the requirements register is stale; run `make requirements-register`"
+    )

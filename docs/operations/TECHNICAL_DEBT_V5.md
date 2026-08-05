@@ -42,6 +42,7 @@ PostgreSQL debt below.
 ## Open engineering debt
 
 - decomposition of the SQL repository (1855 lines, worst function complexity 23);
+- the repository and kubernetes validators still hold their checks inline;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;
 - embedding backfill and model-migration execution against a real index;
 - reviewer/admin web workflows, and contrast/focus-order validation against a rendered page;
@@ -144,6 +145,29 @@ leave this list only with the mechanism that keeps them closed.
   and a new module without a recorded ceiling fails too — "not yet budgeted" is how a
   file reaches two thousand lines unnoticed. Three negative controls. Decomposing the
   repository itself stays open above, with its measurement written down.
+- **infrastructure validator, and one register for every requirement** —
+  `validate_infrastructure.main` held about a hundred checks inline and measured a
+  cyclomatic complexity of 102. It is now 5: the checks live in
+  `korpus/infrastructure_requirements.py` as data, and `application/requirements.py`
+  applies them.
+
+  The number was the symptom. Three things were missing and none of them is about
+  complexity. A failure had no name — only the sentence appended where it happened —
+  so it could not be cited in an audit, marked accepted-with-risk by an owner, matched
+  to a mutant, or counted. A mutant could not reach one check among a hundred in one
+  function, leaving ninety-nine individually unfalsified. And the requirements could
+  not be read: §2.5 asks an outside assessor to judge this system, and the first thing
+  they need is the list of properties it claims, not a program that emits that list
+  while running.
+
+  157 requirements now carry ids, positive statements and their reasons, exported to
+  `REQUIREMENTS_REGISTER.md` and regenerated in `validate`, so a requirement added
+  without regenerating fails the gate instead of leaving the document one behind.
+  Behaviour is unchanged and the messages are preserved: `test_infrastructure_
+  hardening.py` passed untouched, which is what makes a refactor of a security
+  validator evidence rather than hope. Mutants M143–M145; M145 survived its first
+  probe, because asserting "the register has no duplicate ids" is satisfied by a
+  detector that always returns none.
 - **table evaluation** — `application/table_integrity.py`. Norms live in tables, and
   PDF extraction has no notion of a cell. The failure is not that a flattened table
   looks broken: a row that loses a column shifts its figures left, so a value is quoted

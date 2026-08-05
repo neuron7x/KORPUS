@@ -1,267 +1,61 @@
 #!/usr/bin/env python3
-"""Fail-closed static infrastructure contract validation."""
+"""Fail-closed static infrastructure contract validation.
+
+The hundred checks this used to hold inline now live in
+`korpus/infrastructure_requirements.py` as a register: each has an id, states its
+property positively, and carries the reason it exists. This file loads the artefacts
+and applies them.
+
+The behaviour is unchanged. What changed is that a failure can be named — cited in an
+audit, marked accepted-with-risk by an owner, matched to a mutant, counted — where
+before it was a string appended at the point of failure, with no identity beyond its
+own wording.
+"""
 from __future__ import annotations
 
 import json
-import re
+import sys
 from pathlib import Path
 
-import yaml
-
 ROOT = Path(__file__).resolve().parents[1]
-COMPOSE = ROOT / "docker-compose.yml"
-EXACT_TAG = re.compile(r"^[^:@\s]+:[^:@\s]+$")
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.requirements import (  # noqa: E402
+    duplicate_ids,
+    evaluate_requirements,
+)
+from korpus.infrastructure_requirements import (  # noqa: E402
+    INFRASTRUCTURE_REQUIREMENTS,
+    load_context,
+)
 
 
 def main() -> int:
-    failures: list[str] = []
-    compose = yaml.safe_load(COMPOSE.read_text(encoding="utf-8"))
-    services: dict[str, dict] = compose.get("services", {})
-    required = {
-        "postgres",
-        "migrate",
-        "minio",
-        "minio-init",
-        "otel-collector",
-        "clamav",
-        "api",
-        "worker",
-        "web",
-    }
-    missing = sorted(required - services.keys())
-    if missing:
-        failures.append(f"missing services: {missing}")
+    duplicates = duplicate_ids(INFRASTRUCTURE_REQUIREMENTS)
+    if duplicates:
+        # An id is how a requirement is cited. Two sharing one makes every reference to
+        # it ambiguous, and the ambiguity is invisible in a passing run.
+        print(json.dumps({"valid": False, "duplicate_requirement_ids": duplicates}, indent=2))
+        return 1
 
-    for name, service in services.items():
-        if service.get("privileged"):
-            failures.append(f"{name}: privileged mode forbidden")
-        if name != "web" and service.get("ports"):
-            failures.append(f"{name}: host ports forbidden")
-        for port in service.get("ports", []) or []:
-            if name == "web" and not str(port).startswith("127.0.0.1:"):
-                failures.append("web: published port must bind loopback")
-        security = service.get("security_opt", []) or []
-        if "no-new-privileges:true" not in security:
-            failures.append(f"{name}: no-new-privileges missing")
-        if service.get("restart") != "no" and not service.get("init"):
-            failures.append(f"{name}: init process missing")
-        if not service.get("mem_limit") or not service.get("cpus"):
-            failures.append(f"{name}: resource ceiling missing")
-        image = service.get("image")
-        if image and (not EXACT_TAG.fullmatch(image) or image.endswith(":latest")):
-            failures.append(f"{name}: image is not exactly tagged: {image}")
-
-    api = services.get("api", {})
-    env = api.get("environment", {}) or {}
-    for key, expected in {
-        "KORPUS_SCHEMA_MODE": "migrations",
-        "KORPUS_OBJECT_STORE_MODE": "s3",
-        "KORPUS_S3_FORCE_PATH_STYLE": "true",
-    }.items():
-        if str(env.get(key, "")).lower() != expected:
-            failures.append(f"api: {key} must be {expected}")
-    if "postgresql+psycopg" not in str(env.get("KORPUS_DATABASE_URL_TEMPLATE", "")):
-        failures.append("api: PostgreSQL application URL missing")
-    depends = api.get("depends_on", {}) or {}
-    for dependency in ("migrate", "minio-init", "otel-collector"):
-        if dependency not in depends:
-            failures.append(f"api: dependency {dependency} missing")
-    if not api.get("read_only"):
-        failures.append("api: read_only root filesystem missing")
-
-
-    worker = services.get("worker", {})
-    worker_env = worker.get("environment", {}) or {}
-    expected_worker_command = ["python", "-m", "korpus.cli", "worker-loop", "--idle-seconds", "1"]
-    if worker.get("command") != expected_worker_command:
-        failures.append("worker: durable ingestion command missing")
-    if str(worker_env.get("KORPUS_INGESTION_MODE", "")).lower() != "durable_async":
-        failures.append("worker: durable ingestion mode missing")
-    if set(worker.get("networks", []) or []) != {"backend", "egress"}:
-        failures.append("worker: must be isolated from edge network")
-    if not (worker.get("healthcheck", {}) or {}).get("disable"):
-        failures.append("worker: inherited HTTP healthcheck must be disabled")
-    if "clamav" not in (worker.get("depends_on", {}) or {}):
-        failures.append("worker: ClamAV dependency missing")
-    for key, expected in {
-        "KORPUS_INGESTION_MODE": "durable_async",
-        "KORPUS_MALWARE_SCAN_MODE": "clamd",
-        "KORPUS_PARSER_SANDBOX_ENABLED": "true",
-    }.items():
-        if str(env.get(key, "")).lower() != expected:
-            failures.append(f"api: {key} must be {expected}")
-    if "clamav" not in depends:
-        failures.append("api: ClamAV dependency missing")
-
-
-    # Least-privilege object storage: the API must never mount MinIO root credentials.
-    api_secrets_json = json.dumps(api.get("secrets", []), sort_keys=True)
-    api_secret_text = api_secrets_json + json.dumps(env, sort_keys=True)
-    if "minio_root_password" in api_secret_text:
-        failures.append("api: MinIO root credentials must not be mounted")
-    for name in ("minio_app_access_key", "minio_app_secret_key"):
-        if name not in api_secret_text:
-            failures.append(f"api: dedicated MinIO credential missing: {name}")
-    policy_path = ROOT / "infra/minio/korpus-app-policy.json"
-    try:
-        policy_text = policy_path.read_text(encoding="utf-8")
-        policy = json.loads(policy_text)
-        actions = {
-            action
-            for statement in policy.get("Statement", [])
-            for action in statement.get("Action", [])
-        }
-        resources = {
-            resource
-            for statement in policy.get("Statement", [])
-            for resource in statement.get("Resource", [])
-        }
-        if "s3:DeleteObject" in actions or "s3:*" in actions:
-            failures.append("MinIO application policy permits destructive/wildcard object access")
-        for required_action in ("s3:GetBucketVersioning", "s3:GetObjectLockConfiguration"):
-            if required_action not in actions:
-                failures.append(
-                    f"MinIO application policy missing durability check: {required_action}"
-                )
-        for prefix in ("arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"):
-            if prefix not in resources:
-                failures.append(
-                    f"MinIO application policy missing required restricted prefix: {prefix}"
-                )
-        if any(resource.endswith("/*") and resource not in {
-            "arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"
-        } for resource in resources):
-            failures.append("MinIO application policy includes an unexpected object prefix")
-    except (OSError, json.JSONDecodeError) as exc:
-        failures.append(f"MinIO application policy is missing or invalid: {exc}")
-
-    postgres = services.get("postgres", {})
-    allowed_postgres_caps = {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"}
-    if set(postgres.get("cap_add", []) or []) - allowed_postgres_caps:
-        failures.append("postgres: unexpected Linux capability added")
-
-    ci_text = (ROOT / ".gitlab-ci.yml").read_text(encoding="utf-8")
-    if "\ncache:\n" in ci_text:
-        failures.append("GitLab CI global cache is forbidden in the assurance pipeline")
-    # Directives only. Matching the raw text meant the comment explaining *why*
-    # privileged mode is banned tripped the ban on privileged mode — a check reading
-    # its own documentation as a violation, found 2026-08-05 when that comment was
-    # written. The rule is about what the pipeline does, not about what it says.
-    ci_directives = [
-        line for line in ci_text.splitlines() if not line.lstrip().startswith("#")
+    context = load_context(ROOT)
+    report = evaluate_requirements(INFRASTRUCTURE_REQUIREMENTS, context)
+    rendered = report.as_dict()
+    rendered["services"] = sorted(context.services)
+    if context.load_errors:
+        rendered["load_errors"] = context.load_errors
+    # The historic key, kept because `test_infrastructure_hardening.py` and the release
+    # aggregator both read it, and a rename would be a second change riding on a
+    # refactor that is meant to be behaviour-preserving.
+    rendered["failures"] = [
+        f"{failure['id']}: {failure['statement']}" for failure in rendered["failures"]
     ]
-    for forbidden in ("privileged: true", "docker:dind"):
-        if any(forbidden in line for line in ci_directives):
-            failures.append(f"GitLab CI forbidden construct present: {forbidden}")
-    for required_ci in ("moby/buildkit", "gitleaks", "trivy", "syft", "verify_postgres_restore.py"):
-        if required_ci not in ci_text:
-            failures.append(f"GitLab CI missing required gate: {required_ci}")
-    # The database used to be the job's own image, which is why the entrypoint had to
-    # be cleared. That arrangement also meant the suite ran on whatever python3 the
-    # database image carried — 3.13 on trixie, against a service shipped on 3.12.13.
-    # The database is a service now, so the requirement is that it stays one: an image
-    # borrowed for its server binaries brings its interpreter with it.
-    postgres_block = next(
-        (
-            block
-            for block in re.split(r"\n(?=\S)", ci_text)
-            if block.startswith("api:postgres-and-restore:")
-        ),
-        "",
-    )
-    if not postgres_block:
-        failures.append("PostgreSQL CI job is absent")
-    elif re.search(r"^\s+image:\s*\n\s+name:\s*pgvector", postgres_block, re.M):
-        if 'entrypoint: [""]' not in postgres_block:
-            failures.append("PostgreSQL CI job must clear the database image entrypoint")
-    elif not re.search(r"^\s+services:\s*\n\s+- name:\s*pgvector", postgres_block, re.M):
-        failures.append("PostgreSQL CI job must attach the database as a service")
 
-    package_text = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
-    if "git archive --format=tar HEAD" not in package_text:
-        failures.append("release packaging must originate from committed Git tree")
-    if "verify_release_evidence.py" not in package_text:
-        failures.append("release packaging must reject stale assurance evidence")
-    if 'rm -rf "$tmp/reports"' not in package_text:
-        failures.append(
-            "release packaging must replace committed reports instead of nesting stale evidence"
-        )
-
-    for script_name in ("backup_postgres.sh", "restore_postgres.sh"):
-        text_value = (ROOT / "scripts" / script_name).read_text(encoding="utf-8")
-        if "KORPUS_BACKUP_ENCRYPTION_KEY_FILE" not in text_value:
-            failures.append(f"{script_name}: encrypted backup key is not mandatory")
-    manifest_text = (ROOT / "scripts/backup_manifest.py").read_text(encoding="utf-8")
-    if (
-        "korpus-postgres-backup-v4" not in manifest_text
-        or "manifest_hmac_sha256" not in manifest_text
-    ):
-        failures.append("backup_manifest.py: authenticated current manifest schema missing")
-    backup_text = (ROOT / "scripts/backup_postgres.sh").read_text(encoding="utf-8")
-    restore_text = (ROOT / "scripts/restore_postgres.sh").read_text(encoding="utf-8")
-    if "KORPUS_BACKUP_KEY_ID" not in backup_text or "KORPUS_BACKUP_KEY_ID" not in restore_text:
-        failures.append("backup/restore: encryption key identity must be mandatory")
-    # The property is "no plaintext dump ever lands on disk", not "this flag is
-    # present". Requiring --file=- pinned the one spelling that does not work: on
-    # PostgreSQL 17 it wrote a file named "-" and left stdout empty, so the backup
-    # encrypted nothing. Check for the streaming consumer and against any --file at all.
-    if "encrypt-stdin" not in backup_text:
-        failures.append("backup_postgres.sh: plaintext-free streaming backup pipeline missing")
-    backup_code = "\n".join(
-        line for line in backup_text.splitlines() if not line.lstrip().startswith("#")
-    )
-    if "--file=" in backup_code:
-        failures.append("backup_postgres.sh: pg_dump must stream to stdout, not --file")
-    if "backup_manifest.py" not in backup_text or "backup_manifest.py" not in restore_text:
-        failures.append("backup/restore: authenticated manifest verification missing")
-
-    make_text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    if "--profile support" in make_text:
-        failures.append("Makefile references nonexistent Compose support profile")
-    if "docker compose up -d --wait web" not in make_text:
-        failures.append("Makefile infra-up does not wait for the composed application")
-
-    web = services.get("web", {})
-    if set(web.get("networks", []) or []) != {"edge"}:
-        failures.append("web: must be isolated to the internal edge network")
-    networks = compose.get("networks", {}) or {}
-    for network_name in ("edge", "backend"):
-        if (networks.get(network_name, {}) or {}).get("internal") is not True:
-            failures.append(f"{network_name} network must be internal")
-    if "egress" not in set(api.get("networks", []) or []):
-        failures.append("api: dedicated egress network missing")
-
-    dockerignore = (ROOT / ".dockerignore").read_text(encoding="utf-8")
-    for required_pattern in (".git", ".env", "infra/secrets/*.txt", "node_modules"):
-        if required_pattern not in dockerignore:
-            failures.append(f".dockerignore missing {required_pattern}")
-
-    api_docker = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
-    # --require-hashes is part of the predicate, not a detail of the command line: a
-    # pinned version says which release to fetch, and the hash says which bytes. Without
-    # it the image is reproducible only for as long as nobody replaces an artefact on
-    # the index, which is the supply-chain assumption this project cannot make.
-    if (
-        "requirements.runtime.lock" not in api_docker
-        or "pip install --no-cache-dir --no-deps --require-hashes --requirement" not in api_docker
-        or "pip check" not in api_docker
-    ):
-        failures.append(
-            "API Dockerfile does not install the runtime lock with pinned hashes"
-        )
-    if "USER 10001:10001" not in api_docker:
-        failures.append("API Dockerfile does not run as fixed non-root UID")
-
-    web_docker = (ROOT / "apps/web/Dockerfile").read_text(encoding="utf-8")
-    if "npm ci" not in web_docker or "USER nginx:nginx" not in web_docker:
-        failures.append("web Dockerfile lacks reproducible non-root build/runtime")
-
-    report = {"valid": not failures, "services": sorted(services), "failures": failures}
     output = ROOT / "var/infrastructure-validation.json"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(report, indent=2))
-    return 0 if not failures else 1
+    output.write_text(json.dumps(rendered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(rendered, ensure_ascii=False, indent=2))
+    return 0 if report.satisfied else 1
 
 
 if __name__ == "__main__":
