@@ -59,6 +59,11 @@
       "lines": 223,
       "max_complexity": 10
     },
+    "apps/api/src/korpus/application/environment_drift.py": {
+      "lines": 193,
+      "max_complexity": 6,
+      "reason": "OPS-004: desired state against an observed environment, with UNOBSERVED kept apart from IN_SYNC and the observation's own age checked before it is compared"
+    },
     "apps/api/src/korpus/application/evidence.py": {
       "lines": 273,
       "max_complexity": 11
@@ -208,12 +213,27 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1643,
-      "max_complexity": 23
+      "lines": 1047,
+      "max_complexity": 23,
+      "reason": "COD-001: 1423 -> 1047 after schema.py and retrieval_queries.py; the transactional core stays"
+    },
+    "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
+      "lines": 269,
+      "max_complexity": 13,
+      "reason": "COD-001: the retrieval projection and its predicates, apart from executing them"
+    },
+    "apps/api/src/korpus/infrastructure/row_mapping.py": {
+      "lines": 268,
+      "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/runtime.py": {
       "lines": 72,
       "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/schema.py": {
+      "lines": 232,
+      "max_complexity": 0,
+      "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
       "lines": 274,
@@ -288,8 +308,9 @@
       "max_complexity": 3
     },
     "scripts/build_audit_closure.py": {
-      "lines": 504,
-      "max_complexity": 17
+      "lines": null,
+      "max_complexity": 17,
+      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "scripts/build_system_manifest.py": {
       "lines": 102,
@@ -298,6 +319,11 @@
     "scripts/check_coverage_thresholds.py": {
       "lines": 87,
       "max_complexity": 8
+    },
+    "scripts/check_environment_drift.py": {
+      "lines": 128,
+      "max_complexity": 8,
+      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment"
     },
     "scripts/check_module_budget.py": {
       "lines": 141,
@@ -322,6 +348,11 @@
     "scripts/generate_supply_chain_inventory.py": {
       "lines": 160,
       "max_complexity": 13
+    },
+    "scripts/generate_web_contract.py": {
+      "lines": 146,
+      "max_complexity": 5,
+      "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
     "scripts/measure_recovery.py": {
       "lines": 146,

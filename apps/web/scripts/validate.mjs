@@ -1,27 +1,157 @@
 import { readFile, stat } from "node:fs/promises";
-const required = ["public/index.html","public/app.js","public/styles.css","public/manifest.webmanifest","public/sw.js","public/config.js"];
-for (const file of required) {
-  const info = await stat(new URL(`../${file}`, import.meta.url));
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
+
+const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
+const read = (file) => readFile(asset(file), "utf8");
+
+const SCRIPTS = ["public/api.js", "public/app.js", "public/console.js", "public/console_rules.js", "public/contract.js", "public/sw.js"];
+const PAGES = ["public/index.html", "public/console.html"];
+const REQUIRED = [...PAGES, ...SCRIPTS, "public/styles.css", "public/manifest.webmanifest", "public/config.js"];
+
+for (const file of REQUIRED) {
+  const info = await stat(asset(file));
   if (!info.isFile() || info.size === 0) throw new Error(`invalid web asset: ${file}`);
 }
-const html = await readFile(new URL("../public/index.html", import.meta.url), "utf8");
+
+// `node --check <file>` exits 0 for ANY file containing an `import` statement — the ESM
+// retry path reports nothing. Verified on node v22.23.1 with a file holding both an
+// import and `const y = ;`. The moment app.js became a module, `npm run lint` stopped
+// checking it and kept printing success. Feeding the source on stdin with an explicit
+// --input-type is the form that actually parses.
+for (const file of SCRIPTS) {
+  const source = await read(file);
+  const checked = spawnSync(process.execPath, ["--input-type=module", "--check"], {
+    input: source,
+    encoding: "utf8",
+  });
+  if (checked.status !== 0) {
+    throw new Error(`syntax check failed for ${file}:\n${checked.stderr}`);
+  }
+}
+console.log(`syntax check passed for ${SCRIPTS.length} modules`);
+
+const html = await read("public/index.html");
 for (const marker of ['lang="uk"','id="query-form"','id="bearer-token"','id="login"','id="logout"','aria-live="polite"','/app.js']) {
   if (!html.includes(marker)) throw new Error(`web shell contract failed: ${marker}`);
 }
-const js = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
-for (const marker of ['Authorization', '/v1/auth/me', '/v1/auth/login', '/v1/auth/logout', 'X-CSRF-Token', 'credentials: "same-origin"', 'bearerToken', 'escapeHtml']) {
-  if (!js.includes(marker)) throw new Error(`web security contract failed: ${marker}`);
+
+// ---------------------------------------------------------------- security contract
+//
+// The consoles (WEB-001) added a second page. Two pages meant two chances to hand-roll
+// auth, and the second copy is where a token reaches localStorage or a POST goes out
+// without its CSRF header. So the contract moved: api.js is the only module allowed to
+// touch credentials or the network, and every other script is checked for *absence*.
+const api = await read("public/api.js");
+for (const marker of ['Authorization', 'X-CSRF-Token', 'credentials: "same-origin"', 'bearerToken', 'escapeHtml']) {
+  if (!api.includes(marker)) throw new Error(`web security contract failed: ${marker}`);
 }
-if (/localStorage|sessionStorage/.test(js)) throw new Error("persistent token storage detected");
+if (!api.includes('readCookie("__Host-korpus_csrf")')) throw new Error("CSRF double-submit cookie contract missing");
+if ((api.match(/document\.cookie/g) ?? []).length !== 1) throw new Error("browser must read only the CSRF cookie surface");
+if (/readCookie\(["']__Host-korpus_session/.test(api)) throw new Error("HttpOnly session cookie must not be read by JavaScript");
+// A state-changing request must not be able to leave without the CSRF header, so the
+// header is attached by method inside api.js rather than by each caller remembering.
+if (!/\["GET", "HEAD", "OPTIONS"\]\.includes\(method\)/.test(api)) {
+  throw new Error("CSRF header must be attached by method, not by the caller opting in");
+}
+
+const app = await read("public/app.js");
+const consoleJs = await read("public/console.js");
+const consoleRules = await read("public/console_rules.js");
+for (const [name, source] of [["app.js", app], ["console.js", consoleJs]]) {
+  if (/\bfetch\s*\(/.test(source)) {
+    throw new Error(`${name} calls fetch directly; every request must go through api.js`);
+  }
+  if (/document\.cookie/.test(source)) {
+    throw new Error(`${name} reads cookies directly; the CSRF surface lives in api.js`);
+  }
+  if (!/from "\.\/api\.js"/.test(source)) {
+    throw new Error(`${name} must obtain its API access from api.js`);
+  }
+}
+// Matches use, not mention. The bare-word form tripped on api.js's own comment
+// explaining why a token must never reach localStorage — a guard that forbids naming
+// the hazard it guards against, which is how the explanation gets deleted instead of
+// the hazard. The trailing class covers `localStorage.x`, `localStorage[k]`,
+// `f(localStorage)` and `const s = localStorage;`, the ways a reference is actually
+// taken.
+const PERSISTENT_STORAGE = /(localStorage|sessionStorage)\s*[.[;)=,]/;
+for (const file of ["public/api.js", "public/app.js", "public/console.js", "public/console_rules.js"]) {
+  if (PERSISTENT_STORAGE.test(await read(file))) {
+    throw new Error(`persistent token storage detected in ${file}`);
+  }
+}
+
 // RAG-019: retrieval_score is a ranking utility, not a calibrated probability. The UI
 // renders it as a number, so the sentence that says what it is not must travel with it.
-if (!js.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
-if (js.includes("retrieval_score") && !js.includes("Ranking utility")) throw new Error("score rendered without its non-probability label");
-if (!js.includes('readCookie("__Host-korpus_csrf")')) throw new Error("CSRF double-submit cookie contract missing");
-if ((js.match(/document\.cookie/g) ?? []).length !== 1) throw new Error("browser must read only the CSRF cookie surface");
-if (/readCookie\(["']__Host-korpus_session/.test(js)) throw new Error("HttpOnly session cookie must not be read by JavaScript");
-const manifest = JSON.parse(await readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"));
+if (!app.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
+if (app.includes("retrieval_score") && !app.includes("Ranking utility")) throw new Error("score rendered without its non-probability label");
+
+const manifest = JSON.parse(await read("public/manifest.webmanifest"));
 if (!manifest.name || !manifest.start_url || manifest.display !== "standalone") throw new Error("PWA manifest contract failed");
+
+// ---------------------------------------------------------------- console contract
+//
+// WEB-001's acceptance predicate is that every critical workflow runs without raw DB or
+// API manipulation. Reaching it needs more than the forms existing.
+const consoleHtml = await read("public/console.html");
+for (const id of [
+  "console-curator", "console-reviewer", "console-corpus", "console-auditor",
+  "ingest-form", "review-form", "rescind-form", "audit-events-form",
+]) {
+  if (!consoleHtml.includes(`id="${id}"`)) throw new Error(`operator console missing surface: ${id}`);
+}
+// Nothing irreversible fires on a first click. Each of the three writing workflows has a
+// preview button and a submit that ships disabled.
+for (const workflow of ["ingest", "review", "rescind"]) {
+  if (!consoleHtml.includes(`id="${workflow}-preview"`)) {
+    throw new Error(`${workflow} has no preview: an irreversible action would fire on first click`);
+  }
+  if (!new RegExp(`id="${workflow}-submit"[^>]*disabled`).test(consoleHtml)) {
+    throw new Error(`${workflow} submit is enabled before anything was previewed`);
+  }
+}
+// The gate compares the previewed payload with the one about to be sent. A boolean
+// "was previewed" flag would let an edit slip between confirmation and submission.
+if (!/previewMatches\(confirmed, payload\.body\)/.test(consoleJs)) {
+  throw new Error("preview gate must compare payloads, not remember that a preview happened");
+}
+if (!/confirmed === JSON\.stringify\(body\)/.test(consoleRules)) {
+  throw new Error("previewMatches must compare the serialised bodies");
+}
+// A refusal is a result. Collapsing it to a status code is what sends an operator to psql.
+if (!/error\.reason/.test(consoleJs)) throw new Error("console must render the API's refusal reason verbatim");
+if (!/error\.status/.test(consoleJs)) throw new Error("console must show which status the refusal carried");
+
+// The browser's constraints are generated from contracts/openapi.json, which is itself
+// drift-gated. A hand-edit here becomes a second copy of the domain rules.
+const contract = await read("public/contract.js");
+if (!contract.startsWith("// Generated by scripts/generate_web_contract.py")) {
+  throw new Error("contract.js is not the generated artefact; run `make web-contract`");
+}
+if (!consoleRules.includes('import {CONTRACT} from "./contract.js"')) {
+  throw new Error("console validation must read the generated contract");
+}
+if (!contract.includes('"roles"')) {
+  throw new Error("the generated contract must carry the role table from policy.py");
+}
+// Hand-written length rules are the drift. `minLength: 12` typed into a console module
+// is a copy of ReviewTransition.note that no gate compares against the model.
+for (const [name, source] of [["console.js", consoleJs], ["console_rules.js", consoleRules]]) {
+  if (/\b(?:minLength|maxLength)\s*[:=]\s*\d/.test(source)) {
+    throw new Error(`${name} carries hand-written length constraints; they belong in the generated contract`);
+  }
+}
+// The role table decides which console a reader is shown, and a hand-written copy of it
+// drifts the same way. It must come from the generated contract.
+if (/\bROLE_PERMISSIONS\s*=/.test(consoleRules)) {
+  throw new Error("console_rules.js carries a hand-copied role table; it belongs in the generated contract");
+}
+// Showing a console is presentation. If this ever reads as enforcement, the sentence
+// that says otherwise is the thing that stops a reviewer believing it.
+if (!consoleHtml.includes("Приховування кнопки не є контролем")) {
+  throw new Error("the console must state that hiding a control is not access control");
+}
 console.log("web validation passed");
 
 // Accessibility contract. These are the properties a screen-reader or keyboard user
@@ -33,45 +163,54 @@ console.log("web validation passed");
 // check that cannot run in the pipeline is a check that does not run. What is asserted
 // here is what static structure can carry honestly. Contrast and focus order against a
 // rendered page remain external, and are recorded as such in TECHNICAL_DEBT_V5.md.
-const headings = [...html.matchAll(/<h([1-6])[^>]*>/g)].map((m) => Number(m[1]));
-if (headings.filter((level) => level === 1).length !== 1) {
-  throw new Error("accessibility: the page must have exactly one h1");
-}
-for (let index = 1; index < headings.length; index += 1) {
-  if (headings[index] - headings[index - 1] > 1) {
-    throw new Error(
-      `accessibility: heading level jumps from h${headings[index - 1]} to h${headings[index]}; ` +
-        "a screen reader's outline loses the skipped level",
-    );
+function checkAccessibility(page, source) {
+  const fail = (message) => { throw new Error(`accessibility [${page}]: ${message}`); };
+  const headings = [...source.matchAll(/<h([1-6])[^>]*>/g)].map((m) => Number(m[1]));
+  if (headings.filter((level) => level === 1).length !== 1) {
+    fail("the page must have exactly one h1");
+  }
+  for (let index = 1; index < headings.length; index += 1) {
+    if (headings[index] - headings[index - 1] > 1) {
+      fail(
+        `heading level jumps from h${headings[index - 1]} to h${headings[index]}; ` +
+          "a screen reader's outline loses the skipped level",
+      );
+    }
+  }
+  // Every focusable control needs an accessible name. A button whose label is an icon or
+  // whose text is empty is announced as "button", which is not an instruction.
+  for (const [, attributes, text] of source.matchAll(/<button([^>]*)>([\s\S]*?)<\/button>/g)) {
+    const named = text.replace(/<[^>]*>/g, "").trim().length > 0 ||
+      /aria-label=|aria-labelledby=/.test(attributes);
+    if (!named) fail(`button without an accessible name: ${attributes}`);
+  }
+  // Every text input needs a label bound by id. A placeholder disappears on typing and is
+  // not announced as a name.
+  for (const [, attributes] of source.matchAll(/<(?:input|textarea|select)([^>]*)>/g)) {
+    if (/type="(hidden|submit|button)"/.test(attributes)) continue;
+    const id = /id="([^"]+)"/.exec(attributes)?.[1];
+    if (!id) fail(`form control without an id to label: ${attributes}`);
+    if (!source.includes(`for="${id}"`) && !/aria-label=/.test(attributes)) {
+      fail(`form control ${id} has no <label for> and no aria-label`);
+    }
+  }
+  for (const [, attributes] of source.matchAll(/<img([^>]*)>/g)) {
+    if (!/alt=/.test(attributes)) fail(`image without alt: ${attributes}`);
+  }
+  if (!/class="skip-link"[^>]*href="#/.test(source)) {
+    fail("no skip link, so every navigation costs the header in tab stops");
+  }
+  if (!/<main[^>]*>/.test(source)) fail("no main landmark");
+  // Panels written by script after a response arrives are silent for a screen reader
+  // without a live region: the page appears not to have responded.
+  const liveRegions = [...source.matchAll(/id="([^"]*result[^"]*)"([^>]*)/g)];
+  if (!liveRegions.length) fail("no result region to announce");
+  for (const [, id, attributes] of liveRegions) {
+    if (!/aria-live="polite"/.test(attributes)) {
+      fail(`the ${id} panel is filled by script and must announce itself`);
+    }
   }
 }
-// Every focusable control needs an accessible name. A button whose label is an icon or
-// whose text is empty is announced as "button", which is not an instruction.
-for (const [, attributes, text] of html.matchAll(/<button([^>]*)>([\s\S]*?)<\/button>/g)) {
-  const named = text.replace(/<[^>]*>/g, "").trim().length > 0 ||
-    /aria-label=|aria-labelledby=/.test(attributes);
-  if (!named) throw new Error(`accessibility: button without an accessible name: ${attributes}`);
-}
-// Every text input needs a label bound by id. A placeholder disappears on typing and is
-// not announced as a name.
-for (const [, attributes] of html.matchAll(/<(?:input|textarea|select)([^>]*)>/g)) {
-  if (/type="(hidden|submit|button)"/.test(attributes)) continue;
-  const id = /id="([^"]+)"/.exec(attributes)?.[1];
-  if (!id) throw new Error(`accessibility: form control without an id to label: ${attributes}`);
-  if (!html.includes(`for="${id}"`) && !/aria-label=/.test(attributes)) {
-    throw new Error(`accessibility: form control ${id} has no <label for> and no aria-label`);
-  }
-}
-for (const [, attributes] of html.matchAll(/<img([^>]*)>/g)) {
-  if (!/alt=/.test(attributes)) throw new Error(`accessibility: image without alt: ${attributes}`);
-}
-if (!/class="skip-link"[^>]*href="#/.test(html)) {
-  throw new Error("accessibility: no skip link, so every navigation costs the header in tab stops");
-}
-if (!/<main[^>]*>/.test(html)) throw new Error("accessibility: no main landmark");
-// The result panel is written by script after the answer arrives. Without a live
-// region the update is silent for a screen reader: the page appears not to respond.
-if (!/id="result"[^>]*aria-live="polite"/.test(html)) {
-  throw new Error("accessibility: the result panel must announce itself when it is filled");
-}
-console.log("accessibility validation passed");
+
+for (const page of PAGES) checkAccessibility(page, await read(page));
+console.log(`accessibility validation passed for ${PAGES.length} pages`);

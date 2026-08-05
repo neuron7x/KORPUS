@@ -1,79 +1,56 @@
+import {
+  ApiRefusal, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
+} from "./api.js";
+
 const form = document.querySelector("#query-form");
 const query = document.querySelector("#query");
 const submit = document.querySelector("#submit");
 const result = document.querySelector("#result");
-const apiUrl = window.KORPUS_CONFIG?.apiUrl ?? "/api";
 const tokenInput = document.querySelector("#bearer-token");
 const checkAuth = document.querySelector("#check-auth");
 const login = document.querySelector("#login");
 const logout = document.querySelector("#logout");
 const identityState = document.querySelector("#identity-state");
-let bearerToken = "";
-
-function readCookie(name) {
-  const prefix = `${encodeURIComponent(name)}=`;
-  const item = document.cookie.split("; ").find(value => value.startsWith(prefix));
-  return item ? decodeURIComponent(item.slice(prefix.length)) : "";
-}
-
-function authHeaders(extra = {}, method = "GET") {
-  const headers = {...extra};
-  if (bearerToken) headers.Authorization = `Bearer ${bearerToken}`;
-  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-    const csrf = readCookie("__Host-korpus_csrf");
-    if (csrf) headers["X-CSRF-Token"] = csrf;
-  }
-  return headers;
-}
 
 async function loadIdentity() {
   identityState.textContent = "Перевірка…";
-  const response = await fetch(`${apiUrl}/v1/auth/me`, {
-    headers: authHeaders(),
-    credentials: "same-origin",
-  });
-  if (!response.ok) throw new Error(`API ${response.status}`);
-  const identity = await response.json();
-  identityState.textContent = `${identity.subject} · ${identity.clearance} · ${identity.roles.join(", ")}`;
+  const identity = await call("/v1/auth/me");
+  identityState.textContent = `${identity.subject} · ${identity.clearance} · ${[...identity.roles].join(", ")}`;
   login.hidden = true;
   logout.hidden = false;
   return identity;
 }
 
+function forgetIdentity(message) {
+  clearBearerToken();
+  login.hidden = false;
+  logout.hidden = true;
+  identityState.textContent = message;
+}
+
 checkAuth.addEventListener("click", async () => {
-  bearerToken = tokenInput.value.trim();
+  setBearerToken(tokenInput.value);
   try {
     await loadIdentity();
     tokenInput.value = "";
   } catch (error) {
-    bearerToken = "";
-    identityState.textContent = `Відмова: ${error instanceof Error ? error.message : "невідома помилка"}`;
+    forgetIdentity(`Відмова: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`);
   }
 });
 
 login.addEventListener("click", () => {
-  window.location.assign(`${apiUrl}/v1/auth/login?return_to=${encodeURIComponent(window.location.pathname)}`);
+  window.location.assign(loginUrl(window.location.pathname));
 });
 
 logout.addEventListener("click", async () => {
-  const response = await fetch(`${apiUrl}/v1/auth/logout`, {
-    method: "POST",
-    headers: authHeaders({}, "POST"),
-    credentials: "same-origin",
-  });
-  if (response.ok) {
-    bearerToken = "";
-    login.hidden = false;
-    logout.hidden = true;
-    identityState.textContent = "Не автентифіковано.";
-  } else {
-    identityState.textContent = `Logout відхилено: API ${response.status}`;
+  try {
+    await call("/v1/auth/logout", {method: "POST"});
+    forgetIdentity("Не автентифіковано.");
+  } catch (error) {
+    identityState.textContent =
+      `Logout відхилено: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`;
   }
 });
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
-}
 
 function render(answer) {
   const citations = (answer.citations ?? []).map(citation => `
@@ -100,16 +77,13 @@ form.addEventListener("submit", async event => {
   submit.textContent = "Перевірка…";
   result.classList.add("hidden");
   try {
-    const response = await fetch(`${apiUrl}/v1/answers`, {
-      method: "POST",
-      headers: authHeaders({"Content-Type":"application/json"}, "POST"),
-      credentials: "same-origin",
-      body: JSON.stringify({text: query.value})
-    });
-    if (!response.ok) throw new Error(`API ${response.status}`);
-    render(await response.json());
+    render(await call("/v1/answers", {method: "POST", body: {text: query.value}}));
   } catch (error) {
-    result.innerHTML = `<h2>Помилка</h2><p>${escapeHtml(error instanceof Error ? error.message : "Невідома помилка")}</p>`;
+    // The API answers a withheld question with a reason. Collapsing it to "API 403"
+    // discarded the only part the reader could act on.
+    result.innerHTML = `<h2>Помилка</h2><p>${escapeHtml(
+      error instanceof ApiRefusal ? `${error.status} · ${error.reason}` : "Невідома помилка"
+    )}</p>`;
     result.classList.remove("hidden");
     result.classList.add("error");
   } finally {
@@ -118,10 +92,6 @@ form.addEventListener("submit", async event => {
   }
 });
 
-loadIdentity().catch(() => {
-  login.hidden = false;
-  logout.hidden = true;
-  identityState.textContent = "Не автентифіковано.";
-});
+loadIdentity().catch(() => forgetIdentity("Не автентифіковано."));
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);

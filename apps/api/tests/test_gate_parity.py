@@ -954,3 +954,80 @@ def test_a_failed_generator_does_not_leave_its_previous_report_behind() -> None:
         "the report is removed outside the failure path, so a successful run would "
         "delete the evidence it just produced"
     )
+
+
+def test_the_environment_drift_check_runs_in_the_pipeline() -> None:
+    """OPS-004. A comparator nobody invokes is documentation.
+
+    The check is deliberately in two halves: the pipeline observes its own checkout,
+    which proves the comparator runs and that the manifest describes this tree. It is
+    not evidence about a cluster — that observation has to be taken on the host that is
+    running, and taking it here would fingerprint the build host, which is the failure
+    the check exists to catch, performed by the checker.
+    """
+    script = _ci_script("repository:validate")
+    observe = [line for line in script if "check_environment_drift.py --observe" in line]
+    compare = [line for line in script if "--observation" in line]
+    assert observe, "repository:validate no longer takes an environment observation"
+    assert compare, "repository:validate observes the environment and never compares it"
+    assert script.index(observe[0]) < script.index(compare[0]), (
+        "the comparison runs before the observation it reads"
+    )
+
+
+def test_the_browsers_copy_of_the_request_contract_cannot_go_stale() -> None:
+    """WEB-001. Two copies of the domain rules, and the copy is the one that drifts.
+
+    apps/web/public/contract.js carries the field constraints and the role table the
+    operator consoles validate against. Stale means the forms refuse what the API
+    accepts — a failure nobody reports, because nobody reports a form that would not
+    submit something they never tried to submit.
+    """
+    assert any(
+        "generate_web_contract.py --check" in line
+        for line in _ci_script("repository:validate")
+    ), "repository:validate no longer checks the generated web contract"
+    assert "web-contract-check" in _makefile_prerequisites("web-build"), (
+        "make web-build no longer checks the generated web contract"
+    )
+
+
+def test_the_web_gate_runs_its_own_negative_controls() -> None:
+    """`node --check <file>` exits 0 for any file containing an `import`.
+
+    Verified on node v22.23.1: a file holding both an import and `const y = ;` passes.
+    Two such invocations stood in `npm run lint` until 2026-08-05, so from the moment
+    app.js became a module the web syntax check was inert and kept printing success.
+    The parse now happens inside validate.mjs on stdin with an explicit --input-type,
+    and apps/web/tests/validate_gate.test.mjs mutates a copy of the tree to prove each
+    control can still fail.
+    """
+    package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
+    for name in ("lint", "typecheck"):
+        assert "--check" not in package["scripts"][name], (
+            f"apps/web `{name}` is back to `node --check`, which does not check modules"
+        )
+    assert "node --test" in package["scripts"].get("test", ""), (
+        "apps/web has no test script, so the gate's negative controls never run"
+    )
+    assert any("run test" in line for line in _ci_script("web:test")), (
+        "web:test no longer runs the negative controls for its own gate"
+    )
+    assert "test" in _makefile_recipe("web-build")[1], (
+        "make web-build no longer runs the web test suite"
+    )
+
+
+def test_every_writing_console_previews_before_it_acts() -> None:
+    """WEB-001's acceptance predicate needs the workflows to be safe, not merely present.
+
+    An approval is irreversible and lands on whatever version id the field holds. The
+    submit button ships disabled, a preview enables it, and any edit disables it again
+    — so nothing irreversible fires on a first click.
+    """
+    console = (ROOT / "apps/web/public/console.html").read_text(encoding="utf-8")
+    for workflow in ("ingest", "review", "rescind"):
+        assert f'id="{workflow}-preview"' in console, f"{workflow} has no preview step"
+        assert re.search(rf'id="{workflow}-submit"[^>]*disabled', console), (
+            f"{workflow} can be submitted before anything was previewed"
+        )

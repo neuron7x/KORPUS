@@ -5,9 +5,15 @@ This document records work that cannot be converted into PASS by local code or s
 ## Frozen audit debt counts (reclassified 2026-08-05)
 
 - 75/99 findings remain non-closed in the frozen audit scope.
-- 40 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
+- 44 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
 - 31 are `EXTERNAL_DEBT`: they require independent people, systems, infrastructure or authorization.
-- 4 are `OPEN_TECH_DEBT`: repository engineering work remains.
+- 0 are `OPEN_TECH_DEBT`, as of the second pass on 2026-08-05.
+
+An empty `OPEN_TECH_DEBT` is not an empty debt list. Nothing was deleted: COD-001,
+WEB-001 and OPS-004 moved to `MITIGATED_LOCAL`, which means a control now exists and
+runs, and the part that remains is named below rather than counted as finished. The
+thirty-one `EXTERNAL_DEBT` findings are untouched by any of this — no code in this tree
+can close them, and `production_authorized` stays false.
 
 The counts above were stale for a day. `build_audit_closure.py` classifies by a static
 set, so nine findings closed or mitigated on 2026-08-05 still read as open engineering
@@ -44,13 +50,37 @@ predicate the audit actually states: a trained classifier on a blind set with pe
 precision, recall and worst-group metrics, which needs annotated queries nobody here
 has. That is `MITIGATED_LOCAL`, not closed.
 
-COD-001 moved partly: the audit read side — verification, event lookup, readiness — is
-now `infrastructure/audit_reader.py`, and `SqlRepository` is 1643 lines rather than
-1855. That is the seam the class actually has. Most of the rest cannot be split without
-splitting a transaction: `create_version_bundle` writes rows and their audit event
-atomically, and an abstraction separating them would break that atomicity or leak it.
-Cutting somewhere the class does not part would be the same debt in more files, so the
-finding stays open with its measurement recorded rather than closed by rearrangement.
+COD-001 moved in four steps and is now `MITIGATED_LOCAL`. `SqlRepository` was 1855
+lines; it is 1047. The audit read side went to `infrastructure/audit_reader.py`, the row
+mappers to `row_mapping.py`, and on the second pass the physical schema to `schema.py`
+and the retrieval projection to `retrieval_queries.py`.
+
+The last of those is the one worth reading. Clearance, classification, compartment,
+currency and supersession — the whole access decision at the retrieval layer — are now
+in a module that constructs statements and never opens a connection, so a test can
+compile the projection and read the predicates without a corpus behind it.
+`test_repository_seams.py` holds that line structurally rather than behaviourally: a
+builder that opened its own connection would bypass `_apply_postgres_identity`, the call
+that sets the PostgreSQL row-level security context, and no behavioural test on SQLite
+would notice, because SQLite has no RLS to bypass.
+
+What remains, and why the finding is not `CLOSED_LOCAL`: the acceptance predicate is
+"each module has one responsibility", and the 1047 lines left still carry CRUD, review
+transitions, audit append, readiness and the RLS session context. Those cannot be split
+without splitting a transaction — `create_version_bundle` writes rows and their audit
+event atomically, and an abstraction separating them would break that atomicity or leak
+it. Cutting where the class does not part would be the same debt in more files.
+
+The split also found a defect it had itself created, and this is the part that argues
+for mutation testing over reading. `M05_SQL_CLEARANCE_FILTER_REMOVED` had always passed.
+Its target string, `.where(documents.c.access_tier <= int(identity.clearance))`,
+appeared *twice* in one file — in the retrieval projection and in `list_documents` — so
+a single substitution mutated both, and a retrieval test killed it. Moving the
+projection out left the listing predicate alone in `repository.py`, the mutant applied
+only there, and it survived: `list_documents` would have returned every document in a
+reader's corpora at any tier, and nothing in the suite objected. Two occurrences under
+one mutant is not two covered call sites. Fixed by
+`test_listing_hides_a_document_above_the_readers_clearance` and mutant M130.
 
 The extraction cost six mutants their targets and they went INVALID — the documented
 behaviour, and the reason it is a gate. It also exposed a defect one level up: the
@@ -72,8 +102,64 @@ it is needed rather than during an incident. Executing the plan against a real i
 and embedding service is external evidence, so this is MITIGATED_LOCAL. Mutants
 M153–M155.
 
-Still `OPEN_TECH_DEBT`: COD-001 (the transactional core of SqlRepository), WEB-001
-(reviewer workflows), OPS-004 (environment drift against a real cluster).
+WEB-001 followed: `apps/web/public/console.html` carries role-specific consoles for
+ingestion, durable-job status, quarantine review, approval, rescission, corpus listing,
+span reading and audit inspection, so the acceptance predicate — every critical workflow
+executable without raw DB or API manipulation — is met by the surface that exists.
+
+Three properties make that safe rather than merely possible. Nothing irreversible fires
+on a first click: each writing workflow has a preview that renders the exact payload and
+what it will do to the corpus, submit ships disabled, and the submit path re-compares
+the serialised body rather than trusting a "was previewed" flag — an approval previewed
+against one version id and submitted against another is the failure being prevented. A
+refusal is rendered verbatim with its status, because "something went wrong" is what
+sends an operator back to psql. And the field constraints and the role table are
+*generated* from `contracts/openapi.json` and `policy.py` by
+`scripts/generate_web_contract.py`, drift-gated in the pipeline: a hand-written copy of
+`minLength: 12` is a second copy of the domain rules, and the copy drifts silently in
+the direction nobody reports — a form refusing what the API would accept.
+
+Which console a role sees follows the permissions the server reported, and the page says
+in its own text that hiding a control is not access control. The server refuses
+regardless.
+
+Building it exposed an inert gate. `node --check <file>` exits 0 for *any* file
+containing an `import` statement — verified on node v22.23.1 against a file holding both
+an import and `const y = ;`. Two such invocations were `npm run lint`, so from the moment
+`app.js` became a module the web syntax check stopped checking and kept printing success.
+The parse now happens inside `validate.mjs` on stdin with an explicit `--input-type`, and
+`apps/web/tests/validate_gate.test.mjs` mutates a copy of the tree once per control —
+twenty negative controls — so a check that has stopped checking fails instead of passing
+quietly. A second control had the same shape: the persistent-storage scan matched the
+bare word `localStorage` and therefore tripped on api.js's own comment explaining why a
+token must never go there. A guard that forbids naming the hazard it guards against gets
+the explanation deleted, not the hazard.
+
+What remains for WEB-001, and why it is not `CLOSED_LOCAL`: the finding asks for E2E
+role tests, and driving a real browser through a real OIDC login is not something this
+pipeline runs. What runs instead is every decision the console makes with the DOM taken
+out from under it — 34 tests over role visibility, refusal-before-submit and the
+preview gate. Corpus and entitlement administration is still API-only.
+
+OPS-004 followed: `application/environment_drift.py` compares an observed environment
+against `config/operations/desired-state-v5.json` and distinguishes four answers, not
+two. `IN_SYNC` and `DRIFTED` are the obvious pair; `UNOBSERVED` is the one that matters
+and the one that gets folded into "in sync" by accident, because a reconciler handed a
+partial observation that reports no drift is reporting on whatever subset it happened to
+see — and an artefact deleted from the cluster produces exactly that observation.
+`EXTRA` is separate again: something running that nothing declared was never reviewed at
+all, and calling that "drift" puts it in the same bucket as a version bump.
+
+The check is deliberately two commands. `--observe` fingerprints a deployed tree on the
+host that is running; `--observation` compares the result against the manifest as
+committed. Doing both in one process on the build host would fingerprint the build host,
+which is the failure the check exists to catch, performed by the checker. The pipeline
+runs both against its own checkout: that proves the comparator works and that the
+manifest describes this tree, and it is explicitly not evidence about a cluster.
+
+What remains: taking the observation from a live cluster, and acting on the verdict.
+Detection is here; "reverted/blocked" is the operator's half, and stays external like
+every other integration with a system nobody here operates. Mutants M124–M129.
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 
@@ -106,13 +192,17 @@ PostgreSQL debt below.
 
 ## Open engineering debt
 
-- decomposition of the SQL repository (1855 lines, worst function complexity 23);
-- the repository and kubernetes validators still hold their checks inline;
+- the transactional core of the SQL repository (1047 lines, down from 1855): CRUD,
+  review transitions, audit append, readiness and the RLS session context still share
+  one class, because splitting them splits a transaction;
+- the kubernetes validator still holds its checks inline;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;
 - embedding backfill and model-migration execution against a real index;
-- reviewer/admin web workflows, and contrast/focus-order validation against a rendered page;
+- corpus and entitlement administration in the web consoles; browser-driven E2E role
+  tests; contrast and focus-order validation against a rendered page;
 - a durable telemetry backend and its retention;
-- environment drift and cost/capacity governance against a real cluster;
+- an environment observation taken from a live cluster, admission policy enforcing the
+  drift verdict, and cost/capacity governance;
 - legal review of the declared dependency licenses.
 
 ### Closed 2026-08-05

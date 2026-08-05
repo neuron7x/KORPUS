@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -38,10 +38,33 @@ web-install:
 web-run:
 	npm --prefix apps/web run dev
 
-web-build:
+# `node --check <file>` exits 0 for any file containing an `import`, so the two
+# --check invocations that used to stand here stopped checking anything the moment
+# app.js became a module and kept printing success. The parse now happens inside
+# validate.mjs, on stdin, with an explicit --input-type — and validate_gate.test.mjs
+# mutates a copy of the tree to prove each control can still fail.
+web-build: web-contract-check
 	npm --prefix apps/web run lint
-	npm --prefix apps/web run typecheck
+	npm --prefix apps/web run test
 	npm --prefix apps/web run build
+
+# The browser's copy of the request constraints and the role table, generated from
+# contracts/openapi.json and policy.py. Hand-editing apps/web/public/contract.js creates
+# a second copy of the domain rules; the copy is the one that drifts.
+web-contract:
+	PYTHONPATH=apps/api/src $(PY) scripts/generate_web_contract.py
+
+web-contract-check:
+	PYTHONPATH=apps/api/src $(PY) scripts/generate_web_contract.py --check
+
+# OPS-004. Two commands, because the observation has to be taken on the machine that is
+# running and the comparison made against the manifest as committed. Doing both here
+# would fingerprint the build host, which is the failure the check exists to catch.
+environment-drift:
+	$(PY) scripts/check_environment_drift.py --observation "$(OBSERVATION)"
+
+environment-observe:
+	$(PY) scripts/check_environment_drift.py --observe "$(ROOT)" --out "$(OUT)"
 
 bootstrap:
 	mkdir -p var/objects

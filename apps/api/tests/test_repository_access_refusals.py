@@ -272,3 +272,47 @@ def test_a_version_cannot_be_queued_against_a_document_in_another_corpus(
             path=staged,
             source_hash=hashlib.sha256(CONTENT).hexdigest(),
         )
+
+
+def test_listing_hides_a_document_above_the_readers_clearance(
+    repository: SqlRepository, curator: Identity, tmp_path: Path
+) -> None:
+    """The clearance filter in `list_documents`, exercised where it is written.
+
+    It used to be covered incidentally: the same predicate appeared in the retrieval
+    projection, the mutation catalogue replaced both occurrences at once, and a
+    retrieval test killed the mutant. When the projection moved to
+    retrieval_queries.py on 2026-08-05 the listing predicate was left with nothing
+    holding it — the mutant survived, and the listing would have returned every
+    document a reader's corpora contained, at any tier.
+    """
+    service = IngestionService(
+        repository,
+        LocalObjectStore(tmp_path / "objects"),
+        PolicyEngine(),
+        ExtractionSettings(False, "ukr"),
+    )
+    service.ingest(
+        curator,
+        DocumentCreate(
+            canonical_title="Restricted order",
+            issuer="Test Issuer",
+            corpus_id="public",
+            access_tier=AccessTier.RESTRICTED,
+        ),
+        VersionCreate(revision="1", authority=AuthorityClass.OFFICIAL_UA),
+        "restricted.txt",
+        "text/plain",
+        CONTENT,
+    )
+    reader = Identity(
+        subject="reader",
+        roles=frozenset({"user"}),
+        clearance=AccessTier.AUTHENTICATED,
+        corpora=frozenset({"public"}),
+    )
+
+    assert repository.list_documents(reader) == []
+    assert [d.canonical_title for d in repository.list_documents(curator)] == [
+        "Restricted order"
+    ]

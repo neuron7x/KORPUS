@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090a0c">
+  <meta name="description" content="Operator consoles for the controlled corpus">
+  <link rel="stylesheet" href="/styles.css">
+  <title>КОРПУС / Консолі оператора</title>
+</head>
+<body>
+  <a class="skip-link" href="#consoles">Перейти до консолей</a>
+  <main id="main">
+    <header>
+      <div><strong>КОРПУС</strong><span> / консолі оператора</span></div>
+      <div class="status"><a href="/index.html">До запиту</a></div>
+    </header>
+
+    <section class="authbar" aria-label="Ідентичність">
+      <div class="auth-actions">
+        <button id="login" type="button">Увійти через OIDC</button>
+        <button id="logout" type="button" hidden>Вийти</button>
+      </div>
+      <p id="identity-state" class="limitation" role="status" aria-live="polite">Не автентифіковано.</p>
+      <details>
+        <summary>Developer bearer fallback</summary>
+        <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
+        <div class="query">
+          <input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token">
+          <button id="check-auth" type="button">Перевірити</button>
+        </div>
+      </details>
+      <p class="limitation">
+        Консоль показує лише те, що дозволяє ваша роль. Приховування кнопки не є контролем
+        доступу: рішення ухвалює сервер, і його відмова показується дослівно.
+      </p>
+    </section>
+
+    <h1>Консолі оператора</h1>
+    <div id="consoles">
+      <section id="console-curator" class="panel console" hidden aria-labelledby="curator-heading">
+        <h2 id="curator-heading">Куратор · внесення джерела</h2>
+        <p class="limitation">
+          Внесена версія потрапляє до карантину. Вона не може бути процитована у відповіді,
+          доки рецензент її не затвердить.
+        </p>
+        <form id="ingest-form">
+          <h3>Документ</h3>
+          <label for="doc-title">Канонічна назва</label>
+          <input id="doc-title" name="canonical_title" type="text" required>
+          <label for="doc-issuer">Видавець</label>
+          <input id="doc-issuer" name="issuer" type="text" required>
+          <label for="doc-corpus">Корпус</label>
+          <input id="doc-corpus" name="corpus_id" type="text" value="public">
+          <label for="doc-type">Тип документа</label>
+          <input id="doc-type" name="document_type" type="text" value="reference">
+          <label for="doc-jurisdiction">Юрисдикція</label>
+          <input id="doc-jurisdiction" name="jurisdiction" type="text" value="UA">
+          <label for="doc-classification">Класифікація</label>
+          <select id="doc-classification" name="classification"></select>
+          <label for="doc-tier">Рівень доступу</label>
+          <select id="doc-tier" name="access_tier"></select>
+          <label for="doc-compartments">Відсіки, через кому</label>
+          <input id="doc-compartments" name="compartments" type="text" placeholder="напр. ops-north">
+
+          <h3>Версія</h3>
+          <label for="ver-revision">Редакція</label>
+          <input id="ver-revision" name="revision" type="text" required>
+          <label for="ver-publication-id">Реєстраційний номер</label>
+          <input id="ver-publication-id" name="publication_identifier" type="text">
+          <label for="ver-source-uri">Джерельний URI</label>
+          <input id="ver-source-uri" name="source_uri" type="text">
+          <label for="ver-publication-date">Дата публікації</label>
+          <input id="ver-publication-date" name="publication_date" type="date">
+          <label for="ver-effective-from">Чинний з</label>
+          <input id="ver-effective-from" name="effective_from" type="date">
+          <label for="ver-effective-until">Чинний до</label>
+          <input id="ver-effective-until" name="effective_until" type="date">
+          <label for="ver-authority">Клас джерела</label>
+          <select id="ver-authority" name="authority"></select>
+          <label for="ingest-file">Файл джерела</label>
+          <input id="ingest-file" type="file" required>
+
+          <div class="auth-actions">
+            <button id="ingest-preview" type="button">Показати, що буде записано</button>
+            <button id="ingest-submit" type="submit" disabled>Внести до карантину</button>
+          </div>
+        </form>
+        <div id="ingest-result" class="outcome" role="status" aria-live="polite"></div>
+
+        <form id="job-form">
+          <h3>Стан довготривалого завдання</h3>
+          <p class="limitation">
+            У durable-режимі внесення повертає завдання, а не результат. Без цього
+            перегляду єдиний спосіб дізнатися його стан — запит до API вручну.
+          </p>
+          <label for="job-id">Ідентифікатор завдання</label>
+          <input id="job-id" type="text" required placeholder="UUID завдання">
+          <div class="auth-actions"><button id="job-submit" type="submit">Показати стан</button></div>
+        </form>
+        <div id="job-result" class="outcome" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="console-reviewer" class="panel console" hidden aria-labelledby="reviewer-heading">
+        <h2 id="reviewer-heading">Рецензент · рішення щодо версії</h2>
+        <p class="limitation">
+          Затвердження робить версію придатною до цитування. Рішення та його обґрунтування
+          входять до ланцюга аудиту і не редагуються.
+        </p>
+        <form id="review-form">
+          <h3>Перехід стану</h3>
+          <label for="review-version-id">Ідентифікатор версії</label>
+          <input id="review-version-id" type="text" required placeholder="UUID версії">
+          <label for="review-target">Цільовий стан</label>
+          <select id="review-target"></select>
+          <label for="review-tier">Рівень доступу при затвердженні</label>
+          <select id="review-tier"></select>
+          <label for="review-note">Обґрунтування, що входить до аудиту</label>
+          <textarea id="review-note" required></textarea>
+          <div class="checks">
+            <span><input id="review-ack-duplicate" type="checkbox"><label for="review-ack-duplicate">Підтверджую близький дублікат</label></span>
+            <span><input id="review-ack-extraction" type="checkbox"><label for="review-ack-extraction">Підтверджую якість вилучення тексту</label></span>
+          </div>
+          <div class="auth-actions">
+            <button id="review-preview" type="button">Показати, що буде записано</button>
+            <button id="review-submit" type="submit" disabled>Застосувати рішення</button>
+          </div>
+        </form>
+        <div id="review-result" class="outcome" role="status" aria-live="polite"></div>
+
+        <form id="rescind-form">
+          <h3>Скасування чинності</h3>
+          <p class="limitation">
+            Не є відмовою рецензента: версія лишається затвердженою, але виходить з чинності
+            від указаної миті.
+          </p>
+          <label for="rescind-version-id">Ідентифікатор версії</label>
+          <input id="rescind-version-id" type="text" required placeholder="UUID версії">
+          <label for="rescind-at">Мить втрати чинності</label>
+          <input id="rescind-at" type="datetime-local">
+          <label for="rescind-note">Підстава</label>
+          <textarea id="rescind-note" required></textarea>
+          <div class="auth-actions">
+            <button id="rescind-preview" type="button">Показати, що буде записано</button>
+            <button id="rescind-submit" type="submit" disabled>Вивести з чинності</button>
+          </div>
+        </form>
+        <div id="rescind-result" class="outcome" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="console-corpus" class="panel console" hidden aria-labelledby="corpus-heading">
+        <h2 id="corpus-heading">Корпус · що доступне вашій ідентичності</h2>
+        <p class="limitation">
+          Перелік показує лише документи вашого корпусу, рівня доступу та відсіків. Порожній
+          перелік не означає порожній корпус.
+        </p>
+        <div class="auth-actions"><button id="documents-refresh" type="button">Оновити перелік</button></div>
+        <div id="documents-result" class="outcome" role="status" aria-live="polite"></div>
+
+        <form id="spans-form">
+          <h3>Фрагменти версії на вказану дату</h3>
+          <p class="limitation">
+            Рецензувати зміст, не маючи змоги його прочитати, неможливо. Показано ту саму
+            проєкцію, з якої відповідає пошук: яка редакція чинна — функція дати, тому
+            дата тут є частиною питання, а не оформленням.
+          </p>
+          <label for="spans-version-id">Ідентифікатор версії</label>
+          <input id="spans-version-id" type="text" required placeholder="UUID версії">
+          <label for="spans-as-of">Станом на дату</label>
+          <input id="spans-as-of" type="date">
+          <div class="auth-actions"><button id="spans-submit" type="submit">Показати фрагменти</button></div>
+        </form>
+        <div id="spans-result" class="outcome" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="console-auditor" class="panel console" hidden aria-labelledby="auditor-heading">
+        <h2 id="auditor-heading">Аудитор · цілісність журналу</h2>
+        <p class="limitation">
+          Цілісність ланцюга і актуальність зовнішнього якоря — два різні питання. Якір
+          позаду голови означає недоставлену роботу, а не зламаний журнал.
+        </p>
+        <div class="auth-actions"><button id="audit-verify" type="button">Перевірити ланцюг</button></div>
+        <div id="audit-verify-result" class="outcome" role="status" aria-live="polite"></div>
+        <form id="audit-events-form">
+          <h3>Події одного запиту</h3>
+          <label for="audit-trace">Trace id</label>
+          <input id="audit-trace" type="text" required>
+          <label for="audit-limit">Ліміт подій</label>
+          <input id="audit-limit" type="number" min="1" max="1000" value="200">
+          <div class="auth-actions"><button id="audit-events-submit" type="submit">Показати події</button></div>
+        </form>
+        <div id="audit-events-result" class="outcome" role="status" aria-live="polite"></div>
+      </section>
+
+      <section id="console-none" class="panel console" hidden aria-labelledby="none-heading">
+        <h2 id="none-heading">Немає доступних консолей</h2>
+        <p class="limitation">
+          Ваші ролі не дають жодного операційного дозволу. Це стан системи, а не помилка
+          сторінки.
+        </p>
+      </section>
+    </div>
+  </main>
+  <script src="/config.js"></script>
+  <script type="module" src="/console.js"></script>
+</body>
+</html>

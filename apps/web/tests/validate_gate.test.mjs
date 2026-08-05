@@ -1,0 +1,185 @@
+// Negative controls for the web gate itself.
+//
+// `node scripts/validate.mjs` printing "passed" is evidence only if it is capable of
+// printing anything else. Two of its checks were inert before this file existed: the
+// syntax check exited 0 for every module because `node --check` gives up silently on an
+// `import`, and the persistent-storage scan matched its own comment. Neither was visible
+// from a green run.
+//
+// So each mutation below removes exactly one control from a copy of the tree and asserts
+// the validator refuses. A mutation that survives is a check that was never checking.
+
+import test from "node:test";
+import assert from "node:assert/strict";
+import { cp, mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const WEB = dirname(dirname(fileURLToPath(import.meta.url)));
+
+async function runWith(mutate) {
+  const root = await mkdtemp(join(tmpdir(), "korpus-web-gate-"));
+  try {
+    await cp(join(WEB, "public"), join(root, "public"), {recursive: true});
+    await cp(join(WEB, "scripts"), join(root, "scripts"), {recursive: true});
+    const edit = async (file, transform) => {
+      const path = join(root, file);
+      await writeFile(path, transform(await readFile(path, "utf8")), "utf8");
+    };
+    await mutate(edit, root);
+    const result = spawnSync(process.execPath, [join(root, "scripts/validate.mjs")], {
+      encoding: "utf8",
+    });
+    return {status: result.status, output: `${result.stdout}${result.stderr}`};
+  } finally {
+    await rm(root, {recursive: true, force: true});
+  }
+}
+
+test("the unmutated tree passes, so a failure below means the mutation", async () => {
+  const {status} = await runWith(async () => {});
+  assert.equal(status, 0);
+});
+
+test("a syntax error in a module is caught", async () => {
+  // The control that was inert: `node --check` returns 0 for any file with an import.
+  const {status, output} = await runWith(edit =>
+    edit("public/console.js", source => `${source}\nconst broken = ;\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /syntax check failed for public\/console\.js/);
+});
+
+test("a token written to persistent storage is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/api.js", source => `${source}\nlocalStorage.setItem("t", bearerToken);\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /persistent token storage detected/);
+});
+
+test("a reference taken without a member access is caught", async () => {
+  const {status} = await runWith(edit =>
+    edit("public/console.js", source => `${source}\nconst store = sessionStorage;\n`));
+  assert.notEqual(status, 0);
+});
+
+test("a console calling fetch behind api.js is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.js", source => `${source}\nawait fetch("/api/v1/documents");\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /calls fetch directly/);
+});
+
+test("a console reading cookies directly is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.js", source => `${source}\nconst c = document.cookie;\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /reads cookies directly/);
+});
+
+test("dropping the CSRF header from state-changing requests is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/api.js", source =>
+      source.replace('!["GET", "HEAD", "OPTIONS"].includes(method)', "false")));
+  assert.notEqual(status, 0);
+  assert.match(output, /CSRF header must be attached by method/);
+});
+
+test("a submit button that ships enabled is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace('id="review-submit" type="submit" disabled', 'id="review-submit" type="submit"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /review submit is enabled before anything was previewed/);
+});
+
+test("removing a preview button is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source => source.replace('id="ingest-preview"', 'id="ingest-nothing"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /ingest has no preview/);
+});
+
+test("weakening the preview gate to a boolean is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.js", source =>
+      source.replace("!previewMatches(confirmed, payload.body)", "confirmed === null")));
+  assert.notEqual(status, 0);
+  assert.match(output, /preview gate must compare payloads/);
+});
+
+test("swallowing the refusal reason is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.js", source => source.replaceAll("error.reason", '"помилка"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /refusal reason verbatim/);
+});
+
+test("a hand-written length constraint in the console is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console_rules.js", source => `${source}\nconst NOTE = {minLength: 12};\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /hand-written length constraints/);
+});
+
+test("a hand-copied role table is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console_rules.js", source =>
+      `${source}\nconst ROLE_PERMISSIONS = {curator: ["document:ingest"]};\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /hand-copied role table/);
+});
+
+test("a hand-edited contract.js is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/contract.js", source => source.replace(/^\/\/ Generated by[^\n]*\n/, "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /not the generated artefact/);
+});
+
+test("a form control losing its label is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace('<label for="review-note">Обґрунтування, що входить до аудиту</label>', "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /review-note has no <label for>/);
+});
+
+test("a second h1 on the console page is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source => source.replace("<h2 id=\"curator-heading\"", "<h1 id=\"curator-heading\"")));
+  assert.notEqual(status, 0);
+  assert.match(output, /accessibility \[public\/console\.html\]/);
+});
+
+test("a result panel that cannot announce itself is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace('id="review-result" class="outcome" role="status" aria-live="polite"',
+        'id="review-result" class="outcome"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /review-result panel is filled by script/);
+});
+
+test("removing the statement that hiding is not access control is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace("Приховування кнопки не є контролем", "Кнопки приховано")));
+  assert.notEqual(status, 0);
+  assert.match(output, /hiding a control is not access control/);
+});
+
+test("removing the uncalibrated-score disclaimer is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace("Ranking utility не є ймовірністю правильності", "Оцінка")));
+  assert.notEqual(status, 0);
+  assert.match(output, /uncalibrated score disclaimer missing/);
+});
+
+test("an empty asset is caught", async () => {
+  const {status, output} = await runWith(edit => edit("public/console_rules.js", () => ""));
+  assert.notEqual(status, 0);
+  assert.match(output, /invalid web asset/);
+});

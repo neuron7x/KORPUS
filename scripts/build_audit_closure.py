@@ -55,6 +55,16 @@ MITIGATED_LOCAL = {
     "SUP-009",   # 68/68 licenses read from metadata; legal review is external
     "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
     "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
+    # 2026-08-05, second pass.
+    "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
+                 # tests; the transactional core still carries CRUD, review, audit
+                 # append and readiness, so "one responsibility per module" is not met
+    "WEB-001",   # role-specific consoles cover ingestion, job status, quarantine
+                 # review, approval, rescission, corpus, span reading and audit, each
+                 # with a preview before it acts; a browser-driven E2E suite is not run
+    "OPS-004",   # desired state versus an observed environment, with UNOBSERVED kept
+                 # apart from IN_SYNC; taking the observation from a live cluster and
+                 # reverting on the verdict is the operator's half
 }
 
 EXTERNAL_DEBT = {
@@ -69,10 +79,11 @@ EXTERNAL_DEBT = {
     "OPS-001", "OPS-003", "OPS-005",
 }
 
-OPEN_TECH_DEBT = {
-    "COD-001",
-    "WEB-001", "OPS-004",
-}
+# Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
+# out of here went to MITIGATED_LOCAL or EXTERNAL_DEBT with its residue named in
+# TECHNICAL_DEBT_V5.md, and thirty-one findings remain EXTERNAL_DEBT because no code in
+# this tree can close them.
+OPEN_TECH_DEBT: set[str] = set()
 
 EVIDENCE: dict[str, list[str]] = {
     "GOV-002": [
@@ -282,6 +293,40 @@ EVIDENCE: dict[str, list[str]] = {
         "::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
         "apps/api/tests/test_exception_handling_discipline.py"
         "::test_no_bare_except_hides_which_failure_occurred",
+    ],
+    "COD-001": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py"
+        "::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json",
+    ],
+    "WEB-001": [
+        "apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_web_gate_runs_its_own_negative_controls",
+    ],
+    "OPS-004": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_environment_drift_check_runs_in_the_pipeline",
     ],
     "COD-004": [
         "scripts/check_coverage_thresholds.py",

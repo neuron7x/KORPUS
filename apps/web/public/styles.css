@@ -21,3 +21,61 @@
   font-size: 1rem;
   margin: 0 0 0.35rem;
 }
+
+/* Operator consoles. The query page is one wide column; a console is a form, so the
+   controls are narrower than the page and the outcome sits directly under the button
+   that produced it. */
+.console h2 { font-size: 1.5rem; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+.console h3 { font-size: 1rem; margin: 1.6rem 0 0.6rem; color: var(--accent); letter-spacing: 0.04em; }
+.console h4 { font-size: 0.8rem; margin: 0 0 0.4rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.console form { margin-top: 1rem; max-width: 44rem; }
+.console input[type="text"],
+.console input[type="date"],
+.console input[type="number"],
+.console input[type="datetime-local"],
+.console input[type="file"],
+.console select,
+.console textarea {
+  width: 100%;
+  background: #090a0c;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem;
+  font: inherit;
+  margin-bottom: 0.9rem;
+}
+.console textarea { min-height: 5rem; resize: vertical; }
+.console .auth-actions { margin: 1.2rem 0 0; }
+.console .auth-actions button { min-height: 2.7rem; }
+.checks { display: grid; gap: 0.5rem; margin: 0.4rem 0 0.2rem; }
+.checks span { display: flex; align-items: center; gap: 0.6rem; }
+.checks input { width: auto; margin: 0; }
+.checks label { margin: 0; }
+/* A refusal is a result. It is bordered, not hidden, and it keeps its own colour so an
+   operator can tell at a glance whether the system acted or declined to. */
+.outcome:empty { display: none; }
+.outcome {
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0c0e12;
+}
+.outcome.error { border-color: #7a3030; }
+.outcome pre {
+  margin: 0;
+  overflow-x: auto;
+  font: 12px/1.5 ui-monospace, monospace;
+  color: #d6dae0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.outcome ul { margin: 0; padding-left: 1.1rem; color: #f0b4b4; }
+.refusal { margin: 0 0 0.4rem; color: #f0b4b4; }
+.reason { margin: 0 0 0.6rem; color: var(--muted); line-height: 1.5; }
+.outcome table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.outcome caption { text-align: left; color: var(--muted); font-size: 12px; padding-bottom: 0.6rem; }
+.outcome th, .outcome td { text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); }
+.outcome th { color: var(--muted); font-weight: 600; font-size: 12px; }
+.status a { color: var(--accent); }

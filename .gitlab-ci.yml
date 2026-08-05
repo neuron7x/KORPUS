@@ -58,6 +58,20 @@ repository:validate:
   script:
     - python scripts/openapi_contract.py
     - python scripts/generate_desired_state.py --check
+    # The browser's copy of the request constraints and the role table. Stale means the
+    # operator consoles validate against rules the API no longer has — and that failure
+    # is invisible from the API side, because a form refusing something the server would
+    # accept is never reported by anyone.
+    - python scripts/generate_web_contract.py --check
+    # OPS-004 on the only environment this job can observe: its own checkout. It proves
+    # the comparator runs and that the manifest describes this tree. It is NOT evidence
+    # about a cluster — that observation has to be taken on the running host, and it
+    # stays external.
+    - python scripts/check_environment_drift.py --observe . --out var/environment-observation.json
+    # The observation carries the instant it was taken and is refused past an hour: an
+    # observation taken before a change and compared after it produces a verdict
+    # indistinguishable from a current one.
+    - python scripts/check_environment_drift.py --observation var/environment-observation.json
     - python scripts/generate_supply_chain_inventory.py
     # A ratchet on module size and function complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
@@ -72,6 +86,7 @@ repository:validate:
       - var/kubernetes-validation.json
       - contracts/openapi.json
       - var/supply-chain-inventory.json
+      - var/environment-observation.json
 
 api:test:
   extends: .python-job
@@ -124,7 +139,11 @@ web:test:
   script:
     - npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
     - npm --prefix apps/web run lint
-    - npm --prefix apps/web run typecheck
+    # `run test` is the negative-control suite: it mutates a copy of the tree and
+    # asserts each check in validate.mjs still refuses. Without it a lint that has
+    # stopped checking anything keeps printing "passed" — which is what the two
+    # `node --check` invocations that used to stand here were doing.
+    - npm --prefix apps/web run test
     - npm --prefix apps/web run build
 
 api:assurance:

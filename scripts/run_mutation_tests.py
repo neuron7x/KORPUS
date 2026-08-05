@@ -75,11 +75,26 @@ MUTANTS = (
         ("apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",),
     ),
     Mutant(
+        # Until 2026-08-05 this predicate appeared twice in one file — in the
+        # retrieval projection and in `list_documents` — so a single substitution
+        # mutated both and one retrieval test killed it. Splitting the projection out
+        # left the listing predicate with nothing holding it, and the mutant survived.
+        # Two occurrences under one mutant is not two covered call sites.
         "M05_SQL_CLEARANCE_FILTER_REMOVED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         ".where(documents.c.access_tier <= int(identity.clearance))",
         ".where(documents.c.access_tier <= 3)",
         ("apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",),
+    ),
+    Mutant(
+        "M130_LISTING_CLEARANCE_FILTER_REMOVED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        ".where(documents.c.access_tier <= int(identity.clearance))",
+        ".where(documents.c.access_tier <= 3)",
+        (
+            "apps/api/tests/test_repository_access_refusals.py::"
+            "test_listing_hides_a_document_above_the_readers_clearance",
+        ),
     ),
     Mutant(
         "M06_RELEASE_SCOPE_BROADENED",
@@ -287,21 +302,21 @@ MUTANTS = (
         # can never be restored by `_materialize_current`, so this shift expires an
         # order a day early and the domain never gets to disagree.
         "M29_SQL_VALIDITY_END_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND (v.effective_until IS NULL OR v.effective_until >= :as_of)",
         "AND (v.effective_until IS NULL OR v.effective_until > :as_of)",
         ("apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",),
     ),
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
         "AND COALESCE(v.effective_from, v.publication_date) < :as_of",
         ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
     ),
     Mutant(
         "M31_SQL_RESCISSION_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
         "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)",
         # Behaviourally this one is equivalent — `_materialize_current` re-checks the
@@ -710,7 +725,7 @@ MUTANTS = (
     Mutant(
         "M76_UNCALIBRATED_SCORE_DISCLAIMER_UNGUARDED",
         "apps/web/scripts/validate.mjs",
-        'if (!js.includes("Ranking utility не є ймовірністю правильності")) '
+        'if (!app.includes("Ranking utility не є ймовірністю правильності")) '
         'throw new Error("uncalibrated score disclaimer missing");',
         "",
         (
@@ -773,8 +788,8 @@ MUTANTS = (
     ),
     Mutant(
         "M82_SQL_HONOURS_A_CROSSING_SUPERSESSION_EDGE",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "            .where(superseding.c.document_id == versions.c.document_id)",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "        .where(superseding.c.document_id == versions.c.document_id)",
         "",
         (
             "apps/api/tests/test_foreign_supersession.py::test_a_crossing_edge_already_in_the_database_is_not_honoured",
@@ -873,16 +888,16 @@ MUTANTS = (
     ),
     Mutant(
         "M93_SQL_IGNORES_THE_LOWER_BOUND",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "                  AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
-        "                  AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "              AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
         (
             "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
         ),
     ),
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/schema.py",
         'SCHEMA_REVISION = "0010_revision_identity"',
         'SCHEMA_REVISION = "0009_reviewer_credentials"',
         (
@@ -1526,6 +1541,100 @@ MUTANTS = (
         (
             "apps/api/tests/test_recovery_measurement.py::"
             "test_a_duration_without_provenance_is_not_a_measurement",
+        ),
+    ),
+    # OPS-004. Every one of these turns a finding into a silence, which is the only
+    # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
+    Mutant(
+        "M124_UNOBSERVED_ARTEFACT_TREATED_AS_IN_SYNC",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        if path not in observed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_absent_from_observation_is_unobserved_not_in_sync",
+        ),
+    ),
+    Mutant(
+        "M125_CHANGED_DIGEST_NOT_REPORTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        elif seen != approved:",
+        "        elif False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_changed_digest_is_drift_and_carries_both_sides",
+        ),
+    ),
+    Mutant(
+        "M126_UNREADABLE_ARTEFACT_REPORTED_AS_DRIFT",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        if seen is None:",
+        "        if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_present_but_unreadable_is_unobserved_not_drift",
+        ),
+    ),
+    Mutant(
+        "M127_UNDECLARED_ARTEFACT_IGNORED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    for path in sorted(set(observed) - set(desired)):",
+        "    for path in ():",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_undeclared_artefact_is_extra_not_drift",
+        ),
+    ),
+    Mutant(
+        "M128_DRIFTED_ENVIRONMENT_NOT_BLOCKED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        '    if report.in_sync:\n'
+        '        return False, "the environment matches the approved desired state"',
+        '    if True:\n'
+        '        return False, "the environment matches the approved desired state"',
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_changed_digest_is_drift_and_carries_both_sides",
+        ),
+    ),
+    Mutant(
+        "M131_STALE_OBSERVATION_ACCEPTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if age > max_age_seconds:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_an_observation_past_the_limit_is_refused",
+        ),
+    ),
+    Mutant(
+        "M132_UNDATED_OBSERVATION_ASSUMED_FRESH",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if not observed_at:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_an_observation_without_a_timestamp_is_refused",
+        ),
+    ),
+    Mutant(
+        "M133_NAIVE_TIMESTAMP_ASSUMED_UTC",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if taken.tzinfo is None:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_a_naive_timestamp_is_refused_rather_than_assumed_utc",
+        ),
+    ),
+    Mutant(
+        "M129_EMPTY_DESIRED_STATE_ACCEPTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        '        raise ValueError("desired-state manifest has no records list")',
+        "        return {}",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_manifest_without_records_refuses_rather_than_returning_empty",
         ),
     ),
 )

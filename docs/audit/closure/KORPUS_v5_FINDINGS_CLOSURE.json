@@ -6,8 +6,7 @@
   "counts": {
     "CLOSED_LOCAL": 24,
     "EXTERNAL_DEBT": 31,
-    "MITIGATED_LOCAL": 41,
-    "OPEN_TECH_DEBT": 3
+    "MITIGATED_LOCAL": 44
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -1312,8 +1311,17 @@
       "required_action": "Розділити repositories/UoW: documents, versions, search, audit, health; transactional boundaries explicit.",
       "tools_methods": "Architecture tests; dependency-cruiser equivalent",
       "acceptance_predicate": "Кожен модуль має одну responsibility; security invariants tested across UoW.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json"
+      ],
       "v5_remaining_acceptance": "Кожен модуль має одну responsibility; security invariants tested across UoW."
     },
     {
@@ -1494,8 +1502,15 @@
       "required_action": "Role-specific consoles with safe workflows, validation, reason codes, audit previews.",
       "tools_methods": "Typed web app; E2E role tests",
       "acceptance_predicate": "All critical workflows executable without raw DB/API manipulation.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls"
+      ],
       "v5_remaining_acceptance": "All critical workflows executable without raw DB/API manipulation."
     },
     {
@@ -1713,8 +1728,14 @@
       "required_action": "GitOps/IaC drift detection, admission policy, periodic attestation.",
       "tools_methods": "Terraform plan/OPA/Kyverno/GitOps",
       "acceptance_predicate": "Unauthorized drift detected and reverted/blocked.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py::test_the_environment_drift_check_runs_in_the_pipeline"
+      ],
       "v5_remaining_acceptance": "Unauthorized drift detected and reverted/blocked."
     },
     {

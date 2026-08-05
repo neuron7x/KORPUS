@@ -5,9 +5,9 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 41 | Material control exists; live, corpus, or independent acceptance remains. |
+| MITIGATED_LOCAL | 44 | Material control exists; live, corpus, or independent acceptance remains. |
 | EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
-| OPEN_TECH_DEBT | 3 | Engineering implementation remains open. |
+| OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
 
@@ -65,14 +65,14 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SUP-007 · P1 · EXTERNAL_DEBT** — GitLab branch/tag controls не доведені repository files
 - **SUP-008 · P1 · EXTERNAL_DEBT** — Немає continuous re-scan/patch SLA та KEV policy
 - **SUP-009 · P2 · MITIGATED_LOCAL** — Немає license/compliance inventory
-- **COD-001 · P1 · OPEN_TECH_DEBT** — SqlRepository є infrastructure god object
+- **COD-001 · P1 · MITIGATED_LOCAL** — SqlRepository є infrastructure god object
 - **COD-004 · P1 · MITIGATED_LOCAL** — Branch coverage значно нижча за statement coverage
 - **COD-005 · P1 · MITIGATED_LOCAL** — Mutation score 100% стосується лише 14 hand-selected mutants
 - **COD-006 · P1 · MITIGATED_LOCAL** — Немає parser/API fuzzing
 - **COD-007 · P2 · MITIGATED_LOCAL** — mypy і Ruff policies слабкі для critical system
 - **COD-008 · P2 · MITIGATED_LOCAL** — Web lint/typecheck є лише asset-existence validator
 - **COD-009 · P2 · MITIGATED_LOCAL** — Критичні модулі мають низьке покриття
-- **WEB-001 · P1 · OPEN_TECH_DEBT** — UI покриває лише запит-відповідь
+- **WEB-001 · P1 · MITIGATED_LOCAL** — UI покриває лише запит-відповідь
 - **WEB-002 · P2 · EXTERNAL_DEBT** — Немає accessibility/usability evidence
 - **AUD-001 · P1 · MITIGATED_LOCAL** — Audit HMAC key доступний application process
 - **AUD-002 · P1 · MITIGATED_LOCAL** — Remote anchor protocol custom HTTP/HMAC
@@ -84,5 +84,5 @@ This register classifies all 99 v4 findings without converting missing external 
 - **DATA-004 · P1 · MITIGATED_LOCAL** — Немає continuous inventory/reconciliation object store↔DB↔index
 - **OPS-001 · P2 · EXTERNAL_DEBT** — Немає доказу reproducible container build
 - **OPS-003 · P2 · EXTERNAL_DEBT** — Немає release evidence retention policy
-- **OPS-004 · P2 · OPEN_TECH_DEBT** — Немає environment drift detection
+- **OPS-004 · P2 · MITIGATED_LOCAL** — Немає environment drift detection
 - **OPS-005 · P2 · EXTERNAL_DEBT** — Немає cost/capacity governance
