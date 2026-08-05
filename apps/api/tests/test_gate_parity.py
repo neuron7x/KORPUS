@@ -215,16 +215,22 @@ def test_the_repository_walk_skips_everything_gitignore_excludes() -> None:
         for line in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
         if line.strip().endswith("/") and not line.strip().startswith("#")
     }
-    source = (ROOT / "scripts/validate_repository.py").read_text(encoding="utf-8")
+    source = (ROOT / "apps/api/src/korpus/repository_requirements.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     skip: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign) and any(
             isinstance(t, ast.Name) and t.id == "SKIP_PARTS" for t in node.targets
         ):
+            # `frozenset({...})` is a Call whose argument holds the elements, while a
+            # bare `{...}` holds them directly. Reading only the second silently
+            # produced an empty set when the constant was wrapped.
+            value = node.value
+            if isinstance(value, ast.Call) and value.args:
+                value = value.args[0]
             skip = {
                 element.value
-                for element in getattr(node.value, "elts", [])
+                for element in getattr(value, "elts", [])
                 if isinstance(element, ast.Constant) and isinstance(element.value, str)
             }
     assert skip, "SKIP_PARTS is no longer a literal set — this test cannot read it"

@@ -215,6 +215,10 @@
       "lines": 245,
       "max_complexity": 30
     },
+    "apps/api/src/korpus/repository_requirements.py": {
+      "lines": null,
+      "max_complexity": 18
+    },
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
       "max_complexity": 0
@@ -292,7 +296,7 @@
       "max_complexity": 7
     },
     "scripts/export_requirements.py": {
-      "lines": 87,
+      "lines": 91,
       "max_complexity": 8
     },
     "scripts/generate_desired_state.py": {
@@ -376,8 +380,8 @@
       "max_complexity": 10
     },
     "scripts/validate_repository.py": {
-      "lines": 204,
-      "max_complexity": 33
+      "lines": 51,
+      "max_complexity": 4
     },
     "scripts/verify_audit.py": {
       "lines": 9,
@@ -440,10 +444,21 @@
         "worst_function": "main"
       },
       "reason": "the forbidden-construct check now reads directives instead of raw text, after the comment documenting the privileged-mode ban tripped that ban"
+    },
+    {
+      "path": "scripts/export_requirements.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 91,
+        "max_complexity": 8,
+        "worst_function": "main"
+      },
+      "reason": "the export gained the repository register as a third source"
     }
   ],
   "line_exempt": {
     "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry.",
-    "apps/api/src/korpus/infrastructure_requirements.py": "A register of requirements is data. It grows by one entry every time the system states another property about itself, which is the behaviour the ratchet exists to encourage. Complexity stays capped."
+    "apps/api/src/korpus/infrastructure_requirements.py": "A register of requirements is data. It grows by one entry every time the system states another property about itself, which is the behaviour the ratchet exists to encourage. Complexity stays capped.",
+    "apps/api/src/korpus/repository_requirements.py": "A register of requirements is data; it grows by one entry per property the system states about itself. Complexity stays capped."
   }
 }

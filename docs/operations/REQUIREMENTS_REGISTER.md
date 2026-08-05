@@ -2,7 +2,7 @@
 
 Згенеровано `scripts/export_requirements.py`. Не редагувати вручну — джерело це `korpus/infrastructure_requirements.py` та `korpus/controlled_requirements.py`.
 
-Усього вимог: **157**.
+Усього вимог: **258**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -202,3 +202,109 @@
 | `packaging.from_committed_tree` | the release archive originates from the committed Git tree | packaging a working directory ships whatever happened to be lying in it |
 | `packaging.rejects_stale_evidence` | packaging refuses stale assurance evidence | — |
 | `packaging.replaces_reports` | packaging replaces committed reports instead of nesting stale evidence | — |
+
+## repository
+
+| id | вимога | чому |
+|---|---|---|
+| `repo.closure.classifies_every_finding` | the audit closure classifies exactly 99 source findings | a finding dropped from the register is a finding nobody has to answer for |
+| `repo.closure.counts_sum` | the closure status counts sum to 99 | counts that do not sum mean a finding is in two states or none |
+| `repo.closure.target_release` | the audit closure targets v5.0.0 | — |
+| `repo.file.agents_md` | AGENTS.md is present | — |
+| `repo.file.apps_api_pyproject_toml` | apps/api/pyproject.toml is present | — |
+| `repo.file.apps_api_requirements_dev_lock` | apps/api/requirements.dev.lock is present | — |
+| `repo.file.apps_api_requirements_runtime_lock` | apps/api/requirements.runtime.lock is present | — |
+| `repo.file.apps_api_src_korpus_infrastructure_ingestion_jobs_py` | apps/api/src/korpus/infrastructure/ingestion_jobs.py is present | — |
+| `repo.file.apps_api_src_korpus_infrastructure_parser_worker_py` | apps/api/src/korpus/infrastructure/parser_worker.py is present | — |
+| `repo.file.apps_api_src_korpus_main_py` | apps/api/src/korpus/main.py is present | — |
+| `repo.file.apps_api_src_korpus_security_browser_oidc_py` | apps/api/src/korpus/security/browser_oidc.py is present | — |
+| `repo.file.apps_api_src_korpus_security_corpus_governance_py` | apps/api/src/korpus/security/corpus_governance.py is present | — |
+| `repo.file.apps_api_src_korpus_security_entitlements_py` | apps/api/src/korpus/security/entitlements.py is present | — |
+| `repo.file.apps_api_src_korpus_security_reviewers_py` | apps/api/src/korpus/security/reviewers.py is present | — |
+| `repo.file.apps_api_src_korpus_security_scanning_py` | apps/api/src/korpus/security/scanning.py is present | — |
+| `repo.file.apps_api_src_korpus_security_source_authenticity_py` | apps/api/src/korpus/security/source_authenticity.py is present | — |
+| `repo.file.apps_web_package_json` | apps/web/package.json is present | — |
+| `repo.file.config_operations_desired_state_v5_json` | config/operations/desired-state-v5.json is present | — |
+| `repo.file.config_operations_reference_v5_json` | config/operations/reference-v5.json is present | — |
+| `repo.file.contracts_openapi_json` | contracts/openapi.json is present | — |
+| `repo.file.deploy_kubernetes_base_kustomization_yaml` | deploy/kubernetes/base/kustomization.yaml is present | — |
+| `repo.file.deploy_kubernetes_overlays_production_kustomization_yaml` | deploy/kubernetes/overlays/production/kustomization.yaml is present | — |
+| `repo.file.distribution_contents_md` | DISTRIBUTION_CONTENTS.md is present | — |
+| `repo.file.docker_compose_yml` | docker-compose.yml is present | — |
+| `repo.file.dockerignore` | .dockerignore is present | — |
+| `repo.file.docs_architecture_security_md` | docs/architecture/SECURITY.md is present | — |
+| `repo.file.docs_architecture_system_v5_md` | docs/architecture/SYSTEM_V5.md is present | — |
+| `repo.file.docs_assurance_assurance_case_md` | docs/assurance/ASSURANCE_CASE.md is present | — |
+| `repo.file.docs_assurance_first_principles_md` | docs/assurance/FIRST_PRINCIPLES.md is present | — |
+| `repo.file.docs_assurance_test_strategy_md` | docs/assurance/TEST_STRATEGY.md is present | — |
+| `repo.file.docs_audit_closure_korpus_v5_closure_summary_md` | docs/audit/closure/KORPUS_v5_CLOSURE_SUMMARY.md is present | — |
+| `repo.file.docs_audit_closure_korpus_v5_findings_closure_csv` | docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.csv is present | — |
+| `repo.file.docs_audit_closure_korpus_v5_findings_closure_json` | docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json is present | — |
+| `repo.file.docs_audit_closure_korpus_v5_remaining_debt_csv` | docs/audit/closure/KORPUS_v5_REMAINING_DEBT.csv is present | — |
+| `repo.file.docs_audit_closure_korpus_v5_remaining_debt_json` | docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json is present | — |
+| `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_docx` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.docx is present | — |
+| `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_md` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.md is present | — |
+| `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_pdf` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.pdf is present | — |
+| `repo.file.docs_audit_source_korpus_v4_extended_audit_package_2026_08_01_zip` | docs/audit/source/KORPUS_v4_EXTENDED_AUDIT_PACKAGE_2026-08-01.zip is present | — |
+| `repo.file.docs_audit_source_korpus_v4_findings_register_2026_08_01_json` | docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json is present | — |
+| `repo.file.docs_governance_ai_system_card_v5_md` | docs/governance/AI_SYSTEM_CARD_V5.md is present | — |
+| `repo.file.docs_governance_authorization_package_v5_md` | docs/governance/AUTHORIZATION_PACKAGE_V5.md is present | — |
+| `repo.file.docs_governance_data_handling_standard_v5_md` | docs/governance/DATA_HANDLING_STANDARD_V5.md is present | — |
+| `repo.file.docs_operations_slo_and_release_policy_v5_md` | docs/operations/SLO_AND_RELEASE_POLICY_V5.md is present | — |
+| `repo.file.docs_operations_technical_debt_v5_md` | docs/operations/TECHNICAL_DEBT_V5.md is present | — |
+| `repo.file.docs_operations_tevv_plan_v5_md` | docs/operations/TEVV_PLAN_V5.md is present | — |
+| `repo.file.docs_security_key_and_break_glass_v5_md` | docs/security/KEY_AND_BREAK_GLASS_V5.md is present | — |
+| `repo.file.docs_security_threat_model_v5_md` | docs/security/THREAT_MODEL_V5.md is present | — |
+| `repo.file.evals_datasets_frozen_jsonl` | evals/datasets/frozen.jsonl is present | — |
+| `repo.file.evals_evaluation_protocol_md` | evals/EVALUATION_PROTOCOL.md is present | — |
+| `repo.file.final_package_contents_md` | FINAL_PACKAGE_CONTENTS.md is present | — |
+| `repo.file.gitlab_ci_yml` | .gitlab-ci.yml is present | — |
+| `repo.file.gitlab_codeowners` | .gitlab/CODEOWNERS is present | — |
+| `repo.file.gitlab_import_md` | GITLAB_IMPORT.md is present | — |
+| `repo.file.infra_minio_korpus_app_policy_json` | infra/minio/korpus-app-policy.json is present | — |
+| `repo.file.packages_contracts_answer_schema_json` | packages/contracts/answer.schema.json is present | — |
+| `repo.file.pytest_ini` | pytest.ini is present | — |
+| `repo.file.readme_md` | README.md is present | — |
+| `repo.file.scripts_assemble_assurance_py` | scripts/assemble_assurance.py is present | — |
+| `repo.file.scripts_backup_crypto_py` | scripts/backup_crypto.py is present | — |
+| `repo.file.scripts_backup_manifest_py` | scripts/backup_manifest.py is present | — |
+| `repo.file.scripts_backup_postgres_sh` | scripts/backup_postgres.sh is present | — |
+| `repo.file.scripts_build_audit_closure_py` | scripts/build_audit_closure.py is present | — |
+| `repo.file.scripts_build_system_manifest_py` | scripts/build_system_manifest.py is present | — |
+| `repo.file.scripts_generate_desired_state_py` | scripts/generate_desired_state.py is present | — |
+| `repo.file.scripts_generate_supply_chain_inventory_py` | scripts/generate_supply_chain_inventory.py is present | — |
+| `repo.file.scripts_openapi_contract_py` | scripts/openapi_contract.py is present | — |
+| `repo.file.scripts_package_repository_sh` | scripts/package_repository.sh is present | — |
+| `repo.file.scripts_restore_postgres_sh` | scripts/restore_postgres.sh is present | — |
+| `repo.file.scripts_run_evals_py` | scripts/run_evals.py is present | — |
+| `repo.file.scripts_run_migration_gate_py` | scripts/run_migration_gate.py is present | — |
+| `repo.file.scripts_run_mutation_shards_sh` | scripts/run_mutation_shards.sh is present | — |
+| `repo.file.scripts_run_mutation_tests_py` | scripts/run_mutation_tests.py is present | — |
+| `repo.file.scripts_run_operational_gate_py` | scripts/run_operational_gate.py is present | — |
+| `repo.file.scripts_run_research_assurance_py` | scripts/run_research_assurance.py is present | — |
+| `repo.file.scripts_run_scale_probe_py` | scripts/run_scale_probe.py is present | — |
+| `repo.file.scripts_snapshot_assurance_py` | scripts/snapshot_assurance.py is present | — |
+| `repo.file.scripts_source_digest_py` | scripts/source_digest.py is present | — |
+| `repo.file.scripts_validate_infrastructure_py` | scripts/validate_infrastructure.py is present | — |
+| `repo.file.scripts_validate_kubernetes_py` | scripts/validate_kubernetes.py is present | — |
+| `repo.file.scripts_verify_postgres_restore_py` | scripts/verify_postgres_restore.py is present | — |
+| `repo.file.scripts_verify_release_evidence_py` | scripts/verify_release_evidence.py is present | — |
+| `repo.file.security_md` | SECURITY.md is present | — |
+| `repo.file.verification_report_v5_md` | VERIFICATION_REPORT_V5.md is present | — |
+| `repo.json_documents_parse` | every shipped JSON contract and schema parses | a contract that does not parse is a contract nothing enforces |
+| `repo.migration.0001_initial_py` | migration 0001_initial.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0002_database_defense_and_vectors_py` | migration 0002_database_defense_and_vectors.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0003_infrastructure_hardening_py` | migration 0003_infrastructure_hardening.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0004_compartmented_authorization_py` | migration 0004_compartmented_authorization.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0005_durable_ingestion_jobs_py` | migration 0005_durable_ingestion_jobs.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0006_source_authenticity_py` | migration 0006_source_authenticity.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0007_near_duplicate_governance_py` | migration 0007_near_duplicate_governance.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0008_extraction_quality_governance_py` | migration 0008_extraction_quality_governance.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.migration.0009_reviewer_credentials_py` | migration 0009_reviewer_credentials.py is present | a migration missing from the tree is a schema step nobody can apply or review |
+| `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
+| `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
+| `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
+| `repo.version.api_pyproject` | api_pyproject declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
+| `repo.version.readme_header` | readme_header declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
+| `repo.version.runtime_dunder` | runtime_dunder declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
+| `repo.version.web_package` | web_package declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |

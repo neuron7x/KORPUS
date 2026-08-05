@@ -182,3 +182,49 @@ def test_every_required_service_carries_the_full_hardening_set() -> None:
     for service in REQUIRED_SERVICES:
         for check in ("present", "unprivileged", "no_new_privileges", "resource_ceiling"):
             assert f"compose.{service}.{check}" in identifiers, f"{service} misses {check}"
+
+
+def test_the_shipped_repository_register_is_satisfied() -> None:
+    """The second validator, same shape, same dual."""
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    report = evaluate_requirements(REPOSITORY_REQUIREMENTS, load_repository_context(ROOT))
+
+    assert report.satisfied, [failure.id for failure in report.unmet]
+    assert report.total >= 90
+
+
+def test_ids_are_unique_across_every_register() -> None:
+    """The registers are separate files and one document; a collision spans them.
+
+    Uniqueness inside each was already asserted. Two registers each internally clean
+    can still both define `repo.file.readme`, and the id is how a requirement is cited
+    — the ambiguity would live in the export, not in either source.
+    """
+    from korpus.controlled_requirements import CONTROLLED_REQUIREMENTS
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS
+
+    everything = [
+        *INFRASTRUCTURE_REQUIREMENTS,
+        *REPOSITORY_REQUIREMENTS,
+        *[
+            _requirement(f"controlled.{requirement.name}", lambda _: True)
+            for requirement in CONTROLLED_REQUIREMENTS
+        ],
+    ]
+
+    assert duplicate_ids(everything) == []
+
+
+def test_one_walk_answers_every_filesystem_question() -> None:
+    """Three requirements read one traversal; three traversals would answer the same
+    question three times over thirteen thousand paths."""
+    from korpus.repository_requirements import load_context as load_repository_context
+
+    context = load_repository_context(ROOT)
+
+    assert context.path_count > 1000
+    assert context.oversized == []
+    assert context.placeholders == []
+    assert context.tracked_secrets == []

@@ -5,9 +5,9 @@
 list of properties it claims — not a program that produces that list as a side effect
 of running, and not a hundred `if` statements to be traced.
 
-Two registers feed it: the infrastructure substrate, and the conditions under which a
-controlled deployment may run at all. They were separate accidents of where the code
-happened to live; to a reader they are one document.
+Three registers feed it: the infrastructure substrate, the repository contract, and the
+conditions under which a controlled deployment may run at all. They were separate
+accidents of where the code happened to live; to a reader they are one document.
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 from korpus.application.requirements import as_catalogue, duplicate_ids  # noqa: E402
 from korpus.controlled_requirements import CONTROLLED_REQUIREMENTS  # noqa: E402
 from korpus.infrastructure_requirements import INFRASTRUCTURE_REQUIREMENTS  # noqa: E402
+from korpus.repository_requirements import REPOSITORY_REQUIREMENTS  # noqa: E402
 
 OUTPUT = ROOT / "docs/operations/REQUIREMENTS_REGISTER.md"
 
@@ -36,12 +37,15 @@ def main() -> int:
         for requirement in CONTROLLED_REQUIREMENTS
     ]
     infrastructure = as_catalogue(INFRASTRUCTURE_REQUIREMENTS)
-    duplicates = duplicate_ids(INFRASTRUCTURE_REQUIREMENTS)
+    repository = as_catalogue(REPOSITORY_REQUIREMENTS)
+    duplicates = duplicate_ids(
+        (*INFRASTRUCTURE_REQUIREMENTS, *REPOSITORY_REQUIREMENTS)
+    )
     if duplicates:
         print(json.dumps({"status": "FAIL", "duplicate_ids": duplicates}, indent=2))
         return 1
 
-    entries = infrastructure + controlled
+    entries = infrastructure + repository + controlled
     subjects: dict[str, list[dict[str, str]]] = {}
     for entry in entries:
         subjects.setdefault(str(entry["subject"]), []).append(entry)

@@ -1139,6 +1139,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
+        "apps/api/src/korpus/repository_requirements.py",
+        '        if relative.startswith("infra/secrets/") and path.suffix == ".txt":',
+        "        if False:",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
+    ),
+    Mutant(
+        "M147_OVERSIZED_FILE_UNDETECTED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "        if path.stat().st_size > MAX_FILE_BYTES:",
+        "        if False:",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_an_oversized_file_is_detected",
+        ),
+    ),
+    Mutant(
+        "M148_UNRESOLVED_PLACEHOLDER_UNDETECTED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "            if any(pattern.search(text) for pattern in PLACEHOLDER_PATTERNS):",
+        "            if False:",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_an_unresolved_placeholder_is_detected",
+        ),
+    ),
+    Mutant(
         "M143_REQUIREMENTS_STOP_AT_THE_FIRST_FAILURE",
         "apps/api/src/korpus/application/requirements.py",
         "    unmet = tuple(requirement for requirement in listed "
