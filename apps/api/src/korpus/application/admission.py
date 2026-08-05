@@ -31,12 +31,14 @@ from pathlib import Path
 from typing import Any
 
 from korpus.application.evidence_registry import verify_references
+from korpus.security.attestors import AttestorRegistry
 
 #: Grounds of these classes cannot be cleared from inside the repository.
 EXTERNAL_KINDS = frozenset({"external_assessment", "owner_decision", "measurement"})
 KNOWN_KINDS = EXTERNAL_KINDS | {"engineering"}
 REQUIRED_ATTESTATION_FIELDS = ("document", "sha256", "signed_by", "signed_at")
 DIGEST_PATTERN = re.compile(r"[0-9a-f]{64}")
+ATTESTOR_REGISTRY = Path("config/operations/attestor-keys.json")
 #: Signers who cannot make an assessment independent, because they are the assessed.
 #: Matched as substrings and case-folded: the register is written in Ukrainian and the
 #: point is to refuse the obvious self-signature, not to enumerate every phrasing.
@@ -77,7 +79,9 @@ def load_register(path: Path) -> Mapping[str, Any]:
     return value
 
 
-def _attestation_problems(root: Path, ground: Mapping[str, Any]) -> list[str]:
+def _attestation_problems(
+    root: Path, ground: Mapping[str, Any], registry: AttestorRegistry | None
+) -> list[str]:
     """Whether the attestation refers to anything, or is four filled-in fields.
 
     Until 2026-08-05 this asked only whether the fields were *present*. Setting every
@@ -132,7 +136,29 @@ def _attestation_problems(root: Path, ground: Mapping[str, Any]) -> list[str]:
         if signed > date.today():
             problems.append(f"{identifier}: signed_at is in the future: {signed_at}")
 
-    # (4) An independent assessment is not independent when the engineering that built
+    # (4) The signature. Everything above is satisfied by anyone with write access to
+    #     this repository: write a PDF, compute its sha256, type an organisation's name
+    #     into signed_by. An Ed25519 signature over the attestation's own content is
+    #     what the named party has to have produced, and the private key is not here.
+    #     The registry is optional at load time so a tree without one still reports the
+    #     other four problems rather than crashing; a missing registry cannot clear a
+    #     ground, because an unsigned attestation is refused.
+    if registry is not None:
+        problems.extend(
+            registry.verify(
+                ground_id=str(identifier),
+                ground_kind=str(ground.get("kind")),
+                attestation=dict(attestation),
+                document_sha256=digest,
+            )
+        )
+    else:
+        problems.append(
+            f"{identifier}: no attestor registry is configured, so no signature on this "
+            "attestation can be verified"
+        )
+
+    # (5) An independent assessment is not independent when the engineering that built
     #     the system signs it. §2.5 exists precisely because the internal tests were
     #     written by the process that wrote the code; a self-signed report restates the
     #     position the ground was raised against. Owner decisions are exempt — there the
@@ -148,13 +174,34 @@ def _attestation_problems(root: Path, ground: Mapping[str, Any]) -> list[str]:
     return problems
 
 
-def evaluate_admission(root: Path, register: Mapping[str, Any]) -> AdmissionVerdict:
-    """Decide from the register, reporting every reason rather than the first."""
+def _load_registry(root: Path) -> AttestorRegistry | None:
+    path = root / ATTESTOR_REGISTRY
+    if not path.is_file():
+        return None
+    try:
+        return AttestorRegistry.load(path)
+    except ValueError:
+        return None
+
+
+def evaluate_admission(
+    root: Path,
+    register: Mapping[str, Any],
+    registry: AttestorRegistry | None = None,
+) -> AdmissionVerdict:
+    """Decide from the register, reporting every reason rather than the first.
+
+    `registry` is read from the tree when not supplied. It is a parameter so a test can
+    state what a correctly enrolled attestor would produce without enrolling one here —
+    enrolling a key is an act of whoever accepts the system, not an edit a developer
+    makes to make a test pass.
+    """
 
     problems: list[str] = []
     open_grounds: list[str] = []
     cleared: list[str] = []
     seen: set[str] = set()
+    registry = registry if registry is not None else _load_registry(root)
 
     for ground in register["grounds"]:
         identifier = str(ground.get("id", "")).strip()
@@ -183,7 +230,7 @@ def evaluate_admission(root: Path, register: Mapping[str, Any]) -> AdmissionVerd
                 f"{identifier}: {message}" for message in verify_references(root, evidence)
             )
         if kind in EXTERNAL_KINDS:
-            problems.extend(_attestation_problems(root, ground))
+            problems.extend(_attestation_problems(root, ground, registry))
         cleared.append(identifier)
 
     authorized = not open_grounds and not problems

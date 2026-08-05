@@ -24,8 +24,8 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/application/admission.py": {
-      "lines": 195,
-      "max_complexity": 14
+      "lines": 242,
+      "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
       "lines": 660,
@@ -382,6 +382,10 @@
     "scripts/wait_for_database.py": {
       "lines": 27,
       "max_complexity": 0
+    },
+    "apps/api/src/korpus/security/attestors.py": {
+      "lines": 176,
+      "max_complexity": 17
     }
   },
   "raised": [

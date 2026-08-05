@@ -23,6 +23,7 @@ pressure to ship, would clear a ground they had not actually cleared.
 
 from __future__ import annotations
 
+import base64
 import copy
 import hashlib
 import json
@@ -52,6 +53,76 @@ def _attested(tmp_path: Path, **overrides: Any) -> dict[str, Any]:
     }
     attestation.update(overrides)
     return attestation
+
+
+def _enrolled_assessor():
+    """A registry with one external assessor, as it would look after enrolment."""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from korpus.security.attestors import AttestorKey, AttestorRegistry
+
+    private = Ed25519PrivateKey.generate()
+    public = base64.b64encode(
+        private.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+        )
+    ).decode("ascii")
+    registry = AttestorRegistry(
+        registry_id="attestors-under-test",
+        keys={
+            "assessor-key": AttestorKey(
+                key_id="assessor-key",
+                organisation="Незалежна організація з безпекової оцінки",
+                role="external_assessor",
+                public_key_b64=public,
+                enrolled_by="власник процесу",
+            )
+        },
+    )
+    return registry, private
+
+
+def _enrolled_all_roles():
+    """One enrolled key per role, as a real registry would carry.
+
+    Roles are not interchangeable: an external assessor cannot sign an owner decision,
+    which is the point of registering a role at all. A fixture with one key would have
+    hidden that by testing only the class its single key happened to match.
+    """
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from korpus.security.attestors import AttestorKey, AttestorRegistry
+
+    keys: dict[str, Any] = {}
+    privates: dict[str, Any] = {}
+    for role in ("external_assessor", "process_owner", "corpus_owner"):
+        private = Ed25519PrivateKey.generate()
+        public = base64.b64encode(
+            private.public_key().public_bytes(
+                encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
+            )
+        ).decode("ascii")
+        keys[f"{role}-key"] = AttestorKey(
+            key_id=f"{role}-key",
+            organisation=f"Організація ({role})",
+            role=role,
+            public_key_b64=public,
+            enrolled_by="власник процесу",
+        )
+        privates[role] = private
+    return AttestorRegistry(registry_id="attestors-all-roles", keys=keys), privates
+
+
+def _sign(private: Any, ground_id: str, attestation: dict[str, Any]) -> str:
+    from korpus.security.attestors import AttestorRegistry
+
+    payload = AttestorRegistry.signed_payload(
+        ground_id=ground_id,
+        document_sha256=attestation["sha256"],
+        signed_by=attestation["signed_by"],
+        signed_at=attestation["signed_at"],
+    )
+    return base64.b64encode(private.sign(payload)).decode("ascii")
 
 
 def _cleared(register: dict[str, Any], ground_id: str, attestation: Any) -> dict[str, Any]:
@@ -139,13 +210,20 @@ def test_an_independent_assessment_signed_by_the_engineering_owner_is_refused(
 def test_a_correctly_attested_ground_is_accepted(tmp_path: Path) -> None:
     """The rules must be satisfiable, or they are a refusal wearing a procedure.
 
-    A real document, a matching digest, a past date and a signer who is not the
-    engineering that built the thing: that clears the ground, and the remaining open
-    grounds keep the verdict false — which is the correct outcome, not a failure.
-    """
-    forged = _cleared(_register(), "2.5", _attested(tmp_path))
+    A real document, a matching digest, a past date, a signer who is not the party
+    assessed, and a signature from an enrolled key: that clears the ground, and the
+    remaining open grounds keep the verdict false — the correct outcome, not a failure.
 
-    verdict = evaluate_admission(ROOT, forged)
+    The attestor is enrolled in a registry constructed here rather than in the shipped
+    one, because enrolling a key is an act of whoever accepts the system.
+    """
+    registry, private = _enrolled_assessor()
+    attestation = _attested(tmp_path)
+    attestation["key_id"] = "assessor-key"
+    attestation["signature_b64"] = _sign(private, "2.5", attestation)
+    forged = _cleared(_register(), "2.5", attestation)
+
+    verdict = evaluate_admission(ROOT, forged, registry)
 
     assert "2.5" in verdict.cleared_grounds
     assert not any(problem.startswith("2.5") for problem in verdict.problems), verdict.problems

@@ -28,6 +28,12 @@ from typing import Any
 import pytest
 from korpus.application.admission import evaluate_admission, load_register
 
+from apps.api.tests.test_admission_cannot_be_self_granted import (
+    _enrolled_all_roles,
+    _enrolled_assessor,
+    _sign,
+)
+
 REGISTER = Path("config/operations/admission-grounds.json")
 ROOT = Path(".")
 
@@ -84,6 +90,7 @@ def test_an_external_ground_with_a_complete_attestation_is_accepted(tmp_path) ->
     attestation must refer to a file that exists and whose digest matches, so a test
     that names a path nobody wrote would be asserting the old, forgeable contract.
     """
+    registry, private = _enrolled_assessor()
     document = tmp_path / "external-assessment-2026-09.pdf"
     document.write_bytes(b"independent assessment report")
     register = _register()
@@ -91,14 +98,17 @@ def test_an_external_ground_with_a_complete_attestation_is_accepted(tmp_path) ->
         if ground["id"] == "2.5":
             ground["status"] = "cleared"
             ground["evidence"] = ["docs/operations/ADMISSION_BOUNDARY_2026-08-03.md"]
-            ground["attestation"] = {
+            attestation = {
                 "document": str(document),
                 "sha256": hashlib.sha256(document.read_bytes()).hexdigest(),
                 "signed_by": "Assessment Organisation",
                 "signed_at": "2026-08-01",
+                "key_id": "assessor-key",
             }
+            attestation["signature_b64"] = _sign(private, "2.5", attestation)
+            ground["attestation"] = attestation
 
-    verdict = evaluate_admission(ROOT, register)
+    verdict = evaluate_admission(ROOT, register, registry)
 
     assert "2.5" not in verdict.open_grounds
     assert not any("2.5" in problem for problem in verdict.problems), verdict.problems
@@ -157,6 +167,12 @@ def test_the_verdict_can_be_true_when_every_ground_is_properly_cleared(tmp_path)
     ones by attestation, engineering ones by tests that exist. It is constructed here,
     not asserted about the shipped register, which withholds.
     """
+    registry, privates = _enrolled_all_roles()
+    role_for_kind = {
+        "external_assessment": "external_assessor",
+        "owner_decision": "process_owner",
+        "measurement": "corpus_owner",
+    }
     register = _register()
     for ground in register["grounds"]:
         ground["status"] = "cleared"
@@ -164,14 +180,18 @@ def test_the_verdict_can_be_true_when_every_ground_is_properly_cleared(tmp_path)
         if ground["kind"] != "engineering":
             document = tmp_path / f"attestation-{ground['id']}.pdf"
             document.write_bytes(f"attestation for {ground['id']}".encode())
-            ground["attestation"] = {
+            role = role_for_kind[ground["kind"]]
+            attestation = {
                 "document": str(document),
                 "sha256": hashlib.sha256(document.read_bytes()).hexdigest(),
                 "signed_by": "Owner",
                 "signed_at": "2026-08-01",
+                "key_id": f"{role}-key",
             }
+            attestation["signature_b64"] = _sign(privates[role], ground["id"], attestation)
+            ground["attestation"] = attestation
 
-    verdict = evaluate_admission(ROOT, register)
+    verdict = evaluate_admission(ROOT, register, registry)
 
     assert verdict.problems == (), verdict.problems
     assert verdict.open_grounds == ()

@@ -1042,9 +1042,9 @@ MUTANTS = (
         "M109_EXTERNAL_GROUND_CLEARED_WITHOUT_ATTESTATION",
         "apps/api/src/korpus/application/admission.py",
         "        if kind in EXTERNAL_KINDS:\n"
-        "            problems.extend(_attestation_problems(root, ground))",
+        "            problems.extend(_attestation_problems(root, ground, registry))",
         "        if False:\n"
-        "            problems.extend(_attestation_problems(root, ground))",
+        "            problems.extend(_attestation_problems(root, ground, registry))",
         (
             "apps/api/tests/test_admission_register.py::"
             "test_an_external_ground_cannot_be_cleared_by_editing_the_register",
@@ -1136,6 +1136,46 @@ MUTANTS = (
         "        return True",
         (
             "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",
+        ),
+    ),
+    Mutant(
+        "M139_UNSIGNED_ATTESTATION_ACCEPTED",
+        "apps/api/src/korpus/security/attestors.py",
+        "        if not key_id or not signature_b64:",
+        "        if False:",
+        (
+            "apps/api/tests/test_attestation_signatures.py::"
+            "test_an_unsigned_attestation_is_refused",
+        ),
+    ),
+    Mutant(
+        "M140_ANY_ENROLLED_KEY_MAY_ATTEST_ANY_GROUND",
+        "apps/api/src/korpus/security/attestors.py",
+        "        if key.role not in entitled:",
+        "        if False:",
+        (
+            "apps/api/tests/test_attestation_signatures.py::"
+            "test_a_corpus_owner_cannot_sign_the_independent_assessment",
+        ),
+    ),
+    Mutant(
+        "M141_SIGNATURE_NOT_BOUND_TO_THE_GROUND",
+        "apps/api/src/korpus/security/attestors.py",
+        '                "ground_id": ground_id,',
+        '                "ground_id": "any",',
+        (
+            "apps/api/tests/test_attestation_signatures.py::"
+            "test_a_signature_obtained_for_another_ground_cannot_be_moved",
+        ),
+    ),
+    Mutant(
+        "M142_MISSING_ATTESTOR_REGISTRY_CLEARS_GROUNDS",
+        "apps/api/src/korpus/application/admission.py",
+        "    if registry is not None:",
+        "    if False:",
+        (
+            "apps/api/tests/test_attestation_signatures.py::"
+            "test_the_admission_verdict_refuses_a_clearance_with_no_signature",
         ),
     ),
     Mutant(
