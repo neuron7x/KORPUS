@@ -9,6 +9,10 @@
     "maximum_determinism_failures": 0,
     "require_audit_valid": true
   },
+  "tevv": {
+    "maximum_interval_width": 0.1,
+    "minimum_observations": 200
+  },
   "mutation": {
     "minimum_critical_mutation_score": 1.0,
     "maximum_survivors": 0

@@ -13,6 +13,7 @@ from korpus.application.noninterference import leaked_material, withheld_materia
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
+from korpus.application.tevv import evaluate_tevv
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -106,6 +107,12 @@ def _projection(answer: Any) -> dict[str, Any]:
 def main() -> None:
     dataset_lines = DATASET.read_text(encoding="utf-8").splitlines()
     rows = [json.loads(line) for line in dataset_lines if line.strip()]
+    # A dataset declares its corpus in a leading record, or it is a fixture. Kept in
+    # the dataset rather than in this script so a fixture cannot become a measurement
+    # by changing a flag in the harness.
+    corpus_declaration = None
+    if rows and rows[0].get("record") == "corpus":
+        corpus_declaration = rows.pop(0)
     dataset_hash = hashlib.sha256(DATASET.read_bytes()).hexdigest()
     protocol_hash = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
     from build_system_manifest import build as build_system_manifest
@@ -303,6 +310,20 @@ def main() -> None:
             )
 
         passed = sum(int(item["ok"]) for item in details)
+        # `calibration_status` used to be the constant UNVALIDATED_TEST_FIXTURE: it
+        # said the right thing, and it would have said the same thing about a real
+        # measurement. It is decided now, from what the dataset declares about its
+        # corpus and from how much 30 observations actually constrain the answer.
+        tevv_policy = json.loads(
+            Path("config/operations/reference-v5.json").read_text(encoding="utf-8")
+        )["tevv"]
+        tevv = evaluate_tevv(
+            passed=passed,
+            total=len(rows),
+            corpus_declaration=corpus_declaration,
+            maximum_interval_width=float(tevv_policy["maximum_interval_width"]),
+            minimum_observations=int(tevv_policy["minimum_observations"]),
+        )
         report = {
             "schema": 2,
             "dataset": str(DATASET),
@@ -312,7 +333,8 @@ def main() -> None:
             "system_manifest_sha256": system_manifest_hash,
             "system_manifest_root_sha256": system_manifest["manifest_root_sha256"],
             "source_commit": system_manifest["commit"],
-            "calibration_status": "UNVALIDATED_TEST_FIXTURE",
+            "calibration_status": tevv.calibration_status,
+            "tevv": tevv.as_dict(),
             "passed": passed,
             "total": len(rows),
             "pass_rate": passed / max(len(rows), 1),

@@ -1086,6 +1086,36 @@ MUTANTS = (
             "test_operational_gate_passes_encoded_engineering_predicates_only",
         ),
     ),
+    Mutant(
+        "M113_FIXTURE_RUN_PRESENTS_ITSELF_AS_MEASURED",
+        "apps/api/src/korpus/application/tevv.py",
+        "    reasons = corpus_declaration_problems(corpus_declaration)",
+        "    reasons: list[str] = []",
+        (
+            "apps/api/tests/test_tevv_admissibility.py::"
+            "test_the_shipped_fixture_run_is_not_admissible",
+        ),
+    ),
+    Mutant(
+        "M114_SYNTHETIC_CORPUS_ACCEPTED_AS_REAL",
+        "apps/api/src/korpus/application/tevv.py",
+        '    if declaration.get("synthetic") is True:',
+        "    if False:",
+        (
+            "apps/api/tests/test_tevv_admissibility.py::"
+            "test_a_corpus_that_declares_itself_synthetic_is_refused",
+        ),
+    ),
+    Mutant(
+        "M115_UNCERTAINTY_REPORTED_AS_CERTAINTY",
+        "apps/api/src/korpus/application/tevv.py",
+        "    if interval.width > maximum_interval_width:",
+        "    if False:",
+        (
+            "apps/api/tests/test_tevv_admissibility.py::"
+            "test_a_wide_interval_is_refused_even_on_a_real_corpus",
+        ),
+    ),
 )
 
 
