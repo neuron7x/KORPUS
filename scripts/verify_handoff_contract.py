@@ -120,8 +120,27 @@ def verify() -> dict[str, Any]:
 
     iteration_items = iterations["items"]
     integration_items = integrations["items"]
-    if iterations["status"] != "PLANNED_NOT_EXECUTED" or len(iteration_items) != 10:
+    # The status was pinned to PLANNED_NOT_EXECUTED, so the check enforced that the plan
+    # stay unexecuted: shipping eight of the ten items would have failed this gate, and
+    # the only way past it was to leave the register lying. What the contract needs to
+    # hold is that the ten items exist and none of them silently claims to be finished —
+    # every acceptance list here ends in evidence from a system nobody in this tree
+    # operates, so DONE is not a state this file may reach on its own.
+    if iterations["status"] not in {"PLANNED_NOT_EXECUTED", "PARTIALLY_EXECUTED"}:
+        raise AssertionError(f"unexpected iteration contract status: {iterations['status']}")
+    if len(iteration_items) != 10:
         raise AssertionError("next iteration contract must contain exactly 10 planned items")
+    unfinished = {"NOT_EXECUTED", "PARTIALLY_EXECUTED"}
+    claimed_done = [
+        item["id"]
+        for item in iteration_items
+        if item.get("status", "NOT_EXECUTED") not in unfinished
+    ]
+    if claimed_done:
+        raise AssertionError(
+            f"iterations claim completion inside the repository: {claimed_done}; "
+            "every acceptance list ends in external evidence"
+        )
     if integrations["status"] != "PLANNED_NOT_EXECUTED" or len(integration_items) != 7:
         raise AssertionError("next integration contract must contain exactly 7 planned items")
     if len({item["id"] for item in iteration_items}) != 10:

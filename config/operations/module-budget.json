@@ -321,9 +321,9 @@
       "max_complexity": 8
     },
     "scripts/check_environment_drift.py": {
-      "lines": 128,
+      "lines": 132,
       "max_complexity": 8,
-      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment"
+      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment, and own the output path"
     },
     "scripts/check_module_budget.py": {
       "lines": 141,
@@ -431,8 +431,9 @@
       "max_complexity": 0
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 154,
-      "max_complexity": 35
+      "lines": 173,
+      "max_complexity": 37,
+      "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
     },
     "scripts/verify_postgres_restore.py": {
       "lines": 82,

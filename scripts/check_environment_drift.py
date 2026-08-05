@@ -80,6 +80,10 @@ def main() -> int:
         payload = observe(args.observe, sorted(desired))
         rendered = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
         if args.out is not None:
+            # A fresh checkout has no var/. The script owns the path it was given:
+            # asking every caller to mkdir first is how the check ends up wrapped in a
+            # shell line that silently swallows its exit code.
+            args.out.parent.mkdir(parents=True, exist_ok=True)
             args.out.write_text(rendered, encoding="utf-8")
         else:
             print(rendered, end="")

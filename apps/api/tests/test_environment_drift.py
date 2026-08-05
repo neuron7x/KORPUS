@@ -264,3 +264,17 @@ def test_the_script_refuses_a_stale_observation_instead_of_comparing_it(
     # 2, not 1: the environment is not known to have drifted, the evidence is unusable.
     assert checked.returncode == 2
     assert "as it was, not as it is" in json.loads(checked.stdout)["reason"]
+
+
+def test_the_script_creates_the_directory_it_was_told_to_write_into(tmp_path: Path) -> None:
+    """A fresh checkout has no var/.
+
+    The first CI run of this check died on FileNotFoundError before it compared
+    anything, and the job's own artefact list then reported four files as missing —
+    the failure three steps from its cause. Asking every caller to mkdir first is how
+    a check ends up wrapped in a shell line that swallows its exit code.
+    """
+    observation = tmp_path / "does" / "not" / "exist" / "observed.json"
+
+    assert _run("--observe", str(ROOT), "--out", str(observation)).returncode == 0
+    assert observation.is_file()
