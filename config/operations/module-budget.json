@@ -276,7 +276,7 @@
       "max_complexity": 3
     },
     "scripts/build_audit_closure.py": {
-      "lines": 414,
+      "lines": 477,
       "max_complexity": 17
     },
     "scripts/build_system_manifest.py": {
@@ -454,6 +454,20 @@
         "worst_function": "main"
       },
       "reason": "the export gained the repository register as a third source"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "on": "2026-08-05",
+      "from": {
+        "lines": 414,
+        "max_complexity": 17
+      },
+      "to": {
+        "lines": 477,
+        "max_complexity": 17,
+        "worst_function": "main"
+      },
+      "reason": "evidence lists for nine findings reclassified after the day's closures; the file is a register and grows with the register"
     }
   ],
   "line_exempt": {

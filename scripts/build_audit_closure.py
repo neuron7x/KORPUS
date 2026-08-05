@@ -17,12 +17,18 @@ from korpus.application.evidence_registry import (  # noqa: E402  (path set abov
 SOURCE = ROOT / "docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json"
 OUT_DIR = ROOT / "docs/audit/closure"
 
+# Reclassified 2026-08-05. Each move carries a test that fails without the fix and a
+# mutant that removes it and dies; a status changed without both is a claim.
 CLOSED_LOCAL = {
     "IAM-001", "IAM-003", "IAM-004",
     "ING-001", "ING-002", "ING-003", "ING-004", "ING-005",
     "ING-006", "ING-007", "ING-010", "ING-011",
     "RAG-002", "RAG-004", "RAG-006", "RAG-008", "RAG-019",
     "SUP-004", "COD-010", "OPS-002",
+    # 2026-08-05: lock files carry sha256 for all 68 artefacts and every install site
+    # passes --require-hashes; the validator's complexity is 5 and 57 where it was 102
+    # and 103; every broad handler must re-raise, degrade or record.
+    "SUP-002", "COD-002", "COD-003",
 }
 
 MITIGATED_LOCAL = {
@@ -36,6 +42,14 @@ MITIGATED_LOCAL = {
     "COD-005", "COD-006", "COD-007", "COD-008", "COD-009",
     "AUD-001", "AUD-002",
     "DATA-001", "DATA-002", "DATA-004",
+    # 2026-08-05: a material local control now exists; the residue is external or
+    # partial, and named as such in TECHNICAL_DEBT_V5.md rather than counted as closed.
+    "RAG-013",   # numbers, units and tables detected; formula structure remains
+    "RAG-017",   # embedding drift has four states; online answer-quality does not
+    "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
+    "SUP-009",   # 68/68 licenses read from metadata; legal review is external
+    "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
+    "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
 }
 
 EXTERNAL_DEBT = {
@@ -51,11 +65,10 @@ EXTERNAL_DEBT = {
 }
 
 OPEN_TECH_DEBT = {
-    "RAG-009", "RAG-013", "RAG-016", "RAG-017",
-    "INF-009",
-    "SUP-001", "SUP-002", "SUP-009",
-    "COD-001", "COD-002", "COD-003", "COD-004",
-    "WEB-001", "AUD-004", "OPS-004",
+    "RAG-009", "RAG-016",
+    "SUP-001",
+    "COD-001",
+    "WEB-001", "OPS-004",
 }
 
 EVIDENCE: dict[str, list[str]] = {
@@ -240,6 +253,56 @@ EVIDENCE: dict[str, list[str]] = {
         "scripts/validate_infrastructure.py",
     ],
     "COD-005": ["scripts/run_mutation_tests.py", "var/mutation-report.json"],
+    "SUP-002": [
+        "apps/api/requirements.runtime.lock",
+        "apps/api/requirements.dev.lock",
+        "apps/api/tests/test_gate_parity.py::test_every_pinned_dependency_carries_a_hash",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_install_of_a_lock_file_requires_those_hashes",
+    ],
+    "COD-002": [
+        "apps/api/src/korpus/controlled_requirements.py",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "apps/api/tests/test_controlled_configuration_refusals.py",
+        "apps/api/tests/test_requirement_registry.py",
+        "config/operations/module-budget.json",
+    ],
+    "COD-003": [
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_bare_except_hides_which_failure_occurred",
+    ],
+    "COD-004": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_coverage_thresholds_are_checked_where_coverage_is_produced",
+    ],
+    "RAG-013": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py",
+    ],
+    "RAG-017": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py",
+    ],
+    "INF-009": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py",
+    ],
+    "SUP-009": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter",
+    ],
+    "AUD-004": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py",
+    ],
     "COD-006": [
         "apps/api/tests/test_structured_evidence_and_fuzz.py",
         "apps/api/tests/test_v5_security_kernel.py"

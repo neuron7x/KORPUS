@@ -4,14 +4,14 @@
   "target_release": "v5.0.0",
   "scope_claim": "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded local predicate has executable evidence; it is not production authorization.",
   "counts": {
-    "CLOSED_LOCAL": 20,
+    "CLOSED_LOCAL": 23,
     "EXTERNAL_DEBT": 31,
-    "MITIGATED_LOCAL": 33,
-    "OPEN_TECH_DEBT": 15
+    "MITIGATED_LOCAL": 39,
+    "OPEN_TECH_DEBT": 6
   },
   "remaining_by_severity": {
-    "P0": 21,
-    "P1": 48,
+    "P0": 20,
+    "P1": 46,
     "P2": 10
   },
   "findings": [
@@ -699,8 +699,13 @@
       "required_action": "Table extraction, unit normalization, numeric entailment, exact-cell citation.",
       "tools_methods": "Camelot/Docling/layout tools; unit tests",
       "acceptance_predicate": "Numeric/table benchmark має zero critical unit/sign errors.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py"
+      ],
       "v5_remaining_acceptance": "Numeric/table benchmark має zero critical unit/sign errors."
     },
     {
@@ -763,8 +768,11 @@
       "required_action": "Shadow evaluation, sampled human review, drift metrics, rollback triggers.",
       "tools_methods": "Evidently/custom metrics; review queue",
       "acceptance_predicate": "Defined drift thresholds cause automatic freeze/rollback.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py"
+      ],
       "v5_remaining_acceptance": "Defined drift thresholds cause automatic freeze/rollback."
     },
     {
@@ -962,8 +970,11 @@
       "required_action": "Use health_check extension endpoint + synthetic trace/metric canary.",
       "tools_methods": "OpenTelemetry Collector healthcheck; synthetic probe",
       "acceptance_predicate": "Dropped exporter/receiver causes readiness/alert according to policy.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py"
+      ],
       "v5_remaining_acceptance": "Dropped exporter/receiver causes readiness/alert according to policy."
     },
     {
@@ -1151,9 +1162,14 @@
       "required_action": "Hash-pin all artifacts; private mirror; binary-only policy; provenance verification.",
       "tools_methods": "pip-tools/uv lock; --require-hashes; artifact registry",
       "acceptance_predicate": "Offline/reproducible install succeeds only for approved hashes.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "Offline/reproducible install succeeds only for approved hashes."
+      "v5_status": "CLOSED_LOCAL",
+      "v5_evidence": [
+        "apps/api/requirements.runtime.lock",
+        "apps/api/requirements.dev.lock",
+        "apps/api/tests/test_gate_parity.py::test_every_pinned_dependency_carries_a_hash",
+        "apps/api/tests/test_gate_parity.py::test_every_install_of_a_lock_file_requires_those_hashes"
+      ],
+      "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },
     {
       "id": "SUP-003",
@@ -1262,8 +1278,11 @@
       "required_action": "License scan, approved license policy, notices.",
       "tools_methods": "Syft/ScanCode/FOSSA equivalent",
       "acceptance_predicate": "Release має complete license report і zero forbidden components.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter"
+      ],
       "v5_remaining_acceptance": "Release має complete license report і zero forbidden components."
     },
     {
@@ -1292,9 +1311,15 @@
       "required_action": "Typed environment profiles/discriminated unions; policy table; exhaustive config tests.",
       "tools_methods": "Pydantic models; property-based testing",
       "acceptance_predicate": "All valid/invalid profile combinations generated and checked.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "All valid/invalid profile combinations generated and checked."
+      "v5_status": "CLOSED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/controlled_requirements.py",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "apps/api/tests/test_controlled_configuration_refusals.py",
+        "apps/api/tests/test_requirement_registry.py",
+        "config/operations/module-budget.json"
+      ],
+      "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },
     {
       "id": "COD-003",
@@ -1307,9 +1332,12 @@
       "required_action": "Narrow exceptions, typed failure taxonomy, preserve cause, alert unexpected errors.",
       "tools_methods": "Ruff BLE; error budget tests",
       "acceptance_predicate": "Unexpected exception propagates to crash/alert in test, not generic safe-looking state.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "Unexpected exception propagates to crash/alert in test, not generic safe-looking state."
+      "v5_status": "CLOSED_LOCAL",
+      "v5_evidence": [
+        "apps/api/tests/test_exception_handling_discipline.py::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
+        "apps/api/tests/test_exception_handling_discipline.py::test_no_bare_except_hides_which_failure_occurred"
+      ],
+      "v5_remaining_acceptance": "None inside the frozen local scope; external acceptance may still apply."
     },
     {
       "id": "COD-004",
@@ -1322,8 +1350,11 @@
       "required_action": "Per-module branch thresholds for security-critical code; MC/DC-inspired cases.",
       "tools_methods": "coverage.py branch; diff coverage",
       "acceptance_predicate": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py::test_the_coverage_thresholds_are_checked_where_coverage_is_produced"
+      ],
       "v5_remaining_acceptance": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions."
     },
     {
@@ -1528,8 +1559,13 @@
       "required_action": "Structured signed audit export to SIEM; correlation with IdP/network/deploy logs.",
       "tools_methods": "SIEM; OTel logs; pgaudit",
       "acceptance_predicate": "Defined attack simulations trigger alerts with complete timeline.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py"
+      ],
       "v5_remaining_acceptance": "Defined attack simulations trigger alerts with complete timeline."
     },
     {

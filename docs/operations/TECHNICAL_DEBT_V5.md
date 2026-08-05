@@ -2,13 +2,36 @@
 
 This document records work that cannot be converted into PASS by local code or synthetic tests.
 
-## Frozen audit debt counts
+## Frozen audit debt counts (reclassified 2026-08-05)
 
-- 79/99 findings remain non-closed in the frozen audit scope.
-- 33 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
+- 76/99 findings remain non-closed in the frozen audit scope.
+- 39 are `MITIGATED_LOCAL`: a material local control exists, but external/live acceptance remains.
 - 31 are `EXTERNAL_DEBT`: they require independent people, systems, infrastructure or authorization.
-- 15 are `OPEN_TECH_DEBT`: repository engineering work remains.
-- remaining severity: P0 21, P1 48, P2 10.
+- 6 are `OPEN_TECH_DEBT`: repository engineering work remains.
+- remaining severity: P0 20, P1 46, P2 10.
+
+The counts above were stale for a day. `build_audit_closure.py` classifies by a static
+set, so nine findings closed or mitigated on 2026-08-05 still read as open engineering
+debt while the register reported on them — a document about closure that had not closed
+its own loop. Every move carries the test that fails without the fix and, where the
+finding is about code, the mutant that removes it and dies. Three moved to
+`CLOSED_LOCAL` (SUP-002 hashed locks, COD-002 validator complexity, COD-003 broad
+handlers) and six to `MITIGATED_LOCAL`, where the residue is external or partial and
+is named below rather than counted as finished:
+
+| finding | closed here | what remains |
+|---|---|---|
+| RAG-013 | numbers, units, table structure | formula structure |
+| RAG-017 | embedding drift, four states | online answer-quality monitoring |
+| INF-009 | telemetry reports REQUESTED_NOT_ACTIVE | a durable telemetry backend |
+| SUP-009 | 68/68 licenses from metadata | legal review |
+| COD-004 | branch coverage 0.7726, gated where produced | the 0.13 gap to line coverage |
+| AUD-004 | resumable, gap-evident export | the SIEM that receives it |
+
+Still `OPEN_TECH_DEBT`: RAG-009 (regex risk classifier), RAG-016 (embedding model
+migration executed against a real index), SUP-001 (immutable image digests, not tags),
+COD-001 (SqlRepository at 1855 lines), WEB-001 (reviewer workflows), OPS-004
+(environment drift against a real cluster).
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 

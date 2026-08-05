@@ -4,10 +4,10 @@ This register classifies all 99 v4 findings without converting missing external 
 
 | Status | Count | Meaning |
 |---|---:|---|
-| CLOSED_LOCAL | 20 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 33 | Material control exists; live, corpus, or independent acceptance remains. |
+| CLOSED_LOCAL | 23 | Executable local acceptance predicate passed. |
+| MITIGATED_LOCAL | 39 | Material control exists; live, corpus, or independent acceptance remains. |
 | EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
-| OPEN_TECH_DEBT | 15 | Engineering implementation remains open. |
+| OPEN_TECH_DEBT | 6 | Engineering implementation remains open. |
 
 ## Remaining blockers
 
@@ -33,11 +33,11 @@ This register classifies all 99 v4 findings without converting missing external 
 - **RAG-010 · P1 · MITIGATED_LOCAL** — Prompt/control injection detector має лише пʼять regex patterns
 - **RAG-011 · P1 · MITIGATED_LOCAL** — Sentence segmentation непридатна для складних нормативних документів
 - **RAG-012 · P1 · MITIGATED_LOCAL** — Lexical retrieval не має української морфології та domain analysis
-- **RAG-013 · P1 · OPEN_TECH_DEBT** — Немає тестів таблиць, чисел, одиниць і формул
+- **RAG-013 · P1 · MITIGATED_LOCAL** — Немає тестів таблиць, чисел, одиниць і формул
 - **RAG-014 · P1 · EXTERNAL_DEBT** — Scale evidence не репрезентує production
 - **RAG-015 · P1 · MITIGATED_LOCAL** — Embedding integration може створити data egress
 - **RAG-016 · P1 · OPEN_TECH_DEBT** — Немає доказу synchronization/model migration embeddings
-- **RAG-017 · P1 · OPEN_TECH_DEBT** — Немає drift/online quality monitoring
+- **RAG-017 · P1 · MITIGATED_LOCAL** — Немає drift/online quality monitoring
 - **RAG-018 · P1 · MITIGATED_LOCAL** — Немає захисту від corpus/RAG poisoning як процесу
 - **RAG-020 · P2 · MITIGATED_LOCAL** — Малі мінімальні вибірки не гарантують domain coverage
 - **INF-001 · P0 · EXTERNAL_DEBT** — Docker/Compose runtime не був фактично виконаний у середовищі аудиту
@@ -48,7 +48,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **INF-006 · P0 · EXTERNAL_DEBT** — Немає production secret manager/KMS/HSM і rotation evidence
 - **INF-007 · P1 · MITIGATED_LOCAL** — API має загальний egress без destination allowlist
 - **INF-008 · P1 · EXTERNAL_DEBT** — Resource limits не калібровані capacity plan
-- **INF-009 · P1 · OPEN_TECH_DEBT** — OTel collector healthcheck перевіряє config, не serving path
+- **INF-009 · P1 · MITIGATED_LOCAL** — OTel collector healthcheck перевіряє config, не serving path
 - **INF-010 · P1 · MITIGATED_LOCAL** — Local audit anchor не є незалежним trust domain
 - **INF-011 · P1 · EXTERNAL_DEBT** — Немає deployment rollback/canary/schema compatibility proof
 - **INF-012 · P1 · EXTERNAL_DEBT** — Немає offsite/immutable backup schedule and retention execution
@@ -60,17 +60,14 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SRE-006 · P1 · MITIGATED_LOCAL** — Readiness має невизначену degraded-mode policy
 - **SRE-007 · P1 · EXTERNAL_DEBT** — Немає data/corpus release rollback drill
 - **SUP-001 · P0 · OPEN_TECH_DEBT** — Container/CI images pinned tags, not immutable digests
-- **SUP-002 · P0 · OPEN_TECH_DEBT** — Python lock files не містять hashes
 - **SUP-003 · P0 · EXTERNAL_DEBT** — Немає signed build provenance і artifact signing
 - **SUP-005 · P1 · EXTERNAL_DEBT** — Security scanners не були виконані в локальному аудиті
 - **SUP-006 · P1 · MITIGATED_LOCAL** — Static security analysis coverage incomplete
 - **SUP-007 · P1 · EXTERNAL_DEBT** — GitLab branch/tag controls не доведені repository files
 - **SUP-008 · P1 · EXTERNAL_DEBT** — Немає continuous re-scan/patch SLA та KEV policy
-- **SUP-009 · P2 · OPEN_TECH_DEBT** — Немає license/compliance inventory
+- **SUP-009 · P2 · MITIGATED_LOCAL** — Немає license/compliance inventory
 - **COD-001 · P1 · OPEN_TECH_DEBT** — SqlRepository є infrastructure god object
-- **COD-002 · P1 · OPEN_TECH_DEBT** — Security config validator має надмірну цикломатичну складність
-- **COD-003 · P1 · OPEN_TECH_DEBT** — Broad `except Exception` у critical paths
-- **COD-004 · P1 · OPEN_TECH_DEBT** — Branch coverage значно нижча за statement coverage
+- **COD-004 · P1 · MITIGATED_LOCAL** — Branch coverage значно нижча за statement coverage
 - **COD-005 · P1 · MITIGATED_LOCAL** — Mutation score 100% стосується лише 14 hand-selected mutants
 - **COD-006 · P1 · MITIGATED_LOCAL** — Немає parser/API fuzzing
 - **COD-007 · P2 · MITIGATED_LOCAL** — mypy і Ruff policies слабкі для critical system
@@ -81,7 +78,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **AUD-001 · P1 · MITIGATED_LOCAL** — Audit HMAC key доступний application process
 - **AUD-002 · P1 · MITIGATED_LOCAL** — Remote anchor protocol custom HTTP/HMAC
 - **AUD-003 · P1 · EXTERNAL_DEBT** — Key rotation/recovery ceremony не доведена
-- **AUD-004 · P1 · OPEN_TECH_DEBT** — Немає SIEM export/correlation/retention
+- **AUD-004 · P1 · MITIGATED_LOCAL** — Немає SIEM export/correlation/retention
 - **DATA-001 · P0 · MITIGATED_LOCAL** — Немає enforceable retention/deletion/legal-hold policy
 - **DATA-002 · P1 · MITIGATED_LOCAL** — Немає field-level privacy/minimization assessment
 - **DATA-003 · P1 · EXTERNAL_DEBT** — Немає immutable corpus release manifest підписаного data owner
