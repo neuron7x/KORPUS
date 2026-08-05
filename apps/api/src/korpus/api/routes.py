@@ -148,6 +148,7 @@ def ready(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
     settings: Annotated[Settings, Depends(get_settings)],
+    observability: Annotated[Observability, Depends(get_observability)] = None,  # type: ignore[assignment]
 ) -> dict[str, object]:
     try:
         snapshot = repository.readiness_snapshot(
@@ -166,17 +167,29 @@ def ready(
         else True
     )
     is_ready = bool(snapshot["ready"] and object_store_ok and schema_ok)
+    # Reported, not gated. Telemetry display may degrade under the release policy as
+    # long as the underlying event stays durably available, and it does — the audit
+    # chain is not the tracer. What must not happen is an operator reading
+    # `otlp_endpoint` in the config and believing traces exist when the exporter was
+    # never attached.
+    # The status word only. /ready is unauthenticated, and the OTLP endpoint is an
+    # internal address: test_health_and_readiness_are_operational_not_information_side
+    # _channels exists precisely to keep infrastructure detail out of this response.
+    telemetry = (
+        str(observability.telemetry_status()["traces"]) if observability is not None else "UNKNOWN"
+    )
     payload = {
         **snapshot,
         "object_store": object_store_ok,
         "schema_current": schema_ok,
+        "telemetry": telemetry,
         "ready": is_ready,
     }
     if not is_ready:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
     # readiness_snapshot always stores an int under this key (repository.readiness_snapshot)
     audit_head = int(snapshot["audit_head_sequence"])  # type: ignore[call-overload]
-    return {"status": "ready", "audit_head": audit_head}
+    return {"status": "ready", "audit_head": audit_head, "telemetry": telemetry}
 
 
 @router.get("/metrics", include_in_schema=False)

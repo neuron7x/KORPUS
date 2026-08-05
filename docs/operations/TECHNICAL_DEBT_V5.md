@@ -44,8 +44,8 @@ PostgreSQL debt below.
 - decomposition of the large SQL repository and security configuration validator;
 - corpus-scale table and formula evaluation;
 - embedding backfill and model-migration execution against a real index;
-- reviewer/admin web workflows and accessibility validation;
-- live-serving OpenTelemetry health probe and durable telemetry backend;
+- reviewer/admin web workflows, and contrast/focus-order validation against a rendered page;
+- a durable telemetry backend and its retention;
 - environment drift and cost/capacity governance against a real cluster;
 - legal review of the declared dependency licenses.
 
@@ -110,5 +110,21 @@ leave this list only with the mechanism that keeps them closed.
   missing produces silence and stale produces confidence about text the document no
   longer contains. An empty corpus reports 0.0 coverage, not 1.0. Required-semantic
   mode refuses an incomplete index instead of degrading. Mutants M129–M131.
+- **live telemetry health probe** — `Observability.telemetry_status()` distinguishes
+  DISABLED from REQUESTED_NOT_ACTIVE. The exporter is attached only while the global
+  tracer provider is still the proxy, so a configured `otlp_endpoint` can be ignored,
+  and until now nothing told an operator reading that config that no span reaches the
+  collector. Reported, not enforced: the release policy allows telemetry display to
+  degrade while the underlying event stays durably available, and the audit chain is
+  not the tracer. `/ready` carries the status word only — it is unauthenticated, and
+  the collector address is internal.
+- **accessibility validation** — `apps/web/scripts/validate.mjs` now asserts the
+  properties a keyboard or screen-reader user depends on: exactly one h1, no skipped
+  heading level, an accessible name on every button, a bound label on every control,
+  alt on every image, a skip link, a main landmark, and a live region on the panel that
+  script fills after an answer arrives. Seven negative controls, one per rule. The web
+  shell failed four of them when the rules were first run — the interface had been
+  fully verified for what it must not leak and not at all for whether it could be
+  operated. Contrast and focus order need a rendered page and stay open above.
 
 The machine-readable source of truth is `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json`.

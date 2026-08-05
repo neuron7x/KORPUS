@@ -2,3 +2,22 @@
 
 .authbar{margin:2rem 0;padding:1rem;border:1px solid #292c33;background:#0d0f13}.authbar input{width:100%;background:#090a0c;color:#f5f7fa;border:1px solid #343843;padding:1rem;font:inherit}.authbar .query{grid-template-columns:1fr auto}.authbar button{white-space:nowrap}
 .auth-actions{display:flex;gap:.75rem;flex-wrap:wrap}.authbar details{margin-top:.75rem}.authbar summary{cursor:pointer;color:#a9adb5}.authbar input{min-width:18rem}
+
+/* Visible only on focus: a skip link that is always visible is a design change, one
+   that is never visible is not a skip link. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: 0.6rem 1rem;
+  background: #fff;
+  color: #090a0c;
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0;
+}
+.grid article h2 {
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
