@@ -1,7 +1,18 @@
+from datetime import date
 from uuid import uuid4
 
 import pytest
-
+from korpus.application.retrieval import HybridLexicalRetriever, RetrievalWeights
+from korpus.domain.models import (
+    AccessTier,
+    AuthorityClass,
+    Classification,
+    DocumentRecord,
+    DocumentVersionRecord,
+    EvidenceSpanRecord,
+    Identity,
+    ReviewState,
+)
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
 
 
@@ -26,23 +37,12 @@ def test_pgvector_index_ddl_is_deterministic_partial_and_bounded():
 def test_repository_protocol_can_materialize_authorized_semantic_ids(client):
     repository = client.app.state.repository
     result = repository.get_retrievable_spans_by_ids(
-        client.identity_provider.current, frozenset({"public"}), __import__('datetime').date.today(), [uuid4()]
+        client.identity_provider.current,
+        frozenset({"public"}),
+        date.today(),
+        [uuid4()],
     )
     assert result == []
-
-from datetime import date
-
-from korpus.application.retrieval import HybridLexicalRetriever, RetrievalWeights
-from korpus.domain.models import (
-    AccessTier,
-    AuthorityClass,
-    Classification,
-    DocumentRecord,
-    DocumentVersionRecord,
-    EvidenceSpanRecord,
-    Identity,
-    ReviewState,
-)
 
 
 class FusionRepo:
@@ -102,7 +102,11 @@ def test_semantic_candidates_are_authorized_materialized_and_fused():
 
 
 def test_postgres_rls_migration_is_default_deny_when_context_is_absent():
-    migration = (__import__('pathlib').Path(__file__).parents[1] / "migrations/versions/0002_database_defense_and_vectors.py").read_text()
+    migration_path = (
+        __import__('pathlib').Path(__file__).parents[1]
+        / "migrations/versions/0002_database_defense_and_vectors.py"
+    )
+    migration = migration_path.read_text()
     assert "FORCE ROW LEVEL SECURITY" in migration
     assert "current_setting('korpus.clearance', true)" in migration
     assert "COALESCE" in migration

@@ -6,9 +6,6 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
-from sqlalchemy import insert, select, text
-from sqlalchemy.exc import DBAPIError
-
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -27,6 +24,10 @@ from korpus.infrastructure.repository import (
     spans,
     versions,
 )
+from sqlalchemy import insert, select, text
+from sqlalchemy.exc import DBAPIError
+
+from apps.api.tests.conftest import reset_database
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 pytestmark = pytest.mark.postgres
@@ -34,6 +35,11 @@ pytestmark = pytest.mark.postgres
 
 @pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
 def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
+    # This test signs its audit events with its own key, so any event another test
+    # left behind reads as a hash mismatch — which is the chain check working, not a
+    # finding. It shares the database with the rest of the suite when the whole suite
+    # runs on PostgreSQL, so it starts from an empty one.
+    reset_database()
     repository = SqlRepository(
         POSTGRES_URL,
         "postgres-integration-audit-key",
@@ -42,7 +48,10 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
         role = connection.execute(
-            text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user")
+            text(
+                "SELECT current_user, rolsuper, rolbypassrls "
+                "FROM pg_roles WHERE rolname = current_user"
+            )
         ).one()
     assert role.current_user == "korpus_app"
     assert role.rolsuper is False
@@ -73,6 +82,8 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
             review_state=ReviewState.APPROVED,
+            # An approved version governs from a stated date, in both dialects.
+            publication_date=date(2020, 1, 1),
             is_current=True,
         )
         span = EvidenceSpanRecord(
@@ -142,9 +153,8 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         assert connection.execute(select(span_embeddings.c.span_id)).all() == []
 
     # The application role can read but cannot forge migration state.
-    with pytest.raises(DBAPIError):
-        with repository.engine.begin() as connection:
-            connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
+    with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+        connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
 
     assert repository.verify_audit().valid is True
     repository.close()

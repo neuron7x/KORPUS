@@ -1,6 +1,5 @@
-from prometheus_client import CollectorRegistry
-
 from korpus.infrastructure.observability import Observability
+from prometheus_client import CollectorRegistry
 
 
 def test_metrics_are_low_cardinality_and_exported():

@@ -6,10 +6,10 @@ import time
 from pathlib import Path
 
 import pytest
-
-from apps.api.tests.helpers import approve, ingest_text
 from korpus.application.evidence import contradiction_reason, segment_sentences
 from korpus.infrastructure import extraction
+
+from apps.api.tests.helpers import approve, ingest_text
 
 
 def test_numbers_units_tables_and_formulae_remain_citable(client):
@@ -38,7 +38,10 @@ def test_sentence_offsets_preserve_decimals_abbreviations_and_rows():
 
 
 def test_numeric_unit_conflicts_are_detected_without_cross_unit_false_positive():
-    assert contradiction_reason("Тиск має бути 120 кПа.", "Тиск має бути 140 кПа.") == "numeric_conflict:кпа"
+    assert (
+        contradiction_reason("Тиск має бути 120 кПа.", "Тиск має бути 140 кПа.")
+        == "numeric_conflict:кпа"
+    )
     assert contradiction_reason("Відстань 120 м.", "Відстань 120 км.") is None
 
 
@@ -55,9 +58,15 @@ def test_text_html_json_parser_seeded_fuzz_is_bounded(tmp_path: Path, monkeypatc
         if suffix == ".json":
             payload = ("{\"value\":\"" + "x" * source.randint(0, 200) + "\"}").encode()
         elif suffix == ".html":
-            payload = ("<div>visible<script>secret()</script>" + "<b>" * source.randint(0, 20) + "tail").encode()
+            payload = (
+                "<div>visible<script>secret()</script>" + "<b>" * source.randint(0, 20) + "tail"
+            ).encode()
         else:
-            payload = os.urandom(source.randint(1, 128)) if index % 7 == 0 else ("дані " * source.randint(1, 80)).encode()
+            payload = (
+                os.urandom(source.randint(1, 128))
+                if index % 7 == 0
+                else ("дані " * source.randint(1, 80)).encode()
+            )
         path.write_bytes(payload)
         try:
             pages, _ = extraction.extract_pages_from_path(path, path.name, mime, False, "ukr+eng")

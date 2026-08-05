@@ -77,7 +77,33 @@ class Observability:
             ["error_class"],
             registry=self.registry,
         )
+        self.requested_otlp_endpoint = otlp_endpoint
         self._provider, self._tracer = self._configure_tracer(service_name, otlp_endpoint)
+
+    def telemetry_status(self) -> dict[str, object]:
+        """Whether the configured trace export is actually in effect.
+
+        `_configure_tracer` installs an OTLP exporter only when the global tracer
+        provider is still the proxy. That guard is right — a second install would
+        replace whatever the process already has — but it means a configured
+        `otlp_endpoint` can be silently ignored, and until now nothing distinguished
+        "telemetry off" from "telemetry configured and going nowhere". The second is
+        worse than the first: an operator reading the config believes there are traces.
+
+        Not fail-closed: SLO_AND_RELEASE_POLICY_V5.md allows telemetry *display* to
+        degrade as long as the underlying event stays durably available, and it does —
+        the audit chain is not the tracer. So this is reported, not enforced.
+        """
+        if not self.requested_otlp_endpoint:
+            return {"traces": "DISABLED", "endpoint": None}
+        if self._provider is None:
+            return {
+                "traces": "REQUESTED_NOT_ACTIVE",
+                "endpoint": self.requested_otlp_endpoint,
+                "reason": "a tracer provider was already installed in this process, so "
+                "the configured OTLP exporter was not attached and no span reaches it",
+            }
+        return {"traces": "ACTIVE", "endpoint": self.requested_otlp_endpoint}
 
     @staticmethod
     def _configure_tracer(service_name: str, endpoint: str | None) -> tuple[Any | None, Any]:
@@ -115,7 +141,9 @@ class Observability:
             finally:
                 self.retrieval_latency.observe(time.monotonic() - started)
 
-    def observe_http(self, method: str, route: str, status_code: int, duration_seconds: float) -> None:
+    def observe_http(
+        self, method: str, route: str, status_code: int, duration_seconds: float
+    ) -> None:
         status_class = f"{status_code // 100}xx"
         self.http_requests.labels(method=method, route=route, status_class=status_class).inc()
         self.http_latency.labels(method=method, route=route).observe(duration_seconds)

@@ -3,10 +3,10 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
-
-from apps.api.tests.helpers import approve, ingest_text, ingest_version, transition
 from korpus.domain.models import ReviewState
 from korpus.infrastructure.repository import ConcurrentWriteError
+
+from apps.api.tests.helpers import approve, ingest_text, ingest_version, transition
 
 
 def test_new_approved_version_supersedes_old_version_in_current_retrieval(client):
@@ -26,7 +26,9 @@ def test_new_approved_version_supersedes_old_version_in_current_retrieval(client
     )
     approve(client, second["version"]["id"])
 
-    old_current = client.post("/v1/answers", json={"text": "OLD-MARKER", "as_of": "2026-07-31"}).json()
+    old_current = client.post(
+        "/v1/answers", json={"text": "OLD-MARKER", "as_of": "2026-07-31"}
+    ).json()
     new_current = client.post(
         "/v1/answers",
         json={"text": "NEW-MARKER чинний порядок", "as_of": "2026-07-31"},
@@ -38,7 +40,9 @@ def test_new_approved_version_supersedes_old_version_in_current_retrieval(client
     assert old_current["status"] == "insufficient_evidence"
     assert new_current["status"] == "answered"
     assert old_historical["status"] == "answered"
-    assert all(citation["version_id"] == second["version"]["id"] for citation in new_current["citations"])
+    assert all(
+        citation["version_id"] == second["version"]["id"] for citation in new_current["citations"]
+    )
 
 
 def test_competing_branch_cannot_be_approved(client):
@@ -63,7 +67,10 @@ def test_competing_branch_cannot_be_approved(client):
     transition(client, branch["version"]["id"], "content_reviewed")
     response = client.post(
         f"/v1/document-versions/{branch['version']['id']}/review",
-        json={"target": "approved", "note": "independent approval of a conflicting branch attempted"},
+        json={
+            "target": "approved",
+            "note": "independent approval of a conflicting branch attempted",
+        },
     )
     assert response.status_code == 409
     assert "current approved" in response.text

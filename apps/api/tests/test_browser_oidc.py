@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import base64
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi.testclient import TestClient
-
 from korpus.config import Settings
 from korpus.main import create_app
 from korpus.security.browser_oidc import (
@@ -102,16 +102,75 @@ def _settings(tmp_path: Path) -> Settings:
 
 
 def test_browser_session_codec_rejects_tampering_and_expiry():
+    """Every position, not just the last one.
+
+    This test used to change the final character of the token. base64 pads: when the
+    payload length is not a multiple of three, the last character carries bits that no
+    input byte uses, so several different characters decode to identical bytes and the
+    signature still verifies. The token is not fixed across runs, so whether the last
+    character happened to be significant varied — the test failed roughly one run in
+    five, and read as flake rather than as a test asserting something it could not
+    guarantee.
+
+    Sweeping every position is both deterministic and a stronger claim: any single
+    character change that alters the token at all must be rejected.
+    """
     clock = [1000.0]
     codec = BrowserSessionCodec("x" * 40, clock=lambda: clock[0])
     token = codec.seal("session", {"access_token": "a", "csrf": "c"}, ttl_seconds=30)
     assert codec.open(token, expected_kind="session")["access_token"] == "a"
-    replacement = "A" if token[-1] != "A" else "B"
-    with pytest.raises(BrowserSessionError):
-        codec.open(token[:-1] + replacement, expected_kind="session")
+
+    accepted: list[int] = []
+    for index in range(len(token)):
+        original = token[index]
+        if original in "._-":  # structural separators, not payload
+            continue
+        replacement = "A" if original != "A" else "B"
+        tampered = token[:index] + replacement + token[index + 1 :]
+        try:
+            codec.open(tampered, expected_kind="session")
+        except BrowserSessionError:
+            continue
+        accepted.append(index)
+    assert not accepted, (
+        f"the codec accepted a token with a changed character at {accepted}; "
+        "a single-character edit anywhere in a signed token must not verify"
+    )
+
     clock[0] = 1031.0
     with pytest.raises(BrowserSessionError, match="expired"):
         codec.open(token, expected_kind="session")
+
+
+def test_the_codec_rejects_a_second_spelling_of_the_same_token():
+    """Unpadded base64 is malleable at the tail; AES-GCM cannot see it.
+
+    When the sealed byte length is not a multiple of three, the final character holds
+    bits no byte uses, so a different character decodes to identical plaintext and the
+    cipher authenticates it. That made the sweep above pass or fail depending on the
+    random nonce — one run in five. The decoder now rejects any spelling it would not
+    itself produce, so the token-to-bytes mapping is one-to-one and the sweep is a
+    statement about the codec rather than about luck.
+    """
+    codec = BrowserSessionCodec("x" * 40, clock=lambda: 1000.0)
+    token = codec.seal("session", {"access_token": "a", "csrf": "c"}, ttl_seconds=30)
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+    decoded = base64.urlsafe_b64decode(token + "=" * (-len(token) % 4))
+
+    variants = [
+        token[:-1] + char
+        for char in alphabet
+        if char != token[-1]
+        and base64.urlsafe_b64decode(token[:-1] + char + "=" * (-len(token) % 4)) == decoded
+    ]
+
+    assert variants, (
+        "this token happens to have no equivalent spelling; the property under test "
+        "is only exercised when the payload length is not a multiple of three"
+    )
+    for variant in variants:
+        with pytest.raises(BrowserSessionError):
+            codec.open(variant, expected_kind="session")
 
 
 def test_oidc_authorization_url_uses_state_nonce_and_s256_pkce():
@@ -152,7 +211,10 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
         )
         assert callback.status_code == 303, callback.text
         combined_cookies = callback.headers.get_list("set-cookie")
-        assert any("__Host-korpus_session=" in value and "HttpOnly" in value for value in combined_cookies)
+        assert any(
+            "__Host-korpus_session=" in value and "HttpOnly" in value
+            for value in combined_cookies
+        )
         assert all("access-token" not in value for value in combined_cookies)
 
         identity = client.get("/v1/auth/me")

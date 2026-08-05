@@ -4,7 +4,6 @@ import hashlib
 from pathlib import Path
 
 import pytest
-
 from korpus.domain.models import AccessTier, DocumentRecord, Identity
 from korpus.infrastructure.object_store import LocalObjectStore
 

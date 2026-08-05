@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from uuid import UUID
 
-from korpus.application.ports import ObjectStore, Repository
-from korpus.application.fingerprints import simhash64
 from korpus.application.extraction_quality import ExtractionQuality, assess_extraction_quality
+from korpus.application.fingerprints import simhash64
 from korpus.application.policy import PolicyEngine
+from korpus.application.ports import ObjectStore, Repository
 from korpus.domain.models import (
     DocumentCreate,
     DocumentRecord,
@@ -26,10 +26,10 @@ from korpus.infrastructure.extraction import (
     extract_pages_sandboxed,
     make_spans,
 )
+from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import DisabledMalwareScanner, MalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
-from korpus.security.reviewers import ReviewerRegistry
-from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 ALLOWED_TRANSITIONS: dict[ReviewState, frozenset[ReviewState]] = {
     ReviewState.QUARANTINED: frozenset({ReviewState.METADATA_REVIEWED, ReviewState.REJECTED}),
@@ -99,7 +99,9 @@ class IngestionService:
         mime_type: str,
         content: bytes,
     ) -> IngestResult:
-        with tempfile.NamedTemporaryFile(prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False) as handle:
+        with tempfile.NamedTemporaryFile(
+            prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False
+        ) as handle:
             handle.write(content)
             path = Path(handle.name)
         try:
@@ -134,14 +136,31 @@ class IngestionService:
             raise PermissionError("corpus governance profile is unavailable")
         if document_data.corpus_id not in actor.corpora and not actor.has_role("admin"):
             raise PermissionError("actor cannot ingest into unassigned corpus")
-        if not document_data.compartments.issubset(actor.compartments) and not actor.has_role("admin"):
+        if version_data.supersedes_version_id is not None:
+            # Supersession is an edge inside one canonical document. On this path the
+            # document is being created now, so it has no predecessors and the edge can
+            # only point at somebody else's — which is how a foreign upload took an
+            # approved order out of retrieval while it stayed is_current in the database
+            # (destruction stage B3). The sibling path, which adds a version to an
+            # existing document, checks ownership; this one accepted anything.
+            raise ValueError(
+                "a newly created document cannot supersede a version of another document"
+            )
+        if not document_data.compartments.issubset(actor.compartments) and not actor.has_role(
+            "admin"
+        ):
             raise PermissionError("actor cannot assign unowned compartments")
         digest = self._validate_path_and_hash(path, source_hash)
         self._verify_source(document_data.issuer, version_data, digest)
-        duplicate = self.repository.find_version_by_hash(actor, digest, corpus_id=document_data.corpus_id)
+        duplicate = self.repository.find_version_by_hash(
+            actor, digest, corpus_id=document_data.corpus_id, revision=version_data.revision
+        )
         if duplicate is not None:
             duplicate_document = self.repository.get_document(actor, duplicate.document_id)
-            if duplicate_document is None or not self.policy.can_access_document(actor, duplicate_document).allowed:
+            if (
+                duplicate_document is None
+                or not self.policy.can_access_document(actor, duplicate_document).allowed
+            ):
                 raise ValueError("duplicate source content already exists")
             return IngestResult(
                 document=duplicate_document,
@@ -183,7 +202,9 @@ class IngestionService:
         mime_type: str,
         content: bytes,
     ) -> IngestResult:
-        with tempfile.NamedTemporaryFile(prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False) as handle:
+        with tempfile.NamedTemporaryFile(
+            prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False
+        ) as handle:
             handle.write(content)
             path = Path(handle.name)
         try:
@@ -225,7 +246,9 @@ class IngestionService:
             raise PermissionError("corpus governance profile is unavailable")
         digest = self._validate_path_and_hash(path, source_hash)
         self._verify_source(document.issuer, version_data, digest)
-        duplicate = self.repository.find_version_by_hash(actor, digest, document_id=document.id)
+        duplicate = self.repository.find_version_by_hash(
+            actor, digest, document_id=document.id, revision=version_data.revision
+        )
         if duplicate is not None:
             return IngestResult(
                 document=document,
@@ -270,18 +293,49 @@ class IngestionService:
         version = self.repository.get_version(actor, version_id)
         if version is None:
             raise LookupError("version not found")
-        permission = "document:review_metadata" if transition.target is ReviewState.METADATA_REVIEWED else "document:review"
+        # Holding a review role is not the same as being entitled to this corpus.
+        # Neither get_version nor get_document filters by corpus — on PostgreSQL
+        # row-level security refuses first, on SQLite nothing does — so a reviewer for
+        # one corpus could drive another corpus's version through its review states,
+        # including approval, given only the version id. The document is fetched here
+        # rather than inside the reviewer-credential branch below, because the access
+        # decision applies to every transition, not only the three that need a
+        # credential.
+        document = self.repository.get_document(actor, version.document_id)
+        if document is None:
+            raise LookupError("document not found")
+        if not self.policy.can_access_document(actor, document).allowed:
+            raise PermissionError("actor cannot access target document")
+        permission = (
+            "document:review_metadata"
+            if transition.target is ReviewState.METADATA_REVIEWED
+            else "document:review"
+        )
         if transition.target is ReviewState.APPROVED:
             permission = "document:approve"
         self.policy.require(actor, permission)
         if transition.target not in ALLOWED_TRANSITIONS[version.review_state]:
             raise ValueError(
-                f"invalid review transition {version.review_state.value} -> {transition.target.value}"
+                f"invalid review transition {version.review_state.value}"
+                f" -> {transition.target.value}"
             )
-        if transition.target is ReviewState.APPROVED and version.authority.value == "unknown":
-            raise ValueError("unknown authority cannot be approved")
+        if transition.target is ReviewState.APPROVED and not version.authority.is_normative:
+            raise ValueError(f"{version.authority.value} authority cannot be approved")
+        if transition.target is ReviewState.APPROVED and version.in_force_from is None:
+            # Approving a version makes it answer "which rules applied on date X". With
+            # neither effective_from nor publication_date it answered for every past
+            # date, including dates before it existed. The date is a fact about the
+            # order that the curator has in front of them; refusing here is cheaper than
+            # a citation that is wrong in a way the reader cannot see.
+            raise ValueError(
+                "an approved version must state effective_from or publication_date: "
+                "without one it would govern every past date"
+            )
         if self.review_separation_required:
-            if transition.target is ReviewState.CONTENT_REVIEWED and version.metadata_reviewed_by == actor.subject:
+            if (
+                transition.target is ReviewState.CONTENT_REVIEWED
+                and version.metadata_reviewed_by == actor.subject
+            ):
                 raise ValueError("content reviewer must differ from metadata reviewer")
             if transition.target is ReviewState.APPROVED and actor.subject in {
                 version.metadata_reviewed_by,
@@ -294,9 +348,6 @@ class IngestionService:
             ReviewState.CONTENT_REVIEWED,
             ReviewState.APPROVED,
         }:
-            document = self.repository.get_document(actor, version.document_id)
-            if document is None:
-                raise LookupError("document not found")
             if self.reviewer_registry is not None:
                 reviewer_credential_id = self.reviewer_registry.authorize(
                     subject=actor.subject,
@@ -315,6 +366,7 @@ class IngestionService:
             acknowledge_near_duplicate=transition.acknowledge_near_duplicate,
             acknowledge_extraction_quality=transition.acknowledge_extraction_quality,
             reviewer_credential_id=reviewer_credential_id,
+            access_tier=transition.access_tier,
         )
 
 
@@ -339,25 +391,32 @@ class IngestionService:
             raise ValueError("upload digest mismatch")
         return digest
 
-    def _extract_path(self, path: Path, filename: str, mime_type: str) -> tuple[list[dict[str, object]], str]:
-        kwargs = dict(
-            path=path,
-            filename=filename,
-            mime_type=mime_type,
-            ocr_enabled=self.extraction.ocr_enabled,
-            ocr_languages=self.extraction.ocr_languages,
-            max_pdf_pages=self.extraction.max_pdf_pages,
-            ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
-        )
+    def _extract_path(
+        self, path: Path, filename: str, mime_type: str
+    ) -> tuple[list[dict[str, object]], str]:
         if self.extraction.parser_sandbox_enabled:
             pages, method = extract_pages_sandboxed(
-                **kwargs,
+                path=path,
+                filename=filename,
+                mime_type=mime_type,
+                ocr_enabled=self.extraction.ocr_enabled,
+                ocr_languages=self.extraction.ocr_languages,
+                max_pdf_pages=self.extraction.max_pdf_pages,
+                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
                 timeout_seconds=self.extraction.parser_timeout_seconds,
                 memory_limit_mb=self.extraction.parser_memory_limit_mb,
                 output_limit_bytes=self.extraction.parser_output_limit_bytes,
             )
         else:
-            pages, method = extract_pages_from_path(**kwargs)
+            pages, method = extract_pages_from_path(
+                path=path,
+                filename=filename,
+                mime_type=mime_type,
+                ocr_enabled=self.extraction.ocr_enabled,
+                ocr_languages=self.extraction.ocr_languages,
+                max_pdf_pages=self.extraction.max_pdf_pages,
+                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
+            )
         return (
             make_spans(
                 pages,
@@ -414,9 +473,15 @@ class IngestionService:
             "extraction_method": method,
             "review_state": version.review_state.value,
             "compartments": sorted(document.compartments),
-            "supersedes_version_id": str(version.supersedes_version_id) if version.supersedes_version_id else None,
+            "supersedes_version_id": (
+                str(version.supersedes_version_id) if version.supersedes_version_id else None
+            ),
             "content_fingerprint": version.content_fingerprint,
-            "near_duplicate_of_version_id": str(version.near_duplicate_of_version_id) if version.near_duplicate_of_version_id else None,
+            "near_duplicate_of_version_id": (
+                str(version.near_duplicate_of_version_id)
+                if version.near_duplicate_of_version_id
+                else None
+            ),
             "near_duplicate_similarity": version.near_duplicate_similarity,
             "extraction_text_chars": version.extraction_text_chars,
             "extraction_alnum_ratio": version.extraction_alnum_ratio,

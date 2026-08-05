@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+from datetime import date
 from pathlib import Path
 
 import pytest
-
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.policy import PolicyEngine
 from korpus.domain.models import (
@@ -120,7 +120,11 @@ def test_governed_review_records_stage_specific_credential_ids(tmp_path: Path):
                 document_type="order",
                 access_tier=AccessTier.PUBLIC,
             ),
-            VersionCreate(revision="1", authority=AuthorityClass.OFFICIAL_UA),
+            VersionCreate(
+                revision="1",
+                authority=AuthorityClass.OFFICIAL_UA,
+                publication_date=date(2020, 1, 1),
+            ),
             "directive.txt",
             "text/plain",
             "Виконати перевірку журналу та зафіксувати результат відповідальною особою.".encode(),

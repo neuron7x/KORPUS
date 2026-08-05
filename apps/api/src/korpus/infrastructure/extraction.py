@@ -46,14 +46,17 @@ class _VisibleTextParser(HTMLParser):
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth += 1
         elif self._ignored_depth == 0 and tag.casefold() in {
-            "p", "div", "section", "article", "header", "footer", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6"
+            "p", "div", "section", "article", "header", "footer", "br", "li", "tr",
+            "h1", "h2", "h3", "h4", "h5", "h6",
         }:
             self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth = max(0, self._ignored_depth - 1)
-        elif self._ignored_depth == 0 and tag.casefold() in {"p", "div", "section", "article", "li", "tr"}:
+        elif self._ignored_depth == 0 and tag.casefold() in {
+            "p", "div", "section", "article", "li", "tr",
+        }:
             self.parts.append("\n")
 
     def handle_data(self, data: str) -> None:
@@ -133,13 +136,18 @@ def _remaining(deadline: float) -> float:
     return remaining
 
 
-def _ocr_pdf_path(path: Path, languages: str, deadline: float, max_pages: int) -> list[ExtractedPage]:
+def _ocr_pdf_path(
+    path: Path, languages: str, deadline: float, max_pages: int
+) -> list[ExtractedPage]:
     pages: list[ExtractedPage] = []
     with tempfile.TemporaryDirectory(prefix="korpus-ocr-") as directory:
         root = Path(directory)
         prefix = root / "page"
         subprocess.run(
-            ["pdftoppm", "-png", "-r", "220", "-f", "1", "-l", str(max_pages), str(path), str(prefix)],
+            [
+                "pdftoppm", "-png", "-r", "220", "-f", "1",
+                "-l", str(max_pages), str(path), str(prefix),
+            ],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -157,7 +165,9 @@ def _ocr_pdf_path(path: Path, languages: str, deadline: float, max_pages: int) -
                 timeout=_remaining(deadline),
                 env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"},
             )
-            pages.append(ExtractedPage(page=index, text=_normalize(completed.stdout.decode("utf-8"))))
+            pages.append(
+                ExtractedPage(page=index, text=_normalize(completed.stdout.decode("utf-8")))
+            )
     return pages
 
 
@@ -234,7 +244,9 @@ def extract_pages(
     if not content:
         raise ValueError("empty document")
     suffix = Path(filename).suffix or ".bin"
-    with tempfile.NamedTemporaryFile(prefix="korpus-extract-", suffix=suffix, delete=False) as handle:
+    with tempfile.NamedTemporaryFile(
+        prefix="korpus-extract-", suffix=suffix, delete=False
+    ) as handle:
         handle.write(content)
         path = Path(handle.name)
     try:
@@ -298,9 +310,14 @@ def extract_pages_sandboxed(
             text=True,
             capture_output=True,
             timeout=timeout_seconds,
+            # Explicitly no CalledProcessError: the returncode is inspected below and the
+            # worker's stderr is turned into the ValueError message the caller expects.
+            check=False,
             env=environment,
             cwd=str(path.parent),
-            preexec_fn=lambda: _sandbox_limits(memory_limit_mb, timeout_seconds, output_limit_bytes),
+            preexec_fn=lambda: _sandbox_limits(
+                memory_limit_mb, timeout_seconds, output_limit_bytes
+            ),
         )
     except subprocess.TimeoutExpired as exc:
         raise ValueError("parser sandbox timeout") from exc
@@ -339,6 +356,50 @@ def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
     return chunks
 
 
+#: Structural headings of Ukrainian normative acts, anchored to the start of a line and
+#: bounded in length. A citation that says only "page 4" is not an address a reader can
+#: check against a printed order; "Стаття 12" is. Bare numbered clauses ("1. …") are
+#: deliberately excluded: in these documents they are the clause itself far more often
+#: than a heading, and a wrong section is worse than none.
+_SECTION_HEADING = re.compile(
+    r"^[ \t]*("
+    r"(?:РОЗДІЛ|Розділ|ГЛАВА|Глава|СТАТТЯ|Стаття|ПУНКТ|Пункт|ДОДАТОК|Додаток|ЧАСТИНА|Частина)"
+    r"[ \t]+[^\n]{0,80}"
+    r"|§[ \t]*\d+[^\n]{0,60}"
+    r")[ \t]*$",
+    re.MULTILINE,
+)
+
+
+def section_markers(text: str) -> list[tuple[int, str]]:
+    """Offsets of structural headings within a page, in document order."""
+
+    return [
+        (match.start(1), " ".join(match.group(1).split()))
+        for match in _SECTION_HEADING.finditer(text)
+    ]
+
+
+def _section_at(markers: list[tuple[int, str]], offset: int) -> str | None:
+    """The last heading at or before `offset`; None before the first heading."""
+
+    label: str | None = None
+    for start, value in markers:
+        if start > offset:
+            break
+        label = value
+    return label
+
+
+def _cut_point(window: str, minimum: int) -> int:
+    """Where to end a window so it stops on a boundary the document itself has."""
+    for separator in ("\n\n", "\n", ". ", " "):
+        cut = window.rfind(separator)
+        if cut >= minimum:
+            return cut + len(separator)
+    return len(window)
+
+
 def make_spans(
     pages: list[ExtractedPage],
     max_chars: int = 1400,
@@ -346,6 +407,18 @@ def make_spans(
     *,
     max_spans: int = 20_000,
 ) -> list[dict[str, object]]:
+    """Every span is a slice of its page, never assembled from two of them.
+
+    The previous implementation joined the tail of one span to the head of the next
+    with a space (`f"{previous_tail} {piece}"`) and paragraphs with a blank line. Both
+    manufacture text: a sentence that exists in no document comes out of the answer as
+    a verbatim quote, stamped with `quote_hash` and `source_hash`. Reproduced end to
+    end on 2026-08-03 — `status=answered`, `quote in source == False`,
+    `support_score=1.0`. Since a citation is the one thing KORPUS promises to get
+    right, spans are now slices `page.text[start:end]`, so being a substring of the
+    document is a property of the construction and not of a later check. The assertion
+    at the end is there for the day someone changes the construction.
+    """
     if max_chars < 100:
         raise ValueError("max_chars is too small")
     if overlap_chars < 0 or overlap_chars >= max_chars:
@@ -353,31 +426,41 @@ def make_spans(
     output: list[dict[str, object]] = []
     ordinal = 0
     for page in pages:
-        paragraphs = [part.strip() for part in re.split(r"\n\s*\n", page.text) if part.strip()]
-        buffer = ""
-        previous_tail = ""
-        for paragraph in paragraphs:
-            for piece in _hard_chunks(paragraph, max_chars, overlap_chars):
-                proposal = f"{buffer}\n\n{piece}".strip() if buffer else piece
-                if len(proposal) <= max_chars:
-                    buffer = proposal
-                    continue
-                if buffer:
-                    output.append({"ordinal": ordinal, "page": page.page, "section": None, "text": buffer})
-                    ordinal += 1
-                    previous_tail = buffer[-overlap_chars:] if overlap_chars else ""
-                buffer = f"{previous_tail} {piece}".strip()
-                if len(buffer) > max_chars:
-                    buffer = buffer[-max_chars:]
+        text = page.text
+        markers = section_markers(text)
+        position = 0
+        while position < len(text):
+            end = min(len(text), position + max_chars)
+            if end < len(text):
+                end = position + _cut_point(text[position:end], max_chars // 4)
+            raw = text[position:end]
+            chunk = raw.strip()
+            if chunk:
+                offset = position + (len(raw) - len(raw.lstrip()))
                 if len(output) >= max_spans:
                     raise ValueError("document exceeds maximum span count")
-        if buffer:
-            output.append({"ordinal": ordinal, "page": page.page, "section": None, "text": buffer})
-            ordinal += 1
-        if len(output) > max_spans:
-            raise ValueError("document exceeds maximum span count")
+                # The section is the heading in force where the span starts, so a
+                # citation can be checked against a printed order rather than only
+                # against this database.
+                output.append(
+                    {
+                        "ordinal": ordinal,
+                        "page": page.page,
+                        "section": _section_at(markers, offset),
+                        "text": chunk,
+                    }
+                )
+                ordinal += 1
+            if end >= len(text):
+                break
+            # Step forward by at least one character so a pathological page cannot
+            # spin here, and keep the overlap so no local window is lost at a seam.
+            position = max(position + 1, end - overlap_chars)
     if not output:
         raise ValueError("document yielded no evidence spans")
     if any(len(str(span["text"])) > max_chars for span in output):
         raise AssertionError("chunking invariant violated")
+    by_page = {page.page: page.text for page in pages}
+    if any(str(span["text"]) not in by_page[span["page"]] for span in output):  # type: ignore[index]
+        raise AssertionError("span is not a substring of its page")
     return output

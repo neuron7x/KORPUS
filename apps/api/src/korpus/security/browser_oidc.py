@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import json
 import secrets
@@ -36,11 +37,23 @@ class BrowserSessionCodec:
 
     @staticmethod
     def _decode(value: str) -> bytes:
+        """Reject non-canonical encodings, not only undecodable ones.
+
+        Unpadded base64 is malleable at the tail: when the byte length is not a
+        multiple of three the final character carries bits no input byte uses, so
+        several distinct tokens decode to identical plaintext and AES-GCM authenticates
+        all of them. A session cookie is therefore not one string, and any check that
+        compares, revokes or rate-limits by token text silently misses the variants.
+        Re-encoding and comparing makes the mapping one-to-one.
+        """
         padding = "=" * (-len(value) % 4)
         try:
-            return base64.urlsafe_b64decode(value + padding)
-        except (ValueError, base64.binascii.Error) as exc:
+            decoded = base64.urlsafe_b64decode(value + padding)
+        except (ValueError, binascii.Error) as exc:
             raise BrowserSessionError("invalid browser session encoding") from exc
+        if base64.urlsafe_b64encode(decoded).rstrip(b"=").decode("ascii") != value:
+            raise BrowserSessionError("non-canonical browser session encoding")
+        return decoded
 
     def seal(self, kind: str, payload: dict[str, Any], *, ttl_seconds: int) -> str:
         if not kind or ttl_seconds < 1:
@@ -65,7 +78,8 @@ class BrowserSessionCodec:
                 nonce, ciphertext, expected_kind.encode("utf-8")
             )
             data = json.loads(body)
-        except Exception as exc:  # cryptographic parser boundary: all failures are indistinguishable
+        # cryptographic parser boundary: all failures are indistinguishable
+        except Exception as exc:
             raise BrowserSessionError("browser session authentication failed") from exc
         now = int(self._clock())
         if data.get("v") != 1 or data.get("kind") != expected_kind:

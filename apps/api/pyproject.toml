@@ -54,13 +54,13 @@ markers = [
   "metamorphic: metamorphic or noninterference property",
 ]
 
-[tool.ruff]
-target-version = "py312"
-line-length = 100
-
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "B"]
-ignore = ["B008"]
+# The [tool.ruff] section that used to live here has moved to /ruff.toml.
+# Keeping it meant ruff resolved two different rule sets in one command: files under
+# apps/api/ took this narrow selection (E4, E7, E9, F, B) while scripts/ walked past
+# the repository root and took whatever pyproject.toml sat above the checkout. Adding
+# a root config did not fix it — this file was nearer, so it still won for apps/api,
+# and 233 violations stayed invisible. One config, at the root, is the only
+# arrangement where the same command means the same thing for every path.
 
 [tool.mypy]
 python_version = "3.12"

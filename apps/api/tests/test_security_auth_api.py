@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
@@ -27,7 +26,8 @@ def test_jwt_auth_accepts_valid_token_and_rejects_invalid(tmp_path: Path):
     )
     with TestClient(app) as client:
         assert client.get("/v1/auth/me").status_code == 401
-        assert client.get("/v1/auth/me", headers={"Authorization": "Bearer invalid"}).status_code == 401
+        rejected = client.get("/v1/auth/me", headers={"Authorization": "Bearer invalid"})
+        assert rejected.status_code == 401
         token = issue_token(identity, settings)
         response = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200

@@ -31,7 +31,7 @@ class CorpusPolicy(BaseModel):
     declassification_rule: str | None = Field(default=None, max_length=1000)
 
     @model_validator(mode="after")
-    def validate_lifecycle(self) -> "CorpusPolicy":
+    def validate_lifecycle(self) -> CorpusPolicy:
         if CorpusOperation.DELETE in self.allowed_operations and self.legal_hold:
             raise ValueError("delete cannot be enabled while a corpus is under legal hold")
         return self
@@ -43,7 +43,7 @@ class CorpusGovernanceProfile(BaseModel):
     corpora: dict[str, CorpusPolicy] = Field(min_length=1)
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "CorpusGovernanceProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> CorpusGovernanceProfile:
         raw = path.read_bytes()
         actual = hashlib.sha256(raw).hexdigest()
         if expected_sha256 is not None and actual != expected_sha256:

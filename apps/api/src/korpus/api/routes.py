@@ -5,21 +5,36 @@ import hmac
 import json
 import os
 import tempfile
-import jwt
+from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Annotated, Callable, TypeVar
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, Request, Response, UploadFile, status
+import jwt
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+    status,
+)
+from pydantic import BaseModel, ConfigDict
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
 
 from korpus.api.dependencies import (
     get_admission_controller,
     get_answer_service,
-    get_ingestion_admission_controller,
     get_durable_ingestion_coordinator,
+    get_ingestion_admission_controller,
     get_ingestion_job_queue,
     get_ingestion_service,
     get_object_store,
@@ -30,7 +45,11 @@ from korpus.api.dependencies import (
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.ingestion import IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
-from korpus.application.policy import AuthorizationError, PolicyEngine
+from korpus.application.policy import (
+    AuthorizationError,
+    PolicyEngine,
+    UnauthorizedCorporaError,
+)
 from korpus.application.ports import ObjectStore
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.config import Settings, get_settings
@@ -40,22 +59,23 @@ from korpus.domain.models import (
     DocumentCreate,
     DocumentRecord,
     DocumentVersionRecord,
+    EvidenceSpanRecord,
     Identity,
-    IngestResult,
     IngestionJobRecord,
+    IngestResult,
     QueryRequest,
+    RescissionRequest,
     ReviewTransition,
     VersionCreate,
 )
+from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import ConcurrentWriteError, SqlRepository
-from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.security.auth import get_identity
 from korpus.security.browser_oidc import BrowserSessionError
 
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
-T = TypeVar("T")
 
 
 @dataclass(frozen=True)
@@ -94,14 +114,15 @@ async def _spool_upload_limited(file: UploadFile, maximum_bytes: int) -> SpoolUp
         await file.close()
 
 
-async def _run_bounded_ingestion(
+async def _run_bounded_ingestion[T](
     admission: AdmissionController,
     observability: Observability,
     operation: Callable[[], T],
+    subject: str | None = None,
 ) -> T:
     def execute() -> T:
         try:
-            with admission.acquire():
+            with admission.acquire(subject):
                 observability.ingestion_admission_active.set(admission.snapshot().active)
                 return operation()
         finally:
@@ -127,6 +148,7 @@ def ready(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
     settings: Annotated[Settings, Depends(get_settings)],
+    observability: Annotated[Observability, Depends(get_observability)] = None,  # type: ignore[assignment]
 ) -> dict[str, object]:
     try:
         snapshot = repository.readiness_snapshot(
@@ -145,10 +167,29 @@ def ready(
         else True
     )
     is_ready = bool(snapshot["ready"] and object_store_ok and schema_ok)
-    payload = {**snapshot, "object_store": object_store_ok, "schema_current": schema_ok, "ready": is_ready}
+    # Reported, not gated. Telemetry display may degrade under the release policy as
+    # long as the underlying event stays durably available, and it does — the audit
+    # chain is not the tracer. What must not happen is an operator reading
+    # `otlp_endpoint` in the config and believing traces exist when the exporter was
+    # never attached.
+    # The status word only. /ready is unauthenticated, and the OTLP endpoint is an
+    # internal address: test_health_and_readiness_are_operational_not_information_side
+    # _channels exists precisely to keep infrastructure detail out of this response.
+    telemetry = (
+        str(observability.telemetry_status()["traces"]) if observability is not None else "UNKNOWN"
+    )
+    payload = {
+        **snapshot,
+        "object_store": object_store_ok,
+        "schema_current": schema_ok,
+        "telemetry": telemetry,
+        "ready": is_ready,
+    }
     if not is_ready:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
-    return {"status": "ready", "audit_head": int(snapshot["audit_head_sequence"])}
+    # readiness_snapshot always stores an int under this key (repository.readiness_snapshot)
+    audit_head = int(snapshot["audit_head_sequence"])  # type: ignore[call-overload]
+    return {"status": "ready", "audit_head": audit_head, "telemetry": telemetry}
 
 
 @router.get("/metrics", include_in_schema=False)
@@ -184,11 +225,16 @@ def browser_login(
     return_to: Annotated[str, Query(max_length=1024)] = "/",
 ) -> Response:
     if not settings.browser_auth_enabled:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled"
+        )
     client = getattr(request.app.state, "browser_oidc_client", None)
     codec = getattr(request.app.state, "browser_session_codec", None)
     if client is None or codec is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="browser authentication unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="browser authentication unavailable",
+        )
     flow = client.new_flow()
     flow_cookie = codec.seal(
         "flow",
@@ -221,17 +267,23 @@ def browser_callback(
     state_value: Annotated[str, Query(alias="state", min_length=16, max_length=512)],
 ) -> Response:
     if not settings.browser_auth_enabled:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="browser authentication disabled"
+        )
     flow_cookie = request.cookies.get(settings.browser_flow_cookie)
     client = getattr(request.app.state, "browser_oidc_client", None)
     codec = getattr(request.app.state, "browser_session_codec", None)
     verifier = getattr(request.app.state, "oidc_verifier", None)
     if not flow_cookie or client is None or codec is None or verifier is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC flow state unavailable")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC flow state unavailable"
+        )
     try:
         flow = codec.open(flow_cookie, expected_kind="flow")
         expected_state = flow.get("state")
-        if not isinstance(expected_state, str) or not hmac.compare_digest(expected_state, state_value):
+        if not isinstance(expected_state, str) or not hmac.compare_digest(
+            expected_state, state_value
+        ):
             raise BrowserSessionError("OIDC state mismatch")
         tokens = client.exchange(code, str(flow.get("code_verifier", "")))
         id_claims = verifier.verify(
@@ -250,8 +302,13 @@ def browser_callback(
             ttl_seconds=ttl,
         )
     except (BrowserSessionError, ValueError, jwt.PyJWTError) as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC callback validation failed") from exc
-    response = RedirectResponse(_safe_return_path(str(flow.get("return_to", "/"))), status_code=status.HTTP_303_SEE_OTHER)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="OIDC callback validation failed"
+        ) from exc
+    response = RedirectResponse(
+        _safe_return_path(str(flow.get("return_to", "/"))),
+        status_code=status.HTTP_303_SEE_OTHER,
+    )
     response.delete_cookie(settings.browser_flow_cookie, path="/v1/auth")
     response.set_cookie(
         settings.browser_session_cookie,
@@ -301,7 +358,9 @@ def list_documents(
     return repository.list_documents(identity)
 
 
-@router.post("/v1/documents/ingest", response_model=IngestResult, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/v1/documents/ingest", response_model=IngestResult, status_code=status.HTTP_201_CREATED
+)
 async def ingest_document(
     identity: IdentityDependency,
     service: Annotated[IngestionService, Depends(get_ingestion_service)],
@@ -313,7 +372,9 @@ async def ingest_document(
     file: Annotated[UploadFile, File()],
 ) -> IngestResult:
     if settings.ingestion_mode != "synchronous":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs"
+        )
     try:
         document = DocumentCreate.model_validate(json.loads(document_json))
         version = VersionCreate.model_validate(json.loads(version_json))
@@ -324,7 +385,8 @@ async def ingest_document(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: service.ingest_path(
+                subject=identity.subject,
+                operation=lambda: service.ingest_path(
                     identity,
                     document,
                     version,
@@ -341,7 +403,9 @@ async def ingest_document(
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -360,7 +424,9 @@ async def ingest_document_version(
     file: Annotated[UploadFile, File()],
 ) -> IngestResult:
     if settings.ingestion_mode != "synchronous":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="use durable ingestion jobs"
+        )
     try:
         version = VersionCreate.model_validate(json.loads(version_json))
         filename = file.filename or "upload.bin"
@@ -370,7 +436,8 @@ async def ingest_document_version(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: service.ingest_version_path(
+                subject=identity.subject,
+                operation=lambda: service.ingest_version_path(
                     identity,
                     document_id,
                     version,
@@ -389,7 +456,9 @@ async def ingest_document_version(
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -408,7 +477,9 @@ async def submit_document_ingestion_job(
     file: Annotated[UploadFile, File()],
 ) -> IngestionJobRecord:
     if settings.ingestion_mode != "durable_async":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled"
+        )
     try:
         document = DocumentCreate.model_validate(json.loads(document_json))
         version = VersionCreate.model_validate(json.loads(version_json))
@@ -419,7 +490,8 @@ async def submit_document_ingestion_job(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: coordinator.submit_document(
+                subject=identity.subject,
+                operation=lambda: coordinator.submit_document(
                     identity,
                     document,
                     version,
@@ -436,7 +508,9 @@ async def submit_document_ingestion_job(
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.post(
@@ -455,7 +529,9 @@ async def submit_version_ingestion_job(
     file: Annotated[UploadFile, File()],
 ) -> IngestionJobRecord:
     if settings.ingestion_mode != "durable_async":
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="durable ingestion is disabled"
+        )
     try:
         version = VersionCreate.model_validate(json.loads(version_json))
         filename = file.filename or "upload.bin"
@@ -465,7 +541,8 @@ async def submit_version_ingestion_job(
             return await _run_bounded_ingestion(
                 admission,
                 observability,
-                lambda: coordinator.submit_version(
+                subject=identity.subject,
+                operation=lambda: coordinator.submit_version(
                     identity,
                     document_id,
                     version,
@@ -484,7 +561,9 @@ async def submit_version_ingestion_job(
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except (ValueError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(exc)
+        ) from exc
 
 
 @router.get("/v1/ingestion-jobs/{job_id}", response_model=IngestionJobRecord)
@@ -508,13 +587,42 @@ def review_version(
 ) -> DocumentVersionRecord:
     try:
         return service.transition(identity, version_id, transition)
-    except AuthorizationError as exc:
+    except PermissionError as exc:
+        # AuthorizationError is one of these; so is an approver reaching for a tier
+        # above their own clearance, which is a refusal rather than a server fault.
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
     except ConcurrentWriteError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+
+@router.post(
+    "/v1/document-versions/{version_id}/rescission", response_model=DocumentVersionRecord
+)
+def rescind_version(
+    version_id: UUID,
+    request_body: RescissionRequest,
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+) -> DocumentVersionRecord:
+    """Take an approved version out of force from a date, without rewriting review state."""
+    try:
+        policy.require(identity, "document:approve")
+        return repository.rescind_version(
+            identity,
+            version_id,
+            note=request_body.note,
+            rescinded_at=request_body.rescinded_at,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except (ConcurrentWriteError, ValueError) as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
@@ -528,7 +636,7 @@ def create_answer(
 ) -> Answer:
     try:
         try:
-            with admission.acquire():
+            with admission.acquire(identity.subject):
                 observability.answer_admission_active.set(admission.snapshot().active)
                 with observability.measure_retrieval():
                     answer = service.execute(identity, query)
@@ -546,8 +654,121 @@ def create_answer(
             detail="answer capacity exhausted",
             headers={"Retry-After": "1"},
         ) from exc
+    except UnauthorizedCorporaError as exc:
+        # Typed, and in the order the reader asked: a refusal that does not say which
+        # corpus was refused cannot be acted on by the reader or by an operator.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "reason": exc.reason,
+                "denied_corpora": exc.denied,
+                "requested_corpora": exc.requested,
+            },
+        ) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+
+
+class DisclosedSpan(BaseModel):
+    """One passage, addressed the way a reader can check it against the source.
+
+    `text_hash` is over the span's own text, which is what makes the citation chain
+    non-tautological: `quote_hash` proves the quote matches itself, and only the span
+    ties the quote to the document that `source_hash` covers.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    id: UUID
+    version_id: UUID
+    document_id: UUID
+    document_title: str
+    revision: str
+    ordinal: int
+    page: int | None
+    section: str | None
+    text: str
+    text_hash: str
+    source_hash: str
+    source_uri: str | None
+
+    @classmethod
+    def build(
+        cls,
+        span: EvidenceSpanRecord,
+        document: DocumentRecord,
+        version: DocumentVersionRecord,
+    ) -> DisclosedSpan:
+        return cls(
+            id=span.id,
+            version_id=version.id,
+            document_id=document.id,
+            document_title=document.canonical_title,
+            revision=version.revision,
+            ordinal=span.ordinal,
+            page=span.page,
+            section=span.section,
+            text=span.text,
+            text_hash=span.text_hash,
+            source_hash=version.source_hash,
+            source_uri=version.source_uri,
+        )
+
+
+@router.get("/v1/document-versions/{version_id}/spans", response_model=list[DisclosedSpan])
+def list_version_spans(
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+    version_id: UUID,
+    as_of: Annotated[date | None, Query()] = None,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> list[DisclosedSpan]:
+    """The passages of one version, so a citation has somewhere to point.
+
+    Answers out of the same projection retrieval uses, so a reader can reach exactly
+    the material an answer could have cited them and nothing else — on the date they
+    ask about, since which edition governs is a function of that date.
+    """
+
+    try:
+        policy.require(identity, "document:list")
+    except AuthorizationError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    effective = as_of or datetime.now(UTC).date()
+    rows = repository.list_retrievable_spans(
+        identity, identity.corpora, effective, version_id=version_id
+    )
+    rows.sort(key=lambda row: row[0].ordinal)
+    return [DisclosedSpan.build(*row) for row in rows[offset : offset + limit]]
+
+
+@router.get("/v1/spans/{span_id}", response_model=DisclosedSpan)
+def read_span(
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+    span_id: UUID,
+    as_of: Annotated[date | None, Query()] = None,
+) -> DisclosedSpan:
+    """One passage by id. 404 covers both "no such span" and "not yours".
+
+    They are deliberately the same answer: distinguishing them would tell a reader that
+    material they may not see exists, which is the disclosure the tier is for.
+    """
+
+    try:
+        policy.require(identity, "document:list")
+    except AuthorizationError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    effective = as_of or datetime.now(UTC).date()
+    rows = repository.get_retrievable_spans_by_ids(
+        identity, identity.corpora, effective, [span_id]
+    )
+    if not rows:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="span not found")
+    return DisclosedSpan.build(*rows[0])
 
 
 @router.get("/v1/audit/verify", response_model=AuditVerification)
@@ -561,3 +782,28 @@ def verify_audit(
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     return repository.verify_audit()
+
+
+@router.get("/v1/audit/events")
+def read_audit_events(
+    identity: IdentityDependency,
+    repository: Annotated[SqlRepository, Depends(get_repository)],
+    policy: Annotated[PolicyEngine, Depends(get_policy)],
+    trace_id: Annotated[str, Query(min_length=1, max_length=128)],
+    limit: Annotated[int, Query(ge=1, le=1000)] = 200,
+) -> list[dict[str, object]]:
+    """One request's events, for an auditor.
+
+    `verify_audit` returns a single verdict over the whole chain, which cannot answer
+    why one answer was withheld. Reading is scoped to a trace so the question an
+    investigator actually has — what happened during this request — does not require
+    exporting the table.
+    """
+    try:
+        policy.require(identity, "audit:read")
+    except AuthorizationError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    try:
+        return repository.read_audit_events(identity, trace_id, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

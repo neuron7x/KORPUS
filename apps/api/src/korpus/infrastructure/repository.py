@@ -4,12 +4,13 @@ import hashlib
 import hmac
 import json
 import re
-import time
 import threading
+import time
+from collections.abc import Callable, Sequence
+from contextlib import nullcontext, suppress
 from datetime import UTC, date, datetime
-from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -19,8 +20,8 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
-    ForeignKey,
     Float,
+    ForeignKey,
     Index,
     Integer,
     MetaData,
@@ -35,13 +36,16 @@ from sqlalchemy import (
     inspect,
     select,
     update,
+)
+from sqlalchemy import (
     text as sql_text,
 )
-from sqlalchemy.engine import Connection, Engine
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.engine import Connection, RowMapping
+from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
 from korpus.application.policy import PolicyEngine
+from korpus.application.trace import TRACE_ID_PATTERN, current_trace_id
 from korpus.domain.models import (
     AccessTier,
     AuditVerification,
@@ -55,7 +59,12 @@ from korpus.domain.models import (
 )
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 
-SCHEMA_REVISION = "0009_reviewer_credentials"
+#: The alembic head this code expects. `initialize(create_schema=False)` — the
+#: production path — refuses to start on anything else. It is pinned by
+#: test_schema_revision_pin.py against the migration graph, because it drifted once:
+#: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
+#: refused to start while every SQLite test stayed green.
+SCHEMA_REVISION = "0010_revision_identity"
 
 metadata = MetaData()
 
@@ -78,7 +87,12 @@ documents = Table(
 document_compartments = Table(
     "document_compartments",
     metadata,
-    Column("document_id", String(36), ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "document_id",
+        String(36),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
     Column("compartment", String(64), primary_key=True),
 )
 
@@ -86,7 +100,13 @@ versions = Table(
     "document_versions",
     metadata,
     Column("id", String(36), primary_key=True),
-    Column("document_id", String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column(
+        "document_id",
+        String(36),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
     Column("revision", String(120), nullable=False),
     Column("publication_identifier", String(200)),
     Column("source_uri", Text),
@@ -100,7 +120,13 @@ versions = Table(
     Column("authority", String(64), nullable=False),
     Column("source_key_id", String(200)),
     Column("source_signature_b64", Text),
-    Column("content_fingerprint", String(16), nullable=False, default="0000000000000000", index=True),
+    Column(
+        "content_fingerprint",
+        String(16),
+        nullable=False,
+        default="0000000000000000",
+        index=True,
+    ),
     Column("near_duplicate_of_version_id", String(36), ForeignKey("document_versions.id")),
     Column("near_duplicate_similarity", Float),
     Column("near_duplicate_acknowledged_by", String(200)),
@@ -121,10 +147,15 @@ versions = Table(
     Column("approver_credential_id", String(200)),
     Column("is_current", Boolean, nullable=False, default=False, index=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
-    UniqueConstraint("document_id", "source_hash", name="uq_version_document_source_hash"),
+    UniqueConstraint("document_id", "revision", name="uq_version_document_revision"),
     CheckConstraint("state_version >= 0", name="ck_version_state_version"),
-    CheckConstraint("effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from", name="ck_version_effective_window"),
-    CheckConstraint("NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"),
+    CheckConstraint(
+        "effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from",
+        name="ck_version_effective_window",
+    ),
+    CheckConstraint(
+        "NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"
+    ),
 )
 
 Index(
@@ -134,13 +165,25 @@ Index(
     sqlite_where=versions.c.is_current.is_(True),
     postgresql_where=versions.c.is_current.is_(True),
 )
-Index("ix_document_versions_validity", versions.c.document_id, versions.c.review_state, versions.c.effective_from, versions.c.effective_until)
+Index(
+    "ix_document_versions_validity",
+    versions.c.document_id,
+    versions.c.review_state,
+    versions.c.effective_from,
+    versions.c.effective_until,
+)
 
 spans = Table(
     "evidence_spans",
     metadata,
     Column("id", String(36), primary_key=True),
-    Column("version_id", String(36), ForeignKey("document_versions.id", ondelete="CASCADE"), nullable=False, index=True),
+    Column(
+        "version_id",
+        String(36),
+        ForeignKey("document_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    ),
     Column("ordinal", Integer, nullable=False),
     Column("page", Integer),
     Column("section", String(500)),
@@ -153,7 +196,12 @@ spans = Table(
 span_embeddings = Table(
     "span_embeddings",
     metadata,
-    Column("span_id", String(36), ForeignKey("evidence_spans.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "span_id",
+        String(36),
+        ForeignKey("evidence_spans.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
     Column("model_id", String(200), primary_key=True),
     Column("dimensions", Integer, nullable=False),
     Column("embedding_json", Text, nullable=False),
@@ -201,7 +249,12 @@ audit_heads = Table(
     CheckConstraint("singleton_id = 1", name="ck_audit_head_singleton"),
 )
 
-Index("ix_audit_anchor_outbox_pending", audit_anchor_outbox.c.delivered_at, audit_anchor_outbox.c.created_at, audit_anchor_outbox.c.sequence)
+Index(
+    "ix_audit_anchor_outbox_pending",
+    audit_anchor_outbox.c.delivered_at,
+    audit_anchor_outbox.c.created_at,
+    audit_anchor_outbox.c.sequence,
+)
 
 
 class ConcurrentWriteError(RuntimeError):
@@ -230,7 +283,10 @@ class SqlRepository:
     ) -> None:
         engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         if database_url.startswith("sqlite"):
-            engine_options["connect_args"] = {"check_same_thread": False, "timeout": max(1, connect_timeout_seconds)}
+            engine_options["connect_args"] = {
+                "check_same_thread": False,
+                "timeout": max(1, connect_timeout_seconds),
+            }
             # SQLite is a local/test profile. Avoid retaining DB-API handles across
             # application lifecycles and threads; each unit of work owns its connection.
             engine_options["poolclass"] = NullPool
@@ -242,7 +298,10 @@ class SqlRepository:
                 pool_recycle=pool_recycle_seconds,
                 connect_args={
                     "connect_timeout": connect_timeout_seconds,
-                    "options": f"-c statement_timeout={statement_timeout_ms} -c lock_timeout={lock_timeout_ms}",
+                    "options": (
+                        f"-c statement_timeout={statement_timeout_ms} "
+                        f"-c lock_timeout={lock_timeout_ms}"
+                    ),
                 },
             )
         self.engine = create_engine(database_url, **engine_options)
@@ -278,7 +337,8 @@ class SqlRepository:
             revision = self.schema_revision()
             if revision != SCHEMA_REVISION:
                 raise RuntimeError(
-                    f"database schema revision mismatch: expected {SCHEMA_REVISION}, got {revision or 'none'}"
+                    f"database schema revision mismatch: expected {SCHEMA_REVISION}, "
+                    f"got {revision or 'none'}"
                 )
         with self.engine.begin() as connection:
             head = connection.execute(
@@ -293,15 +353,15 @@ class SqlRepository:
         if not self.anchor_store.initialized():
             with self.engine.connect() as connection:
                 sequence, head_hash = connection.execute(
-                    select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
+                    select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+                        audit_heads.c.singleton_id == 1
+                    )
                 ).one()
             if sequence == 0:
                 self.anchor_store.write(0, head_hash)
-        try:
+        # The committed outbox is authoritative; background reconciliation repairs the anchor.
+        with suppress(AnchorError):
             self.reconcile_audit_anchor()
-        except AnchorError:
-            # The committed outbox is authoritative; background reconciliation repairs the anchor.
-            pass
 
     def reset(self) -> None:
         if self.engine.dialect.name == "sqlite":
@@ -325,7 +385,10 @@ class SqlRepository:
             if document.compartments:
                 connection.execute(
                     insert(document_compartments),
-                    [{"document_id": str(document.id), "compartment": value} for value in sorted(document.compartments)],
+                    [
+                        {"document_id": str(document.id), "compartment": value}
+                        for value in sorted(document.compartments)
+                    ],
                 )
             connection.execute(insert(versions).values(**self._version_values(version)))
             if records:
@@ -392,8 +455,10 @@ class SqlRepository:
         return [self._document(row) for row in rows]
 
     def get_version(self, identity: Identity, version_id: UUID) -> DocumentVersionRecord | None:
-        statement = select(versions).join(documents, versions.c.document_id == documents.c.id).where(
-            versions.c.id == str(version_id)
+        statement = (
+            select(versions)
+            .join(documents, versions.c.document_id == documents.c.id)
+            .where(versions.c.id == str(version_id))
         )
         with self.engine.begin() as connection:
             self._apply_postgres_identity(connection, identity)
@@ -440,8 +505,19 @@ class SqlRepository:
         *,
         corpus_id: str | None = None,
         document_id: UUID | None = None,
+        revision: str | None = None,
     ) -> DocumentVersionRecord | None:
+        """Identical bytes under a different revision are a different version.
+
+        Deduplication keyed on content alone treats a re-issue as an upload of
+        something already held: the ingest returns the existing row, and the revision
+        number, effective dates and supersession edge that came with the re-issue are
+        discarded without a word. A revision is the corpus's own name for a distinct
+        state of a document, so it splits versions even when the bytes match.
+        """
         statement = select(versions)
+        if revision is not None:
+            statement = statement.where(versions.c.revision == revision)
         if document_id is not None:
             statement = statement.where(versions.c.document_id == str(document_id))
         elif corpus_id is not None:
@@ -466,7 +542,17 @@ class SqlRepository:
         acknowledge_near_duplicate: bool = False,
         acknowledge_extraction_quality: bool = False,
         reviewer_credential_id: str | None = None,
+        access_tier: AccessTier | None = None,
     ) -> DocumentVersionRecord:
+        """Approval may carry the access tier the approver decided on.
+
+        Approval is where a human takes responsibility for a document entering the
+        corpus, and the tier is part of that decision — but it could only be set at
+        ingestion, by whoever uploaded the file. An approver who judged a document more
+        restricted than it was filed as had no way to say so, and the tier that stood
+        was the uploader's.
+        """
+
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
             row = connection.execute(
@@ -483,7 +569,10 @@ class SqlRepository:
                 "state_version": current.state_version + 1,
             }
             if target_state is ReviewState.METADATA_REVIEWED:
-                if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:
+                if (
+                    current.near_duplicate_of_version_id is not None
+                    and not acknowledge_near_duplicate
+                ):
                     raise ValueError("near-duplicate finding must be explicitly acknowledged")
                 if current.extraction_quality_flags and not acknowledge_extraction_quality:
                     raise ValueError("extraction-quality findings must be explicitly acknowledged")
@@ -518,7 +607,10 @@ class SqlRepository:
                     predecessor_row = connection.execute(
                         select(versions).where(versions.c.id == str(current.supersedes_version_id))
                     ).mappings().first()
-                    if predecessor_row is None or predecessor_row["review_state"] != ReviewState.APPROVED.value:
+                    if (
+                        predecessor_row is None
+                        or predecessor_row["review_state"] != ReviewState.APPROVED.value
+                    ):
                         raise ValueError("superseded version must be approved")
                 changes.update(
                     {
@@ -528,6 +620,20 @@ class SqlRepository:
                         "is_current": True,
                     }
                 )
+                if access_tier is not None:
+                    document_row = connection.execute(
+                        select(documents).where(documents.c.id == str(current.document_id))
+                    ).mappings().one()
+                    document = self._document(document_row)
+                    if access_tier < document.classification.minimum_tier:
+                        raise ValueError("access_tier is below classification minimum")
+                    if int(access_tier) > int(actor.clearance):
+                        raise PermissionError("approver cannot assign a tier above own clearance")
+                    connection.execute(
+                        update(documents)
+                        .where(documents.c.id == str(current.document_id))
+                        .values(access_tier=int(access_tier))
+                    )
             elif target_state is ReviewState.REJECTED:
                 changes["is_current"] = False
 
@@ -562,7 +668,71 @@ class SqlRepository:
                     "approver_credential_id": updated.approver_credential_id,
                     "near_duplicate_acknowledged_by": updated.near_duplicate_acknowledged_by,
                     "extraction_quality_flags": sorted(updated.extraction_quality_flags),
-                    "extraction_quality_acknowledged_by": updated.extraction_quality_acknowledged_by,
+                    "extraction_quality_acknowledged_by": (
+                        updated.extraction_quality_acknowledged_by
+                    ),
+                    "applied_access_tier": None if access_tier is None else int(access_tier),
+                },
+            )
+            return updated, anchor
+
+        return self._transaction_with_anchor(operation)
+
+    def rescind_version(
+        self,
+        actor: Identity,
+        version_id: UUID,
+        *,
+        note: str,
+        rescinded_at: datetime | None = None,
+    ) -> DocumentVersionRecord:
+        """Record that the issuing authority withdrew a document.
+
+        `rescinded_at` was read when deciding validity, had a mutant in the catalogue
+        and appeared in the import protocol, but no code path ever wrote it. The only
+        way to take an order out of force was REJECTED — a review verdict, not a
+        withdrawal: no reviewer mandate, no separation of duties, and irreversible. An
+        act by the body that issued a document is an ordinary event in a normative
+        corpus, and the system could not represent it.
+        """
+        stamp = rescinded_at or datetime.now(UTC)
+
+        def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
+            self._apply_postgres_identity(connection, actor)
+            row = connection.execute(
+                select(versions).where(versions.c.id == str(version_id))
+            ).mappings().first()
+            if row is None:
+                raise LookupError("version not found")
+            current = self._version(row)
+            if current.review_state is not ReviewState.APPROVED:
+                raise ValueError("only an approved version can be rescinded")
+            if current.rescinded_at is not None:
+                raise ValueError("version is already rescinded")
+            result = connection.execute(
+                update(versions)
+                .where(versions.c.id == str(version_id))
+                .where(versions.c.state_version == current.state_version)
+                .where(versions.c.rescinded_at.is_(None))
+                .values(rescinded_at=stamp, state_version=current.state_version + 1)
+            )
+            if result.rowcount != 1:
+                raise ConcurrentWriteError("optimistic rescission failed")
+            updated = self._version(
+                connection.execute(
+                    select(versions).where(versions.c.id == str(version_id))
+                ).mappings().one()
+            )
+            anchor = self._append_audit_in_connection(
+                connection,
+                actor,
+                "document.rescinded",
+                "document_version",
+                str(version_id),
+                {
+                    "note": note,
+                    "rescinded_at": self._iso(stamp),
+                    "state_version": updated.state_version,
                 },
             )
             return updated, anchor
@@ -574,11 +744,24 @@ class SqlRepository:
         identity: Identity,
         corpus_ids: frozenset[str],
         as_of: date,
+        version_id: UUID | None = None,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
+        """Every span the reader may retrieve, optionally narrowed to one version.
+
+        The narrowing belongs in SQL. Filtering the full projection in Python made the
+        cost of showing one order's passages grow with the whole corpus: measured
+        2026-08-05, 20 spans of one version took 5 ms in a corpus of 20 and 364 ms in a
+        corpus of 10 020 — 73× for a document that had not changed. At the size this
+        system is meant for that is both unusable and the cheapest denial of service in
+        it, available to any reader with a wide clearance.
+        """
+
         authorized_corpora = corpus_ids.intersection(identity.corpora)
         if not authorized_corpora:
             return []
         statement = self._retrievable_projection(identity, authorized_corpora, as_of)
+        if version_id is not None:
+            statement = statement.where(versions.c.id == str(version_id))
         with self.engine.begin() as connection:
             self._apply_postgres_identity(connection, identity)
             rows = connection.execute(statement).mappings().all()
@@ -641,10 +824,16 @@ class SqlRepository:
         active_superseder = (
             select(1)
             .where(superseding.c.supersedes_version_id == versions.c.id)
+            # Second line of the same rule the ingest path states: a successor belongs
+            # to the same canonical document. The application refuses to write a
+            # crossing edge; this refuses to honour one, because a row already in the
+            # database, an import from another tool, or a future path that forgets the
+            # check would otherwise let any document remove any other from retrieval.
+            .where(superseding.c.document_id == versions.c.document_id)
             .where(superseding.c.review_state == ReviewState.APPROVED.value)
             .where(
-                (superseding.c.effective_from.is_(None))
-                | (superseding.c.effective_from <= as_of)
+                func.coalesce(superseding.c.effective_from, superseding.c.publication_date)
+                <= as_of
             )
             .where(
                 (superseding.c.effective_until.is_(None))
@@ -724,7 +913,7 @@ class SqlRepository:
         )
 
     def _materialize_current(
-        self, rows: list[Any], as_of: date
+        self, rows: Sequence[RowMapping], as_of: date
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
         authorized: list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]] = []
         for row in rows:
@@ -752,7 +941,9 @@ class SqlRepository:
         if not terms:
             return []
         classifications = self._allowed_classifications(identity.clearance)
-        corpus_placeholders = ",".join(f":corpus_{index}" for index, _ in enumerate(sorted(corpora)))
+        corpus_placeholders = ",".join(
+            f":corpus_{index}" for index, _ in enumerate(sorted(corpora))
+        )
         class_placeholders = ",".join(
             f":class_{index}" for index, _ in enumerate(classifications)
         )
@@ -783,14 +974,14 @@ class SqlRepository:
                   AND d.corpus_id IN ({corpus_placeholders})
                   AND d.access_tier <= :clearance
                   AND d.classification IN ({class_placeholders})
-                  AND (v.effective_from IS NULL OR v.effective_from <= :as_of)
+                  AND COALESCE(v.effective_from, v.publication_date) <= :as_of
                   AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
                   AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
                   AND NOT EXISTS (
                     SELECT 1 FROM document_versions sv
                     WHERE sv.supersedes_version_id = v.id
                       AND sv.review_state = 'approved'
-                      AND (sv.effective_from IS NULL OR sv.effective_from <= :as_of)
+                      AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
                       AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
                       AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
                   )
@@ -802,6 +993,9 @@ class SqlRepository:
             parameters["query"] = " | ".join(
                 f"{term}:*" if prefix else term for term, prefix in term_specs
             )
+            # Interpolated verbatim so the emitted SQL text is unchanged; it only keeps
+            # the repeated bound-parameter cast off the right-hand margin.
+            as_of_date = "CAST(:as_of AS date)"
             statement = sql_text(
                 f"""
                 SELECT s.id AS span_id
@@ -813,16 +1007,16 @@ class SqlRepository:
                   AND d.corpus_id IN ({corpus_placeholders})
                   AND d.access_tier <= :clearance
                   AND d.classification IN ({class_placeholders})
-                  AND (v.effective_from IS NULL OR v.effective_from <= CAST(:as_of AS date))
-                  AND (v.effective_until IS NULL OR v.effective_until >= CAST(:as_of AS date))
-                  AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > CAST(:as_of AS date))
+                  AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
+                  AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
+                  AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
                   AND NOT EXISTS (
                     SELECT 1 FROM document_versions sv
                     WHERE sv.supersedes_version_id = v.id
                       AND sv.review_state = 'approved'
-                      AND (sv.effective_from IS NULL OR sv.effective_from <= CAST(:as_of AS date))
-                      AND (sv.effective_until IS NULL OR sv.effective_until >= CAST(:as_of AS date))
-                      AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > CAST(:as_of AS date))
+                      AND COALESCE(sv.effective_from, sv.publication_date) <= {as_of_date}
+                      AND (sv.effective_until IS NULL OR sv.effective_until >= {as_of_date})
+                      AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > {as_of_date})
                   )
                 ORDER BY ts_rank_cd(
                     to_tsvector('simple', s.text), to_tsquery('simple', :query)
@@ -847,7 +1041,9 @@ class SqlRepository:
             sql_text(
                 "SELECT set_config('korpus.clearance', :clearance, true), "
                 "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true), set_config('korpus.compartments', :compartments, true), set_config('korpus.roles', :roles, true)"
+                "set_config('korpus.classifications', :classifications, true), "
+                "set_config('korpus.compartments', :compartments, true), "
+                "set_config('korpus.roles', :roles, true)"
             ),
             {
                 "clearance": str(int(identity.clearance)),
@@ -913,35 +1109,118 @@ class SqlRepository:
             self._anchor_delivery_lock.release()
 
     def _reconcile_audit_anchor_locked(self, *, limit: int | None = None) -> int:
-        delivered = 0
-        while limit is None or delivered < limit:
-            with self.engine.connect() as connection:
-                row = connection.execute(
-                    select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
-                    .where(audit_anchor_outbox.c.delivered_at.is_(None))
-                    .order_by(audit_anchor_outbox.c.sequence)
-                    .limit(1)
-                ).one_or_none()
-            if row is None:
-                return delivered
-            # Never hold a database transaction or row lock across network I/O.
-            # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
-            self.anchor_store.write(row.sequence, row.head_hash)
-            with self.engine.begin() as connection:
-                result = connection.execute(
-                    update(audit_anchor_outbox)
-                    .where(audit_anchor_outbox.c.sequence == row.sequence)
-                    .where(audit_anchor_outbox.c.delivered_at.is_(None))
-                    .values(delivered_at=datetime.now(UTC))
-                )
-                delivered += int(result.rowcount == 1)
-        return delivered
+        """Deliver the newest pending checkpoint and close the ones it supersedes.
+
+        Delivery used to walk the outbox one row at a time: select the oldest pending,
+        write it, mark it, repeat. With `audit_reconcile_batch_size = 64` every
+        `audit_reconcile_interval_seconds = 2.0` that is about 32 deliveries a second
+        against an append rate measured at ~480/s on PostgreSQL, so the backlog grew
+        without bound under load. Probed 2026-08-05: 1500 appends, two full reconcile
+        cycles after the load stopped, 882 checkpoints still undelivered — the external
+        anchor, which exists to notice a database rolled back to an older state, was
+        describing a state 882 events old while every gate stayed green.
+
+        The anchor holds one value, and `AnchorStore.write` is monotonic, so an older
+        checkpoint carries nothing a newer one does not. Writing the newest and closing
+        the rest costs one write per pass regardless of backlog. `limit` still caps the
+        rows closed per pass so a very large backlog cannot hold the lock indefinitely.
+        """
+
+        with self.engine.connect() as connection:
+            row = connection.execute(
+                select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
+                .where(audit_anchor_outbox.c.delivered_at.is_(None))
+                .order_by(audit_anchor_outbox.c.sequence.desc())
+                .limit(1)
+            ).one_or_none()
+        if row is None:
+            return 0
+        # Never hold a database transaction or row lock across network I/O.
+        # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
+        self.anchor_store.write(row.sequence, row.head_hash)
+        statement = (
+            update(audit_anchor_outbox)
+            .where(audit_anchor_outbox.c.delivered_at.is_(None))
+            .where(audit_anchor_outbox.c.sequence <= row.sequence)
+            .values(delivered_at=datetime.now(UTC))
+        )
+        if limit is not None:
+            # Close the newest `limit` of them, so the delivered checkpoint is always
+            # among the rows closed and the remainder stays pending for the next pass.
+            floor = (
+                select(audit_anchor_outbox.c.sequence)
+                .where(audit_anchor_outbox.c.delivered_at.is_(None))
+                .where(audit_anchor_outbox.c.sequence <= row.sequence)
+                .order_by(audit_anchor_outbox.c.sequence.desc())
+                .limit(1)
+                .offset(max(limit - 1, 0))
+                .scalar_subquery()
+            )
+            statement = statement.where(
+                audit_anchor_outbox.c.sequence >= func.coalesce(floor, 0)
+            )
+        with self.engine.begin() as connection:
+            result = connection.execute(statement)
+        return int(result.rowcount or 0)
+
+    def read_audit_events(
+        self, identity: Identity, trace_id: str, *, limit: int = 200
+    ) -> list[dict[str, object]]:
+        """The events of one request, in order, for an auditor who holds `audit:read`.
+
+        Matching is a substring test against the canonical payload rather than a JSON
+        operator, because the payload column is portable text and the canonical form
+        (sorted keys, no spaces) makes the encoding of one key exact. The cost is a
+        scan; at audit volumes that is acceptable, and it is named here rather than
+        hidden. Authorisation is the caller's: this method assumes the permission check
+        already happened.
+        """
+        if not TRACE_ID_PATTERN.fullmatch(trace_id):
+            raise ValueError("invalid trace id")
+        if limit < 1 or limit > 1000:
+            raise ValueError("limit out of range")
+        needle = json.dumps({"trace_id": trace_id}, separators=(",", ":"))[1:-1]
+        statement = (
+            select(
+                audits.c.sequence,
+                audits.c.event_id,
+                audits.c.occurred_at,
+                audits.c.actor_subject,
+                audits.c.action,
+                audits.c.resource_type,
+                audits.c.resource_id,
+                audits.c.payload_json,
+            )
+            .where(audits.c.payload_json.contains(needle))
+            .order_by(audits.c.sequence)
+            .limit(limit)
+        )
+        with self.engine.begin() as connection:
+            self._apply_postgres_identity(connection, identity)
+            rows = connection.execute(statement).mappings().all()
+        return [
+            {
+                "sequence": int(row["sequence"]),
+                "event_id": str(row["event_id"]),
+                "occurred_at": self._iso(row["occurred_at"])
+                if isinstance(row["occurred_at"], datetime)
+                else str(row["occurred_at"]),
+                "actor_subject": str(row["actor_subject"]),
+                "action": str(row["action"]),
+                "resource_type": str(row["resource_type"]),
+                "resource_id": None if row["resource_id"] is None else str(row["resource_id"]),
+                "payload": json.loads(row["payload_json"]),
+            }
+            for row in rows
+        ]
 
     def verify_audit(self) -> AuditVerification:
         with self.engine.connect() as connection:
             rows = connection.execute(select(audits).order_by(audits.c.sequence)).mappings().all()
             head_sequence, head_hash = connection.execute(
-                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
+                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+                    audit_heads.c.singleton_id == 1
+                )
             ).one()
         previous_hash = "0" * 64
         expected_sequence = 1
@@ -967,7 +1246,9 @@ class SqlRepository:
                 previous_hash=row["previous_hash"],
             )
             expected_hash = hmac.new(self.audit_key, canonical, hashlib.sha256).hexdigest()
-            if row["previous_hash"] != previous_hash or not hmac.compare_digest(expected_hash, row["event_hash"]):
+            if row["previous_hash"] != previous_hash or not hmac.compare_digest(
+                expected_hash, row["event_hash"]
+            ):
                 return AuditVerification(
                     valid=False,
                     event_count=len(rows),
@@ -996,13 +1277,39 @@ class SqlRepository:
                 anchor_valid=False,
                 reason=str(exc),
             )
-        anchor_valid = anchor.sequence == head_sequence and anchor.head_hash == head_hash
+        if anchor.sequence > head_sequence:
+            # The anchor was written for events the database no longer has: a restore
+            # from an older backup, or lost committed rows. This is the failure the
+            # anchor exists to catch.
+            return AuditVerification(
+                valid=False,
+                event_count=len(rows),
+                head_sequence=head_sequence,
+                anchor_valid=False,
+                reason="external audit anchor is ahead of the database head",
+            )
+        anchor_at_position = (
+            head_hash
+            if anchor.sequence == head_sequence
+            else (rows[anchor.sequence - 1]["event_hash"] if anchor.sequence >= 1 else "0" * 64)
+        )
+        if anchor.head_hash != anchor_at_position:
+            return AuditVerification(
+                valid=False,
+                event_count=len(rows),
+                head_sequence=head_sequence,
+                anchor_valid=False,
+                first_invalid_sequence=anchor.sequence or None,
+                reason="external audit anchor mismatch",
+            )
+        pending = head_sequence - anchor.sequence
         return AuditVerification(
-            valid=anchor_valid,
+            valid=True,
             event_count=len(rows),
             head_sequence=head_sequence,
-            anchor_valid=anchor_valid,
-            reason=None if anchor_valid else "external audit anchor mismatch",
+            anchor_valid=pending == 0,
+            anchor_pending=pending,
+            reason=None if pending == 0 else f"{pending} checkpoints awaiting anchor delivery",
         )
 
     def corpus_release_id(
@@ -1026,7 +1333,9 @@ class SqlRepository:
             with self.engine.connect() as connection:
                 if "alembic_version" not in inspect(connection).get_table_names():
                     return None
-                return connection.execute(sql_text("SELECT version_num FROM alembic_version")).scalar_one_or_none()
+                return connection.execute(
+                    sql_text("SELECT version_num FROM alembic_version")
+                ).scalar_one_or_none()
         except OperationalError:
             return None
 
@@ -1045,11 +1354,40 @@ class SqlRepository:
         return {"content": content, "quarantine": quarantine}
 
     def healthcheck(self) -> bool:
+        """Reachable is not the same as intact.
+
+        `SELECT 1` answers whether a connection can be opened; a database whose pages
+        are corrupt but still readable answers it happily, and readiness reported
+        healthy right up to the query that returns wrong rows. The engine-specific
+        integrity probe below is the cheapest check that can actually fail: SQLite
+        walks its pages, PostgreSQL is asked for a checksum-failure count it maintains
+        itself. Any error is unhealthy — this must fail closed.
+        """
         try:
             with self.engine.connect() as connection:
-                return connection.execute(select(1)).scalar_one() == 1
-        except OperationalError:
+                probe: object = connection.execute(select(1)).scalar_one()
+                if probe != 1:
+                    return False
+                return self._integrity_ok(connection)
+        except (OperationalError, DatabaseError):
             return False
+
+    def _integrity_ok(self, connection: Connection) -> bool:
+        dialect = self.engine.dialect.name
+        if dialect == "sqlite":
+            # quick_check does the structural pass without the full page scan; it
+            # returns the single row 'ok' when the file is sound.
+            rows = connection.execute(sql_text("PRAGMA quick_check(1)")).scalars().all()
+            return [str(row).lower() for row in rows] == ["ok"]
+        if dialect == "postgresql":
+            row = connection.execute(
+                sql_text(
+                    "SELECT coalesce(sum(checksum_failures), 0) FROM pg_stat_database"
+                    " WHERE datname = current_database()"
+                )
+            ).scalar_one()
+            return int(row) == 0
+        return True
 
     def readiness_snapshot(
         self, *, max_pending_events: int, max_pending_age_seconds: float
@@ -1058,7 +1396,9 @@ class SqlRepository:
         with self.engine.connect() as connection:
             database_ok = connection.execute(select(1)).scalar_one() == 1
             head_sequence, head_hash = connection.execute(
-                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
+                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+                    audit_heads.c.singleton_id == 1
+                )
             ).one()
             pending_count, oldest_pending = connection.execute(
                 select(func.count(), func.min(audit_anchor_outbox.c.created_at)).where(
@@ -1093,7 +1433,9 @@ class SqlRepository:
                 )
             ).scalar_one()
         anchor_recoverable = int(recoverable_gap) == anchor_gap
-        pending_ok = int(pending_count) <= max_pending_events and oldest_age <= max_pending_age_seconds
+        pending_ok = (
+            int(pending_count) <= max_pending_events and oldest_age <= max_pending_age_seconds
+        )
         revision = self.schema_revision()
         return {
             "database": database_ok,
@@ -1131,17 +1473,17 @@ class SqlRepository:
         retries: int = 8,
     ) -> T:
         last_error: Exception | None = None
-        write_guard = self._sqlite_write_lock if self.engine.dialect.name == "sqlite" else nullcontext()
+        write_guard = (
+            self._sqlite_write_lock if self.engine.dialect.name == "sqlite" else nullcontext()
+        )
         with write_guard:
             for attempt in range(retries):
                 try:
                     with self.engine.begin() as connection:
                         result, _anchor = operation(connection)
-                    try:
+                    # Commit succeeded. The durable outbox is retried by the lifecycle worker.
+                    with suppress(AnchorError, OSError, TimeoutError):
                         self.reconcile_audit_anchor(limit=1)
-                    except (AnchorError, OSError, TimeoutError):
-                        # Commit succeeded. The durable outbox is retried by the lifecycle worker.
-                        pass
                     return result
                 except ConcurrentWriteError as exc:
                     last_error = exc
@@ -1161,13 +1503,35 @@ class SqlRepository:
         resource_id: str | None,
         payload: dict[str, Any],
     ) -> tuple[int, str]:
-        head_sequence, previous_hash = connection.execute(
-            select(audit_heads.c.sequence, audit_heads.c.head_hash).where(audit_heads.c.singleton_id == 1)
-        ).one()
+        head_statement = select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+            audit_heads.c.singleton_id == 1
+        )
+        if connection.dialect.name == "postgresql":
+            # A hash chain is serial by construction: every append has to read the head
+            # its predecessor wrote. The optimistic form — read, then update guarded by
+            # the value read — is correct but degrades badly under contention, because
+            # every loser retries against a head that has moved again. Forty concurrent
+            # appends exhausted the eight-retry budget and raised
+            # `ConcurrentWriteError: transaction retry budget exhausted` on PostgreSQL;
+            # SQLite serialises writes behind its own lock, so the suite never saw it.
+            # Since answering writes an audit event and an answer without one is refused
+            # by design, that failure mode denies service under exactly the load it is
+            # most likely to meet.
+            #
+            # Taking the row lock first makes the queue explicit: writers wait instead
+            # of colliding, and the guarded UPDATE below stays as the second line.
+            head_statement = head_statement.with_for_update()
+        head_sequence, previous_hash = connection.execute(head_statement).one()
         sequence = head_sequence + 1
         occurred_at = datetime.now(UTC)
         event_id = str(uuid4())
-        payload_json = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        trace_id = current_trace_id()
+        # Inside the payload, not beside it: the payload is hashed, so an event cannot
+        # be re-attributed to another request without breaking the chain.
+        stamped = payload if trace_id is None else {**payload, "trace_id": trace_id}
+        payload_json = json.dumps(
+            stamped, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
         canonical = self._audit_canonical(
             sequence=sequence,
             event_id=event_id,
@@ -1306,16 +1670,24 @@ class SqlRepository:
             "source_key_id": record.source_key_id,
             "source_signature_b64": record.source_signature_b64,
             "content_fingerprint": record.content_fingerprint,
-            "near_duplicate_of_version_id": str(record.near_duplicate_of_version_id) if record.near_duplicate_of_version_id else None,
+            "near_duplicate_of_version_id": (
+                str(record.near_duplicate_of_version_id)
+                if record.near_duplicate_of_version_id
+                else None
+            ),
             "near_duplicate_similarity": record.near_duplicate_similarity,
             "near_duplicate_acknowledged_by": record.near_duplicate_acknowledged_by,
             "extraction_text_chars": record.extraction_text_chars,
             "extraction_alnum_ratio": record.extraction_alnum_ratio,
             "extraction_replacement_ratio": record.extraction_replacement_ratio,
-            "extraction_quality_flags_json": json.dumps(sorted(record.extraction_quality_flags), separators=(",", ":")),
+            "extraction_quality_flags_json": json.dumps(
+                sorted(record.extraction_quality_flags), separators=(",", ":")
+            ),
             "extraction_quality_acknowledged_by": record.extraction_quality_acknowledged_by,
             "review_state": record.review_state.value,
-            "supersedes_version_id": str(record.supersedes_version_id) if record.supersedes_version_id else None,
+            "supersedes_version_id": (
+                str(record.supersedes_version_id) if record.supersedes_version_id else None
+            ),
             "state_version": record.state_version,
             "metadata_reviewed_by": record.metadata_reviewed_by,
             "metadata_reviewer_credential_id": record.metadata_reviewer_credential_id,
@@ -1375,16 +1747,24 @@ class SqlRepository:
             source_key_id=row.get("source_key_id"),
             source_signature_b64=row.get("source_signature_b64"),
             content_fingerprint=row.get("content_fingerprint") or "0" * 16,
-            near_duplicate_of_version_id=UUID(row["near_duplicate_of_version_id"]) if row.get("near_duplicate_of_version_id") else None,
+            near_duplicate_of_version_id=(
+                UUID(row["near_duplicate_of_version_id"])
+                if row.get("near_duplicate_of_version_id")
+                else None
+            ),
             near_duplicate_similarity=row.get("near_duplicate_similarity"),
             near_duplicate_acknowledged_by=row.get("near_duplicate_acknowledged_by"),
             extraction_text_chars=int(row.get("extraction_text_chars") or 0),
             extraction_alnum_ratio=float(row.get("extraction_alnum_ratio") or 0.0),
             extraction_replacement_ratio=float(row.get("extraction_replacement_ratio") or 0.0),
-            extraction_quality_flags=frozenset(json.loads(row.get("extraction_quality_flags_json") or "[]")),
+            extraction_quality_flags=frozenset(
+                json.loads(row.get("extraction_quality_flags_json") or "[]")
+            ),
             extraction_quality_acknowledged_by=row.get("extraction_quality_acknowledged_by"),
             review_state=ReviewState(row["review_state"]),
-            supersedes_version_id=UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None,
+            supersedes_version_id=(
+                UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None
+            ),
             state_version=row["state_version"],
             metadata_reviewed_by=row["metadata_reviewed_by"],
             metadata_reviewer_credential_id=row.get("metadata_reviewer_credential_id"),
@@ -1431,16 +1811,24 @@ class SqlRepository:
             source_key_id=row.get("source_key_id"),
             source_signature_b64=row.get("source_signature_b64"),
             content_fingerprint=row.get("content_fingerprint") or "0" * 16,
-            near_duplicate_of_version_id=UUID(row["near_duplicate_of_version_id"]) if row.get("near_duplicate_of_version_id") else None,
+            near_duplicate_of_version_id=(
+                UUID(row["near_duplicate_of_version_id"])
+                if row.get("near_duplicate_of_version_id")
+                else None
+            ),
             near_duplicate_similarity=row.get("near_duplicate_similarity"),
             near_duplicate_acknowledged_by=row.get("near_duplicate_acknowledged_by"),
             extraction_text_chars=int(row.get("extraction_text_chars") or 0),
             extraction_alnum_ratio=float(row.get("extraction_alnum_ratio") or 0.0),
             extraction_replacement_ratio=float(row.get("extraction_replacement_ratio") or 0.0),
-            extraction_quality_flags=frozenset(json.loads(row.get("extraction_quality_flags_json") or "[]")),
+            extraction_quality_flags=frozenset(
+                json.loads(row.get("extraction_quality_flags_json") or "[]")
+            ),
             extraction_quality_acknowledged_by=row.get("extraction_quality_acknowledged_by"),
             review_state=ReviewState(row["review_state"]),
-            supersedes_version_id=UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None,
+            supersedes_version_id=(
+                UUID(row["supersedes_version_id"]) if row["supersedes_version_id"] else None
+            ),
             state_version=row["state_version"],
             metadata_reviewed_by=row["metadata_reviewed_by"],
             metadata_reviewer_credential_id=row.get("metadata_reviewer_credential_id"),

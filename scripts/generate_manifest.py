@@ -5,7 +5,6 @@ import hashlib
 import json
 import subprocess
 from pathlib import Path
-from typing import Iterable
 
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
 EXCLUDED_FILES = {"REPOSITORY_MANIFEST.json", ".coverage"}
@@ -16,9 +15,7 @@ def _included(relative: Path) -> bool:
         return False
     if relative.name in EXCLUDED_FILES or relative.name.startswith(".coverage."):
         return False
-    if relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt":
-        return False
-    return True
+    return not (relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt")
 
 
 def _git_tracked_paths(root: Path) -> list[Path] | None:
@@ -97,7 +94,8 @@ def main() -> int:
     (root / "REPOSITORY_MANIFEST.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-    print(json.dumps({"file_count": manifest["file_count"], "root_sha256": manifest["root_sha256"]}, indent=2))
+    summary = {"file_count": manifest["file_count"], "root_sha256": manifest["root_sha256"]}
+    print(json.dumps(summary, indent=2))
     return 0
 
 

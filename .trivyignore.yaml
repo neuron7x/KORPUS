@@ -1,0 +1,22 @@
+# Misconfiguration exceptions. One entry, scoped to one file, with an expiry.
+#
+# The previous `.trivyignore` was empty by design and said every exception needs an
+# owner, an expiry and a linked issue. That policy is kept — this file is the format
+# that can actually carry those three fields.
+#
+# Nothing here disables a rule globally. `paths` binds the exception to the file it
+# was verified in: the same rule firing anywhere else still fails the scan.
+
+misconfigurations:
+  - id: KSV-0109
+    paths:
+      - "deploy/kubernetes/base/configmap.yaml"
+    statement: >-
+      KSV-0109 flags a ConfigMap key as holding a secret because its name contains
+      "TOKEN". The value is KORPUS_OIDC_TOKEN_ENDPOINT: https://idp.invalid/token —
+      the OIDC token endpoint URL, which is public by construction and is published
+      in every provider's discovery document. Verified by reading
+      deploy/kubernetes/base/configmap.yaml:22 on 2026-08-03. The actual client
+      secret is KORPUS_OIDC_CLIENT_SECRET_FILE, mounted from a Secret, and the
+      ConfigMap does not contain it.
+    expired_at: 2026-11-03

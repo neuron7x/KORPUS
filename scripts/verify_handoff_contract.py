@@ -97,11 +97,16 @@ def verify() -> dict[str, Any]:
     for name, expected in expected_profile_defaults.items():
         actual = profile_fields[name].default
         if actual != expected:
-            raise AssertionError(f"CalibrationProfile default drift: {name}={actual!r}, expected {expected!r}")
+            raise AssertionError(
+                f"CalibrationProfile default drift: {name}={actual!r}, expected {expected!r}"
+            )
 
     if state["base_source_tree_sha256"] != assurance["source_tree_sha256"]:
         raise AssertionError("handoff source digest differs from assurance report")
-    if state["production_authorized"] is not False or operational["production_authorized"] is not False:
+    if (
+        state["production_authorized"] is not False
+        or operational["production_authorized"] is not False
+    ):
         raise AssertionError("handoff must not claim production authorization")
     if gates["production_gate"]["current"] is not False:
         raise AssertionError("production gate must remain false")
@@ -130,7 +135,9 @@ def verify() -> dict[str, Any]:
         if finding_id not in finding_ids
     )
     if unknown_findings:
-        raise AssertionError(f"planned iterations reference unknown audit findings: {unknown_findings}")
+        raise AssertionError(
+            f"planned iterations reference unknown audit findings: {unknown_findings}"
+        )
 
     return {
         "status": "PASS",

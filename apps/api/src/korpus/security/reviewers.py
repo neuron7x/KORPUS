@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -31,7 +31,7 @@ class ReviewerGrant(BaseModel):
         return values
 
     @model_validator(mode="after")
-    def validate_window(self) -> "ReviewerGrant":
+    def validate_window(self) -> ReviewerGrant:
         if self.valid_from and self.valid_until and self.valid_until < self.valid_from:
             raise ValueError("reviewer credential validity window is inverted")
         return self
@@ -43,7 +43,7 @@ class ReviewerRegistry(BaseModel):
     subjects: dict[str, tuple[ReviewerGrant, ...]] = Field(default_factory=dict)
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "ReviewerRegistry":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> ReviewerRegistry:
         raw = path.read_bytes()
         digest = hashlib.sha256(raw).hexdigest()
         if expected_sha256 is not None and digest != expected_sha256:
@@ -59,12 +59,15 @@ class ReviewerRegistry(BaseModel):
         version: DocumentVersionRecord,
         as_of: date | None = None,
     ) -> str:
-        current = as_of or date.today()
+        current = as_of or datetime.now(UTC).date()
         grants = self.subjects.get(subject, ())
         for grant in grants:
             if grant.revoked or target not in grant.stages:
                 continue
-            if document.corpus_id not in grant.corpora or version.authority not in grant.authorities:
+            if (
+                document.corpus_id not in grant.corpora
+                or version.authority not in grant.authorities
+            ):
                 continue
             if grant.valid_from and current < grant.valid_from:
                 continue

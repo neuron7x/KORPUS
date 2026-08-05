@@ -58,18 +58,21 @@ class CalibrationProfile(BaseModel):
     authority_approved_training: float = Field(default=0.74, ge=0, le=1)
     authority_analytical: float = Field(default=0.46, ge=0, le=1)
     authority_historical: float = Field(default=0.30, ge=0, le=1)
+    authority_adversary: float = Field(default=0.00, ge=0, le=1)
     authority_unknown: float = Field(default=0.00, ge=0, le=1)
     diversity_lambda: float = Field(default=0.82, ge=0, le=1)
-    per_version_cap: int = Field(default=2, ge=1, le=8)
+    per_version_cap: int = Field(default=1, ge=1, le=8)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
 
     @model_validator(mode="after")
-    def validate_profile(self) -> "CalibrationProfile":
+    def validate_profile(self) -> CalibrationProfile:
         if self.observed_errors > self.accepted_samples:
             raise ValueError("observed_errors cannot exceed accepted_samples")
-        self.retrieval_weights  # force convex-weight validation
-        self.bm25_parameters
+        # Reading these properties raises if the weights are not convex or BM25 is
+        # out of range. The values are discarded: only the validation runs here.
+        _convex_weight_check = self.retrieval_weights
+        _bm25_range_check = self.bm25_parameters
         return self
 
     @property
@@ -98,6 +101,7 @@ class CalibrationProfile(BaseModel):
             AuthorityClass.APPROVED_TRAINING: self.authority_approved_training,
             AuthorityClass.ANALYTICAL: self.authority_analytical,
             AuthorityClass.HISTORICAL: self.authority_historical,
+            AuthorityClass.ADVERSARY: self.authority_adversary,
             AuthorityClass.UNKNOWN: self.authority_unknown,
         }
 
@@ -134,7 +138,7 @@ class CalibrationProfile(BaseModel):
         return self.ranking_valid and self.selective_answering_valid
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "CalibrationProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> CalibrationProfile:
         raw = path.read_bytes()
         if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
             raise ValueError("calibration profile digest mismatch")
@@ -169,7 +173,12 @@ class DevelopmentCalibration:
     minimum_query_coverage: float
     minimum_support_score: float
 
-    def __init__(self, minimum_score: float, minimum_query_coverage: float, minimum_support_score: float) -> None:
+    def __init__(
+        self,
+        minimum_score: float,
+        minimum_query_coverage: float,
+        minimum_support_score: float,
+    ) -> None:
         self.minimum_score = minimum_score
         self.minimum_query_coverage = minimum_query_coverage
         self.minimum_support_score = minimum_support_score

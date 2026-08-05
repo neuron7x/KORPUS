@@ -20,7 +20,7 @@ class AccessTier(IntEnum):
     RESTRICTED = 3
 
     @classmethod
-    def parse(cls, value: str | int | "AccessTier") -> "AccessTier":
+    def parse(cls, value: str | int | AccessTier) -> AccessTier:
         if isinstance(value, cls):
             return value
         if isinstance(value, int):
@@ -46,7 +46,19 @@ class AuthorityClass(StrEnum):
     APPROVED_TRAINING = "approved_training"
     ANALYTICAL = "analytical"
     HISTORICAL = "historical"
+    ADVERSARY = "adversary"
     UNKNOWN = "unknown"
+
+    @property
+    def is_normative(self) -> bool:
+        """Whether a source of this class may govern an answer.
+
+        ADVERSARY exists so that captured or hostile material can be held, searched
+        and shown as what it is. It is never normative — the rule lived only in prose
+        in docs/governance/DATA_GOVERNANCE.md, where nothing executed it. UNKNOWN is
+        not normative either: unclassified provenance is not a source class.
+        """
+        return self not in {AuthorityClass.ADVERSARY, AuthorityClass.UNKNOWN}
 
 
 class Classification(StrEnum):
@@ -109,7 +121,7 @@ class Identity(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def validate_identity_scope(self) -> "Identity":
+    def validate_identity_scope(self) -> Identity:
         if not self.corpora:
             raise ValueError("identity must have at least one corpus")
         return self
@@ -137,7 +149,7 @@ class DocumentCreate(BaseModel):
         return normalized
 
     @model_validator(mode="after")
-    def validate_classification_tier(self) -> "DocumentCreate":
+    def validate_classification_tier(self) -> DocumentCreate:
         if self.access_tier < self.classification.minimum_tier:
             raise ValueError("access_tier is below classification minimum")
         return self
@@ -156,7 +168,7 @@ class VersionCreate(BaseModel):
     supersedes_version_id: UUID | None = None
 
     @model_validator(mode="after")
-    def validate_dates(self) -> "VersionCreate":
+    def validate_dates(self) -> VersionCreate:
         if (
             self.effective_until is not None
             and self.effective_from is not None
@@ -221,14 +233,32 @@ class DocumentVersionRecord(BaseModel):
     is_current: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
+    @property
+    def in_force_from(self) -> date | None:
+        """The first date this version governs, or None if it never says.
+
+        `effective_from = NULL` used to mean "no lower bound", so a version approved
+        today was cited as governing on 1900-01-01 and answered "which rules applied on
+        that date" with itself. Many orders state only a date of issue, so
+        `publication_date` stands in when a separate commencement date is absent; an
+        approved version with neither is refused at the approval transition, and this
+        property returning None is what the projections use to exclude one that reached
+        the database another way.
+        """
+
+        return self.effective_from or self.publication_date
+
     def is_valid_on(self, as_of: date) -> bool:
-        if self.effective_from is not None and as_of < self.effective_from:
+        lower_bound = self.in_force_from
+        if lower_bound is None or as_of < lower_bound:
             return False
         if self.effective_until is not None and as_of > self.effective_until:
             return False
-        if self.rescinded_at is not None and as_of >= self.rescinded_at.date():
-            return False
-        return True
+        # De Morgan of the guard `rescinded_at is not None and as_of >= rescinded_at.date()`:
+        # the boundary stays exclusive on the rescission day itself (a document is not
+        # valid on the date it was rescinded), and `rescinded_at.date()` is still only
+        # evaluated when `rescinded_at` is set.
+        return self.rescinded_at is None or as_of < self.rescinded_at.date()
 
 
 class EvidenceSpanRecord(BaseModel):
@@ -244,7 +274,7 @@ class EvidenceSpanRecord(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @model_validator(mode="after")
-    def derive_text_hash(self) -> "EvidenceSpanRecord":
+    def derive_text_hash(self) -> EvidenceSpanRecord:
         expected = hashlib.sha256(self.text.encode("utf-8")).hexdigest()
         if self.text_hash and self.text_hash != expected:
             raise ValueError("text_hash does not match evidence text")
@@ -270,7 +300,11 @@ class RetrievedEvidence(BaseModel):
 class QueryRequest(BaseModel):
     text: str = Field(min_length=3, max_length=4000)
     corpus_ids: list[str] = Field(default_factory=list, max_length=20)
-    as_of: date = Field(default_factory=date.today)
+    # Not date.today(): that reads the host's local calendar, so the same question at
+    # the same instant was answered differently by two replicas in different zones —
+    # reproduced with TZ=Etc/GMT+12 against UTC on 2026-08-03. Validity is a property
+    # of the corpus, not of where the process runs.
+    as_of: date = Field(default_factory=lambda: datetime.now(UTC).date())
     locale: str = Field(default="uk-UA", pattern=r"^[a-z]{2}(?:-[A-Z]{2})?$")
 
     @field_validator("text")
@@ -306,11 +340,16 @@ class Citation(BaseModel):
     quote_start: int = Field(ge=0)
     quote_end: int = Field(gt=0)
     quote_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    #: Hash of the *span* the quote was taken from. `quote_hash` is a hash of the quote
+    #: itself and proves only that the quote matches itself; this is the link that ties
+    #: the quote to a passage a reader can fetch (`GET /v1/spans/{id}`) and from there
+    #: to the document `source_hash` covers.
+    span_hash: str = Field(default="", pattern=r"^(?:|[a-f0-9]{64})$")
     source_uri: str | None = None
     source_hash: str
 
     @model_validator(mode="after")
-    def validate_quote_offsets(self) -> "Citation":
+    def validate_quote_offsets(self) -> Citation:
         if self.quote_end <= self.quote_start:
             raise ValueError("quote_end must be greater than quote_start")
         if hashlib.sha256(self.quote.encode("utf-8")).hexdigest() != self.quote_hash:
@@ -350,13 +389,42 @@ class ReviewTransition(BaseModel):
     note: str = Field(min_length=12, max_length=2000)
     acknowledge_near_duplicate: bool = False
     acknowledge_extraction_quality: bool = False
+    access_tier: AccessTier | None = None
+
+    @model_validator(mode="after")
+    def validate_tier_target(self) -> ReviewTransition:
+        if self.access_tier is not None and self.target is not ReviewState.APPROVED:
+            raise ValueError("access_tier may only be set on approval")
+        return self
+
+
+class RescissionRequest(BaseModel):
+    """Withdrawal by the issuing authority — an act, not a review verdict."""
+
+    note: str = Field(min_length=12, max_length=2000)
+    rescinded_at: datetime | None = None
 
 
 class AuditVerification(BaseModel):
+    """Two questions, kept apart: is the chain intact, and is the anchor current.
+
+    They used to be one. `valid` was false whenever the external anchor was not exactly
+    at the head, so a burst of concurrent appends — the anchor is delivered from an
+    outbox, outside the business transaction, by design — made `/v1/audit/verify`
+    report the audit as broken while nothing was wrong. Observed on PostgreSQL with 40
+    concurrent appends; SQLite serialises writes enough to hide it.
+
+    An anchor *behind* the head is undelivered work and is reported as
+    `anchor_pending`. An anchor that disagrees with the event at its own position, or
+    that sits ahead of the head, is a real finding: the first means the chain was
+    rewritten under it, the second means the database lost committed rows.
+    """
+
     valid: bool
     event_count: int = Field(ge=0)
     head_sequence: int = Field(ge=0)
     anchor_valid: bool
+    anchor_pending: int = Field(default=0, ge=0)
     first_invalid_sequence: int | None = None
     reason: str | None = None
 
@@ -407,7 +475,7 @@ class IngestionJobRecord(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @model_validator(mode="after")
-    def validate_target(self) -> "IngestionJobRecord":
+    def validate_target(self) -> IngestionJobRecord:
         if self.kind is IngestionJobKind.DOCUMENT:
             if self.document is None or self.document_id is not None:
                 raise ValueError("document ingestion job requires document payload only")

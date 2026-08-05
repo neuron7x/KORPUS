@@ -15,6 +15,7 @@ import time
 from datetime import date
 from pathlib import Path
 
+from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -72,6 +73,9 @@ def main() -> int:
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
             review_state=ReviewState.APPROVED,
+            # An approved version governs from a stated date; without one the candidate
+            # query excludes it and the probe measures an empty corpus at full speed.
+            publication_date=date(2020, 1, 1),
             is_current=True,
         )
         records = [
@@ -81,7 +85,10 @@ def main() -> int:
                 text=(
                     "ALPHA-OMEGA deterministic target evidence for bounded candidate retrieval."
                     if index == SPAN_COUNT // 2
-                    else f"Routine synthetic evidence fragment number {index} with common corpus language."
+                    else (
+                        f"Routine synthetic evidence fragment number {index} "
+                        "with common corpus language."
+                    )
                 ),
             )
             for index in range(SPAN_COUNT)
@@ -112,7 +119,11 @@ def main() -> int:
         )
         report = {
             "schema_version": 1,
-            "status": "PASS" if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET else "FAIL",
+            "status": (
+                "PASS"
+                if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET
+                else "FAIL"
+            ),
             "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
             "procedure": {
                 "database": "SQLite FTS5",
@@ -139,6 +150,7 @@ def main() -> int:
                 "Synthetic local probe; not a production SLA.",
                 "PostgreSQL network, concurrency and disk behavior are not represented.",
             ],
+            PROVENANCE_KEY: stamp(ROOT, "scripts/run_scale_probe.py"),
         }
         output = ROOT / "var/scale-report.json"
         output.parent.mkdir(parents=True, exist_ok=True)

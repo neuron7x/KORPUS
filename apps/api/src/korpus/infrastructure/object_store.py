@@ -189,7 +189,13 @@ class S3ObjectStore:
             not BUCKET_PATTERN.fullmatch(bucket)
             or governance_retention_days < 0
             or max_object_bytes < 1
-            or (normalized_prefix and (not PREFIX_PATTERN.fullmatch(normalized_prefix) or ".." in normalized_prefix.split("/")))
+            or (
+                normalized_prefix
+                and (
+                    not PREFIX_PATTERN.fullmatch(normalized_prefix)
+                    or ".." in normalized_prefix.split("/")
+                )
+            )
         ):
             raise ValueError("invalid S3 object store configuration")
         import boto3
@@ -232,25 +238,32 @@ class S3ObjectStore:
 
     def _head(self, key: str) -> dict[str, Any] | None:
         try:
+            head: dict[str, Any]
             try:
-                return self.client.head_object(Bucket=self.bucket, Key=key, ChecksumMode="ENABLED")
+                head = self.client.head_object(Bucket=self.bucket, Key=key, ChecksumMode="ENABLED")
             except TypeError:
-                return self.client.head_object(Bucket=self.bucket, Key=key)
+                head = self.client.head_object(Bucket=self.bucket, Key=key)
+            return head
         except Exception as exc:
             if self._error_code(exc) in {"404", "NoSuchKey", "NotFound"}:
                 return None
             raise
 
     @staticmethod
-    def _verify_head(head: dict[str, Any], source_hash: str, content_length: int | None = None) -> None:
+    def _verify_head(
+        head: dict[str, Any], source_hash: str, content_length: int | None = None
+    ) -> None:
         if head.get("Metadata", {}).get("sha256") != source_hash:
             raise RuntimeError("S3 object integrity metadata mismatch")
         encoded = head.get("ChecksumSHA256")
         if encoded and encoded != base64.b64encode(bytes.fromhex(source_hash)).decode("ascii"):
             raise RuntimeError("S3 checksum mismatch")
-        if content_length is not None and "ContentLength" in head:
-            if int(head["ContentLength"]) != content_length:
-                raise RuntimeError("S3 content length mismatch")
+        if (
+            content_length is not None
+            and "ContentLength" in head
+            and int(head["ContentLength"]) != content_length
+        ):
+            raise RuntimeError("S3 content length mismatch")
 
     def put(self, content: bytes, source_hash: str, filename: str) -> str:
         del filename
@@ -310,7 +323,9 @@ class S3ObjectStore:
         if self.governance_retention_days:
             kwargs.update(
                 ObjectLockMode="GOVERNANCE",
-                ObjectLockRetainUntilDate=datetime.now(UTC) + timedelta(days=self.governance_retention_days),
+                ObjectLockRetainUntilDate=(
+                    datetime.now(UTC) + timedelta(days=self.governance_retention_days)
+                ),
             )
         with path.open("rb") as body:
             self.client.put_object(Body=body, **kwargs)
@@ -322,7 +337,9 @@ class S3ObjectStore:
 
     def get(self, object_key: str) -> bytes:
         source_hash = self._validate_key(object_key)
-        response = self.client.get_object(Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED")
+        response = self.client.get_object(
+            Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED"
+        )
         declared = response.get("ContentLength")
         if declared is not None and int(declared) > self.max_object_bytes:
             close = getattr(response.get("Body"), "close", None)
@@ -356,7 +373,9 @@ class S3ObjectStore:
 
     def get_to_path(self, object_key: str, destination: Path) -> None:
         source_hash = self._validate_key(object_key)
-        response = self.client.get_object(Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED")
+        response = self.client.get_object(
+            Bucket=self.bucket, Key=object_key, ChecksumMode="ENABLED"
+        )
         declared = response.get("ContentLength")
         if declared is not None and int(declared) > self.max_object_bytes:
             close = getattr(response.get("Body"), "close", None)
@@ -420,7 +439,9 @@ class S3ObjectStore:
                 break
             token = response.get("NextContinuationToken")
             if not token:
-                raise RuntimeError("S3 inventory pagination is truncated without continuation token")
+                raise RuntimeError(
+                    "S3 inventory pagination is truncated without continuation token"
+                )
         return keys
 
     def healthcheck(self) -> bool:

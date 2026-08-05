@@ -5,15 +5,27 @@ Revises: 0003_infrastructure_hardening
 """
 from __future__ import annotations
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0004_compartmented_authorization"
-down_revision: Union[str, None] = "0003_infrastructure_hardening"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = "0003_infrastructure_hardening"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
+
+
+# Session-setting SQL fragments, named so the policy bodies below fit on one line.
+# Each constant is the exact text it replaces; the emitted SQL is unchanged.
+_CLEARANCE = "COALESCE(NULLIF(current_setting('korpus.clearance', true), ''), '-1')::int"
+_CORPORA = "string_to_array(COALESCE(current_setting('korpus.corpora', true), ''), ',')"
+_CLASSIFICATIONS = (
+    "string_to_array(COALESCE(current_setting('korpus.classifications', true), ''), ',')"
+)
+_COMPARTMENTS = (
+    "string_to_array(COALESCE(current_setting('korpus.compartments', true), ''), ',')"
+)
 
 
 def _roles() -> str:
@@ -21,14 +33,15 @@ def _roles() -> str:
 
 
 def _document_visible(alias: str = "documents") -> str:
+    elements = f"jsonb_array_elements_text(COALESCE({alias}.compartments_json, '[]')::jsonb)"
     return f"""
-        {alias}.access_tier <= COALESCE(NULLIF(current_setting('korpus.clearance', true), ''), '-1')::int
-        AND {alias}.corpus_id = ANY(string_to_array(COALESCE(current_setting('korpus.corpora', true), ''), ','))
-        AND {alias}.classification = ANY(string_to_array(COALESCE(current_setting('korpus.classifications', true), ''), ','))
+        {alias}.access_tier <= {_CLEARANCE}
+        AND {alias}.corpus_id = ANY({_CORPORA})
+        AND {alias}.classification = ANY({_CLASSIFICATIONS})
         AND NOT EXISTS (
             SELECT 1
-            FROM jsonb_array_elements_text(COALESCE({alias}.compartments_json, '[]')::jsonb) AS compartment(value)
-            WHERE NOT (compartment.value = ANY(string_to_array(COALESCE(current_setting('korpus.compartments', true), ''), ',')))
+            FROM {elements} AS compartment(value)
+            WHERE NOT (compartment.value = ANY({_COMPARTMENTS}))
         )
     """
 
@@ -45,10 +58,19 @@ def upgrade() -> None:
     )
     op.create_table(
         "document_compartments",
-        sa.Column("document_id", sa.String(length=36), sa.ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column(
+            "document_id",
+            sa.String(length=36),
+            sa.ForeignKey("documents.id", ondelete="CASCADE"),
+            primary_key=True,
+        ),
         sa.Column("compartment", sa.String(length=64), primary_key=True),
     )
-    op.create_index("ix_document_compartments_compartment", "document_compartments", ["compartment", "document_id"])
+    op.create_index(
+        "ix_document_compartments_compartment",
+        "document_compartments",
+        ["compartment", "document_id"],
+    )
 
     if op.get_bind().dialect.name != "postgresql":
         return
@@ -59,12 +81,16 @@ def upgrade() -> None:
     for policy in ("document_delete", "document_update", "document_insert", "document_select"):
         op.execute(f"DROP POLICY IF EXISTS {policy} ON documents")
 
-    op.execute(f"CREATE POLICY document_select ON documents FOR SELECT USING ({_document_visible()})")
     op.execute(
-        f"CREATE POLICY document_insert ON documents FOR INSERT WITH CHECK ({_writer()} AND {_document_visible()})"
+        f"CREATE POLICY document_select ON documents FOR SELECT USING ({_document_visible()})"
     )
     op.execute(
-        f"CREATE POLICY document_update ON documents FOR UPDATE USING ({_writer()} AND {_document_visible()}) "
+        "CREATE POLICY document_insert ON documents FOR INSERT WITH CHECK "
+        f"({_writer()} AND {_document_visible()})"
+    )
+    op.execute(
+        "CREATE POLICY document_update ON documents FOR UPDATE USING "
+        f"({_writer()} AND {_document_visible()}) "
         f"WITH CHECK ({_writer()} AND {_document_visible()})"
     )
     op.execute(
@@ -72,15 +98,20 @@ def upgrade() -> None:
         f"('admin' = ANY({_roles()}) AND {_document_visible()})"
     )
 
-    visible_compartment = "EXISTS (SELECT 1 FROM documents d WHERE d.id = document_compartments.document_id)"
-    op.execute(
-        f"CREATE POLICY document_compartment_select ON document_compartments FOR SELECT USING ({visible_compartment})"
+    visible_compartment = (
+        "EXISTS (SELECT 1 FROM documents d WHERE d.id = document_compartments.document_id)"
     )
     op.execute(
-        f"CREATE POLICY document_compartment_insert ON document_compartments FOR INSERT WITH CHECK ({_writer()} AND {visible_compartment})"
+        "CREATE POLICY document_compartment_select ON document_compartments FOR SELECT USING "
+        f"({visible_compartment})"
     )
     op.execute(
-        f"CREATE POLICY document_compartment_update ON document_compartments FOR UPDATE USING ({_writer()} AND {visible_compartment}) "
+        "CREATE POLICY document_compartment_insert ON document_compartments FOR INSERT WITH CHECK "
+        f"({_writer()} AND {visible_compartment})"
+    )
+    op.execute(
+        "CREATE POLICY document_compartment_update ON document_compartments FOR UPDATE USING "
+        f"({_writer()} AND {visible_compartment}) "
         f"WITH CHECK ({_writer()} AND {visible_compartment})"
     )
     op.execute(
@@ -103,17 +134,21 @@ def downgrade() -> None:
         for policy in ("document_delete", "document_update", "document_insert", "document_select"):
             op.execute(f"DROP POLICY IF EXISTS {policy} ON documents")
 
-        legacy_visible = """
-            documents.access_tier <= COALESCE(NULLIF(current_setting('korpus.clearance', true), ''), '-1')::int
-            AND documents.corpus_id = ANY(string_to_array(COALESCE(current_setting('korpus.corpora', true), ''), ','))
-            AND documents.classification = ANY(string_to_array(COALESCE(current_setting('korpus.classifications', true), ''), ','))
+        legacy_visible = f"""
+            documents.access_tier <= {_CLEARANCE}
+            AND documents.corpus_id = ANY({_CORPORA})
+            AND documents.classification = ANY({_CLASSIFICATIONS})
         """
-        op.execute(f"CREATE POLICY document_select ON documents FOR SELECT USING ({legacy_visible})")
         op.execute(
-            f"CREATE POLICY document_insert ON documents FOR INSERT WITH CHECK ({_writer()} AND {legacy_visible})"
+            f"CREATE POLICY document_select ON documents FOR SELECT USING ({legacy_visible})"
         )
         op.execute(
-            f"CREATE POLICY document_update ON documents FOR UPDATE USING ({_writer()} AND {legacy_visible}) "
+            "CREATE POLICY document_insert ON documents FOR INSERT WITH CHECK "
+            f"({_writer()} AND {legacy_visible})"
+        )
+        op.execute(
+            "CREATE POLICY document_update ON documents FOR UPDATE USING "
+            f"({_writer()} AND {legacy_visible}) "
             f"WITH CHECK ({_writer()} AND {legacy_visible})"
         )
         op.execute(

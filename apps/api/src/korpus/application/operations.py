@@ -3,9 +3,13 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
+
+from korpus.application.admission import evaluate_admission, load_register
+from korpus.application.provenance import verify_reports
 
 
 def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> float:
@@ -21,12 +25,14 @@ def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> 
         raise ValueError("drift distributions must have positive mass")
     p = [value / left_total for value in left]
     q = [value / right_total for value in right]
-    midpoint = [(a + b) / 2 for a, b in zip(p, q)]
+    # len(left) == len(right) is enforced above, so p, q and midpoint all have the
+    # same length and strict=True can never fire on either zip.
+    midpoint = [(a + b) / 2 for a, b in zip(p, q, strict=True)]
 
     def kl(source: Sequence[float], target: Sequence[float]) -> float:
         return sum(
             value * math.log2(value / comparison)
-            for value, comparison in zip(source, target)
+            for value, comparison in zip(source, target, strict=True)
             if value > 0
         )
 
@@ -44,6 +50,7 @@ class GateResult:
     failures: tuple[str, ...]
     evidence_sha256: Mapping[str, str]
     production_authorized: bool = False
+    admission: Mapping[str, Any] | None = None
 
     @property
     def passed(self) -> bool:
@@ -54,6 +61,7 @@ class GateResult:
             "schema_version": 1,
             "status": self.status,
             "production_authorized": self.production_authorized,
+            "admission": dict(self.admission) if self.admission is not None else None,
             "checks": dict(self.checks),
             "failures": list(self.failures),
             "evidence_sha256": dict(self.evidence_sha256),
@@ -69,22 +77,43 @@ class OperationalReleaseGate:
 
     REQUIRED_REPORTS = ("eval", "mutation", "migration", "scale")
 
-    def __init__(self, policy: Mapping[str, Any]) -> None:
+    def __init__(
+        self,
+        policy: Mapping[str, Any],
+        admission_register: Mapping[str, Any] | None = None,
+        root: Path | None = None,
+    ) -> None:
         if int(policy.get("schema_version", 0)) != 1:
             raise ValueError("unsupported operational policy schema")
         self.policy = policy
+        # `production_authorized` used to be the literal False in the result. The answer
+        # was right and unfalsifiable: nothing said what would have to be true instead,
+        # and nobody could tell "still withheld" from "nobody looked". It is now computed
+        # from the register of grounds, which states for each one who owns the evidence
+        # and what class it must be. Absent a register the verdict stays false — a gate
+        # that cannot see the grounds does not get to authorize anything.
+        self.admission_register = admission_register
+        self.root = root or Path.cwd()
 
     @classmethod
-    def load(cls, path: Path) -> "OperationalReleaseGate":
+    def load(
+        cls, path: Path, admission_path: Path | None = None, root: Path | None = None
+    ) -> OperationalReleaseGate:
         value = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(value, dict):
             raise ValueError("operational policy must be an object")
-        return cls(value)
+        register = (
+            load_register(admission_path)
+            if admission_path is not None and admission_path.is_file()
+            else None
+        )
+        return cls(value, register, root)
 
     def evaluate(
         self,
         reports: Mapping[str, Mapping[str, Any]],
         evidence_paths: Mapping[str, Path] | None = None,
+        source_digest: str | None = None,
     ) -> GateResult:
         missing = [name for name in self.REQUIRED_REPORTS if name not in reports]
         if missing:
@@ -106,14 +135,31 @@ class OperationalReleaseGate:
         required_tables = set(migration_policy["required_tables"])
         actual_tables = set(migration.get("tables_actual", []))
 
+        # A report is evidence about a tree, not about the world: unless it was
+        # produced by the tree being gated, its numbers describe something else.
+        # No digest supplied means the binding cannot be checked, which fails
+        # closed rather than degrading to "assume it matches".
+        provenance_ok, provenance_reasons = (
+            verify_reports({name: reports[name] for name in self.REQUIRED_REPORTS}, source_digest)
+            if source_digest is not None
+            else (False, ("source digest was not supplied to the gate",))
+        )
+
         checks = {
             "reports_present": True,
+            "evidence_provenance": provenance_ok,
             "eval_pass_rate": float(evaluation.get("pass_rate", -1))
             >= float(eval_policy["minimum_pass_rate"]),
             "citation_integrity": int(evaluation.get("citation_failures", -1))
             <= int(eval_policy["maximum_citation_failures"]),
             "access_noninterference": int(evaluation.get("leakage_failures", -1))
             <= int(eval_policy["maximum_leakage_failures"]),
+            # The failure count is only evidence if something was withheld from the
+            # subject in the first place. Injecting a real training → PUBLIC disclosure
+            # once produced leakage_failures=0 over a denominator of 2 of 30 rows, and
+            # every gate above stayed green (destruction stage, 2026-08-03).
+            "access_noninterference_measured": int(evaluation.get("leakage_checks", -1))
+            >= int(eval_policy["minimum_leakage_checks"]),
             "determinism": int(evaluation.get("determinism_failures", -1))
             <= int(eval_policy["maximum_determinism_failures"]),
             "audit_chain": bool(evaluation.get("audit_valid"))
@@ -140,16 +186,26 @@ class OperationalReleaseGate:
             )
             <= float(scale_policy["maximum_local_p95_ms"]),
         }
-        failures = tuple(name for name, passed in checks.items() if not passed)
+        failures = tuple(name for name, passed in checks.items() if not passed) + provenance_reasons
         evidence_hashes = {
             name: sha256_file(path)
             for name, path in (evidence_paths or {}).items()
             if path.is_file()
         }
+        admission = (
+            evaluate_admission(self.root, self.admission_register)
+            if self.admission_register is not None
+            else None
+        )
         return GateResult(
             status="PASS" if not failures else "FAIL",
             checks=checks,
             failures=failures,
             evidence_sha256=evidence_hashes,
-            production_authorized=False,
+            # Engineering predicates passing is a precondition, never the authorization:
+            # the grounds that withhold this system are not engineering grounds.
+            production_authorized=bool(
+                not failures and admission is not None and admission.production_authorized
+            ),
+            admission=admission.as_dict() if admission is not None else None,
         )

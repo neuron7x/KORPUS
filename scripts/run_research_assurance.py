@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
 import sys
 import time
 import xml.etree.ElementTree as ET
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,13 +47,32 @@ def main() -> int:
     environment["PYTHONPATH"] = str(ROOT / "apps/api/src")
     steps = [
         run("openapi", [sys.executable, "scripts/openapi_contract.py"], environment),
-        run("audit-closure", [sys.executable, "scripts/build_audit_closure.py"], environment),
-        run("desired-state", [sys.executable, "scripts/generate_desired_state.py", "--check"], environment),
-        run("supply-chain-inventory", [sys.executable, "scripts/generate_supply_chain_inventory.py"], environment),
+        run(
+            "desired-state",
+            [sys.executable, "scripts/generate_desired_state.py", "--check"],
+            environment,
+        ),
+        run(
+            "supply-chain-inventory",
+            [sys.executable, "scripts/generate_supply_chain_inventory.py"],
+            environment,
+        ),
         run("repository", [sys.executable, "scripts/validate_repository.py"], environment),
         run("infrastructure", [sys.executable, "scripts/validate_infrastructure.py"], environment),
         run("kubernetes", [sys.executable, "scripts/validate_kubernetes.py"], environment),
-        run("compile", [sys.executable, "-m", "compileall", "-q", "apps/api/src", "apps/api/migrations", "scripts"], environment),
+        run(
+            "compile",
+            [
+                sys.executable,
+                "-m",
+                "compileall",
+                "-q",
+                "apps/api/src",
+                "apps/api/migrations",
+                "scripts",
+            ],
+            environment,
+        ),
     ]
     parallel_commands = [
         (
@@ -77,7 +96,10 @@ def main() -> int:
         ("web", ["npm", "--prefix", "apps/web", "run", "build"]),
     ]
     with ThreadPoolExecutor(max_workers=len(parallel_commands)) as pool:
-        futures = [pool.submit(run, name, command, environment) for name, command in parallel_commands]
+        futures = [
+            pool.submit(run, name, command, environment)
+            for name, command in parallel_commands
+        ]
         steps.extend(future.result() for future in futures)
     if all(step["returncode"] == 0 for step in steps):
         mutation_environment = environment.copy()
@@ -90,8 +112,18 @@ def main() -> int:
                 mutation_environment,
             )
         )
+    # audit-closure resolves every citation in the closure registry, and COD-005 cites
+    # var/mutation-report.json. It used to be the second step of this run, before the
+    # mutation shards existed — so it read whatever a previous run had left in var/,
+    # or failed outright on a clean tree. It belongs after its producer.
     if all(step["returncode"] == 0 for step in steps):
-        steps.append(run("operational", [sys.executable, "scripts/run_operational_gate.py"], environment))
+        steps.append(
+            run("audit-closure", [sys.executable, "scripts/build_audit_closure.py"], environment)
+        )
+    if all(step["returncode"] == 0 for step in steps):
+        steps.append(
+            run("operational", [sys.executable, "scripts/run_operational_gate.py"], environment)
+        )
     test_summary: dict[str, object] = {}
     junit_path = VAR / "pytest.xml"
     if junit_path.is_file():
@@ -122,16 +154,30 @@ def main() -> int:
         "scale": load_json(VAR / "scale-report.json"),
         "operational": load_json(VAR / "operational-gate.json"),
         "limitations": [
-            "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
-            "PostgreSQL integration is a GitLab service-container gate; local report may show it skipped.",
+            (
+                "Ruff and mypy are separate CI gates and are not claimed unless "
+                "executed in the current environment."
+            ),
+            (
+                "PostgreSQL integration is a GitLab service-container gate; "
+                "local report may show it skipped."
+            ),
             "Synthetic evaluation does not authorize real restricted corpus deployment.",
         ],
     }
     output = VAR / "research-assurance-report.json"
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": report["status"], "pytest": test_summary, "coverage": coverage_summary}, indent=2))
+    summary = {
+        "status": report["status"],
+        "pytest": test_summary,
+        "coverage": coverage_summary,
+    }
+    print(json.dumps(summary, indent=2))
     for step in steps:
-        print(f"{step['name']}: rc={step['returncode']} {step['duration_seconds']:.2f}s -> {step['log']}")
+        print(
+            f"{step['name']}: rc={step['returncode']} "
+            f"{step['duration_seconds']:.2f}s -> {step['log']}"
+        )
     return 0 if report["status"] == "PASS" else 1
 
 

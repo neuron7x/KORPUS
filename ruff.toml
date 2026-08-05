@@ -1,0 +1,60 @@
+# One lint configuration for the whole repository.
+#
+# It lives at the root on purpose. With the only ruff section buried in
+# apps/api/pyproject.toml, ruff resolved a *different* configuration per argument of
+# the same command: files under apps/api/ picked up the project's rules, while
+# scripts/ walked up the filesystem until it found whatever pyproject.toml sat above
+# the checkout. On this machine that was /home/neuro7/pyproject.toml — a research
+# project's config with select = ["E","F","W","I","N","UP","B","SIM"] — so
+# `make api-lint` reported 163 errors locally and a different number in CI, and the
+# number depended on where the repository happened to be cloned.
+#
+# Verified 2026-08-03: `ruff check --show-settings scripts/run_evals.py` reported
+# linter.project_root = "/home/neuro7" before this file existed.
+target-version = "py312"
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "EXE", "PLW", "SLF", "BLE"]
+# RUF001-003 flag Cyrillic letters as "ambiguous unicode". Product copy is Ukrainian
+# by design, so this rule would fire on every user-facing string in the system.
+ignore = ["RUF001", "RUF002", "RUF003"]
+
+[lint.per-file-ignores]
+# Tests reach into process-local adapters on purpose: that is the seam where real
+# infrastructure is injected, and a test that went through a public setter would be
+# testing a setter written for tests.
+"apps/api/tests/*" = ["SLF001"]
+
+# --- BLE001: four degradation boundaries, not four oversights -----------------
+# Each site below turns an arbitrary failure into a *reported* degraded state and
+# nothing else. Narrowing the caught type at any of them would convert a
+# fail-closed answer ("not ready", "worker failed") into an escaping exception,
+# which is a behaviour change, not a lint fix.
+
+# healthcheck() probes an S3 client that is *injected* and only imported lazily
+# (boto3/botocore are imported inside __init__, so botocore is not a hard
+# dependency of this module). There is no exception class this module may name
+# without acquiring that dependency, and any failure to prove the bucket healthy
+# must read as "unhealthy" -> return False.
+"apps/api/src/korpus/infrastructure/object_store.py" = ["BLE001"]
+
+# healthcheck() probes a transport declared as a Protocol (EmbeddingHttpClient),
+# satisfied by httpx.Client and by test doubles alike; httpx.HTTPError would not
+# cover the conforming implementations. SLF001: this module and repository.py are
+# the same infrastructure layer and share the identity/clearance mapping
+# (_apply_postgres_identity, _allowed_classifications). Publishing those two would
+# be publishing methods written for exactly one caller — and publishing the RLS
+# identity switch widens the surface that can set a Postgres session identity.
+"apps/api/src/korpus/infrastructure/semantic.py" = ["BLE001", "SLF001"]
+
+# The whole module is a subprocess entry point: its contract with the parent is
+# "exit 2 + one stderr line" for *any* parser failure (extraction.py checks the
+# returncode). A narrower catch would emit a traceback and exit 1 instead.
+"apps/api/src/korpus/infrastructure/parser_worker.py" = ["BLE001"]
+
+# The audit-anchor reconcile loop is a supervised background task. A narrower
+# catch would let one unexpected error terminate the loop for the life of the
+# process; the current handler records the failure via
+# observe_anchor_reconcile_failure and readiness still exposes the backlog.
+"apps/api/src/korpus/main.py" = ["BLE001"]
