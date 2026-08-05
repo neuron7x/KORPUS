@@ -57,8 +57,31 @@ def main() -> int:
     rendered = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
     if args.check:
         if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
-            stale = {"valid": False, "reason": "desired-state manifest is stale"}
-            print(json.dumps(stale, indent=2))
+            # "stale" alone sent the reader looking through eight inputs and a
+            # kubernetes tree by hand. It is the message an author sees after every
+            # edit to .gitlab-ci.yml, so it says which inputs moved and how to fix it.
+            previous: dict[str, str] = {}
+            if target.is_file():
+                try:
+                    stored = json.loads(target.read_text(encoding="utf-8"))
+                    previous = {
+                        str(item["path"]): str(item["sha256"])
+                        for item in stored.get("records", [])
+                    }
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    previous = {}
+            current = {str(item["path"]): str(item["sha256"]) for item in records}
+            stale = {
+                "valid": False,
+                "reason": "desired-state manifest is stale",
+                "changed": sorted(
+                    path
+                    for path in current.keys() | previous.keys()
+                    if current.get(path) != previous.get(path)
+                ),
+                "regenerate_with": "python3 scripts/generate_desired_state.py",
+            }
+            print(json.dumps(stale, ensure_ascii=False, indent=2))
             return 1
     else:
         target.write_text(rendered, encoding="utf-8")

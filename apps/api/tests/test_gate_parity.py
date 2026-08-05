@@ -17,6 +17,8 @@ from __future__ import annotations
 import ast
 import re
 import shlex
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -541,4 +543,29 @@ def test_every_job_that_runs_the_suite_has_git_in_its_image() -> None:
     assert not offenders, (
         f"these jobs run the suite in an image with no git, so "
         f"test_manifest_generation dies at collection: {offenders}"
+    )
+
+
+def test_the_desired_state_manifest_matches_the_files_it_fingerprints() -> None:
+    """The manifest is derived, and nothing regenerates it on the way to a commit.
+
+    `config/operations/desired-state-v5.json` pins the sha256 of .gitlab-ci.yml, both
+    Dockerfiles, both lock files and the kubernetes tree. Editing any of them makes it
+    stale, and the only thing that said so was `repository:validate` — the first job
+    of a pipeline, i.e. after the push. It caught the author of this very test twice
+    on 2026-08-05 (pipelines #37 and the one after #38 failed for no other reason).
+
+    Asserting it here moves the signal into the local pytest run, which happens before
+    the commit rather than after it.
+    """
+    result = subprocess.run(
+        [sys.executable, "scripts/generate_desired_state.py", "--check"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        "the desired-state manifest no longer matches its inputs; regenerate it with "
+        f"`python3 scripts/generate_desired_state.py`:\n{result.stdout}"
     )

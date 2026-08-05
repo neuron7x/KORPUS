@@ -1,12 +1,12 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v5.0.0",
-  "root_sha256": "101d6c1b51af45af27c5bd865710ada0b1d9f0be814aca9ea270598c0384a4c5",
+  "root_sha256": "dc88f78f8e2e1ac85c8ac0d7656e2ace8e96ae7ded847ae91db42f0643802c7e",
   "records": [
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "c64ff688b35acb6e09db9e72d48816aa213f31ab99c2ec6a679484ed7b8b34b7",
-      "bytes": 15443
+      "sha256": "8d18bd711386422e192451d195340b78aa02fe7ff191202b380645a9515a4a13",
+      "bytes": 15873
     },
     {
       "path": "apps/api/Dockerfile",
