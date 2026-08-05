@@ -149,9 +149,26 @@ def main() -> int:
     for required_ci in ("moby/buildkit", "gitleaks", "trivy", "syft", "verify_postgres_restore.py"):
         if required_ci not in ci_text:
             failures.append(f"GitLab CI missing required gate: {required_ci}")
-    postgres_job_header = 'api:postgres-and-restore:\n  stage: assurance\n  image:\n    name:'
-    if postgres_job_header not in ci_text or 'entrypoint: [""]' not in ci_text:
-        failures.append("PostgreSQL CI job must clear the database image entrypoint")
+    # The database used to be the job's own image, which is why the entrypoint had to
+    # be cleared. That arrangement also meant the suite ran on whatever python3 the
+    # database image carried — 3.13 on trixie, against a service shipped on 3.12.13.
+    # The database is a service now, so the requirement is that it stays one: an image
+    # borrowed for its server binaries brings its interpreter with it.
+    postgres_block = next(
+        (
+            block
+            for block in re.split(r"\n(?=\S)", ci_text)
+            if block.startswith("api:postgres-and-restore:")
+        ),
+        "",
+    )
+    if not postgres_block:
+        failures.append("PostgreSQL CI job is absent")
+    elif re.search(r"^\s+image:\s*\n\s+name:\s*pgvector", postgres_block, re.M):
+        if 'entrypoint: [""]' not in postgres_block:
+            failures.append("PostgreSQL CI job must clear the database image entrypoint")
+    elif not re.search(r"^\s+services:\s*\n\s+- name:\s*pgvector", postgres_block, re.M):
+        failures.append("PostgreSQL CI job must attach the database as a service")
 
     package_text = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
     if "git archive --format=tar HEAD" not in package_text:

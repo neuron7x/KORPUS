@@ -164,11 +164,15 @@ audit:closure:
     paths:
       - docs/audit/closure/
 
+# Ran on the image's own python3 until 2026-08-05, which on trixie is 3.13 — so the
+# only job that exercised PostgreSQL tested a different interpreter from the one the
+# production image ships (3.12.13) and from every other job here. Nothing said so; the
+# hashed lock did, by refusing a cp313 wheel against cp312 hashes. The client tools
+# have to be pg17 to dump a pg17 server, so they come from pgdg rather than the job
+# moving to the database's image.
 api:postgres-and-restore:
   stage: assurance
-  image:
-    name: pgvector/pgvector:0.8.5-pg17-trixie
-    entrypoint: [""]
+  image: python:3.12.13-slim-bookworm
   services:
     - name: pgvector/pgvector:0.8.5-pg17-trixie
       alias: postgres
@@ -186,18 +190,17 @@ api:postgres-and-restore:
     KORPUS_BACKUP_ENCRYPTION_KEY_FILE: "$CI_PROJECT_DIR/var/backup-encryption.key"
     KORPUS_BACKUP_KEY_ID: "ci-ephemeral-v4"
   before_script:
-    # git is here for the same reason it is in .python-job: this job runs the whole
-    # suite, and test_manifest_generation shells out to git to assert the release
-    # manifest lists only tracked files. The pgvector image has no git, so the first
-    # pipeline that reached this job died on it. The knowledge existed — as a comment
-    # in .python-job, which this job does not extend. test_gate_parity now asserts it.
-    - apt-get update && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates git && rm -rf /var/lib/apt/lists/*
-    - python3 -m venv /tmp/korpus-venv
-    - /tmp/korpus-venv/bin/pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
-    - export PATH="/tmp/korpus-venv/bin:$PATH"
+    # git: test_manifest_generation shells out to it to assert the release manifest
+    # lists only tracked files, and slim images ship without it.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git curl ca-certificates gnupg && rm -rf /var/lib/apt/lists/*
+    - install -d /usr/share/postgresql-common/pgdg
+    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    - echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+    - python -m pip check
     - python scripts/wait_for_database.py
   script:
-    - export PATH="/tmp/korpus-venv/bin:$PATH"
     - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
     - python scripts/prepare_postgres_role.py
     # The whole suite against the migrated database, not only the postgres-marked test.

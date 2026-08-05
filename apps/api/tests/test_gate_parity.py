@@ -624,3 +624,42 @@ def test_every_install_of_a_lock_file_requires_those_hashes() -> None:
     assert not offenders, (
         f"pip ignores --hash entries unless --require-hashes is passed: {offenders}"
     )
+
+
+def test_every_job_running_the_suite_uses_the_production_interpreter() -> None:
+    """Tests on one Python say nothing about a service shipped on another.
+
+    api:postgres-and-restore ran on the pgvector image's own python3, which on trixie
+    is 3.13, while apps/api/Dockerfile ships 3.12.13 and every other job here uses it.
+    The only job that exercised PostgreSQL — the dialect-specific validity filters,
+    the retrieval projection, the audit head update — was therefore testing a
+    different interpreter from production, and nothing in the repository said so.
+
+    What said so, eventually, was the hashed lock: pip refused a cp313 wheel against
+    cp312 hashes. That is a check catching a defect it was not written for, which is
+    luck. This asserts the property directly.
+    """
+    dockerfile = (ROOT / "apps/api/Dockerfile").read_text(encoding="utf-8")
+    match = re.search(r"^ARG PYTHON_IMAGE=(\S+)", dockerfile, re.M)
+    assert match, "apps/api/Dockerfile no longer declares PYTHON_IMAGE"
+    production = match.group(1)
+
+    text = CI.read_text(encoding="utf-8")
+    offenders: list[tuple[str, str]] = []
+    for block in re.split(r"\n(?=\S)", text):
+        header = block.split("\n", 1)[0]
+        if not header.endswith(":") or header.startswith(("#", " ")):
+            continue
+        name = header[:-1]
+        if not re.search(r"pytest[^\n]*apps/api/tests", block):
+            continue
+        if "extends: .python-job" in block:
+            continue
+        image = re.search(r"^\s+image:\s*(\S+)\s*$", block, re.M)
+        if image is None or image.group(1) != production:
+            offenders.append((name, image.group(1) if image else "<none or nested>"))
+    assert not offenders, (
+        f"these jobs run the suite on an interpreter other than {production}: "
+        f"{offenders} — a service tested on one Python and shipped on another has "
+        "been tested somewhere else"
+    )
