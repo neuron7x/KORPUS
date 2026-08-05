@@ -1042,9 +1042,9 @@ MUTANTS = (
         "M109_EXTERNAL_GROUND_CLEARED_WITHOUT_ATTESTATION",
         "apps/api/src/korpus/application/admission.py",
         "        if kind in EXTERNAL_KINDS:\n"
-        "            problems.extend(_attestation_problems(ground))",
+        "            problems.extend(_attestation_problems(root, ground))",
         "        if False:\n"
-        "            problems.extend(_attestation_problems(ground))",
+        "            problems.extend(_attestation_problems(root, ground))",
         (
             "apps/api/tests/test_admission_register.py::"
             "test_an_external_ground_cannot_be_cleared_by_editing_the_register",
@@ -1136,6 +1136,46 @@ MUTANTS = (
         "        return True",
         (
             "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",
+        ),
+    ),
+    Mutant(
+        "M135_ATTESTED_DOCUMENT_NEED_NOT_EXIST",
+        "apps/api/src/korpus/application/admission.py",
+        "    if not resolved.is_file():",
+        "    if False:",
+        (
+            "apps/api/tests/test_admission_cannot_be_self_granted.py::"
+            "test_an_attestation_naming_a_document_that_does_not_exist_is_refused",
+        ),
+    ),
+    Mutant(
+        "M136_ATTESTATION_DIGEST_NOT_CHECKED",
+        "apps/api/src/korpus/application/admission.py",
+        "    elif hashlib.sha256(resolved.read_bytes()).hexdigest() != digest:",
+        "    elif False:",
+        (
+            "apps/api/tests/test_admission_cannot_be_self_granted.py::"
+            "test_an_attestation_whose_digest_does_not_match_the_document_is_refused",
+        ),
+    ),
+    Mutant(
+        "M137_ASSESSMENT_MAY_BE_SELF_SIGNED",
+        "apps/api/src/korpus/application/admission.py",
+        "    if ground.get(\"kind\") == \"external_assessment\":",
+        "    if False:",
+        (
+            "apps/api/tests/test_admission_cannot_be_self_granted.py::"
+            "test_an_independent_assessment_signed_by_the_engineering_owner_is_refused",
+        ),
+    ),
+    Mutant(
+        "M138_ATTESTATION_MAY_BE_DATED_IN_THE_FUTURE",
+        "apps/api/src/korpus/application/admission.py",
+        "        if signed > date.today():",
+        "        if False:",
+        (
+            "apps/api/tests/test_admission_cannot_be_self_granted.py::"
+            "test_an_attestation_signed_in_the_future_is_refused",
         ),
     ),
     Mutant(

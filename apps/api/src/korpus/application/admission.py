@@ -21,9 +21,12 @@ verdict from the register, under two rules:
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +36,19 @@ from korpus.application.evidence_registry import verify_references
 EXTERNAL_KINDS = frozenset({"external_assessment", "owner_decision", "measurement"})
 KNOWN_KINDS = EXTERNAL_KINDS | {"engineering"}
 REQUIRED_ATTESTATION_FIELDS = ("document", "sha256", "signed_by", "signed_at")
+DIGEST_PATTERN = re.compile(r"[0-9a-f]{64}")
+#: Signers who cannot make an assessment independent, because they are the assessed.
+#: Matched as substrings and case-folded: the register is written in Ukrainian and the
+#: point is to refuse the obvious self-signature, not to enumerate every phrasing.
+NON_INDEPENDENT_SIGNERS = (
+    "інженері",
+    "engineering",
+    "себе",
+    "self",
+    "korpus",
+    "корпус",
+    "neuron7x",
+)
 
 
 @dataclass(frozen=True)
@@ -61,7 +77,19 @@ def load_register(path: Path) -> Mapping[str, Any]:
     return value
 
 
-def _attestation_problems(ground: Mapping[str, Any]) -> list[str]:
+def _attestation_problems(root: Path, ground: Mapping[str, Any]) -> list[str]:
+    """Whether the attestation refers to anything, or is four filled-in fields.
+
+    Until 2026-08-05 this asked only whether the fields were *present*. Setting every
+    open ground to `cleared`, citing any existing test, and attaching a document that
+    does not exist, a sha256 of sixty-four `f`s and a date in 2030 produced
+    `production_authorized = True` with no problems reported — the one verdict in this
+    repository that decides whether the system may be used at all, flipped by editing
+    one JSON file in the same commit as the code it authorises.
+
+    Four things are checked now, and each corresponds to a way the register could
+    otherwise authorise itself.
+    """
     identifier = ground.get("id")
     attestation = ground.get("attestation")
     if not isinstance(attestation, Mapping):
@@ -72,10 +100,52 @@ def _attestation_problems(ground: Mapping[str, Any]) -> list[str]:
     missing = [field for field in REQUIRED_ATTESTATION_FIELDS if not attestation.get(field)]
     if missing:
         return [f"{identifier}: attestation is missing {', '.join(sorted(missing))}"]
+
     digest = attestation.get("sha256")
-    if not isinstance(digest, str) or len(digest) != 64:
+    if not isinstance(digest, str) or not DIGEST_PATTERN.fullmatch(digest):
         return [f"{identifier}: attestation sha256 is malformed"]
-    return []
+
+    problems: list[str] = []
+
+    # (1) The document exists. A path nobody can open is a citation of nothing.
+    document = Path(str(attestation["document"]))
+    resolved = document if document.is_absolute() else root / document
+    if not resolved.is_file():
+        problems.append(
+            f"{identifier}: the attested document does not exist: {attestation['document']}"
+        )
+    # (2) The digest is of that document. Otherwise the field is decoration and any
+    #     document clears any ground.
+    elif hashlib.sha256(resolved.read_bytes()).hexdigest() != digest:
+        problems.append(
+            f"{identifier}: the attestation digest does not match the document it names"
+        )
+
+    # (3) The signature date is a real past date. A date nobody has reached is not a
+    #     date somebody signed on.
+    signed_at = str(attestation["signed_at"])
+    try:
+        signed = date.fromisoformat(signed_at)
+    except ValueError:
+        problems.append(f"{identifier}: signed_at is not an ISO date: {signed_at!r}")
+    else:
+        if signed > date.today():
+            problems.append(f"{identifier}: signed_at is in the future: {signed_at}")
+
+    # (4) An independent assessment is not independent when the engineering that built
+    #     the system signs it. §2.5 exists precisely because the internal tests were
+    #     written by the process that wrote the code; a self-signed report restates the
+    #     position the ground was raised against. Owner decisions are exempt — there the
+    #     owner IS the correct signatory, which is the whole difference between the two
+    #     classes.
+    if ground.get("kind") == "external_assessment":
+        signer = str(attestation["signed_by"]).strip().casefold()
+        if any(marker in signer for marker in NON_INDEPENDENT_SIGNERS):
+            problems.append(
+                f"{identifier}: an independent assessment cannot be signed by "
+                f"{attestation['signed_by']!r} — that is the party whose work is assessed"
+            )
+    return problems
 
 
 def evaluate_admission(root: Path, register: Mapping[str, Any]) -> AdmissionVerdict:
@@ -113,7 +183,7 @@ def evaluate_admission(root: Path, register: Mapping[str, Any]) -> AdmissionVerd
                 f"{identifier}: {message}" for message in verify_references(root, evidence)
             )
         if kind in EXTERNAL_KINDS:
-            problems.extend(_attestation_problems(ground))
+            problems.extend(_attestation_problems(root, ground))
         cleared.append(identifier)
 
     authorized = not open_grounds and not problems

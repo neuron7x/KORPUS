@@ -24,8 +24,8 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/application/admission.py": {
-      "lines": 125,
-      "max_complexity": 13
+      "lines": 195,
+      "max_complexity": 14
     },
     "apps/api/src/korpus/application/answer_query.py": {
       "lines": 660,
@@ -404,6 +404,16 @@
         "worst_function": "main"
       },
       "reason": "the ratchet grew the null-ceiling branch that lets a registry file expand; recorded here because raising a ceiling is always an edit somebody makes on purpose, including when the file being raised is the ratchet itself"
+    },
+    {
+      "path": "apps/api/src/korpus/application/admission.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 195,
+        "max_complexity": 14,
+        "worst_function": "_attestation_problems"
+      },
+      "reason": "the attestation contract gained four checks after a probe showed every blocking ground could be cleared by editing one JSON file: document existence, digest match, a past ISO date, and refusal of a self-signed independent assessment"
     }
   ],
   "line_exempt": {

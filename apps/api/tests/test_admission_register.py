@@ -20,6 +20,7 @@ can only ever be false is as useless as one that is always true.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -76,18 +77,25 @@ def test_an_external_ground_cannot_be_cleared_by_editing_the_register() -> None:
     assert any("attestation" in problem for problem in verdict.problems), verdict.problems
 
 
-def test_an_external_ground_with_a_complete_attestation_is_accepted() -> None:
-    """The mechanism has to be able to accept one, or it is theatre."""
+def test_an_external_ground_with_a_complete_attestation_is_accepted(tmp_path) -> None:
+    """The mechanism has to be able to accept one, or it is theatre.
+
+    The attested document is written here rather than named: since 2026-08-05 the
+    attestation must refer to a file that exists and whose digest matches, so a test
+    that names a path nobody wrote would be asserting the old, forgeable contract.
+    """
+    document = tmp_path / "external-assessment-2026-09.pdf"
+    document.write_bytes(b"independent assessment report")
     register = _register()
     for ground in register["grounds"]:
         if ground["id"] == "2.5":
             ground["status"] = "cleared"
             ground["evidence"] = ["docs/operations/ADMISSION_BOUNDARY_2026-08-03.md"]
             ground["attestation"] = {
-                "document": "external-assessment-2026-09.pdf",
-                "sha256": "a" * 64,
+                "document": str(document),
+                "sha256": hashlib.sha256(document.read_bytes()).hexdigest(),
                 "signed_by": "Assessment Organisation",
-                "signed_at": "2026-09-01",
+                "signed_at": "2026-08-01",
             }
 
     verdict = evaluate_admission(ROOT, register)
@@ -142,7 +150,7 @@ def test_a_ground_cleared_with_no_evidence_at_all_is_refused() -> None:
     assert any("no evidence" in problem for problem in verdict.problems), verdict.problems
 
 
-def test_the_verdict_can_be_true_when_every_ground_is_properly_cleared() -> None:
+def test_the_verdict_can_be_true_when_every_ground_is_properly_cleared(tmp_path) -> None:
     """The dual control: a verdict that can only be false decides nothing.
 
     This is the shape a real authorization would have — every ground cleared, external
@@ -154,11 +162,13 @@ def test_the_verdict_can_be_true_when_every_ground_is_properly_cleared() -> None
         ground["status"] = "cleared"
         ground["evidence"] = ["docs/operations/ADMISSION_BOUNDARY_2026-08-03.md"]
         if ground["kind"] != "engineering":
+            document = tmp_path / f"attestation-{ground['id']}.pdf"
+            document.write_bytes(f"attestation for {ground['id']}".encode())
             ground["attestation"] = {
-                "document": f"attestation-{ground['id']}.pdf",
-                "sha256": "b" * 64,
+                "document": str(document),
+                "sha256": hashlib.sha256(document.read_bytes()).hexdigest(),
                 "signed_by": "Owner",
-                "signed_at": "2026-09-01",
+                "signed_at": "2026-08-01",
             }
 
     verdict = evaluate_admission(ROOT, register)
