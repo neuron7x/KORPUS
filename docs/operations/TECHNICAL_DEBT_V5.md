@@ -44,9 +44,24 @@ predicate the audit actually states: a trained classifier on a blind set with pe
 precision, recall and worst-group metrics, which needs annotated queries nobody here
 has. That is `MITIGATED_LOCAL`, not closed.
 
+COD-001 moved partly: the audit read side — verification, event lookup, readiness — is
+now `infrastructure/audit_reader.py`, and `SqlRepository` is 1643 lines rather than
+1855. That is the seam the class actually has. Most of the rest cannot be split without
+splitting a transaction: `create_version_bundle` writes rows and their audit event
+atomically, and an abstraction separating them would break that atomicity or leak it.
+Cutting somewhere the class does not part would be the same debt in more files, so the
+finding stays open with its measurement recorded rather than closed by rearrangement.
+
+The extraction cost six mutants their targets and they went INVALID — the documented
+behaviour, and the reason it is a gate. It also exposed a defect one level up: the
+failed mutation run left its previous report in place, so the operational gate read
+evidence from a tree that no longer existed and reported "generated from a different
+source tree" — accurate, and three steps from the cause. A failed run now removes its
+report: absent evidence and stale evidence must not be the same state.
+
 Still `OPEN_TECH_DEBT`: RAG-016 (embedding model migration executed against a real
-index), COD-001 (SqlRepository at 1855 lines), WEB-001 (reviewer workflows), OPS-004
-(environment drift against a real cluster).
+index), COD-001 (the transactional core of SqlRepository), WEB-001 (reviewer
+workflows), OPS-004 (environment drift against a real cluster).
 
 Machine-readable registers: `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` and `.csv`.
 

@@ -26,7 +26,14 @@ for pid in "${pids[@]}"; do
   fi
 done
 if [[ "$failed" -ne 0 ]]; then
-  echo "one or more mutation shards failed" >&2
+  # A failed run must not leave the previous report in place. It did on 2026-08-05: six
+  # mutants went INVALID after their targets moved to audit_reader.py, the run exited 1,
+  # and var/mutation-report.json stayed behind from the run before. The operational gate
+  # then read a report from a different tree and said "generated from a different source
+  # tree" — true, and three steps from the actual cause. Absent evidence and stale
+  # evidence must not be the same state.
+  rm -f "$root/var/mutation-report.json"
+  echo "one or more mutation shards failed; removed the stale report" >&2
   for ((index=0; index<shards; index++)); do
     echo "--- shard $index ---" >&2
     tail -80 "var/mutation-shard-${index}.log" >&2 || true

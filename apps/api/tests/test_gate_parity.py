@@ -932,3 +932,25 @@ def test_every_ci_image_pins_an_exact_tag() -> None:
     assert not without_digest, (
         f"these CI images are pinned by tag alone: {without_digest}"
     )
+
+
+def test_a_failed_generator_does_not_leave_its_previous_report_behind() -> None:
+    """Stale evidence and absent evidence must not be the same state.
+
+    On 2026-08-05 six mutants went INVALID after their targets moved to a new module.
+    The run exited non-zero and `var/mutation-report.json` stayed behind from the run
+    before, so the operational gate read a report from a different tree and reported
+    "generated from a different source tree" — accurate, and three steps removed from
+    the cause. A missing report says "the generator did not finish"; a stale one says
+    something about a tree that no longer exists.
+    """
+    shards = (ROOT / "scripts/run_mutation_shards.sh").read_text(encoding="utf-8")
+
+    assert "rm -f" in shards and "mutation-report.json" in shards, (
+        "the shard runner no longer removes its report when a shard fails"
+    )
+    failure_block = shards[shards.index('if [[ "$failed" -ne 0 ]]'):]
+    assert "rm -f" in failure_block.split("exit 1")[0], (
+        "the report is removed outside the failure path, so a successful run would "
+        "delete the evidence it just produced"
+    )

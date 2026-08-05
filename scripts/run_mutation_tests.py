@@ -61,7 +61,7 @@ MUTANTS = (
     ),
     Mutant(
         "M04_AUDIT_PREDECESSOR_BYPASS",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         (
             'if row["previous_hash"] != previous_hash or not hmac.compare_digest(\n'
             '                expected_hash, row["event_hash"]\n'
@@ -119,7 +119,7 @@ MUTANTS = (
     ),
     Mutant(
         "M10_AUDIT_HEAD_CHECK_REMOVED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "if head_sequence != len(rows) or head_hash != previous_hash:",
         "if False:",
         ("apps/api/tests/test_audit.py::test_audit_anchor_detects_tail_truncation",),
@@ -501,9 +501,9 @@ MUTANTS = (
     Mutant(
         # A scoped read that ignores its scope returns another request's events.
         "M52_AUDIT_TRACE_SCOPE_IGNORED",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "            .where(audits.c.payload_json.contains(needle))",
-        "            .where(audits.c.sequence >= 1)",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "            .where(self._audits.c.payload_json.contains(needle))",
+        "            .where(self._audits.c.sequence >= 1)",
         ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",),
     ),
     Mutant(
@@ -891,7 +891,7 @@ MUTANTS = (
     ),
     Mutant(
         "M95_DELAYED_ANCHOR_REPORTED_AS_BROKEN_CHAIN",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        pending = head_sequence - anchor.sequence\n"
         "        return AuditVerification(\n"
         "            valid=True,",
@@ -904,7 +904,7 @@ MUTANTS = (
     ),
     Mutant(
         "M96_ANCHOR_AHEAD_OF_HEAD_ACCEPTED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        if anchor.sequence > head_sequence:",
         "        if False:",
         (
@@ -913,7 +913,7 @@ MUTANTS = (
     ),
     Mutant(
         "M97_ANCHOR_POSITION_HASH_NOT_COMPARED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        if anchor.head_hash != anchor_at_position:",
         "        if False:",
         (

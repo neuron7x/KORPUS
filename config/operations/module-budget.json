@@ -179,6 +179,10 @@
       "lines": 229,
       "max_complexity": 7
     },
+    "apps/api/src/korpus/infrastructure/audit_reader.py": {
+      "lines": 331,
+      "max_complexity": 15
+    },
     "apps/api/src/korpus/infrastructure/extraction.py": {
       "lines": 466,
       "max_complexity": 21
@@ -200,7 +204,7 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1855,
+      "lines": 1643,
       "max_complexity": 23
     },
     "apps/api/src/korpus/infrastructure/runtime.py": {
@@ -538,6 +542,18 @@
         }
       ],
       "reason": "UNCLASSIFIED gained its own threshold branch and the argument for why coverage does not move with it"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/infrastructure/audit_reader.py",
+          "metric": "lines",
+          "from": 325,
+          "to": 331
+        }
+      ],
+      "reason": "COD-001: the audit read side moved out of the repository"
     }
   ],
   "line_exempt": {
