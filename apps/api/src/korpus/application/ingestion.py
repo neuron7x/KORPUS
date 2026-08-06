@@ -164,14 +164,26 @@ class IngestionService:
                 duplicate_document is None
                 or not self.policy.can_access_document(actor, duplicate_document).allowed
             ):
-                raise ValueError("duplicate source content already exists")
-            return IngestResult(
-                document=duplicate_document,
-                version=duplicate,
-                span_count=0,
-                extraction_method="deduplicated",
-                duplicate=True,
-            )
+                # Deliberately indistinguishable from an ordinary ingestion. Until
+                # 2026-08-06 this raised "duplicate source content already exists",
+                # which is a confirmation oracle: a curator who cannot list the document
+                # learns that these exact bytes are already held, one guess at a time.
+                # The code was already careful not to return the *record* — and said so
+                # by raising a message that reveals the same fact in prose.
+                #
+                # Treated as new instead: the bytes are stored under the caller's own
+                # document, the corpus gains a duplicate it cannot see, and nothing is
+                # disclosed. `find_version_by_hash` is scoped by entitlement, so this
+                # branch is only ever reached by a caller who may not see the match.
+                duplicate = None
+            else:
+                return IngestResult(
+                    document=duplicate_document,
+                    version=duplicate,
+                    span_count=0,
+                    extraction_method="deduplicated",
+                    duplicate=True,
+                )
         self.malware_scanner.scan(path)
         page_spans, method = self._extract_path(path, filename, mime_type)
         extracted_text = "\n".join(str(span["text"]) for span in page_spans)

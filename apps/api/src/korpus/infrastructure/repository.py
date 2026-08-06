@@ -316,7 +316,29 @@ class SqlRepository:
             raise ValueError("invalid content fingerprint")
         if not 0.5 <= minimum_similarity <= 1.0:
             raise ValueError("invalid near-duplicate threshold")
-        statement = select(versions).join(documents, versions.c.document_id == documents.c.id)
+        # The same access predicates retrieval applies. Until 2026-08-06 this filtered
+        # by corpus alone: no clearance, no classification, no compartment. The verdict
+        # travels back to the caller in the 201 body — the matched version's id and a
+        # *graded* similarity — so a curator whose `GET /v1/documents` is empty could
+        # submit a guess, read how close it came, and hill-climb the text of a
+        # restricted order out of a document they cannot list. A yes/no oracle is a
+        # disclosure; a graded one is a reconstruction method.
+        #
+        # Written out rather than reusing `retrievable_projection`, which also demands
+        # APPROVED and currency: a near-duplicate check has to see quarantined and
+        # superseded versions, or it stops catching the duplicate it exists for.
+        statement = (
+            select(versions)
+            .join(documents, versions.c.document_id == documents.c.id)
+            .where(documents.c.corpus_id.in_(sorted(identity.corpora)))
+            .where(documents.c.access_tier <= int(identity.clearance))
+            .where(
+                documents.c.classification.in_(
+                    row_mapping.allowed_classifications(identity.clearance)
+                )
+            )
+            .where(retrieval_queries.compartment_predicate(identity))
+        )
         if corpus_id is not None:
             if corpus_id not in identity.corpora and not identity.has_role("admin"):
                 return None

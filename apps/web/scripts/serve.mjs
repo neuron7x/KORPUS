@@ -29,6 +29,31 @@ const mime = {".html":"text/html; charset=utf-8",".js":"text/javascript; charset
 //: /api/v1/answers upstream and produces a 404 that reads like a missing route.
 const API_PREFIX = "/api/";
 
+//: Loopback only, and stated as a constant so it is one grep away rather than buried in
+//: the listen call. This proxy forwards whatever the client sent; that is acceptable
+//: exactly while the client can only be this machine. Binding it anywhere else would
+//: hand an upstream service a set of headers chosen by a stranger.
+const BIND_HOST = "127.0.0.1";
+
+//: Hop-by-hop headers are meaningful between two adjacent parties and meaningless to
+//: forward (RFC 9110 §7.6.1). Passing `connection` or `upgrade` upstream lets a client
+//: influence a connection it is not party to; passing `transfer-encoding` alongside
+//: node's own framing is how a request gets read twice, which is request smuggling.
+//: nginx strips these; a dev proxy that does not is a dev proxy that behaves
+//: differently from the thing it stands in for.
+const HOP_BY_HOP = new Set([
+  "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
+  "te", "trailer", "transfer-encoding", "upgrade",
+]);
+
+function forwardable(headers) {
+  const forwarded = {};
+  for (const [name, value] of Object.entries(headers)) {
+    if (!HOP_BY_HOP.has(name.toLowerCase())) forwarded[name] = value;
+  }
+  return forwarded;
+}
+
 function proxy(request, response, path) {
   const upstream = httpRequest(
     {
@@ -37,10 +62,10 @@ function proxy(request, response, path) {
       port: apiOrigin.port,
       method: request.method,
       path: path.slice(API_PREFIX.length - 1) + (request.url.includes("?") ? `?${request.url.split("?").slice(1).join("?")}` : ""),
-      headers: { ...request.headers, host: apiOrigin.host },
+      headers: { ...forwardable(request.headers), host: apiOrigin.host },
     },
     (upstreamResponse) => {
-      response.writeHead(upstreamResponse.statusCode ?? 502, upstreamResponse.headers);
+      response.writeHead(upstreamResponse.statusCode ?? 502, forwardable(upstreamResponse.headers));
       upstreamResponse.pipe(response);
     },
   );
@@ -71,7 +96,7 @@ createServer(async (request, response) => {
     response.writeHead(200,{"Content-Type":mime[extname(path)] ?? "application/octet-stream","Cache-Control":"no-store"});
     response.end(await readFile(path));
   } catch { response.writeHead(404); response.end("not found"); }
-}).listen(port, "127.0.0.1", () => {
+}).listen(port, BIND_HOST, () => {
   console.log(`KORPUS web http://127.0.0.1:${port}`);
   console.log(`  consoles  http://127.0.0.1:${port}/console.html`);
   console.log(`  /api/ ->  ${apiOrigin.origin} (development proxy: no rate limit, no CSP, no TLS)`);

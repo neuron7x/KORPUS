@@ -103,6 +103,14 @@ class CachedRetriever(Retriever):
                 str(int(identity.clearance)),
                 ",".join(sorted(identity.roles)),
                 ",".join(sorted(identity.corpora)),
+                # Compartments decide which spans the retrieval projection returns
+                # (`retrieval_queries.compartment_predicate`) and were missing from this
+                # key until 2026-08-06. Entitlements are resolved per request from the
+                # profile, so one subject's compartments change between requests — and
+                # for the length of the TTL the cache kept serving evidence the
+                # withdrawn compartment had granted. Revocation latency in a system
+                # whose whole design is fail-closed.
+                ",".join(sorted(identity.compartments)),
                 ",".join(sorted(corpus_ids)),
                 as_of.isoformat(),
                 str(limit),

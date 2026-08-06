@@ -51,15 +51,14 @@
   "audit": {
     "findings_total": 99,
     "status_counts": {
-      "CLOSED_LOCAL": 20,
+      "CLOSED_LOCAL": 24,
       "EXTERNAL_DEBT": 31,
-      "MITIGATED_LOCAL": 33,
-      "OPEN_TECH_DEBT": 15
+      "MITIGATED_LOCAL": 44
     },
-    "remaining_total": 79,
+    "remaining_total": 75,
     "remaining_by_severity": {
-      "P0": 21,
-      "P1": 48,
+      "P0": 19,
+      "P1": 46,
       "P2": 10
     }
   },

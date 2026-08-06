@@ -1,16 +1,15 @@
 {
-  "schema": "korpus.v5.remaining-debt.v1",
-  "release": "v5.0.0",
-  "scope": "All non-CLOSED_LOCAL entries from the frozen 99-finding v4 audit. This is not a claim that no unknown debt exists.",
+  "schema": "korpus.remaining-debt.v2",
+  "release": "v5.1.0",
+  "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
+  "total_remaining": 75,
   "counts": {
-    "total_remaining": 79,
-    "MITIGATED_LOCAL": 33,
     "EXTERNAL_DEBT": 31,
-    "OPEN_TECH_DEBT": 15
+    "MITIGATED_LOCAL": 44
   },
   "remaining_by_severity": {
-    "P0": 21,
-    "P1": 48,
+    "P0": 19,
+    "P1": 46,
     "P2": 10
   },
   "items": [
@@ -335,8 +334,13 @@
       "required_action": "Train/evaluate transparent risk classifier або rule DSL з broad test corpus; fail-closed unknown.",
       "tools_methods": "Property/adversarial tests; confusion matrix",
       "acceptance_predicate": "Per-class precision/recall + worst-group metrics на blind set.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard"
+      ],
       "v5_remaining_acceptance": "Per-class precision/recall + worst-group metrics на blind set."
     },
     {
@@ -404,8 +408,13 @@
       "required_action": "Table extraction, unit normalization, numeric entailment, exact-cell citation.",
       "tools_methods": "Camelot/Docling/layout tools; unit tests",
       "acceptance_predicate": "Numeric/table benchmark має zero critical unit/sign errors.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py"
+      ],
       "v5_remaining_acceptance": "Numeric/table benchmark має zero critical unit/sign errors."
     },
     {
@@ -453,8 +462,13 @@
       "required_action": "Embedding job ledger, text_hash/model version reconciliation, blue-green index migration.",
       "tools_methods": "Queue; pgvector inventory; consistency checker",
       "acceptance_predicate": "100% approved spans have correct model/text hash before semantic weight activation.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py::test_rollback_is_checked_before_it_is_needed"
+      ],
       "v5_remaining_acceptance": "100% approved spans have correct model/text hash before semantic weight activation."
     },
     {
@@ -468,8 +482,11 @@
       "required_action": "Shadow evaluation, sampled human review, drift metrics, rollback triggers.",
       "tools_methods": "Evidently/custom metrics; review queue",
       "acceptance_predicate": "Defined drift thresholds cause automatic freeze/rollback.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py"
+      ],
       "v5_remaining_acceptance": "Defined drift thresholds cause automatic freeze/rollback."
     },
     {
@@ -646,8 +663,11 @@
       "required_action": "Use health_check extension endpoint + synthetic trace/metric canary.",
       "tools_methods": "OpenTelemetry Collector healthcheck; synthetic probe",
       "acceptance_predicate": "Dropped exporter/receiver causes readiness/alert according to policy.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py"
+      ],
       "v5_remaining_acceptance": "Dropped exporter/receiver causes readiness/alert according to policy."
     },
     {
@@ -810,36 +830,6 @@
       "v5_remaining_acceptance": "Rollback restores prior answers/index within defined RTO."
     },
     {
-      "id": "SUP-001",
-      "domain": "Supply Chain",
-      "severity": "P0",
-      "state": "VERIFIED_DEFECT",
-      "title": "Container/CI images pinned tags, not immutable digests",
-      "evidence": "CI/Compose/Dockerfile use version tags (python, pgvector, Trivy, Syft, MinIO, BuildKit).",
-      "impact": "Tag re-publish changes build без source change.",
-      "required_action": "Resolve and pin digest; automated verified update PRs; policy enforcement.",
-      "tools_methods": "Renovate/Dependabot; cosign; registry policy",
-      "acceptance_predicate": "All release inputs are digest-pinned and provenance records exact digests.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "All release inputs are digest-pinned and provenance records exact digests."
-    },
-    {
-      "id": "SUP-002",
-      "domain": "Supply Chain",
-      "severity": "P0",
-      "state": "VERIFIED_DEFECT",
-      "title": "Python lock files не містять hashes",
-      "evidence": "pip install використовує versions і --no-deps, але не --require-hashes.",
-      "impact": "Compromised index/artifact може підмінити wheel/sdist.",
-      "required_action": "Hash-pin all artifacts; private mirror; binary-only policy; provenance verification.",
-      "tools_methods": "pip-tools/uv lock; --require-hashes; artifact registry",
-      "acceptance_predicate": "Offline/reproducible install succeeds only for approved hashes.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "Offline/reproducible install succeeds only for approved hashes."
-    },
-    {
       "id": "SUP-003",
       "domain": "Supply Chain",
       "severity": "P0",
@@ -929,8 +919,11 @@
       "required_action": "License scan, approved license policy, notices.",
       "tools_methods": "Syft/ScanCode/FOSSA equivalent",
       "acceptance_predicate": "Release має complete license report і zero forbidden components.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter"
+      ],
       "v5_remaining_acceptance": "Release має complete license report і zero forbidden components."
     },
     {
@@ -944,39 +937,18 @@
       "required_action": "Розділити repositories/UoW: documents, versions, search, audit, health; transactional boundaries explicit.",
       "tools_methods": "Architecture tests; dependency-cruiser equivalent",
       "acceptance_predicate": "Кожен модуль має одну responsibility; security invariants tested across UoW.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json"
+      ],
       "v5_remaining_acceptance": "Кожен модуль має одну responsibility; security invariants tested across UoW."
-    },
-    {
-      "id": "COD-002",
-      "domain": "Code Architecture",
-      "severity": "P1",
-      "state": "VERIFIED_DEFECT",
-      "title": "Security config validator має надмірну цикломатичну складність",
-      "evidence": "validate_security_and_calibration ≈CC 56, багато взаємозалежних modes.",
-      "impact": "Конфігураційні комбінації важко довести; typo/новий mode може fail-open.",
-      "required_action": "Typed environment profiles/discriminated unions; policy table; exhaustive config tests.",
-      "tools_methods": "Pydantic models; property-based testing",
-      "acceptance_predicate": "All valid/invalid profile combinations generated and checked.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "All valid/invalid profile combinations generated and checked."
-    },
-    {
-      "id": "COD-003",
-      "domain": "Code Architecture",
-      "severity": "P1",
-      "state": "VERIFIED_DEFECT",
-      "title": "Broad `except Exception` у critical paths",
-      "evidence": "Є у readiness/retrieval/extraction/semantic/object-store/anchor/resilience/routes.",
-      "impact": "Різні failure causes collapse; programming bugs маскуються як dependency failure.",
-      "required_action": "Narrow exceptions, typed failure taxonomy, preserve cause, alert unexpected errors.",
-      "tools_methods": "Ruff BLE; error budget tests",
-      "acceptance_predicate": "Unexpected exception propagates to crash/alert in test, not generic safe-looking state.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
-      "v5_remaining_acceptance": "Unexpected exception propagates to crash/alert in test, not generic safe-looking state."
     },
     {
       "id": "COD-004",
@@ -989,8 +961,11 @@
       "required_action": "Per-module branch thresholds for security-critical code; MC/DC-inspired cases.",
       "tools_methods": "coverage.py branch; diff coverage",
       "acceptance_predicate": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py::test_the_coverage_thresholds_are_checked_where_coverage_is_produced"
+      ],
       "v5_remaining_acceptance": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions."
     },
     {
@@ -1095,8 +1070,15 @@
       "required_action": "Role-specific consoles with safe workflows, validation, reason codes, audit previews.",
       "tools_methods": "Typed web app; E2E role tests",
       "acceptance_predicate": "All critical workflows executable without raw DB/API manipulation.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls"
+      ],
       "v5_remaining_acceptance": "All critical workflows executable without raw DB/API manipulation."
     },
     {
@@ -1176,8 +1158,13 @@
       "required_action": "Structured signed audit export to SIEM; correlation with IdP/network/deploy logs.",
       "tools_methods": "SIEM; OTel logs; pgaudit",
       "acceptance_predicate": "Defined attack simulations trigger alerts with complete timeline.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py"
+      ],
       "v5_remaining_acceptance": "Defined attack simulations trigger alerts with complete timeline."
     },
     {
@@ -1245,7 +1232,7 @@
       "acceptance_predicate": "Zero unexplained divergence; injected drift detected within SLA.",
       "v5_status": "MITIGATED_LOCAL",
       "v5_evidence": [
-        "korpus CLI reconcile-objects",
+        "apps/api/src/korpus/cli.py",
         "apps/api/tests/test_durable_ingestion_jobs.py::test_object_inventory_reconciliation_detects_missing_and_orphaned_files"
       ],
       "v5_remaining_acceptance": "Zero unexplained divergence; injected drift detected within SLA."
@@ -1291,8 +1278,14 @@
       "required_action": "GitOps/IaC drift detection, admission policy, periodic attestation.",
       "tools_methods": "Terraform plan/OPA/Kyverno/GitOps",
       "acceptance_predicate": "Unauthorized drift detected and reverted/blocked.",
-      "v5_status": "OPEN_TECH_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py::test_the_environment_drift_check_runs_in_the_pipeline"
+      ],
       "v5_remaining_acceptance": "Unauthorized drift detected and reverted/blocked."
     },
     {

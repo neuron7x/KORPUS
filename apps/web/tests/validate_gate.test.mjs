@@ -231,3 +231,19 @@ test("a tab without its panel is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /operator console missing surface: console-auditor/);
 });
+
+test("a dev proxy that stops stripping hop-by-hop headers is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source =>
+      source.replace("headers: { ...forwardable(request.headers)", "headers: { ...request.headers")));
+  assert.notEqual(status, 0);
+  assert.match(output, /forwards client headers unfiltered/);
+});
+
+test("a dev proxy that stops binding loopback is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source =>
+      source.replace('const BIND_HOST = "127.0.0.1";', 'const BIND_HOST = "0.0.0.0";')));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer binds loopback only/);
+});

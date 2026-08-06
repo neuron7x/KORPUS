@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -117,6 +118,31 @@ def verify() -> dict[str, Any]:
         raise AssertionError("finding count drift")
     if state["audit"]["remaining_total"] != len(debt["items"]):
         raise AssertionError("remaining-debt count drift")
+
+    # Both of the numbers above were compared only against each other, and both were
+    # stale together: `current_state.json` said OPEN_TECH_DEBT 15 / MITIGATED_LOCAL 33
+    # while the closure register said 0 / 44, and this gate — the first prerequisite of
+    # `make validate`, which is the first step of `make check` — passed. It loaded the
+    # closure two lines earlier and never looked at it.
+    #
+    # A guard that compares two copies of the same claim proves they agree, not that
+    # either is true. The source of truth is the closure register, which is generated
+    # from the findings by `build_audit_closure.py`.
+    counted = Counter(str(item["v5_status"]) for item in findings)
+    declared = {str(key): int(value) for key, value in state["audit"]["status_counts"].items()}
+    if declared != dict(counted):
+        raise AssertionError(
+            f"handoff status counts disagree with the closure register: "
+            f"declared {declared}, register {dict(counted)}"
+        )
+    remaining = sum(
+        count for status, count in counted.items() if status != "CLOSED_LOCAL"
+    )
+    if state["audit"]["remaining_total"] != remaining:
+        raise AssertionError(
+            f"remaining_total {state['audit']['remaining_total']} disagrees with the "
+            f"closure register's {remaining}"
+        )
 
     iteration_items = iterations["items"]
     integration_items = integrations["items"]

@@ -87,10 +87,18 @@ MUTANTS = (
         ("apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",),
     ),
     Mutant(
+        # Anchored on the corpus filter above it: the same clearance predicate now
+        # appears twice in this file, because `find_near_duplicate` gained the access
+        # predicates on 2026-08-06. The parity test caught the ambiguity in the same
+        # run that introduced it.
         "M130_LISTING_CLEARANCE_FILTER_REMOVED",
         "apps/api/src/korpus/infrastructure/repository.py",
-        ".where(documents.c.access_tier <= int(identity.clearance))",
-        ".where(documents.c.access_tier <= 3)",
+        "            .where(documents.c.corpus_id.in_(sorted(identity.corpora)))\n"
+        "            .where(documents.c.access_tier <= int(identity.clearance))\n"
+        "            .where(documents.c.classification.in_(allowed_classifications))",
+        "            .where(documents.c.corpus_id.in_(sorted(identity.corpora)))\n"
+        "            .where(documents.c.access_tier <= 3)\n"
+        "            .where(documents.c.classification.in_(allowed_classifications))",
         (
             "apps/api/tests/test_repository_access_refusals.py::"
             "test_listing_hides_a_document_above_the_readers_clearance",
@@ -181,9 +189,9 @@ MUTANTS = (
         # never individually falsified. Split 2026-08-06; M181 is the version path.
         "M16_MALWARE_SCAN_BYPASS",
         "apps/api/src/korpus/application/ingestion.py",
-        "                duplicate=True,\n            )\n"
+        "                    duplicate=True,\n                )\n"
         "        self.malware_scanner.scan(path)",
-        "                duplicate=True,\n            )\n        None",
+        "                    duplicate=True,\n                )\n        None",
         ("apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",),
     ),
     Mutant(
@@ -1670,6 +1678,62 @@ MUTANTS = (
         (
             "apps/api/tests/test_architecture.py::"
             "test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at",
+        ),
+    ),
+    Mutant(
+        # Found 2026-08-06 by an adversarial review. The rescission route checked the
+        # permission and never the entitlement: a reviewer whose document list is empty
+        # could take a restricted order out of force with its id, and the 200 handed
+        # back the full version record.
+        "M184_RESCISSION_WITHOUT_ENTITLEMENT",
+        "apps/api/src/korpus/api/routes.py",
+        "        if not policy.can_access_document(identity, document).allowed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_access_oracles.py::"
+            "test_an_unentitled_reviewer_cannot_take_an_order_out_of_force",
+        ),
+    ),
+    Mutant(
+        # The exact-hash half of the same oracle. The code was careful not to return the
+        # matched record and then revealed the same fact in prose.
+        "M186_EXACT_DUPLICATE_CONFIRMS_UNREADABLE_CONTENT",
+        "apps/api/src/korpus/application/ingestion.py",
+        "                duplicate = None\n            else:",
+        '                raise ValueError("duplicate source content already exists")\n'
+        "            else:",
+        (
+            "apps/api/tests/test_access_oracles.py::"
+            "test_the_exact_duplicate_check_does_not_confirm_unreadable_content",
+        ),
+    ),
+    Mutant(
+        # The near-duplicate probe returned a matched version id and a graded similarity
+        # for material the caller cannot list. A yes/no oracle is a disclosure; a graded
+        # one is a reconstruction method.
+        "M185_NEAR_DUPLICATE_PROBE_IGNORES_COMPARTMENTS",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "            .join(documents, versions.c.document_id == documents.c.id)\n"
+        "            .where(documents.c.corpus_id.in_(sorted(identity.corpora)))\n"
+        "            .where(documents.c.access_tier <= int(identity.clearance))",
+        "            .join(documents, versions.c.document_id == documents.c.id)",
+        (
+            "apps/api/tests/test_access_oracles.py::"
+            "test_the_near_duplicate_probe_is_not_a_graded_content_oracle",
+        ),
+    ),
+    Mutant(
+        # Found 2026-08-06 by an adversarial review of the evidence path. The cache key
+        # carried subject, clearance, roles and corpora; compartments decide which spans
+        # retrieval returns, and entitlements are resolved per request — so a withdrawn
+        # compartment kept granting evidence for the length of the TTL.
+        "M183_CACHE_KEY_IGNORES_COMPARTMENTS",
+        "apps/api/src/korpus/application/cache.py",
+        '                ",".join(sorted(identity.compartments)),',
+        "",
+        (
+            "apps/api/tests/test_query_cache.py::"
+            "test_two_compartment_sets_do_not_share_a_cached_result",
         ),
     ),
     Mutant(

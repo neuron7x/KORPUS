@@ -612,6 +612,30 @@ def rescind_version(
     """Take an approved version out of force from a date, without rewriting review state."""
     try:
         policy.require(identity, "document:approve")
+        # Holding `document:approve` is not the same as being entitled to this document.
+        # Until 2026-08-06 this route checked only the permission, and
+        # `SqlRepository.rescind_version` selects by version id alone — no corpus, no
+        # clearance, no classification, no compartment. A reviewer whose
+        # `GET /v1/documents` returns an empty list could take a restricted order out of
+        # force with its id, and the 200 handed back the full version record: source
+        # hash, source uri, object key, approver, dates. Both halves matter — the
+        # integrity attack and the disclosure — and on PostgreSQL row-level security
+        # hid the row while on SQLite nothing did, so the control existed in one dialect.
+        #
+        # This is the same defect, in the same shape, that `IngestionService.transition`
+        # already carries a comment about. The pattern is: fetch the document, ask the
+        # policy, then act.
+        version = repository.get_version(identity, version_id)
+        if version is None:
+            raise LookupError("version not found")
+        document = repository.get_document(identity, version.document_id)
+        if document is None:
+            raise LookupError("version not found")
+        if not policy.can_access_document(identity, document).allowed:
+            # "version not found", not "forbidden": distinguishing them tells a caller
+            # that material they may not see exists, which is the disclosure the tier is
+            # for. `read_span` makes the same choice deliberately.
+            raise LookupError("version not found")
         return repository.rescind_version(
             identity,
             version_id,

@@ -201,6 +201,23 @@ if (!/API_PREFIX\.length - 1/.test(serve)) {
 if (!/development proxy: no rate limit, no CSP, no TLS/.test(serve)) {
   throw new Error("the dev server no longer states that it is not the production edge");
 }
+// The proxy forwards whatever the client sent. That is acceptable exactly while the
+// client can only be this machine, so the bind is loopback and stays loopback.
+if (!/const BIND_HOST = "127\.0\.0\.1";/.test(serve) || !/listen\(port, BIND_HOST,/.test(serve)) {
+  throw new Error("the dev server no longer binds loopback only");
+}
+// Hop-by-hop headers are meaningful between two adjacent parties (RFC 9110 §7.6.1).
+// Forwarding `connection` or `upgrade` lets a client influence a connection it is not
+// party to; forwarding `transfer-encoding` alongside node's own framing is how a
+// request gets read twice. nginx strips them, so the stand-in must too.
+for (const header of ["connection", "transfer-encoding", "upgrade", "te", "trailer"]) {
+  if (!new RegExp(`"${header}"`).test(serve)) {
+    throw new Error(`the dev proxy no longer strips the hop-by-hop header ${header}`);
+  }
+}
+if (!/headers: \{ \.\.\.forwardable\(request\.headers\)/.test(serve)) {
+  throw new Error("the dev proxy forwards client headers unfiltered");
+}
 
 console.log("web validation passed");
 
