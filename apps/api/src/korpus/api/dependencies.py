@@ -11,10 +11,12 @@ from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore
+from korpus.application.query_plan import QueryPlanner
 from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
+from korpus.infrastructure.anthropic_planner import AnthropicQueryPlanner
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
@@ -220,4 +222,22 @@ def get_answer_service(
         authority_priors=authority_priors,
     )
     retriever = CachedRetriever(repository, base, cache, configuration_id)
-    return ExtractiveAnswerService(repository, retriever, policy, answer_policy)
+    return ExtractiveAnswerService(
+        repository, retriever, policy, answer_policy, query_planner=_query_planner(settings)
+    )
+
+
+def _query_planner(settings: Settings) -> QueryPlanner | None:
+    """The reformulator, when an operator has switched it on and supplied a key.
+
+    Returning None is the whole of the "off" path: `build_plan` treats a missing planner
+    and a broken one identically, so nothing downstream branches on this.
+    """
+    if not settings.query_planner_enabled or not settings.query_planner_api_key:
+        return None
+    return AnthropicQueryPlanner(
+        settings.query_planner_api_key,
+        model=settings.query_planner_model,
+        base_url=settings.query_planner_base_url,
+        timeout_seconds=settings.query_planner_timeout_seconds,
+    )

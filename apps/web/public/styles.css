@@ -658,3 +658,25 @@ input:focus-visible, textarea:focus-visible { border-color: var(--accent); }
   overflow-y: auto;
 }
 .corpus-group li { font-size: 0.88rem; line-height: 1.6; }
+
+/* --- Стрічка запитів ------------------------------------------------------ */
+/* A shift is a sequence of questions, not one. Each turn keeps its own question above
+   its own verdict so two answers can be compared without retyping either. */
+.turn { border-top: 1px solid var(--line, #2a2c26); padding-top: 1.25rem; margin-top: 1.25rem; }
+.turn:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+.turn-question {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.9rem;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+.turn-mark {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--accent, #b8c34a);
+  transform: translateY(-0.1rem);
+}
+.pending { opacity: 0.75; }

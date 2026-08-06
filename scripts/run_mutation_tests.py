@@ -1810,6 +1810,31 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # The one thing a language model must never do here. Searching only what it
+        # suggested lets a planner steer a reader away from the passage they asked for,
+        # and nothing downstream can see that it happened.
+        "M197_PLANNER_REPLACES_THE_QUESTION",
+        "apps/api/src/korpus/application/query_plan.py",
+        "        return (self.asked, *self.variants)",
+        "        return self.variants or (self.asked,)",
+        (
+            "apps/api/tests/test_query_planner_boundary.py::"
+            "test_the_question_asked_is_always_the_first_search",
+        ),
+    ),
+    Mutant(
+        # Admission is what stops a suggestion from being a sentence. Without it the
+        # audit record carries assertions the system is made to look like it weighed.
+        "M198_PLANNER_SUGGESTION_ADMITTED_UNCHECKED",
+        "apps/api/src/korpus/application/query_plan.py",
+        "        admitted = admissible_variant(candidate, question)",
+        "        admitted = str(candidate)",
+        (
+            "apps/api/tests/test_query_planner_boundary.py::"
+            "test_a_planner_that_returns_prose_contributes_nothing",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

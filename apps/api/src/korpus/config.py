@@ -183,6 +183,19 @@ class Settings(BaseSettings):
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
+    #: A language model may only widen what is searched for. It never writes an answer:
+    #: every claim a reader sees carries `quote_hash` and a page because it is a sentence
+    #: lifted verbatim from an approved version, and generated prose has no hash. Absent
+    #: a key this is off, and the system behaves exactly as it did before one existed.
+    #:
+    #: Off by default for a second reason an operator must decide on, not inherit: every
+    #: question is sent to the provider. On an open corpus that is a decision already
+    #: taken; on a closed one the question itself is intelligence.
+    query_planner_enabled: bool = False
+    query_planner_api_key: str = ""
+    query_planner_model: str = "claude-sonnet-5"
+    query_planner_base_url: str = "https://api.anthropic.com"
+    query_planner_timeout_seconds: float = Field(default=6.0, gt=0, le=30)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
     semantic_retrieval_enabled: bool = False
@@ -343,6 +356,18 @@ class Settings(BaseSettings):
             )
             if not redirect_uri.startswith(loopback_prefixes):
                 raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
+        if self.query_planner_enabled and not self.query_planner_api_key:
+            # Enabled-but-unconfigured is the state that looks like it is working. The
+            # planner would fail on every question and degrade silently to the plain
+            # search, and the only symptom would be answers nobody could explain.
+            raise ValueError("query planner is enabled without an API key")
+        if self.query_planner_enabled and self.environment in {"controlled", "isolated"}:
+            # Not a preference. In these environments the question is intelligence and
+            # this sends every one of them to a third party.
+            raise ValueError(
+                "query planner sends every question to a third party and is refused in "
+                f"a {self.environment} environment"
+            )
         if self.semantic_retrieval_enabled:
             if not self.database_url.startswith("postgresql"):
                 raise ValueError("semantic retrieval requires PostgreSQL/pgvector")

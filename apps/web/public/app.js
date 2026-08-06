@@ -218,18 +218,39 @@ const VERDICT = {
   requires_human_review: ["ПОТРІБНА ЛЮДИНА", "withheld"],
 };
 
-function render(answer) {
-  const [verdict, tone] = VERDICT[answer.status] ?? ["ВІДМОВА", "withheld"];
+// "The corpus holds nothing about this" and "the search did not finish" are the same
+// HTTP status and the same `insufficient_evidence`, and they were rendered under the
+// same three words. A reader takes the heading, not the small print: told ПІДСТАВИ
+// НЕМАЄ about a rule that exists, they stop looking. These reasons get their own
+// verdict, because the system did not establish an absence — it ran out of time or lost
+// a dependency.
+const UNFINISHED = new Set([
+  "retrieval_deadline_exceeded",
+  "retrieval_dependency_unavailable",
+]);
+
+function render(answer, question) {
+  const [verdict, tone] = UNFINISHED.has(answer.decision_reason)
+    ? ["ПОШУК НЕ ЗАВЕРШЕНО", "denied"]
+    : VERDICT[answer.status] ?? ["ВІДМОВА", "withheld"];
   const citations = (answer.citations ?? []).map(citationCard).join("");
   const limitations = (answer.limitations ?? [])
     .map(item => `<li>${escapeHtml(item)}</li>`).join("");
   const withheld = answer.status === "answered"
     ? ""
-    : `<p class="note">Порожня відповідь не означає порожній корпус. Вона означає, що
-       чинного затвердженого джерела, доступного вашому допуску, для цього питання
-       немає.</p>`;
+    : UNFINISHED.has(answer.decision_reason)
+      ? `<p class="note">Це не відповідь про корпус. Пошук не дійшов до кінця, тож про
+         наявність чи відсутність підстави нічого не сказано. Спробуйте ще раз або
+         звузьте питання.</p>`
+      : `<p class="note">Порожня відповідь не означає порожній корпус. Вона означає, що
+         чинного затвердженого джерела, доступного вашому допуску, для цього питання
+         немає.</p>`;
 
-  result.innerHTML = `
+  const block = document.createElement("article");
+  block.className = "turn";
+  block.innerHTML = `
+    <p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
+      escapeHtml(question)}</p>
     <div class="verdict ${tone}">
       <span class="verdict-mark" aria-hidden="true"></span>
       <h2>${escapeHtml(verdict)}</h2>
@@ -246,29 +267,48 @@ function render(answer) {
     <p class="note">Ranking utility не є ймовірністю правильності.</p>
     ${citations}
     ${limitations ? `<h3>Межі цієї відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
+  // Appended, not replaced. A shift is a sequence of questions — "а якщо вночі?", "а для
+  // взводу?" — and an interface that erases the previous answer to show the next makes
+  // the reader retype what they already asked to compare two sources.
+  result.append(block);
   result.classList.remove("hidden", "error");
-  result.scrollIntoView({block: "nearest", behavior: "smooth"});
+  block.scrollIntoView({block: "nearest", behavior: "smooth"});
 }
 
 async function ask() {
+  const question = query.value.trim();
   submit.disabled = true;
   submit.textContent = "перевірка…";
   result.classList.remove("hidden", "error");
-  result.innerHTML = `<p class="note">Перевіряю корпус…</p>`;
+  const pending = document.createElement("p");
+  pending.className = "note pending";
+  pending.textContent = "Перевіряю корпус…";
+  result.append(pending);
   try {
-    render(await call("/v1/answers", {
+    const answer = await call("/v1/answers", {
       method: "POST",
-      body: {text: query.value, declaration},
-    }));
+      body: {text: question, declaration},
+    });
+    pending.remove();
+    render(answer, question);
+    // Cleared only on success: a question that failed is still in the box, so the
+    // reader retries rather than retypes.
+    query.value = "";
   } catch (error) {
+    pending.remove();
     // The API answers a withheld question with a reason. Collapsing it to a status code
     // discards the only part the reader can act on.
-    result.innerHTML =
+    const block = document.createElement("article");
+    block.className = "turn";
+    block.innerHTML =
+      `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
+        escapeHtml(question)}</p>` +
       `<div class="verdict denied"><span class="verdict-mark" aria-hidden="true"></span>` +
       `<h2>${escapeHtml(error instanceof ApiRefusal ? `ВІДМОВА ${error.status}` : "ПОМИЛКА")}</h2></div>` +
       `<p class="answer-text">${escapeHtml(
         error instanceof ApiRefusal ? error.reason : "Невідома помилка")}</p>`;
-    result.classList.add("error");
+    result.append(block);
+    block.scrollIntoView({block: "nearest", behavior: "smooth"});
   } finally {
     submit.disabled = false;
     submit.textContent = "Знайти доказ";

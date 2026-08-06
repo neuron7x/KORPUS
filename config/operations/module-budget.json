@@ -12,7 +12,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 223,
+      "lines": 258,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
@@ -28,7 +28,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 700,
+      "lines": 760,
       "max_complexity": 19,
       "reason": "the answer pipeline; grew by the undated-source limitation, which is a claim the answer has to carry"
     },
@@ -118,6 +118,11 @@
       "lines": 187,
       "max_complexity": 9
     },
+    "apps/api/src/korpus/application/query_plan.py": {
+      "lines": 212,
+      "max_complexity": 12,
+      "reason": "the only authority a language model has here: better questions, never answer text"
+    },
     "apps/api/src/korpus/application/recovery.py": {
       "lines": 154,
       "max_complexity": 15
@@ -172,8 +177,8 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 487,
-      "max_complexity": 59
+      "lines": 532,
+      "max_complexity": 65
     },
     "apps/api/src/korpus/controlled_requirements.py": {
       "lines": 249,
@@ -190,6 +195,11 @@
     "apps/api/src/korpus/infrastructure/__init__.py": {
       "lines": 0,
       "max_complexity": 0
+    },
+    "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
+      "lines": 132,
+      "max_complexity": 12,
+      "reason": "the Messages API adapter behind QueryPlanner; its output is admitted, never trusted"
     },
     "apps/api/src/korpus/infrastructure/audit_anchor.py": {
       "lines": 229,

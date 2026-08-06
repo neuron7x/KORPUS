@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from korpus.application.evidence import (
@@ -15,6 +16,7 @@ from korpus.application.evidence import (
 )
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import Repository, Retriever
+from korpus.application.query_plan import QueryPlan, QueryPlanner, build_plan
 from korpus.application.retrieval import (
     AUTHORITY_PRIOR,
     RetrievalDeadlineExceeded,
@@ -111,11 +113,15 @@ class ExtractiveAnswerService:
         retriever: Retriever,
         policy_engine: PolicyEngine,
         answer_policy: AnswerPolicy,
+        query_planner: QueryPlanner | None = None,
     ) -> None:
         self.repository = repository
         self.retriever = retriever
         self.policy_engine = policy_engine
         self.answer_policy = answer_policy
+        #: Optional by construction. Absent, this service behaves exactly as it did
+        #: before one existed — which is what every failure of a present one degrades to.
+        self.query_planner = query_planner
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
@@ -132,15 +138,20 @@ class ExtractiveAnswerService:
             return answer
 
         risk = classify_query_risk(query.text)
+        # The question is searched first and always. A reformulation widens what was
+        # looked for; it cannot replace what was asked, because a planner that quietly
+        # substituted its own phrasing could steer a reader away from the passage they
+        # came for and nothing downstream would see it happen.
+        plan = build_plan(query.text, self.query_planner)
         try:
-            retrieved = self.retriever.search(identity, query.text, corpora, query.as_of)
+            retrieved = self._search_plan(identity, plan, corpora, query.as_of)
         except RetrievalDeadlineExceeded:
             answer = self._abstain(
                 release_id,
                 "retrieval_deadline_exceeded",
                 "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
             )
-            self._audit(identity, query, answer, [], [], risk)
+            self._audit(identity, query, answer, [], [], risk, plan=plan)
             return answer
         except RetrievalUnavailable:
             answer = self._abstain(
@@ -149,13 +160,15 @@ class ExtractiveAnswerService:
                 "Обов’язковий пошуковий контур недоступний;"
                 " відповідь зупинено без слабшого fallback.",
             )
-            self._audit(identity, query, answer, [], [], risk)
+            self._audit(identity, query, answer, [], [], risk, plan=plan)
             return answer
 
         breaches = self._scope_breaches(identity, corpora, retrieved)
         if breaches:
             answer = self._breach(release_id, breaches)
-            self._audit(identity, query, answer, retrieved, [], risk, breaches=breaches)
+            self._audit(
+                identity, query, answer, retrieved, [], risk, breaches=breaches, plan=plan
+            )
             return answer
 
         eligible = self.answer_policy.eligible(retrieved, risk)
@@ -166,7 +179,7 @@ class ExtractiveAnswerService:
                 "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
                 max((item.score for item in retrieved), default=0.0),
             )
-            self._audit(identity, query, answer, retrieved, eligible, risk)
+            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
             return answer
 
         thresholds = risk_adjusted_thresholds(
@@ -182,7 +195,7 @@ class ExtractiveAnswerService:
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
             answer = self._unsourced_answer(release_id, unsourced)
-            self._audit(identity, query, answer, retrieved, eligible, risk)
+            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
             return answer
 
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
@@ -193,7 +206,9 @@ class ExtractiveAnswerService:
         evidence_coverage = support.coverage
         if claims and not support.aligned:
             answer = self._misaligned(release_id, support)
-            self._audit(identity, query, answer, retrieved, eligible, risk, support=support)
+            self._audit(
+                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan
+            )
             return answer
         if not claims or query_coverage < thresholds.minimum_query_coverage:
             answer = self._abstain(
@@ -241,8 +256,35 @@ class ExtractiveAnswerService:
                     ],
                     corpus_release=release_id,
                 )
-        self._audit(identity, query, answer, retrieved, eligible, risk)
+        self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
         return answer
+
+    def _search_plan(
+        self,
+        identity: Identity,
+        plan: QueryPlan,
+        corpora: frozenset[str],
+        as_of: date,
+    ) -> list[RetrievedEvidence]:
+        """Every search in the plan, fused by span, ranked as one set.
+
+        Scores from different queries are comparable because they are produced by the
+        same scorer against the same corpus; the highest is kept when a span is found
+        twice, which is the score of the phrasing that matched it best. What is not
+        done is boosting a span for appearing under several phrasings: that would let
+        the number of reformulations a model happened to emit decide relevance.
+        """
+        best: dict[str, RetrievedEvidence] = {}
+        for text in plan.searches:
+            for item in self.retriever.search(identity, text, corpora, as_of):
+                key = str(item.span.id)
+                previous = best.get(key)
+                if previous is None or item.score > previous.score:
+                    best[key] = item
+        return sorted(
+            best.values(),
+            key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal),
+        )
 
     def _extract(
         self,
@@ -591,6 +633,7 @@ class ExtractiveAnswerService:
         *,
         breaches: list[ScopeBreach] | None = None,
         support: SupportVerdict | None = None,
+        plan: QueryPlan | None = None,
     ) -> None:
         if support is not None and not support.aligned:
             self.repository.append_audit(
@@ -655,6 +698,11 @@ class ExtractiveAnswerService:
                     if query.declaration is not None
                     else None
                 ),
+                # What was actually searched for. An answer assembled partly from a
+                # machine-suggested phrasing is a different event from one built on the
+                # words a soldier typed, and a record that cannot tell them apart cannot
+                # answer "why did it show me this" six months from now.
+                "query_plan": plan.as_audit_record() if plan is not None else None,
                 "retrieved": len(retrieved),
                 "eligible": len(eligible),
                 "citation_count": len(answer.citations),

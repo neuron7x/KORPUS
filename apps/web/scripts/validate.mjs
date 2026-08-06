@@ -101,7 +101,11 @@ if (!/Система їх не перевіряє/.test(html)) {
 }
 // The declaration must reach the audit chain, not sit in the browser: an investigator
 // asking "who asked this" needs both the token's subject and the name at the keyboard.
-if (!/body: \{text: query\.value, declaration\}/.test(app)) {
+// Matched on the invariant, not on the expression that satisfied it: the first version
+// pinned `query.value` verbatim and failed the moment the question was read into a
+// variable first — a rename it had no business having an opinion about, while a change
+// that actually dropped `declaration` would have been the same one line.
+if (!/body: \{\s*text:[^},]+,\s*declaration\s*\}/.test(app)) {
   throw new Error("the declaration no longer travels with the query");
 }
 // Error summary above the form, focusable, linking to the field (WCAG 2.2 §3.3.1,

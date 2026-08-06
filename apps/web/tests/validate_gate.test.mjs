@@ -268,9 +268,22 @@ test("styling a declared attribute like a verified one is caught", async () => {
 test("dropping the declaration from the query is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/app.js", source =>
-      source.replace("body: {text: query.value, declaration}", "body: {text: query.value}")));
+      source.replace("body: {text: question, declaration}", "body: {text: question}")));
   assert.notEqual(status, 0);
   assert.match(output, /no longer travels with the query/);
+});
+
+test("renaming the question variable is not caught", async () => {
+  // The dual of the test above. The gate is about `declaration` reaching the audit
+  // chain; it had an opinion about what the question was called, so reading the value
+  // into a variable before posting it failed a check that guards something else.
+  const {status} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace("body: {text: question, declaration}", "body: {text: asked, declaration}")
+            .replace("const question = query.value.trim();", "const asked = query.value.trim();")
+            .replaceAll("render(answer, question);", "render(answer, asked);")
+            .replaceAll("escapeHtml(question)}", "escapeHtml(asked)}")));
+  assert.equal(status, 0);
 });
 
 test("an error summary that does not take focus is caught", async () => {
