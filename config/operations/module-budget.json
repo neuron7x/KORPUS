@@ -183,7 +183,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 501,
+      "lines": 520,
       "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {

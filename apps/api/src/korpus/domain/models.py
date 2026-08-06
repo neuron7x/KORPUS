@@ -360,8 +360,12 @@ class Citation(BaseModel):
     #: the quote to a passage a reader can fetch (`GET /v1/spans/{id}`) and from there
     #: to the document `source_hash` covers.
     span_hash: str = Field(default="", pattern=r"^(?:|[a-f0-9]{64})$")
-    source_uri: str | None = None
-    source_hash: str
+    source_uri: str | None = Field(default=None, max_length=2000)
+    #: The same shape as `DocumentVersionRecord.source_hash`, which has carried
+    #: `^[a-f0-9]{64}$` since the beginning. Unconstrained here until 2026-08-06 — on
+    #: the field a reader uses to check that the quote came from the document the
+    #: system says it did, which is the one place the shape has to be certain.
+    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
 
     @model_validator(mode="after")
     def validate_quote_offsets(self) -> Citation:
@@ -383,9 +387,24 @@ class Claim(BaseModel):
 
 
 class Answer(BaseModel):
+    """The verdict, and everything it rests on, together.
+
+    Frozen since 2026-08-06. The claim this whole system makes is that the text is
+    bound to the citations beside it — that binding is decided once, by the policy, and
+    a mutable answer lets anything downstream change `text` after `citations` were
+    computed. Nothing did; the point is that nothing *can*, and that the model says so
+    rather than a convention nobody can check.
+
+    `text` and `corpus_release` carry length bounds for the same reason every other
+    outward field does: this crosses the API boundary, and an unbounded string is a
+    response size nobody chose.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
     id: UUID = Field(default_factory=uuid4)
     status: AnswerStatus
-    text: str
+    text: str = Field(max_length=20_000)
     claims: list[Claim] = Field(default_factory=list)
     citations: list[Citation] = Field(default_factory=list)
     retrieval_score: float = Field(ge=0, le=1)
@@ -393,9 +412,9 @@ class Answer(BaseModel):
     evidence_coverage: float = Field(ge=0, le=1)
     query_coverage: float = Field(default=0.0, ge=0, le=1)
     decision_reason: str = Field(min_length=1, max_length=500)
-    calibration_id: str
-    limitations: list[str] = Field(default_factory=list)
-    corpus_release: str
+    calibration_id: str = Field(min_length=1, max_length=200)
+    limitations: list[str] = Field(default_factory=list, max_length=64)
+    corpus_release: str = Field(min_length=1, max_length=200)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 

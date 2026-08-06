@@ -1633,6 +1633,38 @@ MUTANTS = (
     # OPS-004. Every one of these turns a finding into a silence, which is the only
     # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
     Mutant(
+        # The binding between an answer's text and its citations is decided once. A
+        # mutable Answer lets anything downstream change the sentence while keeping the
+        # citations that justified a different one.
+        "M178_ANSWER_EDITABLE_AFTER_THE_POLICY_DECIDED_IT",
+        "apps/api/src/korpus/domain/models.py",
+        "    model_config = ConfigDict(frozen=True)\n\n"
+        "    id: UUID = Field(default_factory=uuid4)\n    status: AnswerStatus",
+        "    id: UUID = Field(default_factory=uuid4)\n    status: AnswerStatus",
+        (
+            "apps/api/tests/test_architecture.py::"
+            "test_the_answer_cannot_be_edited_after_the_policy_decided_it",
+        ),
+    ),
+    Mutant(
+        # `source_hash: str = Field(pattern=...)` appears three times in this file —
+        # DocumentVersionRecord, Citation and IngestionJobRecord — so the bare line
+        # mutates all three, and the mutant is then answered by whichever test happens
+        # to cover any of them. Anchored on the line above it, which is Citation's
+        # alone. Two occurrences under one mutant is not two covered call sites: that
+        # is exactly how M05 passed for months.
+        "M179_CITATION_SOURCE_HASH_UNCONSTRAINED",
+        "apps/api/src/korpus/domain/models.py",
+        "#: system says it did, which is the one place the shape has to be certain.\n"
+        '    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")',
+        "#: system says it did, which is the one place the shape has to be certain.\n"
+        "    source_hash: str",
+        (
+            "apps/api/tests/test_architecture.py::"
+            "test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at",
+        ),
+    ),
+    Mutant(
         # A second worker writing a result for a job it does not hold marks a version as
         # ingested from bytes nobody parsed. The claim was exclusive and the write was
         # not tested.

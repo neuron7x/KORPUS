@@ -23,6 +23,9 @@ from __future__ import annotations
 import ast
 from collections import defaultdict
 from pathlib import Path
+from uuid import uuid4
+
+from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "apps/api/src/korpus"
@@ -271,3 +274,95 @@ def test_no_public_function_takes_a_positional_boolean_flag() -> None:
         "these boolean parameters can be passed positionally; make them keyword-only "
         f"so a transposition is a syntax error rather than a wrong record: {offenders}"
     )
+
+
+def test_the_answer_cannot_be_edited_after_the_policy_decided_it() -> None:
+    """The binding between the text and its citations is the system's whole claim.
+
+    It is decided once, by the answer policy. A mutable `Answer` lets anything
+    downstream — a route, a middleware, a serializer — change `text` after `citations`
+    were computed, and the response would still carry the citations that justified a
+    different sentence. Nothing did that; the point is that nothing can, and that the
+    model says so rather than a convention nobody can check.
+    """
+    import pytest
+    from korpus.domain.models import Answer, AnswerStatus
+
+    answer = Answer(
+        status=AnswerStatus.INSUFFICIENT_EVIDENCE,
+        text="Недостатньо підстав.",
+        retrieval_score=0.0,
+        evidence_coverage=0.0,
+        decision_reason="retrieval_gate_failed",
+        calibration_id="test",
+        corpus_release="test",
+    )
+
+    with pytest.raises(ValidationError):
+        answer.text = "Виїзд дозволено."
+
+
+def test_every_model_that_leaves_the_process_is_frozen() -> None:
+    """Inputs may be mutable — they are consumed immediately and never travel.
+
+    What must not be mutable is anything the API returns or the audit records: an
+    output that can be edited after it was decided is an output whose provenance means
+    nothing.
+    """
+    from korpus.domain import models
+
+    outputs = [
+        "Answer",
+        "Citation",
+        "Claim",
+        "DocumentRecord",
+        "DocumentVersionRecord",
+        "EvidenceSpanRecord",
+        "Identity",
+        "IngestionJobRecord",
+    ]
+    mutable = [
+        name
+        for name in outputs
+        if not getattr(models, name).model_config.get("frozen")
+    ]
+
+    assert not mutable, f"these leave the process and can still be edited: {mutable}"
+
+
+def test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at() -> None:
+    """`source_hash` is what a reader uses to check the quote came from that document.
+
+    `DocumentVersionRecord.source_hash` has carried `^[a-f0-9]{64}$` since the
+    beginning; `Citation.source_hash` was an unconstrained string until 2026-08-06 — on
+    the one field where the shape has to be certain.
+    """
+    import hashlib
+
+    import pytest
+    from korpus.domain.models import Citation
+
+    quote = "Кожен запис журналу має містити дату."
+    fields = {
+        "document_id": uuid4(),
+        "version_id": uuid4(),
+        "span_id": uuid4(),
+        "title": "t",
+        "revision": "1",
+        "quote": quote,
+        "quote_start": 0,
+        "quote_end": len(quote),
+        # The real hash. The first version of this test passed a fabricated one, so the
+        # model refused on `quote_hash does not match quote` and the assertion held with
+        # the source_hash pattern removed — mutant M179 survived. A refusal test that
+        # can be satisfied by a *different* refusal asserts nothing about the one it
+        # names.
+        "quote_hash": hashlib.sha256(quote.encode("utf-8")).hexdigest(),
+    }
+
+    # The dual first: with a real digest the citation constructs, so the refusal below
+    # is about the digest and nothing else.
+    assert Citation(**fields, source_hash="b" * 64).source_hash == "b" * 64
+
+    with pytest.raises(ValidationError, match="source_hash"):
+        Citation(**fields, source_hash="not-a-digest")
