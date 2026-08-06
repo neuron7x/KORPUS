@@ -140,3 +140,92 @@ def test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_sear
     # Distinct from the outage reason: an operator reading the audit has to be able to
     # tell "the search never ran" from "the search ran out of time".
     assert answer.decision_reason != "retrieval_dependency_unavailable"
+
+
+def test_the_operator_declaration_enters_the_audit_chain_marked_unverified(
+    client, admin_identity
+) -> None:
+    """Both halves of "who asked this", and the difference between them preserved.
+
+    Access is decided by the OIDC subject and the entitlement profile. The name and
+    specialty are typed on a keyboard — NIST SP 800-63-3 calls that an unproofed
+    self-asserted attribute — so they travel as a separate object and land in the audit
+    under `declared` with `verified: false`. An investigator six months later has to be
+    able to tell an assertion from a proof, and the field name is where that survives.
+    """
+    import json
+
+    from korpus.infrastructure.repository import audits
+    from sqlalchemy import select
+
+    response = client.post(
+        "/v1/answers",
+        json={
+            "text": "Що має містити запис журналу?",
+            "declaration": {
+                "given_name": "Ярослав",
+                "family_name": "Василенко",
+                "specialty": "Інженерне забезпечення",
+            },
+        },
+    )
+    assert response.status_code == 200
+
+    repository = client.app.state.repository
+    with repository.engine.begin() as connection:
+        rows = connection.execute(
+            select(audits.c.payload_json)
+            .where(audits.c.action == "answer.completed")
+            .order_by(audits.c.sequence.desc())
+            .limit(1)
+        ).scalars().all()
+    declared = json.loads(rows[0])["declared"]
+
+    assert declared["family_name"] == "Василенко"
+    assert declared["given_name"] == "Ярослав"
+    assert declared["specialty"] == "Інженерне забезпечення"
+    assert declared["verified"] is False
+
+
+def test_a_query_without_a_declaration_records_its_absence(client, admin_identity) -> None:
+    """The eval harness, the CLI and the scale probe ask with no human at a keyboard.
+
+    Forcing them to invent a name would put fabricated declarations into the audit
+    chain, which is worse than none. `declared: null` says plainly that nobody claimed
+    to be anyone.
+    """
+    import json
+
+    from korpus.infrastructure.repository import audits
+    from sqlalchemy import select
+
+    response = client.post("/v1/answers", json={"text": "Що має містити запис журналу?"})
+    assert response.status_code == 200
+
+    repository = client.app.state.repository
+    with repository.engine.begin() as connection:
+        rows = connection.execute(
+            select(audits.c.payload_json)
+            .where(audits.c.action == "answer.completed")
+            .order_by(audits.c.sequence.desc())
+            .limit(1)
+        ).scalars().all()
+
+    assert json.loads(rows[0])["declared"] is None
+
+
+def test_a_declaration_with_control_characters_is_refused(client, admin_identity) -> None:
+    """It goes into an append-only chain; a name carrying a newline forges a line there."""
+    response = client.post(
+        "/v1/answers",
+        json={
+            "text": "Що має містити запис журналу?",
+            "declaration": {
+                "given_name": "Ярослав\nsubject=admin",
+                "family_name": "Василенко",
+                "specialty": "Інженерне забезпечення",
+            },
+        },
+    )
+
+    assert response.status_code == 422

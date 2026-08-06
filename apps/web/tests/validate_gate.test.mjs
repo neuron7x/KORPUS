@@ -247,3 +247,43 @@ test("a dev proxy that stops binding loopback is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /no longer binds loopback only/);
 });
+
+test("merging the verified and declared identities is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/index.html", source =>
+      source.replace('class="chip declared"', 'class="chip verified"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer distinguishes verified from declared/);
+});
+
+test("styling a declared attribute like a verified one is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/styles.css", source =>
+      source.replace(".chip.declared { color: var(--muted); border-style: dashed; }",
+                     ".chip.declared { color: var(--accent); }")));
+  assert.notEqual(status, 0);
+  assert.match(output, /styled like a verified one/);
+});
+
+test("dropping the declaration from the query is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace("body: {text: query.value, declaration}", "body: {text: query.value}")));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer travels with the query/);
+});
+
+test("an error summary that does not take focus is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source => source.replace("errors.focus();", "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /does not move focus/);
+});
+
+test("a hidden section that a display rule can override is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/styles.css", source =>
+      source.replace("[hidden] { display: none !important; }", "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /can be overridden by a display rule/);
+});

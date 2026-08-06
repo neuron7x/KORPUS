@@ -623,6 +623,21 @@ class ExtractiveAnswerService:
                 "decision_reason": answer.decision_reason,
                 "query_hash": hashlib.sha256(query.text.encode("utf-8")).hexdigest(),
                 "requested_corpora": query.corpus_ids,
+                # Both halves of "who asked this": the subject the token carried is the
+                # event's actor, and this is the name the person at the keyboard gave.
+                # Recorded under `declared` because it is unverified — an investigator
+                # must be able to tell an assertion from a proof, and the field name is
+                # where that distinction survives being read six months later.
+                "declared": (
+                    {
+                        "given_name": query.declaration.given_name,
+                        "family_name": query.declaration.family_name,
+                        "specialty": query.declaration.specialty,
+                        "verified": False,
+                    }
+                    if query.declaration is not None
+                    else None
+                ),
                 "retrieved": len(retrieved),
                 "eligible": len(eligible),
                 "citation_count": len(answer.citations),

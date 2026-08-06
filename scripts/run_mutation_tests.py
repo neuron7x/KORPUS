@@ -1681,6 +1681,30 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # The declaration is unverified by construction. Recording it without saying so
+        # would put a self-asserted name into an append-only chain looking like a
+        # proofed one — the audit's own record asserting an identity-proofing level
+        # nobody performed.
+        "M187_DECLARATION_RECORDED_AS_VERIFIED",
+        "apps/api/src/korpus/application/answer_query.py",
+        '                        "verified": False,',
+        '                        "verified": True,',
+        (
+            "apps/api/tests/test_answers.py::"
+            "test_the_operator_declaration_enters_the_audit_chain_marked_unverified",
+        ),
+    ),
+    Mutant(
+        "M188_DECLARATION_ACCEPTS_CONTROL_CHARACTERS",
+        "apps/api/src/korpus/domain/models.py",
+        '            raise ValueError("declared field contains control characters")',
+        "            pass",
+        (
+            "apps/api/tests/test_answers.py::"
+            "test_a_declaration_with_control_characters_is_refused",
+        ),
+    ),
+    Mutant(
         # Found 2026-08-06 by an adversarial review. The rescission route checked the
         # permission and never the entitlement: a reviewer whose document list is empty
         # could take a restricted order out of force with its id, and the 200 handed

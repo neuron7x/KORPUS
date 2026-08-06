@@ -3,66 +3,137 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#08090b">
+  <meta name="theme-color" content="#0b0c0a">
   <meta name="description" content="Evidence-bound controlled-corpus platform">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/styles.css">
-  <title>КОРПУС / Evidence Runtime</title>
+  <title>КОРПУС / Доказовий довідник</title>
 </head>
 <body>
-  <!-- A keyboard user reaching this page lands on the header every time; without a way
-       past it the first action costs several tab stops on every navigation. -->
   <a class="skip-link" href="#query">Перейти до запиту</a>
   <main id="main">
     <header>
-      <div class="brand"><strong>КОРПУС</strong><span>evidence runtime</span></div>
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <strong>КОРПУС</strong>
+        <span class="brand-sub">доказовий довідник</span>
+      </div>
       <div class="header-actions">
-        <a href="/console.html">Консолі оператора</a>
+        <a href="/console.html">Консолі</a>
         <span class="badge">FAIL-CLOSED</span>
       </div>
     </header>
 
-    <section class="hero">
-      <p class="eyebrow">ДЖЕРЕЛО → ДОКАЗ → ВІДПОВІДЬ</p>
-      <h1>Перевірити,<br>а не повірити.</h1>
+    <!-- Error summary above the form, focusable, linking to the field. USWDS/GOV.UK
+         pattern: a message only beside the input is missed by a screen reader that has
+         already moved past it, and by anyone whose viewport is below the fold. -->
+    <div id="entry-errors" class="errors" role="alert" tabindex="-1" hidden></div>
+
+    <section id="entry" class="entry" aria-labelledby="entry-heading">
+      <h1 id="entry-heading">Допуск</h1>
       <p class="lead">
-        Система відповідає лише з чинних затверджених фрагментів, доступних вашій
-        ідентичності. Якщо підстави немає — вона це каже, а не здогадується.
+        Система відповідає лише з чинних затверджених джерел, доступних вашому допуску.
+        Немає підстави — буде відмова, а не здогад.
       </p>
 
-      <section class="authbar" aria-label="Автентифікація">
+      <div class="ledger">
+        <div class="ledger-row">
+          <span class="ledger-key">Перевірено системою</span>
+          <span id="identity-state" class="ledger-value" role="status" aria-live="polite">
+            не автентифіковано
+          </span>
+        </div>
         <div class="auth-actions">
           <button id="login" type="button">Увійти через OIDC</button>
           <button id="logout" type="button" class="secondary" hidden>Вийти</button>
         </div>
-        <p id="identity-state" class="identity" role="status" aria-live="polite">Не автентифіковано.</p>
         <details>
-          <summary>Developer bearer fallback</summary>
+          <summary>Службовий токен</summary>
           <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
-          <div class="ask-field">
-            <input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token">
+          <div class="inline">
+            <input id="bearer-token" type="password" autocomplete="off" spellcheck="false"
+                   placeholder="JWT / OIDC access token">
             <button id="check-auth" type="button" class="secondary">Перевірити</button>
           </div>
         </details>
-      </section>
+      </div>
 
-      <form id="query-form" class="ask">
-        <label for="query">Запит до контрольованого корпусу</label>
-        <div class="ask-field">
-          <textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea>
-          <button id="submit" type="submit">Знайти доказ</button>
+      <form id="declaration-form" novalidate>
+        <h2>Заявлені дані</h2>
+        <p class="note">
+          Система їх не перевіряє. Допуск дає токен і профіль повноважень; ці три поля —
+          ваша заява, і вона входить до журналу аудиту саме як заява.
+        </p>
+        <div class="fields">
+          <div>
+            <label for="family-name">Прізвище</label>
+            <input id="family-name" name="family-name" type="text" autocomplete="family-name"
+                   autocapitalize="words" spellcheck="false" required
+                   aria-describedby="family-name-hint">
+            <p id="family-name-hint" class="hint">Як у посвідченні.</p>
+          </div>
+          <div>
+            <label for="given-name">Ім’я</label>
+            <input id="given-name" name="given-name" type="text" autocomplete="given-name"
+                   autocapitalize="words" spellcheck="false" required>
+          </div>
+          <div class="wide">
+            <label for="specialty">Спеціальність</label>
+            <input id="specialty" name="specialty" type="text" autocomplete="organization-title"
+                   spellcheck="false" required list="specialty-suggestions"
+                   aria-describedby="specialty-hint">
+            <datalist id="specialty-suggestions">
+              <option value="Бойове управління"></option>
+              <option value="Інженерне забезпечення"></option>
+              <option value="Медичне забезпечення"></option>
+              <option value="Зв’язок"></option>
+              <option value="Логістика"></option>
+              <option value="Розвідка"></option>
+              <option value="Артилерія"></option>
+              <option value="Юридичне забезпечення"></option>
+            </datalist>
+            <p id="specialty-hint" class="hint">
+              Вільний текст. Перелік — підказка, не обмеження.
+            </p>
+          </div>
         </div>
-        <p class="ask-hint">Ctrl+Enter надсилає. Відповідь завжди несе цитату з місцем у джерелі.</p>
+        <div class="actions">
+          <button id="declaration-submit" type="submit">Підтвердити й перейти до запиту</button>
+        </div>
       </form>
     </section>
 
-    <section id="result" class="panel hidden" role="status" aria-live="polite" aria-label="Результат запиту"></section>
+    <!-- Collapsed to one line after the declaration is made: the operator answered this
+         once and does not need the form occupying the screen for the rest of the shift. -->
+    <section id="standing" class="standing" hidden aria-label="Поточний оператор">
+      <div class="standing-line">
+        <span class="chip verified" id="standing-verified">ДОПУСК</span>
+        <span class="chip declared" id="standing-declared">ЗАЯВЛЕНО</span>
+      </div>
+      <button id="standing-edit" type="button" class="link">Змінити заявлені дані</button>
+    </section>
+
+    <section id="ask-section" class="ask-section" hidden aria-labelledby="ask-heading">
+      <h2 id="ask-heading">Запит</h2>
+      <form id="query-form" novalidate>
+        <label for="query">Питання до контрольованого корпусу</label>
+        <div class="ask-field">
+          <textarea id="query" minlength="3" required
+                    placeholder="Що має містити запис журналу перевірок?"></textarea>
+          <button id="submit" type="submit">Знайти доказ</button>
+        </div>
+        <p class="hint">Ctrl+Enter надсилає. Кожне твердження буде з цитатою і місцем у джерелі.</p>
+      </form>
+    </section>
+
+    <section id="result" class="panel hidden" role="status" aria-live="polite"
+             aria-label="Результат запиту"></section>
 
     <section class="grid" aria-label="Що система гарантує">
-      <article><h2>Authority</h2><p>Чинність, редакція, issuer, supersession — на дату запитання.</p></article>
-      <article><h2>Access</h2><p>Ідентичність і політика перевіряються до пошуку, не після.</p></article>
-      <article><h2>Evidence</h2><p>Кожне твердження прив’язане до незмінного фрагмента.</p></article>
-      <article><h2>Audit</h2><p>Кожна дія входить до хеш-ланцюга і не редагується.</p></article>
+      <article><h3>Чинність</h3><p>Редакція, дата набрання сили, заміщення — на дату питання.</p></article>
+      <article><h3>Допуск</h3><p>Ідентичність і політика перевіряються до пошуку, не після.</p></article>
+      <article><h3>Доказ</h3><p>Кожне твердження прив’язане до незмінного фрагмента.</p></article>
+      <article><h3>Аудит</h3><p>Кожна дія входить до хеш-ланцюга і не редагується.</p></article>
     </section>
   </main>
   <script src="/config.js"></script>

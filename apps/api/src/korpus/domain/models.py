@@ -312,6 +312,38 @@ class RetrievedEvidence(BaseModel):
     rank: int = Field(default=0, ge=0)
 
 
+class OperatorDeclaration(BaseModel):
+    """What the operator says about themselves, kept apart from what was verified.
+
+    Access is decided by the OIDC subject and the entitlement profile. These three
+    fields are typed on a keyboard, so they are an assertion — NIST SP 800-63-3 calls
+    this an unproofed self-asserted attribute, and the distinction is the whole reason
+    they are a separate object rather than more fields on `Identity`.
+
+    They travel with the query and enter the audit chain under `declared`, so an
+    investigator reading "who asked this" gets both halves: the subject the token
+    carried, and the name the person at the keyboard gave. Neither is allowed to stand
+    in for the other, and nothing here widens access — a specialty may narrow the
+    corpora a query searches, never broaden them.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    given_name: str = Field(min_length=1, max_length=100)
+    family_name: str = Field(min_length=1, max_length=100)
+    #: Free text on purpose. A closed list of specialties is a taxonomy nobody in this
+    #: repository is entitled to define, and a wrong one would be worse than a typed one.
+    specialty: str = Field(min_length=2, max_length=120)
+
+    @field_validator("given_name", "family_name", "specialty")
+    @classmethod
+    def normalize_declared_text(cls, value: str) -> str:
+        value = unicodedata.normalize("NFC", value.strip())
+        if any(ord(char) < 32 for char in value):
+            raise ValueError("declared field contains control characters")
+        return value
+
+
 class QueryRequest(BaseModel):
     text: str = Field(min_length=3, max_length=4000)
     corpus_ids: list[str] = Field(default_factory=list, max_length=20)
@@ -321,6 +353,11 @@ class QueryRequest(BaseModel):
     # of the corpus, not of where the process runs.
     as_of: date = Field(default_factory=lambda: datetime.now(UTC).date())
     locale: str = Field(default="uk-UA", pattern=r"^[a-z]{2}(?:-[A-Z]{2})?$")
+    #: Optional at this layer, required by the interface. Optional here because every
+    #: caller that predates it — the eval harness, the CLI, the scale probe — asks
+    #: questions with no human at a keyboard, and forcing them to invent a name would
+    #: put fabricated declarations into the audit chain.
+    declaration: OperatorDeclaration | None = None
 
     @field_validator("text")
     @classmethod

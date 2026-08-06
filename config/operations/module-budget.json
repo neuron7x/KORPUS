@@ -28,7 +28,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 660,
+      "lines": 675,
       "max_complexity": 19
     },
     "apps/api/src/korpus/application/assurance.py": {
@@ -183,7 +183,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 520,
+      "lines": 557,
       "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {

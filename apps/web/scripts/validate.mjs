@@ -83,6 +83,47 @@ for (const file of ["public/api.js", "public/app.js", "public/console.js", "publ
   }
 }
 
+// ---------------------------------------------------------------- reader surface
+//
+// The identity the server verified and the identity the operator declared are two
+// different things, and the interface has to keep saying so. Access is decided by the
+// OIDC subject and the entitlement profile; the name and specialty are typed on a
+// keyboard. NIST SP 800-63-3 separates identity proofing from authentication, and a
+// page that prints them as one line has asserted a proofing level nobody performed.
+if (!/class="chip verified"/.test(html) || !/class="chip declared"/.test(html)) {
+  throw new Error("the reader surface no longer distinguishes verified from declared");
+}
+if (!/\.chip\.declared \{[^}]*dashed/.test(await read("public/styles.css"))) {
+  throw new Error("a declared attribute is styled like a verified one");
+}
+if (!/Система їх не перевіряє/.test(html)) {
+  throw new Error("the declaration form no longer says the system does not verify it");
+}
+// The declaration must reach the audit chain, not sit in the browser: an investigator
+// asking "who asked this" needs both the token's subject and the name at the keyboard.
+if (!/body: \{text: query\.value, declaration\}/.test(app)) {
+  throw new Error("the declaration no longer travels with the query");
+}
+// Error summary above the form, focusable, linking to the field (WCAG 2.2 §3.3.1,
+// USWDS pattern). A message only beside the input is missed by a screen reader that has
+// moved past it and by anyone below the fold.
+if (!/id="entry-errors"[^>]*role="alert"[^>]*tabindex="-1"/.test(html)) {
+  throw new Error("no focusable error summary on the reader surface");
+}
+if (!/errors\.focus\(\)/.test(app) || !/href="#\$\{escapeHtml\(field\)\}"/.test(app)) {
+  throw new Error("the error summary does not move focus or link to its fields");
+}
+// `hidden` is an attribute, not a suggestion: `.standing { display: flex }` out-specifies
+// the user-agent rule, and the collapsed sections rendered anyway on first paint.
+if (!/\[hidden\] \{ display: none !important; \}/.test(await read("public/styles.css"))) {
+  throw new Error("hidden sections can be overridden by a display rule");
+}
+// A refusal is the system working. Rendering it as an error trains operators to retry
+// until they get prose.
+if (!/ПІДСТАВИ НЕМАЄ/.test(app)) {
+  throw new Error("the withheld verdict no longer has its own wording");
+}
+
 // RAG-019: retrieval_score is a ranking utility, not a calibrated probability. The UI
 // renders it as a number, so the sentence that says what it is not must travel with it.
 if (!app.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
