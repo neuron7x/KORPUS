@@ -28,9 +28,8 @@ from pathlib import Path
 from typing import Any, NoReturn
 
 import pytest
-from pypdf.errors import PdfReadError
-
 from korpus.infrastructure import extraction
+from pypdf.errors import PdfReadError
 
 PDF_BYTES = b"%PDF-1.4\n%%EOF\n"
 

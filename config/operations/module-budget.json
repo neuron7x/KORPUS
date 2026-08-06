@@ -200,7 +200,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 660,
+      "lines": 675,
       "max_complexity": 25
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
@@ -225,7 +225,7 @@
       "reason": "COD-001: 1855 -> the recorded ceiling across four extractions; the transactional core stays"
     },
     "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
-      "lines": 269,
+      "lines": 291,
       "max_complexity": 13,
       "reason": "COD-001: the retrieval projection and its predicates, apart from executing them"
     },

@@ -202,8 +202,25 @@ def candidate_span_query(
             for term, prefix in term_specs
         )
         parameters["query"] = match_query
+        # The supersession test used to be a correlated NOT EXISTS. `ORDER BY bm25`
+        # forces every match through it, so on a 116 000-span corpus a five-token
+        # question evaluated it 23 626 times — 2.5 s against a 1200 ms budget. The
+        # answer that reached the reader was "insufficient evidence": the system said
+        # the corpus held nothing when it had not finished looking.
+        #
+        # Gathered once instead, and anti-joined. Identical rows on every query probed
+        # (2026-08-06), 15.8 s of retrieval down to 0.7 s across eight questions.
         statement = sql_text(
             f"""
+            WITH superseded AS (
+              SELECT DISTINCT sv.supersedes_version_id AS id
+              FROM document_versions sv
+              WHERE sv.supersedes_version_id IS NOT NULL
+                AND sv.review_state = 'approved'
+                AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
+                AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
+                AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
+            )
             SELECT s.id AS span_id
             FROM evidence_fts f
             JOIN evidence_spans s ON s.id = f.span_id
@@ -217,14 +234,7 @@ def candidate_span_query(
               AND COALESCE(v.effective_from, v.publication_date) <= :as_of
               AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
               AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-              AND NOT EXISTS (
-                SELECT 1 FROM document_versions sv
-                WHERE sv.supersedes_version_id = v.id
-                  AND sv.review_state = 'approved'
-                  AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
-                  AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
-                  AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
-              )
+              AND v.id NOT IN (SELECT id FROM superseded)
             ORDER BY bm25(evidence_fts), s.id
             LIMIT :limit
             """
@@ -238,6 +248,15 @@ def candidate_span_query(
         as_of_date = "CAST(:as_of AS date)"
         statement = sql_text(
             f"""
+            WITH superseded AS (
+              SELECT DISTINCT sv.supersedes_version_id AS id
+              FROM document_versions sv
+              WHERE sv.supersedes_version_id IS NOT NULL
+                AND sv.review_state = 'approved'
+                AND COALESCE(sv.effective_from, sv.publication_date) <= {as_of_date}
+                AND (sv.effective_until IS NULL OR sv.effective_until >= {as_of_date})
+                AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > {as_of_date})
+            )
             SELECT s.id AS span_id
             FROM evidence_spans s
             JOIN document_versions v ON v.id = s.version_id
@@ -250,14 +269,7 @@ def candidate_span_query(
               AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
               AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
-              AND NOT EXISTS (
-                SELECT 1 FROM document_versions sv
-                WHERE sv.supersedes_version_id = v.id
-                  AND sv.review_state = 'approved'
-                  AND COALESCE(sv.effective_from, sv.publication_date) <= {as_of_date}
-                  AND (sv.effective_until IS NULL OR sv.effective_until >= {as_of_date})
-                  AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > {as_of_date})
-              )
+              AND v.id NOT IN (SELECT id FROM superseded)
             ORDER BY ts_rank_cd(
                 to_tsvector('simple', s.text), to_tsquery('simple', :query)
             ) DESC, s.id

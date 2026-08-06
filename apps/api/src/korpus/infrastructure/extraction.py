@@ -81,6 +81,19 @@ def _normalize(text: str) -> str:
     Runs of *three* or more spaces are kept, and tabs are kept. Two spaces after a full
     stop is typography; three is a column, and a tab always is.
     """
+    # A PDF with a broken font encoding decodes to lone surrogates. Python holds them
+    # in a `str` quite happily; nothing downstream can. They travelled the whole
+    # pipeline and died at `EvidenceSpanRecord`, which refused the *document* with a
+    # Pydantic message about parsing raw data — thirteen refusals in one import that
+    # named the wrong thing, at the wrong layer, after the work was done.
+    #
+    # Refused rather than stripped. Removing the undecodable characters would leave a
+    # passage that reads as if it were the document's own words, and this system's
+    # single promise is that a quote is what the source says.
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise ValueError("document text is not valid Unicode") from exc
     text = unicodedata.normalize("NFC", text)
     text = text.replace("\x00", " ")
     text = re.sub(r"\r\n?", "\n", text)

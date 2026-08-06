@@ -1768,6 +1768,26 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # `ORDER BY bm25` pushes every full-text match through the supersession test.
+        # Correlated, that was 23 626 evaluations for a five-token question on a real
+        # corpus — 2.5 s against a 1200 ms budget — and the deadline breach reached the
+        # reader as "the corpus holds nothing".
+        "M195_SUPERSESSION_TEST_CORRELATED_AGAIN",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "              AND v.id NOT IN (SELECT id FROM superseded)\n"
+        "            ORDER BY bm25(evidence_fts), s.id",
+        "              AND NOT EXISTS (\n"
+        "                SELECT 1 FROM document_versions sv\n"
+        "                WHERE sv.supersedes_version_id = v.id\n"
+        "                  AND sv.review_state = 'approved'\n"
+        "              )\n"
+        "            ORDER BY bm25(evidence_fts), s.id",
+        (
+            "apps/api/tests/test_retrieval_supersession_cost.py::"
+            "test_the_supersession_test_is_not_evaluated_per_matching_span",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

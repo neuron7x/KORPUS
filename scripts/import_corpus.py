@@ -294,9 +294,13 @@ def main() -> int:
                 #
                 # The exception type is recorded, so a class of failure nobody predicted
                 # is visible in the output as itself rather than as "refused".
-                outcome.refused.append(
-                    {"file": relative, "reason": f"{type(error).__name__}: {error}"[:300]}
-                )
+                reason = f"{type(error).__name__}: {error}"[:300]
+                outcome.refused.append({"file": relative, "reason": reason})
+                # Printed as it happens, not only in the report at the end. A run over a
+                # library takes hours; a refusal that exists solely in a JSON document
+                # printed on the last line is invisible for all of them, and was
+                # unrecoverable the once the run did not reach that line.
+                print(f"refused {relative}: {reason}", file=sys.stderr, flush=True)
                 continue
             if result.duplicate:
                 outcome.duplicates.append(relative)

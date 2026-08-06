@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: drive-snapshot drive-public serve-public draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -159,6 +159,13 @@ drive-public:
 #   make serve-public
 serve-public:
 	bash scripts/serve_public.sh
+
+# Keep a public HTTPS address pointed at the edge, and write the current one to
+# var/public/URL. The provider assigns the hostname per session and rotates it on every
+# reconnect, so the file is the address of record and an empty file means there is none.
+#   make public-tunnel
+public-tunnel:
+	bash scripts/public_tunnel.sh
 
 # Draft a manifest from a fetched directory. Everything it cannot read from a filename —
 # issuer, revision, publication date — is marked REVIEW_REQUIRED, and import-corpus
