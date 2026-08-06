@@ -19,7 +19,7 @@
         <span class="brand-sub">доказовий довідник</span>
       </div>
       <div class="header-actions">
-        <a href="/console.html">Консолі</a>
+        <a href="/console.html" data-private-only>Консолі</a>
         <span class="badge">FAIL-CLOSED</span>
       </div>
     </header>
@@ -43,11 +43,11 @@
             не автентифіковано
           </span>
         </div>
-        <div class="auth-actions">
+        <div class="auth-actions" data-private-only>
           <button id="login" type="button">Увійти через OIDC</button>
           <button id="logout" type="button" class="secondary" hidden>Вийти</button>
         </div>
-        <details>
+        <details data-private-only>
           <summary>Службовий токен</summary>
           <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
           <div class="inline">

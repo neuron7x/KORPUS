@@ -26,6 +26,14 @@ What is never derived:
   revision         which edition. "v2_final_FINAL" is not a revision.
   publication_date the date it took force.
 
+With `--snapshot`, the fields Drive itself recorded are carried through instead of left
+to a curator: the file id becomes a `source_uri` a reader can open, and the date the copy
+was last modified becomes `effective_from` — the earliest date this system can show the
+document existed. `publication_date` stays empty on purpose. Nobody established it, the
+answer surface says so for every citation drawn from such a version, and `effective_from`
+is a floor rather than a claim: the source can never be cited as governing a date before
+the copy is known to have existed.
+
 `--authority` sets the class for the whole batch, and the default is `analytical` on
 purpose. A library of military literature is not a set of orders: ingested as
 `official_ua` the system would present training material as a binding norm, which is the
@@ -54,6 +62,8 @@ INGESTIBLE = {".txt", ".md", ".json", ".html", ".htm", ".pdf", ".docx"}
 #: the directory. The number is ordering, not meaning, so it is stripped.
 LEADING_ORDER = re.compile(r"^\s*\d{1,3}\s*[.)\-_]*\s*")
 
+_ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
 
 def _title_from(path: Path) -> str:
     stem = LEADING_ORDER.sub("", path.stem).strip()
@@ -69,6 +79,63 @@ def _document_type_from(relative: Path) -> str:
     subject = LEADING_ORDER.sub("", parts[0]).strip()
     slug = re.sub(r"[^\w\-]+", "-", subject, flags=re.UNICODE).strip("-").casefold()
     return slug or "reference"
+
+
+def _snapshot_records(root: Path) -> dict[str, dict[str, Any]]:
+    """What the fetcher recorded, keyed by path. Absent is fine; invented is not."""
+    path = root / "snapshot.json"
+    if not path.is_file():
+        return {}
+    try:
+        stored = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return {str(r["path"]): r for r in stored.get("records", []) if r.get("path")}
+
+
+def _entry_for(
+    path: Path,
+    relative: Path,
+    record: dict[str, Any] | None,
+    arguments: argparse.Namespace,
+) -> dict[str, Any]:
+    """One manifest entry: derived where derivation is a fact, sentinel everywhere else."""
+    entry: dict[str, Any] = {
+        "file": relative.as_posix(),
+        "canonical_title": _title_from(path),
+        "issuer": arguments.issuer or REVIEW_REQUIRED,
+        # Not derived from the filename: "v2_final_FINAL" is not a revision, and a wrong
+        # one makes two editions of the same order look like one document.
+        "revision": REVIEW_REQUIRED,
+        "authority": arguments.authority,
+        "document_type": _document_type_from(relative),
+        "access_tier": arguments.access_tier,
+        "classification": arguments.classification,
+        "compartments": [],
+        # Left absent rather than guessed. A version with neither `publication_date` nor
+        # `effective_from` cannot be approved — the domain refuses it, because it would
+        # govern every past date.
+        "publication_date": REVIEW_REQUIRED,
+    }
+    if record is None:
+        return entry
+    seen = str(record.get("drive_modified", ""))[:10]
+    if _ISO_DATE.fullmatch(seen):
+        # The copy, not the edition. Named as such in both fields it fills: the revision
+        # reads "копія від <date>" so nobody mistakes it for an edition number, and
+        # effective_from is a floor — the earliest date this system can show the document
+        # existed at all.
+        entry["revision"] = f"копія від {seen}"
+        entry["effective_from"] = seen
+        entry.pop("publication_date")
+    if record.get("drive_id"):
+        entry["source_uri"] = f"https://drive.google.com/file/d/{record['drive_id']}/view"
+    if not arguments.issuer:
+        # Recorded as not established, which is a fact, rather than left as the sentinel,
+        # which would refuse the whole batch. `authority` is what caps what an
+        # unattributed source may govern, and it is set for the batch.
+        entry["issuer"] = "Не встановлено"
+    return entry
 
 
 def main() -> int:
@@ -92,6 +159,14 @@ def main() -> int:
             "carries REVIEW_REQUIRED and import_corpus.py refuses them."
         ),
     )
+    parser.add_argument(
+        "--from-snapshot",
+        action="store_true",
+        help=(
+            "Carry through what Drive recorded: source_uri from the file id, and "
+            "effective_from from the copy's modified date. publication_date stays empty."
+        ),
+    )
     parser.add_argument("--access-tier", type=int, default=0)
     parser.add_argument("--classification", default="public")
     arguments = parser.parse_args()
@@ -99,6 +174,11 @@ def main() -> int:
     root = arguments.root
     if not root.is_dir():
         print(json.dumps({"valid": False, "reason": f"no directory at {root}"}))
+        return 2
+
+    snapshot = _snapshot_records(root) if arguments.from_snapshot else {}
+    if arguments.from_snapshot and not snapshot:
+        print(json.dumps({"valid": False, "reason": f"no snapshot.json under {root}"}))
         return 2
 
     documents: list[dict[str, Any]] = []
@@ -111,23 +191,7 @@ def main() -> int:
             unreadable.append(relative.as_posix())
             continue
         documents.append(
-            {
-                "file": relative.as_posix(),
-                "canonical_title": _title_from(path),
-                "issuer": arguments.issuer or REVIEW_REQUIRED,
-                # Not derived: "v2_final_FINAL" is not a revision, and a wrong one makes
-                # two editions of the same order look like one document.
-                "revision": REVIEW_REQUIRED,
-                "authority": arguments.authority,
-                "document_type": _document_type_from(relative),
-                "access_tier": arguments.access_tier,
-                "classification": arguments.classification,
-                "compartments": [],
-                # Left absent rather than guessed. A version with neither
-                # `publication_date` nor `effective_from` cannot be approved — the domain
-                # refuses it, because it would govern every past date.
-                "publication_date": REVIEW_REQUIRED,
-            }
+            _entry_for(path, relative, snapshot.get(relative.as_posix()), arguments)
         )
 
     manifest = {
@@ -153,9 +217,14 @@ def main() -> int:
                 "documents": len(documents),
                 "unreadable_formats": len(unreadable),
                 "unreadable_sample": unreadable[:20],
-                "fields_awaiting_review": ["issuer", "revision", "publication_date"]
-                if not arguments.issuer
-                else ["revision", "publication_date"],
+                "fields_awaiting_review": sorted(
+                    {
+                        name
+                        for document in documents
+                        for name, value in document.items()
+                        if value == REVIEW_REQUIRED
+                    }
+                ),
                 "written": str(arguments.out),
             },
             ensure_ascii=False,

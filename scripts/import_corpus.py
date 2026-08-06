@@ -153,6 +153,21 @@ def _mime_for(path: Path) -> str:
     return guessed or "application/octet-stream"
 
 
+def _base_from(manifest: dict[str, Any], manifest_path: Path) -> Path:
+    """Where the manifest's paths start.
+
+    The draft records the directory it was generated from, and honouring it is what
+    stops the most expensive way to get this wrong: writing the manifest one level above
+    the tree it describes. Every entry then refuses with "file does not exist" — four
+    hundred identical lines that look like a broken download rather than a wrong base —
+    while the same run reports every real document as "not in the manifest".
+    """
+    recorded = str(manifest.get("generated_from", ""))
+    if recorded and Path(recorded).is_dir():
+        return Path(recorded)
+    return manifest_path.parent
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
@@ -174,7 +189,7 @@ def main() -> int:
         print(json.dumps({"valid": False, "reason": f"no manifest at {manifest_path}"}))
         return 2
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    base = arguments.root or manifest_path.parent
+    base = arguments.root or _base_from(manifest, manifest_path)
     corpus_id = str(manifest.get("corpus_id", "public"))
     entries = manifest.get("documents")
     if not isinstance(entries, list) or not entries:
@@ -304,7 +319,15 @@ def main() -> int:
     finally:
         repository.close()
 
-    print(json.dumps(outcome.as_dict(), ensure_ascii=False, indent=2))
+    report = outcome.as_dict()
+    absent = sum(1 for item in outcome.refused if item["reason"] == "file does not exist")
+    if absent and absent == len(entries):
+        # Not a corpus of missing files. A base that does not contain them.
+        report["diagnosis"] = (
+            f"every entry refused as missing under {base} — the manifest almost "
+            "certainly describes a different directory; pass --root"
+        )
+    print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if outcome.refused else 0
 
 

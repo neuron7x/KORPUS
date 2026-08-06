@@ -237,7 +237,7 @@ class ExtractiveAnswerService:
                         "Відповідь екстрактивна: система не додає фактів"
                         " поза точними цитованими реченнями.",
                         "Retrieval score є ranking utility, а не ймовірністю істинності.",
-                        *self._source_limitations(citations, outranked),
+                        *self._source_limitations(citations, outranked, eligible),
                     ],
                     corpus_release=release_id,
                 )
@@ -453,10 +453,27 @@ class ExtractiveAnswerService:
 
     @staticmethod
     def _source_limitations(
-        citations: list[Citation], outranked: list[RetrievedEvidence]
+        citations: list[Citation],
+        outranked: list[RetrievedEvidence],
+        used: list[RetrievedEvidence],
     ) -> list[str]:
-        """Name what the ranking discarded and what the citation list double-counts."""
+        """Name what the ranking discarded, what repeats, and what has no stated date."""
         limitations: list[str] = []
+        # A library copy carries the date it was *seen*, not the date the document took
+        # force: `effective_from` is set from the snapshot so the source can never be
+        # cited as governing an earlier date, and `publication_date` is left empty
+        # because nobody established it. Silence about that difference would let a
+        # reader take the lower bound for a publication date, which is the one reading
+        # the field cannot support.
+        undated = {
+            item.version.id for item in used if item.version.publication_date is None
+        }
+        cited_undated = sum(1 for citation in citations if citation.version_id in undated)
+        if cited_undated:
+            limitations.append(
+                f"{cited_undated} цитат із джерел без встановленої дати публікації:"
+                " нижня межа чинності — дата копії в бібліотеці, не дата видання."
+            )
         if outranked:
             classes = sorted({item.version.authority.value for item in outranked})
             limitations.append(

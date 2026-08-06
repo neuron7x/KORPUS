@@ -1718,6 +1718,41 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # The sandbox runs in the *document's* directory. A relative PYTHONPATH — which
+        # is what the Makefile and every shell line carry — then resolves against that
+        # directory and finds nothing, and the whole batch reports itself as four hundred
+        # malformed documents rather than one wrong variable.
+        "M192_PARSER_SANDBOX_PATH_LEFT_RELATIVE",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+                '''        "PYTHONPATH": os.pathsep.join(
+            str(Path(entry).resolve())
+            for entry in os.environ.get("PYTHONPATH", "").split(os.pathsep)
+            if entry
+        ),''',
+        '''        "PYTHONPATH": os.environ.get("PYTHONPATH", ""),''',
+        (
+            "apps/api/tests/test_parser_sandbox_path.py::"
+            "test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it",
+        ),
+    ),
+    Mutant(
+        # `effective_from` on a library copy is the date the copy was seen, not the date
+        # the document took force. It reads on the answer surface exactly like a date of
+        # issue, so silence about the difference lets a reader take the floor for a
+        # publication date — the one reading the field cannot support.
+        "M193_UNDATED_SOURCE_PASSES_UNANNOUNCED",
+        "apps/api/src/korpus/application/answer_query.py",
+        (
+            "        cited_undated = sum("
+            "1 for citation in citations if citation.version_id in undated)"
+        ),
+        "        cited_undated = 0",
+        (
+            "apps/api/tests/test_undated_source_limitation.py::"
+            "test_a_citation_without_a_publication_date_says_so",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

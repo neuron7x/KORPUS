@@ -333,7 +333,16 @@ def extract_pages_sandboxed(
     }
     environment = {
         "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
-        "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
+        # Absolute, because `cwd` below is the *document's* directory, not this process's.
+        # A relative `PYTHONPATH=apps/api/src` — which is what the Makefile and every
+        # shell invocation naturally carry — resolves against that directory and finds
+        # nothing, so the worker died with "Error while finding module" on every single
+        # file. Nothing about the failure named the cwd, so it read as a broken document.
+        "PYTHONPATH": os.pathsep.join(
+            str(Path(entry).resolve())
+            for entry in os.environ.get("PYTHONPATH", "").split(os.pathsep)
+            if entry
+        ),
         "PYTHONHASHSEED": "0",
         "LC_ALL": "C.UTF-8",
         "NO_PROXY": "*",

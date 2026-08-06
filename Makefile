@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: drive-snapshot draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: drive-snapshot drive-public serve-public draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -144,13 +144,30 @@ drive-snapshot:
 	$(PY) scripts/fetch_drive_snapshot.py --remote $(or $(REMOTE),drive:) \
 	  --folder-id "$(FOLDER_ID)" --into "$(or $(INTO),var/corpus)"
 
+# The same snapshot, for a folder shared with "anyone with the link". No OAuth, no
+# account, no rclone: Drive's own web viewer reads such a folder through a browser key
+# the folder page carries, and this asks the same question the same way. A folder that
+# is not public simply does not answer.
+#   make drive-public FOLDER_ID=... INTO=var/corpus/ml MAX_FILE_BYTES=2000000
+drive-public:
+	$(PY) scripts/fetch_drive_public.py --folder-id "$(FOLDER_ID)" \
+	  --into "$(or $(INTO),var/corpus)" \
+	  $(if $(MAX_FILE_BYTES),--max-file-bytes $(MAX_FILE_BYTES)) $(if $(LIMIT),--limit $(LIMIT))
+
+# Publish the read-only reader on a public edge that authenticates on the visitor's
+# behalf. Everything reachable through it is public by decision, not by default.
+#   make serve-public
+serve-public:
+	bash scripts/serve_public.sh
+
 # Draft a manifest from a fetched directory. Everything it cannot read from a filename —
 # issuer, revision, publication date — is marked REVIEW_REQUIRED, and import-corpus
 # refuses those entries.
 #   make draft-manifest ROOT=var/corpus/ml OUT=var/corpus/ml/manifest.json
 draft-manifest:
 	$(PY) scripts/build_import_manifest.py --root "$(ROOT)" --out "$(OUT)" \
-	  $(if $(ISSUER),--issuer "$(ISSUER)") $(if $(AUTHORITY),--authority "$(AUTHORITY)")
+	  $(if $(ISSUER),--issuer "$(ISSUER)") $(if $(AUTHORITY),--authority "$(AUTHORITY)") \
+	  $(if $(FROM_SNAPSHOT),--from-snapshot)
 
 import-corpus:
 	PYTHONPATH=apps/api/src $(PY) scripts/import_corpus.py --manifest "$(MANIFEST)" $(IMPORT_FLAGS)

@@ -38,20 +38,31 @@ let declaration = null;
 
 // ---------------------------------------------------------------- identity
 
+// On the public edge the visitor holds nothing: the edge attaches a read-only identity to
+// every request, so a login button offers a flow that cannot complete and a token field
+// invites pasting a credential into a page that has no use for one. Both are removed
+// rather than disabled — a control that is visible and inert teaches the wrong thing
+// about who is authenticated here.
+const publicMode = Boolean(globalThis.window?.KORPUS_CONFIG?.publicMode);
+
+if (publicMode) {
+  for (const node of document.querySelectorAll("[data-private-only]")) node.remove();
+}
+
 function renderIdentity(loaded) {
   identity = loaded;
   if (!loaded) {
     identityState.textContent = "не автентифіковано";
-    $("login").hidden = false;
-    $("logout").hidden = true;
+    if ($("login")) $("login").hidden = false;
+    if ($("logout")) $("logout").hidden = true;
     return;
   }
   identityState.innerHTML =
     `<strong>${escapeHtml(loaded.subject)}</strong>` +
     `<span class="sep">·</span>рівень ${escapeHtml(loaded.clearance)}` +
     `<span class="sep">·</span>${escapeHtml([...loaded.corpora].sort().join(", "))}`;
-  $("login").hidden = true;
-  $("logout").hidden = false;
+  if ($("login")) $("login").hidden = true;
+  if ($("logout")) $("logout").hidden = false;
 }
 
 async function loadIdentity() {
@@ -70,7 +81,7 @@ function forgetIdentity(message) {
   entry.hidden = false;
 }
 
-$("check-auth").addEventListener("click", async () => {
+$("check-auth")?.addEventListener("click", async () => {
   setBearerToken($("bearer-token").value);
   try {
     await loadIdentity();
@@ -80,11 +91,11 @@ $("check-auth").addEventListener("click", async () => {
   }
 });
 
-$("login").addEventListener("click", () => {
+$("login")?.addEventListener("click", () => {
   window.location.assign(loginUrl(window.location.pathname));
 });
 
-$("logout").addEventListener("click", async () => {
+$("logout")?.addEventListener("click", async () => {
   try {
     await call("/v1/auth/logout", {method: "POST"});
     forgetIdentity("не автентифіковано");
@@ -157,7 +168,15 @@ declarationForm.addEventListener("submit", event => {
   event.preventDefault();
   const {declared, problems} = readDeclaration();
   if (!identity) {
-    problems.unshift({field: "bearer-token", message: "Спершу автентифікуйтесь"});
+    // In public mode there is no token field to point at — the edge holds the identity —
+    // so an unauthenticated state there means the API is unreachable, not that the
+    // operator forgot something. Linking the summary to a removed element would send
+    // a screen reader nowhere.
+    problems.unshift(
+      publicMode
+        ? {field: "identity-state", message: "Сервіс недоступний: особу не підтверджено"}
+        : {field: "bearer-token", message: "Спершу автентифікуйтесь"},
+    );
   }
   showErrors(problems);
   if (problems.length) return;

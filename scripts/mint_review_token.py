@@ -52,8 +52,11 @@ def main() -> int:
     secret = os.environ.get("KORPUS_JWT_SECRET", "")
     if len(secret) < 32:
         raise SystemExit("KORPUS_JWT_SECRET must be set and at least 32 characters")
-    if arguments.minutes < 1 or arguments.minutes > 720:
-        raise SystemExit("--minutes must be between 1 and 720")
+    # 1440 is the server's own ceiling (`jwt_max_lifetime_minutes`, le=1440). This used
+    # to stop at 720 for no reason anyone recorded; a limit tighter than the policy it
+    # stands in for is a limit that has to be argued with rather than obeyed.
+    if arguments.minutes < 1 or arguments.minutes > 1440:
+        raise SystemExit("--minutes must be between 1 and 1440")
 
     now = datetime.now(UTC)
     claims = {
