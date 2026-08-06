@@ -336,3 +336,43 @@ def test_a_missing_configmap_reports_every_required_key() -> None:
 
     for key, value in REQUIRED_PRODUCTION_CONFIG.items():
         assert f"secure production config missing: {key}={value}" in violations
+
+
+def test_no_requirement_is_stated_twice_under_two_ids() -> None:
+    """Four registers, 319 requirements, one namespace.
+
+    An id is how a requirement is cited in an audit, marked accepted-with-risk by an
+    owner, or matched to its mutant. Two ids stating the same property make every such
+    reference ambiguous and inflate the count an assessor reads — and the check for
+    duplicate *ids* does not catch it, because the ids differ.
+
+    Checked across all four registers together, since they were separate accidents of
+    where the code happened to live and are one document to a reader.
+    """
+    from collections import Counter
+
+    from korpus.application.deployment import render_kustomization
+    from korpus.controlled_requirements import CONTROLLED_REQUIREMENTS
+    from korpus.infrastructure_requirements import INFRASTRUCTURE_REQUIREMENTS
+    from korpus.kubernetes_requirements import KubernetesContext, kubernetes_requirements
+    from korpus.repository_requirements import REPOSITORY_REQUIREMENTS
+
+    root = Path(__file__).resolve().parents[3]
+    deployment = kubernetes_requirements(
+        KubernetesContext.build(render_kustomization(root / "deploy/kubernetes/base", root))
+    )
+    registered = [
+        *INFRASTRUCTURE_REQUIREMENTS,
+        *REPOSITORY_REQUIREMENTS,
+        *deployment,
+    ]
+
+    assert not duplicate_ids(registered)
+
+    statements = Counter(requirement.statement for requirement in registered)
+    assert [text for text, count in statements.items() if count > 1] == []
+
+    names = Counter(requirement.name for requirement in CONTROLLED_REQUIREMENTS)
+    assert [name for name, count in names.items() if count > 1] == []
+    messages = Counter(requirement.message for requirement in CONTROLLED_REQUIREMENTS)
+    assert [message for message, count in messages.items() if count > 1] == []
