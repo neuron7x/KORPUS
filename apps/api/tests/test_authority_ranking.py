@@ -283,3 +283,28 @@ def test_two_live_versions_of_one_document_require_a_human(client: TestClient) -
         "resolve by ranking"
     )
     assert "multiple_current_versions" in str(answer["limitations"])
+
+
+def test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to() -> None:
+    """Two defaults for one decision, and production uses neither.
+
+    `diversify_evidence(per_version_cap=1)` and `HybridLexicalRetriever(per_version_cap=1)`
+    are separate literals. `dependencies.py` passes the value explicitly from the
+    calibration profile, so the retriever's default is never exercised in production —
+    which means it can drift from the function it forwards to and nothing observes it.
+
+    Found 2026-08-06: a single mutant covered both literals, so a test of either answered
+    for the pair and neither was individually falsified. Asserting they agree is the
+    cheapest thing that makes the drift visible; removing one of them is the real fix and
+    is recorded in TECHNICAL_DEBT_V5.md.
+    """
+    import inspect
+
+    from korpus.application.retrieval import HybridLexicalRetriever, diversify_evidence
+
+    function_default = inspect.signature(diversify_evidence).parameters["per_version_cap"].default
+    retriever_default = (
+        inspect.signature(HybridLexicalRetriever.__init__).parameters["per_version_cap"].default
+    )
+
+    assert function_default == retriever_default == 1

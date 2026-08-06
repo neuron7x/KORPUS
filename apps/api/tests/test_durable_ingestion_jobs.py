@@ -248,3 +248,70 @@ def test_a_worker_cannot_complete_a_job_it_does_not_hold(tmp_path: Path):
         # that refuses everyone.
         failed = queue.fail("worker-a", held.id, "parser", "genuinely failed", retryable=False)
         assert failed.state is IngestionJobState.DEAD_LETTER
+
+
+def test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold(tmp_path: Path):
+    """The worse half of the lease check, and the one nothing reached.
+
+    `IngestionJobConflict("worker does not own active ingestion lease")` guards both
+    `fail` and `complete`. A single mutant covered both lines, so the `fail` test
+    answered for the pair (found 2026-08-06 by checking every mutant target for
+    uniqueness in its file). `complete` is the dangerous one: a worker that does not
+    hold the job marking it succeeded records a version as ingested from bytes nobody
+    parsed, and the corpus then answers from spans that were never extracted.
+    """
+    from korpus.domain.models import (
+        AuthorityClass,
+        DocumentRecord,
+        DocumentVersionRecord,
+        IngestResult,
+    )
+
+    app = create_app(_settings(tmp_path))
+    app.dependency_overrides[get_identity] = _admin
+    with TestClient(app) as client:
+        response = client.post(
+            "/v1/ingestion-jobs/documents",
+            data={
+                "document_json": json.dumps({
+                    "canonical_title": "Completion ownership",
+                    "corpus_id": "public",
+                    "issuer": "Authority",
+                }),
+                "version_json": json.dumps({"revision": "1"}),
+            },
+            files={"file": ("document.txt", b"valid content", "text/plain")},
+        )
+        assert response.status_code == 202
+        queue = client.app.state.ingestion_jobs
+        held = queue.claim("worker-a", lease_seconds=30)
+        assert held is not None
+
+        document = DocumentRecord(
+            canonical_title="Completion ownership",
+            corpus_id="public",
+            issuer="Authority",
+            jurisdiction="UA",
+            document_type="reference",
+            access_tier=AccessTier.PUBLIC,
+            classification="public",
+        )
+        version = DocumentVersionRecord(
+            document_id=document.id,
+            revision="1",
+            source_hash="a" * 64,
+            object_key="objects/x",
+            mime_type="text/plain",
+            authority=AuthorityClass.OFFICIAL_UA,
+        )
+        forged = IngestResult(
+            document=document, version=version, span_count=0, extraction_method="none"
+        )
+
+        with pytest.raises(IngestionJobConflict, match="does not own active ingestion lease"):
+            queue.complete("worker-b", held.id, forged)
+
+        # The dual: the holder may complete, or the refusal above is satisfied by a
+        # queue that refuses everyone.
+        completed = queue.complete("worker-a", held.id, forged)
+        assert completed.state is IngestionJobState.SUCCEEDED

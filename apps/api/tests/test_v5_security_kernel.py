@@ -438,6 +438,89 @@ def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Pa
         repository.close()
 
 
+def test_a_new_version_of_an_existing_document_is_scanned_too(tmp_path: Path):
+    """The version path is the same untrusted-bytes surface as the document path.
+
+    `self.malware_scanner.scan(path)` appears on both, and one mutant covered both
+    lines — so the document-path test answered for the pair and the version path was
+    never individually falsified (found 2026-08-06 by checking every mutant target for
+    uniqueness in its file). Adding a version to an approved document is the *easier*
+    surface to reach: the document already exists and already passed review.
+    """
+    from korpus.application.ingestion import ExtractionSettings
+    from korpus.application.policy import PolicyEngine
+    from korpus.composition import build_ingestion_service
+    from korpus.domain.models import AuthorityClass, VersionCreate
+    from korpus.infrastructure.object_store import LocalObjectStore
+    from korpus.infrastructure.repository import SqlRepository
+
+    class ScannerRejectingTheSecondFile:
+        """Clean once, then hostile: the first call admits the document so the second
+        call is reached at all."""
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def scan(self, path: Path) -> None:
+            self.calls += 1
+            if self.calls > 1:
+                raise MalwareDetectedError("malware detected: version-signature")
+
+    repository = SqlRepository(
+        f"sqlite:///{tmp_path / 'version-malware.db'}",
+        audit_hmac_key="version-malware-key",
+        policy=PolicyEngine(),
+        audit_anchor_path=tmp_path / "version-malware-anchor.json",
+    )
+    repository.initialize(create_schema=True)
+    scanner = ScannerRejectingTheSecondFile()
+    service = build_ingestion_service(
+        repository,
+        LocalObjectStore(tmp_path / "version-malware-objects"),
+        PolicyEngine(),
+        ExtractionSettings(False, "ukr+eng"),
+        malware_scanner=scanner,
+    )
+    actor = Identity(
+        subject="version-scanner-test",
+        roles=frozenset({"admin", "curator"}),
+        clearance=AccessTier.RESTRICTED,
+        corpora=frozenset({"public"}),
+    )
+    try:
+        first = service.ingest(
+            actor,
+            DocumentCreate(
+                canonical_title="Accepted document",
+                corpus_id="public",
+                issuer="Authority",
+                access_tier=AccessTier.PUBLIC,
+            ),
+            VersionCreate(revision="1", authority=AuthorityClass.OFFICIAL_UA),
+            "clean.txt",
+            "text/plain",
+            b"first file passes the scanner and is admitted",
+        )
+
+        with pytest.raises(MalwareDetectedError, match="version-signature"):
+            service.ingest_version(
+                actor,
+                first.document.id,
+                VersionCreate(revision="2", authority=AuthorityClass.OFFICIAL_UA),
+                "hostile.txt",
+                "text/plain",
+                b"second file must never reach the parser",
+            )
+
+        # The document keeps exactly the version that passed, and the scanner ran twice:
+        # the refusal came from the scan, not from something upstream of it.
+        assert scanner.calls == 2
+        versions = repository.list_documents(actor)
+        assert len(versions) == 1
+    finally:
+        repository.close()
+
+
 def test_parser_sandbox_setting_selects_isolated_parser(tmp_path: Path):
     """The application's half: the setting reaches the port as `sandboxed`.
 

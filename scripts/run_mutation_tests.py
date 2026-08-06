@@ -175,10 +175,15 @@ MUTANTS = (
         ("apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims",),
     ),
     Mutant(
+        # `self.malware_scanner.scan(path)` appears on both ingestion paths — a new
+        # document, and a new version of an existing one. One mutant replaced both,
+        # so a test covering either answered for the pair and the other site was
+        # never individually falsified. Split 2026-08-06; M181 is the version path.
         "M16_MALWARE_SCAN_BYPASS",
         "apps/api/src/korpus/application/ingestion.py",
-        "self.malware_scanner.scan(path)",
-        "None",
+        "                duplicate=True,\n            )\n"
+        "        self.malware_scanner.scan(path)",
+        "                duplicate=True,\n            )\n        None",
         ("apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",),
     ),
     Mutant(
@@ -435,10 +440,13 @@ MUTANTS = (
     ),
     Mutant(
         # One version cited twice reads as two independent sources.
+        # Declared twice: on `diversify_evidence` and on the retriever that calls it.
+        # One mutant widened both, so a test of either answered for the pair.
+        # M182 is the retriever's own default.
         "M41_PER_VERSION_CAP_WIDENED",
         "apps/api/src/korpus/application/retrieval.py",
-        "    per_version_cap: int = 1,",
-        "    per_version_cap: int = 2,",
+        "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 1,",
+        "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 2,",
         ("apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match",),
     ),
     Mutant(
@@ -1665,13 +1673,61 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # The malware scan on the *version* ingestion path — the same untrusted-bytes
+        # surface, reached more easily: the document already exists and already passed
+        # review. Split from M16, which covered both lines at once.
+        "M181_MALWARE_SCAN_BYPASS_ON_VERSION_INGEST",
+        "apps/api/src/korpus/application/ingestion.py",
+        '                raise ValueError("supersedes_version_id must reference the same '
+        'canonical document")\n        self.malware_scanner.scan(path)',
+        '                raise ValueError("supersedes_version_id must reference the same '
+        'canonical document")\n        None',
+        (
+            "apps/api/tests/test_v5_security_kernel.py::"
+            "test_a_new_version_of_an_existing_document_is_scanned_too",
+        ),
+    ),
+    Mutant(
+        # The retriever's own default, which production never uses — `dependencies.py`
+        # always passes the calibrated value — so it can drift from the function it
+        # forwards to with nothing observing it.
+        "M182_RETRIEVER_PER_VERSION_CAP_WIDENED",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 1,",
+        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 2,",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to",
+        ),
+    ),
+    Mutant(
+        # The `complete` half of the lease check. A worker that does not hold the job
+        # marking it succeeded records a version as ingested from bytes nobody parsed,
+        # and the corpus then answers from spans that were never extracted.
+        "M180_LEASE_OWNERSHIP_UNCHECKED_ON_COMPLETE",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "            if changed.rowcount != 1:\n"
+        '                raise IngestionJobConflict("worker does not own active ingestion lease")',
+        "            if changed.rowcount != 1:\n                pass",
+        (
+            "apps/api/tests/test_durable_ingestion_jobs.py::"
+            "test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold",
+        ),
+    ),
+    Mutant(
         # A second worker writing a result for a job it does not hold marks a version as
         # ingested from bytes nobody parsed. The claim was exclusive and the write was
         # not tested.
+        # The same sentence guards `complete` and `fail`. `fail` reaches it through
+        # `if row is None:`, `complete` through `if changed.rowcount != 1:`, so the
+        # guard above disambiguates them. M180 is the `complete` side, the worse
+        # one: a non-holder marking a job succeeded records a version as ingested
+        # from bytes nobody parsed.
         "M176_LEASE_OWNERSHIP_UNCHECKED_ON_FAIL",
         "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "            if row is None:\n"
         '                raise IngestionJobConflict("worker does not own active ingestion lease")',
-        "                pass",
+        "            if row is None:\n                pass",
         (
             "apps/api/tests/test_durable_ingestion_jobs.py::"
             "test_a_worker_cannot_complete_a_job_it_does_not_hold",

@@ -1239,3 +1239,79 @@ def test_the_pipeline_graph_is_consistent() -> None:
     duplicated = {path: who for path, who in produced.items() if len(who) > 1}
     assert not problems, problems
     assert not duplicated, f"these artefacts have more than one producer: {duplicated}"
+
+
+def test_no_mutant_covers_two_call_sites_at_once() -> None:
+    """Two occurrences under one mutant is not two covered call sites.
+
+    The substitution replaces *every* occurrence of the target string, so a mutant whose
+    line appears twice mutates both and is answered by whichever site its test happens to
+    reach. The other is never individually falsified, and the catalogue reports a kill
+    for it anyway.
+
+    This is not hypothetical. `M05_SQL_CLEARANCE_FILTER_REMOVED` passed for months that
+    way; splitting the retrieval projection out of the repository left the `list_documents`
+    predicate alone and the mutant immediately survived. The sweep on 2026-08-06 found
+    three more — the malware scan on both ingestion paths, the per-version cap declared
+    twice, and the lease check guarding both `complete` and `fail`.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    ambiguous = []
+    absent = []
+    for mutant in MUTANTS:
+        source = ROOT / mutant.file
+        if not source.is_file():
+            absent.append(f"{mutant.id}: {mutant.file} does not exist")
+            continue
+        occurrences = source.read_text(encoding="utf-8").count(mutant.old)
+        if occurrences == 0:
+            absent.append(f"{mutant.id}: target not present in {mutant.file}")
+        elif occurrences > 1:
+            ambiguous.append(f"{mutant.id}: target appears {occurrences}× in {mutant.file}")
+
+    assert not absent, absent
+    assert not ambiguous, (
+        "these mutants replace more than one occurrence, so one kill is credited to "
+        f"several call sites: {ambiguous}"
+    )
+
+
+def test_every_mutant_cites_a_test_that_exists() -> None:
+    """A mutant citing a renamed test dies on collection error rather than on the defect.
+
+    It still reports KILLED — pytest exits non-zero either way — so the catalogue would
+    read as covered while nothing was exercised.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    missing = []
+    for mutant in MUTANTS:
+        for spec in mutant.tests:
+            path, _, node = spec.partition("::")
+            target = ROOT / path
+            if not target.is_file():
+                missing.append(f"{mutant.id}: {path} does not exist")
+            elif node and node.split("[")[0] not in target.read_text(encoding="utf-8"):
+                missing.append(f"{mutant.id}: {node} not found in {path}")
+
+    assert not missing, missing
+
+
+def test_mutant_ids_are_unique() -> None:
+    """An id is how a mutant is cited in the closure register and matched to a finding."""
+    import sys
+    from collections import Counter
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    counts = Counter(mutant.id for mutant in MUTANTS)
+
+    assert [identifier for identifier, count in counts.items() if count > 1] == []
