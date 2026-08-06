@@ -230,8 +230,27 @@ def extract_pages_from_path(
             reader = PdfReader(str(path), strict=True)
         except (OSError, ValueError, TypeError, PdfReadError) as exc:
             raise ValueError("malformed PDF") from exc
+        owner_restricted = False
         if reader.is_encrypted:
-            raise ValueError("encrypted PDF is not accepted")
+            # Two different documents wear one flag. A *user* password means the file is
+            # a secret and nobody without it may read the text — refused, because
+            # guessing at one is the wrong instinct for this system to have. An *owner*
+            # password with an empty user password means the file opens for everyone and
+            # the flag restricts printing and copying; every conforming reader, including
+            # the one on a phone, shows it.
+            #
+            # Refusing both cost thirty-two documents on the first real import —
+            # «Протидія мінній війні», «Методичка Антибпла», «КАБ-1500» — none of which
+            # were secret. The permission the owner set is recorded rather than ignored:
+            # the extraction method says so, so it reaches the reviewer and the audit
+            # payload, and a curator can decide what the restriction meant.
+            try:
+                opened = reader.decrypt("")
+            except (NotImplementedError, ValueError, PdfReadError) as exc:
+                raise ValueError("encrypted PDF uses an unsupported algorithm") from exc
+            if not opened:
+                raise ValueError("encrypted PDF requires a password that was not supplied")
+            owner_restricted = True
         try:
             # `PdfReader(strict=True)` parses the trailer, not the page tree: the tree is
             # walked lazily, here, on the first `len`. So a document whose page tree is
@@ -249,11 +268,16 @@ def extract_pages_from_path(
             for index, page in enumerate(reader.pages, start=1):
                 _remaining(deadline)
                 pages.append(ExtractedPage(page=index, text=_normalize(page.extract_text() or "")))
-        except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:
+        except ValueError:
+            # Already named by whoever raised it — "document text is not valid Unicode"
+            # tells a curator what to do about the file; "PDF text extraction failed"
+            # tells them the file is broken, which is a different and wrong sentence.
+            raise
+        except (KeyError, TypeError, RecursionError, PdfReadError) as exc:
             raise ValueError("PDF text extraction failed") from exc
         printable = sum(len(page.text) for page in pages)
         if printable >= max(80, len(pages) * 30):
-            return pages, "pdf_text"
+            return pages, "pdf_text_owner_restricted" if owner_restricted else "pdf_text"
         if not ocr_enabled:
             raise ValueError("PDF has insufficient embedded text and OCR is disabled")
         try:
@@ -262,7 +286,7 @@ def extract_pages_from_path(
             raise ValueError("OCR execution failed") from exc
         if not any(page.text for page in ocr_pages):
             raise ValueError("OCR produced no text")
-        return ocr_pages, "pdf_ocr"
+        return ocr_pages, "pdf_ocr_owner_restricted" if owner_restricted else "pdf_ocr"
 
     if suffix == ".docx":
         paragraphs = _docx_paragraphs(_docx_body_xml(path))

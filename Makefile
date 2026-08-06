@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -231,6 +231,21 @@ backup-postgres:
 
 restore-postgres:
 	scripts/restore_postgres.sh "$(BACKUP)"
+
+# The deployment that is actually serving holds its corpus in SQLite: 1616 documents and
+# 116 229 spans that took five hours to build, on one disk with no replica. `VACUUM INTO`
+# takes a consistent snapshot while the reader is served; the object store travels with
+# it, because a corpus database without the objects it names restores to a system that
+# cites passages nobody can open.
+#   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... KORPUS_BACKUP_KEY_ID=... make backup-sqlite
+backup-sqlite:
+	scripts/backup_sqlite.sh
+
+# Restores somewhere else on purpose: a drill that overwrites the live corpus is a drill
+# nobody runs, and one that never runs is not known to work.
+#   make restore-sqlite BACKUP=var/backups/sqlite/korpus-<stamp>.tar.enc INTO=var/restored
+restore-sqlite:
+	scripts/restore_sqlite.sh "$(BACKUP)" "$(or $(INTO),var/restored)"
 
 check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate web-build
 

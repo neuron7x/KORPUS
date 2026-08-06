@@ -1835,6 +1835,39 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # A user password means the document is a secret. Accepting an unopenable file
+        # would put an empty or garbled version into the corpus under a real title.
+        "M199_ENCRYPTED_PDF_ACCEPTED_WITHOUT_OPENING",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        (
+            "            if not opened:\n"
+            '                raise ValueError("encrypted PDF requires '
+            'a password that was not supplied")'
+        ),
+        (
+            "            if False:\n"
+            '                raise ValueError("encrypted PDF requires '
+            'a password that was not supplied")'
+        ),
+        (
+            "apps/api/tests/test_owner_restricted_pdf.py::"
+            "test_a_document_with_a_user_password_is_still_refused",
+        ),
+    ),
+    Mutant(
+        # `cp` on a WAL database captures a torn page set and leaves the -wal behind, and
+        # the copy opens without complaint. A backup that restores cleanly and wrong is
+        # the failure this whole drill exists against.
+        "M200_BACKUP_SNAPSHOT_IS_A_FILE_COPY",
+        "scripts/backup_sqlite.sh",
+        '    connection.execute("VACUUM INTO ?", (target,))',
+        "    open(target, 'wb').write(open(source, 'rb').read(4096))",
+        (
+            "apps/api/tests/test_corpus_backup_drill.py::"
+            "test_a_backup_restores_to_a_corpus_that_can_be_cited",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

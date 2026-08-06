@@ -210,8 +210,8 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 675,
-      "max_complexity": 25
+      "lines": 698,
+      "max_complexity": 29
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
       "lines": 314,
