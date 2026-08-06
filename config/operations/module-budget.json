@@ -220,14 +220,14 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1074,
+      "lines": 1100,
       "max_complexity": 23,
       "reason": "COD-001: 1855 -> the recorded ceiling across four extractions; the transactional core stays"
     },
     "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
-      "lines": 291,
+      "lines": 372,
       "max_complexity": 13,
-      "reason": "COD-001: the retrieval projection and its predicates, apart from executing them"
+      "reason": "builds retrieval statements without opening a connection; carries the release projection so the corpus fingerprint costs one query rather than 232 458 models"
     },
     "apps/api/src/korpus/infrastructure/row_mapping.py": {
       "lines": 268,

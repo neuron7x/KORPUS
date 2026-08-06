@@ -82,8 +82,10 @@ MUTANTS = (
         # Two occurrences under one mutant is not two covered call sites.
         "M05_SQL_CLEARANCE_FILTER_REMOVED",
         "apps/api/src/korpus/infrastructure/retrieval_queries.py",
-        ".where(documents.c.access_tier <= int(identity.clearance))",
-        ".where(documents.c.access_tier <= 3)",
+        # Re-anchored 2026-08-06: the predicate moved into `_visibility_filters`, which
+        # is now the one place both projections read it from. One occurrence, one mutant.
+        "        documents.c.access_tier <= int(identity.clearance),",
+        "        documents.c.access_tier <= 3,",
         ("apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",),
     ),
     Mutant(
@@ -107,9 +109,15 @@ MUTANTS = (
     Mutant(
         "M06_RELEASE_SCOPE_BROADENED",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "retrievable = self.list_retrievable_spans(identity, corpus_ids, as_of)",
+        # Re-anchored 2026-08-06: the release id is computed from the version projection
+        # rather than by materialising every span. The scope it is asked for is what
+        # this still mutates.
         (
-            "retrievable = self.list_retrievable_spans("
+            "            statement = retrieval_queries.release_projection("
+            "identity, authorized_corpora, as_of)"
+        ),
+        (
+            "            statement = retrieval_queries.release_projection("
             "identity.model_copy(update={'clearance': AccessTier.RESTRICTED, "
             "'corpora': frozenset({'public', 'restricted-demo'})}), "
             "frozenset({'public', 'restricted-demo'}), as_of)"
@@ -1785,6 +1793,20 @@ MUTANTS = (
         (
             "apps/api/tests/test_retrieval_supersession_cost.py::"
             "test_the_supersession_test_is_not_evaluated_per_matching_span",
+        ),
+    ),
+    Mutant(
+        # The old path got currency for free: it built a version model per span and
+        # called `is_valid_on`. Computing the digest from a projection means asking the
+        # same question explicitly, and dropping it puts tomorrow's order into today's
+        # fingerprint — every answer stamped with a corpus it was not drawn from.
+        "M196_RELEASE_ID_IGNORES_CURRENCY",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                if retrieval_queries.release_row_is_current(row, as_of)",
+        "                if True",
+        (
+            "apps/api/tests/test_corpus_release_identity.py::"
+            "test_a_version_not_yet_in_force_is_not_in_the_release",
         ),
     ),
     Mutant(

@@ -17,12 +17,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy import text as sql_text
 from sqlalchemy.engine import RowMapping
 
 from korpus.domain.models import (
+    AuthorityClass,
     DocumentRecord,
     DocumentVersionRecord,
     EvidenceSpanRecord,
@@ -46,9 +48,16 @@ def compartment_predicate(identity: Identity) -> Any:
     return ~unauthorized.exists()
 
 
-def retrievable_projection(
+def _visibility_filters(
     identity: Identity, authorized_corpora: frozenset[str], as_of: date
-) -> Any:
+) -> list[Any]:
+    """Which versions this reader may retrieve at all, as clauses both projections share.
+
+    Written once because a second copy is how the two drift: the release identity below
+    is meant to be the fingerprint of exactly the material an answer could have been
+    drawn from, and a projection that filters slightly differently would produce a
+    release id for a corpus nobody can read.
+    """
     allowed_classifications = row_mapping.allowed_classifications(identity.clearance)
     superseding = versions.alias("superseding_version")
     active_superseder = (
@@ -75,6 +84,56 @@ def retrievable_projection(
         )
         .exists()
     )
+    return [
+        versions.c.review_state == ReviewState.APPROVED.value,
+        documents.c.corpus_id.in_(sorted(authorized_corpora)),
+        documents.c.access_tier <= int(identity.clearance),
+        documents.c.classification.in_(allowed_classifications),
+        compartment_predicate(identity),
+        ~active_superseder,
+    ]
+
+
+def release_projection(
+    identity: Identity, authorized_corpora: frozenset[str], as_of: date
+) -> Any:
+    """The versions behind the retrievable spans, once each, without the spans.
+
+    `corpus_release_id` used to read the full span projection and build a span, a
+    document and a version model for every row. On 116 229 spans that was 232 458
+    Pydantic constructions per question — measured 2026-08-06 as 17 s of a 23 s answer,
+    while the retrieval it guards has a 1200 ms budget. The digest only ever used four
+    strings per *version*, and there are 1616 of those.
+
+    Joined through `evidence_spans` deliberately: a version with no retrievable span
+    contributes nothing to any answer, and the set this identifies is the set an answer
+    could be drawn from.
+    """
+    return (
+        select(
+            documents.c.id.label("document_id"),
+            versions.c.id.label("version_id"),
+            versions.c.source_hash,
+            versions.c.review_state,
+            versions.c.publication_date,
+            versions.c.effective_from,
+            versions.c.effective_until,
+            versions.c.rescinded_at,
+        )
+        # Stated because no span column is selected: without it SQLAlchemy cannot tell
+        # which of the three tables the join starts from.
+        .select_from(spans)
+        .join(versions, spans.c.version_id == versions.c.id)
+        .join(documents, versions.c.document_id == documents.c.id)
+        .where(*_visibility_filters(identity, authorized_corpora, as_of))
+        .distinct()
+        .order_by(documents.c.id, versions.c.id)
+    )
+
+
+def retrievable_projection(
+    identity: Identity, authorized_corpora: frozenset[str], as_of: date
+) -> Any:
     return (
         select(
             spans.c.id.label("span_id"),
@@ -133,12 +192,7 @@ def retrievable_projection(
         )
         .join(versions, spans.c.version_id == versions.c.id)
         .join(documents, versions.c.document_id == documents.c.id)
-        .where(versions.c.review_state == ReviewState.APPROVED.value)
-        .where(documents.c.corpus_id.in_(sorted(authorized_corpora)))
-        .where(documents.c.access_tier <= int(identity.clearance))
-        .where(documents.c.classification.in_(allowed_classifications))
-        .where(compartment_predicate(identity))
-        .where(~active_superseder)
+        .where(*_visibility_filters(identity, authorized_corpora, as_of))
         .order_by(documents.c.id, versions.c.created_at.desc(), spans.c.ordinal)
     )
 
@@ -158,6 +212,33 @@ def materialize_current(
             )
         )
     return authorized
+
+
+def release_row_is_current(row: Any, as_of: date) -> bool:
+    """`DocumentVersionRecord.is_valid_on`, asked of a row that carries only dates.
+
+    The four date fields are lifted into the domain record rather than compared here:
+    the rule about what is in force — the lower bound standing in from
+    `publication_date`, the exclusive rescission boundary — lives in one place, and a
+    reimplementation beside it is how two answers to "is this current" appear.
+    """
+    probe = DocumentVersionRecord(
+        id=UUID(str(row["version_id"])),
+        document_id=UUID(str(row["document_id"])),
+        revision="",
+        source_hash=str(row["source_hash"]),
+        object_key="",
+        mime_type="application/octet-stream",
+        publication_date=row["publication_date"],
+        effective_from=row["effective_from"],
+        effective_until=row["effective_until"],
+        rescinded_at=row["rescinded_at"],
+        # Not read by `is_valid_on`, and not projected: naming it here keeps the probe
+        # constructible without widening the query for a field the digest never sees.
+        authority=AuthorityClass.UNKNOWN,
+        review_state=ReviewState(str(row["review_state"])),
+    )
+    return probe.is_valid_on(as_of)
 
 
 def candidate_span_query(
