@@ -310,3 +310,21 @@ test("a location that sets a header without repeating the CSP is caught", async 
   assert.notEqual(status, 0);
   assert.match(output, /serves no CSP at all/);
 });
+
+test("a colour token below AA contrast is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/styles.css", source =>
+      source.replace("  --muted-2: #858b7d;", "  --muted-2: #6d7365;")));
+  assert.notEqual(status, 0);
+  assert.match(output, /below WCAG 2\.2 AA/);
+});
+
+test("reading the first :root instead of the last is caught", async () => {
+  // The dual. This file has more than one :root and the browser applies the last; a
+  // check that read the first would pass while the page failed, which is exactly the
+  // state the palette was in.
+  const {status} = await runWith(edit =>
+    edit("public/styles.css", source =>
+      source.replace("  --muted-2: #8a929a;", "  --muted-2: #6d7365;")));
+  assert.equal(status, 0);
+});

@@ -5,8 +5,8 @@
   "scope_claim": "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded local predicate has executable evidence; it is not production authorization.",
   "counts": {
     "CLOSED_LOCAL": 24,
-    "EXTERNAL_DEBT": 18,
-    "MITIGATED_LOCAL": 57
+    "EXTERNAL_DEBT": 17,
+    "MITIGATED_LOCAL": 58
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -1564,8 +1564,12 @@
       "required_action": "WCAG 2.2 AA audit, keyboard/screen-reader, cognitive load tests.",
       "tools_methods": "axe-core/Playwright; manual AT testing",
       "acceptance_predicate": "Zero critical a11y defects; operational tasks pass usability tests.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/scripts/a11y_runtime.js",
+        "apps/web/scripts/validate.mjs",
+        "apps/web/tests/validate_gate.test.mjs"
+      ],
       "v5_remaining_acceptance": "Zero critical a11y defects; operational tasks pass usability tests."
     },
     {

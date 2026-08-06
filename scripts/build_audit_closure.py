@@ -71,6 +71,11 @@ MITIGATED_LOCAL = {
     "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
                  # prepared the least-privilege role. Canary and automated rollback stay
                  # external.
+    "WEB-002",   # WCAG 2.2 AA measured in the rendered page rather than asserted in a
+                 # comment: target size, focus visibility, keyboard focusability,
+                 # contrast, the skip link and a live region. Six contrast failures found
+                 # and fixed; the palette now passes and a gate computes it. Screen-reader
+                 # behaviour and cognitive-load testing stay external.
     "SRE-001",   # four objectives declared with the conditions they were set under and
                  # judged against the load report, so a change that makes the system
                  # slower fails a gate. An error budget is a decision about how much
@@ -129,7 +134,7 @@ EXTERNAL_DEBT = {
     "INF-003", "INF-004", "INF-006", "INF-012",
     "SRE-002",
     "SUP-003", "SUP-007", "SUP-008",
-    "WEB-002", "AUD-003",
+    "AUD-003",
     "OPS-003", "OPS-005",
 }
 
@@ -156,6 +161,11 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/migrations",
         "scripts/prepare_postgres_role.py",
         "apps/api/docker-entrypoint.sh",
+    ],
+    "WEB-002": [
+        "apps/web/scripts/a11y_runtime.js",
+        "apps/web/scripts/validate.mjs",
+        "apps/web/tests/validate_gate.test.mjs",
     ],
     "SRE-001": [
         "scripts/service_objectives.py",

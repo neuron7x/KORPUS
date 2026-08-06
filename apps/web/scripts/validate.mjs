@@ -355,4 +355,53 @@ function checkAccessibility(page, source) {
 }
 
 for (const page of PAGES) checkAccessibility(page, await read(page));
+// WCAG 2.2 §1.4.3 AA over the colour tokens, computed rather than asserted in a comment.
+//
+// The palette carried a sentence saying contrast "is checked, not estimated" and listing
+// --text, --muted and --accent. --muted-2 was not in the list and was 3.59:1 on
+// --surface-2 — the colour of every hint under the identity fields. A claim that names
+// the tokens it checked is not a claim about the ones it did not, and a comment cannot
+// tell the difference. This can.
+const relative = (component) => {
+  const c = component / 255;
+  return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+};
+const luminance = (hex) => {
+  const [r, g, b] = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16));
+  return 0.2126 * relative(r) + 0.7152 * relative(g) + 0.0722 * relative(b);
+};
+const contrast = (a, b) => {
+  const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (high + 0.05) / (low + 0.05);
+};
+
+{
+  const css = await read("public/styles.css");
+  // The last :root wins, and this file has more than one. Reading the first would check
+  // a palette the browser never applies.
+  const blocks = [...css.matchAll(/:root\s*\{([^}]*)\}/g)];
+  if (blocks.length === 0) throw new Error("accessibility: no :root palette found in styles.css");
+  const active = blocks[blocks.length - 1][1];
+  const token = (name) => /^#[0-9a-f]{6}$/i.test(
+    new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(active)?.[1] ?? "",
+  ) ? new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(active)[1] : null;
+
+  const surfaces = ["bg", "surface", "surface-2"].map(token).filter(Boolean);
+  if (surfaces.length === 0) throw new Error("accessibility: no surface tokens to check against");
+  for (const name of ["text", "muted", "muted-2"]) {
+    const colour = token(name);
+    if (!colour) throw new Error(`accessibility: palette has no --${name} to check`);
+    for (const surface of surfaces) {
+      const ratio = contrast(colour, surface);
+      if (ratio < 4.5) {
+        throw new Error(
+          `accessibility: --${name} (${colour}) on ${surface} is ${ratio.toFixed(2)}:1, ` +
+          "below WCAG 2.2 AA \u00a71.4.3 (4.5:1) for body text",
+        );
+      }
+    }
+  }
+  console.log(`contrast validated for ${surfaces.length} surfaces`);
+}
+
 console.log(`accessibility validation passed for ${PAGES.length} pages`);

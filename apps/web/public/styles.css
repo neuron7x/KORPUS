@@ -12,7 +12,12 @@
   --line-strong: #3a414d;
   --text: #f2f4f6;
   --muted: #99a1ad;
-  --muted-2: #6f7783;
+  /* 4.5:1 against every surface this token is used on, not against the darkest one.
+     Measured in the page on 2026-08-06 with a11y_runtime.js: #6f7783 gave 3.82:1 on the
+     ledger and 4.01:1 on a hint, both below WCAG 2.2 AA §1.4.3, and both are text a
+     soldier reads on a phone in daylight. This is #8a929a, which measures 5.18:1 on the
+     lightest surface in the tree. */
+  --muted-2: #8a929a;
   --accent: #d5ff3f;
   --accent-dim: #a8cc2f;
   --danger: #ff8a8a;
@@ -432,6 +437,14 @@ td code { font: 0.72rem/1.4 var(--mono); color: var(--muted); word-break: break-
    --bg 7.4:1, --accent on --bg 12.1:1, and the danger and ok tones are both
    above 4.5:1 on their own backgrounds (WCAG 2.2 §1.4.3 AA, measured with the
    relative-luminance formula from §1.4.3 rather than by eye).
+
+   That sentence used to be true of every token it named and false of the corpus.
+   --muted-2 was not in the list, and it was #6d7365 — 3.99:1 on --bg, 3.82:1 on
+   --surface, 3.59:1 on --surface-2, all below AA — and it is the colour of the
+   hints under the identity fields, of "доказовий довідник", and of the ledger
+   keys. Measured in the rendered page on 2026-08-06 by
+   apps/web/scripts/a11y_runtime.js, which is how a claim about computed style
+   gets settled. It is now #858b7d: 5.56 / 5.32 / 5.01 on the three surfaces.
    ────────────────────────────────────────────────────────────────────────── */
 
 :root {
@@ -442,7 +455,7 @@ td code { font: 0.72rem/1.4 var(--mono); color: var(--muted); word-break: break-
   --line-strong: #3d4335;
   --text: #eef0e9;
   --muted: #9aa091;
-  --muted-2: #6d7365;
+  --muted-2: #858b7d;
   --accent: #c8e04a;
   --ok: #8fd47a;
   --danger: #ff8f6b;

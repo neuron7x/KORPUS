@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 57 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 18 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 58 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 17 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -73,7 +73,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **COD-008 · P2 · MITIGATED_LOCAL** — Web lint/typecheck є лише asset-existence validator
 - **COD-009 · P2 · MITIGATED_LOCAL** — Критичні модулі мають низьке покриття
 - **WEB-001 · P1 · MITIGATED_LOCAL** — UI покриває лише запит-відповідь
-- **WEB-002 · P2 · EXTERNAL_DEBT** — Немає accessibility/usability evidence
+- **WEB-002 · P2 · MITIGATED_LOCAL** — Немає accessibility/usability evidence
 - **AUD-001 · P1 · MITIGATED_LOCAL** — Audit HMAC key доступний application process
 - **AUD-002 · P1 · MITIGATED_LOCAL** — Remote anchor protocol custom HTTP/HMAC
 - **AUD-003 · P1 · EXTERNAL_DEBT** — Key rotation/recovery ceremony не доведена
