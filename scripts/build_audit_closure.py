@@ -71,6 +71,14 @@ MITIGATED_LOCAL = {
     "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
                  # prepared the least-privilege role. Canary and automated rollback stay
                  # external.
+    "SRE-001",   # four objectives declared with the conditions they were set under and
+                 # judged against the load report, so a change that makes the system
+                 # slower fails a gate. An error budget is a decision about how much
+                 # failure is acceptable to whom, and stays external.
+    "INF-008",   # the rated concurrency is the one at which the measured p95 still fits
+                 # the objective — eight, p95 3.269s — rather than the one at which the
+                 # process survives. Autoscaling and admission budgets against a real
+                 # capacity plan stay external.
     "ING-012",   # three SIGKILLs at random points, resumed, reconciled by content
                  # against an uninterrupted run of the same manifest — document titles,
                  # source hashes, review states, every span's text hash. A full-scale
@@ -118,8 +126,8 @@ EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
     "IAM-008",
     "RAG-001", "RAG-003",
-    "INF-003", "INF-004", "INF-006", "INF-008", "INF-012",
-    "SRE-001", "SRE-002",
+    "INF-003", "INF-004", "INF-006", "INF-012",
+    "SRE-002",
     "SUP-003", "SUP-007", "SUP-008",
     "WEB-002", "AUD-003",
     "OPS-003", "OPS-005",
@@ -148,6 +156,14 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/migrations",
         "scripts/prepare_postgres_role.py",
         "apps/api/docker-entrypoint.sh",
+    ],
+    "SRE-001": [
+        "scripts/service_objectives.py",
+        "apps/api/tests/test_service_objectives.py",
+    ],
+    "INF-008": [
+        "scripts/service_objectives.py",
+        "scripts/load_probe.py",
     ],
     "SRE-004": [
         "scripts/chaos_matrix.py",

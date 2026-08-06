@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 55 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 20 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 57 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 18 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -47,12 +47,12 @@ This register classifies all 99 v4 findings without converting missing external 
 - **INF-005 · P0 · MITIGATED_LOCAL** — Backup/restore не доведено на live production-like PostgreSQL
 - **INF-006 · P0 · EXTERNAL_DEBT** — Немає production secret manager/KMS/HSM і rotation evidence
 - **INF-007 · P1 · MITIGATED_LOCAL** — API має загальний egress без destination allowlist
-- **INF-008 · P1 · EXTERNAL_DEBT** — Resource limits не калібровані capacity plan
+- **INF-008 · P1 · MITIGATED_LOCAL** — Resource limits не калібровані capacity plan
 - **INF-009 · P1 · MITIGATED_LOCAL** — OTel collector healthcheck перевіряє config, не serving path
 - **INF-010 · P1 · MITIGATED_LOCAL** — Local audit anchor не є незалежним trust domain
 - **INF-011 · P1 · MITIGATED_LOCAL** — Немає deployment rollback/canary/schema compatibility proof
 - **INF-012 · P1 · EXTERNAL_DEBT** — Немає offsite/immutable backup schedule and retention execution
-- **SRE-001 · P0 · EXTERNAL_DEBT** — Немає SLO/SLI/error-budget contract
+- **SRE-001 · P0 · MITIGATED_LOCAL** — Немає SLO/SLI/error-budget contract
 - **SRE-002 · P0 · EXTERNAL_DEBT** — Немає on-call ownership та incident exercises
 - **SRE-003 · P1 · MITIGATED_LOCAL** — Observability не має durable backend
 - **SRE-004 · P1 · MITIGATED_LOCAL** — Немає chaos/failure-injection matrix

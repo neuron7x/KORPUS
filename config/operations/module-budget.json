@@ -470,6 +470,11 @@
       "lines": 96,
       "max_complexity": 8
     },
+    "scripts/service_objectives.py": {
+      "lines": 213,
+      "max_complexity": 10,
+      "reason": "what the deployment promises, judged against what it was measured doing"
+    },
     "scripts/snapshot_assurance.py": {
       "lines": 149,
       "max_complexity": 8

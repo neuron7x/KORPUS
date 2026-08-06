@@ -4,8 +4,8 @@
   "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
   "total_remaining": 75,
   "counts": {
-    "EXTERNAL_DEBT": 20,
-    "MITIGATED_LOCAL": 55
+    "EXTERNAL_DEBT": 18,
+    "MITIGATED_LOCAL": 57
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -663,8 +663,11 @@
       "required_action": "Load/capacity model by workload; autoscaling/admission budgets; saturation alerts.",
       "tools_methods": "k6/Locust; cAdvisor; pg metrics",
       "acceptance_predicate": "Limits derived from measured envelope and documented headroom.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/service_objectives.py",
+        "scripts/load_probe.py"
+      ],
       "v5_remaining_acceptance": "Limits derived from measured envelope and documented headroom."
     },
     {
@@ -748,8 +751,11 @@
       "required_action": "Define user journeys, SLIs, SLOs, error budget, alert policy.",
       "tools_methods": "Google SRE methods; Prometheus/OpenTelemetry",
       "acceptance_predicate": "Approved SLO document and burn-rate alerts validated.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/service_objectives.py",
+        "apps/api/tests/test_service_objectives.py"
+      ],
       "v5_remaining_acceptance": "Approved SLO document and burn-rate alerts validated."
     },
     {
