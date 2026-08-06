@@ -32,8 +32,11 @@ if [[ ! -f "$STATE/jwt-secret.txt" ]]; then
 fi
 
 export KORPUS_ENVIRONMENT=local
-export KORPUS_DATABASE_URL="sqlite:///$ROOT/var/korpus.db"
-export KORPUS_OBJECT_ROOT="$ROOT/var/objects"
+# The imported Drive corpus, not the bootstrap fixture. SQLite is in WAL mode here, so
+# the reader serves while `import_corpus.py` is still writing: the base grows under a
+# running site instead of the site waiting hours for the last document.
+export KORPUS_DATABASE_URL="${KORPUS_DATABASE_URL:-sqlite:///$ROOT/var/korpus-ml.db}"
+export KORPUS_OBJECT_ROOT="${KORPUS_OBJECT_ROOT:-$ROOT/var/objects-ml}"
 export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
 export KORPUS_AUTH_MODE=jwt
 export KORPUS_JWT_SECRET="$(cat "$STATE/jwt-secret.txt")"

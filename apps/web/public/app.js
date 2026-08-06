@@ -161,6 +161,7 @@ function enterWorkingState() {
   entry.hidden = true;
   standing.hidden = false;
   askSection.hidden = false;
+  corpus.hidden = false;
   query.focus();
 }
 
@@ -290,6 +291,62 @@ query.addEventListener("keydown", event => {
     event.preventDefault();
     queryForm.requestSubmit();
   }
+});
+
+
+// ---------------------------------------------------------------- corpus
+
+// The corpus listing is a fact about scope, not an answer, and it is rendered as one:
+// counts per subject and the titles under them. No relevance, no ranking, nothing that
+// could be mistaken for the system having found something.
+//
+// Loaded once, on first open. Listing every document is a large response and requesting
+// it on page load would spend it on every visitor who only wanted to ask a question.
+const corpus = $("corpus");
+const corpusBody = $("corpus-body");
+let corpusLoaded = false;
+
+function groupByType(documents) {
+  const groups = new Map();
+  for (const document_ of documents) {
+    const key = document_.document_type || "без розділу";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(document_);
+  }
+  return [...groups.entries()].sort((left, right) => right[1].length - left[1].length);
+}
+
+function renderCorpus(documents) {
+  if (!documents.length) {
+    corpusBody.innerHTML = `<p class="note">Корпус порожній для вашого допуску.</p>`;
+    return;
+  }
+  const groups = groupByType(documents);
+  corpusBody.innerHTML =
+    `<p class="corpus-total"><strong>${documents.length}</strong> документів · ` +
+    `<strong>${groups.length}</strong> розділів · доступних вашому допуску</p>` +
+    groups.map(([type, items]) =>
+      `<details class="corpus-group"><summary>${escapeHtml(type)} ` +
+      `<span class="corpus-count">${items.length}</span></summary><ul>${
+        items.slice(0, 200).map(item =>
+          `<li>${escapeHtml(item.canonical_title)}</li>`).join("")
+      }${
+        // Named rather than silently cut: a list that stops at two hundred and says
+        // nothing reads as a complete list of two hundred.
+        items.length > 200 ? `<li class="note">…і ще ${items.length - 200}</li>` : ""
+      }</ul></details>`).join("");
+}
+
+corpus.addEventListener("toggle", () => {
+  if (!corpus.open || corpusLoaded) return;
+  corpusLoaded = true;
+  call("/v1/documents")
+    .then(renderCorpus)
+    .catch(error => {
+      corpusLoaded = false;
+      corpusBody.innerHTML = `<p class="note">Перелік недоступний: ${escapeHtml(
+        error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
+    });
 });
 
 loadIdentity().catch(() => forgetIdentity("не автентифіковано"));

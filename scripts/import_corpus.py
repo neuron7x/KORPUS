@@ -282,10 +282,21 @@ def main() -> int:
                     _mime_for(path),
                     path.read_bytes(),
                 )
-            except (ValueError, PermissionError, LookupError) as error:
+            except Exception as error:  # noqa: BLE001 — see below
                 # Named per file, and the run continues. A batch that stops at the first
                 # bad document tells an operator one thing about a hundred files.
-                outcome.refused.append({"file": relative, "reason": str(error)})
+                #
+                # Deliberately broad, and the narrow tuple that used to be here is why:
+                # it named the refusals the parser was *designed* to raise, so the first
+                # library PDF whose page tree pypdf could not walk raised PdfReadError
+                # instead and ended a 1740-document run at 918 — after five hours, with
+                # no report written, because the report is printed at the end.
+                #
+                # The exception type is recorded, so a class of failure nobody predicted
+                # is visible in the output as itself rather than as "refused".
+                outcome.refused.append(
+                    {"file": relative, "reason": f"{type(error).__name__}: {error}"[:300]}
+                )
                 continue
             if result.duplicate:
                 outcome.duplicates.append(relative)

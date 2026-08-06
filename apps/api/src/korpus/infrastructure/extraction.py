@@ -219,7 +219,17 @@ def extract_pages_from_path(
             raise ValueError("malformed PDF") from exc
         if reader.is_encrypted:
             raise ValueError("encrypted PDF is not accepted")
-        if len(reader.pages) > max_pdf_pages:
+        try:
+            # `PdfReader(strict=True)` parses the trailer, not the page tree: the tree is
+            # walked lazily, here, on the first `len`. So a document whose page tree is
+            # malformed passed construction and raised `PdfReadError` from this line —
+            # the one statement between two blocks that both convert it. It reached
+            # `import_corpus.py`, whose per-file handler catches ValueError and its
+            # relatives, and killed a 1740-document batch at document 918.
+            page_count = len(reader.pages)
+        except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:
+            raise ValueError("malformed PDF page tree") from exc
+        if page_count > max_pdf_pages:
             raise ValueError("PDF page count exceeds configured limit")
         pages: list[ExtractedPage] = []
         try:

@@ -612,3 +612,49 @@ input:focus-visible, textarea:focus-visible { border-color: var(--accent); }
    paint. Declared last and with the only !important in this file, because a section the
    script has hidden must be hidden whatever else matches it. */
 [hidden] { display: none !important; }
+
+/* --- База: обсяг корпусу ------------------------------------------------- */
+/* A scope statement, not a result. Deliberately quieter than the answer panel: the
+   same visual weight would make "here is what exists" read like "here is what I
+   found". */
+.corpus {
+  border: 1px solid var(--line, #2a2c26);
+  border-left: 3px solid var(--line, #2a2c26);
+  background: transparent;
+  margin-top: 1.5rem;
+}
+.corpus > summary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  min-height: 44px;               /* WCAG 2.2 §2.5.8 */
+  display: flex;
+  align-items: center;
+}
+.corpus > summary:focus-visible { outline: 2px solid var(--accent, #b8c34a); outline-offset: 2px; }
+.corpus-body { padding: 0 1rem 1rem; }
+.corpus-total { margin: 0 0 0.75rem; font-size: 0.9rem; }
+.corpus-group > summary {
+  cursor: pointer;
+  padding: 0.5rem 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line, #2a2c26);
+}
+.corpus-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+.corpus-group ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.1rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.corpus-group li { font-size: 0.88rem; line-height: 1.6; }

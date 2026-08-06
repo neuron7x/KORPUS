@@ -1753,6 +1753,21 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # pypdf walks the page tree lazily, so `PdfReader(strict=True)` succeeding says
+        # nothing about it. Unguarded, the walk raised out of this module's vocabulary
+        # and ended a 1740-document import at 918.
+        "M194_PAGE_TREE_WALK_LEFT_UNGUARDED",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        '        except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:\n'
+        '            raise ValueError("malformed PDF page tree") from exc',
+        '        except RecursionError as exc:\n'
+        '            raise ValueError("malformed PDF page tree") from exc',
+        (
+            "apps/api/tests/test_malformed_pdf_containment.py::"
+            "test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

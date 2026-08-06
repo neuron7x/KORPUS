@@ -129,6 +129,17 @@
     <section id="result" class="panel hidden" role="status" aria-live="polite"
              aria-label="Результат запиту"></section>
 
+    <!-- What is actually in the corpus, on demand. The first question anyone asks of a
+         reference system is not "what does it answer" but "what does it hold" — and a
+         system that will not say is asking to be trusted rather than checked. Collapsed
+         and loaded on first open: the query path stays the first thing on the screen. -->
+    <details id="corpus" class="corpus" hidden>
+      <summary>База: що в корпусі</summary>
+      <div id="corpus-body" class="corpus-body">
+        <p class="note">Завантаження переліку…</p>
+      </div>
+    </details>
+
     <section class="grid" aria-label="Що система гарантує">
       <article><h3>Чинність</h3><p>Редакція, дата набрання сили, заміщення — на дату питання.</p></article>
       <article><h3>Допуск</h3><p>Ідентичність і політика перевіряються до пошуку, не після.</p></article>
