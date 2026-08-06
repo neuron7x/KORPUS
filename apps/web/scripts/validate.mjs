@@ -229,6 +229,36 @@ if (!/const API_PREFIX = "\/api\/";/.test(serve)) {
 if (!/location \/api\/ \{/.test(nginx)) {
   throw new Error("nginx no longer serves /api/, so the dev proxy mirrors nothing");
 }
+// nginx `add_header` REPLACES the inherited set rather than merging with it, so a
+// location that adds one header of its own drops every header declared above it.
+// Measured 2026-08-06 against the real edge: `curl -I /` returned no
+// Content-Security-Policy, because `location = /index.html` sets Cache-Control. Every
+// page and asset the browser loads was served without CSP, without X-Frame-Options and
+// without nosniff — and the whole no-framework, self-only design rests on that CSP.
+//
+// There is no merge directive in stock nginx, so the set is repeated per location. This
+// asserts the repetition: any block that sets a header must also set the CSP.
+{
+  const blocks = [...nginx.matchAll(/location[^{]*\{([^{}]*)\}/g)].map((match) => match[1]);
+  const carrying = blocks.filter((body) => /add_header/.test(body));
+  if (carrying.length < 4) {
+    throw new Error("fewer location blocks set headers than expected; this check is stale");
+  }
+  for (const body of carrying) {
+    if (!/add_header Content-Security-Policy/.test(body)) {
+      throw new Error(
+        "a location sets add_header without repeating the Content-Security-Policy; " +
+          "nginx replaces the inherited set, so that location serves no CSP at all",
+      );
+    }
+    for (const header of ["X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"]) {
+      if (!new RegExp(`add_header ${header}`).test(body)) {
+        throw new Error(`a location that sets headers does not repeat ${header}`);
+      }
+    }
+  }
+}
+
 // nginx's `proxy_pass http://api:8000/` — note the trailing slash — strips the prefix.
 // The dev proxy must strip it too, or /api/v1/answers arrives upstream as /api/v1/answers.
 if (!/proxy_pass http:\/\/api:8000\/;/.test(nginx)) {

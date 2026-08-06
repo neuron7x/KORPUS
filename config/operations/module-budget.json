@@ -370,6 +370,11 @@
       "lines": 146,
       "max_complexity": 6
     },
+    "scripts/mint_review_token.py": {
+      "lines": 79,
+      "max_complexity": 6,
+      "reason": "a short-lived bearer token for a review session; not a production path"
+    },
     "scripts/openapi_contract.py": {
       "lines": 43,
       "max_complexity": 5

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -122,6 +122,23 @@ retention-plan:
 # nothing ran it — a citation that names a file rather than a run, which is the shape
 # ADR-0008 exists to refuse. `--limit 0` makes it a smoke run against whatever chain is
 # present: the batch is empty, and an empty batch is the ordinary case, not a failure.
+# A review session over a LAN: the real nginx edge, the API in jwt mode, a short-lived
+# token. `auth_mode=dev` trusts whoever connects and is refused on any non-loopback bind
+# for exactly that reason, so showing this to people who are not at this keyboard needs
+# a signed token rather than a wider bind.
+#
+# In jwt mode the token *carries* the entitlements — the server-side profile projects
+# identity only under oidc, which controlled environments require. Whoever holds the
+# token holds what is written in it, which is why it is short-lived and why the secret
+# is mode 600.
+review-token:
+	PYTHONPATH=apps/api/src $(PY) scripts/mint_review_token.py \
+	  --subject $(or $(SUBJECT),reviewer) \
+	  --minutes $(or $(MINUTES),120) \
+	  --roles $(or $(ROLES),user) \
+	  --clearance $(or $(CLEARANCE),public) \
+	  --corpora $(or $(CORPORA),public)
+
 audit-export:
 	PYTHONPATH=apps/api/src $(PY) scripts/export_audit.py --limit $(or $(LIMIT),1000)
 

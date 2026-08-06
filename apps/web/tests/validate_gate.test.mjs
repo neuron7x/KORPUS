@@ -287,3 +287,13 @@ test("a hidden section that a display rule can override is caught", async () => 
   assert.notEqual(status, 0);
   assert.match(output, /can be overridden by a display rule/);
 });
+
+test("a location that sets a header without repeating the CSP is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("nginx.conf", source =>
+      source.replace(
+        /location = \/config\.js \{[\s\S]*?\n    \}/,
+        'location = /config.js { add_header Cache-Control "no-store" always; }')));
+  assert.notEqual(status, 0);
+  assert.match(output, /serves no CSP at all/);
+});
