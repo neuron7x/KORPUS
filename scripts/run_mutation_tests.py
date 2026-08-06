@@ -1272,13 +1272,39 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # The predicate became a three-line `if` on 2026-08-06 when `tracked_secrets`
+        # started asking git what is tracked rather than what is present.
         "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
-        '        if relative.startswith("infra/secrets/") and path.suffix == ".txt":',
-        "        if False:",
+        '            relative.startswith("infra/secrets/")',
+        "            False",
         (
             "apps/api/tests/test_repository_register.py::"
             "test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
+    ),
+    Mutant(
+        # The fallback direction. Outside a repository nothing can tell an ignored
+        # secret from a shipped one, so every secret file present must be a finding;
+        # returning an empty set instead would make a packaged distribution report
+        # clean over a credential it ships.
+        "M170_UNTRACKABLE_SECRETS_ASSUMED_IGNORED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "    git_tracked = tracked if tracked is not None else _EVERYTHING",
+        "    git_tracked = tracked if tracked is not None else frozenset()",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
+    ),
+    Mutant(
+        "M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "            and relative in git_tracked",
+        "            and True",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_a_secret_git_ignores_is_not_reported_as_tracked",
         ),
     ),
     Mutant(
