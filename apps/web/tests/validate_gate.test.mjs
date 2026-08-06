@@ -24,6 +24,7 @@ async function runWith(mutate) {
   try {
     await cp(join(WEB, "public"), join(root, "public"), {recursive: true});
     await cp(join(WEB, "scripts"), join(root, "scripts"), {recursive: true});
+    await cp(join(WEB, "nginx.conf"), join(root, "nginx.conf"));
     const edit = async (file, transform) => {
       const path = join(root, file);
       await writeFile(path, transform(await readFile(path, "utf8")), "utf8");
@@ -148,7 +149,8 @@ test("a form control losing its label is caught", async () => {
 
 test("a second h1 on the console page is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/console.html", source => source.replace("<h2 id=\"curator-heading\"", "<h1 id=\"curator-heading\"")));
+    edit("public/console.html", source =>
+      source.replace("<h2>Куратор · внесення джерела</h2>", "<h1>Куратор · внесення джерела</h1>")));
   assert.notEqual(status, 0);
   assert.match(output, /accessibility \[public\/console\.html\]/);
 });
@@ -182,4 +184,50 @@ test("an empty asset is caught", async () => {
   const {status, output} = await runWith(edit => edit("public/console_rules.js", () => ""));
   assert.notEqual(status, 0);
   assert.match(output, /invalid web asset/);
+});
+
+test("a dev proxy that stops stripping the prefix nginx strips is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source => source.replace("API_PREFIX.length - 1", "0")));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer strips the prefix nginx strips/);
+});
+
+test("a dev proxy whose prefix drifts from nginx is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source =>
+      source.replace('const API_PREFIX = "/api/";', 'const API_PREFIX = "/backend/";')));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer declares the API prefix/);
+});
+
+test("dropping nginx's prefix strip is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("nginx.conf", source =>
+      source.replace("proxy_pass http://api:8000/;", "proxy_pass http://api:8000;")));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer strips the \/api prefix/);
+});
+
+test("a dev server that stops saying it is not the production edge is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source =>
+      source.replace("development proxy: no rate limit, no CSP, no TLS", "ready")));
+  assert.notEqual(status, 0);
+  assert.match(output, /not the production edge/);
+});
+
+test("a syntax error in the dev server is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("scripts/serve.mjs", source => `${source}\nconst broken = ;\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /syntax check failed for scripts\/serve\.mjs/);
+});
+
+test("a tab without its panel is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace('<section id="console-auditor"', '<section id="console-audit"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /operator console missing surface: console-auditor/);
 });

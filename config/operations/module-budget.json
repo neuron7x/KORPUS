@@ -254,7 +254,7 @@
     },
     "apps/api/src/korpus/repository_requirements.py": {
       "lines": null,
-      "max_complexity": 18
+      "max_complexity": 19
     },
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
@@ -309,8 +309,9 @@
       "max_complexity": 12
     },
     "scripts/bootstrap_local.py": {
-      "lines": 83,
-      "max_complexity": 3
+      "lines": 97,
+      "max_complexity": 3,
+      "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
     "scripts/build_audit_closure.py": {
       "lines": null,

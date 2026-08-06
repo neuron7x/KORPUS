@@ -19,12 +19,23 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from korpus.application.requirements import Requirement
+
+
+class _Everything(frozenset[str]):
+    """Contains every path. Used when git cannot say which secrets are tracked."""
+
+    def __contains__(self, item: object) -> bool:
+        return True
+
+
+_EVERYTHING = _Everything()
 
 RELEASE_VERSION = "5.0.0"
 MAX_FILE_BYTES = 5_000_000
@@ -178,6 +189,12 @@ class RepositoryContext:
 
 def load_context(root: Path) -> RepositoryContext:
     context = RepositoryContext(root=root)
+    tracked = _git_tracked_secrets(root)
+    # None means git could not answer — a packaged distribution, no repository. Falling
+    # back to "every secret file present is tracked" is the conservative direction: a
+    # shipped credential must fail, and outside a repository nothing can tell a shipped
+    # one from an ignored one.
+    git_tracked = tracked if tracked is not None else _EVERYTHING
 
     def read_json(relative: str) -> Any:
         path = root / relative
@@ -214,9 +231,46 @@ def load_context(root: Path) -> RepositoryContext:
             text = path.read_text(errors="ignore")
             if any(pattern.search(text) for pattern in PLACEHOLDER_PATTERNS):
                 context.placeholders.append(relative)
-        if relative.startswith("infra/secrets/") and path.suffix == ".txt":
+        if (
+            relative.startswith("infra/secrets/")
+            and path.suffix == ".txt"
+            and relative in git_tracked
+        ):
             context.tracked_secrets.append(relative)
     return context
+
+
+def _git_tracked_secrets(root: Path) -> frozenset[str] | None:
+    """Paths under infra/secrets that git is actually tracking.
+
+    The requirement is named `tracked_secrets` and measured presence on disk. Those are
+    different things, and the difference is this repository's own documented workflow:
+    `make infra-secrets` writes eight key files there — `infra/secrets/.gitignore` says
+    `*.txt`, so git never sees them — and running it made `make validate` fail on files
+    git was explicitly ignoring. A developer following the README broke the validator by
+    following the README (found 2026-08-06 while starting the local stack).
+
+    Returns None when git cannot answer: a packaged distribution has no repository, and
+    there the conservative reading — any secret file present is a finding — is the right
+    one, because nothing else can distinguish "ignored" from "shipped".
+    """
+    try:
+        completed = subprocess.run(
+            ["git", "ls-files", "-z", "--", "infra/secrets"],
+            cwd=root,
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    return frozenset(
+        entry.decode("utf-8", "replace")
+        for entry in completed.stdout.split(b"\0")
+        if entry
+    )
 
 
 def _requirement(

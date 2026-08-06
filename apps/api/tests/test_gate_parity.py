@@ -1095,3 +1095,53 @@ def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> No
 
 def _version_tuple(value: str) -> tuple[int, ...]:
     return tuple(int(part) for part in re.findall(r"\d+", value))
+
+
+def test_the_development_proxy_mirrors_the_production_edge() -> None:
+    """`make web-run` and `make api-run` could not talk to each other.
+
+    config.js points the browser at `/api`; the static dev server had no such route, so
+    every request 404'd and the two dev servers were unusable together. The obvious fix
+    — pointing config.js at http://127.0.0.1:8000 — "works" only by moving the session
+    cookie cross-origin, and same-origin is the security property here, not a
+    convenience: `credentials: "same-origin"` and the `__Host-` cookie prefix both mean
+    nothing across origins.
+
+    So serve.mjs proxies the same prefix nginx does, and strips it the same way.
+    apps/web/tests/validate_gate.test.mjs mutates each half and asserts the gate refuses.
+    """
+    serve = (ROOT / "apps/web/scripts/serve.mjs").read_text(encoding="utf-8")
+    nginx = (ROOT / "apps/web/nginx.conf").read_text(encoding="utf-8")
+    config = (ROOT / "apps/web/public/config.js").read_text(encoding="utf-8")
+
+    assert 'apiUrl: "/api"' in config, (
+        "the browser no longer talks to a same-origin path; a cross-origin apiUrl "
+        "silently drops the session cookie and the CSRF double-submit with it"
+    )
+    assert 'const API_PREFIX = "/api/";' in serve
+    assert "location /api/ {" in nginx
+    assert "proxy_pass http://api:8000/;" in nginx, (
+        "nginx no longer strips the prefix, so the dev proxy strips one nginx keeps"
+    )
+    assert "development proxy: no rate limit, no CSP, no TLS" in serve, (
+        "a dev proxy that looks like the production edge is how one gets served through"
+    )
+
+
+def test_the_bootstrap_produces_a_corpus_that_can_actually_answer() -> None:
+    """`make bootstrap` approved a version that stated neither date.
+
+    Approval refuses that — without `effective_from` or `publication_date` the version
+    would govern every past date — so the documented way to get a running local instance
+    failed at its last step from the moment that rule landed. Found 2026-08-06 by
+    running it.
+
+    A fixed date rather than today's: a bootstrap that seeds a different corpus on every
+    run cannot be compared against itself, and "which edition was in force on date X" is
+    the question this system exists to answer.
+    """
+    source = (ROOT / "scripts/bootstrap_local.py").read_text(encoding="utf-8")
+
+    assert "BOOTSTRAP_PUBLICATION_DATE = date(" in source
+    assert "publication_date=BOOTSTRAP_PUBLICATION_DATE" in source
+    assert "date.today()" not in source.split("def main")[1].split("VersionCreate")[1][:400]

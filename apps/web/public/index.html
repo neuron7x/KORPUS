@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#090a0c">
+  <meta name="theme-color" content="#08090b">
   <meta name="description" content="Evidence-bound controlled-corpus platform">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/styles.css">
@@ -14,31 +14,55 @@
        past it the first action costs several tab stops on every navigation. -->
   <a class="skip-link" href="#query">Перейти до запиту</a>
   <main id="main">
-    <header><div><strong>КОРПУС</strong><span> / evidence runtime</span></div><div class="status"><a href="/console.html">Консолі оператора</a> · FAIL-CLOSED</div></header>
+    <header>
+      <div class="brand"><strong>КОРПУС</strong><span>evidence runtime</span></div>
+      <div class="header-actions">
+        <a href="/console.html">Консолі оператора</a>
+        <span class="badge">FAIL-CLOSED</span>
+      </div>
+    </header>
+
     <section class="hero">
       <p class="eyebrow">ДЖЕРЕЛО → ДОКАЗ → ВІДПОВІДЬ</p>
       <h1>Перевірити,<br>а не повірити.</h1>
-      <p class="lead">Система відповідає лише з чинних затверджених фрагментів, доступних вашій ідентичності.</p>
+      <p class="lead">
+        Система відповідає лише з чинних затверджених фрагментів, доступних вашій
+        ідентичності. Якщо підстави немає — вона це каже, а не здогадується.
+      </p>
+
       <section class="authbar" aria-label="Автентифікація">
-        <div class="auth-actions"><button id="login" type="button">Увійти через OIDC</button><button id="logout" type="button" hidden>Вийти</button></div>
-        <p id="identity-state" class="limitation" role="status" aria-live="polite">Не автентифіковано.</p>
+        <div class="auth-actions">
+          <button id="login" type="button">Увійти через OIDC</button>
+          <button id="logout" type="button" class="secondary" hidden>Вийти</button>
+        </div>
+        <p id="identity-state" class="identity" role="status" aria-live="polite">Не автентифіковано.</p>
         <details>
           <summary>Developer bearer fallback</summary>
           <label for="bearer-token">Короткоживучий token, лише в пам’яті вкладки</label>
-          <div class="query"><input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token"><button id="check-auth" type="button">Перевірити</button></div>
+          <div class="ask-field">
+            <input id="bearer-token" type="password" autocomplete="off" spellcheck="false" placeholder="JWT/OIDC access token">
+            <button id="check-auth" type="button" class="secondary">Перевірити</button>
+          </div>
         </details>
       </section>
-      <form id="query-form">
+
+      <form id="query-form" class="ask">
         <label for="query">Запит до контрольованого корпусу</label>
-        <div class="query"><textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea><button id="submit" type="submit">Знайти доказ</button></div>
+        <div class="ask-field">
+          <textarea id="query" minlength="3" required placeholder="Що має містити запис журналу?"></textarea>
+          <button id="submit" type="submit">Знайти доказ</button>
+        </div>
+        <p class="ask-hint">Ctrl+Enter надсилає. Відповідь завжди несе цитату з місцем у джерелі.</p>
       </form>
     </section>
+
     <section id="result" class="panel hidden" role="status" aria-live="polite" aria-label="Результат запиту"></section>
-    <section class="grid">
-      <article><h2>Authority</h2><p>Чинність, редакція, issuer, supersession.</p></article>
-      <article><h2>Access</h2><p>Identity та policy перед retrieval.</p></article>
-      <article><h2>Evidence</h2><p>Claim прив’язаний до immutable span.</p></article>
-      <article><h2>Audit</h2><p>Кожна дія входить до hash chain.</p></article>
+
+    <section class="grid" aria-label="Що система гарантує">
+      <article><h2>Authority</h2><p>Чинність, редакція, issuer, supersession — на дату запитання.</p></article>
+      <article><h2>Access</h2><p>Ідентичність і політика перевіряються до пошуку, не після.</p></article>
+      <article><h2>Evidence</h2><p>Кожне твердження прив’язане до незмінного фрагмента.</p></article>
+      <article><h2>Audit</h2><p>Кожна дія входить до хеш-ланцюга і не редагується.</p></article>
     </section>
   </main>
   <script src="/config.js"></script>

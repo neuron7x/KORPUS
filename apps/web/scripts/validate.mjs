@@ -5,9 +5,10 @@ import { fileURLToPath } from "node:url";
 const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
 const read = (file) => readFile(asset(file), "utf8");
 
+const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs"];
 const SCRIPTS = ["public/api.js", "public/app.js", "public/console.js", "public/console_rules.js", "public/contract.js", "public/sw.js"];
 const PAGES = ["public/index.html", "public/console.html"];
-const REQUIRED = [...PAGES, ...SCRIPTS, "public/styles.css", "public/manifest.webmanifest", "public/config.js"];
+const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/styles.css", "public/manifest.webmanifest", "public/config.js"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));
@@ -19,7 +20,7 @@ for (const file of REQUIRED) {
 // import and `const y = ;`. The moment app.js became a module, `npm run lint` stopped
 // checking it and kept printing success. Feeding the source on stdin with an explicit
 // --input-type is the form that actually parses.
-for (const file of SCRIPTS) {
+for (const file of [...SCRIPTS, ...DEV_SCRIPTS]) {
   const source = await read(file);
   const checked = spawnSync(process.execPath, ["--input-type=module", "--check"], {
     input: source,
@@ -29,7 +30,7 @@ for (const file of SCRIPTS) {
     throw new Error(`syntax check failed for ${file}:\n${checked.stderr}`);
   }
 }
-console.log(`syntax check passed for ${SCRIPTS.length} modules`);
+console.log(`syntax check passed for ${SCRIPTS.length + DEV_SCRIPTS.length} modules`);
 
 const html = await read("public/index.html");
 for (const marker of ['lang="uk"','id="query-form"','id="bearer-token"','id="login"','id="logout"','aria-live="polite"','/app.js']) {
@@ -111,6 +112,27 @@ for (const workflow of ["ingest", "review", "rescind"]) {
     throw new Error(`${workflow} submit is enabled before anything was previewed`);
   }
 }
+// Every console is reachable. The tabs replaced a single long scroll on 2026-08-06;
+// a tab whose panel it cannot select is a console that exists and cannot be opened.
+for (const name of ["console-curator", "console-reviewer", "console-corpus", "console-auditor"]) {
+  if (!consoleHtml.includes(`id="tab-${name}"`)) {
+    throw new Error(`console ${name} has no tab, so it cannot be reached`);
+  }
+  if (!new RegExp(`id="tab-${name}"[^>]*aria-controls="${name}"`).test(consoleHtml)) {
+    throw new Error(`the tab for ${name} does not name the panel it controls`);
+  }
+}
+// Every outcome panel starts with a sentence. An empty panel beside a form reads both
+// as "nothing has happened yet" and as "it ran and produced nothing".
+for (const id of [
+  "ingest-result", "job-result", "review-result", "rescind-result",
+  "documents-result", "spans-result", "audit-verify-result", "audit-events-result",
+]) {
+  if (!consoleJs.includes(`"${id}":`)) {
+    throw new Error(`${id} has no idle text, so an empty panel is ambiguous`);
+  }
+}
+
 // The gate compares the previewed payload with the one about to be sent. A boolean
 // "was previewed" flag would let an edit slip between confirmation and submission.
 if (!/previewMatches\(confirmed, payload\.body\)/.test(consoleJs)) {
@@ -152,6 +174,34 @@ if (/\bROLE_PERMISSIONS\s*=/.test(consoleRules)) {
 if (!consoleHtml.includes("Приховування кнопки не є контролем")) {
   throw new Error("the console must state that hiding a control is not access control");
 }
+// The development proxy must mirror `location /api/` in nginx.conf. It exists because
+// the two dev servers could not talk: config.js points at `/api`, the static server had
+// no such route, and every request 404'd. The tempting fix — pointing config.js at
+// http://127.0.0.1:8000 — "works" only by moving the session cookie cross-origin, which
+// is the security property (`credentials: "same-origin"`, `__Host-` prefix), not a
+// detail. A prefix that drifts from nginx produces a 404 that reads like a missing route.
+const serve = await read("scripts/serve.mjs");
+const nginx = await read("nginx.conf");
+if (!/const API_PREFIX = "\/api\/";/.test(serve)) {
+  throw new Error("the dev server no longer declares the API prefix it proxies");
+}
+if (!/location \/api\/ \{/.test(nginx)) {
+  throw new Error("nginx no longer serves /api/, so the dev proxy mirrors nothing");
+}
+// nginx's `proxy_pass http://api:8000/` — note the trailing slash — strips the prefix.
+// The dev proxy must strip it too, or /api/v1/answers arrives upstream as /api/v1/answers.
+if (!/proxy_pass http:\/\/api:8000\/;/.test(nginx)) {
+  throw new Error("nginx no longer strips the /api prefix; the dev proxy assumes it does");
+}
+if (!/API_PREFIX\.length - 1/.test(serve)) {
+  throw new Error("the dev proxy no longer strips the prefix nginx strips");
+}
+// A dev proxy that looks like the production edge is how one ends up serving traffic
+// through it. It has no rate limiting, no CSP and no TLS, and it says so on startup.
+if (!/development proxy: no rate limit, no CSP, no TLS/.test(serve)) {
+  throw new Error("the dev server no longer states that it is not the production edge");
+}
+
 console.log("web validation passed");
 
 // Accessibility contract. These are the properties a screen-reader or keyboard user
