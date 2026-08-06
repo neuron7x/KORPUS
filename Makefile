@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -117,6 +117,13 @@ module-budget:
 
 retention-plan:
 	PYTHONPATH=apps/api/src $(PY) scripts/plan_retention.py
+
+# AUD-004's executable half. The closure register cited this script as evidence and
+# nothing ran it — a citation that names a file rather than a run, which is the shape
+# ADR-0008 exists to refuse. `--limit 0` makes it a smoke run against whatever chain is
+# present: the batch is empty, and an empty batch is the ordinary case, not a failure.
+audit-export:
+	PYTHONPATH=apps/api/src $(PY) scripts/export_audit.py --limit $(or $(LIMIT),1000)
 
 audit-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_audit.py

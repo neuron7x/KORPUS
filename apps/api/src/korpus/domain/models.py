@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import re
 import unicodedata
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from enum import IntEnum, StrEnum
 from uuid import UUID, uuid4
@@ -85,6 +86,20 @@ class AnswerStatus(StrEnum):
 class SupportState(StrEnum):
     EXTRACTIVE = "extractive"
     UNSUPPORTED = "unsupported"
+
+
+@dataclass(frozen=True)
+class ExtractedPage:
+    """One page of text recovered from a source file.
+
+    A value, not an adapter: it carries no file handle, no parser state and no I/O. It
+    lived in `infrastructure/extraction.py` until 2026-08-06, which meant the `Extractor`
+    port could not name the thing it returns without the application importing
+    infrastructure — the dependency the port exists to remove.
+    """
+
+    page: int | None
+    text: str
 
 
 class Identity(BaseModel):

@@ -10,6 +10,7 @@ from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore, Repository
+from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
@@ -41,7 +42,7 @@ def _ingestion_service(
         if settings.malware_scan_mode == "clamd"
         else DisabledMalwareScanner()
     )
-    return IngestionService(
+    return build_ingestion_service(
         repository,
         object_store,
         policy,

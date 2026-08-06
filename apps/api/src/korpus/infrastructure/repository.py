@@ -375,6 +375,11 @@ class SqlRepository:
         expected_state: ReviewState,
         target_state: ReviewState,
         note: str,
+        # Keyword-only. Two adjacent booleans in positional slots are one transposition
+        # away from recording that a reviewer acknowledged a near-duplicate when what
+        # they acknowledged was extraction quality — and the wrong one lands in the
+        # audit chain as their assertion, where it cannot be edited.
+        *,
         acknowledge_near_duplicate: bool = False,
         acknowledge_extraction_quality: bool = False,
         reviewer_credential_id: str | None = None,

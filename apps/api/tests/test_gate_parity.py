@@ -1145,3 +1145,54 @@ def test_the_bootstrap_produces_a_corpus_that_can_actually_answer() -> None:
     assert "BOOTSTRAP_PUBLICATION_DATE = date(" in source
     assert "publication_date=BOOTSTRAP_PUBLICATION_DATE" in source
     assert "date.today()" not in source.split("def main")[1].split("VersionCreate")[1][:400]
+
+
+def test_every_script_is_reachable_from_a_runner() -> None:
+    """A script nobody runs is a script nobody maintains — and one that is cited.
+
+    `scripts/export_audit.py` was named as AUD-004's evidence in the closure register
+    while no Makefile target, CI job or test invoked it: a citation that names a file
+    rather than a run, which is the shape ADR-0008 exists to refuse. And
+    `scripts/prepare_postgres_test_role.py` was a ten-line compatibility wrapper around
+    `prepare_postgres_role.py` that nothing called — a decoy one keystroke from the live
+    script, so half the edits to "the role provisioner" would have landed on the copy
+    that never runs. It is deleted.
+    """
+    scripts = sorted(
+        [path.name for path in (ROOT / "scripts").glob("*.py") if path.name != "__init__.py"]
+        + [path.name for path in (ROOT / "scripts").glob("*.sh")]
+    )
+    assert scripts, "no scripts found — this test is out of date"
+
+    haystacks = {
+        "Makefile": MAKEFILE.read_text(encoding="utf-8"),
+        "CI": CI.read_text(encoding="utf-8"),
+        "tests": "\n".join(
+            path.read_text(encoding="utf-8") for path in (ROOT / "apps/api/tests").rglob("*.py")
+        ),
+        "scripts": "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / "scripts").rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        ),
+        # A documented tool a human runs by hand is reached; a tool nothing mentions
+        # at all is not.
+        "docs": "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / "docs").rglob("*.md")
+        )
+        + (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"),
+    }
+
+    unreachable = [
+        script
+        for script in scripts
+        # A script naming only itself is not referenced: `scripts` includes the file.
+        if not any(
+            script in text
+            for name, text in haystacks.items()
+            if name != "scripts" or text.count(script) > 1
+        )
+    ]
+
+    assert not unreachable, f"no runner mentions these scripts: {unreachable}"

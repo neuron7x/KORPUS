@@ -12,7 +12,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 222,
+      "lines": 223,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
@@ -85,7 +85,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/ingestion.py": {
-      "lines": 490,
+      "lines": 496,
       "max_complexity": 19
     },
     "apps/api/src/korpus/application/ingestion_jobs.py": {
@@ -109,8 +109,9 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/ports.py": {
-      "lines": 161,
-      "max_complexity": 1
+      "lines": 258,
+      "max_complexity": 1,
+      "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
     },
     "apps/api/src/korpus/application/provenance.py": {
       "lines": 187,
@@ -161,11 +162,16 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/cli.py": {
-      "lines": 191,
+      "lines": 192,
       "max_complexity": 17
     },
+    "apps/api/src/korpus/composition.py": {
+      "lines": 68,
+      "max_complexity": 2,
+      "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
+    },
     "apps/api/src/korpus/config.py": {
-      "lines": 426,
+      "lines": 487,
       "max_complexity": 59
     },
     "apps/api/src/korpus/controlled_requirements.py": {
@@ -177,7 +183,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 486,
+      "lines": 501,
       "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
@@ -193,7 +199,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 466,
+      "lines": 525,
       "max_complexity": 21
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
@@ -213,7 +219,7 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1047,
+      "lines": 1052,
       "max_complexity": 23,
       "reason": "COD-001: 1423 -> 1047 after schema.py and retrieval_queries.py; the transactional core stays"
     },
@@ -249,8 +255,8 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 245,
-      "max_complexity": 30
+      "lines": 259,
+      "max_complexity": 31
     },
     "apps/api/src/korpus/repository_requirements.py": {
       "lines": null,
@@ -309,7 +315,7 @@
       "max_complexity": 12
     },
     "scripts/bootstrap_local.py": {
-      "lines": 97,
+      "lines": 98,
       "max_complexity": 3,
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
@@ -376,12 +382,8 @@
       "lines": 100,
       "max_complexity": 4
     },
-    "scripts/prepare_postgres_test_role.py": {
-      "lines": 10,
-      "max_complexity": 0
-    },
     "scripts/run_evals.py": {
-      "lines": 376,
+      "lines": 377,
       "max_complexity": 22
     },
     "scripts/run_migration_gate.py": {

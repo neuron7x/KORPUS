@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.ingestion import ExtractionSettings
 from korpus.application.ingestion_jobs import IngestionWorker
+from korpus.composition import build_ingestion_service
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity, IngestionJobState
 from korpus.main import create_app
@@ -44,7 +45,7 @@ def _settings(tmp_path: Path) -> Settings:
 
 
 def _worker(client: TestClient, worker_id: str = "worker-1") -> IngestionWorker:
-    service = IngestionService(
+    service = build_ingestion_service(
         client.app.state.repository,
         client.app.state.object_store,
         client.app.state.policy,
@@ -169,7 +170,7 @@ def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(
 ):
     import hashlib
 
-    from korpus.application.ingestion import ExtractionSettings, IngestionService
+    from korpus.application.ingestion import ExtractionSettings
     from korpus.application.policy import PolicyEngine
     from korpus.domain.models import AuthorityClass, DocumentCreate, VersionCreate
     from korpus.infrastructure.object_store import LocalObjectStore
@@ -184,7 +185,9 @@ def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(
     )
     repository.initialize()
     store = LocalObjectStore(tmp_path / "objects")
-    service = IngestionService(repository, store, policy, ExtractionSettings(False, "ukr+eng"))
+    service = build_ingestion_service(
+        repository, store, policy, ExtractionSettings(False, "ukr+eng")
+    )
     content = b"Inventory reconciliation evidence."
     result = service.ingest(
         admin_identity,

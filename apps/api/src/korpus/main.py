@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import re
 import secrets
 import time
@@ -18,7 +19,7 @@ from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.application.trace import reset_trace_id, set_trace_id
-from korpus.config import Settings, get_settings
+from korpus.config import Settings, get_settings, unknown_settings_variables
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.runtime import (
@@ -36,6 +37,19 @@ REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
+
+    # A misspelled KORPUS_* variable is dropped in silence by pydantic-settings, so
+    # `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` — singular, where the field is
+    # `require_source_signatures` — starts a process with the control off and nothing
+    # reported. The deployment reads correct in review. Refused at startup rather than
+    # warned about: a control an operator believes is on and is not is worse than a
+    # process that does not start.
+    unknown = unknown_settings_variables(os.environ)
+    if unknown:
+        raise ValueError(
+            "unrecognised KORPUS_* environment variables — a typo here silently leaves "
+            f"a setting at its default: {unknown}"
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

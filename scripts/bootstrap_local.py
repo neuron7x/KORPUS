@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
+from korpus.composition import build_ingestion_service
 from korpus.config import get_settings
 from korpus.domain.models import (
     AccessTier,
@@ -34,7 +35,7 @@ def main() -> None:
         clearance=AccessTier.RESTRICTED,
         corpora=frozenset({"public", "training", "administrative", "restricted-demo"}),
     )
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         store,
         policy,

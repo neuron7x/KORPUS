@@ -235,11 +235,24 @@ MUTANTS = (
         ("apps/api/tests/test_browser_oidc.py::test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf",),
     ),
     Mutant(
+        # The decision moved behind the Extractor port on 2026-08-06. It is now a value
+        # travelling to an adapter, so the mutant sets the value rather than skipping a
+        # branch — and the adapter's half has its own mutant below.
         "M22_PARSER_SANDBOX_BYPASS",
         "apps/api/src/korpus/application/ingestion.py",
-        "if self.extraction.parser_sandbox_enabled:",
-        "if False:",
+        "            sandboxed=self.extraction.parser_sandbox_enabled,",
+        "            sandboxed=False,",
         ("apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser",),
+    ),
+    Mutant(
+        "M172_EXTRACTION_ADAPTER_IGNORES_THE_SANDBOX_FLAG",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "        if sandboxed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_v5_security_kernel.py::"
+            "test_the_extraction_adapter_runs_the_isolated_parser_when_told_to",
+        ),
     ),
     Mutant(
         "M23_INGESTION_LEASE_BYPASS",
@@ -1619,6 +1632,35 @@ MUTANTS = (
     ),
     # OPS-004. Every one of these turns a finding into a silence, which is the only
     # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
+    Mutant(
+        "M173_UNKNOWN_ENVIRONMENT_VARIABLE_IGNORED",
+        "apps/api/src/korpus/main.py",
+        "    if unknown:",
+        "    if False:",
+        (
+            "apps/api/tests/test_configuration_typos.py::"
+            "test_the_app_refuses_to_start_on_an_unrecognised_variable",
+        ),
+    ),
+    Mutant(
+        "M174_TYPO_DETECTOR_ACCEPTS_EVERYTHING",
+        "apps/api/src/korpus/config.py",
+        "        and name not in known",
+        "        and name not in known and False",
+        (
+            "apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named",
+        ),
+    ),
+    Mutant(
+        "M175_OPERATIONAL_VARIABLES_REPORTED_AS_TYPOS",
+        "apps/api/src/korpus/config.py",
+        "        and name not in OPERATIONAL_VARIABLES",
+        "        and True",
+        (
+            "apps/api/tests/test_configuration_typos.py::"
+            "test_operational_variables_are_not_flagged",
+        ),
+    ),
     Mutant(
         "M124_UNOBSERVED_ARTEFACT_TREATED_AS_IN_SYNC",
         "apps/api/src/korpus/application/environment_drift.py",

@@ -18,8 +18,9 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
+from korpus.composition import build_ingestion_service
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -68,7 +69,7 @@ def outsider() -> Identity:
 
 @pytest.fixture
 def ingested(repository: SqlRepository, curator: Identity, tmp_path: Path):
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "objects"),
         PolicyEngine(),
@@ -221,7 +222,7 @@ def test_a_reviewer_cannot_transition_a_version_from_another_corpus(
         clearance=AccessTier.RESTRICTED,
         corpora=frozenset({"training"}),
     )
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "objects"),
         PolicyEngine(),
@@ -286,7 +287,7 @@ def test_listing_hides_a_document_above_the_readers_clearance(
     holding it — the mutant survived, and the listing would have returned every
     document a reader's corpora contained, at any tier.
     """
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "objects"),
         PolicyEngine(),
