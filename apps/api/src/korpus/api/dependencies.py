@@ -223,12 +223,16 @@ def get_answer_service(
     )
     retriever = CachedRetriever(repository, base, cache, configuration_id)
     return ExtractiveAnswerService(
-        repository, retriever, policy, answer_policy, query_planner=_query_planner(settings)
+        repository, retriever, policy, answer_policy, query_planner=build_query_planner(settings)
     )
 
 
-def _query_planner(settings: Settings) -> QueryPlanner | None:
+def build_query_planner(settings: Settings) -> QueryPlanner | None:
     """The reformulator, when an operator has switched it on and supplied a key.
+
+    Public because the drills need the same seam the application uses. A chaos case that
+    reached past this to attach a planner to one service instance would be testing a
+    service the next request does not use.
 
     Returning None is the whole of the "off" path: `build_plan` treats a missing planner
     and a broken one identically, so nothing downstream branches on this.

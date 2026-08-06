@@ -132,7 +132,7 @@ def _with_planner(monkeypatch: pytest.MonkeyPatch, planner: object) -> None:
     """
     from korpus.api import dependencies
 
-    monkeypatch.setattr(dependencies, "_query_planner", lambda settings: planner)
+    monkeypatch.setattr(dependencies, "build_query_planner", lambda settings: planner)
 
 
 def test_the_answer_text_comes_only_from_the_corpus(
@@ -171,3 +171,26 @@ def test_a_reformulation_finds_what_the_question_alone_did_not(
     with_plan = _ask(answered_corpus, asked)
 
     assert len(with_plan["citations"]) >= len(without["citations"])  # type: ignore[arg-type]
+
+
+def test_a_planner_that_blocks_does_not_hold_the_reader() -> None:
+    """Bounded by the caller, not by whatever timeout the adapter happens to set.
+
+    Found by the chaos matrix on 2026-08-06: a planner that blocked for eight seconds
+    cost the reader eight seconds, because nothing above the adapter was counting. An
+    adapter is a third party's code path; the deadline has to live where the answer does.
+    """
+    import time
+
+    class _Blocking:
+        def variants(self, question: str, subjects: list[str]) -> list[str]:
+            time.sleep(5)
+            return ["ніколи не дійде"]
+
+    started = time.monotonic()
+    plan = build_plan("як діяти при нальоті", _Blocking(), deadline_seconds=0.2)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 2.0, f"the reader waited {elapsed:.1f}s on a planner"
+    assert plan.searches == ("як діяти при нальоті",)
+    assert plan.refused and "deadline" in plan.refused[0], plan.refused

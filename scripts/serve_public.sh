@@ -45,6 +45,11 @@ export KORPUS_JWT_AUDIENCE=korpus
 export KORPUS_JWT_MAX_LIFETIME_MINUTES=1440
 export KORPUS_BIND_HOST=0.0.0.0
 export KORPUS_TRUSTED_HOSTS="*"
+# Admission control is per *identity*, and on this edge there is one: every visitor
+# arrives as `public`. The default of 16 is therefore a global limit, and at thirty-two
+# concurrent readers it refused twenty-six of sixty-four with 503 — correct behaviour
+# under the wrong number. Set from what the workers were measured serving.
+export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-64}"
 export PYTHONPATH="$ROOT/apps/api/src"
 
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing
@@ -56,8 +61,16 @@ TOKEN="$("$PY" scripts/mint_review_token.py \
 
 pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
 sleep 1
+# More than one worker because an answer is CPU-bound Python. Uvicorn serves a sync
+# endpoint on a thread pool, and threads share one GIL, so four concurrent questions did
+# not run concurrently — they queued behind each other and each paid the others' cost.
+# Measured 2026-08-06: at four concurrent, better than half of all answers came back
+# `retrieval_deadline_exceeded`, which the reader is told is "пошук не завершено" about a
+# rule that exists. Separate processes have separate interpreters; SQLite in WAL mode
+# takes concurrent readers across them.
+WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"
 nohup "$PY" -m uvicorn korpus.main:app \
-  --host 0.0.0.0 --port "$PORT_API" --log-level warning \
+  --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
   > "$STATE/api.log" 2>&1 &
 
 for _ in $(seq 1 30); do

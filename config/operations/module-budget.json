@@ -119,7 +119,7 @@
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/query_plan.py": {
-      "lines": 212,
+      "lines": 238,
       "max_complexity": 12,
       "reason": "the only authority a language model has here: better questions, never answer text"
     },
@@ -140,7 +140,7 @@
       "max_complexity": 7
     },
     "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 478,
+      "lines": 500,
       "max_complexity": 22
     },
     "apps/api/src/korpus/application/risk.py": {
@@ -344,6 +344,11 @@
       "lines": 102,
       "max_complexity": 11
     },
+    "scripts/chaos_matrix.py": {
+      "lines": 371,
+      "max_complexity": 14,
+      "reason": "a drill: it breaks something on purpose and records what the system says"
+    },
     "scripts/check_coverage_thresholds.py": {
       "lines": 87,
       "max_complexity": 8
@@ -396,6 +401,16 @@
       "lines": 350,
       "max_complexity": 31,
       "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
+    },
+    "scripts/ingestion_recovery_drill.py": {
+      "lines": 203,
+      "max_complexity": 12,
+      "reason": "a drill: it breaks something on purpose and records what the system says"
+    },
+    "scripts/load_probe.py": {
+      "lines": 223,
+      "max_complexity": 12,
+      "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
     },
     "scripts/measure_recovery.py": {
       "lines": 146,

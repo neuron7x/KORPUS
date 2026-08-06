@@ -416,9 +416,20 @@ class HybridLexicalRetriever(Retriever):
                         identity, corpus_ids, as_of, missing_ids
                     )
                 )
-        if (time.monotonic() - started) * 1000 > self.timeout_ms:
-            raise RetrievalDeadlineExceeded("candidate retrieval exceeded deadline")
+        # The budget decides what to *start*, not what to discard. Checked here it used
+        # to abort after the search had already returned: the reader waited the full two
+        # seconds and was then told the corpus held nothing, which is the one outcome
+        # dominated by every other. Measured 2026-08-06 at eight concurrent readers, that
+        # was 62 of 117 answers — work paid for and thrown away.
+        #
+        # It still refuses when there is nothing to keep. Overrunning the budget with no
+        # candidates means the search did not finish looking, and saying "no basis" about
+        # a question nobody finished searching is the assertion this system exists not to
+        # make.
+        overran = (time.monotonic() - started) * 1000 > self.timeout_ms
         if not candidates:
+            if overran:
+                raise RetrievalDeadlineExceeded("candidate retrieval exceeded deadline")
             return []
         # Preserve first occurrence while fusing lexical and semantic candidates.
         candidates = list({str(item[0].id): item for item in candidates}.values())
@@ -464,8 +475,9 @@ class HybridLexicalRetriever(Retriever):
                 item.span.ordinal,
             )
         )
-        if (time.monotonic() - started) * 1000 > self.timeout_ms:
-            raise RetrievalDeadlineExceeded("reranking exceeded deadline")
+        # No second veto here. Everything above is complete by this line, so raising
+        # costs the reader their answer and saves nothing: diversification runs over at
+        # most `candidate_budget` items already in memory.
         return diversify_evidence(
             output,
             limit=limit,

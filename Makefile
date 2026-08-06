@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -240,6 +240,37 @@ restore-postgres:
 #   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... KORPUS_BACKUP_KEY_ID=... make backup-sqlite
 backup-sqlite:
 	scripts/backup_sqlite.sh
+
+# Load, spike and soak against a running deployment, with the conditions recorded beside
+# the numbers. SRE-005 and RAG-014 both say the same thing: scale evidence produced
+# against a fixture is evidence about the fixture.
+#   make load-probe BASE=http://127.0.0.1:8000 TOKEN=...
+# Break each dependency in turn and record what the system says. A fail-closed claim is a
+# claim about behaviour under failure, and this tree had tested every dependency present
+# and none absent.
+# Every scanner the pipeline declares, run here, with the reports archived beside their
+# exit codes. A declared scanner is a plan; an archived report is evidence.
+security-scan:
+	scripts/security_scan.sh
+
+# Build twice from one tree and say which layers disagree. The recorded nondeterminism is
+# the part usually skipped, and skipping it is how "reproducible" becomes a word.
+reproducible-build:
+	scripts/reproducible_build_probe.sh
+
+chaos-matrix:
+	PYTHONPATH=.:apps/api/src $(PY) scripts/chaos_matrix.py
+
+# Kill a corpus import partway and prove the resumed run reconciles by content with an
+# uninterrupted one. "Resumable" was a property of the design until this executed it.
+#   make ingestion-drill MANIFEST=var/corpus/ml-manifest.json ROOT=var/corpus/ml
+ingestion-drill:
+	$(PY) scripts/ingestion_recovery_drill.py --manifest "$(MANIFEST)" --root "$(ROOT)" \
+	  --workdir "$(or $(WORKDIR),var/drill)" $(if $(DOCUMENTS),--documents $(DOCUMENTS))
+
+load-probe:
+	$(PY) scripts/load_probe.py $(if $(BASE),--base "$(BASE)") $(if $(TOKEN),--token "$(TOKEN)") \
+	  $(if $(CONCURRENCY),--concurrency $(CONCURRENCY)) $(if $(SPIKE),--spike $(SPIKE))
 
 # Restores somewhere else on purpose: a drill that overwrites the live corpus is a drill
 # nobody runs, and one that never runs is not known to work.
