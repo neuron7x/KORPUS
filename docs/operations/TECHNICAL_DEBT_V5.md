@@ -204,6 +204,85 @@ PostgreSQL debt below.
   drift verdict, and cost/capacity governance;
 - legal review of the declared dependency licenses.
 
+### Closed 2026-08-06 — architecture and catalogue validation
+
+- **the layering was a document, not a check** — `docs/architecture/SYSTEM_V5.md`
+  stated the layers and nothing read the import graph. It had drifted:
+  `application/ingestion_jobs.py` imported `SqlRepository` and `SqlIngestionJobQueue`,
+  `application/ingestion.py` imported the parser functions. Both are ports now
+  (`Repository` already existed and went unused; `IngestionJobQueue` and `Extractor`
+  are new), and `korpus/composition.py` is the composition root.
+
+  The cost was never tidiness. `IngestionCoordinator` is where a job is created and its
+  audit event appended — a rule about ordering — and testing it against the real
+  SQLAlchemy classes needs a database. Whether untrusted bytes may be parsed in-process
+  is an application decision, and testing it needed a parser binary, an OCR install and
+  a fork. Both are now assertions about a value reaching a port.
+
+  Three things fell out of doing it properly. A default argument cannot name an
+  implementation — every attempt, module-level or deferred inside `__init__`, puts the
+  edge back — so `extractor` is required. `ExtractedPage` moved to the domain, because
+  while it lived in infrastructure the port could not name what it returns. And the
+  first version of the port invented its own types; `mypy --strict` caught six
+  mismatches, which is worse than no port at all.
+
+  `test_architecture.py` reads the graph including deferred imports, since "resolve it
+  lazily" is the shape the violation kept returning in. Probed against both forms.
+- **three mutants were covering two call sites each** — the substitution replaces every
+  occurrence of the target string, so a mutant whose line appears twice mutates both and
+  is answered by whichever site its test reaches. The other is never individually
+  falsified and the report credits a kill for it anyway. This is how M05 passed for
+  months. Found: the malware scan on both ingestion paths (the *version* path — the
+  easier surface, since the document already passed review — was uncovered), the
+  per-version cap declared twice with production using neither, and the lease-ownership
+  check guarding both `complete` and `fail`, where `complete` is the one that records a
+  version as ingested from bytes nobody parsed. M180–M182, and three parity tests over
+  the catalogue: no ambiguous target, every cited test exists, ids unique.
+- **a misspelled environment variable silently left a control off** —
+  `SettingsConfigDict(extra="ignore")` drops an unrecognised `KORPUS_*` name without a
+  word. Measured: with `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` set — singular, where the
+  field is `require_source_signatures` — `Settings()` constructs cleanly and the
+  requirement is off. The deployment reads correct in review. `extra="forbid"` cannot be
+  the fix, because the backup, recovery and role-provisioning scripts own `KORPUS_*`
+  names and share the process environment, so the namespace is checked against the
+  settings fields plus a *declared* list of operational names. Refused at startup rather
+  than warned about. Verified that no surface we deploy carries one: both overlays and
+  all nine compose services clean.
+- **two acknowledgements a transposition apart** — `transition_version` took
+  `acknowledge_near_duplicate` and `acknowledge_extraction_quality` positionally. Both
+  are a reviewer's assertion about what they inspected, both enter the audit chain under
+  their name, and swapping them type-checks, succeeds, and records that they
+  acknowledged something they never looked at. Keyword-only, with a rule over the whole
+  public surface.
+- **the answer was mutable** — the binding between the text and its citations is decided
+  once, by the policy, and a mutable model let anything downstream change the sentence
+  while keeping the citations that justified a different one. Frozen.
+  `Citation.source_hash` was an unconstrained string while
+  `DocumentVersionRecord.source_hash` had carried `^[a-f0-9]{64}$` since the beginning —
+  on the field a reader uses to check the quote came from the document named. The test
+  written for it *survived its mutant*: it fabricated `quote_hash`, so the model refused
+  for a different reason and the assertion held either way. A refusal test satisfied by
+  a different refusal asserts nothing about the one it names.
+- **a dead script one keystroke from the live one** —
+  `scripts/prepare_postgres_test_role.py` was a ten-line wrapper nothing invoked, beside
+  `prepare_postgres_role.py` which CI runs twice. Deleted. `scripts/export_audit.py` was
+  cited as AUD-004's evidence with no runner at all — a citation naming a file rather
+  than a run — and now has a `make audit-export` target; its first execution produced 5
+  chain-linked events. A parity test asserts every script is reachable from some runner.
+- **two refusal paths with a raise site and no test** — compared every exception class
+  against the ones the suite names. `IngestionJobConflict` and
+  `RetrievalDeadlineExceeded`. The second is not the same as an outage: a timeout means
+  part of the corpus *was* searched, so answering from what came back is the tempting
+  behaviour, and the reason code has to let an operator tell "never ran" from "ran out
+  of time".
+
+Also checked and clean: 20 routes all exercised; 740 tests with no duplicate names and
+none without an assertion beyond five deliberate "must not raise" duals; no mutable
+default arguments; no untyped public parameter or return; 44 Makefile targets with no
+missing prerequisite or script; the CI graph with no `needs` on a later stage and no
+artefact with two producers; 319 requirements across four registers with no duplicate id
+and no statement written twice.
+
 ### Closed 2026-08-06
 
 - **a third lock file nobody audited** — `apps/api/requirements.lock` sat beside the
