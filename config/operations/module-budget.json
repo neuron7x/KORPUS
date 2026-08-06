@@ -324,6 +324,11 @@
       "max_complexity": 23,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
+    "scripts/build_import_manifest.py": {
+      "lines": 169,
+      "max_complexity": 8,
+      "reason": "a draft manifest that marks what it could not read rather than guessing"
+    },
     "scripts/build_system_manifest.py": {
       "lines": 102,
       "max_complexity": 11
@@ -349,6 +354,11 @@
       "lines": 110,
       "max_complexity": 8
     },
+    "scripts/fetch_drive_snapshot.py": {
+      "lines": 209,
+      "max_complexity": 16,
+      "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
+    },
     "scripts/generate_desired_state.py": {
       "lines": 94,
       "max_complexity": 14
@@ -367,8 +377,8 @@
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
     "scripts/import_corpus.py": {
-      "lines": 292,
-      "max_complexity": 24,
+      "lines": 312,
+      "max_complexity": 28,
       "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
     },
     "scripts/measure_recovery.py": {

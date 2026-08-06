@@ -183,14 +183,34 @@ def main() -> int:
 
     outcome = Outcome()
     described = set()
+    sentinel = str(manifest.get("review_sentinel", "REVIEW_REQUIRED"))
     for index, entry in enumerate(entries):
+        # Recorded before any refusal: a file the manifest *describes* is not "missing
+        # from the manifest", however the entry turns out. Listing it under both headings
+        # made the refusal report accuse itself.
+        if entry.get("file"):
+            described.add(str(entry["file"]))
+        # A draft manifest from `build_import_manifest.py` marks every field it could not
+        # read rather than filling in a plausible default. Refusing them here is what
+        # makes that honest: a half-filled manifest fails loudly, and nothing enters the
+        # corpus described by a guess.
+        unreviewed = sorted(
+            name for name, value in entry.items() if isinstance(value, str) and value == sentinel
+        )
+        if unreviewed:
+            outcome.refused.append(
+                {
+                    "file": str(entry.get("file", f"<entry {index}>")),
+                    "reason": f"awaiting review: {unreviewed}",
+                }
+            )
+            continue
         missing = [name for name in REQUIRED_FIELDS if not entry.get(name)]
         if missing:
             outcome.refused.append(
                 {"file": str(entry.get("file", f"<entry {index}>")), "reason": f"missing {missing}"}
             )
             continue
-        described.add(str(entry["file"]))
 
     # Named before anything is ingested: a file sitting in the tree that the manifest
     # does not describe is the one most likely to be the document somebody meant to add.

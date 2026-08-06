@@ -1315,3 +1315,44 @@ def test_mutant_ids_are_unique() -> None:
     counts = Counter(mutant.id for mutant in MUTANTS)
 
     assert [identifier for identifier, count in counts.items() if count > 1] == []
+
+
+def test_the_import_pipeline_refuses_a_draft_manifest() -> None:
+    """`build_import_manifest.py` marks what it could not read; the importer must refuse it.
+
+    The draft exists so a curator edits one file instead of typing four hundred entries.
+    It works only if the sentinel is load-bearing: a manifest that still says
+    REVIEW_REQUIRED must fail loudly, or the convenience becomes a way to enter the
+    corpus described by a guess — an issuer nobody stated, a revision parsed out of
+    "v2_final_FINAL", a date that decides when a document took force.
+    """
+    builder = (ROOT / "scripts/build_import_manifest.py").read_text(encoding="utf-8")
+    importer = (ROOT / "scripts/import_corpus.py").read_text(encoding="utf-8")
+
+    assert 'REVIEW_REQUIRED = "REVIEW_REQUIRED"' in builder
+    assert '"review_sentinel": REVIEW_REQUIRED' in builder
+    assert 'manifest.get("review_sentinel"' in importer
+    assert "awaiting review" in importer
+    # Never derived, because a filename does not say them. `issuer` may be supplied for
+    # a whole batch; the other two cannot be, and must always start as the sentinel.
+    assert '"issuer": arguments.issuer or REVIEW_REQUIRED' in builder
+    for field in ("revision", "publication_date"):
+        assert f'"{field}": REVIEW_REQUIRED' in builder, field
+
+
+def test_the_drive_snapshot_is_a_snapshot_and_not_a_sync() -> None:
+    """A live dependency on a consumer cloud would let a document change after review.
+
+    The version the system cites would no longer be the version somebody approved, and
+    nothing in the answer would say so. So the fetch records provenance and reports a
+    changed file rather than acting on it: promoting a change to a new corpus version,
+    with a revision and a supersession edge, is a curator's decision.
+    """
+    fetch = (ROOT / "scripts/fetch_drive_snapshot.py").read_text(encoding="utf-8")
+
+    assert '"drive_id"' in fetch and '"drive_md5"' in fetch and '"sha256"' in fetch
+    assert '"CHANGED"' in fetch
+    # The transport stays outside the trust boundary: no OAuth client, no network call
+    # anywhere the parser can reach.
+    assert "rclone" in fetch
+    assert "googleapiclient" not in fetch and "google.oauth2" not in fetch
