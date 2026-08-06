@@ -16,7 +16,14 @@ COPY apps/web/nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /src/dist /usr/share/nginx/html
 RUN mkdir -p /tmp/nginx/client_temp /tmp/nginx/proxy_temp /tmp/nginx/fastcgi_temp /tmp/nginx/uwsgi_temp /tmp/nginx/scgi_temp \
     && chown -R nginx:nginx /tmp/nginx /usr/share/nginx/html \
-    && chmod -R a-w /usr/share/nginx/html
+    && chmod -R a-w /usr/share/nginx/html \
+    # COPY keeps the host's file modes. This tree's files are 0660, nginx runs as
+    # `nginx` with every capability dropped, and root inside the container cannot read
+    # what it does not own once DAC_OVERRIDE is gone: the container restart-looped on
+    # `open() "/etc/nginx/nginx.conf" failed (13: Permission denied)`, executed
+    # 2026-08-06. Readable, not writable.
+    && chmod a+r /etc/nginx/nginx.conf \
+    && chmod -R a+rX /usr/share/nginx/html
 USER nginx:nginx
 EXPOSE 8080
 STOPSIGNAL SIGQUIT

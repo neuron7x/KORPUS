@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v5.0.0",
-  "root_sha256": "e33416a5a75abdfd06c4c4c93b9ec3135b64291fb3cf7aeedb4d9c733e5c2dda",
+  "root_sha256": "84e62ca608ccc3aabf069c88395e59e58f14802f7ac9f03a8819c9b7376b6f9d",
   "records": [
     {
       "path": ".gitlab-ci.yml",
@@ -10,8 +10,8 @@
     },
     {
       "path": "apps/api/Dockerfile",
-      "sha256": "7c2dc01875fa20488d184e90c31f7cac82b4c8a0f8ecbee743cd79db410e87ae",
-      "bytes": 1831
+      "sha256": "dfae41e86fa7ac1c0bcb61f6e95783bf5b0b0f2fa9786c4cc1b9bd3821d6a322",
+      "bytes": 2501
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -25,8 +25,8 @@
     },
     {
       "path": "apps/web/Dockerfile",
-      "sha256": "3f4efb613e7859d45d315954344fffe7d9da58f1751c039434c83b9861280fb1",
-      "bytes": 1253
+      "sha256": "193b1f0cf4ec8c89b78f1d0da0a56ffb8e5d6b0eb6a67ebd1451c9a8dab64e49",
+      "bytes": 1716
     },
     {
       "path": "deploy/kubernetes/base/api-deployment.yaml",
@@ -90,13 +90,13 @@
     },
     {
       "path": "docker-compose.yml",
-      "sha256": "d1580f9951175eb9cad5fc10daf83484974b3c48e89136dab591e760ad85b423",
-      "bytes": 13866
+      "sha256": "c46defb073c8ce25ca2bfbdff43a12c319ae62b318e116c6f46311a59fa51b42",
+      "bytes": 15241
     },
     {
       "path": "infra/minio/korpus-app-policy.json",
-      "sha256": "c329cba2eb6da37619f89f99491e541058accc93af91095d47a240a83653a3db",
-      "bytes": 741
+      "sha256": "c897db55cfaaf4a4aa671a7b14b7568a5837fedf2d51dce82fa8e73c106c89de",
+      "bytes": 747
     },
     {
       "path": "infra/otel-collector.yaml",

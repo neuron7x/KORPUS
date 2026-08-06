@@ -61,6 +61,16 @@ MITIGATED_LOCAL = {
     # and no deployment; there is a deployment now, and a corpus of 1648 documents, so
     # these are questions this machine can answer. Each carries an executed report in
     # var/ and the residue that is still somebody else's.
+    "INF-001",   # the compose topology was executed for the first time on 2026-08-06
+                 # and had never started: ten defects, every one of them the same shape
+                 # or adjacent to it — files COPY'd into an image keep the tree's 0660
+                 # umask, every container runs unprivileged with DAC_OVERRIDE dropped,
+                 # and so no service could read its own configuration. All seven
+                 # services are healthy, migrations ran, api and web survive a restart.
+                 # A clean-host deployment with upgrade and downgrade stays external.
+    "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
+                 # prepared the least-privilege role. Canary and automated rollback stay
+                 # external.
     "ING-012",   # three SIGKILLs at random points, resumed, reconciled by content
                  # against an uninterrupted run of the same manifest — document titles,
                  # source hashes, review states, every span's text hash. A full-scale
@@ -108,7 +118,7 @@ EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
     "IAM-008",
     "RAG-001", "RAG-003",
-    "INF-001", "INF-003", "INF-004", "INF-006", "INF-008", "INF-011", "INF-012",
+    "INF-003", "INF-004", "INF-006", "INF-008", "INF-012",
     "SRE-001", "SRE-002",
     "SUP-003", "SUP-007", "SUP-008",
     "WEB-002", "AUD-003",
@@ -127,6 +137,17 @@ EVIDENCE: dict[str, list[str]] = {
     "ING-012": [
         "scripts/ingestion_recovery_drill.py",
         "scripts/import_corpus.py",
+    ],
+    "INF-001": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "scripts/init_local_secrets.sh",
+    ],
+    "INF-011": [
+        "apps/api/migrations",
+        "scripts/prepare_postgres_role.py",
+        "apps/api/docker-entrypoint.sh",
     ],
     "SRE-004": [
         "scripts/chaos_matrix.py",

@@ -4,8 +4,8 @@
   "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
   "total_remaining": 75,
   "counts": {
-    "EXTERNAL_DEBT": 22,
-    "MITIGATED_LOCAL": 53
+    "EXTERNAL_DEBT": 20,
+    "MITIGATED_LOCAL": 55
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -543,8 +543,13 @@
       "required_action": "Запустити clean host deployment, smoke/E2E, restart/upgrade/downgrade, network tests.",
       "tools_methods": "Docker/Podman; Testcontainers; GitLab runner",
       "acceptance_predicate": "Full stack starts from zero and passes E2E under non-root roles.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "scripts/init_local_secrets.sh"
+      ],
       "v5_remaining_acceptance": "Full stack starts from zero and passes E2E under non-root roles."
     },
     {
@@ -709,8 +714,12 @@
       "required_action": "Expand-contract migrations, canary, automated rollback, compatibility tests.",
       "tools_methods": "Argo Rollouts/GitLab environments; contract tests",
       "acceptance_predicate": "N-1/N compatibility and rollback drill PASS.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/migrations",
+        "scripts/prepare_postgres_role.py",
+        "apps/api/docker-entrypoint.sh"
+      ],
       "v5_remaining_acceptance": "N-1/N compatibility and rollback drill PASS."
     },
     {

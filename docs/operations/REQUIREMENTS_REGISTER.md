@@ -291,8 +291,8 @@
 
 | id | вимога | чому |
 |---|---|---|
+| `minio.policy.durability.GetBucketObjectLockConfiguration` | the application policy can verify s3:GetBucketObjectLockConfiguration | durability the service cannot observe is durability nobody checks |
 | `minio.policy.durability.GetBucketVersioning` | the application policy can verify s3:GetBucketVersioning | durability the service cannot observe is durability nobody checks |
-| `minio.policy.durability.GetObjectLockConfiguration` | the application policy can verify s3:GetObjectLockConfiguration | durability the service cannot observe is durability nobody checks |
 | `minio.policy.no_destructive_actions` | the application policy grants no delete or wildcard object access | evidence that can be deleted by the service is not evidence |
 | `minio.policy.no_unexpected_prefix` | the application policy grants no object prefix beyond objects and quarantine | — |
 | `minio.policy.prefix.objects` | the application policy covers arn:aws:s3:::korpus/objects/* | — |

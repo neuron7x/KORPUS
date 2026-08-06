@@ -388,7 +388,13 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             lambda c, a=action: a in c.minio_actions(),
             "durability the service cannot observe is durability nobody checks",
         )
-        for action in ("s3:GetBucketVersioning", "s3:GetObjectLockConfiguration")
+        # `s3:GetBucketObjectLockConfiguration`, not `s3:GetObjectLockConfiguration`.
+        # The AWS name was written here from the documentation and never asked of the
+        # server it governs: MinIO refuses the policy outright — "unsupported action
+        # 's3:GetObjectLockConfiguration'" — so the policy was never applied, the
+        # application user never got it, and this requirement passed against a file
+        # nobody had ever loaded. Found by running the compose topology on 2026-08-06.
+        for action in ("s3:GetBucketVersioning", "s3:GetBucketObjectLockConfiguration")
     ],
     *[
         _requirement(

@@ -162,6 +162,13 @@ services:
     read_only: true
     tmpfs:
     - /tmp:size=32m,mode=1770
+    # `mc` writes its alias configuration to $HOME/.mc, and $HOME is / on a read-only
+    # root filesystem: "Unable to save new mc config. mkdir /root/.mc: read-only file
+    # system", executed 2026-08-06. Pointed at the tmpfs it already has rather than
+    # making the root filesystem writable for a directory that lives for one command.
+    environment:
+      HOME: /tmp
+      MC_CONFIG_DIR: /tmp/.mc
     secrets:
     - minio_root_password
     - minio_app_access_key
@@ -236,6 +243,15 @@ services:
         max-size: 10m
         max-file: '3'
     image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    # The image's entrypoint drops from root to the clamav user and chowns its database
+    # directory on the way. With every capability dropped it cannot, and it restarted
+    # forever: `chown: /var/lib/clamav: Operation not permitted`, executed 2026-08-06.
+    # These three are what the drop-privileges dance needs and nothing more — not
+    # DAC_OVERRIDE, not SYS_ADMIN, and `no-new-privileges` still stands above them.
+    cap_add:
+    - CHOWN
+    - SETUID
+    - SETGID
     mem_limit: 2g
     cpus: 1.5
     expose:
@@ -244,6 +260,14 @@ services:
     - backend
     volumes:
     - clamav-db:/var/lib/clamav
+    # The entrypoint chowns its database directory and nothing else, so both daemons
+    # died opening their log files: "Failed to open log file /var/log/clamav/clamd.log:
+    # Permission denied", executed 2026-08-06. A tmpfs rather than a volume — these are
+    # logs, the container already ships them to stdout, and a log directory that
+    # survives a restart is a log directory that fills a disk.
+    tmpfs:
+    - /var/log/clamav:mode=1777,size=32m
+    - /tmp:mode=1777,size=64m
     healthcheck:
       test:
       - CMD-SHELL

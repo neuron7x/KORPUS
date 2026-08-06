@@ -6,7 +6,7 @@
       "Action": [
         "s3:GetBucketLocation",
         "s3:GetBucketVersioning",
-        "s3:GetObjectLockConfiguration",
+        "s3:GetBucketObjectLockConfiguration",
         "s3:ListBucket",
         "s3:ListBucketMultipartUploads",
         "s3:ListBucketVersions"

@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 53 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 22 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 55 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 20 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -40,7 +40,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **RAG-017 · P1 · MITIGATED_LOCAL** — Немає drift/online quality monitoring
 - **RAG-018 · P1 · MITIGATED_LOCAL** — Немає захисту від corpus/RAG poisoning як процесу
 - **RAG-020 · P2 · MITIGATED_LOCAL** — Малі мінімальні вибірки не гарантують domain coverage
-- **INF-001 · P0 · EXTERNAL_DEBT** — Docker/Compose runtime не був фактично виконаний у середовищі аудиту
+- **INF-001 · P0 · MITIGATED_LOCAL** — Docker/Compose runtime не був фактично виконаний у середовищі аудиту
 - **INF-002 · P0 · MITIGATED_LOCAL** — docker-compose.yml є local topology, не production deployment
 - **INF-003 · P0 · EXTERNAL_DEBT** — Немає production TLS ingress і service identity
 - **INF-004 · P0 · EXTERNAL_DEBT** — Немає HA/failover/PITR topology
@@ -50,7 +50,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **INF-008 · P1 · EXTERNAL_DEBT** — Resource limits не калібровані capacity plan
 - **INF-009 · P1 · MITIGATED_LOCAL** — OTel collector healthcheck перевіряє config, не serving path
 - **INF-010 · P1 · MITIGATED_LOCAL** — Local audit anchor не є незалежним trust domain
-- **INF-011 · P1 · EXTERNAL_DEBT** — Немає deployment rollback/canary/schema compatibility proof
+- **INF-011 · P1 · MITIGATED_LOCAL** — Немає deployment rollback/canary/schema compatibility proof
 - **INF-012 · P1 · EXTERNAL_DEBT** — Немає offsite/immutable backup schedule and retention execution
 - **SRE-001 · P0 · EXTERNAL_DEBT** — Немає SLO/SLI/error-budget contract
 - **SRE-002 · P0 · EXTERNAL_DEBT** — Немає on-call ownership та incident exercises

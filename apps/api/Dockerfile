@@ -33,7 +33,16 @@ RUN groupadd --gid 10001 korpus \
     && mkdir -p /data/objects /audit /tmp/korpus \
     && chown -R 10001:10001 /data /audit /tmp/korpus \
     && chmod 0555 /app /app/apps /app/apps/api /app/apps/api/src /app/scripts \
-    && chmod 0555 /usr/local/bin/korpus-entrypoint
+    && chmod 0555 /usr/local/bin/korpus-entrypoint \
+    # COPY keeps the host's file modes. This tree's working files are 0660, the runtime
+    # user is 10001, and every capability is dropped — so not even root inside the
+    # container may read a file it does not own, because DAC_OVERRIDE is dropped with
+    # the rest. Executed 2026-08-06: alembic answered "No 'script_location' key found in
+    # configuration" because it could not open alembic.ini, and the migrate job had
+    # never once run. Directories keep 0555 above; this makes their contents readable
+    # and nothing writable.
+    && chmod -R a+rX /app/apps/api/src /app/apps/api/migrations /app/scripts \
+    && chmod a+r /app/apps/api/alembic.ini
 
 USER 10001:10001
 WORKDIR /app
