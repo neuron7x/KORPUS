@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -250,6 +250,19 @@ backup-sqlite:
 # and none absent.
 # Every scanner the pipeline declares, run here, with the reports archived beside their
 # exit codes. A declared scanner is a plan; an archived report is evidence.
+# Freeze what the corpus contains and sign it, so a citation can be traced to the release
+# it came from without the running system. Verifying against a restored backup is how a
+# rollback is proved to have landed.
+#   make corpus-release OUT=var/releases/$(shell date +%F).json SIGNER="..."
+corpus-release:
+	$(PY) scripts/corpus_release.py freeze --out "$(OUT)" \
+	  $(if $(DATABASE),--database "$(DATABASE)") $(if $(SIGNER),--signer "$(SIGNER)") \
+	  $(if $(KEY_FILE),--key-file "$(KEY_FILE)")
+
+corpus-release-verify:
+	$(PY) scripts/corpus_release.py verify --manifest "$(MANIFEST)" \
+	  $(if $(DATABASE),--database "$(DATABASE)") $(if $(KEY_FILE),--key-file "$(KEY_FILE)")
+
 security-scan:
 	scripts/security_scan.sh
 

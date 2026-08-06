@@ -1868,6 +1868,33 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Raising a source's authority class is the smallest edit that changes what the
+        # system will say, and it is invisible in a file nobody signed.
+        "M201_RELEASE_MANIFEST_SIGNATURE_NOT_CHECKED",
+        "scripts/corpus_release.py",
+        "    intact = hmac.compare_digest(recorded, _sign(manifest, key))",
+        "    intact = True",
+        (
+            "apps/api/tests/test_corpus_release_manifest.py::"
+            "test_raising_an_authority_class_breaks_the_signature",
+        ),
+    ),
+    Mutant(
+        # After a restore the question is which corpus this is. A comparison that always
+        # agrees answers "the one you expected" whatever was restored.
+        "M202_RELEASE_MATCHES_ANY_DATABASE",
+        "scripts/corpus_release.py",
+        (
+            '        result["matches_database"] = current["content_digest"] '
+            '== manifest.get("content_digest")'
+        ),
+        '        result["matches_database"] = True',
+        (
+            "apps/api/tests/test_corpus_release_manifest.py::"
+            "test_a_different_corpus_is_reported_as_a_different_release",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

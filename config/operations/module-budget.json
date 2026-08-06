@@ -362,6 +362,11 @@
       "lines": 141,
       "max_complexity": 13
     },
+    "scripts/corpus_release.py": {
+      "lines": 222,
+      "max_complexity": 12,
+      "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
+    },
     "scripts/export_audit.py": {
       "lines": 124,
       "max_complexity": 7

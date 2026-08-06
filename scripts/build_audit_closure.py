@@ -56,6 +56,43 @@ MITIGATED_LOCAL = {
     "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
     "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
     # 2026-08-05, second pass.
+    # 2026-08-06. Nine findings the register called EXTERNAL because nothing in this
+    # tree could close them. That was true against a system with a fixture for a corpus
+    # and no deployment; there is a deployment now, and a corpus of 1648 documents, so
+    # these are questions this machine can answer. Each carries an executed report in
+    # var/ and the residue that is still somebody else's.
+    "ING-012",   # three SIGKILLs at random points, resumed, reconciled by content
+                 # against an uninterrupted run of the same manifest — document titles,
+                 # source hashes, review states, every span's text hash. A full-scale
+                 # replay against production infrastructure stays external.
+    "SRE-004",   # eight dependencies broken in turn: database gone answers 5xx and not
+                 # "no basis", object store gone changes nothing, a hostile planner
+                 # contributes no word. Infrastructure-level injection — network
+                 # partitions, a full disk on a real host — stays external.
+    "SRE-005",   # load, spike and soak with the conditions recorded beside the numbers;
+                 # the run found the deadline defect and the rate-limit defect. A
+                 # production-representative workload on production hardware stays
+                 # external.
+    "RAG-014",   # benchmarked on the real corpus rather than a fixture: 1648 documents,
+                 # 118 622 spans, cold and warm, eight and thirty-two concurrent.
+    "SUP-005",   # gitleaks over 121 commits, pip-audit over both locks, trivy over the
+                 # tree: four scanners, four zero exit codes, reports archived. An
+                 # isolated runner and signed reports stay external.
+    "OPS-001",   # executed and the claim is false: 6 of 15 layers agree across two
+                 # builds of one tree. The required action was to measure and record the
+                 # nondeterminism, and both sources are named. Making it reproducible is
+                 # a project, not a fix.
+    "DATA-003",  # the corpus is frozen and signed — every approved version, its source
+                 # hash and what decides when it governs — and a manifest with one
+                 # authority class raised does not verify. The data owner's signature is
+                 # a person taking responsibility and stays external.
+    "SRE-007",   # a restored backup is identified as a different release by content:
+                 # rollback detection works. Canary cohorts and shadow evaluation stay
+                 # external.
+    "INF-005",   # backup and restore executed end to end for the deployment that is
+                 # actually serving: 1.96 GB encrypted, restored, integrity checked, and
+                 # the restored copy answered a question. A live PostgreSQL drill with a
+                 # timed RTO/RPO stays external.
     "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
                  # tests; the transactional core still carries CRUD, review, audit
                  # append and readiness, so "one responsibility per module" is not met
@@ -70,13 +107,12 @@ MITIGATED_LOCAL = {
 EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
     "IAM-008",
-    "ING-012",
-    "RAG-001", "RAG-003", "RAG-014",
-    "INF-001", "INF-003", "INF-004", "INF-005", "INF-006", "INF-008", "INF-011", "INF-012",
-    "SRE-001", "SRE-002", "SRE-004", "SRE-005", "SRE-007",
-    "SUP-003", "SUP-005", "SUP-007", "SUP-008",
-    "WEB-002", "AUD-003", "DATA-003",
-    "OPS-001", "OPS-003", "OPS-005",
+    "RAG-001", "RAG-003",
+    "INF-001", "INF-003", "INF-004", "INF-006", "INF-008", "INF-011", "INF-012",
+    "SRE-001", "SRE-002",
+    "SUP-003", "SUP-007", "SUP-008",
+    "WEB-002", "AUD-003",
+    "OPS-003", "OPS-005",
 }
 
 # Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
@@ -86,6 +122,48 @@ EXTERNAL_DEBT = {
 OPEN_TECH_DEBT: set[str] = set()
 
 EVIDENCE: dict[str, list[str]] = {
+    # 2026-08-06: executed rather than described. Each path is either the drill that
+    # produced a report or the test that keeps the drill honest.
+    "ING-012": [
+        "scripts/ingestion_recovery_drill.py",
+        "scripts/import_corpus.py",
+    ],
+    "SRE-004": [
+        "scripts/chaos_matrix.py",
+        "var/chaos-matrix.json",
+        "apps/api/tests/test_query_planner_boundary.py",
+    ],
+    "SRE-005": [
+        "scripts/load_probe.py",
+        "apps/api/tests/test_retrieval_budget_semantics.py",
+    ],
+    "RAG-014": [
+        "scripts/load_probe.py",
+        "scripts/fetch_drive_public.py",
+    ],
+    "SUP-005": [
+        "scripts/security_scan.sh",
+        "var/security/summary.json",
+        ".trivyignore.yaml",
+    ],
+    "OPS-001": [
+        "scripts/reproducible_build_probe.sh",
+        "apps/api/Dockerfile",
+    ],
+    "DATA-003": [
+        "scripts/corpus_release.py",
+        "apps/api/tests/test_corpus_release_manifest.py",
+    ],
+    "SRE-007": [
+        "scripts/corpus_release.py",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_release_manifest.py",
+    ],
+    "INF-005": [
+        "scripts/backup_sqlite.sh",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_backup_drill.py",
+    ],
     "GOV-002": [
         "docs/governance/AI_SYSTEM_CARD_V5.md",
         "docs/governance/RISK_REGISTER.md",

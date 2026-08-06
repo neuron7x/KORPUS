@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 44 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 31 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 53 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 22 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -24,7 +24,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **IAM-008 · P1 · EXTERNAL_DEBT** — Немає PAM/break-glass control
 - **ING-008 · P1 · MITIGATED_LOCAL** — Object store write не атомарний із metadata transaction
 - **ING-009 · P1 · MITIGATED_LOCAL** — Немає OCR/layout quality model
-- **ING-012 · P1 · EXTERNAL_DEBT** — Немає corpus-scale ingestion recovery drill
+- **ING-012 · P1 · MITIGATED_LOCAL** — Немає corpus-scale ingestion recovery drill
 - **RAG-001 · P0 · EXTERNAL_DEBT** — Evaluation dataset є synthetic fixture, не production evidence
 - **RAG-003 · P0 · EXTERNAL_DEBT** — Немає human gold standard та inter-annotator agreement
 - **RAG-005 · P1 · MITIGATED_LOCAL** — Немає contradiction resolution між джерелами
@@ -34,7 +34,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **RAG-011 · P1 · MITIGATED_LOCAL** — Sentence segmentation непридатна для складних нормативних документів
 - **RAG-012 · P1 · MITIGATED_LOCAL** — Lexical retrieval не має української морфології та domain analysis
 - **RAG-013 · P1 · MITIGATED_LOCAL** — Немає тестів таблиць, чисел, одиниць і формул
-- **RAG-014 · P1 · EXTERNAL_DEBT** — Scale evidence не репрезентує production
+- **RAG-014 · P1 · MITIGATED_LOCAL** — Scale evidence не репрезентує production
 - **RAG-015 · P1 · MITIGATED_LOCAL** — Embedding integration може створити data egress
 - **RAG-016 · P1 · MITIGATED_LOCAL** — Немає доказу synchronization/model migration embeddings
 - **RAG-017 · P1 · MITIGATED_LOCAL** — Немає drift/online quality monitoring
@@ -44,7 +44,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **INF-002 · P0 · MITIGATED_LOCAL** — docker-compose.yml є local topology, не production deployment
 - **INF-003 · P0 · EXTERNAL_DEBT** — Немає production TLS ingress і service identity
 - **INF-004 · P0 · EXTERNAL_DEBT** — Немає HA/failover/PITR topology
-- **INF-005 · P0 · EXTERNAL_DEBT** — Backup/restore не доведено на live production-like PostgreSQL
+- **INF-005 · P0 · MITIGATED_LOCAL** — Backup/restore не доведено на live production-like PostgreSQL
 - **INF-006 · P0 · EXTERNAL_DEBT** — Немає production secret manager/KMS/HSM і rotation evidence
 - **INF-007 · P1 · MITIGATED_LOCAL** — API має загальний egress без destination allowlist
 - **INF-008 · P1 · EXTERNAL_DEBT** — Resource limits не калібровані capacity plan
@@ -55,12 +55,12 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SRE-001 · P0 · EXTERNAL_DEBT** — Немає SLO/SLI/error-budget contract
 - **SRE-002 · P0 · EXTERNAL_DEBT** — Немає on-call ownership та incident exercises
 - **SRE-003 · P1 · MITIGATED_LOCAL** — Observability не має durable backend
-- **SRE-004 · P1 · EXTERNAL_DEBT** — Немає chaos/failure-injection matrix
-- **SRE-005 · P1 · EXTERNAL_DEBT** — Немає production load/concurrency endurance test
+- **SRE-004 · P1 · MITIGATED_LOCAL** — Немає chaos/failure-injection matrix
+- **SRE-005 · P1 · MITIGATED_LOCAL** — Немає production load/concurrency endurance test
 - **SRE-006 · P1 · MITIGATED_LOCAL** — Readiness має невизначену degraded-mode policy
-- **SRE-007 · P1 · EXTERNAL_DEBT** — Немає data/corpus release rollback drill
+- **SRE-007 · P1 · MITIGATED_LOCAL** — Немає data/corpus release rollback drill
 - **SUP-003 · P0 · EXTERNAL_DEBT** — Немає signed build provenance і artifact signing
-- **SUP-005 · P1 · EXTERNAL_DEBT** — Security scanners не були виконані в локальному аудиті
+- **SUP-005 · P1 · MITIGATED_LOCAL** — Security scanners не були виконані в локальному аудиті
 - **SUP-006 · P1 · MITIGATED_LOCAL** — Static security analysis coverage incomplete
 - **SUP-007 · P1 · EXTERNAL_DEBT** — GitLab branch/tag controls не доведені repository files
 - **SUP-008 · P1 · EXTERNAL_DEBT** — Немає continuous re-scan/patch SLA та KEV policy
@@ -80,9 +80,9 @@ This register classifies all 99 v4 findings without converting missing external 
 - **AUD-004 · P1 · MITIGATED_LOCAL** — Немає SIEM export/correlation/retention
 - **DATA-001 · P0 · MITIGATED_LOCAL** — Немає enforceable retention/deletion/legal-hold policy
 - **DATA-002 · P1 · MITIGATED_LOCAL** — Немає field-level privacy/minimization assessment
-- **DATA-003 · P1 · EXTERNAL_DEBT** — Немає immutable corpus release manifest підписаного data owner
+- **DATA-003 · P1 · MITIGATED_LOCAL** — Немає immutable corpus release manifest підписаного data owner
 - **DATA-004 · P1 · MITIGATED_LOCAL** — Немає continuous inventory/reconciliation object store↔DB↔index
-- **OPS-001 · P2 · EXTERNAL_DEBT** — Немає доказу reproducible container build
+- **OPS-001 · P2 · MITIGATED_LOCAL** — Немає доказу reproducible container build
 - **OPS-003 · P2 · EXTERNAL_DEBT** — Немає release evidence retention policy
 - **OPS-004 · P2 · MITIGATED_LOCAL** — Немає environment drift detection
 - **OPS-005 · P2 · EXTERNAL_DEBT** — Немає cost/capacity governance

@@ -52,8 +52,8 @@
     "findings_total": 99,
     "status_counts": {
       "CLOSED_LOCAL": 24,
-      "EXTERNAL_DEBT": 31,
-      "MITIGATED_LOCAL": 44
+      "EXTERNAL_DEBT": 22,
+      "MITIGATED_LOCAL": 53
     },
     "remaining_total": 75,
     "remaining_by_severity": {

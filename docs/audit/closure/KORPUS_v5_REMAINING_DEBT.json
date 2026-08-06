@@ -4,8 +4,8 @@
   "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
   "total_remaining": 75,
   "counts": {
-    "EXTERNAL_DEBT": 31,
-    "MITIGATED_LOCAL": 44
+    "EXTERNAL_DEBT": 22,
+    "MITIGATED_LOCAL": 53
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -252,8 +252,11 @@
       "required_action": "Run full-scale replay with injected failures and deterministic reconciliation.",
       "tools_methods": "Workflow engine; fault injection; load generator",
       "acceptance_predicate": "100% source manifest reconciled; no missing/duplicate versions.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/ingestion_recovery_drill.py",
+        "scripts/import_corpus.py"
+      ],
       "v5_remaining_acceptance": "100% source manifest reconciled; no missing/duplicate versions."
     },
     {
@@ -428,8 +431,11 @@
       "required_action": "Benchmark real corpus, concurrent mixed workload, cold/warm cache, failure cases.",
       "tools_methods": "k6/Locust; pg_stat_statements; OpenTelemetry",
       "acceptance_predicate": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/load_probe.py",
+        "scripts/fetch_drive_public.py"
+      ],
       "v5_remaining_acceptance": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves."
     },
     {
@@ -600,8 +606,12 @@
       "required_action": "Quarterly live restore to isolated environment, data validation, RLS/auth tests, timed RTO/RPO.",
       "tools_methods": "pg_dump/pg_restore or physical backup; restore automation",
       "acceptance_predicate": "Independent restore evidence with measured RTO/RPO and checksum reconciliation.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/backup_sqlite.sh",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_backup_drill.py"
+      ],
       "v5_remaining_acceptance": "Independent restore evidence with measured RTO/RPO and checksum reconciliation."
     },
     {
@@ -777,8 +787,12 @@
       "required_action": "Fault injection per dependency, partial failures, latency, stale cache, clock skew.",
       "tools_methods": "Toxiproxy/Chaos Mesh; pytest integration",
       "acceptance_predicate": "Every dependency has defined degraded/fail-closed behavior and recovery evidence.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/chaos_matrix.py",
+        "var/chaos-matrix.json",
+        "apps/api/tests/test_query_planner_boundary.py"
+      ],
       "v5_remaining_acceptance": "Every dependency has defined degraded/fail-closed behavior and recovery evidence."
     },
     {
@@ -792,8 +806,11 @@
       "required_action": "Mixed workload load/soak/spike tests; saturation and backpressure validation.",
       "tools_methods": "k6/Locust; pgbench; profiling",
       "acceptance_predicate": "Meet SLO under target and overload sheds load without leakage/corruption.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/load_probe.py",
+        "apps/api/tests/test_retrieval_budget_semantics.py"
+      ],
       "v5_remaining_acceptance": "Meet SLO under target and overload sheds load without leakage/corruption."
     },
     {
@@ -825,8 +842,12 @@
       "required_action": "Immutable corpus releases, canary cohort, shadow eval, atomic rollback.",
       "tools_methods": "Release registry; feature flags",
       "acceptance_predicate": "Rollback restores prior answers/index within defined RTO.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/corpus_release.py",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_release_manifest.py"
+      ],
       "v5_remaining_acceptance": "Rollback restores prior answers/index within defined RTO."
     },
     {
@@ -855,8 +876,12 @@
       "required_action": "Run pipeline in isolated runner; archive signed reports; fix all policy violations.",
       "tools_methods": "GitLab CI; Trivy; pip-audit; Gitleaks; Ruff; mypy",
       "acceptance_predicate": "Signed pipeline evidence, zero unaccepted high/critical findings.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/security_scan.sh",
+        "var/security/summary.json",
+        ".trivyignore.yaml"
+      ],
       "v5_remaining_acceptance": "Signed pipeline evidence, zero unaccepted high/critical findings."
     },
     {
@@ -1215,8 +1240,11 @@
       "required_action": "Signed corpus manifest: object/version hashes, policies, calibration, approvals.",
       "tools_methods": "in-toto/cosign; corpus registry",
       "acceptance_predicate": "Every answer resolves to signed corpus release accepted by data owner.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/corpus_release.py",
+        "apps/api/tests/test_corpus_release_manifest.py"
+      ],
       "v5_remaining_acceptance": "Every answer resolves to signed corpus release accepted by data owner."
     },
     {
@@ -1248,8 +1276,11 @@
       "required_action": "Rebuild on independent runner; compare digest; record allowed nondeterminism.",
       "tools_methods": "reproducible-build tooling; diffoscope",
       "acceptance_predicate": "Two independent builds yield identical digest or explained signed variance.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/reproducible_build_probe.sh",
+        "apps/api/Dockerfile"
+      ],
       "v5_remaining_acceptance": "Two independent builds yield identical digest or explained signed variance."
     },
     {

@@ -167,6 +167,29 @@ api:assurance:
       - var/scale-report.json
       - var/operational-gate.json
 
+# The drills. Each one breaks something on purpose, or loads the system until it refuses,
+# and leaves a report. They are separate from api:assurance because they take a running
+# deployment or a docker daemon, and because a drill that fails should say which drill —
+# not "assurance failed".
+#
+# The closure registry cites these artefacts. `_cited_runtime_artefacts` in
+# test_gate_parity.py reads that citation and fails if no job here publishes the file:
+# evidence that exists only on the machine where it was produced is not evidence a
+# reviewer can check.
+api:drills:
+  extends: .python-job
+  stage: assurance
+  timeout: 45m
+  script:
+    - mkdir -p var/objects var/security
+    - PYTHONPATH=.:apps/api/src python scripts/chaos_matrix.py
+    - bash scripts/security_scan.sh
+  artifacts:
+    when: always
+    paths:
+      - var/chaos-matrix.json
+      - var/security/summary.json
+
 # The closure registry cites `var/mutation-report.json` for COD-005. That file is
 # produced by api:assurance, and this check used to run in `repository:validate` —
 # the first stage, before any producer had executed. It could not pass in a pipeline
@@ -180,6 +203,11 @@ audit:closure:
   stage: security
   needs:
     - job: api:assurance
+      artifacts: true
+    # Stage order is not artefact delivery. Without this the closure check runs on a
+    # runner that has never seen var/chaos-matrix.json and resolves a citation against a
+    # file that is not there — which is the same shape as the evidence being absent.
+    - job: api:drills
       artifacts: true
   script:
     - python scripts/build_audit_closure.py
