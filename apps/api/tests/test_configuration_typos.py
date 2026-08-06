@@ -15,6 +15,8 @@ finds is the rule being replaced.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from korpus.config import OPERATIONAL_VARIABLES, Settings, unknown_settings_variables
 
@@ -73,3 +75,41 @@ def create_app_ok(settings: Settings) -> bool:
     from korpus.main import create_app
 
     return create_app(settings) is not None
+
+
+def test_no_deployed_environment_would_be_refused_by_the_check() -> None:
+    """The check refuses a process on an unrecognised KORPUS_* name. That is only safe
+    if no surface we actually deploy carries one.
+
+    A rule that rejects typos is worth nothing if it also rejects the compose file and
+    the production overlay — it would be reverted the first time a pod failed to start,
+    and the silent-default hazard would come back with it. Measured 2026-08-06: base and
+    production overlays clean, all nine compose services clean (api and worker carry 36
+    variables each).
+    """
+    import yaml
+    from korpus.application.deployment import render_kustomization
+
+    root = Path(__file__).resolve().parents[3]
+
+    for directory in ("deploy/kubernetes/base", "deploy/kubernetes/overlays/production"):
+        environment: dict[str, str] = {}
+        for document in render_kustomization(root / directory, root):
+            if document.get("kind") == "ConfigMap":
+                environment.update(document.get("data", {}))
+            if document.get("kind") in {"Deployment", "Job"}:
+                spec = document.get("spec", {}).get("template", {}).get("spec", {})
+                containers = spec.get("containers", []) + spec.get("initContainers", [])
+                for container in containers:
+                    for item in container.get("env", []) or []:
+                        if item.get("name"):
+                            environment[item["name"]] = "x"
+        assert environment, f"{directory} rendered no environment — this test is stale"
+        assert unknown_settings_variables(environment) == [], directory
+
+    compose = yaml.safe_load((root / "docker-compose.yml").read_text(encoding="utf-8"))
+    for name, service in compose["services"].items():
+        declared = service.get("environment", {})
+        if isinstance(declared, list):
+            declared = dict(item.split("=", 1) for item in declared if "=" in item)
+        assert unknown_settings_variables(declared or {}) == [], f"compose service {name}"

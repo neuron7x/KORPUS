@@ -1196,3 +1196,46 @@ def test_every_script_is_reachable_from_a_runner() -> None:
     ]
 
     assert not unreachable, f"no runner mentions these scripts: {unreachable}"
+
+
+def test_the_pipeline_graph_is_consistent() -> None:
+    """Every `needs` names a real job that runs earlier, and no artefact has two producers.
+
+    A `needs` on a job in a later stage is accepted by GitLab and never satisfied — the
+    dependent job runs with the artefact absent, which is how `audit:closure` spent two
+    days consuming a mutation report that had not been produced yet. Two producers for
+    one path is the same defect from the other side: whichever ran last wins, and the
+    evidence a later job reads is nondeterministic.
+    """
+    import yaml
+
+    document = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    stages = document["stages"]
+    jobs = {
+        name: body
+        for name, body in document.items()
+        if isinstance(body, dict)
+        and name not in {"workflow", "default", "variables"}
+        and not name.startswith(".")
+    }
+    assert jobs, "no jobs parsed — this test is out of date"
+
+    problems: list[str] = []
+    produced: dict[str, list[str]] = {}
+    for name, job in jobs.items():
+        stage = job.get("stage")
+        if stage not in stages:
+            problems.append(f"{name}: unknown stage {stage!r}")
+            continue
+        for need in job.get("needs", []) or []:
+            target = need["job"] if isinstance(need, dict) else need
+            if target not in jobs:
+                problems.append(f"{name}: needs unknown job {target!r}")
+            elif stages.index(jobs[target]["stage"]) > stages.index(stage):
+                problems.append(f"{name} ({stage}) needs {target} in a later stage")
+        for path in (job.get("artifacts") or {}).get("paths", []) or []:
+            produced.setdefault(path.rstrip("/"), []).append(name)
+
+    duplicated = {path: who for path, who in produced.items() if len(who) > 1}
+    assert not problems, problems
+    assert not duplicated, f"these artefacts have more than one producer: {duplicated}"
