@@ -14,6 +14,7 @@ from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.application.provenance import PROVENANCE_KEY, stamp
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.application.tevv import evaluate_tevv
+from korpus.composition import build_ingestion_service
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -149,7 +150,7 @@ def main() -> None:
             corpora=frozenset({"public", "training"}),
         )
         identities = {"public": public, "authenticated": authenticated, "admin": admin}
-        ingestion = IngestionService(
+        ingestion = build_ingestion_service(
             repository, store, policy, ExtractionSettings(False, "ukr+eng")
         )
         _ingest(

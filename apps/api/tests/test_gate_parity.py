@@ -578,10 +578,15 @@ def test_the_desired_state_manifest_matches_the_files_it_fingerprints() -> None:
     )
 
 
-LOCK_FILES = (
-    ROOT / "apps/api/requirements.runtime.lock",
-    ROOT / "apps/api/requirements.dev.lock",
-)
+#: Discovered, not enumerated. This tuple named its two members until 2026-08-06, and
+#: a third lock — `apps/api/requirements.lock` — sat beside them carrying 56 known
+#: advisories, no hashes at all, and pins eight packages behind the runtime lock,
+#: including `cryptography==46.0.4` (the exact CVE set already fixed here) and
+#: `pypdf==5.9.0`, the parser that reads uploaded documents. Nothing installed from it,
+#: which is why it survived: every gate enumerated the files it already knew about, so
+#: the one nobody knew about was outside all of them. It is the most obviously-named of
+#: the three, so `pip install -r apps/api/requirements.lock` was one keystroke away.
+LOCK_FILES = tuple(sorted((ROOT / "apps/api").glob("requirements*.lock")))
 
 
 def test_every_pinned_dependency_carries_a_hash() -> None:
@@ -924,3 +929,389 @@ def test_every_ci_image_pins_an_exact_tag() -> None:
         f"these CI images do not pin a version: {unpinned}. `latest` is whatever the "
         "registry served that morning, in a pipeline whose claim is reproducibility"
     )
+
+    # SUP-001. A tag is a name the registry may repoint at any time; a digest is the
+    # bytes. The version invented on 2026-08-05 reached a queued pipeline before
+    # anything caught it, and a digest could not have been invented at all.
+    without_digest = [image for image in images if "@sha256:" not in image]
+    assert not without_digest, (
+        f"these CI images are pinned by tag alone: {without_digest}"
+    )
+
+
+def test_a_failed_generator_does_not_leave_its_previous_report_behind() -> None:
+    """Stale evidence and absent evidence must not be the same state.
+
+    On 2026-08-05 six mutants went INVALID after their targets moved to a new module.
+    The run exited non-zero and `var/mutation-report.json` stayed behind from the run
+    before, so the operational gate read a report from a different tree and reported
+    "generated from a different source tree" — accurate, and three steps removed from
+    the cause. A missing report says "the generator did not finish"; a stale one says
+    something about a tree that no longer exists.
+    """
+    shards = (ROOT / "scripts/run_mutation_shards.sh").read_text(encoding="utf-8")
+
+    assert "rm -f" in shards and "mutation-report.json" in shards, (
+        "the shard runner no longer removes its report when a shard fails"
+    )
+    failure_block = shards[shards.index('if [[ "$failed" -ne 0 ]]'):]
+    assert "rm -f" in failure_block.split("exit 1")[0], (
+        "the report is removed outside the failure path, so a successful run would "
+        "delete the evidence it just produced"
+    )
+
+
+def test_the_environment_drift_check_runs_in_the_pipeline() -> None:
+    """OPS-004. A comparator nobody invokes is documentation.
+
+    The check is deliberately in two halves: the pipeline observes its own checkout,
+    which proves the comparator runs and that the manifest describes this tree. It is
+    not evidence about a cluster — that observation has to be taken on the host that is
+    running, and taking it here would fingerprint the build host, which is the failure
+    the check exists to catch, performed by the checker.
+    """
+    script = _ci_script("repository:validate")
+    observe = [line for line in script if "check_environment_drift.py --observe" in line]
+    compare = [line for line in script if "--observation" in line]
+    assert observe, "repository:validate no longer takes an environment observation"
+    assert compare, "repository:validate observes the environment and never compares it"
+    assert script.index(observe[0]) < script.index(compare[0]), (
+        "the comparison runs before the observation it reads"
+    )
+
+
+def test_the_browsers_copy_of_the_request_contract_cannot_go_stale() -> None:
+    """WEB-001. Two copies of the domain rules, and the copy is the one that drifts.
+
+    apps/web/public/contract.js carries the field constraints and the role table the
+    operator consoles validate against. Stale means the forms refuse what the API
+    accepts — a failure nobody reports, because nobody reports a form that would not
+    submit something they never tried to submit.
+    """
+    assert any(
+        "generate_web_contract.py --check" in line
+        for line in _ci_script("repository:validate")
+    ), "repository:validate no longer checks the generated web contract"
+    assert "web-contract-check" in _makefile_prerequisites("web-build"), (
+        "make web-build no longer checks the generated web contract"
+    )
+
+
+def test_the_web_gate_runs_its_own_negative_controls() -> None:
+    """`node --check <file>` exits 0 for any file containing an `import`.
+
+    Verified on node v22.23.1: a file holding both an import and `const y = ;` passes.
+    Two such invocations stood in `npm run lint` until 2026-08-05, so from the moment
+    app.js became a module the web syntax check was inert and kept printing success.
+    The parse now happens inside validate.mjs on stdin with an explicit --input-type,
+    and apps/web/tests/validate_gate.test.mjs mutates a copy of the tree to prove each
+    control can still fail.
+    """
+    package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
+    for name in ("lint", "typecheck"):
+        assert "--check" not in package["scripts"][name], (
+            f"apps/web `{name}` is back to `node --check`, which does not check modules"
+        )
+    assert "node --test" in package["scripts"].get("test", ""), (
+        "apps/web has no test script, so the gate's negative controls never run"
+    )
+    assert any("run test" in line for line in _ci_script("web:test")), (
+        "web:test no longer runs the negative controls for its own gate"
+    )
+    assert "test" in _makefile_recipe("web-build")[1], (
+        "make web-build no longer runs the web test suite"
+    )
+
+
+def test_every_writing_console_previews_before_it_acts() -> None:
+    """WEB-001's acceptance predicate needs the workflows to be safe, not merely present.
+
+    An approval is irreversible and lands on whatever version id the field holds. The
+    submit button ships disabled, a preview enables it, and any edit disables it again
+    — so nothing irreversible fires on a first click.
+    """
+    console = (ROOT / "apps/web/public/console.html").read_text(encoding="utf-8")
+    for workflow in ("ingest", "review", "rescind"):
+        assert f'id="{workflow}-preview"' in console, f"{workflow} has no preview step"
+        assert re.search(rf'id="{workflow}-submit"[^>]*disabled', console), (
+            f"{workflow} can be submitted before anything was previewed"
+        )
+
+
+def test_every_lock_file_is_audited_for_known_vulnerabilities() -> None:
+    """The dev lock had never been audited by anything.
+
+    `python:audit` read `requirements.runtime.lock` alone, so the packages CI installs
+    on a runner holding a checkout of this repository were outside every security gate.
+    That is a strictly larger blast radius than a runtime package inside a read-only
+    container: a compromised test dependency reads the tree and holds the pipeline's
+    credentials. Running pip-audit against the dev lock for the first time on
+    2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
+    """
+    script = _ci_script("python:audit")
+    audited = {
+        line.rsplit(" ", 1)[-1]
+        for line in script
+        if "pip-audit" in line and line.rstrip().endswith(".lock")
+    }
+    locks = {
+        f"apps/api/{path.name}"
+        for path in (ROOT / "apps/api").glob("requirements*.lock")
+    }
+
+    assert locks, "no lock files found — this test is out of date"
+    assert locks <= audited, (
+        f"these lock files are never audited: {sorted(locks - audited)}"
+    )
+
+
+def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> None:
+    """A regression pin for the advisories this repository has already answered.
+
+    pip-audit needs the network and is a CI job. This is the offline half: once a
+    version has been found vulnerable and replaced, going back to it must fail in the
+    test suite rather than wait for the security stage — which runs four stages later
+    and, for the dev lock, did not run at all until 2026-08-06.
+    """
+    known_bad = {
+        # (package, first version that is NOT affected, advisory)
+        ("pytest", "9.0.3", "PYSEC-2026-1845"),
+        ("cryptography", "50.0.0", "PYSEC-2026-3552/3553/3554"),
+    }
+    text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (ROOT / "apps/api").glob("requirements*.lock")
+    )
+    pinned = dict(re.findall(r"^([A-Za-z0-9_.\-]+)==([0-9][^\s\\]*)", text, re.MULTILINE))
+
+    for package, fixed, advisory in known_bad:
+        version = pinned.get(package)
+        if version is None:
+            continue
+        assert _version_tuple(version) >= _version_tuple(fixed), (
+            f"{package}=={version} is below {fixed}, which {advisory} requires"
+        )
+
+
+def _version_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"\d+", value))
+
+
+def test_the_development_proxy_mirrors_the_production_edge() -> None:
+    """`make web-run` and `make api-run` could not talk to each other.
+
+    config.js points the browser at `/api`; the static dev server had no such route, so
+    every request 404'd and the two dev servers were unusable together. The obvious fix
+    — pointing config.js at http://127.0.0.1:8000 — "works" only by moving the session
+    cookie cross-origin, and same-origin is the security property here, not a
+    convenience: `credentials: "same-origin"` and the `__Host-` cookie prefix both mean
+    nothing across origins.
+
+    So serve.mjs proxies the same prefix nginx does, and strips it the same way.
+    apps/web/tests/validate_gate.test.mjs mutates each half and asserts the gate refuses.
+    """
+    serve = (ROOT / "apps/web/scripts/serve.mjs").read_text(encoding="utf-8")
+    nginx = (ROOT / "apps/web/nginx.conf").read_text(encoding="utf-8")
+    config = (ROOT / "apps/web/public/config.js").read_text(encoding="utf-8")
+
+    assert 'apiUrl: "/api"' in config, (
+        "the browser no longer talks to a same-origin path; a cross-origin apiUrl "
+        "silently drops the session cookie and the CSRF double-submit with it"
+    )
+    assert 'const API_PREFIX = "/api/";' in serve
+    assert "location /api/ {" in nginx
+    assert "proxy_pass http://api:8000/;" in nginx, (
+        "nginx no longer strips the prefix, so the dev proxy strips one nginx keeps"
+    )
+    assert "development proxy: no rate limit, no CSP, no TLS" in serve, (
+        "a dev proxy that looks like the production edge is how one gets served through"
+    )
+
+
+def test_the_bootstrap_produces_a_corpus_that_can_actually_answer() -> None:
+    """`make bootstrap` approved a version that stated neither date.
+
+    Approval refuses that — without `effective_from` or `publication_date` the version
+    would govern every past date — so the documented way to get a running local instance
+    failed at its last step from the moment that rule landed. Found 2026-08-06 by
+    running it.
+
+    A fixed date rather than today's: a bootstrap that seeds a different corpus on every
+    run cannot be compared against itself, and "which edition was in force on date X" is
+    the question this system exists to answer.
+    """
+    source = (ROOT / "scripts/bootstrap_local.py").read_text(encoding="utf-8")
+
+    assert "BOOTSTRAP_PUBLICATION_DATE = date(" in source
+    assert "publication_date=BOOTSTRAP_PUBLICATION_DATE" in source
+    assert "date.today()" not in source.split("def main")[1].split("VersionCreate")[1][:400]
+
+
+def test_every_script_is_reachable_from_a_runner() -> None:
+    """A script nobody runs is a script nobody maintains — and one that is cited.
+
+    `scripts/export_audit.py` was named as AUD-004's evidence in the closure register
+    while no Makefile target, CI job or test invoked it: a citation that names a file
+    rather than a run, which is the shape ADR-0008 exists to refuse. And
+    `scripts/prepare_postgres_test_role.py` was a ten-line compatibility wrapper around
+    `prepare_postgres_role.py` that nothing called — a decoy one keystroke from the live
+    script, so half the edits to "the role provisioner" would have landed on the copy
+    that never runs. It is deleted.
+    """
+    scripts = sorted(
+        [path.name for path in (ROOT / "scripts").glob("*.py") if path.name != "__init__.py"]
+        + [path.name for path in (ROOT / "scripts").glob("*.sh")]
+    )
+    assert scripts, "no scripts found — this test is out of date"
+
+    haystacks = {
+        "Makefile": MAKEFILE.read_text(encoding="utf-8"),
+        "CI": CI.read_text(encoding="utf-8"),
+        "tests": "\n".join(
+            path.read_text(encoding="utf-8") for path in (ROOT / "apps/api/tests").rglob("*.py")
+        ),
+        "scripts": "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / "scripts").rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts
+        ),
+        # A documented tool a human runs by hand is reached; a tool nothing mentions
+        # at all is not.
+        "docs": "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / "docs").rglob("*.md")
+        )
+        + (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"),
+    }
+
+    unreachable = [
+        script
+        for script in scripts
+        # A script naming only itself is not referenced: `scripts` includes the file.
+        if not any(
+            script in text
+            for name, text in haystacks.items()
+            if name != "scripts" or text.count(script) > 1
+        )
+    ]
+
+    assert not unreachable, f"no runner mentions these scripts: {unreachable}"
+
+
+def test_the_pipeline_graph_is_consistent() -> None:
+    """Every `needs` names a real job that runs earlier, and no artefact has two producers.
+
+    A `needs` on a job in a later stage is accepted by GitLab and never satisfied — the
+    dependent job runs with the artefact absent, which is how `audit:closure` spent two
+    days consuming a mutation report that had not been produced yet. Two producers for
+    one path is the same defect from the other side: whichever ran last wins, and the
+    evidence a later job reads is nondeterministic.
+    """
+    import yaml
+
+    document = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    stages = document["stages"]
+    jobs = {
+        name: body
+        for name, body in document.items()
+        if isinstance(body, dict)
+        and name not in {"workflow", "default", "variables"}
+        and not name.startswith(".")
+    }
+    assert jobs, "no jobs parsed — this test is out of date"
+
+    problems: list[str] = []
+    produced: dict[str, list[str]] = {}
+    for name, job in jobs.items():
+        stage = job.get("stage")
+        if stage not in stages:
+            problems.append(f"{name}: unknown stage {stage!r}")
+            continue
+        for need in job.get("needs", []) or []:
+            target = need["job"] if isinstance(need, dict) else need
+            if target not in jobs:
+                problems.append(f"{name}: needs unknown job {target!r}")
+            elif stages.index(jobs[target]["stage"]) > stages.index(stage):
+                problems.append(f"{name} ({stage}) needs {target} in a later stage")
+        for path in (job.get("artifacts") or {}).get("paths", []) or []:
+            produced.setdefault(path.rstrip("/"), []).append(name)
+
+    duplicated = {path: who for path, who in produced.items() if len(who) > 1}
+    assert not problems, problems
+    assert not duplicated, f"these artefacts have more than one producer: {duplicated}"
+
+
+def test_no_mutant_covers_two_call_sites_at_once() -> None:
+    """Two occurrences under one mutant is not two covered call sites.
+
+    The substitution replaces *every* occurrence of the target string, so a mutant whose
+    line appears twice mutates both and is answered by whichever site its test happens to
+    reach. The other is never individually falsified, and the catalogue reports a kill
+    for it anyway.
+
+    This is not hypothetical. `M05_SQL_CLEARANCE_FILTER_REMOVED` passed for months that
+    way; splitting the retrieval projection out of the repository left the `list_documents`
+    predicate alone and the mutant immediately survived. The sweep on 2026-08-06 found
+    three more — the malware scan on both ingestion paths, the per-version cap declared
+    twice, and the lease check guarding both `complete` and `fail`.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    ambiguous = []
+    absent = []
+    for mutant in MUTANTS:
+        source = ROOT / mutant.file
+        if not source.is_file():
+            absent.append(f"{mutant.id}: {mutant.file} does not exist")
+            continue
+        occurrences = source.read_text(encoding="utf-8").count(mutant.old)
+        if occurrences == 0:
+            absent.append(f"{mutant.id}: target not present in {mutant.file}")
+        elif occurrences > 1:
+            ambiguous.append(f"{mutant.id}: target appears {occurrences}× in {mutant.file}")
+
+    assert not absent, absent
+    assert not ambiguous, (
+        "these mutants replace more than one occurrence, so one kill is credited to "
+        f"several call sites: {ambiguous}"
+    )
+
+
+def test_every_mutant_cites_a_test_that_exists() -> None:
+    """A mutant citing a renamed test dies on collection error rather than on the defect.
+
+    It still reports KILLED — pytest exits non-zero either way — so the catalogue would
+    read as covered while nothing was exercised.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    missing = []
+    for mutant in MUTANTS:
+        for spec in mutant.tests:
+            path, _, node = spec.partition("::")
+            target = ROOT / path
+            if not target.is_file():
+                missing.append(f"{mutant.id}: {path} does not exist")
+            elif node and node.split("[")[0] not in target.read_text(encoding="utf-8"):
+                missing.append(f"{mutant.id}: {node} not found in {path}")
+
+    assert not missing, missing
+
+
+def test_mutant_ids_are_unique() -> None:
+    """An id is how a mutant is cited in the closure register and matched to a finding."""
+    import sys
+    from collections import Counter
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    counts = Counter(mutant.id for mutant in MUTANTS)
+
+    assert [identifier for identifier, count in counts.items() if count > 1] == []

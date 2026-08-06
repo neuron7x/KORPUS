@@ -2,8 +2,8 @@
 # advisories in the alpine base layer alone — c-ares, curl, libcurl, libcrypto3,
 # libssl3 — reported by container:scan the first time it managed to read the
 # image, on 2026-08-03. The API image was clean; this one was not.
-ARG NODE_IMAGE=node:22.23.2-alpine
-ARG NGINX_IMAGE=nginx:1.31.3-alpine
+ARG NODE_IMAGE=node:22.23.2-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+ARG NGINX_IMAGE=nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
 FROM ${NODE_IMAGE} AS build
 WORKDIR /src
 COPY apps/web/package*.json ./

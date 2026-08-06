@@ -61,7 +61,7 @@ MUTANTS = (
     ),
     Mutant(
         "M04_AUDIT_PREDECESSOR_BYPASS",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         (
             'if row["previous_hash"] != previous_hash or not hmac.compare_digest(\n'
             '                expected_hash, row["event_hash"]\n'
@@ -75,11 +75,26 @@ MUTANTS = (
         ("apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",),
     ),
     Mutant(
+        # Until 2026-08-05 this predicate appeared twice in one file — in the
+        # retrieval projection and in `list_documents` — so a single substitution
+        # mutated both and one retrieval test killed it. Splitting the projection out
+        # left the listing predicate with nothing holding it, and the mutant survived.
+        # Two occurrences under one mutant is not two covered call sites.
         "M05_SQL_CLEARANCE_FILTER_REMOVED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         ".where(documents.c.access_tier <= int(identity.clearance))",
         ".where(documents.c.access_tier <= 3)",
         ("apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",),
+    ),
+    Mutant(
+        "M130_LISTING_CLEARANCE_FILTER_REMOVED",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        ".where(documents.c.access_tier <= int(identity.clearance))",
+        ".where(documents.c.access_tier <= 3)",
+        (
+            "apps/api/tests/test_repository_access_refusals.py::"
+            "test_listing_hides_a_document_above_the_readers_clearance",
+        ),
     ),
     Mutant(
         "M06_RELEASE_SCOPE_BROADENED",
@@ -119,7 +134,7 @@ MUTANTS = (
     ),
     Mutant(
         "M10_AUDIT_HEAD_CHECK_REMOVED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "if head_sequence != len(rows) or head_hash != previous_hash:",
         "if False:",
         ("apps/api/tests/test_audit.py::test_audit_anchor_detects_tail_truncation",),
@@ -160,10 +175,15 @@ MUTANTS = (
         ("apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims",),
     ),
     Mutant(
+        # `self.malware_scanner.scan(path)` appears on both ingestion paths — a new
+        # document, and a new version of an existing one. One mutant replaced both,
+        # so a test covering either answered for the pair and the other site was
+        # never individually falsified. Split 2026-08-06; M181 is the version path.
         "M16_MALWARE_SCAN_BYPASS",
         "apps/api/src/korpus/application/ingestion.py",
-        "self.malware_scanner.scan(path)",
-        "None",
+        "                duplicate=True,\n            )\n"
+        "        self.malware_scanner.scan(path)",
+        "                duplicate=True,\n            )\n        None",
         ("apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",),
     ),
     Mutant(
@@ -220,11 +240,24 @@ MUTANTS = (
         ("apps/api/tests/test_browser_oidc.py::test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf",),
     ),
     Mutant(
+        # The decision moved behind the Extractor port on 2026-08-06. It is now a value
+        # travelling to an adapter, so the mutant sets the value rather than skipping a
+        # branch — and the adapter's half has its own mutant below.
         "M22_PARSER_SANDBOX_BYPASS",
         "apps/api/src/korpus/application/ingestion.py",
-        "if self.extraction.parser_sandbox_enabled:",
-        "if False:",
+        "            sandboxed=self.extraction.parser_sandbox_enabled,",
+        "            sandboxed=False,",
         ("apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser",),
+    ),
+    Mutant(
+        "M172_EXTRACTION_ADAPTER_IGNORES_THE_SANDBOX_FLAG",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "        if sandboxed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_v5_security_kernel.py::"
+            "test_the_extraction_adapter_runs_the_isolated_parser_when_told_to",
+        ),
     ),
     Mutant(
         "M23_INGESTION_LEASE_BYPASS",
@@ -287,21 +320,21 @@ MUTANTS = (
         # can never be restored by `_materialize_current`, so this shift expires an
         # order a day early and the domain never gets to disagree.
         "M29_SQL_VALIDITY_END_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND (v.effective_until IS NULL OR v.effective_until >= :as_of)",
         "AND (v.effective_until IS NULL OR v.effective_until > :as_of)",
         ("apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",),
     ),
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
         "AND COALESCE(v.effective_from, v.publication_date) < :as_of",
         ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
     ),
     Mutant(
         "M31_SQL_RESCISSION_SHIFT",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
         "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)",
         # Behaviourally this one is equivalent — `_materialize_current` re-checks the
@@ -407,10 +440,13 @@ MUTANTS = (
     ),
     Mutant(
         # One version cited twice reads as two independent sources.
+        # Declared twice: on `diversify_evidence` and on the retriever that calls it.
+        # One mutant widened both, so a test of either answered for the pair.
+        # M182 is the retriever's own default.
         "M41_PER_VERSION_CAP_WIDENED",
         "apps/api/src/korpus/application/retrieval.py",
-        "    per_version_cap: int = 1,",
-        "    per_version_cap: int = 2,",
+        "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 1,",
+        "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 2,",
         ("apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match",),
     ),
     Mutant(
@@ -501,9 +537,9 @@ MUTANTS = (
     Mutant(
         # A scoped read that ignores its scope returns another request's events.
         "M52_AUDIT_TRACE_SCOPE_IGNORED",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "            .where(audits.c.payload_json.contains(needle))",
-        "            .where(audits.c.sequence >= 1)",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "            .where(self._audits.c.payload_json.contains(needle))",
+        "            .where(self._audits.c.sequence >= 1)",
         ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",),
     ),
     Mutant(
@@ -654,21 +690,69 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Moved with the invariants to kubernetes_requirements.py on 2026-08-05. The
+        # predicate is stated positively there, so the mutant is `True` rather than
+        # `False`: a requirement that always holds is the same defect as a check that
+        # never fires.
         "M70_MUTABLE_ROOT_FILESYSTEM_ACCEPTED",
-        "apps/api/src/korpus/application/deployment.py",
-        '        if security.get("readOnlyRootFilesystem") is not True:',
-        "        if False:",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: security.get("readOnlyRootFilesystem") is True,',
+        "            holds=lambda context: True,",
         (
             "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
         ),
     ),
     Mutant(
         "M71_FLOATING_IMAGE_TAG_ACCEPTED",
-        "apps/api/src/korpus/application/deployment.py",
-        '        if "@sha256:" not in image:',
-        "        if False:",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: "@sha256:" in image,',
+        "            holds=lambda context: True,",
         (
             "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
+        ),
+    ),
+    Mutant(
+        "M134_DROPPED_CAPABILITY_SUBSET_ACCEPTED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        '            holds=lambda context: security.get("capabilities", {}).get("drop")'
+        ' == ["ALL"],',
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_deployment_rendering_refusals.py::"
+            "test_a_container_that_loosens_its_own_context_is_reported",
+        ),
+    ),
+    Mutant(
+        "M135_EMPTY_RENDER_TREATED_AS_CLEAN",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "            holds=lambda context: bool(context.documents),",
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_an_empty_render_reports_one_failure_rather_than_the_whole_register",
+        ),
+    ),
+    Mutant(
+        "M136_MISSING_RESOURCE_KINDS_IGNORED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "            holds=lambda context: not (REQUIRED_KINDS - set(context.by_kind)),",
+        "            holds=lambda context: True,",
+        (
+            "apps/api/tests/test_deployment_overlays.py::test_missing_workloads_are_reported",
+        ),
+    ),
+    Mutant(
+        # Survived its first probe against
+        # test_the_kubernetes_register_states_the_same_rules_as_the_gate, which counted
+        # the config requirements and asserted the base deployment passes. A register
+        # can name every key and still assert nothing about their values.
+        "M137_PRODUCTION_CONFIG_NOT_REQUIRED",
+        "apps/api/src/korpus/kubernetes_requirements.py",
+        "        return lambda context: context.config.get(key) == value",
+        "        return lambda context: True",
+        (
+            "apps/api/tests/test_requirement_registry.py::"
+            "test_a_deployed_configuration_that_drifts_from_policy_is_reported",
         ),
     ),
     Mutant(
@@ -710,7 +794,7 @@ MUTANTS = (
     Mutant(
         "M76_UNCALIBRATED_SCORE_DISCLAIMER_UNGUARDED",
         "apps/web/scripts/validate.mjs",
-        'if (!js.includes("Ranking utility не є ймовірністю правильності")) '
+        'if (!app.includes("Ranking utility не є ймовірністю правильності")) '
         'throw new Error("uncalibrated score disclaimer missing");',
         "",
         (
@@ -773,8 +857,8 @@ MUTANTS = (
     ),
     Mutant(
         "M82_SQL_HONOURS_A_CROSSING_SUPERSESSION_EDGE",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "            .where(superseding.c.document_id == versions.c.document_id)",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "        .where(superseding.c.document_id == versions.c.document_id)",
         "",
         (
             "apps/api/tests/test_foreign_supersession.py::test_a_crossing_edge_already_in_the_database_is_not_honoured",
@@ -873,16 +957,16 @@ MUTANTS = (
     ),
     Mutant(
         "M93_SQL_IGNORES_THE_LOWER_BOUND",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "                  AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
-        "                  AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "              AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
         (
             "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
         ),
     ),
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/schema.py",
         'SCHEMA_REVISION = "0010_revision_identity"',
         'SCHEMA_REVISION = "0009_reviewer_credentials"',
         (
@@ -891,7 +975,7 @@ MUTANTS = (
     ),
     Mutant(
         "M95_DELAYED_ANCHOR_REPORTED_AS_BROKEN_CHAIN",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        pending = head_sequence - anchor.sequence\n"
         "        return AuditVerification(\n"
         "            valid=True,",
@@ -904,7 +988,7 @@ MUTANTS = (
     ),
     Mutant(
         "M96_ANCHOR_AHEAD_OF_HEAD_ACCEPTED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        if anchor.sequence > head_sequence:",
         "        if False:",
         (
@@ -913,7 +997,7 @@ MUTANTS = (
     ),
     Mutant(
         "M97_ANCHOR_POSITION_HASH_NOT_COMPARED",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
         "        if anchor.head_hash != anchor_at_position:",
         "        if False:",
         (
@@ -1139,13 +1223,109 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M153_SWITCH_ALLOWED_ON_INCOMPLETE_INDEX",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "    if spans_embedded_target < spans_total:",
+        "    if False:",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_the_switch_requires_complete_coverage",
+        ),
+    ),
+    Mutant(
+        "M154_RETIRE_ALLOWED_BEFORE_SWITCH",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "    if not switched:",
+        "    if False:",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_retiring_before_the_switch_is_refused",
+        ),
+    ),
+    Mutant(
+        "M155_RESUME_SKIPS_A_GAP",
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "        if batch.index not in done:",
+        "        if batch.index < max(done, default=-1):",
+        (
+            "apps/api/tests/test_embedding_migration.py::"
+            "test_resume_returns_the_first_gap_not_the_next_index",
+        ),
+    ),
+    Mutant(
+        "M150_UNKNOWN_QUERY_FAILS_OPEN",
+        "apps/api/src/korpus/application/risk.py",
+        "    if risk is QueryRisk.UNCLASSIFIED:",
+        "    if False:",
+        (
+            "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
+        ),
+    ),
+    Mutant(
+        "M151_UNRECOGNISED_QUERY_READS_AS_ORDINARY",
+        "apps/api/src/korpus/application/risk_rules.py",
+        "    return QueryRisk.UNCLASSIFIED, None",
+        "    return QueryRisk.STANDARD, None",
+        (
+            "apps/api/tests/test_risk_rules.py::"
+            "test_an_unrecognised_query_is_unclassified_not_standard",
+        ),
+    ),
+    Mutant(
+        "M152_REPHRASED_PERMISSION_QUESTION_SLIPS_THROUGH",
+        "apps/api/src/korpus/application/risk_rules.py",
+        '            r"\\b(чи можу|чи може|чи маю|чи повинен|чи потрібно|як діяти"',
+        '            r"\\b(ZZ-nothing-matches-this|чи повинен|чи потрібно|як діяти"',
+        (
+            "apps/api/tests/test_risk_rules.py::"
+            "test_a_rephrased_operational_question_is_still_operational",
+        ),
+    ),
+    Mutant(
+        "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "                    lambda c, n=name: not c.service(n).get(\"image\")\n"
+        "                    or bool(DIGEST_PINNED.search(str(c.service(n)[\"image\"]))),",
+        "                    lambda c, n=name: True,",
+        (
+            "apps/api/tests/test_image_pinning.py::"
+            "test_a_tag_without_a_digest_is_refused",
+        ),
+    ),
+    Mutant(
+        # The predicate became a three-line `if` on 2026-08-06 when `tracked_secrets`
+        # started asking git what is tracked rather than what is present.
         "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
-        '        if relative.startswith("infra/secrets/") and path.suffix == ".txt":',
-        "        if False:",
+        '            relative.startswith("infra/secrets/")',
+        "            False",
         (
             "apps/api/tests/test_repository_register.py::"
             "test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
+    ),
+    Mutant(
+        # The fallback direction. Outside a repository nothing can tell an ignored
+        # secret from a shipped one, so every secret file present must be a finding;
+        # returning an empty set instead would make a packaged distribution report
+        # clean over a credential it ships.
+        "M170_UNTRACKABLE_SECRETS_ASSUMED_IGNORED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "    git_tracked = tracked if tracked is not None else _EVERYTHING",
+        "    git_tracked = tracked if tracked is not None else frozenset()",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
+    ),
+    Mutant(
+        "M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "            and relative in git_tracked",
+        "            and True",
+        (
+            "apps/api/tests/test_repository_register.py::"
+            "test_a_secret_git_ignores_is_not_reported_as_tracked",
         ),
     ),
     Mutant(
@@ -1456,6 +1636,235 @@ MUTANTS = (
         (
             "apps/api/tests/test_recovery_measurement.py::"
             "test_a_duration_without_provenance_is_not_a_measurement",
+        ),
+    ),
+    # OPS-004. Every one of these turns a finding into a silence, which is the only
+    # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
+    Mutant(
+        # The binding between an answer's text and its citations is decided once. A
+        # mutable Answer lets anything downstream change the sentence while keeping the
+        # citations that justified a different one.
+        "M178_ANSWER_EDITABLE_AFTER_THE_POLICY_DECIDED_IT",
+        "apps/api/src/korpus/domain/models.py",
+        "    model_config = ConfigDict(frozen=True)\n\n"
+        "    id: UUID = Field(default_factory=uuid4)\n    status: AnswerStatus",
+        "    id: UUID = Field(default_factory=uuid4)\n    status: AnswerStatus",
+        (
+            "apps/api/tests/test_architecture.py::"
+            "test_the_answer_cannot_be_edited_after_the_policy_decided_it",
+        ),
+    ),
+    Mutant(
+        # `source_hash: str = Field(pattern=...)` appears three times in this file —
+        # DocumentVersionRecord, Citation and IngestionJobRecord — so the bare line
+        # mutates all three, and the mutant is then answered by whichever test happens
+        # to cover any of them. Anchored on the line above it, which is Citation's
+        # alone. Two occurrences under one mutant is not two covered call sites: that
+        # is exactly how M05 passed for months.
+        "M179_CITATION_SOURCE_HASH_UNCONSTRAINED",
+        "apps/api/src/korpus/domain/models.py",
+        "#: system says it did, which is the one place the shape has to be certain.\n"
+        '    source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")',
+        "#: system says it did, which is the one place the shape has to be certain.\n"
+        "    source_hash: str",
+        (
+            "apps/api/tests/test_architecture.py::"
+            "test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at",
+        ),
+    ),
+    Mutant(
+        # The malware scan on the *version* ingestion path — the same untrusted-bytes
+        # surface, reached more easily: the document already exists and already passed
+        # review. Split from M16, which covered both lines at once.
+        "M181_MALWARE_SCAN_BYPASS_ON_VERSION_INGEST",
+        "apps/api/src/korpus/application/ingestion.py",
+        '                raise ValueError("supersedes_version_id must reference the same '
+        'canonical document")\n        self.malware_scanner.scan(path)',
+        '                raise ValueError("supersedes_version_id must reference the same '
+        'canonical document")\n        None',
+        (
+            "apps/api/tests/test_v5_security_kernel.py::"
+            "test_a_new_version_of_an_existing_document_is_scanned_too",
+        ),
+    ),
+    Mutant(
+        # The retriever's own default, which production never uses — `dependencies.py`
+        # always passes the calibrated value — so it can drift from the function it
+        # forwards to with nothing observing it.
+        "M182_RETRIEVER_PER_VERSION_CAP_WIDENED",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 1,",
+        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 2,",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to",
+        ),
+    ),
+    Mutant(
+        # The `complete` half of the lease check. A worker that does not hold the job
+        # marking it succeeded records a version as ingested from bytes nobody parsed,
+        # and the corpus then answers from spans that were never extracted.
+        "M180_LEASE_OWNERSHIP_UNCHECKED_ON_COMPLETE",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "            if changed.rowcount != 1:\n"
+        '                raise IngestionJobConflict("worker does not own active ingestion lease")',
+        "            if changed.rowcount != 1:\n                pass",
+        (
+            "apps/api/tests/test_durable_ingestion_jobs.py::"
+            "test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold",
+        ),
+    ),
+    Mutant(
+        # A second worker writing a result for a job it does not hold marks a version as
+        # ingested from bytes nobody parsed. The claim was exclusive and the write was
+        # not tested.
+        # The same sentence guards `complete` and `fail`. `fail` reaches it through
+        # `if row is None:`, `complete` through `if changed.rowcount != 1:`, so the
+        # guard above disambiguates them. M180 is the `complete` side, the worse
+        # one: a non-holder marking a job succeeded records a version as ingested
+        # from bytes nobody parsed.
+        "M176_LEASE_OWNERSHIP_UNCHECKED_ON_FAIL",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "            if row is None:\n"
+        '                raise IngestionJobConflict("worker does not own active ingestion lease")',
+        "            if row is None:\n                pass",
+        (
+            "apps/api/tests/test_durable_ingestion_jobs.py::"
+            "test_a_worker_cannot_complete_a_job_it_does_not_hold",
+        ),
+    ),
+    Mutant(
+        # A timeout means part of the corpus *was* searched, so answering from what came
+        # back is the tempting behaviour — from a candidate set the calibrated profile
+        # never described, with nothing in the response saying the search was cut short.
+        "M177_RETRIEVAL_DEADLINE_ANSWERS_FROM_A_PARTIAL_SEARCH",
+        "apps/api/src/korpus/application/answer_query.py",
+        '                "retrieval_deadline_exceeded",',
+        '                "retrieval_dependency_unavailable",',
+        (
+            "apps/api/tests/test_answers.py::"
+            "test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search",
+        ),
+    ),
+    Mutant(
+        "M173_UNKNOWN_ENVIRONMENT_VARIABLE_IGNORED",
+        "apps/api/src/korpus/main.py",
+        "    if unknown:",
+        "    if False:",
+        (
+            "apps/api/tests/test_configuration_typos.py::"
+            "test_the_app_refuses_to_start_on_an_unrecognised_variable",
+        ),
+    ),
+    Mutant(
+        "M174_TYPO_DETECTOR_ACCEPTS_EVERYTHING",
+        "apps/api/src/korpus/config.py",
+        "        and name not in known",
+        "        and name not in known and False",
+        (
+            "apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named",
+        ),
+    ),
+    Mutant(
+        "M175_OPERATIONAL_VARIABLES_REPORTED_AS_TYPOS",
+        "apps/api/src/korpus/config.py",
+        "        and name not in OPERATIONAL_VARIABLES",
+        "        and True",
+        (
+            "apps/api/tests/test_configuration_typos.py::"
+            "test_operational_variables_are_not_flagged",
+        ),
+    ),
+    Mutant(
+        "M124_UNOBSERVED_ARTEFACT_TREATED_AS_IN_SYNC",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        if path not in observed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_absent_from_observation_is_unobserved_not_in_sync",
+        ),
+    ),
+    Mutant(
+        "M125_CHANGED_DIGEST_NOT_REPORTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        elif seen != approved:",
+        "        elif False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_changed_digest_is_drift_and_carries_both_sides",
+        ),
+    ),
+    Mutant(
+        "M126_UNREADABLE_ARTEFACT_REPORTED_AS_DRIFT",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "        if seen is None:",
+        "        if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_present_but_unreadable_is_unobserved_not_drift",
+        ),
+    ),
+    Mutant(
+        "M127_UNDECLARED_ARTEFACT_IGNORED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    for path in sorted(set(observed) - set(desired)):",
+        "    for path in ():",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_undeclared_artefact_is_extra_not_drift",
+        ),
+    ),
+    Mutant(
+        "M128_DRIFTED_ENVIRONMENT_NOT_BLOCKED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        '    if report.in_sync:\n'
+        '        return False, "the environment matches the approved desired state"',
+        '    if True:\n'
+        '        return False, "the environment matches the approved desired state"',
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_changed_digest_is_drift_and_carries_both_sides",
+        ),
+    ),
+    Mutant(
+        "M131_STALE_OBSERVATION_ACCEPTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if age > max_age_seconds:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_an_observation_past_the_limit_is_refused",
+        ),
+    ),
+    Mutant(
+        "M132_UNDATED_OBSERVATION_ASSUMED_FRESH",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if not observed_at:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_an_observation_without_a_timestamp_is_refused",
+        ),
+    ),
+    Mutant(
+        "M133_NAIVE_TIMESTAMP_ASSUMED_UTC",
+        "apps/api/src/korpus/application/environment_drift.py",
+        "    if taken.tzinfo is None:",
+        "    if False:",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_a_naive_timestamp_is_refused_rather_than_assumed_utc",
+        ),
+    ),
+    Mutant(
+        "M129_EMPTY_DESIRED_STATE_ACCEPTED",
+        "apps/api/src/korpus/application/environment_drift.py",
+        '        raise ValueError("desired-state manifest has no records list")',
+        "        return {}",
+        (
+            "apps/api/tests/test_environment_drift.py::"
+            "test_manifest_without_records_refuses_rather_than_returning_empty",
         ),
     ),
 )

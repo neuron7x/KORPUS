@@ -7,7 +7,7 @@ from uuid import UUID
 
 from korpus.application.ingestion import IngestionService
 from korpus.application.policy import PolicyEngine
-from korpus.application.ports import ObjectStore
+from korpus.application.ports import IngestionJobQueue, ObjectStore, Repository
 from korpus.domain.models import (
     DocumentCreate,
     Identity,
@@ -15,8 +15,6 @@ from korpus.domain.models import (
     IngestionJobRecord,
     VersionCreate,
 )
-from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
-from korpus.infrastructure.repository import SqlRepository
 from korpus.security.scanning import MalwareDetectedError, MalwareScannerUnavailable
 
 
@@ -29,9 +27,9 @@ class JobExecution:
 class DurableIngestionCoordinator:
     def __init__(
         self,
-        queue: SqlIngestionJobQueue,
+        queue: IngestionJobQueue,
         quarantine_store: ObjectStore,
-        repository: SqlRepository,
+        repository: Repository,
         policy: PolicyEngine,
         *,
         max_attempts: int,
@@ -141,10 +139,10 @@ class DurableIngestionCoordinator:
 class IngestionWorker:
     def __init__(
         self,
-        queue: SqlIngestionJobQueue,
+        queue: IngestionJobQueue,
         quarantine_store: ObjectStore,
         ingestion: IngestionService,
-        repository: SqlRepository,
+        repository: Repository,
         *,
         worker_id: str,
         lease_seconds: int,

@@ -39,7 +39,9 @@ EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
     "apps/api/migrations",
     "apps/api/alembic.ini",
     "apps/api/pyproject.toml",
-    "apps/api/requirements.lock",
+    # `apps/api/requirements.lock` was listed here and removed on 2026-08-06. Being in
+    # this set made it look governed — its digest stamped every assurance artefact —
+    # while no gate audited it and no install site read it.
     "apps/api/requirements.dev.lock",
     "apps/api/requirements.runtime.lock",
     "packages",

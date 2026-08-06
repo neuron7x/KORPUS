@@ -17,12 +17,19 @@ from korpus.application.evidence_registry import (  # noqa: E402  (path set abov
 SOURCE = ROOT / "docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json"
 OUT_DIR = ROOT / "docs/audit/closure"
 
+# Reclassified 2026-08-05. Each move carries a test that fails without the fix and a
+# mutant that removes it and dies; a status changed without both is a claim.
 CLOSED_LOCAL = {
     "IAM-001", "IAM-003", "IAM-004",
     "ING-001", "ING-002", "ING-003", "ING-004", "ING-005",
     "ING-006", "ING-007", "ING-010", "ING-011",
     "RAG-002", "RAG-004", "RAG-006", "RAG-008", "RAG-019",
     "SUP-004", "COD-010", "OPS-002",
+    # 2026-08-05: lock files carry sha256 for all 68 artefacts and every install site
+    # passes --require-hashes; the validator's complexity is 5 and 57 where it was 102
+    # and 103; every broad handler must re-raise, degrade or record; every image in the
+    # pipeline, the compose file and both Dockerfiles is pinned by digest.
+    "SUP-002", "COD-002", "COD-003", "SUP-001",
 }
 
 MITIGATED_LOCAL = {
@@ -36,6 +43,28 @@ MITIGATED_LOCAL = {
     "COD-005", "COD-006", "COD-007", "COD-008", "COD-009",
     "AUD-001", "AUD-002",
     "DATA-001", "DATA-002", "DATA-004",
+    # 2026-08-05: a material local control now exists; the residue is external or
+    # partial, and named as such in TECHNICAL_DEBT_V5.md rather than counted as closed.
+    "RAG-009",   # rules carry examples and the unknown class fails closed; a trained
+                 # classifier on a blind set with per-class metrics remains
+    "RAG-013",   # numbers, units and tables detected; formula structure remains
+    "RAG-016",   # blue-green plan, resumable batches, switch/retire/rollback rules;
+                 # executing it against a real index stays external
+    "RAG-017",   # embedding drift has four states; online answer-quality does not
+    "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
+    "SUP-009",   # 68/68 licenses read from metadata; legal review is external
+    "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
+    "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
+    # 2026-08-05, second pass.
+    "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
+                 # tests; the transactional core still carries CRUD, review, audit
+                 # append and readiness, so "one responsibility per module" is not met
+    "WEB-001",   # role-specific consoles cover ingestion, job status, quarantine
+                 # review, approval, rescission, corpus, span reading and audit, each
+                 # with a preview before it acts; a browser-driven E2E suite is not run
+    "OPS-004",   # desired state versus an observed environment, with UNOBSERVED kept
+                 # apart from IN_SYNC; taking the observation from a live cluster and
+                 # reverting on the verdict is the operator's half
 }
 
 EXTERNAL_DEBT = {
@@ -50,13 +79,11 @@ EXTERNAL_DEBT = {
     "OPS-001", "OPS-003", "OPS-005",
 }
 
-OPEN_TECH_DEBT = {
-    "RAG-009", "RAG-013", "RAG-016", "RAG-017",
-    "INF-009",
-    "SUP-001", "SUP-002", "SUP-009",
-    "COD-001", "COD-002", "COD-003", "COD-004",
-    "WEB-001", "AUD-004", "OPS-004",
-}
+# Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
+# out of here went to MITIGATED_LOCAL or EXTERNAL_DEBT with its residue named in
+# TECHNICAL_DEBT_V5.md, and thirty-one findings remain EXTERNAL_DEBT because no code in
+# this tree can close them.
+OPEN_TECH_DEBT: set[str] = set()
 
 EVIDENCE: dict[str, list[str]] = {
     "GOV-002": [
@@ -240,6 +267,114 @@ EVIDENCE: dict[str, list[str]] = {
         "scripts/validate_infrastructure.py",
     ],
     "COD-005": ["scripts/run_mutation_tests.py", "var/mutation-report.json"],
+    "SUP-001": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",
+        "apps/api/tests/test_gate_parity.py::test_every_ci_image_pins_an_exact_tag",
+    ],
+    "SUP-002": [
+        "apps/api/requirements.runtime.lock",
+        "apps/api/requirements.dev.lock",
+        "apps/api/tests/test_gate_parity.py::test_every_pinned_dependency_carries_a_hash",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_install_of_a_lock_file_requires_those_hashes",
+    ],
+    "COD-002": [
+        "apps/api/src/korpus/controlled_requirements.py",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "apps/api/tests/test_controlled_configuration_refusals.py",
+        "apps/api/tests/test_requirement_registry.py",
+        "config/operations/module-budget.json",
+    ],
+    "COD-003": [
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_bare_except_hides_which_failure_occurred",
+    ],
+    "COD-001": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py"
+        "::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json",
+    ],
+    "WEB-001": [
+        "apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_web_gate_runs_its_own_negative_controls",
+    ],
+    "OPS-004": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_environment_drift_check_runs_in_the_pipeline",
+    ],
+    "COD-004": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_coverage_thresholds_are_checked_where_coverage_is_produced",
+    ],
+    "RAG-009": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
+    ],
+    "RAG-013": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py",
+    ],
+    "RAG-016": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_rollback_is_checked_before_it_is_needed",
+    ],
+    "RAG-017": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py",
+    ],
+    "INF-009": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py",
+    ],
+    "SUP-009": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter",
+    ],
+    "AUD-004": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py",
+    ],
     "COD-006": [
         "apps/api/tests/test_structured_evidence_and_fuzz.py",
         "apps/api/tests/test_v5_security_kernel.py"

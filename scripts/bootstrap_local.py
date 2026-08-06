@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
+from korpus.composition import build_ingestion_service
 from korpus.config import get_settings
 from korpus.domain.models import (
     AccessTier,
@@ -16,6 +17,10 @@ from korpus.domain.models import (
     VersionCreate,
 )
 from korpus.infrastructure.runtime import create_object_store, create_repository
+
+#: The demonstration order's stated publication date. Fixed, so two bootstraps of the
+#: same tree produce the same corpus.
+BOOTSTRAP_PUBLICATION_DATE = date(2026, 1, 15)
 
 
 def main() -> None:
@@ -30,7 +35,7 @@ def main() -> None:
         clearance=AccessTier.RESTRICTED,
         corpora=frozenset({"public", "training", "administrative", "restricted-demo"}),
     )
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         store,
         policy,
@@ -57,6 +62,16 @@ def main() -> None:
             revision="1.0",
             publication_identifier="DEMO-001",
             authority=AuthorityClass.OFFICIAL_UA,
+            # Approval refuses a version that states neither effective_from nor
+            # publication_date — without one it would govern every past date. This
+            # script created neither and then approved, so `make bootstrap` had not
+            # worked since that rule landed: the documented way to get a running local
+            # instance failed at the last step (found 2026-08-06 by running it).
+            #
+            # A fixed date rather than today's: a bootstrap that seeds a different
+            # corpus on every run cannot be compared against itself, and "which edition
+            # was in force on date X" is the question this system answers.
+            publication_date=BOOTSTRAP_PUBLICATION_DATE,
         ),
         fixture.name,
         "text/plain",

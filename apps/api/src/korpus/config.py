@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
 
@@ -26,6 +27,66 @@ def _read_optional_secret_file(path: Path | None, fallback: str | None) -> str |
     if not value:
         raise ValueError(f"empty secret file: {path}")
     return value
+
+
+#: `KORPUS_*` names that belong to the operational scripts rather than to `Settings`:
+#: backup and restore, recovery measurement, PostgreSQL role provisioning, mutation
+#: sharding. They share a process environment with the application in CI and in the
+#: compose file, so a check over the namespace has to know they are legitimate.
+#:
+#: Declared here rather than inferred, because the point of the check below is that an
+#: unrecognised `KORPUS_*` name is an error — and a rule that quietly accepts whatever
+#: it finds is the rule it is replacing.
+OPERATIONAL_VARIABLES: frozenset[str] = frozenset(
+    {
+        "KORPUS_BACKUP_DATABASE_URL",
+        "KORPUS_BACKUP_DIR",
+        "KORPUS_BACKUP_ENCRYPTION_KEY",
+        "KORPUS_BACKUP_ENCRYPTION_KEY_FILE",
+        "KORPUS_BACKUP_KEY_ID",
+        "KORPUS_DATABASE_PASSWORD_FILE",
+        "KORPUS_DATABASE_URL_TEMPLATE",
+        "KORPUS_MUTATION_SHARDS",
+        "KORPUS_POSTGRES_ADMIN_URL",
+        "KORPUS_POSTGRES_APP_PASSWORD",
+        "KORPUS_POSTGRES_APP_PASSWORD_FILE",
+        "KORPUS_POSTGRES_APP_ROLE",
+        "KORPUS_POSTGRES_TEST_URL",
+        "KORPUS_RECOVERY_BACKUP_PATH",
+        "KORPUS_RECOVERY_PHASE",
+        "KORPUS_RECOVERY_RESTORED_URL",
+        "KORPUS_RECOVERY_RESTORE_SECONDS",
+        "KORPUS_RECOVERY_SEED_URL",
+        "KORPUS_RECOVERY_SOURCE_URL",
+        "KORPUS_RESTORE_DATABASE_URL",
+        "KORPUS_TEST_DATABASE_ADMIN_URL",
+        "KORPUS_TEST_DATABASE_URL",
+    }
+)
+
+
+def unknown_settings_variables(environ: Mapping[str, str]) -> list[str]:
+    """`KORPUS_*` names this system does not recognise.
+
+    `SettingsConfigDict(extra="ignore")` drops an unrecognised variable in silence, so
+    `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` — singular, and the field is
+    `require_source_signatures` — leaves the control off with nothing reported anywhere.
+    The deployment reads correct, the review passes, and the signature requirement is
+    not in force. Measured 2026-08-06: the typo above constructs cleanly and yields
+    `require_source_signatures = False`.
+
+    `extra="forbid"` cannot be the fix, because the operational scripts share the
+    namespace and the process environment. So the namespace is checked against the union
+    of the fields and the declared operational names, and anything else is named.
+    """
+    known = {f"KORPUS_{name.upper()}" for name in Settings.model_fields}
+    return sorted(
+        name
+        for name in environ
+        if name.startswith("KORPUS_")
+        and name not in known
+        and name not in OPERATIONAL_VARIABLES
+    )
 
 
 class Settings(BaseSettings):

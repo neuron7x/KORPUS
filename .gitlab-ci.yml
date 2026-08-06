@@ -34,7 +34,7 @@ variables:
   KORPUS_JWT_SECRET: "ci-only-jwt-key"
 
 .python-job:
-  image: python:3.12.13-slim-bookworm
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
   before_script:
     # python:*-slim ships without git. test_manifest_generation asserts that the
     # release manifest lists only git-tracked files — it shells out to git, and on the
@@ -58,6 +58,20 @@ repository:validate:
   script:
     - python scripts/openapi_contract.py
     - python scripts/generate_desired_state.py --check
+    # The browser's copy of the request constraints and the role table. Stale means the
+    # operator consoles validate against rules the API no longer has — and that failure
+    # is invisible from the API side, because a form refusing something the server would
+    # accept is never reported by anyone.
+    - python scripts/generate_web_contract.py --check
+    # OPS-004 on the only environment this job can observe: its own checkout. It proves
+    # the comparator runs and that the manifest describes this tree. It is NOT evidence
+    # about a cluster — that observation has to be taken on the running host, and it
+    # stays external.
+    - python scripts/check_environment_drift.py --observe . --out var/environment-observation.json
+    # The observation carries the instant it was taken and is refused past an hour: an
+    # observation taken before a change and compared after it produces a verdict
+    # indistinguishable from a current one.
+    - python scripts/check_environment_drift.py --observation var/environment-observation.json
     - python scripts/generate_supply_chain_inventory.py
     # A ratchet on module size and function complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
@@ -72,6 +86,7 @@ repository:validate:
       - var/kubernetes-validation.json
       - contracts/openapi.json
       - var/supply-chain-inventory.json
+      - var/environment-observation.json
 
 api:test:
   extends: .python-job
@@ -120,11 +135,15 @@ api:quality:
 
 web:test:
   stage: test
-  image: node:22.16.0-alpine
+  image: node:22.16.0-alpine@sha256:41e4389f3d988d2ed55392df4db1420ad048ae53324a8e2b7c6d19508288107e
   script:
     - npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
     - npm --prefix apps/web run lint
-    - npm --prefix apps/web run typecheck
+    # `run test` is the negative-control suite: it mutates a copy of the tree and
+    # asserts each check in validate.mjs still refuses. Without it a lint that has
+    # stopped checking anything keeps printing "passed" — which is what the two
+    # `node --check` invocations that used to stand here were doing.
+    - npm --prefix apps/web run test
     - npm --prefix apps/web run build
 
 api:assurance:
@@ -177,9 +196,9 @@ audit:closure:
 # moving to the database's image.
 api:postgres-and-restore:
   stage: assurance
-  image: python:3.12.13-slim-bookworm
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
   services:
-    - name: pgvector/pgvector:0.8.5-pg17-trixie
+    - name: pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f
       alias: postgres
   variables:
     POSTGRES_DB: korpus_test
@@ -261,7 +280,7 @@ secret:scan:
   variables:
     GIT_DEPTH: "0"
   image:
-    name: zricethezav/gitleaks:v8.30.1
+    name: zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
     entrypoint: [""]
   script:
     # --baseline-path accepts six findings already in history and nothing else:
@@ -275,7 +294,7 @@ secret:scan:
 
 python:audit:
   stage: security
-  image: python:3.12.13-slim-bookworm
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
   before_script:
     - python -m pip install 'pip-audit==2.10.1'
   script:
@@ -284,11 +303,17 @@ python:audit:
     # its whole existence: it had never run, so nothing had ever been audited.
     # The lock is fully resolved, so --no-deps audits exactly what ships.
     - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
+    # The dev lock had never been audited by anything. It is what CI installs, on a
+    # runner with a checkout of this repository, so a compromised test dependency
+    # reads the tree and holds the pipeline's credentials — a strictly larger blast
+    # radius than a runtime package inside a read-only container. Running it here for
+    # the first time on 2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
 
 infrastructure:scan:
   stage: security
   image:
-    name: aquasec/trivy:0.70.0
+    name: aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
     entrypoint: [""]
   script:
     # .trivyignore.yaml carries the one exception with a path scope and an expiry,
@@ -303,7 +328,7 @@ source:sbom:
     # needs `sh` to run a job script: both syft jobs died with
     # `exec: "sh": executable file not found in $PATH` as a system failure,
     # which reads as infrastructure flake rather than a config error.
-    name: anchore/syft:v1.44.0-debug
+    name: anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff
     entrypoint: [""]
   script:
     # /syft, not syft: the image's PATH is
@@ -327,7 +352,7 @@ container:build:
   # container's, which is what it was written for. The gate keeps its meaning: the
   # image is built by an unprivileged job.
   image:
-    name: gcr.io/kaniko-project/executor:v1.24.0-debug
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug@sha256:2562c4fe551399514277ffff7dcca9a3b1628c4ea38cb017d7286dc6ea52f4cd
     entrypoint: [""]
   script:
     # --no-push --tarPath: the pipeline scans and signs a local tarball; nothing is
@@ -345,7 +370,7 @@ container:build:
 container:scan:
   stage: verify-image
   image:
-    name: aquasec/trivy:0.70.0
+    name: aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
     entrypoint: [""]
   needs:
     - job: container:build
@@ -353,6 +378,20 @@ container:scan:
   script:
     - trivy image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
     - trivy image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
+    # --ignore-unfixed is the right gate — refusing to ship over a CVE with no patch
+    # blocks forever on somebody else's release schedule — but it makes the exposure
+    # invisible, and "no findings" then means two different things. Measured 2026-08-06:
+    # 0 fixable and 24 unfixed HIGH/CRITICAL in python:3.12.13-slim-bookworm, 0 and 0 in
+    # nginx:1.31.3-alpine. Recorded, not enforced: a number nobody writes down is a
+    # number nobody notices becoming fixable.
+    - trivy image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output api-unfixed.json
+    - trivy image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output web-unfixed.json
+  artifacts:
+    when: always
+    paths:
+      - api-unfixed.json
+      - web-unfixed.json
+    expire_in: 30 days
 
 container:sbom:
   stage: verify-image
@@ -361,7 +400,7 @@ container:sbom:
     # needs `sh` to run a job script: both syft jobs died with
     # `exec: "sh": executable file not found in $PATH` as a system failure,
     # which reads as infrastructure flake rather than a config error.
-    name: anchore/syft:v1.44.0-debug
+    name: anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff
     entrypoint: [""]
   needs:
     - job: container:build

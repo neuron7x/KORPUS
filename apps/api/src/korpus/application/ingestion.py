@@ -9,7 +9,7 @@ from uuid import UUID
 from korpus.application.extraction_quality import ExtractionQuality, assess_extraction_quality
 from korpus.application.fingerprints import simhash64
 from korpus.application.policy import PolicyEngine
-from korpus.application.ports import ObjectStore, Repository
+from korpus.application.ports import Extractor, ObjectStore, Repository
 from korpus.domain.models import (
     DocumentCreate,
     DocumentRecord,
@@ -20,11 +20,6 @@ from korpus.domain.models import (
     ReviewState,
     ReviewTransition,
     VersionCreate,
-)
-from korpus.infrastructure.extraction import (
-    extract_pages_from_path,
-    extract_pages_sandboxed,
-    make_spans,
 )
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
@@ -62,6 +57,13 @@ class IngestionService:
         object_store: ObjectStore,
         policy: PolicyEngine,
         extraction: ExtractionSettings,
+        # Positional, and deliberately not defaulted. A default would have to name an
+        # implementation, and every way of naming one — a module-level import, a
+        # deferred import inside the constructor — puts a path from this layer to
+        # infrastructure back into the graph that test_architecture.py reads.
+        # `korpus.composition` builds the service; that module is the composition root
+        # and is allowed to know both sides.
+        extractor: Extractor,
         review_separation_required: bool = False,
         malware_scanner: MalwareScanner | None = None,
         source_trust_profile: SourceTrustProfile | None = None,
@@ -75,6 +77,7 @@ class IngestionService:
         self.object_store = object_store
         self.policy = policy
         self.extraction = extraction
+        self.extractor = extractor
         self.review_separation_required = review_separation_required
         self.malware_scanner = malware_scanner or DisabledMalwareScanner()
         self.source_trust_profile = source_trust_profile
@@ -394,31 +397,23 @@ class IngestionService:
     def _extract_path(
         self, path: Path, filename: str, mime_type: str
     ) -> tuple[list[dict[str, object]], str]:
-        if self.extraction.parser_sandbox_enabled:
-            pages, method = extract_pages_sandboxed(
-                path=path,
-                filename=filename,
-                mime_type=mime_type,
-                ocr_enabled=self.extraction.ocr_enabled,
-                ocr_languages=self.extraction.ocr_languages,
-                max_pdf_pages=self.extraction.max_pdf_pages,
-                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
-                timeout_seconds=self.extraction.parser_timeout_seconds,
-                memory_limit_mb=self.extraction.parser_memory_limit_mb,
-                output_limit_bytes=self.extraction.parser_output_limit_bytes,
-            )
-        else:
-            pages, method = extract_pages_from_path(
-                path=path,
-                filename=filename,
-                mime_type=mime_type,
-                ocr_enabled=self.extraction.ocr_enabled,
-                ocr_languages=self.extraction.ocr_languages,
-                max_pdf_pages=self.extraction.max_pdf_pages,
-                ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
-            )
+        # Whether untrusted bytes may be parsed in this process is an application
+        # decision; carrying it out is the adapter's.
+        pages, method = self.extractor.extract_pages(
+            path=path,
+            filename=filename,
+            mime_type=mime_type,
+            sandboxed=self.extraction.parser_sandbox_enabled,
+            ocr_enabled=self.extraction.ocr_enabled,
+            ocr_languages=self.extraction.ocr_languages,
+            max_pdf_pages=self.extraction.max_pdf_pages,
+            ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
+            timeout_seconds=self.extraction.parser_timeout_seconds,
+            memory_limit_mb=self.extraction.parser_memory_limit_mb,
+            output_limit_bytes=self.extraction.parser_output_limit_bytes,
+        )
         return (
-            make_spans(
+            self.extractor.make_spans(
                 pages,
                 max_chars=self.extraction.max_chunk_chars,
                 overlap_chars=self.extraction.chunk_overlap_chars,

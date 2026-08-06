@@ -1,127 +1,151 @@
+import {
+  ApiRefusal, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
+} from "./api.js";
+
 const form = document.querySelector("#query-form");
 const query = document.querySelector("#query");
 const submit = document.querySelector("#submit");
 const result = document.querySelector("#result");
-const apiUrl = window.KORPUS_CONFIG?.apiUrl ?? "/api";
 const tokenInput = document.querySelector("#bearer-token");
 const checkAuth = document.querySelector("#check-auth");
 const login = document.querySelector("#login");
 const logout = document.querySelector("#logout");
 const identityState = document.querySelector("#identity-state");
-let bearerToken = "";
-
-function readCookie(name) {
-  const prefix = `${encodeURIComponent(name)}=`;
-  const item = document.cookie.split("; ").find(value => value.startsWith(prefix));
-  return item ? decodeURIComponent(item.slice(prefix.length)) : "";
-}
-
-function authHeaders(extra = {}, method = "GET") {
-  const headers = {...extra};
-  if (bearerToken) headers.Authorization = `Bearer ${bearerToken}`;
-  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-    const csrf = readCookie("__Host-korpus_csrf");
-    if (csrf) headers["X-CSRF-Token"] = csrf;
-  }
-  return headers;
-}
 
 async function loadIdentity() {
   identityState.textContent = "Перевірка…";
-  const response = await fetch(`${apiUrl}/v1/auth/me`, {
-    headers: authHeaders(),
-    credentials: "same-origin",
-  });
-  if (!response.ok) throw new Error(`API ${response.status}`);
-  const identity = await response.json();
-  identityState.textContent = `${identity.subject} · ${identity.clearance} · ${identity.roles.join(", ")}`;
+  const identity = await call("/v1/auth/me");
+  identityState.innerHTML =
+    `<strong>${escapeHtml(identity.subject)}</strong> · clearance ${escapeHtml(identity.clearance)} · ` +
+    `${escapeHtml([...identity.roles].sort().join(", "))}`;
   login.hidden = true;
   logout.hidden = false;
   return identity;
 }
 
+function forgetIdentity(message) {
+  clearBearerToken();
+  login.hidden = false;
+  logout.hidden = true;
+  identityState.textContent = message;
+}
+
 checkAuth.addEventListener("click", async () => {
-  bearerToken = tokenInput.value.trim();
+  setBearerToken(tokenInput.value);
   try {
     await loadIdentity();
     tokenInput.value = "";
   } catch (error) {
-    bearerToken = "";
-    identityState.textContent = `Відмова: ${error instanceof Error ? error.message : "невідома помилка"}`;
+    forgetIdentity(`Відмова: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`);
   }
 });
 
 login.addEventListener("click", () => {
-  window.location.assign(`${apiUrl}/v1/auth/login?return_to=${encodeURIComponent(window.location.pathname)}`);
+  window.location.assign(loginUrl(window.location.pathname));
 });
 
 logout.addEventListener("click", async () => {
-  const response = await fetch(`${apiUrl}/v1/auth/logout`, {
-    method: "POST",
-    headers: authHeaders({}, "POST"),
-    credentials: "same-origin",
-  });
-  if (response.ok) {
-    bearerToken = "";
-    login.hidden = false;
-    logout.hidden = true;
-    identityState.textContent = "Не автентифіковано.";
-  } else {
-    identityState.textContent = `Logout відхилено: API ${response.status}`;
+  try {
+    await call("/v1/auth/logout", {method: "POST"});
+    forgetIdentity("Не автентифіковано.");
+  } catch (error) {
+    identityState.textContent =
+      `Logout відхилено: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`;
   }
 });
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);
+// A citation is the product. Rendering it as a quote with its authority, its edition and
+// the span it came from is the difference between an answer a reader can check and an
+// answer they have to trust — which is the whole claim this system makes.
+function citationCard(citation) {
+  const facts = [
+    citation.page ? `с. ${escapeHtml(citation.page)}` : "",
+    citation.authority ? escapeHtml(citation.authority) : "",
+    citation.effective_from ? `чинний з ${escapeHtml(citation.effective_from)}` : "",
+    `sha ${escapeHtml(String(citation.source_hash).slice(0, 12))}…`,
+    `span ${escapeHtml(String(citation.span_id).slice(0, 8))}…`,
+  ].filter(Boolean).map(fact => `<span>${fact}</span>`).join("");
+  return `
+    <article class="citation">
+      <h3>${escapeHtml(citation.title)} · ред. ${escapeHtml(citation.revision)}</h3>
+      <blockquote>${escapeHtml(citation.quote)}</blockquote>
+      <div class="meta">${facts}</div>
+    </article>`;
 }
 
+const STATUS_LABEL = {
+  answered: ["Доказова відповідь", "answered"],
+  insufficient_evidence: ["Недостатньо підстав", "withheld"],
+  access_denied: ["Доступ не надано", "withheld"],
+};
+
 function render(answer) {
-  const citations = (answer.citations ?? []).map(citation => `
-    <article class="citation">
-      <h3>${escapeHtml(citation.title)} · rev ${escapeHtml(citation.revision)}${citation.page ? ` · p.${citation.page}` : ""}</h3>
-      <blockquote>${escapeHtml(citation.quote)}</blockquote>
-      <code>${escapeHtml(citation.source_hash.slice(0,20))}… / ${escapeHtml(citation.span_id)}</code>
-    </article>`).join("");
-  const limitations = (answer.limitations ?? []).map(item => `<p class="limitation">${escapeHtml(item)}</p>`).join("");
+  const [heading, tone] = STATUS_LABEL[answer.status] ?? ["Відмова", "withheld"];
+  const citations = (answer.citations ?? []).map(citationCard).join("");
+  const limitations = (answer.limitations ?? [])
+    .map(item => `<p class="limitation">${escapeHtml(item)}</p>`).join("");
+  const heard = answer.status === "answered"
+    ? ""
+    : `<p class="limitation">Порожня відповідь не означає порожній корпус: вона означає, що ` +
+      `чинного затвердженого джерела, доступного вашій ідентичності, для цього питання немає.</p>`;
+
   result.innerHTML = `
-    <div class="answerHead"><h2>${answer.status === "answered" ? "Доказова відповідь" : "Відмова"}</h2><span>${escapeHtml(answer.status)}</span></div>
-    <div class="answerText">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</div>
+    <div class="verdict">
+      <h2>${escapeHtml(heading)}</h2>
+      <span class="chip ${tone}">${escapeHtml(answer.status)}</span>
+    </div>
+    <p class="answer-text">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</p>
+    ${heard}
     <dl class="metrics">
       <div><dt>Ranking utility</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
       <div><dt>Evidence coverage</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
+      <div><dt>Citations</dt><dd>${(answer.citations ?? []).length}</dd></div>
       <div><dt>Release</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
-    </dl><p class="limitation">Ranking utility не є ймовірністю правильності.</p>${citations}${limitations}`;
+    </dl>
+    <p class="limitation">Ranking utility не є ймовірністю правильності.</p>
+    ${citations}
+    ${limitations ? `<div class="limitation standalone">${limitations}</div>` : ""}`;
   result.classList.remove("hidden", "error");
+  result.scrollIntoView({block: "nearest", behavior: "smooth"});
 }
 
-form.addEventListener("submit", async event => {
-  event.preventDefault();
+async function ask() {
   submit.disabled = true;
   submit.textContent = "Перевірка…";
-  result.classList.add("hidden");
+  result.classList.remove("hidden");
+  result.classList.remove("error");
+  result.innerHTML = `<p class="reason">Перевіряю корпус…</p>`;
   try {
-    const response = await fetch(`${apiUrl}/v1/answers`, {
-      method: "POST",
-      headers: authHeaders({"Content-Type":"application/json"}, "POST"),
-      credentials: "same-origin",
-      body: JSON.stringify({text: query.value})
-    });
-    if (!response.ok) throw new Error(`API ${response.status}`);
-    render(await response.json());
+    render(await call("/v1/answers", {method: "POST", body: {text: query.value}}));
   } catch (error) {
-    result.innerHTML = `<h2>Помилка</h2><p>${escapeHtml(error instanceof Error ? error.message : "Невідома помилка")}</p>`;
-    result.classList.remove("hidden");
+    // The API answers a withheld question with a reason. Collapsing it to "API 403"
+    // discarded the only part the reader could act on.
+    result.innerHTML =
+      `<p class="refusal">${escapeHtml(
+        error instanceof ApiRefusal ? `Відмова ${error.status}` : "Помилка")}</p>` +
+      `<p class="reason">${escapeHtml(
+        error instanceof ApiRefusal ? error.reason : "Невідома помилка")}</p>`;
     result.classList.add("error");
   } finally {
     submit.disabled = false;
     submit.textContent = "Знайти доказ";
   }
+}
+
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  void ask();
 });
 
-loadIdentity().catch(() => {
-  login.hidden = false;
-  logout.hidden = true;
-  identityState.textContent = "Не автентифіковано.";
+// A multi-line field swallows Enter, so the only way to submit was to reach for the
+// mouse on every question.
+query.addEventListener("keydown", event => {
+  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault();
+    if (form.reportValidity()) void ask();
+  }
 });
+
+loadIdentity().catch(() => forgetIdentity("Не автентифіковано."));
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);

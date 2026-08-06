@@ -1,6 +1,19 @@
 # Next 10 iterations
 
-Status: **PLANNED — NOT EXECUTED**. Order is dependency-aware; do not parallelize tasks that modify the same trust boundary or migration chain.
+Status: **PARTIALLY EXECUTED — 8 of 10 started, 0 finished** (corrected 2026-08-05).
+Order is dependency-aware; do not parallelize tasks that modify the same trust boundary
+or migration chain.
+
+Read the number carefully. Eight items have code that runs and a test that fails without
+it; not one has met its own acceptance list, because every list ends in evidence from a
+system nobody here operates — a cluster, an independent assessor, an annotated corpus, a
+risk owner. Per-item state, with what was done and what remains, is in
+`handoff/machine/next_iterations.json`.
+
+This header read PLANNED — NOT EXECUTED until 2026-08-05 while eight of the ten had
+shipped. That is the same defect the closure counts had a day earlier: a document about
+progress that had not closed its own loop, and it fails in the direction that looks
+modest rather than the direction that looks finished — which is why nobody catches it.
 
 ## IT-01 · P0 · Live PostgreSQL/pgvector proof
 

@@ -10,13 +10,14 @@ import sys
 import tempfile
 import time
 import unicodedata
-from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
+
+from korpus.domain.models import ExtractedPage
 
 SUPPORTED_SUFFIXES = {".txt", ".md", ".json", ".html", ".htm", ".pdf"}
 SUPPORTED_MIME_TYPES = {
@@ -27,12 +28,6 @@ SUPPORTED_MIME_TYPES = {
     "application/pdf",
 }
 TEXT_MIME_PREFIXES = ("text/plain", "text/html", "application/json")
-
-
-@dataclass(frozen=True)
-class ExtractedPage:
-    page: int | None
-    text: str
 
 
 class _VisibleTextParser(HTMLParser):
@@ -464,3 +459,62 @@ def make_spans(
     if any(str(span["text"]) not in by_page[span["page"]] for span in output):  # type: ignore[index]
         raise AssertionError("span is not a substring of its page")
     return output
+
+
+class DocumentExtractor:
+    """The `Extractor` port, bound to this module's functions.
+
+    A class rather than the module itself so the composition root passes an object and
+    `application/ingestion.py` needs no import from `korpus.infrastructure`. The sandbox
+    decision stays with the caller: this only carries it out.
+    """
+
+    def extract_pages(
+        self,
+        *,
+        path: Path,
+        filename: str,
+        mime_type: str,
+        sandboxed: bool,
+        ocr_enabled: bool,
+        ocr_languages: str,
+        max_pdf_pages: int,
+        ocr_total_timeout_seconds: int,
+        timeout_seconds: int,
+        memory_limit_mb: int,
+        output_limit_bytes: int,
+    ) -> tuple[list[ExtractedPage], str]:
+        if sandboxed:
+            return extract_pages_sandboxed(
+                path=path,
+                filename=filename,
+                mime_type=mime_type,
+                ocr_enabled=ocr_enabled,
+                ocr_languages=ocr_languages,
+                max_pdf_pages=max_pdf_pages,
+                ocr_total_timeout_seconds=ocr_total_timeout_seconds,
+                timeout_seconds=timeout_seconds,
+                memory_limit_mb=memory_limit_mb,
+                output_limit_bytes=output_limit_bytes,
+            )
+        return extract_pages_from_path(
+            path=path,
+            filename=filename,
+            mime_type=mime_type,
+            ocr_enabled=ocr_enabled,
+            ocr_languages=ocr_languages,
+            max_pdf_pages=max_pdf_pages,
+            ocr_total_timeout_seconds=ocr_total_timeout_seconds,
+        )
+
+    def make_spans(
+        self,
+        pages: list[ExtractedPage],
+        *,
+        max_chars: int,
+        overlap_chars: int,
+        max_spans: int,
+    ) -> list[dict[str, object]]:
+        return make_spans(
+            pages, max_chars=max_chars, overlap_chars=overlap_chars, max_spans=max_spans
+        )

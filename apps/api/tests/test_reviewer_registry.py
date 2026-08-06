@@ -5,8 +5,9 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.application.ingestion import ExtractionSettings
 from korpus.application.policy import PolicyEngine
+from korpus.composition import build_ingestion_service
 from korpus.domain.models import (
     AccessTier,
     AuthorityClass,
@@ -99,7 +100,7 @@ def test_governed_review_records_stage_specific_credential_ids(tmp_path: Path):
         audit_anchor_path=tmp_path / "audit-anchor.json",
     )
     repository.initialize(create_schema=True)
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "objects"),
         PolicyEngine(),
@@ -180,7 +181,7 @@ def test_required_registry_cannot_be_omitted(tmp_path: Path):
     repository.initialize(create_schema=True)
     try:
         with pytest.raises(ValueError, match="requires a registry"):
-            IngestionService(
+            build_ingestion_service(
                 repository,
                 LocalObjectStore(tmp_path / "required-objects"),
                 PolicyEngine(),

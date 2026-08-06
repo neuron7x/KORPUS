@@ -13,6 +13,7 @@ built to violate it.
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 from korpus.repository_requirements import load_context
@@ -103,3 +104,32 @@ def test_an_unparseable_contract_is_recorded(tmp_path: Path) -> None:
     (root / "contracts/openapi.json").write_text("{ not json", encoding="utf-8")
 
     assert any("openapi.json" in problem for problem in load_context(root).invalid_json)
+
+
+def test_a_secret_git_ignores_is_not_reported_as_tracked(tmp_path: Path) -> None:
+    """`make infra-secrets` writes eight key files that git never sees.
+
+    The requirement is named `tracked_secrets` and measured presence on disk, so
+    following the repository's own documented setup step made `make validate` fail on
+    files `infra/secrets/.gitignore` explicitly excludes. A developer broke the
+    validator by following the README (2026-08-06).
+    """
+    root = _tree(tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    (root / "infra/secrets/.gitignore").write_text("*.txt\n", encoding="utf-8")
+    (root / "infra/secrets/postgres_password.txt").write_text("hunter2", encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=root, check=True)
+
+    assert load_context(root).tracked_secrets == []
+
+
+def test_a_secret_git_does_track_is_still_reported(tmp_path: Path) -> None:
+    """The dual. Without it the check above is satisfied by never reporting anything."""
+    root = _tree(tmp_path)
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    (root / "infra/secrets/postgres_password.txt").write_text("hunter2", encoding="utf-8")
+    subprocess.run(
+        ["git", "add", "-f", "infra/secrets/postgres_password.txt"], cwd=root, check=True
+    )
+
+    assert load_context(root).tracked_secrets == ["infra/secrets/postgres_password.txt"]

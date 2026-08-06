@@ -12,7 +12,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 222,
+      "lines": 223,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
@@ -48,12 +48,21 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/application/deployment.py": {
-      "lines": 303,
+      "lines": 220,
       "max_complexity": 23
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
       "lines": 150,
       "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/embedding_migration.py": {
+      "lines": 223,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/environment_drift.py": {
+      "lines": 193,
+      "max_complexity": 6,
+      "reason": "OPS-004: desired state against an observed environment, with UNOBSERVED kept apart from IN_SYNC and the observation's own age checked before it is compared"
     },
     "apps/api/src/korpus/application/evidence.py": {
       "lines": 273,
@@ -76,7 +85,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/ingestion.py": {
-      "lines": 490,
+      "lines": 496,
       "max_complexity": 19
     },
     "apps/api/src/korpus/application/ingestion_jobs.py": {
@@ -100,11 +109,12 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/ports.py": {
-      "lines": 161,
-      "max_complexity": 1
+      "lines": 258,
+      "max_complexity": 1,
+      "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
     },
     "apps/api/src/korpus/application/provenance.py": {
-      "lines": 185,
+      "lines": 187,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/recovery.py": {
@@ -112,7 +122,7 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/requirements.py": {
-      "lines": 123,
+      "lines": 133,
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/resilience.py": {
@@ -128,8 +138,12 @@
       "max_complexity": 22
     },
     "apps/api/src/korpus/application/risk.py": {
-      "lines": 69,
-      "max_complexity": 5
+      "lines": 87,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/risk_rules.py": {
+      "lines": 163,
+      "max_complexity": 4
     },
     "apps/api/src/korpus/application/table_integrity.py": {
       "lines": 122,
@@ -148,11 +162,16 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/cli.py": {
-      "lines": 191,
+      "lines": 192,
       "max_complexity": 17
     },
+    "apps/api/src/korpus/composition.py": {
+      "lines": 68,
+      "max_complexity": 2,
+      "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
+    },
     "apps/api/src/korpus/config.py": {
-      "lines": 426,
+      "lines": 487,
       "max_complexity": 59
     },
     "apps/api/src/korpus/controlled_requirements.py": {
@@ -164,7 +183,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 486,
+      "lines": 520,
       "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
@@ -175,8 +194,12 @@
       "lines": 229,
       "max_complexity": 7
     },
+    "apps/api/src/korpus/infrastructure/audit_reader.py": {
+      "lines": 331,
+      "max_complexity": 15
+    },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 466,
+      "lines": 525,
       "max_complexity": 21
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
@@ -196,12 +219,27 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1855,
-      "max_complexity": 23
+      "lines": 1052,
+      "max_complexity": 23,
+      "reason": "COD-001: 1423 -> 1047 after schema.py and retrieval_queries.py; the transactional core stays"
+    },
+    "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
+      "lines": 269,
+      "max_complexity": 13,
+      "reason": "COD-001: the retrieval projection and its predicates, apart from executing them"
+    },
+    "apps/api/src/korpus/infrastructure/row_mapping.py": {
+      "lines": 268,
+      "max_complexity": 8
     },
     "apps/api/src/korpus/infrastructure/runtime.py": {
       "lines": 72,
       "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/schema.py": {
+      "lines": 232,
+      "max_complexity": 0,
+      "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
       "lines": 274,
@@ -209,15 +247,20 @@
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
       "lines": null,
-      "max_complexity": 11
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/kubernetes_requirements.py": {
+      "lines": null,
+      "max_complexity": 6,
+      "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 245,
-      "max_complexity": 30
+      "lines": 259,
+      "max_complexity": 31
     },
     "apps/api/src/korpus/repository_requirements.py": {
       "lines": null,
-      "max_complexity": 18
+      "max_complexity": 19
     },
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
@@ -272,12 +315,14 @@
       "max_complexity": 12
     },
     "scripts/bootstrap_local.py": {
-      "lines": 83,
-      "max_complexity": 3
+      "lines": 98,
+      "max_complexity": 3,
+      "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
     "scripts/build_audit_closure.py": {
-      "lines": 414,
-      "max_complexity": 17
+      "lines": null,
+      "max_complexity": 17,
+      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "scripts/build_system_manifest.py": {
       "lines": 102,
@@ -286,6 +331,11 @@
     "scripts/check_coverage_thresholds.py": {
       "lines": 87,
       "max_complexity": 8
+    },
+    "scripts/check_environment_drift.py": {
+      "lines": 132,
+      "max_complexity": 8,
+      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment, and own the output path"
     },
     "scripts/check_module_budget.py": {
       "lines": 141,
@@ -296,7 +346,7 @@
       "max_complexity": 7
     },
     "scripts/export_requirements.py": {
-      "lines": 91,
+      "lines": 110,
       "max_complexity": 8
     },
     "scripts/generate_desired_state.py": {
@@ -310,6 +360,11 @@
     "scripts/generate_supply_chain_inventory.py": {
       "lines": 160,
       "max_complexity": 13
+    },
+    "scripts/generate_web_contract.py": {
+      "lines": 146,
+      "max_complexity": 5,
+      "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
     "scripts/measure_recovery.py": {
       "lines": 146,
@@ -327,12 +382,8 @@
       "lines": 100,
       "max_complexity": 4
     },
-    "scripts/prepare_postgres_test_role.py": {
-      "lines": 10,
-      "max_complexity": 0
-    },
     "scripts/run_evals.py": {
-      "lines": 376,
+      "lines": 377,
       "max_complexity": 22
     },
     "scripts/run_migration_gate.py": {
@@ -388,8 +439,9 @@
       "max_complexity": 0
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 154,
-      "max_complexity": 35
+      "lines": 173,
+      "max_complexity": 37,
+      "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
     },
     "scripts/verify_postgres_restore.py": {
       "lines": 82,
@@ -454,6 +506,110 @@
         "worst_function": "main"
       },
       "reason": "the export gained the repository register as a third source"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "on": "2026-08-05",
+      "from": {
+        "lines": 414,
+        "max_complexity": 17
+      },
+      "to": {
+        "lines": 477,
+        "max_complexity": 17,
+        "worst_function": "main"
+      },
+      "reason": "evidence lists for nine findings reclassified after the day's closures; the file is a register and grows with the register"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure_requirements.py",
+      "on": "2026-08-05",
+      "from": {
+        "lines": null,
+        "max_complexity": 11
+      },
+      "to": {
+        "lines": 634,
+        "max_complexity": 12,
+        "worst_function": "_service_requirements"
+      },
+      "reason": "the per-service register gained the digest-pinning requirement (SUP-001); one more generated entry per service is one more comprehension"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "on": "2026-08-05",
+      "to": {
+        "lines": 484,
+        "max_complexity": 17,
+        "worst_function": "main"
+      },
+      "reason": "SUP-001 evidence list"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "scripts/build_audit_closure.py",
+          "metric": "lines",
+          "from": 484,
+          "to": 494
+        }
+      ],
+      "reason": "RAG-009: the risk classifier became a register of rules with examples"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "lines",
+          "from": 67,
+          "to": 72
+        }
+      ],
+      "reason": "RAG-009 closure: risk.py gained the docstring stating what UNCLASSIFIED costs"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "lines",
+          "from": 72,
+          "to": 87
+        },
+        {
+          "path": "apps/api/src/korpus/application/risk.py",
+          "metric": "max_complexity",
+          "from": 3,
+          "to": 4
+        }
+      ],
+      "reason": "UNCLASSIFIED gained its own threshold branch and the argument for why coverage does not move with it"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "apps/api/src/korpus/infrastructure/audit_reader.py",
+          "metric": "lines",
+          "from": 325,
+          "to": 331
+        }
+      ],
+      "reason": "COD-001: the audit read side moved out of the repository"
+    },
+    {
+      "on": "2026-08-05",
+      "entries": [
+        {
+          "path": "scripts/build_audit_closure.py",
+          "metric": "lines",
+          "from": 494,
+          "to": 504
+        }
+      ],
+      "reason": "RAG-016: the migration plan and its evidence list"
     }
   ],
   "line_exempt": {

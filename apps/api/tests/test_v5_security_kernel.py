@@ -310,8 +310,9 @@ def test_detached_source_signature_binds_content_and_metadata(tmp_path):
 
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-    from korpus.application.ingestion import ExtractionSettings, IngestionService
+    from korpus.application.ingestion import ExtractionSettings
     from korpus.application.policy import PolicyEngine
+    from korpus.composition import build_ingestion_service
     from korpus.domain.models import AccessTier, AuthorityClass, Identity, VersionCreate
     from korpus.infrastructure.object_store import LocalObjectStore
     from korpus.infrastructure.repository import SqlRepository
@@ -337,7 +338,7 @@ def test_detached_source_signature_binds_content_and_metadata(tmp_path):
         f"sqlite:///{tmp_path / 'signed.db'}", "signed-audit-key", policy, tmp_path / "anchor.json"
     )
     repository.initialize()
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "objects"),
         policy,
@@ -386,8 +387,9 @@ def test_detached_source_signature_binds_content_and_metadata(tmp_path):
 
 
 def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Path):
-    from korpus.application.ingestion import ExtractionSettings, IngestionService
+    from korpus.application.ingestion import ExtractionSettings
     from korpus.application.policy import PolicyEngine
+    from korpus.composition import build_ingestion_service
     from korpus.domain.models import AuthorityClass, VersionCreate
     from korpus.infrastructure.object_store import LocalObjectStore
     from korpus.infrastructure.repository import SqlRepository
@@ -403,7 +405,7 @@ def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Pa
         audit_anchor_path=tmp_path / "malware-anchor.json",
     )
     repository.initialize(create_schema=True)
-    service = IngestionService(
+    service = build_ingestion_service(
         repository,
         LocalObjectStore(tmp_path / "malware-objects"),
         PolicyEngine(),
@@ -436,9 +438,159 @@ def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Pa
         repository.close()
 
 
-def test_parser_sandbox_setting_selects_isolated_parser(monkeypatch, tmp_path: Path):
+def test_a_new_version_of_an_existing_document_is_scanned_too(tmp_path: Path):
+    """The version path is the same untrusted-bytes surface as the document path.
+
+    `self.malware_scanner.scan(path)` appears on both, and one mutant covered both
+    lines — so the document-path test answered for the pair and the version path was
+    never individually falsified (found 2026-08-06 by checking every mutant target for
+    uniqueness in its file). Adding a version to an approved document is the *easier*
+    surface to reach: the document already exists and already passed review.
+    """
+    from korpus.application.ingestion import ExtractionSettings
+    from korpus.application.policy import PolicyEngine
+    from korpus.composition import build_ingestion_service
+    from korpus.domain.models import AuthorityClass, VersionCreate
+    from korpus.infrastructure.object_store import LocalObjectStore
+    from korpus.infrastructure.repository import SqlRepository
+
+    class ScannerRejectingTheSecondFile:
+        """Clean once, then hostile: the first call admits the document so the second
+        call is reached at all."""
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def scan(self, path: Path) -> None:
+            self.calls += 1
+            if self.calls > 1:
+                raise MalwareDetectedError("malware detected: version-signature")
+
+    repository = SqlRepository(
+        f"sqlite:///{tmp_path / 'version-malware.db'}",
+        audit_hmac_key="version-malware-key",
+        policy=PolicyEngine(),
+        audit_anchor_path=tmp_path / "version-malware-anchor.json",
+    )
+    repository.initialize(create_schema=True)
+    scanner = ScannerRejectingTheSecondFile()
+    service = build_ingestion_service(
+        repository,
+        LocalObjectStore(tmp_path / "version-malware-objects"),
+        PolicyEngine(),
+        ExtractionSettings(False, "ukr+eng"),
+        malware_scanner=scanner,
+    )
+    actor = Identity(
+        subject="version-scanner-test",
+        roles=frozenset({"admin", "curator"}),
+        clearance=AccessTier.RESTRICTED,
+        corpora=frozenset({"public"}),
+    )
+    try:
+        first = service.ingest(
+            actor,
+            DocumentCreate(
+                canonical_title="Accepted document",
+                corpus_id="public",
+                issuer="Authority",
+                access_tier=AccessTier.PUBLIC,
+            ),
+            VersionCreate(revision="1", authority=AuthorityClass.OFFICIAL_UA),
+            "clean.txt",
+            "text/plain",
+            b"first file passes the scanner and is admitted",
+        )
+
+        with pytest.raises(MalwareDetectedError, match="version-signature"):
+            service.ingest_version(
+                actor,
+                first.document.id,
+                VersionCreate(revision="2", authority=AuthorityClass.OFFICIAL_UA),
+                "hostile.txt",
+                "text/plain",
+                b"second file must never reach the parser",
+            )
+
+        # The document keeps exactly the version that passed, and the scanner ran twice:
+        # the refusal came from the scan, not from something upstream of it.
+        assert scanner.calls == 2
+        versions = repository.list_documents(actor)
+        assert len(versions) == 1
+    finally:
+        repository.close()
+
+
+def test_parser_sandbox_setting_selects_isolated_parser(tmp_path: Path):
+    """The application's half: the setting reaches the port as `sandboxed`.
+
+    Untrusted bytes parsed in-process is the hazard; `parser_sandbox_enabled` is the
+    decision, and it is the application's. Since 2026-08-06 the mechanism is behind the
+    `Extractor` port, so this asserts the decision without needing a parser, an OCR
+    binary or a fork — and a fake extractor cannot accidentally satisfy it by parsing
+    correctly.
+    """
     from korpus.application.ingestion import ExtractionSettings, IngestionService
-    from korpus.infrastructure.extraction import ExtractedPage
+
+    seen: dict[str, object] = {}
+
+    class RecordingExtractor:
+        def extract_pages(self, **kwargs):
+            seen.update(kwargs)
+            return [{"page": 1, "text": "isolated parser result"}], "sandbox-test"
+
+        def make_spans(self, pages, **kwargs):
+            return list(pages)
+
+    path = tmp_path / "document.txt"
+    path.write_text("input", encoding="utf-8")
+    service = IngestionService(
+        None, None, None,
+        ExtractionSettings(False, "ukr+eng", parser_sandbox_enabled=True),
+        RecordingExtractor(),
+    )
+
+    spans, method = service._extract_path(path, path.name, "text/plain")
+
+    assert seen["sandboxed"] is True
+    assert method == "sandbox-test"
+    assert spans[0]["text"] == "isolated parser result"
+
+
+def test_the_sandbox_setting_off_reaches_the_port_as_false(tmp_path: Path):
+    """The dual. Without it the assertion above is satisfied by a hardcoded True."""
+    from korpus.application.ingestion import ExtractionSettings, IngestionService
+
+    seen: dict[str, object] = {}
+
+    class RecordingExtractor:
+        def extract_pages(self, **kwargs):
+            seen.update(kwargs)
+            return [{"page": 1, "text": "in-process"}], "plain"
+
+        def make_spans(self, pages, **kwargs):
+            return list(pages)
+
+    path = tmp_path / "document.txt"
+    path.write_text("input", encoding="utf-8")
+    service = IngestionService(
+        None, None, None,
+        ExtractionSettings(False, "ukr+eng", parser_sandbox_enabled=False),
+        RecordingExtractor(),
+    )
+    service._extract_path(path, path.name, "text/plain")
+
+    assert seen["sandboxed"] is False
+
+
+def test_the_extraction_adapter_runs_the_isolated_parser_when_told_to(monkeypatch, tmp_path: Path):
+    """The adapter's half: `sandboxed=True` must reach the isolated parser and nothing else.
+
+    Split from the test above when the port landed. Keeping them together would have
+    left one test standing for two independent failures — the setting not travelling,
+    and the adapter ignoring it — and a single test cannot report which one broke.
+    """
+    from korpus.infrastructure.extraction import DocumentExtractor, ExtractedPage
 
     calls = {"sandbox": 0}
 
@@ -449,15 +601,25 @@ def test_parser_sandbox_setting_selects_isolated_parser(monkeypatch, tmp_path: P
     def in_process(**kwargs):
         raise AssertionError("in-process parser must not run when sandbox is enabled")
 
-    monkeypatch.setattr("korpus.application.ingestion.extract_pages_sandboxed", sandboxed)
-    monkeypatch.setattr("korpus.application.ingestion.extract_pages_from_path", in_process)
+    monkeypatch.setattr("korpus.infrastructure.extraction.extract_pages_sandboxed", sandboxed)
+    monkeypatch.setattr("korpus.infrastructure.extraction.extract_pages_from_path", in_process)
     path = tmp_path / "document.txt"
     path.write_text("input", encoding="utf-8")
-    service = IngestionService(
-        None, None, None,
-        ExtractionSettings(False, "ukr+eng", parser_sandbox_enabled=True),
+
+    pages, method = DocumentExtractor().extract_pages(
+        path=path,
+        filename=path.name,
+        mime_type="text/plain",
+        sandboxed=True,
+        ocr_enabled=False,
+        ocr_languages="ukr+eng",
+        max_pdf_pages=10,
+        ocr_total_timeout_seconds=1.0,
+        timeout_seconds=1.0,
+        memory_limit_mb=64,
+        output_limit_bytes=1024,
     )
-    spans, method = service._extract_path(path, path.name, "text/plain")
+
     assert calls["sandbox"] == 1
     assert method == "sandbox-test"
-    assert spans[0]["text"] == "isolated parser result"
+    assert pages[0].text == "isolated parser result"

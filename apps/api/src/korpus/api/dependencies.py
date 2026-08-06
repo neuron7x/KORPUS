@@ -13,6 +13,7 @@ from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore
 from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
+from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
@@ -80,7 +81,7 @@ def get_ingestion_service(
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
 ) -> IngestionService:
-    return IngestionService(
+    return build_ingestion_service(
         repository,
         object_store,
         policy,
