@@ -102,3 +102,41 @@ def test_required_retrieval_dependency_outage_abstains_fail_closed(client, admin
     assert answer.status.value == "insufficient_evidence"
     assert answer.decision_reason == "retrieval_dependency_unavailable"
     assert answer.citations == []
+
+
+def test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search(
+    client, admin_identity
+):
+    """The sibling of the outage path, and it was the one nobody tested.
+
+    `RetrievalDeadlineExceeded` has two raise sites — the candidate query and the
+    rerank — and one handler, and no test named the exception (found 2026-08-06 by
+    comparing raised exception classes against the ones the suite mentions). It matters
+    separately from an outage: a timeout means part of the corpus *was* searched, so the
+    tempting behaviour is to answer from whatever came back. That answer would be drawn
+    from a candidate set the calibrated profile never described, and nothing in the
+    response would say the search was cut short.
+    """
+    from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
+    from korpus.application.retrieval import RetrievalDeadlineExceeded
+    from korpus.domain.models import QueryRequest
+
+    class SlowRetriever:
+        def search(self, identity, text, corpus_ids, as_of, limit=8):
+            raise RetrievalDeadlineExceeded("candidate retrieval exceeded deadline")
+
+    service = ExtractiveAnswerService(
+        client.app.state.repository,
+        SlowRetriever(),
+        client.app.state.policy,
+        AnswerPolicy(0.1, 0.1, 0.1, "deadline-test"),
+    )
+
+    answer = service.execute(admin_identity, QueryRequest(text="Який порядок евакуації?"))
+
+    assert answer.status.value == "insufficient_evidence"
+    assert answer.decision_reason == "retrieval_deadline_exceeded"
+    assert answer.citations == []
+    # Distinct from the outage reason: an operator reading the audit has to be able to
+    # tell "the search never ran" from "the search ran out of time".
+    assert answer.decision_reason != "retrieval_dependency_unavailable"

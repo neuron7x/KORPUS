@@ -3,12 +3,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 from korpus.application.ingestion import ExtractionSettings
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings
 from korpus.domain.models import AccessTier, Identity, IngestionJobState
+from korpus.infrastructure.ingestion_jobs import IngestionJobConflict
 from korpus.main import create_app
 from korpus.security.auth import get_identity
 
@@ -207,3 +209,42 @@ def test_object_inventory_reconciliation_detects_missing_and_orphaned_files(
     store.put(b"orphan", orphan_hash, "orphan.txt")
     assert store.list_keys() - expected == {f"{orphan_hash[:2]}/{orphan_hash[2:4]}/{orphan_hash}"}
     repository.close()
+
+
+def test_a_worker_cannot_complete_a_job_it_does_not_hold(tmp_path: Path):
+    """The lease is exclusive on claim; it also has to be exclusive on write.
+
+    `test_job_lease_is_exclusive` proves worker-b cannot *take* the job. It says nothing
+    about worker-b writing a result for it anyway, which is the failure that matters: a
+    second worker reporting success for work it did not do would mark a version as
+    ingested from bytes nobody parsed. Three `IngestionJobConflict` raise sites guarded
+    this and no test named the exception (found 2026-08-06 by comparing raised exception
+    classes against the ones the suite mentions).
+    """
+    app = create_app(_settings(tmp_path))
+    app.dependency_overrides[get_identity] = _admin
+    with TestClient(app) as client:
+        response = client.post(
+            "/v1/ingestion-jobs/documents",
+            data={
+                "document_json": json.dumps({
+                    "canonical_title": "Lease ownership",
+                    "corpus_id": "public",
+                    "issuer": "Authority",
+                }),
+                "version_json": json.dumps({"revision": "1"}),
+            },
+            files={"file": ("document.txt", b"valid content", "text/plain")},
+        )
+        assert response.status_code == 202
+        queue = client.app.state.ingestion_jobs
+        held = queue.claim("worker-a", lease_seconds=30)
+        assert held is not None
+
+        with pytest.raises(IngestionJobConflict, match="does not own active ingestion lease"):
+            queue.fail("worker-b", held.id, "parser", "not mine", retryable=False)
+
+        # The dual: the holder may write, or the check above is satisfied by a queue
+        # that refuses everyone.
+        failed = queue.fail("worker-a", held.id, "parser", "genuinely failed", retryable=False)
+        assert failed.state is IngestionJobState.DEAD_LETTER

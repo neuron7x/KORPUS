@@ -1633,6 +1633,32 @@ MUTANTS = (
     # OPS-004. Every one of these turns a finding into a silence, which is the only
     # way a drift checker fails without anyone noticing: it keeps reporting IN_SYNC.
     Mutant(
+        # A second worker writing a result for a job it does not hold marks a version as
+        # ingested from bytes nobody parsed. The claim was exclusive and the write was
+        # not tested.
+        "M176_LEASE_OWNERSHIP_UNCHECKED_ON_FAIL",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        '                raise IngestionJobConflict("worker does not own active ingestion lease")',
+        "                pass",
+        (
+            "apps/api/tests/test_durable_ingestion_jobs.py::"
+            "test_a_worker_cannot_complete_a_job_it_does_not_hold",
+        ),
+    ),
+    Mutant(
+        # A timeout means part of the corpus *was* searched, so answering from what came
+        # back is the tempting behaviour — from a candidate set the calibrated profile
+        # never described, with nothing in the response saying the search was cut short.
+        "M177_RETRIEVAL_DEADLINE_ANSWERS_FROM_A_PARTIAL_SEARCH",
+        "apps/api/src/korpus/application/answer_query.py",
+        '                "retrieval_deadline_exceeded",',
+        '                "retrieval_dependency_unavailable",',
+        (
+            "apps/api/tests/test_answers.py::"
+            "test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search",
+        ),
+    ),
+    Mutant(
         "M173_UNKNOWN_ENVIRONMENT_VARIABLE_IGNORED",
         "apps/api/src/korpus/main.py",
         "    if unknown:",
