@@ -204,6 +204,44 @@ PostgreSQL debt below.
   drift verdict, and cost/capacity governance;
 - legal review of the declared dependency licenses.
 
+### Closed 2026-08-06
+
+- **a third lock file nobody audited** — `apps/api/requirements.lock` sat beside the
+  runtime and dev locks carrying **56 known advisories**, no hashes at all, and pins
+  eight packages behind the runtime lock: `cryptography==46.0.4` (the exact CVE set
+  already found and fixed here to 50.0.0), `pypdf==5.9.0` with 44 advisories — the
+  parser that reads uploaded documents — `starlette==0.50.0`, `python-multipart==0.0.29`.
+
+  Nothing installed from it, which is why it survived. Every gate enumerated the two
+  files it already knew about: `LOCK_FILES` was a two-item tuple, `python:audit` named
+  one path, and `EVIDENCE_SOURCE_PATHS` listed the file — so being inside the provenance
+  digest made it *look* governed while no check ever opened it. It is also the most
+  obviously-named of the three: `pip install -r apps/api/requirements.lock` is one
+  keystroke, and it would have installed unhashed and unpatched.
+
+  The file is deleted. `LOCK_FILES` is now discovered by glob rather than enumerated, so
+  a fourth lock is inside the hash gate the moment it exists, and a parity test asserts
+  every `requirements*.lock` appears in `python:audit`. Probed: adding
+  `requirements.legacy.lock` fails the audit-coverage test; adding an unhashed pin fails
+  the hash test.
+- **the dev lock had never been audited by anything** — `python:audit` read
+  `requirements.runtime.lock` alone. The dev lock is what CI installs, on a runner
+  holding a checkout of this repository, so a compromised test dependency reads the tree
+  and holds the pipeline's credentials: a strictly larger blast radius than a runtime
+  package inside a read-only container. Running pip-audit against it for the first time
+  found **PYSEC-2026-1845** in pytest 9.0.2 — a predictable `/tmp/pytest-of-{user}`
+  path allowing local denial of service or privilege escalation. Pinned to 9.0.3 with
+  its hash. An offline regression test refuses any lock that goes back below a version
+  this repository has already answered for, because the security stage runs four stages
+  later and, for this file, did not run at all.
+- **unfixed container CVEs became invisible rather than absent** — `container:scan`
+  passes `--ignore-unfixed`, which is the right gate: refusing to ship over a CVE with
+  no patch blocks forever on somebody else's release schedule. But it makes "no
+  findings" mean two different things. Measured 2026-08-06: **0 fixable and 24 unfixed**
+  HIGH/CRITICAL in `python:3.12.13-slim-bookworm`, 0 and 0 in `nginx:1.31.3-alpine`. The
+  job now writes the full severity report as an artefact. Recorded, not enforced — a
+  number nobody writes down is a number nobody notices becoming fixable.
+
 ### Closed 2026-08-05
 
 A register that still lists closed work is a register nobody can act on, so entries

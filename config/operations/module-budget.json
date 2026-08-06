@@ -113,7 +113,7 @@
       "max_complexity": 1
     },
     "apps/api/src/korpus/application/provenance.py": {
-      "lines": 185,
+      "lines": 187,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/recovery.py": {

@@ -303,6 +303,12 @@ python:audit:
     # its whole existence: it had never run, so nothing had ever been audited.
     # The lock is fully resolved, so --no-deps audits exactly what ships.
     - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
+    # The dev lock had never been audited by anything. It is what CI installs, on a
+    # runner with a checkout of this repository, so a compromised test dependency
+    # reads the tree and holds the pipeline's credentials — a strictly larger blast
+    # radius than a runtime package inside a read-only container. Running it here for
+    # the first time on 2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
 
 infrastructure:scan:
   stage: security
@@ -372,6 +378,20 @@ container:scan:
   script:
     - trivy image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
     - trivy image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
+    # --ignore-unfixed is the right gate — refusing to ship over a CVE with no patch
+    # blocks forever on somebody else's release schedule — but it makes the exposure
+    # invisible, and "no findings" then means two different things. Measured 2026-08-06:
+    # 0 fixable and 24 unfixed HIGH/CRITICAL in python:3.12.13-slim-bookworm, 0 and 0 in
+    # nginx:1.31.3-alpine. Recorded, not enforced: a number nobody writes down is a
+    # number nobody notices becoming fixable.
+    - trivy image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output api-unfixed.json
+    - trivy image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output web-unfixed.json
+  artifacts:
+    when: always
+    paths:
+      - api-unfixed.json
+      - web-unfixed.json
+    expire_in: 30 days
 
 container:sbom:
   stage: verify-image

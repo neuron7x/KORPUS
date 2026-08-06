@@ -578,10 +578,15 @@ def test_the_desired_state_manifest_matches_the_files_it_fingerprints() -> None:
     )
 
 
-LOCK_FILES = (
-    ROOT / "apps/api/requirements.runtime.lock",
-    ROOT / "apps/api/requirements.dev.lock",
-)
+#: Discovered, not enumerated. This tuple named its two members until 2026-08-06, and
+#: a third lock — `apps/api/requirements.lock` — sat beside them carrying 56 known
+#: advisories, no hashes at all, and pins eight packages behind the runtime lock,
+#: including `cryptography==46.0.4` (the exact CVE set already fixed here) and
+#: `pypdf==5.9.0`, the parser that reads uploaded documents. Nothing installed from it,
+#: which is why it survived: every gate enumerated the files it already knew about, so
+#: the one nobody knew about was outside all of them. It is the most obviously-named of
+#: the three, so `pip install -r apps/api/requirements.lock` was one keystroke away.
+LOCK_FILES = tuple(sorted((ROOT / "apps/api").glob("requirements*.lock")))
 
 
 def test_every_pinned_dependency_carries_a_hash() -> None:
@@ -1031,3 +1036,62 @@ def test_every_writing_console_previews_before_it_acts() -> None:
         assert re.search(rf'id="{workflow}-submit"[^>]*disabled', console), (
             f"{workflow} can be submitted before anything was previewed"
         )
+
+
+def test_every_lock_file_is_audited_for_known_vulnerabilities() -> None:
+    """The dev lock had never been audited by anything.
+
+    `python:audit` read `requirements.runtime.lock` alone, so the packages CI installs
+    on a runner holding a checkout of this repository were outside every security gate.
+    That is a strictly larger blast radius than a runtime package inside a read-only
+    container: a compromised test dependency reads the tree and holds the pipeline's
+    credentials. Running pip-audit against the dev lock for the first time on
+    2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
+    """
+    script = _ci_script("python:audit")
+    audited = {
+        line.rsplit(" ", 1)[-1]
+        for line in script
+        if "pip-audit" in line and line.rstrip().endswith(".lock")
+    }
+    locks = {
+        f"apps/api/{path.name}"
+        for path in (ROOT / "apps/api").glob("requirements*.lock")
+    }
+
+    assert locks, "no lock files found — this test is out of date"
+    assert locks <= audited, (
+        f"these lock files are never audited: {sorted(locks - audited)}"
+    )
+
+
+def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> None:
+    """A regression pin for the advisories this repository has already answered.
+
+    pip-audit needs the network and is a CI job. This is the offline half: once a
+    version has been found vulnerable and replaced, going back to it must fail in the
+    test suite rather than wait for the security stage — which runs four stages later
+    and, for the dev lock, did not run at all until 2026-08-06.
+    """
+    known_bad = {
+        # (package, first version that is NOT affected, advisory)
+        ("pytest", "9.0.3", "PYSEC-2026-1845"),
+        ("cryptography", "50.0.0", "PYSEC-2026-3552/3553/3554"),
+    }
+    text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (ROOT / "apps/api").glob("requirements*.lock")
+    )
+    pinned = dict(re.findall(r"^([A-Za-z0-9_.\-]+)==([0-9][^\s\\]*)", text, re.MULTILINE))
+
+    for package, fixed, advisory in known_bad:
+        version = pinned.get(package)
+        if version is None:
+            continue
+        assert _version_tuple(version) >= _version_tuple(fixed), (
+            f"{package}=={version} is below {fixed}, which {advisory} requires"
+        )
+
+
+def _version_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in re.findall(r"\d+", value))
