@@ -10,22 +10,26 @@ import sys
 import tempfile
 import time
 import unicodedata
+import zipfile
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
+from xml.etree import ElementTree
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
 from korpus.domain.models import ExtractedPage
 
-SUPPORTED_SUFFIXES = {".txt", ".md", ".json", ".html", ".htm", ".pdf"}
+DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+SUPPORTED_SUFFIXES = {".txt", ".md", ".json", ".html", ".htm", ".pdf", ".docx"}
 SUPPORTED_MIME_TYPES = {
     "text/plain",
     "text/markdown",
     "application/json",
     "text/html",
     "application/pdf",
+    DOCX_MIME_TYPE,
 }
 TEXT_MIME_PREFIXES = ("text/plain", "text/html", "application/json")
 
@@ -63,11 +67,27 @@ class _VisibleTextParser(HTMLParser):
 
 
 def _normalize(text: str) -> str:
+    """Whitespace made uniform, with the column gap deliberately preserved.
+
+    `re.sub(r"[ \t]+", " ", text)` used to run here and collapsed every run of spaces
+    and every tab to one space. That is the gap `table_integrity.COLUMN_GAP` looks for,
+    so on 2026-08-06 a probe found that `assess_table_integrity` could not fire on any
+    real document: by the time it saw the text, every column boundary had been erased.
+    The module exists against a specific failure — a table row that lost a cell shifts
+    its figures left, so a number is quoted under another column's heading, and the
+    passage stays grammatical while stating a norm that does not exist — and it was
+    running on text where that damage was invisible.
+
+    Runs of *three* or more spaces are kept, and tabs are kept. Two spaces after a full
+    stop is typography; three is a column, and a tab always is.
+    """
     text = unicodedata.normalize("NFC", text)
     text = text.replace("\x00", " ")
-    text = re.sub(r"[ \t]+", " ", text)
     text = re.sub(r"\r\n?", "\n", text)
+    # Collapse only runs that cannot be a column boundary, and leave tabs alone.
+    text = re.sub(r"(?<! ) {2}(?! )", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
+    text = re.sub(r"[ \t]+\n", "\n", text)
     return text.strip()
 
 
@@ -112,8 +132,20 @@ def _validate_type_path(path: Path, filename: str, mime_type: str) -> str:
             raise ValueError("PDF extension does not match MIME type")
         if detected is not None and detected != "application/pdf":
             raise ValueError(f"PDF content detected as {detected}")
+    elif suffix == ".docx":
+        # PK\x03\x04. Extension, declared MIME and the first four bytes have to agree
+        # before a ZIP parser sees the file: the whole point of the check is that a
+        # renamed archive does not get to choose its own reader.
+        if not prefix.startswith(b"PK\x03\x04"):
+            raise ValueError("DOCX extension does not match file signature")
+        if mime_type not in {DOCX_MIME_TYPE, "application/octet-stream"}:
+            raise ValueError("DOCX extension does not match MIME type")
+        if detected is not None and detected not in {DOCX_MIME_TYPE, "application/zip"}:
+            raise ValueError(f"DOCX content detected as {detected}")
     elif mime_type == "application/pdf":
         raise ValueError("PDF MIME type requires .pdf extension")
+    elif mime_type == DOCX_MIME_TYPE:
+        raise ValueError("DOCX MIME type requires .docx extension")
     elif detected is not None:
         if suffix == ".json" and detected not in {"application/json", "text/plain"}:
             raise ValueError(f"JSON content detected as {detected}")
@@ -208,6 +240,15 @@ def extract_pages_from_path(
         if not any(page.text for page in ocr_pages):
             raise ValueError("OCR produced no text")
         return ocr_pages, "pdf_ocr"
+
+    if suffix == ".docx":
+        paragraphs = _docx_paragraphs(_docx_body_xml(path))
+        if not paragraphs:
+            raise ValueError("DOCX contains no extractable text")
+        # One page, like every other flow format: DOCX has no page boundaries until it
+        # is laid out, and inventing them would put a page number on a citation that no
+        # printed copy agrees with.
+        return [ExtractedPage(page=None, text=_normalize("\n\n".join(paragraphs)))], "docx_text"
 
     try:
         decoded = path.read_text(encoding="utf-8-sig", errors="strict")
@@ -331,6 +372,82 @@ def extract_pages_sandboxed(
         raise ValueError("invalid parser sandbox response") from exc
     return pages, method
 
+
+
+#: OOXML is a ZIP. Every one of these bounds exists because the file is untrusted: a
+#: 40 KB archive can declare a 4 GB member, and a parser that believes the header
+#: allocates it. Chosen to be far above any real order and far below anything that
+#: matters to a container with a memory limit.
+_DOCX_MAX_MEMBERS = 512
+_DOCX_MAX_MEMBER_BYTES = 64 * 1024 * 1024
+_DOCX_MAX_TOTAL_BYTES = 128 * 1024 * 1024
+_DOCX_BODY = "word/document.xml"
+_WORD_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+
+
+def _docx_body_xml(path: Path) -> bytes:
+    """The document body, with the archive checked before anything is decompressed.
+
+    Deliberately stdlib-only. `python-docx` pulls in lxml, a C extension, and putting a
+    new binary parser in front of untrusted uploads to read a ZIP of XML is a poor
+    trade: the format needs about forty lines and zipfile already reports declared sizes
+    without expanding them.
+    """
+    try:
+        with zipfile.ZipFile(path) as archive:
+            members = archive.infolist()
+            if len(members) > _DOCX_MAX_MEMBERS:
+                raise ValueError("DOCX archive declares too many members")
+            total = 0
+            for member in members:
+                if member.file_size > _DOCX_MAX_MEMBER_BYTES:
+                    raise ValueError("DOCX member exceeds the size limit")
+                total += member.file_size
+            if total > _DOCX_MAX_TOTAL_BYTES:
+                raise ValueError("DOCX archive exceeds the uncompressed size limit")
+            if _DOCX_BODY not in archive.namelist():
+                raise ValueError("DOCX archive has no word/document.xml")
+            body = archive.read(_DOCX_BODY)
+    except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
+        raise ValueError("malformed DOCX") from exc
+    # No DTD, no entity declarations. `xml.etree` does not resolve external entities,
+    # but it does expand internal ones, which is the billion-laughs shape. Refusing the
+    # declaration outright is simpler than bounding the expansion and cannot be
+    # miscounted.
+    head = body[:4096].lower()
+    if b"<!doctype" in head or b"<!entity" in head:
+        raise ValueError("DOCX body declares a DTD or entity")
+    return body
+
+
+def _docx_paragraphs(body: bytes) -> list[str]:
+    """Visible paragraph text, in document order.
+
+    Only the body. Headers and footers are page furniture — a page number and a
+    classification stamp repeated on every sheet — and pulling them in would put text
+    into quotable spans that the document does not say once.
+    """
+    try:
+        root = ElementTree.fromstring(body)
+    except ElementTree.ParseError as exc:
+        raise ValueError("DOCX body is not well-formed XML") from exc
+    paragraphs: list[str] = []
+    for paragraph in root.iter(f"{_WORD_NS}p"):
+        pieces: list[str] = []
+        for node in paragraph.iter():
+            if node.tag == f"{_WORD_NS}t" and node.text:
+                pieces.append(node.text)
+            elif node.tag == f"{_WORD_NS}tab":
+                # A tab is a column boundary in a flattened table, and
+                # `table_integrity.py` looks for exactly that gap to notice a row that
+                # lost a cell. Dropping it would erase the evidence of the damage.
+                pieces.append("\t")
+            elif node.tag in {f"{_WORD_NS}br", f"{_WORD_NS}cr"}:
+                pieces.append("\n")
+        text = "".join(pieces).strip()
+        if text:
+            paragraphs.append(text)
+    return paragraphs
 
 def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
     if len(text) <= max_chars:

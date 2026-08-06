@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -131,6 +131,13 @@ retention-plan:
 # identity only under oidc, which controlled environments require. Whoever holds the
 # token holds what is written in it, which is why it is short-lived and why the secret
 # is mode 600.
+# Bring a directory of documents into the corpus. Every version lands in quarantine:
+# approval is a person taking responsibility in the audit chain under their own name,
+# and a bulk importer that granted it would forge that signature at scale.
+#   make import-corpus MANIFEST=path/to/manifest.json
+import-corpus:
+	PYTHONPATH=apps/api/src $(PY) scripts/import_corpus.py --manifest "$(MANIFEST)" $(IMPORT_FLAGS)
+
 review-token:
 	PYTHONPATH=apps/api/src $(PY) scripts/mint_review_token.py \
 	  --subject $(or $(SUBJECT),reviewer) \

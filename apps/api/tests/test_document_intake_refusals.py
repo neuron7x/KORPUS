@@ -51,7 +51,10 @@ def test_a_whitespace_only_document_is_refused() -> None:
         _extract(b"   \n\t  \n", "order.txt", "text/plain")
 
 
-@pytest.mark.parametrize("filename", ["order.exe", "order.docx", "order"])
+# `.docx` left this list on 2026-08-06 when DOCX extraction landed. `.zip` takes its
+# place: a DOCX *is* a ZIP, so an archive that is not one must still be refused by
+# extension rather than reaching the parser and being judged on its bytes.
+@pytest.mark.parametrize("filename", ["order.exe", "order.zip", "order"])
 def test_an_unsupported_extension_is_refused(filename: str) -> None:
     with pytest.raises(ValueError, match="unsupported file extension"):
         _extract(b"content", filename, "text/plain")

@@ -1681,6 +1681,43 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # A DOCX is a ZIP. Without the signature check a renamed archive picks its own
+        # reader, which is the whole point of validating extension against bytes.
+        "M189_RENAMED_ARCHIVE_REACHES_THE_DOCX_PARSER",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        '        if not prefix.startswith(b"PK\\x03\\x04"):',
+        "        if False:",
+        (
+            "apps/api/tests/test_extraction.py::"
+            "test_a_zip_renamed_to_docx_is_refused_before_the_parser",
+        ),
+    ),
+    Mutant(
+        # `xml.etree` expands internal entities. A bounded expansion can be miscounted;
+        # a refused declaration cannot.
+        "M190_DOCX_ENTITY_DECLARATION_ACCEPTED",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        '    if b"<!doctype" in head or b"<!entity" in head:',
+        "    if False:",
+        (
+            "apps/api/tests/test_extraction.py::"
+            "test_a_docx_declaring_an_entity_is_refused",
+        ),
+    ),
+    Mutant(
+        # The gap `table_integrity` looks for was erased before it could see it, so the
+        # module that exists against "a number quoted under another column's heading"
+        # could not fire on any real document.
+        "M191_NORMALISATION_ERASES_THE_COLUMN_GAP",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        '    text = re.sub(r"(?<! ) {2}(?! )", " ", text)',
+        '    text = re.sub(r"[ \\t]+", " ", text)',
+        (
+            "apps/api/tests/test_extraction.py::"
+            "test_normalisation_keeps_the_column_gap_a_flattened_table_leaves",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

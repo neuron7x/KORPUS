@@ -199,8 +199,8 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 525,
-      "max_complexity": 21
+      "lines": 637,
+      "max_complexity": 25
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
       "lines": 314,
@@ -365,6 +365,11 @@
       "lines": 146,
       "max_complexity": 5,
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
+    },
+    "scripts/import_corpus.py": {
+      "lines": 292,
+      "max_complexity": 24,
+      "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
     },
     "scripts/measure_recovery.py": {
       "lines": 146,
