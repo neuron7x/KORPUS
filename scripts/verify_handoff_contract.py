@@ -102,7 +102,17 @@ def verify() -> dict[str, Any]:
                 f"CalibrationProfile default drift: {name}={actual!r}, expected {expected!r}"
             )
 
-    if state["base_source_tree_sha256"] != assurance["source_tree_sha256"]:
+    # A snapshot promoted before this field existed has no digest to compare, and a
+    # KeyError is not a verdict: it stops the check that was meant to produce one, and
+    # the whole assurance chain reads as a failing test rather than as a stale artefact.
+    promoted_digest = assurance.get("source_tree_sha256")
+    if promoted_digest is None:
+        raise SystemExit(
+            "the promoted assurance snapshot carries no source_tree_sha256; it predates "
+            "this check. Run `make assemble-assurance && make snapshot` to promote a "
+            "current one."
+        )
+    if state["base_source_tree_sha256"] != promoted_digest:
         raise AssertionError("handoff source digest differs from assurance report")
     if (
         state["production_authorized"] is not False
