@@ -5,48 +5,48 @@
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 558200,
-      "sha256": "4c98de1cc211c308e93c3298332693da3d577cde3c82f6e55200f6bc207bfb04"
+      "bytes": 555882,
+      "sha256": "67820e6f297f2e7827a5b0e75fdd4a6e340f0c2eb127cd0ff098c17ac61c6273"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
-      "bytes": 144089,
-      "sha256": "95e50a4f7ffa0fa28791bafbd3ecbdfe5b34520ae5ca79bfce1c89e19e8d68af"
+      "bytes": 144092,
+      "sha256": "a7ec6e9f7f9d040c7419797d5e25bb90b7e35183487779ab8f2c6912ee7054f0"
     },
     {
       "path": "reports/COVERAGE_REPORT.xml",
       "bytes": 311658,
-      "sha256": "8a5dd29731b6ed3ab8750d8947258caa02ed1769f74f73ed5bf9bccfcb97b8bf"
+      "sha256": "e9817f72e78bc54bf374d3150c36dbf473d361eb303c67093bd23467a4d53754"
     },
     {
       "path": "reports/COVERAGE_REPORT.json",
-      "bytes": 746508,
-      "sha256": "22eb36e7f01650194024e4fde39851949e98d3ef1317c3d60f8dde98e1d87360"
+      "bytes": 746507,
+      "sha256": "1d509d6747b6911c8962ef18fca8342d960a4a85601eaee28de72d2a349f0744"
     },
     {
       "path": "reports/EVAL_REPORT.json",
       "bytes": 16172,
-      "sha256": "93a42a6dee1fa056780f93c6c70423908e7485d0aeb9e4504e87608ea3c329de"
+      "sha256": "bc5d5d234dca655a9cda69147b2721ae665eb41b44d10ff6fce1613c589d886b"
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 527715,
-      "sha256": "4d5742a0bb821533a08a25c99fea2a5bf203b5dc54fde2efccfb35b2b52e3afd"
+      "bytes": 527414,
+      "sha256": "7471e75574c0bf2154ecc9bf8451da3c06b464e016eea84b203bcf7c592bf02a"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
       "bytes": 833,
-      "sha256": "c432fec3ac3d60ea48d808dcaf939f75a9aba369c3e85c1134bb99dcecd159b0"
+      "sha256": "5b63602f326d6b2d2453a24f3f70ab50760526e0d9855720774f10d8191d7139"
     },
     {
       "path": "reports/SCALE_REPORT.json",
-      "bytes": 1055,
-      "sha256": "9cdbb01728987d9c6df0a853a51e648be5cedaf6f4a1cb06d4ff3e61a1178803"
+      "bytes": 1046,
+      "sha256": "3d0b3a0a5d945d463290e7142dc2f4abedb6e68af195bc6d6f76b3f41563e390"
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1499,
-      "sha256": "16cc9607d1d52cab43d57cbef55669491db91d171d6f9dcc61d16f28bfb7c24d"
+      "sha256": "2bb23c94a0b2749a226ad31220b0e5493f94173259469107cd08e3de4a04e866"
     },
     {
       "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
@@ -61,12 +61,12 @@
     {
       "path": "reports/KUBERNETES_VALIDATION.json",
       "bytes": 566,
-      "sha256": "b51ac4fa8d290f0a6404515eadf53caba40ab863e8dfb28f0024602a3593a0c3"
+      "sha256": "d3be2b5e3cb4ffdde1df8bdbd4b776ca2434756e3cbd81005e224a7e73c6dde0"
     }
   ],
   "limitations": [
-    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
-    "PostgreSQL integration is a GitLab service-container gate; local report may show it skipped.",
-    "Synthetic evaluation does not authorize real restricted corpus deployment."
+    "PostgreSQL/pgvector, backup-restore, and container execution remain GitLab gates; one local test is skipped.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
   ]
 }
