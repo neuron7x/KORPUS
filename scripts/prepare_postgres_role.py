@@ -22,6 +22,15 @@ READ_WRITE_TABLES = (
     "evidence_spans",
     "span_embeddings",
     "ingestion_jobs",
+    # ACT-001. Read-write rather than append-only: an account is disabled and re-enabled,
+    # a subscription moves between states, a conversation is archived. What must not be
+    # rewritable is the audit trail of those changes, and that is `audit_events` below.
+    "accounts",
+    "plans",
+    "subscriptions",
+    "billing_events",
+    "conversations",
+    "messages",
 )
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")

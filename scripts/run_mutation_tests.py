@@ -985,8 +985,8 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
+        'SCHEMA_REVISION = "0012_tenancy"',
         'SCHEMA_REVISION = "0011_audit_key_id"',
-        'SCHEMA_REVISION = "0010_revision_identity"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
         ),
@@ -2239,6 +2239,154 @@ MUTANTS = (
         (
             "apps/api/tests/test_environment_drift.py::"
             "test_manifest_without_records_refuses_rather_than_returning_empty",
+        ),
+    ),
+    # ---------------------------------------------------------------- ACT-001
+    # Every mutant below turns a narrowing rule into a widening one, or removes a
+    # refusal. They are the shapes the account/billing/conversation layer fails in, and
+    # each one would leave the system running and answering.
+    Mutant(
+        "M130_ENTITLEMENT_UNIONS_INSTEAD_OF_INTERSECTS",
+        "apps/api/src/korpus/application/paid_access.py",
+        "        allowed = permitted & entitlement.entitled_corpora",
+        "        allowed = permitted | entitlement.entitled_corpora",
+        (
+            "apps/api/tests/test_entitlement_gate.py::"
+            "test_an_active_subscription_permits_only_what_it_pays_for",
+        ),
+    ),
+    Mutant(
+        "M131_PAST_DUE_KEEPS_PAYING",
+        "apps/api/src/korpus/domain/tenancy.py",
+        "        return self is SubscriptionStatus.ACTIVE",
+        "        return self in {SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE}",
+        (
+            "apps/api/tests/test_entitlement_gate.py::"
+            "test_a_past_due_subscription_pays_for_nothing",
+        ),
+    ),
+    Mutant(
+        "M132_CANCELLED_SUBSCRIPTION_CAN_BE_RESURRECTED",
+        "apps/api/src/korpus/domain/tenancy.py",
+        "    SubscriptionStatus.CANCELED: frozenset(),",
+        "    SubscriptionStatus.CANCELED: frozenset({SubscriptionStatus.ACTIVE}),",
+        (
+            "apps/api/tests/test_billing_events.py::"
+            "test_a_canceled_subscription_cannot_be_reactivated",
+        ),
+    ),
+    Mutant(
+        "M133_EXPIRED_PERIOD_STILL_PAYS",
+        "apps/api/src/korpus/domain/tenancy.py",
+        "        if self.current_period_end is not None and moment >= self.current_period_end:",
+        "        if False:",
+        (
+            "apps/api/tests/test_entitlement_gate.py::"
+            "test_an_expired_period_stops_paying_without_any_event_arriving",
+        ),
+    ),
+    Mutant(
+        "M134_DISABLED_ACCOUNT_STILL_ENTITLED",
+        "apps/api/src/korpus/application/paid_access.py",
+        "        if account.status is not AccountStatus.ACTIVE:",
+        "        if False:",
+        (
+            "apps/api/tests/test_entitlement_gate.py::"
+            "test_a_disabled_account_entitles_nothing_however_much_it_paid",
+        ),
+    ),
+    Mutant(
+        "M135_DISABLED_ACCOUNT_ADMITTED",
+        "apps/api/src/korpus/application/accounts.py",
+        "        if account.status is not AccountStatus.ACTIVE:",
+        "        if False:",
+        (
+            "apps/api/tests/test_account_domain.py::"
+            "test_a_disabled_account_cannot_use_protected_functionality",
+        ),
+    ),
+    Mutant(
+        "M136_CONVERSATION_OWNERSHIP_DROPPED",
+        "apps/api/src/korpus/infrastructure/conversation_repository.py",
+        "                    .where(conversations.c.account_id == str(account_id))\n"
+        "                )\n"
+        "                .mappings()\n"
+        "                .first()",
+        "                )\n                .mappings()\n                .first()",
+        (
+            "apps/api/tests/test_conversations.py::"
+            "test_a_conversation_is_visible_only_to_its_owner",
+        ),
+    ),
+    Mutant(
+        "M137_DUPLICATE_BILLING_EVENT_REAPPLIED",
+        "apps/api/src/korpus/application/subscriptions.py",
+        "        if existing is not None:",
+        "        if False:",
+        (
+            "apps/api/tests/test_billing_events.py::"
+            "test_a_redelivered_event_changes_nothing",
+        ),
+    ),
+    Mutant(
+        "M138_UNSIGNED_BILLING_EVENT_ACCEPTED",
+        "apps/api/src/korpus/infrastructure/deterministic_billing.py",
+        '        if not signature:\n            raise ValueError("unsigned billing event")',
+        "        if not signature:\n            signature = self.sign(payload)",
+        ("apps/api/tests/test_billing_events.py::test_an_unsigned_event_is_refused",),
+    ),
+    Mutant(
+        "M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS",
+        "apps/api/src/korpus/application/subscriptions.py",
+        "            if occurred < subscription.updated_at:",
+        "            if False:",
+        (
+            "apps/api/tests/test_billing_events.py::"
+            "test_a_replayed_older_event_does_not_move_the_subscription_backwards",
+        ),
+    ),
+    Mutant(
+        "M140_LOCAL_ONLY_ACCEPTS_ONE_PRIVATE_ADDRESS",
+        "apps/api/src/korpus/application/egress.py",
+        "            if not (parsed.is_private or parsed.is_loopback or parsed.is_link_local):\n"
+        "                return False\n"
+        "        return True",
+        "            if parsed.is_private or parsed.is_loopback or parsed.is_link_local:\n"
+        "                return True\n"
+        "        return False",
+        (
+            "apps/api/tests/test_model_egress.py::"
+            "test_a_name_resolving_to_both_private_and_public_is_refused",
+        ),
+    ),
+    Mutant(
+        "M141_MODEL_DISABLED_STILL_CALLS_OUT",
+        "apps/api/src/korpus/application/egress.py",
+        "        if self.posture is EgressPosture.MODEL_DISABLED:",
+        "        if False:",
+        (
+            "apps/api/tests/test_model_egress.py::"
+            "test_model_disabled_refuses_even_a_local_endpoint",
+        ),
+    ),
+    Mutant(
+        "M142_IDENTITY_CLAIMS_GRANT_AUTHORIZATION",
+        "apps/api/src/korpus/application/accounts.py",
+        "        if leaked:",
+        "        if False:",
+        (
+            "apps/api/tests/test_account_domain.py::"
+            "test_identity_claims_carrying_authorization_are_refused_not_filtered",
+        ),
+    ),
+    Mutant(
+        "M143_ENTITLEMENT_CHECK_SKIPPED_WHEN_EMPTY",
+        "apps/api/src/korpus/application/paid_access.py",
+        "        if not allowed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_entitlement_gate.py::"
+            "test_without_an_active_subscription_the_paid_corpus_is_denied",
         ),
     ),
 )

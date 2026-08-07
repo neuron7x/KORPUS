@@ -22,7 +22,24 @@ from typing import Any
 
 import httpx
 
+from korpus.application.egress import EgressDenied, ModelEgressPolicy
 from korpus.application.query_plan import PlannerUnavailable
+
+
+def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
+    """Turn an egress refusal into the failure the application already handles.
+
+    `PlannerUnavailable` rather than letting `EgressDenied` escape: every call site
+    already treats an unavailable model as "run without one" and records the reason in the
+    audit chain, so a deployment that forbids egress degrades to the extractive path
+    instead of returning 500 to a soldier. The reason string says which, so an operator
+    reading the audit log can tell a policy refusal from a timeout.
+    """
+    try:
+        policy.check(base_url)
+    except EgressDenied as denial:
+        raise PlannerUnavailable(f"model egress denied: {denial}") from denial
+
 
 #: The vocabulary problem this exists for, stated as the task. The model is given the
 #: corpus's own subject names so its guesses land in the language the documents use.
@@ -51,13 +68,18 @@ class AnthropicQueryPlanner:
         model: str,
         base_url: str = "https://api.anthropic.com",
         timeout_seconds: float = 6.0,
+        egress: ModelEgressPolicy | None = None,
     ) -> None:
         self._api_key = api_key
         self._model = model
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
+        #: Consulted before the request is built, never after. A policy checked once the
+        #: response is back has already sent the soldier's question somewhere.
+        self._egress = egress or ModelEgressPolicy()
 
     def variants(self, question: str, subjects: list[str]) -> list[str]:
+        _refuse_if_egress_denied(self._egress, self._base_url)
         hint = (
             f"\n\nРозділи корпусу: {', '.join(subjects[:40])}." if subjects else ""
         )
@@ -154,13 +176,16 @@ class AnthropicAnswerComposer:
         model: str,
         base_url: str = "https://api.anthropic.com",
         timeout_seconds: float = 8.0,
+        egress: ModelEgressPolicy | None = None,
     ) -> None:
         self._api_key = api_key
         self._model = model
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
+        self._egress = egress or ModelEgressPolicy()
 
     def compose(self, question: str, sentences: list[str]) -> tuple[str, list[str]]:
+        _refuse_if_egress_denied(self._egress, self._base_url)
         numbered = "\n".join(f"{index}. {text}" for index, text in enumerate(sentences, 1))
         payload: dict[str, Any] = {
             "model": self._model,

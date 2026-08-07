@@ -28,6 +28,7 @@ from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
+from korpus.tenancy_composition import build_egress_policy
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
@@ -250,6 +251,7 @@ def build_answer_composer(settings: Settings) -> AnswerComposer | None:
         model=settings.query_planner_model,
         base_url=settings.query_planner_base_url,
         timeout_seconds=max(settings.query_planner_timeout_seconds, 8.0),
+        egress=build_egress_policy(settings),
     )
 
 
@@ -270,4 +272,5 @@ def build_query_planner(settings: Settings) -> QueryPlanner | None:
         model=settings.query_planner_model,
         base_url=settings.query_planner_base_url,
         timeout_seconds=settings.query_planner_timeout_seconds,
+        egress=build_egress_policy(settings),
     )

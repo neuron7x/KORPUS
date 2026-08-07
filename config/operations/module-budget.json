@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "note": "A ratchet: these are today's measurements, and they may only be lowered. Growth fails the gate; a reduction is recorded here deliberately so it is visible in review instead of absorbed.",
-  "recorded_at": "2026-08-05",
+  "recorded_at": "2026-08-07",
   "modules": {
     "apps/api/src/korpus/__init__.py": {
       "lines": 1,
@@ -12,23 +12,36 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 288,
+      "lines": 276,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
       "lines": 833,
       "max_complexity": 8
     },
+    "apps/api/src/korpus/api/routes_billing.py": {
+      "lines": 169,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/api/routes_tenancy.py": {
+      "lines": 390,
+      "max_complexity": 8,
+      "reason": "ACT-001: account and conversation endpoints and the seams routes_billing shares"
+    },
     "apps/api/src/korpus/application/__init__.py": {
       "lines": 0,
       "max_complexity": 0
+    },
+    "apps/api/src/korpus/application/accounts.py": {
+      "lines": 125,
+      "max_complexity": 9
     },
     "apps/api/src/korpus/application/admission.py": {
       "lines": 242,
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 797,
+      "lines": 777,
       "max_complexity": 23,
       "reason": "the answer pipeline; grew by the undated-source limitation, which is a claim the answer has to carry"
     },
@@ -41,8 +54,8 @@
       "max_complexity": 6
     },
     "apps/api/src/korpus/application/break_glass.py": {
-      "lines": 170,
-      "max_complexity": 12,
+      "lines": 155,
+      "max_complexity": 10,
       "reason": "emergency elevation that needs two people, expires, and never carries approval authority"
     },
     "apps/api/src/korpus/application/cache.py": {
@@ -54,13 +67,21 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 183,
-      "max_complexity": 12,
+      "lines": 168,
+      "max_complexity": 9,
       "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
+    },
+    "apps/api/src/korpus/application/conversations.py": {
+      "lines": 140,
+      "max_complexity": 3
     },
     "apps/api/src/korpus/application/deployment.py": {
       "lines": 220,
-      "max_complexity": 23
+      "max_complexity": 21
+    },
+    "apps/api/src/korpus/application/egress.py": {
+      "lines": 116,
+      "max_complexity": 9
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
       "lines": 150,
@@ -100,12 +121,12 @@
       "max_complexity": 19
     },
     "apps/api/src/korpus/application/ingestion_jobs.py": {
-      "lines": 222,
+      "lines": 220,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/keyring.py": {
-      "lines": 138,
-      "max_complexity": 10,
+      "lines": 123,
+      "max_complexity": 7,
       "reason": "which key signed which audit event, so a key can be replaced without losing the chain"
     },
     "apps/api/src/korpus/application/noninterference.py": {
@@ -119,6 +140,10 @@
     "apps/api/src/korpus/application/operations.py": {
       "lines": 211,
       "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/paid_access.py": {
+      "lines": 163,
+      "max_complexity": 8
     },
     "apps/api/src/korpus/application/policy.py": {
       "lines": 77,
@@ -134,7 +159,7 @@
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/query_plan.py": {
-      "lines": 238,
+      "lines": 226,
       "max_complexity": 12,
       "reason": "the only authority a language model has here: better questions, never answer text"
     },
@@ -155,7 +180,7 @@
       "max_complexity": 7
     },
     "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 500,
+      "lines": 490,
       "max_complexity": 22
     },
     "apps/api/src/korpus/application/risk.py": {
@@ -166,9 +191,18 @@
       "lines": 163,
       "max_complexity": 4
     },
+    "apps/api/src/korpus/application/subscriptions.py": {
+      "lines": 286,
+      "max_complexity": 13
+    },
     "apps/api/src/korpus/application/table_integrity.py": {
       "lines": 122,
       "max_complexity": 14
+    },
+    "apps/api/src/korpus/application/tenancy_ports.py": {
+      "lines": 246,
+      "max_complexity": 1,
+      "reason": "ACT-001: what the account, billing and conversation services need from storage, apart from the evidence ports"
     },
     "apps/api/src/korpus/application/tevv.py": {
       "lines": 140,
@@ -192,7 +226,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 536,
+      "lines": 561,
       "max_complexity": 67
     },
     "apps/api/src/korpus/controlled_requirements.py": {
@@ -204,15 +238,20 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 573,
+      "lines": 563,
       "max_complexity": 8
+    },
+    "apps/api/src/korpus/domain/tenancy.py": {
+      "lines": 271,
+      "max_complexity": 5,
+      "reason": "ACT-001: the account/subscription/conversation records and the transition table, kept apart from the corpus domain"
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
       "lines": 0,
       "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
-      "lines": 243,
+      "lines": 248,
       "max_complexity": 12,
       "reason": "the Messages API adapter behind QueryPlanner; its output is admitted, never trusted"
     },
@@ -221,11 +260,23 @@
       "max_complexity": 7
     },
     "apps/api/src/korpus/infrastructure/audit_reader.py": {
-      "lines": 347,
+      "lines": 337,
       "max_complexity": 16
     },
+    "apps/api/src/korpus/infrastructure/billing_repository.py": {
+      "lines": 376,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/infrastructure/conversation_repository.py": {
+      "lines": 194,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/infrastructure/deterministic_billing.py": {
+      "lines": 104,
+      "max_complexity": 5
+    },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 698,
+      "lines": 693,
       "max_complexity": 29
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
@@ -245,12 +296,12 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1100,
+      "lines": 1152,
       "max_complexity": 23,
       "reason": "COD-001: 1855 -> the recorded ceiling across four extractions; the transactional core stays"
     },
     "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
-      "lines": 372,
+      "lines": 362,
       "max_complexity": 13,
       "reason": "builds retrieval statements without opening a connection; carries the release projection so the corpus fingerprint costs one query rather than 232 458 models"
     },
@@ -263,13 +314,21 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/schema.py": {
-      "lines": 248,
+      "lines": 238,
       "max_complexity": 0,
       "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
       "lines": 274,
       "max_complexity": 13
+    },
+    "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
+      "lines": 223,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/infrastructure/tenancy_schema.py": {
+      "lines": 199,
+      "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
       "lines": null,
@@ -281,7 +340,7 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 259,
+      "lines": 269,
       "max_complexity": 31
     },
     "apps/api/src/korpus/repository_requirements.py": {
@@ -328,6 +387,10 @@
       "lines": 103,
       "max_complexity": 14
     },
+    "apps/api/src/korpus/tenancy_composition.py": {
+      "lines": 91,
+      "max_complexity": 3
+    },
     "scripts/assemble_assurance.py": {
       "lines": 120,
       "max_complexity": 12
@@ -346,23 +409,23 @@
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
     "scripts/build_audit_closure.py": {
-      "lines": 820,
+      "lines": 810,
       "max_complexity": 23,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "scripts/build_import_manifest.py": {
-      "lines": 240,
+      "lines": 238,
       "max_complexity": 11,
       "reason": "drafts a manifest and refuses to invent what it cannot read; snapshot mode carries Drive's own fields through"
     },
     "scripts/build_provenance.py": {
-      "lines": 234,
-      "max_complexity": 14,
+      "lines": 219,
+      "max_complexity": 11,
       "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
     },
     "scripts/build_reference_set.py": {
-      "lines": 357,
-      "max_complexity": 14,
+      "lines": 342,
+      "max_complexity": 9,
       "reason": "freezes a reference set from the deployed corpus; objective on retrieval, citation and refusal, silent on quality"
     },
     "scripts/build_system_manifest.py": {
@@ -370,8 +433,8 @@
       "max_complexity": 11
     },
     "scripts/chaos_matrix.py": {
-      "lines": 371,
-      "max_complexity": 14,
+      "lines": 356,
+      "max_complexity": 5,
       "reason": "a drill: it breaks something on purpose and records what the system says"
     },
     "scripts/check_coverage_thresholds.py": {
@@ -388,13 +451,13 @@
       "max_complexity": 13
     },
     "scripts/corpus_release.py": {
-      "lines": 222,
-      "max_complexity": 12,
+      "lines": 207,
+      "max_complexity": 5,
       "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
     },
     "scripts/evidence_registry.py": {
-      "lines": 149,
-      "max_complexity": 10,
+      "lines": 134,
+      "max_complexity": 4,
       "reason": "gate reports kept under their digest for the system's life, sealed and honest about what a seal is"
     },
     "scripts/export_audit.py": {
@@ -406,7 +469,7 @@
       "max_complexity": 8
     },
     "scripts/fetch_drive_public.py": {
-      "lines": 455,
+      "lines": 447,
       "max_complexity": 20,
       "reason": "anonymous snapshot of a public Drive folder with provenance; fetching is not ingestion"
     },
@@ -438,21 +501,21 @@
       "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
     },
     "scripts/ingestion_recovery_drill.py": {
-      "lines": 203,
-      "max_complexity": 12,
+      "lines": 188,
+      "max_complexity": 5,
       "reason": "a drill: it breaks something on purpose and records what the system says"
     },
     "scripts/load_probe.py": {
-      "lines": 223,
-      "max_complexity": 12,
+      "lines": 208,
+      "max_complexity": 6,
       "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
     },
     "scripts/measure_recovery.py": {
-      "lines": 195,
-      "max_complexity": 6
+      "lines": 185,
+      "max_complexity": 5
     },
     "scripts/mint_review_token.py": {
-      "lines": 85,
+      "lines": 82,
       "max_complexity": 6,
       "reason": "a short-lived bearer token for a review session; not a production path"
     },
@@ -461,8 +524,8 @@
       "max_complexity": 5
     },
     "scripts/patch_policy.py": {
-      "lines": 212,
-      "max_complexity": 14,
+      "lines": 197,
+      "max_complexity": 8,
       "reason": "how long a known vulnerability may stay, and whether the scan that would find it ran"
     },
     "scripts/plan_retention.py": {
@@ -470,11 +533,11 @@
       "max_complexity": 7
     },
     "scripts/prepare_postgres_role.py": {
-      "lines": 100,
+      "lines": 109,
       "max_complexity": 4
     },
     "scripts/retention_policy.py": {
-      "lines": 264,
+      "lines": 249,
       "max_complexity": 25,
       "reason": "backup copies, evidence retention and quotas checked against the disk rather than declared"
     },
@@ -499,7 +562,7 @@
       "max_complexity": 6
     },
     "scripts/run_reference_eval.py": {
-      "lines": 185,
+      "lines": 170,
       "max_complexity": 24,
       "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest"
     },
@@ -512,12 +575,12 @@
       "max_complexity": 10
     },
     "scripts/seed_recovery_fixture.py": {
-      "lines": 113,
+      "lines": 103,
       "max_complexity": 8
     },
     "scripts/service_objectives.py": {
-      "lines": 213,
-      "max_complexity": 10,
+      "lines": 198,
+      "max_complexity": 6,
       "reason": "what the deployment promises, judged against what it was measured doing"
     },
     "scripts/snapshot_assurance.py": {
@@ -525,7 +588,7 @@
       "max_complexity": 8
     },
     "scripts/source_digest.py": {
-      "lines": 91,
+      "lines": 81,
       "max_complexity": 10
     },
     "scripts/validate_infrastructure.py": {
@@ -545,7 +608,7 @@
       "max_complexity": 0
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 232,
+      "lines": 222,
       "max_complexity": 43,
       "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
     },
@@ -716,6 +779,76 @@
         }
       ],
       "reason": "RAG-016: the migration plan and its evidence list"
+    },
+    {
+      "path": "apps/api/src/korpus/config.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 536,
+        "max_complexity": 67
+      },
+      "to": {
+        "lines": 561,
+        "max_complexity": 67,
+        "worst_function": "validate_security_and_calibration"
+      },
+      "reason": "ACT-001: model egress posture, the subscription gate, free corpora and the billing webhook secret, with the resolver and validator each of them needs"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/anthropic_planner.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 243,
+        "max_complexity": 12
+      },
+      "to": {
+        "lines": 248,
+        "max_complexity": 12,
+        "worst_function": "_parse"
+      },
+      "reason": "ACT-001: the egress check and the refusal that turns it into the failure the application already handles"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 1100,
+        "max_complexity": 23
+      },
+      "to": {
+        "lines": 1152,
+        "max_complexity": 23,
+        "worst_function": "transition_version"
+      },
+      "reason": "ACT-001: two public seams so a sibling adapter writes its state change and its audit event in one commit, plus the tenancy table registration"
+    },
+    {
+      "path": "apps/api/src/korpus/main.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 259,
+        "max_complexity": 31
+      },
+      "to": {
+        "lines": 269,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      },
+      "reason": "ACT-001: two routers and the tenancy installation"
+    },
+    {
+      "path": "scripts/prepare_postgres_role.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 100,
+        "max_complexity": 4
+      },
+      "to": {
+        "lines": 109,
+        "max_complexity": 4,
+        "worst_function": "read_secret"
+      },
+      "reason": "ACT-001: six tenancy tables in the read-write grant list"
     }
   ],
   "line_exempt": {

@@ -201,6 +201,23 @@ class Settings(BaseSettings):
     query_planner_model: str = "claude-sonnet-5"
     query_planner_base_url: str = "https://api.anthropic.com"
     query_planner_timeout_seconds: float = Field(default=6.0, gt=0, le=30)
+    #: Whether a model may be reached at all, and from where. `external_allowed` keeps the
+    #: behaviour every earlier release had; `local_only` permits a model on a private
+    #: address and refuses a vendor API; `model_disabled` refuses both, leaving retrieval
+    #: and extraction, which is the path every answer already falls back to.
+    #: See `korpus.application.egress`.
+    model_egress_posture: str = "external_allowed"
+    #: ACT-001. Off by default: a deployment that has never sold anything must not have
+    #: its answers filtered by a subscription table nobody populated. On, the corpora a
+    #: request may search are intersected with what an active subscription pays for —
+    #: never unioned, so a subscription cannot widen clearance.
+    subscription_required: bool = False
+    #: Corpora that need no subscription when the gate is on. Comma-separated.
+    free_corpora: str = ""
+    #: HMAC key for `DeterministicBillingProvider`. Empty means the billing webhook is not
+    #: served at all: an endpoint that accepts unsigned events is worse than no endpoint.
+    billing_webhook_secret: str = ""
+    billing_webhook_secret_file: Path | None = None
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
     semantic_retrieval_enabled: bool = False
@@ -307,6 +324,14 @@ class Settings(BaseSettings):
     def validate_policy_mode(cls, value: str) -> str:
         if value not in {"development", "calibrated"}:
             raise ValueError("answer_policy_mode must be development or calibrated")
+        return value
+
+    @field_validator("model_egress_posture")
+    @classmethod
+    def validate_model_egress_posture(cls, value: str) -> str:
+        permitted = {"external_allowed", "local_only", "model_disabled"}
+        if value not in permitted:
+            raise ValueError(f"model_egress_posture must be one of {sorted(permitted)}")
         return value
 
     @model_validator(mode="after")
@@ -500,6 +525,16 @@ class Settings(BaseSettings):
     @property
     def resolved_browser_session_key(self) -> str | None:
         return _read_optional_secret_file(self.browser_session_key_file, self.browser_session_key)
+
+    @property
+    def resolved_billing_webhook_secret(self) -> str | None:
+        return _read_optional_secret_file(
+            self.billing_webhook_secret_file, self.billing_webhook_secret or None
+        )
+
+    @property
+    def free_corpus_set(self) -> frozenset[str]:
+        return frozenset(part.strip() for part in self.free_corpora.split(",") if part.strip())
 
     @property
     def oidc_scope_list(self) -> list[str]:

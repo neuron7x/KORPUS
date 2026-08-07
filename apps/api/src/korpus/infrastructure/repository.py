@@ -59,6 +59,19 @@ from korpus.infrastructure.schema import (
     versions,
 )
 
+# ACT-001: the account/subscription/conversation tables hang off the same `MetaData`, and
+# nothing in this module reads them. The import is what registers them, so `create_all`
+# builds them and `initialize(create_schema=False)` notices when a migration has not run —
+# a table that exists in the code and not in the database is the failure that check is for.
+from korpus.infrastructure.tenancy_schema import (
+    accounts,
+    billing_events,
+    conversations,
+    messages,
+    plans,
+    subscriptions,
+)
+
 # `span_embeddings` is not touched here — semantic.py writes it in raw SQL and
 # test_postgres_integration.py reads it through this name. Re-exporting it silently
 # would leave a linter to delete it and a PostgreSQL-only test to fail three stages
@@ -67,14 +80,20 @@ __all__ = [
     "SCHEMA_REVISION",
     "ConcurrentWriteError",
     "SqlRepository",
+    "accounts",
     "audit_anchor_outbox",
     "audit_heads",
     "audits",
+    "billing_events",
+    "conversations",
     "document_compartments",
     "documents",
+    "messages",
     "metadata",
+    "plans",
     "span_embeddings",
     "spans",
+    "subscriptions",
     "versions",
 ]
 
@@ -957,6 +976,39 @@ class SqlRepository:
             self.anchor_store.close()
         finally:
             self.engine.dispose()
+
+    def audited_transaction(
+        self,
+        operation: Callable[[Connection], tuple[T, tuple[int, str]]],
+    ) -> T:
+        """One commit with one audit event, for a sibling adapter on this database.
+
+        ACT-001 stores accounts and subscriptions here, and both write audit events: an
+        account disabled or a subscription cancelled without one is a state change nobody
+        can attribute afterwards. The alternative — a second module opening its own
+        transaction and calling `append_audit` after it commits — has a window in which
+        the change is durable and the event is not, which is the failure the hash chain
+        exists to make impossible.
+
+        Exposed rather than duplicated. A second writer to the head row is a second place
+        to get the lock ordering wrong, and the one here took a production incident to
+        get right.
+        """
+        return self._transaction_with_anchor(operation)
+
+    def audit_in_connection(
+        self,
+        connection: Connection,
+        actor: Identity,
+        action: str,
+        resource_type: str,
+        resource_id: str | None,
+        payload: dict[str, Any],
+    ) -> tuple[int, str]:
+        """The audit append itself, inside a caller's transaction. See `audited_transaction`."""
+        return self._append_audit_in_connection(
+            connection, actor, action, resource_type, resource_id, payload
+        )
 
     def _transaction_with_anchor(
         self,

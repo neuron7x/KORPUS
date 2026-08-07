@@ -15,6 +15,8 @@ from fastapi.responses import JSONResponse, Response
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from korpus.api.routes import router
+from korpus.api.routes_billing import billing_router
+from korpus.api.routes_tenancy import tenancy_router
 from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
@@ -31,6 +33,7 @@ from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemant
 from korpus.security.browser_oidc import BrowserOIDCClient, BrowserSessionCodec, BrowserSessionError
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.oidc import OIDCVerifier
+from korpus.tenancy_composition import install_tenancy
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
@@ -140,6 +143,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.oidc_verifier = oidc_verifier
         app.state.browser_session_codec = browser_session_codec
         app.state.browser_oidc_client = browser_oidc_client
+        # ACT-001. Built once here rather than per request: each store holds an engine
+        # reference, and constructing them in a dependency would mean a new one per call
+        # with no benefit. `tenancy_composition` is the only module that names both an
+        # application service and its SQL adapter.
+        install_tenancy(app.state, selected, repository, policy)
 
         stop_reconciler = asyncio.Event()
 
@@ -253,6 +261,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
     )
     app.include_router(router)
+    app.include_router(tenancy_router)
+    app.include_router(billing_router)
     return app
 
 
