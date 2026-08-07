@@ -47,6 +47,18 @@ rm -f "$archive"
 database="$target/korpus.db"
 [[ -f "$database" ]] || { echo "the archive contains no korpus.db" >&2; exit 65; }
 
+# A backup carries the schema it was taken with. Restoring it to a newer build gives a
+# corpus that opens, passes an integrity check, answers questions — and fails on the
+# first write that needs a column added since. Found on 2026-08-07 by restoring the
+# shipped bundle. The restore brings the schema forward, or says it could not.
+if [[ -f "$root/apps/api/alembic.ini" ]]; then
+  (
+    cd "$root/apps/api"
+    KORPUS_DATABASE_URL="sqlite:///$(cd "$(dirname "$database")" && pwd)/$(basename "$database")" \
+      PYTHONPATH="$root/apps/api/src" python3 -m alembic -c alembic.ini upgrade head
+  ) >/dev/null 2>&1 || echo "warning: could not bring the restored schema to head" >&2
+fi
+
 # The check that makes this a restore rather than a file copy: the database opens, its
 # integrity is intact, and it holds approved versions with spans to cite. A corpus that
 # restores empty restores cleanly, and nothing about the running system would say so.

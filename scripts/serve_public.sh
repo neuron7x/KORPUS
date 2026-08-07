@@ -59,6 +59,18 @@ TOKEN="$("$PY" scripts/mint_review_token.py \
 
 # ---------------------------------------------------------------- api
 
+# Migrations before the API, always. `schema_mode=auto` creates missing *tables* and
+# never alters an existing one, so a corpus built before a column was added starts
+# cleanly and fails on the first write that needs it — found on 2026-08-07 by restoring
+# the shipped bundle: the corpus answered questions and could not append to the audit
+# chain, because the backup predated migration 0011.
+(
+  cd "$ROOT/apps/api"
+  KORPUS_DATABASE_URL="$KORPUS_DATABASE_URL" PYTHONPATH="$ROOT/apps/api/src" \
+    "$ROOT/$PY" -m alembic -c alembic.ini upgrade head
+) >> "$STATE/api.log" 2>&1 || {
+  echo "migrations failed; see $STATE/api.log" >&2; exit 1; }
+
 pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
 sleep 1
 # More than one worker because an answer is CPU-bound Python. Uvicorn serves a sync
