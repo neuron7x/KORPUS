@@ -443,7 +443,7 @@
       "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
     },
     "scripts/measure_recovery.py": {
-      "lines": 146,
+      "lines": 195,
       "max_complexity": 6
     },
     "scripts/mint_review_token.py": {
@@ -507,7 +507,7 @@
       "max_complexity": 10
     },
     "scripts/seed_recovery_fixture.py": {
-      "lines": 96,
+      "lines": 113,
       "max_complexity": 8
     },
     "scripts/service_objectives.py": {
