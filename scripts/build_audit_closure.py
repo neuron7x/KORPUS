@@ -786,13 +786,13 @@ def main() -> None:
         state["audit"]["status_counts"] = dict(sorted(counts.items()))
         state["audit"]["remaining_total"] = len(remaining)
         state["audit"]["remaining_by_severity"] = dict(sorted(severity.items()))
-        # The digest the handoff contract is *about*. It was written once and never
-        # again, so `verify_handoff_contract.py` compared a promoted assurance snapshot
-        # against a digest from whichever commit somebody last edited this file by hand —
-        # and the only way it could agree was for neither to have moved.
-        from source_digest import source_tree_digest
-
-        state["base_source_tree_sha256"] = source_tree_digest()
+        # `base_source_tree_sha256` is deliberately *not* written here. This file is
+        # inside the digest — it has to be, or somebody could change
+        # "production_authorized: false" without moving it — so writing the tree's own
+        # digest into it is a fixed point that does not exist: the value changes the
+        # digest it just recorded. The handoff contract compares the promoted assurance
+        # snapshot against the digest computed now, which is the question it was asking.
+        state.pop("base_source_tree_sha256", None)
         state_path.write_text(
             json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )

@@ -9,11 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PREFIXES = ("reports/", "handoff/evidence/", "dist/", "var/")
-# `current_state.json` records the tree's own digest, which makes it a fixed point that
-# does not exist: any value written into it changes the digest it just recorded, so the
-# release check failed on every commit that regenerated it. Excluded for the same reason
-# `reports/` is — it is generated evidence *about* the tree, not source.
-EXCLUDED_FILES = {"REPOSITORY_MANIFEST.json", "handoff/machine/current_state.json"}
+EXCLUDED_FILES = {"REPOSITORY_MANIFEST.json"}
 
 
 def _included(name: str) -> bool:

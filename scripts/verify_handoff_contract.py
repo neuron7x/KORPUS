@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
+# `source_digest` is a sibling script, not a package. Added here rather than assumed on
+# PYTHONPATH: this module is imported by a test that runs from the repository root.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.retrieval import AUTHORITY_PRIOR, BM25Parameters, RetrievalWeights
 from korpus.config import Settings
+from source_digest import source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 HANDOFF = ROOT / "handoff" / "machine"
@@ -112,8 +118,15 @@ def verify() -> dict[str, Any]:
             "this check. Run `make assemble-assurance && make snapshot` to promote a "
             "current one."
         )
-    if state["base_source_tree_sha256"] != promoted_digest:
-        raise AssertionError("handoff source digest differs from assurance report")
+    # Against the tree as it is, not against a copy stored inside it. The copy was written
+    # by hand at some commit and never regenerated, so the only way the two could agree
+    # was for neither to have moved — and regenerating it is impossible, because the file
+    # is inside the digest it would record.
+    if source_tree_digest() != promoted_digest:
+        raise AssertionError(
+            "the promoted assurance snapshot describes a different tree than this one; "
+            "run `make assemble-assurance && make snapshot`"
+        )
     if (
         state["production_authorized"] is not False
         or operational["production_authorized"] is not False

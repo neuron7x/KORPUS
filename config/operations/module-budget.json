@@ -341,7 +341,7 @@
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
     "scripts/build_audit_closure.py": {
-      "lines": null,
+      "lines": 820,
       "max_complexity": 23,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
@@ -520,7 +520,7 @@
       "max_complexity": 8
     },
     "scripts/source_digest.py": {
-      "lines": 81,
+      "lines": 91,
       "max_complexity": 10
     },
     "scripts/validate_infrastructure.py": {
@@ -540,7 +540,7 @@
       "max_complexity": 0
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 219,
+      "lines": 232,
       "max_complexity": 43,
       "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
     },
