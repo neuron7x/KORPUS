@@ -25,5 +25,11 @@
   "table_set_match": true,
   "column_failures": {},
   "audit_head_seeded": true,
-  "sqlite_fts5_present": true
+  "sqlite_fts5_present": true,
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "0eae5c0c27c6b4a818c30d4967d1f423e192fc70021609c141706d254581e314",
+    "generator": "scripts/run_migration_gate.py",
+    "generated_at": "2026-08-07T08:04:09+00:00"
+  }
 }

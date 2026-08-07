@@ -1,17 +1,22 @@
 {
   "status": "PASS",
-  "resources": 20,
-  "kinds": {
-    "ConfigMap": 1,
-    "Deployment": 3,
-    "HorizontalPodAutoscaler": 2,
-    "Job": 1,
-    "Kustomization": 1,
-    "Namespace": 1,
-    "NetworkPolicy": 4,
-    "PodDisruptionBudget": 2,
-    "Service": 2,
-    "ServiceAccount": 3
+  "variants": {
+    "base": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    },
+    "overlays/production": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    }
   },
-  "note": "static topology validation only; cluster execution remains external evidence"
+  "note": "static topology validation only; cluster execution remains external evidence",
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "0eae5c0c27c6b4a818c30d4967d1f423e192fc70021609c141706d254581e314",
+    "generator": "scripts/validate_kubernetes.py",
+    "generated_at": "2026-08-07T08:04:49+00:00"
+  }
 }

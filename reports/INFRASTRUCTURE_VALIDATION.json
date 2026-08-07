@@ -1,5 +1,8 @@
 {
+  "schema_version": 1,
   "valid": true,
+  "requirements_checked": 133,
+  "failures": [],
   "services": [
     "api",
     "clamav",
@@ -10,6 +13,5 @@
     "postgres",
     "web",
     "worker"
-  ],
-  "failures": []
+  ]
 }

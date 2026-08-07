@@ -39,18 +39,56 @@ OUTPUT = ROOT / "var/recovery-report.json"
 
 def _scalar(engine, statement: str) -> int:
     with engine.begin() as connection:
-        for setting, value in (
-            ("korpus.subject", "recovery-drill"),
-            ("korpus.roles", "admin,user"),
-            ("korpus.clearance", "3"),
-            ("korpus.corpora", "public,restricted-demo"),
-            ("korpus.classifications", "public,internal,restricted"),
-        ):
-            connection.execute(
-                text("SELECT set_config(:name, :value, true)"),
-                {"name": setting, "value": value},
-            )
+        # Row-level security reads the subject from session settings, and `set_config` is
+        # PostgreSQL's. SQLite has no RLS at all, so there is nothing to tell — and the
+        # drill has to run there, because the deployment that is actually serving keeps
+        # its corpus in SQLite. Calling it unconditionally made this tool measurable only
+        # on the deployment it was not measuring.
+        if connection.dialect.name == "postgresql":
+            for setting, value in (
+                ("korpus.subject", "recovery-drill"),
+                ("korpus.roles", "admin,user"),
+                ("korpus.clearance", "3"),
+                ("korpus.corpora", "public,restricted-demo"),
+                ("korpus.classifications", "public,internal,restricted"),
+            ):
+                connection.execute(
+                    text("SELECT set_config(:name, :value, true)"),
+                    {"name": setting, "value": value},
+                )
         return int(connection.execute(text(statement)).scalar_one())
+
+
+def _moment(value: object) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    try:
+        return datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+
+
+def _interval(newest: object, newest_restored: object) -> float | None:
+    """How far the restored copy sits behind the source, or None if either is silent.
+
+    Absent is reported as absent rather than as zero: zero reads as "lost nothing", which
+    is a claim, and no timestamp is not one.
+    """
+    left, right = _moment(newest), _moment(newest_restored)
+    if left is None or right is None:
+        return None
+    if left.tzinfo is None or right.tzinfo is None:
+        left, right = left.replace(tzinfo=None), right.replace(tzinfo=None)
+    return (left - right).total_seconds()
+
+
+def _engine_version(engine) -> str:
+    with engine.begin() as connection:
+        if connection.dialect.name == "postgresql":
+            return str(connection.execute(text("SHOW server_version")).scalar_one())
+        return str(connection.execute(text("SELECT sqlite_version()")).scalar_one())
 
 
 def main() -> int:
@@ -69,9 +107,11 @@ def main() -> int:
     started = time.perf_counter()
     document_rows = _scalar(restored, "SELECT count(*) FROM documents")
     audit_rows = _scalar(restored, "SELECT count(*) FROM audit_events")
-    engine_version = str(
-        _scalar(restored, "SELECT current_setting('server_version_num')::int")
-    )
+    # The engine's own version, asked in the engine's own dialect. `current_setting` is
+    # PostgreSQL's; SQLite answers `sqlite_version()`. A drill that could only ask one of
+    # them could only be run against one deployment, which was the deployment it was not
+    # measuring.
+    engine_version = _engine_version(restored)
     verify_seconds = time.perf_counter() - started
 
     source_audit_rows = _scalar(source, "SELECT count(*) FROM audit_events")
@@ -101,11 +141,10 @@ def main() -> int:
         newest_restored = connection.execute(
             text("SELECT max(occurred_at) FROM audit_events")
         ).scalar_one_or_none()
-    rpo_seconds = (
-        (newest - newest_restored).total_seconds()
-        if newest is not None and newest_restored is not None
-        else None
-    )
+    # SQLite hands back the stored text; PostgreSQL hands back a datetime. Parsed rather
+    # than subtracted blind — `str - str` is the error this drill died on the first time
+    # it was pointed at the deployment that is actually serving.
+    rpo_seconds = _interval(newest, newest_restored)
 
     report = {
         "schema_version": 1,

@@ -5,11 +5,11 @@
   "lockfiles": [
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "2dff7829b2b491b8173aa69e913d8b0d742df7cde181696f6d00388071a3abe0"
+      "sha256": "5bf7c9e99af26e445e6d12c12a817fe6b838377240939f06127ec586a1f06f98"
     },
     {
       "path": "apps/api/requirements.dev.lock",
-      "sha256": "c1846974e5af8d76f247bd8f322620dafdd6636e42c96e686a308ed2e8584a97"
+      "sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc"
     }
   ],
   "components": [
@@ -18,8 +18,9 @@
       "name": "alembic",
       "version": "1.18.4",
       "purl": "pkg:pypi/alembic@1.18.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -29,8 +30,9 @@
       "name": "annotated-doc",
       "version": "0.0.4",
       "purl": "pkg:pypi/annotated-doc@0.0.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -40,8 +42,9 @@
       "name": "annotated-types",
       "version": "0.7.0",
       "purl": "pkg:pypi/annotated-types@0.7.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -51,10 +54,23 @@
       "name": "anyio",
       "version": "4.13.0",
       "purl": "pkg:pypi/anyio@4.13.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
+      ]
+    },
+    {
+      "type": "library",
+      "name": "ast-serialize",
+      "version": "0.6.0",
+      "purl": "pkg:pypi/ast-serialize@0.6.0",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
+      "sources": [
+        "apps/api/requirements.dev.lock"
       ]
     },
     {
@@ -62,8 +78,9 @@
       "name": "boto3",
       "version": "1.43.18",
       "purl": "pkg:pypi/boto3@1.43.18",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -73,8 +90,9 @@
       "name": "botocore",
       "version": "1.43.18",
       "purl": "pkg:pypi/botocore@1.43.18",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -84,8 +102,9 @@
       "name": "certifi",
       "version": "2026.5.20",
       "purl": "pkg:pypi/certifi@2026.5.20",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Mozilla Public License 2.0 (MPL 2.0)",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -95,8 +114,9 @@
       "name": "cffi",
       "version": "2.0.0",
       "purl": "pkg:pypi/cffi@2.0.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -104,10 +124,11 @@
     {
       "type": "library",
       "name": "click",
-      "version": "8.1.8",
-      "purl": "pkg:pypi/click@8.1.8",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "8.3.3",
+      "purl": "pkg:pypi/click@8.3.3",
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -117,8 +138,9 @@
       "name": "coverage",
       "version": "7.13.3",
       "purl": "pkg:pypi/coverage@7.13.3",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -126,10 +148,11 @@
     {
       "type": "library",
       "name": "cryptography",
-      "version": "46.0.4",
-      "purl": "pkg:pypi/cryptography@46.0.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "50.0.0",
+      "purl": "pkg:pypi/cryptography@50.0.0",
+      "license": "Apache-2.0 OR BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -137,10 +160,11 @@
     {
       "type": "library",
       "name": "fastapi",
-      "version": "0.128.2",
-      "purl": "pkg:pypi/fastapi@0.128.2",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "0.141.1",
+      "purl": "pkg:pypi/fastapi@0.141.1",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -150,8 +174,9 @@
       "name": "googleapis-common-protos",
       "version": "1.75.0",
       "purl": "pkg:pypi/googleapis-common-protos@1.75.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache Software License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -161,8 +186,9 @@
       "name": "greenlet",
       "version": "3.5.1",
       "purl": "pkg:pypi/greenlet@3.5.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT AND PSF-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -172,8 +198,9 @@
       "name": "grpcio",
       "version": "1.80.0",
       "purl": "pkg:pypi/grpcio@1.80.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -183,8 +210,9 @@
       "name": "h11",
       "version": "0.16.0",
       "purl": "pkg:pypi/h11@0.16.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -194,8 +222,9 @@
       "name": "httpcore",
       "version": "1.0.9",
       "purl": "pkg:pypi/httpcore@1.0.9",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -205,8 +234,9 @@
       "name": "httptools",
       "version": "0.8.0",
       "purl": "pkg:pypi/httptools@0.8.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -216,8 +246,9 @@
       "name": "httpx",
       "version": "0.28.1",
       "purl": "pkg:pypi/httpx@0.28.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -227,8 +258,9 @@
       "name": "idna",
       "version": "3.17",
       "purl": "pkg:pypi/idna@3.17",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -238,8 +270,9 @@
       "name": "iniconfig",
       "version": "2.3.0",
       "purl": "pkg:pypi/iniconfig@2.3.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -249,10 +282,23 @@
       "name": "jmespath",
       "version": "1.1.0",
       "purl": "pkg:pypi/jmespath@1.1.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
+      ]
+    },
+    {
+      "type": "library",
+      "name": "librt",
+      "version": "0.13.0",
+      "purl": "pkg:pypi/librt@0.13.0",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
+      "sources": [
+        "apps/api/requirements.dev.lock"
       ]
     },
     {
@@ -260,8 +306,9 @@
       "name": "mako",
       "version": "1.3.12",
       "purl": "pkg:pypi/mako@1.3.12",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -271,8 +318,9 @@
       "name": "markupsafe",
       "version": "3.0.3",
       "purl": "pkg:pypi/markupsafe@3.0.3",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -282,8 +330,9 @@
       "name": "mypy",
       "version": "2.3.0",
       "purl": "pkg:pypi/mypy@2.3.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -293,8 +342,9 @@
       "name": "mypy-extensions",
       "version": "1.1.0",
       "purl": "pkg:pypi/mypy-extensions@1.1.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -304,8 +354,9 @@
       "name": "opentelemetry-api",
       "version": "1.42.1",
       "purl": "pkg:pypi/opentelemetry-api@1.42.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -315,8 +366,9 @@
       "name": "opentelemetry-exporter-otlp-proto-common",
       "version": "1.42.1",
       "purl": "pkg:pypi/opentelemetry-exporter-otlp-proto-common@1.42.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -326,8 +378,9 @@
       "name": "opentelemetry-exporter-otlp-proto-grpc",
       "version": "1.42.1",
       "purl": "pkg:pypi/opentelemetry-exporter-otlp-proto-grpc@1.42.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -337,8 +390,9 @@
       "name": "opentelemetry-proto",
       "version": "1.42.1",
       "purl": "pkg:pypi/opentelemetry-proto@1.42.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -348,8 +402,9 @@
       "name": "opentelemetry-sdk",
       "version": "1.42.1",
       "purl": "pkg:pypi/opentelemetry-sdk@1.42.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -359,8 +414,9 @@
       "name": "opentelemetry-semantic-conventions",
       "version": "0.63b1",
       "purl": "pkg:pypi/opentelemetry-semantic-conventions@0.63b1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -370,8 +426,9 @@
       "name": "orjson",
       "version": "3.11.9",
       "purl": "pkg:pypi/orjson@3.11.9",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MPL-2.0 AND (Apache-2.0 OR MIT)",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -381,8 +438,9 @@
       "name": "packaging",
       "version": "25.0",
       "purl": "pkg:pypi/packaging@25.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache Software License OR BSD License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -390,10 +448,11 @@
     {
       "type": "library",
       "name": "pathspec",
-      "version": "0.12.1",
-      "purl": "pkg:pypi/pathspec@0.12.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "1.0.0",
+      "purl": "pkg:pypi/pathspec@1.0.0",
+      "license": "Mozilla Public License 2.0 (MPL 2.0)",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -403,8 +462,9 @@
       "name": "pluggy",
       "version": "1.6.0",
       "purl": "pkg:pypi/pluggy@1.6.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -414,8 +474,9 @@
       "name": "prometheus-client",
       "version": "0.25.0",
       "purl": "pkg:pypi/prometheus-client@0.25.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0 AND BSD-2-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -425,8 +486,9 @@
       "name": "protobuf",
       "version": "6.33.6",
       "purl": "pkg:pypi/protobuf@6.33.6",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "3-Clause BSD License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -436,8 +498,9 @@
       "name": "psycopg",
       "version": "3.3.4",
       "purl": "pkg:pypi/psycopg@3.3.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "LGPL-3.0-only",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -447,8 +510,9 @@
       "name": "psycopg-binary",
       "version": "3.3.4",
       "purl": "pkg:pypi/psycopg-binary@3.3.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "LGPL-3.0-only",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -458,8 +522,9 @@
       "name": "pycparser",
       "version": "3.0",
       "purl": "pkg:pypi/pycparser@3.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -469,8 +534,9 @@
       "name": "pydantic",
       "version": "2.13.4",
       "purl": "pkg:pypi/pydantic@2.13.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -480,8 +546,9 @@
       "name": "pydantic-core",
       "version": "2.46.4",
       "purl": "pkg:pypi/pydantic-core@2.46.4",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -489,10 +556,11 @@
     {
       "type": "library",
       "name": "pydantic-settings",
-      "version": "2.14.1",
-      "purl": "pkg:pypi/pydantic-settings@2.14.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "2.14.2",
+      "purl": "pkg:pypi/pydantic-settings@2.14.2",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -502,8 +570,9 @@
       "name": "pygments",
       "version": "2.20.0",
       "purl": "pkg:pypi/pygments@2.20.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-2-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -513,8 +582,9 @@
       "name": "pyjwt",
       "version": "2.13.0",
       "purl": "pkg:pypi/pyjwt@2.13.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -522,10 +592,11 @@
     {
       "type": "library",
       "name": "pypdf",
-      "version": "5.9.0",
-      "purl": "pkg:pypi/pypdf@5.9.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "6.14.2",
+      "purl": "pkg:pypi/pypdf@6.14.2",
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -533,10 +604,11 @@
     {
       "type": "library",
       "name": "pytest",
-      "version": "9.0.2",
-      "purl": "pkg:pypi/pytest@9.0.2",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "9.0.3",
+      "purl": "pkg:pypi/pytest@9.0.3",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -546,8 +618,9 @@
       "name": "pytest-asyncio",
       "version": "1.3.0",
       "purl": "pkg:pypi/pytest-asyncio@1.3.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -557,8 +630,9 @@
       "name": "pytest-cov",
       "version": "7.0.0",
       "purl": "pkg:pypi/pytest-cov@7.0.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -568,8 +642,9 @@
       "name": "python-dateutil",
       "version": "2.9.0.post0",
       "purl": "pkg:pypi/python-dateutil@2.9.0.post0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache Software License OR BSD License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -579,8 +654,9 @@
       "name": "python-dotenv",
       "version": "1.2.2",
       "purl": "pkg:pypi/python-dotenv@1.2.2",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -588,10 +664,11 @@
     {
       "type": "library",
       "name": "python-multipart",
-      "version": "0.0.29",
-      "purl": "pkg:pypi/python-multipart@0.0.29",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "0.0.31",
+      "purl": "pkg:pypi/python-multipart@0.0.31",
+      "license": "Apache-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -601,8 +678,9 @@
       "name": "pyyaml",
       "version": "6.0.3",
       "purl": "pkg:pypi/pyyaml@6.0.3",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -612,8 +690,9 @@
       "name": "ruff",
       "version": "0.15.22",
       "purl": "pkg:pypi/ruff@0.15.22",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.dev.lock"
       ]
@@ -623,8 +702,9 @@
       "name": "s3transfer",
       "version": "0.18.0",
       "purl": "pkg:pypi/s3transfer@0.18.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache Software License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -634,8 +714,9 @@
       "name": "six",
       "version": "1.17.0",
       "purl": "pkg:pypi/six@1.17.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -645,8 +726,9 @@
       "name": "sqlalchemy",
       "version": "2.0.50",
       "purl": "pkg:pypi/sqlalchemy@2.0.50",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -654,10 +736,11 @@
     {
       "type": "library",
       "name": "starlette",
-      "version": "0.50.0",
-      "purl": "pkg:pypi/starlette@0.50.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "version": "1.3.1",
+      "purl": "pkg:pypi/starlette@1.3.1",
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -667,8 +750,9 @@
       "name": "typing-extensions",
       "version": "4.15.0",
       "purl": "pkg:pypi/typing-extensions@4.15.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "PSF-2.0",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -678,8 +762,9 @@
       "name": "typing-inspection",
       "version": "0.4.2",
       "purl": "pkg:pypi/typing-inspection@0.4.2",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -689,8 +774,9 @@
       "name": "urllib3",
       "version": "2.7.0",
       "purl": "pkg:pypi/urllib3@2.7.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -700,8 +786,9 @@
       "name": "uvicorn",
       "version": "0.48.0",
       "purl": "pkg:pypi/uvicorn@0.48.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -711,8 +798,9 @@
       "name": "uvloop",
       "version": "0.22.1",
       "purl": "pkg:pypi/uvloop@0.22.1",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "Apache Software License OR MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -722,8 +810,9 @@
       "name": "watchfiles",
       "version": "1.2.0",
       "purl": "pkg:pypi/watchfiles@1.2.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "MIT License",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
@@ -733,15 +822,17 @@
       "name": "websockets",
       "version": "16.0",
       "purl": "pkg:pypi/websockets@16.0",
-      "license_status": "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW",
-      "artifact_hashes_present": false,
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
       ]
     }
   ],
   "limitations": [
-    "Package licenses are not asserted without authoritative package metadata and legal review.",
+    "Python licenses are read from installed distribution metadata: they are the publisher's declaration, not legal clearance for this delivery.",
+    "npm licenses remain unresolved here; the container SBOM gate reads them.",
     "Python lock files are exact-version pins but may not contain artifact hashes.",
     "Container operating-system packages are produced by the CI SBOM gate, not this source inventory."
   ]

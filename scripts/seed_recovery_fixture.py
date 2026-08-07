@@ -50,10 +50,16 @@ def main() -> int:
             document_id = _identifier(f"{prefix}-document", index)
             connection.execute(
                 text(
+                    # `compartments_json` arrived with migration 0004 and this insert
+                    # was never updated, so every seeded row failed on a NOT NULL and the
+                    # drill measured zero writes after the backup — which the recovery
+                    # verdict correctly refuses as "the loss figure could not have come
+                    # out any other way". The seeder had been silently writing nothing.
                     "INSERT INTO documents (id, canonical_title, corpus_id, issuer, "
                     "jurisdiction, document_type, access_tier, classification, "
-                    "created_at) VALUES (:id, :title, :corpus, :issuer, :jurisdiction, "
-                    ":document_type, :access_tier, :classification, :created_at) "
+                    "compartments_json, created_at) VALUES (:id, :title, :corpus, "
+                    ":issuer, :jurisdiction, :document_type, :access_tier, "
+                    ":classification, :compartments, :created_at) "
                     "ON CONFLICT (id) DO NOTHING"
                 ),
                 {
@@ -65,6 +71,7 @@ def main() -> int:
                     "document_type": "drill",
                     "access_tier": 0,
                     "classification": "public",
+                    "compartments": "[]",
                     "created_at": now,
                 },
             )

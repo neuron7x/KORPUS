@@ -11,20 +11,26 @@
     "query": "ALPHA-OMEGA deterministic target"
   },
   "results": {
-    "ingest_seconds": 0.09749950799960061,
-    "query_latency_ms_p50": 2.3154315,
-    "query_latency_ms_p95": 2.782631,
-    "query_latency_ms_max": 4.60238,
+    "ingest_seconds": 0.06919692500378005,
+    "query_latency_ms_p50": 2.5867145000000002,
+    "query_latency_ms_p95": 3.794513,
+    "query_latency_ms_max": 23.411719,
     "candidate_count": 1,
     "top1_recall": 1.0
   },
   "environment": {
-    "python": "3.13.5",
-    "platform": "Linux-6.12.13-x86_64-with-glibc2.41",
-    "processor": "UNKNOWN"
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-136-lowlatency-x86_64-with-glibc2.39",
+    "processor": "x86_64"
   },
   "limitations": [
     "Synthetic local probe; not a production SLA.",
     "PostgreSQL network, concurrency and disk behavior are not represented."
-  ]
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "0eae5c0c27c6b4a818c30d4967d1f423e192fc70021609c141706d254581e314",
+    "generator": "scripts/run_scale_probe.py",
+    "generated_at": "2026-08-07T08:04:09+00:00"
+  }
 }
