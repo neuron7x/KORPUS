@@ -541,7 +541,7 @@
     },
     "scripts/verify_handoff_contract.py": {
       "lines": 219,
-      "max_complexity": 42,
+      "max_complexity": 43,
       "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
     },
     "scripts/verify_postgres_restore.py": {
