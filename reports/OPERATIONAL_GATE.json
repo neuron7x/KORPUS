@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "FAIL",
+  "status": "PASS",
   "production_authorized": false,
   "admission": {
     "schema_version": 1,
@@ -19,7 +19,7 @@
   },
   "checks": {
     "reports_present": true,
-    "evidence_provenance": false,
+    "evidence_provenance": true,
     "eval_pass_rate": true,
     "citation_integrity": true,
     "access_noninterference": true,
@@ -38,18 +38,12 @@
     "scale_candidate_bound": true,
     "scale_local_p95": true
   },
-  "failures": [
-    "evidence_provenance",
-    "eval: generated from a different source tree (000000000000… != 9a3fa75e49cb…)",
-    "migration: generated from a different source tree (000000000000… != 9a3fa75e49cb…)",
-    "mutation: generated from a different source tree (000000000000… != 9a3fa75e49cb…)",
-    "scale: generated from a different source tree (000000000000… != 9a3fa75e49cb…)"
-  ],
+  "failures": [],
   "evidence_sha256": {
-    "eval": "ced97838907113f13b3aa5c49faa66723b7dde22da935a2bb0cd3c1def080e6a",
-    "mutation": "cfcec0875e1b852e6c23d7f68f24481eadcc3378181d92035b24937e0d3e5634",
-    "migration": "95faa81130b253f1d7e608b934bff51d3078f97b4b0b08048a868157358b631f",
-    "scale": "9cb481d911945f18a6504b194e492fb2016bbf3749dd4848c0aa23a7e2a69270"
+    "eval": "01ea391c920cb87860154f4b71045e3c69adeeeed344af7654f7ab49fc369946",
+    "mutation": "1b9146406a442be3af2b532adf6b347a6605726f2c7a486a1198907d4176a91a",
+    "migration": "ac35136c50108955c8659adf5c9939c9f6a6f99b1cc4fb999eea56733e7f7cbd",
+    "scale": "442ee2733b0790bcb59e475428b53aa27600ab363995ad504aaf9c0cdc64d4a4"
   },
   "interpretation": "Engineering release predicates passed; this is not corpus, security, regulatory, operational-SLA or military authorization."
 }
