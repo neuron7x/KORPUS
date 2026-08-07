@@ -201,7 +201,7 @@ openapi:
 	PYTHONPATH=apps/api/src $(PY) scripts/openapi_contract.py
 
 audit-closure:
-	PYTHONPATH=apps/api/src $(PY) scripts/build_audit_closure.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/build_audit_closure.py
 
 desired-state:
 	python3 scripts/generate_desired_state.py --check
