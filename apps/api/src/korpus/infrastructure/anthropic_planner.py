@@ -115,3 +115,109 @@ def _parse(body: Any) -> list[str]:
     if not isinstance(parsed, list):
         return []
     return [item for item in parsed if isinstance(item, str)]
+
+
+#: The composer's task, stated as narrowly as the gate that checks it. The model is told
+#: the rules it will be judged by, and judged anyway: a prompt is a request, and
+#: `admissible_opening` is the answer.
+_COMPOSE_SYSTEM = """Ти впорядковуєш готові речення з військових документів. Ти НЕ пишеш
+відповідь і НЕ додаєш фактів.
+
+Отримуєш питання і список речень, узятих дослівно з документів.
+
+Робиш дві речі:
+1. Розташовуєш речення в порядку, у якому їх слід читати. Усі речення, жодного зайвого,
+   жодного пропущеного.
+2. Пишеш один рядок вступу — до 15 слів, який каже, про що ці речення.
+
+Правила вступу, за якими його перевірять машинно:
+- жодних цифр;
+- жодних заперечень («не», «без», «заборонено»);
+- кожне змістовне слово мусить уже бути в наданих реченнях.
+
+Формат відповіді — JSON і нічого більше:
+{"opening": "...", "sentences": ["...", "..."]}"""
+
+
+class AnthropicAnswerComposer:
+    """Arranges retrieved sentences and proposes one opening line.
+
+    Shares the transport with the planner because the failure modes are the same: a third
+    party that may be slow, absent or hostile, whose output is admitted rather than
+    trusted.
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        model: str,
+        base_url: str = "https://api.anthropic.com",
+        timeout_seconds: float = 8.0,
+    ) -> None:
+        self._api_key = api_key
+        self._model = model
+        self._base_url = base_url.rstrip("/")
+        self._timeout = timeout_seconds
+
+    def compose(self, question: str, sentences: list[str]) -> tuple[str, list[str]]:
+        numbered = "\n".join(f"{index}. {text}" for index, text in enumerate(sentences, 1))
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "max_tokens": 1200,
+            "system": _COMPOSE_SYSTEM,
+            "messages": [
+                {"role": "user", "content": f"Питання: {question}\n\nРечення:\n{numbered}"}
+            ],
+        }
+        try:
+            response = httpx.post(
+                f"{self._base_url}/v1/messages",
+                headers={
+                    "x-api-key": self._api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json=payload,
+                timeout=self._timeout,
+            )
+            response.raise_for_status()
+            body = response.json()
+        except httpx.HTTPError as error:
+            raise PlannerUnavailable(f"{type(error).__name__}: {error}") from error
+        return _parse_composition(body)
+
+
+def _parse_composition(body: Any) -> tuple[str, list[str]]:
+    """The object, or nothing. Half-understood output is worse than none."""
+    text = _text_of(body)
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end <= start:
+        return "", []
+    try:
+        parsed = json.loads(text[start : end + 1])
+    except json.JSONDecodeError:
+        return "", []
+    if not isinstance(parsed, dict):
+        return "", []
+    sentences = parsed.get("sentences")
+    return (
+        str(parsed.get("opening", "")),
+        [item for item in sentences if isinstance(item, str)] if isinstance(sentences, list)
+        else [],
+    )
+
+
+def _text_of(body: Any) -> str:
+    blocks = body.get("content") if isinstance(body, dict) else None
+    if not isinstance(blocks, list):
+        return ""
+    text = "".join(
+        str(block.get("text", ""))
+        for block in blocks
+        if isinstance(block, dict) and block.get("type") == "text"
+    ).strip()
+    if text.startswith("```"):
+        text = text.strip("`")
+        text = text.split("\n", 1)[1] if "\n" in text else ""
+    return text

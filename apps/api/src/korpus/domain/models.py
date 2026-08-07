@@ -442,6 +442,12 @@ class Answer(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     status: AnswerStatus
     text: str = Field(max_length=20_000)
+    #: One line the system wrote, or empty. It is carried apart from `text` because it is
+    #: the only part of an answer that is not a quotation, and a reader has to be able to
+    #: see which is which without being told. Admitted only if every content token in it
+    #: already appears in the cited spans, with no number and no negation
+    #: (`korpus.application.composition`).
+    opening: str = Field(default="", max_length=300)
     claims: list[Claim] = Field(default_factory=list)
     citations: list[Citation] = Field(default_factory=list)
     retrieval_score: float = Field(ge=0, le=1)

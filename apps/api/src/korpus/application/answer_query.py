@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
+from korpus.application.composition import AnswerComposer, compose_answer
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
@@ -114,6 +115,7 @@ class ExtractiveAnswerService:
         policy_engine: PolicyEngine,
         answer_policy: AnswerPolicy,
         query_planner: QueryPlanner | None = None,
+        answer_composer: AnswerComposer | None = None,
     ) -> None:
         self.repository = repository
         self.retriever = retriever
@@ -122,6 +124,9 @@ class ExtractiveAnswerService:
         #: Optional by construction. Absent, this service behaves exactly as it did
         #: before one existed — which is what every failure of a present one degrades to.
         self.query_planner = query_planner
+        #: Arranges the retrieved sentences and proposes one opening line. Absent, or
+        #: refused, the answer is the extract exactly as it was.
+        self.answer_composer = answer_composer
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
@@ -210,6 +215,10 @@ class ExtractiveAnswerService:
                 identity, query, answer, retrieved, eligible, risk, support=support, plan=plan
             )
             return answer
+        # Before every branch, not inside one: three of them reach the same audit call,
+        # and initialising it in the branch that uses it surfaced as an UnboundLocalError
+        # on the other two rather than as a missing field.
+        composition_reason = "not attempted"
         if not claims or query_coverage < thresholds.minimum_query_coverage:
             answer = self._abstain(
                 release_id,
@@ -238,9 +247,22 @@ class ExtractiveAnswerService:
                     corpus_release=release_id,
                 )
             else:
+                # The model may arrange what was found and open with one line. It may
+                # not add a fact: `compose_answer` refuses an opening that states a
+                # number, introduces a negation, or uses a content word the cited spans
+                # do not contain, and a refusal leaves the extract untouched.
+                composition, composition_reason = compose_answer(
+                    query.text, [claim.text for claim in claims], self.answer_composer
+                )
+                body = (
+                    "\n\n".join(composition.sentences)
+                    if composition is not None
+                    else "\n\n".join(claim.text for claim in claims)
+                )
                 answer = Answer(
                     status=AnswerStatus.ANSWERED,
-                    text="\n\n".join(claim.text for claim in claims),
+                    text=body,
+                    opening=composition.opening if composition is not None else "",
                     claims=claims,
                     citations=citations,
                     retrieval_score=max(item.score for item in eligible),
@@ -253,10 +275,21 @@ class ExtractiveAnswerService:
                         " поза точними цитованими реченнями.",
                         "Retrieval score є ranking utility, а не ймовірністю істинності.",
                         *self._source_limitations(citations, outranked, eligible),
+                        *(
+                            [
+                                "Перший рядок написала система з наведених цитат: без "
+                                "цифр, без заперечень, лише словами, що є в цитатах."
+                            ]
+                            if composition is not None
+                            else []
+                        ),
                     ],
                     corpus_release=release_id,
                 )
-        self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
+        self._audit(
+            identity, query, answer, retrieved, eligible, risk, plan=plan,
+            composition=composition_reason,
+        )
         return answer
 
     def _search_plan(
@@ -634,6 +667,7 @@ class ExtractiveAnswerService:
         breaches: list[ScopeBreach] | None = None,
         support: SupportVerdict | None = None,
         plan: QueryPlan | None = None,
+        composition: str | None = None,
     ) -> None:
         if support is not None and not support.aligned:
             self.repository.append_audit(
@@ -703,6 +737,9 @@ class ExtractiveAnswerService:
                 # words a soldier typed, and a record that cannot tell them apart cannot
                 # answer "why did it show me this" six months from now.
                 "query_plan": plan.as_audit_record() if plan is not None else None,
+                # Whether the opening line was written, and if not, which rule refused it.
+                # A refused composition is a fact about this answer, not an absence.
+                "composition": composition,
                 "retrieved": len(retrieved),
                 "eligible": len(eligible),
                 "citation_count": len(answer.citations),

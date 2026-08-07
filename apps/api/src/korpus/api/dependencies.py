@@ -7,6 +7,7 @@ from fastapi import Depends, Request
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.calibration import CalibrationProfile
+from korpus.application.composition import AnswerComposer
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
 from korpus.application.policy import PolicyEngine
@@ -16,7 +17,10 @@ from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
-from korpus.infrastructure.anthropic_planner import AnthropicQueryPlanner
+from korpus.infrastructure.anthropic_planner import (
+    AnthropicAnswerComposer,
+    AnthropicQueryPlanner,
+)
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
@@ -223,7 +227,29 @@ def get_answer_service(
     )
     retriever = CachedRetriever(repository, base, cache, configuration_id)
     return ExtractiveAnswerService(
-        repository, retriever, policy, answer_policy, query_planner=build_query_planner(settings)
+        repository,
+        retriever,
+        policy,
+        answer_policy,
+        query_planner=build_query_planner(settings),
+        answer_composer=build_answer_composer(settings),
+    )
+
+
+def build_answer_composer(settings: Settings) -> AnswerComposer | None:
+    """The arranger, when an operator has switched it on and supplied a key.
+
+    Public for the same reason `build_query_planner` is: the drills install a composer
+    through the seam the application uses, and reaching past it would test a service the
+    next request does not build.
+    """
+    if not settings.answer_composer_enabled or not settings.query_planner_api_key:
+        return None
+    return AnthropicAnswerComposer(
+        settings.query_planner_api_key,
+        model=settings.query_planner_model,
+        base_url=settings.query_planner_base_url,
+        timeout_seconds=max(settings.query_planner_timeout_seconds, 8.0),
     )
 
 

@@ -191,6 +191,11 @@ class Settings(BaseSettings):
     #: Off by default for a second reason an operator must decide on, not inherit: every
     #: question is sent to the provider. On an open corpus that is a decision already
     #: taken; on a closed one the question itself is intelligence.
+    #: The same model, the same key, a second and narrower job: arrange what was found
+    #: and write one opening line. It cannot add a fact — see
+    #: `korpus.application.composition` — but it does send the retrieved passages to the
+    #: provider, which the planner does not.
+    answer_composer_enabled: bool = False
     query_planner_enabled: bool = False
     query_planner_api_key: str = ""
     query_planner_model: str = "claude-sonnet-5"
@@ -356,6 +361,15 @@ class Settings(BaseSettings):
             )
             if not redirect_uri.startswith(loopback_prefixes):
                 raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
+        if self.answer_composer_enabled and not self.query_planner_api_key:
+            raise ValueError("answer composer is enabled without an API key")
+        if self.answer_composer_enabled and self.environment in {"controlled", "isolated"}:
+            # Stricter than the planner's rule and for a stronger reason: the planner
+            # sends the question, this sends the passages the corpus answered with.
+            raise ValueError(
+                "the answer composer sends retrieved passages to a third party and is "
+                f"refused in a {self.environment} environment"
+            )
         if self.query_planner_enabled and not self.query_planner_api_key:
             # Enabled-but-unconfigured is the state that looks like it is working. The
             # planner would fail on every question and degrade silently to the plain

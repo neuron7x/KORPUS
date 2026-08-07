@@ -256,6 +256,8 @@ function render(answer, question) {
       <h2>${escapeHtml(verdict)}</h2>
       <span class="verdict-code">${escapeHtml(answer.decision_reason)}</span>
     </div>
+    ${answer.opening ? `<p class="answer-opening">${escapeHtml(answer.opening)}
+      <span class="answer-opening-mark">склала система з цитат нижче</span></p>` : ""}
     <p class="answer-text">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</p>
     ${withheld}
     <dl class="metrics">

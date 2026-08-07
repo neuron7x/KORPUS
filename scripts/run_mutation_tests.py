@@ -1926,6 +1926,47 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # "не менше 30 м" and "не менше 300 м" differ by one character. A gate that only
+        # checked that every token appears somewhere in the evidence would pass both.
+        "M205_COMPOSED_OPENING_MAY_STATE_A_NUMBER",
+        "apps/api/src/korpus/application/composition.py",
+        "    if _NUMBER.search(text):",
+        "    if False:",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_an_opening_that_states_a_number_is_refused",
+        ),
+    ),
+    Mutant(
+        # One word flips a norm without changing its vocabulary, and "не" appears in
+        # almost every Ukrainian document — so token presence cannot catch it.
+        "M206_COMPOSED_OPENING_MAY_NEGATE",
+        "apps/api/src/korpus/application/composition.py",
+        "        if token in _NEGATION:\n"
+        '            raise CompositionRefused(f"opening introduces a negation: {token!r}")',
+        "        if False:\n"
+        '            raise CompositionRefused(f"opening introduces a negation: {token!r}")',
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_an_opening_that_introduces_a_negation_is_refused",
+        ),
+    ),
+    Mutant(
+        # The one rule that keeps a composition a rearrangement rather than a claim.
+        "M207_COMPOSED_OPENING_MAY_ADD_A_WORD",
+        "apps/api/src/korpus/application/composition.py",
+        "        if token not in available:\n"
+        '            raise CompositionRefused(f"opening states something the evidence '
+        'does not: {token!r}")',
+        "        if False:\n"
+        '            raise CompositionRefused(f"opening states something the evidence '
+        'does not: {token!r}")',
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_an_opening_that_states_something_the_evidence_does_not_is_refused",
+        ),
+    ),
+    Mutant(
         # The declaration is unverified by construction. Recording it without saying so
         # would put a self-asserted name into an append-only chain looking like a
         # proofed one — the audit's own record asserting an identity-proofing level

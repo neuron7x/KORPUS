@@ -693,3 +693,24 @@ input:focus-visible, textarea:focus-visible { border-color: var(--accent); }
   transform: translateY(-0.1rem);
 }
 .pending { opacity: 0.75; }
+
+/* --- Рядок, який написала система ---------------------------------------- */
+/* Марковано, бо це єдина частина відповіді, що не є цитатою. Читач мусить бачити
+   різницю не тому, що йому сказали, а тому, що вона видно. Допущено лише коли кожне
+   змістовне слово вже є в цитатах, без цифр і без заперечень. */
+.answer-opening {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed var(--line-strong, #3d4335);
+  border-left-width: 3px;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+.answer-opening-mark {
+  display: block;
+  margin-top: 0.4rem;
+  font: 0.68rem/1.4 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
