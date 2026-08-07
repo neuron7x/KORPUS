@@ -74,4 +74,31 @@ if not (documents and approved and spans):
 print(f"documents {documents} · approved {approved} · spans {spans}")
 PY
 
+# The drill is the property, not the copy. Recorded beside the backups so the retention
+# policy can answer "when was this last proved" without asking anybody.
+python3 - "$(dirname "$backup")/last-restore.json" "$backup" <<'PY'
+import json
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+
+Path(sys.argv[1]).write_text(
+    json.dumps(
+        {
+            "restored_at": datetime.now(UTC).isoformat(),
+            "backup": Path(sys.argv[2]).name,
+            "interpretation": (
+                "A restore was executed and the restored corpus was checked for integrity "
+                "and for approved versions with spans. A backup nobody has restored is a "
+                "file."
+            ),
+        },
+        ensure_ascii=False,
+        indent=2,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+PY
+
 printf '%s\n' "$database"

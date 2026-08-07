@@ -40,6 +40,11 @@
       "lines": 166,
       "max_complexity": 6
     },
+    "apps/api/src/korpus/application/break_glass.py": {
+      "lines": 170,
+      "max_complexity": 12,
+      "reason": "emergency elevation that needs two people, expires, and never carries approval authority"
+    },
     "apps/api/src/korpus/application/cache.py": {
       "lines": 138,
       "max_complexity": 5
@@ -382,6 +387,11 @@
       "max_complexity": 12,
       "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
     },
+    "scripts/evidence_registry.py": {
+      "lines": 149,
+      "max_complexity": 10,
+      "reason": "gate reports kept under their digest for the system's life, sealed and honest about what a seal is"
+    },
     "scripts/export_audit.py": {
       "lines": 124,
       "max_complexity": 7
@@ -445,6 +455,11 @@
       "lines": 43,
       "max_complexity": 5
     },
+    "scripts/patch_policy.py": {
+      "lines": 212,
+      "max_complexity": 14,
+      "reason": "how long a known vulnerability may stay, and whether the scan that would find it ran"
+    },
     "scripts/plan_retention.py": {
       "lines": 98,
       "max_complexity": 7
@@ -452,6 +467,11 @@
     "scripts/prepare_postgres_role.py": {
       "lines": 100,
       "max_complexity": 4
+    },
+    "scripts/retention_policy.py": {
+      "lines": 264,
+      "max_complexity": 25,
+      "reason": "backup copies, evidence retention and quotas checked against the disk rather than declared"
     },
     "scripts/run_evals.py": {
       "lines": 377,

@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 61 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 14 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 66 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 9 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -21,7 +21,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **IAM-005 · P1 · MITIGATED_LOCAL** — OIDC assurance неповний
 - **IAM-006 · P1 · MITIGATED_LOCAL** — RLS залежить від session GUC, який встановлює застосунок
 - **IAM-007 · P1 · MITIGATED_LOCAL** — Немає lifecycle entitlement/offboarding
-- **IAM-008 · P1 · EXTERNAL_DEBT** — Немає PAM/break-glass control
+- **IAM-008 · P1 · MITIGATED_LOCAL** — Немає PAM/break-glass control
 - **ING-008 · P1 · MITIGATED_LOCAL** — Object store write не атомарний із metadata transaction
 - **ING-009 · P1 · MITIGATED_LOCAL** — Немає OCR/layout quality model
 - **ING-012 · P1 · MITIGATED_LOCAL** — Немає corpus-scale ingestion recovery drill
@@ -51,7 +51,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **INF-009 · P1 · MITIGATED_LOCAL** — OTel collector healthcheck перевіряє config, не serving path
 - **INF-010 · P1 · MITIGATED_LOCAL** — Local audit anchor не є незалежним trust domain
 - **INF-011 · P1 · MITIGATED_LOCAL** — Немає deployment rollback/canary/schema compatibility proof
-- **INF-012 · P1 · EXTERNAL_DEBT** — Немає offsite/immutable backup schedule and retention execution
+- **INF-012 · P1 · MITIGATED_LOCAL** — Немає offsite/immutable backup schedule and retention execution
 - **SRE-001 · P0 · MITIGATED_LOCAL** — Немає SLO/SLI/error-budget contract
 - **SRE-002 · P0 · EXTERNAL_DEBT** — Немає on-call ownership та incident exercises
 - **SRE-003 · P1 · MITIGATED_LOCAL** — Observability не має durable backend
@@ -63,7 +63,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SUP-005 · P1 · MITIGATED_LOCAL** — Security scanners не були виконані в локальному аудиті
 - **SUP-006 · P1 · MITIGATED_LOCAL** — Static security analysis coverage incomplete
 - **SUP-007 · P1 · EXTERNAL_DEBT** — GitLab branch/tag controls не доведені repository files
-- **SUP-008 · P1 · EXTERNAL_DEBT** — Немає continuous re-scan/patch SLA та KEV policy
+- **SUP-008 · P1 · MITIGATED_LOCAL** — Немає continuous re-scan/patch SLA та KEV policy
 - **SUP-009 · P2 · MITIGATED_LOCAL** — Немає license/compliance inventory
 - **COD-001 · P1 · MITIGATED_LOCAL** — SqlRepository є infrastructure god object
 - **COD-004 · P1 · MITIGATED_LOCAL** — Branch coverage значно нижча за statement coverage
@@ -83,6 +83,6 @@ This register classifies all 99 v4 findings without converting missing external 
 - **DATA-003 · P1 · MITIGATED_LOCAL** — Немає immutable corpus release manifest підписаного data owner
 - **DATA-004 · P1 · MITIGATED_LOCAL** — Немає continuous inventory/reconciliation object store↔DB↔index
 - **OPS-001 · P2 · MITIGATED_LOCAL** — Немає доказу reproducible container build
-- **OPS-003 · P2 · EXTERNAL_DEBT** — Немає release evidence retention policy
+- **OPS-003 · P2 · MITIGATED_LOCAL** — Немає release evidence retention policy
 - **OPS-004 · P2 · MITIGATED_LOCAL** — Немає environment drift detection
-- **OPS-005 · P2 · EXTERNAL_DEBT** — Немає cost/capacity governance
+- **OPS-005 · P2 · MITIGATED_LOCAL** — Немає cost/capacity governance

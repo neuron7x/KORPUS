@@ -71,6 +71,28 @@ MITIGATED_LOCAL = {
     "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
                  # prepared the least-privilege role. Canary and automated rollback stay
                  # external.
+    "IAM-008",   # break-glass that needs a second named approver, expires, refuses a
+                 # clearance above the approver's own, and never carries approval
+                 # authority — an emergency is a reason to read, and a document approved
+                 # under duress is the failure the reviewer registry exists to prevent.
+                 # The JIT/PAM vault that holds the credential, and the recording of what
+                 # the operator did at the terminal, stay external.
+    "INF-012",   # a second copy outside the working tree, the newest one mode 0444, and a
+                 # restore executed with the date recorded — the cadence is the property,
+                 # not the copy. `copies.offsite` is reported as an external clause rather
+                 # than as a failure: object lock with a credential the writer does not
+                 # hold is what survives an operator, and 0444 does not survive root.
+    "OPS-003",   # gate reports copied under their digest and sealed, retained for the
+                 # system's life rather than the pipeline's. The report says what a seal
+                 # is not: it catches a careless edit and not a deliberate one.
+    "OPS-005",   # per-visitor and aggregate limits at the edge, an admission budget at the
+                 # API, both checked against the files that carry them. Cost attribution
+                 # needs a billing account and stays external.
+    "SUP-008",   # deadlines by severity, immediate for anything on KEV, and a scan older
+                 # than a week is not a pass — the usual way a dependency policy fails is
+                 # that the scan stopped and the last green report kept being the answer.
+                 # With no KEV catalogue loaded every finding is `kev_unknown` rather than
+                 # not-exploited. Fetching the catalogue on a schedule stays external.
     "AUD-003",   # an audit event records the id of the key that signed it, and the
                  # verifier uses the key the *event* names. Rotating used to invalidate
                  # every event ever written, so the key was never rotated — which was the
@@ -149,12 +171,10 @@ MITIGATED_LOCAL = {
 
 EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
-    "IAM-008",
     "RAG-003",
-    "INF-003", "INF-004", "INF-006", "INF-012",
+    "INF-003", "INF-004", "INF-006",
     "SRE-002",
-    "SUP-007", "SUP-008",
-    "OPS-003", "OPS-005",
+    "SUP-007",
 }
 
 # Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
@@ -180,6 +200,27 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/migrations",
         "scripts/prepare_postgres_role.py",
         "apps/api/docker-entrypoint.sh",
+    ],
+    "IAM-008": [
+        "apps/api/src/korpus/application/break_glass.py",
+        "apps/api/tests/test_break_glass.py",
+    ],
+    "INF-012": [
+        "scripts/retention_policy.py",
+        "scripts/backup_sqlite.sh",
+        "apps/api/tests/test_operational_policies.py",
+    ],
+    "OPS-003": [
+        "scripts/evidence_registry.py",
+        "scripts/retention_policy.py",
+    ],
+    "OPS-005": [
+        "deploy/public/nginx.conf",
+        "scripts/retention_policy.py",
+    ],
+    "SUP-008": [
+        "scripts/patch_policy.py",
+        "apps/api/tests/test_operational_policies.py",
     ],
     "AUD-003": [
         "apps/api/src/korpus/application/keyring.py",

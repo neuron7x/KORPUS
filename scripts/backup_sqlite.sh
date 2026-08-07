@@ -116,6 +116,20 @@ python3 "$root/scripts/backup_manifest.py" verify \
   --expected-key-id "$KORPUS_BACKUP_KEY_ID"
 rm -f "$plain_meta_tmp"
 
+# Read-only once written. Ransomware and a careless script both work by writing, and
+# `chattr +i` needs a capability this process does not have. 0444 does not survive root
+# and is not claimed to: object lock with a credential the writer does not hold is what
+# does, and it is named as external in the policy report rather than implied here.
+chmod 0444 "$final" "$manifest"
+
+# A second copy, outside the working tree. It is not offsite — a fire takes both — and
+# the policy report says so under its own clause rather than letting this one stand in.
+second="${KORPUS_BACKUP_SECOND_DIR:-$root/var/backups/offsite}"
+mkdir -p "$second"
+chmod 700 "$second"
+cp -p "$final" "$manifest" "$second/"
+chmod 0444 "$second/$(basename "$final")" "$second/$(basename "$manifest")"
+
 find "$backup_dir" -maxdepth 1 -name 'korpus-*.tar.enc' -mtime "+$retention_days" -delete
 find "$backup_dir" -maxdepth 1 -name 'korpus-*.tar.enc.json' -mtime "+$retention_days" -delete
 

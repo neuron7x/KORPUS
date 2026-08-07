@@ -141,6 +141,12 @@ def test_a_tampered_backup_is_refused_before_it_is_decrypted(
         BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)}
     )
 
+    # The file is 0444 by the time it lands: ransomware and a careless script both work
+    # by writing, and this is the local half of INF-012's immutability clause. Asserted
+    # here rather than assumed, then relaxed so the tamper can happen at all — which is
+    # exactly what an attacker with the writer's own privileges would have to do.
+    assert Path(backup).stat().st_mode & 0o222 == 0, "the newest backup is writable"
+    Path(backup).chmod(0o600)
     payload = bytearray(Path(backup).read_bytes())
     payload[-1] ^= 0xFF
     Path(backup).write_bytes(bytes(payload))

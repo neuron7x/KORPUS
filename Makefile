@@ -290,6 +290,20 @@ reference-eval:
 service-objectives:
 	$(PY) scripts/service_objectives.py $(if $(MEASUREMENTS),--measurements "$(MEASUREMENTS)")
 
+# Backup copies, evidence retention and quotas, checked against the disk. A policy in a
+# document is a sentence.
+retention-policy:
+	$(PY) scripts/retention_policy.py
+
+# Gate reports kept under their digest for the system's life, not the pipeline's.
+evidence-registry:
+	$(PY) scripts/evidence_registry.py
+
+# How long a known vulnerability may stay here, and whether the scan that would find it
+# actually ran. A scanner that exited 127 is neither clean nor a finding.
+patch-policy:
+	$(PY) scripts/patch_policy.py
+
 security-scan:
 	scripts/security_scan.sh
 

@@ -4,8 +4,8 @@
   "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
   "total_remaining": 75,
   "counts": {
-    "EXTERNAL_DEBT": 14,
-    "MITIGATED_LOCAL": 61
+    "EXTERNAL_DEBT": 9,
+    "MITIGATED_LOCAL": 66
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -200,8 +200,11 @@
       "required_action": "JIT/PAM, two-person approval, break-glass runbook, immutable session logs.",
       "tools_methods": "PAM/Vault; SIEM",
       "acceptance_predicate": "Усі privileged sessions attributable, time-bounded і reviewed.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/break_glass.py",
+        "apps/api/tests/test_break_glass.py"
+      ],
       "v5_remaining_acceptance": "Усі privileged sessions attributable, time-bounded і reviewed."
     },
     {
@@ -741,8 +744,12 @@
       "required_action": "3-2-1 backups, object lock, isolated credentials, restore cadence.",
       "tools_methods": "Backup scheduler; WORM storage",
       "acceptance_predicate": "Backup age/immutability monitored; restore sampled automatically.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/retention_policy.py",
+        "scripts/backup_sqlite.sh",
+        "apps/api/tests/test_operational_policies.py"
+      ],
       "v5_remaining_acceptance": "Backup age/immutability monitored; restore sampled automatically."
     },
     {
@@ -952,8 +959,11 @@
       "required_action": "Scheduled rescans, SBOM inventory, KEV SLA, emergency rebuild/revoke.",
       "tools_methods": "Dependency Track/Grype/Trivy; CISA KEV feed",
       "acceptance_predicate": "High/critical/KEV triage and remediation SLA measured.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/patch_policy.py",
+        "apps/api/tests/test_operational_policies.py"
+      ],
       "v5_remaining_acceptance": "High/critical/KEV triage and remediation SLA measured."
     },
     {
@@ -1325,8 +1335,11 @@
       "required_action": "Immutable long-term evidence registry with retention aligned to system lifetime.",
       "tools_methods": "Artifact registry/WORM",
       "acceptance_predicate": "Every production release evidence retrievable and verified years later.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/evidence_registry.py",
+        "scripts/retention_policy.py"
+      ],
       "v5_remaining_acceptance": "Every production release evidence retrievable and verified years later."
     },
     {
@@ -1361,8 +1374,11 @@
       "required_action": "Per-tenant quotas, cost attribution, budget alerts, rate policy.",
       "tools_methods": "FinOps metrics; quota service",
       "acceptance_predicate": "Cost per ingest/query measured; budget breach triggers safe throttling.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "deploy/public/nginx.conf",
+        "scripts/retention_policy.py"
+      ],
       "v5_remaining_acceptance": "Cost per ingest/query measured; budget breach triggers safe throttling."
     }
   ]
