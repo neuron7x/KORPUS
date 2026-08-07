@@ -340,6 +340,16 @@
       "max_complexity": 11,
       "reason": "drafts a manifest and refuses to invent what it cannot read; snapshot mode carries Drive's own fields through"
     },
+    "scripts/build_provenance.py": {
+      "lines": 234,
+      "max_complexity": 14,
+      "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
+    },
+    "scripts/build_reference_set.py": {
+      "lines": 357,
+      "max_complexity": 14,
+      "reason": "freezes a reference set from the deployed corpus; objective on retrieval, citation and refusal, silent on quality"
+    },
     "scripts/build_system_manifest.py": {
       "lines": 102,
       "max_complexity": 11
@@ -457,6 +467,11 @@
     "scripts/run_quality_gate.py": {
       "lines": 115,
       "max_complexity": 6
+    },
+    "scripts/run_reference_eval.py": {
+      "lines": 185,
+      "max_complexity": 24,
+      "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest"
     },
     "scripts/run_research_assurance.py": {
       "lines": 185,

@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -265,6 +265,28 @@ corpus-release-verify:
 
 # What this deployment promises, checked against what it was measured doing. An objective
 # nobody checks is a paragraph.
+# Freeze a reference set from the deployed corpus, stratified and digest-sealed, and run
+# it. Objective on retrieval, citation integrity and refusal; silent on whether an answer
+# is good, which needs annotators (RAG-003).
+#   make reference-set && make reference-eval TOKEN=...
+# Say what an image was built from, sign it, and refuse to deploy what does not verify.
+# An SBOM travelling beside an image answers "what is in some image".
+#   make provenance IMAGE=korpus-api:local OUT=var/provenance/api.json
+provenance:
+	$(PY) scripts/build_provenance.py attest --image "$(IMAGE)" --out "$(OUT)" \
+	  $(if $(SBOM),--sbom "$(SBOM)") $(if $(KEY_FILE),--key-file "$(KEY_FILE)")
+
+provenance-verify:
+	$(PY) scripts/build_provenance.py verify --statement "$(STATEMENT)" \
+	  $(if $(IMAGE),--image "$(IMAGE)") $(if $(SBOM),--sbom "$(SBOM)") \
+	  $(if $(KEY_FILE),--key-file "$(KEY_FILE)")
+
+reference-set:
+	$(PY) scripts/build_reference_set.py $(if $(DATABASE),--database "$(DATABASE)")
+
+reference-eval:
+	$(PY) scripts/run_reference_eval.py $(if $(BASE),--base "$(BASE)") $(if $(TOKEN),--token "$(TOKEN)")
+
 service-objectives:
 	$(PY) scripts/service_objectives.py $(if $(MEASUREMENTS),--measurements "$(MEASUREMENTS)")
 

@@ -5,8 +5,8 @@
   "scope_claim": "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded local predicate has executable evidence; it is not production authorization.",
   "counts": {
     "CLOSED_LOCAL": 24,
-    "EXTERNAL_DEBT": 17,
-    "MITIGATED_LOCAL": 58
+    "EXTERNAL_DEBT": 15,
+    "MITIGATED_LOCAL": 60
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -493,8 +493,13 @@
       "required_action": "Створити frozen stratified gold set із реальних документів і adversarial holdout.",
       "tools_methods": "Annotation platform; HELM-style scenario matrix; RAGChecker/ALCE metrics",
       "acceptance_predicate": "Blind holdout, human adjudication, versioned dataset, confidence intervals.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/build_reference_set.py",
+        "scripts/run_reference_eval.py",
+        "apps/api/tests/test_reference_set.py",
+        "evals/datasets/reference.jsonl"
+      ],
       "v5_remaining_acceptance": "Blind holdout, human adjudication, versioned dataset, confidence intervals."
     },
     {
@@ -1233,8 +1238,11 @@
       "required_action": "Generate SLSA provenance, sign images/SBOM, verify before deploy.",
       "tools_methods": "GitLab OIDC + cosign/in-toto; SLSA verifier",
       "acceptance_predicate": "Deployment admission rejects unsigned/unexpected provenance.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/build_provenance.py",
+        "apps/api/tests/test_build_provenance.py"
+      ],
       "v5_remaining_acceptance": "Deployment admission rejects unsigned/unexpected provenance."
     },
     {

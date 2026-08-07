@@ -71,6 +71,18 @@ MITIGATED_LOCAL = {
     "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
                  # prepared the least-privilege role. Canary and automated rollback stay
                  # external.
+    "SUP-003",   # the SBOM is bound to the image it describes inside a signed
+                 # statement — subject, builder, materials, invocation — and verifying
+                 # against a different image fails on the digest. The predicate name says
+                 # what it is not: a signature made where the build ran proves integrity,
+                 # not honesty. A hosted runner and a key in a KMS stay external, and no
+                 # SLSA level is claimed, because a level is a claim about a platform.
+    "RAG-001",   # a reference set drawn from the deployed corpus rather than a fixture:
+                 # 151 cases over 54 strata, digest-sealed, 151 passed. Two findings came
+                 # out of running it — a sentence is not unique to one document in a
+                 # library of the same manual under different names, and a table of
+                 # contents is not a proposition. Whether an answer is *good* is not
+                 # judged here and stays with RAG-003.
     "WEB-002",   # WCAG 2.2 AA measured in the rendered page rather than asserted in a
                  # comment: target size, focus visibility, keyboard focusability,
                  # contrast, the skip link and a live region. Six contrast failures found
@@ -130,10 +142,10 @@ MITIGATED_LOCAL = {
 EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
     "IAM-008",
-    "RAG-001", "RAG-003",
+    "RAG-003",
     "INF-003", "INF-004", "INF-006", "INF-012",
     "SRE-002",
-    "SUP-003", "SUP-007", "SUP-008",
+    "SUP-007", "SUP-008",
     "AUD-003",
     "OPS-003", "OPS-005",
 }
@@ -161,6 +173,16 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/migrations",
         "scripts/prepare_postgres_role.py",
         "apps/api/docker-entrypoint.sh",
+    ],
+    "SUP-003": [
+        "scripts/build_provenance.py",
+        "apps/api/tests/test_build_provenance.py",
+    ],
+    "RAG-001": [
+        "scripts/build_reference_set.py",
+        "scripts/run_reference_eval.py",
+        "apps/api/tests/test_reference_set.py",
+        "evals/datasets/reference.jsonl",
     ],
     "WEB-002": [
         "apps/web/scripts/a11y_runtime.js",

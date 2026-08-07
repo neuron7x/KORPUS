@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 58 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 17 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 60 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 15 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -25,7 +25,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **ING-008 · P1 · MITIGATED_LOCAL** — Object store write не атомарний із metadata transaction
 - **ING-009 · P1 · MITIGATED_LOCAL** — Немає OCR/layout quality model
 - **ING-012 · P1 · MITIGATED_LOCAL** — Немає corpus-scale ingestion recovery drill
-- **RAG-001 · P0 · EXTERNAL_DEBT** — Evaluation dataset є synthetic fixture, не production evidence
+- **RAG-001 · P0 · MITIGATED_LOCAL** — Evaluation dataset є synthetic fixture, не production evidence
 - **RAG-003 · P0 · EXTERNAL_DEBT** — Немає human gold standard та inter-annotator agreement
 - **RAG-005 · P1 · MITIGATED_LOCAL** — Немає contradiction resolution між джерелами
 - **RAG-007 · P1 · MITIGATED_LOCAL** — Authority priors є неперевіреними константами
@@ -59,7 +59,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **SRE-005 · P1 · MITIGATED_LOCAL** — Немає production load/concurrency endurance test
 - **SRE-006 · P1 · MITIGATED_LOCAL** — Readiness має невизначену degraded-mode policy
 - **SRE-007 · P1 · MITIGATED_LOCAL** — Немає data/corpus release rollback drill
-- **SUP-003 · P0 · EXTERNAL_DEBT** — Немає signed build provenance і artifact signing
+- **SUP-003 · P0 · MITIGATED_LOCAL** — Немає signed build provenance і artifact signing
 - **SUP-005 · P1 · MITIGATED_LOCAL** — Security scanners не були виконані в локальному аудиті
 - **SUP-006 · P1 · MITIGATED_LOCAL** — Static security analysis coverage incomplete
 - **SUP-007 · P1 · EXTERNAL_DEBT** — GitLab branch/tag controls не доведені repository files
