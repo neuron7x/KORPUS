@@ -1,26 +1,38 @@
 {
   "migration": "head",
   "tables_expected": [
+    "accounts",
     "audit_anchor_outbox",
     "audit_events",
     "audit_heads",
+    "billing_events",
+    "conversations",
     "document_compartments",
     "document_versions",
     "documents",
     "evidence_spans",
     "ingestion_jobs",
-    "span_embeddings"
+    "messages",
+    "plans",
+    "span_embeddings",
+    "subscriptions"
   ],
   "tables_actual": [
+    "accounts",
     "audit_anchor_outbox",
     "audit_events",
     "audit_heads",
+    "billing_events",
+    "conversations",
     "document_compartments",
     "document_versions",
     "documents",
     "evidence_spans",
     "ingestion_jobs",
-    "span_embeddings"
+    "messages",
+    "plans",
+    "span_embeddings",
+    "subscriptions"
   ],
   "table_set_match": true,
   "column_failures": {},
@@ -28,8 +40,8 @@
   "sqlite_fts5_present": true,
   "provenance": {
     "schema_version": 1,
-    "source_digest": "7abc783f6a864c9ec736832ca488acf96e9b0d742f8722a606b268c4e4a3af5f",
+    "source_digest": "9a3fa75e49cb3c27fffe913cf15331a4a75fe1494c9ff89b1c39b4dfa10246a7",
     "generator": "scripts/run_migration_gate.py",
-    "generated_at": "2026-08-07T09:18:22+00:00"
+    "generated_at": "2026-08-07T12:19:24+00:00"
   }
 }
