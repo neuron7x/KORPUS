@@ -38,6 +38,12 @@ export KORPUS_ENVIRONMENT=local
 export KORPUS_DATABASE_URL="${KORPUS_DATABASE_URL:-sqlite:///$ROOT/var/korpus-ml.db}"
 export KORPUS_OBJECT_ROOT="${KORPUS_OBJECT_ROOT:-$ROOT/var/objects-ml}"
 export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
+# Beside the database it belongs to. The anchor is an external record of where a chain
+# has got to; two databases sharing one file leaves both unverifiable — "the anchor is
+# ahead of the database head" is what a verifier says about a chain that never moved
+# while somebody else's did. Found 2026-08-07: the demo corpus and the imported one had
+# been pointing at the same var/audit-anchor.json since the first deployment.
+export KORPUS_AUDIT_ANCHOR_PATH="${KORPUS_AUDIT_ANCHOR_PATH:-$ROOT/var/audit-anchor-ml.json}"
 export KORPUS_AUTH_MODE=jwt
 export KORPUS_JWT_SECRET="$(cat "$STATE/jwt-secret.txt")"
 export KORPUS_JWT_ISSUER=korpus-public
