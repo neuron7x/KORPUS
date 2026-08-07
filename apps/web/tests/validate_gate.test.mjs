@@ -410,3 +410,27 @@ test("a stored refusal rendered without its verdict is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /stored refusal is rendered without its verdict/);
 });
+
+test("a conversation list truncated in silence is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source => source.replaceAll("page.has_more", "false")));
+  assert.notEqual(status, 0);
+  assert.match(output, /does not say it was truncated/);
+});
+
+test("a transcript that hides its newest turns in silence is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace("Пізніші не показані.", "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /newest turns are missing/);
+});
+
+test("removing the show-more control is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/conversations.js", source =>
+      source.replace("Показати більше</button>", "</button>")
+            .replace("«Показати більше»", "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /does not say it was truncated/);
+});

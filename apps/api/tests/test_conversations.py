@@ -47,8 +47,8 @@ def test_a_conversation_is_visible_only_to_its_owner(tmp_path: Path) -> None:
         with pytest.raises(ConversationNotFound):
             service.get(stranger, conversation.id)
 
-        assert [item.id for item in service.list_conversations(owner)] == [conversation.id]
-        assert service.list_conversations(stranger) == []
+        assert [item.id for item in service.list_conversations(owner).items] == [conversation.id]
+        assert service.list_conversations(stranger).items == []
     finally:
         tenancy.close()
 
@@ -61,7 +61,7 @@ def test_another_accounts_messages_cannot_be_read(tmp_path: Path) -> None:
         conversation = service.create(owner)
         service.record_question(owner, conversation.id, "як накласти турнікет")
 
-        assert len(service.messages(owner, conversation.id)) == 1
+        assert len(service.messages(owner, conversation.id).items) == 1
         with pytest.raises(ConversationNotFound):
             service.messages(stranger, conversation.id)
     finally:
@@ -81,7 +81,7 @@ def test_another_account_cannot_append_to_or_archive_a_conversation(tmp_path: Pa
             service.archive(stranger, conversation.id)
 
         assert service.get(owner, conversation.id).archived_at is None
-        assert service.messages(owner, conversation.id) == []
+        assert service.messages(owner, conversation.id).items == []
     finally:
         tenancy.close()
 
@@ -136,7 +136,7 @@ def test_what_the_system_said_is_stored_as_the_system_having_said_it(
         service.record_question(owner, conversation.id, "як накласти турнікет")
         service.record_answer(owner, conversation.id, "Витяг із настанови.", answer_id)
 
-        stored = service.messages(owner, conversation.id)
+        stored = service.messages(owner, conversation.id).items
         assert [message.role for message in stored] == [
             MessageRole.USER,
             MessageRole.ASSISTANT,
@@ -226,9 +226,9 @@ def test_purging_an_account_removes_its_history_and_nobody_elses(tmp_path: Path)
         removed = tenancy.conversations.purge_account(owner.id)
 
         assert removed == 1
-        assert service.list_conversations(owner) == []
-        assert [item.id for item in service.list_conversations(stranger)] == [theirs.id]
-        assert len(service.messages(stranger, theirs.id)) == 1
+        assert service.list_conversations(owner).items == []
+        assert [item.id for item in service.list_conversations(stranger).items] == [theirs.id]
+        assert len(service.messages(stranger, theirs.id).items) == 1
     finally:
         tenancy.close()
 
@@ -254,7 +254,7 @@ def test_a_stored_answer_remembers_whether_it_was_one(tmp_path: Path) -> None:
             owner, conversation.id, "Недостатньо доказів.", uuid4(), "insufficient_evidence"
         )
 
-        stored = service.messages(owner, conversation.id)
+        stored = service.messages(owner, conversation.id).items
         assert [message.answer_status for message in stored] == [
             None, "answered", None, "insufficient_evidence",
         ]
@@ -273,7 +273,129 @@ def test_a_turn_stored_before_the_verdict_existed_reports_it_as_unrecorded(
         tenancy.conversation_service.record_answer(
             owner, conversation.id, "Стара відповідь.", None
         )
-        stored = tenancy.conversation_service.messages(owner, conversation.id)
+        stored = tenancy.conversation_service.messages(owner, conversation.id).items
         assert stored[0].answer_status is None
+    finally:
+        tenancy.close()
+
+
+def test_a_truncated_list_says_it_was_truncated(tmp_path: Path) -> None:
+    """The defect this replaces: the list stopped at fifty and said nothing.
+
+    A reader with a hundred conversations saw fifty, which reads as an account that has
+    fifty. Over-fetching one row answers "is there more" without a second scan of every
+    row the account owns.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        service = tenancy.conversation_service
+        for index in range(7):
+            service.create(owner, f"розмова {index}")
+
+        page = service.list_conversations(owner, limit=3)
+        assert len(page.items) == 3
+        assert page.has_more is True
+        assert page.next_offset == 3
+
+        second = service.list_conversations(owner, limit=3, offset=3)
+        assert len(second.items) == 3
+        assert second.has_more is True
+        # No overlap: page two starts where page one stopped.
+        assert not {item.id for item in page.items} & {item.id for item in second.items}
+
+        last = service.list_conversations(owner, limit=3, offset=6)
+        assert len(last.items) == 1
+        assert last.has_more is False
+        assert last.next_offset is None
+    finally:
+        tenancy.close()
+
+
+def test_an_exact_page_does_not_claim_there_is_more(tmp_path: Path) -> None:
+    """The off-by-one. `has_more` true on a complete list is as useless as never true."""
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        for index in range(3):
+            tenancy.conversation_service.create(owner, f"р{index}")
+        page = tenancy.conversation_service.list_conversations(owner, limit=3)
+        assert len(page.items) == 3
+        assert page.has_more is False
+    finally:
+        tenancy.close()
+
+
+def test_a_truncated_transcript_says_its_newest_turns_are_missing(tmp_path: Path) -> None:
+    """A transcript is read oldest-first, so a cut removes what somebody came back for."""
+    from datetime import UTC, datetime
+
+    from korpus.domain.tenancy import MessageRecord
+
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        conversation = tenancy.conversation_service.create(owner)
+        for index in range(5):
+            tenancy.conversations.append_message(
+                owner.id,
+                MessageRecord(
+                    conversation_id=conversation.id,
+                    role=MessageRole.USER,
+                    raw_text=f"хід {index}",
+                    created_at=datetime.now(UTC),
+                ),
+            )
+
+        page = tenancy.conversation_service.messages(owner, conversation.id, limit=2)
+        assert [message.raw_text for message in page.items] == ["хід 0", "хід 1"]
+        assert page.has_more is True
+        assert page.next_offset == 2
+    finally:
+        tenancy.close()
+
+
+def test_the_message_limit_is_checked_without_reading_the_whole_conversation(
+    tmp_path: Path,
+) -> None:
+    """The limit check used to read five hundred rows to answer a yes/no question.
+
+    Every question asked in a long conversation paid for the whole conversation. It now
+    asks for the one row at the boundary.
+    """
+    from datetime import UTC, datetime
+
+    from korpus.domain.tenancy import MessageRecord
+
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        conversation = tenancy.conversation_service.create(owner)
+        for index in range(MAX_MESSAGES_PER_CONVERSATION):
+            tenancy.conversations.append_message(
+                owner.id,
+                MessageRecord(
+                    conversation_id=conversation.id,
+                    role=MessageRole.USER,
+                    raw_text=f"хід {index}",
+                    created_at=datetime.now(UTC),
+                ),
+            )
+
+        reads: list[int] = []
+        original = tenancy.conversations.list_messages
+
+        def counted(*args: object, **kwargs: object) -> object:
+            reads.append(int(kwargs.get("limit", 0)))
+            return original(*args, **kwargs)  # type: ignore[arg-type]
+
+        tenancy.conversations.list_messages = counted  # type: ignore[method-assign]
+        try:
+            with pytest.raises(ConversationLimitReached):
+                tenancy.conversation_service.record_question(owner, conversation.id, "ще")
+        finally:
+            tenancy.conversations.list_messages = original  # type: ignore[method-assign]
+
+        assert reads == [1], f"the limit check read {reads} rows to answer a yes/no question"
     finally:
         tenancy.close()

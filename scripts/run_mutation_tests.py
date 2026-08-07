@@ -2389,6 +2389,37 @@ MUTANTS = (
             "test_without_an_active_subscription_the_paid_corpus_is_denied",
         ),
     ),
+    Mutant(
+        "M144_CONVERSATION_LIST_TRUNCATES_IN_SILENCE",
+        "apps/api/src/korpus/infrastructure/conversation_repository.py",
+        "        return [_conversation(row) for row in rows[:wanted]], len(rows) > wanted",
+        "        return [_conversation(row) for row in rows[:wanted]], False",
+        (
+            "apps/api/tests/test_conversations.py::"
+            "test_a_truncated_list_says_it_was_truncated",
+        ),
+    ),
+    Mutant(
+        "M145_TRANSCRIPT_HIDES_ITS_NEWEST_TURNS",
+        "apps/api/src/korpus/infrastructure/conversation_repository.py",
+        "        return [_message(row) for row in rows[:wanted]], len(rows) > wanted",
+        "        return [_message(row) for row in rows[:wanted]], False",
+        (
+            "apps/api/tests/test_conversations.py::"
+            "test_a_truncated_transcript_says_its_newest_turns_are_missing",
+        ),
+    ),
+    Mutant(
+        "M146_PAGE_TWO_REPEATS_PAGE_ONE",
+        "apps/api/src/korpus/infrastructure/conversation_repository.py",
+        "            .limit(wanted + 1)\n            .offset(max(0, offset))\n        )\n"
+        "        if not include_archived:",
+        "            .limit(wanted + 1)\n        )\n        if not include_archived:",
+        (
+            "apps/api/tests/test_conversations.py::"
+            "test_a_truncated_list_says_it_was_truncated",
+        ),
+    ),
 )
 
 

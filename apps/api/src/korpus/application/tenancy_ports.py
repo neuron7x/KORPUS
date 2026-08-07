@@ -180,8 +180,15 @@ class ConversationStore(Protocol):
     def create_conversation(self, conversation: ConversationRecord) -> ConversationRecord: ...
 
     def list_conversations(
-        self, account_id: UUID, *, include_archived: bool = False, limit: int = 50
-    ) -> list[ConversationRecord]: ...
+        self,
+        account_id: UUID,
+        *,
+        include_archived: bool = False,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[ConversationRecord], bool]:
+        """One page, and whether another exists. See the adapter for why not a count."""
+        ...
 
     def get_conversation(
         self, account_id: UUID, conversation_id: UUID
@@ -201,8 +208,13 @@ class ConversationStore(Protocol):
     def append_message(self, account_id: UUID, message: MessageRecord) -> MessageRecord: ...
 
     def list_messages(
-        self, account_id: UUID, conversation_id: UUID, *, limit: int = 200
-    ) -> list[MessageRecord]: ...
+        self,
+        account_id: UUID,
+        conversation_id: UUID,
+        *,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> tuple[list[MessageRecord], bool]: ...
 
 
 class BillingProvider(Protocol):

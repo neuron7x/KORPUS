@@ -40,16 +40,18 @@ export async function tenancyAvailable() {
   }
 }
 
-export function listConversations() {
-  return call("/v1/conversations");
+export function listConversations({limit = 50, offset = 0} = {}) {
+  return call(`/v1/conversations?limit=${limit}&offset=${offset}`);
 }
 
 export function createConversation(title) {
   return call("/v1/conversations", {method: "POST", body: {title: title ?? null}});
 }
 
-export function readConversation(id) {
-  return call(`/v1/conversations/${encodeURIComponent(id)}`);
+export function readConversation(id, {limit = 200, offset = 0} = {}) {
+  return call(
+    `/v1/conversations/${encodeURIComponent(id)}?limit=${limit}&offset=${offset}`,
+  );
 }
 
 export function archiveConversation(id) {
@@ -94,10 +96,20 @@ export function relativeTime(iso, now = Date.now()) {
  * tested without a browser: what a reader recognises a conversation by is its own
  * question and when it was last touched, and both are easy to lose in a refactor.
  */
-export function conversationListMarkup(items, {activeId = null, now = Date.now()} = {}) {
+export function conversationListMarkup(
+  items, {activeId = null, now = Date.now(), hasMore = false} = {},
+) {
   if (!items.length) {
     return `<p class="note">Розмов ще немає. Перше питання почне нову.</p>`;
   }
+  // Named rather than silently cut. A list that stops and says nothing reads as a
+  // complete list of whatever length it happened to be — the same rule the corpus panel
+  // already applies to its documents, applied here where it was missing.
+  const more = hasMore
+    ? `<p class="note truncated">Показано ${items.length}. Є ще — «Показати більше».</p>` +
+      `<div class="conversations-actions"><button type="button" class="secondary" ` +
+      `data-more="conversations">Показати більше</button></div>`
+    : "";
   return `<ul class="conversation-list">${
     items.map(item => {
       const current = item.id === activeId;
@@ -113,5 +125,5 @@ export function conversationListMarkup(items, {activeId = null, now = Date.now()
           escapeHtml(item.title || "без назви")}">Архів</button>` +
         `</li>`;
     }).join("")
-  }</ul>`;
+  }</ul>${more}`;
 }

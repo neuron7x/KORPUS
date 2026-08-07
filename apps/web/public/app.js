@@ -372,11 +372,19 @@ query.addEventListener("keydown", event => {
 // Off on the public edge, where one read-only identity is attached to every visitor: a
 // conversation there would be a shared notebook.
 
+//: One page. Kept here rather than inlined so the request and the "show more" step cannot
+//: drift apart — two different numbers would make the second page overlap or skip rows.
+const CONVERSATION_PAGE = 50;
+
 const conversations = $("conversations");
 const conversationsBody = $("conversations-body");
 const conversationsSummary = $("conversations-summary");
 let conversationsEnabled = false;
 let activeConversation = null;
+//: How many rows the panel is currently showing. Grows by a page when the reader asks;
+//: never shrinks silently, because a list that quietly forgets what it had shown is the
+//: same defect as one that quietly stops.
+let conversationsShown = CONVERSATION_PAGE;
 
 async function startConversations() {
   if (publicMode || !conversations) return;
@@ -395,10 +403,15 @@ async function startConversations() {
 async function refreshConversations() {
   if (!conversationsEnabled) return;
   try {
-    const items = await listConversations();
-    conversationsBody.innerHTML = conversationListMarkup(items, {activeId: activeConversation});
-    conversationsSummary.textContent = items.length
-      ? `Розмови · ${items.length}`
+    const page = await listConversations({limit: conversationsShown});
+    conversationsBody.innerHTML = conversationListMarkup(page.items, {
+      activeId: activeConversation,
+      hasMore: page.has_more,
+    });
+    // The count says "shown", not "have". Printing a truncated length as though it were
+    // the total is the defect this page is fixing one line further down.
+    conversationsSummary.textContent = page.items.length
+      ? `Розмови · ${page.items.length}${page.has_more ? "+" : ""}`
       : "Розмови";
   } catch (error) {
     conversationsBody.innerHTML = `<p class="note">Перелік недоступний: ${escapeHtml(
@@ -461,17 +474,27 @@ function renderStoredMessage(message) {
 
 async function openConversation(id) {
   try {
-    const messages = await readConversation(id);
+    const page = await readConversation(id);
     activeConversation = id;
     result.innerHTML = "";
     result.classList.remove("hidden", "error");
-    if (!messages.length) {
+    if (!page.items.length) {
       const empty = document.createElement("p");
       empty.className = "note";
       empty.textContent = "Розмова порожня.";
       result.append(empty);
     }
-    for (const message of messages) result.append(renderStoredMessage(message));
+    // A transcript is read oldest-first, so a truncated one is missing its *end* — the
+    // most recent turns, which are the ones a reader came back for. Said before the turns
+    // rather than after them, where it would be below the fold.
+    if (page.has_more) {
+      const cut = document.createElement("p");
+      cut.className = "note truncated";
+      cut.textContent =
+        `Показано перші ${page.items.length} ходів цієї розмови. Пізніші не показані.`;
+      result.append(cut);
+    }
+    for (const message of page.items) result.append(renderStoredMessage(message));
     await refreshConversations();
     query.focus();
   } catch (error) {
@@ -484,6 +507,11 @@ conversationsBody?.addEventListener("click", event => {
   const open = event.target.closest("[data-conversation]");
   if (open) {
     void openConversation(open.dataset.conversation);
+    return;
+  }
+  if (event.target.closest('[data-more="conversations"]')) {
+    conversationsShown = Math.min(conversationsShown + CONVERSATION_PAGE, 200);
+    void refreshConversations();
     return;
   }
   const archive = event.target.closest("[data-archive]");

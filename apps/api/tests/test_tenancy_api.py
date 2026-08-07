@@ -105,14 +105,14 @@ def test_conversations_are_created_listed_and_archived(tenant_client: Any) -> No
     conversation_id = created.json()["id"]
 
     listed = tenant_client.get("/v1/conversations")
-    assert [item["id"] for item in listed.json()] == [conversation_id]
+    assert [item["id"] for item in listed.json()["items"]] == [conversation_id]
 
     archived = tenant_client.post(f"/v1/conversations/{conversation_id}/archive")
     assert archived.status_code == 200
     assert archived.json()["archived"] is True
-    assert tenant_client.get("/v1/conversations").json() == []
+    assert tenant_client.get("/v1/conversations").json()["items"] == []
     assert (
-        len(tenant_client.get("/v1/conversations?include_archived=true").json()) == 1
+        len(tenant_client.get("/v1/conversations?include_archived=true").json()["items"]) == 1
     )
     assert tenant_client.post(f"/v1/conversations/{conversation_id}/archive").status_code == 409
 
@@ -154,7 +154,7 @@ def test_a_question_inside_a_conversation_is_answered_and_recorded(
     assert response.status_code == 200, response.text
     answer = response.json()
 
-    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()
+    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()["items"]
     assert [message["role"] for message in stored] == ["user", "assistant"]
     assert stored[1]["answer_id"] == answer["id"]
 
@@ -196,7 +196,7 @@ def test_an_inactive_subscription_is_refused_before_retrieval_runs(
     assert response.json()["detail"]["reason"] == "no_active_subscription"
     assert calls == [], "retrieval ran before the subscription was checked"
     # And nothing was written into the history for a request that was refused.
-    assert tenant_client.get(f"/v1/conversations/{conversation_id}").json() == []
+    assert tenant_client.get(f"/v1/conversations/{conversation_id}").json()["items"] == []
 
 
 def test_the_entitlement_endpoint_says_whether_it_is_enforced(tenant_client: Any) -> None:
@@ -309,6 +309,29 @@ def test_the_transcript_carries_the_verdict_the_reader_was_shown(
     assert asked.status_code == 200, asked.text
     status = asked.json()["status"]
 
-    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()
+    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()["items"]
     assert stored[0]["answer_status"] is None, "a question is not a verdict"
     assert stored[1]["answer_status"] == status
+
+
+def test_the_list_endpoint_says_when_it_truncated(tenant_client: Any) -> None:
+    for index in range(4):
+        tenant_client.post("/v1/conversations", json={"title": f"розмова {index}"})
+
+    page = tenant_client.get("/v1/conversations?limit=2").json()
+    assert len(page["items"]) == 2
+    assert page["has_more"] is True
+    assert page["next_offset"] == 2
+
+    rest = tenant_client.get("/v1/conversations?limit=2&offset=2").json()
+    assert rest["has_more"] is False
+    assert rest["next_offset"] is None
+    assert not {item["id"] for item in page["items"]} & {item["id"] for item in rest["items"]}
+
+
+def test_the_page_bounds_are_enforced_by_the_contract(tenant_client: Any) -> None:
+    """A client asking for a million rows is a client that got one accepted once."""
+    assert tenant_client.get("/v1/conversations?limit=0").status_code == 422
+    assert tenant_client.get("/v1/conversations?limit=201").status_code == 422
+    assert tenant_client.get("/v1/conversations?offset=-1").status_code == 422
+    assert tenant_client.get("/v1/conversations?limit=200").status_code == 200

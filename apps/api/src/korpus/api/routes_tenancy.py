@@ -26,7 +26,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.concurrency import run_in_threadpool
 
@@ -180,6 +180,30 @@ class MessageView(BaseModel):
     created_at: str
 
 
+class ConversationPageView(BaseModel):
+    """A page of conversations, and whether it is the whole list.
+
+    An envelope rather than a bare array, which is what this returned until a reader with
+    more than fifty conversations would have seen fifty and been told nothing. A list
+    endpoint that cannot say "there is more" reports a truncation as a fact about the
+    account.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    items: list[ConversationView]
+    has_more: bool
+    next_offset: int | None
+
+
+class MessagePageView(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    items: list[MessageView]
+    has_more: bool
+    next_offset: int | None
+
+
 class CreateConversation(BaseModel):
     title: str | None = Field(default=None, max_length=200)
 
@@ -239,22 +263,28 @@ def read_account(
 # --------------------------------------------------------------- conversations
 
 
-@tenancy_router.get("/v1/conversations", response_model=list[ConversationView])
+@tenancy_router.get("/v1/conversations", response_model=ConversationPageView)
 def list_conversations(
     identity: IdentityDependency,
     service: AccountServiceDependency,
     conversations: ConversationServiceDependency,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
     # Keyword-only. A query parameter is bound by name here anyway; the annotation exists
     # so the architecture gate's rule — a boolean nobody can pass positionally — holds
     # uniformly rather than having an exception for routing functions.
     *,
     include_archived: bool = False,
-) -> list[ConversationView]:
+) -> ConversationPageView:
     account = account_for(service, identity)
-    return [
-        _conversation_view(item)
-        for item in conversations.list_conversations(account, include_archived=include_archived)
-    ]
+    page = conversations.list_conversations(
+        account, include_archived=include_archived, limit=limit, offset=offset
+    )
+    return ConversationPageView(
+        items=[_conversation_view(item) for item in page.items],
+        has_more=page.has_more,
+        next_offset=page.next_offset,
+    )
 
 
 @tenancy_router.post(
@@ -270,17 +300,23 @@ def create_conversation(
     return _conversation_view(conversations.create(account, body.title))
 
 
-@tenancy_router.get("/v1/conversations/{conversation_id}", response_model=list[MessageView])
+@tenancy_router.get("/v1/conversations/{conversation_id}", response_model=MessagePageView)
 def read_conversation(
     conversation_id: UUID,
     identity: IdentityDependency,
     service: AccountServiceDependency,
     conversations: ConversationServiceDependency,
-) -> list[MessageView]:
+    limit: Annotated[int, Query(ge=1, le=500)] = 200,
+    offset: Annotated[int, Query(ge=0, le=100_000)] = 0,
+) -> MessagePageView:
     account = account_for(service, identity)
     try:
-        stored = conversations.messages(account, conversation_id)
-        return [_message_view(message) for message in stored]
+        page = conversations.messages(account, conversation_id, limit=limit, offset=offset)
+        return MessagePageView(
+            items=[_message_view(message) for message in page.items],
+            has_more=page.has_more,
+            next_offset=page.next_offset,
+        )
     except ConversationNotFound as missing:
         # The same 404 whether it does not exist or belongs to somebody else. Telling an
         # unauthorized caller that the id is real is half of what enumeration needs.

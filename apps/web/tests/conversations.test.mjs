@@ -113,3 +113,23 @@ test("the list module names no account", async () => {
   assert.doesNotMatch(source, /account_id/);
   assert.doesNotMatch(source, /\bfetch\s*\(/);
 });
+
+
+test("a truncated list names the cut and offers the next page", () => {
+  const items = Array.from({length: 3}, (_, index) => ({
+    id: `c${index}`, title: `питання ${index}`, updated_at: "2026-08-07T11:30:00Z",
+  }));
+  const markup = conversationListMarkup(items, {now: AT, hasMore: true});
+  assert.match(markup, /Показано 3/);
+  assert.match(markup, /data-more="conversations"/);
+});
+
+test("a complete list says nothing about truncation", () => {
+  // The dual. A page that always claims there is more is as useless as one that never
+  // does — the reader learns to ignore the line either way.
+  const markup = conversationListMarkup(
+    [{id: "c1", title: "єдина", updated_at: "2026-08-07T11:30:00Z"}], {now: AT},
+  );
+  assert.doesNotMatch(markup, /Показати більше/);
+  assert.doesNotMatch(markup, /data-more/);
+});

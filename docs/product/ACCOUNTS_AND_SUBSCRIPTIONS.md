@@ -41,6 +41,7 @@
 | Розмови та повідомлення; власність — у самому SQL-запиті | `infrastructure/conversation_repository.py` |
 | Вердикт зберігається з відповіддю (`answer_status`) — відмова, прочитана з історії, лишається відмовою | `migrations/versions/0013_message_verdict.py` |
 | Веб-інтерфейс розмов: список, відновлення, архів, нова розмова | `apps/web/public/conversations.js`, `app.js` |
+| Пагінація зі `has_more`: жоден список не обривається мовчки | `conversation_repository.py`, `ConversationPageView` |
 | Відмова за неактивною підпискою **до** пошуку | `api/routes_tenancy.py::ask_within_conversation` |
 | `ModelEgressPolicy`: `external_allowed` / `local_only` / `model_disabled` | `application/egress.py` |
 | API: `/v1/account`, `/v1/plans`, `/v1/subscription`, `/v1/conversations*`, `/v1/billing/webhook` | `api/routes_tenancy.py`, `api/routes_billing.py` |
@@ -70,8 +71,10 @@
 | 12 названих класів загроз — кожен зі своїм тестом | `test_tenancy_threats.py` |
 | Збережений вердикт повертається клієнту й рендериться як вердикт | `test_conversations.py`, `test_tenancy_api.py`, `apps/web/tests/validate_gate.test.mjs` |
 | Заголовок, вік і екранування в списку розмов | `apps/web/tests/conversations.test.mjs` |
+| Обрізаний список називає обрив; повний — мовчить | `test_conversations.py::test_a_truncated_list_says_it_was_truncated`, `test_an_exact_page_does_not_claim_there_is_more` |
+| Перевірка ліміту читає 1 рядок, а не 500 | `test_conversations.py::test_the_message_limit_is_checked_without_reading_the_whole_conversation` |
 
-Мутаційний каталог: **221 мутант, 221 вбито** (`var/mutation-report.json`), з них 14 —
+Мутаційний каталог: **224 мутанти, 224 вбито** (`var/mutation-report.json`), з них 14 —
 ACT-001 (`M130`–`M143`). Два з них пережили перший прогін і показали справжні прогалини:
 `past_due` тестувався лише через `incomplete`, а `model_disabled` — лише проти
 вендорського URL. Обидві прогалини закриті тестами, а не переписуванням мутанта.

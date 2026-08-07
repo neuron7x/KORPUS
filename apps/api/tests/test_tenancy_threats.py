@@ -215,7 +215,7 @@ def test_t06_another_accounts_conversation_is_unreachable_by_id(tmp_path: Path) 
             with pytest.raises(ConversationNotFound):
                 call()
 
-        assert len(service.messages(owner, conversation.id)) == 1
+        assert len(service.messages(owner, conversation.id).items) == 1
         assert service.get(owner, conversation.id).archived_at is None
     finally:
         tenancy.close()
@@ -273,7 +273,7 @@ def test_t10_a_prior_answer_is_stored_as_an_answer_and_not_as_a_source(
         service.record_question(owner, conversation.id, "перше питання")
         service.record_answer(owner, conversation.id, "Перша відповідь.", uuid4())
 
-        stored = service.messages(owner, conversation.id)
+        stored = service.messages(owner, conversation.id).items
         assert stored[1].role is MessageRole.ASSISTANT
         # And the retrieval port has no method that could be handed a message.
         from korpus.application.ports import Retriever

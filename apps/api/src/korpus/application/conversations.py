@@ -21,6 +21,7 @@ passes it to a store method that has no overload without one.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -50,6 +51,30 @@ class ConversationLimitReached(RuntimeError):
     reason = "conversation_message_limit"
 
 
+@dataclass(frozen=True)
+class Page[T]:
+    """A slice, and whether it is the whole thing.
+
+    `has_more` exists because the alternative is silence, and silence is what this had:
+    the list stopped at fifty and said nothing, which a reader takes as fifty being all
+    there is. The corpus panel already names what it cut ("…і ще N"); this is the same
+    rule applied where it was missing.
+
+    No total. Counting every row an account owns to answer "is there more" is a second
+    scan for a question nobody asked — the reader wants to know whether to keep looking,
+    not the cardinality of their history.
+    """
+
+    items: list[T]
+    has_more: bool
+    offset: int
+    limit: int
+
+    @property
+    def next_offset(self) -> int | None:
+        return self.offset + len(self.items) if self.has_more else None
+
+
 class ConversationService:
     def __init__(self, store: ConversationStore) -> None:
         self._store = store
@@ -63,11 +88,17 @@ class ConversationService:
     # every `-> list[...]` annotation below it then refers to the method. mypy caught it;
     # at runtime it would have been a `TypeError` on the first annotation evaluated.
     def list_conversations(
-        self, account: AccountRecord, *, include_archived: bool = False, limit: int = 50
-    ) -> list[ConversationRecord]:
-        return self._store.list_conversations(
-            account.id, include_archived=include_archived, limit=limit
+        self,
+        account: AccountRecord,
+        *,
+        include_archived: bool = False,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> Page[ConversationRecord]:
+        items, has_more = self._store.list_conversations(
+            account.id, include_archived=include_archived, limit=limit, offset=offset
         )
+        return Page(items=items, has_more=has_more, offset=offset, limit=limit)
 
     def get(self, account: AccountRecord, conversation_id: UUID) -> ConversationRecord:
         conversation = self._store.get_conversation(account.id, conversation_id)
@@ -81,10 +112,18 @@ class ConversationService:
         return self._store.archive_conversation(account.id, conversation_id)
 
     def messages(
-        self, account: AccountRecord, conversation_id: UUID, *, limit: int = 200
-    ) -> list[MessageRecord]:
+        self,
+        account: AccountRecord,
+        conversation_id: UUID,
+        *,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> Page[MessageRecord]:
         self.get(account, conversation_id)
-        return self._store.list_messages(account.id, conversation_id, limit=limit)
+        items, has_more = self._store.list_messages(
+            account.id, conversation_id, limit=limit, offset=offset
+        )
+        return Page(items=items, has_more=has_more, offset=offset, limit=limit)
 
     def record_question(
         self, account: AccountRecord, conversation_id: UUID, text: str
@@ -139,10 +178,13 @@ class ConversationService:
         )
 
     def _require_room(self, account: AccountRecord, conversation_id: UUID) -> None:
-        existing = self._store.list_messages(
-            account.id, conversation_id, limit=MAX_MESSAGES_PER_CONVERSATION
+        # Asks for the last page rather than for all of them: the question is whether a
+        # row exists at the limit, and reading five hundred rows to answer it made every
+        # question in a long conversation cost the whole conversation.
+        existing, _more = self._store.list_messages(
+            account.id, conversation_id, limit=1, offset=MAX_MESSAGES_PER_CONVERSATION - 1
         )
-        if len(existing) >= MAX_MESSAGES_PER_CONVERSATION:
+        if existing:
             raise ConversationLimitReached(
                 f"conversation holds the maximum of {MAX_MESSAGES_PER_CONVERSATION} messages"
             )

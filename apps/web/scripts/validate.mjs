@@ -149,6 +149,16 @@ if (!/ПОТРІБНА ПІДПИСКА/.test(app)) {
 if (!/message\.answer_status/.test(app) || !/ВЕРДИКТ НЕ ЗАПИСАНО/.test(app)) {
   throw new Error("a stored refusal is rendered without its verdict");
 }
+// A truncated list says so. The corpus panel already names what it cut ("…і ще N"); the
+// conversation list stopped at fifty and said nothing, which a reader takes as fifty being
+// all they have. A transcript is worse: it is read oldest-first, so what a cut removes is
+// the most recent turns — the ones somebody came back for.
+if (!/page\.has_more/.test(app) || !/Показати більше/.test(await read("public/conversations.js"))) {
+  throw new Error("a truncated conversation list does not say it was truncated");
+}
+if (!/Пізніші не показані/.test(app)) {
+  throw new Error("a truncated transcript does not say its newest turns are missing");
+}
 // The client never names an account. A request that could would be a client choosing whose
 // history to read, which is the whole of a broken-object-level-authorization bug.
 if (/account_id/.test(app) || /account_id/.test(conversationsJs)) {

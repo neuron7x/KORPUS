@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "note": "A ratchet: these are today's measurements, and they may only be lowered. Growth fails the gate; a reduction is recorded here deliberately so it is visible in review instead of absorbed.",
-  "recorded_at": "2026-08-07",
+  "recorded_at": "2026-08-08",
   "modules": {
     "apps/api/src/korpus/__init__.py": {
       "lines": 1,
@@ -24,7 +24,7 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 396,
+      "lines": 432,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/__init__.py": {
@@ -71,7 +71,7 @@
       "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
     },
     "apps/api/src/korpus/application/conversations.py": {
-      "lines": 148,
+      "lines": 190,
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/deployment.py": {
@@ -199,7 +199,7 @@
       "max_complexity": 14
     },
     "apps/api/src/korpus/application/tenancy_ports.py": {
-      "lines": 246,
+      "lines": 258,
       "max_complexity": 1,
       "reason": "ACT-001: what the account, billing and conversation services need from storage, apart from the evidence ports"
     },
@@ -266,7 +266,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/infrastructure/conversation_repository.py": {
-      "lines": 196,
+      "lines": 228,
       "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/deterministic_billing.py": {
@@ -917,6 +917,62 @@
         "worst_function": "-"
       },
       "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 396,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 432,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      },
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns"
+    },
+    {
+      "path": "apps/api/src/korpus/application/conversations.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 148,
+        "max_complexity": 3
+      },
+      "to": {
+        "lines": 190,
+        "max_complexity": 3,
+        "worst_function": "record_question"
+      },
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns"
+    },
+    {
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 246,
+        "max_complexity": 1
+      },
+      "to": {
+        "lines": 258,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      },
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 196,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 228,
+        "max_complexity": 5,
+        "worst_function": "archive_conversation"
+      },
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns"
     }
   ],
   "line_exempt": {

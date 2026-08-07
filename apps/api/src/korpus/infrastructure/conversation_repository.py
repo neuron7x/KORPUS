@@ -67,19 +67,37 @@ class SqlConversationStore:
         return conversation
 
     def list_conversations(
-        self, account_id: UUID, *, include_archived: bool = False, limit: int = 50
-    ) -> list[ConversationRecord]:
+        self,
+        account_id: UUID,
+        *,
+        include_archived: bool = False,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[ConversationRecord], bool]:
+        """One page, and whether there is another.
+
+        Fetched as `limit + 1` rows and truncated here. The alternative — a second
+        `COUNT(*)` — answers a question nobody asked ("exactly how many") with a second
+        scan of every row the account owns, when the only thing a reader or a client needs
+        is whether the list they are looking at is the whole list.
+
+        Returning the flag at all is the point. Until now this silently stopped at fifty:
+        an account with a hundred conversations saw fifty and nothing said so, which reads
+        as an account with fifty conversations.
+        """
+        wanted = max(1, min(limit, 200))
         statement = (
             select(conversations)
             .where(conversations.c.account_id == str(account_id))
             .order_by(conversations.c.updated_at.desc(), conversations.c.id)
-            .limit(max(1, min(limit, 200)))
+            .limit(wanted + 1)
+            .offset(max(0, offset))
         )
         if not include_archived:
             statement = statement.where(conversations.c.archived_at.is_(None))
         with self.engine.connect() as connection:
             rows = connection.execute(statement).mappings().all()
-        return [_conversation(row) for row in rows]
+        return [_conversation(row) for row in rows[:wanted]], len(rows) > wanted
 
     def get_conversation(
         self, account_id: UUID, conversation_id: UUID
@@ -161,19 +179,33 @@ class SqlConversationStore:
         return message
 
     def list_messages(
-        self, account_id: UUID, conversation_id: UUID, *, limit: int = 200
-    ) -> list[MessageRecord]:
+        self,
+        account_id: UUID,
+        conversation_id: UUID,
+        *,
+        limit: int = 200,
+        offset: int = 0,
+    ) -> tuple[list[MessageRecord], bool]:
+        """One page of turns, oldest first, and whether there are more.
+
+        A conversation may hold five hundred turns and this returned two hundred of them
+        without saying so — so a reader scrolling their own transcript to check what they
+        had already ruled out would have been looking at a transcript that starts in the
+        middle of the shift.
+        """
+        wanted = max(1, min(limit, 500))
         statement = (
             select(messages)
             .join(conversations, messages.c.conversation_id == conversations.c.id)
             .where(messages.c.conversation_id == str(conversation_id))
             .where(conversations.c.account_id == str(account_id))
             .order_by(messages.c.created_at, messages.c.id)
-            .limit(max(1, min(limit, 500)))
+            .limit(wanted + 1)
+            .offset(max(0, offset))
         )
         with self.engine.connect() as connection:
             rows = connection.execute(statement).mappings().all()
-        return [_message(row) for row in rows]
+        return [_message(row) for row in rows[:wanted]], len(rows) > wanted
 
     def purge_account(self, account_id: UUID) -> int:
         """Erase one account's history. Used by the retention path, not by the API.
