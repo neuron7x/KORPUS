@@ -1,6 +1,6 @@
 {
   "schema": "korpus.assurance-snapshot.v1",
-  "release": "v5.0.0",
+  "release": "v6.1.0",
   "status": "PASS",
   "records": [
     {
@@ -45,8 +45,8 @@
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
-      "bytes": 1499,
-      "sha256": "d2d021d783e6244a54fbe9e418bb24a97cc73afc124e70fbf89fcbd50cb48a14"
+      "bytes": 1895,
+      "sha256": "b5cb3e05a23c063d5fe2873247350faa2762ae675f438b9fdfe1bb62ef0b6a15"
     },
     {
       "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
@@ -61,7 +61,7 @@
     {
       "path": "reports/KUBERNETES_VALIDATION.json",
       "bytes": 566,
-      "sha256": "9e9d0fdb5d02499808e4ceedfbf09a9e3a9c3b051d678e51a0b548642ffd1199"
+      "sha256": "5ab5afc373d36f2a5218e9f9359f9c16d7b7750c25a69a7dfb2d1c72941d59c7"
     }
   ],
   "limitations": [
