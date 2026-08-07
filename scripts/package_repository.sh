@@ -3,7 +3,11 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 version="${KORPUS_RELEASE_VERSION:-v5.0.0}"
-name="KORPUS_FINAL_ASSURANCE_${version}"
+# ACT-001 names the artefact `KORPUS_SYSTEM_<version>`; every release before it shipped as
+# `KORPUS_FINAL_ASSURANCE_<version>`. The stem is a variable rather than a rename so a
+# reader holding either name can still find what it refers to, and so the default keeps
+# working for anything that was pointed at the old one.
+name="${KORPUS_PACKAGE_NAME:-KORPUS_FINAL_ASSURANCE_${version}}"
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
