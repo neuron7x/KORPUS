@@ -130,7 +130,22 @@ chmod 700 "$second"
 cp -p "$final" "$manifest" "$second/"
 chmod 0444 "$second/$(basename "$final")" "$second/$(basename "$manifest")"
 
-find "$backup_dir" -maxdepth 1 -name 'korpus-*.tar.enc' -mtime "+$retention_days" -delete
-find "$backup_dir" -maxdepth 1 -name 'korpus-*.tar.enc.json' -mtime "+$retention_days" -delete
+# Age *and* count. Retention by age alone assumes backups arrive about daily; thirty
+# taken in one afternoon are all inside a fourteen-day window, and on 2026-08-07 that
+# filled a 289 GB disk to 84 KB free — which stops the next backup, and every drill, and
+# the tests. A retention policy that can fill the disk is not one.
+retain_count="${KORPUS_BACKUP_RETENTION_COUNT:-3}"
+prune() {
+  local directory="$1"
+  find "$directory" -maxdepth 1 -name 'korpus-*.tar.enc' -mtime "+$retention_days" -print0 \
+    | while IFS= read -r -d '' old; do chmod u+w "$old" "$old.json" 2>/dev/null || true
+        rm -f "$old" "$old.json"; done
+  # shellcheck disable=SC2012 - names are timestamped and contain no newlines
+  ls -t "$directory"/korpus-*.tar.enc 2>/dev/null | tail -n "+$((retain_count + 1))" \
+    | while IFS= read -r old; do chmod u+w "$old" "$old.json" 2>/dev/null || true
+        rm -f "$old" "$old.json"; done
+}
+prune "$backup_dir"
+prune "$second"
 
 printf '%s\n' "$final"
