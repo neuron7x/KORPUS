@@ -174,6 +174,9 @@ class MessageView(BaseModel):
     role: str
     text: str
     answer_id: UUID | None
+    #: The verdict the reader was shown. `null` for a turn stored before it was recorded,
+    #: which the interface renders as unrecorded rather than as an answer.
+    answer_status: str | None
     created_at: str
 
 
@@ -212,6 +215,7 @@ def _message_view(message: MessageRecord) -> MessageView:
         role=message.role.value,
         text=message.raw_text,
         answer_id=message.answer_id,
+        answer_status=message.answer_status,
         created_at=message.created_at.isoformat(),
     )
 
@@ -386,5 +390,7 @@ async def ask_within_conversation(
     observability.observe_answer(
         answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
     )
-    conversations.record_answer(account, conversation_id, answer.text, answer.id)
+    conversations.record_answer(
+        account, conversation_id, answer.text, answer.id, answer.status.value
+    )
     return answer

@@ -291,3 +291,24 @@ def test_the_openapi_document_describes_the_new_surface(tenant_client: Any) -> N
     # The webhook is excluded on purpose: it is not part of the client contract, and
     # publishing it invites a request from something that has no signature.
     assert "/v1/billing/webhook" not in spec["paths"]
+
+
+def test_the_transcript_carries_the_verdict_the_reader_was_shown(
+    tenant_client: Any,
+) -> None:
+    """End to end: a refusal read back is still a refusal.
+
+    Reproduces what a browser showed before the verdict was stored — the answer text alone,
+    which for a refusal reads as a paragraph indistinguishable from an answer.
+    """
+    conversation_id = tenant_client.post("/v1/conversations", json={}).json()["id"]
+    asked = tenant_client.post(
+        f"/v1/conversations/{conversation_id}/ask",
+        json={"text": "питання, на яке порожній корпус не має відповіді"},
+    )
+    assert asked.status_code == 200, asked.text
+    status = asked.json()["status"]
+
+    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()
+    assert stored[0]["answer_status"] is None, "a question is not a verdict"
+    assert stored[1]["answer_status"] == status

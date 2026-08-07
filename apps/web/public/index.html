@@ -113,6 +113,24 @@
       <button id="standing-edit" type="button" class="link">Змінити заявлені дані</button>
     </section>
 
+    <!-- A shift is a sequence of questions, and until ACT-001 the sequence died with the
+         tab. Collapsed by default and hidden entirely where the deployment serves no
+         account surface: a control that is visible and inert teaches the wrong thing about
+         what is being stored. -->
+    <details id="conversations" class="conversations" hidden>
+      <summary id="conversations-summary">Розмови</summary>
+      <div class="conversations-actions">
+        <button id="conversation-new" type="button" class="secondary">Нова розмова</button>
+      </div>
+      <div id="conversations-body" class="conversations-body" aria-live="polite">
+        <p class="note">Завантаження…</p>
+      </div>
+      <p class="note">
+        Історія — це контекст, не доказ. Попередня відповідь не надсилається разом із
+        наступним питанням: система не цитує саму себе.
+      </p>
+    </details>
+
     <section id="ask-section" class="ask-section" hidden aria-labelledby="ask-heading">
       <h2 id="ask-heading">Запит</h2>
       <form id="query-form" novalidate>

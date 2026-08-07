@@ -6,7 +6,7 @@ const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
 const read = (file) => readFile(asset(file), "utf8");
 
 const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs"];
-const SCRIPTS = ["public/api.js", "public/app.js", "public/console.js", "public/console_rules.js", "public/contract.js", "public/sw.js"];
+const SCRIPTS = ["public/api.js", "public/app.js", "public/conversations.js", "public/console.js", "public/console_rules.js", "public/contract.js", "public/sw.js"];
 const PAGES = ["public/index.html", "public/console.html"];
 const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/styles.css", "public/manifest.webmanifest", "public/config.js"];
 
@@ -59,7 +59,10 @@ if (!/\["GET", "HEAD", "OPTIONS"\]\.includes\(method\)/.test(api)) {
 const app = await read("public/app.js");
 const consoleJs = await read("public/console.js");
 const consoleRules = await read("public/console_rules.js");
-for (const [name, source] of [["app.js", app], ["console.js", consoleJs]]) {
+const conversationsJs = await read("public/conversations.js");
+for (const [name, source] of [
+  ["app.js", app], ["console.js", consoleJs], ["conversations.js", conversationsJs],
+]) {
   if (/\bfetch\s*\(/.test(source)) {
     throw new Error(`${name} calls fetch directly; every request must go through api.js`);
   }
@@ -77,7 +80,10 @@ for (const [name, source] of [["app.js", app], ["console.js", consoleJs]]) {
 // `f(localStorage)` and `const s = localStorage;`, the ways a reference is actually
 // taken.
 const PERSISTENT_STORAGE = /(localStorage|sessionStorage)\s*[.[;)=,]/;
-for (const file of ["public/api.js", "public/app.js", "public/console.js", "public/console_rules.js"]) {
+for (const file of [
+  "public/api.js", "public/app.js", "public/conversations.js",
+  "public/console.js", "public/console_rules.js",
+]) {
   if (PERSISTENT_STORAGE.test(await read(file))) {
     throw new Error(`persistent token storage detected in ${file}`);
   }
@@ -105,8 +111,48 @@ if (!/Система їх не перевіряє/.test(html)) {
 // pinned `query.value` verbatim and failed the moment the question was read into a
 // variable first — a rename it had no business having an opinion about, while a change
 // that actually dropped `declaration` would have been the same one line.
-if (!/body: \{\s*text:[^},]+,\s*declaration\s*\}/.test(app)) {
+// Matched on the object literal rather than on `body:`, after ACT-001 gave the question
+// two destinations — `/v1/answers` and `/v1/conversations/{id}/ask` — and the body became
+// a variable built once and sent to whichever applies. Pinning the call site again would
+// mean re-editing this line every time a third destination appears, which is how a gate
+// ends up describing the code instead of the rule.
+if (!/\{\s*text:[^{}]*,\s*declaration\s*\}/.test(app)) {
   throw new Error("the declaration no longer travels with the query");
+}
+
+// ---------------------------------------------------------------- conversations
+//
+// History is context, never a source. The surface has to keep saying so, because the one
+// thing an interface can do that the API cannot prevent is prepend the transcript to the
+// next question — and the result is a system citing itself with a citation list that looks
+// complete.
+if (!/Історія — це контекст, не доказ/.test(html)) {
+  throw new Error("the conversation panel no longer says history is not evidence");
+}
+if (/askIn\([^)]*transcript|messages\s*\.\s*map[^;]*body/.test(app)) {
+  throw new Error("the transcript is being sent with a question");
+}
+// A stored turn is marked as stored. Rendering history identically to a live answer claims
+// citation cards that are not being shown.
+if (!/"turn stored"/.test(app) || !/\.turn\.stored \{/.test(await read("public/styles.css"))) {
+  throw new Error("a turn read back from storage is indistinguishable from a live answer");
+}
+// 402 is not a statement about the corpus. Rendering it as ПІДСТАВИ НЕМАЄ tells a reader
+// the manuals are silent on a question they were simply not shown.
+if (!/ПОТРІБНА ПІДПИСКА/.test(app)) {
+  throw new Error("a payment refusal is rendered as an evidence refusal");
+}
+// A refusal read back from history is still a refusal. Found in a browser: the stored turn
+// rendered as a paragraph of prose identical in shape to an answer, so a reader skimming
+// their own transcript would have counted "недостатньо доказів" as something the corpus
+// said. The verdict now travels with the message and is rendered as a verdict.
+if (!/message\.answer_status/.test(app) || !/ВЕРДИКТ НЕ ЗАПИСАНО/.test(app)) {
+  throw new Error("a stored refusal is rendered without its verdict");
+}
+// The client never names an account. A request that could would be a client choosing whose
+// history to read, which is the whole of a broken-object-level-authorization bug.
+if (/account_id/.test(app) || /account_id/.test(conversationsJs)) {
+  throw new Error("the browser names an account; ownership is the server's to decide");
 }
 // Error summary above the form, focusable, linking to the field (WCAG 2.2 §3.3.1,
 // USWDS pattern). A message only beside the input is missed by a screen reader that has

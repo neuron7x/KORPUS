@@ -714,3 +714,84 @@ input:focus-visible, textarea:focus-visible { border-color: var(--accent); }
   text-transform: uppercase;
   color: var(--muted-2);
 }
+
+/* --- Розмови -------------------------------------------------------------- */
+/* The same shape as the corpus panel on purpose: both are collapsed lists of facts about
+   what the system holds, and giving them two visual languages would make a reader learn
+   the page twice. */
+.conversations {
+  border: 1px solid var(--line, #2a2c26);
+  border-left: 3px solid var(--line, #2a2c26);
+  background: transparent;
+  margin-top: 1.5rem;
+}
+.conversations > summary {
+  cursor: pointer;
+  padding: 0.85rem 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+  min-height: 44px;               /* WCAG 2.2 §2.5.8 */
+  display: flex;
+  align-items: center;
+}
+.conversations > summary:focus-visible {
+  outline: 2px solid var(--accent, #b8c34a);
+  outline-offset: 2px;
+}
+.conversations-actions { padding: 0 1rem; }
+.conversations-body { padding: 0.5rem 1rem 0; }
+.conversations .note { padding: 0 1rem 1rem; }
+.conversation-list { list-style: none; margin: 0; padding: 0; }
+.conversation-list li {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line, #2a2c26);
+}
+.conversation-list li:first-child { border-top: 0; }
+/* The row is a button, not a link with a click handler: it changes what this page shows
+   and navigates nowhere, and a link that does not navigate breaks middle-click, "open in
+   new tab" and every expectation a screen-reader user has of the role. */
+.conversation-open {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.6rem 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.conversation-open:focus-visible {
+  outline: 2px solid var(--accent, #b8c34a);
+  outline-offset: 2px;
+}
+.conversation-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.conversation-when {
+  font-size: 0.8rem;
+  opacity: 0.72;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.conversation-list li.current .conversation-title { font-weight: 600; }
+.conversation-list li.current { border-left: 2px solid var(--accent, #b8c34a); padding-left: 0.5rem; }
+.conversation-archive { min-height: 44px; align-self: center; font-size: 0.78rem; }
+/* A turn read back from storage is marked as such: its citation cards are not re-rendered
+   here, and an interface that made history look identical to a live answer would be
+   claiming evidence it is not showing. */
+.turn.stored { opacity: 0.94; border-left: 2px dashed var(--line, #2a2c26); padding-left: 0.75rem; }
+
+@media (max-width: 480px) {
+  .conversation-open { flex-direction: column; align-items: flex-start; gap: 0.15rem; }
+}

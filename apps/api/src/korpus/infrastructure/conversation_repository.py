@@ -40,6 +40,7 @@ def _message(row: Any) -> MessageRecord:
         role=MessageRole(row["role"]),
         raw_text=row["raw_text"],
         answer_id=UUID(row["answer_id"]) if row["answer_id"] else None,
+        answer_status=row["answer_status"],
         created_at=aware(row["created_at"]),
     )
 
@@ -148,6 +149,7 @@ class SqlConversationStore:
                     role=message.role.value,
                     raw_text=message.raw_text,
                     answer_id=str(message.answer_id) if message.answer_id else None,
+                    answer_status=message.answer_status,
                     created_at=message.created_at,
                 )
             )

@@ -245,6 +245,10 @@ class MessageRecord(BaseModel):
     #: its citations live in the answer path, and duplicating them here would create a
     #: second version of what the system said that nothing keeps in step.
     answer_id: UUID | None = None
+    #: `answered`, `insufficient_evidence`, `access_denied`, `requires_human_review` — the
+    #: verdict at the moment it was given. `None` for a message written before the column
+    #: existed, which renders as "verdict not recorded" rather than as an answer.
+    answer_status: str | None = Field(default=None, max_length=32)
     created_at: datetime = Field(default_factory=_now)
 
 

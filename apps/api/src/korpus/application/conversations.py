@@ -111,6 +111,7 @@ class ConversationService:
         conversation_id: UUID,
         text: str,
         answer_id: UUID | None,
+        status: str | None = None,
     ) -> MessageRecord:
         """Store what the system said, marked as the system having said it.
 
@@ -118,6 +119,12 @@ class ConversationService:
         evidence. Stored as a pointer rather than a copy so there is exactly one version of
         what was cited; a copy here would drift from the audit chain and there would be no
         way to tell which one a reader had seen.
+
+        `status` is the exception to that, and it is one on purpose. The citations can be
+        checked against the corpus at any time; the verdict cannot be recomputed — the
+        corpus moves, the calibration moves, and the same question tomorrow may be refused.
+        Without it a transcript renders a refusal as though it were an answer, which is the
+        one distinction this interface exists to keep.
         """
         return self._store.append_message(
             account.id,
@@ -126,6 +133,7 @@ class ConversationService:
                 role=MessageRole.ASSISTANT,
                 raw_text=text.strip()[:20_000] or "(відмова)",
                 answer_id=answer_id,
+                answer_status=status,
                 created_at=datetime.now(UTC),
             ),
         )

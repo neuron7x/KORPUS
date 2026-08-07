@@ -985,8 +985,8 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
+        'SCHEMA_REVISION = "0013_message_verdict"',
         'SCHEMA_REVISION = "0012_tenancy"',
-        'SCHEMA_REVISION = "0011_audit_key_id"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
         ),

@@ -231,3 +231,49 @@ def test_purging_an_account_removes_its_history_and_nobody_elses(tmp_path: Path)
         assert len(service.messages(stranger, theirs.id)) == 1
     finally:
         tenancy.close()
+
+
+def test_a_stored_answer_remembers_whether_it_was_one(tmp_path: Path) -> None:
+    """Found by reading a transcript in a browser, not by a test.
+
+    History rendered a refusal — "недостатньо доказів" — in the same shape as an answer,
+    because the verdict was never stored. The citations can be checked against the corpus
+    at any time; the verdict cannot be recomputed, since the corpus moves and the same
+    question tomorrow may be answered.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        service = tenancy.conversation_service
+        conversation = service.create(owner)
+
+        service.record_question(owner, conversation.id, "перше")
+        service.record_answer(owner, conversation.id, "Витяг.", uuid4(), "answered")
+        service.record_question(owner, conversation.id, "друге")
+        service.record_answer(
+            owner, conversation.id, "Недостатньо доказів.", uuid4(), "insufficient_evidence"
+        )
+
+        stored = service.messages(owner, conversation.id)
+        assert [message.answer_status for message in stored] == [
+            None, "answered", None, "insufficient_evidence",
+        ]
+    finally:
+        tenancy.close()
+
+
+def test_a_turn_stored_before_the_verdict_existed_reports_it_as_unrecorded(
+    tmp_path: Path,
+) -> None:
+    """`None`, not `answered`. Assuming is the failure being fixed."""
+    tenancy = build_tenancy(tmp_path)
+    try:
+        owner, _stranger = _two_accounts(tenancy)
+        conversation = tenancy.conversation_service.create(owner)
+        tenancy.conversation_service.record_answer(
+            owner, conversation.id, "Стара відповідь.", None
+        )
+        stored = tenancy.conversation_service.messages(owner, conversation.id)
+        assert stored[0].answer_status is None
+    finally:
+        tenancy.close()

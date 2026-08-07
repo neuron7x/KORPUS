@@ -16,6 +16,10 @@
 import {
   ApiRefusal, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
 } from "./api.js";
+import {
+  archiveConversation, askIn, conversationListMarkup, createConversation,
+  listConversations, readConversation, tenancyAvailable, titleFrom,
+} from "./conversations.js";
 
 const $ = id => document.getElementById(id);
 
@@ -163,6 +167,7 @@ function enterWorkingState() {
   askSection.hidden = false;
   corpus.hidden = false;
   query.focus();
+  void startConversations();
 }
 
 declarationForm.addEventListener("submit", event => {
@@ -287,12 +292,17 @@ async function ask() {
   pending.textContent = "Перевіряю корпус…";
   result.append(pending);
   try {
-    const answer = await call("/v1/answers", {
-      method: "POST",
-      body: {text: question, declaration},
-    });
+    // The same body either way. Inside a conversation the server records the question and
+    // the answer; the transcript is never sent back with the next one, so nothing the
+    // system said can become the evidence for what it says next.
+    const body = {text: question, declaration};
+    const conversation = await conversationForQuestion(question);
+    const answer = conversation
+      ? await askIn(conversation, body)
+      : await call("/v1/answers", {method: "POST", body});
     pending.remove();
     render(answer, question);
+    void refreshConversations();
     // Cleared only on success: a question that failed is still in the box, so the
     // reader retries rather than retypes.
     query.value = "";
@@ -300,15 +310,32 @@ async function ask() {
     pending.remove();
     // The API answers a withheld question with a reason. Collapsing it to a status code
     // discards the only part the reader can act on.
+    const refusal = error instanceof ApiRefusal ? error : null;
+    // 402 is not a refusal about the corpus and must not read like one. "ПІДСТАВИ НЕМАЄ"
+    // tells a reader the manuals are silent on their question; a lapsed subscription tells
+    // them nothing about the manuals at all, and confusing the two sends somebody away
+    // from a rule that exists.
+    const paywalled = refusal?.status === 402;
+    const heading = paywalled
+      ? "ПОТРІБНА ПІДПИСКА"
+      : refusal ? `ВІДМОВА ${refusal.status}` : "ПОМИЛКА";
+    const detail = refusal?.payload?.detail;
+    const reason = typeof detail === "object" && detail !== null
+      ? String(detail.detail ?? detail.reason ?? refusal.reason)
+      : refusal?.reason ?? "Невідома помилка";
     const block = document.createElement("article");
     block.className = "turn";
     block.innerHTML =
       `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
         escapeHtml(question)}</p>` +
-      `<div class="verdict denied"><span class="verdict-mark" aria-hidden="true"></span>` +
-      `<h2>${escapeHtml(error instanceof ApiRefusal ? `ВІДМОВА ${error.status}` : "ПОМИЛКА")}</h2></div>` +
-      `<p class="answer-text">${escapeHtml(
-        error instanceof ApiRefusal ? error.reason : "Невідома помилка")}</p>`;
+      `<div class="verdict ${paywalled ? "withheld" : "denied"}">` +
+      `<span class="verdict-mark" aria-hidden="true"></span>` +
+      `<h2>${escapeHtml(heading)}</h2></div>` +
+      `<p class="answer-text">${escapeHtml(reason)}</p>` +
+      (paywalled
+        ? `<p class="note">Це не відповідь про корпус: про наявність чи відсутність
+           підстави нічого не сказано. Доступ до цього розділу не оплачено.</p>`
+        : "");
     result.append(block);
     block.scrollIntoView({block: "nearest", behavior: "smooth"});
   } finally {
@@ -333,6 +360,154 @@ query.addEventListener("keydown", event => {
     event.preventDefault();
     queryForm.requestSubmit();
   }
+});
+
+// ---------------------------------------------------------------- conversations
+//
+// A shift is a sequence of questions, and until now the sequence died with the tab. What
+// is stored is the question and what the system answered — never as a source for the next
+// answer: `ask` sends the question alone, and the server's own rule is that a stored
+// assistant turn is a sentence the system wrote, not evidence.
+//
+// Off on the public edge, where one read-only identity is attached to every visitor: a
+// conversation there would be a shared notebook.
+
+const conversations = $("conversations");
+const conversationsBody = $("conversations-body");
+const conversationsSummary = $("conversations-summary");
+let conversationsEnabled = false;
+let activeConversation = null;
+
+async function startConversations() {
+  if (publicMode || !conversations) return;
+  try {
+    conversationsEnabled = await tenancyAvailable();
+  } catch {
+    // 401/403: this reader's own problem, and the entry screen already says so. The
+    // panel stays hidden rather than showing a list nobody can load.
+    conversationsEnabled = false;
+  }
+  if (!conversationsEnabled) return;
+  conversations.hidden = false;
+  await refreshConversations();
+}
+
+async function refreshConversations() {
+  if (!conversationsEnabled) return;
+  try {
+    const items = await listConversations();
+    conversationsBody.innerHTML = conversationListMarkup(items, {activeId: activeConversation});
+    conversationsSummary.textContent = items.length
+      ? `Розмови · ${items.length}`
+      : "Розмови";
+  } catch (error) {
+    conversationsBody.innerHTML = `<p class="note">Перелік недоступний: ${escapeHtml(
+      error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
+  }
+}
+
+/**
+ * The conversation this question belongs to, creating one on the first question.
+ *
+ * Lazy on purpose: opening the page should not create a row. A reader who arrives, reads
+ * the corpus listing and leaves has had no conversation, and a list full of empty ones is
+ * a list nobody scrolls.
+ */
+async function conversationForQuestion(question) {
+  if (!conversationsEnabled) return null;
+  if (activeConversation) return activeConversation;
+  try {
+    const created = await createConversation(titleFrom(question));
+    activeConversation = created.id;
+    return activeConversation;
+  } catch {
+    // A conversation is a convenience. Losing it must not lose the answer, so the
+    // question falls through to the stateless path rather than failing.
+    return null;
+  }
+}
+
+// A stored turn carries what was said, not the citation cards: those are rendered from the
+// answer that produced them, and the answer lives in the audit chain rather than in the
+// history. Said here rather than implied by their absence.
+//
+// The verdict is rendered as a verdict. Reading a transcript back in a browser was how the
+// gap was found: a refusal — "У чинному перевіреному корпусі недостатньо доказів" — came
+// back as a paragraph of prose, identical in shape to an answer, while live it carries
+// ПІДСТАВИ НЕМАЄ above it. A reader skimming their own history would have counted it as
+// something the corpus said.
+function renderStoredMessage(message) {
+  const block = document.createElement("article");
+  block.className = "turn stored";
+  if (message.role === "user") {
+    block.innerHTML =
+      `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
+        escapeHtml(message.text)}</p>`;
+    return block;
+  }
+  // `null` for a turn stored before the verdict was recorded. Reported as unrecorded
+  // rather than assumed to be an answer: assuming is the failure being fixed.
+  const [verdict, tone] = message.answer_status
+    ? VERDICT[message.answer_status] ?? ["ВІДМОВА", "withheld"]
+    : ["ВЕРДИКТ НЕ ЗАПИСАНО", "withheld"];
+  block.innerHTML =
+    `<div class="verdict ${tone}"><span class="verdict-mark" aria-hidden="true"></span>` +
+    `<h2>${escapeHtml(verdict)}</h2></div>` +
+    `<p class="answer-text">${escapeHtml(message.text).replaceAll("\n", "<br>")}</p>` +
+    `<p class="note">З історії. Текст відповіді збережено дослівно; картки цитат із
+     хешами належать тому запиту й лишаються в журналі аудиту.</p>`;
+  return block;
+}
+
+async function openConversation(id) {
+  try {
+    const messages = await readConversation(id);
+    activeConversation = id;
+    result.innerHTML = "";
+    result.classList.remove("hidden", "error");
+    if (!messages.length) {
+      const empty = document.createElement("p");
+      empty.className = "note";
+      empty.textContent = "Розмова порожня.";
+      result.append(empty);
+    }
+    for (const message of messages) result.append(renderStoredMessage(message));
+    await refreshConversations();
+    query.focus();
+  } catch (error) {
+    conversationsBody.innerHTML = `<p class="note">Не відкрито: ${escapeHtml(
+      error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
+  }
+}
+
+conversationsBody?.addEventListener("click", event => {
+  const open = event.target.closest("[data-conversation]");
+  if (open) {
+    void openConversation(open.dataset.conversation);
+    return;
+  }
+  const archive = event.target.closest("[data-archive]");
+  if (!archive) return;
+  const id = archive.dataset.archive;
+  archiveConversation(id)
+    .then(() => {
+      if (activeConversation === id) activeConversation = null;
+      return refreshConversations();
+    })
+    .catch(error => {
+      conversationsBody.innerHTML = `<p class="note">Не архівовано: ${escapeHtml(
+        error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
+    });
+});
+
+$("conversation-new")?.addEventListener("click", () => {
+  // Nothing is created here. The next question creates the row, so a reader who clicks
+  // this and walks away leaves no empty conversation behind.
+  activeConversation = null;
+  result.innerHTML = "";
+  result.classList.add("hidden");
+  void refreshConversations();
+  query.focus();
 });
 
 

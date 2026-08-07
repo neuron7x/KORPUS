@@ -24,9 +24,8 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 390,
-      "max_complexity": 8,
-      "reason": "ACT-001: account and conversation endpoints and the seams routes_billing shares"
+      "lines": 396,
+      "max_complexity": 8
     },
     "apps/api/src/korpus/application/__init__.py": {
       "lines": 0,
@@ -72,7 +71,7 @@
       "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
     },
     "apps/api/src/korpus/application/conversations.py": {
-      "lines": 140,
+      "lines": 148,
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/deployment.py": {
@@ -242,9 +241,8 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/domain/tenancy.py": {
-      "lines": 271,
-      "max_complexity": 5,
-      "reason": "ACT-001: the account/subscription/conversation records and the transition table, kept apart from the corpus domain"
+      "lines": 275,
+      "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
       "lines": 0,
@@ -268,7 +266,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/infrastructure/conversation_repository.py": {
-      "lines": 194,
+      "lines": 196,
       "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/deterministic_billing.py": {
@@ -327,7 +325,7 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/infrastructure/tenancy_schema.py": {
-      "lines": 199,
+      "lines": 203,
       "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
@@ -849,6 +847,76 @@
         "worst_function": "read_secret"
       },
       "reason": "ACT-001: six tenancy tables in the read-write grant list"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 390,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 396,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      },
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+    },
+    {
+      "path": "apps/api/src/korpus/application/conversations.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 140,
+        "max_complexity": 3
+      },
+      "to": {
+        "lines": 148,
+        "max_complexity": 3,
+        "worst_function": "record_question"
+      },
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+    },
+    {
+      "path": "apps/api/src/korpus/domain/tenancy.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 271,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 275,
+        "max_complexity": 5,
+        "worst_function": "active_at"
+      },
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 194,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 196,
+        "max_complexity": 5,
+        "worst_function": "archive_conversation"
+      },
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
+      "on": "2026-08-07",
+      "from": {
+        "lines": 199,
+        "max_complexity": 0
+      },
+      "to": {
+        "lines": 203,
+        "max_complexity": 0,
+        "worst_function": "-"
+      },
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     }
   ],
   "line_exempt": {

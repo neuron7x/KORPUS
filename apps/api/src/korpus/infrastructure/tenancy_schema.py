@@ -192,6 +192,10 @@ messages = Table(
     # duplicating them here would create a second version of what the system said that
     # nothing keeps in step.
     Column("answer_id", String(36)),
+    # The verdict as the reader saw it. Not recomputable later — the corpus moves, the
+    # calibration moves, and the same question tomorrow may be refused — so a transcript
+    # without it renders a refusal as though it were an answer.
+    Column("answer_status", String(32)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     CheckConstraint("role IN ('user', 'assistant')", name="ck_message_role"),
 )

@@ -39,6 +39,8 @@
 | HMAC-верифікація вебхука над **сирими байтами** | `infrastructure/deterministic_billing.py` |
 | Проєкція entitlement (перетин, не об'єднання) | `application/paid_access.py` |
 | Розмови та повідомлення; власність — у самому SQL-запиті | `infrastructure/conversation_repository.py` |
+| Вердикт зберігається з відповіддю (`answer_status`) — відмова, прочитана з історії, лишається відмовою | `migrations/versions/0013_message_verdict.py` |
+| Веб-інтерфейс розмов: список, відновлення, архів, нова розмова | `apps/web/public/conversations.js`, `app.js` |
 | Відмова за неактивною підпискою **до** пошуку | `api/routes_tenancy.py::ask_within_conversation` |
 | `ModelEgressPolicy`: `external_allowed` / `local_only` / `model_disabled` | `application/egress.py` |
 | API: `/v1/account`, `/v1/plans`, `/v1/subscription`, `/v1/conversations*`, `/v1/billing/webhook` | `api/routes_tenancy.py`, `api/routes_billing.py` |
@@ -66,6 +68,8 @@
 | Міграція з `0011` зберігає корпус; downgrade працює | `test_tenancy_migration.py` |
 | Аудит не містить тіла вебхука, e-mail, секрету | `test_tenancy_audit_events.py::test_no_audit_payload_carries_a_secret_*` |
 | 12 названих класів загроз — кожен зі своїм тестом | `test_tenancy_threats.py` |
+| Збережений вердикт повертається клієнту й рендериться як вердикт | `test_conversations.py`, `test_tenancy_api.py`, `apps/web/tests/validate_gate.test.mjs` |
+| Заголовок, вік і екранування в списку розмов | `apps/web/tests/conversations.test.mjs` |
 
 Мутаційний каталог: **221 мутант, 221 вбито** (`var/mutation-report.json`), з них 14 —
 ACT-001 (`M130`–`M143`). Два з них пережили перший прогін і показали справжні прогалини:
@@ -102,6 +106,11 @@ ACT-001 (`M130`–`M143`). Два з них пережили перший про
   не можна просто прибрати, і хто це вирішує, ще не визначено.
 * **Кеш entitlement.** Проєкція рахується щоразу. Кешоване право — це рішення, ухвалене в
   момент, який минув.
+* **Картки цитат в історії.** Збережений хід несе текст відповіді дослівно й вердикт, але
+  не картки цитат із хешами: вони належать тій відповіді й лишаються в журналі аудиту.
+  Інтерфейс каже це прямо, а не лишає читача здогадуватися з їхньої відсутності.
+* **Розмови на публічному краї.** Вимкнені: там одна read-only особа на всіх відвідувачів,
+  тож розмова була б спільним зошитом.
 
 ---
 

@@ -268,9 +268,23 @@ test("styling a declared attribute like a verified one is caught", async () => {
 test("dropping the declaration from the query is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/app.js", source =>
-      source.replace("body: {text: question, declaration}", "body: {text: question}")));
+      source.replace("const body = {text: question, declaration};",
+                     "const body = {text: question};")));
   assert.notEqual(status, 0);
   assert.match(output, /no longer travels with the query/);
+});
+
+test("the negative control above still edits something", async () => {
+  // The control failed silently once already: it replaced a literal that ACT-001 had
+  // rewritten, so the mutation was a no-op and the gate passed for the right reason
+  // against the wrong tree. A control whose edit does nothing is a control that passes
+  // for ever.
+  const {readFile} = await import("node:fs/promises");
+  const source = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
+  assert.ok(
+    source.includes("const body = {text: question, declaration};"),
+    "the declaration-drop control no longer names anything in app.js",
+  );
 });
 
 test("renaming the question variable is not caught", async () => {
@@ -279,7 +293,8 @@ test("renaming the question variable is not caught", async () => {
   // into a variable before posting it failed a check that guards something else.
   const {status} = await runWith(edit =>
     edit("public/app.js", source =>
-      source.replace("body: {text: question, declaration}", "body: {text: asked, declaration}")
+      source.replace("const body = {text: question, declaration};",
+                     "const body = {text: asked, declaration};")
             .replace("const question = query.value.trim();", "const asked = query.value.trim();")
             .replaceAll("render(answer, question);", "render(answer, asked);")
             .replaceAll("escapeHtml(question)}", "escapeHtml(asked)}")));
@@ -327,4 +342,71 @@ test("reading the first :root instead of the last is caught", async () => {
     edit("public/styles.css", source =>
       source.replace("  --muted-2: #8a929a;", "  --muted-2: #6d7365;")));
   assert.equal(status, 0);
+});
+
+// ---------------------------------------------------------------- ACT-001 controls
+//
+// Four checks arrived with the conversation surface. Each is inert until something proves
+// it can fail, and the one that would matter most — a transcript being sent back as
+// evidence — is exactly the kind of change that looks like an improvement in review.
+
+test("removing the sentence that history is not evidence is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/index.html", source =>
+      source.replace("Історія — це контекст, не доказ.", "Історія розмов.")));
+  assert.notEqual(status, 0);
+  assert.match(output, /no longer says history is not evidence/);
+});
+
+test("rendering a stored turn like a live one is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace('block.className = "turn stored";', 'block.className = "turn";')));
+  assert.notEqual(status, 0);
+  assert.match(output, /indistinguishable from a live answer/);
+});
+
+test("dropping the stored-turn styling is caught even when the class stays", async () => {
+  // The class alone changes nothing a reader can see. Both halves are the control.
+  const {status, output} = await runWith(edit =>
+    edit("public/styles.css", source =>
+      source.replace(".turn.stored {", ".turn.was-stored {")));
+  assert.notEqual(status, 0);
+  assert.match(output, /indistinguishable from a live answer/);
+});
+
+test("rendering a payment refusal as an evidence refusal is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace('"ПОТРІБНА ПІДПИСКА"', '"ПІДСТАВИ НЕМАЄ"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /payment refusal is rendered as an evidence refusal/);
+});
+
+test("a browser that names an account is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/conversations.js", source =>
+      `${source}\nexport const forAccount = account_id => account_id;\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /names an account/);
+});
+
+test("a fetch call added to the conversation module is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/conversations.js", source =>
+      `${source}\nexport const sneak = () => fetch("/v1/conversations");\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /calls fetch directly/);
+});
+
+test("a stored refusal rendered without its verdict is caught", async () => {
+  // The defect this control exists for was found by reading a transcript in a browser,
+  // not by a test: history rendered "недостатньо доказів" in the same shape as an answer.
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace("? VERDICT[message.answer_status] ?? [\"ВІДМОВА\", \"withheld\"]",
+                     "? [\"\", \"withheld\"]")
+            .replace('["ВЕРДИКТ НЕ ЗАПИСАНО", "withheld"]', '["", "withheld"]')));
+  assert.notEqual(status, 0);
+  assert.match(output, /stored refusal is rendered without its verdict/);
 });
