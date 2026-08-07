@@ -33,12 +33,14 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 
+from korpus.application.keyring import LEGACY_KEY_ID
+
 #: The alembic head this code expects. `initialize(create_schema=False)` — the
 #: production path — refuses to start on anything else. It is pinned by
 #: test_schema_revision_pin.py against the migration graph, because it drifted once:
 #: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
 #: refused to start while every SQLite test stayed green.
-SCHEMA_REVISION = "0010_revision_identity"
+SCHEMA_REVISION = "0011_audit_key_id"
 
 metadata = MetaData()
 
@@ -198,6 +200,10 @@ audits = Table(
     Column("payload_json", Text, nullable=False),
     Column("previous_hash", String(64), nullable=False),
     Column("event_hash", String(64), nullable=False),
+    # Which key signed this. Without it, rotating the audit key invalidates every event
+    # ever written, because the verifier recomputes each HMAC with whatever key the
+    # process is holding. See korpus.application.keyring.
+    Column("audit_key_id", String(64), nullable=False, server_default=LEGACY_KEY_ID),
 )
 
 audit_anchor_outbox = Table(

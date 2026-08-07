@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
 import re
 import threading
@@ -29,6 +28,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
+from korpus.application.keyring import AuditKeyRing
 from korpus.application.policy import PolicyEngine
 from korpus.application.trace import current_trace_id
 from korpus.domain.models import (
@@ -102,6 +102,10 @@ class SqlRepository:
         connect_timeout_seconds: int = 5,
         statement_timeout_ms: int = 30_000,
         lock_timeout_ms: int = 5_000,
+        # Last, and only ever passed by name. Inserting it beside `audit_hmac_key` shifted
+        # every positional argument after it, and `FileAuditAnchorStore` was handed
+        # another `FileAuditAnchorStore` as its path.
+        audit_keyring: AuditKeyRing | None = None,
     ) -> None:
         engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         if database_url.startswith("sqlite"):
@@ -130,6 +134,10 @@ class SqlRepository:
         if database_url.startswith("sqlite"):
             event.listen(self.engine, "connect", self._configure_sqlite)
         self.audit_key = audit_hmac_key.encode("utf-8")
+        #: One key until an operator rotates. `AuditKeyRing.single` names it
+        #: `legacy-unversioned`, which is what the migration wrote into every existing
+        #: row, so a rotation does not orphan the history.
+        self.audit_keyring = audit_keyring or AuditKeyRing.single(self.audit_key)
         self.policy = policy or PolicyEngine()
         anchor_path = audit_anchor_path or Path("./var/audit-anchor.json")
         self.anchor_store: AuditAnchorStore = audit_anchor_store or FileAuditAnchorStore(
@@ -143,6 +151,7 @@ class SqlRepository:
         self._audit_reader = AuditReader(
             self.engine,
             self.audit_key,
+            self.audit_keyring,
             self.anchor_store,
             self._apply_postgres_identity,
             audits,
@@ -1025,7 +1034,7 @@ class SqlRepository:
             payload_json=payload_json,
             previous_hash=previous_hash,
         )
-        event_hash = hmac.new(self.audit_key, canonical, hashlib.sha256).hexdigest()
+        audit_key_id, event_hash = self.audit_keyring.sign(canonical)
         head_result = connection.execute(
             update(audit_heads)
             .where(audit_heads.c.singleton_id == 1)
@@ -1048,6 +1057,7 @@ class SqlRepository:
                 payload_json=payload_json,
                 previous_hash=previous_hash,
                 event_hash=event_hash,
+                audit_key_id=audit_key_id,
             )
         )
         connection.execute(

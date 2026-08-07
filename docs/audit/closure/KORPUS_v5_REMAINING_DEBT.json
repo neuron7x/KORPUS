@@ -4,8 +4,8 @@
   "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
   "total_remaining": 75,
   "counts": {
-    "EXTERNAL_DEBT": 15,
-    "MITIGATED_LOCAL": 60
+    "EXTERNAL_DEBT": 14,
+    "MITIGATED_LOCAL": 61
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -1195,8 +1195,12 @@
       "required_action": "Versioned key IDs, dual validation window, revocation, ceremony and drill.",
       "tools_methods": "KMS/HSM; runbooks",
       "acceptance_predicate": "Rotation and compromised-key drill preserve verifiability and availability.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/keyring.py",
+        "apps/api/migrations/versions/0011_audit_key_id.py",
+        "apps/api/tests/test_audit_key_rotation.py"
+      ],
       "v5_remaining_acceptance": "Rotation and compromised-key drill preserve verifiability and availability."
     },
     {

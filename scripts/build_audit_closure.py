@@ -71,6 +71,14 @@ MITIGATED_LOCAL = {
     "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
                  # prepared the least-privilege role. Canary and automated rollback stay
                  # external.
+    "AUD-003",   # an audit event records the id of the key that signed it, and the
+                 # verifier uses the key the *event* names. Rotating used to invalidate
+                 # every event ever written, so the key was never rotated — which was the
+                 # finding. The set of still-honoured keys is the dual-validation window.
+                 # Revocation is not deletion: a revoked key's events still verify and are
+                 # reported as signed by something no longer trusted, because "cannot be
+                 # verified" is a different and weaker fact. A ceremony with two custodians
+                 # and a key held in an HSM stays external.
     "SUP-003",   # the SBOM is bound to the image it describes inside a signed
                  # statement — subject, builder, materials, invocation — and verifying
                  # against a different image fails on the digest. The predicate name says
@@ -146,7 +154,6 @@ EXTERNAL_DEBT = {
     "INF-003", "INF-004", "INF-006", "INF-012",
     "SRE-002",
     "SUP-007", "SUP-008",
-    "AUD-003",
     "OPS-003", "OPS-005",
 }
 
@@ -173,6 +180,11 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/migrations",
         "scripts/prepare_postgres_role.py",
         "apps/api/docker-entrypoint.sh",
+    ],
+    "AUD-003": [
+        "apps/api/src/korpus/application/keyring.py",
+        "apps/api/migrations/versions/0011_audit_key_id.py",
+        "apps/api/tests/test_audit_key_rotation.py",
     ],
     "SUP-003": [
         "scripts/build_provenance.py",

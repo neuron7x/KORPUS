@@ -62,14 +62,16 @@ MUTANTS = (
     Mutant(
         "M04_AUDIT_PREDECESSOR_BYPASS",
         "apps/api/src/korpus/infrastructure/audit_reader.py",
+        # Re-anchored 2026-08-07: verification asks the key ring for the key the event
+        # names instead of recomputing with whatever the process holds (AUD-003).
         (
-            'if row["previous_hash"] != previous_hash or not hmac.compare_digest(\n'
-            '                expected_hash, row["event_hash"]\n'
+            'if row["previous_hash"] != previous_hash or not self.audit_keyring.verify(\n'
+            '                signed_by, canonical, str(row["event_hash"])\n'
             '            ):'
         ),
         (
-            'if not hmac.compare_digest(\n'
-            '                expected_hash, row["event_hash"]\n'
+            'if not self.audit_keyring.verify(\n'
+            '                signed_by, canonical, str(row["event_hash"])\n'
             '            ):'
         ),
         ("apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",),
@@ -983,8 +985,8 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
+        'SCHEMA_REVISION = "0011_audit_key_id"',
         'SCHEMA_REVISION = "0010_revision_identity"',
-        'SCHEMA_REVISION = "0009_reviewer_credentials"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
         ),
@@ -1892,6 +1894,35 @@ MUTANTS = (
         (
             "apps/api/tests/test_corpus_release_manifest.py::"
             "test_a_different_corpus_is_reported_as_a_different_release",
+        ),
+    ),
+    Mutant(
+        # An event that does not say which key signed it cannot be verified after the
+        # first rotation, and an unverifiable event in an append-only chain is
+        # indistinguishable from a forged one.
+        "M203_AUDIT_EVENT_VERIFIED_WITH_THE_WRONG_KEY",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        '            signed_by = str(row["audit_key_id"] or LEGACY_KEY_ID)',
+        "            signed_by = self.audit_keyring.active_key_id",
+        (
+            "apps/api/tests/test_audit_key_rotation.py::"
+            "test_the_chain_written_under_one_key_verifies_after_rotating_to_another",
+        ),
+    ),
+    Mutant(
+        # A verifier that ignores what it cannot check reports a chain as intact while
+        # its middle is unreadable.
+        "M204_UNKNOWN_SIGNING_KEY_TREATED_AS_VALID",
+        "apps/api/src/korpus/application/keyring.py",
+        "        material = self.keys.get(key_id or LEGACY_KEY_ID)\n"
+        "        if material is None:\n"
+        "            return False",
+        "        material = self.keys.get(key_id or LEGACY_KEY_ID)\n"
+        "        if material is None:\n"
+        "            return True",
+        (
+            "apps/api/tests/test_audit_key_rotation.py::"
+            "test_an_event_naming_an_unknown_key_is_invalid",
         ),
     ),
     Mutant(

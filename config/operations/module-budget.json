@@ -93,6 +93,11 @@
       "lines": 222,
       "max_complexity": 8
     },
+    "apps/api/src/korpus/application/keyring.py": {
+      "lines": 138,
+      "max_complexity": 10,
+      "reason": "which key signed which audit event, so a key can be replaced without losing the chain"
+    },
     "apps/api/src/korpus/application/noninterference.py": {
       "lines": 99,
       "max_complexity": 8
@@ -206,8 +211,8 @@
       "max_complexity": 7
     },
     "apps/api/src/korpus/infrastructure/audit_reader.py": {
-      "lines": 331,
-      "max_complexity": 15
+      "lines": 347,
+      "max_complexity": 16
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
       "lines": 698,
@@ -248,7 +253,7 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/schema.py": {
-      "lines": 232,
+      "lines": 248,
       "max_complexity": 0,
       "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
     },

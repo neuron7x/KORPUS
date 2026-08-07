@@ -5,8 +5,8 @@ This register classifies all 99 v4 findings without converting missing external 
 | Status | Count | Meaning |
 |---|---:|---|
 | CLOSED_LOCAL | 24 | Executable local acceptance predicate passed. |
-| MITIGATED_LOCAL | 60 | Material control exists; live, corpus, or independent acceptance remains. |
-| EXTERNAL_DEBT | 15 | Cannot be closed inside this repository/session. |
+| MITIGATED_LOCAL | 61 | Material control exists; live, corpus, or independent acceptance remains. |
+| EXTERNAL_DEBT | 14 | Cannot be closed inside this repository/session. |
 | OPEN_TECH_DEBT | 0 | Engineering implementation remains open. |
 
 ## Remaining blockers
@@ -76,7 +76,7 @@ This register classifies all 99 v4 findings without converting missing external 
 - **WEB-002 · P2 · MITIGATED_LOCAL** — Немає accessibility/usability evidence
 - **AUD-001 · P1 · MITIGATED_LOCAL** — Audit HMAC key доступний application process
 - **AUD-002 · P1 · MITIGATED_LOCAL** — Remote anchor protocol custom HTTP/HMAC
-- **AUD-003 · P1 · EXTERNAL_DEBT** — Key rotation/recovery ceremony не доведена
+- **AUD-003 · P1 · MITIGATED_LOCAL** — Key rotation/recovery ceremony не доведена
 - **AUD-004 · P1 · MITIGATED_LOCAL** — Немає SIEM export/correlation/retention
 - **DATA-001 · P0 · MITIGATED_LOCAL** — Немає enforceable retention/deletion/legal-hold policy
 - **DATA-002 · P1 · MITIGATED_LOCAL** — Немає field-level privacy/minimization assessment

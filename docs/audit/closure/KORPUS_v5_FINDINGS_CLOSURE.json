@@ -5,8 +5,8 @@
   "scope_claim": "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded local predicate has executable evidence; it is not production authorization.",
   "counts": {
     "CLOSED_LOCAL": 24,
-    "EXTERNAL_DEBT": 15,
-    "MITIGATED_LOCAL": 60
+    "EXTERNAL_DEBT": 14,
+    "MITIGATED_LOCAL": 61
   },
   "remaining_by_severity": {
     "P0": 19,
@@ -1627,8 +1627,12 @@
       "required_action": "Versioned key IDs, dual validation window, revocation, ceremony and drill.",
       "tools_methods": "KMS/HSM; runbooks",
       "acceptance_predicate": "Rotation and compromised-key drill preserve verifiability and availability.",
-      "v5_status": "EXTERNAL_DEBT",
-      "v5_evidence": [],
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/keyring.py",
+        "apps/api/migrations/versions/0011_audit_key_id.py",
+        "apps/api/tests/test_audit_key_rotation.py"
+      ],
       "v5_remaining_acceptance": "Rotation and compromised-key drill preserve verifiability and availability."
     },
     {

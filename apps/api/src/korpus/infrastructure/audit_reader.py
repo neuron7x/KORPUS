@@ -18,7 +18,6 @@ against a shape the writer never produced.
 
 from __future__ import annotations
 
-import hashlib
 import hmac
 import json
 from datetime import UTC, datetime
@@ -26,6 +25,7 @@ from typing import Any
 
 from sqlalchemy import Engine, func, select
 
+from korpus.application.keyring import LEGACY_KEY_ID, AuditKeyRing
 from korpus.application.trace import TRACE_ID_PATTERN
 from korpus.domain.models import AuditVerification, Identity
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore
@@ -81,6 +81,7 @@ class AuditReader:
         self,
         engine: Engine,
         audit_key: bytes,
+        audit_keyring: AuditKeyRing | None,
         anchor_store: AuditAnchorStore,
         apply_identity: Any,
         audits: Any,
@@ -91,6 +92,7 @@ class AuditReader:
     ) -> None:
         self.engine = engine
         self.audit_key = audit_key
+        self.audit_keyring = audit_keyring or AuditKeyRing.single(audit_key)
         self.anchor_store = anchor_store
         self._apply_identity = apply_identity
         self._audits = audits
@@ -138,9 +140,13 @@ class AuditReader:
                 payload_json=row["payload_json"],
                 previous_hash=row["previous_hash"],
             )
-            expected_hash = hmac.new(self.audit_key, canonical, hashlib.sha256).hexdigest()
-            if row["previous_hash"] != previous_hash or not hmac.compare_digest(
-                expected_hash, row["event_hash"]
+            # Verified with the key the *event* names, not with whatever the process is
+            # holding. An unknown key id is invalid rather than skipped: a verifier that
+            # ignored what it could not check would report a chain as intact while its
+            # middle was unreadable.
+            signed_by = str(row["audit_key_id"] or LEGACY_KEY_ID)
+            if row["previous_hash"] != previous_hash or not self.audit_keyring.verify(
+                signed_by, canonical, str(row["event_hash"])
             ):
                 return AuditVerification(
                     valid=False,
