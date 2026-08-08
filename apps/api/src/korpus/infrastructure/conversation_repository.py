@@ -207,6 +207,47 @@ class SqlConversationStore:
             rows = connection.execute(statement).mappings().all()
         return [_message(row) for row in rows[:wanted]], len(rows) > wanted
 
+    def all_conversations_by_activity(self) -> list[tuple[UUID, datetime]]:
+        """Every conversation and when it was last touched, across all accounts.
+
+        Deliberately unscoped, and deliberately not reachable from any route: retention is
+        an operator's job over the whole table, and the account-scoped reads elsewhere in
+        this file exist so a *request* can never see another account's history.
+        """
+        with self.engine.connect() as connection:
+            rows = connection.execute(
+                select(conversations.c.id, conversations.c.updated_at).order_by(
+                    conversations.c.updated_at
+                )
+            ).all()
+        # `updated_at` is NOT NULL in the schema, so `aware` cannot return None here —
+        # but mypy is right that its signature allows it, and narrowing with a cast would
+        # be asserting the invariant rather than checking it. A row that somehow carried
+        # NULL is dropped and would surface as a conversation retention never considers,
+        # which is the safe direction: a plan that omits a row deletes nothing.
+        return [
+            (UUID(row[0]), moment)
+            for row in rows
+            if (moment := aware(row[1])) is not None
+        ]
+
+    def delete_conversations(self, conversation_ids: list[UUID]) -> int:
+        """Erase named conversations and their turns. Returns how many turns went.
+
+        Messages first and counted, rather than trusting the cascade: a retention job that
+        cannot say how much it deleted is a job nobody can check afterwards, and "the
+        foreign key handled it" is not a number.
+        """
+        if not conversation_ids:
+            return 0
+        identifiers = [str(value) for value in conversation_ids]
+        with self.engine.begin() as connection:
+            removed = connection.execute(
+                delete(messages).where(messages.c.conversation_id.in_(identifiers))
+            ).rowcount
+            connection.execute(delete(conversations).where(conversations.c.id.in_(identifiers)))
+        return int(removed or 0)
+
     def purge_account(self, account_id: UUID) -> int:
         """Erase one account's history. Used by the retention path, not by the API.
 

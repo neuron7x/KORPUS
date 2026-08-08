@@ -2442,6 +2442,36 @@ MUTANTS = (
             "test_every_answer_path_goes_through_the_shared_bound",
         ),
     ),
+    Mutant(
+        "M149_UNDECLARED_RETENTION_READS_AS_COMPLIANT",
+        "apps/api/src/korpus/application/conversation_retention.py",
+        '            return "NOT_DECLARED"',
+        '            return "NOTHING_DUE"',
+        (
+            "apps/api/tests/test_conversation_retention.py::"
+            "test_no_declared_window_is_reported_as_undecided_not_as_compliant",
+        ),
+    ),
+    Mutant(
+        "M150_RETENTION_BOUNDARY_DELETES_AT_THE_WINDOW",
+        "apps/api/src/korpus/application/conversation_retention.py",
+        "        expired = aware < cutoff",
+        "        expired = aware <= cutoff",
+        (
+            "apps/api/tests/test_conversation_retention.py::"
+            "test_the_boundary_keeps_rather_than_deletes",
+        ),
+    ),
+    Mutant(
+        "M151_RETENTION_APPLIES_WITHOUT_A_DECLARED_WINDOW",
+        "scripts/conversation_retention.py",
+        "        if arguments.apply and plan.state is RetentionState.NOT_DECLARED:",
+        "        if False:",
+        (
+            "apps/api/tests/test_conversation_retention.py::"
+            "test_the_script_refuses_to_apply_a_policy_nobody_declared",
+        ),
+    ),
 )
 
 

@@ -75,6 +75,10 @@
       "max_complexity": 9,
       "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
     },
+    "apps/api/src/korpus/application/conversation_retention.py": {
+      "lines": 163,
+      "max_complexity": 7
+    },
     "apps/api/src/korpus/application/conversations.py": {
       "lines": 190,
       "max_complexity": 3
@@ -271,7 +275,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/infrastructure/conversation_repository.py": {
-      "lines": 228,
+      "lines": 269,
       "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/deterministic_billing.py": {
@@ -452,6 +456,10 @@
     "scripts/check_module_budget.py": {
       "lines": 141,
       "max_complexity": 13
+    },
+    "scripts/conversation_retention.py": {
+      "lines": 142,
+      "max_complexity": 12
     },
     "scripts/corpus_release.py": {
       "lines": 207,
@@ -992,6 +1000,20 @@
         "worst_function": "ask_within_conversation"
       },
       "reason": "the concurrency bound was on one of two answer doors; both now go through korpus.api.answering, and the route carries the controller dependency"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 228,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 269,
+        "max_complexity": 5,
+        "worst_function": "delete_conversations"
+      },
+      "reason": "conversations grew without bound and appeared in no disposition plan; the window is computed and applied only when an operator asks"
     }
   ],
   "line_exempt": {
