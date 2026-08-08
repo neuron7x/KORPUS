@@ -115,6 +115,13 @@ requirements-register:
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
 
+# The doctrine catalog's provenance rules, executable: RESTRICTED never ingestible,
+# rights clearance stays a human decision, secondary analysis is never given a governing
+# authority, an unverified mirror enters quarantine. A curated bibliography, not corpus
+# bytes — gated so a hand-edit that would let a restricted or commercial source in fails.
+doctrine-catalog:
+	PYTHONPATH=apps/api/src $(PY) scripts/validate_doctrine_catalog.py
+
 retention-plan:
 	PYTHONPATH=apps/api/src $(PY) scripts/plan_retention.py
 
@@ -218,7 +225,7 @@ kubernetes-validate:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory module-budget requirements-register
+validate: handoff-verify openapi desired-state supply-chain-inventory module-budget requirements-register doctrine-catalog
 	python3 scripts/validate_repository.py
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

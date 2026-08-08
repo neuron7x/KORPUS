@@ -424,6 +424,11 @@
       "max_complexity": 23,
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
     },
+    "scripts/validate_doctrine_catalog.py": {
+      "lines": 211,
+      "max_complexity": 19,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py"
+    },
     "scripts/build_import_manifest.py": {
       "lines": 238,
       "max_complexity": 11,
