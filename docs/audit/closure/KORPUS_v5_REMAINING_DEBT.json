@@ -113,7 +113,20 @@
       "acceptance_predicate": "Для кожного джерела зафіксовані дозволені операції та заборони.",
       "v5_status": "EXTERNAL_DEBT",
       "v5_evidence": [],
-      "v5_remaining_acceptance": "Для кожного джерела зафіксовані дозволені операції та заборони."
+      "v5_remaining_acceptance": "Для кожного джерела зафіксовані дозволені операції та заборони.",
+      "code_half": {
+        "status": "DELIVERED",
+        "on": "2026-08-08",
+        "what": "Egress classification ceiling: corpus material above model_egress_max_tier (default public) is never sent to a model outside the deployment. Under external_allowed the composer does not receive restricted spans; the answer falls back to the untouched extract and the audit records egress_tier_exceeded.",
+        "evidence": [
+          "apps/api/src/korpus/application/egress.py",
+          "apps/api/src/korpus/application/answer_query.py",
+          "apps/api/tests/test_egress_material_ceiling.py",
+          "scripts/run_mutation_tests.py::M163_EGRESS_CEILING_OFF_BY_ONE",
+          "scripts/run_mutation_tests.py::M166_EGRESS_GATE_BYPASSED"
+        ],
+        "remaining_external": "Rights clearance — which sources permit which operations — is a legal/owner decision, not code. The ceiling makes the prohibition enforceable and fail-closed by default."
+      }
     },
     {
       "id": "IAM-002",

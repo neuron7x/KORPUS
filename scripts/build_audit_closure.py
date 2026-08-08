@@ -169,12 +169,49 @@ MITIGATED_LOCAL = {
                  # reverting on the verdict is the operator's half
 }
 
+def _code_half(finding_id: str) -> dict[str, dict[str, object]]:
+    """The code half of an external debt, or nothing — kept out of the main loop so the
+    generator's complexity stays capped, since it is a register, not a branchy program."""
+    entry = CODE_HALF.get(finding_id)
+    return {"code_half": entry} if entry is not None else {}
+
+
 EXTERNAL_DEBT = {
     "GOV-001", "GOV-004", "GOV-006",
     "RAG-003",
     "INF-003", "INF-004", "INF-006",
     "SRE-002",
     "SUP-007",
+}
+
+# An external debt can have a code half — a fail-closed enforcement the tree can carry —
+# while its acceptance stays external. Recording it here, on the generator rather than the
+# generated file, so it survives regeneration and a commander reading the register sees
+# that the enforcement exists and only the human decision remains. The status is
+# unchanged: a delivered code half does not clear a debt whose acceptance is a signature.
+CODE_HALF = {
+    "GOV-006": {
+        "status": "DELIVERED",
+        "on": "2026-08-08",
+        "what": (
+            "Egress classification ceiling: corpus material above model_egress_max_tier "
+            "(default public) is never sent to a model outside the deployment. Under "
+            "external_allowed the composer does not receive restricted spans; the answer "
+            "falls back to the untouched extract and the audit records egress_tier_exceeded."
+        ),
+        "evidence": [
+            "apps/api/src/korpus/application/egress.py",
+            "apps/api/src/korpus/application/answer_query.py",
+            "apps/api/tests/test_egress_material_ceiling.py",
+            "scripts/run_mutation_tests.py::M163_EGRESS_CEILING_OFF_BY_ONE",
+            "scripts/run_mutation_tests.py::M166_EGRESS_GATE_BYPASSED",
+        ],
+        "remaining_external": (
+            "Rights clearance — which sources permit which operations — is a legal/owner "
+            "decision, not code. The ceiling makes the prohibition enforceable and "
+            "fail-closed by default."
+        ),
+    },
 }
 
 # Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
@@ -677,6 +714,7 @@ def main() -> None:
                     if status == "CLOSED_LOCAL"
                     else item["acceptance_predicate"]
                 ),
+                **_code_half(item["id"]),
             }
         )
 

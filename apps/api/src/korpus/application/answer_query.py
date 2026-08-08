@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from datetime import date
 from uuid import UUID
 
-from korpus.application.composition import AnswerComposer, compose_answer
+from korpus.application.composition import AnswerComposer, Composition, compose_answer
+from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
@@ -31,6 +32,7 @@ from korpus.application.risk import (
     risk_adjusted_thresholds,
 )
 from korpus.domain.models import (
+    AccessTier,
     Answer,
     AnswerStatus,
     Citation,
@@ -116,6 +118,7 @@ class ExtractiveAnswerService:
         answer_policy: AnswerPolicy,
         query_planner: QueryPlanner | None = None,
         answer_composer: AnswerComposer | None = None,
+        egress_policy: ModelEgressPolicy | None = None,
     ) -> None:
         self.repository = repository
         self.retriever = retriever
@@ -127,6 +130,12 @@ class ExtractiveAnswerService:
         #: Arranges the retrieved sentences and proposes one opening line. Absent, or
         #: refused, the answer is the extract exactly as it was.
         self.answer_composer = answer_composer
+        #: GOV-006. Governs whether the material a composer would send may leave the
+        #: deployment for its classification. Absent, no ceiling is applied — the seam a
+        #: test uses to build the service without a corpus posture, and the pre-existing
+        #: behaviour of every service that never had one. The composition root always
+        #: supplies it.
+        self.egress_policy = egress_policy
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
@@ -251,9 +260,13 @@ class ExtractiveAnswerService:
                 # not add a fact: `compose_answer` refuses an opening that states a
                 # number, introduces a negation, or uses a content word the cited spans
                 # do not contain, and a refusal leaves the extract untouched.
-                composition, composition_reason = compose_answer(
-                    query.text, [claim.text for claim in claims], self.answer_composer
-                )
+                #
+                # GOV-006: before that, whether the material may leave at all. If the
+                # sentences outrank the egress ceiling, the composer is not called with
+                # them — sending them to a model outside the deployment would exfiltrate
+                # restricted spans, whatever the composer returned. The extract stands and
+                # the reason travels into the audit chain.
+                composition, composition_reason = self._compose(query, claims, eligible)
                 body = (
                     "\n\n".join(composition.sentences)
                     if composition is not None
@@ -291,6 +304,46 @@ class ExtractiveAnswerService:
             composition=composition_reason,
         )
         return answer
+
+    def _compose(
+        self, query: QueryRequest, claims: list[Claim], eligible: list[RetrievedEvidence]
+    ) -> tuple[Composition | None, str]:
+        """The arranged answer and why — or the extract and the reason it was withheld.
+
+        The egress ceiling is asked before the composer, not inside it: the composer never
+        sees material it may not send, rather than being trusted to refuse it. Its own
+        `compose_answer` still guards what a permitted composer may *say*.
+        """
+        if not self._composition_egress_permitted(claims, eligible):
+            return None, "egress_tier_exceeded"
+        return compose_answer(
+            query.text, [claim.text for claim in claims], self.answer_composer
+        )
+
+    def _composition_egress_permitted(
+        self, claims: list[Claim], eligible: list[RetrievedEvidence]
+    ) -> bool:
+        """Whether the sentences a composer would send may leave the deployment.
+
+        The material sent is the claim text, so the tier that matters is the highest
+        classification among the documents whose spans actually back those claims — not
+        every eligible document, which would refuse composition for a public answer merely
+        because a restricted document ranked alongside it and produced no surviving claim.
+        A span with no known tier is treated as the most restrictive, not the least: the
+        one case where guessing is a leak.
+        """
+        if self.egress_policy is None:
+            return True
+        tier_by_span = {str(item.span.id): item.document.access_tier for item in eligible}
+        material_tier = max(
+            (
+                tier_by_span.get(str(span_id), AccessTier.RESTRICTED)
+                for claim in claims
+                for span_id in claim.evidence_span_ids
+            ),
+            default=AccessTier.PUBLIC,
+        )
+        return self.egress_policy.permits_material(material_tier)
 
     def _search_plan(
         self,

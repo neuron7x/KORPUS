@@ -17,7 +17,7 @@
       "reason": "the one place an answer is produced under the concurrency bound"
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 276,
+      "lines": 277,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
@@ -49,9 +49,9 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 777,
+      "lines": 830,
       "max_complexity": 23,
-      "reason": "the answer pipeline; grew by the undated-source limitation, which is a claim the answer has to carry"
+      "reason": "the answer pipeline; grew by the GOV-006 egress ceiling — the tier of the material a composer would send is computed and gated before the composer is called, kept out of execute in a helper so the pipeline's complexity did not rise"
     },
     "apps/api/src/korpus/application/assurance.py": {
       "lines": 135,
@@ -92,7 +92,7 @@
       "max_complexity": 21
     },
     "apps/api/src/korpus/application/egress.py": {
-      "lines": 126,
+      "lines": 156,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
@@ -238,7 +238,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 561,
+      "lines": 583,
       "max_complexity": 67
     },
     "apps/api/src/korpus/controlled_requirements.py": {
@@ -399,7 +399,7 @@
       "max_complexity": 14
     },
     "apps/api/src/korpus/tenancy_composition.py": {
-      "lines": 91,
+      "lines": 95,
       "max_complexity": 3
     },
     "scripts/assemble_assurance.py": {
@@ -420,9 +420,9 @@
       "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
     },
     "scripts/build_audit_closure.py": {
-      "lines": 810,
+      "lines": 848,
       "max_complexity": 23,
-      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
+      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
     },
     "scripts/build_import_manifest.py": {
       "lines": 238,
@@ -1302,6 +1302,48 @@
         "worst_function": "create_app"
       },
       "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/application/egress.py",
+      "on": "2026-08-08",
+      "from": {"lines": 126, "max_complexity": 9},
+      "to": {"lines": 156, "max_complexity": 9, "worst_function": "_is_local"},
+      "reason": "GOV-006: the egress policy gained a classification ceiling (max_external_tier) and permits_material, deciding what corpus material may be sent to a model outside the deployment — distinct from the URL check, which decides only whether an endpoint may be reached"
+    },
+    {
+      "path": "apps/api/src/korpus/config.py",
+      "on": "2026-08-08",
+      "from": {"lines": 561, "max_complexity": 67},
+      "to": {"lines": 583, "max_complexity": 67},
+      "reason": "GOV-006: model_egress_max_tier setting and its validator against AccessTier"
+    },
+    {
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "on": "2026-08-08",
+      "from": {"lines": 777, "max_complexity": 23},
+      "to": {"lines": 830, "max_complexity": 23, "worst_function": "execute"},
+      "reason": "GOV-006: material-tier egress gate before composition, in a helper so execute's complexity did not rise"
+    },
+    {
+      "path": "apps/api/src/korpus/tenancy_composition.py",
+      "on": "2026-08-08",
+      "from": {"lines": 91, "max_complexity": 3},
+      "to": {"lines": 95, "max_complexity": 3, "worst_function": "build_egress_policy"},
+      "reason": "GOV-006: build_egress_policy now passes the tier ceiling from settings"
+    },
+    {
+      "path": "apps/api/src/korpus/api/dependencies.py",
+      "on": "2026-08-08",
+      "from": {"lines": 276, "max_complexity": 5},
+      "to": {"lines": 277, "max_complexity": 5},
+      "reason": "GOV-006: the answer service is now built with the egress policy"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "on": "2026-08-08",
+      "from": {"lines": 810, "max_complexity": 23},
+      "to": {"lines": 848, "max_complexity": 23, "worst_function": "main"},
+      "reason": "GOV-006: CODE_HALF register records that an external debt's enforcement code is delivered while its acceptance stays external; merged via _code_half helper so main's complexity did not rise"
     }
   ],
   "line_exempt": {

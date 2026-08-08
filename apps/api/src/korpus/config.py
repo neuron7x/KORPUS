@@ -207,6 +207,14 @@ class Settings(BaseSettings):
     #: and extraction, which is the path every answer already falls back to.
     #: See `korpus.application.egress`.
     model_egress_posture: str = "external_allowed"
+    #: GOV-006. The highest classification of corpus material that may be carried to a
+    #: model outside the deployment. `external_allowed` reaches a vendor, and the composer
+    #: sends the vendor the retrieved sentences — so a restricted corpus answered under
+    #: that posture exfiltrates restricted spans to the vendor, whatever the composer
+    #: returns. Defaults to `public`: only material a reader with no clearance could
+    #: already see leaves. Above the ceiling, composition is skipped and the answer is the
+    #: extract exactly as it was. No effect under `local_only`/`model_disabled`.
+    model_egress_max_tier: str = "public"
     #: ACT-001. Off by default: a deployment that has never sold anything must not have
     #: its answers filtered by a subscription table nobody populated. On, the corpora a
     #: request may search are intersected with what an active subscription pays for —
@@ -332,6 +340,20 @@ class Settings(BaseSettings):
         permitted = {"external_allowed", "local_only", "model_disabled"}
         if value not in permitted:
             raise ValueError(f"model_egress_posture must be one of {sorted(permitted)}")
+        return value
+
+    @field_validator("model_egress_max_tier")
+    @classmethod
+    def validate_model_egress_max_tier(cls, value: str) -> str:
+        from korpus.domain.models import AccessTier
+
+        try:
+            AccessTier.parse(value)
+        except (KeyError, ValueError) as error:
+            permitted = ", ".join(tier.label() for tier in AccessTier)
+            raise ValueError(
+                f"model_egress_max_tier must be one of {permitted}"
+            ) from error
         return value
 
     @model_validator(mode="after")

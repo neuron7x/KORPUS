@@ -28,6 +28,8 @@ import socket
 from enum import StrEnum
 from urllib.parse import urlparse
 
+from korpus.domain.models import AccessTier
+
 
 class EgressPosture(StrEnum):
     EXTERNAL_ALLOWED = "external_allowed"
@@ -48,12 +50,40 @@ class EgressDenied(RuntimeError):
 class ModelEgressPolicy:
     """One decision, taken before a client exists."""
 
-    def __init__(self, posture: EgressPosture = EgressPosture.EXTERNAL_ALLOWED) -> None:
+    def __init__(
+        self,
+        posture: EgressPosture = EgressPosture.EXTERNAL_ALLOWED,
+        max_external_tier: AccessTier = AccessTier.PUBLIC,
+    ) -> None:
         self.posture = posture
+        #: The highest classification of *corpus material* that may be carried to a model
+        #: which sits outside this deployment. The URL check above governs whether an
+        #: endpoint may be reached at all; this governs what may be sent once it can be —
+        #: a distinct question, because `external_allowed` reaches a vendor and a vendor
+        #: sees whatever the composer sends it. Defaults to `PUBLIC`: only material a
+        #: reader with no clearance could already see leaves the deployment. Raising it is
+        #: a deliberate act (GOV-006), not a default, and it has no effect under
+        #: `local_only`/`model_disabled`, where the material never leaves in the first
+        #: place.
+        self.max_external_tier = max_external_tier
 
     @property
     def models_permitted(self) -> bool:
         return self.posture is not EgressPosture.MODEL_DISABLED
+
+    def permits_material(self, max_tier: AccessTier) -> bool:
+        """Whether material classified up to `max_tier` may be sent to the model.
+
+        Only `EXTERNAL_ALLOWED` carries anything out of the deployment; under the other
+        two postures the model is either local or absent, so classification never leaves
+        and this is unconditionally true. Under `EXTERNAL_ALLOWED` a vendor receives what
+        the composer sends, so material above the ceiling is refused here — before the
+        request is built, for the same reason `check` runs on the URL before the client
+        exists: a policy consulted after the send has already leaked the passage.
+        """
+        if self.posture is not EgressPosture.EXTERNAL_ALLOWED:
+            return True
+        return int(max_tier) <= int(self.max_external_tier)
 
     def check(self, base_url: str | None) -> None:
         """Raise `EgressDenied` unless this URL may be called under the current posture."""

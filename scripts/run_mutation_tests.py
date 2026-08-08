@@ -2594,6 +2594,58 @@ MUTANTS = (
             "test_a_full_upload_spool_is_a_503_not_a_500",
         ),
     ),
+    Mutant(
+        # GOV-006. The egress ceiling admits material *at* the ceiling and refuses above
+        # it; `<` instead of `<=` would withhold public material from the composer even at
+        # a public ceiling, disabling the feature for the exact case it must permit.
+        "M163_EGRESS_CEILING_OFF_BY_ONE",
+        "apps/api/src/korpus/application/egress.py",
+        "        return int(max_tier) <= int(self.max_external_tier)",
+        "        return int(max_tier) < int(self.max_external_tier)",
+        (
+            "apps/api/tests/test_egress_material_ceiling.py::"
+            "test_permits_material_is_a_ceiling_not_a_floor",
+        ),
+    ),
+    Mutant(
+        # The ceiling applies only to external egress. Flipping this to refuse under
+        # local_only/model_disabled would deny a local model material it may lawfully
+        # arrange, because that material never leaves the deployment.
+        "M164_EGRESS_CEILING_APPLIES_WHEN_LOCAL",
+        "apps/api/src/korpus/application/egress.py",
+        "        if self.posture is not EgressPosture.EXTERNAL_ALLOWED:\n            return True",
+        "        if self.posture is not EgressPosture.EXTERNAL_ALLOWED:\n            return False",
+        (
+            "apps/api/tests/test_egress_material_ceiling.py::"
+            "test_permits_material_ignores_the_ceiling_when_the_model_is_local",
+        ),
+    ),
+    Mutant(
+        # A span whose tier the eligible set does not carry is assumed RESTRICTED. Assuming
+        # PUBLIC is the leak: a claim whose provenance the service cannot see would be sent
+        # to a vendor as if it were public.
+        "M165_EGRESS_UNKNOWN_SPAN_DEFAULT_LEAK",
+        "apps/api/src/korpus/application/answer_query.py",
+        "                tier_by_span.get(str(span_id), AccessTier.RESTRICTED)",
+        "                tier_by_span.get(str(span_id), AccessTier.PUBLIC)",
+        (
+            "apps/api/tests/test_egress_material_ceiling.py::"
+            "test_a_claim_backed_by_an_unknown_span_is_treated_as_the_most_restrictive",
+        ),
+    ),
+    Mutant(
+        # The gate itself. Bypassing it sends restricted spans to an external composer.
+        "M166_EGRESS_GATE_BYPASSED",
+        "apps/api/src/korpus/application/answer_query.py",
+        "        if not self._composition_egress_permitted(claims, eligible):\n"
+        "            return None, \"egress_tier_exceeded\"",
+        "        if False:\n"
+        "            return None, \"egress_tier_exceeded\"",
+        (
+            "apps/api/tests/test_egress_material_ceiling.py::"
+            "test_restricted_material_never_reaches_an_external_composer",
+        ),
+    ),
 )
 
 

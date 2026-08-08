@@ -25,6 +25,7 @@ from korpus.application.paid_access import EntitlementProjection
 from korpus.application.policy import PolicyEngine
 from korpus.application.subscriptions import SubscriptionService
 from korpus.config import Settings
+from korpus.domain.models import AccessTier
 from korpus.infrastructure.billing_repository import SqlSubscriptionStore
 from korpus.infrastructure.conversation_repository import SqlConversationStore
 from korpus.infrastructure.deterministic_billing import DeterministicBillingProvider
@@ -33,7 +34,10 @@ from korpus.infrastructure.tenancy_repository import SqlAccountStore
 
 
 def build_egress_policy(settings: Settings) -> ModelEgressPolicy:
-    return ModelEgressPolicy(EgressPosture(settings.model_egress_posture))
+    return ModelEgressPolicy(
+        EgressPosture(settings.model_egress_posture),
+        max_external_tier=AccessTier.parse(settings.model_egress_max_tier),
+    )
 
 
 def install_tenancy(

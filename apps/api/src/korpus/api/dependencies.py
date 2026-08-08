@@ -234,6 +234,7 @@ def get_answer_service(
         answer_policy,
         query_planner=build_query_planner(settings),
         answer_composer=build_answer_composer(settings),
+        egress_policy=build_egress_policy(settings),
     )
 
 
