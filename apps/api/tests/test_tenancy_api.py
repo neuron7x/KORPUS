@@ -335,3 +335,65 @@ def test_the_page_bounds_are_enforced_by_the_contract(tenant_client: Any) -> Non
     assert tenant_client.get("/v1/conversations?limit=201").status_code == 422
     assert tenant_client.get("/v1/conversations?offset=-1").status_code == 422
     assert tenant_client.get("/v1/conversations?limit=200").status_code == 200
+
+
+def test_the_conversation_route_sheds_load_like_the_stateless_one(
+    tenant_client: Any,
+) -> None:
+    """Found by re-audit: this route reached retrieval with no concurrency bound at all.
+
+    `/v1/answers` acquired the admission controller — a global limit and a per-subject
+    share inside it — and the conversation route, which the interface made the default,
+    did not. Nothing failed and the metric kept reporting; the control was simply on the
+    other door.
+
+    Asserted by holding the only slot and watching both routes refuse identically.
+    """
+    from korpus.application.resilience import AdmissionController
+
+    conversation_id = tenant_client.post("/v1/conversations", json={}).json()["id"]
+    tenant_client.app.state.admission = AdmissionController(1, 0.0)
+
+    with tenant_client.app.state.admission.acquire("someone-else"):
+        stateless = tenant_client.post("/v1/answers", json={"text": "перше питання"})
+        inside = tenant_client.post(
+            f"/v1/conversations/{conversation_id}/ask", json={"text": "друге питання"}
+        )
+
+    assert stateless.status_code == 503, stateless.text
+    assert inside.status_code == 503, (
+        "the conversation route answered while the service was at capacity"
+    )
+    # Identical, so a client does not have to learn which URL sheds load politely.
+    assert inside.headers.get("Retry-After") == stateless.headers.get("Retry-After") == "1"
+    assert inside.json()["detail"] == stateless.json()["detail"]
+
+
+def test_a_shed_question_is_kept_and_no_answer_is_invented_under_it(
+    tenant_client: Any,
+) -> None:
+    """The question was asked; the answer never happened. The transcript says both.
+
+    The user turn is written before retrieval, deliberately: somebody typed it and pressed
+    the button, and a history that drops it would be denying an event that occurred. What
+    must not appear is an assistant turn — inventing one for a request the service refused
+    to start would put words in the system's mouth, which is the failure the whole
+    verdict-in-history change existed to stop.
+    """
+    from korpus.application.resilience import AdmissionController
+
+    conversation_id = tenant_client.post("/v1/conversations", json={}).json()["id"]
+    tenant_client.app.state.admission = AdmissionController(1, 0.0)
+
+    with tenant_client.app.state.admission.acquire("someone-else"):
+        refused = tenant_client.post(
+            f"/v1/conversations/{conversation_id}/ask",
+            json={"text": "питання під час перевантаження"},
+        )
+
+    assert refused.status_code == 503
+    stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()["items"]
+    assert [message["role"] for message in stored] == ["user"], (
+        "a shed request produced an assistant turn: "
+        f"{[m['role'] for m in stored]}"
+    )

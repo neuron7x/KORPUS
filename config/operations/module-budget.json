@@ -11,12 +11,17 @@
       "lines": 0,
       "max_complexity": 0
     },
+    "apps/api/src/korpus/api/answering.py": {
+      "lines": 75,
+      "max_complexity": 3,
+      "reason": "the one place an answer is produced under the concurrency bound"
+    },
     "apps/api/src/korpus/api/dependencies.py": {
       "lines": 276,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
-      "lines": 833,
+      "lines": 823,
       "max_complexity": 8
     },
     "apps/api/src/korpus/api/routes_billing.py": {
@@ -24,7 +29,7 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 432,
+      "lines": 444,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/__init__.py": {
@@ -973,6 +978,20 @@
         "worst_function": "archive_conversation"
       },
       "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 432,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 444,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      },
+      "reason": "the concurrency bound was on one of two answer doors; both now go through korpus.api.answering, and the route carries the controller dependency"
     }
   ],
   "line_exempt": {

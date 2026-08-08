@@ -30,6 +30,7 @@ from pydantic import BaseModel, ConfigDict
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import RedirectResponse
 
+from korpus.api.answering import bounded_answer, overloaded
 from korpus.api.dependencies import (
     get_admission_controller,
     get_answer_service,
@@ -658,26 +659,15 @@ def create_answer(
     admission: Annotated[AdmissionController, Depends(get_admission_controller)],
     observability: Annotated[Observability, Depends(get_observability)],
 ) -> Answer:
-    try:
-        try:
-            with admission.acquire(identity.subject):
-                observability.answer_admission_active.set(admission.snapshot().active)
-                with observability.measure_retrieval():
-                    answer = service.execute(identity, query)
-        finally:
-            observability.answer_admission_active.set(admission.snapshot().active)
-        from korpus.application.risk import classify_query_risk
+    """The stateless door. The conversation route is the other one; both bound the same.
 
-        observability.observe_answer(
-            answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
-        )
-        return answer
+    The body of this used to live here, which is how the second door came to be written
+    without it. See `korpus.api.answering`.
+    """
+    try:
+        return bounded_answer(service, identity, query, admission, observability)
     except OverloadedError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="answer capacity exhausted",
-            headers={"Retry-After": "1"},
-        ) from exc
+        raise overloaded() from exc
     except UnauthorizedCorporaError as exc:
         # Typed, and in the order the reader asked: a refusal that does not say which
         # corpus was refused cannot be acted on by the reader or by an operator.

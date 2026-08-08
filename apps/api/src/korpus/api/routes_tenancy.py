@@ -30,12 +30,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.concurrency import run_in_threadpool
 
-from korpus.api.dependencies import get_answer_service, get_observability, get_repository
+from korpus.api.answering import bounded_answer, overloaded
+from korpus.api.dependencies import (
+    get_admission_controller,
+    get_answer_service,
+    get_observability,
+    get_repository,
+)
 from korpus.application.accounts import AccountService
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.conversations import ConversationLimitReached, ConversationService
 from korpus.application.paid_access import EntitlementDenied, EntitlementProjection
 from korpus.application.policy import AuthorizationError, UnauthorizedCorporaError
+from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.application.subscriptions import SubscriptionService
 from korpus.application.tenancy_ports import (
     AccountDisabled,
@@ -356,6 +363,7 @@ async def ask_within_conversation(
     conversations: ConversationServiceDependency,
     entitlements: EntitlementDependency,
     answers: Annotated[ExtractiveAnswerService, Depends(get_answer_service)],
+    admission: Annotated[AdmissionController, Depends(get_admission_controller)],
     repository: Annotated[SqlRepository, Depends(get_repository)],
     observability: Annotated[Observability, Depends(get_observability)],
 ) -> Answer:
@@ -418,14 +426,18 @@ async def ask_within_conversation(
         ) from archived
 
     scoped = query.model_copy(update={"corpus_ids": sorted(permitted)})
-    with observability.measure_retrieval():
-        answer = await run_in_threadpool(answers.execute, identity, scoped)
+    # The same bound the stateless route uses. It was missing here until a re-audit found
+    # it: the conversation route became the browser's default the moment the interface had
+    # a conversation panel, so the per-subject share that stops one account saturating
+    # retrieval was, in practice, off — while `/v1/answers` still had it and the gate
+    # still read green.
+    try:
+        answer = await run_in_threadpool(
+            bounded_answer, answers, identity, scoped, admission, observability
+        )
+    except OverloadedError as exc:
+        raise overloaded() from exc
 
-    from korpus.application.risk import classify_query_risk
-
-    observability.observe_answer(
-        answer.status.value, answer.decision_reason, classify_query_risk(query.text).value
-    )
     conversations.record_answer(
         account, conversation_id, answer.text, answer.id, answer.status.value
     )

@@ -2420,6 +2420,28 @@ MUTANTS = (
             "test_a_truncated_list_says_it_was_truncated",
         ),
     ),
+    Mutant(
+        "M147_ANSWER_BOUND_REMOVED",
+        "apps/api/src/korpus/api/answering.py",
+        "        with admission.acquire(identity.subject):",
+        "        with nullcontext():",
+        (
+            "apps/api/tests/test_tenancy_api.py::"
+            "test_the_conversation_route_sheds_load_like_the_stateless_one",
+        ),
+    ),
+    Mutant(
+        "M148_CONVERSATION_ROUTE_BYPASSES_THE_BOUND",
+        "apps/api/src/korpus/api/routes_tenancy.py",
+        "        answer = await run_in_threadpool(\n"
+        "            bounded_answer, answers, identity, scoped, admission, observability\n"
+        "        )",
+        "        answer = await run_in_threadpool(answers.execute, identity, scoped)",
+        (
+            "apps/api/tests/test_answer_paths_are_bounded.py::"
+            "test_every_answer_path_goes_through_the_shared_bound",
+        ),
+    ),
 )
 
 
