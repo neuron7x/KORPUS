@@ -4,9 +4,9 @@
   "dataset_sha256": "af6e2e208a64d51f5d5d240185dc6ac6661d2b82d41897ac4dc15448404e4d64",
   "evaluation_protocol": "evals/EVALUATION_PROTOCOL.md",
   "evaluation_protocol_sha256": "116348d04d67bb3bf8024f767ebed54956fa6b88ef5969a4993fc89662cabd04",
-  "system_manifest_sha256": "26d23bf72821f82980d85b0be4549f2f618a89ebddf844724cd74eda50be3f31",
-  "system_manifest_root_sha256": "92bea53e428f084b3b10afdcc70dd441016627fe1d96d85e2ffbd5d2f726c60e",
-  "source_commit": "5478738d163a13724998a66b868aa8a8deb032b7",
+  "system_manifest_sha256": "4f0d8782726c5d36fe6e1ee74afc617e7e7f8f2914e8e15ec350930981e26ce3",
+  "system_manifest_root_sha256": "c4c55a59c89a703fa33e422bed1ffd66abd397784bedd1e20862b2880e3a5504",
+  "source_commit": "33dd7935b82647963c5c40181f35e66b246239a2",
   "calibration_status": "UNVALIDATED_TEST_FIXTURE",
   "tevv": {
     "schema_version": 1,
@@ -498,6 +498,6 @@
     "schema_version": 1,
     "source_digest": "26773c65ce156e20a8a640955c023230670284630a0f3b1ec9b98f18c1f64cf3",
     "generator": "scripts/run_evals.py",
-    "generated_at": "2026-08-08T10:28:56+00:00"
+    "generated_at": "2026-08-08T11:03:41+00:00"
   }
 }
