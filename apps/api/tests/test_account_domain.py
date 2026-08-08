@@ -28,6 +28,13 @@ from sqlalchemy import func, select
 
 from apps.api.tests.tenancy_fixtures import build_tenancy, reader
 
+#: The barrier only has to make the writers overlap; it is not the thing under test, and a
+#: timeout on it measures how loaded the machine is rather than whether the race is handled.
+#: Five seconds was enough on an idle laptop and not enough during a mutation run, which is
+#: exactly when the suite is most likely to be running. Generous, because the cost of being
+#: generous is nothing and the cost of being tight is a red build nobody can reproduce.
+BARRIER_SECONDS = 60
+
 
 def test_a_first_login_creates_exactly_one_account(tmp_path: Path) -> None:
     tenancy = build_tenancy(tmp_path)
@@ -55,7 +62,7 @@ def test_concurrent_first_logins_converge_on_one_account(tmp_path: Path) -> None
 
         def login() -> None:
             try:
-                start.wait(timeout=5)
+                start.wait(timeout=BARRIER_SECONDS)
                 account, _ = tenancy.accounts.ensure_account("oidc|race")
                 results.append(str(account.id))
             except BaseException as error:  # noqa: BLE001 - reported, not swallowed
@@ -65,7 +72,7 @@ def test_concurrent_first_logins_converge_on_one_account(tmp_path: Path) -> None
         for thread in threads:
             thread.start()
         for thread in threads:
-            thread.join(timeout=15)
+            thread.join(timeout=BARRIER_SECONDS)
 
         assert not errors, errors
         assert len(results) == 6

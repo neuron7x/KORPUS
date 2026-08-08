@@ -34,6 +34,13 @@ from sqlalchemy import func, select
 
 from apps.api.tests.tenancy_fixtures import build_tenancy
 
+#: The barrier only has to make the writers overlap; it is not the thing under test, and a
+#: timeout on it measures how loaded the machine is rather than whether the race is handled.
+#: Five seconds was enough on an idle laptop and not enough during a mutation run, which is
+#: exactly when the suite is most likely to be running. Generous, because the cost of being
+#: generous is nothing and the cost of being tight is a red build nobody can reproduce.
+BARRIER_SECONDS = 60
+
 
 #: Events are stamped relative to the real clock, not to a fixed date. The service
 #: refuses an event older than the state it would move — replay resistance — and a fixture
@@ -145,7 +152,7 @@ def test_two_concurrent_deliveries_apply_once(tmp_path: Path) -> None:
 
         def deliver() -> None:
             try:
-                start.wait(timeout=5)
+                start.wait(timeout=BARRIER_SECONDS)
                 outcomes.append(tenancy.subscription_service.handle_event(payload, signature))
             except BaseException as error:  # noqa: BLE001 - reported, not swallowed
                 failures.append(error)
@@ -154,7 +161,7 @@ def test_two_concurrent_deliveries_apply_once(tmp_path: Path) -> None:
         for thread in threads:
             thread.start()
         for thread in threads:
-            thread.join(timeout=20)
+            thread.join(timeout=BARRIER_SECONDS)
 
         assert not failures, failures
         assert outcomes.count(BillingEventResult.APPLIED) == 1, outcomes
