@@ -1,22 +1,22 @@
 {
   "schema": "korpus.assurance-snapshot.v1",
-  "release": "v6.1.0",
+  "release": "v5.0.0",
   "status": "PASS",
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 655854,
-      "sha256": "c704e164bdde6345a3f39ff3215b0b02e3373b22913e63609dff1376de485dc5"
+      "bytes": 666092,
+      "sha256": "3ba10106d579531017a1796b19807e7f0b551592834603ca226cd950fd470e1a"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
-      "bytes": 167986,
-      "sha256": "d14d90cf2b2f0d05816007e8de2e17c4620fe95206a17a0f3a5c9a9f4c18239e"
+      "bytes": 169083,
+      "sha256": "5ae97276087081142f2d1a6a0efc22cc409e4ca6f6a0f3acfb1c5ec536728169"
     },
     {
       "path": "reports/COVERAGE_REPORT.xml",
-      "bytes": 369021,
-      "sha256": "17f4b9a69b89fada90d1f6efbe2a2a255608b359593fecc9c6c7d2060cc380c1"
+      "bytes": 370251,
+      "sha256": "009ad8629f293c0483a203b9f6a917ba1c90435fdb862c37a4e76208981bab4a"
     },
     {
       "path": "reports/COVERAGE_REPORT.json",
@@ -26,27 +26,27 @@
     {
       "path": "reports/EVAL_REPORT.json",
       "bytes": 16172,
-      "sha256": "ebe9d8516c401a5ecea55c1a05111903c239c70cdf75c13d3eadcc0c954f18db"
+      "sha256": "dd0a410d3dbb7cced2823889aed982cd42b177da19d279f88be24448232534f3"
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 626324,
-      "sha256": "0e0000f82ec05940c28702374c0ae6c005ffd452e262427324a8037ef1b6f71d"
+      "bytes": 636476,
+      "sha256": "9fb5dcd5550fb648296faaf31471783a4837a7584cc36cf665dc7e9d05f6bcd3"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
       "bytes": 1051,
-      "sha256": "f4f0693e02056c0b11e0a338e2ed8ee8526cdb830350cb89369ea56c6bfa7dca"
+      "sha256": "fe7cf6fb8e51e2d04c0ea751cc531ca0d64ee2da9aa5de1566b7cbea9174e41e"
     },
     {
       "path": "reports/SCALE_REPORT.json",
-      "bytes": 1045,
-      "sha256": "5bdac0e14102c5b457adb391eb4f347065f868c29618cac462963171eeaf2770"
+      "bytes": 1043,
+      "sha256": "2eb03ef353fe94dfcfcc8d3cc4cc6ad4e03d0ca8ca0e361f9ac1dc5909ff9c01"
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1499,
-      "sha256": "874fe148643098398265e8e2b11691ff8f582fce239f8fe1f5499266f82bd5ac"
+      "sha256": "ddf271c542d0db242e6129deef0b4d2956bd8cba36b258b1608ed91b849ee6b1"
     },
     {
       "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
@@ -61,7 +61,7 @@
     {
       "path": "reports/KUBERNETES_VALIDATION.json",
       "bytes": 566,
-      "sha256": "d9094ce9ff5051a0bef1ce6668a2e5522600fc015c1df9e5da2c8273e2c31e09"
+      "sha256": "b4d37fb91f2eceb46adcccb9d089b36be2ddf9b513896055c852458b689a9a7f"
     }
   ],
   "limitations": [
