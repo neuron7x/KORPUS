@@ -46,3 +46,55 @@ of the three shifts by one day in either direction.
 - deletion revokes retrieval immediately while preserving minimal audit proof;
 - raw user identifiers are not sent to a model provider.
 
+
+## Customers, and the wall between them and the corpus
+
+`Account` is who somebody is *here* — created on first authenticated login, keyed on the
+identity provider's subject, carrying a status and nothing else. It holds no roles, no
+clearance, no corpora, no compartments. That absence is the design: what may be read is
+decided by the entitlement profile and the policy engine, and an account with an
+authorization field would be a second place that decision could be made.
+
+`Plan`, `Subscription` and `BillingEvent` are commerce. A subscription pays for corpora and
+can only ever be *intersected* with what the policy engine already permits — never unioned.
+A plan naming `operational` gives `operational` to nobody who was not already cleared for
+it, and there is no field through which it could.
+
+`Conversation` and `Message` are a reader's own history. A message carries a role, and an
+assistant message is a sentence the system emitted: it is context for a person, never a
+source for an answer. Nothing returns history to a retriever, and the verdict is stored
+beside the text so a refusal read back stays a refusal.
+
+### Required invariants
+
+- an account is created at most once per identity-provider subject, under concurrency;
+- a billing event applies at most once, by database constraint rather than by a read;
+- an event either moved the subscription and was recorded, or did neither;
+- `CANCELED` and `EXPIRED` are terminal — a renewal is a new subscription;
+- entitlement narrows and never widens what the policy engine permitted;
+- every conversation read is scoped by owner inside the query, not filtered after it;
+- a stored assistant turn never re-enters retrieval.
+
+## Physical tables
+
+Every table this system creates, named so that one added and never described here fails
+`test_data_model_documents_every_table.py`. A table nobody wrote down is a table nobody
+reviews, and the account layer arrived as six of them at once.
+
+| table | what it holds |
+|---|---|
+| `documents` | the logical work |
+| `document_versions` | an immutable revision with its validity window and review state |
+| `document_compartments` | need-to-know labels, one row per compartment |
+| `evidence_spans` | the sentence a citation points at |
+| `span_embeddings` | replaceable vectors, versioned by model id |
+| `audit_events` | the hash chain; append-only, one key id per event |
+| `audit_heads` | the single head row the chain advances |
+| `audit_anchor_outbox` | anchor deliveries still owed to the external witness |
+| `ingestion_jobs` | durable work for the parser, leased by a worker |
+| `accounts` | who somebody is here; status only |
+| `plans` | what is sold, and which corpora it pays for |
+| `subscriptions` | one account's commercial state with a provider |
+| `billing_events` | one provider notification, recorded by hash before it is believed |
+| `conversations` | a reader's own thread |
+| `messages` | one turn, with the role that says who said it |
