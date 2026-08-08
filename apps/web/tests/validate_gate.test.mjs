@@ -434,3 +434,22 @@ test("removing the show-more control is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /does not say it was truncated/);
 });
+
+test("an accounts console without its preview gate is caught", async () => {
+  // Switching a person off is irreversible in the way that matters: they lose access
+  // immediately. It gets the same gate as ingesting or rescinding.
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replace('<button id="account-submit" type="submit" disabled>',
+                     '<button id="account-submit" type="submit">')));
+  assert.notEqual(status, 0);
+  assert.match(output, /account submit is enabled before anything was previewed/);
+});
+
+test("removing the accounts console surface is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/console.html", source =>
+      source.replaceAll('id="console-accounts"', 'id="console-accounts-old"')));
+  assert.notEqual(status, 0);
+  assert.match(output, /operator console missing surface: console-accounts/);
+});

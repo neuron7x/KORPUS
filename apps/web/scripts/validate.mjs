@@ -199,13 +199,18 @@ if (!manifest.name || !manifest.start_url || manifest.display !== "standalone") 
 const consoleHtml = await read("public/console.html");
 for (const id of [
   "console-curator", "console-reviewer", "console-corpus", "console-auditor",
+  "console-accounts",
   "ingest-form", "review-form", "rescind-form", "audit-events-form",
+  "account-find-form", "account-status-form",
 ]) {
   if (!consoleHtml.includes(`id="${id}"`)) throw new Error(`operator console missing surface: ${id}`);
 }
 // Nothing irreversible fires on a first click. Each of the three writing workflows has a
 // preview button and a submit that ships disabled.
-for (const workflow of ["ingest", "review", "rescind"]) {
+// `account` joined the list in v6.1.0: switching a person off is irreversible in the way
+// that matters — they lose access immediately — and the operator doing it has been woken
+// up. It gets the same preview-then-submit gate as ingesting or rescinding.
+for (const workflow of ["ingest", "review", "rescind", "account"]) {
   if (!consoleHtml.includes(`id="${workflow}-preview"`)) {
     throw new Error(`${workflow} has no preview: an irreversible action would fire on first click`);
   }

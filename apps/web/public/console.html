@@ -46,6 +46,7 @@
       <button id="tab-console-reviewer" type="button" role="tab" aria-controls="console-reviewer" aria-selected="false" hidden>Рецензент</button>
       <button id="tab-console-corpus" type="button" role="tab" aria-controls="console-corpus" aria-selected="false" hidden>Корпус</button>
       <button id="tab-console-auditor" type="button" role="tab" aria-controls="console-auditor" aria-selected="false" hidden>Аудит</button>
+      <button id="tab-console-accounts" type="button" role="tab" aria-controls="console-accounts" aria-selected="false" hidden>Акаунти</button>
     </div>
 
     <div id="consoles">
@@ -302,6 +303,74 @@
           <div class="outcome-column">
             <div id="audit-verify-result" class="outcome" role="status" aria-live="polite"></div>
             <div id="audit-events-result" class="outcome" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Switching a person off was reachable only from a Python shell until v6.1.0. It
+           happens at three in the morning, from a phone, and the person doing it has been
+           woken up — so nothing here fires on a first click, the consequence is spelled
+           out in full, and the reason is required because it becomes the audit record. -->
+      <section id="console-accounts" class="console" role="tabpanel" aria-labelledby="tab-console-accounts" hidden>
+        <h2>Акаунти · доступ до системи</h2>
+        <p class="limitation">
+          Вимкнення зупиняє доступ, а не видаляє історію. Розмови лишаються — їх строк
+          зберігання окремий (<code>scripts/conversation_retention.py</code>). Ролі й
+          допуск приходять від провайдера входу і тут не змінюються.
+        </p>
+        <div class="workbench">
+          <div>
+            <form id="account-find-form" class="card">
+              <h3>Знайти акаунт</h3>
+              <p class="limitation">
+                За субʼєктом входу — інцидент приходить як логін, не як ідентифікатор.
+              </p>
+              <div class="fields">
+                <div class="wide">
+                  <label for="account-subject">Субʼєкт (sub)</label>
+                  <input id="account-subject" type="text" required spellcheck="false"
+                         autocomplete="off" placeholder="oidc|1234">
+                </div>
+              </div>
+              <div class="actions">
+                <button id="account-find-submit" type="submit" class="secondary">Знайти</button>
+              </div>
+            </form>
+
+            <form id="account-status-form" class="card">
+              <h3>Змінити стан</h3>
+              <div class="fields">
+                <div class="wide">
+                  <label for="account-id">Акаунт</label>
+                  <input id="account-id" type="text" required readonly
+                         aria-describedby="account-id-hint">
+                  <p id="account-id-hint" class="hint">Заповнюється пошуком вище.</p>
+                </div>
+                <div>
+                  <label for="account-status">Стан</label>
+                  <select id="account-status" required>
+                    <option value="disabled">вимкнений</option>
+                    <option value="active">активний</option>
+                  </select>
+                </div>
+                <div class="wide">
+                  <label for="account-reason">Підстава</label>
+                  <input id="account-reason" type="text" required minlength="8"
+                         aria-describedby="account-reason-hint">
+                  <p id="account-reason-hint" class="hint">
+                    Дослівно входить до ланцюга аудиту і не редагується.
+                  </p>
+                </div>
+              </div>
+              <div class="actions">
+                <button id="account-preview" type="button" class="secondary">Що це зробить</button>
+                <button id="account-submit" type="submit" disabled>Застосувати</button>
+              </div>
+            </form>
+          </div>
+          <div class="outcome-column">
+            <div id="account-find-result" class="outcome" role="status" aria-live="polite"></div>
+            <div id="account-status-result" class="outcome" role="status" aria-live="polite"></div>
           </div>
         </div>
       </section>

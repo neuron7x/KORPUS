@@ -50,8 +50,11 @@ test("an ordinary user sees only the corpus", () => {
 });
 
 test("an admin sees every console through the wildcard", () => {
+  // Enumerated rather than counted, so a console added later fails here and somebody has
+  // to decide who sees it — which is how the accounts console arrived.
   assert.deepEqual(visibleConsoles(identity("admin")), [
     "console-curator", "console-reviewer", "console-corpus", "console-auditor",
+    "console-accounts",
   ]);
 });
 
@@ -233,4 +236,79 @@ test("rescission distinguishes an immediate withdrawal from a dated one", () => 
     rescissionConsequence({note: "x".repeat(12), rescinded_at: "2026-08-05T00:00:00.000Z"}),
     /від 2026-08-05T00:00:00\.000Z/,
   );
+});
+
+// ---------------------------------------------------------------- accounts
+//
+// Switching a person off is the one console action whose subject is a person rather than
+// a document. The consequence line is tested as carefully as the validation, because it
+// is the last thing between an operator at three in the morning and somebody losing
+// access to the manuals they need in the next hour.
+
+test("only an administrator sees the accounts console", () => {
+  assert.ok(visibleConsoles(identity("admin")).includes("console-accounts"));
+  for (const role of ["curator", "reviewer", "auditor", "user", "instructor"]) {
+    assert.ok(
+      !visibleConsoles(identity(role)).includes("console-accounts"),
+      `${role} was shown the accounts console`,
+    );
+  }
+});
+
+test("a status change is refused before it leaves without an account, a state and a reason", async () => {
+  const {accountStatusProblems} = await import("../public/console_rules.js");
+  const fields = accountStatusProblems({}).map(problem => problem.field);
+  assert.deepEqual(fields.sort(), ["account-id", "account-reason", "account-status"]);
+
+  assert.deepEqual(
+    accountStatusProblems({account_id: "a", status: "disabled", reason: "скомпрометовано"}),
+    [],
+  );
+});
+
+test("a reason too short to mean anything is refused in the browser too", async () => {
+  const {accountStatusProblems, MINIMUM_ACCOUNT_REASON} =
+    await import("../public/console_rules.js");
+  for (const reason of ["", "  ", "test", "x".repeat(MINIMUM_ACCOUNT_REASON - 1)]) {
+    const problems = accountStatusProblems({account_id: "a", status: "disabled", reason});
+    assert.ok(
+      problems.some(problem => problem.field === "account-reason"),
+      `${reason!==""?reason:"(порожньо)"} was accepted as a reason`,
+    );
+  }
+});
+
+test("an unknown state is refused rather than sent", async () => {
+  const {accountStatusProblems} = await import("../public/console_rules.js");
+  const problems = accountStatusProblems(
+    {account_id: "a", status: "deleted", reason: "видалити назавжди"},
+  );
+  assert.ok(problems.some(problem => problem.field === "account-status"));
+});
+
+test("the consequence says what a person loses, without softening it", async () => {
+  const {accountConsequence} = await import("../public/console_rules.js");
+  const text = accountConsequence(
+    {status: "disabled", reason: "скомпрометовано"},
+    {ownSubject: "oidc|admin", targetSubject: "oidc|soldier"},
+  );
+  assert.match(text, /негайно втрачає доступ/);
+  assert.match(text, /Розмови не видаляються/);
+  assert.match(text, /аудиту/);
+  assert.match(text, /oidc\|soldier/);
+});
+
+test("enabling says it restores and widens nothing", async () => {
+  const {accountConsequence} = await import("../public/console_rules.js");
+  const text = accountConsequence({status: "active"}, {targetSubject: "oidc|soldier"});
+  assert.match(text, /нічого не розширює/);
+  assert.doesNotMatch(text, /втрачає доступ/);
+});
+
+test("choosing your own account is named before the server refuses it", async () => {
+  const {accountConsequence} = await import("../public/console_rules.js");
+  const text = accountConsequence(
+    {status: "disabled"}, {ownSubject: "oidc|admin", targetSubject: "oidc|admin"},
+  );
+  assert.match(text, /ваш власний акаунт/);
 });

@@ -70,6 +70,13 @@ async function refusalFrom(response) {
     reason = detail
       .map(item => `${(item.loc ?? []).filter(part => part !== "body").join(".")}: ${item.msg}`)
       .join("; ");
+  } else if (detail && typeof detail === "object") {
+    // A typed refusal: `{reason, detail}`. This branch did not exist, so every one of
+    // them rendered as "API 409" — found in a browser, on the one refusal where the
+    // sentence is the whole point: "you cannot disable your own account; ask another
+    // administrator". The reader surface had worked around it locally; the console had
+    // not, and a second workaround would have been the wrong fix twice.
+    reason = String(detail.detail ?? detail.reason ?? reason);
   }
   return new ApiRefusal(response.status, reason, payload);
 }

@@ -28,6 +28,7 @@ import {
 } from "./api.js";
 import {CONTRACT} from "./contract.js";
 import {
+  accountConsequence, accountStatusProblems,
   ingestConsequence, ingestProblems, previewMatches, rescissionConsequence,
   rescissionProblems, reviewConsequence, reviewProblems, visibleConsoles,
 } from "./console_rules.js";
@@ -377,7 +378,13 @@ function renderEvents(target, events) {
 
 // ---------------------------------------------------------------- tabs
 
-const TABS = ["console-curator", "console-reviewer", "console-corpus", "console-auditor"];
+//: Every console, in the order the tabs appear. A console missing from here is rendered
+//: nowhere and hidden nowhere: it stays visible on every tab switch, which is how the
+//: accounts panel would have leaked onto a curator's screen.
+const TABS = [
+  "console-curator", "console-reviewer", "console-corpus", "console-auditor",
+  "console-accounts",
+];
 
 function selectTab(id) {
   for (const name of TABS) {
@@ -412,7 +419,14 @@ function wireTabs() {
 
 // ---------------------------------------------------------------- identity
 
+//: Who the server said this is, kept for the one consequence line that needs it: telling
+//: an operator that the account they selected is their own, before the server refuses it.
+//: Held here rather than read from a form — the subject is the server's answer, not a
+//: field somebody can type into.
+let signedIn = null;
+
 function applyIdentity(currentIdentity) {
+  signedIn = currentIdentity;
   const visible = new Set(currentIdentity ? visibleConsoles(currentIdentity) : []);
   for (const name of TABS) {
     $(`tab-${name}`).hidden = !visible.has(name);
@@ -572,3 +586,59 @@ $("audit-events-form").addEventListener("submit", async event => {
 });
 
 loadIdentity().catch(() => forgetIdentity("Не автентифіковано."));
+
+
+// ---------------------------------------------------------------- accounts
+//
+// Switching a person off was reachable only from a Python shell until v6.1.0: the
+// capability existed, was audited and tested, and had no invocation path. It goes through
+// the same gate as every other irreversible action here — preview, then a submit that
+// ships disabled — because the operator using it has been woken up.
+
+let foundSubject = null;
+
+$("account-find-form")?.addEventListener("submit", async event => {
+  event.preventDefault();
+  const target = $("account-find-result");
+  const subject = $("account-subject").value.trim();
+  if (!subject) {
+    renderProblems(target, ["субʼєкт: обовʼязковий"]);
+    return;
+  }
+  busy(target, "Шукаю…");
+  try {
+    const account = await call(`/v1/admin/accounts/${encodeURIComponent(subject)}`);
+    // The id is filled in for the operator rather than typed: retyping a UUID at three in
+    // the morning is a step to get wrong, and getting it wrong here switches off somebody
+    // who was not the subject of the incident.
+    $("account-id").value = account.id;
+    foundSubject = account.auth_subject;
+    renderJson(target, "Знайдено", account);
+  } catch (error) {
+    $("account-id").value = "";
+    foundSubject = null;
+    renderRefusal(target, error);
+  }
+});
+
+function buildAccountStatus() {
+  const body = {
+    account_id: $("account-id").value.trim(),
+    status: $("account-status").value,
+    reason: $("account-reason").value.trim(),
+  };
+  return {body, problems: accountStatusProblems(body).map(problem => problem.message)};
+}
+
+gate(
+  $("account-status-form"), $("account-preview"), $("account-submit"),
+  $("account-status-result"), buildAccountStatus,
+  body => accountConsequence(body, {
+    ownSubject: signedIn?.subject ?? null,
+    targetSubject: foundSubject,
+  }),
+  payload => call(
+    `/v1/admin/accounts/${encodeURIComponent(payload.body.account_id)}/status`,
+    {method: "POST", body: {status: payload.body.status, reason: payload.body.reason}},
+  ),
+);

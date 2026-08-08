@@ -35,7 +35,53 @@ export function visibleConsoles(identity) {
   if (permits(identity, "audit:verify") || permits(identity, "audit:read")) {
     visible.push("console-auditor");
   }
+  // Held by `admin` alone, through the wildcard. Switching a person off is not a
+  // curation decision and does not belong beside one.
+  if (permits(identity, "account:manage")) visible.push("console-accounts");
   return visible;
+}
+
+//: Long enough to be a sentence. The server refuses anything shorter; refusing here too
+//: means an operator learns it while typing rather than after submitting.
+export const MINIMUM_ACCOUNT_REASON = 8;
+
+export function accountStatusProblems(body) {
+  const problems = [];
+  if (!body.account_id) {
+    problems.push({field: "account-id", message: "Акаунт: знайдіть його за субʼєктом"});
+  }
+  if (!["active", "disabled"].includes(body.status)) {
+    problems.push({field: "account-status", message: "Стан: лише «активний» або «вимкнений»"});
+  }
+  const reason = (body.reason ?? "").trim();
+  if (reason.length < MINIMUM_ACCOUNT_REASON) {
+    problems.push({
+      field: "account-reason",
+      message: `Підстава: щонайменше ${MINIMUM_ACCOUNT_REASON} символів, це запис в аудиті`,
+    });
+  }
+  return problems;
+}
+
+export function accountConsequence(body, {ownSubject = null, targetSubject = null} = {}) {
+  // Said plainly. This is a person losing access to the manuals they may need in the
+  // next hour, and a consequence line that softens it is a consequence line nobody
+  // reads twice before clicking.
+  if (body.status === "disabled") {
+    const self = ownSubject && targetSubject && ownSubject === targetSubject
+      ? " Це ваш власний акаунт — сервер відмовить, щоб ви не заблокували себе."
+      : "";
+    return (
+      `${targetSubject ?? "Цей акаунт"} негайно втрачає доступ до всієї системи: ` +
+      "запити, розмови, історія. Розмови не видаляються. Ваш субʼєкт і підстава " +
+      `дослівно входять до ланцюга аудиту і не редагуються.${self}`
+    );
+  }
+  return (
+    `${targetSubject ?? "Цей акаунт"} знову отримує доступ на тому ж рівні допуску, ` +
+    "що й раніше — увімкнення нічого не розширює. Ваш субʼєкт і підстава входять до " +
+    "ланцюга аудиту."
+  );
 }
 
 // Checks only what the JSON Schema states. Model validators — that access_tier must

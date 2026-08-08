@@ -133,3 +133,15 @@ test("a complete list says nothing about truncation", () => {
   assert.doesNotMatch(markup, /Показати більше/);
   assert.doesNotMatch(markup, /data-more/);
 });
+
+test("a typed refusal renders its sentence, not its status code", async () => {
+  // `{reason, detail}` bodies rendered as "API 409" until a browser showed it on the one
+  // refusal where the sentence is the whole point.
+  const {ApiRefusal} = await import("../public/api.js");
+  assert.equal(typeof ApiRefusal, "function");
+
+  const {readFile} = await import("node:fs/promises");
+  const source = await readFile(new URL("../public/api.js", import.meta.url), "utf8");
+  assert.match(source, /detail\.detail \?\? detail\.reason/,
+    "an object detail falls through to the bare status code again");
+});
