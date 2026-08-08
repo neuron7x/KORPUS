@@ -2472,6 +2472,38 @@ MUTANTS = (
             "test_the_script_refuses_to_apply_a_policy_nobody_declared",
         ),
     ),
+    Mutant(
+        "M152_A_DISABLED_ADMIN_MAY_STILL_ADMINISTER",
+        "apps/api/src/korpus/api/routes_admin.py",
+        "    account_for(service, identity)\n    try:\n"
+        "        PolicyEngine().require(identity, ACCOUNT_MANAGE)",
+        "    try:\n        PolicyEngine().require(identity, ACCOUNT_MANAGE)",
+        (
+            "apps/api/tests/test_account_administration.py::"
+            "test_a_disabled_administrator_cannot_administer",
+        ),
+    ),
+    Mutant(
+        "M153_ANY_ROLE_MAY_SWITCH_A_PERSON_OFF",
+        "apps/api/src/korpus/api/routes_admin.py",
+        "        PolicyEngine().require(identity, ACCOUNT_MANAGE)",
+        "        PolicyEngine().require(identity, \"answer:read\")",
+        (
+            "apps/api/tests/test_account_administration.py::"
+            "test_only_an_administrator_may_switch_a_person_off",
+        ),
+    ),
+    Mutant(
+        "M154_AN_ADMIN_CAN_LOCK_THEMSELVES_OUT",
+        "apps/api/src/korpus/api/routes_admin.py",
+        "    if target.auth_subject == identity.subject and "
+        "body.status == AccountStatus.DISABLED.value:",
+        "    if False:",
+        (
+            "apps/api/tests/test_account_administration.py::"
+            "test_an_administrator_cannot_disable_the_account_they_are_using",
+        ),
+    ),
 )
 
 

@@ -118,6 +118,12 @@ class AccountStore(Protocol):
 
     def get_account_by_subject(self, auth_subject: str) -> AccountRecord | None: ...
 
+    def list_accounts(
+        self, *, limit: int = 50, offset: int = 0, disabled_only: bool = False
+    ) -> tuple[list[AccountRecord], bool]:
+        """Every account, for the admin routes alone. See the adapter for why unscoped."""
+        ...
+
     def set_account_status(
         self,
         actor_subject: str,

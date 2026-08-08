@@ -46,6 +46,7 @@ from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.application.subscriptions import SubscriptionService
 from korpus.application.tenancy_ports import (
     AccountDisabled,
+    AccountStore,
     ConversationArchived,
     ConversationNotFound,
     SubscriptionStore,
@@ -82,6 +83,11 @@ def get_conversation_service(request: Request) -> ConversationService:
 def get_entitlements(request: Request) -> EntitlementProjection:
     projection: EntitlementProjection = _state(request, "entitlements")
     return projection
+
+
+def get_account_store(request: Request) -> AccountStore:
+    store: AccountStore = _state(request, "account_store")
+    return store
 
 
 def get_subscription_store(request: Request) -> SubscriptionStore:

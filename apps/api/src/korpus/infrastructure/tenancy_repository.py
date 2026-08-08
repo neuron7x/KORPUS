@@ -162,6 +162,29 @@ class SqlAccountStore:
             )
         return _account(row) if row else None
 
+    def list_accounts(
+        self, *, limit: int = 50, offset: int = 0, disabled_only: bool = False
+    ) -> tuple[list[AccountRecord], bool]:
+        """Accounts, newest first, and whether there are more.
+
+        Unscoped and reachable only from the admin routes: every other read in this file
+        is by id or by subject, because a request must never be able to enumerate who
+        exists. Over-fetches one row for the same reason the conversation list does — a
+        page that stops without saying so reports a truncation as a fact about the system.
+        """
+        wanted = max(1, min(limit, 200))
+        statement = (
+            select(accounts)
+            .order_by(accounts.c.created_at.desc(), accounts.c.id)
+            .limit(wanted + 1)
+            .offset(max(0, offset))
+        )
+        if disabled_only:
+            statement = statement.where(accounts.c.status == AccountStatus.DISABLED.value)
+        with self.engine.connect() as connection:
+            rows = connection.execute(statement).mappings().all()
+        return [_account(row) for row in rows[:wanted]], len(rows) > wanted
+
     def set_account_status(
         self,
         actor_subject: str,

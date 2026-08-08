@@ -24,12 +24,16 @@
       "lines": 823,
       "max_complexity": 8
     },
+    "apps/api/src/korpus/api/routes_admin.py": {
+      "lines": 177,
+      "max_complexity": 7
+    },
     "apps/api/src/korpus/api/routes_billing.py": {
       "lines": 169,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 444,
+      "lines": 450,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/__init__.py": {
@@ -208,7 +212,7 @@
       "max_complexity": 14
     },
     "apps/api/src/korpus/application/tenancy_ports.py": {
-      "lines": 258,
+      "lines": 264,
       "max_complexity": 1,
       "reason": "ACT-001: what the account, billing and conversation services need from storage, apart from the evidence ports"
     },
@@ -330,7 +334,7 @@
       "max_complexity": 13
     },
     "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
-      "lines": 223,
+      "lines": 246,
       "max_complexity": 4
     },
     "apps/api/src/korpus/infrastructure/tenancy_schema.py": {
@@ -347,7 +351,7 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 269,
+      "lines": 271,
       "max_complexity": 31
     },
     "apps/api/src/korpus/repository_requirements.py": {
@@ -1014,6 +1018,62 @@
         "worst_function": "delete_conversations"
       },
       "reason": "conversations grew without bound and appeared in no disposition plan; the window is computed and applied only when an operator asks"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 444,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 450,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      },
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes"
+    },
+    {
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 258,
+        "max_complexity": 1
+      },
+      "to": {
+        "lines": 264,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      },
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/tenancy_repository.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 223,
+        "max_complexity": 4
+      },
+      "to": {
+        "lines": 246,
+        "max_complexity": 4,
+        "worst_function": "set_account_status"
+      },
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes"
+    },
+    {
+      "path": "apps/api/src/korpus/main.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 269,
+        "max_complexity": 31
+      },
+      "to": {
+        "lines": 271,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      },
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes"
     }
   ],
   "line_exempt": {

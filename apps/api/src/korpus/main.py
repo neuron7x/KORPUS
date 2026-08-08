@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse, Response
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from korpus.api.routes import router
+from korpus.api.routes_admin import admin_router
 from korpus.api.routes_billing import billing_router
 from korpus.api.routes_tenancy import tenancy_router
 from korpus.application.cache import EvidenceQueryCache
@@ -263,6 +264,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(router)
     app.include_router(tenancy_router)
     app.include_router(billing_router)
+    app.include_router(admin_router)
     return app
 
 
