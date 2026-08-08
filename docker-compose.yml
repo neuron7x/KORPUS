@@ -487,6 +487,7 @@ services:
         condition: service_healthy
     networks:
     - edge
+    - frontend
 secrets:
   postgres_admin_password:
     file: ./infra/secrets/postgres_admin_password.txt
@@ -510,8 +511,16 @@ volumes:
   audit-anchor: null
   clamav-db: null
 networks:
+  # `edge` carries web↔api and stays internal so api cannot reach the internet except
+  # through `egress`. A published port does NOT work on an internal-only network — proved
+  # empirically 2026-08-08: host→container DNAT needs a network with a gateway. So web
+  # also joins `frontend`, whose only job is to make web's published port reachable from
+  # the host. web has no outbound needs (it serves fixed assets and proxies to api over
+  # edge), so the gateway `frontend` gives it is unused; api is deliberately not on it, so
+  # the egress-only rule for api is preserved.
   edge:
     internal: true
+  frontend: null
   backend:
     internal: true
   egress: null

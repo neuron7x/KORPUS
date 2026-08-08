@@ -340,7 +340,7 @@ infra-secrets:
 	bash scripts/init_local_secrets.sh
 
 infra-up: infra-secrets
-	docker compose up -d --wait web
+	docker compose up -d --wait web worker
 
 infra-support: infra-secrets
 	docker compose up -d --wait postgres minio otel-collector migrate minio-init

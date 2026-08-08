@@ -256,6 +256,58 @@ class SqlIngestionJobQueue:
             ).mappings().one()
         return self._record(updated)
 
+    def reap_orphaned_leases(self, *, now: datetime | None = None) -> list[IngestionJobRecord]:
+        """Terminate jobs a crashed worker left RUNNING that can never be re-claimed.
+
+        `claim` re-picks a RUNNING job once its lease expires, but only while attempts are
+        below the ceiling — so a worker that dies mid-job on the last attempt leaves the
+        row RUNNING with an expired lease and attempts at the max: never re-claimed, never
+        failed, never audited. A soldier's document sits in that state forever with no
+        record of why. This moves those rows to DEAD_LETTER and returns them so the caller
+        can write the audit event the crashed worker never got to.
+
+        Scoped to expired-lease-and-exhausted: a job still within its lease belongs to a
+        live worker, and one with attempts left is `claim`'s job, not the reaper's.
+        """
+        current = now or datetime.now(UTC)
+        reaped: list[IngestionJobRecord] = []
+        with self.engine.begin() as connection:
+            worker = Identity(
+                subject="reaper", roles=frozenset({"worker"}), corpora=frozenset({"public"})
+            )
+            self._apply_identity(connection, worker)
+            orphans = connection.execute(
+                select(ingestion_jobs)
+                .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
+                .where(ingestion_jobs.c.lease_expires_at.is_not(None))
+                .where(ingestion_jobs.c.lease_expires_at < current)
+                .where(ingestion_jobs.c.attempts >= ingestion_jobs.c.max_attempts)
+            ).mappings().all()
+            for row in orphans:
+                changed = connection.execute(
+                    update(ingestion_jobs)
+                    # Re-assert the RUNNING state and the exact lease in the WHERE so a
+                    # worker that revived and completed between the SELECT and here is not
+                    # overwritten: the reaper never wins a race against real progress.
+                    .where(ingestion_jobs.c.id == row["id"])
+                    .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
+                    .where(ingestion_jobs.c.lease_expires_at == row["lease_expires_at"])
+                    .values(
+                        state=IngestionJobState.DEAD_LETTER.value,
+                        lease_owner=None,
+                        lease_expires_at=None,
+                        error_code="orphaned_lease",
+                        error_detail="worker lease expired with attempts exhausted; reaped",
+                        updated_at=current,
+                    )
+                )
+                if changed.rowcount == 1:
+                    updated = connection.execute(
+                        select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
+                    ).mappings().one()
+                    reaped.append(self._record(updated))
+        return reaped
+
     @staticmethod
     def _values(job: IngestionJobRecord) -> dict[str, Any]:
         return {

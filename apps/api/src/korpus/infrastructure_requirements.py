@@ -426,11 +426,37 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         ),
     ),
     # --- networks ---------------------------------------------------------------
+    # web must reach api over the internal `edge` network AND be reachable from the host.
+    # A published port does not work on an internal-only network (proved 2026-08-08:
+    # host→container DNAT needs a gateway), so web also joins the non-internal `frontend`.
+    # What it must never touch is the data plane: `backend` (postgres/minio) and `egress`.
     _requirement(
-        "compose.web.edge_only",
+        "compose.web.reaches_api_over_edge",
         "docker-compose",
-        "web is isolated to the internal edge network",
-        lambda c: set(c.service("web").get("networks", []) or []) == {"edge"},
+        "web is on the internal edge network so it can proxy to api",
+        lambda c: "edge" in set(c.service("web").get("networks", []) or []),
+    ),
+    _requirement(
+        "compose.web.host_reachable",
+        "docker-compose",
+        "web is on a non-internal network so its published port is reachable from the host",
+        lambda c: any(
+            # `.get(n) or {}` because a network declared `frontend:` (null in YAML) maps
+            # to None, and None has no `.get`. A null network is a non-internal bridge,
+            # which is exactly what makes the port reachable.
+            ((c.compose.get("networks", {}) or {}).get(n) or {}).get("internal") is not True
+            for n in (c.service("web").get("networks", []) or [])
+        ),
+        "an internal-only network has no gateway, so a published port never reaches the host",
+    ),
+    _requirement(
+        "compose.web.no_data_plane",
+        "docker-compose",
+        "web touches neither the data plane nor egress",
+        lambda c: not (
+            {"backend", "egress"} & set(c.service("web").get("networks", []) or [])
+        ),
+        "a static server with a route to postgres or the internet is more surface than it needs",
     ),
     *[
         _requirement(

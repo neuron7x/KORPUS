@@ -14,7 +14,7 @@
 // interface that renders it as an error teaches operators to retry until they get prose.
 
 import {
-  ApiRefusal, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
+  ApiRefusal, NetworkError, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
 } from "./api.js";
 import {
   archiveConversation, askIn, conversationListMarkup, createConversation,
@@ -35,10 +35,53 @@ const errors = $("entry-errors");
 const identityState = $("identity-state");
 
 let identity = null;
-//: In memory for the life of the tab. Not localStorage: the rule in this tree is that
-//: nothing about a session outlives the tab, and a declaration that survives a shift
-//: change is a declaration attributed to the wrong person.
+//: In memory for the life of the tab, and mirrored to sessionStorage so it survives a
+//: reload — a page eviction on a low-memory phone, an accidental refresh — without the
+//: soldier retyping three fields under fire. NOT localStorage: the rule is that nothing
+//: about a session outlives the tab, and a declaration that survives a shift change is a
+//: declaration attributed to the wrong person. sessionStorage is exactly that boundary —
+//: it is cleared when the tab closes, so a reload keeps it and the next person does not
+//: inherit it.
 let declaration = null;
+
+const DECLARATION_KEY = "korpus.declaration";
+
+function rememberDeclaration(declared) {
+  declaration = declared;
+  try {
+    sessionStorage.setItem(DECLARATION_KEY, JSON.stringify(declared));
+  } catch {
+    // Private mode or a full quota. The declaration still lives in memory for this tab;
+    // only the reload-survival is lost, which is a degradation, not a failure.
+  }
+}
+
+function forgetDeclaration() {
+  declaration = null;
+  try {
+    sessionStorage.removeItem(DECLARATION_KEY);
+  } catch {
+    // Nothing to clean up if storage was never reachable.
+  }
+}
+
+function restoreDeclaration() {
+  try {
+    const stored = sessionStorage.getItem(DECLARATION_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    // Re-validated, not trusted: a tampered or partial value must not enter the audit
+    // chain as a declaration. The same three fields the form requires.
+    if (["family_name", "given_name", "specialty"].every(
+      key => typeof parsed?.[key] === "string" && parsed[key].trim(),
+    )) {
+      return parsed;
+    }
+  } catch {
+    // Unparseable — treat as none.
+  }
+  return null;
+}
 
 // ---------------------------------------------------------------- identity
 
@@ -79,7 +122,9 @@ function forgetIdentity(message) {
   clearBearerToken();
   renderIdentity(null);
   identityState.textContent = message;
-  declaration = null;
+  // The stored declaration is cleared with the identity: it belongs to the person who
+  // authenticated, and a logout is exactly the shift change that must not carry it over.
+  forgetDeclaration();
   standing.hidden = true;
   askSection.hidden = true;
   entry.hidden = false;
@@ -170,23 +215,32 @@ function enterWorkingState() {
   void startConversations();
 }
 
-declarationForm.addEventListener("submit", event => {
+declarationForm.addEventListener("submit", async event => {
   event.preventDefault();
   const {declared, problems} = readDeclaration();
   if (!identity) {
-    // In public mode there is no token field to point at — the edge holds the identity —
-    // so an unauthenticated state there means the API is unreachable, not that the
-    // operator forgot something. Linking the summary to a removed element would send
-    // a screen reader nowhere.
-    problems.unshift(
-      publicMode
-        ? {field: "identity-state", message: "Сервіс недоступний: особу не підтверджено"}
-        : {field: "bearer-token", message: "Спершу автентифікуйтесь"},
-    );
+    if (publicMode) {
+      // On the public edge the identity comes from one /v1/auth/me the edge answers. A
+      // single failed call at load — a dropped packet — otherwise leaves the page a dead
+      // end for the whole session. Try once more before declaring the service down.
+      try {
+        await loadIdentity();
+      } catch {
+        // Still unreachable; fall through to the message with an action.
+      }
+    }
+    if (!identity) {
+      problems.unshift(
+        publicMode
+          ? {field: "identity-state",
+             message: "Сервіс недоступний: особу не підтверджено. Перевірте зв'язок і спробуйте ще раз"}
+          : {field: "bearer-token", message: "Спершу автентифікуйтесь"},
+      );
+    }
   }
   showErrors(problems);
   if (problems.length) return;
-  declaration = declared;
+  rememberDeclaration(declared);
   enterWorkingState();
 });
 
@@ -308,6 +362,23 @@ async function ask() {
     query.value = "";
   } catch (error) {
     pending.remove();
+    // A lost link is the field's normal state, and it is a different message from a
+    // refusal: the question was never asked, so nothing was decided about the corpus. The
+    // question stays in the box — not cleared below — so the soldier retries, not retypes.
+    if (error instanceof NetworkError) {
+      const offlineBlock = document.createElement("article");
+      offlineBlock.className = "turn";
+      offlineBlock.innerHTML =
+        `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
+          escapeHtml(question)}</p>` +
+        `<div class="verdict denied"><span class="verdict-mark" aria-hidden="true"></span>` +
+        `<h2>${escapeHtml(error.offline ? "НЕМАЄ ЗВ'ЯЗКУ" : "ЗВ'ЯЗОК ПЕРЕРВАВСЯ")}</h2></div>` +
+        `<p class="answer-text">Питання не надіслано і лишилось у полі. Перевірте зв'язок і
+         натисніть «Знайти доказ» ще раз — нічого набирати заново не треба.</p>`;
+      result.append(offlineBlock);
+      offlineBlock.scrollIntoView({block: "nearest", behavior: "smooth"});
+      return;
+    }
     // The API answers a withheld question with a reason. Collapsing it to a status code
     // discards the only part the reader can act on.
     const refusal = error instanceof ApiRefusal ? error : null;
@@ -594,6 +665,19 @@ corpus.addEventListener("toggle", () => {
     });
 });
 
-loadIdentity().catch(() => forgetIdentity("не автентифіковано"));
+// On load: confirm the identity, then — only if a declaration from before a reload is
+// still valid — walk straight back to the ask screen so a refresh does not cost the
+// soldier the three fields again. The restore happens after identity so a stored
+// declaration can never stand in for authentication.
+loadIdentity()
+  .then(() => {
+    if (!identity) return;
+    const restored = restoreDeclaration();
+    if (restored) {
+      declaration = restored;
+      enterWorkingState();
+    }
+  })
+  .catch(() => forgetIdentity("не автентифіковано"));
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => undefined);

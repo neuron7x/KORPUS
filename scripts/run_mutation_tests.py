@@ -985,8 +985,8 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
+        'SCHEMA_REVISION = "0014_subscription_last_event"',
         'SCHEMA_REVISION = "0013_message_verdict"',
-        'SCHEMA_REVISION = "0012_tenancy"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
         ),
@@ -2338,8 +2338,9 @@ MUTANTS = (
     Mutant(
         "M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS",
         "apps/api/src/korpus/application/subscriptions.py",
-        "            if occurred < subscription.updated_at:",
-        "            if False:",
+        "            if subscription.last_event_at is not None and occurred < "
+        "subscription.last_event_at:",
+        "            if False:  # noqa",
         (
             "apps/api/tests/test_billing_events.py::"
             "test_a_replayed_older_event_does_not_move_the_subscription_backwards",
@@ -2348,10 +2349,10 @@ MUTANTS = (
     Mutant(
         "M140_LOCAL_ONLY_ACCEPTS_ONE_PRIVATE_ADDRESS",
         "apps/api/src/korpus/application/egress.py",
-        "            if not (parsed.is_private or parsed.is_loopback or parsed.is_link_local):\n"
+        "            if not (parsed.is_private or parsed.is_loopback):\n"
         "                return False\n"
         "        return True",
-        "            if parsed.is_private or parsed.is_loopback or parsed.is_link_local:\n"
+        "            if parsed.is_private or parsed.is_loopback:\n"
         "                return True\n"
         "        return False",
         (
@@ -2523,6 +2524,74 @@ MUTANTS = (
         (
             "apps/api/tests/test_permission_contract.py::"
             "test_account_management_is_held_by_no_ordinary_role",
+        ),
+    ),
+    Mutant(
+        "M157_LINK_LOCAL_ACCEPTED_AS_LOCAL",
+        "apps/api/src/korpus/application/egress.py",
+        "            if parsed.is_link_local:\n                return False",
+        "            if False:\n                return False",
+        (
+            "apps/api/tests/test_model_egress.py::"
+            "test_local_only_refuses_the_cloud_metadata_endpoint",
+        ),
+    ),
+    Mutant(
+        "M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN",
+        "apps/api/src/korpus/api/routes.py",
+        "    expected = settings.resolved_metrics_token\n"
+        "    if expected is None:\n        return True",
+        "    expected = settings.resolved_metrics_token\n"
+        "    if True:\n        return True",
+        (
+            "apps/api/tests/test_infrastructure_hardening.py::"
+            "test_not_ready_hides_the_internal_snapshot_without_the_metrics_token",
+        ),
+    ),
+    Mutant(
+        "M159_ORPHAN_REAPER_TERMINATES_LIVE_JOBS",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "                .where(ingestion_jobs.c.attempts >= ingestion_jobs.c.max_attempts)",
+        "                .where(ingestion_jobs.c.attempts >= 0)",
+        (
+            "apps/api/tests/test_reliability_degradation.py::"
+            "test_a_crashed_worker_leaves_no_zombie_running_job",
+        ),
+    ),
+    Mutant(
+        "M160_BILLING_REPLAY_GUARD_USES_PROCESSING_CLOCK",
+        "apps/api/src/korpus/application/subscriptions.py",
+        "            if subscription.last_event_at is not None and occurred < "
+        "subscription.last_event_at:",
+        "            if subscription.last_event_at is not None and occurred < "
+        "subscription.updated_at:",
+        (
+            "apps/api/tests/test_billing_events.py::"
+            "test_a_legitimate_in_order_event_is_not_rejected_as_a_replay",
+        ),
+    ),
+    Mutant(
+        "M161_INTEGRITY_ERROR_SWALLOWED_AS_DUPLICATE",
+        "apps/api/src/korpus/infrastructure/billing_repository.py",
+        "            if idempotency:\n                return BillingEventResult.DUPLICATE\n"
+        "            raise",
+        "            if True:\n                return BillingEventResult.DUPLICATE\n"
+        "            raise",
+        (
+            "apps/api/tests/test_billing_events.py::"
+            "test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate",
+        ),
+    ),
+    Mutant(
+        "M162_DB_OUTAGE_NOT_RETRYABLE",
+        "apps/api/src/korpus/api/routes.py",
+        "                detail=\"upload staging is full; retry shortly\",\n"
+        "                headers={\"Retry-After\": \"2\"},",
+        "                detail=\"upload staging is full; retry shortly\",\n"
+        "                headers={},",
+        (
+            "apps/api/tests/test_reliability_degradation.py::"
+            "test_a_full_upload_spool_is_a_503_not_a_500",
         ),
     ),
 )

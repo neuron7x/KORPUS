@@ -92,20 +92,30 @@ async def _spool_upload_limited(file: UploadFile, maximum_bytes: int) -> SpoolUp
     hasher = hashlib.sha256()
     total = 0
     try:
-        with os.fdopen(descriptor, "wb") as handle:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                total += len(chunk)
-                if total > maximum_bytes:
-                    raise ValueError("upload exceeds configured size limit")
-                hasher.update(chunk)
-                handle.write(chunk)
-            if total == 0:
-                raise ValueError("empty document")
-            handle.flush()
-            os.fsync(handle.fileno())
+        try:
+            with os.fdopen(descriptor, "wb") as handle:
+                while True:
+                    chunk = await file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > maximum_bytes:
+                        raise ValueError("upload exceeds configured size limit")
+                    hasher.update(chunk)
+                    handle.write(chunk)
+                if total == 0:
+                    raise ValueError("empty document")
+                handle.flush()
+                os.fsync(handle.fileno())
+        except OSError as exc:
+            # The spool lives on a small tmpfs; a burst of concurrent uploads fills it and
+            # the write raises ENOSPC. That is a capacity limit, not a bad request — a 503
+            # so the client retries later, never a 500 that reads as the system breaking.
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="upload staging is full; retry shortly",
+                headers={"Retry-After": "2"},
+            ) from exc
         os.chmod(name, 0o600)
         return SpoolUpload(Path(name), hasher.hexdigest(), total)
     except BaseException:
@@ -144,13 +154,31 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def _readiness_detail_permitted(settings: Settings, authorization: str | None) -> bool:
+    """Whether this caller may see the internal readiness snapshot.
+
+    The snapshot names the audit head hash, the schema revision and the anchor backlog —
+    a reconnaissance surface. It is gated exactly as `/metrics` is: open when no metrics
+    token is configured (a local box the operator has not locked down), and behind that
+    token once one exists. A public deployment sets the token, so a soldier or an
+    onlooker catching the service mid-degradation sees a word, not the internals.
+    """
+    expected = settings.resolved_metrics_token
+    if expected is None:
+        return True
+    supplied = authorization.removeprefix("Bearer ").strip() if authorization else ""
+    return hmac.compare_digest(supplied, expected)
+
+
 @router.get("/ready")
 def ready(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
     settings: Annotated[Settings, Depends(get_settings)],
     observability: Annotated[Observability, Depends(get_observability)] = None,  # type: ignore[assignment]
+    authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, object]:
+    detail_permitted = _readiness_detail_permitted(settings, authorization)
     try:
         snapshot = repository.readiness_snapshot(
             max_pending_events=settings.audit_max_pending_events,
@@ -187,6 +215,19 @@ def ready(
         "ready": is_ready,
     }
     if not is_ready:
+        # The full snapshot is a reconnaissance surface, so an unauthenticated caller gets
+        # only the reason word. `not_ready` is the fallback rather than a leak: the three
+        # named conditions are the ones an operator with the token can then read in full.
+        if not detail_permitted:
+            reason = (
+                "object_store" if not object_store_ok
+                else "schema" if not schema_ok
+                else "audit_backlog"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail={"ready": False, "reason": reason},
+            )
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
     # readiness_snapshot always stores an int under this key (repository.readiness_snapshot)
     audit_head = int(snapshot["audit_head_sequence"])  # type: ignore[call-overload]

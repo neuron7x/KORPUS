@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **319**.
+Усього вимог: **321**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -186,12 +186,14 @@
 | `compose.postgres.resource_ceiling` | postgres declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.postgres.unprivileged` | postgres does not run privileged | a privileged container is the host |
 | `compose.web.digest_pinned` | web pins its image by digest | a tag is a name the registry may repoint; a digest is the bytes. SUP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed |
-| `compose.web.edge_only` | web is isolated to the internal edge network | — |
 | `compose.web.exact_image_tag` | web pins an exact image tag | latest is whatever the registry served that morning |
+| `compose.web.host_reachable` | web is on a non-internal network so its published port is reachable from the host | an internal-only network has no gateway, so a published port never reaches the host |
 | `compose.web.init` | web runs under an init process unless it is a one-shot | no init means zombie processes and signals that never arrive |
+| `compose.web.no_data_plane` | web touches neither the data plane nor egress | a static server with a route to postgres or the internet is more surface than it needs |
 | `compose.web.no_host_ports` | web publishes only on loopback | a published port is reachable from wherever the host is |
 | `compose.web.no_new_privileges` | web sets no-new-privileges | without it a setuid binary inside the image escalates |
 | `compose.web.present` | the web service is defined | — |
+| `compose.web.reaches_api_over_edge` | web is on the internal edge network so it can proxy to api | — |
 | `compose.web.resource_ceiling` | web declares memory and CPU ceilings | one unbounded service takes the host down with it |
 | `compose.web.unprivileged` | web does not run privileged | a privileged container is the host |
 | `compose.worker.clamav` | the worker waits for ClamAV | — |

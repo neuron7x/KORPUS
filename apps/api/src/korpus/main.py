@@ -265,6 +265,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(tenancy_router)
     app.include_router(billing_router)
     app.include_router(admin_router)
+
+    # A dependency being down is a "come back shortly", not a 500. Without these, a
+    # postgres restart or a MinIO blip reaches the reader as an uncaught exception — a bare
+    # stack trace with no Retry-After — and the client cannot tell a transient outage from
+    # a permanent break. Mapped to 503 so a soldier's client knows to retry, and so the
+    # reason word ("database"/"object_store") never carries an internal detail.
+    from sqlalchemy.exc import DBAPIError, OperationalError
+
+    from korpus.application.ports import ObjectStoreUnavailable
+
+    def _unavailable(reason: str) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content={"detail": {"reason": reason, "retryable": True}},
+            headers={"Retry-After": "2"},
+        )
+
+    @app.exception_handler(OperationalError)
+    @app.exception_handler(DBAPIError)
+    async def _database_unavailable(_request: Request, _exc: Exception) -> JSONResponse:
+        return _unavailable("database")
+
+    @app.exception_handler(ObjectStoreUnavailable)
+    async def _object_store_unavailable(_request: Request, _exc: Exception) -> JSONResponse:
+        return _unavailable("object_store")
+
     return app
 
 

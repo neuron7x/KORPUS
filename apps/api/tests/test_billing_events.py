@@ -115,10 +115,26 @@ def test_a_redelivered_event_changes_nothing(tmp_path: Path) -> None:
             tenancy, "evt-dup", "subscription.activated", reference=str(subscription.id)
         )
         first = tenancy.subscription_service.handle_event(payload, signature)
-        second = tenancy.subscription_service.handle_event(payload, signature)
+
+        # The redelivery must be recognised by the in-memory pre-check and never reach the
+        # write path: the unique constraint would also stop a double-apply, but relying on
+        # a rolled-back INSERT to enforce idempotency turns every retry into an exception.
+        calls = {"record": 0}
+        original = tenancy.subscriptions.record_billing_event
+
+        def counting(*args, **kwargs):
+            calls["record"] += 1
+            return original(*args, **kwargs)
+
+        tenancy.subscriptions.record_billing_event = counting  # type: ignore[method-assign]
+        try:
+            second = tenancy.subscription_service.handle_event(payload, signature)
+        finally:
+            tenancy.subscriptions.record_billing_event = original  # type: ignore[method-assign]
 
         assert first is BillingEventResult.APPLIED
         assert second is BillingEventResult.DUPLICATE
+        assert calls["record"] == 0, "a known duplicate reached the write path"
 
         from korpus.infrastructure.tenancy_schema import billing_events
 
@@ -453,5 +469,116 @@ def test_the_first_event_records_the_providers_own_subscription_id(tmp_path: Pat
         assert tenancy.subscriptions.get_subscription(subscription.id).status is (
             SubscriptionStatus.PAST_DUE
         )
+    finally:
+        tenancy.close()
+
+
+def test_a_legitimate_in_order_event_is_not_rejected_as_a_replay(tmp_path: Path) -> None:
+    """The guard once compared the event's provider time to updated_at — our processing
+    clock — so a valid event whose occurred_at was earlier than when we handled the
+    previous one jammed the subscription. It must compare to the last applied event's
+    provider time instead.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        _account, subscription = _account_with_subscription(tenancy)
+        # An hour in the past: provider events are stamped when they happen, and we handle
+        # them later. This gap is the bug — comparing occurred_at to our processing clock
+        # (updated_at ≈ now) rejects a valid event whose provider time is legitimately
+        # earlier than now. The mutant that swaps last_event_at for updated_at dies here.
+        base = now() - timedelta(hours=1)
+        activate, sig = _event(
+            tenancy, "ev-a", "subscription.activated", reference=str(subscription.id),
+            occurred_at=base,
+        )
+        assert tenancy.subscription_service.handle_event(activate, sig) is (
+            BillingEventResult.APPLIED
+        )
+        stored = tenancy.subscriptions.get_subscription(subscription.id)
+        assert stored.last_event_at is not None
+
+        # A renewal that occurred slightly after activation but is still well before our
+        # wall clock: legitimate, in order, must apply.
+        renew, sig2 = _event(
+            tenancy, "ev-b", "subscription.renewed", reference=str(subscription.id),
+            occurred_at=base + timedelta(seconds=1),
+        )
+        assert tenancy.subscription_service.handle_event(renew, sig2) is (
+            BillingEventResult.APPLIED
+        )
+        assert tenancy.subscriptions.get_subscription(subscription.id).status is (
+            SubscriptionStatus.ACTIVE
+        )
+    finally:
+        tenancy.close()
+
+
+def test_a_genuinely_older_event_is_still_rejected(tmp_path: Path) -> None:
+    """The replay guard must still catch a real backwards event: one older than the last
+    applied. Otherwise a canceled subscription is resurrected by replaying its activation.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        _account, subscription = _account_with_subscription(tenancy)
+        base = now()
+        activate, sig = _event(
+            tenancy, "ev-now", "subscription.activated", reference=str(subscription.id),
+            occurred_at=base,
+        )
+        tenancy.subscription_service.handle_event(activate, sig)
+
+        stale, sig2 = _event(
+            tenancy, "ev-old", "subscription.payment_failed", reference=str(subscription.id),
+            occurred_at=base - timedelta(days=30),
+        )
+        assert tenancy.subscription_service.handle_event(stale, sig2) is (
+            BillingEventResult.REJECTED
+        )
+        assert tenancy.subscriptions.get_subscription(subscription.id).status is (
+            SubscriptionStatus.ACTIVE
+        )
+    finally:
+        tenancy.close()
+
+
+def test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate(
+    tmp_path: Path,
+) -> None:
+    """`except IntegrityError → DUPLICATE` once hid a real constraint violation — a bug —
+    as a harmless redelivery, with no error and no trace. Only the idempotency key means
+    duplicate; anything else must surface.
+    """
+    from datetime import UTC, datetime
+
+    from korpus.domain.tenancy import BillingEventRecord, BillingEventResult
+    from sqlalchemy.exc import IntegrityError
+
+    tenancy = build_tenancy(tmp_path)
+    try:
+        _account, subscription = _account_with_subscription(tenancy)
+        store = tenancy.subscriptions
+        original = store._repository.audited_transaction
+
+        def fake_fk_violation(_operation):
+            raise IntegrityError(
+                "INSERT", {}, Exception("FOREIGN KEY constraint failed")
+            )
+
+        store._repository.audited_transaction = fake_fk_violation  # type: ignore[method-assign]
+        try:
+            with pytest.raises(IntegrityError):
+                store.record_billing_event(
+                    BillingEventRecord(
+                        provider="deterministic", provider_event_id="fk", event_type="x",
+                        payload_hash="0" * 64, received_at=datetime.now(UTC),
+                    ),
+                    subscription_id=subscription.id,
+                    result=BillingEventResult.APPLIED,
+                    applied_status=None, period_start=None, period_end=None,
+                    cancel_at_period_end=None,
+                    audit_payload={"interpretation": "test"},
+                )
+        finally:
+            store._repository.audited_transaction = original  # type: ignore[method-assign]
     finally:
         tenancy.close()

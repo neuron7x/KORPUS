@@ -81,17 +81,48 @@ async function refusalFrom(response) {
   return new ApiRefusal(response.status, reason, payload);
 }
 
+// A dropped network is the field's normal state, not an exotic one. Without a deadline a
+// request against a broken uplink hangs on an open TCP socket for the OS default — over a
+// minute — with the button disabled the whole time, and the soldier cannot tell "no signal"
+// from "the system is broken". `NetworkError.offline` is true when the failure is the link
+// rather than the server, so the caller can say so in words and keep the question.
+export class NetworkError extends Error {
+  constructor(offline) {
+    super(offline ? "network offline" : "network request failed");
+    this.name = "NetworkError";
+    this.offline = offline;
+  }
+}
+
+//: A field radio, not a datacentre link. Long enough for a slow uplink to answer, short
+//: enough that a dead one returns the button before the soldier gives up on the page.
+const REQUEST_TIMEOUT_MS = 30000;
+
 export async function call(path, {method = "GET", body, form} = {}) {
   const headers = form ? authHeaders({}, method) : authHeaders(
     body === undefined ? {} : {"Content-Type": "application/json"},
     method,
   );
-  const response = await fetch(`${apiUrl()}${path}`, {
-    method,
-    headers,
-    credentials: "same-origin",
-    body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
-  });
+  let response;
+  try {
+    response = await fetch(`${apiUrl()}${path}`, {
+      method,
+      headers,
+      credentials: "same-origin",
+      body: form ?? (body === undefined ? undefined : JSON.stringify(body)),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
+    // fetch rejects only for transport failures — the link, DNS, a timeout, an abort.
+    // An HTTP error status resolves and is handled below. `navigator.onLine === false` is
+    // a definite "no link"; a timeout or bare TypeError with the browser still online is
+    // treated as offline too, because from the field the distinction is not actionable.
+    const offline = globalThis.navigator?.onLine === false
+      || error?.name === "TimeoutError"
+      || error?.name === "AbortError"
+      || error instanceof TypeError;
+    throw new NetworkError(offline);
+  }
   if (!response.ok) throw await refusalFrom(response);
   if (response.status === 204) return null;
   return response.json();

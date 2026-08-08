@@ -179,8 +179,40 @@ def main() -> None:
         if args.idle_seconds <= 0 or args.idle_seconds > 60:
             raise SystemExit("--idle-seconds must be in (0, 60]")
         while True:
-            result = worker.run_once()
+            try:
+                result = worker.run_once()
+            except Exception as exc:  # noqa: BLE001 — a worker must outlive one bad job
+                # An unexpected error must not end the worker. If it did, one poison job
+                # or one transport blip that escaped classification would stop every
+                # ingestion until a human noticed the process was gone — a silent outage.
+                # The job it was on stays leased and is reaped or re-claimed after expiry.
+                print(
+                    f"worker iteration failed, continuing: {type(exc).__name__}: {exc}",
+                    flush=True,
+                )
+                time.sleep(args.idle_seconds)
+                continue
             if not result.claimed:
+                # Nothing to do this tick — a good moment to bury jobs a crashed worker
+                # left RUNNING past their lease with no attempts remaining, writing the
+                # audit event that worker never reached.
+                for reaped in queue.reap_orphaned_leases():
+                    repository.append_audit(
+                        reaped.actor,
+                        "ingestion.job_reaped",
+                        "ingestion_job",
+                        str(reaped.id),
+                        {
+                            "state": reaped.state.value,
+                            "error_code": reaped.error_code,
+                            "interpretation": (
+                                "A worker died mid-job on its last attempt and left this "
+                                "leased. It cannot be re-claimed, so it is moved to "
+                                "dead_letter with a record, rather than sitting RUNNING "
+                                "forever with no trace of why the document never appeared."
+                            ),
+                        },
+                    )
                 time.sleep(args.idle_seconds)
     finally:
         quarantine_store.close()

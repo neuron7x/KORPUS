@@ -22,14 +22,36 @@ PORT_API="${KORPUS_PUBLIC_API_PORT:-8000}"
 PORT_EDGE="${KORPUS_PUBLIC_EDGE_PORT:-8081}"
 PY="apps/api/.venv/bin/python"
 
-mkdir -p "$STATE" "$EDGE/html" "$EDGE/tmp/nginx"
+# Secrets live OUTSIDE the repository tree by default. The JWT secret used to be written
+# to var/public/ inside the checkout, so a naive `zip -r korpus .` or an rsync of the
+# working directory carried the signing key with the code. Runtime files (logs, the
+# rendered nginx.conf) stay in var/; only the secret moves to XDG state, and the operator
+# can pin it with KORPUS_PUBLIC_SECRET_DIR.
+SECRET_DIR="${KORPUS_PUBLIC_SECRET_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/korpus-public}"
+
+# Preflight: fail early with a fixable message rather than three steps in with a stack
+# trace. A fresh clone has neither the venv nor the web build, and the failure otherwise
+# surfaces as an obscure "no such file" from deep inside a subprocess.
+[[ -x "$PY" ]] || { echo "run 'make api-install' first: $PY is missing" >&2; exit 69; }
+command -v docker >/dev/null || { echo "docker is required for the edge; install it" >&2; exit 69; }
+
+mkdir -p "$STATE" "$EDGE/html" "$EDGE/tmp/nginx" "$SECRET_DIR"
+chmod 700 "$SECRET_DIR"
 
 # ---------------------------------------------------------------- identity
 
-if [[ ! -f "$STATE/jwt-secret.txt" ]]; then
-  "$PY" -c "import secrets;print(secrets.token_urlsafe(48))" > "$STATE/jwt-secret.txt"
-  chmod 600 "$STATE/jwt-secret.txt"
+if [[ ! -f "$SECRET_DIR/jwt-secret.txt" ]]; then
+  "$PY" -c "import secrets;print(secrets.token_urlsafe(48))" > "$SECRET_DIR/jwt-secret.txt"
+  chmod 600 "$SECRET_DIR/jwt-secret.txt"
 fi
+echo "secrets: $SECRET_DIR (outside the repository; do not copy into a release)" >&2
+
+# One-time migration off the old in-tree location, so an existing deployment keeps its
+# signing key rather than minting a new one and invalidating live sessions.
+if [[ -f "$STATE/jwt-secret.txt" && ! -s "$SECRET_DIR/jwt-secret.txt" ]]; then
+  mv "$STATE/jwt-secret.txt" "$SECRET_DIR/jwt-secret.txt"
+fi
+rm -f "$STATE/jwt-secret.txt"
 
 export KORPUS_ENVIRONMENT=local
 # The imported Drive corpus, not the bootstrap fixture. SQLite is in WAL mode here, so
@@ -45,7 +67,7 @@ export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
 # been pointing at the same var/audit-anchor.json since the first deployment.
 export KORPUS_AUDIT_ANCHOR_PATH="${KORPUS_AUDIT_ANCHOR_PATH:-$ROOT/var/audit-anchor-ml.json}"
 export KORPUS_AUTH_MODE=jwt
-export KORPUS_JWT_SECRET="$(cat "$STATE/jwt-secret.txt")"
+export KORPUS_JWT_SECRET="$(cat "$SECRET_DIR/jwt-secret.txt")"
 export KORPUS_JWT_ISSUER=korpus-public
 export KORPUS_JWT_AUDIENCE=korpus
 export KORPUS_JWT_MAX_LIFETIME_MINUTES=1440

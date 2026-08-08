@@ -100,11 +100,52 @@ def assemble_ci_report() -> dict[str, object]:
     }
 
 
+#: The var artifacts the operational gate hashed, keyed by the name it stored the digest
+#: under in `evidence_sha256`. Promotion re-hashes each and refuses on any mismatch: the
+#: gate can only have passed over the bytes it hashed, and promoting a different file
+#: beside that PASS is the exact "green next to a stale artifact" this project exists to
+#: refuse. Not a paranoia check — it caught a FAIL operational-gate.json sitting in var
+#: while a PASS assurance was assembled from CI artifacts (2026-08-08).
+_GATE_HASHED_EVIDENCE = {
+    "eval": "eval-report.json",
+    "mutation": "mutation-report.json",
+    "migration": "migration-report.json",
+    "scale": "scale-report.json",
+}
+
+
+def _verify_evidence_matches_the_gate() -> None:
+    gate = VAR / "operational-gate.json"
+    if not gate.is_file():
+        # No gate ran — assemble_ci_report already refuses a non-PASS assurance, and a
+        # missing gate is a non-PASS. Nothing to cross-check here.
+        return
+    recorded = load_json(gate).get("evidence_sha256")
+    if not isinstance(recorded, dict):
+        raise SystemExit(
+            "operational gate carries no evidence_sha256; it predates the promotion "
+            "cross-check and cannot be trusted to describe the artifacts being promoted"
+        )
+    for name, filename in _GATE_HASHED_EVIDENCE.items():
+        expected = recorded.get(name)
+        source = VAR / filename
+        if expected is None or not source.is_file():
+            raise SystemExit(f"operational gate did not hash {name}; refusing to promote")
+        actual = sha256(source)
+        if actual != expected:
+            raise SystemExit(
+                f"{filename} does not match the digest the operational gate hashed "
+                f"({actual[:12]}… != {expected[:12]}…): the gate passed over a different "
+                "file than the one about to be promoted. Re-run the gate on this evidence."
+            )
+
+
 def main() -> int:
     assurance_path = VAR / "research-assurance-report.json"
     assurance = load_json(assurance_path) if assurance_path.is_file() else assemble_ci_report()
     if assurance.get("status") != "PASS":
         raise SystemExit("refusing to snapshot a failing assurance run")
+    _verify_evidence_matches_the_gate()
 
     REPORTS.mkdir(exist_ok=True)
     assurance_path = REPORTS / "RESEARCH_ASSURANCE_REPORT.json"

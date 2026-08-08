@@ -59,10 +59,15 @@ test("a token written to persistent storage is caught", async () => {
   assert.match(output, /persistent token storage detected/);
 });
 
-test("a reference taken without a member access is caught", async () => {
-  const {status} = await runWith(edit =>
+test("a bare localStorage reference is caught (sessionStorage is now allowed)", async () => {
+  // localStorage outlives the tab and is forbidden everywhere; sessionStorage is cleared
+  // when the tab closes and is permitted for the declaration alone.
+  const caught = await runWith(edit =>
+    edit("public/console.js", source => `${source}\nconst store = localStorage;\n`));
+  assert.notEqual(caught.status, 0);
+  const allowed = await runWith(edit =>
     edit("public/console.js", source => `${source}\nconst store = sessionStorage;\n`));
-  assert.notEqual(status, 0);
+  assert.equal(allowed.status, 0, "sessionStorage in a console is no longer a violation");
 });
 
 test("a console calling fetch behind api.js is caught", async () => {
@@ -452,4 +457,45 @@ test("removing the accounts console surface is caught", async () => {
       source.replaceAll('id="console-accounts"', 'id="console-accounts-old"')));
   assert.notEqual(status, 0);
   assert.match(output, /operator console missing surface: console-accounts/);
+});
+
+test("a module imported by app but missing from the SW cache is caught", async () => {
+  // The blank-offline-page failure: /conversations.js caused it once.
+  const {status, output} = await runWith(edit =>
+    edit("public/sw.js", source =>
+      source.replace('"/conversations.js", ', "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /service worker does not cache/);
+});
+
+test("removing the request timeout is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/api.js", source =>
+      source.replace(/signal: AbortSignal\.timeout\([^)]*\),?/, "")));
+  assert.notEqual(status, 0);
+  assert.match(output, /no timeout or no offline signal/);
+});
+
+test("rendering a lost link as a generic error is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source => source.replaceAll("НЕМАЄ ЗВ'ЯЗКУ", "ПОМИЛКА")));
+  assert.notEqual(status, 0);
+  assert.match(output, /lost link is rendered as a generic error/);
+});
+
+test("localStorage is still forbidden even though sessionStorage is now allowed", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      `${source}\nlocalStorage.setItem("x", declaration);\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /persistent token storage/);
+});
+
+test("a restored declaration trusted without re-validation is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace(/function restoreDeclaration\(\)[\s\S]*?\n\}/,
+                     'function restoreDeclaration() {\n  return JSON.parse(sessionStorage.getItem(DECLARATION_KEY));\n}')));
+  assert.notEqual(status, 0);
+  assert.match(output, /trusted without re-validation/);
 });

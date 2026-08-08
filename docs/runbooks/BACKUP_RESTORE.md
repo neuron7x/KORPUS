@@ -48,3 +48,39 @@ python scripts/verify_postgres_restore.py
 ```
 
 Run the drill on a clean database after every schema change and on the declared recovery cadence. Record restore duration against the declared RTO. A successful backup job or `pg_restore` exit code alone is not recovery evidence.
+
+## SQLite (the deployment that is actually running)
+
+`serve-public` runs on SQLite, not PostgreSQL. The `pg_dump` path above covers the
+deployment KORPUS is *designed* for; this covers the one it is *running*, and losing the
+file is not a recovery-time incident but a repeat of the five-hour import. These commands
+are executable as written.
+
+Back up — a consistent snapshot while the site is still answering (WAL mode):
+
+```bash
+export KORPUS_BACKUP_SQLITE_PATH="$PWD/var/korpus-ml.db"
+export KORPUS_BACKUP_OBJECT_ROOT="$PWD/var/objects-ml"
+export KORPUS_BACKUP_ENCRYPTION_KEY_FILE="$HOME/.local/state/korpus-public/backup.key"
+export KORPUS_BACKUP_KEY_ID=ops
+export KORPUS_BACKUP_DIR="$HOME/korpus-backups"     # OUTSIDE the repo tree
+[ -f "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE" ] || {
+  mkdir -p "$(dirname "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE")"
+  python3 -c "import secrets;print(secrets.token_hex(32))" > "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE"
+  chmod 600 "$KORPUS_BACKUP_ENCRYPTION_KEY_FILE"; }
+scripts/backup_sqlite.sh                             # prints the encrypted backup path
+```
+
+Restore — and prove it answers, because an empty corpus restores *cleanly*:
+
+```bash
+scripts/restore_sqlite.sh <backup.enc> "$PWD/var/restored"
+```
+
+`restore_sqlite.sh` exits non-zero and prints `unusable` if the restored database holds no
+approved versions or spans — a file that opens is not a restore.
+
+**Cadence:** daily while the corpus is being imported, then before every corpus change.
+**Recovery criterion:** the restored copy answers a known question with citations. The key
+file lives outside the repository tree — a backup encrypted with a key sitting beside it is
+one `rm -rf` from being both gone and unrecoverable.

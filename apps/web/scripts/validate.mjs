@@ -73,13 +73,13 @@ for (const [name, source] of [
     throw new Error(`${name} must obtain its API access from api.js`);
   }
 }
-// Matches use, not mention. The bare-word form tripped on api.js's own comment
-// explaining why a token must never reach localStorage — a guard that forbids naming
-// the hazard it guards against, which is how the explanation gets deleted instead of
-// the hazard. The trailing class covers `localStorage.x`, `localStorage[k]`,
-// `f(localStorage)` and `const s = localStorage;`, the ways a reference is actually
-// taken.
-const PERSISTENT_STORAGE = /(localStorage|sessionStorage)\s*[.[;)=,]/;
+// localStorage only, not sessionStorage. The rule is that nothing about a session may
+// outlive the tab: localStorage does (a token there survives the browser closing and the
+// next person opening it), sessionStorage does not (it is cleared when the tab closes).
+// app.js deliberately mirrors the declaration into sessionStorage so a reload does not
+// cost a soldier three fields — and that survives the tab, not the shift. Matches use,
+// not mention, so a comment naming the hazard does not trip its own guard.
+const PERSISTENT_STORAGE = /localStorage\s*[.[;)=,]/;
 for (const file of [
   "public/api.js", "public/app.js", "public/conversations.js",
   "public/console.js", "public/console_rules.js",
@@ -87,6 +87,49 @@ for (const file of [
   if (PERSISTENT_STORAGE.test(await read(file))) {
     throw new Error(`persistent token storage detected in ${file}`);
   }
+}
+// A declaration mirrored to sessionStorage must be re-validated on the way back in, never
+// trusted: a tampered value must not enter the audit chain as somebody's declaration. The
+// check reads the restore function's own body, not the mere presence of its name — a
+// trusting `return JSON.parse(...)` must fail even while the function still exists.
+if (/sessionStorage/.test(app)) {
+  const restore = app.match(/function restoreDeclaration\(\)[\s\S]*?\n\}/);
+  if (!restore) {
+    throw new Error("sessionStorage is used but no restoreDeclaration function validates it");
+  }
+  if (!/\.every\(/.test(restore[0]) || !/\.trim\(\)/.test(restore[0])) {
+    throw new Error("a restored declaration is trusted without re-validation");
+  }
+}
+
+// ---------------------------------------------------------------- offline shell
+//
+// The service worker promises an offline shell. One static import missing from its cache
+// makes a module fail to execute offline, which turns a degraded page into a blank one —
+// the exact failure /conversations.js caused before it was added. So every module app.js
+// or api.js statically imports must be in the SW's ASSETS list.
+const sw = await read("public/sw.js");
+const assetsMatch = sw.match(/const ASSETS = \[([^\]]*)\]/);
+if (!assetsMatch) throw new Error("the service worker no longer declares an ASSETS list");
+const cached = new Set(
+  [...assetsMatch[1].matchAll(/"([^"]+)"/g)].map(m => m[1]),
+);
+for (const file of ["public/app.js", "public/api.js"]) {
+  const source = await read(file);
+  for (const [, spec] of source.matchAll(/from "(\.\/[^"]+)"/g)) {
+    const asset = spec.replace(/^\.\//, "/");
+    if (!cached.has(asset)) {
+      throw new Error(`${file} imports ${asset}, which the service worker does not cache — the offline shell would be blank`);
+    }
+  }
+}
+// A network failure must be told apart from a refusal: the question was never asked, so
+// nothing was decided about the corpus, and the message says "no signal", not "no basis".
+if (!/class NetworkError/.test(api) || !/AbortSignal\.timeout/.test(api)) {
+  throw new Error("requests have no timeout or no offline signal — a dead uplink hangs the button");
+}
+if (!/НЕМАЄ ЗВ'ЯЗКУ/.test(app)) {
+  throw new Error("a lost link is rendered as a generic error, not as a lost link");
 }
 
 // ---------------------------------------------------------------- reader surface

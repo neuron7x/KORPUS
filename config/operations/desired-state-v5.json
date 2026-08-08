@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v5.0.0",
-  "root_sha256": "84e62ca608ccc3aabf069c88395e59e58f14802f7ac9f03a8819c9b7376b6f9d",
+  "root_sha256": "f3ba9d632ad00a96916d38abfdbed8e2ac51c3a2d731f0e840e21ac3c433b1a4",
   "records": [
     {
       "path": ".gitlab-ci.yml",
@@ -90,8 +90,8 @@
     },
     {
       "path": "docker-compose.yml",
-      "sha256": "c46defb073c8ce25ca2bfbdff43a12c319ae62b318e116c6f46311a59fa51b42",
-      "bytes": 15241
+      "sha256": "eea8866cf43515c4e60ade8954fe605bb121650b259de9e0af238805d46b2916",
+      "bytes": 15857
     },
     {
       "path": "infra/minio/korpus-app-policy.json",

@@ -78,11 +78,19 @@ class ModelEgressPolicy:
 
     @staticmethod
     def _is_local(host: str) -> bool:
-        """True only if every address this host resolves to is private or loopback.
+        """True only if every address this host resolves to is a private or loopback host
+        we would legitimately run a model on — and never a link-local address.
 
         Every, not any: a name that resolves to one private and one public address is a
         name whose next lookup may return the public one. Resolution failure is not local —
         a host that cannot be resolved cannot be shown to be inside anything.
+
+        Link-local is refused explicitly and first, because it is the one "private" range
+        that is an attack rather than a deployment: 169.254.169.254 is the cloud metadata
+        endpoint, and reaching it exfiltrates the instance's credentials. It cannot be
+        excluded by dropping a term from the accept check — Python's `is_private` reports
+        169.254.0.0/16 and fe80::/10 as private too (verified 2026-08-08), so the accept
+        check would let them through on its own. The rejection has to be stated.
         """
         try:
             addresses = {
@@ -97,7 +105,9 @@ class ModelEgressPolicy:
                 parsed = ipaddress.ip_address(address)
             except ValueError:  # pragma: no cover - getaddrinfo returns parseable literals
                 return False
-            if not (parsed.is_private or parsed.is_loopback or parsed.is_link_local):
+            if parsed.is_link_local:
+                return False
+            if not (parsed.is_private or parsed.is_loopback):
                 return False
         return True
 

@@ -167,14 +167,20 @@ class SubscriptionService:
             return self._reject(record, subscription, "the event names no known status")
 
         occurred_at = view.get("occurred_at")
+        occurred = None
         if isinstance(occurred_at, datetime):
             occurred = occurred_at if occurred_at.tzinfo else occurred_at.replace(tzinfo=UTC)
-            if occurred < subscription.updated_at:
-                # A replayed older event. Applying it would move the subscription
-                # backwards — the reason a canceled subscription can be resurrected by
+            # Compared against the last APPLIED event's provider timestamp, not the
+            # subscription's `updated_at`: `updated_at` is our processing clock, and a
+            # legitimate in-order event almost always carries an `occurred_at` earlier than
+            # when we handle it, so comparing against it rejected valid deliveries and
+            # jammed the subscription. None means nothing has applied yet — accept.
+            if subscription.last_event_at is not None and occurred < subscription.last_event_at:
+                # A genuinely older event than the one we last applied. Applying it would
+                # move the subscription backwards — a canceled subscription resurrected by
                 # replaying the invoice that once made it active.
                 return self._reject(
-                    record, subscription, "the event predates the subscription's current state"
+                    record, subscription, "the event predates the last applied event"
                 )
 
         allowed = ALLOWED_SUBSCRIPTION_TRANSITIONS[subscription.status]
@@ -196,6 +202,7 @@ class SubscriptionService:
             cancel_at_period_end=(
                 bool(view["cancel_at_period_end"]) if "cancel_at_period_end" in view else None
             ),
+            event_occurred_at=occurred,
             provider_subscription_id=(
                 provider_subscription_id
                 if provider_subscription_id and not subscription.provider_subscription_id

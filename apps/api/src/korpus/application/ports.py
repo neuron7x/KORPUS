@@ -229,6 +229,17 @@ class IngestionJobQueue(Protocol):
     ) -> IngestionJobRecord: ...
 
 
+class ObjectStoreUnavailable(RuntimeError):
+    """The object store could not be reached or timed out — a transient, retryable failure.
+
+    A `RuntimeError` subclass on purpose: the ingestion coordinator already treats
+    `RuntimeError` as retryable, so a MinIO blip becomes a clean retry rather than a
+    permanent failure that loses a soldier's document. The API layer maps it to 503 with a
+    Retry-After. It is distinct from a `ValueError` (a bad object key, a hash mismatch),
+    which is the caller's fault and must not be retried.
+    """
+
+
 class ObjectStore(Protocol):
     def put(self, content: bytes, source_hash: str, filename: str) -> str: ...
 

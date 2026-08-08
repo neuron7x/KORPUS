@@ -174,3 +174,40 @@ def test_model_disabled_refuses_even_a_local_endpoint(no_transport: None) -> Non
     )
     with pytest.raises(PlannerUnavailable):
         planner.variants("питання", [])
+
+
+def test_local_only_refuses_the_cloud_metadata_endpoint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """SSRF. 169.254.169.254 is where a cloud instance's credentials live, and Python's
+    is_private reports it as private — so accepting "any private address" hands an
+    attacker the keys. It is refused explicitly and first."""
+    import socket
+
+    for literal, family in (("169.254.169.254", socket.AF_INET), ("fe80::1", socket.AF_INET6)):
+        def resolve(host: str, *args: object, _addr: str = literal, _fam: int = family,
+                    **kwargs: object) -> list[object]:
+            return [(_fam, socket.SOCK_STREAM, 6, "", (_addr, 443))]
+
+        monkeypatch.setattr(socket, "getaddrinfo", resolve)
+        policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
+        with pytest.raises(EgressDenied):
+            policy.check(f"http://metadata.internal/{literal}")
+
+
+def test_a_name_resolving_to_both_a_private_and_a_link_local_address_is_refused(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The rebind shape: one honest private address and one metadata address behind a name."""
+    import socket
+
+    def resolve(host: str, *args: object, **kwargs: object) -> list[object]:
+        return [
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.5", 443)),
+            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", 443)),
+        ]
+
+    monkeypatch.setattr(socket, "getaddrinfo", resolve)
+    policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
+    with pytest.raises(EgressDenied):
+        policy.check("https://looks-internal.example.com/v1")

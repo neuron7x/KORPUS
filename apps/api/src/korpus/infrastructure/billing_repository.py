@@ -72,6 +72,7 @@ def _subscription(row: Any) -> SubscriptionRecord:
         current_period_start=aware(row["current_period_start"]),
         current_period_end=aware(row["current_period_end"]),
         cancel_at_period_end=bool(row["cancel_at_period_end"]),
+        last_event_at=aware(row["last_event_at"]),
         created_at=aware(row["created_at"]),
         updated_at=aware(row["updated_at"]),
     )
@@ -299,6 +300,7 @@ class SqlSubscriptionStore:
         period_end: datetime | None,
         cancel_at_period_end: bool | None,
         provider_subscription_id: str | None = None,
+        event_occurred_at: datetime | None = None,
         audit_payload: dict[str, Any],
     ) -> BillingEventResult:
         """The event row, the subscription move and the audit event, in one commit."""
@@ -334,6 +336,10 @@ class SqlSubscriptionStore:
                     # reference checkout sent, and without this the second event for a
                     # subscription is unlocatable.
                     values["provider_subscription_id"] = provider_subscription_id
+                if event_occurred_at is not None:
+                    # The provider timestamp of THIS applied event. The replay guard reads
+                    # it next time, so it compares provider time to provider time.
+                    values["last_event_at"] = event_occurred_at
                 connection.execute(
                     update(subscriptions)
                     .where(subscriptions.c.id == str(subscription_id))
@@ -351,12 +357,21 @@ class SqlSubscriptionStore:
 
         try:
             return self._repository.audited_transaction(operation)
-        except IntegrityError:
-            # The unique constraint on (provider, provider_event_id) fired: another
-            # delivery of this same event committed while this one was in flight. The
-            # subscription is in the state that delivery left it in, and applying ours on
-            # top would be applying the same event twice.
-            return BillingEventResult.DUPLICATE
+        except IntegrityError as exc:
+            # Only the idempotency constraint means "seen this event before". A blanket
+            # `except IntegrityError → DUPLICATE` also swallowed a foreign-key or check
+            # violation — a real bug — as if it were a harmless redelivery, leaving no
+            # trace and no error. So the constraint is identified: the idempotency key
+            # fired means DUPLICATE (another delivery of this same event won the race);
+            # anything else is re-raised to surface rather than be hidden.
+            detail = str(getattr(exc, "orig", exc)).lower()
+            idempotency = (
+                "uq_billing_event_identity" in detail
+                or ("provider_event_id" in detail and "unique" in detail)
+            )
+            if idempotency:
+                return BillingEventResult.DUPLICATE
+            raise
 
     @staticmethod
     def _values(subscription: SubscriptionRecord) -> dict[str, Any]:
@@ -371,6 +386,7 @@ class SqlSubscriptionStore:
             "current_period_start": subscription.current_period_start,
             "current_period_end": subscription.current_period_end,
             "cancel_at_period_end": subscription.cancel_at_period_end,
+            "last_event_at": subscription.last_event_at,
             "created_at": subscription.created_at,
             "updated_at": subscription.updated_at,
         }

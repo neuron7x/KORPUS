@@ -1,5 +1,11 @@
 # KORPUS v5 — residual debt contract
 
+> **Заморожений знімок v5 (2026-08-05).** Числа тут описують стан на момент v5 і
+> застаріли: наприклад «31 EXTERNAL_DEBT» стосується v5, тоді як поточний реєстр має 9.
+> Поточні цифри, по яких ухвалюють допуск, — у `docs/operations/CURRENT_STATUS.md`,
+> згенерованому з реєстрів і покритому parity-тестом. Цей документ лишається як історія.
+
+
 This document records work that cannot be converted into PASS by local code or synthetic tests.
 
 ## Frozen audit debt counts (reclassified 2026-08-05)

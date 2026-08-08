@@ -32,3 +32,21 @@
 ## Backup invariant
 
 A backup is valid only after an authenticated manifest, successful decryption, exact hash/size agreement, transactional restore, expected Alembic revision, non-superuser RLS isolation and valid audit head are demonstrated.
+
+## Commands, with the output that means "good"
+
+Every check below is a command, its expected output, and the threshold. A runbook step
+that is a sentence is a step nobody can execute under pressure.
+
+| question | command | good |
+|---|---|---|
+| Is the API up? | `curl -sf localhost:8000/health` | `{"status":"ok"}` |
+| Is it ready to serve? | `curl -sf localhost:8000/ready` | `200`, `{"status":"ready",…}` |
+| Is the audit chain intact? | `make audit-verify` | `valid: true` |
+| Do the release gates pass? | `make operational-gate` | `"status": "PASS"` |
+| What is proven vs external? | `cat docs/operations/CURRENT_STATUS.md` | 9 external, 5 grounds |
+| Bring the private stack up | `make infra-up` | web + worker `--wait` healthy |
+| Bring it down | `make infra-down` | all services removed |
+
+A red `operational-gate` names the failing predicate; a red `audit-verify` names the first
+invalid sequence. Neither is a judgement call — read the field it prints.

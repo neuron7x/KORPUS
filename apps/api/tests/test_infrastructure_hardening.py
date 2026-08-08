@@ -382,3 +382,54 @@ else:
     )
     assert rejected.returncode == 65
     assert "key id mismatch" in rejected.stderr
+
+
+def test_not_ready_hides_the_internal_snapshot_without_the_metrics_token(tmp_path: Path):
+    """The readiness snapshot is a reconnaissance surface — audit head, schema revision,
+    anchor backlog. A deployment that sets a metrics token (every public one does) must
+    show an unauthenticated caller only a reason word when degraded, and the full picture
+    only to the token holder.
+    """
+    settings = Settings(
+        environment="test",
+        database_url=f"sqlite:///{tmp_path / 'ready.db'}",
+        schema_mode="auto",
+        object_root=tmp_path / "objects",
+        audit_anchor_path=tmp_path / "anchor.json",
+        audit_hmac_key="ready-audit-key",
+        auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
+        metrics_token="ready-secret",
+        audit_max_pending_events=0,
+    )
+    app = create_app(settings)
+    app.dependency_overrides[get_identity] = admin
+    with TestClient(app) as client:
+        repository = client.app.state.repository
+
+        def unavailable(*args, **kwargs):
+            raise OSError("anchor unavailable")
+
+        # Force a not-ready state the same way the existing backlog test does.
+        import pytest as _pytest  # local, to keep the module import block untouched
+        _pytest.MonkeyPatch().setattr(repository.anchor_store, "write", unavailable)
+        repository.append_audit(admin(), "leak.probe", "test", "one", {"probe": True})
+
+        anonymous = client.get("/ready")
+        assert anonymous.status_code == 503
+        assert set(anonymous.json()["detail"]) == {"ready", "reason"}, (
+            "the internal snapshot leaked to an unauthenticated caller"
+        )
+        # The reason is a word, not a value: nothing an onlooker can act on.
+        assert anonymous.json()["detail"]["reason"] == "audit_backlog"
+
+        authorized = client.get("/ready", headers={"Authorization": "Bearer ready-secret"})
+        assert authorized.status_code == 503
+        # The token holder sees the operational detail the operator needs.
+        assert authorized.json()["detail"]["pending_anchor_events"] == 1
+
+        wrong = client.get("/ready", headers={"Authorization": "Bearer nope"})
+        assert set(wrong.json()["detail"]) == {"ready", "reason"}, (
+            "a wrong token was treated as if it were the metrics token"
+        )

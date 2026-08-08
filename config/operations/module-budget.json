@@ -21,8 +21,8 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
-      "lines": 823,
-      "max_complexity": 8
+      "lines": 864,
+      "max_complexity": 9
     },
     "apps/api/src/korpus/api/routes_admin.py": {
       "lines": 177,
@@ -92,7 +92,7 @@
       "max_complexity": 21
     },
     "apps/api/src/korpus/application/egress.py": {
-      "lines": 116,
+      "lines": 126,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
@@ -162,7 +162,7 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/ports.py": {
-      "lines": 258,
+      "lines": 269,
       "max_complexity": 1,
       "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
     },
@@ -204,15 +204,15 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/application/subscriptions.py": {
-      "lines": 286,
-      "max_complexity": 13
+      "lines": 293,
+      "max_complexity": 14
     },
     "apps/api/src/korpus/application/table_integrity.py": {
       "lines": 122,
       "max_complexity": 14
     },
     "apps/api/src/korpus/application/tenancy_ports.py": {
-      "lines": 264,
+      "lines": 265,
       "max_complexity": 1,
       "reason": "ACT-001: what the account, billing and conversation services need from storage, apart from the evidence ports"
     },
@@ -229,8 +229,8 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/cli.py": {
-      "lines": 192,
-      "max_complexity": 17
+      "lines": 224,
+      "max_complexity": 19
     },
     "apps/api/src/korpus/composition.py": {
       "lines": 68,
@@ -254,7 +254,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/domain/tenancy.py": {
-      "lines": 275,
+      "lines": 278,
       "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/__init__.py": {
@@ -275,8 +275,8 @@
       "max_complexity": 16
     },
     "apps/api/src/korpus/infrastructure/billing_repository.py": {
-      "lines": 376,
-      "max_complexity": 10
+      "lines": 392,
+      "max_complexity": 14
     },
     "apps/api/src/korpus/infrastructure/conversation_repository.py": {
       "lines": 269,
@@ -291,11 +291,11 @@
       "max_complexity": 29
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
-      "lines": 314,
+      "lines": 366,
       "max_complexity": 9
     },
     "apps/api/src/korpus/infrastructure/object_store.py": {
-      "lines": 468,
+      "lines": 504,
       "max_complexity": 14
     },
     "apps/api/src/korpus/infrastructure/observability.py": {
@@ -338,7 +338,7 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/infrastructure/tenancy_schema.py": {
-      "lines": 203,
+      "lines": 207,
       "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure_requirements.py": {
@@ -351,7 +351,7 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 271,
+      "lines": 297,
       "max_complexity": 31
     },
     "apps/api/src/korpus/repository_requirements.py": {
@@ -501,6 +501,10 @@
       "lines": 103,
       "max_complexity": 6
     },
+    "scripts/generate_status.py": {
+      "lines": 117,
+      "max_complexity": 7
+    },
     "scripts/generate_supply_chain_inventory.py": {
       "lines": 160,
       "max_complexity": 13
@@ -599,7 +603,7 @@
       "reason": "what the deployment promises, judged against what it was measured doing"
     },
     "scripts/snapshot_assurance.py": {
-      "lines": 149,
+      "lines": 190,
       "max_complexity": 8
     },
     "scripts/source_digest.py": {
@@ -1102,6 +1106,202 @@
         "worst_function": "main"
       },
       "reason": "a permission checked by a route and named in no table is invisible to anything that reads the table; the set is now enumerable and exported to the browser"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 823,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 854,
+        "max_complexity": 9,
+        "worst_function": "ready"
+      },
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests"
+    },
+    {
+      "path": "apps/api/src/korpus/application/egress.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 116,
+        "max_complexity": 9
+      },
+      "to": {
+        "lines": 126,
+        "max_complexity": 9,
+        "worst_function": "check"
+      },
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests"
+    },
+    {
+      "path": "scripts/snapshot_assurance.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 149,
+        "max_complexity": 8
+      },
+      "to": {
+        "lines": 190,
+        "max_complexity": 8,
+        "worst_function": "assemble_ci_report"
+      },
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 854,
+        "max_complexity": 9
+      },
+      "to": {
+        "lines": 864,
+        "max_complexity": 9,
+        "worst_function": "ready"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/application/ports.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 258,
+        "max_complexity": 1
+      },
+      "to": {
+        "lines": 269,
+        "max_complexity": 1,
+        "worst_function": "verify_audit"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/application/subscriptions.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 286,
+        "max_complexity": 13
+      },
+      "to": {
+        "lines": 293,
+        "max_complexity": 14,
+        "worst_function": "_apply"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 264,
+        "max_complexity": 1
+      },
+      "to": {
+        "lines": 265,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/cli.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 192,
+        "max_complexity": 17
+      },
+      "to": {
+        "lines": 224,
+        "max_complexity": 19,
+        "worst_function": "main"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/domain/tenancy.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 275,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 278,
+        "max_complexity": 5,
+        "worst_function": "active_at"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/billing_repository.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 376,
+        "max_complexity": 10
+      },
+      "to": {
+        "lines": 392,
+        "max_complexity": 14,
+        "worst_function": "record_billing_event"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 314,
+        "max_complexity": 9
+      },
+      "to": {
+        "lines": 366,
+        "max_complexity": 9,
+        "worst_function": "claim"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/object_store.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 468,
+        "max_complexity": 14
+      },
+      "to": {
+        "lines": 504,
+        "max_complexity": 14,
+        "worst_function": "get_to_path"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 203,
+        "max_complexity": 0
+      },
+      "to": {
+        "lines": 207,
+        "max_complexity": 0,
+        "worst_function": "-"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
+    },
+    {
+      "path": "apps/api/src/korpus/main.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 271,
+        "max_complexity": 31
+      },
+      "to": {
+        "lines": 297,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      },
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed"
     }
   ],
   "line_exempt": {

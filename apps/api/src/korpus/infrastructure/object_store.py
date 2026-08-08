@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import base64
+import functools
 import hashlib
 import os
 import re
 import tempfile
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+from korpus.application.ports import ObjectStoreUnavailable
 
 HASH_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 KEY_PATTERN = re.compile(r"^[a-f0-9]{2}/[a-f0-9]{2}/[a-f0-9]{64}$")
@@ -166,6 +170,32 @@ class LocalObjectStore:
         return path
 
 
+def _translates_transport_failures[T](method: Callable[..., T]) -> Callable[..., T]:
+    """Turn botocore's transport failures into a typed, retryable ObjectStoreUnavailable.
+
+    A raw `ClientError`/`EndpointConnectionError` escaping the store means a MinIO blip
+    propagates as an unknown exception: the worker crashes (crash-loop) and the API returns
+    a 500 with a stack trace. Translated here, at the one boundary that knows it is talking
+    to boto, it becomes a retry for the worker and a 503 for the reader. A `ValueError` or
+    the store's own integrity `RuntimeError` is the caller's fault and is left alone.
+    """
+
+    @functools.wraps(method)
+    def wrapped(*args: Any, **kwargs: Any) -> T:
+        try:
+            return method(*args, **kwargs)
+        except (ValueError, ObjectStoreUnavailable):
+            raise
+        except Exception as exc:
+            module = type(exc).__module__.split(".", 1)[0]
+            if module == "botocore":
+                raise ObjectStoreUnavailable(
+                    f"object store unreachable: {type(exc).__name__}"
+                ) from exc
+            raise
+    return wrapped
+
+
 class S3ObjectStore:
     """S3-compatible content-addressed store with bounded retries and checksum verification."""
 
@@ -265,6 +295,7 @@ class S3ObjectStore:
         ):
             raise RuntimeError("S3 content length mismatch")
 
+    @_translates_transport_failures
     def put(self, content: bytes, source_hash: str, filename: str) -> str:
         del filename
         actual = hashlib.sha256(content).hexdigest()
@@ -297,6 +328,7 @@ class S3ObjectStore:
         self._verify_head(written, source_hash, len(content))
         return key
 
+    @_translates_transport_failures
     def put_path(self, path: Path, source_hash: str, filename: str) -> str:
         del filename
         if path.stat().st_size > self.max_object_bytes:
@@ -335,6 +367,7 @@ class S3ObjectStore:
         self._verify_head(written, source_hash, path.stat().st_size)
         return key
 
+    @_translates_transport_failures
     def get(self, object_key: str) -> bytes:
         source_hash = self._validate_key(object_key)
         response = self.client.get_object(
@@ -371,6 +404,7 @@ class S3ObjectStore:
             raise RuntimeError("S3 response checksum mismatch")
         return content
 
+    @_translates_transport_failures
     def get_to_path(self, object_key: str, destination: Path) -> None:
         source_hash = self._validate_key(object_key)
         response = self.client.get_object(
@@ -417,10 +451,12 @@ class S3ObjectStore:
             if os.path.exists(temporary_name):
                 os.unlink(temporary_name)
 
+    @_translates_transport_failures
     def exists(self, object_key: str) -> bool:
         self._validate_key(object_key)
         return self._head(object_key) is not None
 
+    @_translates_transport_failures
     def list_keys(self) -> set[str]:
         prefix = f"{self.prefix}/" if self.prefix else ""
         token: str | None = None

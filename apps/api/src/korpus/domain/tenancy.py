@@ -185,6 +185,9 @@ class SubscriptionRecord(BaseModel):
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
     cancel_at_period_end: bool = False
+    #: Provider `occurred_at` of the last applied event; the replay guard compares against
+    #: this rather than `updated_at`, which is our processing clock. None until one applies.
+    last_event_at: datetime | None = None
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
 

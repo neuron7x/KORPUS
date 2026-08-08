@@ -100,6 +100,10 @@ subscriptions = Table(
     Column("current_period_start", DateTime(timezone=True)),
     Column("current_period_end", DateTime(timezone=True)),
     Column("cancel_at_period_end", Boolean, nullable=False, default=False),
+    # The provider `occurred_at` of the last event we applied. The replay guard
+    # compares against this, not `updated_at`: `updated_at` is our processing clock,
+    # and a legitimate event's timestamp is earlier than when we handle it.
+    Column("last_event_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
     CheckConstraint(

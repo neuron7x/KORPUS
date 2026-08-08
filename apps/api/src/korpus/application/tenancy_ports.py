@@ -166,6 +166,7 @@ class SubscriptionStore(Protocol):
         period_end: datetime | None,
         cancel_at_period_end: bool | None,
         provider_subscription_id: str | None = None,
+        event_occurred_at: datetime | None = None,
         audit_payload: dict[str, Any],
     ) -> BillingEventResult:
         """Record the event and, if it applies, move the subscription — in one commit.
