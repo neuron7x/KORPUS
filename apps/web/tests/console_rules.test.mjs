@@ -312,3 +312,23 @@ test("choosing your own account is named before the server refuses it", async ()
   );
   assert.match(text, /ваш власний акаунт/);
 });
+
+test("a permission the system does not name cannot be held", async () => {
+  // The gap this closes: account:manage was checked by a route and missing from this
+  // table for a release. Silence there means a tab that does not appear for a role the
+  // API allows, reported later as "the console is broken".
+  const {permits} = await import("../public/console_rules.js");
+  assert.throws(() => permits(identity("admin"), "account:invent"), /unknown permission/);
+  assert.equal(permits(identity("admin"), "account:manage"), true);
+  assert.equal(permits(identity("curator"), "account:manage"), false);
+});
+
+test("the contract carries every permission, not only the granted ones", async () => {
+  const {CONTRACT} = await import("../public/contract.js");
+  assert.ok(CONTRACT.permissions.includes("account:manage"),
+    "a permission only the wildcard reaches is missing from the browser's table");
+  const granted = new Set(Object.values(CONTRACT.roles).flat().filter(p => p !== "*"));
+  for (const permission of granted) {
+    assert.ok(CONTRACT.permissions.includes(permission), `${permission} is granted and unnamed`);
+  }
+});

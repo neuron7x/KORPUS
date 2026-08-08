@@ -34,7 +34,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
-from korpus.application.policy import ROLE_PERMISSIONS  # noqa: E402  (path set above)
+from korpus.application.policy import (  # noqa: E402  (path set above)
+    KNOWN_PERMISSIONS,
+    ROLE_PERMISSIONS,
+)
 
 CONTRACT = ROOT / "contracts/openapi.json"
 TARGET = ROOT / "apps/web/public/contract.js"
@@ -94,7 +97,15 @@ def build(contract: dict[str, Any]) -> dict[str, Any]:
     # authorization table should exist: a permission added to `curator` there and not
     # here leaves a curator staring at a page that hides the console they now hold.
     roles = {role: sorted(permissions) for role, permissions in sorted(ROLE_PERMISSIONS.items())}
-    return {"models": models, "enums": enums, "roles": roles}
+    # Exported alongside the roles so the browser can tell "no role holds this" from "this
+    # permission does not exist". Without it a console decides which tab to show from a
+    # table that silently omits whatever only `admin` needs.
+    return {
+        "models": models,
+        "enums": enums,
+        "roles": roles,
+        "permissions": sorted(KNOWN_PERMISSIONS),
+    }
 
 
 def render(payload: dict[str, Any]) -> str:

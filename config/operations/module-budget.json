@@ -158,7 +158,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/policy.py": {
-      "lines": 77,
+      "lines": 100,
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/ports.py": {
@@ -506,7 +506,7 @@
       "max_complexity": 13
     },
     "scripts/generate_web_contract.py": {
-      "lines": 146,
+      "lines": 157,
       "max_complexity": 5,
       "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
     },
@@ -1074,6 +1074,34 @@
         "worst_function": "create_app"
       },
       "reason": "disabling an account was reachable only from a Python REPL; it now has routes"
+    },
+    {
+      "path": "apps/api/src/korpus/application/policy.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 77,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 100,
+        "max_complexity": 5,
+        "worst_function": "can_access_document"
+      },
+      "reason": "a permission checked by a route and named in no table is invisible to anything that reads the table; the set is now enumerable and exported to the browser"
+    },
+    {
+      "path": "scripts/generate_web_contract.py",
+      "on": "2026-08-08",
+      "from": {
+        "lines": 146,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 157,
+        "max_complexity": 5,
+        "worst_function": "main"
+      },
+      "reason": "a permission checked by a route and named in no table is invisible to anything that reads the table; the set is now enumerable and exported to the browser"
     }
   ],
   "line_exempt": {

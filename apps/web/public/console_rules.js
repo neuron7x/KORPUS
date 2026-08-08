@@ -21,6 +21,14 @@ export function permissionsOf(identity) {
 }
 
 export function permits(identity, permission) {
+  // A permission the system does not name cannot be held. `account:manage` was checked by
+  // a route and absent from this table for a release: `admin` reached it through the
+  // wildcard and nothing failed, while a role granted it without the wildcard would have
+  // been allowed by the API and shown nothing here. Throwing makes the next such gap a
+  // failing test rather than a tab that quietly does not appear.
+  if (!CONTRACT.permissions.includes(permission)) {
+    throw new Error(`unknown permission: ${permission}`);
+  }
   const granted = permissionsOf(identity);
   return granted.has("*") || granted.has(permission);
 }

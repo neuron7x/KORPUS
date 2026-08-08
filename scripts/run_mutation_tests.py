@@ -2504,6 +2504,27 @@ MUTANTS = (
             "test_an_administrator_cannot_disable_the_account_they_are_using",
         ),
     ),
+    Mutant(
+        "M155_A_CHECKED_PERMISSION_NEED_NOT_BE_NAMED",
+        "apps/api/src/korpus/application/policy.py",
+        '        "account:manage",\n    }\n)',
+        "    }\n)",
+        (
+            "apps/api/tests/test_permission_contract.py::"
+            "test_every_permission_a_route_requires_is_a_permission_the_system_names",
+        ),
+    ),
+    Mutant(
+        "M156_AN_ORDINARY_ROLE_IS_GRANTED_ACCOUNT_MANAGEMENT",
+        "apps/api/src/korpus/application/policy.py",
+        '    "auditor": frozenset({"audit:read", "audit:verify", "document:list"}),',
+        '    "auditor": frozenset({"audit:read", "audit:verify", "document:list", '
+        '"account:manage"}),',
+        (
+            "apps/api/tests/test_permission_contract.py::"
+            "test_account_management_is_held_by_no_ordinary_role",
+        ),
+    ),
 )
 
 

@@ -208,6 +208,18 @@ export const CONTRACT = {
       }
     ]
   },
+  "permissions": [
+    "account:manage",
+    "answer:read",
+    "audit:read",
+    "audit:verify",
+    "document:approve",
+    "document:ingest",
+    "document:list",
+    "document:review",
+    "document:review_metadata",
+    "training:manage"
+  ],
   "roles": {
     "admin": [
       "*"

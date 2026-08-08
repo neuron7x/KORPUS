@@ -26,6 +26,29 @@ class UnauthorizedCorporaError(AuthorizationError):
         super().__init__(f"requested corpora not held: {', '.join(denied)}")
 
 
+#: Every permission this system checks, whether or not a role other than `admin` holds it.
+#: `admin` holds `*` and needs no entry, which is exactly how `account:manage` came to be
+#: required by a route and absent from the table the browser reads: the console decided
+#: which tab to show from that table, so a `security-officer` role granted the permission
+#: without the wildcard would have been allowed by the API and shown nothing.
+#:
+#: Named here so the set is enumerable. `test_permission_contract.py` compares it against
+#: what the API actually requires, in both directions.
+KNOWN_PERMISSIONS: frozenset[str] = frozenset(
+    {
+        "answer:read",
+        "document:list",
+        "document:ingest",
+        "document:review",
+        "document:review_metadata",
+        "document:approve",
+        "audit:read",
+        "audit:verify",
+        "training:manage",
+        "account:manage",
+    }
+)
+
 ROLE_PERMISSIONS: dict[str, frozenset[str]] = {
     "user": frozenset({"answer:read", "document:list"}),
     "instructor": frozenset({"answer:read", "document:list", "training:manage"}),
