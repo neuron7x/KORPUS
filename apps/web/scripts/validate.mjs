@@ -6,9 +6,14 @@ const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
 const read = (file) => readFile(asset(file), "utf8");
 
 const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs"];
-const SCRIPTS = ["public/api.js", "public/app.js", "public/conversations.js", "public/console.js", "public/console_rules.js", "public/contract.js", "public/sw.js"];
+const SCRIPTS = [
+  "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
+  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js",
+  "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
+  "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
+];
 const PAGES = ["public/index.html", "public/console.html"];
-const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/styles.css", "public/manifest.webmanifest", "public/config.js"];
+const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/styles.css", "public/console.css", "public/manifest.webmanifest", "public/config.js"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));
@@ -58,11 +63,23 @@ if (!/\["GET", "HEAD", "OPTIONS"\]\.includes\(method\)/.test(api)) {
 
 const app = await read("public/app.js");
 const consoleJs = await read("public/console.js");
+const consoleAccounts = await read("public/console_accounts.js");
+const consoleMutations = await read("public/console_mutations.js");
+const consoleReadonly = await read("public/console_readonly.js");
 const consoleRules = await read("public/console_rules.js");
 const conversationsJs = await read("public/conversations.js");
-for (const [name, source] of [
-  ["app.js", app], ["console.js", consoleJs], ["conversations.js", conversationsJs],
-]) {
+const readerConversations = await read("public/reader_conversations.js");
+const readerCorpus = await read("public/reader_corpus.js");
+const readerDeclaration = await read("public/reader_declaration.js");
+const readerVerdicts = await read("public/reader_verdicts.js");
+const browserLogic = [app, conversationsJs, readerConversations, readerCorpus, readerDeclaration, readerVerdicts].join("\n");
+const networkModules = [
+  ["app.js", app], ["console.js", consoleJs], ["console_accounts.js", consoleAccounts],
+  ["console_mutations.js", consoleMutations], ["console_readonly.js", consoleReadonly],
+  ["conversations.js", conversationsJs], ["reader_conversations.js", readerConversations],
+  ["reader_corpus.js", readerCorpus],
+];
+for (const [name, source] of networkModules) {
   if (/\bfetch\s*\(/.test(source)) {
     throw new Error(`${name} calls fetch directly; every request must go through api.js`);
   }
@@ -73,6 +90,13 @@ for (const [name, source] of [
     throw new Error(`${name} must obtain its API access from api.js`);
   }
 }
+for (const [name, source] of [
+  ["reader_declaration.js", readerDeclaration], ["reader_verdicts.js", readerVerdicts],
+]) {
+  if (/\bfetch\s*\(/.test(source) || /document\.cookie/.test(source)) {
+    throw new Error(`${name} crosses the reader module boundary into network/session transport`);
+  }
+}
 // localStorage only, not sessionStorage. The rule is that nothing about a session may
 // outlive the tab: localStorage does (a token there survives the browser closing and the
 // next person opening it), sessionStorage does not (it is cleared when the tab closes).
@@ -81,8 +105,10 @@ for (const [name, source] of [
 // not mention, so a comment naming the hazard does not trip its own guard.
 const PERSISTENT_STORAGE = /localStorage\s*[.[;)=,]/;
 for (const file of [
-  "public/api.js", "public/app.js", "public/conversations.js",
-  "public/console.js", "public/console_rules.js",
+  "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
+  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js",
+  "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
+  "public/console_readonly.js", "public/console_rules.js",
 ]) {
   if (PERSISTENT_STORAGE.test(await read(file))) {
     throw new Error(`persistent token storage detected in ${file}`);
@@ -92,8 +118,8 @@ for (const file of [
 // trusted: a tampered value must not enter the audit chain as somebody's declaration. The
 // check reads the restore function's own body, not the mere presence of its name — a
 // trusting `return JSON.parse(...)` must fail even while the function still exists.
-if (/sessionStorage/.test(app)) {
-  const restore = app.match(/function restoreDeclaration\(\)[\s\S]*?\n\}/);
+if (/sessionStorage/.test(readerDeclaration)) {
+  const restore = readerDeclaration.match(/function restoreDeclaration\(\)[\s\S]*?\n\}/);
   if (!restore) {
     throw new Error("sessionStorage is used but no restoreDeclaration function validates it");
   }
@@ -114,13 +140,19 @@ if (!assetsMatch) throw new Error("the service worker no longer declares an ASSE
 const cached = new Set(
   [...assetsMatch[1].matchAll(/"([^"]+)"/g)].map(m => m[1]),
 );
-for (const file of ["public/app.js", "public/api.js"]) {
+const moduleQueue = ["public/app.js", "public/api.js"];
+const visitedModules = new Set();
+while (moduleQueue.length) {
+  const file = moduleQueue.shift();
+  if (visitedModules.has(file)) continue;
+  visitedModules.add(file);
   const source = await read(file);
   for (const [, spec] of source.matchAll(/from "(\.\/[^"]+)"/g)) {
     const asset = spec.replace(/^\.\//, "/");
     if (!cached.has(asset)) {
       throw new Error(`${file} imports ${asset}, which the service worker does not cache — the offline shell would be blank`);
     }
+    moduleQueue.push(`public/${asset.slice(1)}`);
   }
 }
 // A network failure must be told apart from a refusal: the question was never asked, so
@@ -172,12 +204,12 @@ if (!/\{\s*text:[^{}]*,\s*declaration\s*\}/.test(app)) {
 if (!/Історія — це контекст, не доказ/.test(html)) {
   throw new Error("the conversation panel no longer says history is not evidence");
 }
-if (/askIn\([^)]*transcript|messages\s*\.\s*map[^;]*body/.test(app)) {
+if (/askIn\([^)]*transcript|messages\s*\.\s*map[^;]*body/.test(browserLogic)) {
   throw new Error("the transcript is being sent with a question");
 }
 // A stored turn is marked as stored. Rendering history identically to a live answer claims
 // citation cards that are not being shown.
-if (!/"turn stored"/.test(app) || !/\.turn\.stored \{/.test(await read("public/styles.css"))) {
+if (!/"turn stored"/.test(readerConversations) || !/\.turn\.stored \{/.test(await read("public/styles.css"))) {
   throw new Error("a turn read back from storage is indistinguishable from a live answer");
 }
 // 402 is not a statement about the corpus. Rendering it as ПІДСТАВИ НЕМАЄ tells a reader
@@ -189,22 +221,22 @@ if (!/ПОТРІБНА ПІДПИСКА/.test(app)) {
 // rendered as a paragraph of prose identical in shape to an answer, so a reader skimming
 // their own transcript would have counted "недостатньо доказів" as something the corpus
 // said. The verdict now travels with the message and is rendered as a verdict.
-if (!/message\.answer_status/.test(app) || !/ВЕРДИКТ НЕ ЗАПИСАНО/.test(app)) {
+if (!/message\.answer_status/.test(readerConversations) || !/ВЕРДИКТ НЕ ЗАПИСАНО/.test(readerConversations)) {
   throw new Error("a stored refusal is rendered without its verdict");
 }
 // A truncated list says so. The corpus panel already names what it cut ("…і ще N"); the
 // conversation list stopped at fifty and said nothing, which a reader takes as fifty being
 // all they have. A transcript is worse: it is read oldest-first, so what a cut removes is
 // the most recent turns — the ones somebody came back for.
-if (!/page\.has_more/.test(app) || !/Показати більше/.test(await read("public/conversations.js"))) {
+if (!/page\.has_more/.test(readerConversations) || !/Показати більше/.test(conversationsJs)) {
   throw new Error("a truncated conversation list does not say it was truncated");
 }
-if (!/Пізніші не показані/.test(app)) {
+if (!/Пізніші не показані/.test(readerConversations)) {
   throw new Error("a truncated transcript does not say its newest turns are missing");
 }
 // The client never names an account. A request that could would be a client choosing whose
 // history to read, which is the whole of a broken-object-level-authorization bug.
-if (/account_id/.test(app) || /account_id/.test(conversationsJs)) {
+if (/account_id/.test(browserLogic)) {
   throw new Error("the browser names an account; ownership is the server's to decide");
 }
 // Error summary above the form, focusable, linking to the field (WCAG 2.2 §3.3.1,
@@ -223,7 +255,7 @@ if (!/\[hidden\] \{ display: none !important; \}/.test(await read("public/styles
 }
 // A refusal is the system working. Rendering it as an error trains operators to retry
 // until they get prose.
-if (!/ПІДСТАВИ НЕМАЄ/.test(app)) {
+if (!/ПІДСТАВИ НЕМАЄ/.test(readerVerdicts)) {
   throw new Error("the withheld verdict no longer has its own wording");
 }
 
@@ -481,11 +513,13 @@ const contrast = (a, b) => {
 
 {
   const css = await read("public/styles.css");
-  // The last :root wins, and this file has more than one. Reading the first would check
-  // a palette the browser never applies.
+  // One authoritative palette. A second :root is structural drift: which token wins
+  // would depend on cascade order rather than on the design-system SSOT.
   const blocks = [...css.matchAll(/:root\s*\{([^}]*)\}/g)];
-  if (blocks.length === 0) throw new Error("accessibility: no :root palette found in styles.css");
-  const active = blocks[blocks.length - 1][1];
+  if (blocks.length !== 1) {
+    throw new Error(`accessibility: expected exactly one :root palette, found ${blocks.length}`);
+  }
+  const active = blocks[0][1];
   const token = (name) => /^#[0-9a-f]{6}$/i.test(
     new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(active)?.[1] ?? "",
   ) ? new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(active)[1] : null;

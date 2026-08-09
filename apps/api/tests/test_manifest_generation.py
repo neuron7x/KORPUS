@@ -41,3 +41,17 @@ def test_manifest_uses_archive_files_without_git(tmp_path: Path) -> None:
     manifest = module.build_manifest(archive)
     paths = [record["path"] for record in manifest["files"]]
     assert paths == ["source.txt"]
+
+
+def test_distribution_manifest_includes_untracked_package_artifacts(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    module = _module(root)
+    package = tmp_path / "package"
+    package.mkdir()
+    (package / "source.txt").write_text("source", encoding="utf-8")
+    (package / "evidence.json").write_text("{}", encoding="utf-8")
+    (package / "DISTRIBUTION_MANIFEST.json").write_text("self", encoding="utf-8")
+
+    manifest = module.build_manifest(package, kind="distribution")
+    paths = [record["path"] for record in manifest["files"]]
+    assert paths == ["evidence.json", "source.txt"]

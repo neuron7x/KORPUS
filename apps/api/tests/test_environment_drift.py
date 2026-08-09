@@ -20,7 +20,7 @@ from korpus.application import environment_drift as drift
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "scripts/check_environment_drift.py"
-MANIFEST = ROOT / "config/operations/desired-state-v5.json"
+MANIFEST = ROOT / "config/operations/desired-state.json"
 
 APPROVED = {"a.yml": "a" * 64, "b.yml": "b" * 64}
 

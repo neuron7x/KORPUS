@@ -1,1 +1,1 @@
-__version__ = "5.0.0"
+from korpus.release import RELEASE_VERSION as __version__

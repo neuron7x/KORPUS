@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "note": "A ratchet: these are today's measurements, and they may only be lowered. Growth fails the gate; a reduction is recorded here deliberately so it is visible in review instead of absorbed.",
-  "recorded_at": "2026-08-08",
+  "recorded_at": "2026-08-09",
   "modules": {
     "apps/api/src/korpus/__init__.py": {
       "lines": 1,
@@ -21,8 +21,8 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
-      "lines": 864,
-      "max_complexity": 9
+      "lines": 17,
+      "max_complexity": 0
     },
     "apps/api/src/korpus/api/routes_admin.py": {
       "lines": 177,
@@ -49,8 +49,8 @@
       "max_complexity": 15
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 830,
-      "max_complexity": 23,
+      "lines": 580,
+      "max_complexity": 22,
       "reason": "the answer pipeline; grew by the GOV-006 egress ceiling — the tier of the material a composer would send is computed and gated before the composer is called, kept out of execute in a helper so the pipeline's complexity did not rise"
     },
     "apps/api/src/korpus/application/assurance.py": {
@@ -88,7 +88,7 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/deployment.py": {
-      "lines": 220,
+      "lines": 197,
       "max_complexity": 21
     },
     "apps/api/src/korpus/application/egress.py": {
@@ -238,11 +238,11 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 583,
-      "max_complexity": 67
+      "lines": 423,
+      "max_complexity": 4
     },
     "apps/api/src/korpus/controlled_requirements.py": {
-      "lines": 249,
+      "lines": 246,
       "max_complexity": 3
     },
     "apps/api/src/korpus/domain/__init__.py": {
@@ -291,7 +291,7 @@
       "max_complexity": 29
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
-      "lines": 366,
+      "lines": 330,
       "max_complexity": 9
     },
     "apps/api/src/korpus/infrastructure/object_store.py": {
@@ -307,7 +307,7 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1152,
+      "lines": 1151,
       "max_complexity": 23,
       "reason": "COD-001: 1855 -> the recorded ceiling across four extractions; the transactional core stays"
     },
@@ -356,7 +356,7 @@
     },
     "apps/api/src/korpus/repository_requirements.py": {
       "lines": null,
-      "max_complexity": 19
+      "max_complexity": 11
     },
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
@@ -503,8 +503,8 @@
       "max_complexity": 14
     },
     "scripts/generate_manifest.py": {
-      "lines": 103,
-      "max_complexity": 6
+      "lines": 65,
+      "max_complexity": 4
     },
     "scripts/generate_status.py": {
       "lines": 117,
@@ -647,6 +647,96 @@
     "scripts/wait_for_database.py": {
       "lines": 27,
       "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/routes_answers.py": {
+      "lines": 172,
+      "max_complexity": 4,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_audit.py": {
+      "lines": 53,
+      "max_complexity": 3,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_auth.py": {
+      "lines": 150,
+      "max_complexity": 8,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_corpus.py": {
+      "lines": 346,
+      "max_complexity": 9,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_health.py": {
+      "lines": 124,
+      "max_complexity": 9,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_review.py": {
+      "lines": 73,
+      "max_complexity": 7,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/answer_analysis.py": {
+      "lines": 171,
+      "max_complexity": 10,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/answer_audit.py": {
+      "lines": 122,
+      "max_complexity": 8,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/deployment_contract.py": {
+      "lines": 37,
+      "max_complexity": 0,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/config_policy.py": {
+      "lines": 208,
+      "max_complexity": 13,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/ingestion_schema.py": {
+      "lines": 40,
+      "max_complexity": 0,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/release.py": {
+      "lines": 19,
+      "max_complexity": 2,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/check_import_cycles.py": {
+      "lines": 92,
+      "max_complexity": 10,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/check_release_identity.py": {
+      "lines": 68,
+      "max_complexity": 4,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/manifest_paths.py": {
+      "lines": 61,
+      "max_complexity": 5,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/release_identity.py": {
+      "lines": 25,
+      "max_complexity": 4,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/verify_package.py": {
+      "lines": 85,
+      "max_complexity": 7,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/verify_source_manifest.py": {
+      "lines": 52,
+      "max_complexity": 13,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     }
   },
   "raised": [
@@ -1311,43 +1401,83 @@
     {
       "path": "apps/api/src/korpus/application/egress.py",
       "on": "2026-08-08",
-      "from": {"lines": 126, "max_complexity": 9},
-      "to": {"lines": 156, "max_complexity": 9, "worst_function": "_is_local"},
+      "from": {
+        "lines": 126,
+        "max_complexity": 9
+      },
+      "to": {
+        "lines": 156,
+        "max_complexity": 9,
+        "worst_function": "_is_local"
+      },
       "reason": "GOV-006: the egress policy gained a classification ceiling (max_external_tier) and permits_material, deciding what corpus material may be sent to a model outside the deployment — distinct from the URL check, which decides only whether an endpoint may be reached"
     },
     {
       "path": "apps/api/src/korpus/config.py",
       "on": "2026-08-08",
-      "from": {"lines": 561, "max_complexity": 67},
-      "to": {"lines": 583, "max_complexity": 67},
+      "from": {
+        "lines": 561,
+        "max_complexity": 67
+      },
+      "to": {
+        "lines": 583,
+        "max_complexity": 67
+      },
       "reason": "GOV-006: model_egress_max_tier setting and its validator against AccessTier"
     },
     {
       "path": "apps/api/src/korpus/application/answer_query.py",
       "on": "2026-08-08",
-      "from": {"lines": 777, "max_complexity": 23},
-      "to": {"lines": 830, "max_complexity": 23, "worst_function": "execute"},
+      "from": {
+        "lines": 777,
+        "max_complexity": 23
+      },
+      "to": {
+        "lines": 830,
+        "max_complexity": 23,
+        "worst_function": "execute"
+      },
       "reason": "GOV-006: material-tier egress gate before composition, in a helper so execute's complexity did not rise"
     },
     {
       "path": "apps/api/src/korpus/tenancy_composition.py",
       "on": "2026-08-08",
-      "from": {"lines": 91, "max_complexity": 3},
-      "to": {"lines": 95, "max_complexity": 3, "worst_function": "build_egress_policy"},
+      "from": {
+        "lines": 91,
+        "max_complexity": 3
+      },
+      "to": {
+        "lines": 95,
+        "max_complexity": 3,
+        "worst_function": "build_egress_policy"
+      },
       "reason": "GOV-006: build_egress_policy now passes the tier ceiling from settings"
     },
     {
       "path": "apps/api/src/korpus/api/dependencies.py",
       "on": "2026-08-08",
-      "from": {"lines": 276, "max_complexity": 5},
-      "to": {"lines": 277, "max_complexity": 5},
+      "from": {
+        "lines": 276,
+        "max_complexity": 5
+      },
+      "to": {
+        "lines": 277,
+        "max_complexity": 5
+      },
       "reason": "GOV-006: the answer service is now built with the egress policy"
     },
     {
       "path": "scripts/build_audit_closure.py",
       "on": "2026-08-08",
-      "from": {"lines": 810, "max_complexity": 23},
-      "to": {"lines": 848, "max_complexity": 23, "worst_function": "main"},
+      "from": {
+        "lines": 810,
+        "max_complexity": 23
+      },
+      "to": {
+        "lines": 848,
+        "max_complexity": 23,
+        "worst_function": "main"
+      },
       "reason": "GOV-006: CODE_HALF register records that an external debt's enforcement code is delivered while its acceptance stays external; merged via _code_half helper so main's complexity did not rise"
     }
   ],

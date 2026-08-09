@@ -1,3 +1,5 @@
+> HISTORICAL RELEASE RECORD — not current release identity. Current release SSOT: `apps/api/src/korpus/release.json`.
+
 # KORPUS v5.1.0 — local agent handoff release
 
 This release does not change production authorization. It adds a complete local handoff layer for Claude Code/Codex:

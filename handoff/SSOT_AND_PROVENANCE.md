@@ -5,7 +5,7 @@ The authoritative object is the frozen repository state plus its manifests and e
 ## Precedence
 
 1. Git object identity and signed/protected tag where available.
-2. `REPOSITORY_MANIFEST.json`, source-tree digest and release checksums.
+2. `SOURCE_MANIFEST.json`, source-tree digest and release checksums.
 3. Runtime code, migrations, schemas and controlled configuration.
 4. `reports/` evidence bound to the source state.
 5. `docs/audit/closure/*.json` and `handoff/machine/*.json`.

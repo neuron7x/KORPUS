@@ -2,15 +2,16 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-version="${KORPUS_RELEASE_VERSION:-v5.0.0}"
-# ACT-001 names the artefact `KORPUS_SYSTEM_<version>`; every release before it shipped as
-# `KORPUS_FINAL_ASSURANCE_<version>`. The stem is a variable rather than a rename so a
-# reader holding either name can still find what it refers to, and so the default keeps
-# working for anything that was pointed at the old one.
-name="${KORPUS_PACKAGE_NAME:-KORPUS_FINAL_ASSURANCE_${version}}"
+default_version="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import release_tag; print(release_tag())')"
+version="${KORPUS_RELEASE_VERSION:-$default_version}"
+# The artifact stem is release metadata, not an independent version declaration.
+default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
+name="${KORPUS_PACKAGE_NAME:-$default_name}"
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
+python3 "$root/scripts/check_release_identity.py" --require-git-tag
 PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
+python3 "$root/scripts/verify_source_manifest.py"
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }
@@ -18,6 +19,9 @@ trap cleanup EXIT INT TERM
 
 # The source tree is exactly the committed revision; generated evidence is copied explicitly.
 git archive --format=tar HEAD | tar -xf - -C "$tmp"
+# History is a separate artifact inside the distribution. Clone/check out the release tag;
+# do not infer a branch name from whichever worktree assembled the package.
+git bundle create "$tmp/${name}.bundle" --all
 if [[ -d reports ]]; then
   rm -rf "$tmp/reports"
   cp -a reports "$tmp/reports"
@@ -44,49 +48,25 @@ fi
 cat > "$tmp/WHAT_IS_IN_THIS_PACKAGE.md" <<'DOC'
 # Що в цьому пакеті
 
-Джерело на зафіксованій ревізії, звіти гейтів, і запечатаний реєстр доказів. Усе, що
-можна перевірити, не маючи цієї машини.
+Це перевірюваний distribution artifact: source snapshot, Git bundle, release reports,
+sealed evidence registry та manifests. `DISTRIBUTION_MANIFEST.json` описує точні байти
+архіву; `SOURCE_MANIFEST.json` — source snapshot без generated assurance artifacts.
 
-## Є
+## Навмисно не включено
 
-- `apps/`, `scripts/`, `config/`, `deploy/`, `evals/`, `docs/` — система і її гейти
-- `reports/` — звіти релізу: тести, покриття, мутація, міграція, масштаб, операційний
-- `evidence/registry.json` — реєстр доказів під їхніми дайджестами, запечатаний
-- `evidence/objects/` — самі звіти: навантаження, хаос, еталонний набір, сканери
-- `evidence/releases/` — підписаний маніфест корпусу: які версії могли бути процитовані
-- `REPOSITORY_MANIFEST.json` — дайджест кожного файлу
+- production secrets та credentials;
+- приватний/обмежений corpus payload;
+- production authorization, risk-owner signature або зовнішня атестація.
 
-## Немає, і чому
-
-- **Секрети.** `infra/secrets/*.txt` видалено при пакуванні. `scripts/init_local_secrets.sh`
-  згенерує нові.
-- **Корпус.** 1648 документів, 118 622 фрагменти, ~2 ГБ. Це дані з Google Drive, а не
-  система. Відтворюються включеними скриптами:
-
-      make drive-public FOLDER_ID=<id> INTO=var/corpus/ml MAX_FILE_BYTES=2000000
-      make draft-manifest ROOT=var/corpus/ml OUT=var/corpus/ml-manifest.json FROM_SNAPSHOT=1
-      make import-corpus MANIFEST=var/corpus/ml-manifest.json IMPORT_FLAGS="--root var/corpus/ml"
-
-  Або з шифрованої резервної копії: `make restore-sqlite BACKUP=<файл> INTO=var/restored`.
-- **Дозвіл на продакшн.** `production_authorized` = false. Це не помилка пакування: підпис
-  власника ризику — рішення людини, і жоден код тут не може його видати.
-
-## Що доведено, а що ні
-
-`reports/RESEARCH_ASSURANCE_REPORT.json` несе дайджест дерева, з якого зібрано кожен
-звіт. Якщо він не збігається з деревом — докази про інше дерево.
-
-Дев'ять пунктів реєстру аудиту лишаються EXTERNAL_DEBT: підпис власника ризику,
-незалежний pentest, людська розмітка еталону, чергування, HA-кластер, TLS-сертифікат,
-KMS/HSM, налаштування GitLab, юридичний висновок про права. Жоден не закривається кодом
-у цьому дереві, і кожен названий у `docs/audit/closure/`.
+Відсутність цих речей не маскується як PASS. Поточні зовнішні залежності й допуски
+зафіксовані в `docs/audit/closure/` та release assurance reports.
 DOC
-python3 "$root/scripts/generate_manifest.py" "$tmp"
-cp "$tmp/REPOSITORY_MANIFEST.json" "$root/REPOSITORY_MANIFEST.json"
+python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output "$tmp/DISTRIBUTION_MANIFEST.json"
 (
   cd "$tmp"
   find . -type f -print0 | LC_ALL=C sort -z | xargs -0 touch -h -d '@0'
   LC_ALL=C find . -type f -print | LC_ALL=C sort | zip -X -q "$root/dist/${name}.zip" -@
 )
 sha256sum "dist/${name}.zip" > "dist/${name}.zip.sha256"
+python3 "$root/scripts/verify_package.py" "dist/${name}.zip"
 cat "dist/${name}.zip.sha256"

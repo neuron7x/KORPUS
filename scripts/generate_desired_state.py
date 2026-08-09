@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 EXACT = [
     ".gitlab-ci.yml",
@@ -45,7 +46,7 @@ def main() -> int:
         root.update(str(record["path"]).encode() + b"\0" + str(record["sha256"]).encode() + b"\n")
     output = {
         "schema": "korpus.desired-state.v1",
-        "release": "v5.0.0",
+        "release": release_tag(),
         "root_sha256": root.hexdigest(),
         "records": records,
         "interpretation": (
@@ -53,7 +54,7 @@ def main() -> int:
             "live cluster drift requires external reconciliation."
         ),
     }
-    target = ROOT / "config/operations/desired-state-v5.json"
+    target = ROOT / "config/operations/desired-state.json"
     rendered = json.dumps(output, ensure_ascii=False, indent=2) + "\n"
     if args.check:
         if not target.is_file() or target.read_text(encoding="utf-8") != rendered:
@@ -88,7 +89,6 @@ def main() -> int:
     summary = {"valid": True, "records": len(records), "root_sha256": output["root_sha256"]}
     print(json.dumps(summary, indent=2))
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

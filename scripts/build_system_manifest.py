@@ -16,7 +16,7 @@ EXCLUDED_PREFIXES = (
     ".pytest_cache/",
     "apps/web/dist/",
 )
-EXCLUDED_NAMES = {"REPOSITORY_MANIFEST.json"}
+EXCLUDED_NAMES = {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 
 
 def _included(relative: str) -> bool:
@@ -38,28 +38,28 @@ def _git_tracked_files() -> tuple[list[Path], str] | None:
 
 
 def _archive_files() -> tuple[list[Path], str]:
-    manifest_path = ROOT / "REPOSITORY_MANIFEST.json"
+    manifest_path = ROOT / "SOURCE_MANIFEST.json"
     if not manifest_path.is_file():
-        raise RuntimeError("neither Git metadata nor REPOSITORY_MANIFEST.json is available")
+        raise RuntimeError("neither Git metadata nor SOURCE_MANIFEST.json is available")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     records = manifest.get("files")
     root_hash = manifest.get("root_sha256")
     if not isinstance(records, list) or not isinstance(root_hash, str) or len(root_hash) != 64:
-        raise RuntimeError("invalid repository manifest")
+        raise RuntimeError("invalid source manifest")
     paths: list[Path] = []
     for record in records:
         if not isinstance(record, dict) or not isinstance(record.get("path"), str):
-            raise RuntimeError("invalid repository manifest record")
+            raise RuntimeError("invalid source manifest record")
         relative = record["path"]
         if not _included(relative):
             continue
         path = (ROOT / relative).resolve()
         if ROOT not in path.parents or not path.is_file():
-            raise RuntimeError(f"manifest source file is missing or unsafe: {relative}")
+            raise RuntimeError(f"source-manifest file is missing or unsafe: {relative}")
         expected = record.get("sha256")
         actual = hashlib.sha256(path.read_bytes()).hexdigest()
         if expected != actual:
-            raise RuntimeError(f"manifest source hash mismatch: {relative}")
+            raise RuntimeError(f"source-manifest hash mismatch: {relative}")
         paths.append(path)
     return paths, f"archive:{root_hash}"
 

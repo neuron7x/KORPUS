@@ -1,5 +1,7 @@
 # KORPUS v5 — system architecture
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT SSOT.** Current architecture: `SYSTEM.md`.
+
 ## System boundary
 
 KORPUS is an evidence-bound document control, retrieval and review system. It is not an autonomous authority. Its admissible output is either an extractive claim bound to an approved immutable source span or an explicit abstention.

@@ -1,4 +1,4 @@
-# KORPUS v5.0.0
+# KORPUS v6.3.0
 
 Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 
@@ -31,7 +31,7 @@ non-root nginx/PWA -- internal edge -- API
 
 Only the web proxy publishes a loopback host port. Backend networks are internal. Only the API joins the egress network.
 
-## What changed in v5
+## Current product state
 
 - OIDC establishes identity; server-side content-addressed entitlements establish privileges.
 - Need-to-know compartments and PostgreSQL RLS filter inaccessible text before retrieval.
@@ -50,18 +50,10 @@ Only the web proxy publishes a loopback host port. Backend networks are internal
 make assurance
 ```
 
-Local evidence for this release:
-
-- 172 tests collected: 171 PASS, 1 live-PostgreSQL SKIP, 0 failures;
-- line coverage 87.00%; branch coverage 66.87%; combined gate coverage 82.60%;
-- adversarial evaluation 30/30 PASS;
-- selected critical mutation gate 26/26 killed across six isolated shards;
-- clean Alembic migration parity PASS;
-- local bounded scale probe PASS;
-- web validation/typecheck/build PASS;
-- repository and infrastructure static contracts PASS.
-
-These gates prove only encoded predicates in the supplied environment. They do not prove document rights, official authority, real-corpus OCR accuracy, production SLA, penetration resistance or state/military authorization.
+Current release evidence is source-bound under `reports/`. Counts in historical release
+notes are not current-state claims. `reports/ASSURANCE_SNAPSHOT.json` and
+`reports/RESEARCH_ASSURANCE_REPORT.json` are the machine evidence for the exact audited
+source tree; production authorization remains a separate human gate.
 
 ## Local start
 
@@ -124,9 +116,9 @@ agents/                    Codex / Claude Code worktree contracts
 ## Read first
 
 - `FINAL_PACKAGE_CONTENTS.md`
-- `VERIFICATION_REPORT_V5.md`
+- `VERIFICATION_REPORT.md`
 - `docs/audit/closure/KORPUS_v5_CLOSURE_SUMMARY.md`
-- `docs/architecture/SYSTEM_V5.md`
+- `docs/architecture/SYSTEM.md`
 - `docs/assurance/INFRASTRUCTURE_AUDIT_V4.md`
 - `docs/assurance/FIRST_PRINCIPLES.md`
 - `docs/assurance/TEST_STRATEGY.md`

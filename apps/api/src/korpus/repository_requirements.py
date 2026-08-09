@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from korpus.application.requirements import Requirement
+from korpus.release import RELEASE_VERSION
 
 
 class _Everything(frozenset[str]):
@@ -37,7 +38,6 @@ class _Everything(frozenset[str]):
 
 _EVERYTHING = _Everything()
 
-RELEASE_VERSION = "5.0.0"
 MAX_FILE_BYTES = 5_000_000
 EXPECTED_FINDINGS = 99
 
@@ -79,11 +79,12 @@ REQUIRED_FILES = (
     "FINAL_PACKAGE_CONTENTS.md",
     "DISTRIBUTION_CONTENTS.md",
     "GITLAB_IMPORT.md",
-    "VERIFICATION_REPORT_V5.md",
+    "VERIFICATION_REPORT.md",
     "SECURITY.md",
     "docker-compose.yml",
     "pytest.ini",
     "apps/api/pyproject.toml",
+    "apps/api/src/korpus/release.json",
     "apps/api/requirements.runtime.lock",
     "apps/api/requirements.dev.lock",
     "apps/api/src/korpus/main.py",
@@ -103,7 +104,7 @@ REQUIRED_FILES = (
     "evals/EVALUATION_PROTOCOL.md",
     "evals/datasets/frozen.jsonl",
     "infra/minio/korpus-app-policy.json",
-    "docs/architecture/SYSTEM_V5.md",
+    "docs/architecture/SYSTEM.md",
     "docs/architecture/SECURITY.md",
     "docs/assurance/ASSURANCE_CASE.md",
     "docs/assurance/FIRST_PRINCIPLES.md",
@@ -134,7 +135,7 @@ REQUIRED_FILES = (
     "scripts/build_system_manifest.py",
     "scripts/generate_desired_state.py",
     "scripts/generate_supply_chain_inventory.py",
-    "config/operations/desired-state-v5.json",
+    "config/operations/desired-state.json",
     "config/operations/reference-v5.json",
     "scripts/openapi_contract.py",
     "scripts/package_repository.sh",
@@ -179,6 +180,7 @@ class RepositoryContext:
     closure: dict[str, Any] = field(default_factory=dict)
     pyproject: dict[str, Any] = field(default_factory=dict)
     package: dict[str, Any] = field(default_factory=dict)
+    release_identity: dict[str, Any] = field(default_factory=dict)
     init_text: str = ""
     readme: str = ""
     path_count: int = 0
@@ -215,11 +217,18 @@ def load_context(root: Path) -> RepositoryContext:
         context.pyproject = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
     package = read_json("apps/web/package.json")
     context.package = package if isinstance(package, dict) else {}
+    release_identity = read_json("apps/api/src/korpus/release.json")
+    context.release_identity = release_identity if isinstance(release_identity, dict) else {}
     init_path = root / "apps/api/src/korpus/__init__.py"
     context.init_text = init_path.read_text(encoding="utf-8") if init_path.is_file() else ""
     readme_path = root / "README.md"
     context.readme = readme_path.read_text(encoding="utf-8") if readme_path.is_file() else ""
 
+    _scan_tree(context, root, git_tracked)
+    return context
+
+
+def _scan_tree(context: RepositoryContext, root: Path, git_tracked: object) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
         if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
@@ -231,13 +240,8 @@ def load_context(root: Path) -> RepositoryContext:
             text = path.read_text(errors="ignore")
             if any(pattern.search(text) for pattern in PLACEHOLDER_PATTERNS):
                 context.placeholders.append(relative)
-        if (
-            relative.startswith("infra/secrets/")
-            and path.suffix == ".txt"
-            and relative in git_tracked
-        ):
+        if relative.startswith("infra/secrets/") and path.suffix == ".txt" and relative in git_tracked:
             context.tracked_secrets.append(relative)
-    return context
 
 
 def _git_tracked_secrets(root: Path) -> frozenset[str] | None:
@@ -337,10 +341,15 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
             f"repo.version.{where}",
             f"{where} declares release {RELEASE_VERSION}",
             check,
-            "four places state the version; one disagreeing means the artefacts "
-            "describe different builds",
+            "release identity and its derivative surfaces must agree; one mismatch means "
+            "the artefacts describe different builds",
         )
         for where, check in (
+            (
+                "release_identity",
+                lambda c: c.release_identity.get("version") == RELEASE_VERSION
+                and c.release_identity.get("tag") == f"v{RELEASE_VERSION}",
+            ),
             (
                 "api_pyproject",
                 lambda c: c.pyproject.get("project", {}).get("version") == RELEASE_VERSION,
@@ -348,7 +357,8 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
             ("web_package", lambda c: c.package.get("version") == RELEASE_VERSION),
             (
                 "runtime_dunder",
-                lambda c: f'__version__ = "{RELEASE_VERSION}"' in c.init_text,
+                lambda c: "from korpus.release import RELEASE_VERSION as __version__"
+                in c.init_text,
             ),
             ("readme_header", lambda c: c.readme.startswith(f"# KORPUS v{RELEASE_VERSION}")),
         )

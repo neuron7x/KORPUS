@@ -46,6 +46,7 @@ from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
 
 # COD-001: the physical schema moved to infrastructure/schema.py. Re-exported here
 # because every call site, migration and mutant names these on `repository`.
+from korpus.infrastructure.ingestion_schema import ingestion_jobs
 from korpus.infrastructure.schema import (
     SCHEMA_REVISION,
     audit_anchor_outbox,
@@ -914,8 +915,6 @@ class SqlRepository:
             return None
 
     def object_inventory(self) -> dict[str, set[str]]:
-        from korpus.infrastructure.ingestion_jobs import ingestion_jobs
-
         with self.engine.begin() as connection:
             content = {
                 str(row.object_key)

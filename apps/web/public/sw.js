@@ -4,7 +4,12 @@ const CACHE = "korpus-shell-v6";
 // joined when app.js stopped carrying its own fetch handling; /conversations.js joined
 // with the conversation panel. validate.mjs enforces that this list covers every static
 // import, so the next module cannot be forgotten here silently.
-const ASSETS = ["/", "/index.html", "/styles.css", "/app.js", "/api.js", "/conversations.js", "/config.js", "/manifest.webmanifest"];
+const ASSETS = ["/", "/index.html", "/styles.css",
+  "/console.css", "/app.js",
+  "/reader_verdicts.js",
+  "/reader_conversations.js",
+  "/reader_corpus.js",
+  "/reader_declaration.js", "/api.js", "/conversations.js", "/config.js", "/manifest.webmanifest"];
 // The operator consoles are deliberately absent. They validate against a generated copy
 // of the request contract, and a cached console is a console validating against rules
 // the API may no longer have — the drift scripts/generate_web_contract.py exists to

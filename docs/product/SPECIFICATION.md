@@ -1,102 +1,87 @@
-# Product specification
+# Product specification — current convergence target
 
-Status: baseline v0.1 · Date: 2026-07-31 · Owner: product partners
-
-## Theme
-
-An evidence-first Ukrainian knowledge, training, and administrative-assistance
-platform for service members and instructors.
+Status: current product SSOT · Release: derived from `apps/api/src/korpus/release.json`
 
 ## Mission
 
-Reduce time spent searching fragmented documents and group chats while increasing
-the traceability, currency, and honest uncertainty of answers.
+Turn a curated, governed knowledge corpus into a reliable conversational interface where
+users ask natural-language questions and receive only evidence-supported answers they are
+authorized to see. Unsupported questions abstain instead of being completed by generation.
 
-## Problem
+## Primary user path
 
-The target user has a real question but faces one or more failure modes:
+```text
+register/authenticate
+-> account
+-> choose/pay subscription
+-> active entitlement
+-> open/create conversation
+-> ask question
+-> authorized evidence retrieval
+-> answer with citations OR abstention
+-> conversation history and account controls
+```
 
-- the answer is distributed across large, inconsistently organized collections;
-- a domain expert is not online;
-- a general chatbot produces fluent but unsupported text;
-- the applicable edition, role, platform, or authority is unclear;
-- administrative documents are returned for correction;
-- training materials exist but are not assembled into a measurable path.
+## Current MVP acceptance scope
 
-## Target outcomes
+- responsive consumer web/PWA for phone and desktop;
+- authentication and persistent application account;
+- plan discovery and subscription state;
+- payment-provider integration through provider-independent billing boundaries;
+- persistent conversations owned by the account;
+- evidence-bound Q&A with explicit abstention;
+- citations that expose the exact supporting source passage;
+- curated corpus ingestion/review/governance through operator surfaces;
+- auditability of access, evidence, answer and subscription decisions;
+- policy-gated external model egress;
+- Ukrainian-first UX with source-language preservation where required.
 
-1. A user reaches an applicable source in under 60 seconds.
-2. Every supported answer exposes claim-level citations.
-3. Unsupported questions abstain instead of guessing.
-4. An instructor can compose a reviewed lesson plan and assessment.
-5. A user can produce a clearly marked administrative draft from an approved template.
-6. Corpus owners can trace every answer to immutable source versions.
+## Current personas
 
-## Users and jobs
-
-| Persona | Job to be done | Guardrail |
+| Persona | Job | Non-negotiable guardrail |
 |---|---|---|
-| Learner | Find and understand an approved source | No implied qualification |
-| Instructor | Build lessons, quizzes, and progress checks | Human approves curriculum |
-| Specialist | Resolve a narrow reference question | Role/platform filters required |
-| Administrator | Draft a routine document | Draft is not an official submission |
-| Reviewer | Approve, supersede, or reject sources | Four-eyes rule for high-risk corpora |
-| Auditor | Reconstruct why an answer was shown | Immutable event and evidence IDs |
+| Subscriber | Ask and verify a question quickly | Paid access never widens security access |
+| Specialist | Resolve a narrow source question | Applicable source/version must be explicit |
+| Corpus operator | Ingest and govern sources | Ingestion does not imply approval |
+| Reviewer | Approve/reject/supersede sources | Review authority is scoped and auditable |
+| Auditor | Reconstruct why output was shown/withheld | Evidence and decision chain is immutable/verifiable |
 
-## MVP scope
+## Product invariants
 
-- authenticated PWA and responsive web;
-- corpus browsing and hybrid retrieval;
-- evidence-bound Q&A with abstention and citations;
-- source metadata, revision, and approval workflow;
-- instructor curriculum builder and quiz drafts;
-- administrative document drafts from versioned templates;
-- feedback, incident reporting, and evaluation telemetry;
-- Ukrainian-first UX with English source support.
+1. The LLM is not an authority or source of facts.
+2. Factual answer content requires authorized corpus evidence.
+3. No evidence or contradictory evidence produces abstention.
+4. Conversation history cannot become evidence merely because the system previously said it.
+5. Subscription entitlement is server-side and intersects with corpus authorization.
+6. Account A cannot enumerate, read or mutate account B conversations.
+7. Restricted material cannot egress to an external model unless policy explicitly permits it.
+8. Operator capabilities are distinct from consumer capabilities.
 
-## Explicitly out of scope for MVP
+## Deferred capability backlog — not MVP acceptance
 
-- autonomous operational decisions or targeting;
-- real-time command and control;
-- publishing restricted manuals to general users;
-- medical diagnosis or treatment decisions;
-- unreviewed explosive, diversionary, interrogation, or other high-risk instructions;
-- automatic submission/signing of official documents;
-- claims that the system is error-free.
+These are retained product hypotheses, not current acceptance criteria:
 
-## Core services
+- instructor workspace, curriculum and quiz generation;
+- administrative document drafting;
+- voice/photo input;
+- native iOS/Android applications;
+- organization analytics beyond what is required for operations/audit;
+- autonomous workflow or operational decision execution.
 
-### Evidence Q&A
+No deferred capability may block consumer SaaS convergence.
 
-Input: question, user role/tier, selected corpus, locale. Output: answer status,
-claims, citations, confidence, limitations, and feedback hook.
+## Success gates
 
-### Learning
+Current success is evaluated by executable predicates rather than marketing targets:
 
-Creates a competency path from approved learning objectives. Generates question
-drafts, but promotion to an active exam requires reviewer approval. Scores knowledge,
-not real-world qualification.
+- zero cross-tier/cross-account leakage in adversarial tests;
+- evidence/citation binding gates pass on the frozen evaluation corpus;
+- unsupported questions are explicitly refused;
+- billing event replay is idempotent;
+- inactive subscription cannot obtain paid entitlement;
+- external egress policy negative controls pass;
+- mobile/desktop functional and accessibility gates pass;
+- exact release/source/package manifests verify.
 
-### Document assistance
-
-Selects a versioned template, asks for missing fields, validates required data, and
-produces an editable draft plus the governing source. It never fabricates identifiers.
-
-### Corpus operations
-
-Ingest, malware-scan, fingerprint, OCR, classify, deduplicate, review, approve,
-supersede, revoke, reindex, and audit documents.
-
-## Success metrics
-
-- retrieval Recall@10 ≥ 0.90 on the frozen domain eval set;
-- MRR@10 ≥ 0.80 for single-source questions;
-- citation precision ≥ 0.95;
-- citation coverage ≥ 0.95 of verifiable answer claims;
-- unsupported-question abstention recall ≥ 0.95;
-- cross-tier access leakage = 0 in automated adversarial tests;
-- p95 retrieval latency < 1.5 s and streamed first-token latency < 3 s under target load;
-- template validation catches 100% of required-field omissions in fixtures.
-
-Metrics are release gates, not marketing claims; thresholds may change only by ADR.
-
+Performance and quality thresholds belong to signed calibration/release profiles. Values not
+measured on the production-equivalent workload are not represented here as achieved facts.

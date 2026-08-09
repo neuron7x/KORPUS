@@ -4,7 +4,7 @@
 
 ## Що є джерелом істини
 
-1. Git commit/tag і `REPOSITORY_MANIFEST.json`.
+1. Git commit/tag і `SOURCE_MANIFEST.json`.
 2. Виконуваний код, міграції, конфігурація та `reports/*.json`.
 3. `docs/audit/closure/*.json` — статус усіх 99 findings і залишковий борг.
 4. `handoff/machine/*.json` — машинна передача стану, ваг і наступних задач.

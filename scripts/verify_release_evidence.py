@@ -9,6 +9,7 @@ from pathlib import Path
 
 from source_digest import source_tree_digest
 
+from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 
@@ -25,7 +26,7 @@ def main() -> int:
         raise SystemExit("release evidence is missing")
     assurance = json.loads(assurance_path.read_text(encoding="utf-8"))
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
-    expected_release = os.getenv("KORPUS_RELEASE_VERSION", "v5.0.0")
+    expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
     if assurance.get("status") != "PASS":
         failures.append("assurance status is not PASS")
     actual_digest = source_tree_digest("HEAD")
@@ -47,7 +48,6 @@ def main() -> int:
     summary = {"valid": True, "release": expected_release, "source_tree_sha256": actual_digest}
     print(json.dumps(summary, indent=2))
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -3,7 +3,7 @@
 OPS-004: "No evidence of desired-state vs live infrastructure reconciliation", with an
 acceptance predicate of "Unauthorized drift detected and reverted/blocked."
 
-`config/operations/desired-state-v5.json` already fingerprints what the repository
+`config/operations/desired-state.json` already fingerprints what the repository
 declares. What did not exist was anything to compare a *running* environment against
 it, and — the harder half — anything that distinguished the three answers a comparison
 can have. Only two of them are usually implemented:

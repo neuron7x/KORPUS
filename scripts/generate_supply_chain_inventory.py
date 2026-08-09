@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 
+from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 LOCKS = [ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock"]
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s;]+)")
@@ -110,7 +111,7 @@ def main() -> int:
             }
     output = {
         "schema": "korpus.supply-chain-inventory.v1",
-        "release": "v5.0.0",
+        "release": release_tag(),
         "status": "PARTIAL_LOCAL_INVENTORY_NOT_LICENSE_CLEARANCE",
         "lockfiles": [
             {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS
@@ -154,7 +155,6 @@ def main() -> int:
     # A locked environment resolves every pinned distribution. Anything left is a
     # difference between the lock and the environment, which is a finding.
     return 1 if unresolved else 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

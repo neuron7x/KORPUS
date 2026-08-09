@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PREFIXES = ("reports/", "handoff/evidence/", "dist/", "var/")
-EXCLUDED_FILES = {"REPOSITORY_MANIFEST.json"}
+EXCLUDED_FILES = {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 
 
 def _included(name: str) -> bool:
@@ -32,25 +32,25 @@ def _git_paths(ref: str) -> list[Path] | None:
 
 
 def _archive_paths() -> list[Path]:
-    manifest_path = ROOT / "REPOSITORY_MANIFEST.json"
+    manifest_path = ROOT / "SOURCE_MANIFEST.json"
     if not manifest_path.is_file():
-        raise RuntimeError("neither Git metadata nor REPOSITORY_MANIFEST.json is available")
+        raise RuntimeError("neither Git metadata nor SOURCE_MANIFEST.json is available")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     records = manifest.get("files")
     if not isinstance(records, list):
-        raise RuntimeError("invalid repository manifest")
+        raise RuntimeError("invalid source manifest")
     paths: list[Path] = []
     for record in records:
         if not isinstance(record, dict) or not isinstance(record.get("path"), str):
-            raise RuntimeError("invalid repository manifest record")
+            raise RuntimeError("invalid source manifest record")
         relative = record["path"]
         if not _included(relative):
             continue
         path = (ROOT / relative).resolve()
         if ROOT not in path.parents or not path.is_file():
-            raise RuntimeError(f"manifest source file is missing or unsafe: {relative}")
+            raise RuntimeError(f"source-manifest file is missing or unsafe: {relative}")
         if hashlib.sha256(path.read_bytes()).hexdigest() != record.get("sha256"):
-            raise RuntimeError(f"manifest source hash mismatch: {relative}")
+            raise RuntimeError(f"source-manifest hash mismatch: {relative}")
         paths.append(Path(relative))
     return sorted(paths, key=lambda value: value.as_posix())
 

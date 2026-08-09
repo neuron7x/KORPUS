@@ -1,101 +1,63 @@
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import subprocess
+import sys
 from pathlib import Path
 
-EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
-EXCLUDED_FILES = {"REPOSITORY_MANIFEST.json", ".coverage"}
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from manifest_paths import distribution_paths, source_paths
 
 
-def _included(relative: Path) -> bool:
-    if any(part in EXCLUDED_PARTS for part in relative.parts):
-        return False
-    if relative.name in EXCLUDED_FILES or relative.name.startswith(".coverage."):
-        return False
-    return not (relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt")
-
-
-def _git_tracked_paths(root: Path) -> list[Path] | None:
-    try:
-        probe = subprocess.run(
-            ["git", "-C", str(root), "rev-parse", "--is-inside-work-tree"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        if probe.stdout.strip() != "true":
-            return None
-        output = subprocess.run(
-            ["git", "-C", str(root), "ls-files", "-z"],
-            check=True,
-            capture_output=True,
-        ).stdout
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        return None
-    paths = [Path(item.decode("utf-8")) for item in output.split(b"\0") if item]
-    return sorted((path for path in paths if _included(path)), key=lambda value: value.as_posix())
-
-
-def _archive_paths(root: Path) -> list[Path]:
-    paths: list[Path] = []
-    for path in root.rglob("*"):
-        if not path.is_file():
-            continue
-        relative = path.relative_to(root)
-        if _included(relative):
-            paths.append(relative)
-    return sorted(paths, key=lambda value: value.as_posix())
-
-
-def release_paths(root: Path) -> list[Path]:
-    """Return reproducible release paths.
-
-    In a Git worktree, only tracked/staged files are authoritative. In a gitless
-    archive, every non-excluded file is part of the snapshot by construction.
-    """
-
-    return _git_tracked_paths(root) or _archive_paths(root)
-
-
-def build_manifest(root: Path) -> dict[str, object]:
+def _records(root: Path, paths: list[Path]) -> list[dict[str, object]]:
     records = []
-    for relative in release_paths(root):
-        path = root / relative
-        if not path.is_file():
-            raise RuntimeError(f"release path is missing: {relative.as_posix()}")
-        content = path.read_bytes()
-        records.append(
-            {
-                "path": relative.as_posix(),
-                "bytes": len(content),
-                "sha256": hashlib.sha256(content).hexdigest(),
-            }
-        )
+    for relative in paths:
+        content = (root / relative).read_bytes()
+        records.append({"path": relative.as_posix(), "bytes": len(content), "sha256": hashlib.sha256(content).hexdigest()})
+    return records
+
+
+def build_manifest(root: Path, *, kind: str = "source") -> dict[str, object]:
+    if kind not in {"source", "distribution"}:
+        raise ValueError(f"unknown manifest kind: {kind}")
+    paths = source_paths(root) if kind == "source" else distribution_paths(root)
+    records = _records(root, paths)
     root_digest = hashlib.sha256(
         "".join(f'{item["path"]}\0{item["sha256"]}\n' for item in records).encode()
     ).hexdigest()
     return {
-        "schema": "korpus.repository-manifest.v3",
+        "schema": f"korpus.{kind}-manifest.v1",
+        "kind": kind,
+        "manifest_self_excluded": True,
         "file_count": len(records),
         "root_sha256": root_digest,
         "files": records,
     }
 
 
+def write_manifest(root: Path, output: Path, *, kind: str) -> dict[str, object]:
+    manifest = build_manifest(root, kind=kind)
+    output.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return manifest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("root", nargs="?", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--kind", choices=("source", "distribution"), default="source")
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     root = args.root.resolve()
-    manifest = build_manifest(root)
-    (root / "REPOSITORY_MANIFEST.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-    )
-    summary = {"file_count": manifest["file_count"], "root_sha256": manifest["root_sha256"]}
-    print(json.dumps(summary, indent=2))
+    default_name = "SOURCE_MANIFEST.json" if args.kind == "source" else "DISTRIBUTION_MANIFEST.json"
+    output = args.output or (root / default_name)
+    output = output if output.is_absolute() else root / output
+    manifest = write_manifest(root, output, kind=args.kind)
+    print(json.dumps({"kind": args.kind, "file_count": manifest["file_count"], "root_sha256": manifest["root_sha256"]}, indent=2))
     return 0
 
 

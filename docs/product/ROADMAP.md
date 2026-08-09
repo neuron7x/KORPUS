@@ -1,32 +1,34 @@
-# Delivery roadmap
+# Delivery roadmap — convergence sequence
 
-## Iteration 0 — evidence and governance (2 weeks)
+## Gate 1 — structural convergence
 
-Repository, threat model, source schema, corpus policy, 100-question seed eval, and a
-20-document approved pilot. Exit: every pilot document has provenance and reviewer.
+One release identity, source/distribution manifests, acyclic internal imports, current
+architecture/product SSOT, bounded backend/frontend modules. No product behavior change.
 
-## Iteration 1 — trustworthy retrieval (3 weeks)
+## Gate 2 — consumer SaaS completion
 
-Ingestion worker, OCR, hybrid search, citations, corpus browser, admin review UI. Exit:
-Recall@10 and MRR gates pass; forbidden-tier retrieval tests are zero-leakage.
+Production payment provider, checkout/webhook lifecycle, subscription/account controls,
+consumer onboarding and entitlement UX. Exit: paid/inactive/canceled/replayed states pass
+negative controls end to end.
 
-## Iteration 2 — answer experience (2 weeks)
+## Gate 3 — premium responsive interface
 
-Streaming answer, abstention, clarification, feedback, weak-network UX, telemetry. Exit:
-claim citation and unsupported-question gates pass.
+Custom design system, mobile-first conversation experience, evidence disclosure, history,
+account/subscription surfaces, operator separation, accessibility and visual regression.
+Exit: phone and desktop acceptance matrices pass with no trust-state ambiguity.
 
-## Iteration 3 — instructor pilot (3 weeks)
+## Gate 4 — production corpus and operations
 
-Competency graph, lesson drafts, reviewed question bank, attempts and analytics. Exit:
-two instructors complete real lesson planning faster without quality regression.
+Materialize approved corpus, rights/provenance decisions, backup/restore, monitoring,
+capacity/cost measurements, external TLS/KMS/service configuration and recovery drills.
 
-## Iteration 4 — document drafts (2 weeks)
+## Gate 5 — controlled production authorization
 
-Five high-volume template families with field validation and source linkage. Exit:
-zero missing required fields in test fixtures and reviewer acceptance.
+Independent security assessment, risk-owner decision, production SLO evidence, incident
+workflow and release evidence bound to the deployed artifact. `production_authorized`
+remains false until this gate is explicitly signed.
 
-## Iteration 5 — controlled beta (4 weeks)
+## Future capability track
 
-50–100 users, support workflow, incident drills, capacity/cost tuning, security test,
-recovery drill. Expand only after measured retention and correction rates.
-
+Instructor tools, administrative drafts, voice/photo input and native apps remain backlog
+hypotheses and do not participate in current MVP readiness.

@@ -1,5 +1,7 @@
 # System architecture v2
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT SSOT.** Current architecture: `SYSTEM.md`.
+
 ## Deployment topology
 
 ```text

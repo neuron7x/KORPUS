@@ -339,14 +339,12 @@ test("a colour token below AA contrast is caught", async () => {
   assert.match(output, /below WCAG 2\.2 AA/);
 });
 
-test("reading the first :root instead of the last is caught", async () => {
-  // The dual. This file has more than one :root and the browser applies the last; a
-  // check that read the first would pass while the page failed, which is exactly the
-  // state the palette was in.
-  const {status} = await runWith(edit =>
+test("introducing a second palette root is caught", async () => {
+  const {status, output} = await runWith(edit =>
     edit("public/styles.css", source =>
-      source.replace("  --muted-2: #8a929a;", "  --muted-2: #6d7365;")));
-  assert.equal(status, 0);
+      `${source}\n:root { --muted-2: #6d7365; }\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /expected exactly one :root palette/);
 });
 
 // ---------------------------------------------------------------- ACT-001 controls
@@ -365,7 +363,7 @@ test("removing the sentence that history is not evidence is caught", async () =>
 
 test("rendering a stored turn like a live one is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source =>
+    edit("public/reader_conversations.js", source =>
       source.replace('block.className = "turn stored";', 'block.className = "turn";')));
   assert.notEqual(status, 0);
   assert.match(output, /indistinguishable from a live answer/);
@@ -408,7 +406,7 @@ test("a stored refusal rendered without its verdict is caught", async () => {
   // The defect this control exists for was found by reading a transcript in a browser,
   // not by a test: history rendered "недостатньо доказів" in the same shape as an answer.
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source =>
+    edit("public/reader_conversations.js", source =>
       source.replace("? VERDICT[message.answer_status] ?? [\"ВІДМОВА\", \"withheld\"]",
                      "? [\"\", \"withheld\"]")
             .replace('["ВЕРДИКТ НЕ ЗАПИСАНО", "withheld"]', '["", "withheld"]')));
@@ -418,14 +416,14 @@ test("a stored refusal rendered without its verdict is caught", async () => {
 
 test("a conversation list truncated in silence is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source => source.replaceAll("page.has_more", "false")));
+    edit("public/reader_conversations.js", source => source.replaceAll("page.has_more", "false")));
   assert.notEqual(status, 0);
   assert.match(output, /does not say it was truncated/);
 });
 
 test("a transcript that hides its newest turns in silence is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source =>
+    edit("public/reader_conversations.js", source =>
       source.replace("Пізніші не показані.", "")));
   assert.notEqual(status, 0);
   assert.match(output, /newest turns are missing/);
@@ -493,7 +491,7 @@ test("localStorage is still forbidden even though sessionStorage is now allowed"
 
 test("a restored declaration trusted without re-validation is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source =>
+    edit("public/reader_declaration.js", source =>
       source.replace(/function restoreDeclaration\(\)[\s\S]*?\n\}/,
                      'function restoreDeclaration() {\n  return JSON.parse(sessionStorage.getItem(DECLARATION_KEY));\n}')));
   assert.notEqual(status, 0);

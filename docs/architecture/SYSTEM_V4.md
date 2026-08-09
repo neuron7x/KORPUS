@@ -1,5 +1,7 @@
 # KORPUS infrastructure-hardened architecture — v4
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT SSOT.** Current architecture: `SYSTEM.md`.
+
 ## Trust boundaries
 
 ```text

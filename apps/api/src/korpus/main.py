@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from korpus import __version__
 from korpus.api.routes import router
 from korpus.api.routes_admin import admin_router
 from korpus.api.routes_billing import billing_router
@@ -37,7 +38,6 @@ from korpus.security.oidc import OIDCVerifier
 from korpus.tenancy_composition import install_tenancy
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
-
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
@@ -202,7 +202,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(
         title="KORPUS API",
-        version="5.0.0",
+        version=__version__,
         description="Evidence-bound controlled-corpus API",
         lifespan=lifespan,
     )

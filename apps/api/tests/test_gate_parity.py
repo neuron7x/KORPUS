@@ -556,7 +556,7 @@ def test_every_job_that_runs_the_suite_has_git_in_its_image() -> None:
 def test_the_desired_state_manifest_matches_the_files_it_fingerprints() -> None:
     """The manifest is derived, and nothing regenerates it on the way to a commit.
 
-    `config/operations/desired-state-v5.json` pins the sha256 of .gitlab-ci.yml, both
+    `config/operations/desired-state.json` pins the sha256 of .gitlab-ci.yml, both
     Dockerfiles, both lock files and the kubernetes tree. Editing any of them makes it
     stale, and the only thing that said so was `repository:validate` — the first job
     of a pipeline, i.e. after the push. It caught the author of this very test twice

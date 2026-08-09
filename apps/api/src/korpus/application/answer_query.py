@@ -3,17 +3,25 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import date
-from uuid import UUID
 
+from korpus.application.answer_analysis import (
+    ScopeBreach,
+    SentenceCandidate,
+    confine_to_top_authority,
+    contains_control_injection,
+    find_contradiction,
+    scope_breaches,
+    sentence_candidates,
+    source_limitations,
+    unsourced_quotes,
+)
+from korpus.application.answer_audit import append_answer_audit
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
-    contradiction_reason,
     extractive_support,
-    refuting_sentence,
-    segment_sentences,
     verify_claim_support,
 )
 from korpus.application.policy import PolicyEngine
@@ -42,43 +50,6 @@ from korpus.domain.models import (
     RetrievedEvidence,
     SupportState,
 )
-
-
-@dataclass(frozen=True)
-class SentenceCandidate:
-    text: str
-    start: int
-    end: int
-    query_coverage: float
-
-
-@dataclass(frozen=True)
-class ScopeBreach:
-    """Evidence the retriever returned that the reader was never authorized to see."""
-
-    version_id: str
-    kind: str
-    detail: str
-
-
-def contains_control_injection(text: str) -> bool:
-    return assess_control_injection(text).blocked
-
-
-def sentence_candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
-    output: list[SentenceCandidate] = []
-    for sentence, start, end in segment_sentences(text):
-        sentence_tokens = set(tokenize(sentence))
-        coverage = len(query_tokens.intersection(sentence_tokens)) / max(len(query_tokens), 1)
-        output.append(
-            SentenceCandidate(
-                text=sentence,
-                start=start,
-                end=end,
-                query_coverage=coverage,
-            )
-        )
-    return output
 
 
 @dataclass(frozen=True)
@@ -451,14 +422,6 @@ class ExtractiveAnswerService:
 
     @staticmethod
     def _candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
-        """Seam for the support gate's adversary.
-
-        The gate exists for the case where extraction stops producing byte-for-byte
-        extracts. No such extraction exists in the tree, so the case is produced by
-        substituting this method — without a seam the gate would again be a branch
-        nothing can reach, which is the defect being fixed.
-        """
-
         return sentence_candidates(text, query_tokens)
 
     def _scope_breaches(
@@ -467,31 +430,7 @@ class ExtractiveAnswerService:
         corpora: frozenset[str],
         retrieved: list[RetrievedEvidence],
     ) -> list[ScopeBreach]:
-        """Re-check, in the application layer, what the retriever claims is in scope.
-
-        `Retriever` is a port. Today the only adapter narrows the query in SQL, but a
-        second adapter, a cache returning a neighbouring reader's rows, or a defect in
-        the one adapter that exists would widen disclosure with nothing above it
-        objecting. The check is deliberately not a filter: silently dropping the row
-        would answer from the remainder and leave the defective adapter in service.
-        """
-        breaches: list[ScopeBreach] = []
-        for item in retrieved:
-            document = item.document
-            version_id = str(item.version.id)
-            if document.corpus_id not in corpora:
-                breaches.append(
-                    ScopeBreach(
-                        version_id,
-                        "corpus_out_of_scope",
-                        f"corpus {document.corpus_id} was not authorized for this query",
-                    )
-                )
-                continue
-            decision = self.policy_engine.can_access_document(identity, document)
-            if not decision.allowed:
-                breaches.append(ScopeBreach(version_id, "reader_not_cleared", decision.reason))
-        return breaches
+        return scope_breaches(identity, corpora, retrieved, self.policy_engine)
 
     def _breach(self, release_id: str, breaches: list[ScopeBreach]) -> Answer:
         kinds = sorted({breach.kind for breach in breaches})
@@ -518,21 +457,7 @@ class ExtractiveAnswerService:
     def _unsourced_quotes(
         eligible: list[RetrievedEvidence], citations: list[Citation]
     ) -> list[str]:
-        """A quote must occur verbatim in the span it names.
-
-        `make_spans` now slices the page, so this holds by construction — but the
-        construction is exactly what failed before: spans were assembled by joining the
-        tail of one to the head of the next, and the manufactured sentence left the
-        system as a verbatim citation with a matching `quote_hash`. The hash proves the
-        quote matches itself, not the document. This is the check that would have
-        caught it, and it stays as the second line for whatever changes chunking next.
-        """
-        span_text = {str(item.span.id): item.span.text for item in eligible}
-        return [
-            str(citation.span_id)
-            for citation in citations
-            if citation.quote not in span_text.get(str(citation.span_id), "")
-        ]
+        return unsourced_quotes(eligible, citations)
 
     def _unsourced_answer(self, release_id: str, span_ids: list[str]) -> Answer:
         return Answer(
@@ -585,59 +510,13 @@ class ExtractiveAnswerService:
         outranked: list[RetrievedEvidence],
         used: list[RetrievedEvidence],
     ) -> list[str]:
-        """Name what the ranking discarded, what repeats, and what has no stated date."""
-        limitations: list[str] = []
-        # A library copy carries the date it was *seen*, not the date the document took
-        # force: `effective_from` is set from the snapshot so the source can never be
-        # cited as governing an earlier date, and `publication_date` is left empty
-        # because nobody established it. Silence about that difference would let a
-        # reader take the lower bound for a publication date, which is the one reading
-        # the field cannot support.
-        undated = {
-            item.version.id for item in used if item.version.publication_date is None
-        }
-        cited_undated = sum(1 for citation in citations if citation.version_id in undated)
-        if cited_undated:
-            limitations.append(
-                f"{cited_undated} цитат із джерел без встановленої дати публікації:"
-                " нижня межа чинності — дата копії в бібліотеці, не дата видання."
-            )
-        if outranked:
-            classes = sorted({item.version.authority.value for item in outranked})
-            limitations.append(
-                f"Не використано {len(outranked)} джерел нижчого рангу"
-                f" ({', '.join(classes)}): ранг джерела не перебивається схожістю."
-            )
-        per_version: dict[UUID, int] = {}
-        for citation in citations:
-            per_version[citation.version_id] = per_version.get(citation.version_id, 0) + 1
-        repeated = sum(1 for count in per_version.values() if count > 1)
-        if repeated:
-            limitations.append(
-                f"{repeated} версій цитовано більше ніж один раз:"
-                " кілька цитат з однієї версії — це одне джерело, а не кілька."
-            )
-        return limitations
+        return source_limitations(citations, outranked, used)
 
     @staticmethod
     def _confine_to_top_authority(
         eligible: list[RetrievedEvidence],
     ) -> tuple[list[RetrievedEvidence], list[RetrievedEvidence]]:
-        """Keep only the strongest authority class present, and say how many were dropped.
-
-        Authority was one term of a convex sum, so an analytical passage that matched
-        the query well could sit beside — and contradict — the official order it
-        comments on. Two consequences followed: the weaker source was cited as if it
-        were equal, and `_find_contradiction` compared it against the stronger one and
-        pushed the whole answer to REQUIRES_HUMAN_REVIEW. A lower-ranked source cannot
-        overrule a higher-ranked one, so it also cannot veto it.
-        """
-        if not eligible:
-            return [], []
-        top = max(AUTHORITY_PRIOR[item.version.authority] for item in eligible)
-        confined = [item for item in eligible if AUTHORITY_PRIOR[item.version.authority] == top]
-        outranked = [item for item in eligible if AUTHORITY_PRIOR[item.version.authority] < top]
-        return confined, outranked
+        return confine_to_top_authority(eligible)
 
     @staticmethod
     def _find_contradiction(
@@ -645,46 +524,7 @@ class ExtractiveAnswerService:
         citations: list[Citation],
         eligible: list[RetrievedEvidence],
     ) -> str | None:
-        """Two live versions of one document conflict whatever their text says.
-
-        Textual contradiction detection is lexical and numeric: two versions of the
-        same order that disagree only in a date, a annex reference or a signature block
-        pass it silently. Which of them governs is not a question the system may answer
-        by ranking — the corpus is in a state a human has to resolve.
-
-        The last check reads the *whole* text of every eligible span, not just the
-        sentences extraction happened to select. A span whose next sentence reversed
-        the one quoted used to answer cleanly (destruction stage B2): the reader
-        opening the source saw the reversal, the system that sent them there did not.
-        Whether the second sentence is a genuine conflict or an exception carved out of
-        the first is not decidable lexically, and it is not the system's decision to
-        make — both readings end at the same place, a human reading the passage.
-
-        The scan covers eligible spans rather than only cited ones. An eligible span
-        already cleared relevance, currency and the top authority class; a refutation
-        sitting in one the extractor did not happen to quote is still the corpus
-        disagreeing with itself, and narrowing the scan to citations would let the
-        selection step decide which contradictions count.
-        """
-        versions_by_document: dict[UUID, set[UUID]] = {}
-        for citation in citations:
-            versions_by_document.setdefault(citation.document_id, set()).add(citation.version_id)
-        ordered = sorted(versions_by_document.items(), key=lambda entry: str(entry[0]))
-        for document_id, version_ids in ordered:
-            if len(version_ids) > 1:
-                return f"multiple_current_versions:{document_id}"
-        for left_index, left in enumerate(claims):
-            for right in claims[left_index + 1 :]:
-                reason = contradiction_reason(left.text, right.text)
-                if reason is not None:
-                    return reason
-        for claim in claims:
-            for item in eligible:
-                refutation = refuting_sentence(claim.text, item.span.text)
-                if refutation is not None:
-                    _sentence, reason = refutation
-                    return f"refuted_by_evidence:{reason}"
-        return None
+        return find_contradiction(claims, citations, eligible)
 
     def _abstain(
         self,
@@ -722,109 +562,19 @@ class ExtractiveAnswerService:
         plan: QueryPlan | None = None,
         composition: str | None = None,
     ) -> None:
-        if support is not None and not support.aligned:
-            self.repository.append_audit(
-                identity,
-                "answer.citation_misalignment",
-                "answer",
-                str(answer.id),
-                {
-                    "decision_reason": answer.decision_reason,
-                    "unsupported_claims": list(support.unsupported_claim_indexes),
-                    "reasons": list(support.reasons[:8]),
-                },
-            )
-        if breaches:
-            self.repository.append_audit(
-                identity,
-                "answer.scope_breach",
-                "answer",
-                str(answer.id),
-                {
-                    "decision_reason": answer.decision_reason,
-                    "breaches": [
-                        {
-                            "version_id": breach.version_id,
-                            "kind": breach.kind,
-                            "detail": breach.detail,
-                        }
-                        for breach in breaches
-                    ],
-                    "requested_corpora": query.corpus_ids,
-                    "reader_clearance": int(identity.clearance),
-                },
-            )
-        thresholds = risk_adjusted_thresholds(
+        append_answer_audit(
+            self.repository,
+            identity,
+            query,
+            answer,
+            retrieved,
+            eligible,
             risk,
             minimum_score=self.answer_policy.minimum_score,
             minimum_query_coverage=self.answer_policy.minimum_query_coverage,
             minimum_support_score=self.answer_policy.minimum_support_score,
-        )
-        self.repository.append_audit(
-            identity,
-            "answer.completed",
-            "answer",
-            str(answer.id),
-            {
-                "status": answer.status.value,
-                "decision_reason": answer.decision_reason,
-                "query_hash": hashlib.sha256(query.text.encode("utf-8")).hexdigest(),
-                "requested_corpora": query.corpus_ids,
-                # Both halves of "who asked this": the subject the token carried is the
-                # event's actor, and this is the name the person at the keyboard gave.
-                # Recorded under `declared` because it is unverified — an investigator
-                # must be able to tell an assertion from a proof, and the field name is
-                # where that distinction survives being read six months later.
-                "declared": (
-                    {
-                        "given_name": query.declaration.given_name,
-                        "family_name": query.declaration.family_name,
-                        "specialty": query.declaration.specialty,
-                        "verified": False,
-                    }
-                    if query.declaration is not None
-                    else None
-                ),
-                # What was actually searched for. An answer assembled partly from a
-                # machine-suggested phrasing is a different event from one built on the
-                # words a soldier typed, and a record that cannot tell them apart cannot
-                # answer "why did it show me this" six months from now.
-                "query_plan": plan.as_audit_record() if plan is not None else None,
-                # Whether the opening line was written, and if not, which rule refused it.
-                # A refused composition is a fact about this answer, not an absence.
-                "composition": composition,
-                "retrieved": len(retrieved),
-                "eligible": len(eligible),
-                "citation_count": len(answer.citations),
-                "evidence_coverage": answer.evidence_coverage,
-                "query_coverage": answer.query_coverage,
-                "retrieval_score_kind": answer.retrieval_score_kind,
-                "calibration_id": answer.calibration_id,
-                "corpus_release": answer.corpus_release,
-                "query_risk": risk.value,
-                # Counts cannot answer the question an investigation has. Which edition
-                # governed, which passage was quoted, on what date and against which
-                # bar were all absent from the record, so "why was this answered and
-                # that withheld" was unreconstructable once the answer object was gone.
-                # The date is recorded even for abstentions: `as_of` decides which
-                # edition is current, and an abstention on the wrong date looks exactly
-                # like an abstention on an empty corpus.
-                "as_of": query.as_of.isoformat(),
-                "thresholds": {
-                    "minimum_score": thresholds.minimum_score,
-                    "minimum_query_coverage": thresholds.minimum_query_coverage,
-                    "minimum_support_score": thresholds.minimum_support_score,
-                    "minimum_authority": thresholds.minimum_authority,
-                },
-                "citations": [
-                    {
-                        "document_id": str(citation.document_id),
-                        "version_id": str(citation.version_id),
-                        "span_id": str(citation.span_id),
-                        "revision": citation.revision,
-                        "quote_hash": citation.quote_hash,
-                    }
-                    for citation in answer.citations
-                ],
-            },
+            breaches=breaches,
+            support=support,
+            plan=plan,
+            composition=composition,
         )

@@ -9,6 +9,7 @@ import shutil
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
@@ -175,7 +176,7 @@ def main() -> int:
 
     index = {
         "schema": "korpus.assurance-snapshot.v1",
-        "release": os.getenv("KORPUS_RELEASE_VERSION", "v5.0.0"),
+        "release": os.getenv("KORPUS_RELEASE_VERSION", release_tag()),
         "status": "PASS",
         "records": records,
         "limitations": assurance.get("limitations", []),
@@ -184,7 +185,6 @@ def main() -> int:
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(index, ensure_ascii=False, indent=2))
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

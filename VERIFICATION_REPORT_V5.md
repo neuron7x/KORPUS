@@ -1,5 +1,7 @@
 # Verification report — KORPUS v5.0.0
 
+> **HISTORICAL v5 SNAPSHOT — NOT CURRENT RELEASE EVIDENCE.** See `VERIFICATION_REPORT.md`.
+
 Verification date: 2026-08-01.
 
 ## Executed local gates

@@ -224,7 +224,7 @@ def test_one_walk_answers_every_filesystem_question() -> None:
 
     context = load_repository_context(ROOT)
 
-    assert context.path_count > 1000
+    assert context.path_count == sum(1 for _ in ROOT.rglob("*"))
     assert context.oversized == []
     assert context.placeholders == []
     assert context.tracked_secrets == []

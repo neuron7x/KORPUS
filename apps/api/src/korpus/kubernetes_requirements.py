@@ -41,7 +41,7 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from korpus.application.deployment import (
+from korpus.application.deployment_contract import (
     REQUIRED_KINDS,
     REQUIRED_PRODUCTION_CONFIG,
     REQUIRED_WORKLOADS,

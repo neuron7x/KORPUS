@@ -1,29 +1,29 @@
-/* КОРПУС — one stylesheet, no build step, no external asset.
+/* KORPUS consumer/shared stylesheet; operator-console rules live in console.css.
    nginx serves `default-src 'self'` with no font or CDN exception, so everything here
    is system fonts and hand-written rules. That is a constraint, not a limitation: the
    page must render identically on a machine with no network. */
 
 :root {
   color-scheme: dark;
-  --bg: #08090b;
-  --surface: #101216;
-  --surface-2: #15181e;
-  --line: #262b33;
-  --line-strong: #3a414d;
-  --text: #f2f4f6;
-  --muted: #99a1ad;
+  --bg: #0b0c0a;
+  --surface: #111310;
+  --surface-2: #171a15;
+  --line: #2b2f26;
+  --line-strong: #3d4335;
+  --text: #eef0e9;
+  --muted: #9aa091;
   /* 4.5:1 against every surface this token is used on, not against the darkest one.
      Measured in the page on 2026-08-06 with a11y_runtime.js: #6f7783 gave 3.82:1 on the
      ledger and 4.01:1 on a hint, both below WCAG 2.2 AA §1.4.3, and both are text a
      soldier reads on a phone in daylight. This is #8a929a, which measures 5.18:1 on the
      lightest surface in the tree. */
-  --muted-2: #8a929a;
-  --accent: #d5ff3f;
+  --muted-2: #858b7d;
+  --accent: #c8e04a;
   --accent-dim: #a8cc2f;
-  --danger: #ff8a8a;
-  --danger-bg: #2a1516;
-  --danger-line: #6e2f31;
-  --ok: #7ee0a4;
+  --danger: #ff8f6b;
+  --danger-bg: #241511;
+  --danger-line: #6b3323;
+  --ok: #8fd47a;
   --radius: 12px;
   --radius-lg: 18px;
   --gap: 1rem;
@@ -305,129 +305,6 @@ input[type="file"] { padding: 0.55rem; color: var(--muted); }
 .tabs button:hover:not(:disabled) { background: var(--surface); color: var(--text); }
 .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ------------------------------------------------------------------ console */
-
-.console { padding-top: 1.75rem; }
-.console > h2 { margin: 0 0 0.35rem; font-size: 1.5rem; letter-spacing: -0.025em; }
-.console > .limitation { margin: 0 0 1.25rem; max-width: 52rem; font-size: 0.88rem; }
-
-/* The form and what it produced, side by side. The outcome used to sit under a
-   700px form: an operator clicked "preview" and saw nothing move. */
-.workbench { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
-@media (max-width: 940px) { .workbench { grid-template-columns: 1fr; } }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-}
-.card + .card { margin-top: 1.25rem; }
-.card h3 {
-  margin: 0 0 1rem;
-  font: 700 0.72rem/1 var(--mono);
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-.card h3 + .limitation { margin-top: -0.6rem; margin-bottom: 1rem; }
-
-.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.85rem; }
-.fields .wide { grid-column: 1 / -1; }
-.fields > div { min-width: 0; }
-
-.checks { display: grid; gap: 0.5rem; margin: 0.9rem 0 0; }
-.checks span { display: flex; align-items: flex-start; gap: 0.6rem; }
-.checks input { width: auto; margin: 0.25rem 0 0; accent-color: var(--accent); }
-.checks label { margin: 0; color: var(--text); font-size: 0.87rem; }
-
-.actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.25rem; }
-
-/* ------------------------------------------------------------------ outcome */
-
-.outcome-column { position: sticky; top: 1.25rem; }
-@media (max-width: 940px) { .outcome-column { position: static; } }
-
-.outcome {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 1.1rem 1.25rem;
-  min-height: 6rem;
-}
-.outcome + .outcome { margin-top: 1.25rem; }
-.outcome.error { border-color: var(--danger-line); background: var(--danger-bg); }
-.outcome h4 {
-  margin: 0 0 0.6rem;
-  font: 700 0.68rem/1 var(--mono);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-}
-.outcome h4 + * { margin-top: 0; }
-.outcome .idle { color: var(--muted-2); font-size: 0.85rem; margin: 0; }
-.outcome pre {
-  margin: 0 0 0.9rem;
-  padding: 0.8rem;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  overflow-x: auto;
-  font: 0.76rem/1.6 var(--mono);
-  color: #cfd6de;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 22rem;
-}
-.outcome ul { margin: 0; padding-left: 1.15rem; color: var(--danger); font-size: 0.87rem; }
-.outcome li + li { margin-top: 0.3rem; }
-.refusal { margin: 0 0 0.5rem; color: var(--danger); font: 700 0.95rem/1.3 var(--font); }
-.reason { margin: 0 0 0.75rem; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
-.reason:last-child { margin-bottom: 0; }
-.consequence {
-  margin: 0;
-  padding: 0.8rem 0.9rem;
-  background: rgba(213, 255, 63, 0.07);
-  border: 1px solid rgba(213, 255, 63, 0.25);
-  border-radius: 10px;
-  color: #e6ecd8;
-  font-size: 0.88rem;
-  line-height: 1.55;
-}
-
-.status-line { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem; font-weight: 600; }
-.dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; flex: none; }
-.dot.ok { background: var(--ok); }
-.dot.bad { background: var(--danger); }
-.dot.wait { background: var(--accent); }
-
-/* ------------------------------------------------------------------ tables */
-
-.table-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-caption { text-align: left; color: var(--muted-2); font-size: 0.76rem; padding-bottom: 0.6rem; }
-th, td { text-align: left; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted-2); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-tbody tr:hover { background: var(--surface-2); }
-td code { font: 0.72rem/1.4 var(--mono); color: var(--muted); word-break: break-all; }
-
-.copyable { background: none; border: 0; padding: 0; color: var(--accent); font: 0.72rem/1.4 var(--mono); cursor: pointer; text-align: left; word-break: break-all; }
-.copyable:hover { text-decoration: underline; }
-
-/* ------------------------------------------------------------------ spans */
-
-.span-item { padding: 0.9rem 1rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; }
-.span-item + .span-item { margin-top: 0.6rem; }
-.span-item h5 { margin: 0 0 0.45rem; font: 0.72rem/1 var(--mono); color: var(--muted-2); letter-spacing: 0.05em; }
-.span-item p { margin: 0 0 0.5rem; line-height: 1.55; font-size: 0.9rem; }
-
-@media (max-width: 620px) {
-  main { width: calc(100% - 1.6rem); }
-  .ask-field { grid-template-columns: 1fr; }
-  .ask-field button { width: 100%; }
-  header { padding-bottom: 1rem; }
-}
-
 /* ──────────────────────────────────────────────────────────────────────────
    Reader surface. The design language is the subject matter: rule, stencil,
    stamp. Right angles only, 1px rules, one accent, no shadow and no gradient
@@ -447,21 +324,6 @@ td code { font: 0.72rem/1.4 var(--mono); color: var(--muted); word-break: break-
    gets settled. It is now #858b7d: 5.56 / 5.32 / 5.01 on the three surfaces.
    ────────────────────────────────────────────────────────────────────────── */
 
-:root {
-  --bg: #0b0c0a;
-  --surface: #111310;
-  --surface-2: #171a15;
-  --line: #2b2f26;
-  --line-strong: #3d4335;
-  --text: #eef0e9;
-  --muted: #9aa091;
-  --muted-2: #858b7d;
-  --accent: #c8e04a;
-  --ok: #8fd47a;
-  --danger: #ff8f6b;
-  --danger-bg: #241511;
-  --danger-line: #6b3323;
-}
 
 .mark {
   width: 0.7rem;

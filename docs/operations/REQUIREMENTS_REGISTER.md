@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **321**.
+Усього вимог: **323**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -322,6 +322,7 @@
 | `repo.file.apps_api_src_korpus_infrastructure_ingestion_jobs_py` | apps/api/src/korpus/infrastructure/ingestion_jobs.py is present | — |
 | `repo.file.apps_api_src_korpus_infrastructure_parser_worker_py` | apps/api/src/korpus/infrastructure/parser_worker.py is present | — |
 | `repo.file.apps_api_src_korpus_main_py` | apps/api/src/korpus/main.py is present | — |
+| `repo.file.apps_api_src_korpus_release_json` | apps/api/src/korpus/release.json is present | — |
 | `repo.file.apps_api_src_korpus_security_browser_oidc_py` | apps/api/src/korpus/security/browser_oidc.py is present | — |
 | `repo.file.apps_api_src_korpus_security_corpus_governance_py` | apps/api/src/korpus/security/corpus_governance.py is present | — |
 | `repo.file.apps_api_src_korpus_security_entitlements_py` | apps/api/src/korpus/security/entitlements.py is present | — |
@@ -329,7 +330,7 @@
 | `repo.file.apps_api_src_korpus_security_scanning_py` | apps/api/src/korpus/security/scanning.py is present | — |
 | `repo.file.apps_api_src_korpus_security_source_authenticity_py` | apps/api/src/korpus/security/source_authenticity.py is present | — |
 | `repo.file.apps_web_package_json` | apps/web/package.json is present | — |
-| `repo.file.config_operations_desired_state_v5_json` | config/operations/desired-state-v5.json is present | — |
+| `repo.file.config_operations_desired_state_json` | config/operations/desired-state.json is present | — |
 | `repo.file.config_operations_reference_v5_json` | config/operations/reference-v5.json is present | — |
 | `repo.file.contracts_openapi_json` | contracts/openapi.json is present | — |
 | `repo.file.deploy_kubernetes_base_kustomization_yaml` | deploy/kubernetes/base/kustomization.yaml is present | — |
@@ -338,7 +339,7 @@
 | `repo.file.docker_compose_yml` | docker-compose.yml is present | — |
 | `repo.file.dockerignore` | .dockerignore is present | — |
 | `repo.file.docs_architecture_security_md` | docs/architecture/SECURITY.md is present | — |
-| `repo.file.docs_architecture_system_v5_md` | docs/architecture/SYSTEM_V5.md is present | — |
+| `repo.file.docs_architecture_system_md` | docs/architecture/SYSTEM.md is present | — |
 | `repo.file.docs_assurance_assurance_case_md` | docs/assurance/ASSURANCE_CASE.md is present | — |
 | `repo.file.docs_assurance_first_principles_md` | docs/assurance/FIRST_PRINCIPLES.md is present | — |
 | `repo.file.docs_assurance_test_strategy_md` | docs/assurance/TEST_STRATEGY.md is present | — |
@@ -395,7 +396,7 @@
 | `repo.file.scripts_verify_postgres_restore_py` | scripts/verify_postgres_restore.py is present | — |
 | `repo.file.scripts_verify_release_evidence_py` | scripts/verify_release_evidence.py is present | — |
 | `repo.file.security_md` | SECURITY.md is present | — |
-| `repo.file.verification_report_v5_md` | VERIFICATION_REPORT_V5.md is present | — |
+| `repo.file.verification_report_md` | VERIFICATION_REPORT.md is present | — |
 | `repo.json_documents_parse` | every shipped JSON contract and schema parses | a contract that does not parse is a contract nothing enforces |
 | `repo.migration.0001_initial_py` | migration 0001_initial.py is present | a migration missing from the tree is a schema step nobody can apply or review |
 | `repo.migration.0002_database_defense_and_vectors_py` | migration 0002_database_defense_and_vectors.py is present | a migration missing from the tree is a schema step nobody can apply or review |
@@ -409,7 +410,8 @@
 | `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
 | `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
 | `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
-| `repo.version.api_pyproject` | api_pyproject declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
-| `repo.version.readme_header` | readme_header declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
-| `repo.version.runtime_dunder` | runtime_dunder declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
-| `repo.version.web_package` | web_package declares release 5.0.0 | four places state the version; one disagreeing means the artefacts describe different builds |
+| `repo.version.api_pyproject` | api_pyproject declares release 6.3.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.readme_header` | readme_header declares release 6.3.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.release_identity` | release_identity declares release 6.3.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.runtime_dunder` | runtime_dunder declares release 6.3.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.web_package` | web_package declares release 6.3.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |

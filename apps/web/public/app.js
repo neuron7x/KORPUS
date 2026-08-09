@@ -16,10 +16,13 @@
 import {
   ApiRefusal, NetworkError, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
 } from "./api.js";
+import {askIn} from "./conversations.js";
 import {
-  archiveConversation, askIn, conversationListMarkup, createConversation,
-  listConversations, readConversation, tenancyAvailable, titleFrom,
-} from "./conversations.js";
+  forgetDeclaration, readDeclaration, rememberDeclaration, restoreDeclaration,
+} from "./reader_declaration.js";
+import {wireCorpus} from "./reader_corpus.js";
+import {createConversationController} from "./reader_conversations.js";
+import {UNFINISHED, VERDICT} from "./reader_verdicts.js";
 
 const $ = id => document.getElementById(id);
 
@@ -44,45 +47,6 @@ let identity = null;
 //: inherit it.
 let declaration = null;
 
-const DECLARATION_KEY = "korpus.declaration";
-
-function rememberDeclaration(declared) {
-  declaration = declared;
-  try {
-    sessionStorage.setItem(DECLARATION_KEY, JSON.stringify(declared));
-  } catch {
-    // Private mode or a full quota. The declaration still lives in memory for this tab;
-    // only the reload-survival is lost, which is a degradation, not a failure.
-  }
-}
-
-function forgetDeclaration() {
-  declaration = null;
-  try {
-    sessionStorage.removeItem(DECLARATION_KEY);
-  } catch {
-    // Nothing to clean up if storage was never reachable.
-  }
-}
-
-function restoreDeclaration() {
-  try {
-    const stored = sessionStorage.getItem(DECLARATION_KEY);
-    if (!stored) return null;
-    const parsed = JSON.parse(stored);
-    // Re-validated, not trusted: a tampered or partial value must not enter the audit
-    // chain as a declaration. The same three fields the form requires.
-    if (["family_name", "given_name", "specialty"].every(
-      key => typeof parsed?.[key] === "string" && parsed[key].trim(),
-    )) {
-      return parsed;
-    }
-  } catch {
-    // Unparseable — treat as none.
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------- identity
 
 // On the public edge the visitor holds nothing: the edge attaches a read-only identity to
@@ -91,6 +55,7 @@ function restoreDeclaration() {
 // rather than disabled — a control that is visible and inert teaches the wrong thing
 // about who is authenticated here.
 const publicMode = Boolean(globalThis.window?.KORPUS_CONFIG?.publicMode);
+const conversationController = createConversationController({publicMode, result, query});
 
 if (publicMode) {
   for (const node of document.querySelectorAll("[data-private-only]")) node.remove();
@@ -177,31 +142,6 @@ function showErrors(problems) {
   }
 }
 
-const DECLARED_FIELDS = [
-  {id: "family-name", key: "family_name", label: "Прізвище", min: 1},
-  {id: "given-name", key: "given_name", label: "Ім’я", min: 1},
-  {id: "specialty", key: "specialty", label: "Спеціальність", min: 2},
-];
-
-function readDeclaration() {
-  const problems = [];
-  const declared = {};
-  for (const field of DECLARED_FIELDS) {
-    const element = $(field.id);
-    element.removeAttribute("aria-invalid");
-    const value = element.value.trim();
-    if (value.length < field.min) {
-      problems.push({
-        field: field.id,
-        message: `${field.label}: ${value ? `щонайменше ${field.min} символи` : "заповніть поле"}`,
-      });
-      continue;
-    }
-    declared[field.key] = value;
-  }
-  return {declared, problems};
-}
-
 function enterWorkingState() {
   $("standing-verified").textContent =
     `ДОПУСК · ${identity.subject} · рівень ${identity.clearance}`;
@@ -212,7 +152,7 @@ function enterWorkingState() {
   askSection.hidden = false;
   corpus.hidden = false;
   query.focus();
-  void startConversations();
+  void conversationController.start();
 }
 
 declarationForm.addEventListener("submit", async event => {
@@ -240,7 +180,7 @@ declarationForm.addEventListener("submit", async event => {
   }
   showErrors(problems);
   if (problems.length) return;
-  rememberDeclaration(declared);
+  declaration = rememberDeclaration(declared);
   enterWorkingState();
 });
 
@@ -270,23 +210,7 @@ function citationCard(citation, index) {
     </article>`;
 }
 
-const VERDICT = {
-  answered: ["ПІДСТАВА Є", "ok"],
-  insufficient_evidence: ["ПІДСТАВИ НЕМАЄ", "withheld"],
-  access_denied: ["ДОСТУП НЕ НАДАНО", "denied"],
-  requires_human_review: ["ПОТРІБНА ЛЮДИНА", "withheld"],
-};
-
-// "The corpus holds nothing about this" and "the search did not finish" are the same
-// HTTP status and the same `insufficient_evidence`, and they were rendered under the
-// same three words. A reader takes the heading, not the small print: told ПІДСТАВИ
-// НЕМАЄ about a rule that exists, they stop looking. These reasons get their own
-// verdict, because the system did not establish an absence — it ran out of time or lost
-// a dependency.
-const UNFINISHED = new Set([
-  "retrieval_deadline_exceeded",
-  "retrieval_dependency_unavailable",
-]);
+// Verdict vocabulary and unfinished-search reasons are centralized in reader_verdicts.js.
 
 function render(answer, question) {
   const [verdict, tone] = UNFINISHED.has(answer.decision_reason)
@@ -350,13 +274,13 @@ async function ask() {
     // the answer; the transcript is never sent back with the next one, so nothing the
     // system said can become the evidence for what it says next.
     const body = {text: question, declaration};
-    const conversation = await conversationForQuestion(question);
+    const conversation = await conversationController.forQuestion(question);
     const answer = conversation
       ? await askIn(conversation, body)
       : await call("/v1/answers", {method: "POST", body});
     pending.remove();
     render(answer, question);
-    void refreshConversations();
+    void conversationController.refresh();
     // Cleared only on success: a question that failed is still in the box, so the
     // reader retries rather than retypes.
     query.value = "";
@@ -433,237 +357,11 @@ query.addEventListener("keydown", event => {
   }
 });
 
-// ---------------------------------------------------------------- conversations
-//
-// A shift is a sequence of questions, and until now the sequence died with the tab. What
-// is stored is the question and what the system answered — never as a source for the next
-// answer: `ask` sends the question alone, and the server's own rule is that a stored
-// assistant turn is a sentence the system wrote, not evidence.
-//
-// Off on the public edge, where one read-only identity is attached to every visitor: a
-// conversation there would be a shared notebook.
-
-//: One page. Kept here rather than inlined so the request and the "show more" step cannot
-//: drift apart — two different numbers would make the second page overlap or skip rows.
-const CONVERSATION_PAGE = 50;
-
-const conversations = $("conversations");
-const conversationsBody = $("conversations-body");
-const conversationsSummary = $("conversations-summary");
-let conversationsEnabled = false;
-let activeConversation = null;
-//: How many rows the panel is currently showing. Grows by a page when the reader asks;
-//: never shrinks silently, because a list that quietly forgets what it had shown is the
-//: same defect as one that quietly stops.
-let conversationsShown = CONVERSATION_PAGE;
-
-async function startConversations() {
-  if (publicMode || !conversations) return;
-  try {
-    conversationsEnabled = await tenancyAvailable();
-  } catch {
-    // 401/403: this reader's own problem, and the entry screen already says so. The
-    // panel stays hidden rather than showing a list nobody can load.
-    conversationsEnabled = false;
-  }
-  if (!conversationsEnabled) return;
-  conversations.hidden = false;
-  await refreshConversations();
-}
-
-async function refreshConversations() {
-  if (!conversationsEnabled) return;
-  try {
-    const page = await listConversations({limit: conversationsShown});
-    conversationsBody.innerHTML = conversationListMarkup(page.items, {
-      activeId: activeConversation,
-      hasMore: page.has_more,
-    });
-    // The count says "shown", not "have". Printing a truncated length as though it were
-    // the total is the defect this page is fixing one line further down.
-    conversationsSummary.textContent = page.items.length
-      ? `Розмови · ${page.items.length}${page.has_more ? "+" : ""}`
-      : "Розмови";
-  } catch (error) {
-    conversationsBody.innerHTML = `<p class="note">Перелік недоступний: ${escapeHtml(
-      error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
-  }
-}
-
-/**
- * The conversation this question belongs to, creating one on the first question.
- *
- * Lazy on purpose: opening the page should not create a row. A reader who arrives, reads
- * the corpus listing and leaves has had no conversation, and a list full of empty ones is
- * a list nobody scrolls.
- */
-async function conversationForQuestion(question) {
-  if (!conversationsEnabled) return null;
-  if (activeConversation) return activeConversation;
-  try {
-    const created = await createConversation(titleFrom(question));
-    activeConversation = created.id;
-    return activeConversation;
-  } catch {
-    // A conversation is a convenience. Losing it must not lose the answer, so the
-    // question falls through to the stateless path rather than failing.
-    return null;
-  }
-}
-
-// A stored turn carries what was said, not the citation cards: those are rendered from the
-// answer that produced them, and the answer lives in the audit chain rather than in the
-// history. Said here rather than implied by their absence.
-//
-// The verdict is rendered as a verdict. Reading a transcript back in a browser was how the
-// gap was found: a refusal — "У чинному перевіреному корпусі недостатньо доказів" — came
-// back as a paragraph of prose, identical in shape to an answer, while live it carries
-// ПІДСТАВИ НЕМАЄ above it. A reader skimming their own history would have counted it as
-// something the corpus said.
-function renderStoredMessage(message) {
-  const block = document.createElement("article");
-  block.className = "turn stored";
-  if (message.role === "user") {
-    block.innerHTML =
-      `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${
-        escapeHtml(message.text)}</p>`;
-    return block;
-  }
-  // `null` for a turn stored before the verdict was recorded. Reported as unrecorded
-  // rather than assumed to be an answer: assuming is the failure being fixed.
-  const [verdict, tone] = message.answer_status
-    ? VERDICT[message.answer_status] ?? ["ВІДМОВА", "withheld"]
-    : ["ВЕРДИКТ НЕ ЗАПИСАНО", "withheld"];
-  block.innerHTML =
-    `<div class="verdict ${tone}"><span class="verdict-mark" aria-hidden="true"></span>` +
-    `<h2>${escapeHtml(verdict)}</h2></div>` +
-    `<p class="answer-text">${escapeHtml(message.text).replaceAll("\n", "<br>")}</p>` +
-    `<p class="note">З історії. Текст відповіді збережено дослівно; картки цитат із
-     хешами належать тому запиту й лишаються в журналі аудиту.</p>`;
-  return block;
-}
-
-async function openConversation(id) {
-  try {
-    const page = await readConversation(id);
-    activeConversation = id;
-    result.innerHTML = "";
-    result.classList.remove("hidden", "error");
-    if (!page.items.length) {
-      const empty = document.createElement("p");
-      empty.className = "note";
-      empty.textContent = "Розмова порожня.";
-      result.append(empty);
-    }
-    // A transcript is read oldest-first, so a truncated one is missing its *end* — the
-    // most recent turns, which are the ones a reader came back for. Said before the turns
-    // rather than after them, where it would be below the fold.
-    if (page.has_more) {
-      const cut = document.createElement("p");
-      cut.className = "note truncated";
-      cut.textContent =
-        `Показано перші ${page.items.length} ходів цієї розмови. Пізніші не показані.`;
-      result.append(cut);
-    }
-    for (const message of page.items) result.append(renderStoredMessage(message));
-    await refreshConversations();
-    query.focus();
-  } catch (error) {
-    conversationsBody.innerHTML = `<p class="note">Не відкрито: ${escapeHtml(
-      error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
-  }
-}
-
-conversationsBody?.addEventListener("click", event => {
-  const open = event.target.closest("[data-conversation]");
-  if (open) {
-    void openConversation(open.dataset.conversation);
-    return;
-  }
-  if (event.target.closest('[data-more="conversations"]')) {
-    conversationsShown = Math.min(conversationsShown + CONVERSATION_PAGE, 200);
-    void refreshConversations();
-    return;
-  }
-  const archive = event.target.closest("[data-archive]");
-  if (!archive) return;
-  const id = archive.dataset.archive;
-  archiveConversation(id)
-    .then(() => {
-      if (activeConversation === id) activeConversation = null;
-      return refreshConversations();
-    })
-    .catch(error => {
-      conversationsBody.innerHTML = `<p class="note">Не архівовано: ${escapeHtml(
-        error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
-    });
-});
-
-$("conversation-new")?.addEventListener("click", () => {
-  // Nothing is created here. The next question creates the row, so a reader who clicks
-  // this and walks away leaves no empty conversation behind.
-  activeConversation = null;
-  result.innerHTML = "";
-  result.classList.add("hidden");
-  void refreshConversations();
-  query.focus();
-});
-
-
 // ---------------------------------------------------------------- corpus
 
-// The corpus listing is a fact about scope, not an answer, and it is rendered as one:
-// counts per subject and the titles under them. No relevance, no ranking, nothing that
-// could be mistaken for the system having found something.
-//
-// Loaded once, on first open. Listing every document is a large response and requesting
-// it on page load would spend it on every visitor who only wanted to ask a question.
 const corpus = $("corpus");
 const corpusBody = $("corpus-body");
-let corpusLoaded = false;
-
-function groupByType(documents) {
-  const groups = new Map();
-  for (const document_ of documents) {
-    const key = document_.document_type || "без розділу";
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(document_);
-  }
-  return [...groups.entries()].sort((left, right) => right[1].length - left[1].length);
-}
-
-function renderCorpus(documents) {
-  if (!documents.length) {
-    corpusBody.innerHTML = `<p class="note">Корпус порожній для вашого допуску.</p>`;
-    return;
-  }
-  const groups = groupByType(documents);
-  corpusBody.innerHTML =
-    `<p class="corpus-total"><strong>${documents.length}</strong> документів · ` +
-    `<strong>${groups.length}</strong> розділів · доступних вашому допуску</p>` +
-    groups.map(([type, items]) =>
-      `<details class="corpus-group"><summary>${escapeHtml(type)} ` +
-      `<span class="corpus-count">${items.length}</span></summary><ul>${
-        items.slice(0, 200).map(item =>
-          `<li>${escapeHtml(item.canonical_title)}</li>`).join("")
-      }${
-        // Named rather than silently cut: a list that stops at two hundred and says
-        // nothing reads as a complete list of two hundred.
-        items.length > 200 ? `<li class="note">…і ще ${items.length - 200}</li>` : ""
-      }</ul></details>`).join("");
-}
-
-corpus.addEventListener("toggle", () => {
-  if (!corpus.open || corpusLoaded) return;
-  corpusLoaded = true;
-  call("/v1/documents")
-    .then(renderCorpus)
-    .catch(error => {
-      corpusLoaded = false;
-      corpusBody.innerHTML = `<p class="note">Перелік недоступний: ${escapeHtml(
-        error instanceof ApiRefusal ? error.reason : "невідома помилка")}</p>`;
-    });
-});
+wireCorpus({corpus, body: corpusBody});
 
 // On load: confirm the identity, then — only if a declaration from before a reload is
 // still valid — walk straight back to the ask screen so a refresh does not cost the

@@ -1,5 +1,7 @@
 # System architecture v3
 
+> **HISTORICAL SNAPSHOT — NOT CURRENT SSOT.** Current architecture: `SYSTEM.md`.
+
 ## Value function
 
 KORPUS optimizes a constrained operational utility, not answer volume:

@@ -26,11 +26,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from urllib.parse import parse_qs, urlparse
-
-if TYPE_CHECKING:  # pragma: no cover - typing only
-    from korpus.config import Settings
 
 CONTROLLED_ENVIRONMENTS = frozenset({"production", "controlled", "isolated"})
 
@@ -241,7 +238,7 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
 )
 
 
-def first_unmet(settings: Settings) -> ControlledRequirement | None:
+def first_unmet(settings: Any) -> ControlledRequirement | None:
     """The first requirement this deployment does not satisfy, in declared order."""
     for requirement in CONTROLLED_REQUIREMENTS:
         if not requirement.holds(settings):

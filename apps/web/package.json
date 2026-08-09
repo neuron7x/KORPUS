@@ -1,6 +1,6 @@
 {
   "name": "@korpus/web",
-  "version": "5.0.0",
+  "version": "6.3.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.mjs",
@@ -11,5 +11,6 @@
     "start": "node scripts/serve.mjs dist"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "type": "module"
 }

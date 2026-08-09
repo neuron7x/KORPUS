@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application import environment_drift  # noqa: E402
 
-MANIFEST = ROOT / "config/operations/desired-state-v5.json"
+MANIFEST = ROOT / "config/operations/desired-state.json"
 
 
 def observe(root: Path, paths: list[str]) -> dict[str, Any]:
