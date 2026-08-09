@@ -354,6 +354,12 @@ resizeComposer();
 
 // ---------------------------------------------------------------- corpus + boot
 
+// Desktop exposes conversation history by default; compact viewports protect the main
+// task from being pushed below an open navigation panel. This only sets the initial
+// disclosure state — after boot the user owns the control.
+const conversationsPanel = $("conversations");
+if (conversationsPanel) conversationsPanel.open = window.matchMedia("(min-width: 901px)").matches;
+
 wireCorpus({corpus: $("corpus"), body: $("corpus-body")});
 
 loadIdentity()

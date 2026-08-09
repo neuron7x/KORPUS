@@ -28,6 +28,12 @@ composer, direct subscription-gate routing, accessibility busy/focus semantics a
 32 KiB first-party consumer gzip ratchet. Official promotion remains blocked on fresh
 exact-lock assurance and live production dependencies.
 
+**Implemented in v6.6.0 candidate:** repository-native DesignOps: DTCG-compatible design
+tokens generate the browser palette, component/state and viewport contracts are executable,
+mobile conversation history starts collapsed, focus/contrast/target semantics remain gated,
+and design drift now has mutation controls. Browser-level pixel baselines remain external
+because the current execution environment blocks Chromium navigation.
+
 ## Gate 4 — production corpus and operations
 
 Materialize approved corpus, rights/provenance decisions, backup/restore, monitoring,

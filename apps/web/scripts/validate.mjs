@@ -2,11 +2,12 @@ import { readFile, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
+import {validateDesignSystem} from "./design_system.mjs";
 
 const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
 const read = (file) => readFile(asset(file), "utf8");
 
-const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs"];
+const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_system.mjs", "scripts/generate_design_tokens.mjs"];
 const SCRIPTS = [
   "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
@@ -14,7 +15,8 @@ const SCRIPTS = [
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];
 const PAGES = ["public/index.html", "public/console.html"];
-const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/styles.css", "public/console.css", "public/manifest.webmanifest", "public/config.js"];
+const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
+  "design/tokens.json", "design/components.json", "design/viewports.json"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));
@@ -26,7 +28,7 @@ for (const file of REQUIRED) {
 // matching how the production edge can serve them. The budget prevents a "premium"
 // redesign from quietly becoming a framework-sized payload.
 const CONSUMER_ENTRY = [
-  "public/index.html", "public/styles.css", "public/config.js", "public/api.js",
+  "public/index.html", "public/tokens.css", "public/styles.css", "public/config.js", "public/api.js",
   "public/app.js", "public/billing.js", "public/conversations.js",
   "public/reader_conversations.js", "public/reader_corpus.js",
   "public/reader_declaration.js", "public/reader_verdicts.js",
@@ -39,10 +41,13 @@ if (consumerGzipBytes > 32 * 1024) {
   throw new Error(`consumer shell exceeds 32 KiB gzip budget: ${consumerGzipBytes} bytes`);
 }
 const cssGzipBytes = gzipSync(await read("public/styles.css"), {level: 9}).byteLength;
-if (cssGzipBytes > 8 * 1024) {
-  throw new Error(`consumer stylesheet exceeds 8 KiB gzip budget: ${cssGzipBytes} bytes`);
+const tokenCssGzipBytes = gzipSync(await read("public/tokens.css"), {level: 9}).byteLength;
+if (cssGzipBytes + tokenCssGzipBytes > 9 * 1024) {
+  throw new Error(`consumer CSS exceeds 9 KiB gzip budget: ${cssGzipBytes + tokenCssGzipBytes} bytes`);
 }
 console.log(`consumer transfer budget passed: ${consumerGzipBytes} gzip bytes`);
+const designSystem = await validateDesignSystem();
+console.log(`design system passed: ${designSystem.tokenCount} tokens / ${designSystem.componentCount} component contracts`);
 
 // `node --check <file>` exits 0 for ANY file containing an `import` statement — the ESM
 // retry path reports nothing. Verified on node v22.23.1 with a file holding both an
@@ -64,6 +69,9 @@ console.log(`syntax check passed for ${SCRIPTS.length + DEV_SCRIPTS.length} modu
 const html = await read("public/index.html");
 for (const marker of ['lang="uk"','id="query-form"','id="bearer-token"','id="login"','id="logout"','aria-live="polite"','/app.js']) {
   if (!html.includes(marker)) throw new Error(`web shell contract failed: ${marker}`);
+}
+if (/id="conversations"[^>]*\sopen(?:\s|>)/.test(html)) {
+  throw new Error("mobile conversation disclosure must not ship forced open; desktop opens it at boot");
 }
 
 // ---------------------------------------------------------------- security contract
@@ -568,12 +576,14 @@ const contrast = (a, b) => {
 };
 
 {
-  const css = await read("public/styles.css");
-  // One authoritative palette. A second :root is structural drift: which token wins
-  // would depend on cascade order rather than on the design-system SSOT.
-  const blocks = [...css.matchAll(/:root\s*\{([^}]*)\}/g)];
+  const tokenCss = await read("public/tokens.css");
+  const consumerCss = await read("public/styles.css");
+  if (/:root\s*\{/.test(consumerCss)) {
+    throw new Error("accessibility: consumer stylesheet shadows canonical design tokens with :root");
+  }
+  const blocks = [...tokenCss.matchAll(/:root\s*\{([^}]*)\}/g)];
   if (blocks.length !== 1) {
-    throw new Error(`accessibility: expected exactly one :root palette, found ${blocks.length}`);
+    throw new Error(`accessibility: expected exactly one generated :root token block, found ${blocks.length}`);
   }
   const active = blocks[0][1];
   const token = (name) => /^#[0-9a-f]{6}$/i.test(

@@ -1,32 +1,4 @@
 /* KORPUS consumer interface — premium, evidence-first, framework-free. */
-:root {
-  color-scheme: dark;
-  --bg: #070907;
-  --surface: #0d100e;
-  --surface-2: #131713;
-  --surface-3: #191f1a;
-  --surface-raised: #101411;
-  --line: #252d27;
-  --line-strong: #39443b;
-  --text: #f4f7f3;
-  --muted: #adb6ad;
-  --muted-2: #959f96;
-  --accent: #d9ff68;
-  --accent-ink: #101606;
-  --ok: #9ce7a7;
-  --warn: #ffd678;
-  --danger: #ff9b84;
-  --danger-line: #7e3f34;
-  --danger-bg: #241310;
-  --radius-sm: 10px;
-  --radius: 16px;
-  --radius-lg: 24px;
-  --radius-xl: 32px;
-  --shadow: 0 28px 90px rgba(0, 0, 0, .34);
-  --shadow-soft: 0 16px 48px rgba(0, 0, 0, .22);
-  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-}
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--bg); }
@@ -79,7 +51,7 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 50;
-  height: 64px;
+  height: var(--topbar-height);
   padding: 0 max(1rem, calc((100vw - 1600px) / 2));
   display: flex;
   align-items: center;
@@ -365,7 +337,7 @@ h1 {
 .product-shell {
   min-height: calc(100vh - 64px);
   display: grid;
-  grid-template-columns: 272px minmax(0, 1fr) 260px;
+  grid-template-columns: var(--shell-left) minmax(0, 1fr) var(--shell-right);
   background: var(--bg);
 }
 .left-rail {
@@ -417,7 +389,7 @@ h1 {
 .new-chat > span:first-child { color: var(--accent); font-size: 1rem; }
 .conversations, .corpus, .session-context { border-top: 1px solid var(--line); padding-top: .55rem; }
 .conversations summary, .corpus summary, .session-context summary {
-  min-height: 38px;
+  min-height: var(--target-min);
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -430,7 +402,7 @@ h1 {
 .conversations summary::-webkit-details-marker, .corpus summary::-webkit-details-marker, .session-context summary::-webkit-details-marker { display: none; }
 .conversations summary::after, .corpus summary::after, .session-context summary::after { content: "+"; margin-left: auto; color: var(--muted-2); }
 .conversations[open] summary::after, .corpus[open] summary::after, .session-context[open] summary::after { content: "−"; }
-.conversations-body { display: grid; gap: .24rem; max-height: min(34vh, 360px); overflow: auto; scrollbar-width: thin; }
+.conversations-body { display: grid; gap: .24rem; max-height: min(34vh, 360px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 .conversation-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem; align-items: center; }
 .conversation-row button { min-height: 34px; padding: .42rem .5rem; border: 0; background: transparent; color: var(--muted); box-shadow: none; font-weight: 560; }
 .conversation-row button:hover:not(:disabled) { background: var(--surface-2); transform: none; box-shadow: none; }
@@ -463,7 +435,7 @@ h1 {
     radial-gradient(circle at 50% 15%, rgba(217,255,104,.035), transparent 22rem);
 }
 .chat-topline {
-  width: min(920px, 100%);
+  width: min(var(--content-answer), 100%);
   margin: 0 auto;
   min-height: 66px;
   display: flex;
@@ -490,7 +462,7 @@ h1 {
 }
 .chip.verified { color: var(--ok); border-color: rgba(156,231,167,.27); background: rgba(156,231,167,.04); }
 .chip.declared { border-style: dashed; color: var(--muted-2); background: transparent; }
-.answer-stream { width: min(920px, 100%); margin: 1.1rem auto 0; }
+.answer-stream { width: min(var(--content-answer), 100%); margin: 1.1rem auto 0; }
 .empty-chat {
   width: min(700px, 100%);
   margin: auto;
@@ -517,7 +489,7 @@ h1 {
 .answer-stream:not(.hidden) + .empty-chat { display: none; }
 
 .ask-section {
-  width: min(920px, 100%);
+  width: min(var(--content-answer), 100%);
   margin: auto auto 0;
   position: sticky;
   bottom: 0;
@@ -699,7 +671,7 @@ h1 {
 }
 
 @media (max-width: 600px) {
-  .topbar { height: 58px; }
+  .topbar { height: var(--topbar-mobile-height); }
   .console-link { display: none; }
   .welcome { min-height: calc(100vh - 58px); padding: 2.6rem 1rem 2rem; }
   h1 { font-size: clamp(2.85rem, 13.7vw, 4.6rem); }
@@ -716,7 +688,8 @@ h1 {
   .demo-answer { margin: 0 .6rem .6rem; }
   .principles { margin-top: .7rem; }
   .left-rail { grid-template-columns: minmax(0, 1fr) 44px; padding: .65rem .75rem; }
-  .new-chat { min-width: 44px; width: 44px; padding: 0; }
+  .new-chat { min-width: var(--target-min); width: var(--target-min); padding: 0; }
+  .conversations-body { max-height: 190px; }
   .new-chat > span:last-child { display: none; }
   .chat-stage { padding: .72rem; min-height: calc(100vh - 138px); }
   .chat-topline { display: block; min-height: auto; padding: .2rem 0 .75rem; }

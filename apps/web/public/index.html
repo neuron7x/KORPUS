@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#070907">
   <meta name="description" content="KORPUS — контрольована база знань із доказовими відповідями">
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/tokens.css">
   <link rel="stylesheet" href="/styles.css">
   <title>KORPUS / Доказовий інтерфейс знань</title>
 </head>
@@ -107,11 +108,11 @@
           </div>
         </div>
 
-        <button id="conversation-new" type="button" class="new-chat">
+        <button id="conversation-new" type="button" class="new-chat" aria-label="Нова розмова">
           <span aria-hidden="true">＋</span><span>Нова розмова</span>
         </button>
 
-        <details id="conversations" class="conversations" hidden open>
+        <details id="conversations" class="conversations" hidden>
           <summary id="conversations-summary">Розмови</summary>
           <div class="conversations-actions" hidden></div>
           <div id="conversations-body" class="conversations-body" aria-live="polite">

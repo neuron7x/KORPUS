@@ -24,6 +24,7 @@ async function runWith(mutate) {
   try {
     await cp(join(WEB, "public"), join(root, "public"), {recursive: true});
     await cp(join(WEB, "scripts"), join(root, "scripts"), {recursive: true});
+    await cp(join(WEB, "design"), join(root, "design"), {recursive: true});
     await cp(join(WEB, "nginx.conf"), join(root, "nginx.conf"));
     const edit = async (file, transform) => {
       const path = join(root, file);
@@ -349,9 +350,10 @@ test("a location that sets a header without repeating the CSP is caught", async 
 });
 
 test("a colour token below AA contrast is caught", async () => {
-  const {status, output} = await runWith(edit =>
-    edit("public/styles.css", source =>
-      source.replace("  --muted-2: #959f96;", "  --muted-2: #4f564f;")));
+  const {status, output} = await runWith(async edit => {
+    await edit("design/tokens.json", source => source.replace('"hex": "#959f96"', '"hex": "#4f564f"'));
+    await edit("public/tokens.css", source => source.replace("--muted-2: #959f96;", "--muted-2: #4f564f;"));
+  });
   assert.notEqual(status, 0);
   assert.match(output, /below WCAG 2\.2 AA/);
 });
@@ -361,7 +363,21 @@ test("introducing a second palette root is caught", async () => {
     edit("public/styles.css", source =>
       `${source}\n:root { --muted-2: #6d7365; }\n`));
   assert.notEqual(status, 0);
-  assert.match(output, /expected exactly one :root palette/);
+  assert.match(output, /shadows canonical design tokens with :root/);
+});
+
+test("design token drift is caught before CSS can silently diverge", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/tokens.css", source => source.replace("--accent: #d9ff68;", "--accent: #ffffff;")));
+  assert.notEqual(status, 0);
+  assert.match(output, /design tokens drift/);
+});
+
+test("mobile conversation history no longer ships forced open", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/index.html", source => source.replace('id="conversations" class="conversations" hidden', 'id="conversations" class="conversations" hidden open')));
+  assert.notEqual(status, 0);
+  assert.match(output, /mobile conversation disclosure/);
 });
 
 // ---------------------------------------------------------------- ACT-001 controls

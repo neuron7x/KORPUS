@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "breakpoints": {
+    "compactMaxPx": 600,
+    "tabletMaxPx": 900,
+    "railCollapsePx": 1240
+  },
+  "proofViewports": [
+    {
+      "id": "mobile",
+      "width": 390,
+      "height": 844
+    },
+    {
+      "id": "tablet",
+      "width": 834,
+      "height": 1112
+    },
+    {
+      "id": "desktop",
+      "width": 1440,
+      "height": 1000
+    }
+  ],
+  "interaction": {
+    "preferredTargetPx": 44,
+    "wcag22MinimumTargetPx": 24,
+    "focusOutlinePx": 2
+  },
+  "contracts": [
+    "At <=600px the primary action and composer remain usable without horizontal scrolling.",
+    "At <=900px the right evidence rail is absent and navigation becomes a compact top strip.",
+    "At <=1240px the right evidence rail is removed before central answer width is compressed.",
+    "No critical interaction depends on hover or dragging."
+  ]
+}
