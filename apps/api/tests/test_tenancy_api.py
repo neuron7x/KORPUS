@@ -282,6 +282,7 @@ def test_the_openapi_document_describes_the_new_surface(tenant_client: Any) -> N
         "/v1/account",
         "/v1/plans",
         "/v1/subscription",
+        "/v1/billing/checkout",
         "/v1/conversations",
         "/v1/conversations/{conversation_id}",
         "/v1/conversations/{conversation_id}/archive",

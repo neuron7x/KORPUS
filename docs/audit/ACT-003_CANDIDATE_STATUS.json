@@ -1,0 +1,31 @@
+{
+  "schema": "korpus.act_candidate_status.v1",
+  "act": "ACT-003",
+  "release": "v6.4.0",
+  "base_commit": "59884cc3d3ed1f9ff060fae4ce8e788b03e00fa1",
+  "status": "PASS_WITH_CAVEATS",
+  "production_authorized": false,
+  "promotion_ready": false,
+  "completed_evidence": {
+    "backend_targeted_tests": {"passed": 157, "failed": 0},
+    "web_tests": {"passed": 117, "failed": 0},
+    "web_syntax_modules": 17,
+    "web_contrast_surfaces": 3,
+    "web_accessibility_pages": 2,
+    "internal_import_cycles": 0,
+    "module_budget_modules": 177,
+    "module_budget_violations": 0
+  },
+  "unclosed_gates": [
+    "exact_locked_python_environment",
+    "full_backend_suite_on_final_head",
+    "fresh_full_coverage",
+    "fresh_mutation_run",
+    "fresh_reference_evaluation",
+    "fresh_assurance_snapshot",
+    "live_liqpay_merchant_callback",
+    "production_idp_self_registration",
+    "browser_device_visual_regression",
+    "production_authorization"
+  ]
+}

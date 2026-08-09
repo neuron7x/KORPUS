@@ -1,6 +1,6 @@
 # Акаунти, підписки та розмови (ACT-001)
 
-Статус на `2026-08-07`. Реліз `KORPUS_SYSTEM_v6.1.0`.
+Статус на `2026-08-09`. Candidate `KORPUS_SYSTEM_v6.4.0`.
 `production_authorized = false` — цей документ не змінює цього.
 
 Чотири поняття, які тут навмисно **не** зливаються в одне:
@@ -36,7 +36,9 @@
 | Ідемпотентність подій білінгу за `(provider, provider_event_id)` — обмеженням БД | `migrations/versions/0012_tenancy.py` |
 | Подія + зміна стану + запис аудиту **в одній транзакції** | `infrastructure/billing_repository.py:record_billing_event` |
 | Стійкість до повтору: подія, старша за поточний стан, відхиляється | `application/subscriptions.py` |
-| HMAC-верифікація вебхука над **сирими байтами** | `infrastructure/deterministic_billing.py` |
+| Provider-neutral event boundary + deterministic HMAC verifier для тестів | `infrastructure/deterministic_billing.py`, `application/subscriptions.py` |
+| LiqPay client-server checkout: server-owned amount/currency, signed `data`, callback verification | `application/checkout.py`, `infrastructure/liqpay.py`, `api/routes_billing.py` |
+| Deployment-owned sellable plan bootstrap; browser не задає ціну/валюту/corpora | `config.py`, `tenancy_composition.py` |
 | Проєкція entitlement (перетин, не об'єднання) | `application/paid_access.py` |
 | Розмови та повідомлення; власність — у самому SQL-запиті | `infrastructure/conversation_repository.py` |
 | Вердикт зберігається з відповіддю (`answer_status`) — відмова, прочитана з історії, лишається відмовою | `migrations/versions/0013_message_verdict.py` |
@@ -45,7 +47,7 @@
 | Обидва шляхи до відповіді — під однією межею одночасності | `api/answering.py` |
 | Відмова за неактивною підпискою **до** пошуку | `api/routes_tenancy.py::ask_within_conversation` |
 | `ModelEgressPolicy`: `external_allowed` / `local_only` / `model_disabled` | `application/egress.py` |
-| API: `/v1/account`, `/v1/plans`, `/v1/subscription`, `/v1/conversations*`, `/v1/billing/webhook` | `api/routes_tenancy.py`, `api/routes_billing.py` |
+| API: `/v1/account`, `/v1/plans`, `/v1/subscription`, `/v1/billing/checkout`, `/v1/conversations*`; provider callbacks hidden from OpenAPI | `api/routes_tenancy.py`, `api/routes_billing.py` |
 | Міграція `0012_tenancy` — тільки додає таблиці, корпус не чіпає | `migrations/versions/0012_tenancy.py` |
 
 ## TESTED
@@ -82,25 +84,24 @@ ACT-001 (`M130`–`M143`). Два з них пережили перший про
 
 ## EXTERNAL_DEPENDENCY
 
-Зроблено все, що можна зробити кодом. Решта — поза цим репозиторієм.
+Кодова межа реального платежу реалізована. Зовні репозиторію лишаються:
 
 | id | що лишається | чому не тут |
 |---|---|---|
-| `SUP-BILLING-001` | Адаптер справжнього платіжного провайдера: його схема підпису, його словник подій, його облікові дані | Немає акаунта провайдера. Вигадати ключі означало б закомітити те, чого не існує, і схему підпису, яку ніхто не перевіряв проти реального вендора. `BillingProvider` — це шов, у який такий адаптер стає без змін решти |
-| `SUP-BILLING-002` | Юридичне: оферта, повернення коштів, податки, ПДВ | Не інженерне питання |
-| `INF-003` … `SUP-007` | Дев'ять зовнішніх боргів релізу v6.0.0 | Не змінені цим актом; див. `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json` |
+| `SUP-BILLING-001` | Production LiqPay merchant account/keys + live callback drill | Реальні credentials та мережевий callback не можуть бути доведені локальним тестом |
+| `SUP-BILLING-002` | Оферта, повернення коштів, податки/ПДВ | Юридична/операційна площина |
+| `SUP-IDP-001` | Self-service sign-up policy selected OIDC provider | Реєстраційний UX/verification є властивістю зовнішнього IdP deployment |
+| `INF-003` … `SUP-007` | Інші зовнішні production debts | Див. current closure/debt registers |
 
-`DeterministicBillingProvider` — не заглушка: він автентифікує вебхук HMAC над сирими
-байтами і відхиляє все зіпсоване, тобто ті самі шляхи коду (переходи, ідемпотентність,
-аудит), якими піде вендорський адаптер. Він **не знімає грошей**.
+`DeterministicBillingProvider` лишається negative-control/test provider. Production checkout
+використовує `LiqPayBillingProvider`; відсутні merchant keys означають відсутній checkout service,
+а не симульовану оплату.
 
 ## NOT_IMPLEMENTED
 
 Свідомо не зроблено.
 
-* **Checkout / платіжна форма.** Немає провайдера — немає сторінки оплати.
-  `POST /v1/subscription` створює `incomplete` і не може створити `active` жодним тілом
-  запиту.
+* **Production-verified checkout.** Код LiqPay checkout/callback реалізований, але без реального merchant account та live callback drill production payment не оголошується перевіреним.
 * **Проксі-роль для команди.** Один акаунт = один `auth_subject`. Спільних акаунтів,
   організацій і місць у команді немає.
 * **Автоматичне повторне виставлення рахунку.** Продовження приходить подією провайдера;
@@ -125,6 +126,9 @@ ACT-001 (`M130`–`M143`). Два з них пережили перший про
 | `KORPUS_SUBSCRIPTION_REQUIRED` | `false` | Вмикає перетин із оплаченим. **Вимкнено**: розгортання, яке нічого не продавало, має відповідати рівно як у v6.0.0 |
 | `KORPUS_FREE_CORPORA` | порожньо | Корпуси, які не потребують підписки, через кому |
 | `KORPUS_BILLING_WEBHOOK_SECRET` | порожньо | Без нього вебхук не обслуговується взагалі. Ендпоінт, що приймає непідписані події, гірший за відсутній |
+| `KORPUS_LIQPAY_PUBLIC_KEY` / private key | порожньо | Вмикають production LiqPay adapter тільки парою |
+| `KORPUS_BILLING_PUBLIC_BASE_URL` | порожньо | HTTPS origin для callback/return URL |
+| `KORPUS_BILLING_PLAN_CODE` + price/currency/interval/corpora | порожньо | Ідемпотентно матеріалізують server-owned sellable plan на startup |
 | `KORPUS_MODEL_EGRESS_POSTURE` | `external_allowed` | `local_only` — модель лише на приватній адресі; `model_disabled` — жодної моделі |
 
 Усталені значення повністю зберігають поведінку v6.0.0. Це перевірено тестом

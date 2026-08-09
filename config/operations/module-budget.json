@@ -29,11 +29,11 @@
       "max_complexity": 7
     },
     "apps/api/src/korpus/api/routes_billing.py": {
-      "lines": 169,
+      "lines": 165,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 450,
+      "lines": 403,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/__init__.py": {
@@ -204,17 +204,16 @@
       "max_complexity": 4
     },
     "apps/api/src/korpus/application/subscriptions.py": {
-      "lines": 293,
-      "max_complexity": 14
+      "lines": 143,
+      "max_complexity": 6
     },
     "apps/api/src/korpus/application/table_integrity.py": {
       "lines": 122,
       "max_complexity": 14
     },
     "apps/api/src/korpus/application/tenancy_ports.py": {
-      "lines": 265,
-      "max_complexity": 1,
-      "reason": "ACT-001: what the account, billing and conversation services need from storage, apart from the evidence ports"
+      "lines": 263,
+      "max_complexity": 1
     },
     "apps/api/src/korpus/application/tevv.py": {
       "lines": 140,
@@ -238,7 +237,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 423,
+      "lines": 421,
       "max_complexity": 4
     },
     "apps/api/src/korpus/controlled_requirements.py": {
@@ -275,7 +274,7 @@
       "max_complexity": 16
     },
     "apps/api/src/korpus/infrastructure/billing_repository.py": {
-      "lines": 392,
+      "lines": 391,
       "max_complexity": 14
     },
     "apps/api/src/korpus/infrastructure/conversation_repository.py": {
@@ -399,8 +398,8 @@
       "max_complexity": 14
     },
     "apps/api/src/korpus/tenancy_composition.py": {
-      "lines": 95,
-      "max_complexity": 3
+      "lines": 55,
+      "max_complexity": 2
     },
     "scripts/assemble_assurance.py": {
       "lines": 120,
@@ -694,9 +693,8 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/config_policy.py": {
-      "lines": 208,
-      "max_complexity": 13,
-      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+      "lines": 206,
+      "max_complexity": 13
     },
     "apps/api/src/korpus/infrastructure/ingestion_schema.py": {
       "lines": 40,
@@ -737,6 +735,34 @@
       "lines": 52,
       "max_complexity": 13,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/billing_dependencies.py": {
+      "lines": 78,
+      "max_complexity": 2
+    },
+    "apps/api/src/korpus/api/routes_billing_callbacks.py": {
+      "lines": 76,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/billing_adjudication.py": {
+      "lines": 217,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/checkout.py": {
+      "lines": 84,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/billing_composition.py": {
+      "lines": 80,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/billing_config_policy.py": {
+      "lines": 37,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/infrastructure/liqpay.py": {
+      "lines": 228,
+      "max_complexity": 10
     }
   },
   "raised": [

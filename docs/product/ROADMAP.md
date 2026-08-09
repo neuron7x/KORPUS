@@ -7,15 +7,19 @@ architecture/product SSOT, bounded backend/frontend modules. No product behavior
 
 ## Gate 2 — consumer SaaS completion
 
-Production payment provider, checkout/webhook lifecycle, subscription/account controls,
-consumer onboarding and entitlement UX. Exit: paid/inactive/canceled/replayed states pass
-negative controls end to end.
+**Implemented in v6.4.0 candidate:** LiqPay client-server checkout boundary, signed callback
+adapter, server-owned plan pricing, deployment plan bootstrap, subscription/account state and
+consumer entitlement UX. Remaining before this gate closes: production merchant credentials,
+live provider callback drill, explicit cancellation/renewal-management UX and self-service
+sign-up configuration at the selected OIDC provider. Paid/inactive/tampered/replayed states
+already have local negative controls.
 
 ## Gate 3 — premium responsive interface
 
-Custom design system, mobile-first conversation experience, evidence disclosure, history,
-account/subscription surfaces, operator separation, accessibility and visual regression.
-Exit: phone and desktop acceptance matrices pass with no trust-state ambiguity.
+**Implemented in v6.4.0 candidate:** custom tokenized consumer shell, responsive desktop/tablet/
+mobile layouts, evidence-first conversation surface, history, account/subscription/pricing UI,
+operator separation, accessibility and structural visual gates. Remaining: browser-level visual
+regression baselines and device acceptance against the production edge.
 
 ## Gate 4 — production corpus and operations
 

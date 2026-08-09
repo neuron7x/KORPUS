@@ -28,7 +28,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class AccountStatus(StrEnum):
@@ -154,27 +154,27 @@ class AccountRecord(BaseModel):
 
 class PlanRecord(BaseModel):
     model_config = ConfigDict(frozen=True)
-
     id: UUID = Field(default_factory=uuid4)
     code: str = Field(min_length=1, max_length=64, pattern=r"^[a-z0-9][a-z0-9._-]*$")
     name: str = Field(min_length=1, max_length=200)
     status: PlanStatus = PlanStatus.ACTIVE
     billing_interval: BillingInterval = BillingInterval.MONTHLY
-    #: What the payment provider calls this. Nullable because a plan exists here before
-    #: anybody has been asked to sell it, and inventing a provider reference to fill the
-    #: column would be a credential this repository does not have.
     external_product_reference: str | None = Field(default=None, max_length=255)
     external_price_reference: str | None = Field(default=None, max_length=255)
-    #: Which corpora this plan pays for. Empty means a plan that grants no paid corpus —
-    #: which is a real plan, not a misconfiguration: the free tier is one.
+    price_minor: int | None = Field(default=None, ge=1, le=100_000_000)
+    currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
     entitled_corpora: frozenset[str] = Field(default_factory=frozenset)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
+    @model_validator(mode="after")
+    def _sellable_price_is_an_atomic_pair(self) -> "PlanRecord":
+        if (self.price_minor is None) != (self.currency is None):
+            raise ValueError("price_minor and currency must be configured together")
+        return self
 
 
 class SubscriptionRecord(BaseModel):
     model_config = ConfigDict(frozen=True)
-
     id: UUID = Field(default_factory=uuid4)
     account_id: UUID
     plan_id: UUID

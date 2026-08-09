@@ -197,3 +197,42 @@ def test_a_disabled_account_without_a_timestamp_is_refused_by_the_database(
             )
     finally:
         engine.dispose()
+
+
+def test_sellable_plan_price_pair_is_enforced_by_the_migrated_schema(tmp_path: Path) -> None:
+    database = tmp_path / "plan-price-checks.db"
+    url = f"sqlite:///{database}"
+    _run(url, "upgrade", "head")
+
+    engine = create_engine(url, future=True)
+    try:
+        common = (
+            "INSERT INTO plans (id, code, name, status, billing_interval, "
+            "entitled_corpora_json, created_at, updated_at, price_minor, currency) "
+        )
+        with pytest.raises(Exception, match=r"CHECK|constraint"), engine.begin() as connection:
+            connection.execute(
+                text(
+                    common
+                    + "VALUES ('p1', 'bad-price', 'Bad', 'active', 'monthly', '[]', "
+                    "'2026-01-01', '2026-01-01', 19900, NULL)"
+                )
+            )
+        with pytest.raises(Exception, match=r"CHECK|constraint"), engine.begin() as connection:
+            connection.execute(
+                text(
+                    common
+                    + "VALUES ('p2', 'bad-zero', 'Bad', 'active', 'monthly', '[]', "
+                    "'2026-01-01', '2026-01-01', 0, 'UAH')"
+                )
+            )
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    common
+                    + "VALUES ('p3', 'sellable', 'Sellable', 'active', 'monthly', '[]', "
+                    "'2026-01-01', '2026-01-01', 19900, 'UAH')"
+                )
+            )
+    finally:
+        engine.dispose()

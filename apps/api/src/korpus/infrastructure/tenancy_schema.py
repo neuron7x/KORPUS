@@ -29,6 +29,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
     Table,
     Text,
@@ -53,8 +54,6 @@ accounts = Table(
     Column("disabled_at", DateTime(timezone=True)),
     UniqueConstraint("auth_subject", name="uq_accounts_auth_subject"),
     CheckConstraint("status IN ('active', 'disabled')", name="ck_account_status"),
-    # A disabled account without a timestamp cannot answer "since when", which is the
-    # first question asked when somebody complains they were locked out.
     CheckConstraint(
         "status <> 'disabled' OR disabled_at IS NOT NULL", name="ck_account_disabled_at"
     ),
@@ -70,15 +69,20 @@ plans = Table(
     Column("billing_interval", String(32), nullable=False),
     Column("external_product_reference", String(255)),
     Column("external_price_reference", String(255)),
-    # A JSON array of corpus ids, not a foreign key: corpora are configuration owned by
-    # the governance profile, not rows, and a plan that referenced a table nobody
-    # populates would be unsellable for reasons no operator could see.
+    Column("price_minor", Integer),
+    Column("currency", String(3)),
     Column("entitled_corpora_json", Text, nullable=False, default="[]"),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint("code", name="uq_plans_code"),
     CheckConstraint("status IN ('active', 'retired')", name="ck_plan_status"),
     CheckConstraint("billing_interval IN ('monthly', 'yearly')", name="ck_plan_interval"),
+    CheckConstraint("price_minor IS NULL OR price_minor > 0", name="ck_plan_price_positive"),
+    CheckConstraint(
+        "(price_minor IS NULL AND currency IS NULL) OR "
+        "(price_minor IS NOT NULL AND currency IS NOT NULL)",
+        name="ck_plan_price_currency_pair",
+    ),
 )
 
 subscriptions = Table(
@@ -100,9 +104,6 @@ subscriptions = Table(
     Column("current_period_start", DateTime(timezone=True)),
     Column("current_period_end", DateTime(timezone=True)),
     Column("cancel_at_period_end", Boolean, nullable=False, default=False),
-    # The provider `occurred_at` of the last event we applied. The replay guard
-    # compares against this, not `updated_at`: `updated_at` is our processing clock,
-    # and a legitimate event's timestamp is earlier than when we handle it.
     Column("last_event_at", DateTime(timezone=True)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
@@ -117,8 +118,7 @@ subscriptions = Table(
     ),
 )
 
-#: Partial: a subscription exists before the provider has assigned it an id, and several
-#: of those legitimately carry NULL at once. Uniqueness applies to the ones that have one.
+#: Provider ids are unique only after assignment.
 Index(
     "uq_subscription_provider_id",
     subscriptions.c.provider,

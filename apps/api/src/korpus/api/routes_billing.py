@@ -14,43 +14,46 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response, status
-from starlette.concurrency import run_in_threadpool
+from fastapi import APIRouter, HTTPException, status
+from pydantic import BaseModel, ConfigDict
 
-from korpus.api.routes_tenancy import (
-    AccountServiceDependency,
-    EntitlementDependency,
+from korpus.api.billing_dependencies import (
+    CheckoutServiceDependency,
     EntitlementView,
-    IdentityDependency,
     PlanView,
     StartSubscription,
+    SubscriptionServiceDependency,
+    SubscriptionStoreDependency,
     SubscriptionView,
-    account_for,
-    get_subscription_service,
-    get_subscription_store,
 )
-from korpus.application.subscriptions import SubscriptionService
+from korpus.api.routes_billing_callbacks import callback_router
+from korpus.api.routes_tenancy import (
+    AccountServiceDependency, EntitlementDependency, IdentityDependency, account_for,
+)
 from korpus.application.tenancy_ports import (
     BillingEventRejected,
-    InvalidSubscriptionTransition,
+    CheckoutUnavailable,
     PlanNotFound,
-    SubscriptionStore,
 )
-from korpus.domain.tenancy import BillingEventResult
 
 billing_router = APIRouter()
 
-#: A webhook body larger than this never reaches the provider adapter. One subscription
-#: does not need more, and an endpoint reachable without authentication must bound what it
-#: is willing to read before it reads it.
-MAX_WEBHOOK_BYTES = 64 * 1024
+
+class CheckoutView(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    subscription_id: str
+    provider: str
+    action_url: str
+    method: str
+    fields: dict[str, str]
 
 
 @billing_router.get("/v1/plans", response_model=list[PlanView])
 def list_plans(
     identity: IdentityDependency,
     service: AccountServiceDependency,
-    store: Annotated[SubscriptionStore, Depends(get_subscription_store)],
+    store: SubscriptionStoreDependency,
 ) -> list[PlanView]:
     account_for(service, identity)
     return [
@@ -58,6 +61,9 @@ def list_plans(
             code=plan.code,
             name=plan.name,
             billing_interval=plan.billing_interval.value,
+            price_minor=plan.price_minor,
+            currency=plan.currency,
+            sellable=plan.price_minor is not None and plan.currency is not None,
             entitled_corpora=sorted(plan.entitled_corpora),
         )
         for plan in store.list_plans()
@@ -84,14 +90,44 @@ def read_entitlement(
 
 
 @billing_router.post(
+    "/v1/billing/checkout", response_model=CheckoutView, status_code=status.HTTP_201_CREATED
+)
+def start_checkout(
+    body: StartSubscription,
+    identity: IdentityDependency,
+    accounts: AccountServiceDependency,
+    checkout: CheckoutServiceDependency,
+) -> CheckoutView:
+    account = account_for(accounts, identity)
+    try:
+        descriptor = checkout.start(identity.subject, account.id, body.plan_code)
+    except PlanNotFound as missing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"unknown plan: {body.plan_code}"
+        ) from missing
+    except CheckoutUnavailable as refused:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={"reason": refused.reason, "detail": refused.detail},
+        ) from refused
+    return CheckoutView(
+        subscription_id=str(descriptor.subscription_id),
+        provider=descriptor.provider,
+        action_url=descriptor.action_url,
+        method=descriptor.method,
+        fields=descriptor.fields,
+    )
+
+
+@billing_router.post(
     "/v1/subscription", response_model=SubscriptionView, status_code=status.HTTP_201_CREATED
 )
 def start_subscription(
     body: StartSubscription,
     identity: IdentityDependency,
     service: AccountServiceDependency,
-    subscriptions: Annotated[SubscriptionService, Depends(get_subscription_service)],
-    store: Annotated[SubscriptionStore, Depends(get_subscription_store)],
+    subscriptions: SubscriptionServiceDependency,
+    store: SubscriptionStoreDependency,
 ) -> SubscriptionView:
     """Create an INCOMPLETE subscription. It pays for nothing until an event says so.
 
@@ -126,44 +162,4 @@ def start_subscription(
         cancel_at_period_end=subscription.cancel_at_period_end,
     )
 
-
-@billing_router.post("/v1/billing/webhook", include_in_schema=False)
-async def billing_webhook(
-    request: Request,
-    subscriptions: Annotated[SubscriptionService, Depends(get_subscription_service)],
-    signature: Annotated[str | None, Header(alias="X-Korpus-Signature")] = None,
-) -> Response:
-    """A provider event. Unauthenticated by HTTP, authenticated by signature.
-
-    No identity dependency, deliberately: a payment provider holds no account here. What
-    it holds is the webhook secret, and the signature over the raw bytes is the whole of
-    the authentication. The body is read as bytes for that reason — re-serialising parsed
-    JSON changes them, and a verifier that hashes the re-serialised form passes every test
-    that built the payload with the same serialiser and fails against the vendor.
-    """
-    payload = await request.body()
-    if len(payload) > MAX_WEBHOOK_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="payload too large"
-        )
-    try:
-        result = await run_in_threadpool(subscriptions.handle_event, payload, signature)
-    except InvalidSubscriptionTransition as refused:
-        # 409, not 400: the event is well-formed and authentic, and the subscription is
-        # not where the provider believes it is. That is a reconciliation, and a provider
-        # that retries on 4xx should not retry this one forever.
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(refused)) from refused
-    except BillingEventRejected as refused:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=refused.detail
-        ) from refused
-    # 200 for applied and duplicate alike: a duplicate is a delivery the provider is
-    # entitled to consider successful, and answering anything else makes it retry forever.
-    code = (
-        status.HTTP_202_ACCEPTED
-        if result is BillingEventResult.REJECTED
-        else status.HTTP_200_OK
-    )
-    return Response(status_code=code, content=result.value, media_type="text/plain")
-
-
+billing_router.include_router(callback_router)

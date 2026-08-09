@@ -43,13 +43,11 @@ from korpus.application.conversations import ConversationLimitReached, Conversat
 from korpus.application.paid_access import EntitlementDenied, EntitlementProjection
 from korpus.application.policy import AuthorizationError, UnauthorizedCorporaError
 from korpus.application.resilience import AdmissionController, OverloadedError
-from korpus.application.subscriptions import SubscriptionService
 from korpus.application.tenancy_ports import (
     AccountDisabled,
     AccountStore,
     ConversationArchived,
     ConversationNotFound,
-    SubscriptionStore,
 )
 from korpus.domain.models import Answer, Identity, QueryRequest
 from korpus.domain.tenancy import AccountRecord, ConversationRecord, MessageRecord
@@ -86,18 +84,8 @@ def get_entitlements(request: Request) -> EntitlementProjection:
 
 
 def get_account_store(request: Request) -> AccountStore:
-    store: AccountStore = _state(request, "account_store")
-    return store
+    return _state(request, "account_store")
 
-
-def get_subscription_store(request: Request) -> SubscriptionStore:
-    store: SubscriptionStore = _state(request, "subscription_store")
-    return store
-
-
-def get_subscription_service(request: Request) -> SubscriptionService:
-    service: SubscriptionService = _state(request, "subscription_service")
-    return service
 
 
 AccountServiceDependency = Annotated[AccountService, Depends(get_account_service)]
@@ -137,37 +125,6 @@ class AccountView(BaseModel):
     status: str
     created_at: str
 
-
-class PlanView(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    code: str
-    name: str
-    billing_interval: str
-    entitled_corpora: list[str]
-
-
-class SubscriptionView(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    id: UUID
-    plan_code: str | None
-    status: str
-    provider: str
-    current_period_end: str | None
-    cancel_at_period_end: bool
-
-
-class EntitlementView(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
-    entitled_corpora: list[str]
-    subscription_status: str | None
-    plan_code: str | None
-    reason: str
-    #: Whether the deployment enforces any of this. False means every field above is
-    #: informational, which a client must be able to tell without guessing from emptiness.
-    enforced: bool
 
 
 class ConversationView(BaseModel):
@@ -219,10 +176,6 @@ class MessagePageView(BaseModel):
 
 class CreateConversation(BaseModel):
     title: str | None = Field(default=None, max_length=200)
-
-
-class StartSubscription(BaseModel):
-    plan_code: str = Field(min_length=1, max_length=64)
 
 
 def _account_view(account: AccountRecord) -> AccountView:

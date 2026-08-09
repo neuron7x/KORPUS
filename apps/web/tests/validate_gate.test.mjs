@@ -334,7 +334,7 @@ test("a location that sets a header without repeating the CSP is caught", async 
 test("a colour token below AA contrast is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source =>
-      source.replace("  --muted-2: #858b7d;", "  --muted-2: #6d7365;")));
+      source.replace("  --muted-2: #919b92;", "  --muted-2: #4f564f;")));
   assert.notEqual(status, 0);
   assert.match(output, /below WCAG 2\.2 AA/);
 });
@@ -496,4 +496,17 @@ test("a restored declaration trusted without re-validation is caught", async () 
                      'function restoreDeclaration() {\n  return JSON.parse(sessionStorage.getItem(DECLARATION_KEY));\n}')));
   assert.notEqual(status, 0);
   assert.match(output, /trusted without re-validation/);
+});
+
+
+
+test("removing the LiqPay checkout form origin from CSP is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("nginx.conf", source =>
+      source.replaceAll(
+        "form-action 'self' https://www.liqpay.ua;",
+        "form-action 'self';",
+      )));
+  assert.notEqual(status, 0);
+  assert.match(output, /checkout CSP/);
 });

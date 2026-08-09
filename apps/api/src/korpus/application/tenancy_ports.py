@@ -1,15 +1,4 @@
-"""What the account, billing and conversation services need from storage.
-
-Separate from `ports.py` for the reason that file exists at all: the answer kernel's ports
-are about evidence, and these are about customers. A service that can reach the corpus
-repository can reach `list_retrievable_spans`, and the billing path has no business being
-one import away from it.
-
-The exceptions are here rather than in the adapters because they are part of the contract.
-`AccountDisabled` in particular is raised in one place and caught in the API layer, and a
-service that returned `None` instead would leave every caller to decide what a disabled
-account means — which is how one of them decides it means "carry on".
-"""
+"""Storage/provider contracts for accounts, billing and conversations."""
 
 from __future__ import annotations
 
@@ -92,6 +81,25 @@ class BillingEventRejected(TenancyError):
     """The event was recorded and not applied. The detail is the reason it was not."""
 
     reason = "billing_event_rejected"
+
+    def __init__(self, detail: str) -> None:
+        self.detail = detail
+        super().__init__(detail)
+
+
+class BillingEventIgnored(TenancyError):
+    """A genuine provider callback that is not a final subscription decision.
+
+    Payment providers send intermediate states such as ``processing``. Retrying them as
+    failures creates a webhook storm; applying them would invent a domain state. The API
+    acknowledges them and changes nothing.
+    """
+
+    reason = "billing_event_ignored"
+
+
+class CheckoutUnavailable(TenancyError):
+    reason = "checkout_unavailable"
 
     def __init__(self, detail: str) -> None:
         self.detail = detail
@@ -225,22 +233,12 @@ class ConversationStore(Protocol):
 
 
 class BillingProvider(Protocol):
-    """The payment processor, as this system uses it.
-
-    Narrow on purpose. Everything below is about *verifying* what arrived and naming what
-    it means; nothing here charges a card, and no method returns a status this system then
-    trusts without checking the transition against the lifecycle.
-    """
+    """Narrow provider seam: authenticate and normalize events; never grant access."""
 
     name: str
 
     def verify_event(self, payload: bytes, signature: str | None) -> dict[str, Any]:
-        """Parse and authenticate a webhook body, or raise.
-
-        `payload` is the raw bytes as received, because a signature covers the bytes and
-        re-serialising parsed JSON changes them. Every provider gets this wrong at least
-        once by hashing `json.dumps(json.loads(body))`.
-        """
+        """Authenticate the raw provider payload and return its parsed event."""
         ...
 
     def event_identity(self, event: dict[str, Any]) -> tuple[str, str]:

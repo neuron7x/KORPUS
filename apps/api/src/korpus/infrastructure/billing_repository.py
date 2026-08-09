@@ -54,6 +54,8 @@ def _plan(row: Any) -> PlanRecord:
         billing_interval=BillingInterval(row["billing_interval"]),
         external_product_reference=row["external_product_reference"],
         external_price_reference=row["external_price_reference"],
+        price_minor=row["price_minor"],
+        currency=row["currency"],
         entitled_corpora=frozenset(json.loads(row["entitled_corpora_json"] or "[]")),
         created_at=aware(row["created_at"]),
         updated_at=aware(row["updated_at"]),
@@ -99,17 +101,9 @@ class SqlSubscriptionStore:
         self.engine = repository.engine
 
     # ------------------------------------------------------------------ plans
-
     def upsert_plan(self, plan: PlanRecord) -> PlanRecord:
-        """Insert by code, or update the sellable fields of the plan that has it.
-
-        `entitled_corpora` is one of the updated fields, and that is the one line in this
-        file that can widen access. It is why plan writes are an operator action with an
-        audit event and not an API endpoint — see `korpus.api.routes_billing`, which
-        exposes reads only.
-        """
+        """Insert by code or update server-owned sellable fields, with audit."""
         moment = datetime.now(UTC)
-
         def operation(connection: Connection) -> tuple[PlanRecord, tuple[int, str]]:
             existing = (
                 connection.execute(select(plans).where(plans.c.code == plan.code))
@@ -127,6 +121,8 @@ class SqlSubscriptionStore:
                         billing_interval=plan.billing_interval.value,
                         external_product_reference=plan.external_product_reference,
                         external_price_reference=plan.external_price_reference,
+                        price_minor=plan.price_minor,
+                        currency=plan.currency,
                         entitled_corpora_json=corpora_json,
                         created_at=moment,
                         updated_at=moment,
@@ -144,6 +140,8 @@ class SqlSubscriptionStore:
                         billing_interval=plan.billing_interval.value,
                         external_product_reference=plan.external_product_reference,
                         external_price_reference=plan.external_price_reference,
+                        price_minor=plan.price_minor,
+                        currency=plan.currency,
                         entitled_corpora_json=corpora_json,
                         updated_at=moment,
                     )
@@ -165,6 +163,8 @@ class SqlSubscriptionStore:
                 {
                     "code": plan.code,
                     "status": plan.status.value,
+                    "price_minor": plan.price_minor,
+                    "currency": plan.currency,
                     "entitled_corpora": sorted(plan.entitled_corpora),
                     "interpretation": (
                         "A plan names which corpora a paid subscription may reach. It can "
@@ -305,7 +305,6 @@ class SqlSubscriptionStore:
     ) -> BillingEventResult:
         """The event row, the subscription move and the audit event, in one commit."""
         moment = datetime.now(UTC)
-
         def operation(connection: Connection) -> tuple[BillingEventResult, tuple[int, str]]:
             connection.execute(
                 insert(billing_events).values(

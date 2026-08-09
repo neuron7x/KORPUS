@@ -40,7 +40,7 @@ from korpus.application.keyring import LEGACY_KEY_ID
 #: test_schema_revision_pin.py against the migration graph, because it drifted once:
 #: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
 #: refused to start while every SQLite test stayed green.
-SCHEMA_REVISION = "0014_subscription_last_event"
+SCHEMA_REVISION = "0015_plan_pricing"
 
 metadata = MetaData()
 

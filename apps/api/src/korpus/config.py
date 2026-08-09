@@ -182,49 +182,35 @@ class Settings(BaseSettings):
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
-    #: A language model may only widen what is searched for. It never writes an answer:
-    #: every claim a reader sees carries `quote_hash` and a page because it is a sentence
-    #: lifted verbatim from an approved version, and generated prose has no hash. Absent
-    #: a key this is off, and the system behaves exactly as it did before one existed.
-    #:
-    #: Off by default for a second reason an operator must decide on, not inherit: every
-    #: question is sent to the provider. On an open corpus that is a decision already
-    #: taken; on a closed one the question itself is intelligence.
-    #: The same model, the same key, a second and narrower job: arrange what was found
-    #: and write one opening line. It cannot add a fact — see
-    #: `korpus.application.composition` — but it does send the retrieved passages to the
-    #: provider, which the planner does not.
+    #: Optional model assistance; evidence admission remains deterministic.
     answer_composer_enabled: bool = False
     query_planner_enabled: bool = False
     query_planner_api_key: str = ""
     query_planner_model: str = "claude-sonnet-5"
     query_planner_base_url: str = "https://api.anthropic.com"
     query_planner_timeout_seconds: float = Field(default=6.0, gt=0, le=30)
-    #: Whether a model may be reached at all, and from where. `external_allowed` keeps the
-    #: behaviour every earlier release had; `local_only` permits a model on a private
-    #: address and refuses a vendor API; `model_disabled` refuses both, leaving retrieval
-    #: and extraction, which is the path every answer already falls back to.
-    #: See `korpus.application.egress`.
     model_egress_posture: str = "external_allowed"
-    #: GOV-006. The highest classification of corpus material that may be carried to a
-    #: model outside the deployment. `external_allowed` reaches a vendor, and the composer
-    #: sends the vendor the retrieved sentences — so a restricted corpus answered under
-    #: that posture exfiltrates restricted spans to the vendor, whatever the composer
-    #: returns. Defaults to `public`: only material a reader with no clearance could
-    #: already see leaves. Above the ceiling, composition is skipped and the answer is the
-    #: extract exactly as it was. No effect under `local_only`/`model_disabled`.
+    #: GOV-006: highest corpus tier permitted to leave the deployment.
     model_egress_max_tier: str = "public"
-    #: ACT-001. Off by default: a deployment that has never sold anything must not have
-    #: its answers filtered by a subscription table nobody populated. On, the corpora a
-    #: request may search are intersected with what an active subscription pays for —
-    #: never unioned, so a subscription cannot widen clearance.
+    #: Paid access only narrows policy-authorized corpora.
     subscription_required: bool = False
-    #: Corpora that need no subscription when the gate is on. Comma-separated.
     free_corpora: str = ""
-    #: HMAC key for `DeterministicBillingProvider`. Empty means the billing webhook is not
-    #: served at all: an endpoint that accepts unsigned events is worse than no endpoint.
+    #: Deterministic test-provider secret; empty disables that provider.
     billing_webhook_secret: str = ""
     billing_webhook_secret_file: Path | None = None
+    #: Production LiqPay adapter; both keys are required together.
+    liqpay_public_key: str = ""
+    liqpay_private_key: str = ""
+    liqpay_private_key_file: Path | None = None
+    liqpay_signature_algorithm: str = "sha3_256"
+    billing_public_base_url: str = ""
+    #: Optional server-owned sellable plan materialized at startup.
+    billing_plan_code: str = ""
+    billing_plan_name: str = "KORPUS"
+    billing_plan_price_minor: int | None = Field(default=None, ge=1, le=100_000_000)
+    billing_plan_currency: str = "UAH"
+    billing_plan_interval: str = "monthly"
+    billing_plan_corpora: str = ""
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
     retrieval_timeout_ms: int = Field(default=1200, ge=10, le=60_000)
     semantic_retrieval_enabled: bool = False
@@ -392,6 +378,18 @@ class Settings(BaseSettings):
     def resolved_billing_webhook_secret(self) -> str | None:
         return _read_optional_secret_file(
             self.billing_webhook_secret_file, self.billing_webhook_secret or None
+        )
+
+    @property
+    def resolved_liqpay_private_key(self) -> str | None:
+        return _read_optional_secret_file(
+            self.liqpay_private_key_file, self.liqpay_private_key or None
+        )
+
+    @property
+    def billing_plan_corpus_set(self) -> frozenset[str]:
+        return frozenset(
+            part.strip() for part in self.billing_plan_corpora.split(",") if part.strip()
         )
 
     @property

@@ -8,7 +8,7 @@ const read = (file) => readFile(asset(file), "utf8");
 const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs"];
 const SCRIPTS = [
   "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
-  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js",
+  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];
@@ -72,12 +72,13 @@ const readerConversations = await read("public/reader_conversations.js");
 const readerCorpus = await read("public/reader_corpus.js");
 const readerDeclaration = await read("public/reader_declaration.js");
 const readerVerdicts = await read("public/reader_verdicts.js");
-const browserLogic = [app, conversationsJs, readerConversations, readerCorpus, readerDeclaration, readerVerdicts].join("\n");
+const billingJs = await read("public/billing.js");
+const browserLogic = [app, conversationsJs, readerConversations, readerCorpus, readerDeclaration, readerVerdicts, billingJs].join("\n");
 const networkModules = [
   ["app.js", app], ["console.js", consoleJs], ["console_accounts.js", consoleAccounts],
   ["console_mutations.js", consoleMutations], ["console_readonly.js", consoleReadonly],
   ["conversations.js", conversationsJs], ["reader_conversations.js", readerConversations],
-  ["reader_corpus.js", readerCorpus],
+  ["reader_corpus.js", readerCorpus], ["billing.js", billingJs],
 ];
 for (const [name, source] of networkModules) {
   if (/\bfetch\s*\(/.test(source)) {
@@ -106,7 +107,7 @@ for (const [name, source] of [
 const PERSISTENT_STORAGE = /localStorage\s*[.[;)=,]/;
 for (const file of [
   "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
-  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js",
+  "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js",
 ]) {
@@ -162,6 +163,22 @@ if (!/class NetworkError/.test(api) || !/AbortSignal\.timeout/.test(api)) {
 }
 if (!/НЕМАЄ ЗВ'ЯЗКУ/.test(app)) {
   throw new Error("a lost link is rendered as a generic error, not as a lost link");
+}
+
+// ---------------------------------------------------------------- checkout CSP
+//
+// The browser posts LiqPay checkout fields directly to the payment provider. That route
+// must be intentionally allowed by CSP, but no wildcard form destination may be accepted.
+const nginx = await read("nginx.conf");
+const cspHeaders = [...nginx.matchAll(/Content-Security-Policy "([^"]+)"/g)].map((match) => match[1]);
+if (cspHeaders.length === 0) throw new Error("nginx declares no Content-Security-Policy");
+for (const csp of cspHeaders) {
+  if (!csp.includes("form-action 'self' https://www.liqpay.ua;")) {
+    throw new Error("checkout CSP must allow only self and the exact LiqPay form endpoint origin");
+  }
+  if (/form-action[^;]*\*/.test(csp)) {
+    throw new Error("checkout CSP must never use a wildcard form destination");
+  }
 }
 
 // ---------------------------------------------------------------- reader surface
@@ -362,7 +379,6 @@ if (!consoleHtml.includes("Приховування кнопки не є кон�
 // is the security property (`credentials: "same-origin"`, `__Host-` prefix), not a
 // detail. A prefix that drifts from nginx produces a 404 that reads like a missing route.
 const serve = await read("scripts/serve.mjs");
-const nginx = await read("nginx.conf");
 if (!/const API_PREFIX = "\/api\/";/.test(serve)) {
   throw new Error("the dev server no longer declares the API prefix it proxies");
 }

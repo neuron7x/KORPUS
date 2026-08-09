@@ -3,16 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from korpus.application.calibration import CalibrationProfile
+from korpus.billing_config_policy import validate_billing_settings
 from korpus.controlled_requirements import first_unmet
 
 
 def validate_runtime_settings(settings: Any) -> None:
-    """Validate cross-field runtime policy in the historical failure order.
-
-    `Settings` remains the configuration schema. This module owns policy predicates so
-    adding one control does not keep expanding the schema object into an orchestration
-    god-object. Error ordering is contractual and is intentionally preserved here.
-    """
+    """Validate cross-field runtime policy in contractual failure order."""
     controlled = settings.environment in {"production", "controlled", "isolated"}
     _validate_auth(settings, controlled=controlled)
     _validate_controlled_requirements(settings, controlled=controlled)
@@ -20,6 +16,7 @@ def validate_runtime_settings(settings: Any) -> None:
     _validate_model_integrations(settings)
     _validate_semantic_retrieval(settings, controlled=controlled)
     _validate_runtime_integrations(settings, controlled=controlled)
+    validate_billing_settings(settings)
     _load_security_profiles(settings)
     _validate_calibration(settings)
 
@@ -126,6 +123,7 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
         raise ValueError("JWT secret is missing or weak")
     if settings.chunk_overlap_chars >= settings.max_chunk_chars:
         raise ValueError("chunk overlap must be smaller than chunk size")
+
 
 
 def _load_security_profiles(settings: Any) -> None:

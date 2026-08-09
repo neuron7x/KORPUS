@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v1",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 559,
-  "root_sha256": "264ba40afaad5bb3f724adaf66d1c4159efebc51a490526adec2bbe9a807cce1",
+  "file_count": 572,
+  "root_sha256": "8ab499424cd524d18506d9eae027dd5dec716f23d8e9586e649c15f500e50b1f",
   "files": [
     {
       "path": ".dockerignore",
@@ -12,8 +12,8 @@
     },
     {
       "path": ".env.example",
-      "bytes": 3123,
-      "sha256": "340f8dfc19703946b85f9ed8c9631f26c9526868625c71da8e93f8bc8f9ac863"
+      "bytes": 3792,
+      "sha256": "93907b0a8150e8e9dec93d5162606e63fc0a16a74e70e750ffa4f591bec51958"
     },
     {
       "path": ".gitignore",
@@ -88,7 +88,7 @@
     {
       "path": "README.md",
       "bytes": 6038,
-      "sha256": "3dd54f19490d841364dc06c92e791f4b8d9918ea791c570930e3c224857226c5"
+      "sha256": "5eec9780131bd63daf2109a4463fae174401ab159d7ce86bd8f8a8209a773821"
     },
     {
       "path": "RELEASE_V5.md",
@@ -251,9 +251,14 @@
       "sha256": "264b213e0c51fd6dd7d437865efb5ed3ec4781a868fed09e1af82f33ab0b175d"
     },
     {
+      "path": "apps/api/migrations/versions/0015_plan_pricing.py",
+      "bytes": 1594,
+      "sha256": "7182482c4669909edfb17aca4f65fe621ae5fc5a5e3d7d1b245a730148c5ef61"
+    },
+    {
       "path": "apps/api/pyproject.toml",
       "bytes": 2542,
-      "sha256": "226a4c627d31abc3025097d7f0b51e304cca5a8424ec1c25d121d3136081fe69"
+      "sha256": "c0578b7e20d26c7fbf23ab381b7f9267949cf56a32c0f7e83378f332484854a3"
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -279,6 +284,11 @@
       "path": "apps/api/src/korpus/api/answering.py",
       "bytes": 3206,
       "sha256": "d9a75719af91d67580dec25b8ec977199b997450c1b8f172c0dbe28ebc4784c2"
+    },
+    {
+      "path": "apps/api/src/korpus/api/billing_dependencies.py",
+      "bytes": 2404,
+      "sha256": "283a12c1778a3b826d23c62eefe52567307a14d77d2a98b55b95c58bd1baed0f"
     },
     {
       "path": "apps/api/src/korpus/api/dependencies.py",
@@ -312,8 +322,13 @@
     },
     {
       "path": "apps/api/src/korpus/api/routes_billing.py",
-      "bytes": 6708,
-      "sha256": "0571783f2d6e5821854d885084d0a22b05b611178458cc858698012575bb84c6"
+      "bytes": 5659,
+      "sha256": "132a91227a648d20be76c85e5abd2b0b587566d9e0ce7c983242b598ab1fedb0"
+    },
+    {
+      "path": "apps/api/src/korpus/api/routes_billing_callbacks.py",
+      "bytes": 3361,
+      "sha256": "27ac19f22707e8f2b7fa67db7bbf4b09ce5bce4f9b248510da93339152f209ca"
     },
     {
       "path": "apps/api/src/korpus/api/routes_corpus.py",
@@ -332,8 +347,8 @@
     },
     {
       "path": "apps/api/src/korpus/api/routes_tenancy.py",
-      "bytes": 16326,
-      "sha256": "791b695f238280e1ffe02021e327ee62406b763298ad749361a2cddff6765404"
+      "bytes": 15028,
+      "sha256": "2587b7489de076897de90309709fe346e7c2ce2ce035f2f6c2a131eca3599355"
     },
     {
       "path": "apps/api/src/korpus/application/__init__.py",
@@ -376,6 +391,11 @@
       "sha256": "8c241eca6284e02f1d2154e74ca84d74f1adfcb9cc88eb026fb7f717ba8fd83a"
     },
     {
+      "path": "apps/api/src/korpus/application/billing_adjudication.py",
+      "bytes": 8853,
+      "sha256": "1d386d1e91a99dfe8039261b9bc27a6cd4e799dea0c83457410dd3dbaf484742"
+    },
+    {
       "path": "apps/api/src/korpus/application/break_glass.py",
       "bytes": 6826,
       "sha256": "e7afb8f36f0e5824d1a9b9234bfe3e5b3ea82eff9c29a8c9d197a80998744710"
@@ -389,6 +409,11 @@
       "path": "apps/api/src/korpus/application/calibration.py",
       "bytes": 7646,
       "sha256": "a26649bd21386b83b20b2bfdb7c40fc112692c2db963221e1ffab7bc77f242bc"
+    },
+    {
+      "path": "apps/api/src/korpus/application/checkout.py",
+      "bytes": 2929,
+      "sha256": "f4b27dab8a3065a57eb9c1d557748189cf9f60aeb09965c00c16efc711142e75"
     },
     {
       "path": "apps/api/src/korpus/application/composition.py",
@@ -552,8 +577,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/subscriptions.py",
-      "bytes": 13166,
-      "sha256": "48ddedd5e69df177e5d8680799c8d39b9a29e6e59147227a293685d1b2326d1f"
+      "bytes": 6480,
+      "sha256": "3c4782be852d57ed07d5aa4bc5f79293b1e269523fdb1001868c76842ada3570"
     },
     {
       "path": "apps/api/src/korpus/application/table_integrity.py",
@@ -562,8 +587,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/tenancy_ports.py",
-      "bytes": 8837,
-      "sha256": "69dba9c5eef31873d8375555e557aa7f6d299b9c8dfe1b007744a8fe27463fc8"
+      "bytes": 8323,
+      "sha256": "cbce1cad14a4675d0e3558b7213742b335da472f1baeeda889a3bfeab7f29882"
     },
     {
       "path": "apps/api/src/korpus/application/tevv.py",
@@ -581,6 +606,16 @@
       "sha256": "79b50b044260d6f2d4dbc7c893c5fdb9474818015cca2ebeb90e380a835a12d4"
     },
     {
+      "path": "apps/api/src/korpus/billing_composition.py",
+      "bytes": 2803,
+      "sha256": "1e7aefd5215bc5600e856689f2f19dccfc37b9ac7427b1423fa9d6eb56bb43d3"
+    },
+    {
+      "path": "apps/api/src/korpus/billing_config_policy.py",
+      "bytes": 1795,
+      "sha256": "c8d16bf351d81ff77d6cc190edf8c5dfecc1f79a7ff1782c902b2191d6b78cdd"
+    },
+    {
       "path": "apps/api/src/korpus/cli.py",
       "bytes": 9316,
       "sha256": "6a49fe638c0152076fc64208d9cec7da4da7647bbcd3ca62a70d36f418c74a94"
@@ -592,13 +627,13 @@
     },
     {
       "path": "apps/api/src/korpus/config.py",
-      "bytes": 19503,
-      "sha256": "249cb9126f7a435939569fdc046fc3ddb35f741a2c673f808f74dfb4a0566483"
+      "bytes": 18313,
+      "sha256": "ab8182a070780e79e9099c0af5aedf707769a5fa4eb61038a685f19b80b79acc"
     },
     {
       "path": "apps/api/src/korpus/config_policy.py",
-      "bytes": 9474,
-      "sha256": "c1ceeeaa521a6edd797f2629a64ad59042d73a34fe1af0a9167abb8760d92d46"
+      "bytes": 9316,
+      "sha256": "75c00087bf0b4a19d695e09a3afcf8ac7e62e04dd6f63e4dbf1cd002cfe0b4cf"
     },
     {
       "path": "apps/api/src/korpus/controlled_requirements.py",
@@ -617,8 +652,8 @@
     },
     {
       "path": "apps/api/src/korpus/domain/tenancy.py",
-      "bytes": 11465,
-      "sha256": "c5121be6c54227654bc900327facb24b79ecef26d743beb755d634f09d06e6e1"
+      "bytes": 11483,
+      "sha256": "8e23ddee33dc25ec847ac11c00d2ac172ae3e8e137fa32a7f58ca70399bd5ce1"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/__init__.py",
@@ -642,8 +677,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/billing_repository.py",
-      "bytes": 16974,
-      "sha256": "18dcb7700cde664c822539fd928922d5f480189e6c495bca56fb5e2ffab3bac5"
+      "bytes": 17041,
+      "sha256": "b2b3408e4c606c22d1dc7f615e8e6ea4f392e1037e7123f801330adcc8f324e9"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
@@ -669,6 +704,11 @@
       "path": "apps/api/src/korpus/infrastructure/ingestion_schema.py",
       "bytes": 1609,
       "sha256": "d5a2b3d976f4d8ce3cd3b8d8583e65fbaeb38d8295551cf544eae7560c565046"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/liqpay.py",
+      "bytes": 9202,
+      "sha256": "9e4ab2e69ac21ccc2b3d8d4b5e93eee7aa0b1506b86638423e2092c3043dc9f9"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/object_store.py",
@@ -707,8 +747,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/schema.py",
-      "bytes": 8655,
-      "sha256": "ad70b934e4aa40e6c68bf92ac72528ce01e3a0c2444e0e21f6eeedf24d140b77"
+      "bytes": 8644,
+      "sha256": "b637dbd0696eb13f6fddabd1c5b06e1c85256651242805a40d2687ecaf53b325"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/semantic.py",
@@ -722,8 +762,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
-      "bytes": 9292,
-      "sha256": "01e211ee6e4e4ba259e4f9f1f07d07a3d8f5d3df65134b3024890c81412c2877"
+      "bytes": 8890,
+      "sha256": "f782290fd30a6aa7eb17c738693de09bea56cd253078002d14b57ffb97a85ed7"
     },
     {
       "path": "apps/api/src/korpus/infrastructure_requirements.py",
@@ -743,7 +783,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 152,
-      "sha256": "ffbe2d489a466ccc005b7ed60273dccd31c89c69e7eec810bff94d4b377474ae"
+      "sha256": "cebbd62ab02be16768305f199b2673716c5f7203676f8f62c2920713667852d4"
     },
     {
       "path": "apps/api/src/korpus/release.py",
@@ -807,8 +847,8 @@
     },
     {
       "path": "apps/api/src/korpus/tenancy_composition.py",
-      "bytes": 4370,
-      "sha256": "bf8f90bf8598f74a4d5baa94ef1b718b31e89829a2767c2d9c4388dadf66e80b"
+      "bytes": 2237,
+      "sha256": "812f98a62a5967179b0795adaed34776448c2164d03cfc564bdce6174383de71"
     },
     {
       "path": "apps/api/tests/__init__.py",
@@ -1191,6 +1231,11 @@
       "sha256": "ffcd07dd891d2f87adec551f5c72515bf8fcc88faf6801906ed515da29fbcdd3"
     },
     {
+      "path": "apps/api/tests/test_liqpay_billing.py",
+      "bytes": 16486,
+      "sha256": "b081bf70d559b879c77e9eb6d3409056976912adb659b54ea9b0a88986b2cdb1"
+    },
+    {
       "path": "apps/api/tests/test_malformed_pdf_containment.py",
       "bytes": 4380,
       "sha256": "98021cf9acc968902062e472177649fd9b11a1fc90df9d226bafbd75914dd1b1"
@@ -1502,8 +1547,8 @@
     },
     {
       "path": "apps/api/tests/test_tenancy_api.py",
-      "bytes": 16468,
-      "sha256": "0c58cbb741560e3ae24a08be8bcdf6ad37518897545e58b5efbc08dae7dd8981"
+      "bytes": 16500,
+      "sha256": "8b61e5f09c71ebac87222b01c09959686acc92ec3ff10460279e0194976f8efe"
     },
     {
       "path": "apps/api/tests/test_tenancy_audit_events.py",
@@ -1512,8 +1557,8 @@
     },
     {
       "path": "apps/api/tests/test_tenancy_migration.py",
-      "bytes": 7308,
-      "sha256": "a0e061054fb1403d44203d590b70fe6173931816a220261ee0a383cb2c3562ce"
+      "bytes": 8825,
+      "sha256": "c1d04346dc66e800e78807a2daa676564990178a3675e13ad2babc7894607b04"
     },
     {
       "path": "apps/api/tests/test_tenancy_threats.py",
@@ -1572,18 +1617,18 @@
     },
     {
       "path": "apps/web/nginx.conf",
-      "bytes": 6270,
-      "sha256": "4de7096319a4160848eeadc97b992bd8bdd48046300503db32c93cfe8b174de5"
+      "bytes": 6380,
+      "sha256": "0a830c45d18f6f976fb78df6a14dc99be088ab904cb71f6f565892e1654453de"
     },
     {
       "path": "apps/web/package-lock.json",
       "bytes": 214,
-      "sha256": "39db625b7d4448236e76b0437dd3761df74ecf1781c064de0cd2e44b71d8e3f0"
+      "sha256": "7d069d4807e90d730482ed604499fe034c793d9a7e478d7a4a57c42ca1d817c8"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 410,
-      "sha256": "7ebba4e4e5a1c5218ea0db6387e22283d9a8b1a9b3b20a7abdf5db7beadb791a"
+      "sha256": "20f109c5c7f1aa959672f7d9bb4a5bb4b701bd220b6f483919efc67cb7772d64"
     },
     {
       "path": "apps/web/public/api.js",
@@ -1592,8 +1637,13 @@
     },
     {
       "path": "apps/web/public/app.js",
-      "bytes": 17040,
-      "sha256": "217a77b42d4e73e99264051a7c2093450a64b93fa8de8b5a06d91ab5064dc150"
+      "bytes": 14152,
+      "sha256": "c18671d5be26fc8e3c7cd0e5f1b97ba4eb6a75af81669f8ec9e9256a296e0074"
+    },
+    {
+      "path": "apps/web/public/billing.js",
+      "bytes": 6514,
+      "sha256": "2fa180d975aee71afa34387d73bae2d7e5817ff2870617ffdce0dd3be39b652d"
     },
     {
       "path": "apps/web/public/config.js",
@@ -1647,8 +1697,8 @@
     },
     {
       "path": "apps/web/public/index.html",
-      "bytes": 9181,
-      "sha256": "a7af97b79ac826be3b7a8e6778ae0819829dc05abb8f526898fc06a7250568c4"
+      "bytes": 11932,
+      "sha256": "7519cff7af4428273d05cc5eeb8e91aeef62539c05e1fddbac0bec72d0abc345"
     },
     {
       "path": "apps/web/public/manifest.webmanifest",
@@ -1677,13 +1727,13 @@
     },
     {
       "path": "apps/web/public/styles.css",
-      "bytes": 24579,
-      "sha256": "168edc0108611cd62492f33b1dd4bf2bd6ce99a2a2bf73f3f83ffbae72041121"
+      "bytes": 23608,
+      "sha256": "f8c7b6bb655f19d6998ac200afd8a01f797cb406bb54838e339f5cff698c1973"
     },
     {
       "path": "apps/web/public/sw.js",
-      "bytes": 2160,
-      "sha256": "9c021f93f0b39e18f705f1e3c42cd3e152616294fc796442581c479668945383"
+      "bytes": 2176,
+      "sha256": "4155a57fc7a26b1cae31875e9851bf27de878716a86fc1e4c67342ef6f93d20b"
     },
     {
       "path": "apps/web/scripts/a11y_runtime.js",
@@ -1702,8 +1752,13 @@
     },
     {
       "path": "apps/web/scripts/validate.mjs",
-      "bytes": 30744,
-      "sha256": "91e4045fd2d39a1a7dcc326f2e8ff938802dd6d8ddf477399c9f98e752cd102e"
+      "bytes": 31664,
+      "sha256": "0a7d0c909daae610495cd569c582221eda95ebc70528b2ab50c938971b77710d"
+    },
+    {
+      "path": "apps/web/tests/billing.test.mjs",
+      "bytes": 1875,
+      "sha256": "e8c34e6a6dfd80cef0dbafe39523bc0c3068e7914819baba50f2a72f90be3170"
     },
     {
       "path": "apps/web/tests/console_rules.test.mjs",
@@ -1717,8 +1772,8 @@
     },
     {
       "path": "apps/web/tests/validate_gate.test.mjs",
-      "bytes": 22709,
-      "sha256": "a300de120621160517ef06f3b18d16bc73432b56647782565e59476ea9490d6c"
+      "bytes": 23070,
+      "sha256": "d010657eff8c3e6c34d4dfc3e3c46eb5722a4b2d94c2995d8c35a4e8ab13209a"
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
@@ -1743,12 +1798,12 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3669,
-      "sha256": "4fe665750e37d81f2a310f651104e4f1401552699296c20443f6f7f31e06060e"
+      "sha256": "1ad9c6e8cb98d1a4272a8941c20f2db34540fbc94cba76e080f9d05ee9cee10d"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 50971,
-      "sha256": "a9e5fce908d2f818f3dec0cfcb27f4e08f8ce81bea8437d04cf3f36a8b995d61"
+      "bytes": 51470,
+      "sha256": "4be5ab8de9bacf888a8231ef4f0e39fa5f8e6e9e75d9131aee85d8e4591c7cd2"
     },
     {
       "path": "config/operations/reference-v3.json",
@@ -1767,8 +1822,8 @@
     },
     {
       "path": "contracts/openapi.json",
-      "bytes": 46728,
-      "sha256": "b48873780e88b5b3c6622acbea12dad21fec5a94577eed3b8d230f70ec8d13ed"
+      "bytes": 47959,
+      "sha256": "7607e8b02f4bd001ceb9cdc3ca1416821d968c0bcdb76473a29666ddc19343d0"
     },
     {
       "path": "deploy/kubernetes/README.md",
@@ -1966,6 +2021,16 @@
       "sha256": "95e9a5aeb16919e2acb9c968e15aeecc4c8ae51d34a8557ea1b5ca0327b4ac09"
     },
     {
+      "path": "docs/audit/ACT-003_CANDIDATE_STATUS.json",
+      "bytes": 956,
+      "sha256": "b806acaf3732babd1b1a62df246ca124bee9478873b24eed821721cea0166240"
+    },
+    {
+      "path": "docs/audit/ACT-003_SAAS_SURFACE_REPORT.md",
+      "bytes": 7213,
+      "sha256": "a7c35779ccd9f9ac2f765b03dae05028065fbc53a88bfde532c2bcf3d168459c"
+    },
+    {
       "path": "docs/audit/DESTRUCTION_STAGE_2026-08-03.md",
       "bytes": 10937,
       "sha256": "f128381a6ec911fdb2796192dcdf4d2a67f39897095bceea528e30d8e043fe96"
@@ -2117,8 +2182,8 @@
     },
     {
       "path": "docs/product/ACCOUNTS_AND_SUBSCRIPTIONS.md",
-      "bytes": 13341,
-      "sha256": "b967592b9dffc6a77aa7429e295281540d221ac5ecf4a9fd433aa8b7d6665d35"
+      "bytes": 13747,
+      "sha256": "e7075cc8c98db5a554eecaab8beac97306b87ca2aa46a1eb5ba419424f96ea90"
     },
     {
       "path": "docs/product/DISCOVERY_RECORD.md",
@@ -2127,8 +2192,8 @@
     },
     {
       "path": "docs/product/ROADMAP.md",
-      "bytes": 1492,
-      "sha256": "62d808c7af19b1d1e723574a9821c34be457d11ab163558f4f933353d0f2a825"
+      "bytes": 1886,
+      "sha256": "8b39db6ccbcecb13731f43fcff10438451318f0bec421e3f33d8312f620129ac"
     },
     {
       "path": "docs/product/SERVICE_CATALOG.md",
@@ -2677,8 +2742,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 125894,
-      "sha256": "90f5e9116a8523bbe7a843c9217b2daf8c99cfde8f3c1964e9fefb4251cbede2"
+      "bytes": 125891,
+      "sha256": "1793372ece40bf7e33f01301e299a248a2a061a899fbee36fb681b867d8bb926"
     },
     {
       "path": "scripts/run_operational_gate.py",
