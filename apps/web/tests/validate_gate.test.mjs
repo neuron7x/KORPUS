@@ -264,7 +264,7 @@ test("merging the verified and declared identities is caught", async () => {
 test("styling a declared attribute like a verified one is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source =>
-      source.replace(".chip.declared { color: var(--muted); border-style: dashed; }",
+      source.replace(".chip.declared { border-style: dashed; color: var(--muted-2); background: transparent; }",
                      ".chip.declared { color: var(--accent); }")));
   assert.notEqual(status, 0);
   assert.match(output, /styled like a verified one/);
@@ -306,6 +306,23 @@ test("renaming the question variable is not caught", async () => {
   assert.equal(status, 0);
 });
 
+test("a consumer shell that blows the transfer budget is caught", async () => {
+  const payload = Array.from({length: 7000}, (_, index) => `.budget-${index}{--n:${index}px}`).join("\n");
+  const {status, output} = await runWith(edit =>
+    edit("public/styles.css", source => `${source}\n${payload}\n`));
+  assert.notEqual(status, 0);
+  assert.match(output, /exceeds (32|8) KiB gzip budget/);
+});
+
+test("turning plain Enter into a newline-only composer is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace('event.key === "Enter" && !event.shiftKey && !event.isComposing',
+                     'event.key === "Enter" && event.shiftKey && !event.isComposing')));
+  assert.notEqual(status, 0);
+  assert.match(output, /composer no longer submits on plain Enter/);
+});
+
 test("an error summary that does not take focus is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/app.js", source => source.replace("errors.focus();", "")));
@@ -334,7 +351,7 @@ test("a location that sets a header without repeating the CSP is caught", async 
 test("a colour token below AA contrast is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source =>
-      source.replace("  --muted-2: #919b92;", "  --muted-2: #4f564f;")));
+      source.replace("  --muted-2: #959f96;", "  --muted-2: #4f564f;")));
   assert.notEqual(status, 0);
   assert.match(output, /below WCAG 2\.2 AA/);
 });

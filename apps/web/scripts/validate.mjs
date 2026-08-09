@@ -1,5 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import { gzipSync } from "node:zlib";
 import { fileURLToPath } from "node:url";
 
 const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
@@ -19,6 +20,29 @@ for (const file of REQUIRED) {
   const info = await stat(asset(file));
   if (!info.isFile() || info.size === 0) throw new Error(`invalid web asset: ${file}`);
 }
+
+// Performance budget for the consumer shell. This is a deterministic transfer-size
+// proxy, not a Lighthouse score: each first-party text asset is gzipped independently,
+// matching how the production edge can serve them. The budget prevents a "premium"
+// redesign from quietly becoming a framework-sized payload.
+const CONSUMER_ENTRY = [
+  "public/index.html", "public/styles.css", "public/config.js", "public/api.js",
+  "public/app.js", "public/billing.js", "public/conversations.js",
+  "public/reader_conversations.js", "public/reader_corpus.js",
+  "public/reader_declaration.js", "public/reader_verdicts.js",
+];
+let consumerGzipBytes = 0;
+for (const file of CONSUMER_ENTRY) {
+  consumerGzipBytes += gzipSync(await read(file), {level: 9}).byteLength;
+}
+if (consumerGzipBytes > 32 * 1024) {
+  throw new Error(`consumer shell exceeds 32 KiB gzip budget: ${consumerGzipBytes} bytes`);
+}
+const cssGzipBytes = gzipSync(await read("public/styles.css"), {level: 9}).byteLength;
+if (cssGzipBytes > 8 * 1024) {
+  throw new Error(`consumer stylesheet exceeds 8 KiB gzip budget: ${cssGzipBytes} bytes`);
+}
+console.log(`consumer transfer budget passed: ${consumerGzipBytes} gzip bytes`);
 
 // `node --check <file>` exits 0 for ANY file containing an `import` statement — the ESM
 // retry path reports nothing. Verified on node v22.23.1 with a file holding both an
@@ -210,6 +234,22 @@ if (!/Система їх не перевіряє/.test(html)) {
 // ends up describing the code instead of the rule.
 if (!/\{\s*text:[^{}]*,\s*declaration\s*\}/.test(app)) {
   throw new Error("the declaration no longer travels with the query");
+}
+
+// ---------------------------------------------------------------- chat interaction
+//
+// The consumer surface is a chat. Plain Enter submits and Shift+Enter creates a newline;
+// IME composition must never accidentally submit. This is a user-facing interaction
+// contract, not a keyboard shortcut preference.
+if (!/event\.key === "Enter" && !event\.shiftKey && !event\.isComposing/.test(app) ||
+    !/queryForm\.requestSubmit\(\)/.test(app)) {
+  throw new Error("composer no longer submits on plain Enter while preserving Shift+Enter/IME");
+}
+if (!/Enter — надіслати · Shift \+ Enter — новий рядок/.test(html)) {
+  throw new Error("composer help text no longer describes the actual Enter behavior");
+}
+if (!/function resizeComposer\(\)/.test(app) || !/Math\.min\(query\.scrollHeight, 190\)/.test(app)) {
+  throw new Error("composer no longer auto-sizes within its bounded height");
 }
 
 // ---------------------------------------------------------------- conversations

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#080a09">
-  <meta name="description" content="KORPUS — evidence-bound knowledge interface">
+  <meta name="theme-color" content="#070907">
+  <meta name="description" content="KORPUS — контрольована база знань із доказовими відповідями">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/styles.css">
   <title>KORPUS / Доказовий інтерфейс знань</title>
@@ -16,10 +16,10 @@
     <a class="brand" href="/" aria-label="KORPUS — головна">
       <span class="mark" aria-hidden="true"></span>
       <span class="brand-word">KORPUS</span>
-      <span class="brand-sub">EVIDENCE SYSTEM</span>
+      <span class="brand-sub">VERIFIED KNOWLEDGE</span>
     </a>
     <div class="header-actions">
-      <span class="system-signal"><i aria-hidden="true"></i> fail-closed</span>
+      <span class="system-signal"><i aria-hidden="true"></i> відповідь тільки з доказом</span>
       <a href="/console.html" data-private-only class="console-link">Консоль</a>
       <button id="logout" type="button" class="ghost small" hidden>Вийти</button>
     </div>
@@ -30,26 +30,46 @@
 
     <section id="entry" class="welcome" aria-labelledby="entry-heading">
       <div class="welcome-copy">
-        <p class="eyebrow">CONTROLLED KNOWLEDGE · VERIFIED EVIDENCE</p>
-        <h1 id="entry-heading">Відповідь, яку можна перевірити.</h1>
+        <p class="eyebrow">CONTROLLED KNOWLEDGE / SOURCE-BOUND ANSWERS</p>
+        <h1 id="entry-heading">Питайте.<br>Отримуйте лише те, що можна довести.</h1>
         <p class="lead">
-          Ставте питання звичайною мовою. KORPUS шукає лише у дозволеній базі,
-          перевіряє доказ і або відповідає з точним джерелом, або відмовляється.
+          KORPUS працює не з відкритою фантазією моделі, а з контрольованою базою знань.
+          Кожне твердження повинно пройти перевірку джерел. Доказу немає — відповіді немає.
         </p>
         <div class="hero-actions" data-private-only>
-          <button id="login" type="button" class="primary large">Увійти та почати</button>
-          <span class="hero-note">Обліковий запис створюється після підтвердженої автентифікації.</span>
+          <button id="login" type="button" class="primary large">Увійти в KORPUS</button>
+          <span class="hero-note">Акаунт · підписка · захищена оплата · перевірені джерела</span>
+        </div>
+        <div class="hero-proof" aria-label="Ключові властивості KORPUS">
+          <span><i aria-hidden="true"></i> Без генеративного fallback</span>
+          <span><i aria-hidden="true"></i> Цитата в кожній допущеній відповіді</span>
+          <span><i aria-hidden="true"></i> Доступ перевіряється до пошуку</span>
         </div>
       </div>
 
-      <div class="trust-demo" aria-label="Принцип відповіді KORPUS">
-        <div class="demo-query"><span>Q</span> Що є підставою для цієї дії?</div>
-        <div class="demo-flow" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="trust-demo" aria-label="Приклад доказової відповіді KORPUS">
+        <div class="demo-head">
+          <span>LIVE TRACE</span>
+          <strong><i aria-hidden="true"></i> EVIDENCE ADMITTED</strong>
+        </div>
+        <div class="demo-query">
+          <span class="demo-role">Q</span>
+          <p>Що є підставою для цієї дії?</p>
+        </div>
+        <div class="demo-trace" aria-hidden="true">
+          <span>RETRIEVE</span><i></i><span>VERIFY</span><i></i><span>ANSWER</span>
+        </div>
         <div class="demo-answer">
-          <div><span class="status-dot"></span><strong>ДОКАЗ ЗНАЙДЕНО</strong></div>
-          <p>Твердження допускається лише разом із фрагментом джерела.</p>
+          <div class="demo-verdict"><span class="status-dot"></span><strong>ДОКАЗ ЗНАЙДЕНО</strong></div>
+          <p>Твердження допускається лише разом із фрагментом чинного джерела.</p>
           <blockquote>«…точний фрагмент затвердженого документа…»</blockquote>
-          <small>джерело · редакція · сторінка · hash · span</small>
+          <div class="demo-source">
+            <span>ред. 04</span><span>с. 18</span><span>sha 8a31…</span><span>span 19f2…</span>
+          </div>
+        </div>
+        <div class="demo-foot">
+          <span>GENERATION POLICY</span>
+          <strong>Evidence-bound / fail-closed</strong>
         </div>
       </div>
 
@@ -70,14 +90,15 @@
       </div>
 
       <section class="principles" aria-label="Гарантії системи">
-        <article><b>01</b><h2>Не знає — не вигадує</h2><p>Без достатнього доказу система повертає відмову.</p></article>
-        <article><b>02</b><h2>Джерело видно</h2><p>Цитата, редакція, локатор і hash доступні разом із відповіддю.</p></article>
-        <article><b>03</b><h2>Доступ до пошуку</h2><p>Політика та підписка перевіряються до дорогого retrieval.</p></article>
+        <article><b>01</b><div><h2>Не знає — не вигадує</h2><p>Недостатній доказ завершується явною відмовою.</p></div></article>
+        <article><b>02</b><div><h2>Джерело видно</h2><p>Цитата, редакція, локатор і hash йдуть разом із відповіддю.</p></div></article>
+        <article><b>03</b><div><h2>Доступ до пошуку</h2><p>Політика й підписка перевіряються до retrieval та inference.</p></div></article>
       </section>
     </section>
 
     <section id="product" class="product-shell" hidden aria-label="Робочий простір KORPUS">
       <aside class="left-rail">
+        <div class="rail-brand" aria-hidden="true"><span class="mark"></span><span>K</span></div>
         <div class="account-card">
           <div class="account-avatar" aria-hidden="true">K</div>
           <div>
@@ -86,7 +107,9 @@
           </div>
         </div>
 
-        <button id="conversation-new" type="button" class="new-chat">+ Нова розмова</button>
+        <button id="conversation-new" type="button" class="new-chat">
+          <span aria-hidden="true">＋</span><span>Нова розмова</span>
+        </button>
 
         <details id="conversations" class="conversations" hidden open>
           <summary id="conversations-summary">Розмови</summary>
@@ -104,7 +127,7 @@
 
         <details id="session-context" class="session-context" data-private-only>
           <summary>Контекст сесії</summary>
-          <p class="note">Система їх не перевіряє. Ці поля необов’язкові для звичайного запиту та ніколи не дають допуск.</p>
+          <p class="note">Система їх не перевіряє. Контекст не надає допуск і не є доказом; дані входять до аудиту лише як заява користувача.</p>
           <form id="declaration-form" novalidate>
             <div class="fields compact">
               <div>
@@ -134,13 +157,19 @@
             <button id="declaration-submit" type="submit" class="secondary full">Зберегти контекст сесії</button>
           </form>
         </details>
+
+        <div class="rail-policy">
+          <span>POLICY</span>
+          <strong>Evidence-bound</strong>
+          <p>Немає підтримки — немає твердження.</p>
+        </div>
       </aside>
 
       <section class="chat-stage">
         <div class="chat-topline">
           <div>
-            <p class="eyebrow">EVIDENCE CHAT</p>
-            <h2>Діалог із контрольованим корпусом</h2>
+            <p class="eyebrow">KORPUS / EVIDENCE CHAT</p>
+            <h2>Діалог із базою знань</h2>
           </div>
           <section id="standing" class="standing" aria-label="Поточна ідентичність">
             <span class="chip verified" id="standing-verified">ДОПУСК</span>
@@ -153,9 +182,12 @@
                  aria-label="Результат запиту"></section>
 
         <div id="empty-chat" class="empty-chat">
-          <div class="empty-symbol" aria-hidden="true">K</div>
-          <h2>Запитайте те, що треба довести.</h2>
-          <p>Відповідь не може вийти за межі доступних затверджених джерел.</p>
+          <div class="empty-symbol" aria-hidden="true">⊛</div>
+          <h2>Що потрібно перевірити?</h2>
+          <p>Поставте питання звичайною мовою. KORPUS відповість лише в межах доступних доказів.</p>
+          <div class="empty-trust" aria-hidden="true">
+            <span>RETRIEVE</span><i></i><span>VERIFY</span><i></i><span>CITE</span>
+          </div>
         </div>
 
         <section id="ask-section" class="ask-section" aria-labelledby="ask-heading">
@@ -163,44 +195,49 @@
           <form id="query-form" novalidate>
             <label for="query" class="sr-only">Питання до контрольованого корпусу</label>
             <div class="composer">
-              <textarea id="query" minlength="3" required rows="2"
+              <textarea id="query" minlength="3" required rows="1"
                         placeholder="Поставте питання до бази знань…"></textarea>
               <div class="composer-foot">
                 <span><i aria-hidden="true"></i> Відповідь тільки з доказом</span>
                 <button id="submit" type="submit" aria-label="Надіслати запит">↑</button>
               </div>
             </div>
-            <p class="hint composer-hint">Ctrl/⌘ + Enter — надіслати</p>
+            <p class="hint composer-hint">Enter — надіслати · Shift + Enter — новий рядок</p>
           </form>
         </section>
       </section>
 
       <aside class="right-rail">
         <div class="evidence-guide">
-          <span class="rail-kicker">ЯК ЧИТАТИ ВІДПОВІДЬ</span>
-          <h2>Доказ — частина відповіді.</h2>
+          <span class="rail-kicker">EVIDENCE TRACE</span>
+          <h2>Доказ — не примітка. Це частина відповіді.</h2>
           <ol>
-            <li><b>Verdict</b><span>Чи пройшла відповідь gates.</span></li>
-            <li><b>Claim</b><span>Текст, який допускається системою.</span></li>
-            <li><b>Evidence</b><span>Точний фрагмент і provenance.</span></li>
+            <li><b>Verdict</b><span>Чи пройшла відповідь усі gates.</span></li>
+            <li><b>Claim</b><span>Формулювання, яке система допускає.</span></li>
+            <li><b>Evidence</b><span>Точний фрагмент, редакція та provenance.</span></li>
           </ol>
         </div>
         <div class="trust-card">
           <span>GENERATION POLICY</span>
           <strong>Evidence-bound</strong>
-          <p>LLM не є джерелом істини. Немає підтримки — немає твердження.</p>
+          <p>Модель може допомагати шукати й компонувати, але не створює факти.</p>
         </div>
       </aside>
     </section>
 
-    <section id="pricing" class="pricing" hidden aria-labelledby="pricing-heading">
-      <div class="pricing-head">
-        <p class="eyebrow">ACCESS</p>
-        <h2 id="pricing-heading">Активуйте доступ до KORPUS</h2>
-        <p>Оплата відкриває лише ті корпуси, які вже дозволені вашою політикою доступу.</p>
+    <section id="pricing" class="pricing" hidden aria-labelledby="pricing-heading" tabindex="-1">
+      <div class="pricing-inner">
+        <div class="pricing-head">
+          <p class="eyebrow">ACCESS / SUBSCRIPTION</p>
+          <h2 id="pricing-heading">Відкрийте доступ до KORPUS</h2>
+          <p>Підписка відкриває комерційний доступ, але ніколи не обходить політику корпусів або рівень допуску.</p>
+        </div>
+        <div id="plans" class="plans" aria-live="polite"><p class="note">Завантаження тарифів…</p></div>
+        <div class="pricing-trust">
+          <span>Платіжні дані вводяться на сторінці платіжного провайдера.</span>
+          <span>KORPUS не отримує номер картки або CVV.</span>
+        </div>
       </div>
-      <div id="plans" class="plans" aria-live="polite"><p class="note">Завантаження тарифів…</p></div>
-      <p class="pricing-foot">Платіжні реквізити вводяться на захищеній сторінці платіжного провайдера; KORPUS їх не отримує.</p>
     </section>
   </main>
 

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v1",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 572,
-  "root_sha256": "8ab499424cd524d18506d9eae027dd5dec716f23d8e9586e649c15f500e50b1f",
+  "file_count": 574,
+  "root_sha256": "a837f2898aaf1bda2c1a7c0bedae6968f20fb67ec90dcf94044743f452d7bd8c",
   "files": [
     {
       "path": ".dockerignore",
@@ -88,7 +88,7 @@
     {
       "path": "README.md",
       "bytes": 6038,
-      "sha256": "5eec9780131bd63daf2109a4463fae174401ab159d7ce86bd8f8a8209a773821"
+      "sha256": "589dd33cf31cb1a398df02abb9eea1af68b7c3857800762d0c4e8c76f186236c"
     },
     {
       "path": "RELEASE_V5.md",
@@ -258,7 +258,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2542,
-      "sha256": "c0578b7e20d26c7fbf23ab381b7f9267949cf56a32c0f7e83378f332484854a3"
+      "sha256": "d6d631ace0420d083d751176573d55d2087856044d8166bd7d4f30a93d3e6c2c"
     },
     {
       "path": "apps/api/requirements.dev.lock",
@@ -783,7 +783,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 152,
-      "sha256": "cebbd62ab02be16768305f199b2673716c5f7203676f8f62c2920713667852d4"
+      "sha256": "dd288a0cc13061e1e59b83f11abfda81b0fbc55ecbaedc041d81144578466e3e"
     },
     {
       "path": "apps/api/src/korpus/release.py",
@@ -1623,12 +1623,12 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 214,
-      "sha256": "7d069d4807e90d730482ed604499fe034c793d9a7e478d7a4a57c42ca1d817c8"
+      "sha256": "c46f50f4d263389cdc1cef068e8d4a813246be452a3eb81403d5d96598316ef6"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 410,
-      "sha256": "20f109c5c7f1aa959672f7d9bb4a5bb4b701bd220b6f483919efc67cb7772d64"
+      "sha256": "9a0ba468258c5c684912e4e07bd29f4c19ddb0254021d66a8dd2ba8e53aa01be"
     },
     {
       "path": "apps/web/public/api.js",
@@ -1637,8 +1637,8 @@
     },
     {
       "path": "apps/web/public/app.js",
-      "bytes": 14152,
-      "sha256": "c18671d5be26fc8e3c7cd0e5f1b97ba4eb6a75af81669f8ec9e9256a296e0074"
+      "bytes": 14853,
+      "sha256": "c9a2bd12ad891d923a83fd5f13479070004870e48c50a82b085b869fda5ca5a1"
     },
     {
       "path": "apps/web/public/billing.js",
@@ -1697,8 +1697,8 @@
     },
     {
       "path": "apps/web/public/index.html",
-      "bytes": 11932,
-      "sha256": "7519cff7af4428273d05cc5eeb8e91aeef62539c05e1fddbac0bec72d0abc345"
+      "bytes": 13903,
+      "sha256": "8a22dc94444534b7a06f2b5682d2bae260ff58dbb70224be88b52a9c26d4a03a"
     },
     {
       "path": "apps/web/public/manifest.webmanifest",
@@ -1727,8 +1727,8 @@
     },
     {
       "path": "apps/web/public/styles.css",
-      "bytes": 23608,
-      "sha256": "f8c7b6bb655f19d6998ac200afd8a01f797cb406bb54838e339f5cff698c1973"
+      "bytes": 30116,
+      "sha256": "a8ffe8eece2e2aae25ea81ea467322e27795a194c546d099a0453afc72a4b44c"
     },
     {
       "path": "apps/web/public/sw.js",
@@ -1752,8 +1752,8 @@
     },
     {
       "path": "apps/web/scripts/validate.mjs",
-      "bytes": 31664,
-      "sha256": "0a7d0c909daae610495cd569c582221eda95ebc70528b2ab50c938971b77710d"
+      "bytes": 33797,
+      "sha256": "7c277e673111d8c93c0b31ee1bbf6bdc37600ddfc51999a78c9d5100d1cdefb2"
     },
     {
       "path": "apps/web/tests/billing.test.mjs",
@@ -1772,8 +1772,8 @@
     },
     {
       "path": "apps/web/tests/validate_gate.test.mjs",
-      "bytes": 23070,
-      "sha256": "d010657eff8c3e6c34d4dfc3e3c46eb5722a4b2d94c2995d8c35a4e8ab13209a"
+      "bytes": 23941,
+      "sha256": "b176d356db01d758458f7ec36270ddac0442e39014f67f67848a7b5db757726e"
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
@@ -1798,7 +1798,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3669,
-      "sha256": "1ad9c6e8cb98d1a4272a8941c20f2db34540fbc94cba76e080f9d05ee9cee10d"
+      "sha256": "500e572d2003e76f1e3545d635568ea4b7562a1f69e371e8be695d8aaf2d9f77"
     },
     {
       "path": "config/operations/module-budget.json",
@@ -2031,6 +2031,16 @@
       "sha256": "a7c35779ccd9f9ac2f765b03dae05028065fbc53a88bfde532c2bcf3d168459c"
     },
     {
+      "path": "docs/audit/ACT-004_CANDIDATE_STATUS.json",
+      "bytes": 1028,
+      "sha256": "6d269156cf1ccfa1c63d323dc471eb21cd2bef4e65920ff76565c4eb9c88f4d8"
+    },
+    {
+      "path": "docs/audit/ACT-004_PREMIUM_UI_REPORT.md",
+      "bytes": 4635,
+      "sha256": "29ba9e11bdb71b4974a9601cdf4290588a225a981206ff17206435540a2d839b"
+    },
+    {
       "path": "docs/audit/DESTRUCTION_STAGE_2026-08-03.md",
       "bytes": 10937,
       "sha256": "f128381a6ec911fdb2796192dcdf4d2a67f39897095bceea528e30d8e043fe96"
@@ -2183,7 +2193,7 @@
     {
       "path": "docs/product/ACCOUNTS_AND_SUBSCRIPTIONS.md",
       "bytes": 13747,
-      "sha256": "e7075cc8c98db5a554eecaab8beac97306b87ca2aa46a1eb5ba419424f96ea90"
+      "sha256": "8a762415297a09c6b12d8ac94e79e3c8c675c222790271ae582aa70c25fad843"
     },
     {
       "path": "docs/product/DISCOVERY_RECORD.md",
@@ -2192,8 +2202,8 @@
     },
     {
       "path": "docs/product/ROADMAP.md",
-      "bytes": 1886,
-      "sha256": "8b39db6ccbcecb13731f43fcff10438451318f0bec421e3f33d8312f620129ac"
+      "bytes": 2290,
+      "sha256": "14fb109b3a44efcf8bb6e2655a13dbacb17527e91ee4787b5d9e2552b35bd149"
     },
     {
       "path": "docs/product/SERVICE_CATALOG.md",

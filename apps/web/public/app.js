@@ -145,13 +145,18 @@ const billing = createBillingController({
   onState: state => {
     commerce = state;
     const locked = state.enforced && !state.active;
+    document.body.dataset.access = locked ? "locked" : "active";
     askSection.hidden = locked;
     emptyChat.hidden = locked;
     if (locked) {
       pricing.hidden = false;
       $("pricing-heading").textContent = state.unavailable
         ? "Платний доступ поки не налаштований"
-        : "Активуйте доступ до KORPUS";
+        : "Відкрийте доступ до KORPUS";
+      requestAnimationFrame(() => {
+        pricing.scrollIntoView({block: "start", behavior: "smooth"});
+        pricing.focus({preventScroll: true});
+      });
     }
   },
 });
@@ -253,6 +258,9 @@ function render(answer, question) {
 async function ask() {
   const question = query.value.trim();
   submit.disabled = true;
+  submit.setAttribute("aria-busy", "true");
+  query.setAttribute("aria-busy", "true");
+  result.setAttribute("aria-busy", "true");
   submit.textContent = "…";
   result.classList.remove("hidden", "error");
   emptyChat.hidden = true;
@@ -308,7 +316,11 @@ async function ask() {
     block.scrollIntoView({block: "nearest", behavior: "smooth"});
   } finally {
     submit.disabled = false;
+    submit.removeAttribute("aria-busy");
+    query.removeAttribute("aria-busy");
+    result.removeAttribute("aria-busy");
     submit.textContent = "↑";
+    resizeComposer();
   }
 }
 
@@ -326,12 +338,19 @@ queryForm.addEventListener("submit", event => {
   void ask();
 });
 
+function resizeComposer() {
+  query.style.height = "auto";
+  query.style.height = `${Math.min(query.scrollHeight, 190)}px`;
+}
+
+query.addEventListener("input", resizeComposer);
 query.addEventListener("keydown", event => {
-  if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
     event.preventDefault();
     queryForm.requestSubmit();
   }
 });
+resizeComposer();
 
 // ---------------------------------------------------------------- corpus + boot
 
