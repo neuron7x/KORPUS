@@ -49,3 +49,12 @@ remains false until this gate is explicitly signed.
 
 Instructor tools, administrative drafts, voice/photo input and native apps remain backlog
 hypotheses and do not participate in current MVP readiness.
+
+
+## v6.7.0 candidate — inference surface
+
+**Implemented:** provider-neutral model contract, OpenAI Responses API adapter, Anthropic
+adapter convergence on the same parsers/instructions, authenticated inference-status API,
+server-side secret-file configuration, corpus-free inference smoke test and UI visibility of
+model assistance. Model output remains non-authoritative and downstream evidence admission
+remains deterministic. Live external transport is not claimed without a deployment key.

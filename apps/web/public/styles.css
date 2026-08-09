@@ -601,6 +601,9 @@ h1 {
 .trust-card { margin-top: auto; }
 .trust-card strong { display: block; margin-top: .55rem; font-size: .82rem; }
 .trust-card p { margin: .45rem 0 0; color: var(--muted-2); font-size: .69rem; }
+#inference-state[data-tone="on"] { color: var(--ok); }
+#inference-state[data-tone="off"] { color: var(--muted-2); }
+#inference-state[data-tone="unknown"] { color: var(--warn); }
 
 /* ---------------------------------------------------------------- pricing */
 .pricing {

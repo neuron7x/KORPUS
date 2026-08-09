@@ -22,8 +22,10 @@ from korpus.infrastructure.anthropic_planner import (
     AnthropicQueryPlanner,
 )
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
+from korpus.infrastructure.openai_planner import OpenAIAnswerComposer, OpenAIQueryPlanner
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
+from korpus.model_settings import resolved_model_api_key, resolved_model_base_url
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
@@ -238,40 +240,38 @@ def get_answer_service(
     )
 
 
-def build_answer_composer(settings: Settings) -> AnswerComposer | None:
-    """The arranger, when an operator has switched it on and supplied a key.
+def _model_adapter(settings: Settings, *, composer: bool) -> AnswerComposer | QueryPlanner:
+    """Build one provider adapter behind the application's existing model ports.
 
-    Public for the same reason `build_query_planner` is: the drills install a composer
-    through the seam the application uses, and reaching past it would test a service the
-    next request does not build.
+    Provider selection lives only in the composition root. The answer/query application
+    layers remain unaware of OpenAI, Anthropic, HTTP, API keys, or response formats.
     """
-    if not settings.answer_composer_enabled or not settings.query_planner_api_key:
+    api_key = resolved_model_api_key(settings)
+    common = {
+        "model": settings.query_planner_model,
+        "base_url": resolved_model_base_url(settings),
+        "timeout_seconds": max(settings.query_planner_timeout_seconds, 8.0)
+        if composer else settings.query_planner_timeout_seconds,
+        "egress": build_egress_policy(settings),
+    }
+    if settings.query_planner_provider == "openai":
+        adapter = OpenAIAnswerComposer if composer else OpenAIQueryPlanner
+    else:
+        adapter = AnthropicAnswerComposer if composer else AnthropicQueryPlanner
+    return adapter(api_key, **common)
+
+
+def build_answer_composer(settings: Settings) -> AnswerComposer | None:
+    """The bounded arranger, when explicitly enabled and credentialled."""
+    if not settings.answer_composer_enabled or not resolved_model_api_key(settings):
         return None
-    return AnthropicAnswerComposer(
-        settings.query_planner_api_key,
-        model=settings.query_planner_model,
-        base_url=settings.query_planner_base_url,
-        timeout_seconds=max(settings.query_planner_timeout_seconds, 8.0),
-        egress=build_egress_policy(settings),
-    )
+    adapter = _model_adapter(settings, composer=True)
+    return adapter  # type: ignore[return-value]
 
 
 def build_query_planner(settings: Settings) -> QueryPlanner | None:
-    """The reformulator, when an operator has switched it on and supplied a key.
-
-    Public because the drills need the same seam the application uses. A chaos case that
-    reached past this to attach a planner to one service instance would be testing a
-    service the next request does not use.
-
-    Returning None is the whole of the "off" path: `build_plan` treats a missing planner
-    and a broken one identically, so nothing downstream branches on this.
-    """
-    if not settings.query_planner_enabled or not settings.query_planner_api_key:
+    """The bounded reformulator, when explicitly enabled and credentialled."""
+    if not settings.query_planner_enabled or not resolved_model_api_key(settings):
         return None
-    return AnthropicQueryPlanner(
-        settings.query_planner_api_key,
-        model=settings.query_planner_model,
-        base_url=settings.query_planner_base_url,
-        timeout_seconds=settings.query_planner_timeout_seconds,
-        egress=build_egress_policy(settings),
-    )
+    adapter = _model_adapter(settings, composer=False)
+    return adapter  # type: ignore[return-value]

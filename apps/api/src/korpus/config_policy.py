@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
-
 from korpus.application.calibration import CalibrationProfile
 from korpus.billing_config_policy import validate_billing_settings
 from korpus.controlled_requirements import first_unmet
-
+from korpus.model_settings import resolved_model_api_key, validate_model_provider
 
 def validate_runtime_settings(settings: Any) -> None:
     """Validate cross-field runtime policy in contractual failure order."""
@@ -77,14 +76,15 @@ def _validate_browser_oidc(settings: Any) -> None:
 
 
 def _validate_model_integrations(settings: Any) -> None:
-    if settings.answer_composer_enabled and not settings.query_planner_api_key:
+    validate_model_provider(settings)
+    if settings.answer_composer_enabled and not resolved_model_api_key(settings):
         raise ValueError("answer composer is enabled without an API key")
     if settings.answer_composer_enabled and settings.environment in {"controlled", "isolated"}:
         raise ValueError(
             "the answer composer sends retrieved passages to a third party and is "
             f"refused in a {settings.environment} environment"
         )
-    if settings.query_planner_enabled and not settings.query_planner_api_key:
+    if settings.query_planner_enabled and not resolved_model_api_key(settings):
         raise ValueError("query planner is enabled without an API key")
     if settings.query_planner_enabled and settings.environment in {"controlled", "isolated"}:
         raise ValueError(

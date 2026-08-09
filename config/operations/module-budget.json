@@ -21,7 +21,7 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/routes.py": {
-      "lines": 17,
+      "lines": 16,
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/routes_admin.py": {
@@ -261,9 +261,9 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
-      "lines": 248,
-      "max_complexity": 12,
-      "reason": "the Messages API adapter behind QueryPlanner; its output is admitted, never trusted"
+      "lines": 182,
+      "max_complexity": 7,
+      "reason": "Messages API adapter behind provider-neutral model contract; model output is admitted, never trusted"
     },
     "apps/api/src/korpus/infrastructure/audit_anchor.py": {
       "lines": 229,
@@ -543,7 +543,7 @@
       "reason": "a short-lived bearer token for a review session; not a production path"
     },
     "scripts/openapi_contract.py": {
-      "lines": 43,
+      "lines": 42,
       "max_complexity": 5
     },
     "scripts/patch_policy.py": {
@@ -763,6 +763,36 @@
     "apps/api/src/korpus/infrastructure/liqpay.py": {
       "lines": 228,
       "max_complexity": 10
+    },
+    "apps/api/src/korpus/api/routes_inference.py": {
+      "lines": 60,
+      "max_complexity": 9,
+      "reason": "authenticated inference posture/status surface; exposes no secrets and no factual authority"
+    },
+    "apps/api/src/korpus/infrastructure/model_contract.py": {
+      "lines": 85,
+      "max_complexity": 7,
+      "reason": "provider-neutral prompts and strict model-output parsers shared by model adapters"
+    },
+    "apps/api/src/korpus/infrastructure/openai_planner.py": {
+      "lines": 160,
+      "max_complexity": 11,
+      "reason": "OpenAI Responses API adapter with strict Structured Outputs, store=false and egress gating"
+    },
+    "apps/api/src/korpus/model_settings.py": {
+      "lines": 32,
+      "max_complexity": 4,
+      "reason": "provider selection, canonical endpoint and secret-file resolution outside Settings"
+    },
+    "scripts/inference_smoke.py": {
+      "lines": 66,
+      "max_complexity": 3,
+      "reason": "corpus-free operator smoke for configured external model inference"
+    },
+    "scripts/openapi_normalization.py": {
+      "lines": 22,
+      "max_complexity": 6,
+      "reason": "canonicalizes equivalent OpenAPI generator encodings so contract gates track HTTP semantics"
     }
   },
   "raised": [

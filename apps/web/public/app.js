@@ -83,6 +83,26 @@ function updateStanding() {
     : "КОНТЕКСТ НЕ ЗАДАНО";
 }
 
+async function loadInferenceStatus() {
+  const node = $("inference-state");
+  if (!node) return;
+  try {
+    const state = await call("/v1/inference/status");
+    if (!state.enabled) {
+      node.textContent = "MODEL ASSIST · OFF";
+      node.dataset.tone = "off";
+      node.title = "Відповідь працює лише через детермінований evidence path.";
+      return;
+    }
+    node.textContent = `MODEL ASSIST · ${String(state.provider).toUpperCase()}`;
+    node.dataset.tone = "on";
+    node.title = `${state.model}. Модель допомагає пошуку/композиції; authority = ${state.answer_authority}.`;
+  } catch {
+    node.textContent = "MODEL ASSIST · UNKNOWN";
+    node.dataset.tone = "unknown";
+  }
+}
+
 function enterWorkingState() {
   if (!identity) return;
   entry.hidden = true;
@@ -113,6 +133,7 @@ $("check-auth")?.addEventListener("click", async () => {
     $("bearer-token").value = "";
     declaration = restoreDeclaration();
     enterWorkingState();
+    await loadInferenceStatus();
     if (!publicMode) await billing.refresh();
   } catch (error) {
     forgetIdentity(`відмова: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`);
@@ -266,7 +287,7 @@ async function ask() {
   emptyChat.hidden = true;
   const pending = document.createElement("p");
   pending.className = "note pending";
-  pending.textContent = "Перевіряю джерела та допустимість тверджень…";
+  pending.textContent = "Шукаю джерела → перевіряю доказ → за потреби компоную без нових фактів…";
   result.append(pending);
   try {
     // Exact body shape is contract evidence: declared context accompanies the query but
@@ -367,6 +388,7 @@ loadIdentity()
     if (!identity) return;
     declaration = restoreDeclaration();
     enterWorkingState();
+    await loadInferenceStatus();
     if (!publicMode) await billing.refresh();
     const returned = new URLSearchParams(window.location.search).get("billing") === "return";
     if (returned) {

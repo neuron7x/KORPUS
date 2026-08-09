@@ -17,13 +17,18 @@ Two operational facts stated where an operator will read them:
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import httpx
 
 from korpus.application.egress import EgressDenied, ModelEgressPolicy
 from korpus.application.query_plan import PlannerUnavailable
+from korpus.infrastructure.model_contract import (
+    COMPOSE_INSTRUCTIONS,
+    QUERY_REWRITE_INSTRUCTIONS,
+    parse_composition,
+    parse_query_variants,
+)
 
 
 def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
@@ -41,19 +46,7 @@ def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
         raise PlannerUnavailable(f"model egress denied: {denial}") from denial
 
 
-#: The vocabulary problem this exists for, stated as the task. The model is given the
-#: corpus's own subject names so its guesses land in the language the documents use.
-_SYSTEM = """Ти — переформулювач запитів до закритого корпусу українських військових
-документів. Твоє єдине завдання: повернути короткі пошукові фрази, якими це саме питання
-сформульоване в статутах, настановах і бойових документах.
-
-Правила:
-- Лише пошукові фрази, 2–6 слів, українською, у лексиці військових документів.
-- Синоніми і статутні терміни: «обстріл» → «артилерійський наліт», «укриття», «щілина».
-- Жодних пояснень, жодних речень, жодних відповідей на питання.
-- Якщо питання вже сформульоване термінами корпусу — поверни порожній список.
-
-Формат відповіді: JSON-масив рядків і нічого більше."""
+_SYSTEM = QUERY_REWRITE_INSTRUCTIONS
 
 _MAX_OUTPUT_TOKENS = 300
 
@@ -110,55 +103,11 @@ class AnthropicQueryPlanner:
 
 
 def _parse(body: Any) -> list[str]:
-    """The JSON array, or nothing.
-
-    A provider answering in prose, in a code fence, or with an apology yields an empty
-    list rather than a partially-understood one: half-parsed output is how a sentence
-    ends up being searched for as a phrase and quietly narrows every result.
-    """
-    blocks = body.get("content") if isinstance(body, dict) else None
-    if not isinstance(blocks, list):
-        return []
-    text = "".join(
-        str(block.get("text", ""))
-        for block in blocks
-        if isinstance(block, dict) and block.get("type") == "text"
-    ).strip()
-    if text.startswith("```"):
-        text = text.strip("`")
-        text = text.split("\n", 1)[1] if "\n" in text else ""
-    start, end = text.find("["), text.rfind("]")
-    if start < 0 or end <= start:
-        return []
-    try:
-        parsed = json.loads(text[start : end + 1])
-    except json.JSONDecodeError:
-        return []
-    if not isinstance(parsed, list):
-        return []
-    return [item for item in parsed if isinstance(item, str)]
+    """The JSON array, or nothing. Provider prose is never partially trusted."""
+    return parse_query_variants(_text_of(body))
 
 
-#: The composer's task, stated as narrowly as the gate that checks it. The model is told
-#: the rules it will be judged by, and judged anyway: a prompt is a request, and
-#: `admissible_opening` is the answer.
-_COMPOSE_SYSTEM = """Ти впорядковуєш готові речення з військових документів. Ти НЕ пишеш
-відповідь і НЕ додаєш фактів.
-
-Отримуєш питання і список речень, узятих дослівно з документів.
-
-Робиш дві речі:
-1. Розташовуєш речення в порядку, у якому їх слід читати. Усі речення, жодного зайвого,
-   жодного пропущеного.
-2. Пишеш один рядок вступу — до 15 слів, який каже, про що ці речення.
-
-Правила вступу, за якими його перевірять машинно:
-- жодних цифр;
-- жодних заперечень («не», «без», «заборонено»);
-- кожне змістовне слово мусить уже бути в наданих реченнях.
-
-Формат відповіді — JSON і нічого більше:
-{"opening": "...", "sentences": ["...", "..."]}"""
+_COMPOSE_SYSTEM = COMPOSE_INSTRUCTIONS
 
 
 class AnthropicAnswerComposer:
@@ -215,22 +164,7 @@ class AnthropicAnswerComposer:
 
 def _parse_composition(body: Any) -> tuple[str, list[str]]:
     """The object, or nothing. Half-understood output is worse than none."""
-    text = _text_of(body)
-    start, end = text.find("{"), text.rfind("}")
-    if start < 0 or end <= start:
-        return "", []
-    try:
-        parsed = json.loads(text[start : end + 1])
-    except json.JSONDecodeError:
-        return "", []
-    if not isinstance(parsed, dict):
-        return "", []
-    sentences = parsed.get("sentences")
-    return (
-        str(parsed.get("opening", "")),
-        [item for item in sentences if isinstance(item, str)] if isinstance(sentences, list)
-        else [],
-    )
+    return parse_composition(_text_of(body))
 
 
 def _text_of(body: Any) -> str:

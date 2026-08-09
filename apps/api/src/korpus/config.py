@@ -185,9 +185,11 @@ class Settings(BaseSettings):
     #: Optional model assistance; evidence admission remains deterministic.
     answer_composer_enabled: bool = False
     query_planner_enabled: bool = False
+    query_planner_provider: str = "openai"
     query_planner_api_key: str = ""
-    query_planner_model: str = "claude-sonnet-5"
-    query_planner_base_url: str = "https://api.anthropic.com"
+    query_planner_api_key_file: Path | None = None
+    query_planner_model: str = "gpt-5.6-sol"
+    query_planner_base_url: str = ""
     query_planner_timeout_seconds: float = Field(default=6.0, gt=0, le=30)
     model_egress_posture: str = "external_allowed"
     #: GOV-006: highest corpus tier permitted to leave the deployment.
@@ -261,7 +263,6 @@ class Settings(BaseSettings):
     ocr_languages: str = "ukr+eng"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
     trusted_hosts: str = "localhost,127.0.0.1,testserver"
-
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, value: str) -> str:
@@ -414,7 +415,6 @@ class Settings(BaseSettings):
     @property
     def trusted_host_list(self) -> list[str]:
         return [part.strip() for part in self.trusted_hosts.split(",") if part.strip()]
-
 
 @lru_cache
 def get_settings() -> Settings:

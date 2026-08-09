@@ -56,9 +56,12 @@ A catalog entry is not corpus authority by itself; ingestion and review remain e
 
 ## Model-egress plane
 
-External model calls are policy-gated. The GOV-006 material ceiling refuses egress when
-question/evidence classification exceeds the allowed provider tier. Model output is never
-a factual source and cannot bypass evidence admission.
+External model calls are policy-gated. The GOV-006 material ceiling applies to corpus
+material admitted for composition; material above the configured external tier is refused
+before transport. A free-text user question has no trustworthy automatic classification in
+KORPUS, so enabling an external query planner is an explicit deployment decision that sends
+that question to the configured provider. Model output is never a factual source and cannot
+bypass evidence admission.
 
 ## Runtime topology
 

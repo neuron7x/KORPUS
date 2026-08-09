@@ -260,6 +260,17 @@ if (!/function resizeComposer\(\)/.test(app) || !/Math\.min\(query\.scrollHeight
   throw new Error("composer no longer auto-sizes within its bounded height");
 }
 
+// Optional inference must be visible as assistance, never presented as the source of truth.
+// The status comes from the server because provider configuration is an operator decision;
+// the browser may display it but must not infer it from client configuration.
+if (!/id="inference-state"[^>]*role="status"/.test(html) ||
+    !/call\("\/v1\/inference\/status"\)/.test(app)) {
+  throw new Error("inference assistance status is no longer server-derived and visible");
+}
+if (!/Модель може допомагати шукати й компонувати, але не створює факти/.test(html)) {
+  throw new Error("inference surface no longer says the model is not factual authority");
+}
+
 // ---------------------------------------------------------------- conversations
 //
 // History is context, never a source. The surface has to keep saying so, because the one

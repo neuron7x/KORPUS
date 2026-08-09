@@ -1,0 +1,30 @@
+{
+  "schema": "korpus.candidate-status.v1",
+  "release": "v6.7.0",
+  "act": "ACT-006",
+  "status": "PASS_WITH_CAVEATS",
+  "production_authorized": false,
+  "passes": [
+    "provider_neutral_model_contract",
+    "openai_responses_adapter",
+    "openai_store_false",
+    "model_egress_pretransport_gate",
+    "inference_status_surface",
+    "backend_targeted_142_tests",
+    "web_122_cases_split_run",
+    "web_lint",
+    "web_typecheck",
+    "web_build",
+    "openapi_contract",
+    "import_cycles_zero",
+    "module_budget",
+    "repository_requirements"
+  ],
+  "caveats": [
+    "live_openai_transport_not_tested_no_credential",
+    "free_text_question_has_no_automatic_classification_label",
+    "store_false_is_not_zero_data_retention_claim",
+    "fresh_exact_lock_assurance_not_promoted",
+    "live_oidc_and_liqpay_not_verified"
+  ]
+}

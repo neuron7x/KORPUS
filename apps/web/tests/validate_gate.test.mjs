@@ -543,3 +543,12 @@ test("removing the LiqPay checkout form origin from CSP is caught", async () => 
   assert.notEqual(status, 0);
   assert.match(output, /checkout CSP/);
 });
+
+
+test("removing server-derived inference status is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("public/app.js", source =>
+      source.replace('call("/v1/inference/status")', 'Promise.resolve({enabled:false})')));
+  assert.notEqual(status, 0);
+  assert.match(output, /inference assistance status/);
+});

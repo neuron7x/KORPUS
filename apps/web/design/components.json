@@ -199,6 +199,28 @@
         "programmatically focusable",
         "actionable message"
       ]
+    },
+    {
+      "id": "inference-status",
+      "selectors": [
+        "#inference-state"
+      ],
+      "variants": [
+        "off",
+        "provider-assisted",
+        "unknown"
+      ],
+      "states": [
+        "loading",
+        "disabled",
+        "enabled",
+        "unavailable"
+      ],
+      "contract": [
+        "provider assistance is visible without implying factual authority",
+        "status never exposes API keys or provider base URLs",
+        "answer authority remains extractive evidence"
+      ]
     }
   ]
 }

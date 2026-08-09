@@ -6,6 +6,7 @@ from pathlib import Path
 
 from korpus.config import Settings
 from korpus.main import create_app
+from scripts.openapi_normalization import normalize_openapi
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT = ROOT / "contracts/openapi.json"
@@ -13,9 +14,7 @@ DEFAULT = ROOT / "contracts/openapi.json"
 
 def canonical_contract() -> str:
     app = create_app(Settings(environment="test", auth_mode="disabled"))
-    contract = json.dumps(
-        app.openapi(), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    )
+    contract = json.dumps(normalize_openapi(app.openapi()), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return contract + "\n"
 
 

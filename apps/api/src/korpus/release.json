@@ -1,7 +1,7 @@
 {
   "schema": "korpus.release-identity.v1",
   "product": "KORPUS",
-  "version": "6.6.0",
-  "tag": "v6.6.0",
-  "artifact_stem": "KORPUS_SYSTEM_v6.6.0"
+  "version": "6.7.0",
+  "tag": "v6.7.0",
+  "artifact_stem": "KORPUS_SYSTEM_v6.7.0"
 }
