@@ -1,0 +1,161 @@
+{
+  "schema": "korpus.assurance-reverse-cycles.v1",
+  "release": "v6.7.1",
+  "generated_at": "2026-08-10T08:31:00+00:00",
+  "source_identity": {
+    "git_domain_sha256": "98c93c7a1b6c46ce351cd83feb5416120dc82c9e718c932cd322689faf070feb",
+    "evidence_domain_sha256": "ea85a6c494fd2ba27383f951f5b122c91bf71d5b04d5a805dfe1ada877e0f412"
+  },
+  "fresh_suite": {
+    "tests": 1318,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "line_coverage": 0.9171,
+    "branch_coverage": 0.7902,
+    "tag": "ANCHORED_LOCAL"
+  },
+  "mutation": {
+    "mutants": 259,
+    "valid_mutants": 259,
+    "killed": 259,
+    "survived": [],
+    "invalid": [],
+    "score": 1.0,
+    "tag": "ANCHORED_LOCAL"
+  },
+  "operational": {
+    "status": "PASS",
+    "production_authorized": false,
+    "tag": "ANCHORED_LOCAL"
+  },
+  "research_assurance": {
+    "status": "FAIL",
+    "failures": [
+      "quality_tooling_executed",
+      "recovery_drill_executed",
+      "recovery_provenance_complete"
+    ],
+    "tag": "ANCHORED_LOCAL"
+  },
+  "production_assurance": {
+    "status": "FAIL",
+    "production_authorized": false,
+    "failures": [
+      "engineering.pass",
+      "tevv.pass",
+      "redteam.pass",
+      "reliability.pass",
+      "postgres_security.pass",
+      "supply_chain.pass",
+      "exact_environment.pass",
+      "redteam.attestation_verified",
+      "redteam.trusted_signer",
+      "tevv.environment",
+      "postgres.real_backend",
+      "supply_chain.complete"
+    ],
+    "tag": "ANCHORED_LOCAL"
+  },
+  "cycles": [
+    {
+      "cycle": 12,
+      "name": "Canonical signed release boundary",
+      "status": "PASS_WITH_CAVEATS",
+      "evidence": "Ed25519 sign/verify/tamper mechanics PASS; production verifier refuses release while production_authorized=false. Trusted external/KMS signer absent.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 11,
+      "name": "Production TEVV",
+      "status": "FAIL",
+      "evidence": "TEVV gate failures: ['preregistered', 'source_bound', 'release_bound', 'environment_class', 'tevv_admissible', 'pass_rate', 'null_controls', 'attack_families', 'tevv:dataset declares no corpus: the run is a fixture run', 'tevv:0 observations is below the floor of 200: a point estimate from too few queries is not a measurement', 'tevv:95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough']",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 10,
+      "name": "Observability and incident containment",
+      "status": "PASS",
+      "evidence": "Bounded metric label contract; no identity/user-text metric labels; security labels bounded.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 9,
+      "name": "State-machine and transaction contracts",
+      "status": "PASS",
+      "evidence": "Exhaustive review/subscription transition matrices and terminal-state invariants.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 8,
+      "name": "Authorization model",
+      "status": "PASS",
+      "evidence": "Executable role×permission matrix; unknown permissions denied for every role including admin.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 7,
+      "name": "Pentest / red-team",
+      "status": "PASS_WITH_CAVEATS",
+      "evidence": "Internal adversarial campaign=PASS; external independently attested pentest=FAIL.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 6,
+      "name": "Distributed reliability qualification",
+      "status": "PASS_WITH_CAVEATS",
+      "evidence": "Internal fault injection=PASS; production reliability=FAIL; chaos cases=8.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 5,
+      "name": "Inference security",
+      "status": "PASS",
+      "evidence": "Direct/indirect injection, retrieval poisoning, egress leakage, planner-control, evidence-boundary and cross-scope tests executed.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 4,
+      "name": "PostgreSQL security",
+      "status": "FAIL",
+      "evidence": "Static grant contract=True; real PostgreSQL runtime=False; adversarial suite=False.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 3,
+      "name": "Supply-chain assurance",
+      "status": "FAIL",
+      "evidence": "Pinned records=68; hashed records=68; scanners clean=False; container SBOMs=False.",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 2,
+      "name": "Exact reproducible environment",
+      "status": "FAIL",
+      "evidence": "Locked components=68; missing=['ast-serialize', 'librt', 'mypy', 'mypy-extensions', 'psycopg', 'psycopg-binary', 'ruff']; mismatched=['click', 'cryptography', 'fastapi', 'pydantic-settings', 'pypdf', 'python-multipart', 'starlette', 'typing-extensions', 'pathspec', 'pytest'].",
+      "tag": "ANCHORED_LOCAL"
+    },
+    {
+      "cycle": 1,
+      "name": "Full mutation assurance",
+      "status": "PASS",
+      "evidence": "mutants=259; valid=259; killed=259; survivors=0; scope=FULL_CATALOGUE.",
+      "tag": "ANCHORED_LOCAL"
+    }
+  ],
+  "verdict": {
+    "local_engineering": "PASS_WITH_CAVEATS",
+    "production_assurance": "FAIL"
+  },
+  "unknown_or_unexecuted": [
+    "Ruff execution",
+    "Mypy execution",
+    "complete dependency/filesystem/container vulnerability scanners",
+    "container SBOMs",
+    "real PostgreSQL adversarial/RLS/concurrency suite",
+    "production-like load/soak and recovery drill",
+    "production-class preregistered TEVV corpus",
+    "independently attested trusted external pentest",
+    "trusted external/KMS release signer"
+  ]
+}
