@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean
+.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -369,3 +369,60 @@ package:
 
 clean:
 	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage.xml var dist apps/web/dist apps/web/.next
+
+# Production assurance is deliberately separate from local research assurance.
+# These targets generate evidence; the final assembler still fails unless every
+# required gate is current, release-bound and of the required evidence class.
+production-engineering:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_engineering_production_gate.py
+
+production-tevv:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_tevv_production_gate.py
+
+production-observability:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_observability_contract.py
+
+production-state-contracts:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/export_state_contracts.py
+
+production-authorization:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/export_authorization_matrix.py
+
+production-redteam-internal:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pytest_campaign.py config/assurance/redteam-internal-v1.json
+
+production-redteam-external:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/validate_external_redteam_evidence.py
+
+production-inference-security:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pytest_campaign.py config/assurance/inference-security-v1.json
+
+production-reliability-internal:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pytest_campaign.py config/assurance/reliability-internal-v1.json
+
+production-reliability:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_reliability_gate.py
+
+production-postgres-security:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_postgres_security_gate.py
+
+production-exact-environment:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py
+
+production-sbom:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/generate_lock_sbom.py
+
+production-supply-chain:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_supply_chain_gate.py
+
+production-mutation:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_mutation_production_gate.py
+
+production-assurance:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/assemble_production_assurance.py
+
+production-assurance-verify:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_assurance.py
+
+production-release: production-assurance-verify
+	KORPUS_RELEASE_SIGNING_KEY="$(KORPUS_RELEASE_SIGNING_KEY)" scripts/package_production_release.sh

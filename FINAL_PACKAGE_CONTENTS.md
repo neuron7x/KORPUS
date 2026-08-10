@@ -1,35 +1,12 @@
-# KORPUS v6.3.0 — package index
+# KORPUS v6.7.1 — canonical package index
 
-## Primary artifacts
+## Primary surfaces
 
-- complete committed source tree;
-- Git history and release tag in a separate Git bundle;
-- separate deterministic source and distribution manifests plus SHA-256 archive digest;
-- source-bound assurance snapshot;
-- complete v4 extended audit in PDF, DOCX, Markdown, JSON, CSV and original package ZIP;
-- historical v5 99-finding closure register in JSON/CSV/Markdown;
-- technical debt, TEVV, authorization, system card, risk, security and operations documents.
+- `apps/api/` — evidence-bound API, domain/application/infrastructure layers, migrations and tests;
+- `apps/web/` — responsive web client and generated API/authorization contract;
+- `config/`, `contracts/`, `deploy/`, `infra/` — runtime policy and deployment definitions;
+- `evals/`, `scripts/`, `reports/` — TEVV, mutation, security, reliability and release assurance;
+- `SOURCE_MANIFEST.json` / `DISTRIBUTION_MANIFEST.json` — byte-level source/distribution inventory;
+- Git bundle produced during packaging — complete repository history available in the distribution.
 
-## Machine-readable sources of truth
-
-- `SOURCE_MANIFEST.json` — package file inventory and root hash;
-- `reports/ASSURANCE_SNAPSHOT.json` — content hashes of JUnit, coverage, eval, mutation, migration, scale, operations, supply-chain and deployment-validation evidence;
-- `reports/RESEARCH_ASSURANCE_REPORT.json` — composed local gate result;
-- `docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json` — complete finding status;
-- `config/operations/desired-state.json` — desired-state hashes;
-- `contracts/openapi.json` — frozen API contract;
-- `var/` is execution scratch space and is not release authority.
-
-## Interpretation boundary
-
-The package is a complete engineering baseline for the frozen repository scope. It does not assert discovery of every possible vulnerability and does not self-authorize production. External evidence remains mandatory where identified in the closure and debt registers.
-
-## Local agent handoff
-
-- `handoff/START_HERE_UA.md`
-- `handoff/acts/`
-- `handoff/plans/`
-- `handoff/prompts/`
-- `handoff/machine/`
-- `scripts/verify_handoff_contract.py`
-- `RELEASE_V5_1.md`
+Production authorization is not inferred from repository completeness. `reports/PRODUCTION_ASSURANCE_REPORT.json` is the machine gate.

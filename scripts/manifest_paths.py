@@ -5,8 +5,7 @@ from pathlib import Path
 
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
 SOURCE_GENERATED_PREFIXES = {("reports",), ("handoff", "evidence")}
-LOCAL_EXCLUDED_FILES = {".coverage"}
-MANIFEST_NAMES = {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
+LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = {".coverage"}, {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 
 
 def source_included(relative: Path) -> bool:
@@ -55,9 +54,6 @@ def source_paths(root: Path) -> list[Path]:
 
 def distribution_paths(root: Path) -> list[Path]:
     """Exact deliverable paths, excluding only local/runtime debris and the manifest itself."""
-    def included(relative: Path) -> bool:
-        return (
-            not any(part in {".git", "node_modules", ".venv", "__pycache__", ".pytest_cache"} for part in relative.parts)
-            and relative.name != "DISTRIBUTION_MANIFEST.json"
-        )
-    return _walk_files(root, included)
+    excluded = {".git", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
+    return _walk_files(root, lambda relative: not any(part in excluded for part in relative.parts)
+                       and relative.name != "DISTRIBUTION_MANIFEST.json")

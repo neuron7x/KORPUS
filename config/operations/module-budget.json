@@ -158,7 +158,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/policy.py": {
-      "lines": 100,
+      "lines": 95,
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/ports.py": {
@@ -529,12 +529,12 @@
       "reason": "a drill: it breaks something on purpose and records what the system says"
     },
     "scripts/load_probe.py": {
-      "lines": 208,
+      "lines": 206,
       "max_complexity": 6,
       "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
     },
     "scripts/measure_recovery.py": {
-      "lines": 185,
+      "lines": 177,
       "max_complexity": 5
     },
     "scripts/mint_review_token.py": {
@@ -717,7 +717,7 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "scripts/manifest_paths.py": {
-      "lines": 61,
+      "lines": 59,
       "max_complexity": 5,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
@@ -797,6 +797,96 @@
     "apps/api/src/korpus/api/request_limits.py": {
       "lines": 30,
       "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/production_assurance.py": {
+      "lines": 73,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/assemble_production_assurance.py": {
+      "lines": 77,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/export_authorization_matrix.py": {
+      "lines": 76,
+      "max_complexity": 12,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/export_state_contracts.py": {
+      "lines": 59,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/generate_lock_sbom.py": {
+      "lines": 41,
+      "max_complexity": 7,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/release_attestation.py": {
+      "lines": 95,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_engineering_production_gate.py": {
+      "lines": 45,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_exact_environment_gate.py": {
+      "lines": 60,
+      "max_complexity": 8,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_mutation_production_gate.py": {
+      "lines": 56,
+      "max_complexity": 13,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_postgres_security_gate.py": {
+      "lines": 66,
+      "max_complexity": 8,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_pytest_campaign.py": {
+      "lines": 55,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_reliability_gate.py": {
+      "lines": 42,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_supply_chain_gate.py": {
+      "lines": 57,
+      "max_complexity": 12,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_tevv_production_gate.py": {
+      "lines": 83,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/verify_observability_contract.py": {
+      "lines": 58,
+      "max_complexity": 7,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/verify_production_assurance.py": {
+      "lines": 34,
+      "max_complexity": 4,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/validate_external_redteam_evidence.py": {
+      "lines": 61,
+      "max_complexity": 9,
+      "reason": "v6.7.1 external-evidence boundary: initial bounded validator ceiling"
+    },
+    "apps/api/src/korpus/application/production_reliability.py": {
+      "lines": 41,
+      "max_complexity": 5,
+      "reason": "v6.7.1 production reliability evidence evaluator: initial bounded module ceiling"
     }
   },
   "raised": [

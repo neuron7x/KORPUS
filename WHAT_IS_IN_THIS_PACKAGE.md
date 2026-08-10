@@ -1,11 +1,16 @@
-# KORPUS v6.7.0 ACT-006 candidate package
+# KORPUS v6.7.1 canonical assurance-hardened repository
 
-Candidate distribution only: exact committed source, complete Git history bundle, source
-manifest, ACT-006 inference documentation and post-commit verification evidence.
+This is one canonical source repository, not a concatenation of two trees. It contains the
+application, web client, infrastructure/deployment definitions, migrations, tests, evaluation,
+mutation catalogue, assurance tooling, documentation, manifests and Git-history release path.
 
-The OpenAI inference seam defaults to `gpt-5.6-sol` but remains disabled until an operator
-supplies a server-side key and explicitly enables planner/composer. No live vendor call is
-claimed in this package.
+## Current assurance boundary
 
-No production tag or authorization is asserted. The expected stale-assurance refusal is
-preserved in `candidate_evidence/assurance_expected_fail.txt`.
+Local engineering and adversarial evidence is generated repository-native. Production promotion is
+fail-closed and additionally requires production-like TEVV/load/recovery, real PostgreSQL runtime
+evidence, complete scanner/container SBOM evidence, exact-environment reproduction, and a trusted
+independently signed external pentest. Missing external evidence remains FAIL; it is not waived.
+
+A production release is created only through `scripts/package_production_release.sh`, which requires
+a current PASS production-assurance report, a release tag at HEAD and an external Ed25519 signing
+key. The private key is never packaged.

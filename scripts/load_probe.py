@@ -1,24 +1,9 @@
 #!/usr/bin/env python3
-"""Put a mixed workload through the running system and record where it saturates.
+"""Measure load, spike and soak latency against a running KORPUS deployment.
 
-SRE-005 and RAG-014 both say the same thing from different directions: the scale evidence
-this repository carries was produced against a fixture, and a system that has never been
-loaded has never been observed refusing work. The interesting number is not throughput —
-it is the point at which latency stops being a queue and starts being a timeout, and what
-the system says when it gets there.
-
-Three phases, because they fail differently:
-
-  load   a fixed concurrency, long enough for caches to warm; the steady state
-  spike  a step change with no warning; the queue, and whether anything is dropped
-  soak   the load phase repeated, to see whether latency drifts upward
-
-The questions are drawn from the corpus's own subjects rather than repeated, because one
-question repeated measures the cache and calls it retrieval.
-
-Every number here is a measurement of one machine on one day. It is written down with the
-conditions attached — concurrency, corpus size, cold or warm — because a latency without
-them is a claim about hardware somebody else has.
+Distinct corpus questions avoid measuring only the answer cache. Every latency stays
+bound to concurrency, target, release and environment class; this is a measurement of
+one deployment under declared conditions, never an unqualified throughput claim.
 """
 
 from __future__ import annotations
@@ -31,10 +16,17 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+sys.path.insert(0, str(ROOT / "scripts"))
+from korpus.application.provenance import compute_source_digest  # noqa: E402
+from release_identity import release_tag  # noqa: E402
 
 DECLARATION = {
     "given_name": "Навантаження",
@@ -161,6 +153,9 @@ def main() -> int:
     parser.add_argument("--soak-seconds", type=float, default=60.0)
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--out", default="var/load-probe.json")
+    parser.add_argument("--environment-class", choices=("LOCAL_DEV", "PRODUCTION_LIKE", "PRODUCTION"), default="LOCAL_DEV")
+    parser.add_argument("--source-tree-sha256", default="")
+    parser.add_argument("--release", default="")
     parser.add_argument(
         "--token", default="", help="bearer token; only for probing the API directly"
     )
@@ -178,9 +173,12 @@ def main() -> int:
     soak = _phase(arguments.base, arguments.concurrency, arguments.soak_seconds, arguments.timeout)
 
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "measured_at": datetime.now(UTC).isoformat(),
         "base": arguments.base,
+        "environment_class": arguments.environment_class,
+        "source_tree_sha256": arguments.source_tree_sha256 or compute_source_digest(ROOT),
+        "release": arguments.release or release_tag(),
         "cold_first_request": {"seconds": round(cold_latency, 3), "status": cold_status},
         "load": {"concurrency": arguments.concurrency, **load.summary()},
         "spike": {"concurrency": arguments.spike, **spike.summary()},

@@ -7,6 +7,9 @@ from typing import Any
 
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
 
+SECURITY_EVENTS = frozenset({"auth_denied", "authorization_denied", "csrf_denied", "egress_denied",
+                             "inference_boundary_denied", "rate_limited", "webhook_rejected", "recovery_failure"})
+SECURITY_OUTCOMES = frozenset({"denied", "error", "observed"})
 
 class Observability:
     """Low-cardinality metrics and optional OpenTelemetry traces."""
@@ -77,23 +80,15 @@ class Observability:
             ["error_class"],
             registry=self.registry,
         )
+        self.security_events = Counter(
+            "korpus_security_events_total", "Bounded security decisions.",
+            ["event", "outcome"], registry=self.registry,
+        )
         self.requested_otlp_endpoint = otlp_endpoint
         self._provider, self._tracer = self._configure_tracer(service_name, otlp_endpoint)
 
     def telemetry_status(self) -> dict[str, object]:
-        """Whether the configured trace export is actually in effect.
-
-        `_configure_tracer` installs an OTLP exporter only when the global tracer
-        provider is still the proxy. That guard is right — a second install would
-        replace whatever the process already has — but it means a configured
-        `otlp_endpoint` can be silently ignored, and until now nothing distinguished
-        "telemetry off" from "telemetry configured and going nowhere". The second is
-        worse than the first: an operator reading the config believes there are traces.
-
-        Not fail-closed: SLO_AND_RELEASE_POLICY_V5.md allows telemetry *display* to
-        degrade as long as the underlying event stays durably available, and it does —
-        the audit chain is not the tracer. So this is reported, not enforced.
-        """
+        """Report requested-vs-active trace export; audit durability is independent."""
         if not self.requested_otlp_endpoint:
             return {"traces": "DISABLED", "endpoint": None}
         if self._provider is None:
@@ -157,6 +152,11 @@ class Observability:
 
     def observe_anchor_reconcile_failure(self, error: BaseException) -> None:
         self.audit_anchor_reconcile_failures.labels(error_class=type(error).__name__).inc()
+
+    def observe_security_event(self, event: str, outcome: str = "denied") -> None:
+        if event not in SECURITY_EVENTS or outcome not in SECURITY_OUTCOMES:
+            raise ValueError("security metric labels are outside the bounded vocabulary")
+        self.security_events.labels(event=event, outcome=outcome).inc()
 
     def export_prometheus(self) -> bytes:
         return generate_latest(self.registry)

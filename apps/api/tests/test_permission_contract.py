@@ -128,3 +128,13 @@ def test_account_management_is_held_by_no_ordinary_role() -> None:
             assert "*" in permissions
             continue
         assert "account:manage" not in permissions, f"{role} may switch a person off"
+
+
+def test_admin_wildcard_does_not_authorize_an_unknown_permission() -> None:
+    from korpus.application.policy import AuthorizationError, PolicyEngine
+    from korpus.domain.models import Identity
+    import pytest
+
+    admin = Identity(subject="admin", roles=frozenset({"admin"}), corpora=frozenset({"public"}))
+    with pytest.raises(AuthorizationError, match="unknown permission"):
+        PolicyEngine().require(admin, "document:aprove")

@@ -1,32 +1,15 @@
 #!/usr/bin/env python3
-"""Measure a backup/restore drill and record what the measurement is worth.
+"""Measure a backup/restore drill without promoting fixture evidence to production.
 
-Run inside the PostgreSQL CI job, after `restore_postgres.sh` has produced a restored
-database. Two clocks matter and they measure different things:
-
-    RTO — wall time from the start of the restore command to the moment the restored
-          database answers the verification queries. This is the number the runbook
-          asked for and nobody recorded.
-
-    RPO — the interval of writes a restore loses. Measured, not assumed: events are
-          appended to the *source* database after the backup is taken, and the drill
-          counts how many of them are absent from the restored copy, together with the
-          span between the backup and the last of them.
-
-The output is deliberately a report about a fixture. `korpus.application.recovery`
-refuses to let it claim otherwise.
-
-Usage:
-  KORPUS_RECOVERY_SOURCE_URL=...  the database the backup was taken from
-  KORPUS_RECOVERY_RESTORED_URL=... the database restored from it
-  KORPUS_RECOVERY_BACKUP_PATH=...  the encrypted backup file
-  KORPUS_RECOVERY_RESTORE_SECONDS=... wall seconds the restore command took
-  python3 scripts/measure_recovery.py
+RTO is restore plus verification time; RPO is measured from writes made after backup.
+The report records scale, source and release so production assurance can reject a CI
+fixture even when the restore itself succeeds.
 """
 from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -34,6 +17,10 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+sys.path.insert(0, str(ROOT / "scripts"))
+from korpus.application.provenance import compute_source_digest  # noqa: E402
+from release_identity import release_tag  # noqa: E402
 OUTPUT = ROOT / "var/recovery-report.json"
 
 
@@ -146,9 +133,14 @@ def main() -> int:
     # it was pointed at the deployment that is actually serving.
     rpo_seconds = _interval(newest, newest_restored)
 
+    environment_class = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
     report = {
-        "schema_version": 1,
-        "scale_class": "ci-fixture",
+        "schema_version": 2,
+        "status": "PASS",
+        "scale_class": "ci-fixture" if environment_class == "CI_FIXTURE" else environment_class.lower().replace("_", "-"),
+        "environment_class": environment_class,
+        "source_tree_sha256": compute_source_digest(ROOT),
+        "release": release_tag(),
         "rto_seconds": round(restore_seconds + verify_seconds, 3),
         "restore_seconds": round(restore_seconds, 3),
         "verify_seconds": round(verify_seconds, 3),

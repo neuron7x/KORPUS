@@ -24,3 +24,15 @@ def test_admission_gauge_returns_to_zero_after_answer(client):
     assert response.status_code == 200
     payload = client.get("/metrics").text
     assert "korpus_admission_active 0.0" in payload
+
+
+def test_security_metrics_reject_unbounded_or_invented_labels():
+    import pytest
+
+    obs = Observability(registry=CollectorRegistry())
+    obs.observe_security_event("authorization_denied")
+    with pytest.raises(ValueError):
+        obs.observe_security_event("subject:alice")
+    payload = obs.export_prometheus().decode()
+    assert 'event="authorization_denied"' in payload
+    assert "alice" not in payload

@@ -1,4 +1,4 @@
-# KORPUS v6.7.0
+# KORPUS v6.7.1
 
 Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 

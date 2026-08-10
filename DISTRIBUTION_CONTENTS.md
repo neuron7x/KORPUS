@@ -1,24 +1,7 @@
-# KORPUS v6.3.0 distribution contents
+# KORPUS v6.7.1 distribution contract
 
-Current distribution contract for the evidence-bound SaaS engineering baseline.
-
-## Executable product surfaces
-
-- evidence-bound FastAPI answer kernel with explicit abstention and citation binding;
-- corpus ingestion, review, rescission, provenance and access governance;
-- identity, account, subscription-entitlement and conversation domains;
-- model-egress policy including classification ceiling;
-- dependency-free responsive reader PWA and bounded operator console;
-- PostgreSQL/SQLite persistence adapters, migrations and deployment references;
-- assurance, mutation, evaluation, security, migration, load and operational gates.
-
-## Distribution authority
-
-- `apps/api/src/korpus/release.json` — current release identity SSOT;
-- `SOURCE_MANIFEST.json` — exact authoritative source-input set;
-- `DISTRIBUTION_MANIFEST.json` — exact final ZIP contents;
-- `reports/ASSURANCE_SNAPSHOT.json` — source-bound machine evidence;
-- `contracts/openapi.json` — frozen API contract.
-
-Historical v4/v5 audit and closure records remain evidence about those historical scopes;
-they are not current release identity. Production authorization remains an external decision.
+The distribution is generated from one tagged canonical Git tree. Hardened source wins every path
+collision; historical Git objects travel as a bundle, not as a second nested repository. Generated
+assurance evidence is copied explicitly and the final ZIP receives a deterministic distribution
+manifest. `scripts/package_production_release.sh` adds a detached Ed25519 release attestation only
+after production assurance is PASS.
