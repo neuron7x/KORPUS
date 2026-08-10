@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 636,
-  "root_sha256": "69b2017a54aa08329a30c45c338c24ab327c8f16fa786cd50f9901ac6d9ee8e8",
+  "file_count": 638,
+  "root_sha256": "4d81826c35edf3e171a83cba855bf8102b6d7ef2152912558067cc57ac8f1d00",
   "files": [
     {
       "path": ".dockerignore",
@@ -1629,6 +1629,12 @@
       "path": "apps/api/tests/test_owner_restricted_pdf.py",
       "bytes": 3505,
       "sha256": "f100afc06f87feff0417687e000e6ead9920e1e00013545482f44620da60c3f2",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_package_mode_integrity.py",
+      "bytes": 2136,
+      "sha256": "b6cb600524cc2c8d1b1ebb3ea011f04dfe4948192607481e8b745ffd6742fcd2",
       "mode": "0644"
     },
     {
@@ -3477,6 +3483,12 @@
       "path": "scripts/load_probe.py",
       "bytes": 9215,
       "sha256": "c632a33cf33dc4165bcb11282872bb1378949ecfa272b754ffc42db657fe3b4a",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/manifest_lib/integrity.py",
+      "bytes": 2034,
+      "sha256": "2bf5e6701ed8462c3ac1866830402e4aaad195045247eaf4defed86c1e2acbac",
       "mode": "0644"
     },
     {
