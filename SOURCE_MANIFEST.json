@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 638,
-  "root_sha256": "3820aef85113b37bd21412e56dd58ecb9eafd89227cfe6d1970a48411e963142",
+  "file_count": 651,
+  "root_sha256": "cc43733e2c051217471dd68c56c4f3e4774706ea4ee491ad36912abe882838f6",
   "files": [
     {
       "path": ".dockerignore",
@@ -486,6 +486,18 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/assurance_evidence.py",
+      "bytes": 5452,
+      "sha256": "0817fe3c8bea64b68ce41d4867c3c4cb1db4a772ab8a9a0a80618ccb5fbc500e",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/attested_evidence.py",
+      "bytes": 2386,
+      "sha256": "6d0fe77617c1368b8565ee51695d02421514e5aef6817e86d6f4a6732bd68071",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/audit_export.py",
       "bytes": 6785,
       "sha256": "8c241eca6284e02f1d2154e74ca84d74f1adfcb9cc88eb026fb7f717ba8fd83a",
@@ -588,6 +600,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/exact_environment.py",
+      "bytes": 1099,
+      "sha256": "888beb9b017373f0aac646c503735b58efc92ce749d7aae3ab1ddc725021b8a7",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/extraction_quality.py",
       "bytes": 2418,
       "sha256": "9764c8978f6a8fbd5016ea94db4d65785abfc643a169c63846f0c1e14d6647d5",
@@ -669,6 +687,12 @@
       "path": "apps/api/src/korpus/application/production_reliability.py",
       "bytes": 1779,
       "sha256": "fd7b732e3c32af3b76a19f796b7718113259f1202dc263256d9424619cd2009d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/production_report_verification.py",
+      "bytes": 1525,
+      "sha256": "eab1234e6cdc24022e76bcaee7761d9c8535b1a87bf927da11ad84697c8b18f3",
       "mode": "0644"
     },
     {
@@ -1188,6 +1212,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_attested_evidence.py",
+      "bytes": 2947,
+      "sha256": "ab469aa45d57773c2751d29b4d5671c72c67ddc98ebcd89cab3ce5ad92cc53fa",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_audit.py",
       "bytes": 5252,
       "sha256": "f7c1bc80fd80c8bee6ebf2b5834983e6f9f5344542578121ad2c73455da59595",
@@ -1431,6 +1461,12 @@
       "path": "apps/api/tests/test_evidence_registry.py",
       "bytes": 6405,
       "sha256": "9787dcfd1c9c94716881747cedea38f4f6ad4df26af53c2148684cc672cf9b27",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_exact_environment_evidence.py",
+      "bytes": 1738,
+      "sha256": "612eb1f3f19f5f1bc21661f9eb77ba20db29a97f6fa4ac9011c2b215c938168a",
       "mode": "0644"
     },
     {
@@ -1680,6 +1716,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_production_report_verification.py",
+      "bytes": 4848,
+      "sha256": "45ec9f2b2883a9677a453001ba28426d86a6c9e09877fc37b73108996627507f",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_query_cache.py",
       "bytes": 3554,
       "sha256": "7183a7d2ffe4d20d2f4f8e18bc4b3560db51f627d7173d872e291d8d1adf20d4",
@@ -1707,6 +1749,12 @@
       "path": "apps/api/tests/test_reference_set.py",
       "bytes": 4951,
       "sha256": "97355d5f2e868dc1479447de412186aa1f086321278796675ea26ba33acaf041",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_release_attestation_trust.py",
+      "bytes": 1639,
+      "sha256": "c910e2fac6bc59e186126d15b6d88c53ea94719987f8ad769612429653bb2372",
       "mode": "0644"
     },
     {
@@ -1914,6 +1962,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_supply_chain_evidence_boundary.py",
+      "bytes": 2872,
+      "sha256": "32f27b83e55c0e59f9a782ec168d7d0fa9e3e049fa2bdd13f90db017035d7fdf",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_support_gate.py",
       "bytes": 6226,
       "sha256": "c6257d54fff64fe2ce8b25172bb63116e25fe7cea4a353f5c494af2fe5f15d04",
@@ -1965,6 +2019,12 @@
       "path": "apps/api/tests/test_tevv_admissibility.py",
       "bytes": 4645,
       "sha256": "90d838c6713aae28ba251c3aa99e7f57c46631bf1ab74de17c67f6996858d559",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_tevv_attestation_boundary.py",
+      "bytes": 2965,
+      "sha256": "aa5a8d4bfbbf812dd49773843baf461bdc2b2f1e02641fd39b9da39570ffa374",
       "mode": "0644"
     },
     {
@@ -2304,6 +2364,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/assurance/exact-environment-v1.json",
+      "bytes": 332,
+      "sha256": "1e6ce18715bd5f7a04f693366588dde27a48923ff357a346873aa72bb347bfbc",
+      "mode": "0644"
+    },
+    {
       "path": "config/assurance/inference-security-v1.json",
       "bytes": 694,
       "sha256": "7edd85cc4491c50abdc685bf7a71258c36312d2bc27ec33a2d580ebc86f8578e",
@@ -2331,6 +2397,12 @@
       "path": "config/assurance/tevv-production-v1.json",
       "bytes": 600,
       "sha256": "333116dec41786a4e783adbae301097004b28bceac7095ef0d4fb178a6b7b16d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/assurance/trusted-assurance-signers.json",
+      "bytes": 431,
+      "sha256": "2c77202f381dae91f172fbc947eeba0b006543fe331fae7fbdf6aa014fb96fed",
       "mode": "0644"
     },
     {
@@ -3316,6 +3388,12 @@
       "bytes": 14872,
       "sha256": "7b7ba160d05c6df07a149e2244a3585cbbb28137df091e7c6a127edce45ea5c6",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/build_supply_chain_evidence_manifest.py",
+      "bytes": 1646,
+      "sha256": "e4ac3deb6b8322b2952af1a72b307d2cfd92fd522a0ae8a1c31bb59c95ffb00d",
+      "mode": "0755"
     },
     {
       "path": "scripts/build_system_manifest.py",
