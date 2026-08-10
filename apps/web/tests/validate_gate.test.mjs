@@ -351,8 +351,8 @@ test("a location that sets a header without repeating the CSP is caught", async 
 
 test("a colour token below AA contrast is caught", async () => {
   const {status, output} = await runWith(async edit => {
-    await edit("design/tokens.json", source => source.replace('"hex": "#959f96"', '"hex": "#4f564f"'));
-    await edit("public/tokens.css", source => source.replace("--muted-2: #959f96;", "--muted-2: #4f564f;"));
+    await edit("design/tokens.json", source => source.replace('"hex": "#8d8982"', '"hex": "#4f564f"'));
+    await edit("public/tokens.css", source => source.replace("--muted-2: #8d8982;", "--muted-2: #4f564f;"));
   });
   assert.notEqual(status, 0);
   assert.match(output, /below WCAG 2\.2 AA/);
@@ -368,7 +368,7 @@ test("introducing a second palette root is caught", async () => {
 
 test("design token drift is caught before CSS can silently diverge", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/tokens.css", source => source.replace("--accent: #d9ff68;", "--accent: #ffffff;")));
+    edit("public/tokens.css", source => source.replace("--accent: #c75550;", "--accent: #ffffff;")));
   assert.notEqual(status, 0);
   assert.match(output, /design tokens drift/);
 });

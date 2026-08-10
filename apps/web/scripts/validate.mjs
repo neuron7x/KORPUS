@@ -7,7 +7,7 @@ import {validateDesignSystem} from "./design_system.mjs";
 const asset = (file) => fileURLToPath(new URL(`../${file}`, import.meta.url));
 const read = (file) => readFile(asset(file), "utf8");
 
-const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_system.mjs", "scripts/generate_design_tokens.mjs"];
+const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_system.mjs", "scripts/generate_design_tokens.mjs", "scripts/build_styles.mjs"];
 const SCRIPTS = [
   "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
@@ -16,7 +16,7 @@ const SCRIPTS = [
 ];
 const PAGES = ["public/index.html", "public/console.html"];
 const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
-  "design/tokens.json", "design/components.json", "design/viewports.json"];
+  "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));

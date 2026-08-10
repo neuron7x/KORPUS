@@ -19,13 +19,15 @@
   const visible = (element) => {
     const style = getComputedStyle(element);
     if (style.display === "none" || style.visibility === "hidden") return false;
+    const closed = element.closest("details:not([open])");
+    if (closed && element !== closed.querySelector(":scope > summary")) return false;
     const box = element.getBoundingClientRect();
     return box.width > 0 && box.height > 0;
   };
 
   const interactive = [...document.querySelectorAll(
     'a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex]:not([tabindex="-1"])',
-  )].filter(visible);
+  )].filter(visible).filter((element) => !element.disabled);
 
   // 2.5.8 Target Size (Minimum), AA: 24 by 24 CSS pixels, measured on the control itself.
   // Inline links in a sentence are exempt; nothing here is one.
@@ -65,18 +67,21 @@
     return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   };
   const parse = (colour) => {
-    const parts = colour.match(/[\d.]+/g);
-    return parts ? parts.slice(0, 3).map(Number) : null;
+    const parts = colour.match(/[\d.]+/g)?.map(Number);
+    if (!parts || parts.length < 3) return null;
+    return {rgb: parts.slice(0, 3), alpha: parts.length >= 4 ? parts[3] : 1};
   };
   const luminance = (rgb) => 0.2126 * channel(rgb[0]) + 0.7152 * channel(rgb[1]) + 0.0722 * channel(rgb[2]);
+  const blend = (front, back, alpha) => front.map((value, index) => value * alpha + back[index] * (1 - alpha));
   const backgroundOf = (element) => {
+    const layers = [];
     for (let node = element; node; node = node.parentElement) {
-      const colour = getComputedStyle(node).backgroundColor;
-      const rgb = parse(colour);
-      const alpha = colour.match(/[\d.]+/g)?.[3];
-      if (rgb && alpha !== "0") return rgb;
+      const parsed = parse(getComputedStyle(node).backgroundColor);
+      if (parsed && parsed.alpha > 0) layers.push(parsed);
     }
-    return [0, 0, 0];
+    let result = [0, 0, 0];
+    for (const layer of layers.reverse()) result = blend(layer.rgb, result, layer.alpha);
+    return result;
   };
   const textNodes = [...document.querySelectorAll("p, li, h1, h2, h3, h4, span, a, button, dd, dt, blockquote")]
     .filter((element) => visible(element) && element.textContent.trim().length > 0)
@@ -86,8 +91,9 @@
     const foreground = parse(style.color);
     if (!foreground) continue;
     const background = backgroundOf(element);
-    const light = Math.max(luminance(foreground), luminance(background));
-    const dark = Math.min(luminance(foreground), luminance(background));
+    const foregroundRgb = blend(foreground.rgb, background, foreground.alpha);
+    const light = Math.max(luminance(foregroundRgb), luminance(background));
+    const dark = Math.min(luminance(foregroundRgb), luminance(background));
     const ratio = (light + 0.05) / (dark + 0.05);
     const size = parseFloat(style.fontSize);
     const bold = Number(style.fontWeight) >= 700;

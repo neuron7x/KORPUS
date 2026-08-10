@@ -7,14 +7,19 @@
   },
   "proofViewports": [
     {
+      "id": "mobile-narrow",
+      "width": 320,
+      "height": 700
+    },
+    {
       "id": "mobile",
       "width": 390,
       "height": 844
     },
     {
       "id": "tablet",
-      "width": 834,
-      "height": 1112
+      "width": 768,
+      "height": 1024
     },
     {
       "id": "desktop",

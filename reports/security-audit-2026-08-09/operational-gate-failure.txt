@@ -1,6 +1,0 @@
-{
-  "status": "FAIL",
-  "missing": [
-    "/mnt/data/korpus_work/var/mutation-report.json"
-  ]
-}

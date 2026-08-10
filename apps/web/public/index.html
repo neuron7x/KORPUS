@@ -3,21 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#070907">
+  <meta name="theme-color" content="#010101">
   <meta name="description" content="KORPUS — контрольована база знань із доказовими відповідями">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/tokens.css">
   <link rel="stylesheet" href="/styles.css">
-  <title>KORPUS / Доказовий інтерфейс знань</title>
+  <title>KORPUS — evidence-bound knowledge interface</title>
 </head>
 <body>
   <a class="skip-link" href="#query">Перейти до поля запиту</a>
 
   <header class="topbar">
     <a class="brand" href="/" aria-label="KORPUS — головна">
-      <span class="mark" aria-hidden="true"></span>
-      <span class="brand-word">KORPUS</span>
-      <span class="brand-sub">VERIFIED KNOWLEDGE</span>
+      <span class="pixel-wordmark" aria-hidden="true"><span class="ltr">K</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">P</span><span class="ltr">U</span><span class="ltr">S</span><i class="scan"></i></span>
+      <span class="brand-sub">EVIDENCE-BOUND AGENT</span>
     </a>
     <div class="header-actions">
       <span class="system-signal"><i aria-hidden="true"></i> відповідь тільки з доказом</span>
@@ -31,21 +30,26 @@
 
     <section id="entry" class="welcome" aria-labelledby="entry-heading">
       <div class="welcome-copy">
-        <p class="eyebrow">CONTROLLED KNOWLEDGE / SOURCE-BOUND ANSWERS</p>
-        <h1 id="entry-heading">Питайте.<br>Отримуйте лише те, що можна довести.</h1>
-        <p class="lead">
-          KORPUS працює не з відкритою фантазією моделі, а з контрольованою базою знань.
-          Кожне твердження повинно пройти перевірку джерел. Доказу немає — відповіді немає.
-        </p>
+        <div class="entry-lockup"><span class="pixel-wordmark hero-wordmark" aria-hidden="true"><span class="ltr">K</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">P</span><span class="ltr">U</span><span class="ltr">S</span><i class="scan"></i></span><span>CONTROLLED KNOWLEDGE SYSTEM</span></div>
+        <p class="eyebrow">SOURCE-BOUND ANSWERS / FAIL-CLOSED</p>
+        <h1 id="entry-heading">Доказ є — відповідає.<br><em>Доказу немає — зупиняється.</em></h1>
+        <p class="lead">Один робочий інтерфейс для пошуку, перевірки й цитування контрольованих джерел. Модель допомагає сформувати відповідь, але не має права створити факт.</p>
         <div class="hero-actions" data-private-only>
           <button id="login" type="button" class="primary large">Увійти в KORPUS</button>
           <span class="hero-note">Акаунт · підписка · захищена оплата · перевірені джерела</span>
         </div>
         <div class="hero-proof" aria-label="Ключові властивості KORPUS">
-          <span><i aria-hidden="true"></i> Без генеративного fallback</span>
-          <span><i aria-hidden="true"></i> Цитата в кожній допущеній відповіді</span>
-          <span><i aria-hidden="true"></i> Доступ перевіряється до пошуку</span>
+          <span><i aria-hidden="true"></i> APPROVED SOURCES</span><span><i aria-hidden="true"></i> VERSION AWARE</span><span><i aria-hidden="true"></i> HASH BOUND</span><span><i aria-hidden="true"></i> FAIL CLOSED</span>
         </div>
+        <details class="premium-trust entry-trust">
+          <summary><span>PREMIUM TRUST ARCHITECTURE</span><b>На чому стоїть відповідь</b></summary>
+          <div class="premium-grid">
+            <article><strong>База знань</strong><p>Схвалені, версійовані документи; незмінні source bytes та контрольований ingestion.</p></article>
+            <article><strong>Пошук</strong><p>PostgreSQL/pgvector для метаданих, стану й retrieval; доступ фільтрується до пошуку.</p></article>
+            <article><strong>Доказ</strong><p>Точний source span, revision, locator і SHA-256 provenance поруч із твердженням.</p></article>
+            <article><strong>Межа</strong><p>Unsupported, contradictory або policy-blocked output завершується abstention/review, не правдоподібним fallback.</p></article>
+          </div>
+        </details>
       </div>
 
       <div class="trust-demo" aria-label="Приклад доказової відповіді KORPUS">
@@ -91,9 +95,9 @@
       </div>
 
       <section class="principles" aria-label="Гарантії системи">
-        <article><b>01</b><div><h2>Не знає — не вигадує</h2><p>Недостатній доказ завершується явною відмовою.</p></div></article>
-        <article><b>02</b><div><h2>Джерело видно</h2><p>Цитата, редакція, локатор і hash йдуть разом із відповіддю.</p></div></article>
-        <article><b>03</b><div><h2>Доступ до пошуку</h2><p>Політика й підписка перевіряються до retrieval та inference.</p></div></article>
+        <article><b>01</b><div><h2>Не знає — мовчить</h2><p>Недостатній доказ → явна відмова.</p></div></article>
+        <article><b>02</b><div><h2>Джерело видно</h2><p>Цитата · редакція · locator · hash.</p></div></article>
+        <article><b>03</b><div><h2>Доступ до пошуку</h2><p>Політика доступу спрацьовує до retrieval.</p></div></article>
       </section>
     </section>
 
@@ -193,6 +197,12 @@
 
         <section id="ask-section" class="ask-section" aria-labelledby="ask-heading">
           <h2 id="ask-heading" class="sr-only">Запит</h2>
+          <div class="quick-actions" aria-label="Швидкі операції">
+            <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти норму</button>
+            <button class="quick-action" type="button" data-template="Перевір твердження: "><b>02</b>Перевірити</button>
+            <button class="quick-action" type="button" data-template="Порівняй редакції щодо "><b>03</b>Порівняти</button>
+            <button class="quick-action" type="button" data-template="Покажи точне джерело для "><b>04</b>Джерело</button>
+          </div>
           <form id="query-form" novalidate>
             <label for="query" class="sr-only">Питання до контрольованого корпусу</label>
             <div class="composer">
@@ -218,6 +228,10 @@
             <li><b>Evidence</b><span>Точний фрагмент, редакція та provenance.</span></li>
           </ol>
         </div>
+        <details class="premium-trust workspace-trust">
+          <summary><span>PREMIUM / TRUST</span><b>Архітектура доказу</b></summary>
+          <div class="premium-grid"><article><strong>Authority</strong><p>LLM не є джерелом істини. Допуск визначає evidence path.</p></article><article><strong>Provenance</strong><p>Версія · locator · source span · SHA-256.</p></article></div>
+        </details>
         <div class="trust-card">
           <span id="inference-state" role="status" aria-live="polite">MODEL ASSIST · перевірка…</span>
           <strong>Evidence-bound</strong>

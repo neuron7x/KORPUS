@@ -221,6 +221,65 @@
         "status never exposes API keys or provider base URLs",
         "answer authority remains extractive evidence"
       ]
+    },
+    {
+      "id": "pixel-wordmark",
+      "selectors": [
+        ".pixel-wordmark",
+        ".pixel-wordmark .ltr",
+        ".pixel-wordmark .scan"
+      ],
+      "variants": [
+        "topbar",
+        "hero"
+      ],
+      "states": [
+        "idle",
+        "animated",
+        "reduced-motion"
+      ],
+      "contract": [
+        "visual identity only; animation never encodes operational state",
+        "prefers-reduced-motion disables motion"
+      ]
+    },
+    {
+      "id": "quick-action",
+      "selectors": [
+        ".quick-actions",
+        ".quick-action"
+      ],
+      "variants": [
+        "prefill"
+      ],
+      "states": [
+        "idle",
+        "hover",
+        "focus-visible"
+      ],
+      "contract": [
+        "only pre-fills the canonical query composer",
+        "cannot bypass identity, authorization, retrieval, evidence admission, or API transport"
+      ]
+    },
+    {
+      "id": "premium-trust",
+      "selectors": [
+        ".premium-trust",
+        ".premium-grid"
+      ],
+      "variants": [
+        "entry",
+        "workspace"
+      ],
+      "states": [
+        "collapsed",
+        "expanded"
+      ],
+      "contract": [
+        "describes implemented trust architecture, not external certification",
+        "native disclosure remains keyboard-operable"
+      ]
     }
   ]
 }

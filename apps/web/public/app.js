@@ -261,13 +261,14 @@ function render(answer, question) {
       <span class="answer-opening-mark">система склала цей рядок лише з допущених цитат</span></p>` : ""}
     <p class="answer-text">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</p>
     ${withheld}
-    <dl class="metrics">
-      <div><dt>Ranking utility</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
-      <div><dt>Evidence coverage</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
-      <div><dt>Цитат</dt><dd>${(answer.citations ?? []).length}</dd></div>
-      <div><dt>Corpus release</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
-    </dl>
-    <p class="note">Ranking utility не є ймовірністю правильності.</p>
+    <details class="answer-meta"><summary>Деталі перевірки</summary>
+      <dl class="metrics">
+        <div><dt>Ranking utility</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
+        <div><dt>Evidence coverage</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
+        <div><dt>Цитат</dt><dd>${(answer.citations ?? []).length}</dd></div>
+        <div><dt>Corpus release</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
+      </dl><p class="note">Ranking utility не є ймовірністю правильності.</p>
+    </details>
     ${citations}
     ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
   result.append(block);
@@ -364,6 +365,14 @@ function resizeComposer() {
   query.style.height = `${Math.min(query.scrollHeight, 190)}px`;
 }
 
+for (const action of document.querySelectorAll(".quick-action[data-template]")) {
+  action.addEventListener("click", () => {
+    query.value = action.dataset.template ?? "";
+    resizeComposer();
+    query.focus();
+  });
+}
+
 query.addEventListener("input", resizeComposer);
 query.addEventListener("keydown", event => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
@@ -379,7 +388,7 @@ resizeComposer();
 // task from being pushed below an open navigation panel. This only sets the initial
 // disclosure state — after boot the user owns the control.
 const conversationsPanel = $("conversations");
-if (conversationsPanel) conversationsPanel.open = window.matchMedia("(min-width: 901px)").matches;
+if (conversationsPanel) conversationsPanel.open = false;
 
 wireCorpus({corpus: $("corpus"), body: $("corpus-body")});
 
