@@ -1,57 +1,47 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-
-import json
-import re
-import sys
+import json, re, sys
 from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "apps/api/src"))
-sys.path.insert(0, str(ROOT / "scripts"))
-
+sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
+from korpus.application.assurance_evidence import evaluate_supply_chain_evidence  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
-from release_identity import release_tag  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
-
+from release_identity import release_tag  # noqa: E402
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\\s]+)")
 LOCKS = (ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock")
+TRUST = ROOT / "config/assurance/trusted-assurance-signers.json"
 
+def _json(path: Path) -> dict:
+    try: value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError): return {}
+    return value if isinstance(value, dict) else {}
 
 def main() -> int:
-    pins = 0
-    hashes = 0
+    pins = hashes = 0; locked: dict[str, str] = {}
     for path in LOCKS:
         for line in path.read_text(encoding="utf-8").splitlines():
-            if PIN.match(line.strip()):
-                pins += 1
-            if "--hash=sha256:" in line:
-                hashes += 1
-    scan_path = ROOT / "var/security/summary.json"
-    scan = json.loads(scan_path.read_text(encoding="utf-8")) if scan_path.is_file() else {}
-    source_sbom = ROOT / "source-sbom.cdx.json"
-    container_sboms = [ROOT / "api-sbom.cdx.json", ROOT / "web-sbom.cdx.json"]
-    checks = {
-        "exact_pins_have_hashes": pins > 0 and hashes == pins,
-        "source_sbom": source_sbom.is_file(),
-        "security_scanners_executed_clean": scan.get("status") == "PASS",
-        "container_sboms": all(path.is_file() for path in container_sboms),
-    }
+            match = PIN.match(line.strip())
+            if match: pins += 1; locked[match.group(1).lower().replace("_", "-")] = match.group(2)
+            if "--hash=sha256:" in line: hashes += 1
+    source, release = compute_source_digest(ROOT), release_tag()
+    names = ("source-sbom.cdx.json", "api-sbom.cdx.json", "web-sbom.cdx.json", "var/security/summary.json")
+    paths = {name: ROOT / name for name in names}; raw = {name: path.read_bytes() if path.is_file() else b"" for name, path in paths.items()}
+    manifest_path = ROOT / "var/production/supply-chain-evidence-manifest.json"
+    attestation_path = ROOT / "var/production/supply-chain-evidence.attestation.json"
+    trusted = set(_json(TRUST).get("supply_chain_ed25519_public_key_sha256", ()))
+    checks, completeness, fingerprint = evaluate_supply_chain_evidence(
+        pins=pins, hashes=hashes, locked=locked, scan=_json(paths[names[3]]), source_sbom=_json(paths[names[0]]),
+        api_sbom=_json(paths[names[1]]), web_sbom=_json(paths[names[2]]), manifest=_json(manifest_path), artifact_bytes=raw,
+        source=source, release=release, attestation=_json(attestation_path), trusted=trusted,
+        manifest_bytes=manifest_path.read_bytes() if manifest_path.is_file() else b"")
     failures = [name for name, ok in checks.items() if not ok]
-    completeness = "COMPLETE" if not failures else "PARTIAL"
-    result = gate_payload(
-        "supply_chain", status="PASS" if not failures else "FAIL",
-        source_digest=compute_source_digest(ROOT), release=release_tag(), checks=checks,
-        failures=failures, evidence_class="LOCK_PLUS_SCANNERS_PLUS_CONTAINER_SBOM",
-        completeness=completeness, pinned_records=pins, hashed_records=hashes,
-        scanner_summary=scan,
-    )
-    out = ROOT / "var/production/supply_chain-gate.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    result = gate_payload("supply_chain", status="PASS" if not failures else "FAIL", source_digest=source, release=release,
+        checks=checks, failures=failures, evidence_class="ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM", completeness=completeness,
+        pinned_records=pins, hashed_records=hashes, signer_fingerprint=fingerprint)
+    out = ROOT / "var/production/supply_chain-gate.json"; out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"); print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "PASS" else 1
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -892,6 +892,31 @@
       "lines": 60,
       "max_complexity": 7,
       "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings"
+    },
+    "apps/api/src/korpus/application/attested_evidence.py": {
+      "lines": 66,
+      "max_complexity": 8,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for detached Ed25519 evidence verification"
+    },
+    "apps/api/src/korpus/application/assurance_evidence.py": {
+      "lines": 132,
+      "max_complexity": 6,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for shared trusted-evidence predicates"
+    },
+    "scripts/build_supply_chain_evidence_manifest.py": {
+      "lines": 51,
+      "max_complexity": 3,
+      "reason": "v6.8.2 supply-chain evidence binding: initial bounded manifest builder ceiling"
+    },
+    "apps/api/src/korpus/application/exact_environment.py": {
+      "lines": 24,
+      "max_complexity": 4,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for exact-environment state predicates"
+    },
+    "apps/api/src/korpus/application/production_report_verification.py": {
+      "lines": 29,
+      "max_complexity": 3,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
     }
   },
   "raised": [

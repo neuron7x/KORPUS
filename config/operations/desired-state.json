@@ -1,6 +1,6 @@
 {
   "schema": "korpus.desired-state.v1",
-  "release": "v6.8.1",
+  "release": "v6.8.2",
   "root_sha256": "cee453bacb76227d6f3e96950d9d70da5557b7e9f60b412c1235b6fb4a74f37e",
   "records": [
     {

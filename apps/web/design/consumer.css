@@ -720,7 +720,7 @@ h1 {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .001ms !important; animation-duration: .001ms !important; }
 }
 
-/* KORPUS v6.8.1 — approved consumer surface / abyss + evidence-red. */
+/* KORPUS v6.8.2 — approved consumer surface / abyss + evidence-red. */
 body{background:#010101;color:var(--text)}
 ::selection{background:rgba(199,85,80,.30);color:#fff}
 .topbar{background:rgba(3,3,3,.94);border-color:var(--line);backdrop-filter:blur(14px);height:var(--topbar-height)}

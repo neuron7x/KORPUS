@@ -29,6 +29,6 @@ payload = {
 out.write_text(json.dumps(payload, sort_keys=True, separators=(',', ':'))+'\n')
 PY
 python3 scripts/release_attestation.py sign --manifest "$manifest" --key "$KORPUS_RELEASE_SIGNING_KEY" --out "$attestation"
-python3 scripts/release_attestation.py verify --manifest "$manifest" --attestation "$attestation"
+python3 scripts/release_attestation.py verify --manifest "$manifest" --attestation "$attestation" --trust-config config/assurance/trusted-assurance-signers.json --trust-field release_ed25519_public_key_sha256 --require-trusted
 sha256sum "$artifact" "$manifest" "$attestation" > "dist/${name}.production.sha256"
 printf '%s\n' "$artifact" "$manifest" "$attestation"

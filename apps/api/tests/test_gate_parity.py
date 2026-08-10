@@ -1291,15 +1291,32 @@ def test_every_mutant_cites_a_test_that_exists() -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     from run_mutation_tests import MUTANTS
 
+    import ast
+
     missing = []
+    node_cache: dict[Path, set[str]] = {}
     for mutant in MUTANTS:
         for spec in mutant.tests:
             path, _, node = spec.partition("::")
             target = ROOT / path
             if not target.is_file():
                 missing.append(f"{mutant.id}: {path} does not exist")
-            elif node and node.split("[")[0] not in target.read_text(encoding="utf-8"):
-                missing.append(f"{mutant.id}: {node} not found in {path}")
+                continue
+            if not node:
+                continue
+            if target not in node_cache:
+                tree = ast.parse(target.read_text(encoding="utf-8"))
+                names = {item.name for item in tree.body if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))}
+                for item in tree.body:
+                    if isinstance(item, ast.ClassDef):
+                        names.update(
+                            f"{item.name}::{child.name}" for child in item.body
+                            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        )
+                node_cache[target] = names
+            normalized = node.split("[")[0]
+            if normalized not in node_cache[target]:
+                missing.append(f"{mutant.id}: {node} not found exactly in {path}")
 
     assert not missing, missing
 

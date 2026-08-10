@@ -1,0 +1,8 @@
+{
+  "schema": "korpus.trusted-assurance-signers.v1",
+  "environment_ed25519_public_key_sha256": [],
+  "supply_chain_ed25519_public_key_sha256": [],
+  "interpretation": "Empty by default. Production-like environment and supply-chain evidence cannot pass until independently controlled signer fingerprints are explicitly admitted.",
+  "production_assurance_ed25519_public_key_sha256": [],
+  "release_ed25519_public_key_sha256": []
+}

@@ -413,6 +413,7 @@ production-sbom:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/generate_lock_sbom.py
 
 production-supply-chain:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/build_supply_chain_evidence_manifest.py
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_supply_chain_gate.py
 
 production-mutation:

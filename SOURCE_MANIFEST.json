@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 638,
-  "root_sha256": "4d81826c35edf3e171a83cba855bf8102b6d7ef2152912558067cc57ac8f1d00",
+  "root_sha256": "3820aef85113b37bd21412e56dd58ecb9eafd89227cfe6d1970a48411e963142",
   "files": [
     {
       "path": ".dockerignore",
@@ -103,14 +103,14 @@
     },
     {
       "path": "Makefile",
-      "bytes": 20414,
-      "sha256": "2e41ee3ee9fd3c55120e1854a9433e4d20efbd33f410b9338934798673507dc5",
+      "bytes": 20501,
+      "sha256": "81ce1c81c508ed03917f6451671603a3501be8f1d6f50c882b688b672414c9e2",
       "mode": "0644"
     },
     {
       "path": "README.md",
       "bytes": 6038,
-      "sha256": "07fc64c9631c5ec2da38752c1f9520004a6fd0c333ced2a3c890b5b7dd1acc09",
+      "sha256": "990857ce55dfcc2095a2701907383ac476f0f333b7bc65a1b9c12b36829e3fa7",
       "mode": "0644"
     },
     {
@@ -320,7 +320,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2543,
-      "sha256": "86a3535276e4fce57d1237b4b4c83e0b628574b8c1d23f2b0d50e809b4039c7d",
+      "sha256": "b68fc60022e43ec4217138f53cb3bb638f11d01e47f2adb0302fa755671df590",
       "mode": "0644"
     },
     {
@@ -992,7 +992,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 152,
-      "sha256": "d02ebaecfdf90f8d44f3be1f5ba2d88d60feab016f3f8ce9afad03747d2e34c7",
+      "sha256": "9747d25905d540adc4bbf8b09e9cfb1097b371e710c09e18192d8afa26097955",
       "mode": "0644"
     },
     {
@@ -1465,8 +1465,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 64760,
-      "sha256": "dc396de93c4d87a7f7b8ef3b6fb4ddf4fdb68ae1e5b45654fa2805c445c465f0",
+      "bytes": 65510,
+      "sha256": "88c4578c019edcc31d411e32f275bbfcf450b0bbed527765eea90b3375069668",
       "mode": "0644"
     },
     {
@@ -1675,8 +1675,8 @@
     },
     {
       "path": "apps/api/tests/test_production_reliability.py",
-      "bytes": 1775,
-      "sha256": "ee17bdd6e597f3cd53ad65fb1706dda8ecbe1767202fb4443c23422210727097",
+      "bytes": 4072,
+      "sha256": "7a499a487c3c2c206630e02517067932ba04328bd2938969d0e293d484c99873",
       "mode": "0644"
     },
     {
@@ -2030,7 +2030,7 @@
     {
       "path": "apps/web/design/consumer.css",
       "bytes": 41383,
-      "sha256": "9607abd64f7ee547ba86e3c9664dd52a18d53c29a03dc30ddeba0b382582e269",
+      "sha256": "3400dec0bddee7bb3af0f439f5bf61dd8b3c5cc1721bce8cb371d8742cd278d0",
       "mode": "0644"
     },
     {
@@ -2054,13 +2054,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 214,
-      "sha256": "a7e9e397a907b2785048931808f03a0f84fd92e709dbee4365a8926fc9c3a031",
+      "sha256": "853bc8e8ddc66e13ad5d621f2b2f04b503d696f5ee8e4ca0392ea48749dc73da",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 476,
-      "sha256": "1a526acd900bf9e4b469c860ae55be71c70f7c4f6b6f010a3dab09fcb497ac99",
+      "sha256": "daa2413f5b97c9030ad45812d0385a84b9c178ee95eed1bdc24b72449c6c4c63",
       "mode": "0644"
     },
     {
@@ -2366,13 +2366,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3669,
-      "sha256": "dbd645668cdaf682d273583ca33fce937b85b6b817a1851e68d4c13d8ce647ab",
+      "sha256": "4c9bee73b4a0fbe8206ab447e4d9a308ad5bcb62394f055d0f531bd46d24512f",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 57341,
-      "sha256": "322caa07ecd793e9c2af8f0344df353bbef0adc88bb8fdc01d553c74824cf851",
+      "bytes": 58474,
+      "sha256": "f91b9869b642a151dcd125725787bf164f26d4fd13817095a74bcd00cf43c625",
       "mode": "0644"
     },
     {
@@ -2396,7 +2396,7 @@
     {
       "path": "contracts/openapi.json",
       "bytes": 49190,
-      "sha256": "26ae47026a6bd671162ce291aa74aeb6bc609b0d50d790ea5ce7246c6fcf9618",
+      "sha256": "9326560e523abfbcecc945d3a2de57f07de6a51d259e70e67a7d98879f21a628",
       "mode": "0644"
     },
     {
@@ -2864,7 +2864,7 @@
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
       "bytes": 47485,
-      "sha256": "851c75852e99a7a491ba236bf5008e8efebaa6dc4770d36484631be7c73c8690",
+      "sha256": "5caf759ba2732ec23d73f17f635c53abf50d1e2f688f7921b409f3b63b98a8b4",
       "mode": "0644"
     },
     {
@@ -3523,8 +3523,8 @@
     },
     {
       "path": "scripts/package_production_release.sh",
-      "bytes": 1834,
-      "sha256": "d000838bced4b948a5b62f9c97065ff9addadd75ed7483e5624602af8cd26831",
+      "bytes": 1963,
+      "sha256": "1866249d7b6920d1cc3c84d87710fc2b365a16be2e7a302f6d6a4082c62e0d4a",
       "mode": "0755"
     },
     {
@@ -3559,9 +3559,9 @@
     },
     {
       "path": "scripts/release_attestation.py",
-      "bytes": 4504,
-      "sha256": "b5241f7deea48abc3920326192de9f0ed72fe7d17b3e9b0bfcdba4519440f89e",
-      "mode": "0644"
+      "bytes": 4218,
+      "sha256": "39b663458261c5d392c5a3a68bc3b4f9e16ca6715b45c702ba54e7a77e08fcaf",
+      "mode": "0755"
     },
     {
       "path": "scripts/release_identity.py",
@@ -3607,8 +3607,8 @@
     },
     {
       "path": "scripts/run_exact_environment_gate.py",
-      "bytes": 2552,
-      "sha256": "b3070f28c69fd828e2ba5c9985a3108669f07db745216bdc506a2cad4240356f",
+      "bytes": 2754,
+      "sha256": "c3ef8501ddb35f05205ed4eeffa0198d2eecbe26f466f64e00a8a0d99686d167",
       "mode": "0644"
     },
     {
@@ -3631,8 +3631,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 133339,
-      "sha256": "4597c84b6ae48399ec161bfe33e4c7abedd0989c90ae379f0aaf727760481052",
+      "bytes": 139588,
+      "sha256": "c0ee5d7fc110986e0bf2edb6ab5e1daf47893044932d7c64aff9b4a4120e0e8d",
       "mode": "0644"
     },
     {
@@ -3679,8 +3679,8 @@
     },
     {
       "path": "scripts/run_reliability_gate.py",
-      "bytes": 1981,
-      "sha256": "eccfbb66bd6f565a2c9986bb0e17b1c45328978b916d02d84a24ac1d81739ad2",
+      "bytes": 2637,
+      "sha256": "ae82e2857c4ee06a669ca1a343fffa5678d72fbe9babae7653268113f2b09ecd",
       "mode": "0644"
     },
     {
@@ -3697,14 +3697,14 @@
     },
     {
       "path": "scripts/run_supply_chain_gate.py",
-      "bytes": 2310,
-      "sha256": "5b328b3aabaf3c8a1e126924a0cf9c4b46c316c6baeb72e322536808c5a77e0b",
+      "bytes": 3129,
+      "sha256": "64cdbebdf7883f8a0835bc9fa53f0078653a4dc5da6d299e691d7b68288b238d",
       "mode": "0644"
     },
     {
       "path": "scripts/run_tevv_production_gate.py",
-      "bytes": 3781,
-      "sha256": "4f8fd23213110c7ad30ac8506e8eaf46eba4bd8558b6866ae4777bd743527802",
+      "bytes": 4503,
+      "sha256": "2b2511b6ac90981f756427b3a644697769f281e604c3fbf9c19c5d09aeeb0b56",
       "mode": "0644"
     },
     {
@@ -3805,9 +3805,9 @@
     },
     {
       "path": "scripts/verify_production_assurance.py",
-      "bytes": 1388,
-      "sha256": "bf595a92c08762dcc98fa8925d743296e3073a3acee1eac7f2bafa0711150115",
-      "mode": "0644"
+      "bytes": 2680,
+      "sha256": "840a074be57f895d64755088145f94e99e3285e5b4e906972451982ee3825fcc",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_release_evidence.py",
