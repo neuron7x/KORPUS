@@ -1,0 +1,7 @@
+{
+  "valid": false,
+  "failures": [
+    "assurance source digest does not match committed HEAD",
+    "assurance snapshot release/status mismatch"
+  ]
+}

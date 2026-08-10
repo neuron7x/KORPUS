@@ -433,3 +433,17 @@ def test_not_ready_hides_the_internal_snapshot_without_the_metrics_token(tmp_pat
         assert set(wrong.json()["detail"]) == {"ready", "reason"}, (
             "a wrong token was treated as if it were the metrics token"
         )
+
+
+def test_malformed_host_header_is_rejected_before_routing(client) -> None:
+    """A Host value must not be able to alter the path seen by security middleware.
+
+    TrustedHostMiddleware is defense in depth against request.url path-confusion classes:
+    a malformed authority is rejected before a protected route is interpreted.
+    """
+    response = client.get(
+        "/v1/auth/me",
+        headers={"Host": "example.com/health?x=", "Authorization": "Bearer invalid"},
+    )
+    assert response.status_code == 400
+

@@ -82,7 +82,7 @@ def test_object_store_unavailable_is_a_503_not_a_500(client: Any, monkeypatch) -
 def test_a_full_upload_spool_is_a_503_not_a_500(client: Any, monkeypatch) -> None:
     import os as _os
 
-    import korpus.api.routes as routes
+    import korpus.api.routes_corpus as routes
 
     class _FullDisk:
         """A spool handle on a tmpfs with no room left: every write is ENOSPC."""

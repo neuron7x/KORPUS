@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: money is formatted from integer minor units
+ok 1 - money is formatted from integer minor units
+  ---
+  duration_ms: 15.668352
+  type: 'test'
+  ...
+# Subtest: commercial status does not call incomplete active
+ok 2 - commercial status does not call incomplete active
+  ---
+  duration_ms: 0.173544
+  type: 'test'
+  ...
+# Subtest: a plan price and corpus label are escaped
+ok 3 - a plan price and corpus label are escaped
+  ---
+  duration_ms: 0.455486
+  type: 'test'
+  ...
+# Subtest: checkout is allow-listed to the exact LiqPay endpoint
+ok 4 - checkout is allow-listed to the exact LiqPay endpoint
+  ---
+  duration_ms: 0.513019
+  type: 'test'
+  ...
+# Subtest: a curator sees ingestion and the corpus, not review or audit
+ok 5 - a curator sees ingestion and the corpus, not review or audit
+  ---
+  duration_ms: 1.722678
+  type: 'test'
+  ...
+# Subtest: a reviewer sees review and the corpus, not ingestion
+ok 6 - a reviewer sees review and the corpus, not ingestion
+  ---
+  duration_ms: 1.185523
+  type: 'test'
+  ...
+# Subtest: an auditor sees audit and the corpus, and cannot write anything
+ok 7 - an auditor sees audit and the corpus, and cannot write anything
+  ---
+  duration_ms: 0.572604
+  type: 'test'
+  ...
+# Subtest: an ordinary user sees only the corpus
+ok 8 - an ordinary user sees only the corpus
+  ---
+  duration_ms: 0.148048
+  type: 'test'
+  ...
+# Subtest: an admin sees every console through the wildcard
+ok 9 - an admin sees every console through the wildcard
+  ---
+  duration_ms: 0.184733
+  type: 'test'
+  ...
+# Subtest: roles compose rather than override
+ok 10 - roles compose rather than override
+  ---
+  duration_ms: 0.09517
+  type: 'test'
+  ...
+# Subtest: an unknown role grants nothing
+ok 11 - an unknown role grants nothing
+  ---
+  duration_ms: 0.21444
+  type: 'test'
+  ...
+# Subtest: no identity means no console, not every console
+ok 12 - no identity means no console, not every console
+  ---
+  duration_ms: 0.111206
+  type: 'test'
+  ...
+# Subtest: the role table is the generated one, not a second copy
+ok 13 - the role table is the generated one, not a second copy
+  ---
+  duration_ms: 0.473444
+  type: 'test'
+  ...
+# Subtest: a note shorter than the contract's minimum never leaves the browser
+ok 14 - a note shorter than the contract's minimum never leaves the browser
+  ---
+  duration_ms: 0.885456
+  type: 'test'
+  ...
+# Subtest: a note at exactly the minimum passes
+ok 15 - a note at exactly the minimum passes
+  ---
+  duration_ms: 0.242797
+  type: 'test'
+  ...
+# Subtest: a missing version id is refused with the field named
+ok 16 - a missing version id is refused with the field named
+  ---
+  duration_ms: 0.111098
+  type: 'test'
+  ...
+# Subtest: a target outside the contract's enum is refused
+ok 17 - a target outside the contract's enum is refused
+  ---
+  duration_ms: 0.067316
+  type: 'test'
+  ...
+# Subtest: setting a tier on a non-approval is refused before the round trip
+ok 18 - setting a tier on a non-approval is refused before the round trip
+  ---
+  duration_ms: 0.145026
+  type: 'test'
+  ...
+# Subtest: a tier on an approval is accepted
+ok 19 - a tier on an approval is accepted
+  ---
+  duration_ms: 0.082117
+  type: 'test'
+  ...
+# Subtest: an ingestion without a file is refused
+ok 20 - an ingestion without a file is refused
+  ---
+  duration_ms: 0.140434
+  type: 'test'
+  ...
+# Subtest: a complete ingestion passes
+ok 21 - a complete ingestion passes
+  ---
+  duration_ms: 0.082639
+  type: 'test'
+  ...
+# Subtest: a corpus id that breaks the pattern is refused with the pattern shown
+ok 22 - a corpus id that breaks the pattern is refused with the pattern shown
+  ---
+  duration_ms: 0.09492
+  type: 'test'
+  ...
+# Subtest: a title below the minimum length is refused
+ok 23 - a title below the minimum length is refused
+  ---
+  duration_ms: 0.060259
+  type: 'test'
+  ...
+# Subtest: a title above the maximum length is refused
+ok 24 - a title above the maximum length is refused
+  ---
+  duration_ms: 0.067422
+  type: 'test'
+  ...
+# Subtest: every problem is reported, not just the first
+ok 25 - every problem is reported, not just the first
+  ---
+  duration_ms: 0.060302
+  type: 'test'
+  ...
+# Subtest: an optional field left empty is not a problem
+ok 26 - an optional field left empty is not a problem
+  ---
+  duration_ms: 0.07107
+  type: 'test'
+  ...
+# Subtest: an optional field that is present is still checked
+ok 27 - an optional field that is present is still checked
+  ---
+  duration_ms: 0.068136
+  type: 'test'
+  ...
+# Subtest: a model with no generated constraints raises rather than passing everything
+ok 28 - a model with no generated constraints raises rather than passing everything
+  ---
+  duration_ms: 0.309185
+  type: 'test'
+  ...
+# Subtest: an unpreviewed submission does not match
+ok 29 - an unpreviewed submission does not match
+  ---
+  duration_ms: 0.06991
+  type: 'test'
+  ...
+# Subtest: a previewed submission matches itself
+ok 30 - a previewed submission matches itself
+  ---
+  duration_ms: 0.062974
+  type: 'test'
+  ...
+# Subtest: editing after the preview breaks the match
+ok 31 - editing after the preview breaks the match
+  ---
+  duration_ms: 0.055185
+  type: 'test'
+  ...
+# Subtest: a version id swapped after the preview breaks the match
+ok 32 - a version id swapped after the preview breaks the match
+  ---
+  duration_ms: 0.155819
+  type: 'test'
+  ...
+# Subtest: approval is described as making the version citable, not as a state change
+ok 33 - approval is described as making the version citable, not as a state change
+  ---
+  duration_ms: 0.100544
+  type: 'test'
+  ...
+# Subtest: rejection and approval do not read the same
+ok 34 - rejection and approval do not read the same
+  ---
+  duration_ms: 0.077619
+  type: 'test'
+  ...
+# Subtest: a tier change is named in the consequence when one is set
+ok 35 - a tier change is named in the consequence when one is set
+  ---
+  duration_ms: 0.080731
+  type: 'test'
+  ...
+# Subtest: every reviewable target has its own sentence
+ok 36 - every reviewable target has its own sentence
+  ---
+  duration_ms: 0.200539
+  type: 'test'
+  ...
+# Subtest: ingestion says the version lands in quarantine, not that it is published
+ok 37 - ingestion says the version lands in quarantine, not that it is published
+  ---
+  duration_ms: 0.863188
+  type: 'test'
+  ...
+# Subtest: rescission distinguishes an immediate withdrawal from a dated one
+ok 38 - rescission distinguishes an immediate withdrawal from a dated one
+  ---
+  duration_ms: 0.157545
+  type: 'test'
+  ...
+# Subtest: only an administrator sees the accounts console
+ok 39 - only an administrator sees the accounts console
+  ---
+  duration_ms: 0.369563
+  type: 'test'
+  ...
+# Subtest: a status change is refused before it leaves without an account, a state and a reason
+ok 40 - a status change is refused before it leaves without an account, a state and a reason
+  ---
+  duration_ms: 0.239591
+  type: 'test'
+  ...
+# Subtest: a reason too short to mean anything is refused in the browser too
+ok 41 - a reason too short to mean anything is refused in the browser too
+  ---
+  duration_ms: 0.280139
+  type: 'test'
+  ...
+# Subtest: an unknown state is refused rather than sent
+ok 42 - an unknown state is refused rather than sent
+  ---
+  duration_ms: 0.192143
+  type: 'test'
+  ...
+# Subtest: the consequence says what a person loses, without softening it
+ok 43 - the consequence says what a person loses, without softening it
+  ---
+  duration_ms: 0.181483
+  type: 'test'
+  ...
+# Subtest: enabling says it restores and widens nothing
+ok 44 - enabling says it restores and widens nothing
+  ---
+  duration_ms: 0.107024
+  type: 'test'
+  ...
+# Subtest: choosing your own account is named before the server refuses it
+ok 45 - choosing your own account is named before the server refuses it
+  ---
+  duration_ms: 0.091146
+  type: 'test'
+  ...
+# Subtest: a permission the system does not name cannot be held
+ok 46 - a permission the system does not name cannot be held
+  ---
+  duration_ms: 0.123245
+  type: 'test'
+  ...
+# Subtest: the contract carries every permission, not only the granted ones
+ok 47 - the contract carries every permission, not only the granted ones
+  ---
+  duration_ms: 0.674288
+  type: 'test'
+  ...
+# Subtest: a title is the first question, shortened where it has to be
+ok 48 - a title is the first question, shortened where it has to be
+  ---
+  duration_ms: 1.206504
+  type: 'test'
+  ...
+# Subtest: how long ago, in words a reader can act on
+ok 49 - how long ago, in words a reader can act on
+  ---
+  duration_ms: 0.319912
+  type: 'test'
+  ...
+# Subtest: an unparseable timestamp renders as nothing, not as now
+ok 50 - an unparseable timestamp renders as nothing, not as now
+  ---
+  duration_ms: 0.229356
+  type: 'test'
+  ...
+# Subtest: a clock ahead of the stored time does not produce a negative age
+ok 51 - a clock ahead of the stored time does not produce a negative age
+  ---
+  duration_ms: 0.105373
+  type: 'test'
+  ...
+# Subtest: an empty list says so rather than rendering nothing
+ok 52 - an empty list says so rather than rendering nothing
+  ---
+  duration_ms: 0.34593
+  type: 'test'
+  ...
+# Subtest: each row carries its title, its age and both actions
+ok 53 - each row carries its title, its age and both actions
+  ---
+  duration_ms: 0.238491
+  type: 'test'
+  ...
+# Subtest: the open conversation is marked for assistive technology, not only in colour
+ok 54 - the open conversation is marked for assistive technology, not only in colour
+  ---
+  duration_ms: 0.28238
+  type: 'test'
+  ...
+# Subtest: a conversation with no title reads as untitled rather than as empty
+ok 55 - a conversation with no title reads as untitled rather than as empty
+  ---
+  duration_ms: 0.12523
+  type: 'test'
+  ...
+# Subtest: a title is escaped everywhere it appears
+ok 56 - a title is escaped everywhere it appears
+  ---
+  duration_ms: 0.393521
+  type: 'test'
+  ...
+# Subtest: an identifier is escaped before it becomes an attribute
+ok 57 - an identifier is escaped before it becomes an attribute
+  ---
+  duration_ms: 0.439311
+  type: 'test'
+  ...
+# Subtest: the list module names no account
+ok 58 - the list module names no account
+  ---
+  duration_ms: 11.073932
+  type: 'test'
+  ...
+# Subtest: a truncated list names the cut and offers the next page
+ok 59 - a truncated list names the cut and offers the next page
+  ---
+  duration_ms: 0.25615
+  type: 'test'
+  ...
+# Subtest: a complete list says nothing about truncation
+ok 60 - a complete list says nothing about truncation
+  ---
+  duration_ms: 0.096184
+  type: 'test'
+  ...
+# Subtest: a typed refusal renders its sentence, not its status code
+ok 61 - a typed refusal renders its sentence, not its status code
+  ---
+  duration_ms: 4.508173
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 110.982426

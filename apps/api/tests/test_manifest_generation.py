@@ -55,3 +55,21 @@ def test_distribution_manifest_includes_untracked_package_artifacts(tmp_path: Pa
     manifest = module.build_manifest(package, kind="distribution")
     paths = [record["path"] for record in manifest["files"]]
     assert paths == ["evidence.json", "source.txt"]
+
+
+def test_git_bundle_is_distribution_artifact_not_source(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    module = _module(root)
+    package = tmp_path / "package"
+    package.mkdir()
+    (package / "source.txt").write_text("source", encoding="utf-8")
+    (package / "release.bundle").write_bytes(b"git-bundle")
+
+    source_manifest = module.build_manifest(package, kind="source")
+    distribution_manifest = module.build_manifest(package, kind="distribution")
+
+    assert [record["path"] for record in source_manifest["files"]] == ["source.txt"]
+    assert [record["path"] for record in distribution_manifest["files"]] == [
+        "release.bundle",
+        "source.txt",
+    ]

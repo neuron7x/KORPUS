@@ -1,0 +1,19 @@
+{
+  "schema_version": 3,
+  "shard_index": null,
+  "shard_count": 1,
+  "mutants": 23,
+  "valid_mutants": 23,
+  "killed": 23,
+  "survived": [],
+  "invalid": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "bb4590472d5a7e60ae6e72797982b28027f070dcee07c0c7b4ec535889979d99",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-09T21:02:07+00:00"
+  },
+  "probe": true
+}

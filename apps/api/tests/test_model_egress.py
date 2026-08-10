@@ -5,9 +5,9 @@ that no HTTP call was attempted. So the transport is replaced with a function th
 the test if it is ever reached, and then the planner and the composer are asked to do
 their jobs.
 
-`LOCAL_ONLY` is checked against resolved addresses rather than against a hostname, because
-`internal.example.com` pointing at a public IP is the shape of the mistake nobody catches
-by reading the configuration file.
+`LOCAL_ONLY` accepts only locality that survives the eventual socket connection. A DNS
+name is not such a proof: policy and transport resolve independently, which creates a
+DNS-rebinding TOCTOU boundary. Private/loopback IP literals (and `localhost`) are stable.
 """
 
 from __future__ import annotations
@@ -75,44 +75,47 @@ def test_local_only_permits_a_loopback_endpoint() -> None:
     assert guarded(policy, "http://127.0.0.1:8080") is True
 
 
-def test_local_only_refuses_a_host_that_cannot_be_resolved() -> None:
-    """Unresolvable is not local: a host nobody can resolve cannot be shown to be inside."""
-    policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
-    with pytest.raises(EgressDenied):
-        policy.check("https://this-name-does-not-resolve.invalid/v1")
-
-
-def test_local_only_refuses_a_name_that_resolves_to_a_public_address(
+def test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The configuration-file mistake: an internal-looking name pointing outside."""
+    """DNS rebinding: policy must not depend on a lookup the transport will repeat."""
     import socket
 
+    calls = 0
+
     def resolve(host: str, *args: Any, **kwargs: Any) -> list[Any]:
-        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 443))]
+        nonlocal calls
+        calls += 1
+        address = "10.0.0.5" if calls == 1 else "169.254.169.254"
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (address, 443))]
 
     monkeypatch.setattr(socket, "getaddrinfo", resolve)
     policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
     with pytest.raises(EgressDenied):
         policy.check("https://internal.example.com/v1")
+    assert calls == 0, "LOCAL_ONLY must not create a DNS TOCTOU boundary"
 
 
-def test_a_name_resolving_to_both_private_and_public_is_refused(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Every address, not any: the next lookup may return the public one."""
-    import socket
-
-    def resolve(host: str, *args: Any, **kwargs: Any) -> list[Any]:
-        return [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.5", 443)),
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", 443)),
-        ]
-
-    monkeypatch.setattr(socket, "getaddrinfo", resolve)
+def test_local_only_permits_private_ip_literals() -> None:
     policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
-    with pytest.raises(EgressDenied):
-        policy.check("https://split-horizon.example.com/v1")
+    for target in (
+        "http://10.0.0.5:11434/v1",
+        "http://172.16.1.9:8080",
+        "http://192.168.50.4:9000",
+        "http://[fd00::5]:11434/v1",
+    ):
+        policy.check(target)
+
+
+def test_local_only_refuses_public_and_link_local_ip_literals() -> None:
+    policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
+    for target in (
+        "https://93.184.216.34/v1",
+        "http://169.254.169.254/latest/meta-data",
+        "http://[fe80::1]/",
+    ):
+        with pytest.raises(EgressDenied):
+            policy.check(target)
 
 
 def test_a_non_http_scheme_is_refused() -> None:
@@ -176,38 +179,9 @@ def test_model_disabled_refuses_even_a_local_endpoint(no_transport: None) -> Non
         planner.variants("питання", [])
 
 
-def test_local_only_refuses_the_cloud_metadata_endpoint(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """SSRF. 169.254.169.254 is where a cloud instance's credentials live, and Python's
-    is_private reports it as private — so accepting "any private address" hands an
-    attacker the keys. It is refused explicitly and first."""
-    import socket
-
-    for literal, family in (("169.254.169.254", socket.AF_INET), ("fe80::1", socket.AF_INET6)):
-        def resolve(host: str, *args: object, _addr: str = literal, _fam: int = family,
-                    **kwargs: object) -> list[object]:
-            return [(_fam, socket.SOCK_STREAM, 6, "", (_addr, 443))]
-
-        monkeypatch.setattr(socket, "getaddrinfo", resolve)
-        policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
-        with pytest.raises(EgressDenied):
-            policy.check(f"http://metadata.internal/{literal}")
-
-
-def test_a_name_resolving_to_both_a_private_and_a_link_local_address_is_refused(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """The rebind shape: one honest private address and one metadata address behind a name."""
-    import socket
-
-    def resolve(host: str, *args: object, **kwargs: object) -> list[object]:
-        return [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.5", 443)),
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("169.254.169.254", 443)),
-        ]
-
-    monkeypatch.setattr(socket, "getaddrinfo", resolve)
+def test_local_only_refuses_the_cloud_metadata_endpoint() -> None:
+    """Link-local is never a local-model destination, even though ipaddress calls it private."""
     policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
-    with pytest.raises(EgressDenied):
-        policy.check("https://looks-internal.example.com/v1")
+    for target in ("http://169.254.169.254/", "http://[fe80::1]/"):
+        with pytest.raises(EgressDenied):
+            policy.check(target)

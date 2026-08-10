@@ -338,3 +338,39 @@ def test_a_denial_is_not_a_silent_pass(tmp_path: Path) -> None:
         assert denial.value.denied == ["training"]
     finally:
         tenancy.close()
+
+
+def test_t12a_declared_oversize_is_refused_before_stream_consumption() -> None:
+    import asyncio
+    from fastapi import HTTPException
+    from korpus.api.request_limits import bounded_webhook_body
+
+    class Request:
+        headers = {"content-length": str(64 * 1024 + 1)}
+
+        async def stream(self):
+            raise AssertionError("oversized declared body was consumed")
+            yield b""
+
+    with pytest.raises(HTTPException) as denial:
+        asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]
+    assert denial.value.status_code == 413
+
+
+def test_t12b_chunked_oversize_stops_at_the_first_excess_chunk() -> None:
+    import asyncio
+    from fastapi import HTTPException
+    from korpus.api.request_limits import bounded_webhook_body
+
+    class Request:
+        headers: dict[str, str] = {}
+
+        async def stream(self):
+            yield b"a" * (64 * 1024)
+            yield b"b"
+            raise AssertionError("reader continued after the hard ceiling")
+
+    with pytest.raises(HTTPException) as denial:
+        asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]
+    assert denial.value.status_code == 413
+

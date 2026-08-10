@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "status": "FAIL",
+  "tools": {
+    "ruff": {
+      "command": "/opt/pyvenv/bin/python3 -m ruff check --output-format json apps/api/src apps/api/tests apps/api/migrations scripts",
+      "exit_code": 1,
+      "violations": -1,
+      "status": "FAIL",
+      "output_tail": "/opt/pyvenv/bin/python3: No module named ruff\n"
+    },
+    "mypy": {
+      "command": "/opt/pyvenv/bin/python3 -m mypy --config-file apps/api/pyproject.toml",
+      "exit_code": 1,
+      "status": "FAIL",
+      "output_tail": "/opt/pyvenv/bin/python3: No module named mypy\n"
+    }
+  },
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "19be23a84203b84f4a496ff79fda5b65fbbb5a600293f66be59039e6e978d97f",
+    "generator": "scripts/run_quality_gate.py",
+    "generated_at": "2026-08-09T21:22:55+00:00"
+  }
+}

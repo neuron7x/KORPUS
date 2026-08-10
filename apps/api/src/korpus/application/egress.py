@@ -15,16 +15,15 @@ Three postures, and the middle one is why this is an enum rather than a boolean:
   MODEL_DISABLED    no model at all. Retrieval and extraction only.
 
 The check is on the *URL*, before the client is constructed, because a policy consulted
-after a request is a policy that has already leaked the question. `LOCAL_ONLY` is enforced
-by parsing the host and refusing anything that is not a loopback or private address rather
-than by matching a hostname: `internal.example.com` resolving to a public IP is the shape
-of a mistake nobody catches by reading the config.
+after a request is a policy that has already leaked the question. `LOCAL_ONLY` accepts only
+loopback/private IP literals plus the exact local host name `localhost`. Arbitrary DNS names
+are refused: resolving a name here and resolving it again inside the HTTP client is a
+time-of-check/time-of-use boundary that DNS rebinding can cross.
 """
 
 from __future__ import annotations
 
 import ipaddress
-import socket
 from enum import StrEnum
 from urllib.parse import urlparse
 
@@ -108,38 +107,28 @@ class ModelEgressPolicy:
 
     @staticmethod
     def _is_local(host: str) -> bool:
-        """True only if every address this host resolves to is a private or loopback host
-        we would legitimately run a model on — and never a link-local address.
+        """Accept only endpoints whose locality survives the eventual HTTP connection.
 
-        Every, not any: a name that resolves to one private and one public address is a
-        name whose next lookup may return the public one. Resolution failure is not local —
-        a host that cannot be resolved cannot be shown to be inside anything.
+        A preflight DNS lookup is not a security boundary: an attacker-controlled or
+        compromised resolver can return a private address to this check and a public or
+        link-local address to the HTTP client's second lookup. `LOCAL_ONLY` therefore
+        refuses arbitrary DNS names instead of making a claim it cannot enforce.
 
-        Link-local is refused explicitly and first, because it is the one "private" range
-        that is an attack rather than a deployment: 169.254.169.254 is the cloud metadata
-        endpoint, and reaching it exfiltrates the instance's credentials. It cannot be
-        excluded by dropping a term from the accept check — Python's `is_private` reports
-        169.254.0.0/16 and fe80::/10 as private too (verified 2026-08-08), so the accept
-        check would let them through on its own. The rejection has to be stated.
+        `localhost` is the sole name exception. Every other accepted host must already be
+        an IP literal. Link-local is explicitly refused because cloud metadata endpoints
+        (notably 169.254.169.254) live there, and `ipaddress.is_private` alone would accept
+        that range.
         """
+        normalized = host.rstrip(".").lower()
+        if normalized == "localhost":
+            return True
         try:
-            addresses = {
-                info[4][0] for info in socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)
-            }
-        except (OSError, UnicodeError):
+            parsed = ipaddress.ip_address(host)
+        except ValueError:
             return False
-        if not addresses:
+        if parsed.is_link_local:
             return False
-        for address in addresses:
-            try:
-                parsed = ipaddress.ip_address(address)
-            except ValueError:  # pragma: no cover - getaddrinfo returns parseable literals
-                return False
-            if parsed.is_link_local:
-                return False
-            if not (parsed.is_private or parsed.is_loopback):
-                return False
-        return True
+        return parsed.is_private or parsed.is_loopback
 
 
 def guarded(policy: ModelEgressPolicy, base_url: str | None) -> bool:

@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "measured": {
+    "line": 0.9162,
+    "branch": 0.7891
+  },
+  "minimum": {
+    "line": 0.82,
+    "branch": 0.75
+  },
+  "policy": "config/operations/reference-v5.json",
+  "failures": []
+}

@@ -361,20 +361,18 @@ MUTANTS = (
         ("apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version",),
     ),
     Mutant(
-        # Removes the application-layer scope re-check. Nothing above the retrieval
-        # port would object to a row from a corpus the reader never requested.
-        "M32_RETRIEVER_CORPUS_RECHECK_REMOVED",
-        "apps/api/src/korpus/application/answer_query.py",
-        "if document.corpus_id not in corpora:",
-        "if False:",
-        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
+        'M32_RETRIEVER_CORPUS_RECHECK_REMOVED',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        'if document.corpus_id not in corpora:',
+        'if False:',
+        ('apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer',),
     ),
     Mutant(
-        "M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED",
-        "apps/api/src/korpus/application/answer_query.py",
-        "if not decision.allowed:",
-        "if False:",
-        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
+        'M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        'if not decision.allowed:',
+        'if False:',
+        ('apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer',),
     ),
     Mutant(
         # Turns the breach into a silent filter — the failure mode the check exists to
@@ -450,11 +448,11 @@ MUTANTS = (
         ("apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer",),
     ),
     Mutant(
-        "M40_VERSION_CONFLICT_CHECK_REMOVED",
-        "apps/api/src/korpus/application/answer_query.py",
-        "            if len(version_ids) > 1:",
-        "            if False:",
-        ("apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human",),
+        'M40_VERSION_CONFLICT_CHECK_REMOVED',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        '        if len(version_ids) > 1:',
+        '        if False:',
+        ('apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human',),
     ),
     Mutant(
         # One version cited twice reads as two independent sources.
@@ -561,11 +559,11 @@ MUTANTS = (
         ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",),
     ),
     Mutant(
-        "M53_AUDIT_READ_PERMISSION_DROPPED",
-        "apps/api/src/korpus/api/routes.py",
+        'M53_AUDIT_READ_PERMISSION_DROPPED',
+        'apps/api/src/korpus/api/routes_audit.py',
         '        policy.require(identity, "audit:read")',
-        "        pass",
-        ("apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission",),
+        '        pass',
+        ('apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission',),
     ),
     Mutant(
         # Restores the seam that manufactured sentences: the tail of one span joined
@@ -820,13 +818,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M77_SPAN_SELF_REFUTATION_IGNORED",
-        "apps/api/src/korpus/application/answer_query.py",
-        "                if refutation is not None:",
-        "                if False:",
-        (
-            "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer",
-        ),
+        'M77_SPAN_SELF_REFUTATION_IGNORED',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        '            if refutation is not None:',
+        '            if False:',
+        ('apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer',),
     ),
     Mutant(
         "M78_REFUTATION_LOOKS_ONLY_AT_SELECTED_SENTENCES",
@@ -838,19 +834,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS",
-        "apps/api/src/korpus/application/answer_query.py",
-        "            for item in eligible:\n"
-        "                refutation = refuting_sentence(claim.text, item.span.text)",
-        "            for item in [\n"
-        "                found\n"
-        "                for found in eligible\n"
-        "                if found.span.id in {citation.span_id for citation in citations}\n"
-        "            ]:\n"
-        "                refutation = refuting_sentence(claim.text, item.span.text)",
-        (
-            "apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones",
-        ),
+        'M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        '        for item in eligible:\n            refutation = refuting_sentence(claim.text, item.span.text)',
+        '        for item in [\n            found\n            for found in eligible\n            if found.span.id in {citation.span_id for citation in citations}\n        ]:\n            refutation = refuting_sentence(claim.text, item.span.text)',
+        ('apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones',),
     ),
     Mutant(
         "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
@@ -929,22 +917,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M88_AUDIT_DOES_NOT_NAME_THE_GOVERNING_VERSION",
-        "apps/api/src/korpus/application/answer_query.py",
-        '                        "version_id": str(citation.version_id),',
-        '                        "version_id": "",',
-        (
-            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on",
-        ),
+        'M88_AUDIT_DOES_NOT_NAME_THE_GOVERNING_VERSION',
+        'apps/api/src/korpus/application/answer_audit.py',
+        '                    "version_id": str(citation.version_id),',
+        '                    "version_id": "",',
+        ('apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on',),
     ),
     Mutant(
-        "M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR",
-        "apps/api/src/korpus/application/answer_query.py",
-        '                "as_of": query.as_of.isoformat(),',
-        '                "as_of": "",',
-        (
-            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for",
-        ),
+        'M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR',
+        'apps/api/src/korpus/application/answer_audit.py',
+        '            "as_of": query.as_of.isoformat(),',
+        '            "as_of": "",',
+        ('apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for',),
     ),
     Mutant(
         "M90_CURRENCY_HAS_NO_LOWER_BOUND",
@@ -1023,30 +1007,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER",
-        "apps/api/src/korpus/api/routes.py",
-        "    rows = repository.get_retrievable_spans_by_ids(\n"
-        "        identity, identity.corpora, effective, [span_id]\n"
-        "    )",
-        "    rows = repository.get_retrievable_spans_by_ids(\n"
-        "        identity.model_copy(update={'clearance': 3, "
-        "'corpora': frozenset({'public', 'restricted-demo'})}),\n"
-        "        frozenset({'public', 'restricted-demo'}), effective, [span_id]\n"
-        "    )",
-        (
-            "apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited",
-        ),
+        'M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER',
+        'apps/api/src/korpus/api/routes_answers.py',
+        '    rows = repository.get_retrievable_spans_by_ids(\n        identity, identity.corpora, effective, [span_id]\n    )',
+        "    rows = repository.get_retrievable_spans_by_ids(\n        identity.model_copy(update={'clearance': 3, 'corpora': frozenset({'public', 'restricted-demo'})}),\n        frozenset({'public', 'restricted-demo'}), effective, [span_id]\n    )",
+        ('apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited',),
     ),
     Mutant(
-        "M99_SPAN_LISTING_IGNORES_THE_DATE",
-        "apps/api/src/korpus/api/routes.py",
-        "    effective = as_of or datetime.now(UTC).date()\n"
-        "    rows = repository.list_retrievable_spans(",
-        "    effective = date(1900, 1, 1)\n"
-        "    rows = repository.list_retrievable_spans(",
-        (
-            "apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern",
-        ),
+        'M99_SPAN_LISTING_IGNORES_THE_DATE',
+        'apps/api/src/korpus/api/routes_answers.py',
+        '    effective = as_of or datetime.now(UTC).date()\n    rows = repository.list_retrievable_spans(',
+        '    effective = date(1900, 1, 1)\n    rows = repository.list_retrievable_spans(',
+        ('apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern',),
     ),
     Mutant(
         "M100_CITATION_SPAN_HASH_NOT_BOUND_TO_THE_SPAN",
@@ -1311,16 +1283,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # The predicate became a three-line `if` on 2026-08-06 when `tracked_secrets`
-        # started asking git what is tracked rather than what is present.
-        "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
-        "apps/api/src/korpus/repository_requirements.py",
-        '            relative.startswith("infra/secrets/")',
-        "            False",
-        (
-            "apps/api/tests/test_repository_register.py::"
-            "test_a_plaintext_secret_in_the_tree_is_detected",
-        ),
+        'M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED',
+        'apps/api/src/korpus/repository_requirements.py',
+        '        if relative.startswith("infra/secrets/") and path.suffix == ".txt" and relative in git_tracked:',
+        '        if False:',
+        ('apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected',),
     ),
     Mutant(
         # The fallback direction. Outside a repository nothing can tell an ignored
@@ -1337,14 +1304,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED",
-        "apps/api/src/korpus/repository_requirements.py",
-        "            and relative in git_tracked",
-        "            and True",
-        (
-            "apps/api/tests/test_repository_register.py::"
-            "test_a_secret_git_ignores_is_not_reported_as_tracked",
-        ),
+        'M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED',
+        'apps/api/src/korpus/repository_requirements.py',
+        'and relative in git_tracked:',
+        'and True:',
+        ('apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked',),
     ),
     Mutant(
         "M147_OVERSIZED_FILE_UNDETECTED",
@@ -1746,21 +1710,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # `effective_from` on a library copy is the date the copy was seen, not the date
-        # the document took force. It reads on the answer surface exactly like a date of
-        # issue, so silence about the difference lets a reader take the floor for a
-        # publication date — the one reading the field cannot support.
-        "M193_UNDATED_SOURCE_PASSES_UNANNOUNCED",
-        "apps/api/src/korpus/application/answer_query.py",
-        (
-            "        cited_undated = sum("
-            "1 for citation in citations if citation.version_id in undated)"
-        ),
-        "        cited_undated = 0",
-        (
-            "apps/api/tests/test_undated_source_limitation.py::"
-            "test_a_citation_without_a_publication_date_says_so",
-        ),
+        'M193_UNDATED_SOURCE_PASSES_UNANNOUNCED',
+        'apps/api/src/korpus/application/answer_analysis.py',
+        '    cited_undated = sum(1 for citation in citations if citation.version_id in undated)',
+        '    cited_undated = 0',
+        ('apps/api/tests/test_undated_source_limitation.py::test_a_citation_without_a_publication_date_says_so',),
     ),
     Mutant(
         # pypdf walks the page tree lazily, so `PdfReader(strict=True)` succeeding says
@@ -1967,18 +1921,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # The declaration is unverified by construction. Recording it without saying so
-        # would put a self-asserted name into an append-only chain looking like a
-        # proofed one — the audit's own record asserting an identity-proofing level
-        # nobody performed.
-        "M187_DECLARATION_RECORDED_AS_VERIFIED",
-        "apps/api/src/korpus/application/answer_query.py",
-        '                        "verified": False,',
-        '                        "verified": True,',
-        (
-            "apps/api/tests/test_answers.py::"
-            "test_the_operator_declaration_enters_the_audit_chain_marked_unverified",
-        ),
+        'M187_DECLARATION_RECORDED_AS_VERIFIED',
+        'apps/api/src/korpus/application/answer_audit.py',
+        '                    "verified": False,',
+        '                    "verified": True,',
+        ('apps/api/tests/test_answers.py::test_the_operator_declaration_enters_the_audit_chain_marked_unverified',),
     ),
     Mutant(
         "M188_DECLARATION_ACCEPTS_CONTROL_CHARACTERS",
@@ -1991,18 +1938,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # Found 2026-08-06 by an adversarial review. The rescission route checked the
-        # permission and never the entitlement: a reviewer whose document list is empty
-        # could take a restricted order out of force with its id, and the 200 handed
-        # back the full version record.
-        "M184_RESCISSION_WITHOUT_ENTITLEMENT",
-        "apps/api/src/korpus/api/routes.py",
-        "        if not policy.can_access_document(identity, document).allowed:",
-        "        if False:",
-        (
-            "apps/api/tests/test_access_oracles.py::"
-            "test_an_unentitled_reviewer_cannot_take_an_order_out_of_force",
-        ),
+        'M184_RESCISSION_WITHOUT_ENTITLEMENT',
+        'apps/api/src/korpus/api/routes_review.py',
+        '        if document is None or not policy.can_access_document(identity, document).allowed:',
+        '        if document is None:',
+        ('apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force',),
     ),
     Mutant(
         # The exact-hash half of the same oracle. The code was careful not to return the
@@ -2336,29 +2276,18 @@ MUTANTS = (
         ("apps/api/tests/test_billing_events.py::test_an_unsigned_event_is_refused",),
     ),
     Mutant(
-        "M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS",
-        "apps/api/src/korpus/application/subscriptions.py",
-        "            if subscription.last_event_at is not None and occurred < "
-        "subscription.last_event_at:",
-        "            if False:  # noqa",
-        (
-            "apps/api/tests/test_billing_events.py::"
-            "test_a_replayed_older_event_does_not_move_the_subscription_backwards",
-        ),
+        'M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS',
+        'apps/api/src/korpus/application/billing_adjudication.py',
+        '        if subscription.last_event_at is not None and occurred < subscription.last_event_at:',
+        '        if False:  # noqa',
+        ('apps/api/tests/test_billing_events.py::test_a_replayed_older_event_does_not_move_the_subscription_backwards',),
     ),
     Mutant(
-        "M140_LOCAL_ONLY_ACCEPTS_ONE_PRIVATE_ADDRESS",
-        "apps/api/src/korpus/application/egress.py",
-        "            if not (parsed.is_private or parsed.is_loopback):\n"
-        "                return False\n"
-        "        return True",
-        "            if parsed.is_private or parsed.is_loopback:\n"
-        "                return True\n"
-        "        return False",
-        (
-            "apps/api/tests/test_model_egress.py::"
-            "test_a_name_resolving_to_both_private_and_public_is_refused",
-        ),
+        'M140_LOCAL_ONLY_ACCEPTS_ARBITRARY_DNS_NAME',
+        'apps/api/src/korpus/application/egress.py',
+        '        except ValueError:\n            return False',
+        '        except ValueError:\n            return True',
+        ('apps/api/tests/test_model_egress.py::test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private',),
     ),
     Mutant(
         "M141_MODEL_DISABLED_STILL_CALLS_OUT",
@@ -2527,26 +2456,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M157_LINK_LOCAL_ACCEPTED_AS_LOCAL",
-        "apps/api/src/korpus/application/egress.py",
-        "            if parsed.is_link_local:\n                return False",
-        "            if False:\n                return False",
-        (
-            "apps/api/tests/test_model_egress.py::"
-            "test_local_only_refuses_the_cloud_metadata_endpoint",
-        ),
+        'M157_LINK_LOCAL_ACCEPTED_AS_LOCAL',
+        'apps/api/src/korpus/application/egress.py',
+        '        if parsed.is_link_local:\n            return False',
+        '        if False:\n            return False',
+        ('apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint',),
     ),
     Mutant(
-        "M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN",
-        "apps/api/src/korpus/api/routes.py",
-        "    expected = settings.resolved_metrics_token\n"
-        "    if expected is None:\n        return True",
-        "    expected = settings.resolved_metrics_token\n"
-        "    if True:\n        return True",
-        (
-            "apps/api/tests/test_infrastructure_hardening.py::"
-            "test_not_ready_hides_the_internal_snapshot_without_the_metrics_token",
-        ),
+        'M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN',
+        'apps/api/src/korpus/api/routes_health.py',
+        '    expected = settings.resolved_metrics_token\n    if expected is None:\n        return True',
+        '    expected = settings.resolved_metrics_token\n    if True:\n        return True',
+        ('apps/api/tests/test_infrastructure_hardening.py::test_not_ready_hides_the_internal_snapshot_without_the_metrics_token',),
     ),
     Mutant(
         "M159_ORPHAN_REAPER_TERMINATES_LIVE_JOBS",
@@ -2559,16 +2480,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M160_BILLING_REPLAY_GUARD_USES_PROCESSING_CLOCK",
-        "apps/api/src/korpus/application/subscriptions.py",
-        "            if subscription.last_event_at is not None and occurred < "
-        "subscription.last_event_at:",
-        "            if subscription.last_event_at is not None and occurred < "
-        "subscription.updated_at:",
-        (
-            "apps/api/tests/test_billing_events.py::"
-            "test_a_legitimate_in_order_event_is_not_rejected_as_a_replay",
-        ),
+        'M160_BILLING_REPLAY_GUARD_USES_PROCESSING_CLOCK',
+        'apps/api/src/korpus/application/billing_adjudication.py',
+        '        if subscription.last_event_at is not None and occurred < subscription.last_event_at:',
+        '        if subscription.last_event_at is not None and occurred < subscription.updated_at:',
+        ('apps/api/tests/test_billing_events.py::test_a_legitimate_in_order_event_is_not_rejected_as_a_replay',),
     ),
     Mutant(
         "M161_INTEGRITY_ERROR_SWALLOWED_AS_DUPLICATE",
@@ -2583,16 +2499,11 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        "M162_DB_OUTAGE_NOT_RETRYABLE",
-        "apps/api/src/korpus/api/routes.py",
-        "                detail=\"upload staging is full; retry shortly\",\n"
-        "                headers={\"Retry-After\": \"2\"},",
-        "                detail=\"upload staging is full; retry shortly\",\n"
-        "                headers={},",
-        (
-            "apps/api/tests/test_reliability_degradation.py::"
-            "test_a_full_upload_spool_is_a_503_not_a_500",
-        ),
+        'M162_DB_OUTAGE_NOT_RETRYABLE',
+        'apps/api/src/korpus/api/routes_corpus.py',
+        '                detail="upload staging is full; retry shortly",\n                headers={"Retry-After": "2"},',
+        '                detail="upload staging is full; retry shortly",\n                headers={},',
+        ('apps/api/tests/test_reliability_degradation.py::test_a_full_upload_spool_is_a_503_not_a_500',),
     ),
     Mutant(
         # GOV-006. The egress ceiling admits material *at* the ceiling and refuses above
@@ -2645,6 +2556,20 @@ MUTANTS = (
             "apps/api/tests/test_egress_material_ceiling.py::"
             "test_restricted_material_never_reaches_an_external_composer",
         ),
+    ),
+    Mutant(
+        'M208_WEBHOOK_DECLARED_SIZE_LIMIT_BYPASSED',
+        'apps/api/src/korpus/api/request_limits.py',
+        '            if int(declared) > MAX_WEBHOOK_BYTES:',
+        '            if False:',
+        ('apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption',),
+    ),
+    Mutant(
+        'M209_WEBHOOK_STREAM_SIZE_LIMIT_BYPASSED',
+        'apps/api/src/korpus/api/request_limits.py',
+        '        if len(payload) + len(chunk) > MAX_WEBHOOK_BYTES:',
+        '        if False:',
+        ('apps/api/tests/test_tenancy_threats.py::test_t12b_chunked_oversize_stops_at_the_first_excess_chunk',),
     ),
 )
 

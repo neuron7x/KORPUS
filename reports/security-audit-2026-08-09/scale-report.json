@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
+  "procedure": {
+    "database": "SQLite FTS5",
+    "spans": 5000,
+    "iterations": 80,
+    "warmup_queries": 1,
+    "candidate_budget": 256,
+    "query": "ALPHA-OMEGA deterministic target"
+  },
+  "results": {
+    "ingest_seconds": 0.08994910899991737,
+    "query_latency_ms_p50": 2.4983705,
+    "query_latency_ms_p95": 3.398581,
+    "query_latency_ms_max": 3.716504,
+    "candidate_count": 1,
+    "top1_recall": 1.0
+  },
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
+    "processor": "UNKNOWN"
+  },
+  "limitations": [
+    "Synthetic local probe; not a production SLA.",
+    "PostgreSQL network, concurrency and disk behavior are not represented."
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "ed57d59d7feb7a85fa2a15c86f6eadcbad9eed9a2b657ab01a5803086c1fb018",
+    "generator": "scripts/run_scale_probe.py",
+    "generated_at": "2026-08-09T21:08:36+00:00"
+  }
+}

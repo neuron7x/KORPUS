@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Promote successful assurance outputs into content-hashed release evidence."""
 from __future__ import annotations
-
 import hashlib
 import json
 import os
 import shutil
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
-
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"

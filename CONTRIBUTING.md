@@ -13,3 +13,5 @@ make package
 ```
 
 `make assurance` is the executable local baseline. GitLab additionally runs PostgreSQL integration, secret scanning, dependency audit, SBOM and container builds.
+
+Internal script helpers `scripts/manifest_paths.py` and `scripts/openapi_normalization.py` are imported by the manifest and OpenAPI runners respectively; they are library modules, not standalone CLI entry points.

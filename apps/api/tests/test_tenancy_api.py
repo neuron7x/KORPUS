@@ -227,6 +227,16 @@ def test_the_webhook_refuses_an_unsigned_body(tenant_client: Any) -> None:
     assert response.status_code == 400
 
 
+def test_the_webhook_refuses_an_oversized_body_at_the_http_boundary(tenant_client: Any) -> None:
+    response = tenant_client.post(
+        "/v1/billing/webhook",
+        content=b"x" * (64 * 1024 + 1),
+        headers={"X-Korpus-Signature": "irrelevant"},
+    )
+    assert response.status_code == 413
+    assert response.json()["detail"] == "payload too large"
+
+
 def test_the_webhook_applies_a_signed_event_without_any_session(tenant_client: Any) -> None:
     """A payment provider holds no account here. The signature is the whole authentication."""
     import hashlib

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Header, HTTPException, Request, Response, status
 from starlette.concurrency import run_in_threadpool
 
 from korpus.api.billing_dependencies import BillingProviderDependency, SubscriptionServiceDependency
+from korpus.api.request_limits import bounded_webhook_body
 from korpus.application.tenancy_ports import (
     BillingEventIgnored,
     BillingEventRejected,
@@ -16,16 +17,6 @@ from korpus.application.tenancy_ports import (
 from korpus.domain.tenancy import BillingEventResult
 
 callback_router = APIRouter()
-MAX_WEBHOOK_BYTES = 64 * 1024
-
-
-async def _bounded_body(request: Request) -> bytes:
-    payload = await request.body()
-    if len(payload) > MAX_WEBHOOK_BYTES:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="payload too large")
-    return payload
-
-
 def _result_response(result: BillingEventResult) -> Response:
     code = status.HTTP_202_ACCEPTED if result is BillingEventResult.REJECTED else status.HTTP_200_OK
     return Response(status_code=code, content=result.value, media_type="text/plain")
@@ -37,7 +28,7 @@ async def liqpay_callback(
     subscriptions: SubscriptionServiceDependency,
     provider: BillingProviderDependency,
 ) -> Response:
-    payload = await _bounded_body(request)
+    payload = await bounded_webhook_body(request)
     if provider.name != "liqpay":
         raise HTTPException(status_code=503, detail="LiqPay billing provider is not configured")
     try:
@@ -64,7 +55,7 @@ async def billing_webhook(
     subscriptions: SubscriptionServiceDependency,
     signature: Annotated[str | None, Header(alias="X-Korpus-Signature")] = None,
 ) -> Response:
-    payload = await _bounded_body(request)
+    payload = await bounded_webhook_body(request)
     try:
         result = await run_in_threadpool(subscriptions.handle_event, payload, signature)
     except BillingEventIgnored:

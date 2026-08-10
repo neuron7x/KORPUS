@@ -92,7 +92,7 @@
       "max_complexity": 21
     },
     "apps/api/src/korpus/application/egress.py": {
-      "lines": 156,
+      "lines": 145,
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/embedding_coverage.py": {
@@ -741,7 +741,7 @@
       "max_complexity": 2
     },
     "apps/api/src/korpus/api/routes_billing_callbacks.py": {
-      "lines": 76,
+      "lines": 67,
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/billing_adjudication.py": {
@@ -793,6 +793,10 @@
       "lines": 22,
       "max_complexity": 6,
       "reason": "canonicalizes equivalent OpenAPI generator encodings so contract gates track HTTP semantics"
+    },
+    "apps/api/src/korpus/api/request_limits.py": {
+      "lines": 30,
+      "max_complexity": 6
     }
   },
   "raised": [

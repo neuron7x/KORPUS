@@ -1356,3 +1356,39 @@ def test_the_drive_snapshot_is_a_snapshot_and_not_a_sync() -> None:
     # anywhere the parser can reach.
     assert "rclone" in fetch
     assert "googleapiclient" not in fetch and "google.oauth2" not in fetch
+
+
+def test_runtime_lock_satisfies_every_declared_runtime_dependency() -> None:
+    """The install contract and the hash-pinned artifact must describe the same graph root.
+
+    A lock can be internally exact and still be impossible to install from the project's
+    own metadata. That happened when pyproject required pypdf<6 while the release lock
+    pinned pypdf==6.14.2. CI normally installs the lock directly, so the contradiction
+    survived unless somebody attempted an editable/wheel install.
+    """
+    import tomllib
+
+    from packaging.requirements import Requirement
+    from packaging.utils import canonicalize_name
+    from packaging.version import Version
+
+    pyproject = tomllib.loads((ROOT / "apps/api/pyproject.toml").read_text(encoding="utf-8"))
+    declared = [Requirement(item) for item in pyproject["project"]["dependencies"]]
+    lock_text = (ROOT / "apps/api/requirements.runtime.lock").read_text(encoding="utf-8")
+    locked = {
+        canonicalize_name(name): Version(version)
+        for name, version in re.findall(r"(?m)^([A-Za-z0-9_.-]+)==([^\s\\]+)", lock_text)
+    }
+
+    missing: list[str] = []
+    incompatible: list[str] = []
+    for requirement in declared:
+        name = canonicalize_name(requirement.name)
+        version = locked.get(name)
+        if version is None:
+            missing.append(requirement.name)
+        elif version not in requirement.specifier:
+            incompatible.append(f"{requirement} vs locked {version}")
+
+    assert not missing, f"runtime direct dependencies missing from lock: {missing}"
+    assert not incompatible, f"pyproject/lock version contract drift: {incompatible}"
