@@ -2662,6 +2662,20 @@ MUTANTS = (
         '        "source_bound": report.get("source_tree_sha256") == source,',
         ('apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain',),
     ),
+    Mutant(
+        'M223_PACKAGE_MODE_INTEGRITY_BYPASSED',
+        'scripts/manifest_lib/integrity.py',
+        '    if record.get("mode") != actual_mode:',
+        '    if False:',
+        ('apps/api/tests/test_package_mode_integrity.py::test_package_verifier_refuses_lost_executable_mode',),
+    ),
+    Mutant(
+        'M224_MANIFEST_ROOT_IGNORES_MODE',
+        'scripts/manifest_lib/integrity.py',
+        "        f'{item[\"path\"]}\\0{item[\"mode\"]}\\0{item[\"sha256\"]}\\n' for item in records",
+        "        f'{item[\"path\"]}\\0{item[\"sha256\"]}\\n' for item in records",
+        ('apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes',),
+    ),
 )
 
 
@@ -2679,6 +2693,25 @@ def copy_repository(destination: Path) -> None:
     shutil.copytree(ROOT, destination, ignore=ignored, dirs_exist_ok=True)
 
 
+MUTATION_ORCHESTRATION_ENV = frozenset({"KORPUS_MUTATION_JOBS", "KORPUS_MUTATION_SHARDS"})
+
+
+def mutation_test_environment(*, pythonpath: Path) -> dict[str, str]:
+    """Environment seen by the application under mutation.
+
+    Mutation orchestration controls are intentionally removed.  They belong to the
+    harness, not to KORPUS runtime configuration; leaking them into the app once made
+    every mutant appear killed because startup rejected an unknown KORPUS_* variable.
+    """
+    environment = os.environ.copy()
+    for name in MUTATION_ORCHESTRATION_ENV:
+        environment.pop(name, None)
+    environment["PYTHONPATH"] = str(pythonpath)
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    environment["PYTHONHASHSEED"] = "0"
+    return environment
+
+
 def run_mutant(mutant: Mutant) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix=f"korpus-{mutant.id.lower()}-") as temp:
         sandbox = Path(temp) / "repo"
@@ -2686,33 +2719,57 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
         target = sandbox / mutant.file
         original = target.read_text(encoding="utf-8")
         count = original.count(mutant.old)
-        if count == 0:
-            return {"id": mutant.id, "status": "INVALID", "reason": "mutation target not found"}
+        if count != 1:
+            return {
+                "id": mutant.id,
+                "file": mutant.file,
+                "status": "INVALID",
+                "target_occurrences": count,
+                "reason": "mutation target must occur exactly once",
+                "tests": list(mutant.tests),
+            }
         target.write_text(original.replace(mutant.old, mutant.new), encoding="utf-8")
-        environment = os.environ.copy()
-        environment["PYTHONPATH"] = str(sandbox / "apps/api/src")
-        environment["PYTHONDONTWRITEBYTECODE"] = "1"
-        environment["PYTHONHASHSEED"] = "0"
+        environment = mutation_test_environment(pythonpath=sandbox / "apps/api/src")
         command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1", *mutant.tests]
-        completed = subprocess.run(
-            command,
-            cwd=sandbox,
-            env=environment,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            timeout=45,
-            check=False,
-        )
-        killed = completed.returncode != 0
+        try:
+            completed = subprocess.run(
+                command,
+                cwd=sandbox,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=45,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            output = exc.stdout or ""
+            if isinstance(output, bytes):
+                output = output.decode(errors="replace")
+            return {
+                "id": mutant.id,
+                "file": mutant.file,
+                "status": "ERROR",
+                "reason": "pytest_timeout",
+                "target_occurrences": count,
+                "tests": list(mutant.tests),
+                "output_tail": output[-3000:],
+            }
+        if completed.returncode == 0:
+            status = "SURVIVED"
+        elif completed.returncode == 1:
+            status = "KILLED"
+        else:
+            status = "ERROR"
         return {
             "id": mutant.id,
             "file": mutant.file,
-            "status": "KILLED" if killed else "SURVIVED",
+            "status": status,
             "returncode": completed.returncode,
             "target_occurrences": count,
             "tests": list(mutant.tests),
             "output_tail": completed.stdout[-3000:],
+            **({"reason": f"pytest_exit_{completed.returncode}"} if status == "ERROR" else {}),
         }
 
 
@@ -2731,6 +2788,7 @@ def summarize(
         "killed": killed,
         "survived": [result["id"] for result in results if result["status"] == "SURVIVED"],
         "invalid": [result["id"] for result in results if result["status"] == "INVALID"],
+        "errors": [result["id"] for result in results if result["status"] == "ERROR"],
         "mutation_score": score,
         # mutation_score divides by the mutants that still *apply*. A mutant whose
         # target line was reformatted stops applying, leaves the denominator, and the
@@ -2806,6 +2864,33 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def verify_mutation_baseline(mutants: list[Mutant]) -> None:
+    """Prove the focused tests pass before any mutation is applied.
+
+    A pre-existing failure must never be credited as a mutant kill.  Each shard checks
+    the union of tests it will use once, under the same cleaned environment as mutants.
+    """
+    tests = list(dict.fromkeys(spec for mutant in mutants for spec in mutant.tests))
+    if not tests:
+        return
+    command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1", *tests]
+    completed = subprocess.run(
+        command,
+        cwd=ROOT,
+        env=mutation_test_environment(pythonpath=ROOT / "apps/api/src"),
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=300,
+        check=False,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "mutation baseline is not green; refusing to credit non-zero mutant exits\n"
+            + completed.stdout[-6000:]
+        )
+
+
 def run_selected(mutants: list[Mutant], jobs: int) -> list[dict[str, object]]:
     """Run mutants, preserving catalogue order in the results regardless of jobs.
 
@@ -2814,6 +2899,7 @@ def run_selected(mutants: list[Mutant], jobs: int) -> list[dict[str, object]]:
     contents depend on scheduling cannot be compared between runs.
     """
 
+    verify_mutation_baseline(mutants)
     if jobs <= 1:
         return [run_mutant(mutant) for mutant in mutants]
     with ThreadPoolExecutor(max_workers=jobs) as pool:

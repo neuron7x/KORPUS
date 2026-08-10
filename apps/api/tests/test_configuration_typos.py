@@ -113,3 +113,8 @@ def test_no_deployed_environment_would_be_refused_by_the_check() -> None:
         if isinstance(declared, list):
             declared = dict(item.split("=", 1) for item in declared if "=" in item)
         assert unknown_settings_variables(declared or {}) == [], f"compose service {name}"
+
+
+def test_mutation_job_control_is_a_declared_operational_variable() -> None:
+    assert "KORPUS_MUTATION_JOBS" in OPERATIONAL_VARIABLES
+    assert unknown_settings_variables({"KORPUS_MUTATION_JOBS": "1"}) == []

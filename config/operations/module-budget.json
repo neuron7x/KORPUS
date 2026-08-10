@@ -887,6 +887,11 @@
       "lines": 41,
       "max_complexity": 5,
       "reason": "v6.7.1 production reliability evidence evaluator: initial bounded module ceiling"
+    },
+    "scripts/manifest_lib/integrity.py": {
+      "lines": 60,
+      "max_complexity": 7,
+      "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings"
     }
   },
   "raised": [

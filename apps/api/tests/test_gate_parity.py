@@ -1392,3 +1392,20 @@ def test_runtime_lock_satisfies_every_declared_runtime_dependency() -> None:
 
     assert not missing, f"runtime direct dependencies missing from lock: {missing}"
     assert not incompatible, f"pyproject/lock version contract drift: {incompatible}"
+
+
+def test_mutation_harness_does_not_credit_bootstrap_errors_as_kills(monkeypatch) -> None:
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import run_mutation_tests as runner
+
+    environment = runner.mutation_test_environment(pythonpath=ROOT / "apps/api/src")
+    assert "KORPUS_MUTATION_JOBS" not in environment
+    assert "KORPUS_MUTATION_SHARDS" not in environment
+
+    source = Path(runner.run_mutant.__code__.co_filename).read_text(encoding="utf-8")
+    assert 'completed.returncode == 1' in source
+    assert 'status = "ERROR"' in source
+    assert "verify_mutation_baseline(mutants)" in source

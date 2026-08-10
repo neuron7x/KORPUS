@@ -2,20 +2,17 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _archive_root(tmp: Path) -> Path:
-    roots = [p for p in tmp.iterdir() if p.is_dir()]
-    return roots[0] if len(roots) == 1 else tmp
+from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
 
 
 def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
@@ -23,7 +20,7 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object
     if not path.is_file():
         raise RuntimeError("DISTRIBUTION_MANIFEST.json missing from archive")
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.distribution-manifest.v1":
+    if manifest.get("schema") != "korpus.distribution-manifest.v2":
         failures.append("invalid distribution manifest schema")
     records = manifest.get("files")
     if not isinstance(records, list):
@@ -32,7 +29,11 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object
     return {str(record.get("path")): record for record in records if isinstance(record, dict)}
 
 
-def _verify_tree(root: Path, records: dict[str, dict[str, object]]) -> list[str]:
+def _verify_tree(
+    root: Path,
+    records: dict[str, dict[str, object]],
+    archive_modes: dict[str, str],
+) -> list[str]:
     failures = []
     actual = sorted(
         p.relative_to(root).as_posix()
@@ -46,9 +47,7 @@ def _verify_tree(root: Path, records: dict[str, dict[str, object]]) -> list[str]
         )
     for relative in actual:
         record = records.get(relative, {})
-        path = root / relative
-        if record.get("bytes") != path.stat().st_size or record.get("sha256") != sha256(path):
-            failures.append(f"digest mismatch: {relative}")
+        failures.extend(record_failures(root / relative, record, archive_modes.get(relative)))
     return failures
 
 
@@ -58,9 +57,10 @@ def verify(archive: Path) -> tuple[list[str], int]:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
             zf.extractall(tmp)
-        root = _archive_root(tmp)
+            root = archive_root(tmp)
+            modes = archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
-        failures.extend(_verify_tree(root, records))
+        failures.extend(_verify_tree(root, records, modes))
         return failures, len(records) + 1
 
 
@@ -74,7 +74,7 @@ def main() -> int:
         failures, files = verify(archive)
     except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         failures, files = [str(exc)], 0
-    payload = {"valid": not failures, "archive": str(archive), "sha256": sha256(archive), "files": files}
+    payload = {"valid": not failures, "archive": str(archive), "sha256": file_sha256(archive), "files": files}
     if failures:
         payload["failures"] = failures
     print(json.dumps(payload, indent=2))

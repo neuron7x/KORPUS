@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 
 from manifest_paths import source_paths
+from manifest_lib.integrity import record_failures
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "SOURCE_MANIFEST.json"
@@ -15,7 +15,7 @@ def main() -> int:
     if not MANIFEST.is_file():
         raise SystemExit("SOURCE_MANIFEST.json is missing")
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.source-manifest.v1" or manifest.get("kind") != "source":
+    if manifest.get("schema") != "korpus.source-manifest.v2" or manifest.get("kind") != "source":
         raise SystemExit("invalid source manifest schema")
     records = manifest.get("files")
     if not isinstance(records, list):
@@ -33,10 +33,8 @@ def main() -> int:
         if not path.is_file():
             failures.append(f"missing source file: {relative}")
             continue
-        content = path.read_bytes()
-        digest = hashlib.sha256(content).hexdigest()
-        if record.get("bytes") != len(content) or record.get("sha256") != digest:
-            failures.append(f"source digest mismatch: {relative}")
+        for failure in record_failures(path, record):
+            failures.append(f"source {failure}")
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1

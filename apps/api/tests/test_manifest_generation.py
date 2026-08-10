@@ -73,3 +73,36 @@ def test_git_bundle_is_distribution_artifact_not_source(tmp_path: Path) -> None:
         "release.bundle",
         "source.txt",
     ]
+
+
+def test_manifest_binds_posix_mode(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    module = _module(root)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    script = repo / "tool.sh"
+    script.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    script.chmod(0o755)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "tool.sh"], check=True)
+
+    manifest = module.build_manifest(repo)
+
+    assert manifest["schema"] == "korpus.source-manifest.v2"
+    assert manifest["files"][0]["mode"] == "0755"
+
+
+def test_manifest_root_changes_when_only_mode_changes(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    module = _module(root)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    script = repo / "tool.sh"
+    script.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "tool.sh"], check=True)
+    script.chmod(0o644)
+    before = module.build_manifest(repo)["root_sha256"]
+    script.chmod(0o755)
+    after = module.build_manifest(repo)["root_sha256"]
+    assert before != after
