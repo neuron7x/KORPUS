@@ -27,7 +27,7 @@ def main() -> int:
     checks = {
         "report_present": bool(report),
         "research_assurance_pass": report.get("status") == "PASS",
-        "source_bound": report.get("source_tree_sha256") == source,
+        "source_bound": report.get("evidence_source_sha256") == source,
     }
     failures = [name for name, passed in checks.items() if not passed]
     payload = gate_payload(

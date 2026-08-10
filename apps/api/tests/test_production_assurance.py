@@ -94,6 +94,12 @@ def test_self_declared_external_redteam_without_trusted_attestation_is_rejected(
     assert "redteam.trusted_signer" in verdict.failures
 
 
+
+def test_engineering_gate_uses_evidence_digest_not_git_digest_domain() -> None:
+    text = (ROOT / "scripts" / "run_engineering_production_gate.py").read_text(encoding="utf-8")
+    assert 'report.get("evidence_source_sha256") == source' in text
+    assert 'report.get("source_tree_sha256") == source' not in text
+
 def test_production_gate_generators_share_the_working_tree_digest_contract() -> None:
     scripts = (
         "export_authorization_matrix.py",

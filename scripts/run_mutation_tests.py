@@ -2655,6 +2655,13 @@ MUTANTS = (
         '        "load_source_bound": True,',
         ('apps/api/tests/test_production_reliability.py::test_reliability_evidence_from_another_tree_is_rejected',),
     ),
+    Mutant(
+        'M222_ENGINEERING_REPORT_DIGEST_DOMAIN_CONFUSED',
+        'scripts/run_engineering_production_gate.py',
+        '        "source_bound": report.get("evidence_source_sha256") == source,',
+        '        "source_bound": report.get("source_tree_sha256") == source,',
+        ('apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain',),
+    ),
 )
 
 
