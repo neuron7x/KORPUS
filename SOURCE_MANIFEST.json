@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 676,
-  "root_sha256": "898add979e08089e407e29ceb913320d396806827ead296ce7b785db69d26575",
+  "file_count": 679,
+  "root_sha256": "575e56b0cf1296898f2edbad594764c790a5a3fdc8d9d2f10b231d5470b801f8",
   "files": [
     {
       "path": ".dockerignore",
@@ -80,13 +80,13 @@
     {
       "path": "DISTRIBUTION_CONTENTS.md",
       "bytes": 451,
-      "sha256": "0287dec941ad1bb2dd97c2215b5762a78e53c39b0824d67a1eb696ffd18a160c",
+      "sha256": "114a78e444d937f279c0bd2c091cf8b8aa9aeff60f4e8f0a0c5231330121b923",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
       "bytes": 785,
-      "sha256": "1ace8e1e54e7551e6c841f61abbea6369190159b34356a712a0dceea24c39127",
+      "sha256": "3d317b293df7c42a542a5ccab7f6909f85ccb21aacd75d4bdeeb17ec5cd35a5a",
       "mode": "0644"
     },
     {
@@ -110,7 +110,7 @@
     {
       "path": "README.md",
       "bytes": 6039,
-      "sha256": "e40443d8d21e18a9b36d779c55378b34b02adc6de96cb6aa31cf87e3beb920c9",
+      "sha256": "35a04197b7431e44ed13d8a96982ba2405ea3cb357bf52f743286c6296ff9857",
       "mode": "0644"
     },
     {
@@ -146,7 +146,7 @@
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
       "bytes": 708,
-      "sha256": "1b10d1eb4ef869c4a2d349fb28c3e3cc99d941d8ed362afafc0da43b820db8ca",
+      "sha256": "745e124541bf2a0078d70a2887a2d9861656dbb02ed85b8f33629f4d2c546662",
       "mode": "0644"
     },
     {
@@ -320,7 +320,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2544,
-      "sha256": "f2af008671b4a5ef832fba4351abf8fd58ba1d157a1f6ff6eff6ed247d337db7",
+      "sha256": "a5a67886ce9c037aa152f96c64dd92cd4b818d2061b0993112ede958d7166504",
       "mode": "0644"
     },
     {
@@ -804,6 +804,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/src/korpus/application/tevv_evidence.py",
+      "bytes": 4206,
+      "sha256": "9561cc035ebf7233e5a35ea3b2253d55614a0bc8f4fef6a6af9b5e58ffbd1b13",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/src/korpus/application/trace.py",
       "bytes": 1190,
       "sha256": "50468b6bbd7a81973a0f21bc91c4e7b8c2e8fc8e4baf53aaa8fa8ceaf657e3bf",
@@ -1058,7 +1064,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 155,
-      "sha256": "e13b263ac7769566236d2bc6b6d537db0329d0e925cf49e754b6129b5d33ed30",
+      "sha256": "fcf0e1d1115b6d861087237a17307f1ef64d627d3d2a8558f5fc3337f31318a5",
       "mode": "0644"
     },
     {
@@ -1800,6 +1806,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_production_assurance_cli.py",
+      "bytes": 1034,
+      "sha256": "73497ca5928a6b503c2c99161b1cdead9bd0dbe4d7c56251c081c20bf3657948",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_production_promotion_plumbing.py",
       "bytes": 3284,
       "sha256": "18ae660d6951c88313ffb7a59ccbbd3f4307386d3faf1a4c2c3d7bc40b2aaf69",
@@ -2125,8 +2137,14 @@
     },
     {
       "path": "apps/api/tests/test_tevv_attestation_boundary.py",
-      "bytes": 2965,
-      "sha256": "aa5a8d4bfbbf812dd49773843baf461bdc2b2f1e02641fd39b9da39570ffa374",
+      "bytes": 6164,
+      "sha256": "cbb5099fb3ad0a7b549bfe4e2d0b7abed181b6765997d691e769ff707761b5c5",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_tevv_ledger_boundary.py",
+      "bytes": 3910,
+      "sha256": "066a1666f033b6b9c253d08ee1a45eb5f17dc9c20b53404db1533b9416dd40ea",
       "mode": "0644"
     },
     {
@@ -2216,13 +2234,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 216,
-      "sha256": "2f76bcfa248c26670428bc67919017a4212ea28dd285c1f318a133c5deb27fda",
+      "sha256": "e2a8b9b73dc82c961bac10ce1955467be3d54d42bfc80708cf6e0ae0aee26e8b",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 477,
-      "sha256": "296ecf29ea893670b3426a65df20dfab4177fb766b07a4027020bb3f1a9fc89c",
+      "sha256": "4b09a08b9011e6f1f6d82fba6ec1e14686362f760bc6a39b670fd225fa138a6a",
       "mode": "0644"
     },
     {
@@ -2503,8 +2521,8 @@
     },
     {
       "path": "config/assurance/tevv-production-v1.json",
-      "bytes": 600,
-      "sha256": "333116dec41786a4e783adbae301097004b28bceac7095ef0d4fb178a6b7b16d",
+      "bytes": 659,
+      "sha256": "fd6f634c0e2c0db27533d0e9aed755abf7bd766c2347cf3c9ff1e0016cd85759",
       "mode": "0644"
     },
     {
@@ -2546,13 +2564,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3670,
-      "sha256": "7f87109875462ce58e9879ee1715e633154019b5651a421fba37548456fdb61f",
+      "sha256": "50b85d4d1bed4e2021ff2c47b4a8284491a94650f913508e7ecc27bcef618482",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 61508,
-      "sha256": "1b1caf955caed1f70fd4e622b5a4c93e4bee8614eb9049cac2e3105b5b6b2e90",
+      "bytes": 61742,
+      "sha256": "0d0a063258a303147ecf6ae16a569f9bfc53d7c66ec92b5f8df7cf6865251a56",
       "mode": "0644"
     },
     {
@@ -2576,7 +2594,7 @@
     {
       "path": "contracts/openapi.json",
       "bytes": 49191,
-      "sha256": "ebe3bae5fa4ce1588e0ee0bea4c3d845c23c76291290a5776916524dcd8971f6",
+      "sha256": "abf86eab3b9f8b4c7abd06571085a20cc00ff9f87056449f3df207e457405a64",
       "mode": "0644"
     },
     {
@@ -3044,7 +3062,7 @@
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
       "bytes": 47490,
-      "sha256": "8c0f39ae0fb62f306ad77f7b646af53c5c6b5916b9cefc78e66a47f3699eb06a",
+      "sha256": "28cfb10e561ff2d4f59e75d34e26ef45d24c25d9d1a4c8adc16e464c693b30a8",
       "mode": "0644"
     },
     {
@@ -3247,8 +3265,8 @@
     },
     {
       "path": "handoff/acts/00_CURRENT_STATE_ACT.md",
-      "bytes": 1441,
-      "sha256": "a6ba5222b6e8119f3418d342d5d01f6dc94c32aed3868dc7ef0979203b8deadf",
+      "bytes": 1420,
+      "sha256": "3b4b24152124f9a260285e3af585f3d510da9cc36e6cb9da0f66baed283ae69a",
       "mode": "0644"
     },
     {
@@ -3313,8 +3331,8 @@
     },
     {
       "path": "handoff/machine/current_state.json",
-      "bytes": 2456,
-      "sha256": "a5b9b7794c97ffdafe9b3e0f43776e5298ac4fbb67aeb4db86a84e8a6fb8eb16",
+      "bytes": 2520,
+      "sha256": "c4961b29ff459be1ff888020d975762cddbfb354683728981cee8dd15984a83a",
       "mode": "0644"
     },
     {
@@ -3445,8 +3463,8 @@
     },
     {
       "path": "scripts/assemble_production_assurance.py",
-      "bytes": 3157,
-      "sha256": "fc977a04f656b42c2b6e015de98b4e11621aa8e3717ccf26dc1748858f4fd659",
+      "bytes": 3246,
+      "sha256": "984092c754874065ec716b2f63dbd7877253f32d1ad98d7ed90fe13cb5d2bf9c",
       "mode": "0644"
     },
     {
@@ -3835,8 +3853,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 145591,
-      "sha256": "4b46f61b1990defb3d70046beaed13c274f3a40a8bd55f4ee2ef6cbd53fa3c91",
+      "bytes": 149302,
+      "sha256": "981d7fe4fa727a256daac75b0fa2c6034594aa79570a7a5af06ec661822d3f5c",
       "mode": "0644"
     },
     {
@@ -3913,8 +3931,8 @@
     },
     {
       "path": "scripts/run_tevv_production_gate.py",
-      "bytes": 4598,
-      "sha256": "5874b5fa64d13373a92d6f907ebd5a559bcf32ed30282dbe48a43a07cd621e30",
+      "bytes": 4759,
+      "sha256": "0ee3d0f296e42e5aedb6e14914a8b0083b36fa2bf3138226018b19d2aaa1a5d2",
       "mode": "0644"
     },
     {
