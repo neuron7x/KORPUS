@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 681,
-  "root_sha256": "50540bfc153e764b9f66d4c7d485e2e6a2c02d9258ef79ced4bb795c4ca0a768",
+  "root_sha256": "04d93a7bce988af3feb2bedd2651628ec05a6ef803593221741077dac39986bb",
   "files": [
     {
       "path": ".dockerignore",
@@ -80,19 +80,19 @@
     {
       "path": "DISTRIBUTION_CONTENTS.md",
       "bytes": 451,
-      "sha256": "0429de9ba5ec449cf384b480eeaaa6ae8842f655b6044d741a5a78a5b9750cd7",
+      "sha256": "ba09191ba7183cf34414e91f0f64e1dcc2b9e6eff5b96f86b7e53f82cb16caf4",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
       "bytes": 785,
-      "sha256": "0b31a1e9af67f1bc6c1e94cd360a9cd6148c2c68f04229c9236f86389ff508f0",
+      "sha256": "6c6c7ba137ce2641484664d5dd1575566b67c7242a50b9706a9ec2c6df584715",
       "mode": "0644"
     },
     {
       "path": "GITLAB_IMPORT.md",
-      "bytes": 541,
-      "sha256": "0b0852d82fa104375efd626b0391801e58851c9d79baf7f68a1c58f6286ef315",
+      "bytes": 1114,
+      "sha256": "eb789a6801c3914df21a31ec1c721279c422b052eb6e687e90540a507e2808fe",
       "mode": "0644"
     },
     {
@@ -110,7 +110,7 @@
     {
       "path": "README.md",
       "bytes": 6039,
-      "sha256": "e19675e707e0a15bdba7e58dc3e3bc659358bf7ec6d724be2f934f1cb29ede3e",
+      "sha256": "e65cc8d22591cc1784bc70e6e5ee74bb045aa1f8a59571fdd362f9cc135c6d34",
       "mode": "0644"
     },
     {
@@ -146,7 +146,7 @@
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
       "bytes": 708,
-      "sha256": "aad14b0aff675790fb40b80ba06a04e76e96d2a78cb53432918f6f610b014214",
+      "sha256": "ff7744964d0862f6cd0a8fe1040cb14da3ec88d9863e19dcfbcbeafde056aa58",
       "mode": "0644"
     },
     {
@@ -320,7 +320,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2544,
-      "sha256": "279b0442b632e89b67e937bb4280e38f9da7105cf2f3786b897f0a38d2c27eac",
+      "sha256": "8d8926d996955abc51e243ed48955404dcf2183cec8c477cecf6e9aa7a7c6c74",
       "mode": "0644"
     },
     {
@@ -1070,7 +1070,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 155,
-      "sha256": "e23ebbeef1a45aa3f78fbcab5be3197b6410ae27f16d5550af7a7446ae8b370b",
+      "sha256": "1e3d81c33084bece8be17368501dc242cdcf5b6beca3581931f8d7881ece4d07",
       "mode": "0644"
     },
     {
@@ -1873,8 +1873,8 @@
     },
     {
       "path": "apps/api/tests/test_release_identity.py",
-      "bytes": 1126,
-      "sha256": "119fa33e5bba94b2cff2d7ff0d87233a08af401b2dfff734b9cc4d8a76a58379",
+      "bytes": 1151,
+      "sha256": "0d80d6cfef656d9299521e0774267b2c6cfd0d94925adb30a7e315c38526964f",
       "mode": "0644"
     },
     {
@@ -2240,13 +2240,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 216,
-      "sha256": "8294830075b02684a6a27b1708db2a606d656f5fe6b2685c2252e37cd25cb63e",
+      "sha256": "9b1675b2b0ee8d2d906089b46eacfe5c6643d9d0d2eea8755264d65cd9b5fafc",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 529,
-      "sha256": "09699b13cc98f26ca5c6c46ebefa56dc961870a205a8221e04459aefc0d345b0",
+      "sha256": "1b29786f56adce373d5a1de037d722b2a12f1d03a62eb7c217876053f5c91a8f",
       "mode": "0644"
     },
     {
@@ -2576,7 +2576,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3670,
-      "sha256": "803d56bc4e4f015ab3c3f604f133f0fb6f5c61198a3258475be5c564a5295146",
+      "sha256": "03a422801533b353027875f1c5566febac33c703244fff6d91e5cb6aecbff861",
       "mode": "0644"
     },
     {
@@ -2606,7 +2606,7 @@
     {
       "path": "contracts/openapi.json",
       "bytes": 49191,
-      "sha256": "e6ec8932454fde751cc176cee193f7bc61f5006ec115b5009b0cfeae73025992",
+      "sha256": "6685f9d204453b669b521ee7d46a84650c3b9d9bc3d7bd96371d87f9ac8431ec",
       "mode": "0644"
     },
     {
@@ -3074,7 +3074,7 @@
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
       "bytes": 47490,
-      "sha256": "50afad10e0d49852941c97cb33a86081a36c3a98f75f7f04ce0e70a5c0a4fe71",
+      "sha256": "5d33cac5884faa1b98da4a173715c07b232d3ef601bbec5c26b4ff0d5446a0b4",
       "mode": "0644"
     },
     {
@@ -3278,7 +3278,7 @@
     {
       "path": "handoff/acts/00_CURRENT_STATE_ACT.md",
       "bytes": 1369,
-      "sha256": "b4cc9e69d0fe4f4e111b42855961539fa76dcc9bea5236b169f73c32e12eb1ea",
+      "sha256": "74ed9580916e490072427d372105a17ba797fec8c1fa628549fc303e62f158d4",
       "mode": "0644"
     },
     {
@@ -3344,7 +3344,7 @@
     {
       "path": "handoff/machine/current_state.json",
       "bytes": 2776,
-      "sha256": "6be08b0106411da0db167073752c8f521d7c302554ceda243426dc61f2c48241",
+      "sha256": "c2e59dc57c7682998143e7007f93f0ccbb5138a209179372d47f5f22d191f55c",
       "mode": "0644"
     },
     {
@@ -3577,8 +3577,8 @@
     },
     {
       "path": "scripts/check_release_identity.py",
-      "bytes": 2934,
-      "sha256": "5f8e7b2ce7399460fba8ef10f41f77a71ea21ea89216cf83a718a6c2f12e89ec",
+      "bytes": 3177,
+      "sha256": "f2526a3a440c916c8df1adcafa69dea034792bff25b1d8d2b165b5bdd3097d9a",
       "mode": "0644"
     },
     {
