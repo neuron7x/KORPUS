@@ -2799,6 +2799,26 @@ MUTANTS = (
             "test_one_subject_cannot_take_the_whole_service",
         ),
     ),
+    Mutant(
+        "M242_SUBJECT_THROTTLE_MISLABELED_503",
+        "apps/api/src/korpus/api/overload_http.py",
+        "        status.HTTP_429_TOO_MANY_REQUESTS",
+        "        status.HTTP_503_SERVICE_UNAVAILABLE",
+        (
+            "apps/api/tests/test_overload_http.py::"
+            "test_subject_share_exhaustion_is_http_429_with_retry_after",
+        ),
+    ),
+    Mutant(
+        "M243_BAD_LOAD_SLO_ACCEPTED",
+        "apps/api/src/korpus/application/production_reliability.py",
+        "        **evaluate_load_slos(load),",
+        "        **{},",
+        (
+            "apps/api/tests/test_production_reliability.py::"
+            "test_signed_bad_load_cannot_pass_reliability_quality_predicates",
+        ),
+    ),
 )
 
 

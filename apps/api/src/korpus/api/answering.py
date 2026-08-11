@@ -21,8 +21,9 @@ from __future__ import annotations
 
 from contextlib import nullcontext  # noqa: F401  (the mutation catalogue substitutes it)
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
+from korpus.api.overload_http import overload_http_exception
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.domain.models import Answer, Identity, QueryRequest
@@ -59,17 +60,8 @@ def bounded_answer(
 
 
 def overloaded(error: OverloadedError) -> HTTPException:
-    """503 with `Retry-After`, identical on every door.
-
-    A client that learns one route sheds load politely and another drops the connection
-    has learned that retry behaviour depends on which URL it used, which is a thing no
-    client should have to know.
-    """
-    return HTTPException(
-        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail={"reason": error.reason.value, "retry_after_seconds": 1},
-        headers={"Retry-After": "1"},
-    )
+    """Compatibility seam: all answer doors share the canonical overload mapper."""
+    return overload_http_exception(error)
 
 
 __all__ = ["AdmissionController", "OverloadedError", "bounded_answer", "overloaded"]

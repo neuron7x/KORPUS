@@ -11,13 +11,13 @@ from scripts import load_probe
 
 def test_outcome_keeps_typed_refusal_reasons_separate_from_http_status() -> None:
     outcome = load_probe.Outcome()
-    outcome.record(0.1, "503", refusal_reason="subject_share_exhausted")
+    outcome.record(0.1, "429", refusal_reason="subject_share_exhausted")
     outcome.record(0.2, "503", refusal_reason="global_capacity_exhausted")
-    outcome.record(0.3, "503", refusal_reason="subject_share_exhausted")
+    outcome.record(0.3, "429", refusal_reason="subject_share_exhausted")
 
     summary = outcome.summary()
 
-    assert summary["statuses"] == {"503": 3}
+    assert summary["statuses"] == {"429": 2, "503": 1}
     assert summary["refusal_reasons"] == {
         "subject_share_exhausted": 2,
         "global_capacity_exhausted": 1,
@@ -30,8 +30,8 @@ def test_http_error_body_preserves_the_server_admission_reason(monkeypatch: pyte
     def refuse(*_args: object, **_kwargs: object) -> object:
         raise urllib.error.HTTPError(
             "http://example.invalid/v1/answers",
-            503,
-            "Service Unavailable",
+            429,
+            "Too Many Requests",
             hdrs=None,
             fp=io.BytesIO(body),
         )
@@ -42,7 +42,7 @@ def test_http_error_body_preserves_the_server_admission_reason(monkeypatch: pyte
         "http://example.invalid", "question", 0.1
     )
 
-    assert status == "503"
+    assert status == "429"
     assert decision == ""
     assert reason == "subject_share_exhausted"
 

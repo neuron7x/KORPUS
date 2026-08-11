@@ -12,7 +12,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/api/answering.py": {
-      "lines": 75,
+      "lines": 67,
       "max_complexity": 3,
       "reason": "the one place an answer is produced under the concurrency bound"
     },
@@ -617,8 +617,8 @@
       "max_complexity": 8
     },
     "scripts/service_objectives.py": {
-      "lines": 198,
-      "max_complexity": 6,
+      "lines": 89,
+      "max_complexity": 5,
       "reason": "what the deployment promises, judged against what it was measured doing"
     },
     "scripts/snapshot_assurance.py": {
@@ -678,7 +678,7 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_corpus.py": {
-      "lines": 346,
+      "lines": 343,
       "max_complexity": 9,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
@@ -957,6 +957,16 @@
       "lines": 119,
       "max_complexity": 9,
       "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
+    },
+    "apps/api/src/korpus/api/overload_http.py": {
+      "lines": 24,
+      "max_complexity": 2,
+      "reason": "ACT-009: typed HTTP mapping separates subject throttling (429) from global service saturation (503)."
+    },
+    "apps/api/src/korpus/application/service_levels.py": {
+      "lines": 43,
+      "max_complexity": 5,
+      "reason": "ACT-009: shared SLO evaluator separates measured quality from evidence provenance."
     }
   },
   "raised": [

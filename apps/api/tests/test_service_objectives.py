@@ -145,3 +145,14 @@ def test_every_objective_carries_the_conditions_it_was_judged_under(tmp_path: Pa
     for objective in result["objectives"]:
         assert objective["rationale"], objective["name"]
         assert "phase" in objective["conditions"], objective["name"]
+
+
+def test_subject_throttling_under_rated_load_fails_capacity_objective(tmp_path: Path) -> None:
+    measurements = tmp_path / "load.json"
+    measurements.write_text(
+        json.dumps(_report(soak={"refusal_reasons": {"subject_share_exhausted": 1}})),
+        encoding="utf-8",
+    )
+    code, result = _run(measurements, tmp_path / "objectives.json")
+    assert code != 0
+    assert "rated_capacity_is_honest" in result["unmet"]

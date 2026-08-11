@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import Any
+from korpus.application.service_levels import evaluate_load_slos
 
 ALLOWED_ENVIRONMENTS = frozenset({"PRODUCTION_LIKE", "PRODUCTION"})
 LATENCY_KEYS = frozenset({"p50_seconds", "p95_seconds", "p99_seconds"})
-
 
 def _bound(report: Mapping[str, Any], source: str, release: str) -> bool:
     return report.get("source_tree_sha256") == source and report.get("release") == release
@@ -31,11 +31,11 @@ def evaluate_reliability_evidence(
     ) and len([case for case in cases if isinstance(case, Mapping)]) == len(cases)
     return {
         "internal_fault_injection": internal.get("status") == "PASS" and _bound(internal, source, release),
-        "chaos_matrix": chaos_ok,
-        "live_load_soak_executed": _load_complete(load),
+        "chaos_matrix": chaos_ok, "live_load_soak_executed": _load_complete(load),
         "load_source_bound": _bound(load, source, release),
         "load_environment": load.get("environment_class") in ALLOWED_ENVIRONMENTS,
         "recovery_drill_executed": recovery.get("status") == "PASS",
         "recovery_source_bound": _bound(recovery, source, release),
         "recovery_environment": recovery.get("environment_class") in ALLOWED_ENVIRONMENTS,
+        **evaluate_load_slos(load),
     }

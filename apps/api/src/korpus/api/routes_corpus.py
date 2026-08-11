@@ -24,6 +24,7 @@ from korpus.api.dependencies import (
 )
 from korpus.application.ingestion import IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
+from korpus.api.overload_http import overload_http_exception
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.config import Settings, get_settings
@@ -106,11 +107,7 @@ async def _run_bounded_ingestion[T](
     try:
         return await run_in_threadpool(execute)
     except OverloadedError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="ingestion capacity exhausted",
-            headers={"Retry-After": "1"},
-        ) from exc
+        raise overload_http_exception(exc) from exc
 
 
 @router.get("/v1/documents", response_model=list[DocumentRecord])
