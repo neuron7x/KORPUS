@@ -2879,6 +2879,56 @@ MUTANTS = (
             "test_release_attestation_can_use_protected_runtime_trust",
         ),
     ),
+    Mutant(
+        "M250_EXTERNAL_REDTEAM_COVERAGE_BYPASSED",
+        "apps/api/src/korpus/application/external_redteam.py",
+        '        "required_attack_families_covered": bool(required) and required.issubset(covered),',
+        '        "required_attack_families_covered": True,',
+        (
+            "apps/api/tests/test_external_redteam_admissibility.py::"
+            "test_declared_pass_cannot_hide_missing_attack_family",
+        ),
+    ),
+    Mutant(
+        "M251_EXTERNAL_REDTEAM_BLOCKING_FINDING_ACCEPTED",
+        "apps/api/src/korpus/application/external_redteam.py",
+        "        if severity in blocking and status not in blocking_allowed:",
+        "        if False:",
+        (
+            "apps/api/tests/test_external_redteam_admissibility.py::"
+            "test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted",
+        ),
+    ),
+    Mutant(
+        "M252_EXTERNAL_REDTEAM_PREREGISTRATION_BYPASSED",
+        "scripts/validate_external_redteam_evidence.py",
+        '        "preregistered": report.get("preregistration_sha256") == hashlib.sha256(PROFILE.read_bytes()).hexdigest(),',
+        '        "preregistered": True,',
+        (
+            "apps/api/tests/test_external_redteam_admissibility.py::"
+            "test_trusted_signature_cannot_bypass_wrong_preregistration",
+        ),
+    ),
+    Mutant(
+        "M253_EXTERNAL_REDTEAM_INDEPENDENCE_BYPASSED",
+        "scripts/validate_external_redteam_evidence.py",
+        '        "independent_class": report.get("evidence_class") == "EXTERNAL_INDEPENDENT",',
+        '        "independent_class": True,',
+        (
+            "apps/api/tests/test_external_redteam_admissibility.py::"
+            "test_signed_internal_report_cannot_claim_external_independence",
+        ),
+    ),
+    Mutant(
+        "M254_EXTERNAL_REDTEAM_TRUST_BYPASSED",
+        "scripts/validate_external_redteam_evidence.py",
+        '"trusted_signer": signed.trusted_signer,',
+        '"trusted_signer": True,',
+        (
+            "apps/api/tests/test_external_redteam_admissibility.py::"
+            "test_valid_signature_without_preadmitted_trust_root_is_rejected",
+        ),
+    ),
 )
 
 

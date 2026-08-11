@@ -914,8 +914,8 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/validate_external_redteam_evidence.py": {
-      "lines": 61,
-      "max_complexity": 9,
+      "lines": 40,
+      "max_complexity": 6,
       "reason": "ACT-010: external independent red-team validator with protected runtime trust-root injection; prior line ceiling preserved"
     },
     "apps/api/src/korpus/application/production_reliability.py": {
@@ -977,6 +977,11 @@
       "lines": 54,
       "max_complexity": 7,
       "reason": "ACT-010: all-or-none staging for externally signed reliability, TEVV and independent red-team evidence; initial measured ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/external_redteam.py": {
+      "lines": 75,
+      "max_complexity": 11,
+      "reason": "ACT-012 structured external red-team evidence evaluator; initial measured ratchet ceiling"
     }
   },
   "raised": [
