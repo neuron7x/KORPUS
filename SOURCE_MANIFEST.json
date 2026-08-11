@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 651,
-  "root_sha256": "bbf0312dc22fceb03a68b11663d0f34f6ad4d5d02110d145f088f266847c4eb1",
+  "file_count": 652,
+  "root_sha256": "dd399571905df957fc27d7cad90418e2cf5d192455c30aec8db9325e621d598e",
   "files": [
     {
       "path": ".dockerignore",
@@ -939,6 +939,12 @@
       "path": "apps/api/src/korpus/infrastructure/parser_worker.py",
       "bytes": 1020,
       "sha256": "0d2572f3c05def8b035a89406c232e45058989a3ab2373ca5fdc2ab06b470ac0",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+      "bytes": 4545,
+      "sha256": "f78d1eb496911c24bd747ecc03ab1641b0d869131be5a060a4c0ae9e24894d56",
       "mode": "0644"
     },
     {
