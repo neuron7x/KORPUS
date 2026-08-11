@@ -4,19 +4,19 @@
   "base_commit": "5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60",
   "production_authorized": false,
   "verification": {
-    "tests_collected": 1395,
+    "tests_collected": 1409,
     "failures": 0,
     "errors": 0,
     "skipped": 3,
-    "line_coverage": 0.917882225823879,
-    "branch_coverage": 0.7885789014821273,
+    "line_coverage": 0.9174361176723212,
+    "branch_coverage": 0.7884948096885813,
     "adversarial_passed": 30,
     "adversarial_total": 30,
     "citation_failures": 0,
     "leakage_failures": 0,
     "determinism_failures": 0,
-    "critical_mutants_killed": 291,
-    "critical_mutants_total": 291,
+    "critical_mutants_killed": 299,
+    "critical_mutants_total": 299,
     "scale_probe": {
       "schema_version": 1,
       "status": "PASS",
@@ -30,10 +30,10 @@
         "query": "ALPHA-OMEGA deterministic target"
       },
       "results": {
-        "ingest_seconds": 0.23612216399942554,
-        "query_latency_ms_p50": 2.7674645,
-        "query_latency_ms_p95": 3.636222,
-        "query_latency_ms_max": 4.909697,
+        "ingest_seconds": 0.11601125100060017,
+        "query_latency_ms_p50": 2.5666605,
+        "query_latency_ms_p95": 3.088197,
+        "query_latency_ms_max": 4.861426,
         "candidate_count": 1,
         "top1_recall": 1.0
       },
@@ -46,10 +46,10 @@
         "Synthetic local probe; not a production SLA.",
         "PostgreSQL network, concurrency and disk behavior are not represented."
       ],
-      "baseline_release": "v6.15.0"
+      "baseline_release": "v6.16.0"
     },
-    "last_full_source_release": "v6.15.0",
-    "current_release_verification": "V6_16_0_FRESH_VERIFICATION_REQUIRED",
+    "last_full_source_release": "v6.16.0",
+    "current_release_verification": "V6_17_0_FRESH_VERIFICATION_REQUIRED",
     "production_gate": "FAIL_CLOSED"
   },
   "audit": {
@@ -73,8 +73,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v6.16.0",
+  "handoff_release": "v6.17.0",
   "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v6.16.0",
+  "canonical_release": "v6.17.0",
   "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }

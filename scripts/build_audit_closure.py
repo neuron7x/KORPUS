@@ -161,9 +161,9 @@ MITIGATED_LOCAL = {
     "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
                  # tests; the transactional core still carries CRUD, review, audit
                  # append and readiness, so "one responsibility per module" is not met
-    "WEB-001",   # role-specific consoles cover ingestion, job status, quarantine
-                 # review, approval, rescission, corpus, span reading and audit, each
-                 # with a preview before it acts; a browser-driven E2E suite is not run
+    "WEB-001",   # role-specific consoles cover critical workflows with preview gates;
+                 # Chromium/CDP covers DOM/XSS/429/mobile/reviewer behavior locally,
+                 # while networked same-origin OIDC/session E2E stays external
     "OPS-004",   # desired state versus an observed environment, with UNOBSERVED kept
                  # apart from IN_SYNC; taking the observation from a live cluster and
                  # reverting on the verdict is the operator's half
@@ -544,9 +544,9 @@ EVIDENCE: dict[str, list[str]] = {
         "::test_listing_hides_a_document_above_the_readers_clearance",
         "config/operations/module-budget.json",
     ],
-    "WEB-001": [
-        "apps/web/public/console.html",
+    "WEB-001": ["apps/web/public/console.html",
         "apps/web/public/console_rules.js",
+        "apps/web/scripts/browser_e2e.mjs", "apps/web/package.json",
         "scripts/generate_web_contract.py",
         "apps/api/tests/test_gate_parity.py"
         "::test_every_writing_console_previews_before_it_acts",

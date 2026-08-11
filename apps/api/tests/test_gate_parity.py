@@ -1023,6 +1023,32 @@ def test_the_web_gate_runs_its_own_negative_controls() -> None:
     )
 
 
+def test_real_browser_e2e_runner_cannot_disappear_silently() -> None:
+    """WEB-001 keeps a real-browser executable surface even when CI cannot navigate.
+
+    The local browser report is deliberately not production OIDC evidence, but deleting
+    the CDP runner or its package entrypoint must still fail repository verification.
+    """
+    package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
+    command = package["scripts"].get("test:browser", "")
+    runner = ROOT / "apps/web/scripts/browser_e2e.mjs"
+    assert command == "node scripts/browser_e2e.mjs", "browser E2E entrypoint drifted"
+    assert runner.is_file(), "real Chromium/CDP browser E2E runner is missing"
+    source = runner.read_text(encoding="utf-8")
+    for token in (
+        "LOCAL_BROWSER_POLICY_COMPATIBLE",
+        "consumer_authenticated_boot",
+        "evidence_render_escapes_xss",
+        "typed_429_is_not_rendered_as_outage",
+        "mobile_viewport_has_no_horizontal_overflow",
+        "operator_console_roles_and_preview_gate",
+        "network_navigation_executed:false",
+        "release_tag:release.tag",
+        "git_head:gitHead",
+    ):
+        assert token in source, f"browser E2E contract lost {token}"
+
+
 def test_every_writing_console_previews_before_it_acts() -> None:
     """WEB-001's acceptance predicate needs the workflows to be safe, not merely present.
 

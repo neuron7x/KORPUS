@@ -141,11 +141,16 @@ bare word `localStorage` and therefore tripped on api.js's own comment explainin
 token must never go there. A guard that forbids naming the hazard it guards against gets
 the explanation deleted, not the hazard.
 
-What remains for WEB-001, and why it is not `CLOSED_LOCAL`: the finding asks for E2E
-role tests, and driving a real browser through a real OIDC login is not something this
-pipeline runs. What runs instead is every decision the console makes with the DOM taken
-out from under it — 34 tests over role visibility, refusal-before-submit and the
-preview gate. Corpus and entitlement administration is still API-only.
+What remains for WEB-001, and why it is not `CLOSED_LOCAL`: a real Chromium/CDP
+campaign now executes the rendered consumer and operator surfaces in a browser. It
+covers authenticated product boot under a deterministic transport fixture, answer and
+citation XSS escaping, typed 429 throttling, a 390 px mobile overflow invariant, and
+admin/reviewer role visibility plus preview-before-submit. The report is explicitly
+`LOCAL_BROWSER_POLICY_COMPATIBLE`: the verifier host enforces a browser URL block policy,
+so it cannot prove network navigation, same-origin deployment, OIDC redirects or the
+real session-cookie path. Those networked browser controls, plus full corpus and
+entitlement administration, remain external product evidence; the local Chromium suite
+is therefore evidence of DOM/wiring/security/mobile behavior, not production login E2E.
 
 OPS-004 followed: `application/environment_drift.py` compares an observed environment
 against `config/operations/desired-state-v5.json` and distinguishes four answers, not
@@ -203,8 +208,9 @@ PostgreSQL debt below.
   one class, because splitting them splits a transaction;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;
 - embedding backfill and model-migration execution against a real index;
-- corpus and entitlement administration in the web consoles; browser-driven E2E role
-  tests; contrast and focus-order validation against a rendered page;
+- corpus and entitlement administration in the web consoles; networked same-origin
+  browser E2E through real OIDC/session cookies; broader contrast and focus-order
+  validation against the rendered critical workflows;
 - a durable telemetry backend and its retention;
 - an environment observation taken from a live cluster, admission policy enforcing the
   drift verdict, and cost/capacity governance;
