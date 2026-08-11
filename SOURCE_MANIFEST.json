@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 680,
-  "root_sha256": "977e285ac72438a7ce7dd04f394365a0eec8752cea289a16c45c027ecded996c",
+  "root_sha256": "8d465e4961a371630d8287ee3723b768b2e95c31bfc249f29ddc333df68e3b47",
   "files": [
     {
       "path": ".dockerignore",
@@ -80,13 +80,13 @@
     {
       "path": "DISTRIBUTION_CONTENTS.md",
       "bytes": 451,
-      "sha256": "1a411d4331bec309b0620a84c048b4565ca61fb2f42e7c0e636c21cf64097e87",
+      "sha256": "41c5f4533cb56db81937ed2deb378503fc3e9a3c0afb5fbb819e4fcedef448d2",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
       "bytes": 785,
-      "sha256": "6a6e46b92f8236616cffa4a437862e4989ce50b0a2eacabffc94a0c20e7074a1",
+      "sha256": "0e4b99b58993b2682e8d8eada66b9e4cc5dc3d23be986571c039f056ee9973eb",
       "mode": "0644"
     },
     {
@@ -110,7 +110,7 @@
     {
       "path": "README.md",
       "bytes": 6039,
-      "sha256": "675b7c24c50a9411ede636c840f151be51cb6f398607a879b3d706da0fbc079d",
+      "sha256": "152584938d1c7cb7431c4c615462ca279ef17a0d3d5b1e8dd42cf55732386e66",
       "mode": "0644"
     },
     {
@@ -146,7 +146,7 @@
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
       "bytes": 708,
-      "sha256": "e09a826e00de0a1bcc780e14ce3932919867ce262cb5ccf4da46e92476f8c5a9",
+      "sha256": "0762371d3bcee2f63c6e23182e424d97a84bfcc9ac1fd366cade46bf0f0d44f1",
       "mode": "0644"
     },
     {
@@ -320,7 +320,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2544,
-      "sha256": "cd8d9d84d1fecdf70047504333c773915bae50751010e41e295b220db3d477a8",
+      "sha256": "198a5827c4453d4a919b04f35fe5d01f40089c98924b1c094b1958364bf5fba0",
       "mode": "0644"
     },
     {
@@ -1064,7 +1064,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 155,
-      "sha256": "bb6646bdddd653d6bb9efb819bd2c7901c34628c578976b5a91acc3df07f0b57",
+      "sha256": "cbdda988e3c25ffc51c4126098797a9949ef770ba0d4d09bc5a371b2258a66a9",
       "mode": "0644"
     },
     {
@@ -1579,8 +1579,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 68323,
-      "sha256": "09922b8fc7ff5f9880c3b573c6f6efecdcf5a3f0a22f793288bf31dc6c07df4b",
+      "bytes": 68698,
+      "sha256": "9c76131f5d093c7dbb6ce3013abc98d2917fa2e61accee6743a04f1490ac999d",
       "mode": "0644"
     },
     {
@@ -2234,13 +2234,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 216,
-      "sha256": "fa919a9ea166ec921f8691ffe9a0fb5edcb476f39175bb3320f8e0f3d497c84b",
+      "sha256": "1f14570dd57133c1e4b62ef7bb075526f686460a19ef5917a1baef0716c5968c",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 529,
-      "sha256": "3f60612818616397eaecab35b94be0d44f2ff8d7971b2ebda361b918da1d91fa",
+      "sha256": "6dd57447acaa06fe7af0c0a2a51f3b882648ae42b347578df2084177c5901891",
       "mode": "0644"
     },
     {
@@ -2570,7 +2570,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3670,
-      "sha256": "7135b10bda784347bee283e5300fbc57ec7427b45473a8dc6d5da35de729ce0c",
+      "sha256": "24dfbc55124d31617f5c1bea509c431e70569e97c555af23608d54be083cdf5f",
       "mode": "0644"
     },
     {
@@ -2600,7 +2600,7 @@
     {
       "path": "contracts/openapi.json",
       "bytes": 49191,
-      "sha256": "f2b537554bab5c963ead1c55cb5030078a759d1c79b0e8e40ab927b95d5bcf6f",
+      "sha256": "2e19b3d98fce80320408776ce9c3634652bb70d699fd24b40345fcc9623c6747",
       "mode": "0644"
     },
     {
@@ -2923,26 +2923,26 @@
     },
     {
       "path": "docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.csv",
-      "bytes": 61578,
-      "sha256": "b930d27d567bfbfaf02a71bd852074d0a32383315a95c20c4e754e90d9274e2b",
+      "bytes": 61537,
+      "sha256": "fd693c39ed5c8088edde7168e5c1c93ec4b30871130aa0a1047858e9f14da040",
       "mode": "0644"
     },
     {
       "path": "docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json",
-      "bytes": 107776,
-      "sha256": "f3e768e76635eeabda8b446943a28ec99e1ae18d1c5e9f985dc207eb129bb0a2",
+      "bytes": 107853,
+      "sha256": "0902ac0e1743902e0ef8e58e705b7859085e574c3f771d5fb2be0f256d61fd3b",
       "mode": "0644"
     },
     {
       "path": "docs/audit/closure/KORPUS_v5_REMAINING_DEBT.csv",
-      "bytes": 45646,
-      "sha256": "64c0e88d80e58725dbad30a301c77ab6bf3c18b909f9c29a306e113c786dbbc6",
+      "bytes": 45629,
+      "sha256": "61003244965270cbd0aabb8f5f0a92d6d3d8b989a30d3633821652e62768fa4e",
       "mode": "0644"
     },
     {
       "path": "docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json",
-      "bytes": 80911,
-      "sha256": "682b1f9e6fefbc03adcd4174ff48006f9bbba6fe738a5b72514dfdf20fe26086",
+      "bytes": 80988,
+      "sha256": "b1952e4f3771dee8b79a99fdee41f870ffece4978b65452bf570dd9b42c007fa",
       "mode": "0644"
     },
     {
@@ -3068,7 +3068,7 @@
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
       "bytes": 47490,
-      "sha256": "80bc02962402dc761f6431613b6730b437c840f3668eaf78b1faf3f978a3e329",
+      "sha256": "cfbb92848f844673f6bd03bcc1b56b5ae5dcf53b465b2ff78c8166600d2996fd",
       "mode": "0644"
     },
     {
@@ -3271,8 +3271,8 @@
     },
     {
       "path": "handoff/acts/00_CURRENT_STATE_ACT.md",
-      "bytes": 1551,
-      "sha256": "2e5f6efb55c20b5f06d77a7d1caec137c541d293a89ea8ec2d215e24344f1d65",
+      "bytes": 1352,
+      "sha256": "72ae1d43317fe385ba319c59d9c652f04ed2e313c040eb5fe06e227a1aff10e9",
       "mode": "0644"
     },
     {
@@ -3337,8 +3337,8 @@
     },
     {
       "path": "handoff/machine/current_state.json",
-      "bytes": 2521,
-      "sha256": "3baa9c915d0f9f4766d5edf9feaf4146e8f6481808a36945c087cb50b128958a",
+      "bytes": 2776,
+      "sha256": "85298259e82f80b835524d0884e57577077f78cf3081d859a2f2a19ae903085c",
       "mode": "0644"
     },
     {
@@ -3505,8 +3505,8 @@
     },
     {
       "path": "scripts/build_audit_closure.py",
-      "bytes": 39738,
-      "sha256": "01f8848e22416e66c537e750a90e0970cb6f45d26ec2be73685c81eb64bfcf30",
+      "bytes": 39780,
+      "sha256": "bc4629c6bc41ce8056cf4dc2a42253c8cd98f453447c34753b6ccc9f030bc2f3",
       "mode": "0644"
     },
     {
