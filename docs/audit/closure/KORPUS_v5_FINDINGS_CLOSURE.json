@@ -1577,6 +1577,8 @@
       "v5_evidence": [
         "apps/web/public/console.html",
         "apps/web/public/console_rules.js",
+        "apps/web/scripts/browser_e2e.mjs",
+        "apps/web/package.json",
         "scripts/generate_web_contract.py",
         "apps/api/tests/test_gate_parity.py::test_every_writing_console_previews_before_it_acts",
         "apps/api/tests/test_gate_parity.py::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",

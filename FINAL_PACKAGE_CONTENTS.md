@@ -1,4 +1,4 @@
-# KORPUS v6.17.0 — canonical package index
+# KORPUS v6.17.1 — canonical package index
 
 ## Primary surfaces
 

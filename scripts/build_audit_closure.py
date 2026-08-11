@@ -743,7 +743,7 @@ def main() -> None:
         "v5_remaining_acceptance",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for item in output:
             row = {key: item.get(key, "") for key in columns}
@@ -807,7 +807,7 @@ def main() -> None:
         encoding="utf-8",
     )
     with remaining_csv.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=columns)
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         for item in remaining:
             row = {key: item.get(key, "") for key in columns}

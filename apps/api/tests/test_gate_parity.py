@@ -1023,6 +1023,14 @@ def test_the_web_gate_runs_its_own_negative_controls() -> None:
     )
 
 
+def test_audit_closure_csv_generator_uses_canonical_lf_lines() -> None:
+    """Generated closure CSV must not reintroduce CRLF as diff-check whitespace."""
+    source = (ROOT / "scripts/build_audit_closure.py").read_text(encoding="utf-8")
+    assert source.count('lineterminator="\\n"') == 2, (
+        "both closure CSV writers must force canonical LF line endings"
+    )
+
+
 def test_real_browser_e2e_runner_cannot_disappear_silently() -> None:
     """WEB-001 keeps a real-browser executable surface even when CI cannot navigate.
 

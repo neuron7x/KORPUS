@@ -4,7 +4,7 @@
   "base_commit": "5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60",
   "production_authorized": false,
   "verification": {
-    "tests_collected": 1409,
+    "tests_collected": 1410,
     "failures": 0,
     "errors": 0,
     "skipped": 3,
@@ -30,10 +30,10 @@
         "query": "ALPHA-OMEGA deterministic target"
       },
       "results": {
-        "ingest_seconds": 0.11601125100060017,
-        "query_latency_ms_p50": 2.5666605,
-        "query_latency_ms_p95": 3.088197,
-        "query_latency_ms_max": 4.861426,
+        "ingest_seconds": 0.10527349800031516,
+        "query_latency_ms_p50": 2.549169,
+        "query_latency_ms_p95": 3.153503,
+        "query_latency_ms_max": 4.710001,
         "candidate_count": 1,
         "top1_recall": 1.0
       },
@@ -46,10 +46,16 @@
         "Synthetic local probe; not a production SLA.",
         "PostgreSQL network, concurrency and disk behavior are not represented."
       ],
-      "baseline_release": "v6.16.0"
+      "provenance": {
+        "schema_version": 1,
+        "source_digest": "c7652f78927d6e7f6d475beeb2b967e8ebb297c44dc60309f102d8235a83d18f",
+        "generator": "scripts/run_scale_probe.py",
+        "generated_at": "2026-08-11T17:08:37+00:00"
+      },
+      "baseline_release": "v6.17.0"
     },
-    "last_full_source_release": "v6.16.0",
-    "current_release_verification": "V6_17_0_FRESH_VERIFICATION_REQUIRED",
+    "last_full_source_release": "v6.17.0",
+    "current_release_verification": "V6_17_1_FRESH_VERIFICATION_REQUIRED",
     "production_gate": "FAIL_CLOSED"
   },
   "audit": {
@@ -73,8 +79,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v6.17.0",
+  "handoff_release": "v6.17.1",
   "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v6.17.0",
+  "canonical_release": "v6.17.1",
   "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }
