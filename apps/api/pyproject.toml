@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "korpus-api"
-version = "6.10.0"
+version = "6.10.1"
 description = "Evidence-bound controlled-corpus platform API"
 requires-python = ">=3.12"
 dependencies = [

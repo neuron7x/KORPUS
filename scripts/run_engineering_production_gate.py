@@ -21,9 +21,9 @@ def main() -> int:
     parser.add_argument("--report", type=Path, default=ROOT / "reports/RESEARCH_ASSURANCE_REPORT.json")
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/engineering-gate.json")
     args = parser.parse_args()
-    source = compute_source_digest(ROOT)
-    release = release_tag()
-    report = json.loads(args.report.read_text(encoding="utf-8")) if args.report.is_file() else {}
+    source, release = compute_source_digest(ROOT), release_tag()
+    report_path = (ROOT / args.report).resolve()
+    report = json.loads(report_path.read_text(encoding="utf-8")) if report_path.is_file() else {}
     checks = {
         "report_present": bool(report),
         "research_assurance_pass": report.get("status") == "PASS",
@@ -33,7 +33,7 @@ def main() -> int:
     payload = gate_payload(
         "engineering", status="PASS" if not failures else "FAIL", source_digest=source,
         release=release, checks=checks, failures=failures,
-        evidence_class="FRESH_LOCAL_ENGINEERING", report=str(args.report.relative_to(ROOT)),
+        evidence_class="FRESH_LOCAL_ENGINEERING", report=str(report_path.relative_to(ROOT)),
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
