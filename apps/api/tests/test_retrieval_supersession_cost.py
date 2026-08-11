@@ -52,12 +52,15 @@ def _statement() -> tuple[str, dict[str, object]]:
 
 def _plan(schema: list[str]) -> list[str]:
     engine = create_engine("sqlite://")
-    with engine.begin() as connection:
-        for ddl in schema:
-            connection.execute(text(ddl))
-        sql, parameters = _statement()
-        rows = connection.execute(text(f"EXPLAIN QUERY PLAN {sql}"), parameters).fetchall()
-    return [str(row[-1]) for row in rows]
+    try:
+        with engine.begin() as connection:
+            for ddl in schema:
+                connection.execute(text(ddl))
+            sql, parameters = _statement()
+            rows = connection.execute(text(f"EXPLAIN QUERY PLAN {sql}"), parameters).fetchall()
+        return [str(row[-1]) for row in rows]
+    finally:
+        engine.dispose()
 
 
 SCHEMA = [

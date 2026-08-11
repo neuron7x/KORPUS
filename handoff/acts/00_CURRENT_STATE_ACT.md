@@ -1,13 +1,12 @@
-# Act 00 — current verified state
+# Act 00 — current canonical state
 
-- Base release: `v5.0.0`.
-- Base commit: `5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60`.
-- Source-tree SHA-256: `d5d446b318c3ade676d42609d293f41ef1e8205073737c097303ebeb1934ed44`.
-- Tests: 172 collected; 171 PASS; 1 live-PostgreSQL SKIP; 0 failures/errors.
-- Coverage: line 87.00%; branch 66.87%.
-- Adversarial evaluation: 30/30 PASS; citation failures 0; leakage failures 0; determinism failures 0.
-- Selected critical mutations: 26/26 killed.
-- Audit findings: 99 total; 20 closed locally; 79 remain non-closed.
+- Canonical release: `v6.9.0` recovery-hardening line.
+- Recovery base: verified `v6.8.2` package, Git HEAD `4a810ed609fd40fc4690411afb6d545ac4095b38`.
 - Production authorization: `false`.
+- Last complete source-bound test campaign belongs to `v6.8.2`: 1347 tests, 0 failures, 0 errors, 3 skipped; line coverage 0.9172; branch coverage 0.7891.
+- Last complete mutation campaign belongs to `v6.8.2`: full catalogue PASS (`277/277` killed in the preserved release evidence).
+- `v6.9.0` changes invalidate those measurements as current-release evidence until fresh gates execute; they remain historical baseline only.
+- Current locally verified static gates: desired-state, import graph, release identity, module budget, requirements register, doctrine catalogue, repository, infrastructure, Kubernetes.
+- Environment-limited gates remain unexecuted or FAIL-closed where the required tool/runtime is absent: ruff, mypy, full pytest/coverage in one uninterrupted campaign, live PostgreSQL, production-like TEVV/load/recovery, trusted independent red-team, complete scanner/container-SBOM attestation.
 
-Interpretation: the repository is suitable for continued local engineering and a controlled open/synthetic-data pilot. It is not authorized for ordinary or restricted military production.
+Interpretation: `v6.9.0` is a canonical engineering continuation point, not a production authorization. Any agent must regenerate source-bound evidence after changing tracked source and must not reuse `v6.8.2` PASS artifacts as evidence for `v6.9.0`.

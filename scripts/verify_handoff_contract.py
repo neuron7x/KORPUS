@@ -15,11 +15,9 @@ from korpus.application.calibration import CalibrationProfile
 from korpus.application.retrieval import AUTHORITY_PRIOR, BM25Parameters, RetrievalWeights
 from korpus.config import Settings
 from source_digest import source_tree_digest
-
+from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 HANDOFF = ROOT / "handoff" / "machine"
-
-
 def _load(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -130,8 +128,10 @@ def verify() -> dict[str, Any]:
     if (
         state["production_authorized"] is not False
         or operational["production_authorized"] is not False
+        or state.get("canonical_release") != release_tag()
+        or state.get("handoff_release") != release_tag()
     ):
-        raise AssertionError("handoff must not claim production authorization")
+        raise AssertionError("handoff production/release identity is inconsistent")
     if gates["production_gate"]["current"] is not False:
         raise AssertionError("production gate must remain false")
 

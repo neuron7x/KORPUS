@@ -1721,11 +1721,11 @@ MUTANTS = (
         # nothing about it. Unguarded, the walk raised out of this module's vocabulary
         # and ended a 1740-document import at 918.
         "M194_PAGE_TREE_WALK_LEFT_UNGUARDED",
-        "apps/api/src/korpus/infrastructure/extraction.py",
-        '        except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:\n'
-        '            raise ValueError("malformed PDF page tree") from exc',
-        '        except RecursionError as exc:\n'
-        '            raise ValueError("malformed PDF page tree") from exc',
+        "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+        '    except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:\n'
+        '        raise ValueError("malformed PDF page tree") from exc',
+        '    except RecursionError as exc:\n'
+        '        raise ValueError("malformed PDF page tree") from exc',
         (
             "apps/api/tests/test_malformed_pdf_containment.py::"
             "test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal",
@@ -1794,15 +1794,15 @@ MUTANTS = (
         # A user password means the document is a secret. Accepting an unopenable file
         # would put an empty or garbled version into the corpus under a real title.
         "M199_ENCRYPTED_PDF_ACCEPTED_WITHOUT_OPENING",
-        "apps/api/src/korpus/infrastructure/extraction.py",
+        "apps/api/src/korpus/infrastructure/pdf_extraction.py",
         (
-            "            if not opened:\n"
-            '                raise ValueError("encrypted PDF requires '
+            "        if not opened:\n"
+            '            raise ValueError("encrypted PDF requires '
             'a password that was not supplied")'
         ),
         (
-            "            if False:\n"
-            '                raise ValueError("encrypted PDF requires '
+            "        if False:\n"
+            '            raise ValueError("encrypted PDF requires '
             'a password that was not supplied")'
         ),
         (

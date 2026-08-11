@@ -46,7 +46,10 @@
         "Synthetic local probe; not a production SLA.",
         "PostgreSQL network, concurrency and disk behavior are not represented."
       ]
-    }
+    },
+    "last_full_source_release": "v6.8.2",
+    "current_release_verification": "PARTIAL_LOCAL_PENDING_FULL_ASSURANCE",
+    "production_gate": "FAIL_CLOSED"
   },
   "audit": {
     "findings_total": 99,
@@ -69,6 +72,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v5.1.0",
-  "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json"
+  "handoff_release": "v6.9.0",
+  "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
+  "canonical_release": "v6.9.0",
+  "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }

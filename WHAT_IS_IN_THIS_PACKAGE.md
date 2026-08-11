@@ -1,16 +1,7 @@
-# KORPUS v6.7.1 canonical assurance-hardened repository
+# KORPUS v6.9.0 canonical recovery repository
 
-This is one canonical source repository, not a concatenation of two trees. It contains the
-application, web client, infrastructure/deployment definitions, migrations, tests, evaluation,
-mutation catalogue, assurance tooling, documentation, manifests and Git-history release path.
+This is one canonical source repository, not a concatenation of multiple snapshots. It contains the application, web client, infrastructure/deployment definitions, migrations, tests, evaluation and mutation catalogues, assurance tooling, documentation, manifests and Git history.
 
-## Current assurance boundary
+## Assurance boundary
 
-Local engineering and adversarial evidence is generated repository-native. Production promotion is
-fail-closed and additionally requires production-like TEVV/load/recovery, real PostgreSQL runtime
-evidence, complete scanner/container SBOM evidence, exact-environment reproduction, and a trusted
-independently signed external pentest. Missing external evidence remains FAIL; it is not waived.
-
-A production release is created only through `scripts/package_production_release.sh`, which requires
-a current PASS production-assurance report, a release tag at HEAD and an external Ed25519 signing
-key. The private key is never packaged.
+Local engineering evidence and production authorization are separate predicates. Missing production-like TEVV/load/recovery, real PostgreSQL evidence, complete scanner/container-SBOM evidence, exact-environment reproduction, or independently trusted red-team evidence remains FAIL. No local code change may convert unavailable external evidence into PASS.

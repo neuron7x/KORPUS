@@ -8,7 +8,6 @@ import resource
 import subprocess
 import sys
 import tempfile
-import time
 import unicodedata
 import zipfile
 from html.parser import HTMLParser
@@ -17,9 +16,9 @@ from typing import Any
 from xml.etree import ElementTree
 
 from pypdf import PdfReader
-from pypdf.errors import PdfReadError
 
 from korpus.domain.models import ExtractedPage
+from korpus.infrastructure.pdf_extraction import extract_pdf_pages
 
 DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 SUPPORTED_SUFFIXES = {".txt", ".md", ".json", ".html", ".htm", ".pdf", ".docx"}
@@ -169,48 +168,6 @@ def _validate_type_path(path: Path, filename: str, mime_type: str) -> str:
     return suffix
 
 
-def _remaining(deadline: float) -> float:
-    remaining = deadline - time.monotonic()
-    if remaining <= 0:
-        raise ValueError("extraction time budget exceeded")
-    return remaining
-
-
-def _ocr_pdf_path(
-    path: Path, languages: str, deadline: float, max_pages: int
-) -> list[ExtractedPage]:
-    pages: list[ExtractedPage] = []
-    with tempfile.TemporaryDirectory(prefix="korpus-ocr-") as directory:
-        root = Path(directory)
-        prefix = root / "page"
-        subprocess.run(
-            [
-                "pdftoppm", "-png", "-r", "220", "-f", "1",
-                "-l", str(max_pages), str(path), str(prefix),
-            ],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=_remaining(deadline),
-            env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"},
-        )
-        images = sorted(root.glob("page-*.png"))
-        if len(images) > max_pages:
-            raise ValueError("OCR renderer exceeded page limit")
-        for index, image_path in enumerate(images, start=1):
-            completed = subprocess.run(
-                ["tesseract", str(image_path), "stdout", "-l", languages, "--psm", "6"],
-                check=True,
-                capture_output=True,
-                timeout=_remaining(deadline),
-                env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"},
-            )
-            pages.append(
-                ExtractedPage(page=index, text=_normalize(completed.stdout.decode("utf-8")))
-            )
-    return pages
-
-
 def extract_pages_from_path(
     path: Path,
     filename: str,
@@ -224,79 +181,18 @@ def extract_pages_from_path(
     if not path.is_file() or path.stat().st_size == 0:
         raise ValueError("empty document")
     suffix = _validate_type_path(path, filename, mime_type)
-    deadline = time.monotonic() + ocr_total_timeout_seconds
     if suffix == ".pdf":
-        try:
-            reader = PdfReader(str(path), strict=True)
-        except (OSError, ValueError, TypeError, PdfReadError) as exc:
-            raise ValueError("malformed PDF") from exc
-        owner_restricted = False
-        if reader.is_encrypted:
-            # Two different documents wear one flag. A *user* password means the file is
-            # a secret and nobody without it may read the text — refused, because
-            # guessing at one is the wrong instinct for this system to have. An *owner*
-            # password with an empty user password means the file opens for everyone and
-            # the flag restricts printing and copying; every conforming reader, including
-            # the one on a phone, shows it.
-            #
-            # Refusing both cost thirty-two documents on the first real import —
-            # «Протидія мінній війні», «Методичка Антибпла», «КАБ-1500» — none of which
-            # were secret. The permission the owner set is recorded rather than ignored:
-            # the extraction method says so, so it reaches the reviewer and the audit
-            # payload, and a curator can decide what the restriction meant.
-            try:
-                opened = reader.decrypt("")
-            except (NotImplementedError, ValueError, PdfReadError) as exc:
-                raise ValueError("encrypted PDF uses an unsupported algorithm") from exc
-            if not opened:
-                raise ValueError("encrypted PDF requires a password that was not supplied")
-            owner_restricted = True
-        try:
-            # `PdfReader(strict=True)` parses the trailer, not the page tree: the tree is
-            # walked lazily, here, on the first `len`. So a document whose page tree is
-            # malformed passed construction and raised `PdfReadError` from this line —
-            # the one statement between two blocks that both convert it. It reached
-            # `import_corpus.py`, whose per-file handler catches ValueError and its
-            # relatives, and killed a 1740-document batch at document 918.
-            page_count = len(reader.pages)
-        except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:
-            raise ValueError("malformed PDF page tree") from exc
-        if page_count > max_pdf_pages:
-            raise ValueError("PDF page count exceeds configured limit")
-        pages: list[ExtractedPage] = []
-        try:
-            for index, page in enumerate(reader.pages, start=1):
-                _remaining(deadline)
-                pages.append(ExtractedPage(page=index, text=_normalize(page.extract_text() or "")))
-        except ValueError:
-            # Already named by whoever raised it — "document text is not valid Unicode"
-            # tells a curator what to do about the file; "PDF text extraction failed"
-            # tells them the file is broken, which is a different and wrong sentence.
-            raise
-        except (KeyError, TypeError, RecursionError, PdfReadError) as exc:
-            raise ValueError("PDF text extraction failed") from exc
-        printable = sum(len(page.text) for page in pages)
-        if printable >= max(80, len(pages) * 30):
-            return pages, "pdf_text_owner_restricted" if owner_restricted else "pdf_text"
-        if not ocr_enabled:
-            raise ValueError("PDF has insufficient embedded text and OCR is disabled")
-        try:
-            ocr_pages = _ocr_pdf_path(path, ocr_languages, deadline, max_pdf_pages)
-        except (OSError, subprocess.SubprocessError) as exc:
-            raise ValueError("OCR execution failed") from exc
-        if not any(page.text for page in ocr_pages):
-            raise ValueError("OCR produced no text")
-        return ocr_pages, "pdf_ocr_owner_restricted" if owner_restricted else "pdf_ocr"
-
+        return extract_pdf_pages(
+            path, ocr_enabled, ocr_languages, _normalize,
+            max_pdf_pages=max_pdf_pages,
+            ocr_total_timeout_seconds=ocr_total_timeout_seconds,
+            reader_factory=PdfReader,
+        )
     if suffix == ".docx":
         paragraphs = _docx_paragraphs(_docx_body_xml(path))
         if not paragraphs:
             raise ValueError("DOCX contains no extractable text")
-        # One page, like every other flow format: DOCX has no page boundaries until it
-        # is laid out, and inventing them would put a page number on a citation that no
-        # printed copy agrees with.
         return [ExtractedPage(page=None, text=_normalize("\n\n".join(paragraphs)))], "docx_text"
-
     try:
         decoded = path.read_text(encoding="utf-8-sig", errors="strict")
     except (UnicodeDecodeError, OSError) as exc:

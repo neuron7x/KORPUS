@@ -286,8 +286,8 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 693,
-      "max_complexity": 29
+      "lines": 589,
+      "max_complexity": 25
     },
     "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
       "lines": 330,
@@ -917,6 +917,11 @@
       "lines": 29,
       "max_complexity": 3,
       "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
+    },
+    "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
+      "lines": 119,
+      "max_complexity": 9,
+      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
     }
   },
   "raised": [
