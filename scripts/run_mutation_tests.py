@@ -226,20 +226,20 @@ MUTANTS = (
     ),
     Mutant(
         "M19_NEAR_DUPLICATE_ACK_BYPASS",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/review_transitions.py",
         (
-            "                    current.near_duplicate_of_version_id is not None\n"
-            "                    and not acknowledge_near_duplicate\n"
+            "            current.near_duplicate_of_version_id is not None\n"
+            "            and not acknowledge_near_duplicate\n"
         ),
         (
-            "                    False\n"
-            "                    and False\n"
+            "            False\n"
+            "            and False\n"
         ),
         ("apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",),
     ),
     Mutant(
         "M20_EXTRACTION_QUALITY_ACK_BYPASS",
-        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/infrastructure/review_transitions.py",
         "if current.extraction_quality_flags and not acknowledge_extraction_quality:",
         "if False:",
         ("apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement",),
@@ -500,9 +500,9 @@ MUTANTS = (
     ),
     Mutant(
         "M46_APPROVER_TIER_ABOVE_CLEARANCE_ALLOWED",
-        "apps/api/src/korpus/infrastructure/repository.py",
-        "                    if int(access_tier) > int(actor.clearance):",
-        "                    if False:",
+        "apps/api/src/korpus/infrastructure/review_transitions.py",
+        "    if int(access_tier) > int(actor.clearance):",
+        "    if False:",
         ("apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance",),
     ),
     Mutant(
@@ -2788,6 +2788,16 @@ MUTANTS = (
         '    if not require_trusted: checks.pop("trusted_signer", None)',
         '    if True: checks.pop("trusted_signer", None)',
         ('apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer',),
+    ),
+    Mutant(
+        "M241_SUBJECT_OVERLOAD_REASON_COLLAPSED",
+        "apps/api/src/korpus/application/overload.py",
+        '    SUBJECT_SHARE = "subject_share_exhausted"',
+        '    SUBJECT_SHARE = "global_capacity_exhausted"',
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::"
+            "test_one_subject_cannot_take_the_whole_service",
+        ),
     ),
 )
 

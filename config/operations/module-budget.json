@@ -184,8 +184,13 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/application/resilience.py": {
-      "lines": 178,
+      "lines": 177,
       "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/overload.py": {
+      "lines": 18,
+      "max_complexity": 2,
+      "reason": "ACT-008: typed overload reasons isolated from concurrency mechanics; first measured ceiling."
     },
     "apps/api/src/korpus/application/retention.py": {
       "lines": 172,
@@ -306,9 +311,14 @@
       "max_complexity": 3
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1151,
-      "max_complexity": 23,
-      "reason": "COD-001: 1855 -> the recorded ceiling across four extractions; the transactional core stays"
+      "lines": 1038,
+      "max_complexity": 13,
+      "reason": "COD-001 continuation: review-transition state machine extracted; repository now retains connection ownership, retrieval, audit core, and delegates review-specific policy mechanics."
+    },
+    "apps/api/src/korpus/infrastructure/review_transitions.py": {
+      "lines": 259,
+      "max_complexity": 9,
+      "reason": "ACT-008: explicit review-state writer split into validation, supersession, access-tier, optimistic-update and audit steps; ceiling records first measured implementation."
     },
     "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
       "lines": 362,
@@ -529,9 +539,14 @@
       "reason": "a drill: it breaks something on purpose and records what the system says"
     },
     "scripts/load_probe.py": {
-      "lines": 206,
+      "lines": 180,
       "max_complexity": 6,
       "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
+    },
+    "scripts/load_probe_lib/metrics.py": {
+      "lines": 57,
+      "max_complexity": 5,
+      "reason": "ACT-008: load measurement aggregation and refusal-body parsing separated from HTTP workload generation."
     },
     "scripts/measure_recovery.py": {
       "lines": 176,

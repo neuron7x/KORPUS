@@ -11,22 +11,20 @@ from __future__ import annotations
 import argparse
 import http.client
 import json
-import statistics
 import sys
 import time
 import urllib.error
 import urllib.request
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
+from load_probe_lib.metrics import Outcome, refusal_reason  # noqa: E402
 
 DECLARATION = {
     "given_name": "Навантаження",
@@ -56,37 +54,6 @@ QUESTIONS = (
 )
 
 
-@dataclass
-class Outcome:
-    latencies: list[float] = field(default_factory=list)
-    statuses: dict[str, int] = field(default_factory=dict)
-    decisions: dict[str, int] = field(default_factory=dict)
-
-    def record(self, seconds: float, status: str, decision: str = "") -> None:
-        self.latencies.append(seconds)
-        self.statuses[status] = self.statuses.get(status, 0) + 1
-        if decision:
-            self.decisions[decision] = self.decisions.get(decision, 0) + 1
-
-    def summary(self) -> dict[str, Any]:
-        ordered = sorted(self.latencies)
-        if not ordered:
-            return {"requests": 0}
-
-        def at(fraction: float) -> float:
-            index = min(len(ordered) - 1, int(fraction * len(ordered)))
-            return round(ordered[index], 3)
-
-        return {
-            "requests": len(ordered),
-            "p50_seconds": at(0.50),
-            "p95_seconds": at(0.95),
-            "p99_seconds": at(0.99),
-            "max_seconds": round(ordered[-1], 3),
-            "mean_seconds": round(statistics.fmean(ordered), 3),
-            "statuses": dict(sorted(self.statuses.items())),
-            "decisions": dict(sorted(self.decisions.items(), key=lambda item: -item[1])),
-        }
 
 
 #: Set when the probe talks to the API directly. Through the edge it is not needed and
@@ -94,7 +61,7 @@ class Outcome:
 TOKEN = ""
 
 
-def _ask(base: str, question: str, timeout: float) -> tuple[float, str, str]:
+def _ask(base: str, question: str, timeout: float) -> tuple[float, str, str, str]:
     body = json.dumps({"text": question, "declaration": DECLARATION}).encode("utf-8")
     headers = {"content-type": "application/json"}
     if TOKEN:
@@ -104,21 +71,21 @@ def _ask(base: str, question: str, timeout: float) -> tuple[float, str, str]:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             payload = json.loads(response.read())
-        return time.monotonic() - started, "200", str(payload.get("decision_reason", ""))
+        return time.monotonic() - started, "200", str(payload.get("decision_reason", "")), ""
     except urllib.error.HTTPError as error:
-        # A refusal is a result. 429 is the edge doing its job and belongs in the record
-        # as itself, not as a failure — the question is whether it appears under a load
-        # a real shift would produce.
-        return time.monotonic() - started, str(error.code), ""
+        # A refusal is a result. Preserve the server's typed admission reason when it
+        # exists so a 503 caused by per-subject isolation is not confused with global
+        # capacity exhaustion or an unrelated dependency outage.
+        return time.monotonic() - started, str(error.code), "", refusal_reason(error)
     except (OSError, urllib.error.URLError, http.client.HTTPException, TimeoutError) as error:
         # Named rather than blanket: these are what a transport can do to us, each is a
         # data point, and anything else is a defect in this probe that must not be
         # reported as a property of the system under test.
-        return time.monotonic() - started, type(error).__name__, ""
+        return time.monotonic() - started, type(error).__name__, "", ""
     except (ValueError, json.JSONDecodeError) as error:
         # A 200 whose body is not the answer schema is a failure of the system, not of
         # the probe, and it is recorded as one rather than crashing the run.
-        return time.monotonic() - started, f"malformed:{type(error).__name__}", ""
+        return time.monotonic() - started, f"malformed:{type(error).__name__}", "", ""
 
 
 def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outcome:
@@ -131,8 +98,8 @@ def _phase(base: str, concurrency: int, seconds: float, timeout: float) -> Outco
         while time.monotonic() < deadline:
             counter += 1
             question = QUESTIONS[(index + counter) % len(QUESTIONS)]
-            elapsed, status, decision = _ask(base, question, timeout)
-            outcome.record(elapsed, status, decision)
+            elapsed, status, decision, refusal_reason = _ask(base, question, timeout)
+            outcome.record(elapsed, status, decision, refusal_reason)
             if status == "429":
                 # Honour the refusal instead of spinning on it. A worker that retries a
                 # rate limit as fast as it can measures the limiter's reject path and
@@ -166,7 +133,9 @@ def main() -> int:
 
     # Cold first, deliberately: the first question after a restart pays for whatever the
     # process builds lazily, and a report that hides it describes a system nobody starts.
-    cold_latency, cold_status, _ = _ask(arguments.base, QUESTIONS[0], arguments.timeout)
+    cold_latency, cold_status, _, cold_refusal_reason = _ask(
+        arguments.base, QUESTIONS[0], arguments.timeout
+    )
 
     load = _phase(arguments.base, arguments.concurrency, arguments.seconds, arguments.timeout)
     spike = _phase(arguments.base, arguments.spike, arguments.seconds, arguments.timeout)
@@ -179,7 +148,11 @@ def main() -> int:
         "environment_class": arguments.environment_class,
         "source_tree_sha256": arguments.source_tree_sha256 or compute_source_digest(ROOT),
         "release": arguments.release or release_tag(),
-        "cold_first_request": {"seconds": round(cold_latency, 3), "status": cold_status},
+        "cold_first_request": {
+            "seconds": round(cold_latency, 3),
+            "status": cold_status,
+            "refusal_reason": cold_refusal_reason,
+        },
         "load": {"concurrency": arguments.concurrency, **load.summary()},
         "spike": {"concurrency": arguments.spike, **spike.summary()},
         "soak": {"concurrency": arguments.concurrency, **soak.summary()},
@@ -190,7 +163,8 @@ def main() -> int:
             "One machine, one day, with the conditions attached. Non-200 statuses are "
             "results, not failures: 429 is the edge refusing work it was configured to "
             "refuse, and a run where none appear under a spike has not found the "
-            "saturation point. Latency drift between the load and soak phases is the "
+            "saturation point. Typed refusal_reasons distinguish admission saturation "
+            "from unrelated 503s. Latency drift between the load and soak phases is the "
             "number that says whether the steady state is steady."
         ),
     }

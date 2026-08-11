@@ -55,7 +55,7 @@ def create_answer(
     try:
         return bounded_answer(service, identity, query, admission, observability)
     except OverloadedError as exc:
-        raise overloaded() from exc
+        raise overloaded(exc) from exc
     except UnauthorizedCorporaError as exc:
         # Typed, and in the order the reader asked: a refusal that does not say which
         # corpus was refused cannot be acted on by the reader or by an operator.

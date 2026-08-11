@@ -395,7 +395,7 @@ async def ask_within_conversation(
             bounded_answer, answers, identity, scoped, admission, observability
         )
     except OverloadedError as exc:
-        raise overloaded() from exc
+        raise overloaded(exc) from exc
 
     conversations.record_answer(
         account, conversation_id, answer.text, answer.id, answer.status.value

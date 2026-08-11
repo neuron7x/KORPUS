@@ -40,7 +40,7 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure import retrieval_queries, row_mapping
+from korpus.infrastructure import retrieval_queries, row_mapping, review_transitions
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
 
@@ -426,147 +426,34 @@ class SqlRepository:
         expected_state: ReviewState,
         target_state: ReviewState,
         note: str,
-        # Keyword-only. Two adjacent booleans in positional slots are one transposition
-        # away from recording that a reviewer acknowledged a near-duplicate when what
-        # they acknowledged was extraction quality — and the wrong one lands in the
-        # audit chain as their assertion, where it cannot be edited.
         *,
         acknowledge_near_duplicate: bool = False,
         acknowledge_extraction_quality: bool = False,
         reviewer_credential_id: str | None = None,
         access_tier: AccessTier | None = None,
     ) -> DocumentVersionRecord:
-        """Approval may carry the access tier the approver decided on.
-
-        Approval is where a human takes responsibility for a document entering the
-        corpus, and the tier is part of that decision — but it could only be set at
-        ingestion, by whoever uploaded the file. An approver who judged a document more
-        restricted than it was filed as had no way to say so, and the tier that stood
-        was the uploader's.
-        """
+        """Apply one optimistic review transition and append its audit event atomically."""
 
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
-            row = connection.execute(
-                select(versions).where(versions.c.id == str(version_id))
-            ).mappings().first()
-            if row is None:
-                raise LookupError("version not found")
-            current = self._version(row)
-            if current.review_state is not expected_state:
-                raise ConcurrentWriteError("version state changed concurrently")
-
-            changes: dict[str, Any] = {
-                "review_state": target_state.value,
-                "state_version": current.state_version + 1,
-            }
-            if target_state is ReviewState.METADATA_REVIEWED:
-                if (
-                    current.near_duplicate_of_version_id is not None
-                    and not acknowledge_near_duplicate
-                ):
-                    raise ValueError("near-duplicate finding must be explicitly acknowledged")
-                if current.extraction_quality_flags and not acknowledge_extraction_quality:
-                    raise ValueError("extraction-quality findings must be explicitly acknowledged")
-                changes["metadata_reviewed_by"] = actor.subject
-                changes["metadata_reviewer_credential_id"] = reviewer_credential_id
-                if current.near_duplicate_of_version_id is not None:
-                    changes["near_duplicate_acknowledged_by"] = actor.subject
-                if current.extraction_quality_flags:
-                    changes["extraction_quality_acknowledged_by"] = actor.subject
-            elif target_state is ReviewState.CONTENT_REVIEWED:
-                changes["content_reviewed_by"] = actor.subject
-                changes["content_reviewer_credential_id"] = reviewer_credential_id
-            elif target_state is ReviewState.APPROVED:
-                existing_row = connection.execute(
-                    select(versions)
-                    .where(versions.c.document_id == str(current.document_id))
-                    .where(versions.c.review_state == ReviewState.APPROVED.value)
-                    .where(versions.c.is_current.is_(True))
-                    .where(versions.c.id != str(current.id))
-                ).mappings().first()
-                if existing_row is not None:
-                    existing = self._version(existing_row)
-                    if current.supersedes_version_id != existing.id:
-                        raise ValueError("approval must supersede the current approved version")
-                    connection.execute(
-                        update(versions)
-                        .where(versions.c.id == str(existing.id))
-                        .where(versions.c.is_current.is_(True))
-                        .values(is_current=False, state_version=existing.state_version + 1)
-                    )
-                elif current.supersedes_version_id is not None:
-                    predecessor_row = connection.execute(
-                        select(versions).where(versions.c.id == str(current.supersedes_version_id))
-                    ).mappings().first()
-                    if (
-                        predecessor_row is None
-                        or predecessor_row["review_state"] != ReviewState.APPROVED.value
-                    ):
-                        raise ValueError("superseded version must be approved")
-                changes.update(
-                    {
-                        "approved_at": datetime.now(UTC),
-                        "approved_by": actor.subject,
-                        "approver_credential_id": reviewer_credential_id,
-                        "is_current": True,
-                    }
+            try:
+                return review_transitions.transition_version_in_connection(
+                    connection,
+                    actor=actor,
+                    version_id=version_id,
+                    expected_state=expected_state,
+                    target_state=target_state,
+                    note=note,
+                    acknowledge_near_duplicate=acknowledge_near_duplicate,
+                    acknowledge_extraction_quality=acknowledge_extraction_quality,
+                    reviewer_credential_id=reviewer_credential_id,
+                    access_tier=access_tier,
+                    version_mapper=self._version,
+                    document_mapper=self._document,
+                    append_audit=self._append_audit_in_connection,
                 )
-                if access_tier is not None:
-                    document_row = connection.execute(
-                        select(documents).where(documents.c.id == str(current.document_id))
-                    ).mappings().one()
-                    document = self._document(document_row)
-                    if access_tier < document.classification.minimum_tier:
-                        raise ValueError("access_tier is below classification minimum")
-                    if int(access_tier) > int(actor.clearance):
-                        raise PermissionError("approver cannot assign a tier above own clearance")
-                    connection.execute(
-                        update(documents)
-                        .where(documents.c.id == str(current.document_id))
-                        .values(access_tier=int(access_tier))
-                    )
-            elif target_state is ReviewState.REJECTED:
-                changes["is_current"] = False
-
-            result = connection.execute(
-                update(versions)
-                .where(versions.c.id == str(version_id))
-                .where(versions.c.review_state == expected_state.value)
-                .where(versions.c.state_version == current.state_version)
-                .values(**changes)
-            )
-            if result.rowcount != 1:
-                raise ConcurrentWriteError("optimistic review transition failed")
-            updated_row = connection.execute(
-                select(versions).where(versions.c.id == str(version_id))
-            ).mappings().one()
-            updated = self._version(updated_row)
-            anchor = self._append_audit_in_connection(
-                connection,
-                actor,
-                "document.review_transition",
-                "document_version",
-                str(version_id),
-                {
-                    "from": expected_state.value,
-                    "to": target_state.value,
-                    "note": note,
-                    "state_version": updated.state_version,
-                    "approved_by": updated.approved_by,
-                    "reviewer_credential_id": reviewer_credential_id,
-                    "metadata_reviewer_credential_id": updated.metadata_reviewer_credential_id,
-                    "content_reviewer_credential_id": updated.content_reviewer_credential_id,
-                    "approver_credential_id": updated.approver_credential_id,
-                    "near_duplicate_acknowledged_by": updated.near_duplicate_acknowledged_by,
-                    "extraction_quality_flags": sorted(updated.extraction_quality_flags),
-                    "extraction_quality_acknowledged_by": (
-                        updated.extraction_quality_acknowledged_by
-                    ),
-                    "applied_access_tier": None if access_tier is None else int(access_tier),
-                },
-            )
-            return updated, anchor
+            except review_transitions.ReviewTransitionConflict as exc:
+                raise ConcurrentWriteError(str(exc)) from exc
 
         return self._transaction_with_anchor(operation)
 

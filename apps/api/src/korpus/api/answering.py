@@ -58,7 +58,7 @@ def bounded_answer(
     return answer
 
 
-def overloaded() -> HTTPException:
+def overloaded(error: OverloadedError) -> HTTPException:
     """503 with `Retry-After`, identical on every door.
 
     A client that learns one route sheds load politely and another drops the connection
@@ -67,7 +67,7 @@ def overloaded() -> HTTPException:
     """
     return HTTPException(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail="answer capacity exhausted",
+        detail={"reason": error.reason.value, "retry_after_seconds": 1},
         headers={"Retry-After": "1"},
     )
 

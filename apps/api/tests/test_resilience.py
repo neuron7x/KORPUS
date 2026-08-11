@@ -23,8 +23,10 @@ def test_admission_controller_is_bounded_and_recovers():
     thread = threading.Thread(target=holder)
     thread.start()
     assert entered.wait(1)
-    with pytest.raises(OverloadedError), controller.acquire():
-        pass
+    with pytest.raises(OverloadedError) as refused:
+        with controller.acquire():
+            pass
+    assert refused.value.reason.value == "global_capacity_exhausted"
     release.set()
     thread.join()
     with controller.acquire():

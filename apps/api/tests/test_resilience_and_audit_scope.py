@@ -33,8 +33,10 @@ def test_one_subject_cannot_take_the_whole_service() -> None:
     controller = AdmissionController(capacity=4, per_subject_limit=2)
 
     with controller.acquire("loud"), controller.acquire("loud"):
-        with pytest.raises(OverloadedError, match="per-subject"), controller.acquire("loud"):
-            pass
+        with pytest.raises(OverloadedError, match="per-subject") as refused:
+            with controller.acquire("loud"):
+                pass
+        assert refused.value.reason.value == "subject_share_exhausted"
         with controller.acquire("quiet"):
             assert controller.snapshot().active == 3, (
                 "another subject must still be admitted while one is at its share"

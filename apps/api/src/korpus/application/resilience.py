@@ -9,8 +9,7 @@ from enum import StrEnum
 from typing import TypeVar
 
 
-class OverloadedError(RuntimeError):
-    pass
+from korpus.application.overload import OverloadedError, OverloadReason
 
 
 class CircuitOpenError(RuntimeError):
@@ -74,7 +73,7 @@ class AdmissionController:
                 if held >= self.per_subject_limit:
                     self._subject_rejected += 1
                     self._rejected += 1
-                    raise OverloadedError("per-subject capacity exhausted")
+                    raise OverloadedError(OverloadReason.SUBJECT_SHARE)
                 self._by_subject[subject] = held + 1
         try:
             admitted = self._semaphore.acquire(timeout=self.wait_timeout_seconds)
@@ -85,7 +84,7 @@ class AdmissionController:
             self._release_subject(subject)
             with self._lock:
                 self._rejected += 1
-            raise OverloadedError("answer capacity exhausted")
+            raise OverloadedError(OverloadReason.GLOBAL_CAPACITY)
         with self._lock:
             self._active += 1
         try:
