@@ -2929,6 +2929,86 @@ MUTANTS = (
             "test_valid_signature_without_preadmitted_trust_root_is_rejected",
         ),
     ),
+    Mutant(
+        "M255_TEVV_OBSERVATION_LEDGER_BYPASSED",
+        "apps/api/src/korpus/application/tevv_evidence.py",
+        '        "observation_ledger_structured": observations_ok,',
+        '        "observation_ledger_structured": True,',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger",
+        ),
+    ),
+    Mutant(
+        "M256_TEVV_ATTACK_COVERAGE_BYPASSED",
+        "apps/api/src/korpus/application/tevv_evidence.py",
+        '        "required_attack_families_covered": required.issubset(set(metrics["attack_families"])),',
+        '        "required_attack_families_covered": True,',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_ledger_must_cover_required_attack_families",
+        ),
+    ),
+    Mutant(
+        "M257_TEVV_DECLARED_AGGREGATE_CONFLICT_IGNORED",
+        "apps/api/src/korpus/application/tevv_evidence.py",
+        '        "declared_aggregates_consistent": _declared_consistent(evidence, metrics),',
+        '        "declared_aggregates_consistent": True,',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure",
+        ),
+    ),
+    Mutant(
+        "M258_TEVV_LEAKAGE_LEDGER_IGNORED",
+        "scripts/run_tevv_production_gate.py",
+        '        "leakage": int(metrics["leakage_failures"]) <= int(profile["maximum_leakage_failures"]),',
+        '        "leakage": int(evidence.get("leakage_failures", 0)) <= int(profile["maximum_leakage_failures"]),',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure",
+        ),
+    ),
+    Mutant(
+        "M259_TEVV_NULL_LEDGER_IGNORED",
+        "scripts/run_tevv_production_gate.py",
+        '        "null_false_accepts": int(metrics["null_control_false_accepts"]) <= int(profile["maximum_null_control_false_accepts"]),',
+        '        "null_false_accepts": int(evidence.get("null_control_false_accepts", 0)) <= int(profile["maximum_null_control_false_accepts"]),',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_summary_cannot_hide_null_false_accept",
+        ),
+    ),
+    Mutant(
+        "M260_TEVV_DUPLICATE_OBSERVATION_IDS_ACCEPTED",
+        "apps/api/src/korpus/application/tevv_evidence.py",
+        '        "observation_ids_unique": len(observation_ids) == len(set(observation_ids)),',
+        '        "observation_ids_unique": True,',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_duplicate_observation_ids_fail_closed",
+        ),
+    ),
+    Mutant(
+        "M261_TEVV_EVIDENCE_SCHEMA_BYPASSED",
+        "scripts/run_tevv_production_gate.py",
+        '        "evidence_schema": evidence.get("schema") == profile["evidence_schema"],',
+        '        "evidence_schema": True,',
+        (
+            "apps/api/tests/test_tevv_attestation_boundary.py::"
+            "test_trusted_tevv_wrong_evidence_schema_fails_closed",
+        ),
+    ),
+    Mutant(
+        "M262_PRODUCTION_ASSURANCE_RELATIVE_PATHS_BROKEN",
+        "scripts/assemble_production_assurance.py",
+        "    profile_path, gate_dir, out_path = args.profile.resolve(), args.gate_dir.resolve(), args.out.resolve()",
+        "    profile_path, gate_dir, out_path = args.profile, args.gate_dir, args.out",
+        (
+            "apps/api/tests/test_production_assurance_cli.py::"
+            "test_production_assurance_cli_accepts_repo_relative_paths",
+        ),
+    ),
 )
 
 

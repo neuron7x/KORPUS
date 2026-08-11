@@ -1,12 +1,11 @@
 # Act 00 — current canonical state
 
-- Canonical release: `v6.15.0` ACT-012 structured external-red-team evidence and recomputed verdict line.
-- Recovery base: verified `v6.8.2` package, Git HEAD `4a810ed609fd40fc4690411afb6d545ac4095b38`.
-- Production authorization: `false`.
-- Last complete source-bound test campaign belongs to `v6.8.2`: 1347 tests, 0 failures, 0 errors, 3 skipped; line coverage 0.9172; branch coverage 0.7891.
-- Last complete mutation campaign belongs to `v6.8.2`: full catalogue PASS (`277/277` killed in the preserved release evidence).
-- `v6.12.0` changes invalidate those measurements as current-release evidence until fresh gates execute; they remain historical baseline only.
-- Current locally verified static gates: desired-state, import graph, release identity, module budget, requirements register, doctrine catalogue, repository, infrastructure, Kubernetes.
-- Environment-limited gates remain unexecuted or FAIL-closed where the required tool/runtime is absent: ruff, mypy, full pytest/coverage in one uninterrupted campaign, live PostgreSQL, production-like TEVV/load/recovery, trusted independent red-team, complete scanner/container-SBOM attestation.
+- Canonical release: `v6.16.0` ACT-013 structured TEVV observation/null ledgers with recomputed production metrics.
+- Production authorization: `false` until fresh `v6.16.0` evidence completes all required production gates.
+- Last complete source-bound baseline: `v6.15.0` — 1395 collected tests, 1392 PASS, 0 FAIL, 0 ERROR, 3 SKIP; statement coverage 8495/9255 (91.7882%); branch coverage 1809/2294 (78.8579%); full mutation catalogue 291/291 killed.
+- `v6.16.0` invalidates all `v6.15.0` PASS artifacts as current-release evidence. They remain historical baseline only.
+- ACT-013 changes the TEVV evidence class: trusted aggregate counters are insufficient; observations, null controls, attack-family coverage and failure counts are recomputed from structured case ledgers under schema `korpus.tevv-evidence.v2`.
+- Production-assurance CLI relative-path provenance handling is also hardened and mutation-tested.
+- Environment/external gates remain fail-closed where exact Python 3.12.13, real PostgreSQL, scanners/container SBOM attestations, production-like reliability, admissible TEVV and independent external red-team evidence are absent.
 
-Interpretation: `v6.15.0` is a canonical engineering continuation point, not a production authorization. Any agent must regenerate source-bound evidence after changing tracked source and must not reuse `v6.8.2` PASS artifacts as evidence for `v6.15.0`.
+Interpretation: `v6.16.0` is an engineering continuation point until fresh regression, coverage, mutation and assurance are regenerated against its immutable source digest. No prior release artifact is admissible as current evidence.

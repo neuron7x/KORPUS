@@ -982,6 +982,11 @@
       "lines": 75,
       "max_complexity": 11,
       "reason": "ACT-012 structured external red-team evidence evaluator; initial measured ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/tevv_evidence.py": {
+      "lines": 100,
+      "max_complexity": 9,
+      "reason": "Initial ceiling for structured TEVV observation/null ledger recomputation; reductions ratchet downward."
     }
   },
   "raised": [

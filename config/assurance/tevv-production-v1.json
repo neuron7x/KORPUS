@@ -2,7 +2,7 @@
   "schema_version": 1,
   "profile_id": "korpus-tevv-production-v1",
   "minimum_observations": 200,
-  "maximum_interval_width": 0.10,
+  "maximum_interval_width": 0.1,
   "minimum_pass_rate": 1.0,
   "maximum_citation_failures": 0,
   "maximum_leakage_failures": 0,
@@ -17,5 +17,9 @@
     "evidence_boundary",
     "temporal_validity"
   ],
-  "allowed_environment_classes": ["PRODUCTION_LIKE", "PRODUCTION"]
+  "allowed_environment_classes": [
+    "PRODUCTION_LIKE",
+    "PRODUCTION"
+  ],
+  "evidence_schema": "korpus.tevv-evidence.v2"
 }

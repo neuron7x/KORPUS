@@ -45,30 +45,30 @@ def main() -> int:
     parser.add_argument("--gate-dir", type=Path, default=ROOT / "var/production")
     parser.add_argument("--out", type=Path, default=ROOT / "reports/PRODUCTION_ASSURANCE_REPORT.json")
     args = parser.parse_args()
-    profile = _load(args.profile)
+    profile_path, gate_dir, out_path = args.profile.resolve(), args.gate_dir.resolve(), args.out.resolve()
+    profile = _load(profile_path)
     source = compute_source_digest(ROOT)
     release = release_tag()
-    gates = {gate: _load(args.gate_dir / filename) for gate, filename in DEFAULT_GATES.items()}
+    gates = {gate: _load(gate_dir / filename) for gate, filename in DEFAULT_GATES.items()}
     verdict = evaluate_production_assurance(profile, gates, source_digest=source, release=release)
     gate_hashes = {
-        gate: hashlib.sha256((args.gate_dir / filename).read_bytes()).hexdigest()
-        for gate, filename in DEFAULT_GATES.items() if (args.gate_dir / filename).is_file()
+        gate: hashlib.sha256((gate_dir / filename).read_bytes()).hexdigest()
+        for gate, filename in DEFAULT_GATES.items() if (gate_dir / filename).is_file()
     }
     payload = {
         "schema": "korpus.production-assurance.v1",
         "status": verdict.status,
         "release": release,
         "source_tree_sha256": source,
-        "profile": str(args.profile.relative_to(ROOT)),
-        "profile_sha256": hashlib.sha256(args.profile.read_bytes()).hexdigest(),
+        "profile": str(profile_path.relative_to(ROOT)),
+        "profile_sha256": hashlib.sha256(profile_path.read_bytes()).hexdigest(),
         "checks": dict(verdict.checks),
         "failures": list(verdict.failures),
         "gate_sha256": gate_hashes,
         "gates": gates,
         "production_authorized": verdict.passed,
     }
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    out_path.parent.mkdir(parents=True, exist_ok=True); out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: payload[k] for k in ("status", "release", "source_tree_sha256", "failures", "production_authorized")}, ensure_ascii=False, indent=2))
     return 0 if verdict.passed else 1
 
