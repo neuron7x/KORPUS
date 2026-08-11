@@ -1,6 +1,6 @@
 {
   "name": "@korpus/web",
-  "version": "6.17.1",
+  "version": "6.18.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/build_styles.mjs && node scripts/serve.mjs",

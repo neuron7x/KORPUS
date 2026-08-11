@@ -2707,7 +2707,7 @@ MUTANTS = (
     ),
     Mutant(
         'M229_SECURITY_SCANNER_SET_EMPTIED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        'apps/api/src/korpus/application/supply_chain_scanners.py',
         'EXPECTED_SECURITY_SCANNERS = frozenset({"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"})',
         'EXPECTED_SECURITY_SCANNERS = frozenset()',
         ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_summary_status_string_alone_is_not_clean',),
@@ -3009,6 +3009,29 @@ MUTANTS = (
             "test_production_assurance_cli_accepts_repo_relative_paths",
         ),
     ),
+    Mutant(
+        "M263_CONTAINER_IMAGE_SCAN_MARKER_IGNORED",
+        "apps/api/src/korpus/application/supply_chain_scanners.py",
+        "    return _scanner_marker_clean(scan, EXPECTED_CONTAINER_SCANNERS)",
+        "    return True",
+        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_scan_marker_requires_both_image_scans_exit_zero",),
+    ),
+    Mutant(
+        "M264_SUPPLY_MANIFEST_EXTRA_ARTIFACT_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
+        "        and set(declared) == set(artifacts)",
+        "        and True",
+        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact",),
+    ),
+
+    Mutant(
+        "M265_SCANNER_MARKER_COMMIT_REPLAY_ACCEPTED",
+        "apps/api/src/korpus/application/supply_chain_scanners.py",
+        '    return bool(expected_commit) and scan.get("commit_sha") == expected_commit',
+        "    return True",
+        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",),
+    ),
+
 )
 
 

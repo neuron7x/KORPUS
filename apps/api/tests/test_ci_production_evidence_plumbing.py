@@ -57,3 +57,14 @@ def test_package_materializes_all_externally_bound_required_gates() -> None:
 def test_redteam_validator_uses_protected_runtime_trust_without_source_mutation() -> None:
     source = (ROOT / "scripts/validate_external_redteam_evidence.py").read_text(encoding="utf-8")
     assert 'trusted_fingerprints(TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256")' in source
+
+
+def test_container_scan_marker_is_handed_to_supply_chain_gate() -> None:
+    jobs = _jobs(); scan = jobs["container:scan"]; package = jobs["source:package"]
+    assert "var/security/ci-container-scan.json" in (scan.get("artifacts") or {}).get("paths", ())
+    needs = {item["job"]: item for item in package.get("needs", ()) if isinstance(item, dict)}
+    assert needs["container:scan"].get("artifacts") is True
+    manifest_builder = (ROOT / "scripts/build_supply_chain_evidence_manifest.py").read_text(encoding="utf-8")
+    gate = (ROOT / "scripts/run_supply_chain_gate.py").read_text(encoding="utf-8")
+    assert '"var/security/ci-container-scan.json"' in manifest_builder
+    assert 'container_scan=_json(paths[names[4]])' in gate

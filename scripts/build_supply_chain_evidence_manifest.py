@@ -16,7 +16,7 @@ ARTIFACTS = (
     "source-sbom.cdx.json",
     "api-sbom.cdx.json",
     "web-sbom.cdx.json",
-    "var/security/summary.json",
+    "var/security/summary.json", "var/security/ci-container-scan.json",
 )
 
 

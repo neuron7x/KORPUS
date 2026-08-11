@@ -6,8 +6,7 @@ from typing import Any
 
 from korpus.application.attested_evidence import AttestationVerdict, verify_ed25519_attestation
 from korpus.application.production_reliability import evaluate_reliability_evidence
-
-EXPECTED_SECURITY_SCANNERS = frozenset({"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"})
+from korpus.application.supply_chain_scanners import container_scan_marker_clean, scanner_marker_current, scanner_summary_clean
 
 
 def attestation_checks(
@@ -23,21 +22,6 @@ def attestation_checks(
         f"{prefix}_trusted_signer": verdict.trusted_signer,
     }, verdict
 
-
-def scanner_summary_clean(scan: Mapping[str, Any]) -> bool:
-    records = scan.get("scanners", ())
-    if not isinstance(records, list):
-        return False
-    parsed = {
-        str(item.get("scanner")): item.get("exit_code")
-        for item in records if isinstance(item, Mapping)
-    }
-    return (
-        scan.get("status") == "PASS"
-        and scan.get("worst_exit_code") == 0
-        and set(parsed) == EXPECTED_SECURITY_SCANNERS
-        and all(parsed[name] == 0 for name in EXPECTED_SECURITY_SCANNERS)
-    )
 
 
 def valid_cyclonedx(data: Mapping[str, Any]) -> bool:
@@ -69,6 +53,7 @@ def artifact_manifest_bound(
         manifest.get("schema") == "korpus.supply-chain-evidence.v1"
         and manifest.get("source_tree_sha256") == source
         and manifest.get("release") == release
+        and set(declared) == set(artifacts)
         and all(
             isinstance(declared.get(name), Mapping)
             and declared[name].get("sha256") == hashlib.sha256(data).hexdigest()
@@ -98,10 +83,10 @@ def evaluate_attested_reliability(
 
 
 def evaluate_supply_chain_evidence(
-    *, pins: int, hashes: int, locked: Mapping[str, str], scan: Mapping[str, Any],
+    *, pins: int, hashes: int, locked: Mapping[str, str], scan: Mapping[str, Any], container_scan: Mapping[str, Any],
     source_sbom: Mapping[str, Any], api_sbom: Mapping[str, Any], web_sbom: Mapping[str, Any],
     manifest: Mapping[str, Any], artifact_bytes: Mapping[str, bytes], source: str, release: str,
-    attestation: Mapping[str, Any], trusted: Collection[str], manifest_bytes: bytes,
+    attestation: Mapping[str, Any], trusted: Collection[str], manifest_bytes: bytes, expected_commit: str,
 ) -> tuple[dict[str, bool], str, str]:
     artifacts = {name: (data, len(data)) for name, data in artifact_bytes.items()}
     attested_checks, verdict = attestation_checks(
@@ -112,6 +97,9 @@ def evaluate_supply_chain_evidence(
         "exact_pins_have_hashes": pins > 0 and hashes == pins,
         "source_sbom_lock_complete": source_sbom_covers_lock(source_sbom, locked),
         "security_scanners_executed_clean": scanner_summary_clean(scan),
+        "security_scanners_current_commit": scanner_marker_current(scan, expected_commit),
+        "container_scanners_executed_clean": container_scan_marker_clean(container_scan),
+        "container_scanners_current_commit": scanner_marker_current(container_scan, expected_commit),
         "container_sboms_valid": valid_cyclonedx(api_sbom) and valid_cyclonedx(web_sbom),
         "evidence_manifest_bound": artifact_manifest_bound(
             manifest, artifacts, source=source, release=release

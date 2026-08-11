@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json, re, sys
+import json, os, re, sys
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
@@ -17,7 +17,6 @@ def _json(path: Path) -> dict:
     try: value = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError): return {}
     return value if isinstance(value, dict) else {}
-
 def main() -> int:
     pins = hashes = 0; locked: dict[str, str] = {}
     for path in LOCKS:
@@ -26,16 +25,17 @@ def main() -> int:
             if match: pins += 1; locked[match.group(1).lower().replace("_", "-")] = match.group(2)
             if "--hash=sha256:" in line: hashes += 1
     source, release = compute_source_digest(ROOT), release_tag()
-    names = ("source-sbom.cdx.json", "api-sbom.cdx.json", "web-sbom.cdx.json", "var/security/summary.json")
+    names = ("source-sbom.cdx.json", "api-sbom.cdx.json", "web-sbom.cdx.json", "var/security/summary.json", "var/security/ci-container-scan.json")
     paths = {name: ROOT / name for name in names}; raw = {name: path.read_bytes() if path.is_file() else b"" for name, path in paths.items()}
     manifest_path = ROOT / "var/production/supply-chain-evidence-manifest.json"
     attestation_path = ROOT / "var/production/supply-chain-evidence.attestation.json"
     trusted = trusted_fingerprints(TRUST, "supply_chain_ed25519_public_key_sha256", "KORPUS_TRUSTED_SUPPLY_CHAIN_SIGNER_SHA256")
     checks, completeness, fingerprint = evaluate_supply_chain_evidence(
-        pins=pins, hashes=hashes, locked=locked, scan=_json(paths[names[3]]), source_sbom=_json(paths[names[0]]),
+        pins=pins, hashes=hashes, locked=locked, scan=_json(paths[names[3]]),
+        container_scan=_json(paths[names[4]]), source_sbom=_json(paths[names[0]]),
         api_sbom=_json(paths[names[1]]), web_sbom=_json(paths[names[2]]), manifest=_json(manifest_path), artifact_bytes=raw,
         source=source, release=release, attestation=_json(attestation_path), trusted=trusted,
-        manifest_bytes=manifest_path.read_bytes() if manifest_path.is_file() else b"")
+        manifest_bytes=manifest_path.read_bytes() if manifest_path.is_file() else b"", expected_commit=os.getenv("CI_COMMIT_SHA", ""))
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload("supply_chain", status="PASS" if not failures else "FAIL", source_digest=source, release=release,
         checks=checks, failures=failures, evidence_class="ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM", completeness=completeness,

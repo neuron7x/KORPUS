@@ -10,6 +10,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.assurance_evidence import (  # noqa: E402
     artifact_manifest_bound, scanner_summary_clean, source_sbom_covers_lock, valid_cyclonedx,
 )
+from korpus.application.supply_chain_scanners import container_scan_marker_clean, scanner_marker_current  # noqa: E402
 
 
 def test_scanner_summary_status_string_alone_is_not_clean() -> None:
@@ -55,3 +56,33 @@ def test_source_sbom_must_cover_every_locked_component() -> None:
     sbom = {"bomFormat": "CycloneDX", "specVersion": "1.6", "components": [{"name": "a", "version": "1"}]}
     assert source_sbom_covers_lock(sbom, {"a": "1"}) is True
     assert source_sbom_covers_lock(sbom, {"a": "1", "missing": "2"}) is False
+
+
+def test_container_scan_marker_requires_both_image_scans_exit_zero() -> None:
+    clean = {"status": "PASS", "worst_exit_code": 0, "scanners": [
+        {"scanner": "trivy:api-image", "exit_code": 0},
+        {"scanner": "trivy:web-image", "exit_code": 0},
+    ]}
+    assert container_scan_marker_clean(clean) is True
+    clean["scanners"].pop()
+    assert container_scan_marker_clean(clean) is False
+
+
+def test_supply_chain_manifest_rejects_unverified_extra_artifact() -> None:
+    digest = __import__("hashlib").sha256(b"x").hexdigest()
+    manifest = {
+        "schema": "korpus.supply-chain-evidence.v1", "source_tree_sha256": "s", "release": "v",
+        "artifacts": {
+            "a": {"sha256": digest, "bytes": 1},
+            "unverified": {"sha256": digest, "bytes": 1},
+        },
+    }
+    assert artifact_manifest_bound(manifest, {"a": (b"x", 1)}, source="s", release="v") is False
+
+
+def test_scanner_marker_commit_must_match_current_pipeline_commit() -> None:
+    marker = {"commit_sha": "old"}
+    assert scanner_marker_current(marker, "current") is False
+    marker["commit_sha"] = "current"
+    assert scanner_marker_current(marker, "current") is True
+    assert scanner_marker_current(marker, "") is False

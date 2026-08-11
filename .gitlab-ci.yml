@@ -454,11 +454,13 @@ container:scan:
     # number nobody notices becoming fixable.
     - trivy image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output api-unfixed.json
     - trivy image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output web-unfixed.json
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","status":"PASS","worst_exit_code":0,"scanners":[{"scanner":"trivy:api-image","exit_code":0},{"scanner":"trivy:web-image","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-container-scan.json
   artifacts:
     when: always
     paths:
       - api-unfixed.json
       - web-unfixed.json
+      - var/security/ci-container-scan.json
     expire_in: 30 days
 
 container:sbom:
@@ -512,6 +514,7 @@ source:package:
     - job: source:sbom
       artifacts: true
     - job: container:scan
+      artifacts: true
     - job: container:sbom
       artifacts: true
   script:

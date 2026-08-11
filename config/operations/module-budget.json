@@ -51,7 +51,7 @@
     "apps/api/src/korpus/application/answer_query.py": {
       "lines": 580,
       "max_complexity": 22,
-      "reason": "the answer pipeline; grew by the GOV-006 egress ceiling — the tier of the material a composer would send is computed and gated before the composer is called, kept out of execute in a helper so the pipeline's complexity did not rise"
+      "reason": "the answer pipeline; grew by the GOV-006 egress ceiling \u2014 the tier of the material a composer would send is computed and gated before the composer is called, kept out of execute in a helper so the pipeline's complexity did not rise"
     },
     "apps/api/src/korpus/application/assurance.py": {
       "lines": 135,
@@ -164,7 +164,7 @@
     "apps/api/src/korpus/application/ports.py": {
       "lines": 269,
       "max_complexity": 1,
-      "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
+      "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever \u2014 the layer's whole outward surface, so it grows with it"
     },
     "apps/api/src/korpus/application/provenance.py": {
       "lines": 187,
@@ -357,7 +357,7 @@
     "apps/api/src/korpus/kubernetes_requirements.py": {
       "lines": null,
       "max_complexity": 6,
-      "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
+      "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped \u2014 a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
       "lines": 297,
@@ -431,12 +431,12 @@
     "scripts/build_audit_closure.py": {
       "lines": 848,
       "max_complexity": 23,
-      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
+      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped \u2014 a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
     },
     "scripts/validate_doctrine_catalog.py": {
       "lines": 211,
       "max_complexity": 19,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py"
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program \u2014 its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py"
     },
     "scripts/build_import_manifest.py": {
       "lines": 238,
@@ -934,9 +934,9 @@
       "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for detached Ed25519 evidence verification"
     },
     "apps/api/src/korpus/application/assurance_evidence.py": {
-      "lines": 132,
+      "lines": 120,
       "max_complexity": 6,
-      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for shared trusted-evidence predicates"
+      "reason": "ACT-015: container scan evidence extraction tightened shared assurance evaluator line ceiling"
     },
     "scripts/build_supply_chain_evidence_manifest.py": {
       "lines": 51,
@@ -987,6 +987,11 @@
       "lines": 100,
       "max_complexity": 9,
       "reason": "Initial ceiling for structured TEVV observation/null ledger recomputation; reductions ratchet downward."
+    },
+    "apps/api/src/korpus/application/supply_chain_scanners.py": {
+      "lines": 36,
+      "max_complexity": 5,
+      "reason": "ACT-015: bounded scanner-marker evaluator separates source/config and container-image scan evidence"
     }
   },
   "raised": [
@@ -1226,7 +1231,7 @@
         "max_complexity": 8,
         "worst_function": "ask_within_conversation"
       },
-      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser \u2014 a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     },
     {
       "path": "apps/api/src/korpus/application/conversations.py",
@@ -1240,7 +1245,7 @@
         "max_complexity": 3,
         "worst_function": "record_question"
       },
-      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser \u2014 a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     },
     {
       "path": "apps/api/src/korpus/domain/tenancy.py",
@@ -1254,7 +1259,7 @@
         "max_complexity": 5,
         "worst_function": "active_at"
       },
-      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser \u2014 a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
@@ -1268,7 +1273,7 @@
         "max_complexity": 5,
         "worst_function": "archive_conversation"
       },
-      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser \u2014 a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     },
     {
       "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
@@ -1282,7 +1287,7 @@
         "max_complexity": 0,
         "worst_function": "-"
       },
-      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser \u2014 a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored"
     },
     {
       "path": "apps/api/src/korpus/api/routes_tenancy.py",
@@ -1660,7 +1665,7 @@
         "max_complexity": 9,
         "worst_function": "_is_local"
       },
-      "reason": "GOV-006: the egress policy gained a classification ceiling (max_external_tier) and permits_material, deciding what corpus material may be sent to a model outside the deployment — distinct from the URL check, which decides only whether an endpoint may be reached"
+      "reason": "GOV-006: the egress policy gained a classification ceiling (max_external_tier) and permits_material, deciding what corpus material may be sent to a model outside the deployment \u2014 distinct from the URL check, which decides only whether an endpoint may be reached"
     },
     {
       "path": "apps/api/src/korpus/config.py",
