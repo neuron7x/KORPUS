@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 673,
-  "root_sha256": "07a2bd48b2243560665e32642a1e68d4afdb771322e98496ec56ef6d05aff3ac",
+  "file_count": 676,
+  "root_sha256": "898add979e08089e407e29ceb913320d396806827ead296ce7b785db69d26575",
   "files": [
     {
       "path": ".dockerignore",
@@ -80,13 +80,13 @@
     {
       "path": "DISTRIBUTION_CONTENTS.md",
       "bytes": 451,
-      "sha256": "6d2ff76998a11c07b66352b8473c03f53599b8629c5a3404a60cce716a7c47a3",
+      "sha256": "0287dec941ad1bb2dd97c2215b5762a78e53c39b0824d67a1eb696ffd18a160c",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
       "bytes": 785,
-      "sha256": "5e58d9c80b7e83d32dc1cc462729223974ecaf2ad799488d56790e13559d9acc",
+      "sha256": "1ace8e1e54e7551e6c841f61abbea6369190159b34356a712a0dceea24c39127",
       "mode": "0644"
     },
     {
@@ -110,7 +110,7 @@
     {
       "path": "README.md",
       "bytes": 6039,
-      "sha256": "b89dc9d16517b0627b267d5cf5b6d2b4f8b5a97c1c87b88c7cde38313abc9d42",
+      "sha256": "e40443d8d21e18a9b36d779c55378b34b02adc6de96cb6aa31cf87e3beb920c9",
       "mode": "0644"
     },
     {
@@ -146,7 +146,7 @@
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
       "bytes": 708,
-      "sha256": "a4f3d1531a760756a640cda0ebe6017b887f562e67e516627cdf133b5c2bcfd9",
+      "sha256": "1b10d1eb4ef869c4a2d349fb28c3e3cc99d941d8ed362afafc0da43b820db8ca",
       "mode": "0644"
     },
     {
@@ -320,7 +320,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2544,
-      "sha256": "fc128ee3750d64e467fff6bece637a7ac03e961211653cd65c8be9dbe3f60af9",
+      "sha256": "f2af008671b4a5ef832fba4351abf8fd58ba1d157a1f6ff6eff6ed247d337db7",
       "mode": "0644"
     },
     {
@@ -615,6 +615,12 @@
       "path": "apps/api/src/korpus/application/exact_environment.py",
       "bytes": 1099,
       "sha256": "888beb9b017373f0aac646c503735b58efc92ce749d7aae3ab1ddc725021b8a7",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/src/korpus/application/external_redteam.py",
+      "bytes": 3169,
+      "sha256": "4b8b042b4642041c55640af4f00b1797f783ae8429a0783848b318af5cb39b5f",
       "mode": "0644"
     },
     {
@@ -1052,7 +1058,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 155,
-      "sha256": "56744cd35edd022113338611c5fcef4b87a0651cbfecebdbd9ae9be87f745f0e",
+      "sha256": "e13b263ac7769566236d2bc6b6d537db0329d0e925cf49e754b6129b5d33ed30",
       "mode": "0644"
     },
     {
@@ -1533,6 +1539,12 @@
       "path": "apps/api/tests/test_external_production_evidence_staging.py",
       "bytes": 1802,
       "sha256": "9c2526716d7b9c04c232f5f57665fbfd82b2e97f15f804a84994958f80c7b30d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_external_redteam_admissibility.py",
+      "bytes": 5250,
+      "sha256": "4cfa3ad4fcc4e072b2b84428dee0c54e86d050ba81ab4bcb9ca443aa0e45872b",
       "mode": "0644"
     },
     {
@@ -2204,13 +2216,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 216,
-      "sha256": "d428b2fcc6cf09d0b75802d2c7c36285753b1d30cceb7c2c3837e056f2af5d79",
+      "sha256": "2f76bcfa248c26670428bc67919017a4212ea28dd285c1f318a133c5deb27fda",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 477,
-      "sha256": "7eec85b119d87a9e18d817722799a0ed350ef56e6132f1212c96458604078e32",
+      "sha256": "296ecf29ea893670b3426a65df20dfab4177fb766b07a4027020bb3f1a9fc89c",
       "mode": "0644"
     },
     {
@@ -2478,6 +2490,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/assurance/redteam-production-v1.json",
+      "bytes": 766,
+      "sha256": "c84b52af23470f7704c438bce4affa23d96c8a8e2893c5628cac8a6b6bc187df",
+      "mode": "0644"
+    },
+    {
       "path": "config/assurance/reliability-internal-v1.json",
       "bytes": 677,
       "sha256": "5d5729acb2fe94bd6116211d070dcfd23311bf0c1c749b163f5f27dd4b2655a0",
@@ -2528,13 +2546,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 3670,
-      "sha256": "4f658f3aeedfbf906e912f2007dcddcf8ca0a581811dbf23102fd4519f5eed9d",
+      "sha256": "7f87109875462ce58e9879ee1715e633154019b5651a421fba37548456fdb61f",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 61285,
-      "sha256": "b8f9ed0642bab930aa7d2664cd66bce1f8960d1b27eecef88d9015d67805206b",
+      "bytes": 61508,
+      "sha256": "1b1caf955caed1f70fd4e622b5a4c93e4bee8614eb9049cac2e3105b5b6b2e90",
       "mode": "0644"
     },
     {
@@ -2558,7 +2576,7 @@
     {
       "path": "contracts/openapi.json",
       "bytes": 49191,
-      "sha256": "044388df5c9bc786284dd1c6bda74bff0050f78a36d8ff7aa0f5e8a74afead29",
+      "sha256": "ebe3bae5fa4ce1588e0ee0bea4c3d845c23c76291290a5776916524dcd8971f6",
       "mode": "0644"
     },
     {
@@ -3026,7 +3044,7 @@
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
       "bytes": 47490,
-      "sha256": "f22a1014154e83e56b6d52f20a7ed378db44408bdc29d14706551bed374a4ee5",
+      "sha256": "8c0f39ae0fb62f306ad77f7b646af53c5c6b5916b9cefc78e66a47f3699eb06a",
       "mode": "0644"
     },
     {
@@ -3229,8 +3247,8 @@
     },
     {
       "path": "handoff/acts/00_CURRENT_STATE_ACT.md",
-      "bytes": 1442,
-      "sha256": "591b178ed0545505e6c03564d21a06140c02ffac1c8e7fbbc00d3b24ec7bfb4b",
+      "bytes": 1441,
+      "sha256": "a6ba5222b6e8119f3418d342d5d01f6dc94c32aed3868dc7ef0979203b8deadf",
       "mode": "0644"
     },
     {
@@ -3296,7 +3314,7 @@
     {
       "path": "handoff/machine/current_state.json",
       "bytes": 2456,
-      "sha256": "c7bb9753d931a552d6fd14be1bd7a7805b1e9acc82d2ba4fb39124901ee2be73",
+      "sha256": "a5b9b7794c97ffdafe9b3e0f43776e5298ac4fbb67aeb4db86a84e8a6fb8eb16",
       "mode": "0644"
     },
     {
@@ -3817,8 +3835,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 143421,
-      "sha256": "b556bb5cac9ddf9229911df2d22add49f6ff22f7dbfc972d09a1715f19456bda",
+      "bytes": 145591,
+      "sha256": "4b46f61b1990defb3d70046beaed13c274f3a40a8bd55f4ee2ef6cbd53fa3c91",
       "mode": "0644"
     },
     {
@@ -3961,8 +3979,8 @@
     },
     {
       "path": "scripts/validate_external_redteam_evidence.py",
-      "bytes": 3154,
-      "sha256": "4648387428a9010d306a6313d537b1629b53df596dd79b432c97e80e06dcc5ec",
+      "bytes": 3306,
+      "sha256": "46b1e1be11896af3cf8e7cc327b4dd637efbe6a6842910b7f2932c8aaddf3403",
       "mode": "0644"
     },
     {
