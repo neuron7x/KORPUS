@@ -2819,6 +2819,46 @@ MUTANTS = (
             "test_signed_bad_load_cannot_pass_reliability_quality_predicates",
         ),
     ),
+    Mutant(
+        "M244_UNPROTECTED_CI_RUNTIME_TRUST_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_trust.py",
+        '    if injected and os.getenv("GITLAB_CI") == "true" and os.getenv("CI_COMMIT_REF_PROTECTED") != "true":',
+        "    if False:",
+        (
+            "apps/api/tests/test_assurance_trust.py::"
+            "test_runtime_trust_root_is_refused_on_unprotected_ci",
+        ),
+    ),
+    Mutant(
+        "M245_PARTIAL_EXTERNAL_RELIABILITY_EVIDENCE_ACCEPTED",
+        "scripts/stage_external_production_evidence.py",
+        "    if len(supplied) != len(specs):",
+        "    if False:",
+        (
+            "apps/api/tests/test_external_production_evidence_staging.py::"
+            "test_partial_group_fails_closed",
+        ),
+    ),
+    Mutant(
+        "M246_CANONICAL_LOAD_EVIDENCE_REGISTRY_PATH_REVERTED",
+        "scripts/evidence_registry.py",
+        '    "load-probe.json": "latency and saturation with the conditions attached",',
+        '    "load-probe-api.json": "latency and saturation with the conditions attached",',
+        (
+            "apps/api/tests/test_ci_production_evidence_plumbing.py::"
+            "test_evidence_registry_tracks_the_canonical_load_report_name",
+        ),
+    ),
+    Mutant(
+        "M247_EXTERNAL_REDTEAM_RUNTIME_TRUST_DISCONNECTED",
+        "scripts/validate_external_redteam_evidence.py",
+        '    trusted = trusted_fingerprints(TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256")',
+        "    trusted = set()",
+        (
+            "apps/api/tests/test_ci_production_evidence_plumbing.py::"
+            "test_redteam_validator_uses_protected_runtime_trust_without_source_mutation",
+        ),
+    ),
 )
 
 

@@ -10,12 +10,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
+from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 TRUST = ROOT / "config/assurance/trusted-external-signers.json"
-
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -26,7 +26,7 @@ def main() -> int:
     source = compute_source_digest(ROOT); release = release_tag()
     report = json.loads(args.report.read_text(encoding="utf-8")) if args.report.is_file() else {}
     attestation = json.loads(args.attestation.read_text(encoding="utf-8")) if args.attestation.is_file() else {}
-    trusted = set(json.loads(TRUST.read_text(encoding="utf-8")).get("ed25519_public_key_sha256", ()))
+    trusted = trusted_fingerprints(TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256")
     verified = False
     if report and attestation:
         completed = subprocess.run(

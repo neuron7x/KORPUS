@@ -6,6 +6,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.assurance_evidence import evaluate_attested_reliability  # noqa: E402
+from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -14,13 +15,12 @@ def _read(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 def _bytes(path: Path) -> bytes:
     return path.read_bytes() if path.is_file() else b""
-
 def main() -> int:
     load_path, recovery_path = ROOT / "var/load-probe.json", ROOT / "var/recovery-report.json"
     internal = _read(ROOT / "var/production/reliability_internal-gate.json")
     chaos, load, recovery = _read(ROOT / "var/chaos-matrix.json"), _read(load_path), _read(recovery_path)
     source, release = compute_source_digest(ROOT), release_tag()
-    trusted = set(_read(TRUST).get("environment_ed25519_public_key_sha256", ()))
+    trusted = trusted_fingerprints(TRUST, "environment_ed25519_public_key_sha256", "KORPUS_TRUSTED_ENVIRONMENT_SIGNER_SHA256")
     checks, load_fp, recovery_fp = evaluate_attested_reliability(
         internal, chaos, load, recovery, source=source, release=release,
         load_bytes=_bytes(load_path),

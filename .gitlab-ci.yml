@@ -294,11 +294,22 @@ api:postgres-and-restore:
     # through postgres: RLS does not apply to a superuser, so a superuser count is a
     # number about the table rather than about what the application can recover.
     - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
+    # Produce a real network load report against the restored PostgreSQL-backed API.
+    # It is deliberately CI_FIXTURE evidence: it proves the producer/artifact/SLO path
+    # works, but cannot satisfy the production-like environment predicate by itself.
+    - export KORPUS_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_SCHEMA_MODE=migrations KORPUS_OBJECT_ROOT="$CI_PROJECT_DIR/var/load-objects"
+    - python -m uvicorn korpus.main:app --host 127.0.0.1 --port 8081 > var/load-api.log 2>&1 & echo $! > var/load-api.pid
+    - for attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8081/health >/dev/null; then break; fi; sleep 1; done
+    - curl -fsS http://127.0.0.1:8081/health >/dev/null
+    - python scripts/load_probe.py --base http://127.0.0.1:8081 --environment-class CI_FIXTURE --seconds 5 --soak-seconds 10 --spike 16 --out var/load-probe.json
+    - kill "$(cat var/load-api.pid)" || true
   artifacts:
     when: always
     paths:
       - var/backups/*.json
       - var/recovery-report.json
+      - var/load-probe.json
+      - var/load-api.log
       - var/production/postgres_security-gate.json
 
 secret:scan:
@@ -515,9 +526,17 @@ source:package:
     - PYTHONPATH=apps/api/src:scripts python scripts/export_authorization_matrix.py
     - PYTHONPATH=apps/api/src:scripts python scripts/run_mutation_production_gate.py
     - PYTHONPATH=apps/api/src:scripts python scripts/build_supply_chain_evidence_manifest.py
+    - rm -f var/production/supply-chain-evidence.attestation.json
+    - if [ -n "${KORPUS_SUPPLY_CHAIN_SIGNING_KEY_FILE:-}" ]; then PYTHONPATH=apps/api/src:scripts python scripts/release_attestation.py sign --manifest var/production/supply-chain-evidence-manifest.json --key "$KORPUS_SUPPLY_CHAIN_SIGNING_KEY_FILE" --out var/production/supply-chain-evidence.attestation.json; fi
     - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/supply_chain-gate.json -- python scripts/run_supply_chain_gate.py
     - PYTHONPATH=apps/api/src:scripts python scripts/run_pytest_campaign.py config/assurance/reliability-internal-v1.json
+    # Protected GitLab File variables may replace fixture evidence with externally
+    # measured, already-signed evidence. Every group is all-or-none and every downstream
+    # gate still verifies source/release, class, quality, signature and admitted trust root.
+    - PYTHONPATH=apps/api/src:scripts python scripts/stage_external_production_evidence.py
     - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/reliability-gate.json -- python scripts/run_reliability_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/tevv-gate.json -- python scripts/run_tevv_production_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/redteam-gate.json -- python scripts/validate_external_redteam_evidence.py
     # This is a state snapshot, not promotion: external TEVV/red-team/reliability/
     # trusted supply-chain evidence is allowed to keep the report red.
     - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_production_assurance.py

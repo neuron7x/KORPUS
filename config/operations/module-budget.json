@@ -880,18 +880,18 @@
     },
     "scripts/run_reliability_gate.py": {
       "lines": 42,
-      "max_complexity": 5,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+      "max_complexity": 3,
+      "reason": "ACT-010: external environment trust injection while preserving the prior line ceiling; complexity ratchet tightened"
     },
     "scripts/run_supply_chain_gate.py": {
-      "lines": 57,
+      "lines": 48,
       "max_complexity": 12,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+      "reason": "ACT-010: external supply-chain trust injection; measured line ceiling tightened"
     },
     "scripts/run_tevv_production_gate.py": {
-      "lines": 83,
+      "lines": 63,
       "max_complexity": 5,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+      "reason": "ACT-010: external environment trust injection for TEVV; measured line ceiling tightened"
     },
     "scripts/snapshot_production_assurance.py": {
       "lines": 35,
@@ -916,7 +916,7 @@
     "scripts/validate_external_redteam_evidence.py": {
       "lines": 61,
       "max_complexity": 9,
-      "reason": "v6.7.1 external-evidence boundary: initial bounded validator ceiling"
+      "reason": "ACT-010: external independent red-team validator with protected runtime trust-root injection; prior line ceiling preserved"
     },
     "apps/api/src/korpus/application/production_reliability.py": {
       "lines": 41,
@@ -967,6 +967,16 @@
       "lines": 43,
       "max_complexity": 5,
       "reason": "ACT-009: shared SLO evaluator separates measured quality from evidence provenance."
+    },
+    "apps/api/src/korpus/application/assurance_trust.py": {
+      "lines": 31,
+      "max_complexity": 8,
+      "reason": "ACT-010: external protected trust-root injection without source mutation; measured ratchet ceiling"
+    },
+    "scripts/stage_external_production_evidence.py": {
+      "lines": 54,
+      "max_complexity": 7,
+      "reason": "ACT-010: all-or-none staging for externally signed reliability, TEVV and independent red-team evidence; initial measured ratchet ceiling"
     }
   },
   "raised": [

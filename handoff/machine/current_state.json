@@ -72,8 +72,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v6.12.0",
+  "handoff_release": "v6.13.0",
   "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v6.12.0",
+  "canonical_release": "v6.13.0",
   "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }

@@ -6,6 +6,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.assurance_evidence import tevv_environment_attestation_checks  # noqa: E402
+from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.application.tevv import evaluate_tevv  # noqa: E402
@@ -53,7 +54,7 @@ def main() -> int:
     evidence_bytes = args.evidence.read_bytes() if args.evidence.is_file() else b""
     evidence = json.loads(evidence_bytes.decode("utf-8")) if evidence_bytes else {}
     attestation = json.loads(args.attestation.read_text(encoding="utf-8")) if args.attestation.is_file() else {}
-    trusted = set(json.loads(TRUST.read_text(encoding="utf-8")).get("environment_ed25519_public_key_sha256", ()))
+    trusted = trusted_fingerprints(TRUST, "environment_ed25519_public_key_sha256", "KORPUS_TRUSTED_ENVIRONMENT_SIGNER_SHA256")
     result = evaluate(evidence, profile, attestation, trusted, evidence_bytes, args.evidence.name)
     args.out.parent.mkdir(parents=True, exist_ok=True); args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2)); return 0 if result["status"] == "PASS" else 1

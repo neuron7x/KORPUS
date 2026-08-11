@@ -120,7 +120,7 @@ def main() -> int:
     parser.add_argument("--soak-seconds", type=float, default=60.0)
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--out", default="var/load-probe.json")
-    parser.add_argument("--environment-class", choices=("LOCAL_DEV", "PRODUCTION_LIKE", "PRODUCTION"), default="LOCAL_DEV")
+    parser.add_argument("--environment-class", choices=("LOCAL_DEV", "CI_FIXTURE", "PRODUCTION_LIKE", "PRODUCTION"), default="LOCAL_DEV")
     parser.add_argument("--source-tree-sha256", default="")
     parser.add_argument("--release", default="")
     parser.add_argument(

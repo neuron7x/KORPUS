@@ -5,6 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.assurance_evidence import evaluate_supply_chain_evidence  # noqa: E402
+from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
@@ -29,7 +30,7 @@ def main() -> int:
     paths = {name: ROOT / name for name in names}; raw = {name: path.read_bytes() if path.is_file() else b"" for name, path in paths.items()}
     manifest_path = ROOT / "var/production/supply-chain-evidence-manifest.json"
     attestation_path = ROOT / "var/production/supply-chain-evidence.attestation.json"
-    trusted = set(_json(TRUST).get("supply_chain_ed25519_public_key_sha256", ()))
+    trusted = trusted_fingerprints(TRUST, "supply_chain_ed25519_public_key_sha256", "KORPUS_TRUSTED_SUPPLY_CHAIN_SIGNER_SHA256")
     checks, completeness, fingerprint = evaluate_supply_chain_evidence(
         pins=pins, hashes=hashes, locked=locked, scan=_json(paths[names[3]]), source_sbom=_json(paths[names[0]]),
         api_sbom=_json(paths[names[1]]), web_sbom=_json(paths[names[2]]), manifest=_json(manifest_path), artifact_bytes=raw,

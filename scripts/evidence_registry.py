@@ -38,7 +38,7 @@ KEPT = {
     "eval-report.json": "the assurance evaluation",
     "reference-eval.json": "the frozen reference set against the deployed corpus",
     "quality-report.json": "that ruff and mypy ran, with their exit codes",
-    "load-probe-api.json": "latency and saturation with the conditions attached",
+    "load-probe.json": "latency and saturation with the conditions attached",
     "service-objectives.json": "what was promised, judged against what was measured",
     "chaos-matrix.json": "what the system said when each dependency was broken",
     "security/summary.json": "four scanners and their exit codes",
