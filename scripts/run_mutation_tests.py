@@ -2859,6 +2859,26 @@ MUTANTS = (
             "test_redteam_validator_uses_protected_runtime_trust_without_source_mutation",
         ),
     ),
+    Mutant(
+        "M248_PRODUCTION_ASSURANCE_RUNTIME_TRUST_DISCONNECTED",
+        "scripts/verify_production_assurance.py",
+        '    trusted = trusted_fingerprints(ROOT / "config/assurance/trusted-assurance-signers.json", "production_assurance_ed25519_public_key_sha256", "KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256")',
+        "    trusted = set()",
+        (
+            "apps/api/tests/test_production_promotion_plumbing.py::"
+            "test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard",
+        ),
+    ),
+    Mutant(
+        "M249_RELEASE_RUNTIME_TRUST_IGNORED",
+        "scripts/release_attestation.py",
+        "trusted = trusted_fingerprints(trust_config or Path(\"/nonexistent\"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)",
+        "trusted = _trusted(trust_config, trust_field)",
+        (
+            "apps/api/tests/test_production_promotion_plumbing.py::"
+            "test_release_attestation_can_use_protected_runtime_trust",
+        ),
+    ),
 )
 
 

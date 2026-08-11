@@ -428,5 +428,11 @@ production-assurance:
 production-assurance-verify:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_assurance.py
 
-production-release: production-assurance-verify
+production-release: production-assurance
+	test -n "$(KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY)"
+	test -n "$$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256"
+	test -n "$$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
+	test "$$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json --key "$(KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY)" --out reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_assurance.py
 	KORPUS_RELEASE_SIGNING_KEY="$(KORPUS_RELEASE_SIGNING_KEY)" scripts/package_production_release.sh

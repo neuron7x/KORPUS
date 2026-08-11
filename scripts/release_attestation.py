@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse, base64, hashlib, json, subprocess, sys, tempfile
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]; sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
+from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.attested_evidence import verify_ed25519_attestation  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
@@ -33,8 +34,8 @@ def _trusted(path: Path | None, field: str) -> set[str]:
     if path is None or not path.is_file(): return set()
     payload = json.loads(path.read_text(encoding="utf-8")); return {str(value) for value in payload.get(field, ())}
 
-def verify(manifest: Path, attestation_path: Path, *, trust_config: Path | None = None, trust_field: str = "release_ed25519_public_key_sha256", require_trusted: bool = False) -> int:
-    attestation = json.loads(attestation_path.read_text(encoding="utf-8")); trusted = _trusted(trust_config, trust_field)
+def verify(manifest: Path, attestation_path: Path, *, trust_config: Path | None = None, trust_field: str = "release_ed25519_public_key_sha256", trust_env: str | None = None, require_trusted: bool = False) -> int:
+    attestation = json.loads(attestation_path.read_text(encoding="utf-8")); trusted = trusted_fingerprints(trust_config or Path("/nonexistent"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)
     verdict = verify_ed25519_attestation(manifest.read_bytes(), manifest_name=manifest.name, release=release_tag(), attestation=attestation, trusted_fingerprints=trusted)
     checks = dict(verdict.checks)
     if not require_trusted: checks.pop("trusted_signer", None)
@@ -44,7 +45,7 @@ def verify(manifest: Path, attestation_path: Path, *, trust_config: Path | None 
 def main() -> int:
     parser = argparse.ArgumentParser(); sub = parser.add_subparsers(dest="command", required=True)
     signer = sub.add_parser("sign"); signer.add_argument("--manifest", type=Path, required=True); signer.add_argument("--key", type=Path, required=True); signer.add_argument("--out", type=Path, required=True)
-    verifier = sub.add_parser("verify"); verifier.add_argument("--manifest", type=Path, required=True); verifier.add_argument("--attestation", type=Path, required=True); verifier.add_argument("--trust-config", type=Path); verifier.add_argument("--trust-field", default="release_ed25519_public_key_sha256"); verifier.add_argument("--require-trusted", action="store_true")
+    verifier = sub.add_parser("verify"); verifier.add_argument("--manifest", type=Path, required=True); verifier.add_argument("--attestation", type=Path, required=True); verifier.add_argument("--trust-config", type=Path); verifier.add_argument("--trust-field", default="release_ed25519_public_key_sha256"); verifier.add_argument("--trust-env"); verifier.add_argument("--require-trusted", action="store_true")
     args = parser.parse_args()
-    return sign(args.manifest, args.key, args.out) if args.command == "sign" else verify(args.manifest, args.attestation, trust_config=args.trust_config, trust_field=args.trust_field, require_trusted=args.require_trusted)
+    return sign(args.manifest, args.key, args.out) if args.command == "sign" else verify(args.manifest, args.attestation, trust_config=args.trust_config, trust_field=args.trust_field, trust_env=args.trust_env, require_trusted=args.require_trusted)
 if __name__ == "__main__": raise SystemExit(main())

@@ -17,6 +17,7 @@ stages:
   - build
   - verify-image
   - package
+  - release
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -550,3 +551,29 @@ source:package:
       - reports/PRODUCTION_ASSURANCE_REPORT.json
       - '*-sbom.cdx.json'
     expire_in: 30 days
+
+production:release:
+  extends: .python-job
+  stage: release
+  needs:
+    - job: source:package
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+    - when: never
+  script:
+    - test -n "${KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE:-}"
+    - test -n "${KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256:-}"
+    - test -n "${KORPUS_RELEASE_SIGNING_KEY_FILE:-}"
+    - test -n "${KORPUS_TRUSTED_RELEASE_SIGNER_SHA256:-}"
+    - test "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
+    - PYTHONPATH=apps/api/src:scripts python scripts/release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json --key "$KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE" --out reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_assurance.py
+    - KORPUS_RELEASE_SIGNING_KEY="$KORPUS_RELEASE_SIGNING_KEY_FILE" scripts/package_production_release.sh
+  artifacts:
+    paths:
+      - dist/*.zip
+      - dist/*.release-manifest.json
+      - dist/*.release-attestation.json
+      - dist/*.production.sha256
+    expire_in: 90 days
