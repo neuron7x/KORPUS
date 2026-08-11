@@ -1426,3 +1426,33 @@ def test_mutation_harness_does_not_credit_bootstrap_errors_as_kills(monkeypatch)
     assert 'completed.returncode == 1' in source
     assert 'status = "ERROR"' in source
     assert "verify_mutation_baseline(mutants)" in source
+
+
+def test_production_gate_generators_are_wired_to_the_ci_evidence_locations() -> None:
+    """A gate script not executed where its substrate exists is documentation, not a gate."""
+    postgres = "\n".join(_ci_script("api:postgres-and-restore"))
+    package = "\n".join(_ci_script("source:package"))
+    assert "run_postgres_security_gate.py" in postgres
+    assert "run_engineering_production_gate.py --report var/research-assurance-report.json" in package
+    assert "run_exact_environment_gate.py" in package
+    assert "run_inference_security_gate.py" in package
+    assert "run_mutation_production_gate.py" in package
+    assert "snapshot_production_assurance.py" in package
+
+
+def test_production_snapshot_wrapper_is_never_used_by_the_promotion_target() -> None:
+    """A diagnostic snapshot path must not leak into production authorization."""
+    recipe = "\n".join(_makefile_recipe("production-assurance"))
+    release_recipe = "\n".join(_makefile_recipe("production-release"))
+    assert "snapshot_production_assurance.py" not in recipe
+    assert "snapshot_production_assurance.py" not in release_recipe
+
+
+def test_ci_pythonpath_contains_repository_root_for_scripts_package_imports() -> None:
+    """Repository validators import scripts.* and must work on a clean runner."""
+    import yaml
+
+    document = yaml.safe_load(CI.read_text(encoding="utf-8"))
+    pythonpath = str(document.get("variables", {}).get("PYTHONPATH", ""))
+    assert "$CI_PROJECT_DIR" in pythonpath.split(":"), pythonpath
+    assert "$CI_PROJECT_DIR/apps/api/src" in pythonpath.split(":"), pythonpath

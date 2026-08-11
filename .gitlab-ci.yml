@@ -22,7 +22,7 @@ variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONUNBUFFERED: "1"
-  PYTHONPATH: "$CI_PROJECT_DIR/apps/api/src"
+  PYTHONPATH: "$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src"
   KORPUS_ENVIRONMENT: "test"
   KORPUS_SCHEMA_MODE: "auto"
   KORPUS_DATABASE_URL: "sqlite:///$CI_PROJECT_DIR/var/ci.db"
@@ -181,14 +181,12 @@ api:drills:
   stage: assurance
   timeout: 45m
   script:
-    - mkdir -p var/objects var/security
+    - mkdir -p var/objects
     - PYTHONPATH=.:apps/api/src python scripts/chaos_matrix.py
-    - bash scripts/security_scan.sh
   artifacts:
     when: always
     paths:
       - var/chaos-matrix.json
-      - var/security/summary.json
 
 # The closure registry cites `var/mutation-report.json` for COD-005. That file is
 # produced by api:assurance, and this check used to run in `repository:validate` —
@@ -208,6 +206,8 @@ audit:closure:
     # runner that has never seen var/chaos-matrix.json and resolves a citation against a
     # file that is not there — which is the same shape as the evidence being absent.
     - job: api:drills
+      artifacts: true
+    - job: security:summary
       artifacts: true
   script:
     - python scripts/build_audit_closure.py
@@ -261,6 +261,8 @@ api:postgres-and-restore:
     # delayed anchor a broken chain, and forty concurrent appends exhausting the retry
     # budget — none of which SQLite can show.
     - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
+    # Materialize the PostgreSQL/RLS production gate while the real pg17 service is alive.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
     - chmod 600 var/backup-encryption.key
     # The drill seeds its own corpus. It used to back up whatever the pytest run above
@@ -297,6 +299,7 @@ api:postgres-and-restore:
     paths:
       - var/backups/*.json
       - var/recovery-report.json
+      - var/production/postgres_security-gate.json
 
 secret:scan:
   stage: security
@@ -319,6 +322,9 @@ secret:scan:
     # good, including a real credential added to them later.
     - gitleaks detect --source . --no-banner --redact --exit-code 1
         --baseline-path .gitleaks-baseline.json
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"gitleaks","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-gitleaks.json
+  artifacts:
+    paths: [var/security/ci-gitleaks.json]
 
 python:audit:
   stage: security
@@ -337,6 +343,9 @@ python:audit:
     # radius than a runtime package inside a read-only container. Running it here for
     # the first time on 2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
     - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"pip-audit:runtime","exit_code":0},{"scanner":"pip-audit:dev","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-pip-audit.json
+  artifacts:
+    paths: [var/security/ci-pip-audit.json]
 
 infrastructure:scan:
   stage: security
@@ -348,6 +357,25 @@ infrastructure:scan:
     # which the flat .trivyignore format cannot express — it can only switch a rule
     # off everywhere.
     - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml .
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"trivy","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-trivy.json
+  artifacts:
+    paths: [var/security/ci-trivy.json]
+
+security:summary:
+  extends: .python-job
+  stage: security
+  needs:
+    - job: secret:scan
+      artifacts: true
+    - job: python:audit
+      artifacts: true
+    - job: infrastructure:scan
+      artifacts: true
+  script:
+    - python scripts/aggregate_ci_security_summary.py var/security/ci-gitleaks.json var/security/ci-pip-audit.json var/security/ci-trivy.json
+  artifacts:
+    paths:
+      - var/security/summary.json
 
 source:sbom:
   stage: security
@@ -461,10 +489,14 @@ source:package:
       artifacts: true
     - job: api:postgres-and-restore
       artifacts: true
+    - job: api:drills
+      artifacts: true
     - job: web:test
     - job: secret:scan
     - job: python:audit
     - job: infrastructure:scan
+    - job: security:summary
+      artifacts: true
     - job: source:sbom
       artifacts: true
     - job: container:scan
@@ -474,11 +506,28 @@ source:package:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
     - PYTHONPATH=scripts python scripts/assemble_assurance.py
     - python scripts/snapshot_assurance.py
+    # Bind all locally reproducible production gates to this exact source tree.
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_engineering_production_gate.py --report var/research-assurance-report.json
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_exact_environment_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_inference_security_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_observability_contract.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/export_state_contracts.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/export_authorization_matrix.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_mutation_production_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/build_supply_chain_evidence_manifest.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/supply_chain-gate.json -- python scripts/run_supply_chain_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_pytest_campaign.py config/assurance/reliability-internal-v1.json
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/reliability-gate.json -- python scripts/run_reliability_gate.py
+    # This is a state snapshot, not promotion: external TEVV/red-team/reliability/
+    # trusted supply-chain evidence is allowed to keep the report red.
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_production_assurance.py
     - bash scripts/package_repository.sh
   artifacts:
     paths:
       - dist/
       - reports/
       - SOURCE_MANIFEST.json
+      - var/production/*.json
+      - reports/PRODUCTION_ASSURANCE_REPORT.json
       - '*-sbom.cdx.json'
     expire_in: 30 days

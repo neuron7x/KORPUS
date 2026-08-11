@@ -78,6 +78,18 @@ def _engine_version(engine) -> str:
         return str(connection.execute(text("SELECT sqlite_version()")).scalar_one())
 
 
+def _latest_protected_write(engine) -> datetime | None:
+    """Newest durable write across the document and audit streams."""
+    statement = """
+        SELECT max(ts) FROM (
+            SELECT max(created_at) AS ts FROM documents
+            UNION ALL SELECT max(occurred_at) AS ts FROM audit_events
+        ) AS protected_writes
+    """
+    with engine.begin() as connection:
+        return _moment(connection.execute(text(statement)).scalar_one_or_none())
+
+
 def main() -> int:
     source_url = os.environ["KORPUS_RECOVERY_SOURCE_URL"]
     restored_url = os.environ["KORPUS_RECOVERY_RESTORED_URL"]
@@ -94,10 +106,6 @@ def main() -> int:
     started = time.perf_counter()
     document_rows = _scalar(restored, "SELECT count(*) FROM documents")
     audit_rows = _scalar(restored, "SELECT count(*) FROM audit_events")
-    # The engine's own version, asked in the engine's own dialect. `current_setting` is
-    # PostgreSQL's; SQLite answers `sqlite_version()`. A drill that could only ask one of
-    # them could only be run against one deployment, which was the deployment it was not
-    # measuring.
     engine_version = _engine_version(restored)
     verify_seconds = time.perf_counter() - started
 
@@ -117,20 +125,9 @@ def main() -> int:
     lost_events = max(source_audit_rows - audit_rows, 0)
     lost_documents = max(written_after - survived_after, 0)
 
-    # RPO as an interval, not a count: how far back the restored copy sits behind the
-    # source. Null when the source recorded no timestamp after the backup — absent is
-    # reported as absent rather than as zero, which would read as "lost nothing".
-    with source.begin() as connection:
-        newest = connection.execute(
-            text("SELECT max(occurred_at) FROM audit_events")
-        ).scalar_one_or_none()
-    with restored.begin() as connection:
-        newest_restored = connection.execute(
-            text("SELECT max(occurred_at) FROM audit_events")
-        ).scalar_one_or_none()
-    # SQLite hands back the stored text; PostgreSQL hands back a datetime. Parsed rather
-    # than subtracted blind — `str - str` is the error this drill died on the first time
-    # it was pointed at the deployment that is actually serving.
+    # Use every protected write stream; audit-only RPO can read zero while documents are lost.
+    newest = _latest_protected_write(source)
+    newest_restored = _latest_protected_write(restored)
     rpo_seconds = _interval(newest, newest_restored)
 
     environment_class = os.getenv("KORPUS_RECOVERY_ENVIRONMENT_CLASS", "CI_FIXTURE")
@@ -154,6 +151,8 @@ def main() -> int:
             "audit_event_rows": audit_rows,
             "source_audit_event_rows": source_audit_rows,
             "writes_after_backup": written_after,
+            "newest_source_write": None if newest is None else newest.isoformat(),
+            "newest_restored_write": None if newest_restored is None else newest_restored.isoformat(),
             "engine_version": engine_version,
             "measured_at": datetime.now(UTC).isoformat(),
             "backup_key_id": str(manifest["key_id"]),

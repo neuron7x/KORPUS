@@ -534,7 +534,7 @@
       "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
     },
     "scripts/measure_recovery.py": {
-      "lines": 177,
+      "lines": 176,
       "max_complexity": 5
     },
     "scripts/mint_review_token.py": {
@@ -808,6 +808,11 @@
       "max_complexity": 5,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
+    "scripts/aggregate_ci_security_summary.py": {
+      "lines": 67,
+      "max_complexity": 14,
+      "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling"
+    },
     "scripts/export_authorization_matrix.py": {
       "lines": 76,
       "max_complexity": 12,
@@ -838,6 +843,11 @@
       "max_complexity": 8,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
+    "scripts/run_inference_security_gate.py": {
+      "lines": 149,
+      "max_complexity": 13,
+      "reason": "ACT-007: deterministic inference-security evidence generator; initial ratchet ceiling"
+    },
     "scripts/run_mutation_production_gate.py": {
       "lines": 56,
       "max_complexity": 13,
@@ -867,6 +877,16 @@
       "lines": 83,
       "max_complexity": 5,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/snapshot_production_assurance.py": {
+      "lines": 35,
+      "max_complexity": 9,
+      "reason": "ACT-007: non-promotion production-verdict snapshot wrapper; initial ratchet ceiling"
+    },
+    "scripts/snapshot_gate.py": {
+      "lines": 32,
+      "max_complexity": 9,
+      "reason": "ACT-007: retain coherent red production-gate evidence without promotion; initial ratchet ceiling"
     },
     "scripts/verify_observability_contract.py": {
       "lines": 58,

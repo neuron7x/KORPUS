@@ -106,6 +106,7 @@ def test_production_gate_generators_share_the_working_tree_digest_contract() -> 
         "export_state_contracts.py",
         "run_engineering_production_gate.py",
         "run_exact_environment_gate.py",
+        "run_inference_security_gate.py",
         "run_mutation_production_gate.py",
         "run_postgres_security_gate.py",
         "run_pytest_campaign.py",

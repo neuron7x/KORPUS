@@ -410,8 +410,8 @@
 | `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
 | `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
 | `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
-| `repo.version.api_pyproject` | api_pyproject declares release 6.9.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.readme_header` | readme_header declares release 6.9.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.release_identity` | release_identity declares release 6.9.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.runtime_dunder` | runtime_dunder declares release 6.9.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.web_package` | web_package declares release 6.9.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.api_pyproject` | api_pyproject declares release 6.10.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.readme_header` | readme_header declares release 6.10.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.release_identity` | release_identity declares release 6.10.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.runtime_dunder` | runtime_dunder declares release 6.10.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.web_package` | web_package declares release 6.10.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |

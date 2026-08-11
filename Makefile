@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
+.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -254,6 +254,9 @@ restore-postgres:
 # it, because a corpus database without the objects it names restores to a system that
 # cites passages nobody can open.
 #   KORPUS_BACKUP_ENCRYPTION_KEY_FILE=... KORPUS_BACKUP_KEY_ID=... make backup-sqlite
+sqlite-recovery-drill:
+	PYTHONPATH=apps/api/src:scripts PYTHON=$(PY) scripts/run_sqlite_recovery_drill.sh
+
 backup-sqlite:
 	scripts/backup_sqlite.sh
 
@@ -395,7 +398,7 @@ production-redteam-external:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/validate_external_redteam_evidence.py
 
 production-inference-security:
-	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pytest_campaign.py config/assurance/inference-security-v1.json
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_inference_security_gate.py
 
 production-reliability-internal:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pytest_campaign.py config/assurance/reliability-internal-v1.json
