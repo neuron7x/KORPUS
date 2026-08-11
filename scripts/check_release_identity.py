@@ -26,6 +26,10 @@ def _handoff_matches() -> bool:
     state = _read_json("handoff/machine/current_state.json")
     return state.get("canonical_release") == RELEASE_TAG == state.get("handoff_release")
 
+def _gitlab_import_matches() -> bool:
+    text = (ROOT / "GITLAB_IMPORT.md").read_text(encoding="utf-8")
+    return RELEASE_TAG in text and f"KORPUS_SYSTEM_v{RELEASE_VERSION}.bundle" in text
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--require-git-tag", action="store_true")
@@ -44,6 +48,7 @@ def main() -> int:
         "package_index": (ROOT / "FINAL_PACKAGE_CONTENTS.md").read_text(encoding="utf-8").startswith(prefix),
         "distribution_contract": (ROOT / "DISTRIBUTION_CONTENTS.md").read_text(encoding="utf-8").startswith(prefix),
         "package_description": (ROOT / "WHAT_IS_IN_THIS_PACKAGE.md").read_text(encoding="utf-8").startswith(prefix),
+        "gitlab_import": _gitlab_import_matches(),
         "handoff_release": _handoff_matches(),
     }
     if args.require_git_tag:

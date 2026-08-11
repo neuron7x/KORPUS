@@ -34,6 +34,7 @@ def test_release_identity_covers_handoff_and_package_surfaces() -> None:
         "package_index",
         "distribution_contract",
         "package_description",
+        "gitlab_import",
         "handoff_release",
     ):
         assert payload["checks"][key] is True, f"release surface drift: {key}"
