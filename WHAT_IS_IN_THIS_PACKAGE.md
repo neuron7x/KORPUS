@@ -1,4 +1,4 @@
-# KORPUS v6.18.1 canonical recovery repository
+# KORPUS v6.18.2 canonical recovery repository
 
 This is one canonical source repository, not a concatenation of multiple snapshots. It contains the application, web client, infrastructure/deployment definitions, migrations, tests, evaluation and mutation catalogues, assurance tooling, documentation, manifests and Git history.
 

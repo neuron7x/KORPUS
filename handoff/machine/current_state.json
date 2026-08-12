@@ -4,19 +4,19 @@
   "base_commit": "5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60",
   "production_authorized": false,
   "verification": {
-    "tests_collected": 1410,
+    "tests_collected": 1415,
     "failures": 0,
     "errors": 0,
-    "skipped": 3,
-    "line_coverage": 0.9174361176723212,
+    "skipped": 1,
+    "line_coverage": 0.9175335120643432,
     "branch_coverage": 0.7884948096885813,
     "adversarial_passed": 30,
     "adversarial_total": 30,
     "citation_failures": 0,
     "leakage_failures": 0,
     "determinism_failures": 0,
-    "critical_mutants_killed": 299,
-    "critical_mutants_total": 299,
+    "critical_mutants_killed": 302,
+    "critical_mutants_total": 302,
     "scale_probe": {
       "schema_version": 1,
       "status": "PASS",
@@ -54,8 +54,8 @@
       },
       "baseline_release": "v6.17.0"
     },
-    "last_full_source_release": "v6.17.0",
-    "current_release_verification": "V6_18_1_FRESH_VERIFICATION_REQUIRED",
+    "last_full_source_release": "v6.18.1",
+    "current_release_verification": "V6_18_2_FRESH_FULL_VERIFICATION_REQUIRED",
     "production_gate": "FAIL_CLOSED"
   },
   "audit": {
@@ -79,8 +79,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v6.18.1",
+  "handoff_release": "v6.18.2",
   "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v6.18.1",
+  "canonical_release": "v6.18.2",
   "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import run_inference_security_gate as gate
+from scripts import run_inference_security_gate as gate
 
 ROOT = Path(__file__).resolve().parents[3]
 
