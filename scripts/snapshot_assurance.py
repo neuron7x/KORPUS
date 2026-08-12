@@ -93,8 +93,8 @@ def assemble_ci_report() -> dict[str, object]:
         "operational": operational_report,
         "limitations": [
             (
-                "The package job runs only after required GitLab gates succeed; "
-                "their logs remain GitLab artifacts."
+                "The package job runs only after required CI gates succeed; "
+                "their logs remain CI artifacts."
             ),
             "Synthetic evaluation does not authorize real restricted corpus deployment.",
         ],

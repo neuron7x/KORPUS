@@ -76,6 +76,7 @@ repository:validate:
     - python scripts/generate_supply_chain_inventory.py
     # A ratchet on module size and function complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
+    - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py
     - python scripts/validate_infrastructure.py
     - python scripts/validate_kubernetes.py

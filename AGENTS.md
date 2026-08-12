@@ -4,9 +4,9 @@ Codex and Claude Code are execution workers. They do not define truth, approve t
 
 ## Mandatory topology
 
-- One issue -> one branch -> one isolated Git worktree -> one merge request.
+- One GitHub issue -> one branch -> one isolated Git worktree -> one pull request.
 - Never run two agents in the same worktree, Git index, database or object-store fixture.
-- No direct pushes to protected `main`.
+- No direct pushes to protected `main`; GitHub required checks are merge predicates, not advisory signals.
 - The implementation agent cannot be the independent verifier.
 - Restricted corpus, production credentials, personal data and real security material are never mounted into agent worktrees.
 - Search indexes and generated artifacts are rebuilt from source-of-truth state; agents may not treat them as canonical.

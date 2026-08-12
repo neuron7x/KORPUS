@@ -21,4 +21,4 @@ A vulnerability is closed only after:
 5. migration, recovery and packaging evidence remains valid;
 6. a new content-addressed release artifact is produced.
 
-Secrets must enter runtime through protected files or a deployment secret manager. They must not appear in Compose values, GitLab logs, build arguments, images, source archives or assurance reports.
+Secrets must enter runtime through protected files or a deployment secret manager. They must not appear in Compose values, CI logs, build arguments, images, source archives or assurance reports.

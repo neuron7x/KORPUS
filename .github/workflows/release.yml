@@ -1,0 +1,79 @@
+name: release-artifact
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package-and-attest:
+    name: package-and-attest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout tagged history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install Node 22.16.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+          npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+      - name: Rebuild release-bound evidence
+        run: |
+          python scripts/check_release_identity.py --require-git-tag
+          make validate PY=python
+          make api-test PY=python
+          make api-lint PY=python
+          npm --prefix apps/web run lint
+          npm --prefix apps/web run test
+          npm --prefix apps/web run build
+          make eval mutation migration-gate scale operational-gate PY=python
+          make sqlite-recovery-drill PY=python
+          make audit-closure PY=python
+          make assemble-assurance PY=python
+          make snapshot PY=python
+          PYTHONPATH=scripts python scripts/verify_release_evidence.py
+      - name: Build deterministic package
+        id: package
+        shell: bash
+        run: |
+          python scripts/verify_source_manifest.py
+          bash scripts/package_repository.sh
+          artifact="dist/$(python -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])').zip"
+          test -f "$artifact"
+          echo "path=$artifact" >> "$GITHUB_OUTPUT"
+      - name: Generate signed artifact provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-path: ${{ steps.package.outputs.path }}
+      - name: Upload verified package
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: korpus-${{ github.ref_name }}
+          path: |
+            ${{ steps.package.outputs.path }}
+            ${{ steps.package.outputs.path }}.sha256
+          if-no-files-found: error
+          retention-days: 30

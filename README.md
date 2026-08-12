@@ -1,4 +1,4 @@
-# KORPUS v0.1.0
+# KORPUS v0.1.1
 
 Evidence-bound knowledge, training and administrative platform for controlled Ukrainian document corpora.
 
@@ -95,7 +95,8 @@ docs/audit/                complete v4 audit and v5 99-finding closure
 docs/architecture/         system and security topology
 docs/assurance/            falsification strategy and audit ledger
 agents/                    Codex / Claude Code worktree contracts
-.gitlab/                   CI, CODEOWNERS and merge controls
+.github/                   primary GitHub CI, assurance, supply-chain and PR controls
+.gitlab/                   retained legacy CI/parity evidence during migration
 ```
 
 ## Core killable invariants
@@ -111,7 +112,7 @@ agents/                    Codex / Claude Code worktree contracts
 9. Fixed code, corpus release, calibration and query produce deterministic semantic output.
 10. Backup recovery requires authenticated metadata, exact hashes/sizes, transactional restore, schema parity and RLS isolation.
 11. Release evidence must match committed `HEAD`; mutable working-tree files cannot enter source packages implicitly.
-12. Agent output cannot merge without independent review and protected GitLab gates.
+12. Agent output cannot merge without independent review and protected GitHub gates; legacy GitLab parity cannot override them.
 
 ## Read first
 
@@ -121,6 +122,9 @@ agents/                    Codex / Claude Code worktree contracts
 - `docs/architecture/SYSTEM.md`
 - `docs/assurance/INFRASTRUCTURE_AUDIT_V4.md`
 - `docs/assurance/FIRST_PRINCIPLES.md`
+- `docs/engineering/FIRST_PRINCIPLES_2026.md`
+- `docs/operations/GITHUB_REPOSITORY_POLICY.md`
+- `GITHUB_IMPORT.md`
 - `docs/assurance/TEST_STRATEGY.md`
 - `docs/assurance/ASSURANCE_CASE.md`
 - `docs/runbooks/BACKUP_RESTORE.md`

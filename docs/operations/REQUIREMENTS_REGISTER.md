@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **323**.
+Усього вимог: **332**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -364,6 +364,14 @@
 | `repo.file.evals_datasets_frozen_jsonl` | evals/datasets/frozen.jsonl is present | — |
 | `repo.file.evals_evaluation_protocol_md` | evals/EVALUATION_PROTOCOL.md is present | — |
 | `repo.file.final_package_contents_md` | FINAL_PACKAGE_CONTENTS.md is present | — |
+| `repo.file.github_dependabot_yml` | .github/dependabot.yml is present | — |
+| `repo.file.github_import_md` | GITHUB_IMPORT.md is present | — |
+| `repo.file.github_issue_template_engineering_change_yml` | .github/ISSUE_TEMPLATE/engineering-change.yml is present | — |
+| `repo.file.github_pull_request_template_md` | .github/PULL_REQUEST_TEMPLATE.md is present | — |
+| `repo.file.github_workflows_assurance_yml` | .github/workflows/assurance.yml is present | — |
+| `repo.file.github_workflows_ci_yml` | .github/workflows/ci.yml is present | — |
+| `repo.file.github_workflows_dependency_review_yml` | .github/workflows/dependency-review.yml is present | — |
+| `repo.file.github_workflows_release_yml` | .github/workflows/release.yml is present | — |
 | `repo.file.gitlab_ci_yml` | .gitlab-ci.yml is present | — |
 | `repo.file.gitlab_codeowners` | .gitlab/CODEOWNERS is present | — |
 | `repo.file.gitlab_import_md` | GITLAB_IMPORT.md is present | — |
@@ -391,6 +399,7 @@
 | `repo.file.scripts_run_scale_probe_py` | scripts/run_scale_probe.py is present | — |
 | `repo.file.scripts_snapshot_assurance_py` | scripts/snapshot_assurance.py is present | — |
 | `repo.file.scripts_source_digest_py` | scripts/source_digest.py is present | — |
+| `repo.file.scripts_validate_github_actions_py` | scripts/validate_github_actions.py is present | — |
 | `repo.file.scripts_validate_infrastructure_py` | scripts/validate_infrastructure.py is present | — |
 | `repo.file.scripts_validate_kubernetes_py` | scripts/validate_kubernetes.py is present | — |
 | `repo.file.scripts_verify_postgres_restore_py` | scripts/verify_postgres_restore.py is present | — |
@@ -410,8 +419,8 @@
 | `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
 | `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
 | `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
-| `repo.version.api_pyproject` | api_pyproject declares release 0.1.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.readme_header` | readme_header declares release 0.1.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.release_identity` | release_identity declares release 0.1.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.runtime_dunder` | runtime_dunder declares release 0.1.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.web_package` | web_package declares release 0.1.0 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.api_pyproject` | api_pyproject declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.readme_header` | readme_header declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.release_identity` | release_identity declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.runtime_dunder` | runtime_dunder declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.web_package` | web_package declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |

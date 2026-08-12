@@ -86,7 +86,7 @@ def main() -> int:
                 "--junitxml=var/pytest.xml",
                 "--cov=apps/api/src/korpus",
                 "--cov-branch",
-                "--cov-report=xml:var/coverage.xml",
+                "--cov-report=xml:var/coverage.xml", "--cov-report=json:var/coverage.json",
                 "--cov-fail-under=82",
             ],
         ),
@@ -159,7 +159,7 @@ def main() -> int:
                 "executed in the current environment."
             ),
             (
-                "PostgreSQL integration is a GitLab service-container gate; "
+                "PostgreSQL integration is a dedicated CI service-container gate; "
                 "local report may show it skipped."
             ),
             "Synthetic evaluation does not authorize real restricted corpus deployment.",

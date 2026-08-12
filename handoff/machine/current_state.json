@@ -55,7 +55,7 @@
       "baseline_release": "v6.17.0"
     },
     "last_full_source_release": "v6.18.3",
-    "current_release_verification": "V0_1_0_BASELINE_LOCAL_REVALIDATION_REQUIRED",
+    "current_release_verification": "V0_1_1_GITHUB_HARDENING_LOCAL_TRANSITION_VERIFIED",
     "production_gate": "FAIL_CLOSED"
   },
   "audit": {
@@ -79,8 +79,8 @@
     "Human-readable handoff acts and runbooks",
     "Chat messages are context only and are not authoritative"
   ],
-  "handoff_release": "v0.1.0",
+  "handoff_release": "v0.1.1",
   "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v0.1.0",
+  "canonical_release": "v0.1.1",
   "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
 }

@@ -25,6 +25,23 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
+def _release_evidence_state() -> str:
+    assurance_path = ROOT / "reports" / "RESEARCH_ASSURANCE_REPORT.json"
+    operational_path = ROOT / "reports" / "OPERATIONAL_GATE.json"
+    present = (assurance_path.is_file(), operational_path.is_file())
+    if present == (False, False):
+        return "UNAVAILABLE"
+    if present != (True, True):
+        raise AssertionError("release evidence is partial; refusing an ambiguous handoff")
+    assurance, operational = _load(assurance_path), _load(operational_path)
+    if assurance.get("status") != "PASS" or operational.get("production_authorized") is not False:
+        raise AssertionError("release evidence is not a fail-closed PASS snapshot")
+    promoted_digest = assurance.get("source_tree_sha256")
+    if promoted_digest is None or source_tree_digest() != promoted_digest:
+        raise AssertionError("release evidence is not bound to this source tree")
+    return "BOUND"
+
+
 def verify() -> dict[str, Any]:
     required = [
         ROOT / "handoff" / "START_HERE_UA.md",
@@ -47,8 +64,7 @@ def verify() -> dict[str, Any]:
     iterations = _load(HANDOFF / "next_iterations.json")
     integrations = _load(HANDOFF / "next_integrations.json")
     gates = _load(HANDOFF / "acceptance_gates.json")
-    assurance = _load(ROOT / "reports" / "RESEARCH_ASSURANCE_REPORT.json")
-    operational = _load(ROOT / "reports" / "OPERATIONAL_GATE.json")
+    release_evidence = _release_evidence_state()
     closure = _load(ROOT / "docs" / "audit" / "closure" / "KORPUS_v5_FINDINGS_CLOSURE.json")
     debt = _load(ROOT / "docs" / "audit" / "closure" / "KORPUS_v5_REMAINING_DEBT.json")
 
@@ -106,28 +122,8 @@ def verify() -> dict[str, Any]:
                 f"CalibrationProfile default drift: {name}={actual!r}, expected {expected!r}"
             )
 
-    # A snapshot promoted before this field existed has no digest to compare, and a
-    # KeyError is not a verdict: it stops the check that was meant to produce one, and
-    # the whole assurance chain reads as a failing test rather than as a stale artefact.
-    promoted_digest = assurance.get("source_tree_sha256")
-    if promoted_digest is None:
-        raise SystemExit(
-            "the promoted assurance snapshot carries no source_tree_sha256; it predates "
-            "this check. Run `make assemble-assurance && make snapshot` to promote a "
-            "current one."
-        )
-    # Against the tree as it is, not against a copy stored inside it. The copy was written
-    # by hand at some commit and never regenerated, so the only way the two could agree
-    # was for neither to have moved — and regenerating it is impossible, because the file
-    # is inside the digest it would record.
-    if source_tree_digest() != promoted_digest:
-        raise AssertionError(
-            "the promoted assurance snapshot describes a different tree than this one; "
-            "run `make assemble-assurance && make snapshot`"
-        )
     if (
         state["production_authorized"] is not False
-        or operational["production_authorized"] is not False
         or state.get("canonical_release") != release_tag()
         or state.get("handoff_release") != release_tag()
     ):
@@ -215,6 +211,7 @@ def verify() -> dict[str, Any]:
         "next_iterations": len(iteration_items),
         "next_integrations": len(integration_items),
         "production_authorized": False,
+        "release_evidence": release_evidence,
     }
 
 

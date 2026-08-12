@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
+.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -17,7 +17,7 @@ api-run:
 # very end of the pipeline — so branch coverage sat below policy for as long as anyone
 # had been writing tests. check_coverage_thresholds.py reads both from the policy.
 api-test:
-	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=json:var/coverage.json --cov-fail-under=82
+	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
 	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
 
 # `mypy apps/api/src` from the repository root did not type-check this project.
@@ -231,10 +231,13 @@ supply-chain-inventory:
 kubernetes-validate:
 	python3 scripts/validate_kubernetes.py
 
+github-actions-validate:
+	PYTHONPATH=apps/api/src $(PY) scripts/validate_github_actions.py
+
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory import-cycles release-identity module-budget requirements-register doctrine-catalog
+validate: handoff-verify openapi desired-state supply-chain-inventory import-cycles release-identity module-budget requirements-register doctrine-catalog github-actions-validate
 	python3 scripts/validate_repository.py
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

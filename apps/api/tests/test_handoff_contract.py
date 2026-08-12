@@ -4,6 +4,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -51,3 +53,17 @@ def test_the_iteration_register_cannot_claim_completion_inside_this_repository()
                 f"{item['id']} is marked started with nothing saying what was done "
                 "and what remains, which is a status nobody can act on"
             )
+
+
+def test_partial_release_evidence_is_refused(tmp_path: Path) -> None:
+    script = ROOT / "scripts" / "verify_handoff_contract.py"
+    spec = importlib.util.spec_from_file_location("verify_handoff_contract_partial", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(AssertionError, match="release evidence is partial"):
+        module._release_evidence_state()

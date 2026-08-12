@@ -1,12 +1,37 @@
 {
   "schema": "korpus.desired-state.v1",
-  "release": "v0.1.0",
-  "root_sha256": "6bcc1b608471b5f238503c7a621d429ec9231d0f053361698fda0c1597414d65",
+  "release": "v0.1.1",
+  "root_sha256": "9b250efe04d9cfedae71b53618f1305cc8526c70f69e039994c498e0c92974b2",
   "records": [
     {
+      "path": ".github/dependabot.yml",
+      "sha256": "7c6f08bc868da67bbd3fe89a389610bac3148beb359ccdc39349cbdec1cb90e3",
+      "bytes": 911
+    },
+    {
+      "path": ".github/workflows/assurance.yml",
+      "sha256": "bb591cf5a2377c1bac04da4266ff7e8c8e5d3c4beea7935c9745584bc0d7ccc0",
+      "bytes": 2468
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "017d4dbe17ca9fa13f7fc97360172ba3100fc3bfd2a9d1dc25903e3e47083831",
+      "bytes": 3854
+    },
+    {
+      "path": ".github/workflows/dependency-review.yml",
+      "sha256": "c8c5f183533cdfe48c7e6e3b06ed9e3b2ece68f80d074b31f33b046b12f1e1a9",
+      "bytes": 661
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "ba120233973397cfa909d92a372068dcd5dc21346dcbec6254075bbc3600702d",
+      "bytes": 2889
+    },
+    {
       "path": ".gitlab-ci.yml",
-      "sha256": "ee9ad6c34ec9e9a7959d71961d40c9a157f7ef6087f53ce63677cfa38c5a8d3f",
-      "bytes": 31065
+      "sha256": "78e3113ffb93c37628aa02ea2a26bec2927a65c5e969ddd7aa9c8883ff4b5435",
+      "bytes": 31113
     },
     {
       "path": "apps/api/Dockerfile",

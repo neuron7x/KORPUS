@@ -1,0 +1,33 @@
+name: Engineering change
+about: Falsifiable engineering change request
+title: "[ENG] "
+labels: []
+body:
+  - type: textarea
+    id: claim
+    attributes:
+      label: Falsifiable claim
+      description: What observable statement should become true or false?
+    validations:
+      required: true
+  - type: textarea
+    id: kill
+    attributes:
+      label: Kill condition
+      description: What result rejects the proposed mechanism?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Required evidence
+      description: Tests, measurements, provenance, and environment required for a verdict.
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Trust boundary / rollback
+      description: Security boundary touched and the smallest reversible rollback.
+    validations:
+      required: true

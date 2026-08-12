@@ -1,0 +1,117 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+  KORPUS_ENVIRONMENT: test
+  KORPUS_SCHEMA_MODE: auto
+  KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/ci.db
+  KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+  KORPUS_AUTH_MODE: dev
+  KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+  KORPUS_BIND_HOST: 127.0.0.1
+  KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+  KORPUS_JWT_SECRET: ci-only-jwt-key
+
+jobs:
+  repository:
+    name: repository-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Validate repository and GitHub policy
+        run: make validate PY=python
+
+  api-test:
+    name: api-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Run API test and coverage gates
+        run: make api-test PY=python
+
+  api-quality:
+    name: api-quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Run static quality gate
+        run: make api-lint PY=python
+
+  web-test:
+    name: web-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Node 22.16.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.16.0
+          check-latest: false
+      - name: Install exact web dependency graph
+        run: npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+      - name: Run web negative controls and build
+        run: |
+          npm --prefix apps/web run lint
+          npm --prefix apps/web run test
+          npm --prefix apps/web run build

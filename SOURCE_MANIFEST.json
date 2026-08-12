@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 682,
-  "root_sha256": "0f71085d979e796ef1a80366a00f068fbb22eee887ed3dde642c08a82a5b02b1",
+  "file_count": 695,
+  "root_sha256": "08a6649470868b9ea218078d6577bd24724188864509a3fd63f85bc788b8853c",
   "files": [
     {
       "path": ".dockerignore",
@@ -18,6 +18,48 @@
       "mode": "0644"
     },
     {
+      "path": ".github/ISSUE_TEMPLATE/engineering-change.yml",
+      "bytes": 898,
+      "sha256": "27d119f3b281f9940038837f10cd935075efcd7e2d5e454ffcd44983d2bb1435",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "bytes": 687,
+      "sha256": "5c89f1c5a592c8c4bd22c2911d724717d7648899a0f9cb87b326153cf08c9638",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/dependabot.yml",
+      "bytes": 911,
+      "sha256": "7c6f08bc868da67bbd3fe89a389610bac3148beb359ccdc39349cbdec1cb90e3",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/assurance.yml",
+      "bytes": 2468,
+      "sha256": "bb591cf5a2377c1bac04da4266ff7e8c8e5d3c4beea7935c9745584bc0d7ccc0",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 3854,
+      "sha256": "017d4dbe17ca9fa13f7fc97360172ba3100fc3bfd2a9d1dc25903e3e47083831",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/dependency-review.yml",
+      "bytes": 661,
+      "sha256": "c8c5f183533cdfe48c7e6e3b06ed9e3b2ece68f80d074b31f33b046b12f1e1a9",
+      "mode": "0644"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 2889,
+      "sha256": "ba120233973397cfa909d92a372068dcd5dc21346dcbec6254075bbc3600702d",
+      "mode": "0644"
+    },
+    {
       "path": ".gitignore",
       "bytes": 214,
       "sha256": "2845e710f8fcba0e94e87164bbf0723743d57c60c38edc3ad5a1666afc080064",
@@ -25,8 +67,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 31065,
-      "sha256": "ee9ad6c34ec9e9a7959d71961d40c9a157f7ef6087f53ce63677cfa38c5a8d3f",
+      "bytes": 31113,
+      "sha256": "78e3113ffb93c37628aa02ea2a26bec2927a65c5e969ddd7aa9c8883ff4b5435",
       "mode": "0644"
     },
     {
@@ -61,8 +103,8 @@
     },
     {
       "path": "AGENTS.md",
-      "bytes": 1615,
-      "sha256": "099abf8b10fb4dff16fac4fac46e802ee8c74def76a28a35938cdf234ea42c89",
+      "bytes": 1688,
+      "sha256": "4be37b47658f49b37533b5271c7c87ee63e100609059292c8d69324da1270067",
       "mode": "0644"
     },
     {
@@ -73,26 +115,32 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "bytes": 936,
-      "sha256": "435a8c44a87e253e88d9b06426077bd36d01e352d1b67f37b6ed61cb3f448d5f",
+      "bytes": 1085,
+      "sha256": "8658ca93ade2a2ae7b3e90641fa2d0085b4509137d3c8e197672982714840a1c",
       "mode": "0644"
     },
     {
       "path": "DISTRIBUTION_CONTENTS.md",
-      "bytes": 450,
-      "sha256": "e4635fd71186185d90a765a8749de55fe32d789b424fabf2fa52667d8532d402",
+      "bytes": 639,
+      "sha256": "5c2c633330bad36cbecb5fe086f1c2964dac28761f761aa67b7a5f4b2a30ffad",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
-      "bytes": 784,
-      "sha256": "52c7002b8de322d289ace4c703c67fb79b0b394307ec64a2a4b2658b76e59608",
+      "bytes": 1277,
+      "sha256": "a567fa3e89e4ded925d3752e371c4e06ae439ed92a2b578aa5ff9eee292fccbb",
+      "mode": "0644"
+    },
+    {
+      "path": "GITHUB_IMPORT.md",
+      "bytes": 865,
+      "sha256": "8e05eeea084ba93ff8dac7821f376bb53eb6ebb3a4aea58b089c8dea2952f76a",
       "mode": "0644"
     },
     {
       "path": "GITLAB_IMPORT.md",
       "bytes": 1106,
-      "sha256": "62038e1991652dbe0c5dc68df067aa0e06dbbc4a84d46c1cea8950c2ff599c44",
+      "sha256": "2861169393dfe9316f4e070fafb761691a9f4502fcfd52026dd75b52380e699f",
       "mode": "0644"
     },
     {
@@ -103,14 +151,20 @@
     },
     {
       "path": "Makefile",
-      "bytes": 21173,
-      "sha256": "ea75fc0000a1785aa49bba4353f65b0b902d51930c814c8df349e378b0978e83",
+      "bytes": 21373,
+      "sha256": "5ace2ffadae73f21b19752bd7e6e3ad64d2b272b4d0d4b5b7221f83fcd3217f6",
       "mode": "0644"
     },
     {
       "path": "README.md",
-      "bytes": 6038,
-      "sha256": "91ee934c694f86ac84d57aa6d78debb85e0ab9f7a071188ed7a7fede16e5430b",
+      "bytes": 6300,
+      "sha256": "b0a21bac874cd81944dd80bd9d573d7344c179f796f94c0fef3c017095256b3a",
+      "mode": "0644"
+    },
+    {
+      "path": "RELEASE_0.1.1_GITHUB_BASELINE.md",
+      "bytes": 1068,
+      "sha256": "1f6981bcbad71b620406730879f316fe0f3195aa0f589a3127be68efd6302a0c",
       "mode": "0644"
     },
     {
@@ -133,8 +187,8 @@
     },
     {
       "path": "SECURITY.md",
-      "bytes": 1129,
-      "sha256": "41fa236aed04b959bc7c26dc26e0dcc282f817fe88db0398e01545a46e01ff53",
+      "bytes": 1125,
+      "sha256": "fc02b205c33db4f102946610da8728b1b2d3121f0eaafa8ab0f6efc26f12a528",
       "mode": "0644"
     },
     {
@@ -151,8 +205,8 @@
     },
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
-      "bytes": 707,
-      "sha256": "1a774bd611e4d28577d059480db31f73bb170d58a659b086b321fcedaf42ff18",
+      "bytes": 870,
+      "sha256": "32ee3a0b13253aad429f6843550bccd9b64a1490889345042c7c766be44b8010",
       "mode": "0644"
     },
     {
@@ -326,7 +380,7 @@
     {
       "path": "apps/api/pyproject.toml",
       "bytes": 2543,
-      "sha256": "3d7b4ea14f892c381e5f73c8d025a9dfffa6c89ee58ddb81b5286af449eef55d",
+      "sha256": "31ca6032197a056387b9389c381f64364f564b7cf24e12d28aac4b84105c198b",
       "mode": "0644"
     },
     {
@@ -1076,7 +1130,7 @@
     {
       "path": "apps/api/src/korpus/release.json",
       "bytes": 152,
-      "sha256": "7abf666124272abc0aa71fc6da1b0833eaf8646f575094b4e35d166f5c0e03c1",
+      "sha256": "3f9301acacb527d7b12b199d63d073cce3f618d2afd8378e24a34f1f33ec921b",
       "mode": "0644"
     },
     {
@@ -1087,8 +1141,8 @@
     },
     {
       "path": "apps/api/src/korpus/repository_requirements.py",
-      "bytes": 14967,
-      "sha256": "1a807dedf19e4516c8332620a1b2e080d1cffa219cbbeb860046c58d8b92930d",
+      "bytes": 15311,
+      "sha256": "36e3e06dbcdd670ec69e9d98d124f2ada9774f283f22a70209acfc4ba89f4ad9",
       "mode": "0644"
     },
     {
@@ -1596,6 +1650,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_github_actions_policy.py",
+      "bytes": 3094,
+      "sha256": "cb0a65f6b48a60588d9aa3878fab473fe7b68a8e1464fb3f9ca99d92b2aff3c8",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_governance_boundaries.py",
       "bytes": 8583,
       "sha256": "b77233da544f3681363924dc6d208e8fc4b298529be4b76a6f99bced3220e4d7",
@@ -1603,8 +1663,8 @@
     },
     {
       "path": "apps/api/tests/test_handoff_contract.py",
-      "bytes": 2416,
-      "sha256": "499a8bf535c20a5eea724d67ee10a698711b6fdadb6a344958238e996b38d0cb",
+      "bytes": 3084,
+      "sha256": "892eaaae99aa8ae5f9e2466ff89b8893b7a5f3d8024b6e9863fc487f0bae5220",
       "mode": "0644"
     },
     {
@@ -2246,13 +2306,13 @@
     {
       "path": "apps/web/package-lock.json",
       "bytes": 214,
-      "sha256": "25f9f04e6cc899d88c4680bf35e0299e9e160b84359b20a6f2511d065637a6d8",
+      "sha256": "2c15f4ddfcc64269347bc5343c67e63307862a3cd53a8e6c0833b71c570668fe",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
       "bytes": 528,
-      "sha256": "af7e6c3f4d7502b35b4e90f3bf4e5ffe3e7545634735591efc70d0800f8dad46",
+      "sha256": "398dfa1688efc182ad30370c1f1a369adf2eddf613adfbaed9af0c031f9ef29b",
       "mode": "0644"
     },
     {
@@ -2581,14 +2641,14 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 3669,
-      "sha256": "d63258b0f689b41d931997c75bf8dc276a211753c418f23183f1daecece2fac4",
+      "bytes": 4487,
+      "sha256": "6db7ef65787c77d4a4b872484943a63e7cebd799c3fa9d044054c37e3d18134a",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 62014,
-      "sha256": "d72828dd857f67785dd7be10eb0886609a4e04dbf3f9af6ab8776a1adcd08e44",
+      "bytes": 62233,
+      "sha256": "a18fcf6d072cc87aef5a7b646b8989d8bf2bf13f59da95320e28ddabcabab2f4",
       "mode": "0644"
     },
     {
@@ -2611,8 +2671,8 @@
     },
     {
       "path": "contracts/openapi.json",
-      "bytes": 49191,
-      "sha256": "1d4d7f308919736973abbe7a014cf2c8a1bd36da2dd5268abcf0dacf132e4bad",
+      "bytes": 49190,
+      "sha256": "e71018df8ede652b430f151a85ab8d7c65d9bc23ad7143856767ba515f498fe6",
       "mode": "0644"
     },
     {
@@ -3018,6 +3078,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/engineering/FIRST_PRINCIPLES_2026.md",
+      "bytes": 2786,
+      "sha256": "91622087981a3ecfc054e21d24343d249df72bc44e3f4d59450b4200dea555fe",
+      "mode": "0644"
+    },
+    {
       "path": "docs/governance/AI_SYSTEM_CARD_V5.md",
       "bytes": 4471,
       "sha256": "66dc3d2df01402eea244a5a29a683bb28ff448b6d7b1f35914046ffb4c8e5c8d",
@@ -3072,6 +3138,12 @@
       "mode": "0644"
     },
     {
+      "path": "docs/operations/GITHUB_REPOSITORY_POLICY.md",
+      "bytes": 2445,
+      "sha256": "fa14c20d557c9e8c51075929c36f78c3efdc57bddfcf1aa78c8a276c9ad92d22",
+      "mode": "0644"
+    },
+    {
       "path": "docs/operations/INFERENCE.md",
       "bytes": 1908,
       "sha256": "288056b82f08e3169a69566e64b349c1eb86b05b917d34c6f753c0cc57f3843b",
@@ -3079,8 +3151,8 @@
     },
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
-      "bytes": 47485,
-      "sha256": "0586aef3638367289d9c1a01b53d8aabe3e0f82b0e81091ad4cf8fefe660deff",
+      "bytes": 48355,
+      "sha256": "6768de96e43f676ec5e1c13ae4bce4c1e2094c68c641edd6b61c78b045423af6",
       "mode": "0644"
     },
     {
@@ -3349,8 +3421,8 @@
     },
     {
       "path": "handoff/machine/current_state.json",
-      "bytes": 2782,
-      "sha256": "e4737747464eee99ef20686e4447bc82328635e75840f0e23a6d1d425cf25e5c",
+      "bytes": 2788,
+      "sha256": "f7ebd9be4818c7225f7a54767207de2dc72d32daa587be586588fd755937f66f",
       "mode": "0644"
     },
     {
@@ -3475,8 +3547,8 @@
     },
     {
       "path": "scripts/assemble_assurance.py",
-      "bytes": 4391,
-      "sha256": "2119a5acfebd106f231ea9514c15d2fd895225fdca5bd302c0ed9f5184c69a10",
+      "bytes": 4382,
+      "sha256": "7e4eac390ddc71e7297fd21d647151059bd46223ff62f5ef0b857455958b3bf4",
       "mode": "0644"
     },
     {
@@ -3649,8 +3721,8 @@
     },
     {
       "path": "scripts/generate_desired_state.py",
-      "bytes": 3498,
-      "sha256": "8f476520009a56c3ed614a47338cc486ef3f98c17460ddb3ae80c4c51c10eaea",
+      "bytes": 3615,
+      "sha256": "c82f9f82444ea53e355b576afa9f6e0530fa84f2ee1e8e1132f386dc6f2d86bc",
       "mode": "0644"
     },
     {
@@ -3889,8 +3961,8 @@
     },
     {
       "path": "scripts/run_postgres_suite.sh",
-      "bytes": 2782,
-      "sha256": "799a3490d2909d67b2a4818874117523dbbbcb873b671a3fb10c0e874156ab6a",
+      "bytes": 2854,
+      "sha256": "1eef7625582e85af34871fb67754bed778acdcbc08edd197e530476f8299fbac",
       "mode": "0755"
     },
     {
@@ -3907,8 +3979,8 @@
     },
     {
       "path": "scripts/run_recovery_drill.sh",
-      "bytes": 7148,
-      "sha256": "9362113a298da1b5eadae4a1c0c44fb7d67ad9e79575db88d7d1c88a943b4639",
+      "bytes": 7220,
+      "sha256": "ebc4aac6cb83b86fe7492000800abc4be3c8c3421ff9d5c7ad8db97ef991dc37",
       "mode": "0755"
     },
     {
@@ -3925,8 +3997,8 @@
     },
     {
       "path": "scripts/run_research_assurance.py",
-      "bytes": 6832,
-      "sha256": "0c688665cef2db05653f52f10c7405516ddb7eb30cc0dad7a9c1b6d7c33259aa",
+      "bytes": 6877,
+      "sha256": "ecd81e9bcc1a7d623b7021eeb142772b441cbbdc86ac3d86886069088d132843",
       "mode": "0644"
     },
     {
@@ -3979,8 +4051,8 @@
     },
     {
       "path": "scripts/snapshot_assurance.py",
-      "bytes": 7886,
-      "sha256": "cae3a4fe46490cc9de0dd59aa14499e810f2d5c0cff4ee8d9b00de6071976ad9",
+      "bytes": 7878,
+      "sha256": "b4edf13105bf2e3a212dc69d99e74eea032d494171f9d0e03b0ed8f67d5b4f55",
       "mode": "0644"
     },
     {
@@ -4020,6 +4092,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/validate_github_actions.py",
+      "bytes": 4714,
+      "sha256": "628eaeb9cee9854076ce309d78fffb91983f9a8df651ea69c6ef6274dcf87446",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/validate_infrastructure.py",
       "bytes": 2363,
       "sha256": "7e57f8d910ab1400c08c706fe651eaa077784d58918b06f2ba59a12b6d5a73a5",
@@ -4045,8 +4123,8 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 10985,
-      "sha256": "c77a5b41ecef996869649b3de71654785f10c5f65a10ec7a25f3f4de0d5fc1d5",
+      "bytes": 10660,
+      "sha256": "ef5bf8a841e60cef28c3a36c5fdb2ac27ffd1327144e5f95fac0a3c593aa3534",
       "mode": "0644"
     },
     {

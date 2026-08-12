@@ -646,9 +646,9 @@
       "max_complexity": 0
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 222,
-      "max_complexity": 43,
-      "reason": "the handoff contract: it may not require the plan to stay unexecuted, only that no item claims a completion whose evidence lives outside this tree"
+      "lines": 219,
+      "max_complexity": 41,
+      "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused"
     },
     "scripts/verify_postgres_restore.py": {
       "lines": 82,
@@ -992,6 +992,11 @@
       "lines": 36,
       "max_complexity": 5,
       "reason": "ACT-015: bounded scanner-marker evaluator separates source/config and container-image scan evidence"
+    },
+    "scripts/validate_github_actions.py": {
+      "lines": 118,
+      "max_complexity": 9,
+      "reason": "v0.1.1: GitHub workflow policy gate; measured implementation is the initial ratchet ceiling"
     }
   },
   "raised": [

@@ -25,7 +25,7 @@ if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
   exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest apps/api/tests --no-cov "$@"
 fi
 
-image="pgvector/pgvector:0.8.5-pg17-trixie"
+image="pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f"
 container="${KORPUS_PG_CONTAINER:-korpus-pg-suite}"
 port="${KORPUS_PG_PORT:-55433}"
 password="korpus-suite-$$"

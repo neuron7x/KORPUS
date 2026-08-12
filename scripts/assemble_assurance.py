@@ -24,7 +24,7 @@ REPORTS = {
     "scale": VAR / "scale-report.json",
     "operational": VAR / "operational-gate.json",
 }
-# Produced by api:postgres-and-restore, which needs docker. Not in `required`: its
+# Produced by a recovery drill. Not in `required`: its
 # absence has to reach the verdict as a failed predicate that names what is missing,
 # not as a crash listing a path. The verdict is FAIL either way — that is the point.
 OPTIONAL_REPORTS = {"recovery": VAR / "recovery-report.json"}
@@ -98,8 +98,8 @@ def main() -> int:
         },
         "limitations": [
             (
-                "PostgreSQL/pgvector, backup-restore, and container execution remain "
-                "GitLab gates; one local test is skipped."
+                "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; "
+                "local fixture evidence cannot promote those claims."
             ),
             "Synthetic local scale evidence is not a production SLA.",
             "Passing software gates is not corpus, cyber, regulatory or military authorization.",

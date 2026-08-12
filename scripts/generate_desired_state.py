@@ -18,8 +18,6 @@ EXACT = [
     "infra/otel-collector.yaml",
     "infra/minio/korpus-app-policy.json",
 ]
-
-
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -29,6 +27,8 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     paths = [ROOT / relative for relative in EXACT]
+    paths.extend(sorted((ROOT / ".github/workflows").glob("*.yml")))
+    paths.append(ROOT / ".github/dependabot.yml")
     paths.extend(sorted((ROOT / "deploy/kubernetes").rglob("*.yaml")))
     missing = [str(path.relative_to(ROOT)) for path in paths if not path.is_file()]
     if missing:
