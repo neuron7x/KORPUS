@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from manifest_paths import source_paths
-from manifest_lib.integrity import record_failures
+from manifest_lib.integrity import manifest_failures, mode_string, record_failures
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "SOURCE_MANIFEST.json"
@@ -21,8 +21,8 @@ def main() -> int:
     if not isinstance(records, list):
         raise SystemExit("invalid source manifest records")
     by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
-    authoritative = [path.as_posix() for path in source_paths(ROOT)]
-    failures: list[str] = []
+    authoritative = [path.as_posix() for path in source_paths(ROOT)] if (ROOT / ".git").exists() else sorted(by_path)
+    failures = manifest_failures(manifest, records)
     if sorted(by_path) != authoritative:
         missing = sorted(set(authoritative) - set(by_path))
         extra = sorted(set(by_path) - set(authoritative))
@@ -33,7 +33,7 @@ def main() -> int:
         if not path.is_file():
             failures.append(f"missing source file: {relative}")
             continue
-        for failure in record_failures(path, record):
+        for failure in record_failures(path, record, mode_string(path, source=True)):
             failures.append(f"source {failure}")
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))

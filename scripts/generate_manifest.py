@@ -14,15 +14,15 @@ from manifest_paths import distribution_paths, source_paths
 from manifest_lib.integrity import file_record, manifest_root
 
 
-def _records(root: Path, paths: list[Path]) -> list[dict[str, object]]:
-    return [file_record(root / relative, relative) for relative in paths]
+def _records(root: Path, paths: list[Path], *, source: bool) -> list[dict[str, object]]:
+    return [file_record(root / relative, relative, source=source) for relative in paths]
 
 
 def build_manifest(root: Path, *, kind: str = "source") -> dict[str, object]:
     if kind not in {"source", "distribution"}:
         raise ValueError(f"unknown manifest kind: {kind}")
     paths = source_paths(root) if kind == "source" else distribution_paths(root)
-    records = _records(root, paths)
+    records = _records(root, paths, source=kind == "source")
     root_digest = manifest_root(records)
     return {
         "schema": f"korpus.{kind}-manifest.v2",
