@@ -27,6 +27,13 @@ package. Configure them on the GitHub repository before treating `main` as prote
 Repository-owner/CODEOWNERS identity is intentionally not fabricated in source. Add a
 valid `.github/CODEOWNERS` only after the canonical GitHub owner/team is known; an
 invented handle would create a control that appears configured but is not enforceable.
+The canonical owner is now observed as `@neuron7x`, so `.github/CODEOWNERS` records
+review intent. On 2026-08-12 GitHub returned `403` when branch protection was queried
+for this private repository because the account requires GitHub Pro or public visibility
+for that feature. Therefore CODEOWNERS review is **not an enforced merge predicate** in
+the current external state. `docs/operations/GITHUB_DEVELOPMENT_READINESS.json` records
+that blocker, and no document may describe `main` as protected until a later API
+observation proves it.
 
 ## Required checks encoded in source
 
