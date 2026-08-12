@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 681,
-  "root_sha256": "6cf81370c7f40552ca03ea58af9043ed8b7e7a27a3cc2b55ce2c07d54f419d66",
+  "file_count": 682,
+  "root_sha256": "0f71085d979e796ef1a80366a00f068fbb22eee887ed3dde642c08a82a5b02b1",
   "files": [
     {
       "path": ".dockerignore",
@@ -79,20 +79,20 @@
     },
     {
       "path": "DISTRIBUTION_CONTENTS.md",
-      "bytes": 451,
-      "sha256": "ab19a0c2e7f945fe8d52b769384d3dca188afa549b4e6eb11f4efcd90bba7709",
+      "bytes": 450,
+      "sha256": "e4635fd71186185d90a765a8749de55fe32d789b424fabf2fa52667d8532d402",
       "mode": "0644"
     },
     {
       "path": "FINAL_PACKAGE_CONTENTS.md",
-      "bytes": 785,
-      "sha256": "70df02023a8dc85c23f17475c830da0e24ed0cd08d16e012737947bdc264ecdc",
+      "bytes": 784,
+      "sha256": "52c7002b8de322d289ace4c703c67fb79b0b394307ec64a2a4b2658b76e59608",
       "mode": "0644"
     },
     {
       "path": "GITLAB_IMPORT.md",
-      "bytes": 1114,
-      "sha256": "9027cc1befcdf735b581f71cbe404e1374cdec9789115f28ef58efe174e0533b",
+      "bytes": 1106,
+      "sha256": "62038e1991652dbe0c5dc68df067aa0e06dbbc4a84d46c1cea8950c2ff599c44",
       "mode": "0644"
     },
     {
@@ -109,8 +109,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 6039,
-      "sha256": "07f3ce45418fb59fec97850767ec0121b9d34f5a40560ed0378fa41955aad23c",
+      "bytes": 6038,
+      "sha256": "91ee934c694f86ac84d57aa6d78debb85e0ab9f7a071188ed7a7fede16e5430b",
+      "mode": "0644"
+    },
+    {
+      "path": "RELEASE_0.1_BASELINE.md",
+      "bytes": 713,
+      "sha256": "e8edd2f7f315099d2475343b8403c57b7b1995770935763bd39b2789ae4f2070",
       "mode": "0644"
     },
     {
@@ -145,8 +151,8 @@
     },
     {
       "path": "WHAT_IS_IN_THIS_PACKAGE.md",
-      "bytes": 708,
-      "sha256": "d7abc03e0da22e0ca8cbbe5ed73b80ab13e0c1d7eaa91c96daee35b066c5fe5e",
+      "bytes": 707,
+      "sha256": "1a774bd611e4d28577d059480db31f73bb170d58a659b086b321fcedaf42ff18",
       "mode": "0644"
     },
     {
@@ -319,8 +325,8 @@
     },
     {
       "path": "apps/api/pyproject.toml",
-      "bytes": 2544,
-      "sha256": "fc90adbb126954e2e3ee83d9e0bea448d251fa895a9c083e26b8517d1091b570",
+      "bytes": 2543,
+      "sha256": "3d7b4ea14f892c381e5f73c8d025a9dfffa6c89ee58ddb81b5286af449eef55d",
       "mode": "0644"
     },
     {
@@ -1069,8 +1075,8 @@
     },
     {
       "path": "apps/api/src/korpus/release.json",
-      "bytes": 155,
-      "sha256": "b4602d3d0ffe13b1bd7e6975f28c8231994d082ca8e8c9dc82c625b956ae1552",
+      "bytes": 152,
+      "sha256": "7abf666124272abc0aa71fc6da1b0833eaf8646f575094b4e35d166f5c0e03c1",
       "mode": "0644"
     },
     {
@@ -2239,14 +2245,14 @@
     },
     {
       "path": "apps/web/package-lock.json",
-      "bytes": 216,
-      "sha256": "32ab31e513d7fe3dc2880a92975bc4ad5326656d897550ce54a126678fa98f69",
+      "bytes": 214,
+      "sha256": "25f9f04e6cc899d88c4680bf35e0299e9e160b84359b20a6f2511d065637a6d8",
       "mode": "0644"
     },
     {
       "path": "apps/web/package.json",
-      "bytes": 529,
-      "sha256": "ce4009206808d4dc1c70b713a6ceefaa39be254640676e3c20c9b5edc35adc2c",
+      "bytes": 528,
+      "sha256": "af7e6c3f4d7502b35b4e90f3bf4e5ffe3e7545634735591efc70d0800f8dad46",
       "mode": "0644"
     },
     {
@@ -2575,8 +2581,8 @@
     },
     {
       "path": "config/operations/desired-state.json",
-      "bytes": 3670,
-      "sha256": "53a1f5574c065fe8be5a3eef0779def62153e0933f75ea977478a26ced5e011e",
+      "bytes": 3669,
+      "sha256": "d63258b0f689b41d931997c75bf8dc276a211753c418f23183f1daecece2fac4",
       "mode": "0644"
     },
     {
@@ -3073,8 +3079,8 @@
     },
     {
       "path": "docs/operations/REQUIREMENTS_REGISTER.md",
-      "bytes": 47490,
-      "sha256": "dcd384916e4ddac521fb69e0ef56983c43b9c6b74ab1e8d47a8b81f556d719f4",
+      "bytes": 47485,
+      "sha256": "0586aef3638367289d9c1a01b53d8aabe3e0f82b0e81091ad4cf8fefe660deff",
       "mode": "0644"
     },
     {
@@ -3277,8 +3283,8 @@
     },
     {
       "path": "handoff/acts/00_CURRENT_STATE_ACT.md",
-      "bytes": 1463,
-      "sha256": "6e1fd2b16bda04aa5943c428cd4b20d57df60cbe1de48d73063278f52adfbb4c",
+      "bytes": 1467,
+      "sha256": "01ec4327399f4afc52ce3f72e593429846d75bd22e047ea8b53a442e0f942c0b",
       "mode": "0644"
     },
     {
@@ -3343,8 +3349,8 @@
     },
     {
       "path": "handoff/machine/current_state.json",
-      "bytes": 2781,
-      "sha256": "0b58c488ef1c47e2ec893086061af0e951321d384b30987f9462a59ea3a910bd",
+      "bytes": 2782,
+      "sha256": "e4737747464eee99ef20686e4447bc82328635e75840f0e23a6d1d425cf25e5c",
       "mode": "0644"
     },
     {
