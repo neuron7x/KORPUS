@@ -45,7 +45,7 @@ if [[ -d var/releases ]]; then
 fi
 
 # Named explicitly rather than left for a reader to discover by its absence.
-cat > "$tmp/WHAT_IS_IN_THIS_PACKAGE.md" <<'DOC'
+cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
 Це перевірюваний distribution artifact: source snapshot, Git bundle, release reports,
