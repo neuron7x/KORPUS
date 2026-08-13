@@ -83,6 +83,32 @@ def test_explicit_symlink_member_is_rejected_before_extraction(tmp_path: Path) -
     assert "unsupported archive member type: 'link'" in failures
 
 
+def test_directory_name_with_regular_unix_type_is_rejected(tmp_path: Path) -> None:
+    archive = tmp_path / "directory-name-regular-mode.zip"
+    info = zipfile.ZipInfo("node/")
+    info.create_system = 3
+    info.external_attr = (stat.S_IFREG | 0o644) << 16
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(info, b"")
+
+    failures, files = verify(archive)
+    assert files == 0
+    assert "archive member name/type mismatch: 'node/'" in failures
+
+
+def test_file_name_with_directory_unix_type_is_rejected(tmp_path: Path) -> None:
+    archive = tmp_path / "file-name-directory-mode.zip"
+    info = zipfile.ZipInfo("node")
+    info.create_system = 3
+    info.external_attr = (stat.S_IFDIR | 0o755) << 16
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(info, b"")
+
+    failures, files = verify(archive)
+    assert files == 0
+    assert "archive member name/type mismatch: 'node'" in failures
+
+
 def _distribution_root(tmp_path: Path) -> Path:
     root = tmp_path / "distribution"
     root.mkdir()
