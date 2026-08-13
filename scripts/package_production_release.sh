@@ -14,7 +14,16 @@ expected_tag="$(python3 -c 'import sys; sys.path.insert(0,"scripts"); from relea
 : "${KORPUS_TRUSTED_RELEASE_SIGNER_SHA256:?release trust root is required}"
 [[ "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256" ]] || { echo "production-assurance and release trust roots must differ" >&2; exit 1; }
 python3 scripts/check_release_identity.py --require-git-tag
-PYTHONPATH=apps/api/src:scripts python3 scripts/verify_production_assurance.py
+verification_dir="$(mktemp -d)"
+cleanup() { rm -rf "$verification_dir"; }
+trap cleanup EXIT INT TERM
+cp reports/PRODUCTION_ASSURANCE_REPORT.json "$verification_dir/PRODUCTION_ASSURANCE_REPORT.json"
+cp reports/PRODUCTION_ASSURANCE_REPORT.attestation.json "$verification_dir/PRODUCTION_ASSURANCE_REPORT.attestation.json"
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_production_assurance.py \
+  --report "$verification_dir/PRODUCTION_ASSURANCE_REPORT.json" \
+  --attestation "$verification_dir/PRODUCTION_ASSURANCE_REPORT.attestation.json"
+assurance_sha256="$(sha256sum "$verification_dir/PRODUCTION_ASSURANCE_REPORT.json" | cut -d' ' -f1)"
+assurance_attestation_sha256="$(sha256sum "$verification_dir/PRODUCTION_ASSURANCE_REPORT.attestation.json" | cut -d' ' -f1)"
 source_commit="$(git rev-parse HEAD)"
 KORPUS_PACKAGE_SOURCE_COMMIT="$source_commit" scripts/package_repository.sh
 [[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved after package construction" >&2; exit 1; }
@@ -22,7 +31,13 @@ name="$(python3 -c 'import sys; sys.path.insert(0,"scripts"); from release_ident
 artifact="dist/${name}.zip"
 manifest="dist/${name}.release-manifest.json"
 attestation="dist/${name}.release-attestation.json"
-python3 scripts/release_artifact_manifest.py --artifact "$artifact" --out "$manifest" --expected-source-commit "$source_commit" --expected-release "$CI_COMMIT_TAG"
+python3 scripts/release_artifact_manifest.py \
+  --artifact "$artifact" \
+  --out "$manifest" \
+  --expected-source-commit "$source_commit" \
+  --expected-release "$CI_COMMIT_TAG" \
+  --expected-assurance-sha256 "$assurance_sha256" \
+  --expected-assurance-attestation-sha256 "$assurance_attestation_sha256"
 python3 scripts/release_attestation.py sign --manifest "$manifest" --key "$KORPUS_RELEASE_SIGNING_KEY" --out "$attestation"
 python3 scripts/release_attestation.py verify --manifest "$manifest" --attestation "$attestation" --trust-config config/assurance/trusted-assurance-signers.json --trust-field release_ed25519_public_key_sha256 --trust-env KORPUS_TRUSTED_RELEASE_SIGNER_SHA256 --require-trusted
 sha256sum "$artifact" "$manifest" "$attestation" > "dist/${name}.production.sha256"
