@@ -68,8 +68,7 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
     for relative in sources:
         target = root / relative
         if target.is_file():
-            if evidence_source_path_included(relative):
-                files.append(target)
+            files.append(target)
             continue
         if not target.is_dir():
             continue
