@@ -6,8 +6,14 @@ import json
 import zipfile
 from pathlib import Path
 
-from scripts.assurance_snapshot_contract import SNAPSHOT_SCHEMA, canonical_snapshot_paths
+from korpus.application.provenance import compute_source_digest
+from scripts.assurance_snapshot_contract import (
+    RESEARCH_REPORT_PATH,
+    SNAPSHOT_SCHEMA,
+    canonical_snapshot_paths,
+)
 from scripts.generate_manifest import write_manifest
+from scripts.source_digest import source_tree_digest
 from scripts.verify_package import verify
 
 RELEASE = "v0.1.1"
@@ -22,9 +28,17 @@ def _source(root: Path, relative: str, content: str, mode: int = 0o644) -> Path:
 
 
 def _add_research_snapshot(root: Path) -> None:
+    research = {
+        "status": "PASS",
+        "source_tree_sha256": source_tree_digest(root=root),
+        "evidence_source_sha256": compute_source_digest(root),
+    }
+    _source(root, RESEARCH_REPORT_PATH, json.dumps(research) + "\n")
     records: list[dict[str, object]] = []
     for relative in canonical_snapshot_paths():
-        path = _source(root, relative, f"fixture:{relative}\n")
+        path = root / relative
+        if relative != RESEARCH_REPORT_PATH:
+            path = _source(root, relative, f"fixture:{relative}\n")
         content = path.read_bytes()
         records.append(
             {
