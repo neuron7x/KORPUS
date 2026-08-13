@@ -1,4 +1,4 @@
-"""The final ZIP must re-verify its embedded research-assurance snapshot."""
+"""The final ZIP must re-verify its embedded research assurance against packaged source."""
 from __future__ import annotations
 
 import hashlib
@@ -6,8 +6,14 @@ import json
 import zipfile
 from pathlib import Path
 
-from scripts.assurance_snapshot_contract import SNAPSHOT_SCHEMA, canonical_snapshot_paths
+from korpus.application.provenance import compute_source_digest
+from scripts.assurance_snapshot_contract import (
+    RESEARCH_REPORT_PATH,
+    SNAPSHOT_SCHEMA,
+    canonical_snapshot_paths,
+)
 from scripts.generate_manifest import write_manifest
+from scripts.source_digest import source_tree_digest
 from scripts.verify_package import verify
 
 RELEASE = "v0.1.1"
@@ -30,10 +36,25 @@ def _source(root: Path) -> None:
     write_manifest(root, root / "SOURCE_MANIFEST.json", kind="source")
 
 
-def _snapshot(root: Path, *, release: str = RELEASE) -> None:
+def _snapshot(
+    root: Path,
+    *,
+    release: str = RELEASE,
+    claimed_source: str | None = None,
+    claimed_evidence_source: str | None = None,
+) -> None:
+    research = {
+        "status": "PASS",
+        "source_tree_sha256": claimed_source or source_tree_digest(root=root),
+        "evidence_source_sha256": claimed_evidence_source or compute_source_digest(root),
+    }
+    _write(root, RESEARCH_REPORT_PATH, json.dumps(research) + "\n")
+
     records: list[dict[str, object]] = []
     for relative in canonical_snapshot_paths():
-        path = _write(root, relative, f"evidence:{relative}\n")
+        path = root / relative
+        if relative != RESEARCH_REPORT_PATH:
+            path = _write(root, relative, f"evidence:{relative}\n")
         content = path.read_bytes()
         records.append(
             {
@@ -68,7 +89,7 @@ def _fixture(tmp_path: Path) -> Path:
     return root
 
 
-def test_exact_packaged_snapshot_passes(tmp_path: Path) -> None:
+def test_exact_packaged_assurance_passes(tmp_path: Path) -> None:
     root = _fixture(tmp_path)
     failures, _ = verify(_archive(root, tmp_path / "valid.zip"))
     assert failures == []
@@ -78,10 +99,32 @@ def test_report_changed_after_snapshot_is_rejected_even_with_fresh_distribution_
     tmp_path: Path,
 ) -> None:
     root = _fixture(tmp_path)
-    report = root / canonical_snapshot_paths()[0]
+    report = root / canonical_snapshot_paths()[1]
     report.write_text("changed after snapshot verification\n", encoding="utf-8")
     failures, _ = verify(_archive(root, tmp_path / "stale-report.zip"))
     assert any("snapshot record mismatch" in failure for failure in failures)
+
+
+def test_forged_report_and_fresh_snapshot_cannot_claim_another_source_tree(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "package"
+    root.mkdir()
+    _source(root)
+    _snapshot(root, claimed_source="b" * 64)
+    failures, _ = verify(_archive(root, tmp_path / "forged-source.zip"))
+    assert "assurance source digest does not match packaged source" in failures
+
+
+def test_forged_report_and_fresh_snapshot_cannot_claim_another_evidence_source(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "package"
+    root.mkdir()
+    _source(root)
+    _snapshot(root, claimed_evidence_source="b" * 64)
+    failures, _ = verify(_archive(root, tmp_path / "forged-evidence.zip"))
+    assert "assurance evidence source digest does not match packaged source" in failures
 
 
 def test_missing_canonical_packaged_report_is_rejected(tmp_path: Path) -> None:
