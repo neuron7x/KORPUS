@@ -27,12 +27,17 @@ def canonical_member_name(name: str, *, directory: bool = False) -> str | None:
     return canonical
 
 
-def _ambiguous_member_type(info: zipfile.ZipInfo) -> bool:
+def _member_type_failure(info: zipfile.ZipInfo) -> str | None:
+    """Require ZIP filename and explicit Unix file type to describe one object kind."""
     mode = info.external_attr >> 16
     kind = stat.S_IFMT(mode)
     if kind == 0:
-        return False
-    return not (stat.S_ISREG(mode) or stat.S_ISDIR(mode))
+        return None
+    if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
+        return f"unsupported archive member type: {info.filename!r}"
+    if info.is_dir() != stat.S_ISDIR(mode):
+        return f"archive member name/type mismatch: {info.filename!r}"
+    return None
 
 
 def archive_inventory_failures(archive: zipfile.ZipFile) -> list[str]:
@@ -44,8 +49,9 @@ def archive_inventory_failures(archive: zipfile.ZipFile) -> list[str]:
         if canonical is None:
             failures.append(f"non-canonical archive member: {info.filename!r}")
             continue
-        if _ambiguous_member_type(info):
-            failures.append(f"unsupported archive member type: {info.filename!r}")
+        type_failure = _member_type_failure(info)
+        if type_failure is not None:
+            failures.append(type_failure)
             continue
         prior = seen.get(canonical)
         if prior is not None:
