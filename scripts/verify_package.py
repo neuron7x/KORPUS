@@ -13,6 +13,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
+from manifest_lib.source_manifest import verify_source_manifest
 
 
 def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
@@ -29,11 +30,7 @@ def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object
     return {str(record.get("path")): record for record in records if isinstance(record, dict)}
 
 
-def _verify_tree(
-    root: Path,
-    records: dict[str, dict[str, object]],
-    archive_modes: dict[str, str],
-) -> list[str]:
+def _verify_tree(root: Path, records: dict[str, dict[str, object]], modes: dict[str, str]) -> list[str]:
     failures = []
     actual = sorted(
         p.relative_to(root).as_posix()
@@ -47,7 +44,7 @@ def _verify_tree(
         )
     for relative in actual:
         record = records.get(relative, {})
-        failures.extend(record_failures(root / relative, record, archive_modes.get(relative)))
+        failures.extend(record_failures(root / relative, record, modes.get(relative)))
     return failures
 
 
@@ -61,6 +58,8 @@ def verify(archive: Path) -> tuple[list[str], int]:
             modes = archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
         failures.extend(_verify_tree(root, records, modes))
+        source_failures, _ = verify_source_manifest(root, modes)
+        failures.extend(source_failures)
         return failures, len(records) + 1
 
 
