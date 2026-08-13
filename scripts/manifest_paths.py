@@ -4,8 +4,8 @@ import subprocess
 from pathlib import Path
 
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
-SOURCE_GENERATED_PREFIXES = {("reports",), ("handoff", "evidence")}
-LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = {".coverage"}, {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
+SOURCE_GENERATED_PREFIXES = {("reports",), ("handoff", "evidence"), ("evidence",)}
+LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = {".coverage", "PACKAGE_BOUNDARY.md"}, {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 
 
 def source_included(relative: Path) -> bool:
