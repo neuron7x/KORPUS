@@ -21,7 +21,15 @@ EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
 )
 
 _EXCLUDED_DIRECTORY_NAMES = frozenset(
-    {"__pycache__", ".venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "var", "node_modules"}
+    {
+        "__pycache__",
+        ".venv",
+        ".pytest_cache",
+        ".mypy_cache",
+        ".ruff_cache",
+        "var",
+        "node_modules",
+    }
 )
 _EXCLUDED_SUFFIXES = (".pyc", ".pyo")
 _DIGEST_DOMAIN = b"korpus-source-digest-v1\0"
@@ -29,7 +37,8 @@ _DIGEST_DOMAIN = b"korpus-source-digest-v1\0"
 
 def evidence_source_path_included(relative: str | Path) -> bool:
     path = Path(relative)
-    return not any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.parts) and path.suffix not in _EXCLUDED_SUFFIXES
+    excluded_directory = any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.parts)
+    return not excluded_directory and path.suffix not in _EXCLUDED_SUFFIXES
 
 
 def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
