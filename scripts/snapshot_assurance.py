@@ -9,23 +9,11 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from assurance_snapshot_contract import SNAPSHOT_SCHEMA, SOURCES
 from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
-SOURCES = {
-    "PYTEST_REPORT.xml": "pytest.xml",
-    "COVERAGE_REPORT.xml": "coverage.xml",
-    "COVERAGE_REPORT.json": "coverage.json",
-    "EVAL_REPORT.json": "eval-report.json",
-    "MUTATION_REPORT.json": "mutation-report.json",
-    "MIGRATION_REPORT.json": "migration-report.json",
-    "SCALE_REPORT.json": "scale-report.json",
-    "OPERATIONAL_GATE.json": "operational-gate.json",
-    "SUPPLY_CHAIN_INVENTORY.json": "supply-chain-inventory.json",
-    "INFRASTRUCTURE_VALIDATION.json": "infrastructure-validation.json",
-    "KUBERNETES_VALIDATION.json": "kubernetes-validation.json",
-}
 
 
 def sha256(path: Path) -> str:
@@ -175,7 +163,7 @@ def main() -> int:
         )
 
     index = {
-        "schema": "korpus.assurance-snapshot.v1",
+        "schema": SNAPSHOT_SCHEMA,
         "release": os.getenv("KORPUS_RELEASE_VERSION", release_tag()),
         "status": "PASS",
         "records": records,
