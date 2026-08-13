@@ -104,16 +104,3 @@ def verify_reports(
                 f"({provenance.source_digest[:12]}… != {expected_digest[:12]}…)"
             )
     return not reasons, tuple(reasons)
-
-
-__all__ = [
-    "EVIDENCE_SOURCE_PATHS",
-    "PROVENANCE_KEY",
-    "PROVENANCE_SCHEMA_VERSION",
-    "ProvenanceError",
-    "SourceProvenance",
-    "compute_source_digest",
-    "read_provenance",
-    "stamp",
-    "verify_reports",
-]
