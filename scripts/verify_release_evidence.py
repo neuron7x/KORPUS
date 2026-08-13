@@ -2,12 +2,11 @@
 """Reject stale, incomplete, or source-mismatched release evidence."""
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from pathlib import Path
 
-from assurance_snapshot_contract import canonical_snapshot_records
+from assurance_snapshot_verification import verify_assurance_snapshot
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
 from source_digest import source_tree_digest
@@ -18,11 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def main() -> int:
     failures: list[str] = []
     assurance_path = ROOT / "reports/RESEARCH_ASSURANCE_REPORT.json"
-    snapshot_path = ROOT / "reports/ASSURANCE_SNAPSHOT.json"
-    if not assurance_path.is_file() or not snapshot_path.is_file():
+    if not assurance_path.is_file():
         raise SystemExit("release evidence is missing")
     assurance = json.loads(assurance_path.read_text(encoding="utf-8"))
-    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
     expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
     if assurance.get("status") != "PASS":
         failures.append("assurance status is not PASS")
@@ -31,13 +28,7 @@ def main() -> int:
         failures.append("assurance source digest does not match committed HEAD")
     if binding_failure := evidence_source_binding_failure(assurance.get("evidence_source_sha256")):
         failures.append(binding_failure)
-    structure_failures, records = canonical_snapshot_records(snapshot, expected_release)
-    failures.extend(structure_failures)
-    for record in records:
-        path = ROOT / str(record["path"])
-        digest = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
-        if not path.is_file() or path.stat().st_size != record.get("bytes") or digest != record.get("sha256"):
-            failures.append(f"snapshot record mismatch: {record.get('path')}")
+    failures.extend(verify_assurance_snapshot(ROOT, expected_release))
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1
