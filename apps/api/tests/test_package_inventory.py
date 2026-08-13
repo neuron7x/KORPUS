@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import stat
 import warnings
 import zipfile
 from pathlib import Path
@@ -67,6 +68,19 @@ def test_archive_inventory_rejects_directory_file_collision(tmp_path: Path) -> N
     with zipfile.ZipFile(archive) as zf:
         failures = archive_inventory_failures(zf)
     assert any("duplicate archive member" in failure for failure in failures)
+
+
+def test_explicit_symlink_member_is_rejected_before_extraction(tmp_path: Path) -> None:
+    archive = tmp_path / "symlink.zip"
+    info = zipfile.ZipInfo("link")
+    info.create_system = 3
+    info.external_attr = (stat.S_IFLNK | 0o777) << 16
+    with zipfile.ZipFile(archive, "w") as zf:
+        zf.writestr(info, "target")
+
+    failures, files = verify(archive)
+    assert files == 0
+    assert "unsupported archive member type: 'link'" in failures
 
 
 def _distribution_root(tmp_path: Path) -> Path:
