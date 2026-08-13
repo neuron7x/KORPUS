@@ -13,21 +13,8 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
+from manifest_lib.package_inventory import archive_inventory_failures, load_distribution_records
 from package_contracts import verify_package_contracts
-
-
-def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
-    path = root / "DISTRIBUTION_MANIFEST.json"
-    if not path.is_file():
-        raise RuntimeError("DISTRIBUTION_MANIFEST.json missing from archive")
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.distribution-manifest.v2":
-        failures.append("invalid distribution manifest schema")
-    records = manifest.get("files")
-    if not isinstance(records, list):
-        failures.append("invalid distribution manifest records")
-        return {}
-    return {str(record.get("path")): record for record in records if isinstance(record, dict)}
 
 
 def _verify_tree(root: Path, records: dict[str, dict[str, object]], modes: dict[str, str]) -> list[str]:
@@ -53,10 +40,14 @@ def verify(archive: Path) -> tuple[list[str], int]:
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
+            failures.extend(archive_inventory_failures(zf))
+            if failures:
+                return failures, 0
             zf.extractall(tmp)
             root = archive_root(tmp)
             modes = archive_modes(zf, root.name if root != tmp else "")
-        records = _load_records(root, failures)
+        manifest_failures, records = load_distribution_records(root)
+        failures.extend(manifest_failures)
         failures.extend(_verify_tree(root, records, modes))
         failures.extend(verify_package_contracts(root, modes))
         return failures, len(records) + 1
