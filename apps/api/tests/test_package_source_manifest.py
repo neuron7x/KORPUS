@@ -1,11 +1,16 @@
 """The final ZIP must prove its embedded source manifest against packaged bytes."""
 from __future__ import annotations
 
+import hashlib
+import json
 import zipfile
 from pathlib import Path
 
+from scripts.assurance_snapshot_contract import SNAPSHOT_SCHEMA, canonical_snapshot_paths
 from scripts.generate_manifest import write_manifest
 from scripts.verify_package import verify
+
+RELEASE = "v0.1.1"
 
 
 def _source(root: Path, relative: str, content: str, mode: int = 0o644) -> Path:
@@ -16,9 +21,30 @@ def _source(root: Path, relative: str, content: str, mode: int = 0o644) -> Path:
     return path
 
 
+def _add_research_snapshot(root: Path) -> None:
+    records: list[dict[str, object]] = []
+    for relative in canonical_snapshot_paths():
+        path = _source(root, relative, f"fixture:{relative}\n")
+        content = path.read_bytes()
+        records.append(
+            {
+                "path": relative,
+                "bytes": len(content),
+                "sha256": hashlib.sha256(content).hexdigest(),
+            }
+        )
+    snapshot = {
+        "schema": SNAPSHOT_SCHEMA,
+        "release": RELEASE,
+        "status": "PASS",
+        "records": records,
+    }
+    _source(root, "reports/ASSURANCE_SNAPSHOT.json", json.dumps(snapshot) + "\n")
+
+
 def _add_package_only_files(root: Path) -> None:
     _source(root, "PACKAGE_BOUNDARY.md", "distribution boundary\n")
-    _source(root, "reports/RESEARCH_ASSURANCE_REPORT.json", '{"status":"PASS"}\n')
+    _add_research_snapshot(root)
     _source(root, "evidence/sealed.json", '{"sealed":true}\n')
     _source(root, "history.bundle", "bundle fixture\n")
 
@@ -35,6 +61,11 @@ def _fixture(tmp_path: Path) -> tuple[Path, Path]:
     root = tmp_path / "package"
     root.mkdir()
     policy = _source(root, "apps/api/src/korpus/policy.py", "threshold = 1.0\n")
+    _source(
+        root,
+        "apps/api/src/korpus/release.json",
+        json.dumps({"schema": "korpus.release-identity.v1", "tag": RELEASE}) + "\n",
+    )
     _source(root, "source-sbom.cdx.json", '{"bomFormat":"CycloneDX"}\n')
     write_manifest(root, root / "SOURCE_MANIFEST.json", kind="source")
     return root, policy
@@ -85,6 +116,11 @@ def test_live_tracked_sbom_overwrite_is_rejected(tmp_path: Path) -> None:
 def test_source_mode_drift_is_rejected_from_archive_metadata(tmp_path: Path) -> None:
     root = tmp_path / "package"
     root.mkdir()
+    _source(
+        root,
+        "apps/api/src/korpus/release.json",
+        json.dumps({"schema": "korpus.release-identity.v1", "tag": RELEASE}) + "\n",
+    )
     executable = _source(root, "scripts/run.py", "#!/usr/bin/env python3\n", 0o755)
     write_manifest(root, root / "SOURCE_MANIFEST.json", kind="source")
     executable.chmod(0o644)
