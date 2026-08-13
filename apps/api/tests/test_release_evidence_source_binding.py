@@ -65,6 +65,33 @@ def test_dirty_evidence_bearing_source_is_rejected_against_head(tmp_path: Path) 
     )
 
 
+def test_untracked_evidence_bearing_source_is_rejected_against_head(tmp_path: Path) -> None:
+    root, policy, _ = _seed_repository(tmp_path)
+    committed = committed_evidence_source_digest(root=root)
+    extra = policy.with_name("untracked_policy.py")
+
+    extra.write_text("threshold = 0.5\n", encoding="utf-8")
+    dirty = compute_source_digest(root)
+    assert dirty != committed
+    assert (
+        evidence_source_binding_failure(dirty, root=root)
+        == "assurance evidence source digest does not match committed HEAD"
+    )
+
+
+def test_deleted_evidence_bearing_source_is_rejected_against_head(tmp_path: Path) -> None:
+    root, policy, _ = _seed_repository(tmp_path)
+    committed = committed_evidence_source_digest(root=root)
+
+    policy.unlink()
+    dirty = compute_source_digest(root)
+    assert dirty != committed
+    assert (
+        evidence_source_binding_failure(dirty, root=root)
+        == "assurance evidence source digest does not match committed HEAD"
+    )
+
+
 def test_documentation_only_edit_does_not_create_false_mismatch(tmp_path: Path) -> None:
     root, _, docs = _seed_repository(tmp_path)
     committed = committed_evidence_source_digest(root=root)
@@ -73,6 +100,15 @@ def test_documentation_only_edit_does_not_create_false_mismatch(tmp_path: Path) 
     live = compute_source_digest(root)
     assert live == committed
     assert evidence_source_binding_failure(live, root=root) is None
+
+
+def test_unverifiable_git_ref_fails_closed(tmp_path: Path) -> None:
+    root, _, _ = _seed_repository(tmp_path)
+    live = compute_source_digest(root)
+    assert (
+        evidence_source_binding_failure(live, ref="missing-release-ref", root=root)
+        == "assurance evidence source digest cannot be verified against committed HEAD"
+    )
 
 
 @pytest.mark.parametrize("claimed", [None, "short", "z" * 64])
