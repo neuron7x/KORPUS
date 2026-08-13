@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import stat
 import zipfile
 from pathlib import Path
 
@@ -26,6 +27,14 @@ def canonical_member_name(name: str, *, directory: bool = False) -> str | None:
     return canonical
 
 
+def _ambiguous_member_type(info: zipfile.ZipInfo) -> bool:
+    mode = info.external_attr >> 16
+    kind = stat.S_IFMT(mode)
+    if kind == 0:
+        return False
+    return not (stat.S_ISREG(mode) or stat.S_ISDIR(mode))
+
+
 def archive_inventory_failures(archive: zipfile.ZipFile) -> list[str]:
     """Reject archive ambiguity before any member reaches filesystem extraction."""
     failures: list[str] = []
@@ -34,6 +43,9 @@ def archive_inventory_failures(archive: zipfile.ZipFile) -> list[str]:
         canonical = canonical_member_name(info.filename, directory=info.is_dir())
         if canonical is None:
             failures.append(f"non-canonical archive member: {info.filename!r}")
+            continue
+        if _ambiguous_member_type(info):
+            failures.append(f"unsupported archive member type: {info.filename!r}")
             continue
         prior = seen.get(canonical)
         if prior is not None:
