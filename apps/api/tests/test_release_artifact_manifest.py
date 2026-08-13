@@ -13,10 +13,17 @@ from scripts.signed_manifest_identity import manifest_release
 
 COMMIT = "a" * 40
 RELEASE = "v0.1.1"
+ASSURANCE = "reports/PRODUCTION_ASSURANCE_REPORT.json"
+ASSURANCE_ATTESTATION = "reports/PRODUCTION_ASSURANCE_REPORT.attestation.json"
 
 
 def _members(
-    *, commit: str = COMMIT, release: str = RELEASE, assurance_release: str = RELEASE
+    *,
+    commit: str = COMMIT,
+    release: str = RELEASE,
+    assurance_release: str = RELEASE,
+    assurance_status: str = "PASS",
+    production_authorized: bool = True,
 ) -> dict[str, bytes]:
     return {
         "PACKAGE_BUILD.json": json.dumps(
@@ -26,9 +33,15 @@ def _members(
             {"schema": "korpus.release-identity.v1", "tag": release}
         ).encode(),
         "SOURCE_MANIFEST.json": b'{"schema":"korpus.source-manifest.v2"}\n',
-        "reports/PRODUCTION_ASSURANCE_REPORT.json": json.dumps(
-            {"schema": "korpus.production-assurance.v1", "release": assurance_release}
+        ASSURANCE: json.dumps(
+            {
+                "schema": "korpus.production-assurance.v1",
+                "release": assurance_release,
+                "status": assurance_status,
+                "production_authorized": production_authorized,
+            }
         ).encode(),
+        ASSURANCE_ATTESTATION: b'{"schema":"korpus.release-attestation.v1"}\n',
     }
 
 
@@ -44,7 +57,13 @@ def test_manifest_is_derived_from_exact_artifact_members(tmp_path: Path) -> None
     members = _members()
     archive = _artifact(tmp_path, members)
     payload = build_release_manifest(
-        archive, expected_source_commit=COMMIT, expected_release=RELEASE
+        archive,
+        expected_source_commit=COMMIT,
+        expected_release=RELEASE,
+        expected_assurance_sha256=hashlib.sha256(members[ASSURANCE]).hexdigest(),
+        expected_assurance_attestation_sha256=hashlib.sha256(
+            members[ASSURANCE_ATTESTATION]
+        ).hexdigest(),
     )
 
     assert payload == {
@@ -54,8 +73,9 @@ def test_manifest_is_derived_from_exact_artifact_members(tmp_path: Path) -> None
         "artifact": archive.name,
         "artifact_sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
         "source_manifest_sha256": hashlib.sha256(members["SOURCE_MANIFEST.json"]).hexdigest(),
-        "production_assurance_sha256": hashlib.sha256(
-            members["reports/PRODUCTION_ASSURANCE_REPORT.json"]
+        "production_assurance_sha256": hashlib.sha256(members[ASSURANCE]).hexdigest(),
+        "production_assurance_attestation_sha256": hashlib.sha256(
+            members[ASSURANCE_ATTESTATION]
         ).hexdigest(),
     }
 
@@ -67,7 +87,6 @@ def test_checkout_files_cannot_change_metadata_after_artifact_exists(tmp_path: P
     checkout.mkdir()
     for name in ("SOURCE_MANIFEST.json", "PRODUCTION_ASSURANCE_REPORT.json", "release.json"):
         (checkout / name).write_text("mutated after build\n", encoding="utf-8")
-
     assert build_release_manifest(archive) == baseline
 
 
@@ -77,7 +96,8 @@ def test_checkout_files_cannot_change_metadata_after_artifact_exists(tmp_path: P
         "PACKAGE_BUILD.json",
         "apps/api/src/korpus/release.json",
         "SOURCE_MANIFEST.json",
-        "reports/PRODUCTION_ASSURANCE_REPORT.json",
+        ASSURANCE,
+        ASSURANCE_ATTESTATION,
     ],
 )
 def test_missing_canonical_member_is_rejected(tmp_path: Path, missing: str) -> None:
@@ -120,6 +140,35 @@ def test_production_assurance_must_match_packaged_release(tmp_path: Path) -> Non
     archive = _artifact(tmp_path, _members(assurance_release="v9.9.9"))
     with pytest.raises(RuntimeError, match="production assurance release"):
         build_release_manifest(archive)
+
+
+@pytest.mark.parametrize(
+    "members",
+    [
+        _members(assurance_status="FAIL"),
+        _members(production_authorized=False),
+    ],
+)
+def test_non_authorized_assurance_cannot_be_signed(
+    tmp_path: Path, members: dict[str, bytes]
+) -> None:
+    archive = _artifact(tmp_path, members)
+    with pytest.raises(RuntimeError, match="not authorized PASS"):
+        build_release_manifest(archive)
+
+
+def test_packaged_assurance_must_equal_verified_report_bytes(tmp_path: Path) -> None:
+    archive = _artifact(tmp_path)
+    with pytest.raises(RuntimeError, match="differs from verified assurance bytes"):
+        build_release_manifest(archive, expected_assurance_sha256="b" * 64)
+
+
+def test_packaged_assurance_attestation_must_equal_verified_bytes(tmp_path: Path) -> None:
+    archive = _artifact(tmp_path)
+    with pytest.raises(RuntimeError, match="attestation differs from verified bytes"):
+        build_release_manifest(
+            archive, expected_assurance_attestation_sha256="b" * 64
+        )
 
 
 def test_attestation_identity_comes_from_signed_manifest(tmp_path: Path) -> None:
