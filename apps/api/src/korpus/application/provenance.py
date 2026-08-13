@@ -54,10 +54,52 @@ _EXCLUDED_DIRECTORY_NAMES = frozenset(
     {"__pycache__", ".venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "var", "node_modules"}
 )
 _EXCLUDED_SUFFIXES = (".pyc", ".pyo")
+_DIGEST_DOMAIN = b"korpus-source-digest-v1\0"
 
 
 class ProvenanceError(ValueError):
     """Raised when an artifact cannot be bound to a source tree."""
+
+
+def evidence_source_path_included(relative: str | Path) -> bool:
+    """Return whether a path inside ``EVIDENCE_SOURCE_PATHS`` participates in the digest.
+
+    Git-ref verification uses this same predicate as the live working-tree walk so
+    generated caches can never create different meanings for the two execution surfaces.
+    """
+
+    path = Path(relative)
+    return not any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.parts) and not str(
+        path
+    ).endswith(_EXCLUDED_SUFFIXES)
+
+
+def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
+    """Digest canonical ``(relative_path, content)`` records.
+
+    This is the single framing implementation used for both live working-tree evidence
+    and committed Git-ref evidence. Callers provide bytes; this function owns ordering
+    and path/content length framing.
+    """
+
+    normalized: list[tuple[str, bytes]] = []
+    seen: set[str] = set()
+    for relative, content in records:
+        canonical = Path(relative).as_posix()
+        if canonical in seen:
+            raise ProvenanceError(f"duplicate source-digest path: {canonical}")
+        seen.add(canonical)
+        normalized.append((canonical, content))
+
+    hasher = hashlib.sha256()
+    hasher.update(_DIGEST_DOMAIN)
+    for relative, content in sorted(normalized, key=lambda item: item[0]):
+        encoded = relative.encode("utf-8")
+        hasher.update(len(encoded).to_bytes(4, "big"))
+        hasher.update(encoded)
+        hasher.update(len(content).to_bytes(8, "big"))
+        hasher.update(content)
+    return hasher.hexdigest()
 
 
 def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
@@ -65,7 +107,8 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
     for relative in sources:
         target = root / relative
         if target.is_file():
-            files.append(target)
+            if evidence_source_path_included(Path(relative)):
+                files.append(target)
             continue
         if not target.is_dir():
             # A declared source that does not exist is not an error: the set is
@@ -76,9 +119,7 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
         for path in target.rglob("*"):
             if not path.is_file():
                 continue
-            if any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.relative_to(root).parts):
-                continue
-            if path.suffix in _EXCLUDED_SUFFIXES:
+            if not evidence_source_path_included(path.relative_to(root)):
                 continue
             files.append(path)
     return sorted(set(files), key=lambda path: path.relative_to(root).as_posix())
@@ -87,22 +128,12 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
 def compute_source_digest(
     root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS
 ) -> str:
-    """Digest the evidence-bearing source surface of a working tree.
+    """Digest the evidence-bearing source surface of a working tree."""
 
-    Length-prefixed path and content are both fed to the hash so that moving a
-    byte from a file name into its content cannot produce the same digest.
-    """
-
-    hasher = hashlib.sha256()
-    hasher.update(b"korpus-source-digest-v1\0")
-    for path in _digest_candidates(root, sources):
-        relative = path.relative_to(root).as_posix().encode("utf-8")
-        content = path.read_bytes()
-        hasher.update(len(relative).to_bytes(4, "big"))
-        hasher.update(relative)
-        hasher.update(len(content).to_bytes(8, "big"))
-        hasher.update(content)
-    return hasher.hexdigest()
+    return digest_source_records(
+        (path.relative_to(root).as_posix(), path.read_bytes())
+        for path in _digest_candidates(root, sources)
+    )
 
 
 @dataclass(frozen=True)
