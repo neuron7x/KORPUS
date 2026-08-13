@@ -20,7 +20,8 @@ from korpus.application.evidence_digest import (  # noqa: E402
 
 
 def _git(root: Path, *args: str) -> bytes:
-    return subprocess.run(["git", *args], cwd=root, check=True, capture_output=True).stdout
+    completed = subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+    return completed.stdout
 
 
 def committed_evidence_source_digest(ref: str = "HEAD", root: Path = ROOT) -> str:
@@ -44,11 +45,11 @@ def committed_evidence_source_digest(ref: str = "HEAD", root: Path = ROOT) -> st
                 if raw and evidence_source_path_included(raw.decode("utf-8"))
             }
         )
-        return digest_source_records(
-            (name, _git(root, "show", f"{ref}:{name}")) for name in names
-        )
+        records = ((name, _git(root, "show", f"{ref}:{name}")) for name in names)
+        return digest_source_records(records)
     except (FileNotFoundError, subprocess.CalledProcessError) as error:
-        raise RuntimeError(f"cannot read evidence-bearing source from Git ref {ref!r}") from error
+        message = f"cannot read evidence-bearing source from Git ref {ref!r}"
+        raise RuntimeError(message) from error
 
 
 def evidence_source_binding_failure(
@@ -62,7 +63,10 @@ def evidence_source_binding_failure(
         int(claimed_digest, 16)
     except ValueError:
         return "assurance evidence source digest is missing or malformed"
-    actual = committed_evidence_source_digest(ref=ref, root=root)
+    try:
+        actual = committed_evidence_source_digest(ref=ref, root=root)
+    except RuntimeError:
+        return "assurance evidence source digest cannot be verified against committed HEAD"
     if claimed_digest.lower() != actual:
         return "assurance evidence source digest does not match committed HEAD"
     return None
