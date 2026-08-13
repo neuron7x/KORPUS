@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 
+from assurance_snapshot_contract import canonical_snapshot_records
 from evidence_source_binding import evidence_source_binding_failure
 from release_identity import release_tag
 from source_digest import source_tree_digest
@@ -30,16 +31,12 @@ def main() -> int:
         failures.append("assurance source digest does not match committed HEAD")
     if binding_failure := evidence_source_binding_failure(assurance.get("evidence_source_sha256")):
         failures.append(binding_failure)
-    if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
-        failures.append("assurance snapshot release/status mismatch")
-    for record in snapshot.get("records", []):
-        path = ROOT / str(record.get("path", ""))
+    structure_failures, records = canonical_snapshot_records(snapshot, expected_release)
+    failures.extend(structure_failures)
+    for record in records:
+        path = ROOT / str(record["path"])
         digest = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
-        if (
-            not path.is_file()
-            or path.stat().st_size != record.get("bytes")
-            or digest != record.get("sha256")
-        ):
+        if not path.is_file() or path.stat().st_size != record.get("bytes") or digest != record.get("sha256"):
             failures.append(f"snapshot record mismatch: {record.get('path')}")
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
