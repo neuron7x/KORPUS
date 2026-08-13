@@ -7,6 +7,10 @@ version="${KORPUS_RELEASE_VERSION:-$default_version}"
 # The artifact stem is release metadata, not an independent version declaration.
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
 name="${KORPUS_PACKAGE_NAME:-$default_name}"
+current_head="$(git rev-parse HEAD)"
+source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"
+[[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid package source commit" >&2; exit 1; }
+[[ "$current_head" == "$source_commit" ]] || { echo "package source commit is not current HEAD" >&2; exit 1; }
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py" --require-git-tag
@@ -17,8 +21,9 @@ tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT INT TERM
 
-# The source tree is exactly the committed revision; generated evidence is copied explicitly.
-git archive --format=tar HEAD | tar -xf - -C "$tmp"
+# The source tree is exactly one frozen committed revision; generated evidence is copied explicitly.
+git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"
+printf '{"schema":"korpus.package-build.v1","source_commit":"%s"}\n' "$source_commit" > "$tmp/PACKAGE_BUILD.json"
 # History is a separate artifact inside the distribution. Clone/check out the release tag;
 # do not infer a branch name from whichever worktree assembled the package.
 git bundle create "$tmp/${name}.bundle" --all
@@ -43,6 +48,9 @@ if [[ -d var/releases ]]; then
   mkdir -p "$tmp/evidence/releases"
   cp -a var/releases/. "$tmp/evidence/releases/"
 fi
+
+# Any checkout movement after evidence verification is a different build state.
+[[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved during package construction" >&2; exit 1; }
 
 # Named explicitly rather than left for a reader to discover by its absence.
 cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
@@ -69,4 +77,5 @@ python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output
 )
 sha256sum "dist/${name}.zip" > "dist/${name}.zip.sha256"
 python3 "$root/scripts/verify_package.py" "dist/${name}.zip"
+[[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved before package verification completed" >&2; exit 1; }
 cat "dist/${name}.zip.sha256"
