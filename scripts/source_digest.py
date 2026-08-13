@@ -16,13 +16,13 @@ def _included(name: str) -> bool:
     return name not in EXCLUDED_FILES and not name.startswith(EXCLUDED_PREFIXES)
 
 
-def _git(*args: str) -> bytes:
-    return subprocess.run(["git", *args], cwd=ROOT, check=True, capture_output=True).stdout
+def _git(root: Path, *args: str) -> bytes:
+    return subprocess.run(["git", *args], cwd=root, check=True, capture_output=True).stdout
 
 
-def _git_paths(ref: str) -> list[Path] | None:
+def _git_paths(ref: str, root: Path = ROOT) -> list[Path] | None:
     try:
-        listing = _git("ls-tree", "-r", "-z", "--name-only", ref).split(b"\0")
+        listing = _git(root, "ls-tree", "-r", "-z", "--name-only", ref).split(b"\0")
         names = [item.decode() for item in listing if item]
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
@@ -31,8 +31,8 @@ def _git_paths(ref: str) -> list[Path] | None:
     )
 
 
-def _archive_paths() -> list[Path]:
-    manifest_path = ROOT / "SOURCE_MANIFEST.json"
+def _archive_paths(root: Path = ROOT) -> list[Path]:
+    manifest_path = root / "SOURCE_MANIFEST.json"
     if not manifest_path.is_file():
         raise RuntimeError("neither Git metadata nor SOURCE_MANIFEST.json is available")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -46,8 +46,8 @@ def _archive_paths() -> list[Path]:
         relative = record["path"]
         if not _included(relative):
             continue
-        path = (ROOT / relative).resolve()
-        if ROOT not in path.parents or not path.is_file():
+        path = (root / relative).resolve()
+        if root not in path.parents or not path.is_file():
             raise RuntimeError(f"source-manifest file is missing or unsafe: {relative}")
         if hashlib.sha256(path.read_bytes()).hexdigest() != record.get("sha256"):
             raise RuntimeError(f"source-manifest hash mismatch: {relative}")
@@ -55,20 +55,20 @@ def _archive_paths() -> list[Path]:
     return sorted(paths, key=lambda value: value.as_posix())
 
 
-def included_paths(ref: str = "HEAD") -> list[Path]:
-    return _git_paths(ref) or _archive_paths()
+def included_paths(ref: str = "HEAD", root: Path = ROOT) -> list[Path]:
+    return _git_paths(ref, root) or _archive_paths(root)
 
 
-def source_tree_digest(ref: str = "HEAD") -> str:
-    git_paths = _git_paths(ref)
-    paths = git_paths if git_paths is not None else _archive_paths()
+def source_tree_digest(ref: str = "HEAD", root: Path = ROOT) -> str:
+    git_paths = _git_paths(ref, root)
+    paths = git_paths if git_paths is not None else _archive_paths(root)
     hasher = hashlib.sha256()
     for relative_path in paths:
         relative = relative_path.as_posix().encode("utf-8")
         content = (
-            _git("show", f"{ref}:{relative_path.as_posix()}")
+            _git(root, "show", f"{ref}:{relative_path.as_posix()}")
             if git_paths is not None
-            else (ROOT / relative_path).read_bytes()
+            else (root / relative_path).read_bytes()
         )
         hasher.update(len(relative).to_bytes(4, "big"))
         hasher.update(relative)
