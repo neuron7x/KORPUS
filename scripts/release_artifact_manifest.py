@@ -46,6 +46,39 @@ def _json_object(data: bytes, name: str) -> dict[str, object]:
     return value
 
 
+def _source_commit(build: dict[str, object], expected: str | None) -> str:
+    value = build.get("source_commit")
+    if build.get("schema") != "korpus.package-build.v1":
+        raise RuntimeError("invalid package build metadata schema")
+    if not isinstance(value, str) or _SHA40.fullmatch(value) is None:
+        raise RuntimeError("package build metadata has invalid source commit")
+    if expected is not None and value != expected:
+        raise RuntimeError("package source commit does not match expected build commit")
+    return value
+
+
+def _release(
+    identity: dict[str, object], assurance: dict[str, object], expected: str | None
+) -> str:
+    value = identity.get("tag")
+    if not isinstance(value, str) or not value:
+        raise RuntimeError("packaged release identity has no tag")
+    if expected is not None and value != expected:
+        raise RuntimeError("packaged release identity does not match expected release")
+    if assurance.get("release") != value:
+        raise RuntimeError("production assurance release does not match packaged release identity")
+    if assurance.get("status") != "PASS" or assurance.get("production_authorized") is not True:
+        raise RuntimeError("packaged production assurance is not authorized PASS evidence")
+    return value
+
+
+def _verified_hash(data: bytes, expected: str | None, mismatch: str) -> str:
+    actual = _sha256(data)
+    if expected is not None and actual != expected:
+        raise RuntimeError(mismatch)
+    return actual
+
+
 def build_release_manifest(
     artifact: Path,
     *,
@@ -59,43 +92,25 @@ def build_release_manifest(
     if not artifact.is_file():
         raise RuntimeError(f"release artifact is missing: {artifact}")
     with zipfile.ZipFile(artifact) as archive:
-        build_bytes = _member_bytes(archive, BUILD_MEMBER)
-        release_bytes = _member_bytes(archive, RELEASE_MEMBER)
+        build = _json_object(_member_bytes(archive, BUILD_MEMBER), BUILD_MEMBER)
+        identity = _json_object(_member_bytes(archive, RELEASE_MEMBER), RELEASE_MEMBER)
         source_manifest_bytes = _member_bytes(archive, SOURCE_MANIFEST_MEMBER)
         assurance_bytes = _member_bytes(archive, PRODUCTION_ASSURANCE_MEMBER)
-        assurance_attestation_bytes = _member_bytes(
-            archive, PRODUCTION_ASSURANCE_ATTESTATION_MEMBER
-        )
+        attestation_bytes = _member_bytes(archive, PRODUCTION_ASSURANCE_ATTESTATION_MEMBER)
 
-    build = _json_object(build_bytes, BUILD_MEMBER)
-    release_identity = _json_object(release_bytes, RELEASE_MEMBER)
     assurance = _json_object(assurance_bytes, PRODUCTION_ASSURANCE_MEMBER)
-    source_commit = build.get("source_commit")
-    release = release_identity.get("tag")
-    assurance_sha256 = _sha256(assurance_bytes)
-    assurance_attestation_sha256 = _sha256(assurance_attestation_bytes)
-    if build.get("schema") != "korpus.package-build.v1":
-        raise RuntimeError("invalid package build metadata schema")
-    if not isinstance(source_commit, str) or _SHA40.fullmatch(source_commit) is None:
-        raise RuntimeError("package build metadata has invalid source commit")
-    if expected_source_commit is not None and source_commit != expected_source_commit:
-        raise RuntimeError("package source commit does not match expected build commit")
-    if not isinstance(release, str) or not release:
-        raise RuntimeError("packaged release identity has no tag")
-    if expected_release is not None and release != expected_release:
-        raise RuntimeError("packaged release identity does not match expected release")
-    if assurance.get("release") != release:
-        raise RuntimeError("production assurance release does not match packaged release identity")
-    if assurance.get("status") != "PASS" or assurance.get("production_authorized") is not True:
-        raise RuntimeError("packaged production assurance is not authorized PASS evidence")
-    if expected_assurance_sha256 is not None and assurance_sha256 != expected_assurance_sha256:
-        raise RuntimeError("packaged production assurance differs from verified assurance bytes")
-    if (
-        expected_assurance_attestation_sha256 is not None
-        and assurance_attestation_sha256 != expected_assurance_attestation_sha256
-    ):
-        raise RuntimeError("packaged production assurance attestation differs from verified bytes")
-
+    source_commit = _source_commit(build, expected_source_commit)
+    release = _release(identity, assurance, expected_release)
+    assurance_sha256 = _verified_hash(
+        assurance_bytes,
+        expected_assurance_sha256,
+        "packaged production assurance differs from verified assurance bytes",
+    )
+    attestation_sha256 = _verified_hash(
+        attestation_bytes,
+        expected_assurance_attestation_sha256,
+        "packaged production assurance attestation differs from verified bytes",
+    )
     return {
         "schema": "korpus.signed-release-manifest.v1",
         "release": release,
@@ -104,7 +119,7 @@ def build_release_manifest(
         "artifact_sha256": _sha256(artifact.read_bytes()),
         "source_manifest_sha256": _sha256(source_manifest_bytes),
         "production_assurance_sha256": assurance_sha256,
-        "production_assurance_attestation_sha256": assurance_attestation_sha256,
+        "production_assurance_attestation_sha256": attestation_sha256,
     }
 
 
