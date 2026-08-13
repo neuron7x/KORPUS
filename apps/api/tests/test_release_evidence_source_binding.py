@@ -7,7 +7,10 @@ from pathlib import Path
 
 import pytest
 from korpus.application.provenance import compute_source_digest
-from scripts.source_digest import evidence_source_tree_digest, validate_evidence_source_binding
+from scripts.evidence_source_binding import (
+    committed_evidence_source_digest,
+    evidence_source_binding_failure,
+)
 
 
 def _git(root: Path, *args: str) -> None:
@@ -47,37 +50,33 @@ def _seed_repository(tmp_path: Path) -> tuple[Path, Path, Path]:
 def test_committed_and_clean_live_evidence_use_one_digest(tmp_path: Path) -> None:
     root, _, _ = _seed_repository(tmp_path)
     live = compute_source_digest(root)
-    committed = evidence_source_tree_digest(root=root)
+    committed = committed_evidence_source_digest(root=root)
 
     assert committed == live
-    ok, failure, actual = validate_evidence_source_binding(live, root=root)
-    assert (ok, failure, actual) == (True, None, committed)
+    assert evidence_source_binding_failure(live, root=root) is None
 
 
 def test_dirty_evidence_bearing_source_is_rejected_against_head(tmp_path: Path) -> None:
     root, policy, _ = _seed_repository(tmp_path)
-    committed = evidence_source_tree_digest(root=root)
+    committed = committed_evidence_source_digest(root=root)
 
     policy.write_text("threshold = 0.0\n", encoding="utf-8")
     dirty = compute_source_digest(root)
     assert dirty != committed
-
-    ok, failure, actual = validate_evidence_source_binding(dirty, root=root)
-    assert ok is False
-    assert failure == "assurance evidence source digest does not match committed HEAD"
-    assert actual == committed
+    assert (
+        evidence_source_binding_failure(dirty, root=root)
+        == "assurance evidence source digest does not match committed HEAD"
+    )
 
 
 def test_documentation_only_edit_does_not_create_false_mismatch(tmp_path: Path) -> None:
     root, _, docs = _seed_repository(tmp_path)
-    committed = evidence_source_tree_digest(root=root)
+    committed = committed_evidence_source_digest(root=root)
 
     docs.write_text("rewritten documentation only\n", encoding="utf-8")
     live = compute_source_digest(root)
     assert live == committed
-
-    ok, failure, actual = validate_evidence_source_binding(live, root=root)
-    assert (ok, failure, actual) == (True, None, committed)
+    assert evidence_source_binding_failure(live, root=root) is None
 
 
 @pytest.mark.parametrize("claimed", [None, "short", "z" * 64])
@@ -85,8 +84,7 @@ def test_missing_or_malformed_evidence_digest_fails_closed(
     tmp_path: Path, claimed: object
 ) -> None:
     root, _, _ = _seed_repository(tmp_path)
-
-    ok, failure, actual = validate_evidence_source_binding(claimed, root=root)
-    assert ok is False
-    assert failure == "assurance evidence source digest is missing or malformed"
-    assert actual == evidence_source_tree_digest(root=root)
+    assert (
+        evidence_source_binding_failure(claimed, root=root)
+        == "assurance evidence source digest is missing or malformed"
+    )
