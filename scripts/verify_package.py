@@ -13,7 +13,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
-from manifest_lib.source_manifest import verify_source_manifest
+from package_contracts import verify_package_contracts
 
 
 def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
@@ -58,8 +58,7 @@ def verify(archive: Path) -> tuple[list[str], int]:
             modes = archive_modes(zf, root.name if root != tmp else "")
         records = _load_records(root, failures)
         failures.extend(_verify_tree(root, records, modes))
-        source_failures, _ = verify_source_manifest(root, modes)
-        failures.extend(source_failures)
+        failures.extend(verify_package_contracts(root, modes))
         return failures, len(records) + 1
 
 
