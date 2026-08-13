@@ -5,135 +5,28 @@ evidence from another checkout, or evidence from yesterday's code, both read as
 PASS. The destruction stage of 2026-08-03 demonstrated exactly that — the
 operational gate returned PASS for artifacts stamped ``source_commit='0'*40``.
 
-The binding here is over *content*, not over a commit id, for two reasons. A
-commit id is a claim the producer writes about itself and nothing recomputes it;
-and a working tree with uncommitted edits has no commit id at all, which is the
-state in which most evidence is actually generated. The digest below is
-recomputed by the verifier from the files on disk, so a stale or foreign report
-cannot match unless the tree matches.
-
-Only the surfaces that can change what a report says are digested. Documentation
-and deployment manifests are excluded on purpose: a typo fix in a Markdown file
-must not force a mutation rerun, or the gate becomes noise and gets routed
-around. Deployment manifests are gated separately (validate_kubernetes.py).
+The binding here is over content, not a commit id. Evidence is commonly generated
+from a working tree before commit, so every report is stamped with a digest of the
+source surfaces that can change assurance results. Release tooling separately binds
+that digest to the committed source bytes that packaging ships.
 """
 
 from __future__ import annotations
 
-import hashlib
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from korpus.application.evidence_digest import EVIDENCE_SOURCE_PATHS, compute_source_digest
+
 PROVENANCE_KEY = "provenance"
 PROVENANCE_SCHEMA_VERSION = 1
-
-#: Paths (relative to the repository root) whose content can change what an
-#: assurance report asserts. A file outside this set cannot alter eval results,
-#: mutation outcomes, migration parity or scale measurements.
-EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
-    "apps/api/src",
-    "apps/api/tests",
-    "apps/api/migrations",
-    "apps/api/alembic.ini",
-    "apps/api/pyproject.toml",
-    # `apps/api/requirements.lock` was listed here and removed on 2026-08-06. Being in
-    # this set made it look governed — its digest stamped every assurance artefact —
-    # while no gate audited it and no install site read it.
-    "apps/api/requirements.dev.lock",
-    "apps/api/requirements.runtime.lock",
-    "packages",
-    "scripts",
-    "config",
-    "evals",
-)
-
-_EXCLUDED_DIRECTORY_NAMES = frozenset(
-    {"__pycache__", ".venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "var", "node_modules"}
-)
-_EXCLUDED_SUFFIXES = (".pyc", ".pyo")
-_DIGEST_DOMAIN = b"korpus-source-digest-v1\0"
 
 
 class ProvenanceError(ValueError):
     """Raised when an artifact cannot be bound to a source tree."""
-
-
-def evidence_source_path_included(relative: str | Path) -> bool:
-    """Return whether a path inside ``EVIDENCE_SOURCE_PATHS`` participates in the digest.
-
-    Git-ref verification uses this same predicate as the live working-tree walk so
-    generated caches can never create different meanings for the two execution surfaces.
-    """
-
-    path = Path(relative)
-    return not any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.parts) and not str(
-        path
-    ).endswith(_EXCLUDED_SUFFIXES)
-
-
-def digest_source_records(records: Iterable[tuple[str, bytes]]) -> str:
-    """Digest canonical ``(relative_path, content)`` records.
-
-    This is the single framing implementation used for both live working-tree evidence
-    and committed Git-ref evidence. Callers provide bytes; this function owns ordering
-    and path/content length framing.
-    """
-
-    normalized: list[tuple[str, bytes]] = []
-    seen: set[str] = set()
-    for relative, content in records:
-        canonical = Path(relative).as_posix()
-        if canonical in seen:
-            raise ProvenanceError(f"duplicate source-digest path: {canonical}")
-        seen.add(canonical)
-        normalized.append((canonical, content))
-
-    hasher = hashlib.sha256()
-    hasher.update(_DIGEST_DOMAIN)
-    for relative, content in sorted(normalized, key=lambda item: item[0]):
-        encoded = relative.encode("utf-8")
-        hasher.update(len(encoded).to_bytes(4, "big"))
-        hasher.update(encoded)
-        hasher.update(len(content).to_bytes(8, "big"))
-        hasher.update(content)
-    return hasher.hexdigest()
-
-
-def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
-    files: list[Path] = []
-    for relative in sources:
-        target = root / relative
-        if target.is_file():
-            if evidence_source_path_included(Path(relative)):
-                files.append(target)
-            continue
-        if not target.is_dir():
-            # A declared source that does not exist is not an error: the set is
-            # shared by both the API tree and the packaged distribution, and a
-            # missing optional lock file must not change the digest silently
-            # into an exception at gate time.
-            continue
-        for path in target.rglob("*"):
-            if not path.is_file():
-                continue
-            if not evidence_source_path_included(path.relative_to(root)):
-                continue
-            files.append(path)
-    return sorted(set(files), key=lambda path: path.relative_to(root).as_posix())
-
-
-def compute_source_digest(
-    root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS
-) -> str:
-    """Digest the evidence-bearing source surface of a working tree."""
-
-    return digest_source_records(
-        (path.relative_to(root).as_posix(), path.read_bytes())
-        for path in _digest_candidates(root, sources)
-    )
 
 
 @dataclass(frozen=True)
@@ -194,12 +87,7 @@ def read_provenance(report: Mapping[str, Any]) -> SourceProvenance:
 def verify_reports(
     reports: Mapping[str, Mapping[str, Any]], expected_digest: str
 ) -> tuple[bool, tuple[str, ...]]:
-    """Check every report against the digest recomputed from the live tree.
-
-    Returns (ok, reasons). Absence of provenance is a failure, not a skip: a
-    report that does not say which tree it came from is exactly the artifact the
-    check exists to reject.
-    """
+    """Check every report against the digest recomputed from the live tree."""
 
     if not isinstance(expected_digest, str) or len(expected_digest) != 64:
         return False, ("expected source digest is missing or malformed",)
@@ -216,3 +104,16 @@ def verify_reports(
                 f"({provenance.source_digest[:12]}… != {expected_digest[:12]}…)"
             )
     return not reasons, tuple(reasons)
+
+
+__all__ = [
+    "EVIDENCE_SOURCE_PATHS",
+    "PROVENANCE_KEY",
+    "PROVENANCE_SCHEMA_VERSION",
+    "ProvenanceError",
+    "SourceProvenance",
+    "compute_source_digest",
+    "read_provenance",
+    "stamp",
+    "verify_reports",
+]
