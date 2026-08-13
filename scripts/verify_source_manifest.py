@@ -4,45 +4,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from manifest_paths import source_paths
-from manifest_lib.integrity import manifest_failures, mode_string, record_failures
+from manifest_lib.source_manifest import verify_source_manifest
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / "SOURCE_MANIFEST.json"
 
 
 def main() -> int:
-    if not MANIFEST.is_file():
-        raise SystemExit("SOURCE_MANIFEST.json is missing")
-    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    if manifest.get("schema") != "korpus.source-manifest.v2" or manifest.get("kind") != "source":
-        raise SystemExit("invalid source manifest schema")
-    records = manifest.get("files")
-    if not isinstance(records, list):
-        raise SystemExit("invalid source manifest records")
-    by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
-    authoritative = [path.as_posix() for path in source_paths(ROOT)] if (ROOT / ".git").exists() else sorted(by_path)
-    failures = manifest_failures(manifest, records)
-    if sorted(by_path) != authoritative:
-        missing = sorted(set(authoritative) - set(by_path))
-        extra = sorted(set(by_path) - set(authoritative))
-        failures.append(f"path parity mismatch missing={missing} extra={extra}")
-    for relative in authoritative:
-        path = ROOT / relative
-        record = by_path.get(relative, {})
-        if not path.is_file():
-            failures.append(f"missing source file: {relative}")
-            continue
-        for failure in record_failures(path, record, mode_string(path, source=True)):
-            failures.append(f"source {failure}")
+    failures, summary = verify_source_manifest(ROOT)
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1
-    print(json.dumps({
-        "valid": True,
-        "files": len(authoritative),
-        "root_sha256": manifest.get("root_sha256"),
-    }, indent=2))
+    print(json.dumps({"valid": True, **summary}, indent=2))
     return 0
 
 
