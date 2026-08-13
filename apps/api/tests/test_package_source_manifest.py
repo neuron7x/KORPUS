@@ -60,7 +60,6 @@ def _add_package_only_files(root: Path) -> None:
     _source(root, "PACKAGE_BOUNDARY.md", "distribution boundary\n")
     _add_research_snapshot(root)
     _source(root, "evidence/sealed.json", '{"sealed":true}\n')
-    _source(root, "history.bundle", "bundle fixture\n")
 
 
 def _seal(root: Path, archive: Path) -> None:
@@ -114,6 +113,17 @@ def test_source_file_omitted_from_embedded_manifest_is_rejected(tmp_path: Path) 
     failures, _ = verify(archive)
     assert any("path parity mismatch" in failure for failure in failures)
     assert any("unmanifested.py" in failure for failure in failures)
+
+
+def test_unmanifested_git_bundle_is_not_package_only_metadata(tmp_path: Path) -> None:
+    root, _ = _fixture(tmp_path)
+    _source(root, "history.bundle", "historical object payload\n")
+    archive = tmp_path / "history-bundle.zip"
+    _seal(root, archive)
+
+    failures, _ = verify(archive)
+    assert any("path parity mismatch" in failure for failure in failures)
+    assert any("history.bundle" in failure for failure in failures)
 
 
 def test_live_tracked_sbom_overwrite_is_rejected(tmp_path: Path) -> None:
