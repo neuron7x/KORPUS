@@ -7,9 +7,10 @@ import json
 import os
 from pathlib import Path
 
-from source_digest import source_tree_digest
+from source_digest import source_tree_digest, validate_evidence_source_binding
 
 from release_identity import release_tag
+
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 
@@ -29,9 +30,17 @@ def main() -> int:
     expected_release = os.getenv("KORPUS_RELEASE_VERSION", release_tag())
     if assurance.get("status") != "PASS":
         failures.append("assurance status is not PASS")
+
     actual_digest = source_tree_digest("HEAD")
     if assurance.get("source_tree_sha256") != actual_digest:
         failures.append("assurance source digest does not match committed HEAD")
+
+    evidence_ok, evidence_failure, actual_evidence_digest = validate_evidence_source_binding(
+        assurance.get("evidence_source_sha256"), ref="HEAD", root=ROOT
+    )
+    if not evidence_ok and evidence_failure is not None:
+        failures.append(evidence_failure)
+
     if snapshot.get("status") != "PASS" or snapshot.get("release") != expected_release:
         failures.append("assurance snapshot release/status mismatch")
     for record in snapshot.get("records", []):
@@ -45,9 +54,15 @@ def main() -> int:
     if failures:
         print(json.dumps({"valid": False, "failures": failures}, indent=2))
         return 1
-    summary = {"valid": True, "release": expected_release, "source_tree_sha256": actual_digest}
+    summary = {
+        "valid": True,
+        "release": expected_release,
+        "source_tree_sha256": actual_digest,
+        "evidence_source_sha256": actual_evidence_digest,
+    }
     print(json.dumps(summary, indent=2))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
