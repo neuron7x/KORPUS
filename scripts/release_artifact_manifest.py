@@ -46,7 +46,10 @@ def _json_object(data: bytes, name: str) -> dict[str, object]:
 
 
 def build_release_manifest(
-    artifact: Path, *, expected_source_commit: str | None = None
+    artifact: Path,
+    *,
+    expected_source_commit: str | None = None,
+    expected_release: str | None = None,
 ) -> dict[str, object]:
     """Describe immutable package bytes; mutable checkout state is not consulted."""
     artifact = artifact.resolve()
@@ -71,6 +74,8 @@ def build_release_manifest(
         raise RuntimeError("package source commit does not match expected build commit")
     if not isinstance(release, str) or not release:
         raise RuntimeError("packaged release identity has no tag")
+    if expected_release is not None and release != expected_release:
+        raise RuntimeError("packaged release identity does not match expected release")
     if production_assurance.get("release") != release:
         raise RuntimeError("production assurance release does not match packaged release identity")
 
@@ -90,10 +95,13 @@ def main() -> int:
     parser.add_argument("--artifact", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--expected-source-commit")
+    parser.add_argument("--expected-release")
     args = parser.parse_args()
     try:
         payload = build_release_manifest(
-            args.artifact, expected_source_commit=args.expected_source_commit
+            args.artifact,
+            expected_source_commit=args.expected_source_commit,
+            expected_release=args.expected_release,
         )
     except (RuntimeError, OSError, zipfile.BadZipFile) as error:
         raise SystemExit(str(error)) from error
