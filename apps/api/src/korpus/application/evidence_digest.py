@@ -7,6 +7,8 @@ from collections.abc import Iterable
 from pathlib import Path
 
 EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
+    "Makefile",
+    ".github/workflows/assurance.yml",
     "apps/api/src",
     "apps/api/tests",
     "apps/api/migrations",
