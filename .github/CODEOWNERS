@@ -1,0 +1,4 @@
+# Canonical repository owner. CODEOWNERS expresses review intent, but it is not an
+# enforceable approval gate until GitHub branch protection/rulesets are available and
+# observed on the private repository.
+* @neuron7x
