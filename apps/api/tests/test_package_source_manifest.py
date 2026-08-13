@@ -18,6 +18,7 @@ def _source(root: Path, relative: str, content: str, mode: int = 0o644) -> Path:
 
 def _add_package_only_files(root: Path) -> None:
     _source(root, "PACKAGE_BOUNDARY.md", "distribution boundary\n")
+    _source(root, "PACKAGE_BUILD.json", '{"schema":"korpus.package-build.v1","source_commit":"' + "a" * 40 + '"}\n')
     _source(root, "reports/RESEARCH_ASSURANCE_REPORT.json", '{"status":"PASS"}\n')
     _source(root, "evidence/sealed.json", '{"sealed":true}\n')
     _source(root, "history.bundle", "bundle fixture\n")
