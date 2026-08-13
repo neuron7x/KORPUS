@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
@@ -14,20 +15,15 @@ from scripts.evidence_source_binding import (
 
 
 def _git(root: Path, *args: str) -> None:
-    subprocess.run(
-        ["git", *args],
-        cwd=root,
-        check=True,
-        capture_output=True,
-        env={
-            "PATH": "/usr/bin:/bin",
-            "HOME": str(root),
-            "GIT_AUTHOR_NAME": "KORPUS test",
-            "GIT_AUTHOR_EMAIL": "test@example.invalid",
-            "GIT_COMMITTER_NAME": "KORPUS test",
-            "GIT_COMMITTER_EMAIL": "test@example.invalid",
-        },
-    )
+    env = {
+        **os.environ,
+        "HOME": str(root),
+        "GIT_AUTHOR_NAME": "KORPUS test",
+        "GIT_AUTHOR_EMAIL": "test@example.invalid",
+        "GIT_COMMITTER_NAME": "KORPUS test",
+        "GIT_COMMITTER_EMAIL": "test@example.invalid",
+    }
+    subprocess.run(["git", *args], cwd=root, check=True, capture_output=True, env=env)
 
 
 def _seed_repository(tmp_path: Path) -> tuple[Path, Path, Path]:
