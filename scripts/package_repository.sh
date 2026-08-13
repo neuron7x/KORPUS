@@ -19,9 +19,6 @@ trap cleanup EXIT INT TERM
 
 # The source tree is exactly the committed revision; generated evidence is copied explicitly.
 git archive --format=tar HEAD | tar -xf - -C "$tmp"
-# History is a separate artifact inside the distribution. Clone/check out the release tag;
-# do not infer a branch name from whichever worktree assembled the package.
-git bundle create "$tmp/${name}.bundle" --all
 if [[ -d reports ]]; then
   rm -rf "$tmp/reports"
   cp -a reports "$tmp/reports"
@@ -48,18 +45,21 @@ fi
 cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
-Це перевірюваний distribution artifact: source snapshot, Git bundle, release reports,
+Це перевірюваний distribution artifact: current source snapshot, release reports,
 sealed evidence registry та manifests. `DISTRIBUTION_MANIFEST.json` описує точні байти
-архіву; `SOURCE_MANIFEST.json` — source snapshot без generated assurance artifacts.
+архіву; `SOURCE_MANIFEST.json` — current source snapshot без generated assurance artifacts.
 
 ## Навмисно не включено
 
+- Git history, branches, refs та deleted historical blobs;
 - production secrets та credentials;
 - приватний/обмежений corpus payload;
 - production authorization, risk-owner signature або зовнішня атестація.
 
-Відсутність цих речей не маскується як PASS. Поточні зовнішні залежності й допуски
-зафіксовані в `docs/audit/closure/` та release assurance reports.
+Git history не є частиною distribution provenance: current-source integrity доводять
+source/distribution manifests та release evidence. Відсутність production-only material
+не маскується як PASS. Поточні зовнішні залежності й допуски зафіксовані в
+`docs/audit/closure/` та release assurance reports.
 DOC
 python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output "$tmp/DISTRIBUTION_MANIFEST.json"
 (
