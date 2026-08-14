@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Promote only complete, current, survivor-free mutation evidence."""
-from __future__ import annotations
 import argparse
 import json
 import sys
@@ -17,7 +16,8 @@ from release_identity import release_tag  # noqa: E402
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path, default=ROOT / "var/mutation-report.json")
-    parser.add_argument("--candidate-report", type=Path, default=ROOT / "var/candidate-visibility-mutation-report.json")
+    candidate_report = ROOT / "var/candidate-visibility-mutation-report.json"
+    parser.add_argument("--candidate-report", type=Path, default=candidate_report)
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/mutation-gate.json")
     args = parser.parse_args()
     source = compute_source_digest(ROOT)
