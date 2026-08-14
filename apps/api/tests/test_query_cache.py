@@ -112,6 +112,26 @@ def test_cache_is_bound_to_identity_release_epoch_and_configuration() -> None:
     assert cache.stats().hits == 1
 
 
+def test_cache_key_commits_release_even_if_epoch_source_misses_a_change() -> None:
+    reader = SnapshotReader()
+    delegate = Delegate()
+    cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
+    retriever = CachedRetriever(reader, delegate, cache, "config-a")
+    actor = identity("alice")
+    corpora = frozenset({"public"})
+    as_of = date(2026, 1, 1)
+
+    token_a = reader.capture(actor, corpora, as_of)
+    retriever.search(actor, "query", corpora, as_of, token_a)
+    assert delegate.calls == 1
+
+    reader.release = "2" * 64
+    token_b = reader.capture(actor, corpora, as_of)
+    assert token_b.state_epoch == token_a.state_epoch
+    retriever.search(actor, "query", corpora, as_of, token_b)
+    assert delegate.calls == 2
+
+
 def test_cache_never_returns_hit_if_state_changes_during_lookup() -> None:
     reader = SnapshotReader()
 
