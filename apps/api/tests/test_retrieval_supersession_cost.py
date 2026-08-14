@@ -1,22 +1,9 @@
-"""A timeout must not be reported as an empty corpus, so retrieval must not correlate.
+"""A timeout must not be reported as an empty corpus, so supersession cannot correlate.
 
-Found by asking a real corpus real questions. The supersession test was a correlated
-`NOT EXISTS`, and `ORDER BY bm25` forces every full-text match through it: on 116 229
-spans a five-token question evaluated it 23 626 times and took 2.5 s against a 1200 ms
-budget. `RetrievalDeadlineExceeded` then became an abstention, and what reached the
-reader was "у чинному перевіреному корпусі недостатньо доказів" — the system stating the
-corpus held nothing when it had simply not finished looking. Four of five ordinary
-questions ("правила ведення вогню з кулемета", "робота з радіостанцією") answered that
-way; after the rewrite they answer with citations from the Бойовий статут.
-
-Asserted on the query *plan* rather than on a stopwatch or on the SQL text. A wall-clock
-threshold measures the machine, and a regex over the statement passes the moment somebody
-reformats it. `EXPLAIN QUERY PLAN` naming a correlated subquery is the defect itself:
-that line is present exactly when the row-by-row evaluation is back.
-
-The semantic half — that a superseded version stays out of the results — is not restated
-here; it is what test_corpus_governance.py and test_currency_lower_bound.py already hold.
-This file guards the shape of the answer to that question, not the answer.
+The original per-match supersession predicate regressed real retrieval past its budget.
+The candidate query therefore materializes the active superseder set once and anti-joins
+against it. Visibility predicates may still be correlated to the current document; this
+suite distinguishes that safe bounded lookup from a correlated document_versions scan.
 """
 
 from __future__ import annotations
@@ -66,6 +53,8 @@ def _plan(schema: list[str]) -> list[str]:
 SCHEMA = [
     "CREATE TABLE documents (id TEXT PRIMARY KEY, corpus_id TEXT, access_tier INT,"
     " classification TEXT)",
+    "CREATE TABLE document_compartments (document_id TEXT, compartment TEXT,"
+    " PRIMARY KEY (document_id, compartment))",
     "CREATE TABLE document_versions (id TEXT PRIMARY KEY, document_id TEXT,"
     " review_state TEXT, effective_from TEXT, publication_date TEXT, effective_until TEXT,"
     " rescinded_at TEXT, supersedes_version_id TEXT)",
@@ -77,32 +66,27 @@ SCHEMA = [
 def test_the_supersession_test_is_not_evaluated_per_matching_span() -> None:
     plan = _plan(SCHEMA)
 
-    correlated = [line for line in plan if "CORRELATED" in line.upper()]
-    assert not correlated, (
-        "the supersession test runs once per full-text match again; on a real corpus "
-        f"that is 23 626 evaluations and a deadline breach reported as an empty corpus: {plan}"
+    correlated_version_scans = [
+        line
+        for line in plan
+        if "CORRELATED" in line.upper() and "DOCUMENT_VERSIONS" in line.upper()
+    ]
+    assert not correlated_version_scans, (
+        "active superseders are being rescanned for each full-text candidate: "
+        f"{correlated_version_scans}"
     )
 
 
 def test_the_plan_is_read_from_a_statement_that_actually_parses() -> None:
-    """The negative control for the test above.
-
-    A statement SQLite refuses to prepare produces no plan at all, and "no plan contains
-    CORRELATED" is a sentence that is true of nothing. This asserts the plan exists and
-    describes the query that was asked.
-    """
     plan = _plan(SCHEMA)
 
     assert plan, "EXPLAIN QUERY PLAN returned nothing — the statement did not prepare"
-    # The full-text table is aliased, so the plan names the alias; what identifies it is
-    # that SQLite reached the fts5 virtual table at all.
     assert any("VIRTUAL TABLE" in line for line in plan), plan
     assert any("MATERIALIZE superseded" in line for line in plan), plan
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
-def test_both_dialects_gather_the_superseded_set_once(dialect: str) -> None:
-    """Postgres has no EXPLAIN here, so the shared shape is asserted for both."""
+def test_both_dialects_gather_same_document_superseders_once(dialect: str) -> None:
     built = candidate_span_query(
         IDENTITY, frozenset({"public"}), date(2026, 8, 6), "кулемет", 256, dialect
     )
@@ -110,6 +94,20 @@ def test_both_dialects_gather_the_superseded_set_once(dialect: str) -> None:
     sql = str(built[0])
 
     assert "WITH superseded AS" in sql, sql
-    assert "NOT EXISTS" not in sql, (
-        f"the correlated form is back in the {dialect} statement: {sql}"
+    assert "sv.supersedes_version_id AS id, sv.document_id AS document_id" in sql, sql
+    assert "(v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)" in sql, sql
+
+
+@pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
+def test_both_dialects_filter_compartments_before_candidate_limit(dialect: str) -> None:
+    identity = IDENTITY.model_copy(update={"compartments": frozenset({"alpha"})})
+    built = candidate_span_query(
+        identity, frozenset({"public"}), date(2026, 8, 6), "кулемет", 1, dialect
     )
+    assert built is not None
+    sql, parameters = built
+
+    assert "document_compartments dc" in str(sql)
+    assert "dc.document_id = d.id" in str(sql)
+    assert "dc.compartment NOT IN (:compartment_0)" in str(sql)
+    assert parameters["compartment_0"] == "alpha"
