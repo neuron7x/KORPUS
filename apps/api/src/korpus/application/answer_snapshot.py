@@ -233,7 +233,19 @@ class SnapshotAnswerSession:
         plan: QueryPlan | None = None,
         composition: str | None = None,
     ) -> Answer:
-        """Linearization point: stale work is discarded before audit and return."""
+        """Linearization point: stale or foreign-release work is discarded."""
+        if answer.corpus_release != self.release_id:
+            answer = self.runtime.abstain(
+                self.release_id,
+                "corpus_release_mismatch",
+                "Внутрішня мітка релізу не відповідає зафіксованому стану корпусу; "
+                "результат відкинуто.",
+            )
+            retrieved = []
+            eligible = []
+            breaches = None
+            support = None
+            composition = "discarded: answer release did not match snapshot token"
         try:
             self.runtime.snapshot_reader.validate(
                 self.identity, self.corpora, self.query.as_of, self.token
