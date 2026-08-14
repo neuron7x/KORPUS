@@ -102,36 +102,33 @@ def _install_sqlite_guards() -> None:
         "CREATE TRIGGER trg_evidence_spans_immutable_insert "
         "BEFORE INSERT ON evidence_spans "
         "WHEN EXISTS (SELECT 1 FROM document_versions "
-        "WHERE id = NEW.version_id AND review_state = 'approved') "
-        "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+        "WHERE id = NEW.version_id AND evidence_digest IS NOT NULL) "
+        "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
     )
     op.execute(
         "CREATE TRIGGER trg_evidence_spans_immutable_delete "
         "BEFORE DELETE ON evidence_spans "
         "WHEN EXISTS (SELECT 1 FROM document_versions "
-        "WHERE id = OLD.version_id AND review_state = 'approved') "
-        "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+        "WHERE id = OLD.version_id AND evidence_digest IS NOT NULL) "
+        "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
     )
     op.execute(
         "CREATE TRIGGER trg_evidence_spans_immutable_update "
         "BEFORE UPDATE ON evidence_spans "
         "WHEN EXISTS (SELECT 1 FROM document_versions "
-        "WHERE id IN (OLD.version_id, NEW.version_id) AND review_state = 'approved') "
-        "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+        "WHERE id IN (OLD.version_id, NEW.version_id) AND evidence_digest IS NOT NULL) "
+        "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
     )
     op.execute(
         "CREATE TRIGGER trg_approved_version_digest_immutable "
         "BEFORE UPDATE OF evidence_digest ON document_versions "
-        "WHEN OLD.review_state = 'approved' AND NEW.evidence_digest IS NOT OLD.evidence_digest "
-        "BEGIN SELECT RAISE(ABORT, 'approved evidence digest is immutable'); END"
+        "WHEN OLD.evidence_digest IS NOT NULL "
+        "AND NEW.evidence_digest IS NOT OLD.evidence_digest "
+        "BEGIN SELECT RAISE(ABORT, 'sealed evidence digest is immutable'); END"
     )
 
 
 def _install_postgres_guards() -> None:
-    # The application role has SELECT-only access to corpus_state_epoch so it cannot
-    # forge snapshot validity. This migration-owned trigger function is therefore the
-    # sole writer. SECURITY DEFINER is required for ordinary app writes to advance the
-    # epoch; search_path is locked and the target table is schema-qualified.
     op.execute(
         """
         CREATE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
@@ -151,39 +148,38 @@ def _install_postgres_guards() -> None:
         """
         CREATE FUNCTION korpus_refuse_approved_evidence_mutation() RETURNS trigger AS $$
         DECLARE
-          locked_state text;
+          locked_digest text;
         BEGIN
-          -- Serialize every evidence mutation with approval. The approval path holds
-          -- FOR UPDATE on the parent version row before sealing. This trigger takes
-          -- FOR SHARE on the same row(s) before it checks review_state, so a mutation
-          -- that races `seal -> approve` cannot validate against the pre-approval state
-          -- and then commit after approval.
+          -- The approval path owns the parent with FOR UPDATE before sealing. Evidence
+          -- DML takes FOR SHARE on that same parent, so it commits before the seal or
+          -- waits until the digest is present and is rejected. A non-null digest means
+          -- evidence was sealed once; later review rejection must not make it mutable.
           IF TG_OP = 'INSERT' THEN
-            SELECT review_state INTO locked_state
+            SELECT evidence_digest INTO locked_digest
             FROM public.document_versions
             WHERE id = NEW.version_id
             FOR SHARE;
-            IF locked_state = 'approved' THEN
-              RAISE EXCEPTION 'approved evidence is immutable';
+            IF locked_digest IS NOT NULL THEN
+              RAISE EXCEPTION 'sealed evidence is immutable';
             END IF;
           ELSIF TG_OP = 'DELETE' THEN
-            SELECT review_state INTO locked_state
+            SELECT evidence_digest INTO locked_digest
             FROM public.document_versions
             WHERE id = OLD.version_id
             FOR SHARE;
-            IF locked_state = 'approved' THEN
-              RAISE EXCEPTION 'approved evidence is immutable';
+            IF locked_digest IS NOT NULL THEN
+              RAISE EXCEPTION 'sealed evidence is immutable';
             END IF;
           ELSE
-            FOR locked_state IN
-              SELECT review_state
+            FOR locked_digest IN
+              SELECT evidence_digest
               FROM public.document_versions
               WHERE id IN (OLD.version_id, NEW.version_id)
               ORDER BY id
               FOR SHARE
             LOOP
-              IF locked_state = 'approved' THEN
-                RAISE EXCEPTION 'approved evidence is immutable';
+              IF locked_digest IS NOT NULL THEN
+                RAISE EXCEPTION 'sealed evidence is immutable';
               END IF;
             END LOOP;
           END IF;
@@ -205,9 +201,9 @@ def _install_postgres_guards() -> None:
         """
         CREATE FUNCTION korpus_refuse_approved_digest_mutation() RETURNS trigger AS $$
         BEGIN
-          IF OLD.review_state = 'approved'
+          IF OLD.evidence_digest IS NOT NULL
              AND NEW.evidence_digest IS DISTINCT FROM OLD.evidence_digest THEN
-            RAISE EXCEPTION 'approved evidence digest is immutable';
+            RAISE EXCEPTION 'sealed evidence digest is immutable';
           END IF;
           RETURN NEW;
         END;
