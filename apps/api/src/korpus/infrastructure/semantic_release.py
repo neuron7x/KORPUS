@@ -33,11 +33,17 @@ def _optional_temporal(value: date | datetime | None) -> str:
 def _stored_compartments(value: object) -> str:
     try:
         decoded = json.loads(str(value or "[]"))
-    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+    except (TypeError, ValueError) as exc:
         raise CorpusConsistencyError("document compartments_json is not valid JSON") from exc
     if not isinstance(decoded, list) or any(not isinstance(item, str) for item in decoded):
         raise CorpusConsistencyError("document compartments_json is not a string list")
     return canonical_set(decoded)
+
+
+def _valid_sha256(value: object) -> bool:
+    return isinstance(value, str) and len(value) == 64 and all(
+        character in "0123456789abcdef" for character in value
+    )
 
 
 def semantic_release_members(
@@ -95,7 +101,7 @@ def semantic_release_members(
     members: list[SemanticReleaseMember] = []
     for row in rows:
         evidence_digest = row["evidence_digest"]
-        if not isinstance(evidence_digest, str) or len(evidence_digest) != 64:
+        if not _valid_sha256(evidence_digest):
             raise CorpusConsistencyError("approved release member has no valid evidence digest")
         document_id = str(row["document_id"])
         members.append(
