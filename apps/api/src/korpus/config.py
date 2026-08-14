@@ -28,14 +28,6 @@ def _read_optional_secret_file(path: Path | None, fallback: str | None) -> str |
     return value
 
 
-#: `KORPUS_*` names that belong to the operational scripts rather than to `Settings`:
-#: backup and restore, recovery measurement, PostgreSQL role provisioning, mutation
-#: sharding. They share a process environment with the application in CI and in the
-#: compose file, so a check over the namespace has to know they are legitimate.
-#:
-#: Declared here rather than inferred, because the point of the check below is that an
-#: unrecognised `KORPUS_*` name is an error — and a rule that quietly accepts whatever
-#: it finds is the rule it is replacing.
 OPERATIONAL_VARIABLES: frozenset[str] = frozenset(
     {
         "KORPUS_BACKUP_DATABASE_URL",
@@ -52,6 +44,9 @@ OPERATIONAL_VARIABLES: frozenset[str] = frozenset(
         "KORPUS_POSTGRES_APP_PASSWORD",
         "KORPUS_POSTGRES_APP_PASSWORD_FILE",
         "KORPUS_POSTGRES_APP_ROLE",
+        "KORPUS_POSTGRES_REVIEW_PASSWORD",
+        "KORPUS_POSTGRES_REVIEW_PASSWORD_FILE",
+        "KORPUS_POSTGRES_REVIEW_ROLE",
         "KORPUS_POSTGRES_TEST_URL",
         "KORPUS_RECOVERY_BACKUP_PATH", "KORPUS_RECOVERY_ENVIRONMENT_CLASS",
         "KORPUS_RECOVERY_PHASE", "KORPUS_RECOVERY_RESTORED_URL",
@@ -65,19 +60,7 @@ OPERATIONAL_VARIABLES: frozenset[str] = frozenset(
 
 
 def unknown_settings_variables(environ: Mapping[str, str]) -> list[str]:
-    """`KORPUS_*` names this system does not recognise.
-
-    `SettingsConfigDict(extra="ignore")` drops an unrecognised variable in silence, so
-    `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` — singular, and the field is
-    `require_source_signatures` — leaves the control off with nothing reported anywhere.
-    The deployment reads correct, the review passes, and the signature requirement is
-    not in force. Measured 2026-08-06: the typo above constructs cleanly and yields
-    `require_source_signatures = False`.
-
-    `extra="forbid"` cannot be the fix, because the operational scripts share the
-    namespace and the process environment. So the namespace is checked against the union
-    of the fields and the declared operational names, and anything else is named.
-    """
+    """Return unrecognised KORPUS_* names instead of silently ignoring typos."""
     known = {f"KORPUS_{name.upper()}" for name in Settings.model_fields}
     return sorted(
         name
@@ -93,6 +76,7 @@ class Settings(BaseSettings):
 
     environment: str = "local"
     database_url: str = "sqlite:///./var/korpus.db"
+    review_database_url: str | None = None
     database_pool_size: int = Field(default=8, ge=1, le=128)
     database_max_overflow: int = Field(default=8, ge=0, le=256)
     database_pool_timeout_seconds: float = Field(default=10.0, gt=0, le=120)
@@ -182,7 +166,6 @@ class Settings(BaseSettings):
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
-    #: Optional model assistance; evidence admission remains deterministic.
     answer_composer_enabled: bool = False
     query_planner_enabled: bool = False
     query_planner_provider: str = "openai"
@@ -192,21 +175,16 @@ class Settings(BaseSettings):
     query_planner_base_url: str = ""
     query_planner_timeout_seconds: float = Field(default=6.0, gt=0, le=30)
     model_egress_posture: str = "external_allowed"
-    #: GOV-006: highest corpus tier permitted to leave the deployment.
     model_egress_max_tier: str = "public"
-    #: Paid access only narrows policy-authorized corpora.
     subscription_required: bool = False
     free_corpora: str = ""
-    #: Deterministic test-provider secret; empty disables that provider.
     billing_webhook_secret: str = ""
     billing_webhook_secret_file: Path | None = None
-    #: Production LiqPay adapter; both keys are required together.
     liqpay_public_key: str = ""
     liqpay_private_key: str = ""
     liqpay_private_key_file: Path | None = None
     liqpay_signature_algorithm: str = "sha3_256"
     billing_public_base_url: str = ""
-    #: Optional server-owned sellable plan materialized at startup.
     billing_plan_code: str = ""
     billing_plan_name: str = "KORPUS"
     billing_plan_price_minor: int | None = Field(default=None, ge=1, le=100_000_000)
@@ -224,7 +202,9 @@ class Settings(BaseSettings):
     embedding_token_file: Path | None = None
     embedding_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
     embedding_max_attempts: int = Field(default=3, ge=1, le=8)
-    embedding_max_response_bytes: int = Field(default=2 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024)
+    embedding_max_response_bytes: int = Field(
+        default=2 * 1024 * 1024, ge=1024, le=20 * 1024 * 1024
+    )
     retrieval_cache_entries: int = Field(default=512, ge=1, le=100_000)
     retrieval_cache_ttl_seconds: float = Field(default=30.0, gt=0, le=3600)
     max_concurrent_answers: int = Field(default=16, ge=1, le=4096)
@@ -263,6 +243,7 @@ class Settings(BaseSettings):
     ocr_languages: str = "ukr+eng"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
     trusted_hosts: str = "localhost,127.0.0.1,testserver"
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, value: str) -> str:
@@ -415,6 +396,7 @@ class Settings(BaseSettings):
     @property
     def trusted_host_list(self) -> list[str]:
         return [part.strip() for part in self.trusted_hosts.split(",") if part.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:
