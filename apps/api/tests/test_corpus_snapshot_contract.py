@@ -14,6 +14,7 @@ from korpus.application.corpus_snapshot import (
     version_evidence_digest,
 )
 from korpus.domain.models import Identity
+from korpus.infrastructure import corpus_snapshot_guards
 
 
 def _token(release_id: str) -> CorpusReadToken:
@@ -148,3 +149,90 @@ def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None
                 reader._require_guards(connection)
         finally:
             transaction.rollback()
+
+
+class _Rows:
+    def __init__(self, rows: list[tuple[object, ...]]) -> None:
+        self.rows = rows
+
+    def all(self) -> list[tuple[object, ...]]:
+        return self.rows
+
+
+class _PostgresGuardCatalogueConnection:
+    """Return catalog-shaped rows without requiring a PostgreSQL service."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def execute(self, _statement) -> _Rows:
+        self.calls += 1
+        if self.calls == 1:
+            triggers = [
+                (
+                    table,
+                    f"trg_{table}_epoch",
+                    f"CREATE TRIGGER trg_{table}_epoch AFTER INSERT OR DELETE OR UPDATE "
+                    f"ON public.{table} FOR EACH STATEMENT EXECUTE FUNCTION "
+                    "korpus_bump_corpus_state_epoch()",
+                )
+                for table in corpus_snapshot_guards.EPOCH_TABLES
+            ]
+            triggers.extend(
+                [
+                    (
+                        "evidence_spans",
+                        "trg_evidence_spans_immutable",
+                        "CREATE TRIGGER trg_evidence_spans_immutable BEFORE INSERT OR DELETE OR "
+                        "UPDATE ON public.evidence_spans FOR EACH ROW EXECUTE FUNCTION "
+                        "korpus_refuse_approved_evidence_mutation()",
+                    ),
+                    (
+                        "document_versions",
+                        "trg_approved_version_digest_immutable",
+                        "CREATE TRIGGER trg_approved_version_digest_immutable BEFORE UPDATE OF "
+                        "evidence_digest ON public.document_versions FOR EACH ROW EXECUTE FUNCTION "
+                        "korpus_refuse_approved_digest_mutation()",
+                    ),
+                ]
+            )
+            return _Rows(triggers)
+        if self.calls == 2:
+            return _Rows(
+                [
+                    (
+                        "korpus_bump_corpus_state_epoch",
+                        True,
+                        ["search_path=pg_catalog"],
+                        "CREATE FUNCTION public.korpus_bump_corpus_state_epoch() RETURNS trigger "
+                        "LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'pg_catalog' AS $$ "
+                        "BEGIN RETURN NULL; END $$",
+                    ),
+                    (
+                        "korpus_refuse_approved_evidence_mutation",
+                        True,
+                        ["search_path=pg_catalog"],
+                        "CREATE FUNCTION public.korpus_refuse_approved_evidence_mutation() "
+                        "RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO "
+                        "'pg_catalog' AS $$ BEGIN SELECT evidence_digest FROM "
+                        "public.document_versions FOR SHARE; RAISE EXCEPTION 'sealed evidence is "
+                        "immutable'; END $$",
+                    ),
+                    (
+                        "korpus_refuse_approved_digest_mutation",
+                        False,
+                        None,
+                        "CREATE FUNCTION public.korpus_refuse_approved_digest_mutation() RETURNS "
+                        "trigger LANGUAGE plpgsql AS $$ BEGIN IF old.evidence_digest is not null "
+                        "AND new.evidence_digest is distinct from old.evidence_digest THEN RAISE "
+                        "EXCEPTION 'sealed evidence digest is immutable'; END IF; RETURN NEW; END $$",
+                    ),
+                ]
+            )
+        raise AssertionError("unexpected guard catalogue query")
+
+
+def test_postgres_guard_verifier_rejects_inert_function_body_without_database() -> None:
+    connection = _PostgresGuardCatalogueConnection()
+    with pytest.raises(RuntimeError, match="korpus_bump_corpus_state_epoch.*invalid definition"):
+        corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
