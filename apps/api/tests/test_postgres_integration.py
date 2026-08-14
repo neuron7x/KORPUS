@@ -6,6 +6,10 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
+from sqlalchemy import insert, select, text
+from sqlalchemy.exc import DBAPIError
+
+from apps.api.tests.conftest import reset_database
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import (
     AccessTier,
@@ -17,33 +21,28 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure.repository import (
-    SqlRepository,
-    documents,
-    span_embeddings,
-    spans,
-    versions,
-)
-from sqlalchemy import insert, select, text
-from sqlalchemy.exc import DBAPIError
-
-from apps.api.tests.conftest import reset_database
+from korpus.infrastructure.repository import documents, span_embeddings, spans, versions
+from korpus.infrastructure.secure_repository import RlsBoundSqlRepository
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
+REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 
-@pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
+@pytest.mark.skipif(
+    not POSTGRES_URL or not REVIEW_URL or not IDENTITY_URL,
+    reason="split PostgreSQL app/review/identity URLs are required",
+)
 def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
-    # This test signs its audit events with its own key, so any event another test
-    # left behind reads as a hash mismatch — which is the chain check working, not a
-    # finding. It shares the database with the rest of the suite when the whole suite
-    # runs on PostgreSQL, so it starts from an empty one.
     reset_database()
-    repository = SqlRepository(
+    assert POSTGRES_URL and REVIEW_URL and IDENTITY_URL
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "postgres-integration-audit-key",
         audit_anchor_path=tmp_path / "postgres-anchor.json",
+        review_database_url=REVIEW_URL,
+        rls_identity_database_url=IDENTITY_URL,
     )
     repository.initialize(create_schema=False)
     with repository.engine.connect() as connection:
@@ -82,7 +81,6 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
             review_state=ReviewState.QUARANTINED,
-            # An approved version governs from a stated date, in both dialects.
             publication_date=date(2020, 1, 1),
             is_current=False,
         )
@@ -92,10 +90,12 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             text=f"{marker} indexed evidence is retrievable only when authorized.",
         )
         repository.create_document_bundle(
-            actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
+            actor,
+            document,
+            version,
+            [span],
+            {"integration": "postgres", "corpus": corpus},
         )
-        # Approval must happen after evidence exists: approval seals the exact persisted
-        # evidence digest and the database makes approved evidence immutable thereafter.
         version = repository.transition_version(
             actor,
             version.id,
@@ -125,8 +125,6 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
                     text("SELECT epoch FROM corpus_state_epoch WHERE singleton_id = 1")
                 ).scalar_one()
             )
-        # App DML must advance the migration-owned epoch even though the app role has
-        # no UPDATE privilege on corpus_state_epoch itself.
         assert epoch_after == epoch_before + 1
         return document, version, span
 
@@ -173,15 +171,12 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
     assert str(restricted_version.id) not in visible_versions
     assert str(restricted_span.id) not in visible_spans
 
-    # Missing session identity fails closed across every corpus-bearing table.
     with repository.engine.connect() as connection:
         assert connection.execute(select(documents.c.id)).all() == []
         assert connection.execute(select(versions.c.id)).all() == []
         assert connection.execute(select(spans.c.id)).all() == []
         assert connection.execute(select(span_embeddings.c.span_id)).all() == []
 
-    # Migration-owned state is observable where runtime correctness needs it but never
-    # writable by the application role.
     with pytest.raises(DBAPIError), repository.engine.begin() as connection:
         connection.execute(
             text("UPDATE corpus_state_epoch SET epoch = epoch + 100 WHERE singleton_id = 1")
