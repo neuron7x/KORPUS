@@ -8,9 +8,7 @@ from dataclasses import dataclass
 from datetime import date
 
 from korpus.application.corpus_snapshot import (
-    CorpusReadToken,
-    CorpusSnapshotReader,
-    SnapshotRetriever,
+    CorpusReadToken, CorpusSnapshotReader, SnapshotRetriever
 )
 from korpus.application.retrieval import normalize_text
 from korpus.domain.models import Identity, RetrievedEvidence
@@ -75,8 +73,6 @@ class EvidenceQueryCache:
 
 
 class CachedRetriever(SnapshotRetriever):
-    """Cache evidence only under the caller's explicit immutable snapshot token."""
-
     def __init__(
         self,
         snapshot_reader: CorpusSnapshotReader,
@@ -125,8 +121,6 @@ class CachedRetriever(SnapshotRetriever):
         token: CorpusReadToken,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        # A second release read could key state-B evidence as release A; the answer's
-        # explicit token is the sole authority for lookup, delegated read, and put.
         self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
         key = self._key(identity, text, corpus_ids, as_of, token, limit)
         cached = self.cache.get(key)
