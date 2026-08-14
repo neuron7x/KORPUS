@@ -94,7 +94,7 @@ def test_visibility_compartment_change_changes_release_while_member_remains_visi
     identity = admin_identity.model_copy(update={"compartments": frozenset({"alpha"})})
     before = _capture(client, identity)
     with repository.engine.begin() as connection:
-        repository._apply_postgres_identity(connection, admin_identity)
+        repository._apply_postgres_identity(connection, identity)
         connection.execute(
             insert(document_compartments).values(
                 document_id=document_id,
