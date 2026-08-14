@@ -24,6 +24,7 @@ from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.application.trace import reset_trace_id, set_trace_id
 from korpus.config import Settings, get_settings, unknown_settings_variables
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.runtime import (
@@ -38,6 +39,7 @@ from korpus.security.oidc import OIDCVerifier
 from korpus.tenancy_composition import install_tenancy
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
@@ -59,7 +61,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         policy = PolicyEngine()
         repository = create_repository(selected, policy)
-        repository.initialize(create_schema=selected.schema_mode == "auto")
+        auto_schema = selected.schema_mode == "auto"
+        repository.initialize(create_schema=auto_schema)
+        corpus_snapshot_reader = SqlCorpusSnapshotReader(repository)
+        corpus_snapshot_reader.initialize(create_schema=auto_schema)
         object_store = create_object_store(selected)
         quarantine_store = create_quarantine_store(selected)
         ingestion_jobs = SqlIngestionJobQueue(repository.engine)
@@ -127,6 +132,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.policy = policy
         app.state.corpus_governance = corpus_governance
         app.state.repository = repository
+        app.state.corpus_snapshot_reader = corpus_snapshot_reader
         app.state.semantic_source = semantic_source
         app.state.object_store = object_store
         app.state.quarantine_store = quarantine_store
