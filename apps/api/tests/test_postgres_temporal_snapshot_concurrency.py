@@ -114,15 +114,14 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
         )
         assert sealed.wait(timeout=5), "approval did not reach the post-seal barrier"
         try:
-            with pytest.raises(DBAPIError):
-                with repository.engine.begin() as connection:
-                    repository._apply_postgres_identity(connection, actor)
-                    connection.execute(text("SET LOCAL lock_timeout = '250ms'"))
-                    connection.execute(
-                        update(spans)
-                        .where(spans.c.id == str(span.id))
-                        .values(text=changed_text, text_hash=changed_hash)
-                    )
+            with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+                repository._apply_postgres_identity(connection, actor)
+                connection.execute(text("SET LOCAL lock_timeout = '250ms'"))
+                connection.execute(
+                    update(spans)
+                    .where(spans.c.id == str(span.id))
+                    .values(text=changed_text, text_hash=changed_hash)
+                )
         finally:
             release_approval.set()
         approved = approval.result(timeout=5)
@@ -131,14 +130,13 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
 
     # Once approval commits, the same mutation is rejected by the immutable-evidence
     # trigger rather than merely blocked by the transition lock.
-    with pytest.raises(DBAPIError):
-        with repository.engine.begin() as connection:
-            repository._apply_postgres_identity(connection, actor)
-            connection.execute(
-                update(spans)
-                .where(spans.c.id == str(span.id))
-                .values(text=changed_text, text_hash=changed_hash)
-            )
+    with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+        repository._apply_postgres_identity(connection, actor)
+        connection.execute(
+            update(spans)
+            .where(spans.c.id == str(span.id))
+            .values(text=changed_text, text_hash=changed_hash)
+        )
 
     with repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, actor)
