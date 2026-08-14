@@ -13,6 +13,7 @@ from korpus.application.corpus_snapshot import (
     CorpusReadToken,
     version_evidence_digest,
 )
+from korpus.application.ports import Repository
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure import corpus_snapshot_guards
 
@@ -25,6 +26,10 @@ def _token(release_id: str) -> CorpusReadToken:
         corpus_ids=frozenset({"public"}),
         authorization_scope_id="b" * 64,
     )
+
+
+def test_application_repository_port_cannot_recompute_answer_release() -> None:
+    assert not hasattr(Repository, "corpus_release_id")
 
 
 def test_corpus_read_token_accepts_full_sha256_release_identity() -> None:
