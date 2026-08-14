@@ -48,4 +48,4 @@ Derived `span_embeddings` are intentionally not hashed into `release_id`; they a
 
 ## Capture protocol
 
-One short database transaction performs: epoch read → authorized visible membership projection → batched semantic projection → relational compartment projection → epoch read. Missing/mismatched semantic rows fail closed. Any mutation of documents, versions, compartments, spans or embeddings advances the epoch; a change during capture is rejected rather than mixed into one token.
+One short database transaction performs: epoch read → authorized visible membership projection → one batched semantic metadata + relational-compartment projection → epoch read. Missing/mismatched semantic rows fail closed. Any mutation of documents, versions, compartments, spans or embeddings advances the epoch; a change during capture is rejected rather than mixed into one token. For a non-empty release this adds one batched query to the v1 capture path, not an N+1 query per version.
