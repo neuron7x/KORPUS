@@ -105,6 +105,11 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         )
         with repository.engine.begin() as connection:
             repository._apply_postgres_identity(connection, actor)
+            epoch_before = int(
+                connection.execute(
+                    text("SELECT epoch FROM corpus_state_epoch WHERE singleton_id = 1")
+                ).scalar_one()
+            )
             connection.execute(
                 insert(span_embeddings).values(
                     span_id=str(span.id),
@@ -115,6 +120,14 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
                     created_at=datetime.now(UTC),
                 )
             )
+            epoch_after = int(
+                connection.execute(
+                    text("SELECT epoch FROM corpus_state_epoch WHERE singleton_id = 1")
+                ).scalar_one()
+            )
+        # App DML must advance the migration-owned epoch even though the app role has
+        # no UPDATE privilege on corpus_state_epoch itself.
+        assert epoch_after == epoch_before + 1
         return document, version, span
 
     public_document, public_version, public_span = create(
@@ -146,10 +159,16 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         visible_versions = set(connection.execute(select(versions.c.id)).scalars())
         visible_spans = set(connection.execute(select(spans.c.id)).scalars())
         visible_embeddings = set(connection.execute(select(span_embeddings.c.span_id)).scalars())
+        readable_epoch = int(
+            connection.execute(
+                text("SELECT epoch FROM corpus_state_epoch WHERE singleton_id = 1")
+            ).scalar_one()
+        )
     assert visible_documents == {str(public_document.id)}
     assert visible_versions == {str(public_version.id)}
     assert visible_spans == {str(public_span.id)}
     assert visible_embeddings == {str(public_span.id)}
+    assert readable_epoch > 0
     assert str(restricted_document.id) not in visible_documents
     assert str(restricted_version.id) not in visible_versions
     assert str(restricted_span.id) not in visible_spans
@@ -161,7 +180,13 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         assert connection.execute(select(spans.c.id)).all() == []
         assert connection.execute(select(span_embeddings.c.span_id)).all() == []
 
-    # The application role can read but cannot forge migration state.
+    # Migration-owned state is observable where runtime correctness needs it but never
+    # writable by the application role.
+    with pytest.raises(DBAPIError), repository.engine.begin() as connection:
+        connection.execute(
+            text("UPDATE corpus_state_epoch SET epoch = epoch + 100 WHERE singleton_id = 1")
+        )
+
     with pytest.raises(DBAPIError), repository.engine.begin() as connection:
         connection.execute(text("UPDATE alembic_version SET version_num='forged'"))
 
