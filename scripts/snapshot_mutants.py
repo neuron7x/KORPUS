@@ -217,4 +217,13 @@ MUTANTS = (
         "test_guard_verification_rejects_correctly_named_noop_trigger",
         "guard verification checks executable semantics, not only trigger names",
     ),
+    Mutant(
+        "TS20",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot_guards.py",
+        "        _assert_definition(name, definition, required)\n",
+        "        pass\n",
+        "apps/api/tests/test_postgres_temporal_snapshot_privileges.py::"
+        "test_postgres_startup_rejects_correctly_named_inert_epoch_function",
+        "PostgreSQL startup verifies guard function bodies, not only names and flags",
+    ),
 )
