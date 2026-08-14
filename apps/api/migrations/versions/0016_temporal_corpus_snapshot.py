@@ -53,8 +53,8 @@ def _version_evidence_digest(
             raise RuntimeError("approved legacy evidence text_hash does not match text")
         _frame(digest, span_id)
         _frame(digest, str(ordinal))
-        _frame(digest, "" if page is None else str(page))
-        _frame(digest, "" if section is None else section)
+        _frame(digest, "0" if page is None else f"1:{page}")
+        _frame(digest, "0" if section is None else f"1:{section}")
         _frame(digest, text_hash)
     return digest.hexdigest()
 
