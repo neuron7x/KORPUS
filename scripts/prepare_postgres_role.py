@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 """Provision separate PostgreSQL application and review-transition identities."""
-from __future__ import annotations
-
 import os
 from pathlib import Path
 
