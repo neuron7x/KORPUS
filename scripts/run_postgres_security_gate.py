@@ -32,6 +32,12 @@ RUNTIME_TARGETS = [
     "apps/api/tests/test_postgres_rls_binding_lifecycle.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
 ]
+EXTERNAL_REQUIRED = (
+    "KORPUS_TEST_DATABASE_URL",
+    "KORPUS_TEST_DATABASE_ADMIN_URL",
+    "KORPUS_REVIEW_DATABASE_URL",
+    "RLS_IDENTITY_DATABASE_URL",
+)
 
 
 def main() -> int:
@@ -44,11 +50,13 @@ def main() -> int:
         check=False,
         timeout=120,
     )
-    external_url = bool(os.getenv("KORPUS_TEST_DATABASE_URL"))
-    docker = shutil.which("docker") is not None
+    external_requested = bool(os.getenv("KORPUS_TEST_DATABASE_URL"))
+    external_ready = all(os.getenv(name) for name in EXTERNAL_REQUIRED)
+    docker_available = shutil.which("docker") is not None
+    runtime_available = external_ready if external_requested else docker_available
     runtime_exit: int | None = None
     runtime_tail = ""
-    if external_url or docker:
+    if runtime_available:
         completed = subprocess.run(
             ["bash", "scripts/run_postgres_suite.sh", *RUNTIME_TARGETS],
             cwd=ROOT,
@@ -62,7 +70,7 @@ def main() -> int:
         runtime_tail = (completed.stdout + completed.stderr)[-8000:]
     checks = {
         "security_contract_static": static.returncode == 0,
-        "postgres_runtime_available": external_url or docker,
+        "postgres_runtime_available": runtime_available,
         "postgres_adversarial_suite": runtime_exit == 0,
     }
     failures = [name for name, ok in checks.items() if not ok]
