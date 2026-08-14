@@ -51,13 +51,7 @@ def compartment_predicate(identity: Identity) -> Any:
 def _visibility_filters(
     identity: Identity, authorized_corpora: frozenset[str], as_of: date
 ) -> list[Any]:
-    """Which versions this reader may retrieve at all, as clauses both projections share.
-
-    Written once because a second copy is how the two drift: the release identity below
-    is meant to be the fingerprint of exactly the material an answer could have been
-    drawn from, and a projection that filters slightly differently would produce a
-    release id for a corpus nobody can read.
-    """
+    """Which versions this reader may retrieve at all, as clauses both projections share."""
     allowed_classifications = row_mapping.allowed_classifications(identity.clearance)
     superseding = versions.alias("superseding_version")
     active_superseder = (
@@ -92,18 +86,7 @@ def _visibility_filters(
 def release_projection(
     identity: Identity, authorized_corpora: frozenset[str], as_of: date
 ) -> Any:
-    """The versions behind the retrievable spans, once each, without the spans.
-
-    `corpus_release_id` used to read the full span projection and build a span, a
-    document and a version model for every row. On 116 229 spans that was 232 458
-    Pydantic constructions per question — measured 2026-08-06 as 17 s of a 23 s answer,
-    while the retrieval it guards has a 1200 ms budget. The digest only ever used four
-    strings per *version*, and there are 1616 of those.
-
-    Joined through `evidence_spans` deliberately: a version with no retrievable span
-    contributes nothing to any answer, and the set this identifies is the set an answer
-    could be drawn from.
-    """
+    """The versions behind the retrievable spans, once each, without the spans."""
     return (
         select(
             documents.c.id.label("document_id"),
@@ -227,6 +210,20 @@ def release_row_is_current(row: Any, as_of: date) -> bool:
     return probe.is_valid_on(as_of)
 
 
+def _candidate_compartment_filter(identity: Identity) -> tuple[str, dict[str, str]]:
+    compartments = sorted(identity.compartments)
+    parameters = {f"compartment_{index}": value for index, value in enumerate(compartments)}
+    forbidden = ""
+    if compartments:
+        placeholders = ",".join(parameters)
+        forbidden = f"AND dc.compartment NOT IN ({placeholders})"
+    clause = (
+        "AND NOT EXISTS (SELECT 1 FROM document_compartments dc "
+        f"WHERE dc.document_id = d.id {forbidden})"
+    )
+    return clause, parameters
+
+
 def candidate_span_query(
     identity: Identity,
     corpora: frozenset[str],
@@ -249,17 +246,7 @@ def candidate_span_query(
     class_placeholders = ",".join(
         f":class_{index}" for index, _ in enumerate(classifications)
     )
-    compartments = sorted(identity.compartments)
-    compartment_placeholders = ",".join(
-        f":compartment_{index}" for index, _ in enumerate(compartments)
-    )
-    forbidden_compartment = (
-        f"AND dc.compartment NOT IN ({compartment_placeholders})" if compartments else ""
-    )
-    compartment_clause = (
-        "AND NOT EXISTS (SELECT 1 FROM document_compartments dc "
-        f"WHERE dc.document_id = d.id {forbidden_compartment})"
-    )
+    compartment_clause, compartment_parameters = _candidate_compartment_filter(identity)
     parameters: dict[str, Any] = {
         "clearance": int(identity.clearance),
         "as_of": as_of.isoformat(),
@@ -269,7 +256,7 @@ def candidate_span_query(
     parameters.update(
         {f"class_{index}": value for index, value in enumerate(classifications)}
     )
-    parameters.update({f"compartment_{index}": value for index, value in enumerate(compartments)})
+    parameters.update(compartment_parameters)
     if dialect == "sqlite":
         match_query = " OR ".join(
             f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")
