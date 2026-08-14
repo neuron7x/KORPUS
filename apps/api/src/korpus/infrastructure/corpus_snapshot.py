@@ -1,7 +1,6 @@
 """SQL implementation of one immutable, epoch-bound corpus read token."""
 from __future__ import annotations
 
-import hashlib
 import re
 from datetime import date
 
@@ -13,6 +12,7 @@ from korpus.application.corpus_snapshot import (
     CorpusConsistencyError,
     CorpusReadToken,
     authorization_scope_id,
+    release_identity_digest,
 )
 from korpus.domain.models import Identity
 from korpus.infrastructure import retrieval_queries
@@ -21,13 +21,6 @@ from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch, versions
 
 _HEX64 = re.compile(r"^[a-f0-9]{64}$")
-_RELEASE_DOMAIN = b"korpus-temporal-release-v1\0"
-
-
-def _frame(hasher: object, value: str) -> None:
-    encoded = value.encode("utf-8")
-    hasher.update(len(encoded).to_bytes(8, "big"))  # type: ignore[attr-defined]
-    hasher.update(encoded)  # type: ignore[attr-defined]
 
 
 class SqlCorpusSnapshotReader:
@@ -96,14 +89,9 @@ class SqlCorpusSnapshotReader:
                 )
             )
 
-        digest = hashlib.sha256()
-        digest.update(_RELEASE_DOMAIN)
-        for key in sorted(unique):
-            for value in key:
-                _frame(digest, value)
         return CorpusReadToken(
             state_epoch=before,
-            release_id=digest.hexdigest(),
+            release_id=release_identity_digest(unique),
             as_of=as_of,
             corpus_ids=authorized,
             authorization_scope_id=authorization_scope_id(identity, authorized),
