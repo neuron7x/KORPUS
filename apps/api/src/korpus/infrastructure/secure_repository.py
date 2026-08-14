@@ -52,7 +52,7 @@ class RlsBoundSqlRepository(SqlRepository):
             audit_keyring=audit_keyring,
             review_database_url=review_database_url,
         )
-        identity_url = rls_identity_database_url or os.getenv("KORPUS_RLS_IDENTITY_DATABASE_URL")
+        identity_url = rls_identity_database_url or os.getenv("RLS_IDENTITY_DATABASE_URL")
         broker_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         try:
             self._rls_identity = RlsIdentityBinder(
