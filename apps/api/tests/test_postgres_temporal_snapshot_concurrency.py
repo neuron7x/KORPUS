@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
-from threading import Event, Thread
+from threading import Event
 
 import pytest
 from sqlalchemy import select, text, update
@@ -88,7 +89,6 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
 
     sealed = Event()
     release_approval = Event()
-    approval_errors: list[BaseException] = []
     original_seal = review_transitions._seal_evidence_digest
 
     def blocking_seal(connection, version_id):
@@ -100,40 +100,34 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
 
     monkeypatch.setattr(review_transitions, "_seal_evidence_digest", blocking_seal)
 
-    def approve() -> None:
-        try:
-            repository.transition_version(
-                actor,
-                version.id,
-                ReviewState.QUARANTINED,
-                ReviewState.APPROVED,
-                "deterministic PostgreSQL seal/mutation race",
-            )
-        except BaseException as exc:  # pragma: no cover - surfaced by assertion below
-            approval_errors.append(exc)
-
-    approval_thread = Thread(target=approve, daemon=True)
-    approval_thread.start()
-    assert sealed.wait(timeout=5), "approval did not reach the post-seal barrier"
-
     changed_text = f"{span.text} tampered during approval"
     changed_hash = hashlib.sha256(changed_text.encode("utf-8")).hexdigest()
-    try:
-        with pytest.raises(DBAPIError):
-            with repository.engine.begin() as connection:
-                repository._apply_postgres_identity(connection, actor)
-                connection.execute(text("SET LOCAL lock_timeout = '250ms'"))
-                connection.execute(
-                    update(spans)
-                    .where(spans.c.id == str(span.id))
-                    .values(text=changed_text, text_hash=changed_hash)
-                )
-    finally:
-        release_approval.set()
-        approval_thread.join(timeout=5)
 
-    assert not approval_thread.is_alive(), "approval remained blocked after barrier release"
-    assert approval_errors == []
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        approval = executor.submit(
+            repository.transition_version,
+            actor,
+            version.id,
+            ReviewState.QUARANTINED,
+            ReviewState.APPROVED,
+            "deterministic PostgreSQL seal/mutation race",
+        )
+        assert sealed.wait(timeout=5), "approval did not reach the post-seal barrier"
+        try:
+            with pytest.raises(DBAPIError):
+                with repository.engine.begin() as connection:
+                    repository._apply_postgres_identity(connection, actor)
+                    connection.execute(text("SET LOCAL lock_timeout = '250ms'"))
+                    connection.execute(
+                        update(spans)
+                        .where(spans.c.id == str(span.id))
+                        .values(text=changed_text, text_hash=changed_hash)
+                    )
+        finally:
+            release_approval.set()
+        approved = approval.result(timeout=5)
+
+    assert approved.review_state is ReviewState.APPROVED
 
     # Once approval commits, the same mutation is rejected by the immutable-evidence
     # trigger rather than merely blocked by the transition lock.
