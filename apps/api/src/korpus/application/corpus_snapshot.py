@@ -113,8 +113,8 @@ def release_identity_digest(rows: Iterable[tuple[str, str, str, str, str]]) -> s
 
     Tuples are `(document_id, version_id, source_hash, review_state, evidence_digest)`.
     Every field is framed independently and rows are set-normalized before sorting, so
-    SQL join multiplicity and row order cannot change the identity while omission or
-    alteration of any provenance-bearing field necessarily changes it.
+    SQL join multiplicity and row order do not alter the preimage; changing any field
+    changes that canonical preimage before SHA-256 is applied.
     """
     unique = set(rows)
     digest = hashlib.sha256()
