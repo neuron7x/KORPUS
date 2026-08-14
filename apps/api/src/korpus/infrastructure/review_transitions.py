@@ -27,8 +27,12 @@ def _load_current(
     expected_state: ReviewState,
     version_mapper: VersionMapper,
 ) -> DocumentVersionRecord:
+    # Approval must own the parent version row before it seals derived evidence. On
+    # PostgreSQL the evidence trigger takes a shared lock on this same row before any
+    # span mutation, which serializes `seal -> approve` against insert/update/delete.
+    # SQLite ignores FOR UPDATE but already serializes writers at the database level.
     row = connection.execute(
-        select(versions).where(versions.c.id == str(version_id))
+        select(versions).where(versions.c.id == str(version_id)).with_for_update()
     ).mappings().first()
     if row is None:
         raise LookupError("version not found")
@@ -130,6 +134,10 @@ def _apply_access_tier(
 
 def _seal_evidence_digest(connection: Connection, version_id: UUID) -> str:
     """Seal the exact persisted evidence set before a version becomes retrievable."""
+    # Lock every currently persisted span while computing the seal. The parent version
+    # row is already FOR UPDATE-locked by `_load_current`; together with the PostgreSQL
+    # trigger's parent FOR SHARE lock this also excludes concurrent insertion of a new
+    # span until approval either commits or aborts.
     rows = connection.execute(
         select(
             spans.c.id,
@@ -141,6 +149,7 @@ def _seal_evidence_digest(connection: Connection, version_id: UUID) -> str:
         )
         .where(spans.c.version_id == str(version_id))
         .order_by(spans.c.ordinal, spans.c.id)
+        .with_for_update()
     ).mappings().all()
     return version_evidence_digest(
         (
