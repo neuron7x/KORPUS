@@ -5,7 +5,7 @@ from datetime import UTC, date, datetime
 
 from sqlalchemy import insert, select, update
 
-from apps.api.tests.helpers import approve, ingest_text, ingest_version
+from apps.api.tests.helpers import approve, ingest_text
 from korpus.application.corpus_snapshot import (
     SemanticReleaseMember,
     canonical_optional,
@@ -199,13 +199,12 @@ def test_each_stable_semantic_projection_field_changes_release(
     client, admin_identity
 ) -> None:
     document_id, version_id = _approved(client)
-    shadow = ingest_version(
+    foreign = ingest_text(
         client,
-        document_id,
-        revision="shadow",
-        text="Окремий неухвалений контрольний варіант для зовнішнього ключа.",
+        title="Unapproved foreign version",
+        text="Неухвалений зовнішній запис існує лише як контроль зовнішнього ключа.",
     )
-    shadow_version_id = str(shadow["version"]["id"])
+    foreign_version_id = str(foreign["version"]["id"])
     repository = client.app.state.repository
     identity = admin_identity.model_copy(update={"compartments": frozenset({"alpha"})})
     corpora = frozenset({"public", "training"})
@@ -248,7 +247,7 @@ def test_each_stable_semantic_projection_field_changes_release(
         .values(authority="official_allied"),
         update(versions)
         .where(versions.c.id == version_id)
-        .values(supersedes_version_id=shadow_version_id),
+        .values(supersedes_version_id=foreign_version_id),
     )
     for statement in statements:
         current = _mutate_and_require_new_release(
