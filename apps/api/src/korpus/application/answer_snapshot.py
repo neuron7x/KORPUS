@@ -64,13 +64,14 @@ class SnapshotAnswerRuntime:
         try:
             token = self.snapshot_reader.capture(identity, corpora, query.as_of)
         except CorpusConsistencyError as exc:
-            answer = self._abstain(
+            answer = self.abstain(
                 "snapshot-unavailable",
                 "corpus_snapshot_unavailable",
-                "Стан перевіреного корпусу неможливо зафіксувати узгоджено; відповідь зупинено.",
+                "Стан перевіреного корпусу неможливо зафіксувати узгоджено; "
+                "відповідь зупинено.",
                 limitations=[f"Snapshot consistency: {type(exc).__name__}."],
             )
-            self._audit(
+            self.audit(
                 identity,
                 query,
                 answer,
@@ -82,7 +83,7 @@ class SnapshotAnswerRuntime:
             return answer
         return SnapshotAnswerSession(self, identity, query, corpora, token)
 
-    def _abstain(
+    def abstain(
         self,
         release_id: str,
         reason: str,
@@ -102,7 +103,7 @@ class SnapshotAnswerRuntime:
             corpus_release=release_id,
         )
 
-    def _audit(
+    def audit(
         self,
         identity: Identity,
         query: QueryRequest,
@@ -173,12 +174,13 @@ class SnapshotAnswerSession:
                     if previous is None or item.score > previous.score:
                         best[key] = item
         except CorpusConsistencyError:
-            answer = self.runtime._abstain(
+            answer = self.runtime.abstain(
                 self.release_id,
                 "corpus_snapshot_changed",
-                "Корпус змінився під час пошуку; результат відкинуто без переходу до нового стану.",
+                "Корпус змінився під час пошуку; результат відкинуто без переходу "
+                "до нового стану.",
             )
-            self.runtime._audit(
+            self.runtime.audit(
                 self.identity,
                 self.query,
                 answer,
@@ -212,7 +214,7 @@ class SnapshotAnswerSession:
                 self.identity, self.corpora, self.query.as_of, self.token
             )
         except CorpusConsistencyError:
-            answer = self.runtime._abstain(
+            answer = self.runtime.abstain(
                 self.release_id,
                 "corpus_snapshot_changed",
                 "Корпус змінився до завершення відповіді; зібраний результат відкинуто.",
@@ -222,7 +224,7 @@ class SnapshotAnswerSession:
             breaches = None
             support = None
             composition = "discarded: corpus snapshot changed"
-        self.runtime._audit(
+        self.runtime.audit(
             self.identity,
             self.query,
             answer,
