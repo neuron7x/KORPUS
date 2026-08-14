@@ -1,6 +1,8 @@
 """Structural and semantic verification for database-owned temporal snapshot guards."""
 from __future__ import annotations
 
+import re
+
 from sqlalchemy import text as sql_text
 from sqlalchemy.engine import Connection
 
@@ -12,15 +14,82 @@ EPOCH_TABLES = (
     "span_embeddings",
 )
 
+_POSTGRES_FUNCTION_BODIES = {
+    "korpus_bump_corpus_state_epoch": """
+        BEGIN
+          UPDATE public.corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
+          RETURN NULL;
+        END;
+    """,
+    "korpus_refuse_approved_evidence_mutation": """
+        DECLARE
+          locked_digest text;
+        BEGIN
+          IF TG_OP = 'INSERT' THEN
+            SELECT evidence_digest INTO locked_digest
+            FROM public.document_versions
+            WHERE id = NEW.version_id
+            FOR SHARE;
+            IF locked_digest IS NOT NULL THEN
+              RAISE EXCEPTION 'sealed evidence is immutable';
+            END IF;
+          ELSIF TG_OP = 'DELETE' THEN
+            SELECT evidence_digest INTO locked_digest
+            FROM public.document_versions
+            WHERE id = OLD.version_id
+            FOR SHARE;
+            IF locked_digest IS NOT NULL THEN
+              RAISE EXCEPTION 'sealed evidence is immutable';
+            END IF;
+          ELSE
+            FOR locked_digest IN
+              SELECT evidence_digest
+              FROM public.document_versions
+              WHERE id IN (OLD.version_id, NEW.version_id)
+              ORDER BY id
+              FOR SHARE
+            LOOP
+              IF locked_digest IS NOT NULL THEN
+                RAISE EXCEPTION 'sealed evidence is immutable';
+              END IF;
+            END LOOP;
+          END IF;
+          IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
+          RETURN NEW;
+        END;
+    """,
+    "korpus_refuse_approved_digest_mutation": """
+        BEGIN
+          IF OLD.evidence_digest IS NOT NULL
+             AND NEW.evidence_digest IS DISTINCT FROM OLD.evidence_digest THEN
+            RAISE EXCEPTION 'sealed evidence digest is immutable';
+          END IF;
+          RETURN NEW;
+        END;
+    """,
+}
+
 
 def _normalize(definition: object) -> str:
     return " ".join(str(definition or "").lower().split())
+
+
+def _canonical_function_body(definition: object) -> str:
+    source = str(definition or "")
+    source = re.sub(r"/\*.*?\*/", " ", source, flags=re.DOTALL)
+    source = re.sub(r"--[^\n]*", " ", source)
+    return _normalize(source)
 
 
 def _assert_definition(label: str, definition: str, required: tuple[str, ...]) -> None:
     missing = [token for token in required if token not in definition]
     if missing:
         raise RuntimeError(f"corpus snapshot guard {label} has invalid definition: {missing}")
+
+
+def _assert_exact_function_body(label: str, body: object, expected: str) -> None:
+    if _canonical_function_body(body) != _canonical_function_body(expected):
+        raise RuntimeError(f"corpus snapshot guard {label} has invalid function body")
 
 
 def _sqlite_guards(connection: Connection) -> None:
@@ -134,12 +203,13 @@ def _postgres_guards(connection: Connection) -> None:
     )
 
     functions = {
-        str(row[0]): (bool(row[1]), tuple(row[2] or ()), _normalize(row[3]))
+        str(row[0]): (bool(row[1]), tuple(row[2] or ()), row[3])
         for row in connection.execute(
             sql_text(
-                "SELECT p.proname, p.prosecdef, p.proconfig, pg_get_functiondef(p.oid) "
+                "SELECT p.proname, p.prosecdef, p.proconfig, p.prosrc "
                 "FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace "
-                "WHERE n.nspname = 'public' AND p.proname IN "
+                "WHERE n.nspname = 'public' AND p.pronargs = 0 "
+                "AND p.prorettype = 'trigger'::regtype AND p.proname IN "
                 "('korpus_bump_corpus_state_epoch', "
                 "'korpus_refuse_approved_evidence_mutation', "
                 "'korpus_refuse_approved_digest_mutation')"
@@ -153,36 +223,19 @@ def _postgres_guards(connection: Connection) -> None:
         metadata = functions.get(name)
         if metadata is None:
             raise RuntimeError(f"corpus snapshot guard function is missing: {name}")
-        security_definer, configuration, _definition = metadata
+        security_definer, configuration, _body = metadata
         normalized_config = {item.replace(" ", "").lower() for item in configuration}
         if not security_definer or "search_path=pg_catalog" not in normalized_config:
             raise RuntimeError(
                 f"corpus snapshot guard function is not hardened: {name}"
             )
 
-    function_requirements = {
-        "korpus_bump_corpus_state_epoch": (
-            "update public.corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1",
-            "return null",
-        ),
-        "korpus_refuse_approved_evidence_mutation": (
-            "from public.document_versions",
-            "for share",
-            "evidence_digest",
-            "raise exception 'sealed evidence is immutable'",
-        ),
-        "korpus_refuse_approved_digest_mutation": (
-            "old.evidence_digest is not null",
-            "new.evidence_digest is distinct from old.evidence_digest",
-            "raise exception 'sealed evidence digest is immutable'",
-        ),
-    }
-    for name, required in function_requirements.items():
+    for name, expected_body in _POSTGRES_FUNCTION_BODIES.items():
         metadata = functions.get(name)
         if metadata is None:
             raise RuntimeError(f"corpus snapshot guard function is missing: {name}")
-        _security_definer, _configuration, definition = metadata
-        _assert_definition(name, definition, required)
+        _security_definer, _configuration, body = metadata
+        _assert_exact_function_body(name, body, expected_body)
 
 
 def require_guards(connection: Connection) -> None:
