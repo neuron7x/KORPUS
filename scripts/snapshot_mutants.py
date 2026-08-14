@@ -271,4 +271,14 @@ MUTANTS = (
         "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
         "authorization scope commits need-to-know compartments",
     ),
+    Mutant(
+        "TS26",
+        "apps/api/src/korpus/application/ports.py",
+        "    def verify_audit(self) -> AuditVerification: ...\n",
+        "    def corpus_release_id(self, identity: Identity, corpus_ids: frozenset[str], as_of: date) -> str: ...\n\n"
+        "    def verify_audit(self) -> AuditVerification: ...\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_application_repository_port_cannot_recompute_answer_release",
+        "the application repository port exposes no independent release-restamp primitive",
+    ),
 )
