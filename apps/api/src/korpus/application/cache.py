@@ -84,6 +84,9 @@ class CachedRetriever(SnapshotRetriever):
         cache: EvidenceQueryCache,
         configuration_id: str,
     ) -> None:
+        delegate_reader = getattr(delegate, "snapshot_reader", None)
+        if delegate_reader is not None and delegate_reader is not snapshot_reader:
+            raise ValueError("cached retrieval must share one corpus snapshot reader")
         self.snapshot_reader = snapshot_reader
         self.delegate = delegate
         self.cache = cache
