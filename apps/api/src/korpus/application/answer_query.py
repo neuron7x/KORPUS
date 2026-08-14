@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import date
-from typing import cast
 
 from korpus.application.answer_analysis import (
     ScopeBreach,
@@ -16,14 +14,9 @@ from korpus.application.answer_analysis import (
     source_limitations,
     unsourced_quotes,
 )
-from korpus.application.answer_audit import append_answer_audit
+from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAuditPolicy
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
-from korpus.application.corpus_snapshot import (
-    CorpusConsistencyError,
-    CorpusReadToken,
-    CorpusSnapshotReader,
-    SnapshotRetriever,
-)
+from korpus.application.corpus_snapshot import CorpusSnapshotReader, SnapshotRetriever
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
@@ -33,20 +26,14 @@ from korpus.application.evidence import (
 )
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import Repository, Retriever
-from korpus.application.query_plan import QueryPlan, QueryPlanner, build_plan
+from korpus.application.query_plan import QueryPlanner, build_plan
 from korpus.application.retrieval import (
     AUTHORITY_PRIOR,
     RetrievalDeadlineExceeded,
     RetrievalUnavailable,
     tokenize,
 )
-from korpus.application.risk import (
-    QueryRisk,
-    RiskThresholds,
-    classify_query_risk,
-    risk_adjusted_thresholds,
-)
-from korpus.application.snapshot_retrieval import SnapshotBoundRetriever
+from korpus.application.risk import QueryRisk, RiskThresholds, classify_query_risk, risk_adjusted_thresholds
 from korpus.domain.models import (
     AccessTier,
     Answer,
@@ -100,61 +87,30 @@ class ExtractiveAnswerService:
         egress_policy: ModelEgressPolicy | None = None,
         snapshot_reader: CorpusSnapshotReader | None = None,
     ) -> None:
-        self.repository = repository
-        resolved_reader = (
-            snapshot_reader
-            or getattr(retriever, "snapshot_reader", None)
-            or getattr(repository, "corpus_snapshot_reader", None)
+        self.snapshot_runtime = SnapshotAnswerRuntime(
+            repository,
+            retriever,
+            SnapshotAuditPolicy(
+                minimum_score=answer_policy.minimum_score,
+                minimum_query_coverage=answer_policy.minimum_query_coverage,
+                minimum_support_score=answer_policy.minimum_support_score,
+                calibration_id=answer_policy.calibration_id,
+            ),
+            snapshot_reader,
         )
-        if resolved_reader is None:
-            raise ValueError("a corpus snapshot reader is required for answering")
-        self.snapshot_reader = cast(CorpusSnapshotReader, resolved_reader)
-        # Compatibility at the application boundary is still fail-closed: an ordinary
-        # retriever is wrapped with before/after epoch validation. Production supplies
-        # CachedRetriever directly, which already consumes the explicit token.
-        if hasattr(retriever, "snapshot_reader"):
-            self.retriever = cast(SnapshotRetriever, retriever)
-        else:
-            self.retriever = SnapshotBoundRetriever(
-                self.snapshot_reader, cast(Retriever, retriever)
-            )
         self.policy_engine = policy_engine
         self.answer_policy = answer_policy
-        #: Optional by construction. Absent, this service behaves exactly as it did
-        #: before one existed — which is what every failure of a present one degrades to.
         self.query_planner = query_planner
-        #: Arranges the retrieved sentences and proposes one opening line. Absent, or
-        #: refused, the answer is the extract exactly as it was.
         self.answer_composer = answer_composer
-        #: GOV-006. Governs whether the material a composer would send may leave the
-        #: deployment for its classification. Absent, no ceiling is applied — the seam a
-        #: test uses to build the service without a corpus posture, and the pre-existing
-        #: behaviour of every service that never had one. The composition root always
-        #: supplies it.
         self.egress_policy = egress_policy
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
-        try:
-            token = self.snapshot_reader.capture(identity, corpora, query.as_of)
-        except CorpusConsistencyError as exc:
-            answer = self._abstain(
-                "snapshot-unavailable",
-                "corpus_snapshot_unavailable",
-                "Стан перевіреного корпусу неможливо зафіксувати узгоджено; відповідь зупинено.",
-                limitations=[f"Snapshot consistency: {type(exc).__name__}."],
-            )
-            self._audit(
-                identity,
-                query,
-                answer,
-                [],
-                [],
-                classify_query_risk(query.text),
-                token=None,
-            )
-            return answer
-        release_id = token.release_id
+        started = self.snapshot_runtime.begin(identity, query, corpora)
+        if isinstance(started, Answer):
+            return started
+        session = started
+        release_id = session.release_id
 
         injection = assess_control_injection(query.text)
         if injection.blocked:
@@ -164,42 +120,22 @@ class ExtractiveAnswerService:
                 "Запит містить інструкції керування системою замість предметного питання.",
                 limitations=[f"Injection signals: {', '.join(injection.reasons)}"],
             )
-            return self._finalize(
-                identity,
-                query,
-                answer,
-                [],
-                [],
-                classify_query_risk(query.text),
-                corpora,
-                token,
-            )
+            return session.finish(answer, [], [], classify_query_risk(query.text))
 
         risk = classify_query_risk(query.text)
-        # The question is searched first and always. A reformulation widens what was
-        # looked for; it cannot replace what was asked, because a planner that quietly
-        # substituted its own phrasing could steer a reader away from the passage they
-        # came for and nothing downstream would see it happen.
         plan = build_plan(query.text, self.query_planner)
         try:
-            retrieved = self._search_plan(identity, plan, corpora, query.as_of, token)
-        except CorpusConsistencyError:
-            answer = self._abstain(
-                release_id,
-                "corpus_snapshot_changed",
-                "Корпус змінився під час пошуку; результат відкинуто без переходу до нового стану.",
-            )
-            self._audit(identity, query, answer, [], [], risk, plan=plan, token=token)
-            return answer
+            search_result = session.search_plan(plan, risk)
+            if isinstance(search_result, Answer):
+                return search_result
+            retrieved = search_result
         except RetrievalDeadlineExceeded:
             answer = self._abstain(
                 release_id,
                 "retrieval_deadline_exceeded",
                 "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
             )
-            return self._finalize(
-                identity, query, answer, [], [], risk, corpora, token, plan=plan
-            )
+            return session.finish(answer, [], [], risk, plan=plan)
         except RetrievalUnavailable:
             answer = self._abstain(
                 release_id,
@@ -207,25 +143,12 @@ class ExtractiveAnswerService:
                 "Обов’язковий пошуковий контур недоступний;"
                 " відповідь зупинено без слабшого fallback.",
             )
-            return self._finalize(
-                identity, query, answer, [], [], risk, corpora, token, plan=plan
-            )
+            return session.finish(answer, [], [], risk, plan=plan)
 
         breaches = self._scope_breaches(identity, corpora, retrieved)
         if breaches:
             answer = self._breach(release_id, breaches)
-            return self._finalize(
-                identity,
-                query,
-                answer,
-                retrieved,
-                [],
-                risk,
-                corpora,
-                token,
-                breaches=breaches,
-                plan=plan,
-            )
+            return session.finish(answer, retrieved, [], risk, breaches=breaches, plan=plan)
 
         eligible = self.answer_policy.eligible(retrieved, risk)
         if not eligible:
@@ -235,9 +158,7 @@ class ExtractiveAnswerService:
                 "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
                 max((item.score for item in retrieved), default=0.0),
             )
-            return self._finalize(
-                identity, query, answer, retrieved, eligible, risk, corpora, token, plan=plan
-            )
+            return session.finish(answer, retrieved, eligible, risk, plan=plan)
 
         thresholds = risk_adjusted_thresholds(
             risk,
@@ -252,9 +173,7 @@ class ExtractiveAnswerService:
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
             answer = self._unsourced_answer(release_id, unsourced)
-            return self._finalize(
-                identity, query, answer, retrieved, eligible, risk, corpora, token, plan=plan
-            )
+            return session.finish(answer, retrieved, eligible, risk, plan=plan)
 
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
         support = verify_claim_support(
@@ -264,21 +183,10 @@ class ExtractiveAnswerService:
         evidence_coverage = support.coverage
         if claims and not support.aligned:
             answer = self._misaligned(release_id, support)
-            return self._finalize(
-                identity,
-                query,
-                answer,
-                retrieved,
-                eligible,
-                risk,
-                corpora,
-                token,
-                support=support,
-                plan=plan,
+            return session.finish(
+                answer, retrieved, eligible, risk, support=support, plan=plan
             )
-        # Before every branch, not inside one: three of them reach the same audit call,
-        # and initialising it in the branch that uses it surfaced as an UnboundLocalError
-        # on the other two rather than as a missing field.
+
         composition_reason = "not attempted"
         if not claims or query_coverage < thresholds.minimum_query_coverage:
             answer = self._abstain(
@@ -308,16 +216,6 @@ class ExtractiveAnswerService:
                     corpus_release=release_id,
                 )
             else:
-                # The model may arrange what was found and open with one line. It may
-                # not add a fact: `compose_answer` refuses an opening that states a
-                # number, introduces a negation, or uses a content word the cited spans
-                # do not contain, and a refusal leaves the extract untouched.
-                #
-                # GOV-006: before that, whether the material may leave at all. If the
-                # sentences outrank the egress ceiling, the composer is not called with
-                # them — sending them to a model outside the deployment would exfiltrate
-                # restricted spans, whatever the composer returned. The extract stands and
-                # the reason travels into the audit chain.
                 composition, composition_reason = self._compose(query, claims, eligible)
                 body = (
                     "\n\n".join(composition.sentences)
@@ -351,73 +249,18 @@ class ExtractiveAnswerService:
                     ],
                     corpus_release=release_id,
                 )
-        return self._finalize(
-            identity,
-            query,
+        return session.finish(
             answer,
             retrieved,
             eligible,
             risk,
-            corpora,
-            token,
             plan=plan,
             composition=composition_reason,
         )
 
-    def _finalize(
-        self,
-        identity: Identity,
-        query: QueryRequest,
-        answer: Answer,
-        retrieved: list[RetrievedEvidence],
-        eligible: list[RetrievedEvidence],
-        risk: QueryRisk,
-        corpora: frozenset[str],
-        token: CorpusReadToken,
-        *,
-        breaches: list[ScopeBreach] | None = None,
-        support: SupportVerdict | None = None,
-        plan: QueryPlan | None = None,
-        composition: str | None = None,
-    ) -> Answer:
-        """Linearization point for an answer: validate the token before audit/return."""
-        try:
-            self.snapshot_reader.validate(identity, corpora, query.as_of, token)
-        except CorpusConsistencyError:
-            answer = self._abstain(
-                token.release_id,
-                "corpus_snapshot_changed",
-                "Корпус змінився до завершення відповіді; зібраний результат відкинуто.",
-            )
-            retrieved = []
-            eligible = []
-            breaches = None
-            support = None
-            composition = "discarded: corpus snapshot changed"
-        self._audit(
-            identity,
-            query,
-            answer,
-            retrieved,
-            eligible,
-            risk,
-            breaches=breaches,
-            support=support,
-            plan=plan,
-            composition=composition,
-            token=token,
-        )
-        return answer
-
     def _compose(
         self, query: QueryRequest, claims: list[Claim], eligible: list[RetrievedEvidence]
     ) -> tuple[Composition | None, str]:
-        """The arranged answer and why — or the extract and the reason it was withheld.
-
-        The egress ceiling is asked before the composer, not inside it: the composer never
-        sees material it may not send, rather than being trusted to refuse it. Its own
-        `compose_answer` still guards what a permitted composer may *say*.
-        """
         if not self._composition_egress_permitted(claims, eligible):
             return None, "egress_tier_exceeded"
         return compose_answer(
@@ -427,15 +270,6 @@ class ExtractiveAnswerService:
     def _composition_egress_permitted(
         self, claims: list[Claim], eligible: list[RetrievedEvidence]
     ) -> bool:
-        """Whether the sentences a composer would send may leave the deployment.
-
-        The material sent is the claim text, so the tier that matters is the highest
-        classification among the documents whose spans actually back those claims — not
-        every eligible document, which would refuse composition for a public answer merely
-        because a restricted document ranked alongside it and produced no surviving claim.
-        A span with no known tier is treated as the most restrictive, not the least: the
-        one case where guessing is a leak.
-        """
         if self.egress_policy is None:
             return True
         tier_by_span = {str(item.span.id): item.document.access_tier for item in eligible}
@@ -449,46 +283,12 @@ class ExtractiveAnswerService:
         )
         return self.egress_policy.permits_material(material_tier)
 
-    def _search_plan(
-        self,
-        identity: Identity,
-        plan: QueryPlan,
-        corpora: frozenset[str],
-        as_of: date,
-        token: CorpusReadToken,
-    ) -> list[RetrievedEvidence]:
-        """Every search in the plan, fused by span, ranked as one set.
-
-        Every reformulation receives the same token. Scores from different queries are
-        comparable because they are produced by the same scorer against the same corpus;
-        the highest is kept when a span is found twice. Appearing under several phrasings
-        does not boost a span.
-        """
-        best: dict[str, RetrievedEvidence] = {}
-        for text in plan.searches:
-            for item in self.retriever.search(identity, text, corpora, as_of, token):
-                key = str(item.span.id)
-                previous = best.get(key)
-                if previous is None or item.score > previous.score:
-                    best[key] = item
-        return sorted(
-            best.values(),
-            key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal),
-        )
-
     def _extract(
         self,
         eligible: list[RetrievedEvidence],
         query_tokens: frozenset[str],
         thresholds: RiskThresholds,
     ) -> tuple[list[Claim], list[Citation], set[str]]:
-        """Build claim/citation pairs from eligible evidence.
-
-        Kept separate from `execute` so that the alignment check downstream has an
-        adversary: a substituted extraction can emit a claim that references a span the
-        answer does not carry, which is exactly the condition `verify_claim_support`
-        exists to catch and which the coupled loop could never produce.
-        """
         claims: list[Claim] = []
         citations: list[Citation] = []
         seen_sentences: set[str] = set()
@@ -510,12 +310,6 @@ class ExtractiveAnswerService:
             )
             if candidate is None or candidate.query_coverage < thresholds.minimum_query_coverage:
                 continue
-            # Measured rather than asserted. It used to be the constant 1.0 against a
-            # threshold clamped to at most 1.0, so the branch below was unreachable in
-            # every configuration and `SupportState.UNSUPPORTED` was produced nowhere.
-            # For a byte-for-byte extract the value is 1.0 by construction; it moves
-            # only if extraction stops being exact, which is the case the gate exists
-            # for. Relevance remains a separate query-coverage gate.
             support_score = extractive_support(candidate.text, item.span.text)
             if support_score < thresholds.minimum_support_score:
                 continue
@@ -612,13 +406,6 @@ class ExtractiveAnswerService:
         )
 
     def _misaligned(self, release_id: str, support: SupportVerdict) -> Answer:
-        """A claim that points outside the answer's own citations carries no evidence.
-
-        The previous shape of this computation could produce `evidence_coverage > 1`
-        and raise `ValidationError` inside the response model — a 500 where the value
-        function requires an abstention. Coverage is reported as 0.0 here because a
-        partially referenced answer earns no partial credit.
-        """
         return Answer(
             status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
             text=(
@@ -679,37 +466,4 @@ class ExtractiveAnswerService:
             calibration_id=self.answer_policy.calibration_id,
             limitations=["Генерацію зупинено fail-closed.", *(limitations or [])],
             corpus_release=release_id,
-        )
-
-    def _audit(
-        self,
-        identity: Identity,
-        query: QueryRequest,
-        answer: Answer,
-        retrieved: list[RetrievedEvidence],
-        eligible: list[RetrievedEvidence],
-        risk: QueryRisk = QueryRisk.STANDARD,
-        *,
-        breaches: list[ScopeBreach] | None = None,
-        support: SupportVerdict | None = None,
-        plan: QueryPlan | None = None,
-        composition: str | None = None,
-        token: CorpusReadToken | None = None,
-    ) -> None:
-        append_answer_audit(
-            self.repository,
-            identity,
-            query,
-            answer,
-            retrieved,
-            eligible,
-            risk,
-            minimum_score=self.answer_policy.minimum_score,
-            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
-            minimum_support_score=self.answer_policy.minimum_support_score,
-            breaches=breaches,
-            support=support,
-            plan=plan,
-            composition=composition,
-            token=token,
         )
