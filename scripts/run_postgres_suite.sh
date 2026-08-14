@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Run the whole test suite against a migrated PostgreSQL database.
+# Run selected tests, or the whole suite when no targets are supplied, against migrated PostgreSQL.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
 python_bin="${PYTHON:-$root/apps/api/.venv/bin/python}"
+pytest_targets=("$@")
+if (( ${#pytest_targets[@]} == 0 )); then
+  pytest_targets=(apps/api/tests)
+fi
 
 if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
   if [[ -z "${KORPUS_REVIEW_DATABASE_URL:-}" || -z "${RLS_IDENTITY_DATABASE_URL:-}" ]]; then
     echo "KORPUS_REVIEW_DATABASE_URL and RLS_IDENTITY_DATABASE_URL are required with an external PostgreSQL test DB" >&2
     exit 2
   fi
-  exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest apps/api/tests --no-cov "$@"
+  exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest "${pytest_targets[@]}" --no-cov
 fi
 
 image="pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f"
@@ -64,4 +68,4 @@ KORPUS_TEST_DATABASE_ADMIN_URL="$admin_url" \
 KORPUS_POSTGRES_TEST_URL="$app_url" \
 KORPUS_REVIEW_DATABASE_URL="$review_url" \
 RLS_IDENTITY_DATABASE_URL="$identity_url" \
-PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest apps/api/tests --no-cov "$@"
+PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest "${pytest_targets[@]}" --no-cov
