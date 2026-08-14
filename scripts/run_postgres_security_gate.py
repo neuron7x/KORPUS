@@ -71,9 +71,11 @@ def main() -> int:
         )
         runtime_exit = completed.returncode
         runtime_tail = (completed.stdout + completed.stderr)[-8000:]
+    runtime_executed = runtime_exit is not None
     checks = {
         "security_contract_static": static.returncode == 0,
         "postgres_runtime_available": runtime_available,
+        "postgres_runtime_executed": runtime_executed,
         "postgres_adversarial_suite": runtime_exit == 0,
     }
     failures = [name for name, ok in checks.items() if not ok]
@@ -84,9 +86,12 @@ def main() -> int:
         release=release_tag(),
         checks=checks,
         failures=failures,
-        backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
+        backend="postgresql" if runtime_executed else "UNEXECUTED",
         evidence_class="REAL_POSTGRESQL_REQUIRED",
         scope="LEGACY_POSTGRES_PLUS_NONFORGEABLE_RLS",
+        runtime_state=(
+            "PASS" if runtime_exit == 0 else "FAIL" if runtime_executed else "NOT_EXECUTED"
+        ),
         static_pytest_targets=STATIC_TARGETS,
         pytest_targets=RUNTIME_TARGETS,
         runtime_exit_code=runtime_exit,
