@@ -237,7 +237,10 @@ api:postgres-and-restore:
     KORPUS_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_POSTGRES_APP_ROLE: korpus_app
     KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
+    KORPUS_POSTGRES_REVIEW_ROLE: korpus_review
+    KORPUS_POSTGRES_REVIEW_PASSWORD: korpus-review-test-password
     KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
+    KORPUS_REVIEW_DATABASE_URL: postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_test
     KORPUS_DATABASE_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DATABASE_URL: postgresql://postgres:postgres-test-password@postgres:5432/korpus_test
     KORPUS_BACKUP_DIR: "$CI_PROJECT_DIR/var/backups"
@@ -285,6 +288,7 @@ api:postgres-and-restore:
     - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
     - python scripts/prepare_postgres_role.py
     - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
+    - export KORPUS_REVIEW_DATABASE_URL='postgresql+psycopg://korpus_review:korpus-review-test-password@postgres:5432/korpus_restore'
     - python scripts/verify_postgres_restore.py
     # The runbook has asked for restore duration against the declared RTO since v5 and
     # nothing recorded it: a restore that took six hours passed every check here. The
@@ -356,7 +360,7 @@ python:audit:
     # radius than a runtime package inside a read-only container. Running it here for
     # the first time on 2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
     - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
-    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"pip-audit:runtime","exit_code":0},{"scanner":"pip-audit:dev","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-pip-audit.json
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","status":"PASS","worst_exit_code":0,"scanners":[{"scanner":"pip-audit:runtime","exit_code":0},{"scanner":"pip-audit:dev","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-pip-audit.json
   artifacts:
     paths: [var/security/ci-pip-audit.json]
 
