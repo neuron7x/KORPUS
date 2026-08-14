@@ -32,6 +32,9 @@ READ_WRITE_TABLES = (
     "conversations",
     "messages",
 )
+# Snapshot readers need the epoch, but application SQL must never be able to forge it.
+# The migration-owned SECURITY DEFINER trigger is the only writer.
+READ_ONLY_TABLES = ("corpus_state_epoch",)
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
 
@@ -86,6 +89,10 @@ with engine.connect() as connection:
                 f"GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE "
                 f"{quoted_identifier(table_name)} TO {role_sql}"
             )
+        )
+    for table_name in READ_ONLY_TABLES:
+        connection.execute(
+            text(f"GRANT SELECT ON TABLE {quoted_identifier(table_name)} TO {role_sql}")
         )
     for table_name in AUDIT_APPEND_TABLES:
         connection.execute(
