@@ -8,7 +8,12 @@ import pytest
 from sqlalchemy import text
 
 from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAuditPolicy
-from korpus.application.corpus_snapshot import CorpusReadToken, version_evidence_digest
+from korpus.application.corpus_snapshot import (
+    CorpusConsistencyError,
+    CorpusReadToken,
+    version_evidence_digest,
+)
+from korpus.domain.models import Identity
 
 
 def _token(release_id: str) -> CorpusReadToken:
@@ -49,6 +54,37 @@ def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> N
     missing = version_evidence_digest([("span-1", 0, None, None, content, text_hash)])
     empty = version_evidence_digest([("span-1", 0, None, "", content, text_hash)])
     assert missing != empty
+
+
+def test_snapshot_token_cannot_be_reused_for_another_historical_date(
+    client, admin_identity
+) -> None:
+    reader = client.app.state.corpus_snapshot_reader
+    corpora = frozenset({"public"})
+    captured_at = date(2026, 8, 14)
+    token = reader.capture(admin_identity, corpora, captured_at)
+
+    with pytest.raises(CorpusConsistencyError, match="historical date"):
+        reader.validate(admin_identity, corpora, date(2026, 8, 13), token)
+
+
+def test_snapshot_token_cannot_be_reused_under_another_authorization_identity(
+    client, admin_identity
+) -> None:
+    reader = client.app.state.corpus_snapshot_reader
+    corpora = frozenset({"public"})
+    as_of = date(2026, 8, 14)
+    token = reader.capture(admin_identity, corpora, as_of)
+    changed_identity = Identity(
+        subject=admin_identity.subject,
+        roles=admin_identity.roles | {"snapshot_scope_probe"},
+        clearance=admin_identity.clearance,
+        corpora=admin_identity.corpora,
+        compartments=admin_identity.compartments,
+    )
+
+    with pytest.raises(CorpusConsistencyError, match="authorization identity"):
+        reader.validate(changed_identity, corpora, as_of, token)
 
 
 def test_answer_runtime_rejects_split_snapshot_authorities() -> None:
