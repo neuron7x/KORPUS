@@ -32,8 +32,8 @@ if [[ "$failed" -ne 0 ]]; then
   # then read a report from a different tree and said "generated from a different source
   # tree" — true, and three steps from the actual cause. Absent evidence and stale
   # evidence must not be the same state.
-  rm -f "$root/var/mutation-report.json"
-  echo "one or more mutation shards failed; removed the stale report" >&2
+  rm -f "$root/var/mutation-report.json" "$root/var/snapshot-mutation-report.json"
+  echo "one or more mutation shards failed; removed stale mutation reports" >&2
   for ((index=0; index<shards; index++)); do
     echo "--- shard $index ---" >&2
     tail -80 "var/mutation-shard-${index}.log" >&2 || true
@@ -41,3 +41,9 @@ if [[ "$failed" -ne 0 ]]; then
   exit 1
 fi
 PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" scripts/run_mutation_tests.py --merge --shard-count "$shards"
+# Cross-layer temporal snapshot invariants have their own surgical destruction set.
+# Keep it in the same `mutation` target so the assurance job cannot report a green
+# mutation gate while issue #23's pre/post-read, cache-epoch, release-width, or
+# semantic-epoch controls are untested.
+PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" PYTHON="$python_bin" \
+  "$python_bin" scripts/run_snapshot_mutation_tests.py
