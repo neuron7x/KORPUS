@@ -1,4 +1,4 @@
-"""Structural verification for database-owned temporal snapshot guards."""
+"""Structural and semantic verification for database-owned temporal snapshot guards."""
 from __future__ import annotations
 
 from sqlalchemy import text as sql_text
@@ -134,14 +134,15 @@ def _postgres_guards(connection: Connection) -> None:
     )
 
     functions = {
-        str(row[0]): (bool(row[1]), tuple(row[2] or ()))
+        str(row[0]): (bool(row[1]), tuple(row[2] or ()), _normalize(row[3]))
         for row in connection.execute(
             sql_text(
-                "SELECT p.proname, p.prosecdef, p.proconfig "
+                "SELECT p.proname, p.prosecdef, p.proconfig, pg_get_functiondef(p.oid) "
                 "FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace "
                 "WHERE n.nspname = 'public' AND p.proname IN "
                 "('korpus_bump_corpus_state_epoch', "
-                "'korpus_refuse_approved_evidence_mutation')"
+                "'korpus_refuse_approved_evidence_mutation', "
+                "'korpus_refuse_approved_digest_mutation')"
             )
         ).all()
     }
@@ -152,12 +153,36 @@ def _postgres_guards(connection: Connection) -> None:
         metadata = functions.get(name)
         if metadata is None:
             raise RuntimeError(f"corpus snapshot guard function is missing: {name}")
-        security_definer, configuration = metadata
+        security_definer, configuration, _definition = metadata
         normalized_config = {item.replace(" ", "").lower() for item in configuration}
         if not security_definer or "search_path=pg_catalog" not in normalized_config:
             raise RuntimeError(
                 f"corpus snapshot guard function is not hardened: {name}"
             )
+
+    function_requirements = {
+        "korpus_bump_corpus_state_epoch": (
+            "update public.corpus_state_epoch set epoch = epoch + 1 where singleton_id = 1",
+            "return null",
+        ),
+        "korpus_refuse_approved_evidence_mutation": (
+            "from public.document_versions",
+            "for share",
+            "evidence_digest",
+            "raise exception 'sealed evidence is immutable'",
+        ),
+        "korpus_refuse_approved_digest_mutation": (
+            "old.evidence_digest is not null",
+            "new.evidence_digest is distinct from old.evidence_digest",
+            "raise exception 'sealed evidence digest is immutable'",
+        ),
+    }
+    for name, required in function_requirements.items():
+        metadata = functions.get(name)
+        if metadata is None:
+            raise RuntimeError(f"corpus snapshot guard function is missing: {name}")
+        _security_definer, _configuration, definition = metadata
+        _assert_definition(name, definition, required)
 
 
 def require_guards(connection: Connection) -> None:
