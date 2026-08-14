@@ -106,14 +106,15 @@ def test_postgres_approval_seal_serializes_concurrent_evidence_mutation(
 
     changed_text = f"{span.text} tampered during approval"
     changed_hash = hashlib.sha256(changed_text.encode("utf-8")).hexdigest()
+    phantom_text = "phantom evidence inserted after the approval seal"
     injected_values = {
         "id": str(uuid4()),
         "version_id": str(version.id),
         "ordinal": 1,
         "page": None,
         "section": None,
-        "text": "phantom evidence inserted after the approval seal",
-        "text_hash": hashlib.sha256(b"phantom evidence inserted after the approval seal").hexdigest(),
+        "text": phantom_text,
+        "text_hash": hashlib.sha256(phantom_text.encode("utf-8")).hexdigest(),
         "created_at": datetime.now(UTC),
     }
 
