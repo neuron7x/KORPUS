@@ -101,6 +101,35 @@ def test_cache_is_bound_to_identity_release_epoch_and_configuration() -> None:
     assert cache.stats().hits == 1
 
 
+def test_cache_never_returns_hit_if_state_changes_during_lookup() -> None:
+    reader = SnapshotReader()
+
+    class MutatingCache(EvidenceQueryCache):
+        mutate = False
+
+        def get(self, key: str):
+            value = super().get(key)
+            if self.mutate and value is not None:
+                reader.epoch += 1
+            return value
+
+    delegate = Delegate()
+    cache = MutatingCache(maximum_entries=8, ttl_seconds=60)
+    retriever = CachedRetriever(reader, delegate, cache, "config-a")
+    actor = identity("alice")
+    corpora = frozenset({"public"})
+    as_of = date(2026, 1, 1)
+    token = reader.capture(actor, corpora, as_of)
+
+    retriever.search(actor, "query", corpora, as_of, token)
+    assert delegate.calls == 1
+    cache.mutate = True
+
+    with pytest.raises(CorpusConsistencyError):
+        retriever.search(actor, "query", corpora, as_of, token)
+    assert delegate.calls == 1
+
+
 def test_cache_never_stores_result_if_state_changes_during_search() -> None:
     """Deterministic destruction control C for issue #23, without scheduler timing."""
     reader = SnapshotReader()
