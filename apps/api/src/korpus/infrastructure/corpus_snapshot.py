@@ -48,9 +48,6 @@ class SqlCorpusSnapshotReader:
     def __init__(self, repository: SqlRepository) -> None:
         self.repository = repository
         self.engine = repository.engine
-        # A service assembled directly around the same repository (several focused tests
-        # do this) can still discover the one startup-owned reader. No constructor is
-        # allowed to manufacture a weaker release reader on demand.
         setattr(repository, "corpus_snapshot_reader", self)
 
     def initialize(self, *, create_schema: bool) -> None:
@@ -194,8 +191,8 @@ class SqlCorpusSnapshotReader:
                 "CREATE TRIGGER IF NOT EXISTS trg_evidence_spans_immutable_insert "
                 "BEFORE INSERT ON evidence_spans "
                 "WHEN EXISTS (SELECT 1 FROM document_versions "
-                "WHERE id = NEW.version_id AND review_state = 'approved') "
-                "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+                "WHERE id = NEW.version_id AND evidence_digest IS NOT NULL) "
+                "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
             )
         )
         connection.execute(
@@ -203,8 +200,8 @@ class SqlCorpusSnapshotReader:
                 "CREATE TRIGGER IF NOT EXISTS trg_evidence_spans_immutable_delete "
                 "BEFORE DELETE ON evidence_spans "
                 "WHEN EXISTS (SELECT 1 FROM document_versions "
-                "WHERE id = OLD.version_id AND review_state = 'approved') "
-                "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+                "WHERE id = OLD.version_id AND evidence_digest IS NOT NULL) "
+                "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
             )
         )
         connection.execute(
@@ -212,17 +209,17 @@ class SqlCorpusSnapshotReader:
                 "CREATE TRIGGER IF NOT EXISTS trg_evidence_spans_immutable_update "
                 "BEFORE UPDATE ON evidence_spans "
                 "WHEN EXISTS (SELECT 1 FROM document_versions "
-                "WHERE id IN (OLD.version_id, NEW.version_id) AND review_state = 'approved') "
-                "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
+                "WHERE id IN (OLD.version_id, NEW.version_id) AND evidence_digest IS NOT NULL) "
+                "BEGIN SELECT RAISE(ABORT, 'sealed evidence is immutable'); END"
             )
         )
         connection.execute(
             sql_text(
                 "CREATE TRIGGER IF NOT EXISTS trg_approved_version_digest_immutable "
                 "BEFORE UPDATE OF evidence_digest ON document_versions "
-                "WHEN OLD.review_state = 'approved' "
+                "WHEN OLD.evidence_digest IS NOT NULL "
                 "AND NEW.evidence_digest IS NOT OLD.evidence_digest "
-                "BEGIN SELECT RAISE(ABORT, 'approved evidence digest is immutable'); END"
+                "BEGIN SELECT RAISE(ABORT, 'sealed evidence digest is immutable'); END"
             )
         )
 
@@ -255,34 +252,34 @@ class SqlCorpusSnapshotReader:
                 CREATE OR REPLACE FUNCTION korpus_refuse_approved_evidence_mutation()
                 RETURNS trigger AS $$
                 DECLARE
-                  locked_state text;
+                  locked_digest text;
                 BEGIN
                   IF TG_OP = 'INSERT' THEN
-                    SELECT review_state INTO locked_state
+                    SELECT evidence_digest INTO locked_digest
                     FROM public.document_versions
                     WHERE id = NEW.version_id
                     FOR SHARE;
-                    IF locked_state = 'approved' THEN
-                      RAISE EXCEPTION 'approved evidence is immutable';
+                    IF locked_digest IS NOT NULL THEN
+                      RAISE EXCEPTION 'sealed evidence is immutable';
                     END IF;
                   ELSIF TG_OP = 'DELETE' THEN
-                    SELECT review_state INTO locked_state
+                    SELECT evidence_digest INTO locked_digest
                     FROM public.document_versions
                     WHERE id = OLD.version_id
                     FOR SHARE;
-                    IF locked_state = 'approved' THEN
-                      RAISE EXCEPTION 'approved evidence is immutable';
+                    IF locked_digest IS NOT NULL THEN
+                      RAISE EXCEPTION 'sealed evidence is immutable';
                     END IF;
                   ELSE
-                    FOR locked_state IN
-                      SELECT review_state
+                    FOR locked_digest IN
+                      SELECT evidence_digest
                       FROM public.document_versions
                       WHERE id IN (OLD.version_id, NEW.version_id)
                       ORDER BY id
                       FOR SHARE
                     LOOP
-                      IF locked_state = 'approved' THEN
-                        RAISE EXCEPTION 'approved evidence is immutable';
+                      IF locked_digest IS NOT NULL THEN
+                        RAISE EXCEPTION 'sealed evidence is immutable';
                       END IF;
                     END LOOP;
                   END IF;
@@ -314,9 +311,9 @@ class SqlCorpusSnapshotReader:
                 CREATE OR REPLACE FUNCTION korpus_refuse_approved_digest_mutation()
                 RETURNS trigger AS $$
                 BEGIN
-                  IF OLD.review_state = 'approved'
+                  IF OLD.evidence_digest IS NOT NULL
                      AND NEW.evidence_digest IS DISTINCT FROM OLD.evidence_digest THEN
-                    RAISE EXCEPTION 'approved evidence digest is immutable';
+                    RAISE EXCEPTION 'sealed evidence digest is immutable';
                   END IF;
                   RETURN NEW;
                 END;
