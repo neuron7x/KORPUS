@@ -11,7 +11,7 @@ from korpus.domain.models import Identity, RetrievedEvidence
 
 _SCOPE_DOMAIN = b"korpus-corpus-read-scope-v1\0"
 _EVIDENCE_DOMAIN = b"korpus-version-evidence-v1\0"
-_RELEASE_DOMAIN = b"korpus-temporal-release-v1\0"
+_RELEASE_DOMAIN = b"korpus-temporal-semantic-release-v2\0"
 
 
 class CorpusConsistencyError(RuntimeError):
@@ -37,6 +37,31 @@ class CorpusReadToken:
             ch not in "0123456789abcdef" for ch in self.authorization_scope_id
         ):
             raise ValueError("authorization_scope_id must be a SHA-256 hex digest")
+
+
+@dataclass(frozen=True, order=True, slots=True)
+class SemanticReleaseMember:
+    """Canonical answer-visible/decision-relevant state for one visible version."""
+
+    document_id: str
+    version_id: str
+    source_hash: str
+    review_state: str
+    evidence_digest: str
+    canonical_title: str
+    corpus_id: str
+    access_tier: str
+    classification: str
+    document_compartments: str
+    visibility_compartments: str
+    revision: str
+    source_uri: str
+    publication_date: str
+    effective_from: str
+    effective_until: str
+    rescinded_at: str
+    authority: str
+    supersedes_version_id: str
 
 
 class CorpusSnapshotReader(Protocol):
@@ -78,6 +103,21 @@ def _frame(hasher: _HashWriter, value: str) -> None:
     hasher.update(encoded)
 
 
+def canonical_optional(value: str | None) -> str:
+    """Tag absence so it cannot collide with a present empty string."""
+    return "0" if value is None else f"1:{value}"
+
+
+def canonical_set(values: Iterable[str]) -> str:
+    """Length-frame a set so delimiters inside identifiers cannot create collisions."""
+    normalized = sorted(set(values))
+    digest = hashlib.sha256()
+    digest.update(b"korpus-semantic-set-v1\0")
+    for value in normalized:
+        _frame(digest, value)
+    return f"{len(normalized)}:{digest.hexdigest()}"
+
+
 def token_audit_record(token: CorpusReadToken | None) -> dict[str, object] | None:
     if token is None:
         return None
@@ -91,7 +131,7 @@ def token_audit_record(token: CorpusReadToken | None) -> dict[str, object] | Non
 
 
 def authorization_scope_id(identity: Identity, corpus_ids: frozenset[str]) -> str:
-    """Commit a token to every identity attribute that can alter retrieval visibility."""
+    """Commit every identity attribute that can alter retrieval visibility."""
     digest = hashlib.sha256()
     digest.update(_SCOPE_DOMAIN)
     _frame(digest, identity.subject)
@@ -108,36 +148,42 @@ def authorization_scope_id(identity: Identity, corpus_ids: frozenset[str]) -> st
     return digest.hexdigest()
 
 
-def release_identity_digest(rows: Iterable[tuple[str, str, str, str, str]]) -> str:
-    """Commit the exact visible approved-version set to one canonical release identity.
-
-    Tuples are `(document_id, version_id, source_hash, review_state, evidence_digest)`.
-    Every field is framed independently and rows are set-normalized before sorting, so
-    SQL join multiplicity and row order do not alter the preimage; changing any field
-    changes that canonical preimage before SHA-256 is applied.
-    """
-    unique = set(rows)
+def release_identity_digest(rows: Iterable[SemanticReleaseMember]) -> str:
+    """Commit the versioned semantic projection of the exact visible release."""
     digest = hashlib.sha256()
     digest.update(_RELEASE_DOMAIN)
-    for document_id, version_id, source_hash, review_state, evidence_digest in sorted(unique):
+    for member in sorted(set(rows)):
+        document_id = member.document_id
+        version_id = member.version_id
+        source_hash = member.source_hash
+        review_state = member.review_state
+        evidence_digest = member.evidence_digest
         _frame(digest, document_id)
         _frame(digest, version_id)
         _frame(digest, source_hash)
         _frame(digest, review_state)
         _frame(digest, evidence_digest)
+        _frame(digest, member.canonical_title)
+        _frame(digest, member.corpus_id)
+        _frame(digest, member.access_tier)
+        _frame(digest, member.classification)
+        _frame(digest, member.document_compartments)
+        _frame(digest, member.visibility_compartments)
+        _frame(digest, member.revision)
+        _frame(digest, member.source_uri)
+        _frame(digest, member.publication_date)
+        _frame(digest, member.effective_from)
+        _frame(digest, member.effective_until)
+        _frame(digest, member.rescinded_at)
+        _frame(digest, member.authority)
+        _frame(digest, member.supersedes_version_id)
     return digest.hexdigest()
 
 
 def version_evidence_digest(
     rows: Iterable[tuple[str, int, int | None, str | None, str, str]],
 ) -> str:
-    """Digest the exact ordered span set and verify every stored text hash first.
-
-    Input tuples are `(span_id, ordinal, page, section, text, text_hash)`. The span id
-    and ordinal make insertion/deletion/reordering visible; nullable metadata is tagged
-    before framing so `None` cannot collide with a present empty value; `text_hash` is
-    accepted only after recomputing it from the stored text.
-    """
+    """Digest the exact ordered span set and verify every stored text hash first."""
     normalized = sorted(rows, key=lambda row: (row[1], row[0]))
     if not normalized:
         raise CorpusConsistencyError("an approved version cannot seal an empty evidence set")
