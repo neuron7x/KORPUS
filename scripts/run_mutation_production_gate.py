@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Promote only a complete, current, survivor-free mutation catalogue into production evidence."""
+"""Promote only complete, current, survivor-free mutation evidence into production."""
 from __future__ import annotations
 
 import argparse
@@ -16,35 +16,73 @@ from korpus.application.provenance import compute_source_digest, read_provenance
 from release_identity import release_tag  # noqa: E402
 
 
+def _read(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def _source_bound(report: dict, source: str) -> bool:
+    try:
+        provenance = read_provenance(report) if report else None
+        return provenance is not None and provenance.source_digest == source
+    except (TypeError, ValueError):
+        return False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path, default=ROOT / "var/mutation-report.json")
+    parser.add_argument(
+        "--snapshot-report",
+        type=Path,
+        default=ROOT / "var/snapshot-mutation-report.json",
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/mutation-gate.json")
     args = parser.parse_args()
     source = compute_source_digest(ROOT)
     release = release_tag()
-    report = json.loads(args.report.read_text(encoding="utf-8")) if args.report.is_file() else {}
-    try:
-        provenance = read_provenance(report) if report else None
-        provenance_current = provenance is not None and provenance.source_digest == source
-    except (TypeError, ValueError):
-        provenance_current = False
+    report = _read(args.report)
+    snapshot = _read(args.snapshot_report)
+
     total = int(report.get("mutants", 0) or 0)
     valid = int(report.get("valid_mutants", 0) or 0)
     killed = int(report.get("killed", 0) or 0)
+    snapshot_total = int(snapshot.get("mutants", 0) or 0)
+    snapshot_executed = int(snapshot.get("executed_mutants", 0) or 0)
+    snapshot_killed = int(snapshot.get("killed", 0) or 0)
+
     checks = {
         "report_present": bool(report),
-        "source_bound": provenance_current,
+        "source_bound": _source_bound(report, source),
         "catalogue_nonempty": total > 0,
         "all_mutants_valid": valid == total and not report.get("invalid"),
         "all_valid_mutants_killed": killed == valid and not report.get("survived"),
         "catalogue_score_one": report.get("mutation_score_over_catalogue") == 1.0,
+        "snapshot_report_present": bool(snapshot),
+        "snapshot_source_bound": _source_bound(snapshot, source),
+        "snapshot_catalogue_nonempty": snapshot_total > 0,
+        "snapshot_all_mutants_executed": snapshot_executed == snapshot_total,
+        "snapshot_all_mutants_killed": (
+            snapshot.get("status") == "PASS"
+            and snapshot_killed == snapshot_total
+            and not snapshot.get("survived")
+            and not snapshot.get("invalid")
+        ),
     }
     failures = [name for name, passed in checks.items() if not passed]
     payload = gate_payload(
-        "mutation", status="PASS" if not failures else "FAIL", source_digest=source,
-        release=release, checks=checks, failures=failures, scope="FULL_CATALOGUE",
-        evidence_class="EXECUTED_FIRST_ORDER_MUTATION", mutants=total, valid_mutants=valid, killed=killed,
+        "mutation",
+        status="PASS" if not failures else "FAIL",
+        source_digest=source,
+        release=release,
+        checks=checks,
+        failures=failures,
+        scope="FULL_CATALOGUE_PLUS_TEMPORAL_SNAPSHOT",
+        evidence_class="EXECUTED_FIRST_ORDER_MUTATION",
+        mutants=total,
+        valid_mutants=valid,
+        killed=killed,
+        snapshot_mutants=snapshot_total,
+        snapshot_killed=snapshot_killed,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
