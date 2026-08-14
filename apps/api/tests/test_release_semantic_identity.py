@@ -8,6 +8,7 @@ from apps.api.tests.helpers import approve, ingest_text, ingest_version
 from korpus.infrastructure.schema import document_compartments, documents, versions
 
 AS_OF = date(2026, 8, 14)
+PUBLIC = frozenset({"public"})
 
 
 def _approved(client) -> tuple[str, str]:
@@ -22,11 +23,18 @@ def _approved(client) -> tuple[str, str]:
     return document_id, version_id
 
 
-def _capture(client, identity, corpora=frozenset({"public"})):
+def _capture(client, identity, corpora=PUBLIC):
     return client.app.state.corpus_snapshot_reader.capture(identity, corpora, AS_OF)
 
 
-def _mutate_and_require_new_release(repository, identity, statement, before, client, corpora):
+def _mutate_and_require_new_release(
+    repository,
+    identity,
+    statement,
+    before,
+    client,
+    corpora,
+):
     with repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, identity)
         connection.execute(statement)
@@ -114,7 +122,9 @@ def test_visibility_compartment_change_changes_release_while_member_remains_visi
     assert before.release_id != after.release_id
 
 
-def test_each_stable_semantic_projection_field_changes_release(client, admin_identity) -> None:
+def test_each_stable_semantic_projection_field_changes_release(
+    client, admin_identity
+) -> None:
     document_id, version_id = _approved(client)
     shadow = ingest_version(
         client,
@@ -129,25 +139,40 @@ def test_each_stable_semantic_projection_field_changes_release(client, admin_ide
     current = _capture(client, identity, corpora)
 
     statements = (
-        update(documents).where(documents.c.id == document_id).values(canonical_title="Title v2"),
+        update(documents)
+        .where(documents.c.id == document_id)
+        .values(canonical_title="Title v2"),
         update(documents).where(documents.c.id == document_id).values(corpus_id="training"),
         update(documents).where(documents.c.id == document_id).values(access_tier=1),
-        update(documents).where(documents.c.id == document_id).values(classification="internal"),
+        update(documents)
+        .where(documents.c.id == document_id)
+        .values(classification="internal"),
         update(documents)
         .where(documents.c.id == document_id)
         .values(compartments_json='["alpha"]'),
-        insert(document_compartments).values(document_id=document_id, compartment="alpha"),
+        insert(document_compartments).values(
+            document_id=document_id,
+            compartment="alpha",
+        ),
         update(versions).where(versions.c.id == version_id).values(revision="2.0"),
         update(versions)
         .where(versions.c.id == version_id)
         .values(source_uri="https://source.invalid/release-v2"),
-        update(versions).where(versions.c.id == version_id).values(publication_date=date(2021, 1, 1)),
-        update(versions).where(versions.c.id == version_id).values(effective_from=date(2022, 1, 1)),
-        update(versions).where(versions.c.id == version_id).values(effective_until=date(2030, 1, 1)),
+        update(versions)
+        .where(versions.c.id == version_id)
+        .values(publication_date=date(2021, 1, 1)),
+        update(versions)
+        .where(versions.c.id == version_id)
+        .values(effective_from=date(2022, 1, 1)),
+        update(versions)
+        .where(versions.c.id == version_id)
+        .values(effective_until=date(2030, 1, 1)),
         update(versions)
         .where(versions.c.id == version_id)
         .values(rescinded_at=datetime(2030, 1, 1, tzinfo=UTC)),
-        update(versions).where(versions.c.id == version_id).values(authority="official_allied"),
+        update(versions)
+        .where(versions.c.id == version_id)
+        .values(authority="official_allied"),
         update(versions)
         .where(versions.c.id == version_id)
         .values(supersedes_version_id=shadow_version_id),
