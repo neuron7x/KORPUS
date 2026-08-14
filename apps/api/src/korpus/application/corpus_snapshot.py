@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Protocol
 
-from korpus.domain.models import Identity
+from korpus.domain.models import Identity, RetrievedEvidence
 
 _SCOPE_DOMAIN = b"korpus-corpus-read-scope-v1\0"
 _EVIDENCE_DOMAIN = b"korpus-version-evidence-v1\0"
@@ -51,6 +51,18 @@ class CorpusSnapshotReader(Protocol):
         as_of: date,
         token: CorpusReadToken,
     ) -> None: ...
+
+
+class SnapshotRetriever(Protocol):
+    def search(
+        self,
+        identity: Identity,
+        text: str,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        token: CorpusReadToken,
+        limit: int = 8,
+    ) -> list[RetrievedEvidence]: ...
 
 
 class _HashWriter(Protocol):
