@@ -77,6 +77,18 @@ def _frame(hasher: _HashWriter, value: str) -> None:
     hasher.update(encoded)
 
 
+def token_audit_record(token: CorpusReadToken | None) -> dict[str, object] | None:
+    if token is None:
+        return None
+    return {
+        "state_epoch": token.state_epoch,
+        "release_id": token.release_id,
+        "as_of": token.as_of.isoformat(),
+        "corpus_ids": sorted(token.corpus_ids),
+        "authorization_scope_id": token.authorization_scope_id,
+    }
+
+
 def authorization_scope_id(identity: Identity, corpus_ids: frozenset[str]) -> str:
     """Commit a token to every identity attribute that can alter retrieval visibility."""
     digest = hashlib.sha256()
