@@ -13,7 +13,7 @@ from korpus.application.corpus_snapshot import (
     CorpusReadToken,
     version_evidence_digest,
 )
-from korpus.domain.models import Identity
+from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure import corpus_snapshot_guards
 
 
@@ -80,20 +80,22 @@ def test_snapshot_token_cannot_be_reused_for_another_historical_date(
         reader.validate(admin_identity, corpora, date(2026, 8, 13), token)
 
 
+@pytest.mark.parametrize("field", ["subject", "clearance", "roles", "corpora", "compartments"])
 def test_snapshot_token_cannot_be_reused_under_another_authorization_identity(
-    client, admin_identity
+    client, admin_identity, field: str
 ) -> None:
     reader = client.app.state.corpus_snapshot_reader
     corpora = frozenset({"public"})
     as_of = date(2026, 8, 14)
     token = reader.capture(admin_identity, corpora, as_of)
-    changed_identity = Identity(
-        subject=admin_identity.subject,
-        roles=admin_identity.roles | {"snapshot_scope_probe"},
-        clearance=admin_identity.clearance,
-        corpora=admin_identity.corpora,
-        compartments=admin_identity.compartments,
-    )
+    changes: dict[str, object] = {
+        "subject": f"{admin_identity.subject}-other",
+        "clearance": AccessTier.AUTHENTICATED,
+        "roles": admin_identity.roles | {"snapshot_scope_probe"},
+        "corpora": admin_identity.corpora | {"snapshot-scope-probe"},
+        "compartments": admin_identity.compartments | {"snapshot-scope-probe"},
+    }
+    changed_identity = admin_identity.model_copy(update={field: changes[field]})
 
     with pytest.raises(CorpusConsistencyError, match="authorization identity"):
         reader.validate(changed_identity, corpora, as_of, token)
