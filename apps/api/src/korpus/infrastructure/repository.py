@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import threading
 import time
@@ -24,7 +25,7 @@ from sqlalchemy import (
 from sqlalchemy import (
     text as sql_text,
 )
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection, make_url
 from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
@@ -43,9 +44,6 @@ from korpus.domain.models import (
 from korpus.infrastructure import retrieval_queries, row_mapping, review_transitions
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
-
-# COD-001: the physical schema moved to infrastructure/schema.py. Re-exported here
-# because every call site, migration and mutant names these on `repository`.
 from korpus.infrastructure.ingestion_schema import ingestion_jobs
 from korpus.infrastructure.schema import (
     SCHEMA_REVISION,
@@ -59,11 +57,6 @@ from korpus.infrastructure.schema import (
     spans,
     versions,
 )
-
-# ACT-001: the account/subscription/conversation tables hang off the same `MetaData`, and
-# nothing in this module reads them. The import is what registers them, so `create_all`
-# builds them and `initialize(create_schema=False)` notices when a migration has not run —
-# a table that exists in the code and not in the database is the failure that check is for.
 from korpus.infrastructure.tenancy_schema import (
     accounts,
     billing_events,
@@ -73,10 +66,6 @@ from korpus.infrastructure.tenancy_schema import (
     subscriptions,
 )
 
-# `span_embeddings` is not touched here — semantic.py writes it in raw SQL and
-# test_postgres_integration.py reads it through this name. Re-exporting it silently
-# would leave a linter to delete it and a PostgreSQL-only test to fail three stages
-# later, so the re-export is declared rather than incidental.
 __all__ = [
     "SCHEMA_REVISION",
     "ConcurrentWriteError",
@@ -122,10 +111,8 @@ class SqlRepository:
         connect_timeout_seconds: int = 5,
         statement_timeout_ms: int = 30_000,
         lock_timeout_ms: int = 5_000,
-        # Last, and only ever passed by name. Inserting it beside `audit_hmac_key` shifted
-        # every positional argument after it, and `FileAuditAnchorStore` was handed
-        # another `FileAuditAnchorStore` as its path.
         audit_keyring: AuditKeyRing | None = None,
+        review_database_url: str | None = None,
     ) -> None:
         engine_options: dict[str, Any] = {"future": True, "pool_pre_ping": True}
         if database_url.startswith("sqlite"):
@@ -133,8 +120,6 @@ class SqlRepository:
                 "check_same_thread": False,
                 "timeout": max(1, connect_timeout_seconds),
             }
-            # SQLite is a local/test profile. Avoid retaining DB-API handles across
-            # application lifecycles and threads; each unit of work owns its connection.
             engine_options["poolclass"] = NullPool
         elif database_url.startswith("postgresql"):
             engine_options.update(
@@ -151,12 +136,17 @@ class SqlRepository:
                 },
             )
         self.engine = create_engine(database_url, **engine_options)
+        review_url = review_database_url or os.getenv("KORPUS_REVIEW_DATABASE_URL") or database_url
+        if review_url != database_url:
+            primary, review = make_url(database_url), make_url(review_url)
+            primary_target = (primary.get_backend_name(), primary.host, primary.port, primary.database)
+            review_target = (review.get_backend_name(), review.host, review.port, review.database)
+            if primary_target != review_target or primary.get_backend_name() != "postgresql":
+                raise ValueError("review database identity must target the primary PostgreSQL database")
+        self.review_engine = self.engine if review_url == database_url else create_engine(review_url, **engine_options)
         if database_url.startswith("sqlite"):
             event.listen(self.engine, "connect", self._configure_sqlite)
         self.audit_key = audit_hmac_key.encode("utf-8")
-        #: One key until an operator rotates. `AuditKeyRing.single` names it
-        #: `legacy-unversioned`, which is what the migration wrote into every existing
-        #: row, so a rotation does not orphan the history.
         self.audit_keyring = audit_keyring or AuditKeyRing.single(self.audit_key)
         self.policy = policy or PolicyEngine()
         anchor_path = audit_anchor_path or Path("./var/audit-anchor.json")
@@ -165,9 +155,6 @@ class SqlRepository:
         )
         self._sqlite_write_lock = threading.RLock()
         self._anchor_delivery_lock = threading.Lock()
-        # The read side of the audit log. It shares no transaction with any write —
-        # every method opens its own connection — which is the one seam this class
-        # actually has (COD-001).
         self._audit_reader = AuditReader(
             self.engine,
             self.audit_key,
@@ -224,7 +211,6 @@ class SqlRepository:
                 ).one()
             if sequence == 0:
                 self.anchor_store.write(0, head_hash)
-        # The committed outbox is authoritative; background reconciliation repairs the anchor.
         with suppress(AnchorError):
             self.reconcile_audit_anchor()
 
@@ -345,17 +331,6 @@ class SqlRepository:
             raise ValueError("invalid content fingerprint")
         if not 0.5 <= minimum_similarity <= 1.0:
             raise ValueError("invalid near-duplicate threshold")
-        # The same access predicates retrieval applies. Until 2026-08-06 this filtered
-        # by corpus alone: no clearance, no classification, no compartment. The verdict
-        # travels back to the caller in the 201 body — the matched version's id and a
-        # *graded* similarity — so a curator whose `GET /v1/documents` is empty could
-        # submit a guess, read how close it came, and hill-climb the text of a
-        # restricted order out of a document they cannot list. A yes/no oracle is a
-        # disclosure; a graded one is a reconstruction method.
-        #
-        # Written out rather than reusing `retrievable_projection`, which also demands
-        # APPROVED and currency: a near-duplicate check has to see quarantined and
-        # superseded versions, or it stops catching the duplicate it exists for.
         statement = (
             select(versions)
             .join(documents, versions.c.document_id == documents.c.id)
@@ -394,14 +369,7 @@ class SqlRepository:
         document_id: UUID | None = None,
         revision: str | None = None,
     ) -> DocumentVersionRecord | None:
-        """Identical bytes under a different revision are a different version.
-
-        Deduplication keyed on content alone treats a re-issue as an upload of
-        something already held: the ingest returns the existing row, and the revision
-        number, effective dates and supersession edge that came with the re-issue are
-        discarded without a word. A revision is the corpus's own name for a distinct
-        state of a document, so it splits versions even when the bytes match.
-        """
+        """Identical bytes under a different revision are a different version."""
         statement = select(versions)
         if revision is not None:
             statement = statement.where(versions.c.revision == revision)
@@ -455,7 +423,7 @@ class SqlRepository:
             except review_transitions.ReviewTransitionConflict as exc:
                 raise ConcurrentWriteError(str(exc)) from exc
 
-        return self._transaction_with_anchor(operation)
+        return self._transaction_with_anchor(operation, engine=self.review_engine)
 
     def rescind_version(
         self,
@@ -465,15 +433,7 @@ class SqlRepository:
         note: str,
         rescinded_at: datetime | None = None,
     ) -> DocumentVersionRecord:
-        """Record that the issuing authority withdrew a document.
-
-        `rescinded_at` was read when deciding validity, had a mutant in the catalogue
-        and appeared in the import protocol, but no code path ever wrote it. The only
-        way to take an order out of force was REJECTED — a review verdict, not a
-        withdrawal: no reviewer mandate, no separation of duties, and irreversible. An
-        act by the body that issued a document is an ordinary event in a normative
-        corpus, and the system could not represent it.
-        """
+        """Record that the issuing authority withdrew a document."""
         stamp = rescinded_at or datetime.now(UTC)
 
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
@@ -525,16 +485,6 @@ class SqlRepository:
         as_of: date,
         version_id: UUID | None = None,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
-        """Every span the reader may retrieve, optionally narrowed to one version.
-
-        The narrowing belongs in SQL. Filtering the full projection in Python made the
-        cost of showing one order's passages grow with the whole corpus: measured
-        2026-08-05, 20 spans of one version took 5 ms in a corpus of 20 and 364 ms in a
-        corpus of 10 020 — 73× for a document that had not changed. At the size this
-        system is meant for that is both unusable and the cheapest denial of service in
-        it, available to any reader with a wide clearance.
-        """
-
         authorized_corpora = corpus_ids.intersection(identity.corpora)
         if not authorized_corpora:
             return []
@@ -604,8 +554,6 @@ class SqlRepository:
         limit: int,
         connection: Connection | None = None,
     ) -> list[str]:
-        """Execute the candidate query. Building it is retrieval_queries' half."""
-
         prepared = retrieval_queries.candidate_span_query(
             identity, corpora, as_of, query, limit, self.engine.dialect.name
         )
@@ -681,12 +629,6 @@ class SqlRepository:
         return self._transaction_with_anchor(operation)
 
     def reconcile_audit_anchor(self, *, limit: int | None = None) -> int:
-        """Deliver committed checkpoints from the transactional outbox.
-
-        The business transaction never depends on remote anchor availability.
-        Concurrent PostgreSQL workers claim rows with SKIP LOCKED; delivery is
-        idempotent at the anchor contract.
-        """
         if not self._anchor_delivery_lock.acquire(blocking=False):
             return 0
         try:
@@ -695,23 +637,6 @@ class SqlRepository:
             self._anchor_delivery_lock.release()
 
     def _reconcile_audit_anchor_locked(self, *, limit: int | None = None) -> int:
-        """Deliver the newest pending checkpoint and close the ones it supersedes.
-
-        Delivery used to walk the outbox one row at a time: select the oldest pending,
-        write it, mark it, repeat. With `audit_reconcile_batch_size = 64` every
-        `audit_reconcile_interval_seconds = 2.0` that is about 32 deliveries a second
-        against an append rate measured at ~480/s on PostgreSQL, so the backlog grew
-        without bound under load. Probed 2026-08-05: 1500 appends, two full reconcile
-        cycles after the load stopped, 882 checkpoints still undelivered — the external
-        anchor, which exists to notice a database rolled back to an older state, was
-        describing a state 882 events old while every gate stayed green.
-
-        The anchor holds one value, and `AnchorStore.write` is monotonic, so an older
-        checkpoint carries nothing a newer one does not. Writing the newest and closing
-        the rest costs one write per pass regardless of backlog. `limit` still caps the
-        rows closed per pass so a very large backlog cannot hold the lock indefinitely.
-        """
-
         with self.engine.connect() as connection:
             row = connection.execute(
                 select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
@@ -721,8 +646,6 @@ class SqlRepository:
             ).one_or_none()
         if row is None:
             return 0
-        # Never hold a database transaction or row lock across network I/O.
-        # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
         self.anchor_store.write(row.sequence, row.head_hash)
         statement = (
             update(audit_anchor_outbox)
@@ -731,8 +654,6 @@ class SqlRepository:
             .values(delivered_at=datetime.now(UTC))
         )
         if limit is not None:
-            # Close the newest `limit` of them, so the delivered checkpoint is always
-            # among the rows closed and the remainder stays pending for the next pass.
             floor = (
                 select(audit_anchor_outbox.c.sequence)
                 .where(audit_anchor_outbox.c.delivered_at.is_(None))
@@ -752,7 +673,6 @@ class SqlRepository:
     def read_audit_events(
         self, identity: Identity, trace_id: str, *, limit: int = 200
     ) -> list[dict[str, object]]:
-        """Authorisation is the caller's: this assumes the permission check happened."""
         return self._audit_reader.read_audit_events(identity, trace_id, limit=limit)
 
     def verify_audit(self) -> AuditVerification:
@@ -780,9 +700,6 @@ class SqlRepository:
                     str(row["review_state"]),
                 )
                 for row in rows
-                # The same currency rule the span path applies, evaluated once per
-                # version rather than once per span. `in_force_from` is the domain's,
-                # not a second copy of it.
                 if retrieval_queries.release_row_is_current(row, as_of)
             }
         digest = hashlib.sha256()
@@ -814,15 +731,6 @@ class SqlRepository:
         return {"content": content, "quarantine": quarantine}
 
     def healthcheck(self) -> bool:
-        """Reachable is not the same as intact.
-
-        `SELECT 1` answers whether a connection can be opened; a database whose pages
-        are corrupt but still readable answers it happily, and readiness reported
-        healthy right up to the query that returns wrong rows. The engine-specific
-        integrity probe below is the cheapest check that can actually fail: SQLite
-        walks its pages, PostgreSQL is asked for a checksum-failure count it maintains
-        itself. Any error is unhealthy — this must fail closed.
-        """
         try:
             with self.engine.connect() as connection:
                 probe: object = connection.execute(select(1)).scalar_one()
@@ -835,8 +743,6 @@ class SqlRepository:
     def _integrity_ok(self, connection: Connection) -> bool:
         dialect = self.engine.dialect.name
         if dialect == "sqlite":
-            # quick_check does the structural pass without the full page scan; it
-            # returns the single row 'ok' when the file is sound.
             rows = connection.execute(sql_text("PRAGMA quick_check(1)")).scalars().all()
             return [str(row).lower() for row in rows] == ["ok"]
         if dialect == "postgresql":
@@ -861,25 +767,14 @@ class SqlRepository:
         try:
             self.anchor_store.close()
         finally:
+            if self.review_engine is not self.engine:
+                self.review_engine.dispose()
             self.engine.dispose()
 
     def audited_transaction(
         self,
         operation: Callable[[Connection], tuple[T, tuple[int, str]]],
     ) -> T:
-        """One commit with one audit event, for a sibling adapter on this database.
-
-        ACT-001 stores accounts and subscriptions here, and both write audit events: an
-        account disabled or a subscription cancelled without one is a state change nobody
-        can attribute afterwards. The alternative — a second module opening its own
-        transaction and calling `append_audit` after it commits — has a window in which
-        the change is durable and the event is not, which is the failure the hash chain
-        exists to make impossible.
-
-        Exposed rather than duplicated. A second writer to the head row is a second place
-        to get the lock ordering wrong, and the one here took a production incident to
-        get right.
-        """
         return self._transaction_with_anchor(operation)
 
     def audit_in_connection(
@@ -891,7 +786,6 @@ class SqlRepository:
         resource_id: str | None,
         payload: dict[str, Any],
     ) -> tuple[int, str]:
-        """The audit append itself, inside a caller's transaction. See `audited_transaction`."""
         return self._append_audit_in_connection(
             connection, actor, action, resource_type, resource_id, payload
         )
@@ -900,17 +794,19 @@ class SqlRepository:
         self,
         operation: Callable[[Connection], tuple[T, tuple[int, str]]],
         retries: int = 8,
+        *,
+        engine: Any | None = None,
     ) -> T:
         last_error: Exception | None = None
+        write_engine = engine or self.engine
         write_guard = (
-            self._sqlite_write_lock if self.engine.dialect.name == "sqlite" else nullcontext()
+            self._sqlite_write_lock if write_engine.dialect.name == "sqlite" else nullcontext()
         )
         with write_guard:
             for attempt in range(retries):
                 try:
-                    with self.engine.begin() as connection:
+                    with write_engine.begin() as connection:
                         result, _anchor = operation(connection)
-                    # Commit succeeded. The durable outbox is retried by the lifecycle worker.
                     with suppress(AnchorError, OSError, TimeoutError):
                         self.reconcile_audit_anchor(limit=1)
                     return result
@@ -936,27 +832,12 @@ class SqlRepository:
             audit_heads.c.singleton_id == 1
         )
         if connection.dialect.name == "postgresql":
-            # A hash chain is serial by construction: every append has to read the head
-            # its predecessor wrote. The optimistic form — read, then update guarded by
-            # the value read — is correct but degrades badly under contention, because
-            # every loser retries against a head that has moved again. Forty concurrent
-            # appends exhausted the eight-retry budget and raised
-            # `ConcurrentWriteError: transaction retry budget exhausted` on PostgreSQL;
-            # SQLite serialises writes behind its own lock, so the suite never saw it.
-            # Since answering writes an audit event and an answer without one is refused
-            # by design, that failure mode denies service under exactly the load it is
-            # most likely to meet.
-            #
-            # Taking the row lock first makes the queue explicit: writers wait instead
-            # of colliding, and the guarded UPDATE below stays as the second line.
             head_statement = head_statement.with_for_update()
         head_sequence, previous_hash = connection.execute(head_statement).one()
         sequence = head_sequence + 1
         occurred_at = datetime.now(UTC)
         event_id = str(uuid4())
         trace_id = current_trace_id()
-        # Inside the payload, not beside it: the payload is hashed, so an event cannot
-        # be re-attributed to another request without breaking the chain.
         stamped = payload if trace_id is None else {**payload, "trace_id": trace_id}
         payload_json = json.dumps(
             stamped, ensure_ascii=False, sort_keys=True, separators=(",", ":")
@@ -1008,24 +889,10 @@ class SqlRepository:
         )
         return sequence, event_hash
 
-    # Moved to audit_reader.audit_canonical: the writer computes the HMAC over it and
-    # the verifier recomputes it, so one definition or the chain fails to verify events
-    # it produced itself. Kept as a staticmethod alias because the mutation catalogue
-    # and the write path both name it.
     _audit_canonical = staticmethod(audit_canonical)
-
-
-
-    # Moved to infrastructure/row_mapping.py (COD-001). Bound as staticmethods because
-    # the mutation catalogue and the call sites both name them on the class, and a
-    # rename would be a second change riding on a behaviour-preserving move.
-    # Moved to infrastructure/retrieval_queries.py (COD-001). The mutation catalogue
-    # and several tests name them on the class; a rename would be a second change riding
-    # on a move that preserves behaviour exactly.
     _retrievable_projection = staticmethod(retrieval_queries.retrievable_projection)
     _materialize_current = staticmethod(retrieval_queries.materialize_current)
     _compartment_predicate = staticmethod(retrieval_queries.compartment_predicate)
-
     _allowed_classifications = staticmethod(row_mapping.allowed_classifications)
     _iso = staticmethod(row_mapping.iso)
     _document_values = staticmethod(row_mapping.document_values)
