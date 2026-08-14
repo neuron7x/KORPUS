@@ -59,12 +59,20 @@ class RlsIdentityBinder:
             raise RlsIdentityBindingError(
                 "RLS identity broker requires READ COMMITTED transaction isolation"
             )
-        backend_pid, transaction_id = connection.execute(
-            text("SELECT pg_backend_pid(), pg_current_xact_id()::text")
+        row = connection.execute(
+            text(
+                "SELECT pg_catalog.pg_backend_pid(), a.backend_start, "
+                "pg_catalog.pg_current_xact_id()::text, session_user "
+                "FROM pg_catalog.pg_stat_activity a "
+                "WHERE a.pid = pg_catalog.pg_backend_pid()"
+            )
         ).one()
+        backend_pid, backend_start, transaction_id, login_name = row
         parameters = {
             "backend_pid": int(backend_pid),
+            "backend_start": backend_start,
             "transaction_id": str(transaction_id),
+            "login_name": str(login_name),
             "subject": identity.subject,
             "clearance": int(identity.clearance),
             "corpora": ",".join(sorted(identity.corpora)),
@@ -76,8 +84,8 @@ class RlsIdentityBinder:
             broker.execute(
                 text(
                     "SELECT public.korpus_bind_rls_identity("
-                    ":backend_pid, :transaction_id, :subject, :clearance, :corpora, "
-                    ":classifications, :compartments, :roles)"
+                    ":backend_pid, :backend_start, :transaction_id, :login_name, "
+                    ":subject, :clearance, :corpora, :classifications, :compartments, :roles)"
                 ),
                 parameters,
             )
