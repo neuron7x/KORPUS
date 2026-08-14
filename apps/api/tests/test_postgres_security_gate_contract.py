@@ -10,6 +10,11 @@ REQUIRED_RLS_RUNTIME_TARGETS = {
     "apps/api/tests/test_postgres_rls_identity_dml.py",
     "apps/api/tests/test_postgres_rls_binding_lifecycle.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
+    "apps/api/tests/test_postgres_rls_policy_state.py",
+}
+REQUIRED_POSITIVE_CONTROLS = {
+    "apps/api/tests/test_postgres_integration.py",
+    "apps/api/tests/test_postgres_approval_provenance.py",
 }
 REQUIRED_EXTERNAL_CREDENTIALS = {
     "KORPUS_TEST_DATABASE_URL",
@@ -21,6 +26,10 @@ REQUIRED_EXTERNAL_CREDENTIALS = {
 
 def test_production_postgres_gate_executes_nonforgeable_rls_destruction_suite() -> None:
     assert REQUIRED_RLS_RUNTIME_TARGETS <= set(gate.RUNTIME_TARGETS)
+
+
+def test_production_postgres_gate_retains_authorized_app_and_review_positive_controls() -> None:
+    assert REQUIRED_POSITIVE_CONTROLS <= set(gate.RUNTIME_TARGETS)
 
 
 def test_gate_contract_is_itself_checked_before_runtime_promotion() -> None:
