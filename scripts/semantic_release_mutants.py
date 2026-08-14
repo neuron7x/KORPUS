@@ -7,19 +7,31 @@ DIGEST_CONTROL = (
     "apps/api/tests/test_corpus_snapshot_contract.py::"
     "test_release_identity_digest_commits_every_member_field"
 )
+PROJECTION_CONTROL = (
+    "apps/api/tests/test_release_semantic_identity.py::"
+    "test_snapshot_release_equals_explicit_semantic_member_projection"
+)
+SOURCE = "apps/api/src/korpus/infrastructure/semantic_release.py"
 
 
 def _digest(mutant_id: str, field: str, claim: str) -> Mutant:
-    old = f"        _frame(digest, member.{field})\n"
-    new = f'        _frame(digest, "{field}-omitted")\n'
     return Mutant(
         mutant_id,
         "apps/api/src/korpus/application/corpus_snapshot.py",
-        old,
-        new,
+        f"        _frame(digest, member.{field})\n",
+        f'        _frame(digest, "{field}-omitted")\n',
         DIGEST_CONTROL,
         claim,
     )
+
+
+def _projection(
+    mutant_id: str,
+    old: str,
+    new: str,
+    claim: str,
+) -> Mutant:
+    return Mutant(mutant_id, SOURCE, old, new, PROJECTION_CONTROL, claim)
 
 
 MUTANTS = (
@@ -45,31 +57,122 @@ MUTANTS = (
     _digest("TS44", "rescinded_at", "release identity commits rescission semantics"),
     _digest("TS45", "authority", "release identity commits ranking and eligibility authority"),
     _digest("TS46", "supersedes_version_id", "release identity commits supersession semantics"),
-    Mutant(
+    _projection(
         "TS47",
-        "apps/api/src/korpus/infrastructure/semantic_release.py",
+        "                document_id=document_id,\n",
+        '                document_id="document-omitted",\n',
+        "semantic projection commits document identity",
+    ),
+    _projection(
+        "TS48",
+        '                version_id=str(row["version_id"]),\n',
+        '                version_id="version-omitted",\n',
+        "semantic projection commits version identity",
+    ),
+    _projection(
+        "TS49",
+        '                source_hash=str(row["source_hash"]),\n',
+        '                source_hash="source-omitted",\n',
+        "semantic projection commits source provenance",
+    ),
+    _projection(
+        "TS50",
+        '                review_state=str(row["review_state"]),\n',
+        '                review_state="state-omitted",\n',
+        "semantic projection commits review state",
+    ),
+    _projection(
+        "TS51",
+        "                evidence_digest=evidence_digest,\n",
+        '                evidence_digest="evidence-omitted",\n',
+        "semantic projection commits sealed evidence digest",
+    ),
+    _projection(
+        "TS52",
         '                canonical_title=str(row["canonical_title"]),\n',
         '                canonical_title="title-omitted",\n',
-        "apps/api/tests/test_release_semantic_identity.py::"
-        "test_answer_visible_title_change_changes_release_without_changing_evidence",
-        "semantic projection carries the answer-visible title into release identity",
+        "semantic projection commits citation title",
     ),
-    Mutant(
-        "TS48",
-        "apps/api/src/korpus/infrastructure/semantic_release.py",
-        '                authority=str(row["authority"]),\n',
-        '                authority="authority-omitted",\n',
-        "apps/api/tests/test_release_semantic_identity.py::"
-        "test_ranking_authority_change_changes_release_without_changing_evidence",
-        "semantic projection carries ranking authority into release identity",
+    _projection(
+        "TS53",
+        '                corpus_id=str(row["corpus_id"]),\n',
+        '                corpus_id="corpus-omitted",\n',
+        "semantic projection commits corpus scope",
     ),
-    Mutant(
-        "TS49",
-        "apps/api/src/korpus/infrastructure/semantic_release.py",
+    _projection(
+        "TS54",
+        '                access_tier=str(int(row["access_tier"])),\n',
+        '                access_tier="tier-omitted",\n',
+        "semantic projection commits access tier",
+    ),
+    _projection(
+        "TS55",
+        '                classification=str(row["classification"]),\n',
+        '                classification="classification-omitted",\n',
+        "semantic projection commits classification",
+    ),
+    _projection(
+        "TS56",
+        "                document_compartments=_stored_compartments(\n"
+        '                    row["compartments_json"]\n'
+        "                ),\n",
+        "                document_compartments=canonical_set(()),\n",
+        "semantic projection commits materialized compartment state",
+    ),
+    _projection(
+        "TS57",
         "                visibility_compartments=canonical_set(visibility[document_id]),\n",
         "                visibility_compartments=canonical_set(()),\n",
-        "apps/api/tests/test_release_semantic_identity.py::"
-        "test_visibility_compartment_change_changes_release_while_member_remains_visible",
-        "semantic projection commits the relational compartment predicate state",
+        "semantic projection commits relational compartment state",
+    ),
+    _projection(
+        "TS58",
+        '                revision=str(row["revision"]),\n',
+        '                revision="revision-omitted",\n',
+        "semantic projection commits citation revision",
+    ),
+    _projection(
+        "TS59",
+        '                source_uri=canonical_optional(row["source_uri"]),\n',
+        "                source_uri=canonical_optional(None),\n",
+        "semantic projection commits citation source URI",
+    ),
+    _projection(
+        "TS60",
+        '                publication_date=_optional_temporal(row["publication_date"]),\n',
+        "                publication_date=canonical_optional(None),\n",
+        "semantic projection commits publication date",
+    ),
+    _projection(
+        "TS61",
+        '                effective_from=_optional_temporal(row["effective_from"]),\n',
+        "                effective_from=canonical_optional(None),\n",
+        "semantic projection commits effective-from date",
+    ),
+    _projection(
+        "TS62",
+        '                effective_until=_optional_temporal(row["effective_until"]),\n',
+        '                effective_until=canonical_optional("2099-01-01"),\n',
+        "semantic projection commits effective-until date",
+    ),
+    _projection(
+        "TS63",
+        '                rescinded_at=_optional_temporal(row["rescinded_at"]),\n',
+        '                rescinded_at=canonical_optional("2099-01-01"),\n',
+        "semantic projection commits rescission state",
+    ),
+    _projection(
+        "TS64",
+        '                authority=str(row["authority"]),\n',
+        '                authority="authority-omitted",\n',
+        "semantic projection commits ranking authority",
+    ),
+    _projection(
+        "TS65",
+        "                supersedes_version_id=canonical_optional(\n"
+        '                    row["supersedes_version_id"]\n'
+        "                ),\n",
+        "                supersedes_version_id=canonical_optional(None),\n",
+        "semantic projection commits supersession semantics",
     ),
 )
