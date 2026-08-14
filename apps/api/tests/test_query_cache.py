@@ -46,6 +46,34 @@ def test_cache_is_bound_to_identity_release_and_configuration():
     assert cache.stats().hits == 1
 
 
+def test_cache_never_stores_a_result_under_a_release_that_changed_during_search():
+    """A release sampled before search cannot name evidence read after a state change.
+
+    This is the deterministic witness for issue #23 cache interleaving C. The delegate
+    changes corpus state after CachedRetriever has formed its key but before it returns
+    the evidence. Returning to the old logical release then must not expose that result
+    as an r1 cache hit. No sleeps or scheduler timing are involved.
+    """
+
+    repo = Repo()
+
+    class MutatingDelegate(Delegate):
+        def search(self, identity, text, corpus_ids, as_of, limit=8):
+            self.calls += 1
+            repo.release = "r2"
+            return []
+
+    delegate = MutatingDelegate()
+    cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
+    retriever = CachedRetriever(repo, delegate, cache, "config-a")
+
+    retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
+    repo.release = "r1"
+    retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
+
+    assert delegate.calls == 2, "state-B evidence was cached under release-A identity"
+
+
 def test_cache_is_bounded_lru():
     cache = EvidenceQueryCache(maximum_entries=2, ttl_seconds=60)
     cache.put("a", [])
