@@ -43,7 +43,10 @@ class RlsIdentityBinder:
         if _database_target(primary_database_url) != _database_target(identity_database_url):
             raise ValueError("RLS identity login must target the primary PostgreSQL database")
         identity_user = _database_user(identity_database_url)
-        protected_users = {_database_user(primary_database_url), _database_user(review_database_url)}
+        protected_users = {
+            _database_user(primary_database_url),
+            _database_user(review_database_url),
+        }
         protected_users.discard(None)
         if not identity_user or identity_user in protected_users:
             raise ValueError("RLS identity login must be distinct from protected PostgreSQL logins")
@@ -54,7 +57,9 @@ class RlsIdentityBinder:
             return
         if self.engine is None:
             raise RlsIdentityBindingError("PostgreSQL RLS identity broker is unavailable")
-        isolation = str(connection.execute(text("SHOW transaction_isolation")).scalar_one()).lower()
+        isolation = str(
+            connection.execute(text("SHOW transaction_isolation")).scalar_one()
+        ).lower()
         if isolation != "read committed":
             raise RlsIdentityBindingError(
                 "RLS identity broker requires READ COMMITTED transaction isolation"
