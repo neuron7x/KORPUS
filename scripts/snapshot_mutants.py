@@ -226,4 +226,49 @@ MUTANTS = (
         "test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database",
         "PostgreSQL guard functions must match the canonical executable body, not token substrings",
     ),
+    Mutant(
+        "TS21",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "    _frame(digest, identity.subject)\n",
+        '    _frame(digest, "subject-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "authorization scope commits the authenticated subject",
+    ),
+    Mutant(
+        "TS22",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "    _frame(digest, str(int(identity.clearance)))\n",
+        '    _frame(digest, "clearance-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "authorization scope commits clearance",
+    ),
+    Mutant(
+        "TS23",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        sorted(identity.roles),\n",
+        "        (),\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "authorization scope commits roles",
+    ),
+    Mutant(
+        "TS24",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        sorted(identity.corpora),\n",
+        "        (),\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "authorization scope commits assigned corpora",
+    ),
+    Mutant(
+        "TS25",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        sorted(identity.compartments),\n",
+        "        (),\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "authorization scope commits need-to-know compartments",
+    ),
 )
