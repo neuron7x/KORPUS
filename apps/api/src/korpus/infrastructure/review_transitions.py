@@ -134,10 +134,12 @@ def _apply_access_tier(
 
 def _seal_evidence_digest(connection: Connection, version_id: UUID) -> str:
     """Seal the exact persisted evidence set before a version becomes retrievable."""
-    # Lock every currently persisted span while computing the seal. The parent version
-    # row is already FOR UPDATE-locked by `_load_current`; together with the PostgreSQL
-    # trigger's parent FOR SHARE lock this also excludes concurrent insertion of a new
-    # span until approval either commits or aborts.
+    # The parent version row is already FOR UPDATE-locked by `_load_current`. Every
+    # PostgreSQL evidence mutation must acquire FOR SHARE on that parent in its BEFORE
+    # trigger, so either the mutation commits before this read or it waits and is then
+    # rejected after approval. Deliberately do not row-lock spans here: an UPDATE can
+    # lock a span before its BEFORE trigger requests the parent, and taking locks in the
+    # opposite parent->span order here would create an avoidable deadlock cycle.
     rows = connection.execute(
         select(
             spans.c.id,
@@ -149,7 +151,6 @@ def _seal_evidence_digest(connection: Connection, version_id: UUID) -> str:
         )
         .where(spans.c.version_id == str(version_id))
         .order_by(spans.c.ordinal, spans.c.id)
-        .with_for_update()
     ).mappings().all()
     return version_evidence_digest(
         (
