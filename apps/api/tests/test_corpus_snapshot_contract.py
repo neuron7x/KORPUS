@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
@@ -13,6 +14,9 @@ from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAu
 from korpus.application.corpus_snapshot import (
     CorpusConsistencyError,
     CorpusReadToken,
+    SemanticReleaseMember,
+    canonical_optional,
+    canonical_set,
     release_identity_digest,
     version_evidence_digest,
 )
@@ -29,6 +33,31 @@ def _token(release_id: str) -> CorpusReadToken:
         corpus_ids=frozenset({"public"}),
         authorization_scope_id="b" * 64,
     )
+
+
+def _release_member(**changes: str) -> SemanticReleaseMember:
+    member = SemanticReleaseMember(
+        document_id="document-a",
+        version_id="version-a",
+        source_hash="a" * 64,
+        review_state="approved",
+        evidence_digest="b" * 64,
+        canonical_title="Canonical title",
+        corpus_id="public",
+        access_tier="0",
+        classification="public",
+        document_compartments=canonical_set({"alpha"}),
+        visibility_compartments=canonical_set({"alpha"}),
+        revision="1",
+        source_uri=canonical_optional("https://source.invalid/order"),
+        publication_date=canonical_optional("2026-01-01"),
+        effective_from=canonical_optional("2026-01-02"),
+        effective_until=canonical_optional("2027-01-01"),
+        rescinded_at=canonical_optional(None),
+        authority="official_ua",
+        supersedes_version_id=canonical_optional(None),
+    )
+    return replace(member, **changes)
 
 
 def test_application_repository_port_cannot_recompute_answer_release() -> None:
@@ -60,13 +89,7 @@ def test_corpus_read_token_accepts_full_sha256_release_identity() -> None:
 
 @pytest.mark.parametrize(
     "release_id",
-    [
-        "a" * 16,
-        "a" * 63,
-        "a" * 65,
-        "A" * 64,
-        "g" * 64,
-    ],
+    ["a" * 16, "a" * 63, "a" * 65, "A" * 64, "g" * 64],
 )
 def test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity(
     release_id: str,
@@ -76,30 +99,53 @@ def test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity(
 
 
 @pytest.mark.parametrize(
-    ("index", "replacement"),
+    ("field", "replacement"),
     [
-        (0, "document-b"),
-        (1, "version-b"),
-        (2, "c" * 64),
-        (3, "rejected"),
-        (4, "d" * 64),
+        ("document_id", "document-b"),
+        ("version_id", "version-b"),
+        ("source_hash", "c" * 64),
+        ("review_state", "rejected"),
+        ("evidence_digest", "d" * 64),
+        ("canonical_title", "Changed title"),
+        ("corpus_id", "training"),
+        ("access_tier", "1"),
+        ("classification", "internal"),
+        ("document_compartments", canonical_set({"bravo"})),
+        ("visibility_compartments", canonical_set({"alpha", "bravo"})),
+        ("revision", "2"),
+        ("source_uri", canonical_optional("https://source.invalid/changed")),
+        ("publication_date", canonical_optional("2026-01-03")),
+        ("effective_from", canonical_optional("2026-01-04")),
+        ("effective_until", canonical_optional("2027-01-02")),
+        ("rescinded_at", canonical_optional("2026-08-14T10:00:00+00:00")),
+        ("authority", "official_allied"),
+        ("supersedes_version_id", canonical_optional("version-old")),
     ],
 )
 def test_release_identity_digest_commits_every_member_field(
-    index: int, replacement: str
+    field: str, replacement: str
 ) -> None:
-    baseline = ("document-a", "version-a", "a" * 64, "approved", "b" * 64)
-    changed = list(baseline)
-    changed[index] = replacement
-    assert release_identity_digest([baseline]) != release_identity_digest([tuple(changed)])
+    baseline = _release_member()
+    changed = replace(baseline, **{field: replacement})
+    assert release_identity_digest([baseline]) != release_identity_digest([changed])
 
 
 def test_release_identity_digest_is_order_and_join_multiplicity_stable() -> None:
-    first = ("document-a", "version-a", "a" * 64, "approved", "b" * 64)
-    second = ("document-b", "version-b", "c" * 64, "approved", "d" * 64)
+    first = _release_member()
+    second = _release_member(
+        document_id="document-b",
+        version_id="version-b",
+        source_hash="c" * 64,
+        evidence_digest="d" * 64,
+    )
     assert release_identity_digest([first, second]) == release_identity_digest(
         [second, first, first]
     )
+
+
+def test_semantic_canonicalization_distinguishes_absence_and_is_set_order_stable() -> None:
+    assert canonical_optional(None) != canonical_optional("")
+    assert canonical_set(["alpha", "bravo"]) == canonical_set(["bravo", "alpha", "alpha"])
 
 
 def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> None:
