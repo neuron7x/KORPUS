@@ -84,15 +84,21 @@ def _reset_postgres(url: str) -> None:
             if names:
                 quoted = ", ".join(f'public."{name}"' for name in names)
                 connection.execute(text(f"TRUNCATE {quoted} RESTART IDENTITY CASCADE"))
-            # The migration seeds the audit head; truncating removes it, and a migrated
-            # schema without one is a start-up failure by design (an audit chain with no
-            # origin cannot be verified). Put it back the way the migration does.
+            # Migrations seed both singleton roots. Truncation removes them, and startup
+            # deliberately refuses a migrated database whose audit or corpus timeline
+            # has no origin. Restore only those roots; every product row remains empty.
             connection.execute(
                 text(
                     "INSERT INTO audit_heads (singleton_id, sequence, head_hash) "
                     "VALUES (1, 0, :zero) ON CONFLICT (singleton_id) DO NOTHING"
                 ),
                 {"zero": "0" * 64},
+            )
+            connection.execute(
+                text(
+                    "INSERT INTO corpus_state_epoch (singleton_id, epoch) VALUES (1, 0) "
+                    "ON CONFLICT (singleton_id) DO NOTHING"
+                )
             )
     finally:
         engine.dispose()
