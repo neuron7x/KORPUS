@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy.engine import make_url
+
 from korpus.application.calibration import CalibrationProfile
 from korpus.billing_config_policy import validate_billing_settings
 from korpus.controlled_requirements import first_unmet
@@ -111,6 +113,24 @@ def _validate_semantic_retrieval(settings: Any, *, controlled: bool) -> None:
         raise ValueError("semantic weight must be zero when semantic retrieval is disabled")
 
 
+def _validate_review_identity(settings: Any, *, controlled: bool) -> None:
+    postgres = settings.database_url.startswith("postgresql")
+    review_url = settings.review_database_url
+    if controlled and postgres and not review_url:
+        raise ValueError("controlled PostgreSQL requires a separate review database identity")
+    if not review_url:
+        return
+    if not postgres:
+        raise ValueError("review database identity is valid only with PostgreSQL")
+    primary, review = make_url(settings.database_url), make_url(review_url)
+    primary_target = (primary.get_backend_name(), primary.host, primary.port, primary.database)
+    review_target = (review.get_backend_name(), review.host, review.port, review.database)
+    if primary_target != review_target:
+        raise ValueError("review database identity must target the primary PostgreSQL database")
+    if not review.username or review.username == primary.username:
+        raise ValueError("review database identity must use a distinct PostgreSQL login")
+
+
 def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
     if settings.audit_anchor_mode == "http" and not settings.audit_anchor_url:
         raise ValueError("audit_anchor_url is required for HTTP audit anchoring")
@@ -118,11 +138,7 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
         raise ValueError("s3_bucket is required for S3 object storage")
     if controlled and settings.object_store_mode == "local":
         raise ValueError("controlled environments require durable S3-compatible object storage")
-    postgres = settings.database_url.startswith("postgresql")
-    if controlled and postgres and not settings.review_database_url:
-        raise ValueError("controlled PostgreSQL requires a separate review database identity")
-    if settings.review_database_url and not postgres:
-        raise ValueError("review database identity is valid only with PostgreSQL")
+    _validate_review_identity(settings, controlled=controlled)
     if settings.auth_mode == "jwt" and (
         len(settings.resolved_jwt_secret) < 32
         or settings.resolved_jwt_secret.startswith("replace-")
