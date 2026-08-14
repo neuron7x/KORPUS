@@ -79,6 +79,12 @@ def _install_sqlite_guards() -> None:
         "WHERE id IN (OLD.version_id, NEW.version_id) AND review_state = 'approved') "
         "BEGIN SELECT RAISE(ABORT, 'approved evidence is immutable'); END"
     )
+    op.execute(
+        "CREATE TRIGGER trg_approved_version_digest_immutable "
+        "BEFORE UPDATE OF evidence_digest ON document_versions "
+        "WHEN OLD.review_state = 'approved' AND NEW.evidence_digest IS NOT OLD.evidence_digest "
+        "BEGIN SELECT RAISE(ABORT, 'approved evidence digest is immutable'); END"
+    )
 
 
 def _install_postgres_guards() -> None:
@@ -130,6 +136,24 @@ def _install_postgres_guards() -> None:
         "BEFORE INSERT OR UPDATE OR DELETE ON evidence_spans "
         "FOR EACH ROW EXECUTE FUNCTION korpus_refuse_approved_evidence_mutation()"
     )
+    op.execute(
+        """
+        CREATE FUNCTION korpus_refuse_approved_digest_mutation() RETURNS trigger AS $$
+        BEGIN
+          IF OLD.review_state = 'approved'
+             AND NEW.evidence_digest IS DISTINCT FROM OLD.evidence_digest THEN
+            RAISE EXCEPTION 'approved evidence digest is immutable';
+          END IF;
+          RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+        """
+    )
+    op.execute(
+        "CREATE TRIGGER trg_approved_version_digest_immutable "
+        "BEFORE UPDATE OF evidence_digest ON document_versions "
+        "FOR EACH ROW EXECUTE FUNCTION korpus_refuse_approved_digest_mutation()"
+    )
 
 
 def upgrade() -> None:
@@ -161,6 +185,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     dialect = op.get_bind().dialect.name
     if dialect == "sqlite":
+        op.execute("DROP TRIGGER IF EXISTS trg_approved_version_digest_immutable")
         op.execute("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable_update")
         op.execute("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable_delete")
         op.execute("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable_insert")
@@ -168,6 +193,10 @@ def downgrade() -> None:
             for operation in ("insert", "update", "delete"):
                 op.execute(f"DROP TRIGGER IF EXISTS trg_{table}_epoch_{operation}")
     elif dialect == "postgresql":
+        op.execute(
+            "DROP TRIGGER IF EXISTS trg_approved_version_digest_immutable ON document_versions"
+        )
+        op.execute("DROP FUNCTION IF EXISTS korpus_refuse_approved_digest_mutation()")
         op.execute("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable ON evidence_spans")
         op.execute("DROP FUNCTION IF EXISTS korpus_refuse_approved_evidence_mutation()")
         for table in _EPOCH_TABLES:
