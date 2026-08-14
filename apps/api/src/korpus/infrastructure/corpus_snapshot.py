@@ -344,31 +344,39 @@ class SqlCorpusSnapshotReader:
         if dialect == "sqlite":
             expected = {
                 *(
-                    f"trg_{table}_epoch_{operation}"
+                    (table, f"trg_{table}_epoch_{operation}")
                     for table in _EPOCH_TABLES
                     for operation in ("insert", "update", "delete")
                 ),
-                "trg_evidence_spans_immutable_insert",
-                "trg_evidence_spans_immutable_update",
-                "trg_evidence_spans_immutable_delete",
-                "trg_approved_version_digest_immutable",
+                ("evidence_spans", "trg_evidence_spans_immutable_insert"),
+                ("evidence_spans", "trg_evidence_spans_immutable_update"),
+                ("evidence_spans", "trg_evidence_spans_immutable_delete"),
+                ("document_versions", "trg_approved_version_digest_immutable"),
             }
-            actual = set(
-                connection.execute(
-                    sql_text("SELECT name FROM sqlite_master WHERE type = 'trigger'")
-                ).scalars()
-            )
+            actual = {
+                (str(row[0]), str(row[1]))
+                for row in connection.execute(
+                    sql_text("SELECT tbl_name, name FROM sqlite_master WHERE type = 'trigger'")
+                ).all()
+            }
         elif dialect == "postgresql":
             expected = {
-                *(f"trg_{table}_epoch" for table in _EPOCH_TABLES),
-                "trg_evidence_spans_immutable",
-                "trg_approved_version_digest_immutable",
+                *((table, f"trg_{table}_epoch") for table in _EPOCH_TABLES),
+                ("evidence_spans", "trg_evidence_spans_immutable"),
+                ("document_versions", "trg_approved_version_digest_immutable"),
             }
-            actual = set(
-                connection.execute(
-                    sql_text("SELECT tgname FROM pg_trigger WHERE NOT tgisinternal")
-                ).scalars()
-            )
+            actual = {
+                (str(row[0]), str(row[1]))
+                for row in connection.execute(
+                    sql_text(
+                        "SELECT c.relname, t.tgname "
+                        "FROM pg_trigger t "
+                        "JOIN pg_class c ON c.oid = t.tgrelid "
+                        "JOIN pg_namespace n ON n.oid = c.relnamespace "
+                        "WHERE NOT t.tgisinternal AND n.nspname = 'public'"
+                    )
+                ).all()
+            }
         else:
             raise RuntimeError(f"unsupported corpus snapshot dialect: {dialect}")
         missing = expected.difference(actual)
