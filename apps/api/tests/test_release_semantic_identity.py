@@ -104,3 +104,22 @@ def test_visibility_compartment_change_changes_release_while_member_remains_visi
     after = _capture(client, identity)
 
     assert before.release_id != after.release_id
+
+
+def test_irrelevant_issuer_change_advances_epoch_but_not_semantic_release(
+    client, admin_identity
+) -> None:
+    document_id, _version_id = _approved(client)
+    repository = client.app.state.repository
+    before = _capture(client, admin_identity)
+    with repository.engine.begin() as connection:
+        repository._apply_postgres_identity(connection, admin_identity)
+        connection.execute(
+            update(documents)
+            .where(documents.c.id == document_id)
+            .values(issuer="Changed non-answer issuer metadata")
+        )
+    after = _capture(client, admin_identity)
+
+    assert after.state_epoch > before.state_epoch
+    assert after.release_id == before.release_id
