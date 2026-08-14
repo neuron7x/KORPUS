@@ -87,7 +87,7 @@ def _install_postgres_guards() -> None:
         CREATE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
         BEGIN
           UPDATE corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
-          RETURN COALESCE(NEW, OLD);
+          RETURN NULL;
         END;
         $$ LANGUAGE plpgsql
         """
@@ -117,7 +117,10 @@ def _install_postgres_guards() -> None:
           IF old_approved OR new_approved THEN
             RAISE EXCEPTION 'approved evidence is immutable';
           END IF;
-          RETURN COALESCE(NEW, OLD);
+          IF TG_OP = 'DELETE' THEN
+            RETURN OLD;
+          END IF;
+          RETURN NEW;
         END;
         $$ LANGUAGE plpgsql
         """
