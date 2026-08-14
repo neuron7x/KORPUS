@@ -126,7 +126,7 @@ def main() -> int:
     survived = [str(item["id"]) for item in outcomes if item.get("status") == "SURVIVED"]
     report = {
         "schema": "korpus.snapshot-mutation.v1",
-        "runner_provenance": stamp(ROOT, "scripts/run_snapshot_mutation_tests.py"),
+        "provenance": stamp(ROOT, "scripts/run_snapshot_mutation_tests.py"),
         "catalogue_provenance": stamp(ROOT, "scripts/snapshot_mutants.py"),
         "mutants": len(MUTANTS),
         "executed_mutants": len(outcomes),
