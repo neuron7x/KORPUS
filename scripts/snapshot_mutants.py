@@ -220,10 +220,10 @@ MUTANTS = (
     Mutant(
         "TS20",
         "apps/api/src/korpus/infrastructure/corpus_snapshot_guards.py",
-        "        _assert_definition(name, definition, required)\n",
+        "        _assert_exact_function_body(name, body, expected_body)\n",
         "        pass\n",
         "apps/api/tests/test_corpus_snapshot_contract.py::"
-        "test_postgres_guard_verifier_rejects_inert_function_body_without_database",
-        "PostgreSQL guard function-body verification is mutation-testable in every environment",
+        "test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database",
+        "PostgreSQL guard functions must match the canonical executable body, not token substrings",
     ),
 )
