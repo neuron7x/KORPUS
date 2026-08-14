@@ -182,6 +182,33 @@ MUTANTS = (
         "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
         "snapshot tokens are bound to the exact authorization identity",
     ),
+    Mutant(
+        "TS15",
+        "apps/api/src/korpus/application/cache.py",
+        "        if cached is not None:\n"
+        "            self.snapshot_reader.validate(identity, corpus_ids, as_of, token)\n"
+        "            return list(cached)\n",
+        "        if cached is not None:\n"
+        "            return list(cached)\n",
+        "apps/api/tests/test_query_cache.py::"
+        "test_cache_never_returns_hit_if_state_changes_during_lookup",
+        "cache hits are revalidated after lookup before return",
+    ),
+    Mutant(
+        "TS16",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        "        if before != after:\n"
+        "            raise CorpusConsistencyError(\n"
+        "                \"corpus state changed while release identity was captured\"\n"
+        "            )\n",
+        "        if False:\n"
+        "            raise CorpusConsistencyError(\n"
+        "                \"corpus state changed while release identity was captured\"\n"
+        "            )\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_capture_rejects_state_change_during_release_projection",
+        "release capture rejects state drift between epoch reads",
+    ),
 )
 
 
