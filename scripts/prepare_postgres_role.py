@@ -62,12 +62,29 @@ def ensure_login(connection, role: str, password: str) -> None:
 
 
 def ensure_group(connection, role: str) -> None:
+    role_sql = quoted(role)
     if not role_exists(connection, role):
-        execute(
-            connection,
-            f"CREATE ROLE {quoted(role)} NOLOGIN NOSUPERUSER NOCREATEDB "
-            "NOCREATEROLE NOBYPASSRLS",
-        )
+        execute(connection, f"CREATE ROLE {role_sql} NOLOGIN")
+    execute(
+        connection,
+        f"ALTER ROLE {role_sql} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
+        "NOINHERIT NOBYPASSRLS",
+    )
+
+
+def revoke_all_memberships(connection, role: str) -> None:
+    memberships = connection.execute(
+        text(
+            "SELECT parent.rolname FROM pg_catalog.pg_auth_members membership "
+            "JOIN pg_catalog.pg_roles parent ON parent.oid=membership.roleid "
+            "JOIN pg_catalog.pg_roles member ON member.oid=membership.member "
+            "WHERE member.rolname=:role"
+        ),
+        {"role": role},
+    ).scalars().all()
+    role_sql = quoted(role)
+    for parent in memberships:
+        execute(connection, f"REVOKE {quoted(str(parent))} FROM {role_sql}")
 
 
 def grant_execute(connection, function: str, role: str) -> None:
@@ -99,14 +116,13 @@ with engine.connect() as connection:
     ensure_group(connection, "korpus_app_runtime")
     ensure_group(connection, "korpus_review_runtime")
     ensure_group(connection, "korpus_identity_runtime")
+    for role in (app_role, review_role, identity_role):
+        revoke_all_memberships(connection, role)
     app_sql, review_sql = quoted(app_role), quoted(review_role)
     identity_sql, db_sql = quoted(identity_role), quoted(database)
     execute(connection, f"GRANT korpus_app_runtime TO {app_sql}")
     execute(connection, f"GRANT korpus_review_runtime TO {review_sql}")
     execute(connection, f"GRANT korpus_identity_runtime TO {identity_sql}")
-    execute(connection, f"REVOKE korpus_review_runtime, korpus_identity_runtime FROM {app_sql}")
-    execute(connection, f"REVOKE korpus_app_runtime, korpus_identity_runtime FROM {review_sql}")
-    execute(connection, f"REVOKE korpus_app_runtime, korpus_review_runtime FROM {identity_sql}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
     for role_sql in (app_sql, review_sql, identity_sql):
         execute(connection, f"GRANT CONNECT ON DATABASE {db_sql} TO {role_sql}")
@@ -130,7 +146,7 @@ with engine.connect() as connection:
     execute(connection, "REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM PUBLIC")
     for role_sql in (app_sql, review_sql, identity_sql):
         execute(connection, f"REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM {role_sql}")
-    for role_sql in (app_sql, review_sql, identity_sql):
+        execute(connection, f"REVOKE CREATE ON SCHEMA public FROM {role_sql}")
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
