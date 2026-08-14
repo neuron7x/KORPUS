@@ -30,8 +30,6 @@ class CorpusReadToken:
             raise ValueError("state_epoch must be non-negative")
         if len(self.release_id) != 16 or any(ch not in "0123456789abcdef" for ch in self.release_id):
             raise ValueError("release_id must be a 16-character lowercase hex digest")
-        if not self.corpus_ids:
-            raise ValueError("corpus read token must contain an authorized corpus")
         if len(self.authorization_scope_id) != 64 or any(
             ch not in "0123456789abcdef" for ch in self.authorization_scope_id
         ):
@@ -55,10 +53,14 @@ class CorpusSnapshotReader(Protocol):
     ) -> None: ...
 
 
-def _frame(hasher: object, value: str) -> None:
+class _HashWriter(Protocol):
+    def update(self, data: bytes) -> object: ...
+
+
+def _frame(hasher: _HashWriter, value: str) -> None:
     encoded = value.encode("utf-8")
-    hasher.update(len(encoded).to_bytes(8, "big"))  # type: ignore[attr-defined]
-    hasher.update(encoded)  # type: ignore[attr-defined]
+    hasher.update(len(encoded).to_bytes(8, "big"))
+    hasher.update(encoded)
 
 
 def authorization_scope_id(identity: Identity, corpus_ids: frozenset[str]) -> str:
