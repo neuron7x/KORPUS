@@ -40,7 +40,7 @@ from korpus.application.keyring import LEGACY_KEY_ID
 #: test_schema_revision_pin.py against the migration graph, because it drifted once:
 #: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
 #: refused to start while every SQLite test stayed green.
-SCHEMA_REVISION = "0015_plan_pricing"
+SCHEMA_REVISION = "0016_temporal_corpus_snapshot"
 
 metadata = MetaData()
 
@@ -87,6 +87,7 @@ versions = Table(
     Column("publication_identifier", String(200)),
     Column("source_uri", Text),
     Column("source_hash", String(64), nullable=False, index=True),
+    Column("evidence_digest", String(64)),
     Column("object_key", Text, nullable=False),
     Column("mime_type", String(200), nullable=False),
     Column("publication_date", Date),
@@ -132,6 +133,10 @@ versions = Table(
     CheckConstraint(
         "NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"
     ),
+    CheckConstraint(
+        "review_state != 'approved' OR evidence_digest IS NOT NULL",
+        name="ck_approved_version_evidence_digest",
+    ),
 )
 
 Index(
@@ -167,6 +172,15 @@ spans = Table(
     Column("text_hash", String(64), nullable=False),
     Column("created_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint("version_id", "ordinal", name="uq_span_version_ordinal"),
+)
+
+corpus_state_epoch = Table(
+    "corpus_state_epoch",
+    metadata,
+    Column("singleton_id", Integer, primary_key=True),
+    Column("epoch", BigInteger, nullable=False, default=0),
+    CheckConstraint("singleton_id = 1", name="ck_corpus_state_epoch_singleton"),
+    CheckConstraint("epoch >= 0", name="ck_corpus_state_epoch_nonnegative"),
 )
 
 span_embeddings = Table(
@@ -235,4 +249,3 @@ Index(
     audit_anchor_outbox.c.created_at,
     audit_anchor_outbox.c.sequence,
 )
-
