@@ -16,18 +16,12 @@ from korpus.application.corpus_snapshot import (
 )
 from korpus.domain.models import Identity
 from korpus.infrastructure import retrieval_queries
+from korpus.infrastructure.corpus_snapshot_guards import EPOCH_TABLES, require_guards
 from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch, versions
 
 _HEX64 = re.compile(r"^[a-f0-9]{64}$")
 _RELEASE_DOMAIN = b"korpus-temporal-release-v1\0"
-_EPOCH_TABLES = (
-    "documents",
-    "document_compartments",
-    "document_versions",
-    "evidence_spans",
-    "span_embeddings",
-)
 
 
 def _frame(hasher: object, value: str) -> None:
@@ -176,7 +170,7 @@ class SqlCorpusSnapshotReader:
 
     @staticmethod
     def _install_sqlite_guards(connection: Connection) -> None:
-        for table in _EPOCH_TABLES:
+        for table in EPOCH_TABLES:
             for operation in ("INSERT", "UPDATE", "DELETE"):
                 name = f"trg_{table}_epoch_{operation.lower()}"
                 connection.execute(
@@ -237,7 +231,7 @@ class SqlCorpusSnapshotReader:
                 """
             )
         )
-        for table in _EPOCH_TABLES:
+        for table in EPOCH_TABLES:
             name = f"trg_{table}_epoch"
             connection.execute(sql_text(f"DROP TRIGGER IF EXISTS {name} ON {table}"))
             connection.execute(
@@ -337,45 +331,4 @@ class SqlCorpusSnapshotReader:
 
     @staticmethod
     def _require_guards(connection: Connection) -> None:
-        dialect = connection.dialect.name
-        if dialect == "sqlite":
-            expected = {
-                *(
-                    (table, f"trg_{table}_epoch_{operation}")
-                    for table in _EPOCH_TABLES
-                    for operation in ("insert", "update", "delete")
-                ),
-                ("evidence_spans", "trg_evidence_spans_immutable_insert"),
-                ("evidence_spans", "trg_evidence_spans_immutable_update"),
-                ("evidence_spans", "trg_evidence_spans_immutable_delete"),
-                ("document_versions", "trg_approved_version_digest_immutable"),
-            }
-            actual = {
-                (str(row[0]), str(row[1]))
-                for row in connection.execute(
-                    sql_text("SELECT tbl_name, name FROM sqlite_master WHERE type = 'trigger'")
-                ).all()
-            }
-        elif dialect == "postgresql":
-            expected = {
-                *((table, f"trg_{table}_epoch") for table in _EPOCH_TABLES),
-                ("evidence_spans", "trg_evidence_spans_immutable"),
-                ("document_versions", "trg_approved_version_digest_immutable"),
-            }
-            actual = {
-                (str(row[0]), str(row[1]))
-                for row in connection.execute(
-                    sql_text(
-                        "SELECT c.relname, t.tgname "
-                        "FROM pg_trigger t "
-                        "JOIN pg_class c ON c.oid = t.tgrelid "
-                        "JOIN pg_namespace n ON n.oid = c.relnamespace "
-                        "WHERE NOT t.tgisinternal AND n.nspname = 'public'"
-                    )
-                ).all()
-            }
-        else:
-            raise RuntimeError(f"unsupported corpus snapshot dialect: {dialect}")
-        missing = expected.difference(actual)
-        if missing:
-            raise RuntimeError(f"corpus snapshot guards are missing: {sorted(missing)}")
+        require_guards(connection)
