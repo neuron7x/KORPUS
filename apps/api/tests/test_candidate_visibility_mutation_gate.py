@@ -62,3 +62,13 @@ def test_candidate_mutation_evidence_rejects_any_survivor(tmp_path) -> None:
     assert checks["candidate_visibility_all_killed"] is False
     assert checks["candidate_visibility_report_pass"] is False
     assert evidence["survived"] == ["CV03"]
+
+
+def test_candidate_mutation_evidence_rejects_malformed_json(tmp_path) -> None:
+    path = tmp_path / "candidate.json"
+    path.write_text("{not-json", encoding="utf-8")
+
+    checks, evidence = candidate_visibility_evidence(path, "a" * 64)
+
+    assert not any(checks.values())
+    assert evidence["mutants"] == 0
