@@ -39,7 +39,7 @@ class RlsIdentityBinder:
                 raise ValueError("RLS identity database login is valid only with PostgreSQL")
             return
         if not identity_database_url:
-            return
+            raise ValueError("PostgreSQL RLS identity broker URL is required")
         if _database_target(primary_database_url) != _database_target(identity_database_url):
             raise ValueError("RLS identity login must target the primary PostgreSQL database")
         identity_user = _database_user(identity_database_url)
