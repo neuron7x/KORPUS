@@ -1,6 +1,6 @@
 # Local secrets
 
-Run `make infra-secrets` before `make infra-up`. Generated files are mode `0600` and ignored by Git.
+Run `make infra-secrets` before `make infra-up`. The local secret directory is mode `0700`; compose-readable files inside it are mode `0644` because capability-dropped containers cannot read host-owned `0600` files. The directory prevents other host users from traversing to those files. Generated secrets are ignored by Git.
 
 Credential domains:
 
