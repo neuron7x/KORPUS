@@ -28,6 +28,14 @@ class SnapshotAuditPolicy:
     calibration_id: str
 
 
+class SnapshotAnswerAbort(RuntimeError):
+    """A consistency path already produced and audited a fail-closed answer."""
+
+    def __init__(self, answer: Answer) -> None:
+        super().__init__(answer.decision_reason)
+        self.answer = answer
+
+
 class SnapshotAnswerRuntime:
     """Resolve the single snapshot authority used by every answer read and audit."""
 
@@ -60,7 +68,7 @@ class SnapshotAnswerRuntime:
         identity: Identity,
         query: QueryRequest,
         corpora: frozenset[str],
-    ) -> SnapshotAnswerSession | Answer:
+    ) -> SnapshotAnswerSession:
         try:
             token = self.snapshot_reader.capture(identity, corpora, query.as_of)
         except CorpusConsistencyError as exc:
@@ -80,7 +88,7 @@ class SnapshotAnswerRuntime:
                 classify_query_risk(query.text),
                 token=None,
             )
-            return answer
+            raise SnapshotAnswerAbort(answer) from exc
         return SnapshotAnswerSession(self, identity, query, corpora, token)
 
     def abstain(
@@ -158,7 +166,7 @@ class SnapshotAnswerSession:
     def release_id(self) -> str:
         return self.token.release_id
 
-    def search_plan(self, plan: QueryPlan, risk: QueryRisk) -> list[RetrievedEvidence] | Answer:
+    def search_plan(self, plan: QueryPlan, risk: QueryRisk) -> list[RetrievedEvidence]:
         best: dict[str, RetrievedEvidence] = {}
         try:
             for text in plan.searches:
@@ -173,7 +181,7 @@ class SnapshotAnswerSession:
                     previous = best.get(key)
                     if previous is None or item.score > previous.score:
                         best[key] = item
-        except CorpusConsistencyError:
+        except CorpusConsistencyError as exc:
             answer = self.runtime.abstain(
                 self.release_id,
                 "corpus_snapshot_changed",
@@ -190,7 +198,7 @@ class SnapshotAnswerSession:
                 plan=plan,
                 token=self.token,
             )
-            return answer
+            raise SnapshotAnswerAbort(answer) from exc
         return sorted(
             best.values(),
             key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal),
