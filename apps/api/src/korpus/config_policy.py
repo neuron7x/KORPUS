@@ -131,6 +131,27 @@ def _validate_review_identity(settings: Any, *, controlled: bool) -> None:
         raise ValueError("review database identity must use a distinct PostgreSQL login")
 
 
+def _validate_authz_identity(settings: Any, *, controlled: bool) -> None:
+    postgres = settings.database_url.startswith("postgresql")
+    authz_url = settings.authz_database_url
+    if controlled and postgres and not authz_url:
+        raise ValueError("controlled PostgreSQL requires a separate RLS authz database identity")
+    if not authz_url:
+        return
+    if not postgres:
+        raise ValueError("RLS authz database identity is valid only with PostgreSQL")
+    primary, authz = make_url(settings.database_url), make_url(authz_url)
+    primary_target = (primary.get_backend_name(), primary.host, primary.port, primary.database)
+    authz_target = (authz.get_backend_name(), authz.host, authz.port, authz.database)
+    if primary_target != authz_target:
+        raise ValueError("RLS authz identity must target the primary PostgreSQL database")
+    forbidden = {primary.username}
+    if settings.review_database_url:
+        forbidden.add(make_url(settings.review_database_url).username)
+    if not authz.username or authz.username in forbidden:
+        raise ValueError("RLS authz identity must use a PostgreSQL login distinct from app/review")
+
+
 def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
     if settings.audit_anchor_mode == "http" and not settings.audit_anchor_url:
         raise ValueError("audit_anchor_url is required for HTTP audit anchoring")
@@ -139,6 +160,7 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
     if controlled and settings.object_store_mode == "local":
         raise ValueError("controlled environments require durable S3-compatible object storage")
     _validate_review_identity(settings, controlled=controlled)
+    _validate_authz_identity(settings, controlled=controlled)
     if settings.auth_mode == "jwt" and (
         len(settings.resolved_jwt_secret) < 32
         or settings.resolved_jwt_secret.startswith("replace-")
