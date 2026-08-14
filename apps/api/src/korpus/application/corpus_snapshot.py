@@ -119,9 +119,12 @@ def release_identity_digest(rows: Iterable[tuple[str, str, str, str, str]]) -> s
     unique = set(rows)
     digest = hashlib.sha256()
     digest.update(_RELEASE_DOMAIN)
-    for row in sorted(unique):
-        for value in row:
-            _frame(digest, value)
+    for document_id, version_id, source_hash, review_state, evidence_digest in sorted(unique):
+        _frame(digest, document_id)
+        _frame(digest, version_id)
+        _frame(digest, source_hash)
+        _frame(digest, review_state)
+        _frame(digest, evidence_digest)
     return digest.hexdigest()
 
 
