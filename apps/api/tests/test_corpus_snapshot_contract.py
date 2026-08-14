@@ -204,35 +204,38 @@ class _PostgresGuardCatalogueConnection:
                         "korpus_bump_corpus_state_epoch",
                         True,
                         ["search_path=pg_catalog"],
-                        "CREATE FUNCTION public.korpus_bump_corpus_state_epoch() RETURNS trigger "
-                        "LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'pg_catalog' AS $$ "
-                        "BEGIN RETURN NULL; END $$",
+                        """
+                        BEGIN
+                          IF FALSE THEN
+                            UPDATE public.corpus_state_epoch
+                            SET epoch = epoch + 1 WHERE singleton_id = 1;
+                          END IF;
+                          RETURN NULL;
+                        END;
+                        """,
                     ),
                     (
                         "korpus_refuse_approved_evidence_mutation",
                         True,
                         ["search_path=pg_catalog"],
-                        "CREATE FUNCTION public.korpus_refuse_approved_evidence_mutation() "
-                        "RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO "
-                        "'pg_catalog' AS $$ BEGIN SELECT evidence_digest FROM "
-                        "public.document_versions FOR SHARE; RAISE EXCEPTION 'sealed evidence is "
-                        "immutable'; END $$",
+                        corpus_snapshot_guards._POSTGRES_FUNCTION_BODIES[
+                            "korpus_refuse_approved_evidence_mutation"
+                        ],
                     ),
                     (
                         "korpus_refuse_approved_digest_mutation",
                         False,
                         None,
-                        "CREATE FUNCTION public.korpus_refuse_approved_digest_mutation() RETURNS "
-                        "trigger LANGUAGE plpgsql AS $$ BEGIN IF old.evidence_digest is not null "
-                        "AND new.evidence_digest is distinct from old.evidence_digest THEN RAISE "
-                        "EXCEPTION 'sealed evidence digest is immutable'; END IF; RETURN NEW; END $$",
+                        corpus_snapshot_guards._POSTGRES_FUNCTION_BODIES[
+                            "korpus_refuse_approved_digest_mutation"
+                        ],
                     ),
                 ]
             )
         raise AssertionError("unexpected guard catalogue query")
 
 
-def test_postgres_guard_verifier_rejects_inert_function_body_without_database() -> None:
+def test_postgres_guard_verifier_rejects_dead_code_decoy_body_without_database() -> None:
     connection = _PostgresGuardCatalogueConnection()
-    with pytest.raises(RuntimeError, match="korpus_bump_corpus_state_epoch.*invalid definition"):
+    with pytest.raises(RuntimeError, match="korpus_bump_corpus_state_epoch.*invalid function body"):
         corpus_snapshot_guards._postgres_guards(connection)  # type: ignore[arg-type]
