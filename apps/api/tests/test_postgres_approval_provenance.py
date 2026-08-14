@@ -20,11 +20,12 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import versions
+from korpus.infrastructure.secure_repository import RlsBoundSqlRepository
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 
@@ -66,16 +67,18 @@ def _bundle() -> tuple[DocumentRecord, DocumentVersionRecord, EvidenceSpanRecord
 
 
 @pytest.mark.skipif(
-    not POSTGRES_URL or not REVIEW_URL,
-    reason="split PostgreSQL app/review URLs are required",
+    not POSTGRES_URL or not REVIEW_URL or not IDENTITY_URL,
+    reason="split PostgreSQL app/review/identity URLs are required",
 )
 def test_app_role_cannot_manufacture_approved_state(tmp_path: Path) -> None:
     reset_database()
-    repository = SqlRepository(
+    assert POSTGRES_URL and REVIEW_URL and IDENTITY_URL
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "approval-provenance-test-key",
         audit_anchor_path=tmp_path / "approval-provenance-anchor.json",
         review_database_url=REVIEW_URL,
+        rls_identity_database_url=IDENTITY_URL,
     )
     repository.initialize(create_schema=False)
     actor = _actor()
@@ -91,8 +94,10 @@ def test_app_role_cannot_manufacture_approved_state(tmp_path: Path) -> None:
     try:
         with repository.engine.connect() as connection:
             app_role = connection.execute(
-                text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles "
-                     "WHERE rolname = current_user")
+                text(
+                    "SELECT current_user, rolsuper, rolbypassrls FROM pg_roles "
+                    "WHERE rolname = current_user"
+                )
             ).one()
             grants = connection.execute(
                 text(
@@ -105,10 +110,13 @@ def test_app_role_cannot_manufacture_approved_state(tmp_path: Path) -> None:
                     "'rescinded_at', 'UPDATE') AS rescinded_at_update"
                 )
             ).one()
+        assert repository.review_engine is not None
         with repository.review_engine.connect() as connection:
             review_role = connection.execute(
-                text("SELECT current_user, rolsuper, rolbypassrls FROM pg_roles "
-                     "WHERE rolname = current_user")
+                text(
+                    "SELECT current_user, rolsuper, rolbypassrls FROM pg_roles "
+                    "WHERE rolname = current_user"
+                )
             ).one()
             review_can_update = connection.execute(
                 text(
