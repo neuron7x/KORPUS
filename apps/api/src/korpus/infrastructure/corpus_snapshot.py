@@ -25,6 +25,7 @@ _EPOCH_TABLES = (
     "document_compartments",
     "document_versions",
     "evidence_spans",
+    "span_embeddings",
 )
 
 
