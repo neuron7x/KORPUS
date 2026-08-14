@@ -13,6 +13,7 @@ from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAu
 from korpus.application.corpus_snapshot import (
     CorpusConsistencyError,
     CorpusReadToken,
+    release_identity_digest,
     version_evidence_digest,
 )
 from korpus.application.ports import Repository
@@ -72,6 +73,33 @@ def test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity(
 ) -> None:
     with pytest.raises(ValueError, match="SHA-256"):
         _token(release_id)
+
+
+@pytest.mark.parametrize(
+    ("index", "replacement"),
+    [
+        (0, "document-b"),
+        (1, "version-b"),
+        (2, "c" * 64),
+        (3, "rejected"),
+        (4, "d" * 64),
+    ],
+)
+def test_release_identity_digest_commits_every_member_field(
+    index: int, replacement: str
+) -> None:
+    baseline = ("document-a", "version-a", "a" * 64, "approved", "b" * 64)
+    changed = list(baseline)
+    changed[index] = replacement
+    assert release_identity_digest([baseline]) != release_identity_digest([tuple(changed)])
+
+
+def test_release_identity_digest_is_order_and_join_multiplicity_stable() -> None:
+    first = ("document-a", "version-a", "a" * 64, "approved", "b" * 64)
+    second = ("document-b", "version-b", "c" * 64, "approved", "d" * 64)
+    assert release_identity_digest([first, second]) == release_identity_digest(
+        [second, first, first]
+    )
 
 
 def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> None:
