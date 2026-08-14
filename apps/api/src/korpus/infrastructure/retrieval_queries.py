@@ -215,7 +215,7 @@ def _candidate_compartment_filter(identity: Identity) -> tuple[str, dict[str, st
     parameters = {f"compartment_{index}": value for index, value in enumerate(compartments)}
     forbidden = ""
     if compartments:
-        placeholders = ",".join(parameters)
+        placeholders = ",".join(f":{name}" for name in parameters)
         forbidden = f"AND dc.compartment NOT IN ({placeholders})"
     clause = (
         "AND NOT EXISTS (SELECT 1 FROM document_compartments dc "
