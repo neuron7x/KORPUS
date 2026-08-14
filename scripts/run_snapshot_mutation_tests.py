@@ -156,6 +156,32 @@ MUTANTS = (
         "test_rejected_previously_approved_evidence_remains_immutable",
         "sealed evidence digest remains immutable after a later review rejection",
     ),
+    Mutant(
+        "TS13",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        "        if token.as_of != as_of:\n"
+        "            raise CorpusConsistencyError(\"corpus token historical date does not match the read\")\n",
+        "        if False:\n"
+        "            raise CorpusConsistencyError(\"corpus token historical date does not match the read\")\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_for_another_historical_date",
+        "snapshot tokens are bound to one historical as_of date",
+    ),
+    Mutant(
+        "TS14",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        "        if token.authorization_scope_id != authorization_scope_id(identity, authorized):\n"
+        "            raise CorpusConsistencyError(\n"
+        "                \"corpus token authorization identity does not match the read\"\n"
+        "            )\n",
+        "        if False:\n"
+        "            raise CorpusConsistencyError(\n"
+        "                \"corpus token authorization identity does not match the read\"\n"
+        "            )\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_snapshot_token_cannot_be_reused_under_another_authorization_identity",
+        "snapshot tokens are bound to the exact authorization identity",
+    ),
 )
 
 
