@@ -255,29 +255,47 @@ class SqlCorpusSnapshotReader:
                 CREATE OR REPLACE FUNCTION korpus_refuse_approved_evidence_mutation()
                 RETURNS trigger AS $$
                 DECLARE
-                  old_approved boolean := false;
-                  new_approved boolean := false;
+                  locked_state text;
                 BEGIN
-                  IF TG_OP <> 'INSERT' THEN
-                    SELECT EXISTS(
-                      SELECT 1 FROM document_versions
-                      WHERE id = OLD.version_id AND review_state = 'approved'
-                    ) INTO old_approved;
-                  END IF;
-                  IF TG_OP <> 'DELETE' THEN
-                    SELECT EXISTS(
-                      SELECT 1 FROM document_versions
-                      WHERE id = NEW.version_id AND review_state = 'approved'
-                    ) INTO new_approved;
-                  END IF;
-                  IF old_approved OR new_approved THEN
-                    RAISE EXCEPTION 'approved evidence is immutable';
+                  IF TG_OP = 'INSERT' THEN
+                    SELECT review_state INTO locked_state
+                    FROM public.document_versions
+                    WHERE id = NEW.version_id
+                    FOR SHARE;
+                    IF locked_state = 'approved' THEN
+                      RAISE EXCEPTION 'approved evidence is immutable';
+                    END IF;
+                  ELSIF TG_OP = 'DELETE' THEN
+                    SELECT review_state INTO locked_state
+                    FROM public.document_versions
+                    WHERE id = OLD.version_id
+                    FOR SHARE;
+                    IF locked_state = 'approved' THEN
+                      RAISE EXCEPTION 'approved evidence is immutable';
+                    END IF;
+                  ELSE
+                    FOR locked_state IN
+                      SELECT review_state
+                      FROM public.document_versions
+                      WHERE id IN (OLD.version_id, NEW.version_id)
+                      ORDER BY id
+                      FOR SHARE
+                    LOOP
+                      IF locked_state = 'approved' THEN
+                        RAISE EXCEPTION 'approved evidence is immutable';
+                      END IF;
+                    END LOOP;
                   END IF;
                   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
                   RETURN NEW;
                 END;
-                $$ LANGUAGE plpgsql
+                $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
                 """
+            )
+        )
+        connection.execute(
+            sql_text(
+                "REVOKE ALL ON FUNCTION korpus_refuse_approved_evidence_mutation() FROM PUBLIC"
             )
         )
         connection.execute(
