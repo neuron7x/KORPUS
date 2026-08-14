@@ -20,6 +20,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = ROOT / "var/snapshot-mutation-report.json"
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.provenance import stamp  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -197,6 +200,7 @@ def main() -> int:
     survived = [str(item["id"]) for item in outcomes if item.get("status") == "SURVIVED"]
     report = {
         "schema": "korpus.snapshot-mutation.v1",
+        "provenance": stamp(ROOT, "scripts/run_snapshot_mutation_tests.py"),
         "mutants": len(MUTANTS),
         "executed_mutants": len(outcomes),
         "killed": killed,
