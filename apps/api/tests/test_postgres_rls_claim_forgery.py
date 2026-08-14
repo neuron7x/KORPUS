@@ -19,10 +19,12 @@ from korpus.domain.models import (
     ReviewState,
 )
 from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.rls_repository import RlsBoundSqlRepository
 from korpus.infrastructure.schema import documents
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
 REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+AUTHZ_URL = os.getenv("KORPUS_AUTHZ_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 
@@ -85,13 +87,14 @@ def _create_document(
     return document
 
 
-def _repository(tmp_path: Path) -> SqlRepository:
-    assert POSTGRES_URL is not None and REVIEW_URL is not None
-    repository = SqlRepository(
+def _repository(tmp_path: Path) -> RlsBoundSqlRepository:
+    assert POSTGRES_URL is not None and REVIEW_URL is not None and AUTHZ_URL is not None
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "rls-claim-forgery-test-key",
         audit_anchor_path=tmp_path / "rls-claim-forgery-anchor.json",
         review_database_url=REVIEW_URL,
+        authz_database_url=AUTHZ_URL,
     )
     repository.initialize(create_schema=False)
     return repository
@@ -107,8 +110,8 @@ def _count(connection, document_id: str) -> int:
 
 
 @pytest.mark.skipif(
-    not POSTGRES_URL or not REVIEW_URL,
-    reason="split PostgreSQL app/review URLs are required",
+    not POSTGRES_URL or not REVIEW_URL or not AUTHZ_URL,
+    reason="split PostgreSQL app/review/authz URLs are required",
 )
 @pytest.mark.parametrize(
     ("axis", "document_kwargs", "setting", "forged_value"),
@@ -160,8 +163,8 @@ def test_app_sql_cannot_self_increase_rls_visibility_claim(
 
 
 @pytest.mark.skipif(
-    not POSTGRES_URL or not REVIEW_URL,
-    reason="split PostgreSQL app/review URLs are required",
+    not POSTGRES_URL or not REVIEW_URL or not AUTHZ_URL,
+    reason="split PostgreSQL app/review/authz URLs are required",
 )
 def test_app_sql_cannot_self_grant_rls_writer_role(tmp_path: Path) -> None:
     reset_database()
