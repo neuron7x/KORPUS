@@ -12,19 +12,28 @@ from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch
+from korpus.infrastructure.secure_repository import RlsBoundSqlRepository
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL") or os.getenv("KORPUS_TEST_DATABASE_URL")
+REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 
-@pytest.mark.skipif(not POSTGRES_URL, reason="PostgreSQL test URL is not configured")
+@pytest.mark.skipif(
+    not POSTGRES_URL or not REVIEW_URL or not IDENTITY_URL,
+    reason="split PostgreSQL app/review/identity URLs are required",
+)
 def test_postgres_application_role_cannot_forge_corpus_state_epoch(tmp_path: Path) -> None:
     """The monotonic epoch is observable to the app but not writable by it."""
     reset_database()
-    repository = SqlRepository(
+    assert POSTGRES_URL and REVIEW_URL and IDENTITY_URL
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "postgres-temporal-privilege-key",
         audit_anchor_path=tmp_path / "postgres-temporal-privilege-anchor.json",
+        review_database_url=REVIEW_URL,
+        rls_identity_database_url=IDENTITY_URL,
     )
     repository.initialize(create_schema=False)
     actor = Identity(
@@ -85,7 +94,10 @@ def test_postgres_startup_rejects_correctly_named_inert_epoch_function(tmp_path:
 
     try:
         reader = SqlCorpusSnapshotReader(repository)
-        with pytest.raises(RuntimeError, match="korpus_bump_corpus_state_epoch.*invalid function body"):
+        with pytest.raises(
+            RuntimeError,
+            match="korpus_bump_corpus_state_epoch.*invalid function body",
+        ):
             reader.initialize(create_schema=False)
     finally:
         with admin_engine.begin() as connection:
