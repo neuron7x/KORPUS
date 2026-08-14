@@ -31,12 +31,7 @@ class _Entry:
 
 
 class EvidenceQueryCache:
-    """Identity- and release-bound bounded LRU cache.
-
-    The cache cannot survive a corpus release change, permission change, date
-    change, or ranking configuration change. It stores already authorized
-    evidence only and never broadens a caller's scope.
-    """
+    """Bounded LRU for already-authorized evidence; identity/state live in the key."""
 
     def __init__(self, maximum_entries: int = 512, ttl_seconds: float = 30.0) -> None:
         if maximum_entries < 1 or ttl_seconds <= 0:
@@ -80,7 +75,7 @@ class EvidenceQueryCache:
 
 
 class CachedRetriever(SnapshotRetriever):
-    """Cache only evidence that was read under the caller's explicit snapshot token."""
+    """Cache evidence only under the caller's explicit immutable snapshot token."""
 
     def __init__(
         self,
@@ -127,9 +122,8 @@ class CachedRetriever(SnapshotRetriever):
         token: CorpusReadToken,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        # The cache must never discover release identity for itself. That creates a
-        # second read point and can key state-B evidence as release A. One token from the
-        # answer path is the only authority for both the lookup and any subsequent put.
+        # A second release read could key state-B evidence as release A; the answer's
+        # explicit token is the sole authority for lookup, delegated read, and put.
         self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
         key = self._key(identity, text, corpus_ids, as_of, token, limit)
         cached = self.cache.get(key)
