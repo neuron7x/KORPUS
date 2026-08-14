@@ -52,14 +52,13 @@ def semantic_release_members(
     connection: Connection,
     visible_rows: Sequence[Any],
 ) -> list[SemanticReleaseMember]:
-    """Read every answer-visible/decision-relevant field for the visible version set."""
+    """Read answer-relevant metadata and relation compartments in one batched query."""
     visible_pairs = {
         (str(row["document_id"]), str(row["version_id"])) for row in visible_rows
     }
     if not visible_pairs:
         return []
     version_ids = sorted(version_id for _document_id, version_id in visible_pairs)
-    document_ids = sorted({document_id for document_id, _version_id in visible_pairs})
     statement = (
         select(
             documents.c.id.label("document_id"),
@@ -80,11 +79,20 @@ def semantic_release_members(
             versions.c.rescinded_at,
             versions.c.authority,
             versions.c.supersedes_version_id,
+            document_compartments.c.compartment.label("visibility_compartment"),
         )
         .select_from(versions)
         .join(documents, versions.c.document_id == documents.c.id)
+        .outerjoin(
+            document_compartments,
+            document_compartments.c.document_id == documents.c.id,
+        )
         .where(versions.c.id.in_(version_ids))
-        .order_by(documents.c.id, versions.c.id)
+        .order_by(
+            documents.c.id,
+            versions.c.id,
+            document_compartments.c.compartment,
+        )
     )
     rows = connection.execute(statement).mappings().all()
     found_pairs = {
@@ -95,22 +103,20 @@ def semantic_release_members(
             "release semantic projection is incomplete or mismatched"
         )
 
-    compartment_rows = connection.execute(
-        select(document_compartments.c.document_id, document_compartments.c.compartment)
-        .where(document_compartments.c.document_id.in_(document_ids))
-        .order_by(
-            document_compartments.c.document_id,
-            document_compartments.c.compartment,
-        )
-    ).all()
-    visibility: dict[str, list[str]] = {
-        document_id: [] for document_id in document_ids
-    }
-    for document_id, compartment in compartment_rows:
-        visibility[str(document_id)].append(str(compartment))
+    representative: dict[tuple[str, str], Any] = {}
+    visibility: dict[str, list[str]] = {}
+    for row in rows:
+        document_id = str(row["document_id"])
+        version_id = str(row["version_id"])
+        representative.setdefault((document_id, version_id), row)
+        visibility.setdefault(document_id, [])
+        compartment = row["visibility_compartment"]
+        if compartment is not None:
+            visibility[document_id].append(str(compartment))
 
     members: list[SemanticReleaseMember] = []
-    for row in rows:
+    for pair in sorted(representative):
+        row = representative[pair]
         evidence_digest = row["evidence_digest"]
         if not _valid_sha256(evidence_digest):
             raise CorpusConsistencyError(
