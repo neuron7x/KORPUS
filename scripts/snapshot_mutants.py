@@ -326,4 +326,15 @@ MUTANTS = (
         "test_release_identity_digest_commits_every_member_field",
         "release identity commits the exact sealed evidence set",
     ),
+    Mutant(
+        "TS32",
+        "apps/api/src/korpus/application/cache.py",
+        "        if delegate_reader is not None and delegate_reader is not snapshot_reader:\n"
+        "            raise ValueError(\"cached retrieval must share one corpus snapshot reader\")\n",
+        "        if False:\n"
+        "            raise ValueError(\"cached retrieval must share one corpus snapshot reader\")\n",
+        "apps/api/tests/test_query_cache.py::"
+        "test_cached_retriever_rejects_split_snapshot_authorities",
+        "cache and delegated retrieval must share exactly one snapshot authority",
+    ),
 )
