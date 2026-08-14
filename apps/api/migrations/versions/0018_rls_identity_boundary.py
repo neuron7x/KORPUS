@@ -211,10 +211,10 @@ def upgrade() -> None:
             corpora, classifications, compartments, roles, bound_at
           ) VALUES (
             p_backend_pid, p_transaction_id, p_session_login, p_clearance,
-            ARRAY(SELECT DISTINCT value FROM pg_catalog.jsonb_array_elements_text(p_corpora) value ORDER BY value),
-            ARRAY(SELECT DISTINCT value FROM pg_catalog.jsonb_array_elements_text(p_classifications) value ORDER BY value),
-            ARRAY(SELECT DISTINCT value FROM pg_catalog.jsonb_array_elements_text(p_compartments) value ORDER BY value),
-            ARRAY(SELECT DISTINCT value FROM pg_catalog.jsonb_array_elements_text(p_roles) value ORDER BY value),
+            ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_corpora) AS item(value) ORDER BY item.value),
+            ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_classifications) AS item(value) ORDER BY item.value),
+            ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_compartments) AS item(value) ORDER BY item.value),
+            ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_roles) AS item(value) ORDER BY item.value),
             pg_catalog.clock_timestamp()
           )
           ON CONFLICT (backend_pid) DO UPDATE SET
@@ -247,7 +247,7 @@ def upgrade() -> None:
                 (SELECT c.{column} FROM public.korpus_rls_context AS c
                  WHERE c.backend_pid = pg_catalog.pg_backend_pid()
                    AND c.transaction_id = pg_catalog.txid_current()
-                   AND c.session_login = pg_catalog.session_user),
+                   AND c.session_login = session_user),
                 {fallback}
               )
             $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog
