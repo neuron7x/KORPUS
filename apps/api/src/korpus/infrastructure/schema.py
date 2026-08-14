@@ -1,18 +1,4 @@
-"""The physical schema, apart from everything that reads or writes it.
-
-COD-001 names six responsibilities inside `SqlRepository`: "schema, CRUD, search, audit,
-readiness, RLS context". This is the first of them, and it is the one that had the least
-reason to be there — a table definition is a declaration, not behaviour, and nothing here
-runs at request time.
-
-Keeping it here also gives the retrieval query builders somewhere to import from without
-a cycle back through the repository that calls them.
-
-Every name is re-exported from `repository` so existing call sites and the mutation
-catalogue keep working; a rename would be a second change riding on a move that is meant
-to preserve behaviour exactly.
-"""
-
+"""Physical SQL schema declarations, separate from repository behaviour."""
 from __future__ import annotations
 
 from sqlalchemy import (
@@ -35,13 +21,8 @@ from sqlalchemy import (
 
 from korpus.application.keyring import LEGACY_KEY_ID
 
-#: The alembic head this code expects. `initialize(create_schema=False)` — the
-#: production path — refuses to start on anything else. It is pinned by
-#: test_schema_revision_pin.py against the migration graph, because it drifted once:
-#: 0010 shipped, the constant stayed at 0009, and a migrated PostgreSQL database
-#: refused to start while every SQLite test stayed green.
+# Alembic head required by the migrated production path; pinned by schema revision tests.
 SCHEMA_REVISION = "0016_temporal_corpus_snapshot"
-
 metadata = MetaData()
 
 documents = Table(
@@ -130,9 +111,7 @@ versions = Table(
         "effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from",
         name="ck_version_effective_window",
     ),
-    CheckConstraint(
-        "NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"
-    ),
+    CheckConstraint("NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"),
     CheckConstraint(
         "review_state != 'approved' OR evidence_digest IS NOT NULL",
         name="ck_approved_version_evidence_digest",
@@ -214,9 +193,7 @@ audits = Table(
     Column("payload_json", Text, nullable=False),
     Column("previous_hash", String(64), nullable=False),
     Column("event_hash", String(64), nullable=False),
-    # Which key signed this. Without it, rotating the audit key invalidates every event
-    # ever written, because the verifier recomputes each HMAC with whatever key the
-    # process is holding. See korpus.application.keyring.
+    # Persist the signing key id so audit-key rotation does not invalidate old events.
     Column("audit_key_id", String(64), nullable=False, server_default=LEGACY_KEY_ID),
 )
 
