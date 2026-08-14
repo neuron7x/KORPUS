@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """First-order mutation gate for the temporal corpus snapshot invariant.
 
-Issue #23 has one canonical, separately reviewable mutant catalogue in
-`scripts/snapshot_mutants.py`. A mutant is counted as killed only when its exact control
-passes on the unmodified tree and fails after one surgical source mutation.
+A mutant is counted as killed only when its exact control passes on the unmodified tree
+and fails after one surgical source mutation. Issue #26 extends the canonical #23
+catalogue with semantic-release identity destruction controls.
 """
 from __future__ import annotations
 
@@ -22,7 +22,11 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from korpus.application.provenance import stamp  # noqa: E402
-from snapshot_mutants import MUTANTS, Mutant  # noqa: E402
+from semantic_release_mutants import MUTANTS as SEMANTIC_MUTANTS  # noqa: E402
+from snapshot_mutants import MUTANTS as SNAPSHOT_MUTANTS  # noqa: E402
+from snapshot_mutants import Mutant  # noqa: E402
+
+MUTANTS = (*SNAPSHOT_MUTANTS, *SEMANTIC_MUTANTS)
 
 
 def _python() -> str:
@@ -128,6 +132,7 @@ def main() -> int:
         "schema": "korpus.snapshot-mutation.v1",
         "provenance": stamp(ROOT, "scripts/run_snapshot_mutation_tests.py"),
         "catalogue_provenance": stamp(ROOT, "scripts/snapshot_mutants.py"),
+        "semantic_catalogue_provenance": stamp(ROOT, "scripts/semantic_release_mutants.py"),
         "mutants": len(MUTANTS),
         "executed_mutants": len(outcomes),
         "killed": killed,
