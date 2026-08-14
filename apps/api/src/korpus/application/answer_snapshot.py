@@ -36,6 +36,28 @@ class SnapshotAnswerAbort(RuntimeError):
         self.answer = answer
 
 
+def _resolve_snapshot_reader(
+    repository: Repository,
+    retriever: SnapshotRetriever | Retriever,
+    explicit: CorpusSnapshotReader | None,
+) -> CorpusSnapshotReader:
+    candidates = [
+        candidate
+        for candidate in (
+            explicit,
+            getattr(retriever, "snapshot_reader", None),
+            getattr(repository, "corpus_snapshot_reader", None),
+        )
+        if candidate is not None
+    ]
+    if not candidates:
+        raise ValueError("a corpus snapshot reader is required for answering")
+    reader = candidates[0]
+    if any(candidate is not reader for candidate in candidates[1:]):
+        raise ValueError("answer retrieval must share one corpus snapshot reader")
+    return cast(CorpusSnapshotReader, reader)
+
+
 class SnapshotAnswerRuntime:
     """Resolve the single snapshot authority used by every answer read and audit."""
 
@@ -46,15 +68,10 @@ class SnapshotAnswerRuntime:
         audit_policy: SnapshotAuditPolicy,
         snapshot_reader: CorpusSnapshotReader | None = None,
     ) -> None:
-        resolved_reader = (
-            snapshot_reader
-            or getattr(retriever, "snapshot_reader", None)
-            or getattr(repository, "corpus_snapshot_reader", None)
-        )
-        if resolved_reader is None:
-            raise ValueError("a corpus snapshot reader is required for answering")
         self.repository = repository
-        self.snapshot_reader = cast(CorpusSnapshotReader, resolved_reader)
+        self.snapshot_reader = _resolve_snapshot_reader(
+            repository, retriever, snapshot_reader
+        )
         self.audit_policy = audit_policy
         if hasattr(retriever, "snapshot_reader"):
             self.retriever = cast(SnapshotRetriever, retriever)
