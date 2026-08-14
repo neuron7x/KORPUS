@@ -11,7 +11,7 @@ from sqlalchemy.exc import IntegrityError
 
 from apps.api.tests.helpers import approve, ingest_text
 from korpus.application.corpus_snapshot import CorpusConsistencyError, version_evidence_digest
-from korpus.infrastructure.schema import audits, spans, versions
+from korpus.infrastructure.schema import audits, span_embeddings, spans, versions
 
 
 def _version_id(result: dict[str, object]) -> str:
@@ -73,7 +73,10 @@ def test_approved_evidence_and_its_seal_are_database_immutable(client) -> None:
 
     with repository.engine.begin() as connection:
         span = connection.execute(
-            select(spans).where(spans.c.version_id == version_id).order_by(spans.c.ordinal).limit(1)
+            select(spans)
+            .where(spans.c.version_id == version_id)
+            .order_by(spans.c.ordinal)
+            .limit(1)
         ).mappings().one()
 
     changed_text = f"{span['text']} tampered"
@@ -112,6 +115,43 @@ def test_approved_evidence_and_its_seal_are_database_immutable(client) -> None:
                 .where(versions.c.id == version_id)
                 .values(evidence_digest="0" * 64)
             )
+
+
+def test_semantic_backfill_invalidates_an_inflight_snapshot_token(
+    client, admin_identity
+) -> None:
+    result = ingest_text(client)
+    version_id = _version_id(result)
+    approve(client, version_id)
+    repository = client.app.state.repository
+    reader = client.app.state.corpus_snapshot_reader
+    as_of = datetime.now(UTC).date()
+    corpora = frozenset({"public"})
+    token_before = reader.capture(admin_identity, corpora, as_of)
+
+    with repository.engine.begin() as connection:
+        span = connection.execute(
+            select(spans.c.id, spans.c.text_hash)
+            .where(spans.c.version_id == version_id)
+            .order_by(spans.c.ordinal)
+            .limit(1)
+        ).mappings().one()
+        connection.execute(
+            insert(span_embeddings).values(
+                span_id=span["id"],
+                model_id="snapshot-race-control",
+                dimensions=2,
+                embedding_json="[0.0,1.0]",
+                text_hash=span["text_hash"],
+                created_at=datetime.now(UTC),
+            )
+        )
+
+    token_after = reader.capture(admin_identity, corpora, as_of)
+    assert token_after.release_id == token_before.release_id
+    assert token_after.state_epoch > token_before.state_epoch
+    with pytest.raises(CorpusConsistencyError):
+        reader.validate(admin_identity, corpora, as_of, token_before)
 
 
 def test_monotonic_epoch_kills_release_aba_without_changing_historical_identity(
