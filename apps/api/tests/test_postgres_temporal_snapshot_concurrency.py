@@ -93,7 +93,7 @@ def test_postgres_approval_seal_serializes_concurrent_evidence_mutation(
 
     sealed = Event()
     release_approval = Event()
-    original_seal = review_transitions._seal_evidence_digest
+    original_seal = review_transitions.seal_evidence_digest
 
     def blocking_seal(connection, version_id):
         digest = original_seal(connection, version_id)
@@ -102,7 +102,7 @@ def test_postgres_approval_seal_serializes_concurrent_evidence_mutation(
             raise TimeoutError("approval race barrier was not released")
         return digest
 
-    monkeypatch.setattr(review_transitions, "_seal_evidence_digest", blocking_seal)
+    monkeypatch.setattr(review_transitions, "seal_evidence_digest", blocking_seal)
 
     changed_text = f"{span.text} tampered during approval"
     changed_hash = hashlib.sha256(changed_text.encode("utf-8")).hexdigest()
