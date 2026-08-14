@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from datetime import date
+from typing import cast
 
 from korpus.application.answer_analysis import (
     ScopeBreach,
@@ -17,6 +18,12 @@ from korpus.application.answer_analysis import (
 )
 from korpus.application.answer_audit import append_answer_audit
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
+from korpus.application.corpus_snapshot import (
+    CorpusConsistencyError,
+    CorpusReadToken,
+    CorpusSnapshotReader,
+    SnapshotRetriever,
+)
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
@@ -39,6 +46,7 @@ from korpus.application.risk import (
     classify_query_risk,
     risk_adjusted_thresholds,
 )
+from korpus.application.snapshot_retrieval import SnapshotBoundRetriever
 from korpus.domain.models import (
     AccessTier,
     Answer,
@@ -84,15 +92,32 @@ class ExtractiveAnswerService:
     def __init__(
         self,
         repository: Repository,
-        retriever: Retriever,
+        retriever: SnapshotRetriever | Retriever,
         policy_engine: PolicyEngine,
         answer_policy: AnswerPolicy,
         query_planner: QueryPlanner | None = None,
         answer_composer: AnswerComposer | None = None,
         egress_policy: ModelEgressPolicy | None = None,
+        snapshot_reader: CorpusSnapshotReader | None = None,
     ) -> None:
         self.repository = repository
-        self.retriever = retriever
+        resolved_reader = (
+            snapshot_reader
+            or getattr(retriever, "snapshot_reader", None)
+            or getattr(repository, "corpus_snapshot_reader", None)
+        )
+        if resolved_reader is None:
+            raise ValueError("a corpus snapshot reader is required for answering")
+        self.snapshot_reader = cast(CorpusSnapshotReader, resolved_reader)
+        # Compatibility at the application boundary is still fail-closed: an ordinary
+        # retriever is wrapped with before/after epoch validation. Production supplies
+        # CachedRetriever directly, which already consumes the explicit token.
+        if hasattr(retriever, "snapshot_reader"):
+            self.retriever = cast(SnapshotRetriever, retriever)
+        else:
+            self.retriever = SnapshotBoundRetriever(
+                self.snapshot_reader, cast(Retriever, retriever)
+            )
         self.policy_engine = policy_engine
         self.answer_policy = answer_policy
         #: Optional by construction. Absent, this service behaves exactly as it did
@@ -110,7 +135,27 @@ class ExtractiveAnswerService:
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
-        release_id = self.repository.corpus_release_id(identity, corpora, query.as_of)
+        try:
+            token = self.snapshot_reader.capture(identity, corpora, query.as_of)
+        except CorpusConsistencyError as exc:
+            answer = self._abstain(
+                "snapshot-unavailable",
+                "corpus_snapshot_unavailable",
+                "Стан перевіреного корпусу неможливо зафіксувати узгоджено; відповідь зупинено.",
+                limitations=[f"Snapshot consistency: {type(exc).__name__}."],
+            )
+            self._audit(
+                identity,
+                query,
+                answer,
+                [],
+                [],
+                classify_query_risk(query.text),
+                token=None,
+            )
+            return answer
+        release_id = token.release_id
+
         injection = assess_control_injection(query.text)
         if injection.blocked:
             answer = self._abstain(
@@ -119,8 +164,16 @@ class ExtractiveAnswerService:
                 "Запит містить інструкції керування системою замість предметного питання.",
                 limitations=[f"Injection signals: {', '.join(injection.reasons)}"],
             )
-            self._audit(identity, query, answer, [], [], classify_query_risk(query.text))
-            return answer
+            return self._finalize(
+                identity,
+                query,
+                answer,
+                [],
+                [],
+                classify_query_risk(query.text),
+                corpora,
+                token,
+            )
 
         risk = classify_query_risk(query.text)
         # The question is searched first and always. A reformulation widens what was
@@ -129,15 +182,24 @@ class ExtractiveAnswerService:
         # came for and nothing downstream would see it happen.
         plan = build_plan(query.text, self.query_planner)
         try:
-            retrieved = self._search_plan(identity, plan, corpora, query.as_of)
+            retrieved = self._search_plan(identity, plan, corpora, query.as_of, token)
+        except CorpusConsistencyError:
+            answer = self._abstain(
+                release_id,
+                "corpus_snapshot_changed",
+                "Корпус змінився під час пошуку; результат відкинуто без переходу до нового стану.",
+            )
+            self._audit(identity, query, answer, [], [], risk, plan=plan, token=token)
+            return answer
         except RetrievalDeadlineExceeded:
             answer = self._abstain(
                 release_id,
                 "retrieval_deadline_exceeded",
                 "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
             )
-            self._audit(identity, query, answer, [], [], risk, plan=plan)
-            return answer
+            return self._finalize(
+                identity, query, answer, [], [], risk, corpora, token, plan=plan
+            )
         except RetrievalUnavailable:
             answer = self._abstain(
                 release_id,
@@ -145,16 +207,25 @@ class ExtractiveAnswerService:
                 "Обов’язковий пошуковий контур недоступний;"
                 " відповідь зупинено без слабшого fallback.",
             )
-            self._audit(identity, query, answer, [], [], risk, plan=plan)
-            return answer
+            return self._finalize(
+                identity, query, answer, [], [], risk, corpora, token, plan=plan
+            )
 
         breaches = self._scope_breaches(identity, corpora, retrieved)
         if breaches:
             answer = self._breach(release_id, breaches)
-            self._audit(
-                identity, query, answer, retrieved, [], risk, breaches=breaches, plan=plan
+            return self._finalize(
+                identity,
+                query,
+                answer,
+                retrieved,
+                [],
+                risk,
+                corpora,
+                token,
+                breaches=breaches,
+                plan=plan,
             )
-            return answer
 
         eligible = self.answer_policy.eligible(retrieved, risk)
         if not eligible:
@@ -164,8 +235,9 @@ class ExtractiveAnswerService:
                 "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
                 max((item.score for item in retrieved), default=0.0),
             )
-            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
-            return answer
+            return self._finalize(
+                identity, query, answer, retrieved, eligible, risk, corpora, token, plan=plan
+            )
 
         thresholds = risk_adjusted_thresholds(
             risk,
@@ -180,8 +252,9 @@ class ExtractiveAnswerService:
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
             answer = self._unsourced_answer(release_id, unsourced)
-            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
-            return answer
+            return self._finalize(
+                identity, query, answer, retrieved, eligible, risk, corpora, token, plan=plan
+            )
 
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
         support = verify_claim_support(
@@ -191,10 +264,18 @@ class ExtractiveAnswerService:
         evidence_coverage = support.coverage
         if claims and not support.aligned:
             answer = self._misaligned(release_id, support)
-            self._audit(
-                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan
+            return self._finalize(
+                identity,
+                query,
+                answer,
+                retrieved,
+                eligible,
+                risk,
+                corpora,
+                token,
+                support=support,
+                plan=plan,
             )
-            return answer
         # Before every branch, not inside one: three of them reach the same audit call,
         # and initialising it in the branch that uses it surfaced as an UnboundLocalError
         # on the other two rather than as a missing field.
@@ -270,9 +351,61 @@ class ExtractiveAnswerService:
                     ],
                     corpus_release=release_id,
                 )
-        self._audit(
-            identity, query, answer, retrieved, eligible, risk, plan=plan,
+        return self._finalize(
+            identity,
+            query,
+            answer,
+            retrieved,
+            eligible,
+            risk,
+            corpora,
+            token,
+            plan=plan,
             composition=composition_reason,
+        )
+
+    def _finalize(
+        self,
+        identity: Identity,
+        query: QueryRequest,
+        answer: Answer,
+        retrieved: list[RetrievedEvidence],
+        eligible: list[RetrievedEvidence],
+        risk: QueryRisk,
+        corpora: frozenset[str],
+        token: CorpusReadToken,
+        *,
+        breaches: list[ScopeBreach] | None = None,
+        support: SupportVerdict | None = None,
+        plan: QueryPlan | None = None,
+        composition: str | None = None,
+    ) -> Answer:
+        """Linearization point for an answer: validate the token before audit/return."""
+        try:
+            self.snapshot_reader.validate(identity, corpora, query.as_of, token)
+        except CorpusConsistencyError:
+            answer = self._abstain(
+                token.release_id,
+                "corpus_snapshot_changed",
+                "Корпус змінився до завершення відповіді; зібраний результат відкинуто.",
+            )
+            retrieved = []
+            eligible = []
+            breaches = None
+            support = None
+            composition = "discarded: corpus snapshot changed"
+        self._audit(
+            identity,
+            query,
+            answer,
+            retrieved,
+            eligible,
+            risk,
+            breaches=breaches,
+            support=support,
+            plan=plan,
+            composition=composition,
+            token=token,
         )
         return answer
 
@@ -322,18 +455,18 @@ class ExtractiveAnswerService:
         plan: QueryPlan,
         corpora: frozenset[str],
         as_of: date,
+        token: CorpusReadToken,
     ) -> list[RetrievedEvidence]:
         """Every search in the plan, fused by span, ranked as one set.
 
-        Scores from different queries are comparable because they are produced by the
-        same scorer against the same corpus; the highest is kept when a span is found
-        twice, which is the score of the phrasing that matched it best. What is not
-        done is boosting a span for appearing under several phrasings: that would let
-        the number of reformulations a model happened to emit decide relevance.
+        Every reformulation receives the same token. Scores from different queries are
+        comparable because they are produced by the same scorer against the same corpus;
+        the highest is kept when a span is found twice. Appearing under several phrasings
+        does not boost a span.
         """
         best: dict[str, RetrievedEvidence] = {}
         for text in plan.searches:
-            for item in self.retriever.search(identity, text, corpora, as_of):
+            for item in self.retriever.search(identity, text, corpora, as_of, token):
                 key = str(item.span.id)
                 previous = best.get(key)
                 if previous is None or item.score > previous.score:
@@ -561,6 +694,7 @@ class ExtractiveAnswerService:
         support: SupportVerdict | None = None,
         plan: QueryPlan | None = None,
         composition: str | None = None,
+        token: CorpusReadToken | None = None,
     ) -> None:
         append_answer_audit(
             self.repository,
@@ -577,4 +711,5 @@ class ExtractiveAnswerService:
             support=support,
             plan=plan,
             composition=composition,
+            token=token,
         )
