@@ -25,31 +25,32 @@ from korpus.domain.models import (
     ReviewState,
 )
 from korpus.infrastructure import review_transitions
-from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import spans, versions
+from korpus.infrastructure.secure_repository import RlsBoundSqlRepository
 
 POSTGRES_URL = os.getenv("KORPUS_POSTGRES_TEST_URL")
+REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 
-@pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
+@pytest.mark.skipif(
+    not POSTGRES_URL or not REVIEW_URL or not IDENTITY_URL,
+    reason="split PostgreSQL app/review/identity URLs are required",
+)
 @pytest.mark.parametrize("mutation_kind", ["insert", "update"])
 def test_postgres_approval_seal_serializes_concurrent_evidence_mutation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mutation_kind: str
 ) -> None:
-    """No evidence writer can cross the exact `seal -> approve` boundary.
-
-    INSERT is the phantom control: existing-row locks cannot stop it, so it proves the
-    parent-version protocol. UPDATE also exercises the lock order that can deadlock if
-    approval takes parent->span locks while DML takes span->parent. No sleeps create the
-    interleaving; an Event holds approval exactly after sealing and PostgreSQL bounds the
-    competing lock wait.
-    """
+    """No evidence writer can cross the exact seal-to-approve boundary."""
     reset_database()
-    repository = SqlRepository(
+    assert POSTGRES_URL and REVIEW_URL and IDENTITY_URL
+    repository = RlsBoundSqlRepository(
         POSTGRES_URL,
         "postgres-temporal-concurrency-key",
         audit_anchor_path=tmp_path / f"postgres-temporal-anchor-{mutation_kind}.json",
+        review_database_url=REVIEW_URL,
+        rls_identity_database_url=IDENTITY_URL,
     )
     repository.initialize(create_schema=False)
     actor = Identity(
@@ -149,8 +150,6 @@ def test_postgres_approval_seal_serializes_concurrent_evidence_mutation(
 
     assert approved.review_state is ReviewState.APPROVED
 
-    # After approval, the same DML must be rejected because evidence is immutable, not
-    # merely because the approval transaction happened to hold a lock.
     with pytest.raises(DBAPIError), repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, actor)
         mutate(connection)
