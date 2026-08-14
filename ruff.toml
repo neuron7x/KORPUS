@@ -26,6 +26,11 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # testing a setter written for tests.
 "apps/api/tests/*" = ["SLF001"]
 
+# The snapshot coordinator and repository are one SQL infrastructure boundary. Reusing
+# the repository's private PostgreSQL identity switch avoids publishing a method whose
+# only safe caller is another SQL adapter and prevents duplicated RLS session logic.
+"apps/api/src/korpus/infrastructure/corpus_snapshot.py" = ["SLF001"]
+
 # --- BLE001: four degradation boundaries, not four oversights -----------------
 # Each site below turns an arbitrary failure into a *reported* degraded state and
 # nothing else. Narrowing the caught type at any of them would convert a
