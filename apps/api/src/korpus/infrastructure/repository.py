@@ -568,25 +568,11 @@ class SqlRepository:
 
     @staticmethod
     def _apply_postgres_identity(connection: Connection, identity: Identity) -> None:
-        if connection.dialect.name != "postgresql":
-            return
-        classifications = SqlRepository._allowed_classifications(identity.clearance)
-        connection.execute(
-            sql_text(
-                "SELECT set_config('korpus.clearance', :clearance, true), "
-                "set_config('korpus.corpora', :corpora, true), "
-                "set_config('korpus.classifications', :classifications, true), "
-                "set_config('korpus.compartments', :compartments, true), "
-                "set_config('korpus.roles', :roles, true)"
-            ),
-            {
-                "clearance": str(int(identity.clearance)),
-                "corpora": ",".join(sorted(identity.corpora)),
-                "classifications": ",".join(classifications),
-                "compartments": ",".join(sorted(identity.compartments)),
-                "roles": ",".join(sorted(identity.roles)),
-            },
-        )
+        del identity
+        if connection.dialect.name == "postgresql":
+            raise RuntimeError(
+                "PostgreSQL identity binding requires RlsBoundSqlRepository"
+            )
 
     def _initialize_search_index(self, connection: Connection) -> None:
         if self.engine.dialect.name == "sqlite":
