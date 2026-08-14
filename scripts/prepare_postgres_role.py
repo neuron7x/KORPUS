@@ -4,26 +4,20 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 APP_RW_TABLES = (
-    "documents", "document_compartments", "evidence_spans", "span_embeddings",
-    "ingestion_jobs", "accounts", "plans", "subscriptions", "billing_events",
-    "conversations", "messages",
+    "documents", "document_compartments", "evidence_spans", "span_embeddings", "ingestion_jobs",
+    "accounts", "plans", "subscriptions", "billing_events", "conversations", "messages",
 )
-READ_ONLY_TABLES = ("corpus_state_epoch",)
-AUDIT_APPEND_TABLES = ("audit_events",)
-AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
-REVIEW_SELECT_TABLES = ("documents", "document_versions", "evidence_spans", "audit_heads")
-REVIEW_UPDATE_TABLES = ("documents", "document_versions", "audit_heads")
-REVIEW_INSERT_TABLES = ("audit_events", "audit_anchor_outbox")
+REVIEW_SELECT = ("documents", "document_versions", "evidence_spans", "audit_heads")
+REVIEW_UPDATE = ("documents", "document_versions", "audit_heads")
 
 
 def read_secret(name: str, file_name: str) -> str:
-    direct = os.getenv(name)
-    path = os.getenv(file_name)
+    direct, path = os.getenv(name), os.getenv(file_name)
     value = Path(path).read_text(encoding="utf-8").strip() if path else (direct or "")
     if not value:
         raise SystemExit(f"{name} or {file_name} is required")
@@ -34,15 +28,9 @@ def quoted(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-def valid_role(value: str) -> str:
-    if not value.replace("_", "").isalnum() or not value[0].isalpha():
-        raise SystemExit(f"invalid PostgreSQL role: {value}")
-    return value
-
-
-def exists(connection, role: str) -> bool:
-    statement = text("SELECT 1 FROM pg_roles WHERE rolname=:role")
-    return connection.execute(statement, {"role": role}).scalar_one_or_none() is not None
+def role_exists(connection, role: str) -> bool:
+    query = text("SELECT 1 FROM pg_roles WHERE rolname=:role")
+    return connection.execute(query, {"role": role}).scalar_one_or_none() is not None
 
 
 def execute(connection, statement: str) -> None:
@@ -53,8 +41,13 @@ def grant(connection, privileges: str, table: str, role: str) -> None:
     execute(connection, f"GRANT {privileges} ON TABLE {quoted(table)} TO {quoted(role)}")
 
 
+def grant_many(connection, privileges: str, tables: tuple[str, ...], role: str) -> None:
+    for table in tables:
+        grant(connection, privileges, table, role)
+
+
 def ensure_login(connection, role: str, password: str) -> None:
-    verb, login = ("ALTER ROLE", "") if exists(connection, role) else ("CREATE ROLE", "LOGIN ")
+    verb, login = ("ALTER ROLE", "") if role_exists(connection, role) else ("CREATE ROLE", "LOGIN ")
     escaped = password.replace("'", "''")
     execute(
         connection,
@@ -64,7 +57,7 @@ def ensure_login(connection, role: str, password: str) -> None:
 
 
 def ensure_group(connection, role: str) -> None:
-    if not exists(connection, role):
+    if not role_exists(connection, role):
         execute(
             connection,
             f"CREATE ROLE {quoted(role)} NOLOGIN NOSUPERUSER NOCREATEDB "
@@ -73,15 +66,15 @@ def ensure_group(connection, role: str) -> None:
 
 
 admin_url = os.environ["KORPUS_DATABASE_URL"]
-app_role = valid_role(os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app"))
-review_role = valid_role(os.getenv("KORPUS_POSTGRES_REVIEW_ROLE", "korpus_review"))
+app_role = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
+review_role = os.getenv("KORPUS_POSTGRES_REVIEW_ROLE", "korpus_review")
 app_password = read_secret("KORPUS_POSTGRES_APP_PASSWORD", "KORPUS_POSTGRES_APP_PASSWORD_FILE")
 review_password = read_secret(
     "KORPUS_POSTGRES_REVIEW_PASSWORD", "KORPUS_POSTGRES_REVIEW_PASSWORD_FILE"
 )
-database = urlparse(admin_url.replace("postgresql+psycopg", "postgresql", 1)).path.lstrip("/")
-if not database or not database.replace("_", "").replace("-", "").isalnum():
-    raise SystemExit("invalid PostgreSQL database name")
+database = make_url(admin_url).database or ""
+if not database:
+    raise SystemExit("PostgreSQL database name is required")
 
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
@@ -100,22 +93,15 @@ with engine.connect() as connection:
         execute(connection, f"GRANT USAGE ON SCHEMA public TO {role_sql}")
         execute(connection, f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}")
         execute(connection, f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}")
-    for table_name in APP_RW_TABLES:
-        grant(connection, "SELECT, INSERT, UPDATE, DELETE", table_name, app_role)
+    grant_many(connection, "SELECT, INSERT, UPDATE, DELETE", APP_RW_TABLES, app_role)
     grant(connection, "SELECT, INSERT", "document_versions", app_role)
     execute(connection, f"GRANT UPDATE (rescinded_at, state_version) ON document_versions TO {app_sql}")
-    for table_name in READ_ONLY_TABLES:
-        grant(connection, "SELECT", table_name, app_role)
-    for table_name in AUDIT_APPEND_TABLES:
-        grant(connection, "SELECT, INSERT", table_name, app_role)
-    for table_name in AUDIT_MUTABLE_TABLES:
-        grant(connection, "SELECT, INSERT, UPDATE", table_name, app_role)
-    for table_name in REVIEW_SELECT_TABLES:
-        grant(connection, "SELECT", table_name, review_role)
-    for table_name in REVIEW_UPDATE_TABLES:
-        grant(connection, "UPDATE", table_name, review_role)
-    for table_name in REVIEW_INSERT_TABLES:
-        grant(connection, "INSERT", table_name, review_role)
+    grant(connection, "SELECT", "corpus_state_epoch", app_role)
+    grant(connection, "SELECT, INSERT", "audit_events", app_role)
+    grant_many(connection, "SELECT, INSERT, UPDATE", ("audit_anchor_outbox", "audit_heads"), app_role)
+    grant_many(connection, "SELECT", REVIEW_SELECT, review_role)
+    grant_many(connection, "UPDATE", REVIEW_UPDATE, review_role)
+    grant_many(connection, "INSERT", ("audit_events", "audit_anchor_outbox"), review_role)
     grant(connection, "SELECT", "alembic_version", app_role)
     for role_sql in (app_sql, review_sql):
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
