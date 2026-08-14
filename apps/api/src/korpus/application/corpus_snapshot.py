@@ -28,8 +28,10 @@ class CorpusReadToken:
     def __post_init__(self) -> None:
         if self.state_epoch < 0:
             raise ValueError("state_epoch must be non-negative")
-        if len(self.release_id) != 16 or any(ch not in "0123456789abcdef" for ch in self.release_id):
-            raise ValueError("release_id must be a 16-character lowercase hex digest")
+        if len(self.release_id) != 64 or any(
+            ch not in "0123456789abcdef" for ch in self.release_id
+        ):
+            raise ValueError("release_id must be a SHA-256 hex digest")
         if len(self.authorization_scope_id) != 64 or any(
             ch not in "0123456789abcdef" for ch in self.authorization_scope_id
         ):
