@@ -7,8 +7,18 @@ from pathlib import Path
 from korpus.application.provenance import read_provenance
 
 
+def _read_report(path: Path) -> dict:
+    if not path.is_file():
+        return {}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
 def candidate_visibility_evidence(path: Path, source_digest: str) -> tuple[dict[str, bool], dict]:
-    report = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    report = _read_report(path)
     try:
         provenance = read_provenance(report) if report else None
         source_bound = provenance is not None and provenance.source_digest == source_digest
