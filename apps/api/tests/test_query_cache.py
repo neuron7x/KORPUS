@@ -1,80 +1,141 @@
 from datetime import date
 
+import pytest
+
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
+from korpus.application.corpus_snapshot import (
+    CorpusConsistencyError,
+    CorpusReadToken,
+    authorization_scope_id,
+)
 from korpus.domain.models import AccessTier, Identity
 
 
-class Repo:
-    def __init__(self):
-        self.release = "r1"
+class SnapshotReader:
+    def __init__(self) -> None:
+        self.epoch = 1
+        self.release = "1" * 16
 
-    def corpus_release_id(self, identity, corpus_ids, as_of):
-        return self.release
+    def capture(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+    ) -> CorpusReadToken:
+        authorized = frozenset(corpus_ids.intersection(identity.corpora))
+        return CorpusReadToken(
+            state_epoch=self.epoch,
+            release_id=self.release,
+            as_of=as_of,
+            corpus_ids=authorized,
+            authorization_scope_id=authorization_scope_id(identity, authorized),
+        )
+
+    def validate(
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        token: CorpusReadToken,
+    ) -> None:
+        current = self.capture(identity, corpus_ids, as_of)
+        if current != token:
+            raise CorpusConsistencyError("test corpus moved")
 
 
 class Delegate:
-    def __init__(self):
+    def __init__(self) -> None:
         self.calls = 0
 
-    def search(self, identity, text, corpus_ids, as_of, limit=8):
+    def search(
+        self,
+        identity: Identity,
+        text: str,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        token: CorpusReadToken,
+        limit: int = 8,
+    ) -> list:
         self.calls += 1
         return []
 
 
-def identity(subject="a"):
+def identity(subject: str = "a", compartments: set[str] | None = None) -> Identity:
     return Identity(
         subject=subject,
         roles=frozenset({"user"}),
-        clearance=AccessTier.PUBLIC,
+        clearance=AccessTier.RESTRICTED,
         corpora=frozenset({"public"}),
+        compartments=frozenset(compartments or set()),
     )
 
 
-def test_cache_is_bound_to_identity_release_and_configuration():
-    repo = Repo()
+def test_cache_is_bound_to_identity_release_and_configuration() -> None:
+    reader = SnapshotReader()
     delegate = Delegate()
     cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
-    retriever = CachedRetriever(repo, delegate, cache, "config-a")
+    retriever = CachedRetriever(reader, delegate, cache, "config-a")
+    as_of = date(2026, 1, 1)
+    corpora = frozenset({"public"})
+
+    alice = identity("alice")
+    alice_token = reader.capture(alice, corpora, as_of)
     for _ in range(2):
-        retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
+        retriever.search(alice, "query", corpora, as_of, alice_token)
     assert delegate.calls == 1
-    retriever.search(identity("bob"), "query", frozenset({"public"}), date(2026, 1, 1))
+
+    bob = identity("bob")
+    retriever.search(bob, "query", corpora, as_of, reader.capture(bob, corpora, as_of))
     assert delegate.calls == 2
-    repo.release = "r2"
-    retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
+
+    reader.epoch = 2
+    reader.release = "2" * 16
+    retriever.search(alice, "query", corpora, as_of, reader.capture(alice, corpora, as_of))
     assert delegate.calls == 3
     assert cache.stats().hits == 1
 
 
-def test_cache_never_stores_a_result_under_a_release_that_changed_during_search():
-    """A release sampled before search cannot name evidence read after a state change.
-
-    This is the deterministic witness for issue #23 cache interleaving C. The delegate
-    changes corpus state after CachedRetriever has formed its key but before it returns
-    the evidence. Returning to the old logical release then must not expose that result
-    as an r1 cache hit. No sleeps or scheduler timing are involved.
-    """
-
-    repo = Repo()
+def test_cache_never_stores_result_if_state_changes_during_search() -> None:
+    """Deterministic destruction control C for issue #23, without scheduler timing."""
+    reader = SnapshotReader()
 
     class MutatingDelegate(Delegate):
-        def search(self, identity, text, corpus_ids, as_of, limit=8):
+        def search(
+            self,
+            identity: Identity,
+            text: str,
+            corpus_ids: frozenset[str],
+            as_of: date,
+            token: CorpusReadToken,
+            limit: int = 8,
+        ) -> list:
             self.calls += 1
-            repo.release = "r2"
+            if self.calls == 1:
+                reader.epoch = 2
+                reader.release = "2" * 16
             return []
 
     delegate = MutatingDelegate()
     cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
-    retriever = CachedRetriever(repo, delegate, cache, "config-a")
+    retriever = CachedRetriever(reader, delegate, cache, "config-a")
+    actor = identity("alice")
+    corpora = frozenset({"public"})
+    as_of = date(2026, 1, 1)
+    token_a = reader.capture(actor, corpora, as_of)
 
-    retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
-    repo.release = "r1"
-    retriever.search(identity("alice"), "query", frozenset({"public"}), date(2026, 1, 1))
+    with pytest.raises(CorpusConsistencyError):
+        retriever.search(actor, "query", corpora, as_of, token_a)
+    assert cache.stats().entries == 0
 
-    assert delegate.calls == 2, "state-B evidence was cached under release-A identity"
+    # Logical A returns, but the monotonic epoch does not: A→B→A is not the old A.
+    reader.epoch = 3
+    reader.release = "1" * 16
+    token_aba = reader.capture(actor, corpora, as_of)
+    retriever.search(actor, "query", corpora, as_of, token_aba)
+    assert delegate.calls == 2
 
 
-def test_cache_is_bounded_lru():
+def test_cache_is_bounded_lru() -> None:
     cache = EvidenceQueryCache(maximum_entries=2, ttl_seconds=60)
     cache.put("a", [])
     cache.put("b", [])
@@ -84,45 +145,21 @@ def test_cache_is_bounded_lru():
 
 
 def test_two_compartment_sets_do_not_share_a_cached_result() -> None:
-    """Compartments decide which spans retrieval returns; the key ignored them.
-
-    `retrieval_queries.compartment_predicate` filters spans by
-    `identity.compartments`, and entitlements are resolved per request from the
-    profile — so one subject's compartments change between requests. Until 2026-08-06
-    the cache key carried subject, clearance, roles and corpora but not compartments,
-    which meant that for the length of the TTL a reader kept being served evidence a
-    withdrawn compartment had granted. Revocation latency in a design that is
-    fail-closed everywhere else.
-    """
-    from datetime import date
-
-    from korpus.application.cache import CachedRetriever
-    from korpus.domain.models import AccessTier, Identity
-
-    class ReleaseOnly:
-        def corpus_release_id(self, *args: object, **kwargs: object) -> str:
-            return "release"
-
-    def identity(compartments: set[str]) -> Identity:
-        return Identity(
-            subject="same-subject",
-            roles=frozenset({"user"}),
-            clearance=AccessTier.RESTRICTED,
-            corpora=frozenset({"public"}),
-            compartments=frozenset(compartments),
-        )
-
+    reader = SnapshotReader()
     retriever = CachedRetriever.__new__(CachedRetriever)
-    retriever.repository = ReleaseOnly()
     retriever.configuration_id = "configuration"
+    as_of = date(2026, 8, 6)
+    corpora = frozenset({"public"})
 
-    arguments = ("яка дистанція", frozenset({"public"}), date(2026, 8, 6), 8)
-    entitled = retriever._key(identity({"alpha", "bravo"}), *arguments)
-    withdrawn = retriever._key(identity(set()), *arguments)
-    narrowed = retriever._key(identity({"alpha"}), *arguments)
+    def key(compartments: set[str]) -> str:
+        actor = identity("same-subject", compartments)
+        token = reader.capture(actor, corpora, as_of)
+        return retriever._key(actor, "яка дистанція", corpora, as_of, token, 8)
+
+    entitled = key({"alpha", "bravo"})
+    withdrawn = key(set())
+    narrowed = key({"alpha"})
 
     assert entitled != withdrawn
     assert entitled != narrowed
-    # The dual: identical compartments must still hit, or the cache is disabled rather
-    # than corrected.
-    assert entitled == retriever._key(identity({"bravo", "alpha"}), *arguments)
+    assert entitled == key({"bravo", "alpha"})
