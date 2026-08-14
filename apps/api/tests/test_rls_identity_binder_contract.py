@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
+
 import pytest
 
+from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.rls_identity import RlsIdentityBinder
 
 PRIMARY = "postgresql+psycopg://korpus_app:app@db.internal:5432/korpus"
@@ -38,3 +41,12 @@ def test_sqlite_rejects_identity_broker_credential() -> None:
             "postgresql+psycopg://korpus_identity:id@db.internal:5432/korpus",
             {},
         )
+
+
+def test_base_repository_has_no_postgres_identity_fallback() -> None:
+    connection = SimpleNamespace(dialect=SimpleNamespace(name="postgresql"))
+    with pytest.raises(
+        RuntimeError,
+        match="PostgreSQL identity binding requires RlsBoundSqlRepository",
+    ):
+        SqlRepository._apply_postgres_identity(connection, object())
