@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from typing import Any
+
 from korpus.application.calibration import CalibrationProfile
 from korpus.billing_config_policy import validate_billing_settings
 from korpus.controlled_requirements import first_unmet
 from korpus.model_settings import resolved_model_api_key, validate_model_provider
+
 
 def validate_runtime_settings(settings: Any) -> None:
     """Validate cross-field runtime policy in contractual failure order."""
@@ -116,6 +118,11 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
         raise ValueError("s3_bucket is required for S3 object storage")
     if controlled and settings.object_store_mode == "local":
         raise ValueError("controlled environments require durable S3-compatible object storage")
+    postgres = settings.database_url.startswith("postgresql")
+    if controlled and postgres and not settings.review_database_url:
+        raise ValueError("controlled PostgreSQL requires a separate review database identity")
+    if settings.review_database_url and not postgres:
+        raise ValueError("review database identity is valid only with PostgreSQL")
     if settings.auth_mode == "jwt" and (
         len(settings.resolved_jwt_secret) < 32
         or settings.resolved_jwt_secret.startswith("replace-")
@@ -123,7 +130,6 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
         raise ValueError("JWT secret is missing or weak")
     if settings.chunk_overlap_chars >= settings.max_chunk_chars:
         raise ValueError("chunk overlap must be smaller than chunk size")
-
 
 
 def _load_security_profiles(settings: Any) -> None:
