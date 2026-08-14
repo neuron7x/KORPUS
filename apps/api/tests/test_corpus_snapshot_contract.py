@@ -128,3 +128,23 @@ def test_guard_verification_binds_trigger_name_to_target_relation(client) -> Non
                 reader._require_guards(connection)
         finally:
             transaction.rollback()
+
+
+def test_guard_verification_rejects_correctly_named_noop_trigger(client) -> None:
+    """A correctly named trigger with inert SQL must fail startup verification."""
+    reader = client.app.state.corpus_snapshot_reader
+    repository = client.app.state.repository
+    with repository.engine.connect() as connection:
+        transaction = connection.begin()
+        try:
+            connection.execute(text("DROP TRIGGER trg_documents_epoch_insert"))
+            connection.execute(
+                text(
+                    "CREATE TRIGGER trg_documents_epoch_insert "
+                    "AFTER INSERT ON documents BEGIN SELECT 1; END"
+                )
+            )
+            with pytest.raises(RuntimeError, match="invalid definition"):
+                reader._require_guards(connection)
+        finally:
+            transaction.rollback()
