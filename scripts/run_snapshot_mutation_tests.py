@@ -138,6 +138,24 @@ MUTANTS = (
         "test_capture_failure_returns_audited_fail_closed_answer",
         "snapshot capture failure is returned as a controlled audited abstention",
     ),
+    Mutant(
+        "TS11",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        "WHERE id IN (OLD.version_id, NEW.version_id) AND evidence_digest IS NOT NULL) ",
+        "WHERE id IN (OLD.version_id, NEW.version_id) AND review_state = 'approved') ",
+        "apps/api/tests/test_sealed_evidence_immutability.py::"
+        "test_rejected_previously_approved_evidence_remains_immutable",
+        "sealed spans remain immutable after a later review rejection",
+    ),
+    Mutant(
+        "TS12",
+        "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
+        '                "WHEN OLD.evidence_digest IS NOT NULL "\n',
+        '                "WHEN OLD.review_state = \'approved\' "\n',
+        "apps/api/tests/test_sealed_evidence_immutability.py::"
+        "test_rejected_previously_approved_evidence_remains_immutable",
+        "sealed evidence digest remains immutable after a later review rejection",
+    ),
 )
 
 
