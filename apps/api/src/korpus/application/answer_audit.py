@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 
 from korpus.application.answer_analysis import ScopeBreach
+from korpus.application.corpus_snapshot import CorpusReadToken
 from korpus.application.evidence import SupportVerdict
 from korpus.application.ports import Repository
 from korpus.application.query_plan import QueryPlan
@@ -31,6 +32,7 @@ def append_answer_audit(
     support: SupportVerdict | None = None,
     plan: QueryPlan | None = None,
     composition: str | None = None,
+    token: CorpusReadToken | None = None,
 ) -> None:
     if support is not None and not support.aligned:
         repository.append_audit(
@@ -70,6 +72,17 @@ def append_answer_audit(
         minimum_query_coverage=minimum_query_coverage,
         minimum_support_score=minimum_support_score,
     )
+    snapshot = (
+        {
+            "state_epoch": token.state_epoch,
+            "release_id": token.release_id,
+            "as_of": token.as_of.isoformat(),
+            "corpus_ids": sorted(token.corpus_ids),
+            "authorization_scope_id": token.authorization_scope_id,
+        }
+        if token is not None
+        else None
+    )
     repository.append_audit(
         identity,
         "answer.completed",
@@ -100,6 +113,7 @@ def append_answer_audit(
             "retrieval_score_kind": answer.retrieval_score_kind,
             "calibration_id": answer.calibration_id,
             "corpus_release": answer.corpus_release,
+            "corpus_snapshot": snapshot,
             "query_risk": risk.value,
             "as_of": query.as_of.isoformat(),
             "thresholds": {
