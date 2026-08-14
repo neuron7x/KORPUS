@@ -163,33 +163,16 @@ def _replace_policies(*, trusted: bool) -> None:
     )
 
 
-def upgrade() -> None:
-    if op.get_bind().dialect.name != "postgresql":
-        return
+def _create_context_functions() -> None:
     op.execute(
         """
-        CREATE TABLE public.korpus_rls_context (
-          backend_pid integer PRIMARY KEY,
-          transaction_id bigint NOT NULL,
-          session_login name NOT NULL,
-          clearance integer NOT NULL CHECK (clearance >= 0 AND clearance <= 3),
-          corpora text[] NOT NULL,
-          classifications text[] NOT NULL,
-          compartments text[] NOT NULL,
-          roles text[] NOT NULL,
-          bound_at timestamptz NOT NULL DEFAULT pg_catalog.clock_timestamp()
-        )
-        """
-    )
-    op.execute("REVOKE ALL ON TABLE public.korpus_rls_context FROM PUBLIC")
-    op.execute(
-        """
-        CREATE FUNCTION public.korpus_bind_rls_context(
-          p_backend_pid integer, p_transaction_id bigint, p_session_login name,
+        CREATE FUNCTION public.korpus_prepare_rls_context(
           p_clearance integer, p_corpora jsonb, p_classifications jsonb,
           p_compartments jsonb, p_roles jsonb
-        ) RETURNS void AS $$
-        DECLARE actual_login name; actual_database name;
+        ) RETURNS TABLE(backend_pid integer, transaction_id bigint, session_login name) AS $$
+        DECLARE target_pid integer := pg_catalog.pg_backend_pid();
+        DECLARE target_tx bigint := pg_catalog.txid_current();
+        DECLARE target_login name := session_user;
         BEGIN
           IF p_clearance < 0 OR p_clearance > 3 THEN
             RAISE EXCEPTION 'invalid RLS clearance' USING ERRCODE = '22023';
@@ -200,22 +183,17 @@ def upgrade() -> None:
              OR pg_catalog.jsonb_typeof(p_roles) <> 'array' THEN
             RAISE EXCEPTION 'RLS claims must be JSON arrays' USING ERRCODE = '22023';
           END IF;
-          SELECT a.usename, a.datname INTO actual_login, actual_database
-          FROM pg_catalog.pg_stat_activity AS a WHERE a.pid = p_backend_pid;
-          IF NOT FOUND OR actual_database IS DISTINCT FROM pg_catalog.current_database()
-             OR actual_login IS DISTINCT FROM p_session_login THEN
-            RAISE EXCEPTION 'target PostgreSQL backend identity mismatch' USING ERRCODE = '42501';
-          END IF;
           INSERT INTO public.korpus_rls_context AS c (
             backend_pid, transaction_id, session_login, clearance,
-            corpora, classifications, compartments, roles, bound_at
+            corpora, classifications, compartments, roles,
+            confirmed_by_login, prepared_at, confirmed_at
           ) VALUES (
-            p_backend_pid, p_transaction_id, p_session_login, p_clearance,
+            target_pid, target_tx, target_login, p_clearance,
             ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_corpora) AS item(value) ORDER BY item.value),
             ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_classifications) AS item(value) ORDER BY item.value),
             ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_compartments) AS item(value) ORDER BY item.value),
             ARRAY(SELECT DISTINCT item.value FROM pg_catalog.jsonb_array_elements_text(p_roles) AS item(value) ORDER BY item.value),
-            pg_catalog.clock_timestamp()
+            NULL, pg_catalog.clock_timestamp(), NULL
           )
           ON CONFLICT (backend_pid) DO UPDATE SET
             transaction_id = EXCLUDED.transaction_id,
@@ -225,13 +203,55 @@ def upgrade() -> None:
             classifications = EXCLUDED.classifications,
             compartments = EXCLUDED.compartments,
             roles = EXCLUDED.roles,
-            bound_at = EXCLUDED.bound_at;
+            confirmed_by_login = NULL,
+            prepared_at = EXCLUDED.prepared_at,
+            confirmed_at = NULL;
+          RETURN QUERY SELECT target_pid, target_tx, target_login;
         END;
         $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
         """
     )
     op.execute(
-        "REVOKE ALL ON FUNCTION public.korpus_bind_rls_context(integer,bigint,name,integer,jsonb,jsonb,jsonb,jsonb) FROM PUBLIC"
+        "REVOKE ALL ON FUNCTION public.korpus_prepare_rls_context(integer,jsonb,jsonb,jsonb,jsonb) FROM PUBLIC"
+    )
+    op.execute(
+        """
+        CREATE FUNCTION public.korpus_confirm_rls_context(
+          p_backend_pid integer, p_transaction_id bigint, p_session_login name
+        ) RETURNS void AS $$
+        DECLARE caller_login name := session_user;
+        DECLARE caller_is_app boolean;
+        DECLARE caller_is_review boolean;
+        DECLARE target_is_app boolean;
+        DECLARE target_is_review boolean;
+        BEGIN
+          caller_is_app := pg_catalog.to_regrole('korpus_app_runtime') IS NOT NULL
+            AND pg_catalog.pg_has_role(caller_login, 'korpus_app_runtime', 'MEMBER');
+          caller_is_review := pg_catalog.to_regrole('korpus_review_runtime') IS NOT NULL
+            AND pg_catalog.pg_has_role(caller_login, 'korpus_review_runtime', 'MEMBER');
+          target_is_app := pg_catalog.to_regrole('korpus_app_runtime') IS NOT NULL
+            AND pg_catalog.pg_has_role(p_session_login, 'korpus_app_runtime', 'MEMBER');
+          target_is_review := pg_catalog.to_regrole('korpus_review_runtime') IS NOT NULL
+            AND pg_catalog.pg_has_role(p_session_login, 'korpus_review_runtime', 'MEMBER');
+          IF NOT ((caller_is_app AND target_is_review) OR (caller_is_review AND target_is_app)) THEN
+            RAISE EXCEPTION 'RLS context requires confirmation by the opposite database identity'
+              USING ERRCODE = '42501';
+          END IF;
+          UPDATE public.korpus_rls_context
+          SET confirmed_by_login = caller_login, confirmed_at = pg_catalog.clock_timestamp()
+          WHERE backend_pid = p_backend_pid
+            AND transaction_id = p_transaction_id
+            AND session_login = p_session_login
+            AND confirmed_by_login IS NULL;
+          IF NOT FOUND THEN
+            RAISE EXCEPTION 'pending RLS context not found' USING ERRCODE = '55000';
+          END IF;
+        END;
+        $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
+        """
+    )
+    op.execute(
+        "REVOKE ALL ON FUNCTION public.korpus_confirm_rls_context(integer,bigint,name) FROM PUBLIC"
     )
     for name, sql_type, fallback, column in (
         ("clearance", "integer", "-1", "clearance"),
@@ -247,13 +267,38 @@ def upgrade() -> None:
                 (SELECT c.{column} FROM public.korpus_rls_context AS c
                  WHERE c.backend_pid = pg_catalog.pg_backend_pid()
                    AND c.transaction_id = pg_catalog.txid_current()
-                   AND c.session_login = session_user),
+                   AND c.session_login = session_user
+                   AND c.confirmed_by_login IS NOT NULL),
                 {fallback}
               )
             $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog
             """
         )
         op.execute(f"REVOKE ALL ON FUNCTION public.korpus_rls_{name}() FROM PUBLIC")
+
+
+def upgrade() -> None:
+    if op.get_bind().dialect.name != "postgresql":
+        return
+    op.execute(
+        """
+        CREATE TABLE public.korpus_rls_context (
+          backend_pid integer PRIMARY KEY,
+          transaction_id bigint NOT NULL,
+          session_login name NOT NULL,
+          clearance integer NOT NULL CHECK (clearance >= 0 AND clearance <= 3),
+          corpora text[] NOT NULL,
+          classifications text[] NOT NULL,
+          compartments text[] NOT NULL,
+          roles text[] NOT NULL,
+          confirmed_by_login name,
+          prepared_at timestamptz NOT NULL DEFAULT pg_catalog.clock_timestamp(),
+          confirmed_at timestamptz
+        )
+        """
+    )
+    op.execute("REVOKE ALL ON TABLE public.korpus_rls_context FROM PUBLIC")
+    _create_context_functions()
     _replace_policies(trusted=True)
 
 
@@ -263,7 +308,8 @@ def downgrade() -> None:
     _replace_policies(trusted=False)
     for name in ("roles", "compartments", "classifications", "corpora", "clearance"):
         op.execute(f"DROP FUNCTION IF EXISTS public.korpus_rls_{name}()")
+    op.execute("DROP FUNCTION IF EXISTS public.korpus_confirm_rls_context(integer,bigint,name)")
     op.execute(
-        "DROP FUNCTION IF EXISTS public.korpus_bind_rls_context(integer,bigint,name,integer,jsonb,jsonb,jsonb,jsonb)"
+        "DROP FUNCTION IF EXISTS public.korpus_prepare_rls_context(integer,jsonb,jsonb,jsonb,jsonb)"
     )
     op.execute("DROP TABLE IF EXISTS public.korpus_rls_context")
