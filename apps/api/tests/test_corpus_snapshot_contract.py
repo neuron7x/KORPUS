@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import text
 
+from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAuditPolicy
 from korpus.application.corpus_snapshot import CorpusReadToken, version_evidence_digest
 
 
@@ -47,6 +49,17 @@ def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> N
     missing = version_evidence_digest([("span-1", 0, None, None, content, text_hash)])
     empty = version_evidence_digest([("span-1", 0, None, "", content, text_hash)])
     assert missing != empty
+
+
+def test_answer_runtime_rejects_split_snapshot_authorities() -> None:
+    repository_reader = object()
+    retriever_reader = object()
+    repository = SimpleNamespace(corpus_snapshot_reader=repository_reader)
+    retriever = SimpleNamespace(snapshot_reader=retriever_reader)
+    policy = SnapshotAuditPolicy(0.1, 0.1, 0.1, "contract-test")
+
+    with pytest.raises(ValueError, match="share one corpus snapshot reader"):
+        SnapshotAnswerRuntime(repository, retriever, policy)  # type: ignore[arg-type]
 
 
 def test_guard_verification_binds_trigger_name_to_target_relation(client) -> None:
