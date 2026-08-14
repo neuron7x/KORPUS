@@ -63,11 +63,6 @@ def _visibility_filters(
     active_superseder = (
         select(1)
         .where(superseding.c.supersedes_version_id == versions.c.id)
-        # Second line of the same rule the ingest path states: a successor belongs
-        # to the same canonical document. The application refuses to write a
-        # crossing edge; this refuses to honour one, because a row already in the
-        # database, an import from another tool, or a future path that forgets the
-        # check would otherwise let any document remove any other from retrieval.
         .where(superseding.c.document_id == versions.c.document_id)
         .where(superseding.c.review_state == ReviewState.APPROVED.value)
         .where(
@@ -120,8 +115,6 @@ def release_projection(
             versions.c.effective_until,
             versions.c.rescinded_at,
         )
-        # Stated because no span column is selected: without it SQLAlchemy cannot tell
-        # which of the three tables the join starts from.
         .select_from(spans)
         .join(versions, spans.c.version_id == versions.c.id)
         .join(documents, versions.c.document_id == documents.c.id)
@@ -196,6 +189,7 @@ def retrievable_projection(
         .order_by(documents.c.id, versions.c.created_at.desc(), spans.c.ordinal)
     )
 
+
 def materialize_current(
     rows: Sequence[RowMapping], as_of: date
 ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
@@ -215,13 +209,7 @@ def materialize_current(
 
 
 def release_row_is_current(row: Any, as_of: date) -> bool:
-    """`DocumentVersionRecord.is_valid_on`, asked of a row that carries only dates.
-
-    The four date fields are lifted into the domain record rather than compared here:
-    the rule about what is in force — the lower bound standing in from
-    `publication_date`, the exclusive rescission boundary — lives in one place, and a
-    reimplementation beside it is how two answers to "is this current" appear.
-    """
+    """`DocumentVersionRecord.is_valid_on`, asked of a row that carries only dates."""
     probe = DocumentVersionRecord(
         id=UUID(str(row["version_id"])),
         document_id=UUID(str(row["document_id"])),
@@ -233,8 +221,6 @@ def release_row_is_current(row: Any, as_of: date) -> bool:
         effective_from=row["effective_from"],
         effective_until=row["effective_until"],
         rescinded_at=row["rescinded_at"],
-        # Not read by `is_valid_on`, and not projected: naming it here keeps the probe
-        # constructible without widening the query for a field the digest never sees.
         authority=AuthorityClass.UNKNOWN,
         review_state=ReviewState(str(row["review_state"])),
     )
@@ -249,12 +235,7 @@ def candidate_span_query(
     limit: int,
     dialect: str,
 ) -> tuple[Any, dict[str, Any]] | None:
-    """The full-text candidate statement and its parameters, without a connection.
-
-    Returns None when the query holds no usable term — distinct from a statement that
-    matches nothing, because the caller must not open a transaction for it.
-    """
-
+    """The bounded full-text candidate statement, before canonical materialization."""
     from korpus.application.retrieval import candidate_terms
 
     term_specs = candidate_terms(query)
@@ -268,6 +249,17 @@ def candidate_span_query(
     class_placeholders = ",".join(
         f":class_{index}" for index, _ in enumerate(classifications)
     )
+    compartments = sorted(identity.compartments)
+    compartment_placeholders = ",".join(
+        f":compartment_{index}" for index, _ in enumerate(compartments)
+    )
+    forbidden_compartment = (
+        f"AND dc.compartment NOT IN ({compartment_placeholders})" if compartments else ""
+    )
+    compartment_clause = (
+        "AND NOT EXISTS (SELECT 1 FROM document_compartments dc "
+        f"WHERE dc.document_id = d.id {forbidden_compartment})"
+    )
     parameters: dict[str, Any] = {
         "clearance": int(identity.clearance),
         "as_of": as_of.isoformat(),
@@ -277,24 +269,17 @@ def candidate_span_query(
     parameters.update(
         {f"class_{index}": value for index, value in enumerate(classifications)}
     )
+    parameters.update({f"compartment_{index}": value for index, value in enumerate(compartments)})
     if dialect == "sqlite":
         match_query = " OR ".join(
             f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")
             for term, prefix in term_specs
         )
         parameters["query"] = match_query
-        # The supersession test used to be a correlated NOT EXISTS. `ORDER BY bm25`
-        # forces every match through it, so on a 116 000-span corpus a five-token
-        # question evaluated it 23 626 times — 2.5 s against a 1200 ms budget. The
-        # answer that reached the reader was "insufficient evidence": the system said
-        # the corpus held nothing when it had not finished looking.
-        #
-        # Gathered once instead, and anti-joined. Identical rows on every query probed
-        # (2026-08-06), 15.8 s of retrieval down to 0.7 s across eight questions.
         statement = sql_text(
             f"""
             WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
+              SELECT DISTINCT sv.supersedes_version_id AS id, sv.document_id AS document_id
               FROM document_versions sv
               WHERE sv.supersedes_version_id IS NOT NULL
                 AND sv.review_state = 'approved'
@@ -312,10 +297,11 @@ def candidate_span_query(
               AND d.corpus_id IN ({corpus_placeholders})
               AND d.access_tier <= :clearance
               AND d.classification IN ({class_placeholders})
+              {compartment_clause}
               AND COALESCE(v.effective_from, v.publication_date) <= :as_of
               AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
               AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-              AND v.id NOT IN (SELECT id FROM superseded)
+              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)
             ORDER BY bm25(evidence_fts), s.id
             LIMIT :limit
             """
@@ -324,13 +310,11 @@ def candidate_span_query(
         parameters["query"] = " | ".join(
             f"{term}:*" if prefix else term for term, prefix in term_specs
         )
-        # Interpolated verbatim so the emitted SQL text is unchanged; it only keeps
-        # the repeated bound-parameter cast off the right-hand margin.
         as_of_date = "CAST(:as_of AS date)"
         statement = sql_text(
             f"""
             WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
+              SELECT DISTINCT sv.supersedes_version_id AS id, sv.document_id AS document_id
               FROM document_versions sv
               WHERE sv.supersedes_version_id IS NOT NULL
                 AND sv.review_state = 'approved'
@@ -347,10 +331,11 @@ def candidate_span_query(
               AND d.corpus_id IN ({corpus_placeholders})
               AND d.access_tier <= :clearance
               AND d.classification IN ({class_placeholders})
+              {compartment_clause}
               AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
               AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
               AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
-              AND v.id NOT IN (SELECT id FROM superseded)
+              AND (v.id, v.document_id) NOT IN (SELECT id, document_id FROM superseded)
             ORDER BY ts_rank_cd(
                 to_tsvector('simple', s.text), to_tsquery('simple', :query)
             ) DESC, s.id
