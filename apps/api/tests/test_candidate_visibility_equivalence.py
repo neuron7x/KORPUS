@@ -37,7 +37,7 @@ def _engine():
     return engine
 
 
-def _document(connection, document_id: str, *, compartment: str | None = None) -> None:
+def _document(connection, document_id: str, *, compartments: tuple[str, ...] = ()) -> None:
     connection.execute(
         text(
             "INSERT INTO documents(id, corpus_id, access_tier, classification) "
@@ -45,7 +45,7 @@ def _document(connection, document_id: str, *, compartment: str | None = None) -
         ),
         {"id": document_id},
     )
-    if compartment is not None:
+    for compartment in compartments:
         connection.execute(
             text(
                 "INSERT INTO document_compartments(document_id, compartment) "
@@ -64,7 +64,7 @@ def _version(
 ) -> None:
     connection.execute(
         text(
-            "INSERT INTO document_versions(" 
+            "INSERT INTO document_versions("
             "id, document_id, review_state, effective_from, publication_date, "
             "effective_until, rescinded_at, supersedes_version_id) "
             "VALUES (:id, :document_id, 'approved', '2026-01-01', '2026-01-01', "
@@ -85,8 +85,16 @@ def _span(connection, span_id: str, version_id: str, body: str) -> None:
     )
 
 
-def _candidates(connection, query: str, *, limit: int = 8) -> list[str]:
-    built = candidate_span_query(READER, frozenset({"public"}), AS_OF, query, limit, "sqlite")
+def _candidates(
+    connection,
+    query: str,
+    *,
+    identity: Identity = READER,
+    limit: int = 8,
+) -> list[str]:
+    built = candidate_span_query(
+        identity, frozenset({"public"}), AS_OF, query, limit, "sqlite"
+    )
     assert built is not None
     statement, parameters = built
     return [str(row.span_id) for row in connection.execute(statement, parameters)]
@@ -116,15 +124,30 @@ def test_invisible_compartment_rows_cannot_consume_candidate_budget() -> None:
     engine = _engine()
     try:
         with engine.begin() as connection:
-            _document(connection, "hidden-doc", compartment="alpha")
+            _document(connection, "hidden-doc", compartments=("alpha",))
             _document(connection, "visible-doc")
             _version(connection, "hidden-version", "hidden-doc")
             _version(connection, "visible-version", "visible-doc")
-            # Equal lexical bodies make span-id ordering deterministic. Without the
-            # compartment predicate, hidden-span-a wins LIMIT 1 and starves the visible row.
             _span(connection, "hidden-span-a", "hidden-version", "маскування позиції")
             _span(connection, "visible-span-z", "visible-version", "маскування позиції")
 
             assert _candidates(connection, "маскування", limit=1) == ["visible-span-z"]
+    finally:
+        engine.dispose()
+
+
+def test_assigned_compartment_is_admitted_but_partial_assignment_is_not() -> None:
+    engine = _engine()
+    try:
+        with engine.begin() as connection:
+            _document(connection, "alpha-doc", compartments=("alpha",))
+            _document(connection, "alpha-bravo-doc", compartments=("alpha", "bravo"))
+            _version(connection, "alpha-version", "alpha-doc")
+            _version(connection, "alpha-bravo-version", "alpha-bravo-doc")
+            _span(connection, "alpha-span", "alpha-version", "контроль сектору")
+            _span(connection, "alpha-bravo-span", "alpha-bravo-version", "контроль сектору")
+            alpha_reader = READER.model_copy(update={"compartments": frozenset({"alpha"})})
+
+            assert _candidates(connection, "контроль", identity=alpha_reader) == ["alpha-span"]
     finally:
         engine.dispose()
