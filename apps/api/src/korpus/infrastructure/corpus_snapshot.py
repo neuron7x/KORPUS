@@ -20,6 +20,7 @@ from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch, versions
 
 _HEX64 = re.compile(r"^[a-f0-9]{64}$")
+_RELEASE_DOMAIN = b"korpus-temporal-release-v1\0"
 _EPOCH_TABLES = (
     "documents",
     "document_compartments",
@@ -27,6 +28,12 @@ _EPOCH_TABLES = (
     "evidence_spans",
     "span_embeddings",
 )
+
+
+def _frame(hasher: object, value: str) -> None:
+    encoded = value.encode("utf-8")
+    hasher.update(len(encoded).to_bytes(8, "big"))  # type: ignore[attr-defined]
+    hasher.update(encoded)  # type: ignore[attr-defined]
 
 
 class SqlCorpusSnapshotReader:
@@ -99,11 +106,13 @@ class SqlCorpusSnapshotReader:
             )
 
         digest = hashlib.sha256()
+        digest.update(_RELEASE_DOMAIN)
         for key in sorted(unique):
-            digest.update(":".join(key).encode("utf-8") + b"\n")
+            for value in key:
+                _frame(digest, value)
         return CorpusReadToken(
             state_epoch=before,
-            release_id=digest.hexdigest()[:16],
+            release_id=digest.hexdigest(),
             as_of=as_of,
             corpus_ids=authorized,
             authorization_scope_id=authorization_scope_id(identity, authorized),
@@ -224,10 +233,10 @@ class SqlCorpusSnapshotReader:
                 """
                 CREATE OR REPLACE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
                 BEGIN
-                  UPDATE corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
+                  UPDATE public.corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
                   RETURN NULL;
                 END;
-                $$ LANGUAGE plpgsql
+                $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
                 """
             )
         )
