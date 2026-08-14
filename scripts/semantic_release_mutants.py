@@ -116,13 +116,13 @@ MUTANTS = (
         "                document_compartments=_stored_compartments(\n"
         '                    row["compartments_json"]\n'
         "                ),\n",
-        "                document_compartments=canonical_set(()),\n",
+        '                document_compartments=canonical_set(("omitted",)),\n',
         "semantic projection commits materialized compartment state",
     ),
     _projection(
         "TS57",
         "                visibility_compartments=canonical_set(visibility[document_id]),\n",
-        "                visibility_compartments=canonical_set(()),\n",
+        '                visibility_compartments=canonical_set(("omitted",)),\n',
         "semantic projection commits relational compartment state",
     ),
     _projection(
@@ -134,7 +134,7 @@ MUTANTS = (
     _projection(
         "TS59",
         '                source_uri=canonical_optional(row["source_uri"]),\n',
-        "                source_uri=canonical_optional(None),\n",
+        '                source_uri=canonical_optional("source-omitted"),\n',
         "semantic projection commits citation source URI",
     ),
     _projection(
@@ -146,7 +146,7 @@ MUTANTS = (
     _projection(
         "TS61",
         '                effective_from=_optional_temporal(row["effective_from"]),\n',
-        "                effective_from=canonical_optional(None),\n",
+        '                effective_from=canonical_optional("1900-01-01"),\n',
         "semantic projection commits effective-from date",
     ),
     _projection(
@@ -172,7 +172,7 @@ MUTANTS = (
         "                supersedes_version_id=canonical_optional(\n"
         '                    row["supersedes_version_id"]\n'
         "                ),\n",
-        "                supersedes_version_id=canonical_optional(None),\n",
+        '                supersedes_version_id=canonical_optional("supersedes-omitted"),\n',
         "semantic projection commits supersession semantics",
     ),
 )
