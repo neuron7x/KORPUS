@@ -3,9 +3,9 @@
 
 The legacy catalogue is intentionally large and sharded. Issue #23 adds a compact,
 separately reviewable destruction set around the new cross-layer invariant so a missing
-pre/post read barrier, epoch binding, epoch source, or full release digest cannot hide
-inside aggregate coverage. A mutant is counted as killed only when its exact control
-passes on the unmodified tree and fails after one surgical source mutation.
+pre/post read barrier, epoch binding, epoch source, full release digest, or exact evidence
+framing cannot hide inside aggregate coverage. A mutant is counted as killed only when
+its exact control passes on the unmodified tree and fails after one surgical mutation.
 """
 from __future__ import annotations
 
@@ -95,6 +95,15 @@ MUTANTS = (
         "apps/api/tests/test_temporal_corpus_snapshot.py::"
         "test_semantic_backfill_invalidates_an_inflight_snapshot_token",
         "semantic-index mutations advance corpus state epoch",
+    ),
+    Mutant(
+        "TS07",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        '        _frame(digest, "0" if section is None else f"1:{section}")\n',
+        '        _frame(digest, "" if section is None else section)\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_version_evidence_digest_distinguishes_missing_from_empty_section",
+        "nullable evidence metadata has a collision-free canonical representation",
     ),
 )
 
