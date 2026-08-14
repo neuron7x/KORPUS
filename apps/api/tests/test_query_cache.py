@@ -70,6 +70,17 @@ def identity(subject: str = "a", compartments: set[str] | None = None) -> Identi
     )
 
 
+def test_cached_retriever_rejects_split_snapshot_authorities() -> None:
+    reader = SnapshotReader()
+    other_reader = SnapshotReader()
+    delegate = Delegate()
+    delegate.snapshot_reader = other_reader  # type: ignore[attr-defined]
+    cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
+
+    with pytest.raises(ValueError, match="share one corpus snapshot reader"):
+        CachedRetriever(reader, delegate, cache, "config-a")  # type: ignore[arg-type]
+
+
 def test_cache_is_bound_to_identity_release_epoch_and_configuration() -> None:
     reader = SnapshotReader()
     delegate = Delegate()
