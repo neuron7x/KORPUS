@@ -22,7 +22,7 @@ from sqlalchemy import (
 from korpus.application.keyring import LEGACY_KEY_ID
 
 # Alembic head required by the migrated production path; pinned by schema revision tests.
-SCHEMA_REVISION = "0016_temporal_corpus_snapshot"
+SCHEMA_REVISION = "0017_approval_provenance_boundary"
 metadata = MetaData()
 
 documents = Table(
