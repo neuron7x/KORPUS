@@ -56,6 +56,17 @@ def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> N
     assert missing != empty
 
 
+def test_snapshot_capture_rejects_state_change_during_release_projection(
+    client, admin_identity, monkeypatch
+) -> None:
+    reader = client.app.state.corpus_snapshot_reader
+    epochs = iter((41, 42))
+    monkeypatch.setattr(reader, "_epoch", lambda _connection: next(epochs))
+
+    with pytest.raises(CorpusConsistencyError, match="while release identity was captured"):
+        reader.capture(admin_identity, frozenset(), date(2026, 8, 14))
+
+
 def test_snapshot_token_cannot_be_reused_for_another_historical_date(
     client, admin_identity
 ) -> None:
