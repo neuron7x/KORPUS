@@ -111,7 +111,9 @@ versions = Table(
         "effective_until IS NULL OR effective_from IS NULL OR effective_until >= effective_from",
         name="ck_version_effective_window",
     ),
-    CheckConstraint("NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"),
+    CheckConstraint(
+        "NOT is_current OR review_state = 'approved'", name="ck_version_current_approved"
+    ),
     CheckConstraint(
         "review_state != 'approved' OR evidence_digest IS NOT NULL",
         name="ck_approved_version_evidence_digest",
