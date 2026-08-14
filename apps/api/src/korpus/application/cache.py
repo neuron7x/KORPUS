@@ -7,7 +7,11 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date
 
-from korpus.application.ports import Repository, Retriever
+from korpus.application.corpus_snapshot import (
+    CorpusReadToken,
+    CorpusSnapshotReader,
+    SnapshotRetriever,
+)
 from korpus.application.retrieval import normalize_text
 from korpus.domain.models import Identity, RetrievedEvidence
 
@@ -75,15 +79,17 @@ class EvidenceQueryCache:
             return CacheStats(self._hits, self._misses, self._evictions, len(self._entries))
 
 
-class CachedRetriever(Retriever):
+class CachedRetriever(SnapshotRetriever):
+    """Cache only evidence that was read under the caller's explicit snapshot token."""
+
     def __init__(
         self,
-        repository: Repository,
-        delegate: Retriever,
+        snapshot_reader: CorpusSnapshotReader,
+        delegate: SnapshotRetriever,
         cache: EvidenceQueryCache,
         configuration_id: str,
     ) -> None:
-        self.repository = repository
+        self.snapshot_reader = snapshot_reader
         self.delegate = delegate
         self.cache = cache
         self.configuration_id = configuration_id
@@ -94,28 +100,19 @@ class CachedRetriever(Retriever):
         text: str,
         corpus_ids: frozenset[str],
         as_of: date,
+        token: CorpusReadToken,
         limit: int,
     ) -> str:
-        release_id = self.repository.corpus_release_id(identity, corpus_ids, as_of)
         material = "\x1f".join(
             [
                 identity.subject,
-                str(int(identity.clearance)),
-                ",".join(sorted(identity.roles)),
-                ",".join(sorted(identity.corpora)),
-                # Compartments decide which spans the retrieval projection returns
-                # (`retrieval_queries.compartment_predicate`) and were missing from this
-                # key until 2026-08-06. Entitlements are resolved per request from the
-                # profile, so one subject's compartments change between requests — and
-                # for the length of the TTL the cache kept serving evidence the
-                # withdrawn compartment had granted. Revocation latency in a system
-                # whose whole design is fail-closed.
-                ",".join(sorted(identity.compartments)),
-                ",".join(sorted(corpus_ids)),
+                token.authorization_scope_id,
+                ",".join(sorted(token.corpus_ids)),
                 as_of.isoformat(),
                 str(limit),
                 self.configuration_id,
-                release_id,
+                str(token.state_epoch),
+                token.release_id,
                 normalize_text(text),
             ]
         )
@@ -127,12 +124,19 @@ class CachedRetriever(Retriever):
         text: str,
         corpus_ids: frozenset[str],
         as_of: date,
+        token: CorpusReadToken,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        key = self._key(identity, text, corpus_ids, as_of, limit)
+        # The cache must never discover release identity for itself. That creates a
+        # second read point and can key state-B evidence as release A. One token from the
+        # answer path is the only authority for both the lookup and any subsequent put.
+        self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
+        key = self._key(identity, text, corpus_ids, as_of, token, limit)
         cached = self.cache.get(key)
         if cached is not None:
+            self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
             return list(cached)
-        result = self.delegate.search(identity, text, corpus_ids, as_of, limit)
+        result = self.delegate.search(identity, text, corpus_ids, as_of, token, limit)
+        self.snapshot_reader.validate(identity, corpus_ids, as_of, token)
         self.cache.put(key, result)
         return result
