@@ -17,10 +17,7 @@ from release_identity import release_tag  # noqa: E402
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", type=Path, default=ROOT / "var/mutation-report.json")
-    parser.add_argument(
-        "--candidate-report", type=Path,
-        default=ROOT / "var/candidate-visibility-mutation-report.json",
-    )
+    parser.add_argument("--candidate-report", type=Path, default=ROOT / "var/candidate-visibility-mutation-report.json")
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/mutation-gate.json")
     args = parser.parse_args()
     source = compute_source_digest(ROOT)
