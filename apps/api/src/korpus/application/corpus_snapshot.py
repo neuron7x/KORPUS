@@ -101,8 +101,9 @@ def version_evidence_digest(
     """Digest the exact ordered span set and verify every stored text hash first.
 
     Input tuples are `(span_id, ordinal, page, section, text, text_hash)`. The span id
-    and ordinal make insertion/deletion/reordering visible; page and section are framed
-    separately; `text_hash` is accepted only after recomputing it from the stored text.
+    and ordinal make insertion/deletion/reordering visible; nullable metadata is tagged
+    before framing so `None` cannot collide with a present empty value; `text_hash` is
+    accepted only after recomputing it from the stored text.
     """
     normalized = sorted(rows, key=lambda row: (row[1], row[0]))
     if not normalized:
@@ -120,7 +121,7 @@ def version_evidence_digest(
             raise CorpusConsistencyError("stored span text_hash does not match stored text")
         _frame(digest, span_id)
         _frame(digest, str(ordinal))
-        _frame(digest, "" if page is None else str(page))
-        _frame(digest, "" if section is None else section)
+        _frame(digest, "0" if page is None else f"1:{page}")
+        _frame(digest, "0" if section is None else f"1:{section}")
         _frame(digest, text_hash)
     return digest.hexdigest()
