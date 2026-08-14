@@ -60,8 +60,8 @@ MUTANTS = (
     Mutant(
         "TS05",
         "apps/api/src/korpus/infrastructure/corpus_snapshot.py",
-        "            release_id=digest.hexdigest(),\n",
-        "            release_id=digest.hexdigest()[:16],\n",
+        "            release_id=release_identity_digest(unique),\n",
+        "            release_id=release_identity_digest(unique)[:16],\n",
         "apps/api/tests/test_temporal_corpus_snapshot.py::"
         "test_approval_seals_the_exact_persisted_evidence_set",
         "temporal release identity keeps the full SHA-256 digest",
@@ -280,5 +280,50 @@ MUTANTS = (
         "apps/api/tests/test_corpus_snapshot_contract.py::"
         "test_application_repository_port_cannot_recompute_answer_release",
         "the application repository port exposes no independent release-restamp primitive",
+    ),
+    Mutant(
+        "TS27",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, document_id)\n",
+        '        _frame(digest, "document-id-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_release_identity_digest_commits_every_member_field",
+        "release identity commits document identity",
+    ),
+    Mutant(
+        "TS28",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, version_id)\n",
+        '        _frame(digest, "version-id-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_release_identity_digest_commits_every_member_field",
+        "release identity commits version identity",
+    ),
+    Mutant(
+        "TS29",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, source_hash)\n",
+        '        _frame(digest, "source-hash-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_release_identity_digest_commits_every_member_field",
+        "release identity commits source bytes",
+    ),
+    Mutant(
+        "TS30",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, review_state)\n",
+        '        _frame(digest, "review-state-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_release_identity_digest_commits_every_member_field",
+        "release identity commits review state",
+    ),
+    Mutant(
+        "TS31",
+        "apps/api/src/korpus/application/corpus_snapshot.py",
+        "        _frame(digest, evidence_digest)\n",
+        '        _frame(digest, "evidence-digest-omitted")\n',
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_release_identity_digest_commits_every_member_field",
+        "release identity commits the exact sealed evidence set",
     ),
 )
