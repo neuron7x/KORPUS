@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import date
 
 import pytest
 from sqlalchemy import text
 
-from korpus.application.corpus_snapshot import CorpusReadToken
+from korpus.application.corpus_snapshot import CorpusReadToken, version_evidence_digest
 
 
 def _token(release_id: str) -> CorpusReadToken:
@@ -38,6 +39,14 @@ def test_corpus_read_token_rejects_truncated_or_noncanonical_release_identity(
 ) -> None:
     with pytest.raises(ValueError, match="SHA-256"):
         _token(release_id)
+
+
+def test_version_evidence_digest_distinguishes_missing_from_empty_section() -> None:
+    content = "same evidence bytes"
+    text_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    missing = version_evidence_digest([("span-1", 0, None, None, content, text_hash)])
+    empty = version_evidence_digest([("span-1", 0, None, "", content, text_hash)])
+    assert missing != empty
 
 
 def test_guard_verification_binds_trigger_name_to_target_relation(client) -> None:
