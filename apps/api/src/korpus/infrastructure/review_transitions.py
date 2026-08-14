@@ -10,32 +10,12 @@ from sqlalchemy.engine import Connection
 
 from korpus.domain.models import AccessTier, DocumentRecord, DocumentVersionRecord, Identity, ReviewState
 from korpus.infrastructure.evidence_sealing import seal_evidence_digest
+from korpus.infrastructure.review_locking import ReviewTransitionConflict, load_current_for_update
 from korpus.infrastructure.schema import documents, versions
 
 VersionMapper = Callable[[Any], DocumentVersionRecord]
 DocumentMapper = Callable[[Any], DocumentRecord]
 AuditAppender = Callable[[Connection, Identity, str, str, str | None, dict[str, Any]], tuple[int, str]]
-
-
-class ReviewTransitionConflict(RuntimeError):
-    """Optimistic state changed after the caller selected its expected review state."""
-
-
-def _load_current(
-    connection: Connection,
-    version_id: UUID,
-    expected_state: ReviewState,
-    version_mapper: VersionMapper,
-) -> DocumentVersionRecord:
-    row = connection.execute(
-        select(versions).where(versions.c.id == str(version_id)).with_for_update()
-    ).mappings().first()
-    if row is None:
-        raise LookupError("version not found")
-    current = version_mapper(row)
-    if current.review_state is not expected_state:
-        raise ReviewTransitionConflict("version state changed concurrently")
-    return current
 
 
 def _reviewer_changes(
@@ -210,7 +190,7 @@ def transition_version_in_connection(
     document_mapper: DocumentMapper,
     append_audit: AuditAppender,
 ) -> tuple[DocumentVersionRecord, tuple[int, str]]:
-    current = _load_current(connection, version_id, expected_state, version_mapper)
+    current = load_current_for_update(connection, version_id, expected_state, version_mapper)
     changes = _transition_changes(
         connection,
         current,
