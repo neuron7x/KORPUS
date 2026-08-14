@@ -8,9 +8,9 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.engine import Connection
 
-from korpus.application.corpus_snapshot import version_evidence_digest
 from korpus.domain.models import AccessTier, DocumentRecord, DocumentVersionRecord, Identity, ReviewState
-from korpus.infrastructure.schema import documents, spans, versions
+from korpus.infrastructure.evidence_sealing import seal_evidence_digest
+from korpus.infrastructure.schema import documents, versions
 
 VersionMapper = Callable[[Any], DocumentVersionRecord]
 DocumentMapper = Callable[[Any], DocumentRecord]
@@ -27,10 +27,6 @@ def _load_current(
     expected_state: ReviewState,
     version_mapper: VersionMapper,
 ) -> DocumentVersionRecord:
-    # Approval must own the parent version row before it seals derived evidence. On
-    # PostgreSQL the evidence trigger takes a shared lock on this same row before any
-    # span mutation, which serializes `seal -> approve` against insert/update/delete.
-    # SQLite ignores FOR UPDATE but already serializes writers at the database level.
     row = connection.execute(
         select(versions).where(versions.c.id == str(version_id)).with_for_update()
     ).mappings().first()
@@ -132,39 +128,6 @@ def _apply_access_tier(
     )
 
 
-def _seal_evidence_digest(connection: Connection, version_id: UUID) -> str:
-    """Seal the exact persisted evidence set before a version becomes retrievable."""
-    # The parent version row is already FOR UPDATE-locked by `_load_current`. Every
-    # PostgreSQL evidence mutation must acquire FOR SHARE on that parent in its BEFORE
-    # trigger, so either the mutation commits before this read or it waits and is then
-    # rejected after approval. Deliberately do not row-lock spans here: an UPDATE can
-    # lock a span before its BEFORE trigger requests the parent, and taking locks in the
-    # opposite parent->span order here would create an avoidable deadlock cycle.
-    rows = connection.execute(
-        select(
-            spans.c.id,
-            spans.c.ordinal,
-            spans.c.page,
-            spans.c.section,
-            spans.c.text,
-            spans.c.text_hash,
-        )
-        .where(spans.c.version_id == str(version_id))
-        .order_by(spans.c.ordinal, spans.c.id)
-    ).mappings().all()
-    return version_evidence_digest(
-        (
-            str(row["id"]),
-            int(row["ordinal"]),
-            None if row["page"] is None else int(row["page"]),
-            None if row["section"] is None else str(row["section"]),
-            str(row["text"]),
-            str(row["text_hash"]),
-        )
-        for row in rows
-    )
-
-
 def _approval_changes(
     connection: Connection,
     current: DocumentVersionRecord,
@@ -175,9 +138,7 @@ def _approval_changes(
     version_mapper: VersionMapper,
     document_mapper: DocumentMapper,
 ) -> dict[str, Any]:
-    # Compute this from the rows that will become retrievable, in the same transaction
-    # as approval. A stored text/hash mismatch or an empty evidence set aborts approval.
-    evidence_digest = _seal_evidence_digest(connection, current.id)
+    evidence_digest = seal_evidence_digest(connection, current.id)
     _retire_existing_approved(connection, current, version_mapper)
     _apply_access_tier(connection, current, actor, access_tier, document_mapper)
     return {
