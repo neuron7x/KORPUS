@@ -1,10 +1,45 @@
 from __future__ import annotations
 
 from apps.api.tests.helpers import ingest_text
+from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAuditPolicy
+from korpus.application.corpus_snapshot import CorpusConsistencyError
+from korpus.application.policy import PolicyEngine
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.application.risk import QueryRisk
-from korpus.domain.models import QueryRequest
+from korpus.domain.models import AnswerStatus, QueryRequest
+
+
+class _FailingSnapshotReader:
+    def capture(self, identity, corpus_ids, as_of):
+        raise CorpusConsistencyError("deterministic capture failure")
+
+    def validate(self, identity, corpus_ids, as_of, token) -> None:
+        raise AssertionError("validate must not run when capture failed")
+
+
+def test_capture_failure_returns_audited_fail_closed_answer(
+    client, admin_identity, monkeypatch
+) -> None:
+    repository = client.app.state.repository
+    reader = _FailingSnapshotReader()
+    monkeypatch.setattr(repository, "corpus_snapshot_reader", reader)
+    service = ExtractiveAnswerService(
+        repository,
+        HybridLexicalRetriever(repository, candidate_budget=8),
+        PolicyEngine(),
+        AnswerPolicy(0.1, 0.1, 0.1, "capture-failure-control"),
+        snapshot_reader=reader,
+    )
+
+    answer = service.execute(
+        admin_identity,
+        QueryRequest(text="Що має містити запис?", corpus_ids=["public"]),
+    )
+
+    assert answer.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert answer.decision_reason == "corpus_snapshot_unavailable"
+    assert answer.corpus_release == "snapshot-unavailable"
 
 
 def test_answer_finish_revalidates_after_all_retrieval_work(client, admin_identity) -> None:
