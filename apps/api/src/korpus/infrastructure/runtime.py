@@ -6,6 +6,7 @@ from korpus.config import Settings
 from korpus.infrastructure.audit_anchor import FileAuditAnchorStore, HttpAuditAnchorStore
 from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.repository import SqlRepository
+from korpus.infrastructure.secure_repository import RlsBoundSqlRepository
 
 
 def create_repository(settings: Settings, policy: PolicyEngine | None = None) -> SqlRepository:
@@ -20,7 +21,7 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         if settings.audit_anchor_mode == "http"
         else FileAuditAnchorStore(settings.audit_anchor_path, audit_key)
     )
-    return SqlRepository(
+    return RlsBoundSqlRepository(
         settings.database_url,
         settings.resolved_audit_hmac_key,
         policy,
