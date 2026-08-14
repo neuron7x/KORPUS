@@ -18,21 +18,20 @@ def _database_target(url: str) -> tuple[str, str | None, int | None, str | None]
     return parsed.get_backend_name(), parsed.host, parsed.port, parsed.database
 
 
-class RlsIdentityBinder:
-    """Bind one application transaction to claims supplied through a separate DB login.
+def _database_user(url: str | None) -> str | None:
+    return make_url(url).username if url else None
 
-    The protected connection never writes authorization claims. It exposes only its
-    server-assigned backend pid and transaction id; the broker login records the claims
-    in a table the application/review logins cannot mutate. RLS policies resolve claims
-    from those server-assigned identifiers, so arbitrary SQL on the protected login can
-    no longer increase clearance/roles/corpora/classifications/compartments with SET.
-    """
+
+class RlsIdentityBinder:
+    """Bind protected DB transactions to claims supplied by a separate broker login."""
 
     def __init__(
         self,
         primary_database_url: str,
         identity_database_url: str | None,
         engine_options: dict[str, Any],
+        *,
+        review_database_url: str | None = None,
     ) -> None:
         self.engine: Engine | None = None
         if not primary_database_url.startswith("postgresql"):
@@ -43,9 +42,11 @@ class RlsIdentityBinder:
             return
         if _database_target(primary_database_url) != _database_target(identity_database_url):
             raise ValueError("RLS identity login must target the primary PostgreSQL database")
-        primary, identity = make_url(primary_database_url), make_url(identity_database_url)
-        if not identity.username or identity.username == primary.username:
-            raise ValueError("RLS identity login must be distinct from the application login")
+        identity_user = _database_user(identity_database_url)
+        protected_users = {_database_user(primary_database_url), _database_user(review_database_url)}
+        protected_users.discard(None)
+        if not identity_user or identity_user in protected_users:
+            raise ValueError("RLS identity login must be distinct from protected PostgreSQL logins")
         self.engine = create_engine(identity_database_url, **engine_options)
 
     def bind(self, connection: Connection, identity: Identity) -> None:
@@ -53,6 +54,11 @@ class RlsIdentityBinder:
             return
         if self.engine is None:
             raise RlsIdentityBindingError("PostgreSQL RLS identity broker is unavailable")
+        isolation = str(connection.execute(text("SHOW transaction_isolation")).scalar_one()).lower()
+        if isolation != "read committed":
+            raise RlsIdentityBindingError(
+                "RLS identity broker requires READ COMMITTED transaction isolation"
+            )
         backend_pid, transaction_id = connection.execute(
             text("SELECT pg_backend_pid(), pg_current_xact_id()::text")
         ).one()
