@@ -105,6 +105,28 @@ MUTANTS = (
         "test_version_evidence_digest_distinguishes_missing_from_empty_section",
         "nullable evidence metadata has a collision-free canonical representation",
     ),
+    Mutant(
+        "TS08",
+        "apps/api/src/korpus/application/answer_snapshot.py",
+        "            self.runtime.snapshot_reader.validate(\n"
+        "                self.identity, self.corpora, self.query.as_of, self.token\n"
+        "            )\n",
+        "            pass\n",
+        "apps/api/tests/test_answer_snapshot_finish.py::"
+        "test_answer_finish_revalidates_after_all_retrieval_work",
+        "answer completion revalidates the token after all retrieval/composition work",
+    ),
+    Mutant(
+        "TS09",
+        "apps/api/src/korpus/application/answer_snapshot.py",
+        "    if any(candidate is not reader for candidate in candidates[1:]):\n"
+        "        raise ValueError(\"answer retrieval must share one corpus snapshot reader\")\n",
+        "    if False:\n"
+        "        raise ValueError(\"answer retrieval must share one corpus snapshot reader\")\n",
+        "apps/api/tests/test_corpus_snapshot_contract.py::"
+        "test_answer_runtime_rejects_split_snapshot_authorities",
+        "answer composition has exactly one snapshot authority",
+    ),
 )
 
 
