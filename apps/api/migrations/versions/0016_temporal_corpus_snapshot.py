@@ -128,14 +128,18 @@ def _install_sqlite_guards() -> None:
 
 
 def _install_postgres_guards() -> None:
+    # The application role has SELECT-only access to corpus_state_epoch so it cannot
+    # forge snapshot validity. This migration-owned trigger function is therefore the
+    # sole writer. SECURITY DEFINER is required for ordinary app writes to advance the
+    # epoch; search_path is locked and the target table is schema-qualified.
     op.execute(
         """
         CREATE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
         BEGIN
-          UPDATE corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
+          UPDATE public.corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
           RETURN NULL;
         END;
-        $$ LANGUAGE plpgsql
+        $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
         """
     )
     for table in _EPOCH_TABLES:
