@@ -16,7 +16,9 @@ RLS_ACCESSORS = (
     "korpus_rls_clearance()", "korpus_rls_corpora()", "korpus_rls_classifications()",
     "korpus_rls_compartments()", "korpus_rls_roles()",
 )
-RLS_BINDER = "korpus_bind_rls_identity(integer,text,text,integer,text,text,text,text)"
+RLS_BINDER = (
+    "korpus_bind_rls_identity(integer,timestamptz,text,text,text,integer,text,text,text,text)"
+)
 
 
 def read_secret(name: str, file_name: str) -> str:
