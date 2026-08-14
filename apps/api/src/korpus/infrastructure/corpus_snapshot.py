@@ -1,7 +1,6 @@
 """SQL implementation of one immutable, epoch-bound corpus read token."""
 from __future__ import annotations
 
-import re
 from datetime import date
 
 from sqlalchemy import insert, select
@@ -18,19 +17,12 @@ from korpus.domain.models import Identity
 from korpus.infrastructure import retrieval_queries
 from korpus.infrastructure.corpus_snapshot_guards import EPOCH_TABLES, require_guards
 from korpus.infrastructure.repository import SqlRepository
-from korpus.infrastructure.schema import corpus_state_epoch, versions
-
-_HEX64 = re.compile(r"^[a-f0-9]{64}$")
+from korpus.infrastructure.schema import corpus_state_epoch
+from korpus.infrastructure.semantic_release import semantic_release_members
 
 
 class SqlCorpusSnapshotReader:
-    """Capture content identity and monotonic state identity without a long transaction.
-
-    `release_id` names the evidence content visible for the requested historical date.
-    `state_epoch` names the live database state that was read. The two are intentionally
-    separate: A→B→A content transitions must invalidate an A token even when the final
-    release digest equals the first one.
-    """
+    """Capture semantic release identity and monotonic state without a long transaction."""
 
     def __init__(self, repository: SqlRepository) -> None:
         self.repository = repository
@@ -59,34 +51,15 @@ class SqlCorpusSnapshotReader:
             rows = []
             if authorized:
                 statement = retrieval_queries.release_projection(identity, authorized, as_of)
-                statement = statement.add_columns(versions.c.evidence_digest)
                 rows = connection.execute(statement).mappings().all()
+            visible = [
+                row for row in rows if retrieval_queries.release_row_is_current(row, as_of)
+            ]
+            unique = semantic_release_members(connection, visible)
             after = self._epoch(connection)
         if before != after:
             raise CorpusConsistencyError(
                 "corpus state changed while release identity was captured"
-            )
-
-        unique: set[tuple[str, str, str, str, str]] = set()
-        for row in rows:
-            if not retrieval_queries.release_row_is_current(row, as_of):
-                continue
-            evidence_digest = row["evidence_digest"]
-            if (
-                not isinstance(evidence_digest, str)
-                or _HEX64.fullmatch(evidence_digest) is None
-            ):
-                raise CorpusConsistencyError(
-                    "approved release member has no valid evidence digest"
-                )
-            unique.add(
-                (
-                    str(row["document_id"]),
-                    str(row["version_id"]),
-                    str(row["source_hash"]),
-                    str(row["review_state"]),
-                    evidence_digest,
-                )
             )
 
         return CorpusReadToken(
