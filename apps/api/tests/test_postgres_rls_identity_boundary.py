@@ -63,11 +63,12 @@ def _seed_document(
                     "id,canonical_title,corpus_id,issuer,jurisdiction,document_type,"
                     "access_tier,classification,compartments_json,created_at"
                     ") VALUES ("
-                    ":id,'protected','" + corpus + "','issuer','UA','reference',"
+                    ":id,'protected',:corpus,'issuer','UA','reference',"
                     ":tier,:classification,:compartments,statement_timestamp())"
                 ),
                 {
                     "id": document_id,
+                    "corpus": corpus,
                     "tier": access_tier,
                     "classification": classification,
                     "compartments": json.dumps(list(compartments), separators=(",", ":")),
@@ -92,9 +93,22 @@ def _secure_claims(connection) -> tuple[object, ...]:
 def _visible(connection, document_id: str) -> int:
     return int(
         connection.execute(
-            text("SELECT count(*) FROM documents WHERE id=:id"), {"id": document_id}
+            text("SELECT count(*) FROM documents WHERE id=:id"),
+            {"id": document_id},
         ).scalar_one()
     )
+
+
+def _target_identity(connection) -> tuple[int, object, str, str]:
+    row = connection.execute(
+        text(
+            "SELECT pg_catalog.pg_backend_pid(), a.backend_start, "
+            "pg_catalog.pg_current_xact_id()::text, session_user "
+            "FROM pg_catalog.pg_stat_activity a "
+            "WHERE a.pid=pg_catalog.pg_backend_pid()"
+        )
+    ).one()
+    return int(row[0]), row[1], str(row[2]), str(row[3])
 
 
 def test_app_credential_cannot_write_or_assume_identity_boundary() -> None:
@@ -121,6 +135,18 @@ def test_app_credential_cannot_write_or_assume_identity_boundary() -> None:
             )
     finally:
         app.dispose()
+
+
+def test_identity_broker_cannot_read_binding_table_directly() -> None:
+    _require_boundary()
+    reset_database()
+    assert IDENTITY_URL
+    broker = _engine(IDENTITY_URL)
+    try:
+        with pytest.raises(DBAPIError), broker.begin() as connection:
+            connection.execute(text("SELECT * FROM public.korpus_rls_identity_bindings"))
+    finally:
+        broker.dispose()
 
 
 @pytest.mark.parametrize(
@@ -170,9 +196,11 @@ def test_legacy_guc_cannot_escalate_independent_read_axis(
                 text("SELECT pg_catalog.set_config(:name, :value, true)"),
                 {"name": f"korpus.{axis}", "value": forged},
             )
-            assert connection.execute(
-                text("SELECT current_setting(:name, true)"), {"name": f"korpus.{axis}"}
-            ).scalar_one() == forged
+            observed = connection.execute(
+                text("SELECT current_setting(:name, true)"),
+                {"name": f"korpus.{axis}"},
+            ).scalar_one()
+            assert observed == forged
             assert _secure_claims(connection) == before
             assert _visible(connection, document_id) == 0
     finally:
@@ -292,14 +320,7 @@ def test_broker_rejects_mismatched_backend_incarnation_or_login(tamper: str) -> 
     broker = _engine(IDENTITY_URL)
     try:
         with app.begin() as target:
-            pid, backend_start, txid, login_name = target.execute(
-                text(
-                    "SELECT pg_catalog.pg_backend_pid(), a.backend_start, "
-                    "pg_catalog.pg_current_xact_id()::text, session_user "
-                    "FROM pg_catalog.pg_stat_activity a "
-                    "WHERE a.pid=pg_catalog.pg_backend_pid()"
-                )
-            ).one()
+            pid, backend_start, txid, login_name = _target_identity(target)
             if tamper == "backend_start":
                 backend_start = backend_start + timedelta(seconds=1)
             else:
@@ -319,5 +340,38 @@ def test_broker_rejects_mismatched_backend_incarnation_or_login(tamper: str) -> 
                     },
                 )
     finally:
+        app.dispose()
+        broker.dispose()
+
+
+def test_broker_refuses_conflicting_rebind_in_same_transaction() -> None:
+    _require_boundary()
+    reset_database()
+    assert APP_URL and REVIEW_URL and IDENTITY_URL
+    app = _engine(APP_URL)
+    broker = _engine(IDENTITY_URL)
+    binder = _binder(APP_URL, REVIEW_URL)
+    try:
+        with app.begin() as target:
+            binder.bind(target, LOW)
+            pid, backend_start, txid, login_name = _target_identity(target)
+            before = _secure_claims(target)
+            with pytest.raises(DBAPIError), broker.begin() as control:
+                control.execute(
+                    text(
+                        "SELECT public.korpus_bind_rls_identity("
+                        ":pid,:start,:txid,:login,'forged',3,'secret-corpus',"
+                        "'public,internal,restricted','omega','admin,curator')"
+                    ),
+                    {
+                        "pid": pid,
+                        "start": backend_start,
+                        "txid": txid,
+                        "login": login_name,
+                    },
+                )
+            assert _secure_claims(target) == before
+    finally:
+        binder.close()
         app.dispose()
         broker.dispose()
