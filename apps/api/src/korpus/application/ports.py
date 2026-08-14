@@ -120,13 +120,6 @@ class Repository(Protocol):
 
     def verify_audit(self) -> AuditVerification: ...
 
-    def corpus_release_id(
-        self,
-        identity: Identity,
-        corpus_ids: frozenset[str],
-        as_of: date,
-    ) -> str: ...
-
     def object_inventory(self) -> dict[str, set[str]]: ...
 
     def healthcheck(self) -> bool: ...
