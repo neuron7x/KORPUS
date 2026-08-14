@@ -74,6 +74,9 @@ def test_postgres_startup_rejects_correctly_named_inert_epoch_function(tmp_path:
             """
             CREATE OR REPLACE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
             BEGIN
+              IF FALSE THEN
+                UPDATE public.corpus_state_epoch SET epoch = epoch + 1 WHERE singleton_id = 1;
+              END IF;
               RETURN NULL;
             END;
             $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
