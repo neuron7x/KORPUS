@@ -105,7 +105,8 @@ def test_approval_seals_the_exact_persisted_evidence_set(client, admin_identity)
     reader = client.app.state.corpus_snapshot_reader
     as_of = datetime.now(UTC).date()
     token = reader.capture(admin_identity, frozenset({"public"}), as_of)
-    assert len(token.release_id) == 16
+    assert len(token.release_id) == 64
+    assert all(character in "0123456789abcdef" for character in token.release_id)
     reader.validate(admin_identity, frozenset({"public"}), as_of, token)
 
 
