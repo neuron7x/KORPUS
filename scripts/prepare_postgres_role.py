@@ -8,13 +8,7 @@ from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, text
 
-# Every table the application touches has to appear in exactly one of these lists —
-# the role starts from REVOKE ALL, so an omission is a runtime InsufficientPrivilege
-# rather than a lax grant. Two tables added by later migrations were missing:
-# document_compartments (0004) and ingestion_jobs (0005). Nothing caught it because
-# the SQLite configuration has no roles at all, and the PostgreSQL job had never run
-# past migration 0001. test_postgres_role_grants.py now fails when a table exists in
-# the metadata and in none of these lists.
+# Every application table is explicit; omissions fail with InsufficientPrivilege.
 READ_WRITE_TABLES = (
     "documents",
     "document_versions",
@@ -22,9 +16,7 @@ READ_WRITE_TABLES = (
     "evidence_spans",
     "span_embeddings",
     "ingestion_jobs",
-    # ACT-001. Read-write rather than append-only: an account is disabled and re-enabled,
-    # a subscription moves between states, a conversation is archived. What must not be
-    # rewritable is the audit trail of those changes, and that is `audit_events` below.
+    # Mutable product state; its audit trail remains append-only below.
     "accounts",
     "plans",
     "subscriptions",
@@ -32,8 +24,7 @@ READ_WRITE_TABLES = (
     "conversations",
     "messages",
 )
-# Snapshot readers need the epoch, but application SQL must never be able to forge it.
-# The migration-owned SECURITY DEFINER trigger is the only writer.
+# The epoch is readable by the app but writable only by the migration-owned trigger.
 READ_ONLY_TABLES = ("corpus_state_epoch",)
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
@@ -106,7 +97,7 @@ with engine.connect() as connection:
             )
         )
     connection.execute(text(f"GRANT SELECT ON TABLE alembic_version TO {role_sql}"))
-    # No blanket/default privileges: a new migration remains inaccessible until reviewed here.
+    # New migrations remain inaccessible until explicitly reviewed here.
     connection.execute(text(f"ALTER ROLE {role_sql} SET statement_timeout = '60s'"))
     connection.execute(text(f"ALTER ROLE {role_sql} SET lock_timeout = '5s'"))
     connection.execute(
