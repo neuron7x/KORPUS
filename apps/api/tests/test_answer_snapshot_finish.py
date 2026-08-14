@@ -42,6 +42,31 @@ def test_capture_failure_returns_audited_fail_closed_answer(
     assert answer.corpus_release == "snapshot-unavailable"
 
 
+def test_answer_finish_rejects_a_release_stamp_not_owned_by_the_session(
+    client, admin_identity
+) -> None:
+    repository = client.app.state.repository
+    reader = client.app.state.corpus_snapshot_reader
+    runtime = SnapshotAnswerRuntime(
+        repository,
+        HybridLexicalRetriever(repository, candidate_budget=8),
+        SnapshotAuditPolicy(0.1, 0.1, 0.1, "release-ownership-control"),
+        reader,
+    )
+    query = QueryRequest(text="Що має містити запис?")
+    session = runtime.begin(admin_identity, query, frozenset({"public"}))
+    foreign = runtime.abstain(
+        "foreign-release",
+        "foreign_release_control",
+        "Контрольна відповідь з чужою міткою релізу.",
+    )
+
+    answer = session.finish(foreign, [], [], QueryRisk.STANDARD)
+    assert answer.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert answer.decision_reason == "corpus_release_mismatch"
+    assert answer.corpus_release == session.release_id
+
+
 def test_answer_finish_revalidates_after_all_retrieval_work(client, admin_identity) -> None:
     repository = client.app.state.repository
     reader = client.app.state.corpus_snapshot_reader
