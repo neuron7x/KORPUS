@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import ast
 import hashlib
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -30,6 +32,24 @@ def _token(release_id: str) -> CorpusReadToken:
 
 def test_application_repository_port_cannot_recompute_answer_release() -> None:
     assert not hasattr(Repository, "corpus_release_id")
+
+
+def test_no_runtime_component_calls_legacy_release_restamp() -> None:
+    source_root = Path(__file__).resolve().parents[1] / "src/korpus"
+    findings: list[str] = []
+    for path in source_root.rglob("*.py"):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        relative = path.relative_to(source_root)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Attribute) and node.attr == "corpus_release_id":
+                findings.append(f"{relative}:{node.lineno}: call/reference")
+            if (
+                isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+                and node.name == "corpus_release_id"
+                and relative.as_posix() != "infrastructure/repository.py"
+            ):
+                findings.append(f"{relative}:{node.lineno}: definition")
+    assert findings == []
 
 
 def test_corpus_read_token_accepts_full_sha256_release_identity() -> None:
