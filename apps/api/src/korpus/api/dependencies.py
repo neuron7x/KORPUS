@@ -8,6 +8,7 @@ from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerServic
 from korpus.application.cache import CachedRetriever, EvidenceQueryCache
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.composition import AnswerComposer
+from korpus.application.corpus_snapshot import CorpusSnapshotReader
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
 from korpus.application.policy import PolicyEngine
@@ -15,6 +16,7 @@ from korpus.application.ports import ObjectStore
 from korpus.application.query_plan import QueryPlanner
 from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
+from korpus.application.snapshot_retrieval import SnapshotBoundRetriever
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
 from korpus.infrastructure.anthropic_planner import (
@@ -43,6 +45,11 @@ def get_policy(request: Request) -> PolicyEngine:
 def get_repository(request: Request) -> SqlRepository:
     repository: SqlRepository = request.app.state.repository
     return repository
+
+
+def get_corpus_snapshot_reader(request: Request) -> CorpusSnapshotReader:
+    snapshot_reader: CorpusSnapshotReader = request.app.state.corpus_snapshot_reader
+    return snapshot_reader
 
 
 def get_object_store(request: Request) -> ObjectStore:
@@ -165,6 +172,7 @@ def get_durable_ingestion_coordinator(
 
 def get_answer_service(
     repository: Annotated[SqlRepository, Depends(get_repository)],
+    snapshot_reader: Annotated[CorpusSnapshotReader, Depends(get_corpus_snapshot_reader)],
     policy: Annotated[PolicyEngine, Depends(get_policy)],
     settings: SettingsDependency,
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
@@ -228,12 +236,14 @@ def get_answer_service(
         semantic_source=semantic_source,
         authority_priors=authority_priors,
     )
-    retriever = CachedRetriever(repository, base, cache, configuration_id)
+    snapshot_bound = SnapshotBoundRetriever(snapshot_reader, base)
+    retriever = CachedRetriever(snapshot_reader, snapshot_bound, cache, configuration_id)
     return ExtractiveAnswerService(
         repository,
         retriever,
         policy,
         answer_policy,
+        snapshot_reader=snapshot_reader,
         query_planner=build_query_planner(settings),
         answer_composer=build_answer_composer(settings),
         egress_policy=build_egress_policy(settings),
