@@ -14,7 +14,7 @@ from korpus.domain.models import AccessTier, Identity
 class SnapshotReader:
     def __init__(self) -> None:
         self.epoch = 1
-        self.release = "1" * 16
+        self.release = "1" * 64
 
     def capture(
         self,
@@ -70,7 +70,7 @@ def identity(subject: str = "a", compartments: set[str] | None = None) -> Identi
     )
 
 
-def test_cache_is_bound_to_identity_release_and_configuration() -> None:
+def test_cache_is_bound_to_identity_release_epoch_and_configuration() -> None:
     reader = SnapshotReader()
     delegate = Delegate()
     cache = EvidenceQueryCache(maximum_entries=8, ttl_seconds=60)
@@ -88,10 +88,16 @@ def test_cache_is_bound_to_identity_release_and_configuration() -> None:
     retriever.search(bob, "query", corpora, as_of, reader.capture(bob, corpora, as_of))
     assert delegate.calls == 2
 
+    # The content identity can return to the same value while the live state cannot.
+    # A cache key that omits the monotonic epoch would incorrectly reuse Alice's first hit.
     reader.epoch = 2
-    reader.release = "2" * 16
     retriever.search(alice, "query", corpora, as_of, reader.capture(alice, corpora, as_of))
     assert delegate.calls == 3
+
+    reader.epoch = 3
+    reader.release = "2" * 64
+    retriever.search(alice, "query", corpora, as_of, reader.capture(alice, corpora, as_of))
+    assert delegate.calls == 4
     assert cache.stats().hits == 1
 
 
@@ -112,7 +118,7 @@ def test_cache_never_stores_result_if_state_changes_during_search() -> None:
             self.calls += 1
             if self.calls == 1:
                 reader.epoch = 2
-                reader.release = "2" * 16
+                reader.release = "2" * 64
             return []
 
     delegate = MutatingDelegate()
@@ -129,7 +135,7 @@ def test_cache_never_stores_result_if_state_changes_during_search() -> None:
 
     # Logical A returns, but the monotonic epoch does not: A→B→A is not the old A.
     reader.epoch = 3
-    reader.release = "1" * 16
+    reader.release = "1" * 64
     token_aba = reader.capture(actor, corpora, as_of)
     retriever.search(actor, "query", corpora, as_of, token_aba)
     assert delegate.calls == 2
