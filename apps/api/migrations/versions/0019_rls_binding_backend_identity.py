@@ -153,8 +153,6 @@ def _install_v19_binder() -> None:
               OR transaction_id <> p_transaction_id
               OR login_name <> p_login_name
             );
-          DELETE FROM public.korpus_rls_identity_bindings
-          WHERE bound_at < pg_catalog.statement_timestamp() - interval '1 day';
           INSERT INTO public.korpus_rls_identity_bindings(
             backend_pid, backend_start, transaction_id, login_name, subject, clearance,
             corpora, classifications, compartments, roles
