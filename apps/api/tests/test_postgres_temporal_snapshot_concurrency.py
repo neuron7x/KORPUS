@@ -3,12 +3,13 @@ from __future__ import annotations
 import hashlib
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from threading import Event
+from uuid import uuid4
 
 import pytest
-from sqlalchemy import select, text, update
+from sqlalchemy import insert, select, text
 from sqlalchemy.exc import DBAPIError
 
 from apps.api.tests.conftest import reset_database
@@ -32,14 +33,15 @@ pytestmark = pytest.mark.postgres
 
 
 @pytest.mark.skipif(not POSTGRES_URL, reason="KORPUS_POSTGRES_TEST_URL is not configured")
-def test_postgres_approval_seal_serializes_concurrent_span_mutation(
+def test_postgres_approval_seal_serializes_concurrent_span_insert(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A span writer cannot cross the exact `seal -> approve` boundary.
+    """A phantom span cannot cross the exact `seal -> approve` boundary.
 
     The barrier is inside the approval transaction after the evidence rows have been
-    sealed. No sleep is used to create the race: the test holds approval at that exact
-    call boundary and gives the competing DML a bounded PostgreSQL lock timeout.
+    sealed. No sleep creates the race: approval is held at that exact call boundary and
+    a competing INSERT gets a bounded PostgreSQL lock timeout. Existing-row locks alone
+    cannot stop this control; it specifically proves the parent-version lock protocol.
     """
     reset_database()
     repository = SqlRepository(
@@ -100,8 +102,19 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
 
     monkeypatch.setattr(review_transitions, "_seal_evidence_digest", blocking_seal)
 
-    changed_text = f"{span.text} tampered during approval"
-    changed_hash = hashlib.sha256(changed_text.encode("utf-8")).hexdigest()
+    injected_text = "phantom evidence inserted after the approval seal"
+    injected_hash = hashlib.sha256(injected_text.encode("utf-8")).hexdigest()
+    injected_id = str(uuid4())
+    injected_values = {
+        "id": injected_id,
+        "version_id": str(version.id),
+        "ordinal": 1,
+        "page": None,
+        "section": None,
+        "text": injected_text,
+        "text_hash": injected_hash,
+        "created_at": datetime.now(UTC),
+    }
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         approval = executor.submit(
@@ -110,33 +123,25 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
             version.id,
             ReviewState.QUARANTINED,
             ReviewState.APPROVED,
-            "deterministic PostgreSQL seal/mutation race",
+            "deterministic PostgreSQL seal/insert race",
         )
         assert sealed.wait(timeout=5), "approval did not reach the post-seal barrier"
         try:
             with pytest.raises(DBAPIError), repository.engine.begin() as connection:
                 repository._apply_postgres_identity(connection, actor)
                 connection.execute(text("SET LOCAL lock_timeout = '250ms'"))
-                connection.execute(
-                    update(spans)
-                    .where(spans.c.id == str(span.id))
-                    .values(text=changed_text, text_hash=changed_hash)
-                )
+                connection.execute(insert(spans).values(**injected_values))
         finally:
             release_approval.set()
         approved = approval.result(timeout=5)
 
     assert approved.review_state is ReviewState.APPROVED
 
-    # Once approval commits, the same mutation is rejected by the immutable-evidence
-    # trigger rather than merely blocked by the transition lock.
+    # Once approval commits, the same phantom insert is rejected by the immutable-
+    # evidence trigger rather than merely blocked by the transition lock.
     with pytest.raises(DBAPIError), repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, actor)
-        connection.execute(
-            update(spans)
-            .where(spans.c.id == str(span.id))
-            .values(text=changed_text, text_hash=changed_hash)
-        )
+        connection.execute(insert(spans).values(**injected_values))
 
     with repository.engine.begin() as connection:
         repository._apply_postgres_identity(connection, actor)
@@ -167,5 +172,5 @@ def test_postgres_approval_seal_serializes_concurrent_span_mutation(
         ]
     )
     assert stored_digest == expected_digest
-    assert row["text"] == span.text
+    assert row["id"] == str(span.id)
     repository.close()
