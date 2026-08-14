@@ -43,13 +43,7 @@ REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
-
-    # A misspelled KORPUS_* variable is dropped in silence by pydantic-settings, so
-    # `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` — singular, where the field is
-    # `require_source_signatures` — starts a process with the control off and nothing
-    # reported. The deployment reads correct in review. Refused at startup rather than
-    # warned about: a control an operator believes is on and is not is worse than a
-    # process that does not start.
+    # Unknown KORPUS_* names are fatal: a typo can silently leave a security control off.
     unknown = unknown_settings_variables(os.environ)
     if unknown:
         raise ValueError(
@@ -150,10 +144,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.oidc_verifier = oidc_verifier
         app.state.browser_session_codec = browser_session_codec
         app.state.browser_oidc_client = browser_oidc_client
-        # ACT-001. Built once here rather than per request: each store holds an engine
-        # reference, and constructing them in a dependency would mean a new one per call
-        # with no benefit. `tenancy_composition` is the only module that names both an
-        # application service and its SQL adapter.
+        # Tenancy is process-scoped because its stores own engine references.
         install_tenancy(app.state, selected, repository, policy)
 
         stop_reconciler = asyncio.Event()
@@ -172,15 +163,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     )
                     pending_events = snapshot["pending_anchor_events"]
                     oldest_pending_seconds = snapshot["oldest_pending_seconds"]
-                    # readiness_snapshot is declared dict[str, object]; these two keys
-                    # carry int/float (repository.py:1112-1113). Narrowing belongs in the
-                    # repository return type, which is out of scope for this change.
+                    # Runtime values are int/float although the repository port is object-typed.
                     observability.observe_anchor_backlog(
                         int(pending_events),  # type: ignore[call-overload]
                         float(oldest_pending_seconds),  # type: ignore[arg-type]
                     )
                 except Exception as exc:
-                    # Readiness exposes the backlog; the metric preserves failure visibility.
                     observability.observe_anchor_reconcile_failure(exc)
                 try:
                     await asyncio.wait_for(
@@ -272,11 +260,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(billing_router)
     app.include_router(admin_router)
 
-    # A dependency being down is a "come back shortly", not a 500. Without these, a
-    # postgres restart or a MinIO blip reaches the reader as an uncaught exception — a bare
-    # stack trace with no Retry-After — and the client cannot tell a transient outage from
-    # a permanent break. Mapped to 503 so a soldier's client knows to retry, and so the
-    # reason word ("database"/"object_store") never carries an internal detail.
+    # Transient database/object-store failures are explicit 503s with retry semantics.
     from sqlalchemy.exc import DBAPIError, OperationalError
 
     from korpus.application.ports import ObjectStoreUnavailable
