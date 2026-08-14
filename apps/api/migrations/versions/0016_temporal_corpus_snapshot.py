@@ -151,30 +151,51 @@ def _install_postgres_guards() -> None:
         """
         CREATE FUNCTION korpus_refuse_approved_evidence_mutation() RETURNS trigger AS $$
         DECLARE
-          old_approved boolean := false;
-          new_approved boolean := false;
+          locked_state text;
         BEGIN
-          IF TG_OP <> 'INSERT' THEN
-            SELECT EXISTS(
-              SELECT 1 FROM document_versions WHERE id = OLD.version_id AND review_state = 'approved'
-            ) INTO old_approved;
-          END IF;
-          IF TG_OP <> 'DELETE' THEN
-            SELECT EXISTS(
-              SELECT 1 FROM document_versions WHERE id = NEW.version_id AND review_state = 'approved'
-            ) INTO new_approved;
-          END IF;
-          IF old_approved OR new_approved THEN
-            RAISE EXCEPTION 'approved evidence is immutable';
+          -- Serialize every evidence mutation with approval. The approval path holds
+          -- FOR UPDATE on the parent version row before sealing. This trigger takes
+          -- FOR SHARE on the same row(s) before it checks review_state, so a mutation
+          -- that races `seal -> approve` cannot validate against the pre-approval state
+          -- and then commit after approval.
+          IF TG_OP = 'INSERT' THEN
+            SELECT review_state INTO locked_state
+            FROM public.document_versions
+            WHERE id = NEW.version_id
+            FOR SHARE;
+            IF locked_state = 'approved' THEN
+              RAISE EXCEPTION 'approved evidence is immutable';
+            END IF;
+          ELSIF TG_OP = 'DELETE' THEN
+            SELECT review_state INTO locked_state
+            FROM public.document_versions
+            WHERE id = OLD.version_id
+            FOR SHARE;
+            IF locked_state = 'approved' THEN
+              RAISE EXCEPTION 'approved evidence is immutable';
+            END IF;
+          ELSE
+            FOR locked_state IN
+              SELECT review_state
+              FROM public.document_versions
+              WHERE id IN (OLD.version_id, NEW.version_id)
+              ORDER BY id
+              FOR SHARE
+            LOOP
+              IF locked_state = 'approved' THEN
+                RAISE EXCEPTION 'approved evidence is immutable';
+              END IF;
+            END LOOP;
           END IF;
           IF TG_OP = 'DELETE' THEN
             RETURN OLD;
           END IF;
           RETURN NEW;
         END;
-        $$ LANGUAGE plpgsql
+        $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
         """
     )
+    op.execute("REVOKE ALL ON FUNCTION korpus_refuse_approved_evidence_mutation() FROM PUBLIC")
     op.execute(
         "CREATE TRIGGER trg_evidence_spans_immutable "
         "BEFORE INSERT OR UPDATE OR DELETE ON evidence_spans "
