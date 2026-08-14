@@ -45,11 +45,18 @@ def test_external_runtime_requires_complete_split_postgres_boundary() -> None:
     assert "runtime_available = external_ready if external_requested else docker_available" in source
 
 
-def test_postgres_gate_cannot_promote_static_or_unexecuted_evidence() -> None:
+def test_postgres_gate_distinguishes_nonexecution_from_executed_failure() -> None:
+    source = inspect.getsource(gate.main)
+    assert "runtime_executed = runtime_exit is not None" in source
+    assert '"postgres_runtime_executed": runtime_executed' in source
+    assert 'backend="postgresql" if runtime_executed else "UNEXECUTED"' in source
+    assert '"FAIL" if runtime_executed else "NOT_EXECUTED"' in source
+
+
+def test_postgres_gate_cannot_promote_static_or_failed_runtime_evidence() -> None:
     source = inspect.getsource(gate.main)
     assert '"postgres_runtime_available": runtime_available' in source
     assert '"postgres_adversarial_suite": runtime_exit == 0' in source
-    assert 'backend="postgresql" if runtime_exit == 0 else "UNEXECUTED"' in source
     assert 'scope="LEGACY_POSTGRES_PLUS_NONFORGEABLE_RLS"' in source
     assert '"bash", "scripts/run_postgres_suite.sh", *RUNTIME_TARGETS' in source
 
