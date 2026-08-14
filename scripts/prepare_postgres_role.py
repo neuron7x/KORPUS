@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Provision separate PostgreSQL application and review-transition identities."""
+"""Provision isolated PostgreSQL application, review, and RLS-identity logins."""
 import os
 from pathlib import Path
 
@@ -12,6 +12,11 @@ APP_RW_TABLES = (
 )
 REVIEW_SELECT = ("documents", "document_versions", "evidence_spans", "audit_heads")
 REVIEW_UPDATE = ("documents", "document_versions", "audit_heads")
+RLS_ACCESSORS = (
+    "korpus_rls_clearance()", "korpus_rls_corpora()", "korpus_rls_classifications()",
+    "korpus_rls_compartments()", "korpus_rls_roles()",
+)
+RLS_BINDER = "korpus_bind_rls_identity(integer,text,text,integer,text,text,text,text)"
 
 
 def read_secret(name: str, file_name: str) -> str:
@@ -63,30 +68,45 @@ def ensure_group(connection, role: str) -> None:
         )
 
 
+def grant_execute(connection, function: str, role: str) -> None:
+    execute(connection, f"GRANT EXECUTE ON FUNCTION {function} TO {quoted(role)}")
+
+
 admin_url = os.environ["KORPUS_DATABASE_URL"]
 app_role = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
 review_role = os.getenv("KORPUS_POSTGRES_REVIEW_ROLE", "korpus_review")
+identity_role = os.getenv("KORPUS_POSTGRES_IDENTITY_ROLE", "korpus_identity")
 app_password = read_secret("KORPUS_POSTGRES_APP_PASSWORD", "KORPUS_POSTGRES_APP_PASSWORD_FILE")
 review_password = read_secret(
     "KORPUS_POSTGRES_REVIEW_PASSWORD", "KORPUS_POSTGRES_REVIEW_PASSWORD_FILE"
 )
+identity_password = read_secret(
+    "KORPUS_POSTGRES_IDENTITY_PASSWORD", "KORPUS_POSTGRES_IDENTITY_PASSWORD_FILE"
+)
 database = make_url(admin_url).database or ""
 if not database:
     raise SystemExit("PostgreSQL database name is required")
+if len({app_role, review_role, identity_role}) != 3:
+    raise SystemExit("application, review, and RLS identity logins must be distinct")
 
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
     ensure_login(connection, app_role, app_password)
     ensure_login(connection, review_role, review_password)
+    ensure_login(connection, identity_role, identity_password)
     ensure_group(connection, "korpus_app_runtime")
     ensure_group(connection, "korpus_review_runtime")
-    app_sql, review_sql, db_sql = quoted(app_role), quoted(review_role), quoted(database)
+    ensure_group(connection, "korpus_identity_runtime")
+    app_sql, review_sql = quoted(app_role), quoted(review_role)
+    identity_sql, db_sql = quoted(identity_role), quoted(database)
     execute(connection, f"GRANT korpus_app_runtime TO {app_sql}")
     execute(connection, f"GRANT korpus_review_runtime TO {review_sql}")
-    execute(connection, f"REVOKE korpus_review_runtime FROM {app_sql}")
-    execute(connection, f"REVOKE korpus_app_runtime FROM {review_sql}")
+    execute(connection, f"GRANT korpus_identity_runtime TO {identity_sql}")
+    execute(connection, f"REVOKE korpus_review_runtime, korpus_identity_runtime FROM {app_sql}")
+    execute(connection, f"REVOKE korpus_app_runtime, korpus_identity_runtime FROM {review_sql}")
+    execute(connection, f"REVOKE korpus_app_runtime, korpus_review_runtime FROM {identity_sql}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
-    for role_sql in (app_sql, review_sql):
+    for role_sql in (app_sql, review_sql, identity_sql):
         execute(connection, f"GRANT CONNECT ON DATABASE {db_sql} TO {role_sql}")
         execute(connection, f"GRANT USAGE ON SCHEMA public TO {role_sql}")
         execute(connection, f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}")
@@ -101,9 +121,19 @@ with engine.connect() as connection:
     grant_many(connection, "UPDATE", REVIEW_UPDATE, review_role)
     grant_many(connection, "INSERT", ("audit_events", "audit_anchor_outbox"), review_role)
     grant(connection, "SELECT", "alembic_version", app_role)
-    for role_sql in (app_sql, review_sql):
+    for function in RLS_ACCESSORS:
+        grant_execute(connection, function, app_role)
+        grant_execute(connection, function, review_role)
+    grant_execute(connection, RLS_BINDER, identity_role)
+    execute(connection, "REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM PUBLIC")
+    for role_sql in (app_sql, review_sql, identity_sql):
+        execute(connection, f"REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM {role_sql}")
+    for role_sql in (app_sql, review_sql, identity_sql):
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
 engine.dispose()
-print(f"prepared split roles: app={app_role}, review={review_role}, database={database}")
+print(
+    f"prepared split roles: app={app_role}, review={review_role}, "
+    f"identity={identity_role}, database={database}"
+)
