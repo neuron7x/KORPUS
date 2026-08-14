@@ -81,10 +81,10 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
             object_key=f"integration/{corpus}",
             mime_type="text/plain",
             authority=AuthorityClass.OFFICIAL_UA,
-            review_state=ReviewState.APPROVED,
+            review_state=ReviewState.QUARANTINED,
             # An approved version governs from a stated date, in both dialects.
             publication_date=date(2020, 1, 1),
-            is_current=True,
+            is_current=False,
         )
         span = EvidenceSpanRecord(
             version_id=version.id,
@@ -93,6 +93,15 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         )
         repository.create_document_bundle(
             actor, document, version, [span], {"integration": "postgres", "corpus": corpus}
+        )
+        # Approval must happen after evidence exists: approval seals the exact persisted
+        # evidence digest and the database makes approved evidence immutable thereafter.
+        version = repository.transition_version(
+            actor,
+            version.id,
+            ReviewState.QUARANTINED,
+            ReviewState.APPROVED,
+            "approve PostgreSQL integration fixture after evidence seal",
         )
         with repository.engine.begin() as connection:
             repository._apply_postgres_identity(connection, actor)
