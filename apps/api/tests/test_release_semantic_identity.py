@@ -1,10 +1,17 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, date, datetime
 
 from sqlalchemy import insert, select, update
 
 from apps.api.tests.helpers import approve, ingest_text, ingest_version
+from korpus.application.corpus_snapshot import (
+    SemanticReleaseMember,
+    canonical_optional,
+    canonical_set,
+    release_identity_digest,
+)
 from korpus.infrastructure.schema import document_compartments, documents, versions
 
 AS_OF = date(2026, 8, 14)
@@ -27,6 +34,16 @@ def _capture(client, identity, corpora=PUBLIC):
     return client.app.state.corpus_snapshot_reader.capture(identity, corpora, AS_OF)
 
 
+def _temporal(value) -> str:
+    if value is None:
+        return canonical_optional(None)
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=UTC)
+        return canonical_optional(value.astimezone(UTC).isoformat())
+    return canonical_optional(value.isoformat())
+
+
 def _mutate_and_require_new_release(
     repository,
     identity,
@@ -42,6 +59,62 @@ def _mutate_and_require_new_release(
     assert after.state_epoch > before.state_epoch
     assert after.release_id != before.release_id
     return after
+
+
+def test_snapshot_release_equals_explicit_semantic_member_projection(
+    client, admin_identity
+) -> None:
+    document_id, version_id = _approved(client)
+    repository = client.app.state.repository
+    with repository.engine.begin() as connection:
+        repository._apply_postgres_identity(connection, admin_identity)
+        row = connection.execute(
+            select(
+                documents.c.canonical_title,
+                documents.c.corpus_id,
+                documents.c.access_tier,
+                documents.c.classification,
+                documents.c.compartments_json,
+                versions.c.source_hash,
+                versions.c.review_state,
+                versions.c.evidence_digest,
+                versions.c.revision,
+                versions.c.source_uri,
+                versions.c.publication_date,
+                versions.c.effective_from,
+                versions.c.effective_until,
+                versions.c.rescinded_at,
+                versions.c.authority,
+                versions.c.supersedes_version_id,
+            )
+            .select_from(versions)
+            .join(documents, versions.c.document_id == documents.c.id)
+            .where(versions.c.id == version_id)
+        ).mappings().one()
+    expected = SemanticReleaseMember(
+        document_id=document_id,
+        version_id=version_id,
+        source_hash=str(row["source_hash"]),
+        review_state=str(row["review_state"]),
+        evidence_digest=str(row["evidence_digest"]),
+        canonical_title=str(row["canonical_title"]),
+        corpus_id=str(row["corpus_id"]),
+        access_tier=str(int(row["access_tier"])),
+        classification=str(row["classification"]),
+        document_compartments=canonical_set(json.loads(row["compartments_json"])),
+        visibility_compartments=canonical_set(()),
+        revision=str(row["revision"]),
+        source_uri=canonical_optional(row["source_uri"]),
+        publication_date=_temporal(row["publication_date"]),
+        effective_from=_temporal(row["effective_from"]),
+        effective_until=_temporal(row["effective_until"]),
+        rescinded_at=_temporal(row["rescinded_at"]),
+        authority=str(row["authority"]),
+        supersedes_version_id=canonical_optional(row["supersedes_version_id"]),
+    )
+    token = _capture(client, admin_identity)
+
+    assert token.release_id == release_identity_digest([expected])
 
 
 def test_answer_visible_title_change_changes_release_without_changing_evidence(
