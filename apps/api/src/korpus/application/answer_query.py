@@ -14,7 +14,11 @@ from korpus.application.answer_analysis import (
     source_limitations,
     unsourced_quotes,
 )
-from korpus.application.answer_snapshot import SnapshotAnswerRuntime, SnapshotAuditPolicy
+from korpus.application.answer_snapshot import (
+    SnapshotAnswerAbort,
+    SnapshotAnswerRuntime,
+    SnapshotAuditPolicy,
+)
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.corpus_snapshot import CorpusSnapshotReader, SnapshotRetriever
 from korpus.application.egress import ModelEgressPolicy
@@ -110,11 +114,14 @@ class ExtractiveAnswerService:
         self.egress_policy = egress_policy
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
+        try:
+            return self._execute(identity, query)
+        except SnapshotAnswerAbort as abort:
+            return abort.answer
+
+    def _execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
-        started = self.snapshot_runtime.begin(identity, query, corpora)
-        if isinstance(started, Answer):
-            return started
-        session = started
+        session = self.snapshot_runtime.begin(identity, query, corpora)
         release_id = session.release_id
 
         injection = assess_control_injection(query.text)
@@ -130,10 +137,7 @@ class ExtractiveAnswerService:
         risk = classify_query_risk(query.text)
         plan = build_plan(query.text, self.query_planner)
         try:
-            search_result = session.search_plan(plan, risk)
-            if isinstance(search_result, Answer):
-                return search_result
-            retrieved = search_result
+            retrieved = session.search_plan(plan, risk)
         except RetrievalDeadlineExceeded:
             answer = self._abstain(
                 release_id,
