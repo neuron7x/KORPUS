@@ -35,7 +35,9 @@ def _stored_compartments(value: object) -> str:
         decoded = json.loads(str(value or "[]"))
     except (TypeError, ValueError) as exc:
         raise CorpusConsistencyError("document compartments_json is not valid JSON") from exc
-    if not isinstance(decoded, list) or any(not isinstance(item, str) for item in decoded):
+    if not isinstance(decoded, list) or any(
+        not isinstance(item, str) for item in decoded
+    ):
         raise CorpusConsistencyError("document compartments_json is not a string list")
     return canonical_set(decoded)
 
@@ -85,16 +87,25 @@ def semantic_release_members(
         .order_by(documents.c.id, versions.c.id)
     )
     rows = connection.execute(statement).mappings().all()
-    found_pairs = {(str(row["document_id"]), str(row["version_id"])) for row in rows}
+    found_pairs = {
+        (str(row["document_id"]), str(row["version_id"])) for row in rows
+    }
     if found_pairs != visible_pairs:
-        raise CorpusConsistencyError("release semantic projection is incomplete or mismatched")
+        raise CorpusConsistencyError(
+            "release semantic projection is incomplete or mismatched"
+        )
 
     compartment_rows = connection.execute(
         select(document_compartments.c.document_id, document_compartments.c.compartment)
         .where(document_compartments.c.document_id.in_(document_ids))
-        .order_by(document_compartments.c.document_id, document_compartments.c.compartment)
+        .order_by(
+            document_compartments.c.document_id,
+            document_compartments.c.compartment,
+        )
     ).all()
-    visibility: dict[str, list[str]] = {document_id: [] for document_id in document_ids}
+    visibility: dict[str, list[str]] = {
+        document_id: [] for document_id in document_ids
+    }
     for document_id, compartment in compartment_rows:
         visibility[str(document_id)].append(str(compartment))
 
@@ -102,7 +113,9 @@ def semantic_release_members(
     for row in rows:
         evidence_digest = row["evidence_digest"]
         if not _valid_sha256(evidence_digest):
-            raise CorpusConsistencyError("approved release member has no valid evidence digest")
+            raise CorpusConsistencyError(
+                "approved release member has no valid evidence digest"
+            )
         document_id = str(row["document_id"])
         members.append(
             SemanticReleaseMember(
@@ -115,7 +128,9 @@ def semantic_release_members(
                 corpus_id=str(row["corpus_id"]),
                 access_tier=str(int(row["access_tier"])),
                 classification=str(row["classification"]),
-                document_compartments=_stored_compartments(row["compartments_json"]),
+                document_compartments=_stored_compartments(
+                    row["compartments_json"]
+                ),
                 visibility_compartments=canonical_set(visibility[document_id]),
                 revision=str(row["revision"]),
                 source_uri=canonical_optional(row["source_uri"]),
@@ -124,7 +139,9 @@ def semantic_release_members(
                 effective_until=_optional_temporal(row["effective_until"]),
                 rescinded_at=_optional_temporal(row["rescinded_at"]),
                 authority=str(row["authority"]),
-                supersedes_version_id=canonical_optional(row["supersedes_version_id"]),
+                supersedes_version_id=canonical_optional(
+                    row["supersedes_version_id"]
+                ),
             )
         )
     return members
