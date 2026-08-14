@@ -4,11 +4,12 @@ import os
 from pathlib import Path
 
 import pytest
-from sqlalchemy import update
+from sqlalchemy import create_engine, text, update
 from sqlalchemy.exc import DBAPIError
 
-from apps.api.tests.conftest import reset_database
+from apps.api.tests.conftest import POSTGRES_ADMIN_URL, reset_database
 from korpus.domain.models import AccessTier, Identity
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch
 
@@ -43,3 +44,48 @@ def test_postgres_application_role_cannot_forge_corpus_state_epoch(tmp_path: Pat
             )
     finally:
         repository.close()
+
+
+@pytest.mark.skipif(
+    not POSTGRES_URL or not POSTGRES_ADMIN_URL or POSTGRES_ADMIN_URL == POSTGRES_URL,
+    reason="separate PostgreSQL owner URL is required to tamper with a guard function",
+)
+def test_postgres_startup_rejects_correctly_named_inert_epoch_function(tmp_path: Path) -> None:
+    """Function name, SECURITY DEFINER and search_path are insufficient evidence."""
+    reset_database()
+    admin_engine = create_engine(POSTGRES_ADMIN_URL, future=True)
+    repository = SqlRepository(
+        POSTGRES_URL,
+        "postgres-temporal-function-guard-key",
+        audit_anchor_path=tmp_path / "postgres-temporal-function-guard-anchor.json",
+    )
+    repository.initialize(create_schema=False)
+
+    with admin_engine.begin() as connection:
+        original = connection.execute(
+            text(
+                "SELECT pg_get_functiondef(p.oid) FROM pg_proc p "
+                "JOIN pg_namespace n ON n.oid = p.pronamespace "
+                "WHERE n.nspname = 'public' "
+                "AND p.proname = 'korpus_bump_corpus_state_epoch'"
+            )
+        ).scalar_one()
+        connection.exec_driver_sql(
+            """
+            CREATE OR REPLACE FUNCTION korpus_bump_corpus_state_epoch() RETURNS trigger AS $$
+            BEGIN
+              RETURN NULL;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog
+            """
+        )
+
+    try:
+        reader = SqlCorpusSnapshotReader(repository)
+        with pytest.raises(RuntimeError, match="korpus_bump_corpus_state_epoch.*invalid definition"):
+            reader.initialize(create_schema=False)
+    finally:
+        with admin_engine.begin() as connection:
+            connection.exec_driver_sql(str(original))
+        repository.close()
+        admin_engine.dispose()
