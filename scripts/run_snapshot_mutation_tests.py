@@ -127,6 +127,17 @@ MUTANTS = (
         "test_answer_runtime_rejects_split_snapshot_authorities",
         "answer composition has exactly one snapshot authority",
     ),
+    Mutant(
+        "TS10",
+        "apps/api/src/korpus/application/answer_query.py",
+        "        except SnapshotAnswerAbort as abort:\n"
+        "            return abort.answer\n",
+        "        except SnapshotAnswerAbort:\n"
+        "            raise\n",
+        "apps/api/tests/test_answer_snapshot_finish.py::"
+        "test_capture_failure_returns_audited_fail_closed_answer",
+        "snapshot capture failure is returned as a controlled audited abstention",
+    ),
 )
 
 
