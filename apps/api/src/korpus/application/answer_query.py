@@ -33,7 +33,12 @@ from korpus.application.retrieval import (
     RetrievalUnavailable,
     tokenize,
 )
-from korpus.application.risk import QueryRisk, RiskThresholds, classify_query_risk, risk_adjusted_thresholds
+from korpus.application.risk import (
+    QueryRisk,
+    RiskThresholds,
+    classify_query_risk,
+    risk_adjusted_thresholds,
+)
 from korpus.domain.models import (
     AccessTier,
     Answer,
