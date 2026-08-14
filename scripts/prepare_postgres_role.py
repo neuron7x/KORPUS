@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-"""Provision separate PostgreSQL application and review-transition identities."""
+"""Provision separate PostgreSQL application/review identities and RLS handshakes."""
 import os
 from pathlib import Path
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
@@ -12,6 +11,13 @@ APP_RW_TABLES = (
 )
 REVIEW_SELECT = ("documents", "document_versions", "evidence_spans", "audit_heads")
 REVIEW_UPDATE = ("documents", "document_versions", "audit_heads")
+RLS_FUNCTIONS = (
+    "public.korpus_prepare_rls_context(integer,jsonb,jsonb,jsonb,jsonb)",
+    "public.korpus_confirm_rls_context(integer,bigint,name)",
+    "public.korpus_rls_clearance()", "public.korpus_rls_corpora()",
+    "public.korpus_rls_classifications()", "public.korpus_rls_compartments()",
+    "public.korpus_rls_roles()",
+)
 
 
 def read_secret(name: str, file_name: str) -> str:
@@ -26,13 +32,27 @@ def quoted(value: str) -> str:
     return '"' + value.replace('"', '""') + '"'
 
 
-def role_exists(connection, role: str) -> bool:
-    query = text("SELECT 1 FROM pg_roles WHERE rolname=:role")
-    return connection.execute(query, {"role": role}).scalar_one_or_none() is not None
-
-
 def execute(connection, statement: str) -> None:
     connection.execute(text(statement))
+
+
+def role_exists(connection, role: str) -> bool:
+    return connection.execute(
+        text("SELECT 1 FROM pg_roles WHERE rolname=:role"), {"role": role}
+    ).scalar_one_or_none() is not None
+
+
+def ensure_login(connection, role: str, password: str) -> None:
+    verb, login = ("ALTER ROLE", "") if role_exists(connection, role) else ("CREATE ROLE", "LOGIN ")
+    escaped = password.replace("'", "''")
+    execute(connection, f"{verb} {quoted(role)} {login}NOSUPERUSER NOCREATEDB NOCREATEROLE "
+                        f"NOINHERIT NOBYPASSRLS CONNECTION LIMIT 64 PASSWORD '{escaped}'")
+
+
+def ensure_group(connection, role: str) -> None:
+    if not role_exists(connection, role):
+        execute(connection, f"CREATE ROLE {quoted(role)} NOLOGIN NOSUPERUSER NOCREATEDB "
+                            "NOCREATEROLE NOBYPASSRLS")
 
 
 def grant(connection, privileges: str, table: str, role: str) -> None:
@@ -44,36 +64,14 @@ def grant_many(connection, privileges: str, tables: tuple[str, ...], role: str) 
         grant(connection, privileges, table, role)
 
 
-def ensure_login(connection, role: str, password: str) -> None:
-    verb, login = ("ALTER ROLE", "") if role_exists(connection, role) else ("CREATE ROLE", "LOGIN ")
-    escaped = password.replace("'", "''")
-    execute(
-        connection,
-        f"{verb} {quoted(role)} {login}NOSUPERUSER NOCREATEDB NOCREATEROLE "
-        f"NOINHERIT NOBYPASSRLS CONNECTION LIMIT 64 PASSWORD '{escaped}'",
-    )
-
-
-def ensure_group(connection, role: str) -> None:
-    if not role_exists(connection, role):
-        execute(
-            connection,
-            f"CREATE ROLE {quoted(role)} NOLOGIN NOSUPERUSER NOCREATEDB "
-            "NOCREATEROLE NOBYPASSRLS",
-        )
-
-
 admin_url = os.environ["KORPUS_DATABASE_URL"]
 app_role = os.getenv("KORPUS_POSTGRES_APP_ROLE", "korpus_app")
 review_role = os.getenv("KORPUS_POSTGRES_REVIEW_ROLE", "korpus_review")
 app_password = read_secret("KORPUS_POSTGRES_APP_PASSWORD", "KORPUS_POSTGRES_APP_PASSWORD_FILE")
-review_password = read_secret(
-    "KORPUS_POSTGRES_REVIEW_PASSWORD", "KORPUS_POSTGRES_REVIEW_PASSWORD_FILE"
-)
+review_password = read_secret("KORPUS_POSTGRES_REVIEW_PASSWORD", "KORPUS_POSTGRES_REVIEW_PASSWORD_FILE")
 database = make_url(admin_url).database or ""
 if not database:
     raise SystemExit("PostgreSQL database name is required")
-
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
     ensure_login(connection, app_role, app_password)
@@ -101,9 +99,12 @@ with engine.connect() as connection:
     grant_many(connection, "UPDATE", REVIEW_UPDATE, review_role)
     grant_many(connection, "INSERT", ("audit_events", "audit_anchor_outbox"), review_role)
     grant(connection, "SELECT", "alembic_version", app_role)
+    for function in RLS_FUNCTIONS:
+        execute(connection, f"REVOKE ALL ON FUNCTION {function} FROM PUBLIC")
+        execute(connection, f"GRANT EXECUTE ON FUNCTION {function} TO {app_sql}, {review_sql}")
     for role_sql in (app_sql, review_sql):
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
 engine.dispose()
-print(f"prepared split roles: app={app_role}, review={review_role}, database={database}")
+print(f"prepared split roles + two-party RLS boundary: app={app_role}, review={review_role}, database={database}")
