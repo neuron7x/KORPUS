@@ -11,6 +11,7 @@ from korpus.domain.models import Identity, RetrievedEvidence
 
 _SCOPE_DOMAIN = b"korpus-corpus-read-scope-v1\0"
 _EVIDENCE_DOMAIN = b"korpus-version-evidence-v1\0"
+_RELEASE_DOMAIN = b"korpus-temporal-release-v1\0"
 
 
 class CorpusConsistencyError(RuntimeError):
@@ -103,6 +104,23 @@ def authorization_scope_id(identity: Identity, corpus_ids: frozenset[str]) -> st
     ):
         _frame(digest, str(len(values)))
         for value in values:
+            _frame(digest, value)
+    return digest.hexdigest()
+
+
+def release_identity_digest(rows: Iterable[tuple[str, str, str, str, str]]) -> str:
+    """Commit the exact visible approved-version set to one canonical release identity.
+
+    Tuples are `(document_id, version_id, source_hash, review_state, evidence_digest)`.
+    Every field is framed independently and rows are set-normalized before sorting, so
+    SQL join multiplicity and row order cannot change the identity while omission or
+    alteration of any provenance-bearing field necessarily changes it.
+    """
+    unique = set(rows)
+    digest = hashlib.sha256()
+    digest.update(_RELEASE_DOMAIN)
+    for row in sorted(unique):
+        for value in row:
             _frame(digest, value)
     return digest.hexdigest()
 
