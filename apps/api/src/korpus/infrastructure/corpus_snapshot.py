@@ -20,7 +20,12 @@ from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import corpus_state_epoch, versions
 
 _HEX64 = re.compile(r"^[a-f0-9]{64}$")
-_EPOCH_TABLES = ("documents", "document_compartments", "document_versions", "evidence_spans")
+_EPOCH_TABLES = (
+    "documents",
+    "document_compartments",
+    "document_versions",
+    "evidence_spans",
+)
 
 
 class SqlCorpusSnapshotReader:
@@ -35,6 +40,10 @@ class SqlCorpusSnapshotReader:
     def __init__(self, repository: SqlRepository) -> None:
         self.repository = repository
         self.engine = repository.engine
+        # A service assembled directly around the same repository (several focused tests
+        # do this) can still discover the one startup-owned reader. No constructor is
+        # allowed to manufacture a weaker release reader on demand.
+        setattr(repository, "corpus_snapshot_reader", self)
 
     def initialize(self, *, create_schema: bool) -> None:
         """Install guards for metadata-created dev schemas or verify migrated schemas."""
@@ -62,15 +71,22 @@ class SqlCorpusSnapshotReader:
                 rows = connection.execute(statement).mappings().all()
             after = self._epoch(connection)
         if before != after:
-            raise CorpusConsistencyError("corpus state changed while release identity was captured")
+            raise CorpusConsistencyError(
+                "corpus state changed while release identity was captured"
+            )
 
         unique: set[tuple[str, str, str, str, str]] = set()
         for row in rows:
             if not retrieval_queries.release_row_is_current(row, as_of):
                 continue
             evidence_digest = row["evidence_digest"]
-            if not isinstance(evidence_digest, str) or _HEX64.fullmatch(evidence_digest) is None:
-                raise CorpusConsistencyError("approved release member has no valid evidence digest")
+            if (
+                not isinstance(evidence_digest, str)
+                or _HEX64.fullmatch(evidence_digest) is None
+            ):
+                raise CorpusConsistencyError(
+                    "approved release member has no valid evidence digest"
+                )
             unique.add(
                 (
                     str(row["document_id"]),
@@ -105,7 +121,9 @@ class SqlCorpusSnapshotReader:
         if token.corpus_ids != authorized:
             raise CorpusConsistencyError("corpus token scope does not match the read")
         if token.authorization_scope_id != authorization_scope_id(identity, authorized):
-            raise CorpusConsistencyError("corpus token authorization identity does not match the read")
+            raise CorpusConsistencyError(
+                "corpus token authorization identity does not match the read"
+            )
         with self.engine.begin() as connection:
             self.repository._apply_postgres_identity(connection, identity)
             current = self._epoch(connection)
@@ -115,7 +133,9 @@ class SqlCorpusSnapshotReader:
     @staticmethod
     def _epoch(connection: Connection) -> int:
         value = connection.execute(
-            select(corpus_state_epoch.c.epoch).where(corpus_state_epoch.c.singleton_id == 1)
+            select(corpus_state_epoch.c.epoch).where(
+                corpus_state_epoch.c.singleton_id == 1
+            )
         ).scalar_one_or_none()
         if value is None:
             raise CorpusConsistencyError("corpus state epoch is not initialized")
@@ -124,7 +144,9 @@ class SqlCorpusSnapshotReader:
     @staticmethod
     def _ensure_epoch_row(connection: Connection) -> None:
         exists = connection.execute(
-            select(corpus_state_epoch.c.singleton_id).where(corpus_state_epoch.c.singleton_id == 1)
+            select(corpus_state_epoch.c.singleton_id).where(
+                corpus_state_epoch.c.singleton_id == 1
+            )
         ).scalar_one_or_none()
         if exists is None:
             connection.execute(insert(corpus_state_epoch).values(singleton_id=1, epoch=0))
@@ -188,7 +210,8 @@ class SqlCorpusSnapshotReader:
             sql_text(
                 "CREATE TRIGGER IF NOT EXISTS trg_approved_version_digest_immutable "
                 "BEFORE UPDATE OF evidence_digest ON document_versions "
-                "WHEN OLD.review_state = 'approved' AND NEW.evidence_digest IS NOT OLD.evidence_digest "
+                "WHEN OLD.review_state = 'approved' "
+                "AND NEW.evidence_digest IS NOT OLD.evidence_digest "
                 "BEGIN SELECT RAISE(ABORT, 'approved evidence digest is immutable'); END"
             )
         )
@@ -247,7 +270,9 @@ class SqlCorpusSnapshotReader:
                 """
             )
         )
-        connection.execute(sql_text("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable ON evidence_spans"))
+        connection.execute(
+            sql_text("DROP TRIGGER IF EXISTS trg_evidence_spans_immutable ON evidence_spans")
+        )
         connection.execute(
             sql_text(
                 "CREATE TRIGGER trg_evidence_spans_immutable "
@@ -290,7 +315,11 @@ class SqlCorpusSnapshotReader:
         dialect = connection.dialect.name
         if dialect == "sqlite":
             expected = {
-                *(f"trg_{table}_epoch_{operation}" for table in _EPOCH_TABLES for operation in ("insert", "update", "delete")),
+                *(
+                    f"trg_{table}_epoch_{operation}"
+                    for table in _EPOCH_TABLES
+                    for operation in ("insert", "update", "delete")
+                ),
                 "trg_evidence_spans_immutable_insert",
                 "trg_evidence_spans_immutable_update",
                 "trg_evidence_spans_immutable_delete",
