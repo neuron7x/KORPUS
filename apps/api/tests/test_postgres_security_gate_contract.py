@@ -38,6 +38,7 @@ def test_gate_contract_is_itself_checked_before_runtime_promotion() -> None:
     assert "apps/api/tests/test_postgres_security_gate_contract.py" in gate.STATIC_TARGETS
     assert "apps/api/tests/test_postgres_role_hardening.py" in gate.STATIC_TARGETS
     assert "apps/api/tests/test_rls_identity_binder_contract.py" in gate.STATIC_TARGETS
+    assert "apps/api/tests/test_rls_identity_deployment_wiring.py" in gate.STATIC_TARGETS
 
 
 def test_external_runtime_requires_complete_split_postgres_boundary() -> None:
