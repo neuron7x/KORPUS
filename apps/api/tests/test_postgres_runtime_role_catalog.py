@@ -55,7 +55,8 @@ def test_runtime_login_has_exact_nonexercisable_marker_membership(
             role = connection.execute(
                 text(
                     "SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, "
-                    "rolinherit, rolbypassrls FROM pg_catalog.pg_roles WHERE rolname=current_user"
+                    "rolinherit, rolreplication, rolbypassrls FROM pg_catalog.pg_roles "
+                    "WHERE rolname=current_user"
                 )
             ).one()
             memberships = connection.execute(
@@ -80,6 +81,7 @@ def test_runtime_login_has_exact_nonexercisable_marker_membership(
         assert role.rolcreatedb is False
         assert role.rolcreaterole is False
         assert role.rolinherit is False
+        assert role.rolreplication is False
         assert role.rolbypassrls is False
         assert len(memberships) == 1
         parent, admin_option, inherit_option, set_option = memberships[0]
@@ -99,7 +101,7 @@ def test_runtime_groups_have_no_parent_memberships_or_database_superpowers() -> 
             roles = connection.execute(
                 text(
                     "SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, "
-                    "rolinherit, rolbypassrls FROM pg_catalog.pg_roles "
+                    "rolinherit, rolreplication, rolbypassrls FROM pg_catalog.pg_roles "
                     "WHERE rolname = ANY(:groups) ORDER BY rolname"
                 ),
                 {"groups": sorted(GROUPS)},
@@ -120,6 +122,7 @@ def test_runtime_groups_have_no_parent_memberships_or_database_superpowers() -> 
             assert role.rolcreatedb is False
             assert role.rolcreaterole is False
             assert role.rolinherit is False
+            assert role.rolreplication is False
             assert role.rolbypassrls is False
         assert memberships == []
     finally:
