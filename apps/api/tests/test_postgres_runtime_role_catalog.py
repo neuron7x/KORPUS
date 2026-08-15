@@ -214,7 +214,7 @@ def test_security_definer_routines_have_hardened_search_path_and_nonruntime_owne
                 },
             ).all()
         assert len(rows) == 6
-        runtime_owners = {"korpus_app", "korpus_review", "korpus_identity"}
+        runtime_owners = {"korpus_app", "korpus_review", "korpus_identity"} | GROUPS
         for _name, security_definer, config, owner in rows:
             assert security_definer is True
             assert config is not None and "search_path=pg_catalog" in set(config)
