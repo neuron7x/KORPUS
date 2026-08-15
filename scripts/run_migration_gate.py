@@ -40,11 +40,11 @@ def main() -> int:
 
         # Tables attach themselves to the shared MetaData at import time, so the set
         # of "expected" tables is really the set of modules this file happens to have
-        # imported. With only repository imported, ingestion_jobs was missing from
-        # expectations while present in the database, and the gate reported
-        # table_set_match=false — a red gate accusing the schema of a defect that
-        # belonged to the gate. Every module that defines tables must be imported here.
+        # imported. Every module that defines tables must be imported here; otherwise
+        # a correct migration can be reported as drift merely because its metadata was
+        # never registered in this process.
         import korpus.infrastructure.ingestion_jobs  # noqa: F401  (registers tables)
+        import korpus.infrastructure.learning_schema  # noqa: F401  (registers tables)
         from korpus.application.provenance import PROVENANCE_KEY, stamp
         from korpus.infrastructure.repository import audit_heads, metadata
 
