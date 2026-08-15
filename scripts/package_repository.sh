@@ -7,6 +7,10 @@ version="${KORPUS_RELEASE_VERSION:-$default_version}"
 # The artifact stem is release metadata, not an independent version declaration.
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
 name="${KORPUS_PACKAGE_NAME:-$default_name}"
+current_head="$(git rev-parse HEAD)"
+source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"
+[[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid package source commit" >&2; exit 1; }
+[[ "$current_head" == "$source_commit" ]] || { echo "package source commit is not current HEAD" >&2; exit 1; }
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py" --require-git-tag
@@ -17,8 +21,10 @@ tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT INT TERM
 
-# The source tree is exactly the committed revision; generated evidence is copied explicitly.
-git archive --format=tar HEAD | tar -xf - -C "$tmp"
+# Freeze exactly one committed source revision. PACKAGE_BUILD.json is package-only
+# metadata and therefore excluded from the source-manifest semantic boundary.
+git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"
+printf '{"schema":"korpus.package-build.v1","source_commit":"%s"}\n' "$source_commit" > "$tmp/PACKAGE_BUILD.json"
 if [[ -d reports ]]; then
   rm -rf "$tmp/reports"
   cp -a reports "$tmp/reports"
@@ -29,9 +35,8 @@ done
 find "$tmp" -type f -path '*/infra/secrets/*.txt' -delete
 
 # The sealed evidence registry and the frozen corpus release travel with the source.
-# Without them the package is a system nobody can check: the reports that show what it
-# does under load, when a dependency is broken, and against its own corpus all live in
-# `var/`, which is cleaned, and in CI artefacts, which expire in weeks.
+# Git history deliberately does not: distributable confidentiality must not depend on
+# repository-lifetime history or deleted blobs.
 if [[ -d var/evidence ]]; then
   mkdir -p "$tmp/evidence"
   cp -a var/evidence/. "$tmp/evidence/"
@@ -41,7 +46,6 @@ if [[ -d var/releases ]]; then
   cp -a var/releases/. "$tmp/evidence/releases/"
 fi
 
-# Named explicitly rather than left for a reader to discover by its absence.
 cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
@@ -67,6 +71,7 @@ python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output
   find . -type f -print0 | LC_ALL=C sort -z | xargs -0 touch -h -d '@0'
   LC_ALL=C find . -type f -print | LC_ALL=C sort | zip -X -q "$root/dist/${name}.zip" -@
 )
+[[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved during package construction" >&2; exit 1; }
 sha256sum "dist/${name}.zip" > "dist/${name}.zip.sha256"
 python3 "$root/scripts/verify_package.py" "dist/${name}.zip"
 cat "dist/${name}.zip.sha256"

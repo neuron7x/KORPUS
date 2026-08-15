@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]; sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
 from korpus.application.attested_evidence import verify_ed25519_attestation  # noqa: E402
-from release_identity import release_tag  # noqa: E402
+from signed_manifest_identity import manifest_release  # noqa: E402
 
 
 def sha256(path: Path) -> str: return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -21,7 +21,7 @@ def sign(manifest: Path, key: Path, out: Path) -> int:
         derived = _openssl("pkey", "-in", str(key), "-pubout", "-out", str(public))
         if derived.returncode != 0: raise SystemExit(derived.stderr.decode(errors="replace"))
         public_bytes = public.read_bytes(); payload = {
-            "schema": "korpus.release-attestation.v1", "algorithm": "Ed25519", "release": release_tag(),
+            "schema": "korpus.release-attestation.v1", "algorithm": "Ed25519", "release": manifest_release(manifest),
             "manifest": manifest.name, "manifest_sha256": sha256(manifest), "public_key_pem": public_bytes.decode("ascii"),
             "public_key_sha256": hashlib.sha256(public_bytes).hexdigest(),
             "signature_base64": base64.b64encode(signature.read_bytes()).decode("ascii"),
@@ -36,7 +36,7 @@ def _trusted(path: Path | None, field: str) -> set[str]:
 
 def verify(manifest: Path, attestation_path: Path, *, trust_config: Path | None = None, trust_field: str = "release_ed25519_public_key_sha256", trust_env: str | None = None, require_trusted: bool = False) -> int:
     attestation = json.loads(attestation_path.read_text(encoding="utf-8")); trusted = trusted_fingerprints(trust_config or Path("/nonexistent"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)
-    verdict = verify_ed25519_attestation(manifest.read_bytes(), manifest_name=manifest.name, release=release_tag(), attestation=attestation, trusted_fingerprints=trusted)
+    verdict = verify_ed25519_attestation(manifest.read_bytes(), manifest_name=manifest.name, release=manifest_release(manifest), attestation=attestation, trusted_fingerprints=trusted)
     checks = dict(verdict.checks)
     if not require_trusted: checks.pop("trusted_signer", None)
     failures = [name for name, ok in checks.items() if not ok]
