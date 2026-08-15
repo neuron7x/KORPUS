@@ -72,7 +72,10 @@ with engine.connect() as connection:
     principal_sqls = tuple(quoted(role) for role in (app_role, review_role, identity_role, *groups))
     db_sql = quoted(database)
     for group, role_sql in zip(groups, (app_sql, review_sql, identity_sql), strict=True):
-        execute(connection, f"GRANT {group} TO {role_sql}")
+        execute(
+            connection,
+            f"GRANT {group} TO {role_sql} WITH ADMIN FALSE, INHERIT FALSE, SET FALSE",
+        )
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
     for role_sql in principal_sqls:
         execute(connection, f"REVOKE ALL ON SCHEMA public FROM {role_sql}")
