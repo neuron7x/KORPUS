@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
-from sqlalchemy import create_engine, event, insert, update
 
 from korpus.domain.learning import (
     Course,
@@ -22,6 +21,7 @@ from korpus.infrastructure.learning_repository import (
 )
 from korpus.infrastructure.learning_schema import learning_publications
 from korpus.infrastructure.schema import documents, metadata, spans, versions
+from sqlalchemy import create_engine, event, insert, update
 
 DOC_ID = "00000000-0000-0000-0000-000000000101"
 VERSION_ID = "00000000-0000-0000-0000-000000000102"
