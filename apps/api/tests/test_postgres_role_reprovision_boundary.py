@@ -21,6 +21,9 @@ pytestmark = pytest.mark.postgres
 RUNTIME_GROUPS = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime")
 BINDER = "public.korpus_bind_rls_identity(integer,timestamptz,text,text,text,integer,text,text,text,text)"
 ACCESSOR = "public.korpus_rls_clearance()"
+CANONICAL_ROLE_SETTINGS = {
+    "statement_timeout", "lock_timeout", "idle_in_transaction_session_timeout",
+}
 
 
 def _credentials(url: str | None) -> tuple[str, str] | None:
@@ -182,4 +185,53 @@ def test_real_reprovision_resets_cross_boundary_object_acls() -> None:
                 group_sql = quoted(group)
                 connection.execute(text(f"REVOKE SELECT ON TABLE documents FROM {group_sql}"))
                 connection.execute(text(f"REVOKE CREATE ON SCHEMA public FROM {group_sql}"))
+        admin.dispose()
+
+
+def test_real_reprovision_resets_stale_global_and_database_role_defaults() -> None:
+    credentials = tuple(filter(None, (_credentials(APP_URL), _credentials(REVIEW_URL), _credentials(IDENTITY_URL))))
+    if not POSTGRES_ADMIN_URL or len(credentials) != 3:
+        pytest.skip("split PostgreSQL admin/app/review/identity credentials are required")
+    database = make_url(POSTGRES_ADMIN_URL).database
+    if not database:
+        pytest.skip("PostgreSQL database name is required")
+    roles = tuple(item[0] for item in credentials)
+    db_sql = quoted(database)
+    admin = create_engine(POSTGRES_ADMIN_URL, future=True, pool_pre_ping=True)
+    try:
+        with admin.begin() as connection:
+            for role in roles:
+                role_sql = quoted(role)
+                connection.execute(text(f"ALTER ROLE {role_sql} SET search_path='pg_catalog'"))
+                connection.execute(
+                    text(
+                        f"ALTER ROLE {role_sql} IN DATABASE {db_sql} "
+                        "SET application_name='stale-role-default'"
+                    )
+                )
+
+        _reprovision()
+
+        with admin.connect() as connection:
+            rows = connection.execute(
+                text(
+                    "SELECT r.rolname, s.setdatabase, s.setconfig "
+                    "FROM pg_catalog.pg_db_role_setting s "
+                    "JOIN pg_catalog.pg_roles r ON r.oid=s.setrole "
+                    "WHERE r.rolname = ANY(:roles) ORDER BY r.rolname, s.setdatabase"
+                ),
+                {"roles": list(roles)},
+            ).all()
+        assert len(rows) == 3
+        assert {str(row.rolname) for row in rows} == set(roles)
+        for row in rows:
+            assert int(row.setdatabase) == 0
+            settings = {str(value).split("=", 1)[0] for value in (row.setconfig or [])}
+            assert settings == CANONICAL_ROLE_SETTINGS
+    finally:
+        with admin.begin() as connection:
+            for role in roles:
+                role_sql = quoted(role)
+                connection.execute(text(f"ALTER ROLE {role_sql} RESET ALL"))
+                connection.execute(text(f"ALTER ROLE {role_sql} IN DATABASE {db_sql} RESET ALL"))
         admin.dispose()
