@@ -52,6 +52,11 @@ current="$({ KORPUS_DATABASE_URL="$admin_url" "$python_bin" -m alembic -c alembi
 printf '%s\n' "$current"
 grep -q "0020_learning_course_graph" <<<"$current"
 
+width="$(docker exec "$container" psql -U postgres -d "$database" -Atc \
+  "SELECT character_maximum_length FROM information_schema.columns WHERE table_schema='public' AND table_name='alembic_version' AND column_name='version_num'")"
+[[ "$width" == "128" ]]
+printf '%s\n' "alembic-version-width: ${width}"
+
 KORPUS_DATABASE_URL="$admin_url" "$python_bin" -m alembic -c alembic.ini downgrade 0019_rls_binding_backend_identity
 current="$({ KORPUS_DATABASE_URL="$admin_url" "$python_bin" -m alembic -c alembic.ini current; } 2>&1)"
 printf '%s\n' "$current"
