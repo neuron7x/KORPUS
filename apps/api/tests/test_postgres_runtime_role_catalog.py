@@ -46,7 +46,7 @@ def _require(url: str | None) -> str:
 
 
 @pytest.mark.parametrize(("url", "expected_parent"), RUNTIME)
-def test_runtime_login_has_exact_membership_and_no_database_superpowers(
+def test_runtime_login_has_exact_nonexercisable_marker_membership(
     url: str | None, expected_parent: str
 ) -> None:
     engine = _engine(_require(url))
@@ -58,23 +58,36 @@ def test_runtime_login_has_exact_membership_and_no_database_superpowers(
                     "rolinherit, rolbypassrls FROM pg_catalog.pg_roles WHERE rolname=current_user"
                 )
             ).one()
-            memberships = set(
-                connection.execute(
-                    text(
-                        "SELECT parent.rolname FROM pg_catalog.pg_auth_members m "
-                        "JOIN pg_catalog.pg_roles parent ON parent.oid=m.roleid "
-                        "JOIN pg_catalog.pg_roles member ON member.oid=m.member "
-                        "WHERE member.rolname=current_user"
-                    )
-                ).scalars()
-            )
+            memberships = connection.execute(
+                text(
+                    "SELECT parent.rolname, m.admin_option, m.inherit_option, m.set_option "
+                    "FROM pg_catalog.pg_auth_members m "
+                    "JOIN pg_catalog.pg_roles parent ON parent.oid=m.roleid "
+                    "JOIN pg_catalog.pg_roles member ON member.oid=m.member "
+                    "WHERE member.rolname=current_user"
+                )
+            ).all()
+            access = connection.execute(
+                text(
+                    "SELECT pg_catalog.pg_has_role(current_user,:parent,'MEMBER'), "
+                    "pg_catalog.pg_has_role(current_user,:parent,'USAGE'), "
+                    "pg_catalog.pg_has_role(current_user,:parent,'SET')"
+                ),
+                {"parent": expected_parent},
+            ).one()
         assert role.rolcanlogin is True
         assert role.rolsuper is False
         assert role.rolcreatedb is False
         assert role.rolcreaterole is False
         assert role.rolinherit is False
         assert role.rolbypassrls is False
-        assert memberships == {expected_parent}
+        assert len(memberships) == 1
+        parent, admin_option, inherit_option, set_option = memberships[0]
+        assert str(parent) == expected_parent
+        assert admin_option is False
+        assert inherit_option is False
+        assert set_option is False
+        assert tuple(bool(value) for value in access) == (True, False, False)
     finally:
         engine.dispose()
 
