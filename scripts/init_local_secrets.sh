@@ -25,7 +25,7 @@ SECRET_MODE=0644
 # "unable to read the file file:/etc/otelcol/config.yaml". Fixed here rather than by hand
 # so a fresh clone starts.
 chmod 0644 "$root"/infra/minio/*.json "$root"/infra/otel-collector.yaml 2>/dev/null || true
-for name in postgres_admin_password postgres_app_password postgres_review_password minio_root_password minio_app_secret_key audit_hmac_key jwt_secret metrics_token; do
+for name in postgres_admin_password postgres_app_password postgres_review_password postgres_identity_password minio_root_password minio_app_secret_key audit_hmac_key jwt_secret metrics_token; do
   file="$dir/${name}.txt"
   if [[ ! -s "$file" ]]; then
     python3 - <<PY > "$file"
