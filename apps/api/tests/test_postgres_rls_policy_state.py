@@ -8,6 +8,7 @@ from sqlalchemy.exc import DBAPIError
 
 APP_URL = os.getenv("KORPUS_POSTGRES_TEST_URL") or os.getenv("KORPUS_TEST_DATABASE_URL")
 REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
+IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 
 PROTECTED_TABLES = {
@@ -17,6 +18,19 @@ PROTECTED_TABLES = {
     "span_embeddings",
     "document_compartments",
 }
+RUNTIME_ROLE_NAMES = {
+    "korpus_app",
+    "korpus_review",
+    "korpus_identity",
+    "korpus_app_runtime",
+    "korpus_review_runtime",
+    "korpus_identity_runtime",
+}
+RUNTIME_IDENTITIES = (
+    (APP_URL, "korpus_app_runtime"),
+    (REVIEW_URL, "korpus_review_runtime"),
+    (IDENTITY_URL, "korpus_identity_runtime"),
+)
 
 
 def test_final_postgres_schema_keeps_all_corpus_rls_enabled_and_forced() -> None:
@@ -49,7 +63,7 @@ def test_final_postgres_schema_keeps_all_corpus_rls_enabled_and_forced() -> None
         }
         assert set(observed) == PROTECTED_TABLES
         assert all(state[:2] == (True, True) for state in observed.values())
-        assert all(state[2] != str(role.current_user) for state in observed.values())
+        assert all(state[2] not in RUNTIME_ROLE_NAMES for state in observed.values())
     finally:
         engine.dispose()
 
@@ -86,10 +100,12 @@ def test_final_rls_policies_do_not_consume_legacy_caller_settable_claims() -> No
         engine.dispose()
 
 
-@pytest.mark.parametrize("url", [APP_URL, REVIEW_URL])
-def test_runtime_credentials_cannot_disable_or_rewrite_rls(url: str | None) -> None:
+@pytest.mark.parametrize(("url", "runtime_group"), RUNTIME_IDENTITIES)
+def test_runtime_credentials_and_groups_cannot_disable_or_rewrite_rls(
+    url: str | None, runtime_group: str
+) -> None:
     if not url:
-        pytest.skip("split PostgreSQL app/review URL is required")
+        pytest.skip("split PostgreSQL app/review/identity URL is required")
     engine = create_engine(url, future=True, pool_pre_ping=True)
     try:
         with engine.connect() as connection:
@@ -113,5 +129,8 @@ def test_runtime_credentials_cannot_disable_or_rewrite_rls(url: str | None) -> N
             connection.execute(text("ALTER TABLE documents DISABLE ROW LEVEL SECURITY"))
         with pytest.raises(DBAPIError), engine.begin() as connection:
             connection.execute(text("DROP POLICY document_select ON documents"))
+        with pytest.raises(DBAPIError), engine.begin() as connection:
+            connection.execute(text(f"SET LOCAL ROLE {runtime_group}"))
+            connection.execute(text("ALTER TABLE documents DISABLE ROW LEVEL SECURITY"))
     finally:
         engine.dispose()
