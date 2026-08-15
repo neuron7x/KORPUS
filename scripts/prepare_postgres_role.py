@@ -76,6 +76,7 @@ with engine.connect() as connection:
         execute(connection, f"GRANT {group} TO {role_sql} {membership}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
     for role_sql in principal_sqls:
+        execute(connection, f"REVOKE ALL ON DATABASE {db_sql} FROM {role_sql}")
         execute(connection, f"REVOKE ALL ON SCHEMA public FROM {role_sql}")
         execute(connection, f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}")
         execute(connection, f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}")
