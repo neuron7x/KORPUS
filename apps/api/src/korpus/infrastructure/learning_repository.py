@@ -322,7 +322,11 @@ class SqlLearningRepository:
         lesson_rows = connection.execute(
             select(learning_lessons)
             .where(learning_lessons.c.course_version_id == version_id)
-            .order_by(learning_lessons.c.module_id, learning_lessons.c.ordinal, learning_lessons.c.id)
+            .order_by(
+                learning_lessons.c.module_id,
+                learning_lessons.c.ordinal,
+                learning_lessons.c.id,
+            )
         ).mappings().all()
         objective_rows = connection.execute(
             select(learning_objectives)
