@@ -13,6 +13,7 @@ from korpus.application.ports import ObjectStore, Repository
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
 from korpus.domain.models import AccessTier, Identity
+from korpus.infrastructure.corpus_snapshot import SqlCorpusSnapshotReader
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.runtime import (
     create_object_store,
@@ -114,7 +115,10 @@ def main() -> None:
     settings = get_settings()
     policy = PolicyEngine()
     repository = create_repository(settings, policy)
-    repository.initialize(create_schema=settings.schema_mode == "auto")
+    auto_schema = settings.schema_mode == "auto"
+    repository.initialize(create_schema=auto_schema)
+    corpus_snapshot_reader = SqlCorpusSnapshotReader(repository)
+    corpus_snapshot_reader.initialize(create_schema=auto_schema)
     object_store = create_object_store(settings)
     quarantine_store = create_quarantine_store(settings)
     try:
@@ -154,11 +158,12 @@ def main() -> None:
                 ),
             )
             if args.command == "release-id":
-                print(
-                    repository.corpus_release_id(
-                        identity, identity.corpora, datetime.now(UTC).date()
-                    )
+                token = corpus_snapshot_reader.capture(
+                    identity,
+                    identity.corpora,
+                    datetime.now(UTC).date(),
                 )
+                print(token.release_id)
             else:
                 print(issue_token(identity, settings))
             return
@@ -182,10 +187,6 @@ def main() -> None:
             try:
                 result = worker.run_once()
             except Exception as exc:  # noqa: BLE001 — a worker must outlive one bad job
-                # An unexpected error must not end the worker. If it did, one poison job
-                # or one transport blip that escaped classification would stop every
-                # ingestion until a human noticed the process was gone — a silent outage.
-                # The job it was on stays leased and is reaped or re-claimed after expiry.
                 print(
                     f"worker iteration failed, continuing: {type(exc).__name__}: {exc}",
                     flush=True,
@@ -193,9 +194,6 @@ def main() -> None:
                 time.sleep(args.idle_seconds)
                 continue
             if not result.claimed:
-                # Nothing to do this tick — a good moment to bury jobs a crashed worker
-                # left RUNNING past their lease with no attempts remaining, writing the
-                # audit event that worker never reached.
                 for reaped in queue.reap_orphaned_leases():
                     repository.append_audit(
                         reaped.actor,
