@@ -23,7 +23,7 @@ def ensure_login(connection, role: str, password: str) -> None:
     execute(
         connection,
         f"{verb} {quoted(role)} {login}NOSUPERUSER NOCREATEDB NOCREATEROLE "
-        f"NOINHERIT NOBYPASSRLS CONNECTION LIMIT 64 PASSWORD '{escaped}'",
+        f"NOINHERIT NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 64 PASSWORD '{escaped}'",
     )
 
 
@@ -34,7 +34,7 @@ def ensure_group(connection, role: str) -> None:
     execute(
         connection,
         f"ALTER ROLE {role_sql} NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE "
-        "NOINHERIT NOBYPASSRLS",
+        "NOINHERIT NOREPLICATION NOBYPASSRLS",
     )
 
 
