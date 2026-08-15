@@ -19,6 +19,8 @@ REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
 IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
 RUNTIME_GROUPS = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime")
+BINDER = "public.korpus_bind_rls_identity(integer,timestamptz,text,text,text,integer,text,text,text,text)"
+ACCESSOR = "public.korpus_rls_clearance()"
 
 
 def _credentials(url: str | None) -> tuple[str, str] | None:
@@ -129,4 +131,55 @@ def test_real_reprovision_destroys_stale_parent_membership_of_runtime_group(
         with admin.begin() as connection:
             connection.execute(text(f"REVOKE {stale_sql} FROM {group_sql}"))
             connection.execute(text(f"DROP ROLE IF EXISTS {stale_sql}"))
+        admin.dispose()
+
+
+def test_real_reprovision_resets_cross_boundary_object_acls() -> None:
+    app = _credentials(APP_URL)
+    review = _credentials(REVIEW_URL)
+    identity = _credentials(IDENTITY_URL)
+    if not POSTGRES_ADMIN_URL or not app or not review or not identity:
+        pytest.skip("split PostgreSQL admin/app/review/identity credentials are required")
+    app_role, review_role, identity_role = app[0], review[0], identity[0]
+    admin = create_engine(POSTGRES_ADMIN_URL, future=True, pool_pre_ping=True)
+    try:
+        with admin.begin() as connection:
+            connection.execute(text(f"GRANT EXECUTE ON FUNCTION {BINDER} TO {quoted(app_role)}"))
+            connection.execute(text(f"GRANT EXECUTE ON FUNCTION {BINDER} TO {quoted(review_role)}"))
+            connection.execute(text(f"GRANT EXECUTE ON FUNCTION {ACCESSOR} TO {quoted(identity_role)}"))
+            for group in RUNTIME_GROUPS:
+                group_sql = quoted(group)
+                connection.execute(text(f"GRANT SELECT ON TABLE documents TO {group_sql}"))
+                connection.execute(text(f"GRANT CREATE ON SCHEMA public TO {group_sql}"))
+
+        _reprovision()
+
+        with admin.connect() as connection:
+            for role in (app_role, review_role):
+                assert connection.execute(
+                    text("SELECT pg_catalog.has_function_privilege(:role,:function,'EXECUTE')"),
+                    {"role": role, "function": BINDER},
+                ).scalar_one() is False
+            assert connection.execute(
+                text("SELECT pg_catalog.has_function_privilege(:role,:function,'EXECUTE')"),
+                {"role": identity_role, "function": ACCESSOR},
+            ).scalar_one() is False
+            for group in RUNTIME_GROUPS:
+                assert connection.execute(
+                    text("SELECT pg_catalog.has_table_privilege(:role,'documents','SELECT')"),
+                    {"role": group},
+                ).scalar_one() is False
+                assert connection.execute(
+                    text("SELECT pg_catalog.has_schema_privilege(:role,'public','CREATE')"),
+                    {"role": group},
+                ).scalar_one() is False
+    finally:
+        with admin.begin() as connection:
+            connection.execute(text(f"REVOKE EXECUTE ON FUNCTION {BINDER} FROM {quoted(app_role)}"))
+            connection.execute(text(f"REVOKE EXECUTE ON FUNCTION {BINDER} FROM {quoted(review_role)}"))
+            connection.execute(text(f"REVOKE EXECUTE ON FUNCTION {ACCESSOR} FROM {quoted(identity_role)}"))
+            for group in RUNTIME_GROUPS:
+                group_sql = quoted(group)
+                connection.execute(text(f"REVOKE SELECT ON TABLE documents FROM {group_sql}"))
+                connection.execute(text(f"REVOKE CREATE ON SCHEMA public FROM {group_sql}"))
         admin.dispose()
