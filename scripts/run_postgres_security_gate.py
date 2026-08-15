@@ -20,6 +20,7 @@ STATIC_TARGETS = [
     "apps/api/tests/test_postgres_role_grants.py",
     "apps/api/tests/test_postgres_role_hardening.py",
     "apps/api/tests/test_rls_identity_binder_contract.py",
+    "apps/api/tests/test_rls_identity_deployment_wiring.py",
     "apps/api/tests/test_postgres_security_gate_contract.py",
 ]
 RUNTIME_TARGETS = [
