@@ -7,6 +7,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 COMPOSE = ROOT / "docker-compose.yml"
 ENTRYPOINT = ROOT / "apps/api/docker-entrypoint.sh"
+SECRETS_INIT = ROOT / "scripts/init_local_secrets.sh"
 
 
 def _compose() -> dict[str, object]:
@@ -68,12 +69,14 @@ def test_api_and_worker_receive_only_broker_url_template_and_secret_file() -> No
         assert "postgres_identity_password" in _secret_names(service)
 
 
-def test_identity_broker_secret_is_declared_once_at_compose_boundary() -> None:
+def test_identity_broker_secret_is_declared_and_generated_locally() -> None:
     compose = _compose()
     secrets = compose.get("secrets")
     assert isinstance(secrets, dict)
     secret = secrets.get("postgres_identity_password")
     assert secret == {"file": "./infra/secrets/postgres_identity_password.txt"}
+    initializer = SECRETS_INIT.read_text(encoding="utf-8")
+    assert "postgres_identity_password" in initializer
 
 
 def test_entrypoint_materializes_and_then_drops_broker_password_variables() -> None:
