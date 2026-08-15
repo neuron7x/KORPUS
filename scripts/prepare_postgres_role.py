@@ -69,16 +69,19 @@ with engine.connect() as connection:
     for role in (app_role, review_role, identity_role, *groups):
         revoke_all_memberships(connection, role)
     app_sql, review_sql, identity_sql = quoted(app_role), quoted(review_role), quoted(identity_role)
+    principal_sqls = tuple(quoted(role) for role in (app_role, review_role, identity_role, *groups))
     db_sql = quoted(database)
     for group, role_sql in zip(groups, (app_sql, review_sql, identity_sql), strict=True):
         execute(connection, f"GRANT {group} TO {role_sql}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
+    for role_sql in principal_sqls:
+        execute(connection, f"REVOKE ALL ON SCHEMA public FROM {role_sql}")
+        execute(connection, f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}")
+        execute(connection, f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}")
+        execute(connection, f"REVOKE ALL ON ALL FUNCTIONS IN SCHEMA public FROM {role_sql}")
     for role_sql in (app_sql, review_sql, identity_sql):
         execute(connection, f"GRANT CONNECT ON DATABASE {db_sql} TO {role_sql}")
         execute(connection, f"GRANT USAGE ON SCHEMA public TO {role_sql}")
-        execute(connection, f"REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {role_sql}")
-        execute(connection, f"REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM {role_sql}")
-        execute(connection, f"REVOKE CREATE ON SCHEMA public FROM {role_sql}")
     grant_many(connection, "SELECT, INSERT, UPDATE, DELETE", APP_RW_TABLES, app_role)
     grant(connection, "SELECT, INSERT", "document_versions", app_role)
     grant(connection, "UPDATE (rescinded_at,state_version)", "document_versions", app_role)
@@ -95,7 +98,6 @@ with engine.connect() as connection:
     grant_execute(connection, RLS_BINDER, identity_role)
     execute(connection, "REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM PUBLIC")
     for role_sql in (app_sql, review_sql, identity_sql):
-        execute(connection, f"REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM {role_sql}")
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
