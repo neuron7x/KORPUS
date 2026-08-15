@@ -11,6 +11,7 @@ REQUIRED_RLS_RUNTIME_TARGETS = {
     "apps/api/tests/test_postgres_rls_binding_lifecycle.py",
     "apps/api/tests/test_postgres_role_reprovision_boundary.py",
     "apps/api/tests/test_postgres_rls_policy_state.py",
+    "apps/api/tests/test_postgres_runtime_role_catalog.py",
 }
 REQUIRED_POSITIVE_CONTROLS = {
     "apps/api/tests/test_postgres_integration.py",
