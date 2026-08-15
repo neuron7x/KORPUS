@@ -7,18 +7,49 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 
 from postgres_role_hardening import (
-    ensure_group, ensure_login, execute, quoted, revoke_all_memberships,
+    ensure_group,
+    ensure_login,
+    execute,
+    quoted,
+    revoke_all_memberships,
 )
 
 APP_RW_TABLES = (
-    "documents", "document_compartments", "evidence_spans", "span_embeddings", "ingestion_jobs",
-    "accounts", "plans", "subscriptions", "billing_events", "conversations", "messages",
+    "documents",
+    "document_compartments",
+    "evidence_spans",
+    "span_embeddings",
+    "ingestion_jobs",
+    "accounts",
+    "plans",
+    "subscriptions",
+    "billing_events",
+    "conversations",
+    "messages",
+    "learning_courses",
+    "learning_course_versions",
+    "learning_modules",
+    "learning_lessons",
+    "learning_objectives",
+    "learning_source_bindings",
+    "learning_source_binding_spans",
+    "learning_lesson_blocks",
+    "learning_block_sources",
+    "learning_prerequisites",
+    "learning_publications",
 )
+APP_VERSION_TABLES = ("document_versions",)
+APP_STATE_TABLES = ("corpus_state_epoch",)
+APP_AUDIT_APPEND_TABLES = ("audit_events",)
+APP_AUDIT_STATE_TABLES = ("audit_anchor_outbox", "audit_heads")
 REVIEW_SELECT = ("documents", "document_versions", "evidence_spans", "audit_heads")
 REVIEW_UPDATE = ("documents", "document_versions", "audit_heads")
 RLS_ACCESSORS = (
-    "korpus_rls_clearance()", "korpus_rls_corpora()", "korpus_rls_classifications()",
-    "korpus_rls_compartments()", "korpus_rls_roles()",
+    "korpus_rls_clearance()",
+    "korpus_rls_corpora()",
+    "korpus_rls_classifications()",
+    "korpus_rls_compartments()",
+    "korpus_rls_roles()",
 )
 RLS_BINDER = "korpus_bind_rls_identity(integer,timestamptz,text,text,text,integer,text,text,text,text)"
 
@@ -60,7 +91,9 @@ groups = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtim
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
     for role, password in (
-        (app_role, app_password), (review_role, review_password), (identity_role, identity_password)
+        (app_role, app_password),
+        (review_role, review_password),
+        (identity_role, identity_password),
     ):
         ensure_login(connection, role, password)
     for group in groups:
@@ -85,11 +118,11 @@ with engine.connect() as connection:
         execute(connection, f"GRANT CONNECT ON DATABASE {db_sql} TO {role_sql}")
         execute(connection, f"GRANT USAGE ON SCHEMA public TO {role_sql}")
     grant_many(connection, "SELECT, INSERT, UPDATE, DELETE", APP_RW_TABLES, app_role)
-    grant(connection, "SELECT, INSERT", "document_versions", app_role)
+    grant_many(connection, "SELECT, INSERT", APP_VERSION_TABLES, app_role)
     grant(connection, "UPDATE (rescinded_at,state_version)", "document_versions", app_role)
-    grant(connection, "SELECT", "corpus_state_epoch", app_role)
-    grant(connection, "SELECT, INSERT", "audit_events", app_role)
-    grant_many(connection, "SELECT,INSERT,UPDATE", ("audit_anchor_outbox", "audit_heads"), app_role)
+    grant_many(connection, "SELECT", APP_STATE_TABLES, app_role)
+    grant_many(connection, "SELECT, INSERT", APP_AUDIT_APPEND_TABLES, app_role)
+    grant_many(connection, "SELECT,INSERT,UPDATE", APP_AUDIT_STATE_TABLES, app_role)
     grant_many(connection, "SELECT", REVIEW_SELECT, review_role)
     grant_many(connection, "UPDATE", REVIEW_UPDATE, review_role)
     grant_many(connection, "INSERT", ("audit_events", "audit_anchor_outbox"), review_role)
@@ -106,4 +139,7 @@ with engine.connect() as connection:
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
 engine.dispose()
-print(f"prepared split roles: app={app_role}, review={review_role}, identity={identity_role}, database={database}")
+print(
+    f"prepared split roles: app={app_role}, review={review_role}, "
+    f"identity={identity_role}, database={database}"
+)
