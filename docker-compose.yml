@@ -104,10 +104,13 @@ services:
       KORPUS_POSTGRES_APP_PASSWORD_FILE: /run/secrets/postgres_app_password
       KORPUS_POSTGRES_REVIEW_ROLE: korpus_review
       KORPUS_POSTGRES_REVIEW_PASSWORD_FILE: /run/secrets/postgres_review_password
+      KORPUS_POSTGRES_IDENTITY_ROLE: korpus_identity
+      KORPUS_POSTGRES_IDENTITY_PASSWORD_FILE: /run/secrets/postgres_identity_password
     secrets:
     - postgres_admin_password
     - postgres_app_password
     - postgres_review_password
+    - postgres_identity_password
     depends_on:
       postgres:
         condition: service_healthy
@@ -303,6 +306,8 @@ services:
       KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
       KORPUS_REVIEW_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_review:{password}@postgres:5432/korpus
       KORPUS_REVIEW_DATABASE_PASSWORD_FILE: /run/secrets/postgres_review_password
+      RLS_IDENTITY_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_identity:{password}@postgres:5432/korpus
+      RLS_IDENTITY_DATABASE_PASSWORD_FILE: /run/secrets/postgres_identity_password
       KORPUS_DATABASE_POOL_SIZE: '8'
       KORPUS_DATABASE_MAX_OVERFLOW: '8'
       KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
@@ -340,6 +345,8 @@ services:
       target: postgres_app_password
     - source: postgres_review_password
       target: postgres_review_password
+    - source: postgres_identity_password
+      target: postgres_identity_password
     - source: minio_app_access_key
       target: minio_app_access_key
     - source: minio_app_secret_key
@@ -405,6 +412,8 @@ services:
       KORPUS_SCHEMA_MODE: migrations
       KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_app:{password}@postgres:5432/korpus
       KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
+      RLS_IDENTITY_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_identity:{password}@postgres:5432/korpus
+      RLS_IDENTITY_DATABASE_PASSWORD_FILE: /run/secrets/postgres_identity_password
       KORPUS_DATABASE_POOL_SIZE: '8'
       KORPUS_DATABASE_MAX_OVERFLOW: '8'
       KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
@@ -440,6 +449,8 @@ services:
     secrets:
     - source: postgres_app_password
       target: postgres_app_password
+    - source: postgres_identity_password
+      target: postgres_identity_password
     - source: minio_app_access_key
       target: minio_app_access_key
     - source: minio_app_secret_key
@@ -502,6 +513,8 @@ secrets:
     file: ./infra/secrets/postgres_app_password.txt
   postgres_review_password:
     file: ./infra/secrets/postgres_review_password.txt
+  postgres_identity_password:
+    file: ./infra/secrets/postgres_identity_password.txt
   minio_app_access_key:
     file: ./infra/secrets/minio_app_access_key.txt
   minio_app_secret_key:
