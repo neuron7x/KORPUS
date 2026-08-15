@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 from datetime import UTC, date, datetime
 
@@ -34,10 +35,27 @@ pytestmark = [
 DOC_ID = "00000000-0000-0000-0000-000000000201"
 VERSION_ID = "00000000-0000-0000-0000-000000000202"
 SPAN_ID = "00000000-0000-0000-0000-000000000203"
+SOURCE_TEXT = "Verified PostgreSQL material"
+
+
+def _frame(hasher: object, value: str) -> None:
+    encoded = value.encode("utf-8")
+    hasher.update(len(encoded).to_bytes(8, "big"))  # type: ignore[attr-defined]
+    hasher.update(encoded)  # type: ignore[attr-defined]
+
+
+def _sealed_evidence_digest(text_hash: str) -> str:
+    digest = hashlib.sha256()
+    digest.update(b"korpus-version-evidence-v1\0")
+    for value in (SPAN_ID, "0", "1:1", "1:s1", text_hash):
+        _frame(digest, value)
+    return digest.hexdigest()
 
 
 def _seed_source(engine) -> None:
     stamp = datetime(2026, 8, 15, 8, 0, tzinfo=UTC)
+    text_hash = hashlib.sha256(SOURCE_TEXT.encode("utf-8")).hexdigest()
+    evidence_digest = _sealed_evidence_digest(text_hash)
     with engine.begin() as connection:
         connection.execute(delete(learning_courses).where(learning_courses.c.id == "course-pg"))
         connection.execute(delete(spans).where(spans.c.id == SPAN_ID))
@@ -57,6 +75,8 @@ def _seed_source(engine) -> None:
                 created_at=stamp,
             )
         )
+        # Evidence must exist before approval seals the parent version. A non-null
+        # evidence_digest makes evidence_spans immutable by the existing corpus guard.
         connection.execute(
             insert(versions).values(
                 id=VERSION_ID,
@@ -65,7 +85,7 @@ def _seed_source(engine) -> None:
                 publication_identifier=None,
                 source_uri=None,
                 source_hash="d" * 64,
-                evidence_digest="e" * 64,
+                evidence_digest=None,
                 object_key="objects/pg-source.pdf",
                 mime_type="application/pdf",
                 publication_date=date(2026, 8, 1),
@@ -84,17 +104,17 @@ def _seed_source(engine) -> None:
                 extraction_replacement_ratio=0.0,
                 extraction_quality_flags_json="[]",
                 extraction_quality_acknowledged_by=None,
-                review_state="approved",
+                review_state="quarantined",
                 supersedes_version_id=None,
-                state_version=3,
-                metadata_reviewed_by="reviewer",
+                state_version=0,
+                metadata_reviewed_by=None,
                 metadata_reviewer_credential_id=None,
-                content_reviewed_by="reviewer",
+                content_reviewed_by=None,
                 content_reviewer_credential_id=None,
-                approved_at=stamp,
-                approved_by="reviewer",
+                approved_at=None,
+                approved_by=None,
                 approver_credential_id=None,
-                is_current=True,
+                is_current=False,
                 created_at=stamp,
             )
         )
@@ -105,9 +125,23 @@ def _seed_source(engine) -> None:
                 ordinal=0,
                 page=1,
                 section="s1",
-                text="Verified PostgreSQL material",
-                text_hash="f" * 64,
+                text=SOURCE_TEXT,
+                text_hash=text_hash,
                 created_at=stamp,
+            )
+        )
+        connection.execute(
+            update(versions)
+            .where(versions.c.id == VERSION_ID)
+            .values(
+                evidence_digest=evidence_digest,
+                review_state="approved",
+                state_version=3,
+                metadata_reviewed_by="reviewer",
+                content_reviewed_by="reviewer",
+                approved_at=stamp,
+                approved_by="reviewer",
+                is_current=True,
             )
         )
 
