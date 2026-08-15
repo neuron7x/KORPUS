@@ -7,6 +7,7 @@ Credential domains:
 - `postgres_admin_password.txt` — migration/role bootstrap only;
 - `postgres_app_password.txt` — ordinary non-superuser runtime role; cannot write review-controlled version state;
 - `postgres_review_password.txt` — separate non-superuser review-transition role, mounted only into the API and migration bootstrap;
+- `postgres_identity_password.txt` — isolated RLS identity broker login; used only to bind target app/review transactions to server-validated claims and granted no direct corpus-table access;
 - `minio_root_password.txt` — MinIO bootstrap administrator only;
 - `minio_app_access_key.txt` and `minio_app_secret_key.txt` — prefix-scoped API identity without object deletion;
 - `audit_hmac_key.txt` — local audit-chain and checkpoint MAC key;
