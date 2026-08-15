@@ -15,8 +15,11 @@ between versions.
 traceable answer chain. `PromptVersion`, `ModelRun`, and `PolicyDecision` support
 reproducibility without storing unnecessary personal data.
 
-`Course`, `Competency`, `Lesson`, `Assessment`, `QuestionVersion`, `Attempt`, and
-`ReviewerDecision` support learning. Passing an assessment is not certification.
+`Course`, `CourseVersion`, `Module`, `Lesson`, `LearningObjective`, `LessonBlock`,
+`Prerequisite`, and `SourceBinding` form the immutable learning graph. Published
+learning content binds to exact approved/effective document versions and exact evidence
+spans; publication is invalidated when a bound source ceases to be valid. Passing an
+assessment is not certification.
 
 `Template`, `TemplateVersion`, `Draft`, and `ValidationResult` support documents.
 
@@ -44,8 +47,18 @@ of the three shifts by one day in either direction.
 - an answer citation targets a chunk, never a mutable filename;
 - a restricted chunk cannot appear in a lower-tier evidence set;
 - deletion revokes retrieval immediately while preserving minimal audit proof;
-- raw user identifiers are not sent to a model provider.
+- raw user identifiers are not sent to a model provider;
+- a published course version is immutable;
+- every published lesson has objectives, content blocks, and source bindings;
+- every learning source binding identifies one exact document version and at least one
+  evidence span belonging to that version;
+- a prerequisite graph is acyclic and cannot contain a self-edge;
+- rescinding or invalidating a bound source invalidates the affected publication.
 
+The PostgreSQL-specific destruction and reversibility proof for the learning graph is
+`scripts/run_learning_postgres_gate.sh`; it applies the migration chain, downgrades and
+re-applies `0020_learning_course_graph`, then executes the publication guards against a
+real PostgreSQL backend.
 
 ## Customers, and the wall between them and the corpus
 
@@ -92,9 +105,21 @@ reviews, and the account layer arrived as six of them at once.
 | `audit_heads` | the single head row the chain advances |
 | `audit_anchor_outbox` | anchor deliveries still owed to the external witness |
 | `ingestion_jobs` | durable work for the parser, leased by a worker |
+| `corpus_state_epoch` | monotonic corpus-state epoch used to invalidate stale snapshots |
 | `accounts` | who somebody is here; status only |
 | `plans` | what is sold, and which corpora it pays for |
 | `subscriptions` | one account's commercial state with a provider |
 | `billing_events` | one provider notification, recorded by hash before it is believed |
 | `conversations` | a reader's own thread |
 | `messages` | one turn, with the role that says who said it |
+| `learning_courses` | stable course identity and specialty assignment |
+| `learning_course_versions` | immutable revision identity for one course |
+| `learning_modules` | ordered modules within one exact course version |
+| `learning_lessons` | ordered lessons within a module and course version |
+| `learning_objectives` | ordered objective statements attached to one lesson |
+| `learning_source_bindings` | exact document and document-version bindings for a lesson |
+| `learning_source_binding_spans` | exact evidence spans supporting one source binding |
+| `learning_lesson_blocks` | ordered typed content blocks within one lesson |
+| `learning_block_sources` | block-to-source-binding provenance edges |
+| `learning_prerequisites` | directed prerequisite edges between lessons of one version |
+| `learning_publications` | draft/published/invalidated/retired publication state and review identity |
