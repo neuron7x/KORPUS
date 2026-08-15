@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
-from pydantic import ValidationError
 
 from korpus.domain.learning import (
     BoundSourceState,
@@ -20,6 +19,7 @@ from korpus.domain.learning import (
     SourceBinding,
     validate_course_publication,
 )
+from pydantic import ValidationError
 
 
 def _binding(*, span_ids: frozenset[str] = frozenset({"span-1"})) -> SourceBinding:
