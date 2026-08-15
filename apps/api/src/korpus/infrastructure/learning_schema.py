@@ -200,12 +200,16 @@ learning_prerequisites = Table(
         ["course_version_id", "lesson_id"],
         ["learning_lessons.course_version_id", "learning_lessons.id"],
         ondelete="CASCADE",
+        deferrable=True,
+        initially="DEFERRED",
         name="fk_learning_prerequisite_lesson",
     ),
     ForeignKeyConstraint(
         ["course_version_id", "prerequisite_lesson_id"],
         ["learning_lessons.course_version_id", "learning_lessons.id"],
         ondelete="CASCADE",
+        deferrable=True,
+        initially="DEFERRED",
         name="fk_learning_prerequisite_target",
     ),
     CheckConstraint(
