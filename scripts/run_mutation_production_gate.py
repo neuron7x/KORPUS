@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from candidate_visibility_gate import candidate_visibility_evidence  # noqa: E402
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from mutation_gate_evidence import load_mutation_gate_evidence  # noqa: E402
@@ -23,25 +24,41 @@ def main() -> int:
     parser.add_argument(
         "--snapshot-report", type=Path, default=ROOT / "var/snapshot-mutation-report.json"
     )
+    parser.add_argument(
+        "--candidate-report",
+        type=Path,
+        default=ROOT / "var/candidate-visibility-mutation-report.json",
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/mutation-gate.json")
     args = parser.parse_args()
+
     source = compute_source_digest(ROOT)
     evidence = load_mutation_gate_evidence(args.report, args.snapshot_report, source)
-    failures = [name for name, passed in evidence.checks.items() if not passed]
+    candidate_checks, candidate = candidate_visibility_evidence(args.candidate_report, source)
+    checks = dict(evidence.checks)
+    checks.update(candidate_checks)
+    failures = [name for name, passed in checks.items() if not passed]
+
     payload = gate_payload(
         "mutation",
         status="PASS" if not failures else "FAIL",
         source_digest=source,
         release=release_tag(),
-        checks=evidence.checks,
+        checks=checks,
         failures=failures,
-        scope="FULL_CATALOGUE_PLUS_TEMPORAL_SNAPSHOT",
+        scope="FULL_CATALOGUE",
         evidence_class="EXECUTED_FIRST_ORDER_MUTATION",
         mutants=evidence.total,
         valid_mutants=evidence.valid,
         killed=evidence.killed,
         snapshot_mutants=evidence.snapshot_total,
         snapshot_killed=evidence.snapshot_killed,
+        candidate_visibility=candidate,
+        catalogue_components={
+            "base": evidence.total,
+            "temporal_snapshot": evidence.snapshot_total,
+            "candidate_visibility": int(candidate.get("mutants", 0) or 0),
+        },
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

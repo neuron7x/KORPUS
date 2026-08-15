@@ -12,6 +12,12 @@ if ! [[ "$shards" =~ ^[1-9][0-9]*$ ]]; then
   echo "KORPUS_MUTATION_SHARDS must be a positive integer" >&2
   exit 2
 fi
+
+# Focused mutation reports are source-bound. Remove prior focused evidence before
+# starting so an interrupted run cannot leave evidence from a different source tree.
+rm -f "$root/var/snapshot-mutation-report.json" \
+      "$root/var/candidate-visibility-mutation-report.json"
+
 pids=()
 for ((index=0; index<shards; index++)); do
   PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" scripts/run_mutation_tests.py \
@@ -26,13 +32,10 @@ for pid in "${pids[@]}"; do
   fi
 done
 if [[ "$failed" -ne 0 ]]; then
-  # A failed run must not leave the previous report in place. It did on 2026-08-05: six
-  # mutants went INVALID after their targets moved to audit_reader.py, the run exited 1,
-  # and var/mutation-report.json stayed behind from the run before. The operational gate
-  # then read a report from a different tree and said "generated from a different source
-  # tree" — true, and three steps from the actual cause. Absent evidence and stale
-  # evidence must not be the same state.
-  rm -f "$root/var/mutation-report.json" "$root/var/snapshot-mutation-report.json"
+  # A failed run must not leave evidence from an earlier source tree in place.
+  rm -f "$root/var/mutation-report.json" \
+        "$root/var/snapshot-mutation-report.json" \
+        "$root/var/candidate-visibility-mutation-report.json"
   echo "one or more mutation shards failed; removed stale mutation reports" >&2
   for ((index=0; index<shards; index++)); do
     echo "--- shard $index ---" >&2
@@ -40,10 +43,14 @@ if [[ "$failed" -ne 0 ]]; then
   done
   exit 1
 fi
-PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" scripts/run_mutation_tests.py --merge --shard-count "$shards"
-# Cross-layer temporal snapshot invariants have their own surgical destruction set.
-# Keep it in the same `mutation` target so the assurance job cannot report a green
-# mutation gate while issue #23's pre/post-read, cache-epoch, release-width, or
-# semantic-epoch controls are untested.
+
+PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" "$python_bin" \
+  scripts/run_mutation_tests.py --merge --shard-count "$shards"
+
+# Cross-layer temporal snapshot invariants and bounded candidate-admission invariants
+# are both mandatory parts of the full catalogue. A green base campaign alone is not
+# sufficient production evidence.
 PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" PYTHON="$python_bin" \
   "$python_bin" scripts/run_snapshot_mutation_tests.py
+PYTHONPATH="${PYTHONPATH:-$root/apps/api/src}" PYTHON="$python_bin" \
+  "$python_bin" scripts/run_candidate_visibility_mutation_tests.py

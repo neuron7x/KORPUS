@@ -76,7 +76,6 @@ def test_a_new_document_cannot_declare_itself_successor_of_another(
 
 
 def test_the_victim_stays_answerable_after_the_attempt(client: TestClient) -> None:
-    """The property the reader cares about, stated separately from the status code."""
     victim = ingest_text(
         client,
         title="Наказ потерпілого",
@@ -89,9 +88,6 @@ def test_the_victim_stays_answerable_after_the_attempt(client: TestClient) -> No
 
     attack = _ingest_new_document_claiming_supersession(client, victim_version_id)
     if attack.status_code == 201:
-        # The edge only bites once the foreign version is approved, and approving one's
-        # own upload is an ordinary curator action — the attack is not complete until
-        # it is taken.
         approve(client, attack.json()["version"]["id"])
 
     after = client.post("/v1/answers", json={"text": f"як ведеться журнал {VICTIM_MARKER}"}).json()
@@ -104,13 +100,6 @@ def test_the_victim_stays_answerable_after_the_attempt(client: TestClient) -> No
 def test_a_crossing_edge_already_in_the_database_is_not_honoured(
     client: TestClient, admin_identity: Identity
 ) -> None:
-    """The second line, stated where the application layer can no longer reach.
-
-    With ingest refusing to write a crossing edge, the SQL filter that consumes it can
-    be weakened without any behaviour changing — the state it guards is unreachable
-    through the API. The row is therefore written directly, which is exactly the state
-    a bulk import, a migration or a future path that forgets the check would produce.
-    """
     victim = ingest_text(
         client,
         title="Наказ потерпілого",
@@ -135,8 +124,15 @@ def test_a_crossing_edge_already_in_the_database_is_not_honoured(
     rows = repository.list_retrievable_spans(
         admin_identity, frozenset({"public"}), date(2026, 8, 4)
     )
+    assert any(str(version.id) == victim_version_id for _span, _document, version in rows)
 
-    assert any(str(version.id) == victim_version_id for _span, _document, version in rows), (
-        "a supersession edge that crosses documents must be ignored by the projection, "
-        "not merely refused at ingest"
+    candidates = repository.search_retrievable_spans(
+        admin_identity,
+        frozenset({"public"}),
+        date(2026, 8, 4),
+        VICTIM_MARKER,
+        1,
     )
+    assert any(
+        str(version.id) == victim_version_id for _span, _document, version in candidates
+    ), "the bounded candidate path must ignore a supersession edge that crosses documents"
