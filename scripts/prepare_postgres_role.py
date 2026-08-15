@@ -57,23 +57,20 @@ if not database:
 if len({app_role, review_role, identity_role}) != 3:
     raise SystemExit("application, review, and RLS identity logins must be distinct")
 
+groups = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime")
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
     for role, password in (
         (app_role, app_password), (review_role, review_password), (identity_role, identity_password)
     ):
         ensure_login(connection, role, password)
-    for group in ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime"):
+    for group in groups:
         ensure_group(connection, group)
-    for role in (app_role, review_role, identity_role):
+    for role in (app_role, review_role, identity_role, *groups):
         revoke_all_memberships(connection, role)
     app_sql, review_sql, identity_sql = quoted(app_role), quoted(review_role), quoted(identity_role)
     db_sql = quoted(database)
-    for group, role_sql in (
-        ("korpus_app_runtime", app_sql),
-        ("korpus_review_runtime", review_sql),
-        ("korpus_identity_runtime", identity_sql),
-    ):
+    for group, role_sql in zip(groups, (app_sql, review_sql, identity_sql), strict=True):
         execute(connection, f"GRANT {group} TO {role_sql}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
     for role_sql in (app_sql, review_sql, identity_sql):
