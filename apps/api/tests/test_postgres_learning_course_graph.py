@@ -4,8 +4,6 @@ import os
 from datetime import UTC, date, datetime
 
 import pytest
-from sqlalchemy import create_engine, delete, insert, select, update
-from sqlalchemy.exc import DBAPIError
 
 from korpus.domain.learning import (
     Course,
@@ -19,12 +17,13 @@ from korpus.domain.learning import (
 )
 from korpus.infrastructure.learning_repository import SqlLearningRepository
 from korpus.infrastructure.learning_schema import (
-    learning_course_versions,
     learning_courses,
     learning_lessons,
     learning_publications,
 )
 from korpus.infrastructure.schema import documents, spans, versions
+from sqlalchemy import create_engine, delete, insert, select, update
+from sqlalchemy.exc import DBAPIError
 
 POSTGRES_ADMIN_URL = os.getenv("KORPUS_TEST_DATABASE_ADMIN_URL")
 pytestmark = [
@@ -177,13 +176,12 @@ def test_postgres_published_graph_is_immutable_and_source_rescind_invalidates() 
             as_of=date(2026, 8, 15),
         )
 
-        with pytest.raises(DBAPIError):
-            with engine.begin() as connection:
-                connection.execute(
-                    update(learning_lessons)
-                    .where(learning_lessons.c.course_version_id == "course-pg-v1")
-                    .values(title="tampered")
-                )
+        with pytest.raises(DBAPIError), engine.begin() as connection:
+            connection.execute(
+                update(learning_lessons)
+                .where(learning_lessons.c.course_version_id == "course-pg-v1")
+                .values(title="tampered")
+            )
 
         with engine.begin() as connection:
             connection.execute(
@@ -198,17 +196,16 @@ def test_postgres_published_graph_is_immutable_and_source_rescind_invalidates() 
             ).scalar_one()
         assert invalidated == "invalidated"
 
-        with pytest.raises(DBAPIError):
-            with engine.begin() as connection:
-                connection.execute(
-                    update(learning_publications)
-                    .where(learning_publications.c.course_version_id == "course-pg-v2")
-                    .values(
-                        state="published",
-                        reviewed_at=datetime(2026, 8, 15, 10, 1, tzinfo=UTC),
-                        reviewed_by="postgres-sme",
-                        updated_at=datetime(2026, 8, 15, 10, 1, tzinfo=UTC),
-                    )
+        with pytest.raises(DBAPIError), engine.begin() as connection:
+            connection.execute(
+                update(learning_publications)
+                .where(learning_publications.c.course_version_id == "course-pg-v2")
+                .values(
+                    state="published",
+                    reviewed_at=datetime(2026, 8, 15, 10, 1, tzinfo=UTC),
+                    reviewed_by="postgres-sme",
+                    updated_at=datetime(2026, 8, 15, 10, 1, tzinfo=UTC),
                 )
+            )
     finally:
         engine.dispose()
