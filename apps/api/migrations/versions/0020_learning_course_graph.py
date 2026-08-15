@@ -8,7 +8,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from alembic import op
-
 from korpus.infrastructure.learning_schema import LEARNING_TABLES
 
 revision: str = "0020_learning_course_graph"
@@ -217,7 +216,8 @@ def downgrade() -> None:
     bind = op.get_bind()
     if bind.dialect.name == "postgresql":
         op.execute(
-            "DROP TRIGGER IF EXISTS trg_korpus_invalidate_learning_publications ON document_versions"
+            "DROP TRIGGER IF EXISTS trg_korpus_invalidate_learning_publications "
+            "ON document_versions"
         )
         op.execute("DROP FUNCTION IF EXISTS korpus_invalidate_learning_publications()")
         op.execute(
