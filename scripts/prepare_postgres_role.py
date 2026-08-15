@@ -71,11 +71,9 @@ with engine.connect() as connection:
     app_sql, review_sql, identity_sql = quoted(app_role), quoted(review_role), quoted(identity_role)
     principal_sqls = tuple(quoted(role) for role in (app_role, review_role, identity_role, *groups))
     db_sql = quoted(database)
+    membership = "WITH ADMIN FALSE, INHERIT FALSE, SET FALSE"
     for group, role_sql in zip(groups, (app_sql, review_sql, identity_sql), strict=True):
-        execute(
-            connection,
-            f"GRANT {group} TO {role_sql} WITH ADMIN FALSE, INHERIT FALSE, SET FALSE",
-        )
+        execute(connection, f"GRANT {group} TO {role_sql} {membership}")
     execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
     for role_sql in principal_sqls:
         execute(connection, f"REVOKE ALL ON SCHEMA public FROM {role_sql}")
@@ -101,6 +99,8 @@ with engine.connect() as connection:
     grant_execute(connection, RLS_BINDER, identity_role)
     execute(connection, "REVOKE ALL ON TABLE korpus_rls_identity_bindings FROM PUBLIC")
     for role_sql in (app_sql, review_sql, identity_sql):
+        execute(connection, f"ALTER ROLE {role_sql} RESET ALL")
+        execute(connection, f"ALTER ROLE {role_sql} IN DATABASE {db_sql} RESET ALL")
         execute(connection, f"ALTER ROLE {role_sql} SET statement_timeout='60s'")
         execute(connection, f"ALTER ROLE {role_sql} SET lock_timeout='5s'")
         execute(connection, f"ALTER ROLE {role_sql} SET idle_in_transaction_session_timeout='60s'")
