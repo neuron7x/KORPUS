@@ -56,7 +56,6 @@ if not database:
     raise SystemExit("PostgreSQL database name is required")
 if len({app_role, review_role, identity_role}) != 3:
     raise SystemExit("application, review, and RLS identity logins must be distinct")
-
 groups = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime")
 engine = create_engine(admin_url, isolation_level="AUTOCOMMIT", pool_pre_ping=True)
 with engine.connect() as connection:
@@ -74,7 +73,8 @@ with engine.connect() as connection:
     membership = "WITH ADMIN FALSE, INHERIT FALSE, SET FALSE"
     for group, role_sql in zip(groups, (app_sql, review_sql, identity_sql), strict=True):
         execute(connection, f"GRANT {group} TO {role_sql} {membership}")
-    execute(connection, "REVOKE CREATE ON SCHEMA public FROM PUBLIC")
+    execute(connection, f"REVOKE ALL ON DATABASE {db_sql} FROM PUBLIC")
+    execute(connection, "REVOKE ALL ON SCHEMA public FROM PUBLIC")
     for role_sql in principal_sqls:
         execute(connection, f"REVOKE ALL ON DATABASE {db_sql} FROM {role_sql}")
         execute(connection, f"REVOKE ALL ON SCHEMA public FROM {role_sql}")
