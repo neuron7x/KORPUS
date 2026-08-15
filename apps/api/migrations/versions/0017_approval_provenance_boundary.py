@@ -1,7 +1,7 @@
 """approval provenance privilege boundary
 
 Revision ID: 0017_approval_provenance_boundary
-Revises: 0016_temporal_corpus_snapshot
+Revises: 0016a_alembic_version_width
 """
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from alembic import op
 
 revision: str = "0017_approval_provenance_boundary"
-down_revision: str | None = "0016_temporal_corpus_snapshot"
+down_revision: str | None = "0016a_alembic_version_width"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
