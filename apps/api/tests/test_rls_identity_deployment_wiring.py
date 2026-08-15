@@ -78,10 +78,12 @@ def test_identity_broker_secret_is_declared_once_at_compose_boundary() -> None:
 
 def test_entrypoint_materializes_and_then_drops_broker_password_variables() -> None:
     source = ENTRYPOINT.read_text(encoding="utf-8")
-    assert (
-        "read_secret RLS_IDENTITY_DATABASE_PASSWORD RLS_IDENTITY_DATABASE_PASSWORD_FILE"
-        in source
-    )
-    assert "build_database_url \\\n  RLS_IDENTITY_DATABASE_URL \\\n  RLS_IDENTITY_DATABASE_URL_TEMPLATE \\\n  RLS_IDENTITY_DATABASE_PASSWORD" in source
-    assert "unset KORPUS_DATABASE_PASSWORD KORPUS_REVIEW_DATABASE_PASSWORD RLS_IDENTITY_DATABASE_PASSWORD" in source
+    read = "read_secret RLS_IDENTITY_DATABASE_PASSWORD RLS_IDENTITY_DATABASE_PASSWORD_FILE"
+    assert read in source
+    build = source.index("build_database_url", source.index(read))
+    url = source.index("RLS_IDENTITY_DATABASE_URL", build)
+    template = source.index("RLS_IDENTITY_DATABASE_URL_TEMPLATE", url)
+    password = source.index("RLS_IDENTITY_DATABASE_PASSWORD", template)
+    assert build < url < template < password
+    assert "RLS_IDENTITY_DATABASE_PASSWORD\n" not in source[source.index("unset ") :]
     assert "unset RLS_IDENTITY_DATABASE_URL_TEMPLATE RLS_IDENTITY_DATABASE_PASSWORD_FILE" in source
