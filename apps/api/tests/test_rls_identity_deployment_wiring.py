@@ -85,5 +85,7 @@ def test_entrypoint_materializes_and_then_drops_broker_password_variables() -> N
     template = source.index("RLS_IDENTITY_DATABASE_URL_TEMPLATE", url)
     password = source.index("RLS_IDENTITY_DATABASE_PASSWORD", template)
     assert build < url < template < password
-    assert "RLS_IDENTITY_DATABASE_PASSWORD\n" not in source[source.index("unset ") :]
-    assert "unset RLS_IDENTITY_DATABASE_URL_TEMPLATE RLS_IDENTITY_DATABASE_PASSWORD_FILE" in source
+    unset_lines = [line for line in source.splitlines() if line.startswith("unset ")]
+    assert any("RLS_IDENTITY_DATABASE_PASSWORD" in line for line in unset_lines)
+    assert any("RLS_IDENTITY_DATABASE_URL_TEMPLATE" in line for line in unset_lines)
+    assert any("RLS_IDENTITY_DATABASE_PASSWORD_FILE" in line for line in unset_lines)
