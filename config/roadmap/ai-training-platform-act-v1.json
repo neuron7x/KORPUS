@@ -1,0 +1,60 @@
+{
+  "schema": "korpus.act-roadmap.v1",
+  "program": "ai-training-platform",
+  "status": "PLANNED",
+  "target_state": "verified authorization-aware assistant and instructor learning subsystem over the canonical KORPUS knowledge substrate",
+  "success_observation": "real PostgreSQL E2E: specialty assistant grounded answer -> enrollment -> versioned lesson -> in-lesson grounded explanation -> intermediate assessment -> final completion record, plus unauthorized destruction controls",
+  "global_constraints": [
+    "no second authoritative knowledge store",
+    "no LLM-authored authoritative scoring truth",
+    "canonical authorization and temporal release semantics apply",
+    "fail closed on missing/expired/unauthorized/unverifiable state",
+    "no completion by static inspection when executable verification is possible"
+  ],
+  "first_slice": [
+    "ACT-LRN-002",
+    "ACT-LRN-024",
+    "ACT-LRN-007",
+    "ACT-LRN-004",
+    "ACT-LRN-005",
+    "ACT-LRN-003"
+  ],
+  "tasks": [
+    {"id":"ACT-LRN-001","title":"Specialty-scoped Assistant Registry","phase":"A","priority":"P0","depends_on":[],"state":"PLANNED"},
+    {"id":"ACT-LRN-002","title":"Course Domain Model","phase":"A","priority":"P0","depends_on":[],"state":"PLANNED"},
+    {"id":"ACT-LRN-024","title":"Authorization-aware Course Access","phase":"A","priority":"P0","depends_on":["ACT-LRN-002"],"state":"PLANNED"},
+    {"id":"ACT-LRN-025","title":"Learning Audit Trail","phase":"A","priority":"P0","depends_on":["ACT-LRN-002"],"state":"PLANNED"},
+
+    {"id":"ACT-LRN-007","title":"Learner Progress Ledger","phase":"B","priority":"P0","depends_on":["ACT-LRN-002","ACT-LRN-024","ACT-LRN-025"],"state":"PLANNED"},
+    {"id":"ACT-LRN-004","title":"Expert-approved Assessment Bank","phase":"B","priority":"P0","depends_on":["ACT-LRN-002","ACT-LRN-024","ACT-LRN-025"],"state":"PLANNED"},
+    {"id":"ACT-LRN-005","title":"Intermediate Checks","phase":"B","priority":"P0","depends_on":["ACT-LRN-004","ACT-LRN-007"],"state":"PLANNED"},
+    {"id":"ACT-LRN-006","title":"Final Exam Runtime","phase":"B","priority":"P0","depends_on":["ACT-LRN-004","ACT-LRN-007","ACT-LRN-005"],"state":"PLANNED"},
+    {"id":"ACT-LRN-003","title":"AI Instructor Runtime","phase":"B","priority":"P0","depends_on":["ACT-LRN-002","ACT-LRN-007","ACT-LRN-024"],"state":"PLANNED"},
+    {"id":"ACT-LRN-021","title":"Assistant-Instructor Routing","phase":"B","priority":"P1","depends_on":["ACT-LRN-001","ACT-LRN-003"],"state":"PLANNED"},
+
+    {"id":"ACT-LRN-008","title":"Competency and Mastery Graph","phase":"C","priority":"P1","depends_on":["ACT-LRN-004","ACT-LRN-007"],"state":"PLANNED"},
+    {"id":"ACT-LRN-023","title":"Knowledge-gap Detector","phase":"C","priority":"P1","depends_on":["ACT-LRN-002","ACT-LRN-004","ACT-LRN-008"],"state":"PLANNED"},
+    {"id":"ACT-LRN-014","title":"Learning Analytics","phase":"C","priority":"P1","depends_on":["ACT-LRN-007","ACT-LRN-008"],"state":"PLANNED"},
+    {"id":"ACT-LRN-009","title":"Adaptive Remediation","phase":"C","priority":"P2","depends_on":["ACT-LRN-008","ACT-LRN-014"],"state":"PLANNED"},
+    {"id":"ACT-LRN-010","title":"Spaced Repetition Scheduler","phase":"C","priority":"P2","depends_on":["ACT-LRN-007","ACT-LRN-008"],"state":"PLANNED"},
+    {"id":"ACT-LRN-022","title":"Personal Learning Path Planner","phase":"C","priority":"P2","depends_on":["ACT-LRN-008","ACT-LRN-009"],"state":"PLANNED"},
+
+    {"id":"ACT-LRN-012","title":"SME and Instructor Console","phase":"D","priority":"P1","depends_on":["ACT-LRN-002","ACT-LRN-004","ACT-LRN-025"],"state":"PLANNED"},
+    {"id":"ACT-LRN-013","title":"AI Course Builder","phase":"D","priority":"P2","depends_on":["ACT-LRN-012","ACT-LRN-023"],"state":"PLANNED"},
+    {"id":"ACT-LRN-011","title":"Lesson Notes and Personal Learning Memory","phase":"D","priority":"P2","depends_on":["ACT-LRN-007","ACT-LRN-024"],"state":"PLANNED"},
+    {"id":"ACT-LRN-020","title":"Multilingual Learning Layer","phase":"D","priority":"P2","depends_on":["ACT-LRN-002","ACT-LRN-004","ACT-LRN-012"],"state":"PLANNED"},
+    {"id":"ACT-LRN-019","title":"Offline-first Learning Package","phase":"D","priority":"P2","depends_on":["ACT-LRN-002","ACT-LRN-007","ACT-LRN-024","ACT-LRN-025"],"state":"PLANNED"},
+
+    {"id":"ACT-LRN-015","title":"xAPI and LRS Boundary","phase":"E","priority":"P2","depends_on":["ACT-LRN-007","ACT-LRN-014"],"state":"PLANNED"},
+    {"id":"ACT-LRN-016","title":"cmi5 Course Package Adapter","phase":"E","priority":"P3","depends_on":["ACT-LRN-015"],"state":"PLANNED"},
+    {"id":"ACT-LRN-017","title":"CASE Competency Mapping","phase":"E","priority":"P3","depends_on":["ACT-LRN-008"],"state":"PLANNED"},
+    {"id":"ACT-LRN-018","title":"Verifiable Completion Record","phase":"E","priority":"P1","depends_on":["ACT-LRN-006","ACT-LRN-007","ACT-LRN-025"],"state":"PLANNED"},
+    {"id":"ACT-LRN-026","title":"Blended Training Scheduling Adapter","phase":"E","priority":"P3","depends_on":["ACT-LRN-007","ACT-LRN-025"],"state":"PLANNED"},
+    {"id":"ACT-LRN-027","title":"Agentic LMS Orchestration","phase":"E","priority":"P3","depends_on":["ACT-LRN-003","ACT-LRN-006","ACT-LRN-012","ACT-LRN-014","ACT-LRN-025"],"state":"PLANNED"}
+  ],
+  "promotion_gate": {
+    "implementation": "NOT_STARTED",
+    "executable_evidence": "NONE",
+    "production_gate": "FAIL"
+  }
+}
