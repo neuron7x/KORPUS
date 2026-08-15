@@ -18,6 +18,7 @@ APP_URL = os.getenv("KORPUS_POSTGRES_TEST_URL") or os.getenv("KORPUS_TEST_DATABA
 REVIEW_URL = os.getenv("KORPUS_REVIEW_DATABASE_URL")
 IDENTITY_URL = os.getenv("RLS_IDENTITY_DATABASE_URL")
 pytestmark = pytest.mark.postgres
+RUNTIME_GROUPS = ("korpus_app_runtime", "korpus_review_runtime", "korpus_identity_runtime")
 
 
 def _credentials(url: str | None) -> tuple[str, str] | None:
@@ -93,5 +94,39 @@ def test_real_reprovision_destroys_stale_bypass_membership(target_url: str | Non
         target.dispose()
         with admin.begin() as connection:
             connection.execute(text(f"REVOKE {stale_sql} FROM {target_sql}"))
+            connection.execute(text(f"DROP ROLE IF EXISTS {stale_sql}"))
+        admin.dispose()
+
+
+@pytest.mark.parametrize("group_role", RUNTIME_GROUPS)
+def test_real_reprovision_destroys_stale_parent_membership_of_runtime_group(
+    group_role: str,
+) -> None:
+    if not POSTGRES_ADMIN_URL:
+        pytest.skip("PostgreSQL admin URL is required")
+    stale_role = f"korpus_stale_parent_{group_role}_{os.getpid()}"
+    stale_sql, group_sql = quoted(stale_role), quoted(group_role)
+    admin = create_engine(POSTGRES_ADMIN_URL, future=True, pool_pre_ping=True)
+    try:
+        with admin.begin() as connection:
+            connection.execute(text(f"DROP ROLE IF EXISTS {stale_sql}"))
+            connection.execute(text(f"CREATE ROLE {stale_sql} NOLOGIN BYPASSRLS"))
+            connection.execute(text(f"GRANT {stale_sql} TO {group_sql}"))
+            assert connection.execute(
+                text("SELECT pg_catalog.pg_has_role(:member,:parent,'MEMBER')"),
+                {"member": group_role, "parent": stale_role},
+            ).scalar_one() is True
+
+        _reprovision()
+
+        with admin.connect() as connection:
+            still_member = connection.execute(
+                text("SELECT pg_catalog.pg_has_role(:member,:parent,'MEMBER')"),
+                {"member": group_role, "parent": stale_role},
+            ).scalar_one()
+        assert still_member is False
+    finally:
+        with admin.begin() as connection:
+            connection.execute(text(f"REVOKE {stale_sql} FROM {group_sql}"))
             connection.execute(text(f"DROP ROLE IF EXISTS {stale_sql}"))
         admin.dispose()
