@@ -29,12 +29,15 @@ def candidate_visibility_evidence(path: Path, source_digest: str) -> tuple[dict[
     killed = int(report.get("killed", 0) or 0)
     survived = report.get("survived") or []
     invalid = report.get("invalid") or []
+    complete = bool(report) and total > 0
     checks = {
         "candidate_visibility_report_present": bool(report),
         "candidate_visibility_source_bound": source_bound,
         "candidate_visibility_catalogue_nonempty": total > 0,
-        "candidate_visibility_all_executed": executed == total,
-        "candidate_visibility_all_killed": killed == total and not survived and not invalid,
+        "candidate_visibility_all_executed": complete and executed == total,
+        "candidate_visibility_all_killed": (
+            complete and killed == total and not survived and not invalid
+        ),
         "candidate_visibility_report_pass": report.get("status") == "PASS",
     }
     evidence = {
