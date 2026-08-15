@@ -45,7 +45,8 @@ def test_existing_runtime_group_is_rehardened_not_trusted() -> None:
     ddl = "\n".join(connection.statements)
     assert "ALTER ROLE \"korpus_app_runtime\"" in ddl
     for fragment in (
-        "NOLOGIN", "NOSUPERUSER", "NOCREATEDB", "NOCREATEROLE", "NOINHERIT", "NOBYPASSRLS"
+        "NOLOGIN", "NOSUPERUSER", "NOCREATEDB", "NOCREATEROLE", "NOINHERIT",
+        "NOREPLICATION", "NOBYPASSRLS",
     ):
         assert fragment in ddl
 
@@ -57,6 +58,7 @@ def test_existing_login_is_rehardened_even_when_precreated() -> None:
     assert "ALTER ROLE \"korpus_app\"" in ddl
     assert "NOSUPERUSER" in ddl
     assert "NOINHERIT" in ddl
+    assert "NOREPLICATION" in ddl
     assert "NOBYPASSRLS" in ddl
 
 
