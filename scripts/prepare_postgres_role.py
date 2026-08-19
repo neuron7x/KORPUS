@@ -31,6 +31,19 @@ READ_WRITE_TABLES = (
     "billing_events",
     "conversations",
     "messages",
+    # ACT-LRN-002. Learning content is written only while draft; PostgreSQL triggers
+    # make published content immutable and invalidate it when canonical source state changes.
+    "learning_courses",
+    "learning_course_versions",
+    "learning_modules",
+    "learning_lessons",
+    "learning_objectives",
+    "learning_source_bindings",
+    "learning_source_binding_spans",
+    "learning_lesson_blocks",
+    "learning_block_sources",
+    "learning_prerequisites",
+    "learning_publications",
 )
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")
