@@ -16,6 +16,10 @@ from korpus.domain.learning import (
     PublicationValidation,
     validate_course_publication,
 )
+from korpus.infrastructure.competency_schema import (
+    competency_frameworks,
+    operational_competencies,
+)
 from korpus.infrastructure.learning_schema import (
     learning_course_versions,
     learning_courses,
@@ -78,6 +82,38 @@ class SqlLearningRepository:
             ).scalar_one_or_none()
             if course_exists is None:
                 raise LookupError(f"course not found: {version.course_id}")
+            if version.competency_framework_id is not None:
+                framework_key = (
+                    competency_frameworks.c.id == version.competency_framework_id,
+                    competency_frameworks.c.revision == version.competency_framework_revision,
+                )
+                if connection.execute(
+                    select(competency_frameworks.c.id).where(*framework_key)
+                ).scalar_one_or_none() is None:
+                    raise LearningStateError("competency framework revision not found")
+                known_competencies = set(
+                    connection.execute(
+                        select(operational_competencies.c.id).where(
+                            operational_competencies.c.framework_id
+                            == version.competency_framework_id,
+                            operational_competencies.c.framework_revision
+                            == version.competency_framework_revision,
+                        )
+                    ).scalars()
+                )
+                requested_competencies = {
+                    competency_id
+                    for module in version.modules
+                    for lesson in module.lessons
+                    for objective in lesson.objectives
+                    for competency_id in objective.competency_ids
+                }
+                unknown_competencies = requested_competencies - known_competencies
+                if unknown_competencies:
+                    raise LearningStateError(
+                        "course objective references unknown framework competencies: "
+                        + ", ".join(sorted(unknown_competencies))
+                    )
             try:
                 insert_course_version(connection, version, stamp)
             except IntegrityError as exc:

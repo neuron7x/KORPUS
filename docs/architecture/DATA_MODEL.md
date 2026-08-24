@@ -18,6 +18,11 @@ reproducibility without storing unnecessary personal data.
 `Course`, `Competency`, `Lesson`, `Assessment`, `QuestionVersion`, `Attempt`, and
 `ReviewerDecision` support learning. Passing an assessment is not certification.
 
+An `OperationalRole` names required `OperationalTask` records. Each task states its
+conditions and observable standard and requires a conjunction of competencies. Learning
+objectives may reference those competency identities. Alignment means that every required
+competency has a course objective; it never means that a learner is qualified or certified.
+
 `Template`, `TemplateVersion`, `Draft`, and `ValidationResult` support documents.
 
 ## Validity boundaries
@@ -117,6 +122,8 @@ Required learning invariants:
 - a retired publication cannot be resurrected; reviewer provenance is immutable after draft;
 - source deapproval/rescission/effectivity changes invalidate dependent published versions;
 - time-only source expiry is caught by the fail-closed serving lane and persists invalidation.
+- role alignment is conjunctive: one covered competency cannot compensate for a missing one;
+- unknown role, task, competency, or objective edges fail closed rather than widening scope;
 
 | table | what it holds |
 |---|---|
@@ -125,6 +132,7 @@ Required learning invariants:
 | `learning_modules` | ordered modules inside one course version |
 | `learning_lessons` | ordered lessons inside a module |
 | `learning_objectives` | explicit learning objectives bound to a lesson |
+| `learning_objective_competencies` | objective-to-competency edges under the course version's exact framework revision |
 | `learning_source_bindings` | exact document/version identities used by a lesson |
 | `learning_source_binding_spans` | exact evidence spans proving a source binding |
 | `learning_lesson_blocks` | ordered typed content blocks without copied source truth |
@@ -132,3 +140,9 @@ Required learning invariants:
 | `learning_prerequisites` | directed lesson prerequisite edges |
 | `learning_publications` | draft/published/invalidated/retired lifecycle and reviewer provenance |
 | `learning_mastery` | per-learner objective mastery projection bound to the source-binding set that justified the latest state |
+| `competency_frameworks` | immutable identity and revision of an operational competency framework |
+| `operational_roles` | roles defined inside one exact framework revision |
+| `operational_tasks` | tasks with explicit conditions and observable standards |
+| `operational_competencies` | atomic competencies defined by a framework revision |
+| `operational_role_tasks` | role-to-required-task edges inside the same framework revision |
+| `operational_task_competencies` | conjunctive task-to-required-competency edges inside the same framework revision |

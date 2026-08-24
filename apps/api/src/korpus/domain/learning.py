@@ -32,6 +32,7 @@ class LearningObjective(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: str = Field(pattern=LEARNING_ID_PATTERN)
     statement: str = Field(min_length=3, max_length=1000)
+    competency_ids: frozenset[str] = Field(default_factory=frozenset, max_length=128)
 
 
 class SourceBinding(BaseModel):
@@ -122,10 +123,18 @@ class CourseVersion(BaseModel):
     id: str = Field(pattern=LEARNING_ID_PATTERN)
     course_id: str = Field(pattern=LEARNING_ID_PATTERN)
     revision: str = Field(min_length=1, max_length=120)
+    competency_framework_id: str | None = Field(default=None, pattern=LEARNING_ID_PATTERN)
+    competency_framework_revision: str | None = Field(default=None, min_length=1, max_length=120)
     modules: tuple[CourseModule, ...] = Field(min_length=1, max_length=256)
 
     @model_validator(mode="after")
     def validate_global_identity(self) -> Self:
+        framework_fields = (
+            self.competency_framework_id,
+            self.competency_framework_revision,
+        )
+        if (framework_fields[0] is None) != (framework_fields[1] is None):
+            raise ValueError("competency framework identity and revision must be set together")
         module_ids = [item.id for item in self.modules]
         if len(module_ids) != len(set(module_ids)):
             raise ValueError("course module ids must be unique")
@@ -142,6 +151,14 @@ class CourseVersion(BaseModel):
         ]
         if len(objective_ids) != len(set(objective_ids)):
             raise ValueError("objective ids must be unique across course version")
+        has_competency_edges = any(
+            objective.competency_ids
+            for module in self.modules
+            for lesson in module.lessons
+            for objective in lesson.objectives
+        )
+        if has_competency_edges and self.competency_framework_id is None:
+            raise ValueError("competency-bound objectives require a framework revision")
         return self
 
 
