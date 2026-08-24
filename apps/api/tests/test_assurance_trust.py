@@ -10,6 +10,11 @@ from korpus.application.assurance_trust import trusted_fingerprints
 def test_runtime_trust_root_can_be_injected_without_mutating_source(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # This test exercises the non-CI runtime contract. GitLab exports GITLAB_CI
+    # into the test process, so remove that ambient context explicitly instead
+    # of making the assertion depend on where pytest happens to run.
+    monkeypatch.delenv("GITLAB_CI", raising=False)
+    monkeypatch.delenv("CI_COMMIT_REF_PROTECTED", raising=False)
     config = tmp_path / "trust.json"
     repo_fp = "a" * 64
     runtime_fp = "b" * 64
