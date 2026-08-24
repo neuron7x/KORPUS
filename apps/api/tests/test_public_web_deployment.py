@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import stat
 from pathlib import Path
 
 import pytest
@@ -46,6 +47,8 @@ def test_staging_excludes_private_console_and_detects_tampering(tmp_path: Path) 
     release, _manifest = deploy.stage_release(source, releases)
     assert not (release / "console.html").exists()
     assert (release / "PUBLIC_MANIFEST.json").is_file()
+    assert stat.S_IMODE(release.stat().st_mode) == 0o755
+    assert stat.S_IMODE((release / "index.html").stat().st_mode) == 0o644
     assert deploy.stage_release(source, releases)[0] == release
     (release / "app.js").write_text("tampered", encoding="utf-8")
     with pytest.raises(RuntimeError, match="modified"):

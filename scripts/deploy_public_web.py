@@ -52,6 +52,12 @@ def artifact_manifest(source: Path) -> dict[str, object]:
     return body
 
 
+def normalize_public_permissions(root: Path) -> None:
+    root.chmod(0o755)
+    for path in root.rglob("*"):
+        path.chmod(0o755 if path.is_dir() else 0o644)
+
+
 def stage_release(source: Path, releases: Path) -> tuple[Path, dict[str, object]]:
     manifest = artifact_manifest(source)
     digest = str(manifest["tree_sha256"])
@@ -59,6 +65,7 @@ def stage_release(source: Path, releases: Path) -> tuple[Path, dict[str, object]
     if destination.exists():
         if artifact_manifest(destination) != manifest:
             raise RuntimeError(f"content-addressed release was modified: {destination}")
+        normalize_public_permissions(destination)
         return destination, manifest
     releases.mkdir(parents=True, exist_ok=True)
     temporary = Path(tempfile.mkdtemp(prefix=f".{digest}.", dir=releases))
@@ -74,6 +81,7 @@ def stage_release(source: Path, releases: Path) -> tuple[Path, dict[str, object]
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source / relative, target)
         (temporary / "PUBLIC_MANIFEST.json").write_bytes(canonical_bytes(manifest) + b"\n")
+        normalize_public_permissions(temporary)
         os.replace(temporary, destination)
     finally:
         shutil.rmtree(temporary, ignore_errors=True)
@@ -157,11 +165,23 @@ def main() -> int:
     try:
         start_edge(release, config)
         probe(args.base_url)
-    except Exception:
-        if previous and (releases / previous).is_dir():
+    except Exception as deployment_error:
+        rollback_error: Exception | None = None
+        try:
+            if not previous or not (releases / previous).is_dir():
+                raise RuntimeError("no verified previous release is available")
             start_edge(releases / previous, config)
             probe(args.base_url)
-        write_receipt(state / "DEPLOYMENT_RECEIPT.json", status="ROLLED_BACK", manifest=manifest, previous=previous)
+        except (OSError, RuntimeError, subprocess.CalledProcessError, urllib.error.URLError) as error:
+            rollback_error = error
+        write_receipt(
+            state / "DEPLOYMENT_RECEIPT.json",
+            status="ROLLBACK_FAILED" if rollback_error else "ROLLED_BACK",
+            manifest=manifest,
+            previous=previous,
+        )
+        if rollback_error:
+            raise RuntimeError(f"deployment failed ({deployment_error}); rollback failed ({rollback_error})") from deployment_error
         raise
     current.write_text(str(manifest["tree_sha256"]) + "\n", encoding="utf-8")
     write_receipt(state / "DEPLOYMENT_RECEIPT.json", status="PASS", manifest=manifest, previous=previous)
