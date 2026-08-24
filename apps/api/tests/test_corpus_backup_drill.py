@@ -21,6 +21,7 @@ spans, and the restored copy answered "накладання турнікету" 
 
 from __future__ import annotations
 
+import os
 import sqlite3
 import subprocess
 import sys
@@ -61,7 +62,10 @@ def environment(tmp_path: Path) -> dict[str, str]:
     key.write_text("0" * 64 + "\n", encoding="utf-8")
     key.chmod(0o600)
     return {
-        "PATH": "/usr/bin:/bin",
+        # The official Python container installs the interpreter in /usr/local/bin.
+        # Keep the deliberately small tool PATH, but do not make the backup test
+        # manufacture an environment in which its required interpreter is invisible.
+        "PATH": os.pathsep.join((str(Path(sys.executable).parent), "/usr/bin", "/bin")),
         "KORPUS_BACKUP_ENCRYPTION_KEY_FILE": str(key),
         "KORPUS_BACKUP_KEY_ID": "drill",
         "KORPUS_BACKUP_DIR": str(tmp_path / "backups"),
