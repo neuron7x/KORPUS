@@ -29,6 +29,7 @@ test("canonical and combat themes share one functional surface", async()=>{
   assert.match(html,/id="theme-toggle"[^>]*aria-pressed="false"/);
   assert.match(app,/document\.documentElement\.dataset\.theme/);
   assert.match(app,/sessionStorage\.setItem\("korpus-theme", combat/);
+  assert.match(app,/import\("\.\/combat_scene\.js"\)/);
   assert.match(source,/html\[data-theme="combat"\]/);
   assert.match(source,/@keyframes combat-ignite/);
   assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);

@@ -253,11 +253,14 @@ async function main() {
     }, results);
 
     await runCase("combat_theme_is_reversible_and_accessible", async () => {
-      const combat = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed"), label:button.getAttribute("aria-label"), stylesheet:document.getElementById("combat-theme")?.getAttribute("href")}; })()`);
+      await cdp.evaluate(`document.getElementById("theme-toggle").click()`);
+      await waitFor(cdp, 'document.getElementById("combat-signal-field")', "combat signal field");
+      const combat = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed"), label:button.getAttribute("aria-label"), stylesheet:document.getElementById("combat-theme")?.getAttribute("href"), canvas:document.getElementById("combat-signal-field")?.tagName}; })()`);
       assert(combat.theme === "combat" && combat.pressed === "true", "combat theme state was not exposed accessibly");
-      assert(combat.label.includes("основну") && combat.stylesheet === "/combat.css", "combat theme did not load its optional stylesheet");
+      assert(combat.label.includes("основну") && combat.stylesheet === "/combat.css" && combat.canvas === "CANVAS", "combat theme did not load its optional visual layer");
       const core = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed")}; })()`);
       assert(core.theme === "core" && core.pressed === "false", "canonical theme was not restored by the same control");
+      assert(!(await cdp.evaluate(`document.getElementById("combat-signal-field")`)), "combat canvas survived after returning to core");
     }, results);
 
     await runCase("evidence_render_escapes_xss", async () => {

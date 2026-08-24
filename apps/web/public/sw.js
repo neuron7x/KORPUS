@@ -1,11 +1,11 @@
-const CACHE = "korpus-shell-v69";
+const CACHE = "korpus-shell-v70";
 // Every module app.js imports must be cached: a module whose import is not cached fails to
 // execute offline, and one missing file turns a degraded page into a blank one. /api.js
 // joined when app.js stopped carrying its own fetch handling; /conversations.js joined
 // with the conversation panel. validate.mjs enforces that this list covers every static
 // import, so the next module cannot be forgotten here silently.
 const ASSETS = ["/", "/index.html", "/tokens.css", "/styles.css",
-  "/combat.css", "/console.css", "/workspace.css", "/app.js", "/offline_controller.js", "/offline_store.js", "/chat_fsm.js", "/routes.js", "/offline_pack.js", "/workspace_routes.js",
+  "/combat.css", "/combat_scene.js", "/console.css", "/workspace.css", "/app.js", "/offline_controller.js", "/offline_store.js", "/chat_fsm.js", "/routes.js", "/offline_pack.js", "/workspace_routes.js",
   "/reader_verdicts.js",
   "/reader_conversations.js",
   "/reader_corpus.js",

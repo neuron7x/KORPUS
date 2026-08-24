@@ -19,6 +19,7 @@ import {UNFINISHED, VERDICT} from "./reader_verdicts.js";
 const $ = id => document.getElementById(id);
 
 const themeToggle = $("theme-toggle");
+let unmountCombatScene = null;
 
 function applyTheme(combat) {
   if (combat && !document.getElementById("combat-theme")) {
@@ -27,6 +28,16 @@ function applyTheme(combat) {
     document.head.append(link);
   }
   document.documentElement.dataset.theme = combat ? "combat" : "core";
+  if (combat) {
+    import("./combat_scene.js").then(({mountCombatScene}) => {
+      if (document.documentElement.dataset.theme === "combat" && !unmountCombatScene) {
+        unmountCombatScene = mountCombatScene();
+      }
+    });
+  } else if (unmountCombatScene) {
+    unmountCombatScene();
+    unmountCombatScene = null;
+  }
   themeToggle?.setAttribute("aria-pressed", String(combat));
   themeToggle?.setAttribute("aria-label", combat ? "Увімкнути основну тему" : "Увімкнути бойову тему");
   const label = themeToggle?.querySelector("[data-theme-label]");
