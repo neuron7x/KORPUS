@@ -15,13 +15,24 @@ def _status(root: Path) -> dict[str, bool]:
 def _mutated_repo(tmp_path: Path, relative: str, old: str, new: str) -> Path:
     # Copy only the verifier's production contract surface, not the entire repository.
     for source in [
-        "infra/gcp/bootstrap/main.tf", "infra/gcp/bootstrap/versions.tf",
-        "infra/gcp/foundation/main.tf", "infra/gcp/foundation/network.tf", "infra/gcp/foundation/outputs.tf", "infra/gcp/foundation/variables.tf", "infra/gcp/foundation/versions.tf",
+        "infra/gcp/bootstrap/main.tf",
+        "infra/gcp/bootstrap/versions.tf",
+        "infra/gcp/foundation/main.tf",
+        "infra/gcp/foundation/network.tf",
+        "infra/gcp/foundation/outputs.tf",
+        "infra/gcp/foundation/variables.tf",
+        "infra/gcp/foundation/versions.tf",
         "infra/gcp/foundation/edge_security.tf",
-        "infra/gcp/runtime/versions.tf", "infra/gcp/runtime/variables.tf", "infra/gcp/runtime/locals.tf",
-        "infra/gcp/runtime/services.tf", "infra/gcp/runtime/worker.tf", "infra/gcp/runtime/canary.tf",
-        "infra/gcp/runtime/load_balancer.tf", "infra/gcp/runtime/monitoring.tf",
-        "infra/gcp/runtime/migration.tf", "infra/gcp/runtime/postgres_verification.tf",
+        "infra/gcp/runtime/versions.tf",
+        "infra/gcp/runtime/variables.tf",
+        "infra/gcp/runtime/locals.tf",
+        "infra/gcp/runtime/services.tf",
+        "infra/gcp/runtime/worker.tf",
+        "infra/gcp/runtime/canary.tf",
+        "infra/gcp/runtime/load_balancer.tf",
+        "infra/gcp/runtime/monitoring.tf",
+        "infra/gcp/runtime/migration.tf",
+        "infra/gcp/runtime/postgres_verification.tf",
         "scripts/gcp/install_terraform_verified.sh",
         "scripts/gcp/bootstrap_production.sh",
         ".github/workflows/gcp-production.yml",
@@ -46,32 +57,59 @@ def test_current_gcp_production_contract_passes() -> None:
 
 
 def test_connector_enforcement_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/foundation/main.tf", 'connector_enforcement       = "REQUIRED"', 'connector_enforcement       = "NOT_REQUIRED"')
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/foundation/main.tf",
+        'connector_enforcement       = "REQUIRED"',
+        'connector_enforcement       = "NOT_REQUIRED"',
+    )
     assert _status(root)["CLOUDSQL_CONNECTOR_ONLY"] is False
 
 
 def test_worker_pool_autoscaling_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/runtime/worker.tf", 'scaling_mode         = "MANUAL"', 'scaling_mode         = "AUTOMATIC"')
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/runtime/worker.tf",
+        'scaling_mode         = "MANUAL"',
+        'scaling_mode         = "AUTOMATIC"',
+    )
     assert _status(root)["WORKER_POOL_MANUAL_CAPACITY"] is False
 
 
 def test_worker_pool_http_shim_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/runtime/worker.tf", 'command    = ["python", "-m", "korpus.cli"]', 'command    = ["python", "-m", "uvicorn"]')
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/runtime/worker.tf",
+        'command    = ["python", "-m", "korpus.cli"]',
+        'command    = ["python", "-m", "uvicorn"]',
+    )
     assert _status(root)["WORKER_POOL_DIRECT_NON_HTTP"] is False
 
 
 def test_worker_sidecar_dependency_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/runtime/worker.tf", 'depends_on = ["clamav"]', 'depends_on = []')
+    root = _mutated_repo(
+        tmp_path, "infra/gcp/runtime/worker.tf", 'depends_on = ["clamav"]', "depends_on = []"
+    )
     assert _status(root)["WORKER_POOL_SIDECAR_ORDER"] is False
 
 
 def test_unsigned_image_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/runtime/variables.tf", '@sha256:[0-9a-f]{64}$', ':latest$',)
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/runtime/variables.tf",
+        "@sha256:[0-9a-f]{64}$",
+        ":latest$",
+    )
     assert _status(root)["IMMUTABLE_RUNTIME_IMAGES"] is False
 
 
 def test_alert_delivery_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated_repo(tmp_path, "infra/gcp/runtime/monitoring.tf", 'notification_channels = var.notification_channel_ids', '# notification disabled')
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/runtime/monitoring.tf",
+        "notification_channels = var.notification_channel_ids",
+        "# notification disabled",
+    )
     assert _status(root)["MONITORING_DELIVERY_REQUIRED"] is False
 
 
@@ -101,7 +139,7 @@ def test_scanner_api_mutation_is_killed(tmp_path: Path) -> None:
         tmp_path,
         "infra/gcp/foundation/main.tf",
         '    "containerscanning.googleapis.com",',
-        '    # scanning disabled',
+        "    # scanning disabled",
     )
     assert _status(root)["ARTIFACT_ANALYSIS_ENABLED"] is False
 
@@ -135,6 +173,7 @@ def test_bootstrap_cannot_enable_production_by_default(tmp_path: Path) -> None:
     )
     assert _status(root)["BOOTSTRAP_GITHUB_BRANCH_GATE"] is False
 
+
 def test_project_wide_act_as_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
@@ -159,8 +198,8 @@ def test_runtime_workflow_foundation_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
         ".github/workflows/gcp-production.yml",
-        '      - name: Initialize foundation state read-only',
-        '      - name: Apply foundation',
+        "      - name: Initialize foundation state read-only",
+        "      - name: Apply foundation",
     )
     assert _status(root)["DELIVERY_PLANE_SEPARATION"] is False
 
@@ -220,7 +259,7 @@ def test_daily_assurance_schedule_removal_is_killed(tmp_path: Path) -> None:
         tmp_path,
         ".github/workflows/assurance.yml",
         '    - cron: "17 3 * * *"',
-        '    # schedule removed',
+        "    # schedule removed",
     )
     assert _status(root)["AUTONOMOUS_ASSURANCE_SCHEDULE"] is False
 
@@ -230,7 +269,7 @@ def test_monthly_pitr_schedule_removal_is_killed(tmp_path: Path) -> None:
         tmp_path,
         ".github/workflows/gcp-drill.yml",
         '    - cron: "37 3 1 * *"',
-        '    # schedule removed',
+        "    # schedule removed",
     )
     assert _status(root)["AUTONOMOUS_PITR_DRILL_SCHEDULE"] is False
 
@@ -239,8 +278,8 @@ def test_uptime_absence_detector_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
         "infra/gcp/runtime/monitoring.tf",
-        '    condition_absent {',
-        '    condition_threshold {',
+        "    condition_absent {",
+        "    condition_threshold {",
     )
     assert _status(root)["UPTIME_TELEMETRY_FAIL_CLOSED"] is False
 
@@ -253,7 +292,6 @@ def test_tls_expiry_alert_mutation_is_killed(tmp_path: Path) -> None:
         'metric.type=\\"monitoring.googleapis.com/uptime_check/check_passed\\"',
     )
     assert _status(root)["TLS_EXPIRY_ALERT"] is False
-
 
 
 def test_provenance_admission_signer_policy_mutation_is_killed(tmp_path: Path) -> None:
@@ -270,8 +308,8 @@ def test_automatic_rollback_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
         ".github/workflows/gcp-production.yml",
-        '      - name: Roll back Cloud Run traffic on failed promotion',
-        '      - name: Rollback disabled',
+        "      - name: Roll back Cloud Run traffic on failed promotion",
+        "      - name: Rollback disabled",
     )
     assert _status(root)["AUTOMATIC_TRAFFIC_ROLLBACK"] is False
 
@@ -335,6 +373,7 @@ def test_tls_policy_downgrade_is_killed(tmp_path: Path) -> None:
     )
     assert _status(root)["EDGE_TLS_POLICY_ENFORCED"] is False
 
+
 def test_cloudsql_public_ipv4_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,
@@ -393,7 +432,6 @@ def test_postgres_verify_direct_vpc_mutation_is_killed(tmp_path: Path) -> None:
         '        egress = "ALL_TRAFFIC"',
     )
     assert _status(root)["RUNTIME_DIRECT_VPC_DB_PLANE"] is False
-
 
 
 def test_candidate_zero_traffic_mutation_is_killed(tmp_path: Path) -> None:

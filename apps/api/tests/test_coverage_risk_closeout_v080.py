@@ -7,9 +7,6 @@ import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import HTTPException
-from starlette.applications import Starlette
-from starlette.requests import Request
-
 from korpus.api.billing_dependencies import _state
 from korpus.application.assurance_trust import trusted_fingerprints
 from korpus.application.attested_evidence import verify_ed25519_attestation
@@ -25,16 +22,24 @@ from korpus.domain.tenancy import AccountRecord
 from korpus.infrastructure.audit_event_view import _iso
 from korpus.infrastructure.deterministic_billing import _timestamp
 from korpus.security.source_authenticity import SourceTrustProfile
+from starlette.applications import Starlette
+from starlette.requests import Request
 
 
-def test_missing_trust_config_is_an_empty_trust_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_trust_config_is_an_empty_trust_root(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("KORPUS_TEST_TRUST_ROOT", raising=False)
-    assert trusted_fingerprints(tmp_path / "missing.json", "keys", "KORPUS_TEST_TRUST_ROOT") == set()
+    assert (
+        trusted_fingerprints(tmp_path / "missing.json", "keys", "KORPUS_TEST_TRUST_ROOT") == set()
+    )
 
 
 def test_non_ed25519_key_never_verifies_an_ed25519_attestation() -> None:
     public = rsa.generate_private_key(public_exponent=65537, key_size=2048).public_key()
-    pem = public.public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
+    pem = public.public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    )
     verdict = verify_ed25519_attestation(
         b"manifest",
         manifest_name="manifest.json",
@@ -117,6 +122,7 @@ def test_provenance_ignores_compiled_python_suffixes(tmp_path: Path) -> None:
 
 def test_account_enable_requires_a_nonblank_reason() -> None:
     from uuid import uuid4
+
     from korpus.application.accounts import AccountService
     from korpus.domain.models import Identity
 
@@ -127,6 +133,7 @@ def test_account_enable_requires_a_nonblank_reason() -> None:
 
 def test_aware_audit_datetime_preserves_timezone_without_replacement() -> None:
     from datetime import UTC
+
     assert _iso(datetime(2026, 1, 1, tzinfo=UTC)).endswith("+00:00")
 
 
@@ -169,6 +176,7 @@ def test_oidc_browser_mode_without_cookie_reaches_authentication_required_branch
 
 def test_valid_version_ingestion_job_takes_version_target_branch() -> None:
     from uuid import uuid4
+
     from korpus.domain.models import Identity, IngestionJobKind, IngestionJobRecord, VersionCreate
 
     job = IngestionJobRecord(

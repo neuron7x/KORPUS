@@ -194,7 +194,13 @@ class IngestionService:
         )
         document = DocumentRecord(**document_data.model_dump())
         version, spans = self._build_version_and_spans_path(
-            document.id, version_data, path, filename, mime_type, digest, page_spans,
+            document.id,
+            version_data,
+            path,
+            filename,
+            mime_type,
+            digest,
+            page_spans,
             content_fingerprint=fingerprint,
             near_duplicate=near_duplicate,
             extraction_quality=quality,
@@ -285,7 +291,13 @@ class IngestionService:
             actor, fingerprint, document_id=document.id
         )
         version, spans = self._build_version_and_spans_path(
-            document.id, version_data, path, filename, mime_type, digest, page_spans,
+            document.id,
+            version_data,
+            path,
+            filename,
+            mime_type,
+            digest,
+            page_spans,
             content_fingerprint=fingerprint,
             near_duplicate=near_duplicate,
             extraction_quality=quality,
@@ -383,7 +395,6 @@ class IngestionService:
             reviewer_credential_id=reviewer_credential_id,
             access_tier=transition.access_tier,
         )
-
 
     def _verify_source(self, issuer: str, version: VersionCreate, source_hash: str) -> None:
         supplied = bool(version.source_key_id or version.source_signature_b64)

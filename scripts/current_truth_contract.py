@@ -59,13 +59,21 @@ def alias_checks(root: Path, release: str) -> dict[str, bool]:
     if envelope.is_file():
         checks["RELEASE_ENVELOPE.release_bound"] = load_object(envelope).get("release") == release
     if root_report.is_file():
-        checks["CANONICAL_RELEASE_REPORT.root_release_bound"] = load_object(root_report).get("release") == release
+        checks["CANONICAL_RELEASE_REPORT.root_release_bound"] = (
+            load_object(root_report).get("release") == release
+        )
     if report_alias.is_file():
-        checks["CANONICAL_RELEASE_REPORT.alias_release_bound"] = load_object(report_alias).get("release") == release
+        checks["CANONICAL_RELEASE_REPORT.alias_release_bound"] = (
+            load_object(report_alias).get("release") == release
+        )
     if root_report.is_file() and report_alias.is_file():
-        checks["CANONICAL_RELEASE_REPORT.alias_exact"] = root_report.read_bytes() == report_alias.read_bytes()
+        checks["CANONICAL_RELEASE_REPORT.alias_exact"] = (
+            root_report.read_bytes() == report_alias.read_bytes()
+        )
     if receipt.is_file():
         payload = load_object(receipt)
         checks["FULL_SSOT_PACKAGE_RECEIPT.release_bound"] = payload.get("release") == release
-        checks["FULL_SSOT_PACKAGE_RECEIPT.role"] = payload.get("package_role") == "FULL_SSOT_CANONICAL"
+        checks["FULL_SSOT_PACKAGE_RECEIPT.role"] = (
+            payload.get("package_role") == "FULL_SSOT_CANONICAL"
+        )
     return checks

@@ -14,10 +14,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.retrieval import AUTHORITY_PRIOR, BM25Parameters, RetrievalWeights
 from korpus.config import Settings
-from source_digest import source_tree_digest
 from release_identity import release_tag
+from source_digest import source_tree_digest
+
 ROOT = Path(__file__).resolve().parents[1]
 HANDOFF = ROOT / "handoff" / "machine"
+
+
 def _load(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -154,9 +157,7 @@ def verify() -> dict[str, Any]:
             f"handoff status counts disagree with the closure register: "
             f"declared {declared}, register {dict(counted)}"
         )
-    remaining = sum(
-        count for status, count in counted.items() if status != "CLOSED_LOCAL"
-    )
+    remaining = sum(count for status, count in counted.items() if status != "CLOSED_LOCAL")
     if state["audit"]["remaining_total"] != remaining:
         raise AssertionError(
             f"remaining_total {state['audit']['remaining_total']} disagrees with the "

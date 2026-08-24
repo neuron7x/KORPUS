@@ -10,8 +10,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from manifest_paths import distribution_paths, source_paths
 from manifest_lib.integrity import file_record, manifest_root
+from manifest_paths import distribution_paths, source_paths
 
 
 def _records(root: Path, paths: list[Path], *, source: bool) -> list[dict[str, object]]:
@@ -51,7 +51,16 @@ def main() -> int:
     output = args.output or (root / default_name)
     output = output if output.is_absolute() else root / output
     manifest = write_manifest(root, output, kind=args.kind)
-    print(json.dumps({"kind": args.kind, "file_count": manifest["file_count"], "root_sha256": manifest["root_sha256"]}, indent=2))
+    print(
+        json.dumps(
+            {
+                "kind": args.kind,
+                "file_count": manifest["file_count"],
+                "root_sha256": manifest["root_sha256"],
+            },
+            indent=2,
+        )
+    )
     return 0
 
 

@@ -254,6 +254,4 @@ def test_the_admission_verdict_refuses_a_clearance_with_no_signature() -> None:
     # Specifically "no signature", not merely "some registry problem": accepting either
     # message let a mutant that skips the signature check entirely pass this test, since
     # the fallback path also mentions the registry. Probed 2026-08-05 (M142 survived).
-    assert any("carries no signature" in problem for problem in verdict.problems), (
-        verdict.problems
-    )
+    assert any("carries no signature" in problem for problem in verdict.problems), verdict.problems

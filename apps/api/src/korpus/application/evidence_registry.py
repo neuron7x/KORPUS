@@ -146,9 +146,7 @@ def verify_closure_registry(
         references = list(evidence[finding_id])
         problems.extend(
             f"{finding_id}: {message}"
-            for message in verify_references(
-                root, references, include_produced=include_produced
-            )
+            for message in verify_references(root, references, include_produced=include_produced)
         )
         if statuses.get(finding_id) in executable_statuses and not any(
             is_executable_evidence(reference) for reference in references

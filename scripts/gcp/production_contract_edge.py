@@ -1,4 +1,5 @@
 """Cloud Armor and edge-routing predicates for the GCP production contract."""
+
 from __future__ import annotations
 
 import re
@@ -20,7 +21,8 @@ def evaluate(s: object) -> list[tuple[str, bool, str]]:
     return [
         (
             "EDGE_CLOUD_ARMOR_ATTACHED",
-            s.lb.count("security_policy       = local.foundation.edge_security_policy_self_link") == 2,
+            s.lb.count("security_policy       = local.foundation.edge_security_policy_self_link")
+            == 2,
             "web and API backend services both attach the foundation-owned Cloud Armor policy",
         ),
         (

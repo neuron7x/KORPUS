@@ -163,11 +163,10 @@ def test_every_port_the_application_declares_has_an_implementation() -> None:
         "IngestionJobQueue": SqlIngestionJobQueue,
         "ObjectStore": LocalObjectStore,
     }
-    unimplemented = [name for name in protocols if name not in implementations
-                     and name not in {"Retriever"}]
-    assert not unimplemented, (
-        f"these ports have no adapter named here: {unimplemented}"
-    )
+    unimplemented = [
+        name for name in protocols if name not in implementations and name not in {"Retriever"}
+    ]
+    assert not unimplemented, f"these ports have no adapter named here: {unimplemented}"
 
     # Structural, not nominal: Protocol conformance is what the type checker enforces,
     # and an adapter that has drifted from its port fails here rather than at a call
@@ -321,11 +320,7 @@ def test_every_model_that_leaves_the_process_is_frozen() -> None:
         "Identity",
         "IngestionJobRecord",
     ]
-    mutable = [
-        name
-        for name in outputs
-        if not getattr(models, name).model_config.get("frozen")
-    ]
+    mutable = [name for name in outputs if not getattr(models, name).model_config.get("frozen")]
 
     assert not mutable, f"these leave the process and can still be edited: {mutable}"
 

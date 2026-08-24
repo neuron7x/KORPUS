@@ -8,13 +8,17 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 from korpus.config import Settings  # noqa: E402
 from korpus.main import create_app  # noqa: E402
+
 from scripts.openapi_normalization import normalize_openapi  # noqa: E402
+
 DEFAULT = ROOT / "contracts/openapi.json"
 
 
 def canonical_contract() -> str:
     app = create_app(Settings(environment="test", auth_mode="disabled"))
-    contract = json.dumps(normalize_openapi(app.openapi()), ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    contract = json.dumps(
+        normalize_openapi(app.openapi()), ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
     return contract + "\n"
 
 

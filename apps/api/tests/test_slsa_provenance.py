@@ -9,13 +9,16 @@ from scripts.slsa_provenance import LOCAL_BUILDER, build_statement, verify_state
 def seed(root: Path) -> Path:
     files = {
         "SOURCE_MANIFEST.json": "{}\n",
-        "apps/api/src/korpus/release.json": json.dumps({
-            "schema": "korpus.release-identity.v1",
-            "product": "KORPUS",
-            "version": "0.4.0",
-            "tag": "v0.4.0",
-            "artifact_stem": "KORPUS_SYSTEM_v0.4.0",
-        }) + "\n",
+        "apps/api/src/korpus/release.json": json.dumps(
+            {
+                "schema": "korpus.release-identity.v1",
+                "product": "KORPUS",
+                "version": "0.4.0",
+                "tag": "v0.4.0",
+                "artifact_stem": "KORPUS_SYSTEM_v0.4.0",
+            }
+        )
+        + "\n",
         "apps/api/requirements.runtime.lock": "runtime\n",
         "apps/api/requirements.dev.lock": "dev\n",
         "apps/web/package-lock.json": "{}\n",
@@ -64,7 +67,9 @@ def test_tampered_artifact_is_rejected(tmp_path: Path) -> None:
         finished_on="2026-08-15T12:00:01Z",
     )
     artifact.write_bytes(b"tampered")
-    verdict = verify_statement(tmp_path, artifact, statement, trusted_builders=set(), require_trusted_builder=False)
+    verdict = verify_statement(
+        tmp_path, artifact, statement, trusted_builders=set(), require_trusted_builder=False
+    )
     assert verdict["status"] == "FAIL"
     assert "subject.digest" in verdict["failures"]
 
@@ -79,6 +84,8 @@ def test_local_builder_cannot_satisfy_production_trust(tmp_path: Path) -> None:
         started_on="2026-08-15T12:00:00Z",
         finished_on="2026-08-15T12:00:01Z",
     )
-    verdict = verify_statement(tmp_path, artifact, statement, trusted_builders=set(), require_trusted_builder=True)
+    verdict = verify_statement(
+        tmp_path, artifact, statement, trusted_builders=set(), require_trusted_builder=True
+    )
     assert verdict["status"] == "FAIL"
     assert "builder.trusted" in verdict["failures"]

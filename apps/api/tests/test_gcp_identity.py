@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import httpx
 import pytest
-
 from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 
 
@@ -60,6 +59,8 @@ def test_metadata_identity_fails_closed_on_outage() -> None:
 
 
 def test_id_token_refuses_non_https_audience() -> None:
-    provider = MetadataIdentityProvider(client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500))))
+    provider = MetadataIdentityProvider(
+        client=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(500)))
+    )
     with pytest.raises(ValueError, match="HTTPS"):
         provider.id_token("http://internal.example")

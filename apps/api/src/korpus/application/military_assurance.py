@@ -5,6 +5,7 @@ knowledge delivery safer and more useful for training by verifying offline artif
 separating presentation level from source claims, and routing human corrections through
 an immutable review queue rather than mutating corpus truth.
 """
+
 from __future__ import annotations
 
 import base64
@@ -69,8 +70,12 @@ def verify_offline_pack(
 
     signed = {key: value for key, value in pack.items() if key != "signature"}
     try:
-        public = Ed25519PublicKey.from_public_bytes(base64.b64decode(trusted_public_key_b64, validate=True))
-        public.verify(base64.b64decode(signature, validate=True), canonical_json(signed).encode("utf-8"))
+        public = Ed25519PublicKey.from_public_bytes(
+            base64.b64decode(trusted_public_key_b64, validate=True)
+        )
+        public.verify(
+            base64.b64decode(signature, validate=True), canonical_json(signed).encode("utf-8")
+        )
     except (ValueError, InvalidSignature):
         return OfflinePackVerification(
             state=OfflinePackState.SIGNATURE_INVALID,
@@ -93,7 +98,9 @@ def verify_offline_pack(
         state=state,
         usable=usable,
         payload_sha256=declared_digest,
-        corpus_release=str(pack.get("corpus_release")) if pack.get("corpus_release") is not None else None,
+        corpus_release=str(pack.get("corpus_release"))
+        if pack.get("corpus_release") is not None
+        else None,
         valid_until=valid_until,
     )
 
@@ -114,13 +121,14 @@ class EvidenceClaim(BaseModel):
 
 class ExplanationEnvelope(BaseModel):
     """Presentation may change; licensed claims and evidence identities may not."""
+
     model_config = ConfigDict(frozen=True)
     audience: AudienceLevel
     claims: tuple[EvidenceClaim, ...] = Field(min_length=1, max_length=256)
     explanation: str = Field(min_length=1, max_length=20_000)
 
     @model_validator(mode="after")
-    def unique_claims(self) -> "ExplanationEnvelope":
+    def unique_claims(self) -> ExplanationEnvelope:
         ids = [item.id for item in self.claims]
         if len(ids) != len(set(ids)):
             raise ValueError("explanation claim ids must be unique")
@@ -160,7 +168,13 @@ class CorrectionSubmission(BaseModel):
     @property
     def fingerprint(self) -> str:
         material = "\x1f".join(
-            [self.kind, self.document_id, self.version_id, self.span_id or "", " ".join(self.note.split())]
+            [
+                self.kind,
+                self.document_id,
+                self.version_id,
+                self.span_id or "",
+                " ".join(self.note.split()),
+            ]
         )
         return hashlib.sha256(material.encode("utf-8")).hexdigest()
 

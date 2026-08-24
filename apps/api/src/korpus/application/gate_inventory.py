@@ -12,8 +12,8 @@ from collections.abc import Callable
 from typing import Any
 
 from korpus.application.assurance import evaluate_assurance
-from korpus.application.operations import OperationalReleaseGate
 from korpus.application.operational_math import evaluate_operational_checks
+from korpus.application.operations import OperationalReleaseGate
 
 
 def _dictionary_keys(function: Callable[..., Any], variable: str) -> tuple[str, ...]:
@@ -38,9 +38,7 @@ def _dictionary_keys(function: Callable[..., Any], variable: str) -> tuple[str, 
 
 def _dedent(source: str) -> str:
     lines = source.splitlines()
-    indent = min(
-        (len(line) - len(line.lstrip()) for line in lines if line.strip()), default=0
-    )
+    indent = min((len(line) - len(line.lstrip()) for line in lines if line.strip()), default=0)
     return "\n".join(line[indent:] if len(line) >= indent else line for line in lines)
 
 

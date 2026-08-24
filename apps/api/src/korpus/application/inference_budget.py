@@ -5,14 +5,15 @@ may continue only while it changes the decision or adds evidence that was not al
 observed. The loop stops at a fixpoint or at a hard budget. This prevents recursive
 self-review from manufacturing confidence by repetition.
 """
+
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Iterable
-
 
 from korpus.application.numeric_contracts import strict_int as _strict_int
+
 
 class StopReason(StrEnum):
     CONTINUE = "CONTINUE"
@@ -51,6 +52,8 @@ class InferenceCycle:
             raise ValueError("decision_fingerprint is required")
         if any(not item for item in self.evidence_fingerprints | self.conflict_fingerprints):
             raise ValueError("fingerprints must be non-empty")
+
+
 @dataclass(frozen=True, slots=True)
 class BudgetDecision:
     continue_inference: bool
@@ -70,7 +73,9 @@ def decide_next(history: Iterable[InferenceCycle], budget: InferenceBudget) -> B
     latest = cycles[-1]
     evidence_union = frozenset().union(*(item.evidence_fingerprints for item in cycles))
     conflict_union = frozenset().union(*(item.conflict_fingerprints for item in cycles))
-    decision_changed = len(cycles) == 1 or latest.decision_fingerprint != cycles[-2].decision_fingerprint
+    decision_changed = (
+        len(cycles) == 1 or latest.decision_fingerprint != cycles[-2].decision_fingerprint
+    )
     prior_evidence = (
         frozenset().union(*(item.evidence_fingerprints for item in cycles[:-1]))
         if len(cycles) > 1

@@ -5,19 +5,24 @@ path.  No model self-confidence, hidden text, wall-clock time or mutable global 
 enters this object.  Its canonical fingerprint is therefore suitable for audit,
 replay, and deterministic controller decisions.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Mapping
 
-from korpus.application.pec_evidence_features import authority_summary, boundary_for_state, redundancy, score_concentration
 from korpus.application.numeric_contracts import finite_number, nonnegative_count
+from korpus.application.pec_evidence_features import (
+    authority_summary,
+    boundary_for_state,
+    redundancy,
+    score_concentration,
+)
 from korpus.application.retrieval_math import tokenize
 from korpus.application.risk import QueryRisk, RiskThresholds
 from korpus.domain.models import RetrievedEvidence
-
 
 FEATURE_SCHEMA_VERSION = 2
 
@@ -70,9 +75,7 @@ class EvidenceState:
 
 
 FEATURE_NAMES = tuple(
-    field
-    for field in EvidenceState.__dataclass_fields__
-    if field != "schema_version"
+    field for field in EvidenceState.__dataclass_fields__ if field != "schema_version"
 )
 
 

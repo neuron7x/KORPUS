@@ -20,154 +20,196 @@ OUT_DIR = ROOT / "docs/audit/closure"
 # Reclassified 2026-08-05. Each move carries a test that fails without the fix and a
 # mutant that removes it and dies; a status changed without both is a claim.
 CLOSED_LOCAL = {
-    "IAM-001", "IAM-003", "IAM-004",
-    "ING-001", "ING-002", "ING-003", "ING-004", "ING-005",
-    "ING-006", "ING-007", "ING-010", "ING-011",
-    "RAG-002", "RAG-004", "RAG-006", "RAG-008", "RAG-019",
-    "SUP-004", "COD-010", "OPS-002",
+    "IAM-001",
+    "IAM-003",
+    "IAM-004",
+    "ING-001",
+    "ING-002",
+    "ING-003",
+    "ING-004",
+    "ING-005",
+    "ING-006",
+    "ING-007",
+    "ING-010",
+    "ING-011",
+    "RAG-002",
+    "RAG-004",
+    "RAG-006",
+    "RAG-008",
+    "RAG-019",
+    "SUP-004",
+    "COD-010",
+    "OPS-002",
     # 2026-08-05: lock files carry sha256 for all 68 artefacts and every install site
     # passes --require-hashes; the validator's complexity is 5 and 57 where it was 102
     # and 103; every broad handler must re-raise, degrade or record; every image in the
     # pipeline, the compose file and both Dockerfiles is pinned by digest.
-    "SUP-002", "COD-002", "COD-003", "SUP-001",
+    "SUP-002",
+    "COD-002",
+    "COD-003",
+    "SUP-001",
 }
 
 MITIGATED_LOCAL = {
-    "GOV-002", "GOV-003", "GOV-005",
-    "IAM-002", "IAM-005", "IAM-006", "IAM-007",
-    "ING-008", "ING-009",
-    "RAG-005", "RAG-007", "RAG-010", "RAG-011", "RAG-012", "RAG-015", "RAG-018", "RAG-020",
-    "INF-002", "INF-007", "INF-010",
-    "SRE-003", "SRE-006",
+    "GOV-002",
+    "GOV-003",
+    "GOV-005",
+    "IAM-002",
+    "IAM-005",
+    "IAM-006",
+    "IAM-007",
+    "ING-008",
+    "ING-009",
+    "RAG-005",
+    "RAG-007",
+    "RAG-010",
+    "RAG-011",
+    "RAG-012",
+    "RAG-015",
+    "RAG-018",
+    "RAG-020",
+    "INF-002",
+    "INF-007",
+    "INF-010",
+    "SRE-003",
+    "SRE-006",
     "SUP-006",
-    "COD-005", "COD-006", "COD-007", "COD-008", "COD-009",
-    "AUD-001", "AUD-002",
-    "DATA-001", "DATA-002", "DATA-004",
+    "COD-005",
+    "COD-006",
+    "COD-007",
+    "COD-008",
+    "COD-009",
+    "AUD-001",
+    "AUD-002",
+    "DATA-001",
+    "DATA-002",
+    "DATA-004",
     # 2026-08-05: a material local control now exists; the residue is external or
     # partial, and named as such in TECHNICAL_DEBT_V5.md rather than counted as closed.
-    "RAG-009",   # rules carry examples and the unknown class fails closed; a trained
-                 # classifier on a blind set with per-class metrics remains
-    "RAG-013",   # numbers, units and tables detected; formula structure remains
-    "RAG-016",   # blue-green plan, resumable batches, switch/retire/rollback rules;
-                 # executing it against a real index stays external
-    "RAG-017",   # embedding drift has four states; online answer-quality does not
-    "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
-    "SUP-009",   # 68/68 licenses read from metadata; legal review is external
-    "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
-    "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
+    "RAG-009",  # rules carry examples and the unknown class fails closed; a trained
+    # classifier on a blind set with per-class metrics remains
+    "RAG-013",  # numbers, units and tables detected; formula structure remains
+    "RAG-016",  # blue-green plan, resumable batches, switch/retire/rollback rules;
+    # executing it against a real index stays external
+    "RAG-017",  # embedding drift has four states; online answer-quality does not
+    "INF-009",  # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
+    "SUP-009",  # 68/68 licenses read from metadata; legal review is external
+    "COD-004",  # branch coverage 0.7726 against policy, checked where it is produced
+    "AUD-004",  # export is resumable and gap-evident; the SIEM itself is external
     # 2026-08-05, second pass.
     # 2026-08-06. Nine findings the register called EXTERNAL because nothing in this
     # tree could close them. That was true against a system with a fixture for a corpus
     # and no deployment; there is a deployment now, and a corpus of 1648 documents, so
     # these are questions this machine can answer. Each carries an executed report in
     # var/ and the residue that is still somebody else's.
-    "INF-001",   # the compose topology was executed for the first time on 2026-08-06
-                 # and had never started: ten defects, every one of them the same shape
-                 # or adjacent to it — files COPY'd into an image keep the tree's 0660
-                 # umask, every container runs unprivileged with DAC_OVERRIDE dropped,
-                 # and so no service could read its own configuration. All seven
-                 # services are healthy, migrations ran, api and web survive a restart.
-                 # A clean-host deployment with upgrade and downgrade stays external.
-    "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
-                 # prepared the least-privilege role. Canary and automated rollback stay
-                 # external.
-    "IAM-008",   # break-glass that needs a second named approver, expires, refuses a
-                 # clearance above the approver's own, and never carries approval
-                 # authority — an emergency is a reason to read, and a document approved
-                 # under duress is the failure the reviewer registry exists to prevent.
-                 # The JIT/PAM vault that holds the credential, and the recording of what
-                 # the operator did at the terminal, stay external.
-    "INF-012",   # a second copy outside the working tree, the newest one mode 0444, and a
-                 # restore executed with the date recorded — the cadence is the property,
-                 # not the copy. `copies.offsite` is reported as an external clause rather
-                 # than as a failure: object lock with a credential the writer does not
-                 # hold is what survives an operator, and 0444 does not survive root.
-    "OPS-003",   # gate reports copied under their digest and sealed, retained for the
-                 # system's life rather than the pipeline's. The report says what a seal
-                 # is not: it catches a careless edit and not a deliberate one.
-    "OPS-005",   # per-visitor and aggregate limits at the edge, an admission budget at the
-                 # API, both checked against the files that carry them. Cost attribution
-                 # needs a billing account and stays external.
-    "SUP-008",   # deadlines by severity, immediate for anything on KEV, and a scan older
-                 # than a week is not a pass — the usual way a dependency policy fails is
-                 # that the scan stopped and the last green report kept being the answer.
-                 # With no KEV catalogue loaded every finding is `kev_unknown` rather than
-                 # not-exploited. Fetching the catalogue on a schedule stays external.
-    "AUD-003",   # an audit event records the id of the key that signed it, and the
-                 # verifier uses the key the *event* names. Rotating used to invalidate
-                 # every event ever written, so the key was never rotated — which was the
-                 # finding. The set of still-honoured keys is the dual-validation window.
-                 # Revocation is not deletion: a revoked key's events still verify and are
-                 # reported as signed by something no longer trusted, because "cannot be
-                 # verified" is a different and weaker fact. A ceremony with two custodians
-                 # and a key held in an HSM stays external.
-    "SUP-003",   # the SBOM is bound to the image it describes inside a signed
-                 # statement — subject, builder, materials, invocation — and verifying
-                 # against a different image fails on the digest. The predicate name says
-                 # what it is not: a signature made where the build ran proves integrity,
-                 # not honesty. A hosted runner and a key in a KMS stay external, and no
-                 # SLSA level is claimed, because a level is a claim about a platform.
-    "RAG-001",   # a reference set drawn from the deployed corpus rather than a fixture:
-                 # 151 cases over 54 strata, digest-sealed, 151 passed. Two findings came
-                 # out of running it — a sentence is not unique to one document in a
-                 # library of the same manual under different names, and a table of
-                 # contents is not a proposition. Whether an answer is *good* is not
-                 # judged here and stays with RAG-003.
-    "WEB-002",   # WCAG 2.2 AA measured in the rendered page rather than asserted in a
-                 # comment: target size, focus visibility, keyboard focusability,
-                 # contrast, the skip link and a live region. Six contrast failures found
-                 # and fixed; the palette now passes and a gate computes it. Screen-reader
-                 # behaviour and cognitive-load testing stay external.
-    "SRE-001",   # four objectives declared with the conditions they were set under and
-                 # judged against the load report, so a change that makes the system
-                 # slower fails a gate. An error budget is a decision about how much
-                 # failure is acceptable to whom, and stays external.
-    "INF-008",   # the rated concurrency is the one at which the measured p95 still fits
-                 # the objective — eight, p95 3.269s — rather than the one at which the
-                 # process survives. Autoscaling and admission budgets against a real
-                 # capacity plan stay external.
-    "ING-012",   # three SIGKILLs at random points, resumed, reconciled by content
-                 # against an uninterrupted run of the same manifest — document titles,
-                 # source hashes, review states, every span's text hash. A full-scale
-                 # replay against production infrastructure stays external.
-    "SRE-004",   # eight dependencies broken in turn: database gone answers 5xx and not
-                 # "no basis", object store gone changes nothing, a hostile planner
-                 # contributes no word. Infrastructure-level injection — network
-                 # partitions, a full disk on a real host — stays external.
-    "SRE-005",   # load, spike and soak with the conditions recorded beside the numbers;
-                 # the run found the deadline defect and the rate-limit defect. A
-                 # production-representative workload on production hardware stays
-                 # external.
-    "RAG-014",   # benchmarked on the real corpus rather than a fixture: 1648 documents,
-                 # 118 622 spans, cold and warm, eight and thirty-two concurrent.
-    "SUP-005",   # gitleaks over 121 commits, pip-audit over both locks, trivy over the
-                 # tree: four scanners, four zero exit codes, reports archived. An
-                 # isolated runner and signed reports stay external.
-    "OPS-001",   # executed and the claim is false: 6 of 15 layers agree across two
-                 # builds of one tree. The required action was to measure and record the
-                 # nondeterminism, and both sources are named. Making it reproducible is
-                 # a project, not a fix.
+    "INF-001",  # the compose topology was executed for the first time on 2026-08-06
+    # and had never started: ten defects, every one of them the same shape
+    # or adjacent to it — files COPY'd into an image keep the tree's 0660
+    # umask, every container runs unprivileged with DAC_OVERRIDE dropped,
+    # and so no service could read its own configuration. All seven
+    # services are healthy, migrations ran, api and web survive a restart.
+    # A clean-host deployment with upgrade and downgrade stays external.
+    "INF-011",  # alembic upgraded through ten revisions against a real PostgreSQL and
+    # prepared the least-privilege role. Canary and automated rollback stay
+    # external.
+    "IAM-008",  # break-glass that needs a second named approver, expires, refuses a
+    # clearance above the approver's own, and never carries approval
+    # authority — an emergency is a reason to read, and a document approved
+    # under duress is the failure the reviewer registry exists to prevent.
+    # The JIT/PAM vault that holds the credential, and the recording of what
+    # the operator did at the terminal, stay external.
+    "INF-012",  # a second copy outside the working tree, the newest one mode 0444, and a
+    # restore executed with the date recorded — the cadence is the property,
+    # not the copy. `copies.offsite` is reported as an external clause rather
+    # than as a failure: object lock with a credential the writer does not
+    # hold is what survives an operator, and 0444 does not survive root.
+    "OPS-003",  # gate reports copied under their digest and sealed, retained for the
+    # system's life rather than the pipeline's. The report says what a seal
+    # is not: it catches a careless edit and not a deliberate one.
+    "OPS-005",  # per-visitor and aggregate limits at the edge, an admission budget at the
+    # API, both checked against the files that carry them. Cost attribution
+    # needs a billing account and stays external.
+    "SUP-008",  # deadlines by severity, immediate for anything on KEV, and a scan older
+    # than a week is not a pass — the usual way a dependency policy fails is
+    # that the scan stopped and the last green report kept being the answer.
+    # With no KEV catalogue loaded every finding is `kev_unknown` rather than
+    # not-exploited. Fetching the catalogue on a schedule stays external.
+    "AUD-003",  # an audit event records the id of the key that signed it, and the
+    # verifier uses the key the *event* names. Rotating used to invalidate
+    # every event ever written, so the key was never rotated — which was the
+    # finding. The set of still-honoured keys is the dual-validation window.
+    # Revocation is not deletion: a revoked key's events still verify and are
+    # reported as signed by something no longer trusted, because "cannot be
+    # verified" is a different and weaker fact. A ceremony with two custodians
+    # and a key held in an HSM stays external.
+    "SUP-003",  # the SBOM is bound to the image it describes inside a signed
+    # statement — subject, builder, materials, invocation — and verifying
+    # against a different image fails on the digest. The predicate name says
+    # what it is not: a signature made where the build ran proves integrity,
+    # not honesty. A hosted runner and a key in a KMS stay external, and no
+    # SLSA level is claimed, because a level is a claim about a platform.
+    "RAG-001",  # a reference set drawn from the deployed corpus rather than a fixture:
+    # 151 cases over 54 strata, digest-sealed, 151 passed. Two findings came
+    # out of running it — a sentence is not unique to one document in a
+    # library of the same manual under different names, and a table of
+    # contents is not a proposition. Whether an answer is *good* is not
+    # judged here and stays with RAG-003.
+    "WEB-002",  # WCAG 2.2 AA measured in the rendered page rather than asserted in a
+    # comment: target size, focus visibility, keyboard focusability,
+    # contrast, the skip link and a live region. Six contrast failures found
+    # and fixed; the palette now passes and a gate computes it. Screen-reader
+    # behaviour and cognitive-load testing stay external.
+    "SRE-001",  # four objectives declared with the conditions they were set under and
+    # judged against the load report, so a change that makes the system
+    # slower fails a gate. An error budget is a decision about how much
+    # failure is acceptable to whom, and stays external.
+    "INF-008",  # the rated concurrency is the one at which the measured p95 still fits
+    # the objective — eight, p95 3.269s — rather than the one at which the
+    # process survives. Autoscaling and admission budgets against a real
+    # capacity plan stay external.
+    "ING-012",  # three SIGKILLs at random points, resumed, reconciled by content
+    # against an uninterrupted run of the same manifest — document titles,
+    # source hashes, review states, every span's text hash. A full-scale
+    # replay against production infrastructure stays external.
+    "SRE-004",  # eight dependencies broken in turn: database gone answers 5xx and not
+    # "no basis", object store gone changes nothing, a hostile planner
+    # contributes no word. Infrastructure-level injection — network
+    # partitions, a full disk on a real host — stays external.
+    "SRE-005",  # load, spike and soak with the conditions recorded beside the numbers;
+    # the run found the deadline defect and the rate-limit defect. A
+    # production-representative workload on production hardware stays
+    # external.
+    "RAG-014",  # benchmarked on the real corpus rather than a fixture: 1648 documents,
+    # 118 622 spans, cold and warm, eight and thirty-two concurrent.
+    "SUP-005",  # gitleaks over 121 commits, pip-audit over both locks, trivy over the
+    # tree: four scanners, four zero exit codes, reports archived. An
+    # isolated runner and signed reports stay external.
+    "OPS-001",  # executed and the claim is false: 6 of 15 layers agree across two
+    # builds of one tree. The required action was to measure and record the
+    # nondeterminism, and both sources are named. Making it reproducible is
+    # a project, not a fix.
     "DATA-003",  # the corpus is frozen and signed — every approved version, its source
-                 # hash and what decides when it governs — and a manifest with one
-                 # authority class raised does not verify. The data owner's signature is
-                 # a person taking responsibility and stays external.
-    "SRE-007",   # a restored backup is identified as a different release by content:
-                 # rollback detection works. Canary cohorts and shadow evaluation stay
-                 # external.
-    "INF-005",   # backup and restore executed end to end for the deployment that is
-                 # actually serving: 1.96 GB encrypted, restored, integrity checked, and
-                 # the restored copy answered a question. A live PostgreSQL drill with a
-                 # timed RTO/RPO stays external.
-    "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
-                 # tests; the transactional core still carries CRUD, review, audit
-                 # append and readiness, so "one responsibility per module" is not met
-    "WEB-001",   # role-specific consoles cover critical workflows with preview gates;
-                 # Chromium/CDP covers DOM/XSS/429/mobile/reviewer behavior locally,
-                 # while networked same-origin OIDC/session E2E stays external
-    "OPS-004",   # desired state versus an observed environment, with UNOBSERVED kept
-                 # apart from IN_SYNC; taking the observation from a live cluster and
-                 # reverting on the verdict is the operator's half
+    # hash and what decides when it governs — and a manifest with one
+    # authority class raised does not verify. The data owner's signature is
+    # a person taking responsibility and stays external.
+    "SRE-007",  # a restored backup is identified as a different release by content:
+    # rollback detection works. Canary cohorts and shadow evaluation stay
+    # external.
+    "INF-005",  # backup and restore executed end to end for the deployment that is
+    # actually serving: 1.96 GB encrypted, restored, integrity checked, and
+    # the restored copy answered a question. A live PostgreSQL drill with a
+    # timed RTO/RPO stays external.
+    "COD-001",  # 1855 -> 1047 across four extractions, held by a ratchet and seam
+    # tests; the transactional core still carries CRUD, review, audit
+    # append and readiness, so "one responsibility per module" is not met
+    "WEB-001",  # role-specific consoles cover critical workflows with preview gates;
+    # Chromium/CDP covers DOM/XSS/429/mobile/reviewer behavior locally,
+    # while networked same-origin OIDC/session E2E stays external
+    "OPS-004",  # desired state versus an observed environment, with UNOBSERVED kept
+    # apart from IN_SYNC; taking the observation from a live cluster and
+    # reverting on the verdict is the operator's half
 }
+
 
 def _code_half(finding_id: str) -> dict[str, dict[str, object]]:
     """The code half of an external debt, or nothing — kept out of the main loop so the
@@ -177,9 +219,13 @@ def _code_half(finding_id: str) -> dict[str, dict[str, object]]:
 
 
 EXTERNAL_DEBT = {
-    "GOV-001", "GOV-004", "GOV-006",
+    "GOV-001",
+    "GOV-004",
+    "GOV-006",
     "RAG-003",
-    "INF-003", "INF-004", "INF-006",
+    "INF-003",
+    "INF-004",
+    "INF-006",
     "SRE-002",
     "SUP-007",
 }
@@ -536,24 +582,23 @@ EVIDENCE: dict[str, list[str]] = {
         "apps/api/src/korpus/infrastructure/retrieval_queries.py",
         "apps/api/src/korpus/infrastructure/row_mapping.py",
         "apps/api/src/korpus/infrastructure/audit_reader.py",
-        "apps/api/tests/test_repository_seams.py"
-        "::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py::test_the_query_builders_never_open_a_connection",
         "apps/api/tests/test_repository_seams.py"
         "::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
         "apps/api/tests/test_repository_access_refusals.py"
         "::test_listing_hides_a_document_above_the_readers_clearance",
         "config/operations/module-budget.json",
     ],
-    "WEB-001": ["apps/web/public/console.html",
+    "WEB-001": [
+        "apps/web/public/console.html",
         "apps/web/public/console_rules.js",
-        "apps/web/scripts/browser_e2e.mjs", "apps/web/package.json",
+        "apps/web/scripts/browser_e2e.mjs",
+        "apps/web/package.json",
         "scripts/generate_web_contract.py",
-        "apps/api/tests/test_gate_parity.py"
-        "::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py::test_every_writing_console_previews_before_it_acts",
         "apps/api/tests/test_gate_parity.py"
         "::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
-        "apps/api/tests/test_gate_parity.py"
-        "::test_the_web_gate_runs_its_own_negative_controls",
+        "apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls",
     ],
     "OPS-004": [
         "apps/api/src/korpus/application/environment_drift.py",
@@ -562,8 +607,7 @@ EVIDENCE: dict[str, list[str]] = {
         "::test_absent_from_observation_is_unobserved_not_in_sync",
         "apps/api/tests/test_environment_drift.py"
         "::test_script_exits_nonzero_when_a_declared_artefact_changed",
-        "apps/api/tests/test_gate_parity.py"
-        "::test_the_environment_drift_check_runs_in_the_pipeline",
+        "apps/api/tests/test_gate_parity.py::test_the_environment_drift_check_runs_in_the_pipeline",
     ],
     "COD-004": [
         "scripts/check_coverage_thresholds.py",
@@ -586,12 +630,9 @@ EVIDENCE: dict[str, list[str]] = {
     ],
     "RAG-016": [
         "apps/api/src/korpus/application/embedding_migration.py",
-        "apps/api/tests/test_embedding_migration.py"
-        "::test_the_switch_requires_complete_coverage",
-        "apps/api/tests/test_embedding_migration.py"
-        "::test_retiring_before_the_switch_is_refused",
-        "apps/api/tests/test_embedding_migration.py"
-        "::test_rollback_is_checked_before_it_is_needed",
+        "apps/api/tests/test_embedding_migration.py::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py::test_rollback_is_checked_before_it_is_needed",
     ],
     "RAG-017": [
         "apps/api/src/korpus/application/embedding_coverage.py",
@@ -683,8 +724,8 @@ def main() -> None:
     classified = CLOSED_LOCAL | MITIGATED_LOCAL | EXTERNAL_DEBT | OPEN_TECH_DEBT
     if source_ids != classified:
         raise RuntimeError(
-            f"closure map mismatch missing={sorted(source_ids-classified)} "
-            f"extra={sorted(classified-source_ids)}"
+            f"closure map mismatch missing={sorted(source_ids - classified)} "
+            f"extra={sorted(classified - source_ids)}"
         )
 
     # Counting evidence entries proved nothing: the registry named files without
@@ -738,8 +779,17 @@ def main() -> None:
     md_path = OUT_DIR / "KORPUS_v5_CLOSURE_SUMMARY.md"
     json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     columns = [
-        "id", "domain", "severity", "state", "title", "v5_status", "v5_evidence",
-        "impact", "required_action", "tools_methods", "acceptance_predicate",
+        "id",
+        "domain",
+        "severity",
+        "state",
+        "title",
+        "v5_status",
+        "v5_evidence",
+        "impact",
+        "required_action",
+        "tools_methods",
+        "acceptance_predicate",
         "v5_remaining_acceptance",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as handle:

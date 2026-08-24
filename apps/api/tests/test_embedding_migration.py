@@ -29,9 +29,7 @@ from korpus.application.embedding_migration import (
 
 
 def _plan(**overrides):
-    values = dict(
-        from_model="embed-v1", to_model="embed-v2", dimensions=768, spans_total=1200
-    )
+    values = dict(from_model="embed-v1", to_model="embed-v2", dimensions=768, spans_total=1200)
     values.update(overrides)
     return plan_migration(**values)
 
@@ -100,9 +98,7 @@ def test_the_switch_requires_no_stale_vectors() -> None:
 
 
 def test_the_switch_is_allowed_at_complete_coverage() -> None:
-    allowed, _ = switch_admissible(
-        spans_total=1200, spans_embedded_target=1200, spans_stale_text=0
-    )
+    allowed, _ = switch_admissible(spans_total=1200, spans_embedded_target=1200, spans_stale_text=0)
 
     assert allowed is True
 
@@ -127,18 +123,14 @@ def test_retiring_before_the_switch_is_refused() -> None:
 
 def test_retiring_after_a_coverage_regression_is_refused() -> None:
     """Spans added after the switch are not covered by the new model either."""
-    allowed, reason = retire_admissible(
-        switched=True, spans_embedded_target=1200, spans_total=1300
-    )
+    allowed, reason = retire_admissible(switched=True, spans_embedded_target=1200, spans_total=1300)
 
     assert allowed is False
     assert "regressed" in reason
 
 
 def test_retiring_is_allowed_once_the_switch_holds() -> None:
-    allowed, _ = retire_admissible(
-        switched=True, spans_embedded_target=1200, spans_total=1200
-    )
+    allowed, _ = retire_admissible(switched=True, spans_embedded_target=1200, spans_total=1200)
 
     assert allowed is True
 

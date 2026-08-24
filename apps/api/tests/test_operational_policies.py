@@ -47,10 +47,14 @@ def test_an_external_clause_is_not_counted_as_a_failure(tmp_path: Path) -> None:
     _, report = _run(
         RETENTION,
         [
-            "--backup-dir", str(tmp_path / "backups"),
-            "--offsite-dir", str(tmp_path / "offsite"),
-            "--evidence-dir", str(tmp_path / "evidence"),
-            "--out", str(tmp_path / "out.json"),
+            "--backup-dir",
+            str(tmp_path / "backups"),
+            "--offsite-dir",
+            str(tmp_path / "offsite"),
+            "--evidence-dir",
+            str(tmp_path / "evidence"),
+            "--out",
+            str(tmp_path / "out.json"),
         ],
     )
 
@@ -69,10 +73,14 @@ def test_a_missing_backup_is_reported_as_missing(tmp_path: Path) -> None:
     code, report = _run(
         RETENTION,
         [
-            "--backup-dir", str(tmp_path / "backups"),
-            "--offsite-dir", str(tmp_path / "offsite"),
-            "--evidence-dir", str(tmp_path / "evidence"),
-            "--out", str(tmp_path / "out.json"),
+            "--backup-dir",
+            str(tmp_path / "backups"),
+            "--offsite-dir",
+            str(tmp_path / "offsite"),
+            "--evidence-dir",
+            str(tmp_path / "evidence"),
+            "--out",
+            str(tmp_path / "out.json"),
         ],
     )
 
@@ -106,9 +114,7 @@ def test_a_stale_scan_fails(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    code, report = _run(
-        PATCH, ["--reports", str(reports), "--out", str(tmp_path / "patch.json")]
-    )
+    code, report = _run(PATCH, ["--reports", str(reports), "--out", str(tmp_path / "patch.json")])
 
     assert code != 0
     assert report["scan_is_stale"] is True
@@ -131,9 +137,7 @@ def test_a_scanner_that_never_started_fails_the_policy(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    code, report = _run(
-        PATCH, ["--reports", str(reports), "--out", str(tmp_path / "patch.json")]
-    )
+    code, report = _run(PATCH, ["--reports", str(reports), "--out", str(tmp_path / "patch.json")])
 
     assert code != 0
     assert report["unexecuted_scanners"] == ["gitleaks"]
@@ -170,9 +174,12 @@ def test_without_a_kev_catalogue_findings_are_unknown_not_clean(tmp_path: Path) 
     _, report = _run(
         PATCH,
         [
-            "--reports", str(reports),
-            "--kev", str(tmp_path / "absent-kev.json"),
-            "--out", str(tmp_path / "patch.json"),
+            "--reports",
+            str(reports),
+            "--kev",
+            str(tmp_path / "absent-kev.json"),
+            "--out",
+            str(tmp_path / "patch.json"),
         ],
     )
 

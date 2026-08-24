@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """POSIX-aware subprocess-tree termination used by bounded harnesses."""
+
 from __future__ import annotations
 
 import os
@@ -25,7 +26,8 @@ def terminate_process_tree(process: subprocess.Popen[str], grace_seconds: float 
             process.wait(timeout=grace_seconds)
             return "terminate_process"
         except subprocess.TimeoutExpired:
-            process.kill(); process.wait(timeout=max(grace_seconds, 1.0))
+            process.kill()
+            process.wait(timeout=max(grace_seconds, 1.0))
             return "kill_process"
     pgid = process.pid
     try:
@@ -39,11 +41,13 @@ def terminate_process_tree(process: subprocess.Popen[str], grace_seconds: float 
     if process_group_alive(pgid):
         try:
             os.killpg(pgid, signal.SIGKILL)
-        except ProcessLookupError: termination = "process_group_absent_after_sigterm"
+        except ProcessLookupError:
+            termination = "process_group_absent_after_sigterm"
         else:
             termination = "sigkill_process_group"
     try:
         process.wait(timeout=max(grace_seconds, 1.0))
     except subprocess.TimeoutExpired:
-        process.kill(); process.wait(timeout=max(grace_seconds, 1.0))
+        process.kill()
+        process.wait(timeout=max(grace_seconds, 1.0))
     return termination

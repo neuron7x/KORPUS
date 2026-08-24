@@ -4,7 +4,6 @@ from dataclasses import replace
 from itertools import product
 
 import pytest
-
 from korpus.application.plasticity import (
     AdaptationAction,
     AdaptationPolicy,
@@ -115,9 +114,7 @@ def test_bounds_saturate_instead_of_overshooting() -> None:
 
 def test_safety_thresholds_saturate() -> None:
     near_ceiling = RuntimeKnobs(256, 1200, 0.98, 0.99, 0.985)
-    proposal = propose_adaptation(
-        AdaptationState(near_ceiling), window(error_rate=0.5)
-    )
+    proposal = propose_adaptation(AdaptationState(near_ceiling), window(error_rate=0.5))
     assert proposal.proposed.minimum_score == 0.99
     assert proposal.proposed.minimum_query_coverage == 0.99
     assert proposal.proposed.minimum_support_score == 0.99
@@ -128,9 +125,23 @@ def test_proposal_digest_commits_observation_state_and_policy() -> None:
     state = AdaptationState(BASE)
     first = propose_adaptation(state, window(error_rate=0.03))
     changed_observation = propose_adaptation(state, window(error_rate=0.04))
-    changed_state = propose_adaptation(AdaptationState(BASE, consecutive_healthy_windows=1), window(error_rate=0.03))
-    changed_policy = propose_adaptation(state, window(error_rate=0.03), replace(POLICY, safety_step=0.03))
-    assert len({first.proposal_sha256, changed_observation.proposal_sha256, changed_state.proposal_sha256, changed_policy.proposal_sha256}) == 4
+    changed_state = propose_adaptation(
+        AdaptationState(BASE, consecutive_healthy_windows=1), window(error_rate=0.03)
+    )
+    changed_policy = propose_adaptation(
+        state, window(error_rate=0.03), replace(POLICY, safety_step=0.03)
+    )
+    assert (
+        len(
+            {
+                first.proposal_sha256,
+                changed_observation.proposal_sha256,
+                changed_state.proposal_sha256,
+                changed_policy.proposal_sha256,
+            }
+        )
+        == 4
+    )
     assert first.policy_sha256 != changed_policy.policy_sha256
 
 
@@ -192,7 +203,9 @@ def test_exhaustive_small_state_space_preserves_core_invariants() -> None:
         (0.80, 0.95),
         (0, 2),
     ):
-        state = AdaptationState(BASE, last_change_sequence=1, consecutive_healthy_windows=healthy_count)
+        state = AdaptationState(
+            BASE, last_change_sequence=1, consecutive_healthy_windows=healthy_count
+        )
         proposal = propose_adaptation(
             state,
             window(
@@ -206,8 +219,14 @@ def test_exhaustive_small_state_space_preserves_core_invariants() -> None:
         )
         validate_proposal(proposal)
         actions.add(proposal.action)
-        assert POLICY.min_candidate_budget <= proposal.proposed.candidate_budget <= POLICY.max_candidate_budget
-        assert POLICY.min_timeout_ms <= proposal.proposed.retrieval_timeout_ms <= POLICY.max_timeout_ms
+        assert (
+            POLICY.min_candidate_budget
+            <= proposal.proposed.candidate_budget
+            <= POLICY.max_candidate_budget
+        )
+        assert (
+            POLICY.min_timeout_ms <= proposal.proposed.retrieval_timeout_ms <= POLICY.max_timeout_ms
+        )
         assert proposal.proposed.minimum_score >= BASE.minimum_score
         assert proposal.proposed.minimum_query_coverage >= BASE.minimum_query_coverage
         assert proposal.proposed.minimum_support_score >= BASE.minimum_support_score

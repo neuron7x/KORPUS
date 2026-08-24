@@ -4,6 +4,7 @@ Raw credentials never enter this context.  A browser session cookie or bearer cr
 is reduced to a one-way SHA-256 binding used only to correlate events from the same
 credential without disclosing it.  Client version is metadata, never authorization.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -39,7 +40,6 @@ def normalized_client_version(value: str | None) -> str:
     return candidate if CLIENT_VERSION_PATTERN.fullmatch(candidate) else "unknown"
 
 
-
 def request_audit_context(
     *, session_cookie: str | None, authorization: str | None, client_version: str | None
 ) -> RequestAuditContext:
@@ -50,6 +50,7 @@ def request_audit_context(
         ),
         offline_mode=False,
     )
+
 
 def set_request_audit_context(value: RequestAuditContext) -> Token[RequestAuditContext | None]:
     return _current.set(value)

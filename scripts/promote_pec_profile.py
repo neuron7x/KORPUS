@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Stable thin CLI for governed PEC profile promotion."""
+
 from pec_promotion_cli import main
 
 __all__ = ["main"]

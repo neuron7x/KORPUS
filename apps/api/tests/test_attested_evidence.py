@@ -5,7 +5,6 @@ import hashlib
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
 from korpus.application.attested_evidence import verify_ed25519_attestation
 
 
@@ -31,7 +30,10 @@ def test_valid_signature_from_pretrusted_key_is_admitted() -> None:
     data = b'{"environment_class":"PRODUCTION_LIKE"}\n'
     attestation, fingerprint = _signed(data)
     verdict = verify_ed25519_attestation(
-        data, manifest_name="evidence.json", release="v1", attestation=attestation,
+        data,
+        manifest_name="evidence.json",
+        release="v1",
+        attestation=attestation,
         trusted_fingerprints={fingerprint},
     )
     assert verdict.valid is True
@@ -42,7 +44,10 @@ def test_valid_but_untrusted_self_signature_is_not_trust_evidence() -> None:
     data = b"evidence"
     attestation, _ = _signed(data)
     verdict = verify_ed25519_attestation(
-        data, manifest_name="evidence.json", release="v1", attestation=attestation,
+        data,
+        manifest_name="evidence.json",
+        release="v1",
+        attestation=attestation,
         trusted_fingerprints=set(),
     )
     assert verdict.cryptographically_valid is True
@@ -54,7 +59,10 @@ def test_tampered_evidence_breaks_signature_and_digest_binding() -> None:
     original = b"original"
     attestation, fingerprint = _signed(original)
     verdict = verify_ed25519_attestation(
-        b"tampered", manifest_name="evidence.json", release="v1", attestation=attestation,
+        b"tampered",
+        manifest_name="evidence.json",
+        release="v1",
+        attestation=attestation,
         trusted_fingerprints={fingerprint},
     )
     assert verdict.checks["manifest_sha256"] is False
@@ -66,11 +74,17 @@ def test_attestation_cannot_be_replayed_for_another_release_or_filename() -> Non
     data = b"bound"
     attestation, fingerprint = _signed(data)
     wrong_release = verify_ed25519_attestation(
-        data, manifest_name="evidence.json", release="v2", attestation=attestation,
+        data,
+        manifest_name="evidence.json",
+        release="v2",
+        attestation=attestation,
         trusted_fingerprints={fingerprint},
     )
     wrong_name = verify_ed25519_attestation(
-        data, manifest_name="other.json", release="v1", attestation=attestation,
+        data,
+        manifest_name="other.json",
+        release="v1",
+        attestation=attestation,
         trusted_fingerprints={fingerprint},
     )
     assert wrong_release.checks["release"] is False

@@ -1,4 +1,5 @@
 """Content-addressed identity for one successful answer authorization decision."""
+
 from __future__ import annotations
 
 import hashlib

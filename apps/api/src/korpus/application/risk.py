@@ -17,7 +17,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from korpus.application.numeric_contracts import require_rate
-
 from korpus.application.risk_rules import RISK_RULES, QueryRisk, classify
 
 __all__ = [
@@ -38,8 +37,10 @@ class RiskThresholds:
 
     def __post_init__(self) -> None:
         for name in (
-            "minimum_score", "minimum_query_coverage",
-            "minimum_support_score", "minimum_authority",
+            "minimum_score",
+            "minimum_query_coverage",
+            "minimum_support_score",
+            "minimum_authority",
         ):
             require_rate(getattr(self, name), label=name)
 

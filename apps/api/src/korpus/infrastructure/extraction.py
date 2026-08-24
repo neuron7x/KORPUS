@@ -44,8 +44,21 @@ class _VisibleTextParser(HTMLParser):
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth += 1
         elif self._ignored_depth == 0 and tag.casefold() in {
-            "p", "div", "section", "article", "header", "footer", "br", "li", "tr",
-            "h1", "h2", "h3", "h4", "h5", "h6",
+            "p",
+            "div",
+            "section",
+            "article",
+            "header",
+            "footer",
+            "br",
+            "li",
+            "tr",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
         }:
             self.parts.append("\n")
 
@@ -53,7 +66,12 @@ class _VisibleTextParser(HTMLParser):
         if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
             self._ignored_depth = max(0, self._ignored_depth - 1)
         elif self._ignored_depth == 0 and tag.casefold() in {
-            "p", "div", "section", "article", "li", "tr",
+            "p",
+            "div",
+            "section",
+            "article",
+            "li",
+            "tr",
         }:
             self.parts.append("\n")
 
@@ -183,7 +201,10 @@ def extract_pages_from_path(
     suffix = _validate_type_path(path, filename, mime_type)
     if suffix == ".pdf":
         return extract_pdf_pages(
-            path, ocr_enabled, ocr_languages, _normalize,
+            path,
+            ocr_enabled,
+            ocr_languages,
+            _normalize,
             max_pdf_pages=max_pdf_pages,
             ocr_total_timeout_seconds=ocr_total_timeout_seconds,
             reader_factory=PdfReader,
@@ -325,7 +346,6 @@ def extract_pages_sandboxed(
     return pages, method
 
 
-
 #: OOXML is a ZIP. Every one of these bounds exists because the file is untrusted: a
 #: 40 KB archive can declare a 4 GB member, and a parser that believes the header
 #: allocates it. Chosen to be far above any real order and far below anything that
@@ -400,6 +420,7 @@ def _docx_paragraphs(body: bytes) -> list[str]:
         if text:
             paragraphs.append(text)
     return paragraphs
+
 
 def _hard_chunks(text: str, max_chars: int, overlap_chars: int) -> list[str]:
     if len(text) <= max_chars:

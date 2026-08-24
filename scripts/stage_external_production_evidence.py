@@ -1,24 +1,43 @@
 #!/usr/bin/env python3
 """Stage externally controlled production evidence; downstream gates still verify it."""
+
 from __future__ import annotations
-import json, os, shutil
+
+import json
+import os
+import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GROUPS = {
     "reliability": (
         ("KORPUS_EXTERNAL_LOAD_REPORT_FILE", ROOT / "var/load-probe.json"),
-        ("KORPUS_EXTERNAL_LOAD_ATTESTATION_FILE", ROOT / "var/production/load-probe.attestation.json"),
+        (
+            "KORPUS_EXTERNAL_LOAD_ATTESTATION_FILE",
+            ROOT / "var/production/load-probe.attestation.json",
+        ),
         ("KORPUS_EXTERNAL_RECOVERY_REPORT_FILE", ROOT / "var/recovery-report.json"),
-        ("KORPUS_EXTERNAL_RECOVERY_ATTESTATION_FILE", ROOT / "var/production/recovery-report.attestation.json"),
+        (
+            "KORPUS_EXTERNAL_RECOVERY_ATTESTATION_FILE",
+            ROOT / "var/production/recovery-report.attestation.json",
+        ),
     ),
     "tevv": (
         ("KORPUS_EXTERNAL_TEVV_EVIDENCE_FILE", ROOT / "var/production/tevv-evidence.json"),
-        ("KORPUS_EXTERNAL_TEVV_ATTESTATION_FILE", ROOT / "var/production/tevv-evidence.attestation.json"),
+        (
+            "KORPUS_EXTERNAL_TEVV_ATTESTATION_FILE",
+            ROOT / "var/production/tevv-evidence.attestation.json",
+        ),
     ),
     "redteam": (
-        ("KORPUS_EXTERNAL_REDTEAM_REPORT_FILE", ROOT / "var/production/external-redteam-report.json"),
-        ("KORPUS_EXTERNAL_REDTEAM_ATTESTATION_FILE", ROOT / "var/production/external-redteam-attestation.json"),
+        (
+            "KORPUS_EXTERNAL_REDTEAM_REPORT_FILE",
+            ROOT / "var/production/external-redteam-report.json",
+        ),
+        (
+            "KORPUS_EXTERNAL_REDTEAM_ATTESTATION_FILE",
+            ROOT / "var/production/external-redteam-attestation.json",
+        ),
     ),
 }
 
@@ -42,7 +61,10 @@ def _stage_group(name: str, specs: tuple[tuple[str, Path], ...]) -> dict[str, ob
 
 def stage() -> dict[str, object]:
     results = [_stage_group(name, specs) for name, specs in GROUPS.items()]
-    return {"status": "STAGED" if any(item["staged"] for item in results) else "NO_EXTERNAL_EVIDENCE", "groups": results}
+    return {
+        "status": "STAGED" if any(item["staged"] for item in results) else "NO_EXTERNAL_EVIDENCE",
+        "groups": results,
+    }
 
 
 def main() -> int:

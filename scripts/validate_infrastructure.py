@@ -11,6 +11,7 @@ audit, marked accepted-with-risk by an owner, matched to a mutant, counted — w
 before it was a string appended at the point of failure, with no identity beyond its
 own wording.
 """
+
 from __future__ import annotations
 
 import json

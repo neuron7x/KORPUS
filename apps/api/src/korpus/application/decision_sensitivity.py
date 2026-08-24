@@ -4,10 +4,11 @@ The online runtime never fabricates counterfactual worlds.  It exposes cheap sig
 margins to the *actual* retrieval-admission boundary.  Counterfactual action flips are
 measured offline from replay outcomes, where they can be falsified and source-bound.
 """
+
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from korpus.application.pec_replay import ReplayOutcome
 from korpus.application.predictive_evidence_control import RetrievalAction
@@ -75,9 +76,7 @@ def decision_transitions(
     if baseline is None:
         raise ValueError(f"missing decision baseline action: {baseline_action.value}")
     return tuple(
-        transition_from_baseline(baseline, row)
-        for row in rows
-        if row.action is not baseline_action
+        transition_from_baseline(baseline, row) for row in rows if row.action is not baseline_action
     )
 
 
@@ -111,4 +110,6 @@ def additional_compute_has_decision_value(transition: DecisionTransition) -> boo
     """
     if not transition.candidate_admissible:
         return False
-    return transition.safety_recovered or transition.quality_recovered or transition.decision_changed
+    return (
+        transition.safety_recovered or transition.quality_recovered or transition.decision_changed
+    )

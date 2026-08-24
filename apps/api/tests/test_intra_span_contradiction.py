@@ -75,9 +75,9 @@ def test_a_span_that_reverses_itself_stops_the_answer(client: TestClient) -> Non
 
     assert answer["status"] == "requires_human_review", answer["decision_reason"]
     assert answer["decision_reason"] == "contradictory_authoritative_evidence"
-    assert any("opposed_negation" in limitation for limitation in answer["limitations"]), (
-        answer["limitations"]
-    )
+    assert any("opposed_negation" in limitation for limitation in answer["limitations"]), answer[
+        "limitations"
+    ]
 
 
 def test_a_numeric_reversal_inside_one_span_stops_the_answer(client: TestClient) -> None:
@@ -131,9 +131,7 @@ def test_the_scan_covers_eligible_spans_not_only_cited_ones() -> None:
         source_hash=quoted.version.source_hash,
     )
 
-    reason = ExtractiveAnswerService._find_contradiction(
-        [claim], [citation], [quoted, unquoted]
-    )
+    reason = ExtractiveAnswerService._find_contradiction([claim], [citation], [quoted, unquoted])
 
     assert reason is not None and reason.startswith("refuted_by_evidence:"), (
         "a refutation in an eligible span the answer did not quote must still stop it"

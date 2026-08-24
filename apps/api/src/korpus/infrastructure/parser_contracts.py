@@ -1,4 +1,5 @@
 """Fail-closed schema for the parser subprocess IPC boundary."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,7 +21,8 @@ def parse_parser_request(value: object) -> dict[str, Any]:
         result.get("max_pdf_pages"), positive=True, label="max_pdf_pages"
     )
     result["ocr_total_timeout_seconds"] = require_count(
-        result.get("ocr_total_timeout_seconds"), positive=True,
+        result.get("ocr_total_timeout_seconds"),
+        positive=True,
         label="ocr_total_timeout_seconds",
     )
     return result

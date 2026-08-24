@@ -62,9 +62,7 @@ def test_a_document_inside_its_retention_period_is_retained() -> None:
 
 
 def test_a_document_past_its_period_in_a_corpus_that_permits_deletion_is_eligible() -> None:
-    policy = _policy(
-        allowed_operations=frozenset({CorpusOperation.INDEX, CorpusOperation.DELETE})
-    )
+    policy = _policy(allowed_operations=frozenset({CorpusOperation.INDEX, CorpusOperation.DELETE}))
 
     plan = plan_retention(_documents(31), {"public": policy}, now=NOW)
 

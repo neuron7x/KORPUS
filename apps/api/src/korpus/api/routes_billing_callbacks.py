@@ -1,4 +1,5 @@
 """Unauthenticated-at-HTTP billing callbacks, authenticated by provider signature."""
+
 from __future__ import annotations
 
 from typing import Annotated
@@ -17,6 +18,8 @@ from korpus.application.tenancy_ports import (
 from korpus.domain.tenancy import BillingEventResult
 
 callback_router = APIRouter()
+
+
 def _result_response(result: BillingEventResult) -> Response:
     code = status.HTTP_202_ACCEPTED if result is BillingEventResult.REJECTED else status.HTTP_200_OK
     return Response(status_code=code, content=result.value, media_type="text/plain")
@@ -39,7 +42,9 @@ async def liqpay_callback(
     if not data or not signature:
         raise HTTPException(status_code=400, detail="missing callback fields")
     try:
-        result = await run_in_threadpool(subscriptions.handle_event, data.encode("ascii"), signature)
+        result = await run_in_threadpool(
+            subscriptions.handle_event, data.encode("ascii"), signature
+        )
     except BillingEventIgnored:
         return Response(status_code=200, content="ignored", media_type="text/plain")
     except InvalidSubscriptionTransition as exc:

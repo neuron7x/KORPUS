@@ -111,9 +111,7 @@ def test_conversations_are_created_listed_and_archived(tenant_client: Any) -> No
     assert archived.status_code == 200
     assert archived.json()["archived"] is True
     assert tenant_client.get("/v1/conversations").json()["items"] == []
-    assert (
-        len(tenant_client.get("/v1/conversations?include_archived=true").json()["items"]) == 1
-    )
+    assert len(tenant_client.get("/v1/conversations?include_archived=true").json()["items"]) == 1
     assert tenant_client.post(f"/v1/conversations/{conversation_id}/archive").status_code == 409
 
 
@@ -246,9 +244,9 @@ def test_the_webhook_applies_a_signed_event_without_any_session(tenant_client: A
     store.upsert_plan(
         PlanRecord(code="standard", name="Standard", entitled_corpora=frozenset({"public"}))
     )
-    subscription_id = tenant_client.post(
-        "/v1/subscription", json={"plan_code": "standard"}
-    ).json()["id"]
+    subscription_id = tenant_client.post("/v1/subscription", json={"plan_code": "standard"}).json()[
+        "id"
+    ]
 
     moment = datetime.now(UTC)
     body = json.dumps(
@@ -405,6 +403,5 @@ def test_a_shed_question_is_kept_and_no_answer_is_invented_under_it(
     assert refused.status_code == 503
     stored = tenant_client.get(f"/v1/conversations/{conversation_id}").json()["items"]
     assert [message["role"] for message in stored] == ["user"], (
-        "a shed request produced an assistant turn: "
-        f"{[m['role'] for m in stored]}"
+        f"a shed request produced an assistant turn: {[m['role'] for m in stored]}"
     )

@@ -4,6 +4,7 @@ No tactical recommendation is produced here.  The module only answers whether a 
 may progress through already-approved training material and which mastered objectives
 must be reviewed after their bound source evidence changes.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -85,7 +86,9 @@ def available_lessons(version: CourseVersion, progress: LearnerProgress) -> tupl
     for module in sorted(version.modules, key=lambda item: item.ordinal):
         for lesson in sorted(module.lessons, key=lambda item: item.ordinal):
             prereq_ids = tuple(item.lesson_id for item in lesson.prerequisites)
-            if all(pid in lessons and lesson_mastered(lessons[pid], progress) for pid in prereq_ids):
+            if all(
+                pid in lessons and lesson_mastered(lessons[pid], progress) for pid in prereq_ids
+            ):
                 available.append(lesson.id)
     return tuple(available)
 
@@ -102,7 +105,9 @@ def invalidate_changed_bindings(
     observed = (now or datetime.now(UTC)).astimezone(UTC)
     output: list[ObjectiveMastery] = []
     for item in progress.mastery:
-        if item.state is ObjectiveState.MASTERED and changed_binding_ids.intersection(item.source_binding_ids):
+        if item.state is ObjectiveState.MASTERED and changed_binding_ids.intersection(
+            item.source_binding_ids
+        ):
             output.append(
                 ObjectiveMastery(
                     objective_id=item.objective_id,

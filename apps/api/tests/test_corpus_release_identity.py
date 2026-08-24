@@ -55,9 +55,7 @@ def _digest_from_spans(repository: object, as_of: date) -> str:
     return digest.hexdigest()[:16]
 
 
-def test_the_release_id_equals_the_definition_it_replaced(
-    client: TestClient
-) -> None:
+def test_the_release_id_equals_the_definition_it_replaced(client: TestClient) -> None:
     repository = _repository(client)
     for index in range(3):
         result = ingest_text(
@@ -75,9 +73,7 @@ def test_the_release_id_equals_the_definition_it_replaced(
     assert computed == _digest_from_spans(repository, as_of)
 
 
-def test_a_version_that_changes_changes_the_release_id(
-    client: TestClient
-) -> None:
+def test_a_version_that_changes_changes_the_release_id(client: TestClient) -> None:
     """The negative control: a digest that never moves identifies nothing."""
     repository = _repository(client)
     as_of = date.today()
@@ -94,9 +90,7 @@ def test_a_version_that_changes_changes_the_release_id(
     assert after != before
 
 
-def test_a_quarantined_version_is_not_in_the_release(
-    client: TestClient
-) -> None:
+def test_a_quarantined_version_is_not_in_the_release(client: TestClient) -> None:
     """Membership is "could an answer cite it", not "is it in the database"."""
     repository = _repository(client)
     as_of = date.today()

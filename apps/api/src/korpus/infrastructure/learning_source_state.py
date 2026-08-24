@@ -1,4 +1,5 @@
 """Projection from canonical KORPUS evidence state into learning validation facts."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -24,16 +25,20 @@ def load_bound_source_states(
     }
     if not requested:
         return {}
-    version_rows = connection.execute(
-        select(
-            versions.c.id,
-            versions.c.document_id,
-            versions.c.review_state,
-            versions.c.effective_from,
-            versions.c.effective_until,
-            versions.c.rescinded_at,
-        ).where(versions.c.id.in_(sorted(requested)))
-    ).mappings().all()
+    version_rows = (
+        connection.execute(
+            select(
+                versions.c.id,
+                versions.c.document_id,
+                versions.c.review_state,
+                versions.c.effective_from,
+                versions.c.effective_until,
+                versions.c.rescinded_at,
+            ).where(versions.c.id.in_(sorted(requested)))
+        )
+        .mappings()
+        .all()
+    )
     span_rows = connection.execute(
         select(spans.c.version_id, spans.c.id).where(spans.c.version_id.in_(sorted(requested)))
     ).all()

@@ -1,4 +1,5 @@
 """Finite resource admission for ZIP verification before structural traversal."""
+
 from __future__ import annotations
 
 import zipfile

@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
-
 from korpus.application.decision_sensitivity import (
     additional_compute_has_decision_value,
     decision_transitions,

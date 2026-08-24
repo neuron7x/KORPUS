@@ -104,6 +104,7 @@ class SqlSubscriptionStore:
     def upsert_plan(self, plan: PlanRecord) -> PlanRecord:
         """Insert by code or update server-owned sellable fields, with audit."""
         moment = datetime.now(UTC)
+
         def operation(connection: Connection) -> tuple[PlanRecord, tuple[int, str]]:
             existing = (
                 connection.execute(select(plans).where(plans.c.code == plan.code))
@@ -206,9 +207,7 @@ class SqlSubscriptionStore:
         self, actor_subject: str, subscription: SubscriptionRecord
     ) -> SubscriptionRecord:
         def operation(connection: Connection) -> tuple[SubscriptionRecord, tuple[int, str]]:
-            connection.execute(
-                insert(subscriptions).values(**self._values(subscription))
-            )
+            connection.execute(insert(subscriptions).values(**self._values(subscription)))
             anchor = self._repository.audit_in_connection(
                 connection,
                 system_actor(actor_subject),
@@ -263,9 +262,7 @@ class SqlSubscriptionStore:
                 connection.execute(
                     select(subscriptions)
                     .where(subscriptions.c.provider == provider)
-                    .where(
-                        subscriptions.c.provider_subscription_id == provider_subscription_id
-                    )
+                    .where(subscriptions.c.provider_subscription_id == provider_subscription_id)
                 )
                 .mappings()
                 .first()
@@ -274,9 +271,7 @@ class SqlSubscriptionStore:
 
     # -------------------------------------------------------- billing events
 
-    def get_billing_event(
-        self, provider: str, provider_event_id: str
-    ) -> BillingEventRecord | None:
+    def get_billing_event(self, provider: str, provider_event_id: str) -> BillingEventRecord | None:
         with self.engine.connect() as connection:
             row = (
                 connection.execute(
@@ -305,6 +300,7 @@ class SqlSubscriptionStore:
     ) -> BillingEventResult:
         """The event row, the subscription move and the audit event, in one commit."""
         moment = datetime.now(UTC)
+
         def operation(connection: Connection) -> tuple[BillingEventResult, tuple[int, str]]:
             connection.execute(
                 insert(billing_events).values(
@@ -364,9 +360,8 @@ class SqlSubscriptionStore:
             # fired means DUPLICATE (another delivery of this same event won the race);
             # anything else is re-raised to surface rather than be hidden.
             detail = str(getattr(exc, "orig", exc)).lower()
-            idempotency = (
-                "uq_billing_event_identity" in detail
-                or ("provider_event_id" in detail and "unique" in detail)
+            idempotency = "uq_billing_event_identity" in detail or (
+                "provider_event_id" in detail and "unique" in detail
             )
             if idempotency:
                 return BillingEventResult.DUPLICATE

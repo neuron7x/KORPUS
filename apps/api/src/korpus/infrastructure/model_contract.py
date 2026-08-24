@@ -80,6 +80,7 @@ def parse_composition(text: str) -> tuple[str, list[str]]:
     sentences = parsed.get("sentences")
     return (
         str(parsed.get("opening", "")),
-        [item for item in sentences if isinstance(item, str)] if isinstance(sentences, list)
+        [item for item in sentences if isinstance(item, str)]
+        if isinstance(sentences, list)
         else [],
     )

@@ -6,6 +6,7 @@ signed margins to that predicate.  A positive minimum margin means the candidate
 the admitted side of every numeric boundary; a negative value identifies how far the
 best structurally valid candidate remains from admission.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

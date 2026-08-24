@@ -27,8 +27,7 @@ def test_dataset_builder_accepts_repository_relative_paths() -> None:
                 str(receipt.relative_to(ROOT)),
             ],
             cwd=ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             check=False,
         )
@@ -41,7 +40,11 @@ def test_controller_verifier_fails_on_promoted_oracle_mismatch() -> None:
     import hashlib
     import json
 
-    from korpus.application.controller_profile import ControllerLeaf, ControllerProfile, ControllerRule
+    from korpus.application.controller_profile import (
+        ControllerLeaf,
+        ControllerProfile,
+        ControllerRule,
+    )
     from korpus.application.evidence_state import EvidenceState, feature_schema_sha256
 
     var = ROOT / "var"
@@ -166,8 +169,7 @@ def test_controller_verifier_fails_on_promoted_oracle_mismatch() -> None:
                 str(report_path),
             ],
             cwd=ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             check=False,
         )
@@ -196,19 +198,21 @@ def test_controller_export_refuses_cross_run_training_binding() -> None:
         report = target / "export.json"
         dataset.write_text('{"id":"q1"}\n', encoding="utf-8")
         manifest.write_text('{"system":"test"}\n', encoding="utf-8")
-        protocol.write_text('# protocol\n', encoding="utf-8")
+        protocol.write_text("# protocol\n", encoding="utf-8")
 
         def digest(path: Path) -> str:
             return hashlib.sha256(path.read_bytes()).hexdigest()
 
         replay.write_text(
-            json.dumps({
-                "status": "PASS",
-                "dataset_sha256": digest(dataset),
-                "corpus_release_id": "a" * 16,
-                "evaluation_protocol_sha256": digest(protocol),
-                "answer_calibration_id": "cal-test",
-            }),
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "dataset_sha256": digest(dataset),
+                    "corpus_release_id": "a" * 16,
+                    "evaluation_protocol_sha256": digest(protocol),
+                    "answer_calibration_id": "cal-test",
+                }
+            ),
             encoding="utf-8",
         )
         oracle.write_text(
@@ -216,36 +220,48 @@ def test_controller_export_refuses_cross_run_training_binding() -> None:
             encoding="utf-8",
         )
         training.write_text(
-            json.dumps({
-                "status": "PASS",
-                "dataset_sha256": "f" * 64,
-                "oracle_sha256": digest(oracle),
-                "controller_risk_limit": 0.05,
-                "minimum_leaf_samples": 1,
-                "leaves": [],
-            }),
+            json.dumps(
+                {
+                    "status": "PASS",
+                    "dataset_sha256": "f" * 64,
+                    "oracle_sha256": digest(oracle),
+                    "controller_risk_limit": 0.05,
+                    "minimum_leaf_samples": 1,
+                    "leaves": [],
+                }
+            ),
             encoding="utf-8",
         )
         proc = subprocess.run(
             [
                 sys.executable,
                 "scripts/export_pec_controller.py",
-                "--training", str(training),
-                "--oracle", str(oracle),
-                "--dataset", str(dataset),
-                "--system-manifest", str(manifest),
-                "--evaluation-protocol", str(protocol),
-                "--replay-receipt", str(replay),
-                "--corpus-release-id", "a" * 16,
-                "--answer-calibration-id", "cal-test",
-                "--profile-id", "pec-export-test",
-                "--out", str(profile),
-                "--receipt", str(report),
+                "--training",
+                str(training),
+                "--oracle",
+                str(oracle),
+                "--dataset",
+                str(dataset),
+                "--system-manifest",
+                str(manifest),
+                "--evaluation-protocol",
+                str(protocol),
+                "--replay-receipt",
+                str(replay),
+                "--corpus-release-id",
+                "a" * 16,
+                "--answer-calibration-id",
+                "cal-test",
+                "--profile-id",
+                "pec-export-test",
+                "--out",
+                str(profile),
+                "--receipt",
+                str(report),
                 "--release-gate",
             ],
             cwd=ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
             check=False,
         )

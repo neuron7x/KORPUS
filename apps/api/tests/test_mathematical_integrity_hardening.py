@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-import math
-
 import pytest
-
 from korpus.application.assurance_calculus import EvidenceClass, EvidencePoint
 from korpus.application.embedding_coverage import assess_embedding_coverage
 from korpus.application.embedding_migration import rollback_available, switch_admissible
-from korpus.application.evidence import contradiction_reason
 from korpus.application.engineering_readiness import evaluate_engineering_profile
-from korpus.application.retrieval import AUTHORITY_PRIOR, HybridLexicalRetriever
-from korpus.application.resilience import AdmissionController, CircuitBreaker
+from korpus.application.evidence import contradiction_reason
 from korpus.application.inference_budget import InferenceBudget, InferenceCycle
-from korpus.application.plasticity import AdaptationPolicy, AdaptationState, ObservationWindow, RuntimeKnobs
+from korpus.application.plasticity import (
+    AdaptationPolicy,
+    AdaptationState,
+    ObservationWindow,
+    RuntimeKnobs,
+)
+from korpus.application.resilience import AdmissionController, CircuitBreaker
+from korpus.application.retrieval import AUTHORITY_PRIOR, HybridLexicalRetriever
 from korpus.application.tuning import JudgedCandidate, _simplex_weight_candidates
 from korpus.domain.models import AuthorityClass
 from korpus.domain.tenancy import PlanRecord
@@ -192,9 +194,15 @@ def test_provider_timestamp_does_not_interpret_boolean_as_epoch_second() -> None
 
 def test_convertible_units_share_one_exact_numeric_domain() -> None:
     assert contradiction_reason("Дистанція маршруту 1 км.", "Дистанція маршруту 1000 м.") is None
-    assert contradiction_reason("Дистанція маршруту 1 км.", "Дистанція маршруту 900 м.") == "numeric_conflict:length_m"
+    assert (
+        contradiction_reason("Дистанція маршруту 1 км.", "Дистанція маршруту 900 м.")
+        == "numeric_conflict:length_m"
+    )
     assert contradiction_reason("Строк відповіді 1 год.", "Строк відповіді 60 хв.") is None
-    assert contradiction_reason("Строк відповіді 1 год.", "Строк відповіді 30 хв.") == "numeric_conflict:time_s"
+    assert (
+        contradiction_reason("Строк відповіді 1 год.", "Строк відповіді 30 хв.")
+        == "numeric_conflict:time_s"
+    )
 
 
 @pytest.mark.parametrize("bad_capacity", [True, 1.5, float("nan"), float("inf")])
@@ -283,30 +291,36 @@ def test_local_preflight_coverage_cannot_pass_impossible_percentages(impossible:
 
 
 def test_local_preflight_backend_does_not_treat_false_as_zero_failures() -> None:
-    assert local_preflight._report_pass(
-        "backend", {"failed": False, "errors": 0}, {}
-    ) is False
+    assert local_preflight._report_pass("backend", {"failed": False, "errors": 0}, {}) is False
 
 
 def test_coverage_ratchet_rejects_impossible_totals_and_nan_policy(tmp_path) -> None:
     valid = {
         "totals": {
-            "covered_lines": 96, "num_statements": 100,
-            "covered_branches": 91, "num_branches": 100, "missing_branches": 9,
+            "covered_lines": 96,
+            "num_statements": 100,
+            "covered_branches": 91,
+            "num_branches": 100,
+            "missing_branches": 9,
         },
         "files": {},
     }
     policy = {
         "coverage": {
-            "minimum_statement_rate": 0.95, "minimum_branch_rate": 0.90,
-            "baseline_missing_branches": 9, "maximum_missing_branch_regression": 0,
+            "minimum_statement_rate": 0.95,
+            "minimum_branch_rate": 0.90,
+            "baseline_missing_branches": 9,
+            "maximum_missing_branch_regression": 0,
         },
         "risk_weights": {},
     }
     impossible = {**valid, "totals": valid["totals"] | {"covered_lines": 101}}
     with pytest.raises(ValueError, match="cannot exceed"):
         build_plan(impossible, policy, tmp_path)
-    broken_policy = {**policy, "coverage": policy["coverage"] | {"minimum_branch_rate": float("nan")}}
+    broken_policy = {
+        **policy,
+        "coverage": policy["coverage"] | {"minimum_branch_rate": float("nan")},
+    }
     with pytest.raises(ValueError, match="finite"):
         build_plan(valid, broken_policy, tmp_path)
 
@@ -322,6 +336,7 @@ def test_mutation_gate_counts_and_score_do_not_accept_boolean_arithmetic() -> No
     assert mutation_gate._score_is_exact_one(True) is False
     assert mutation_gate._score_is_exact_one(float("inf")) is False
     assert mutation_gate._score_is_exact_one(1.0) is True
+
 
 @pytest.mark.parametrize(
     "section,path,bad",
@@ -340,6 +355,7 @@ def test_operational_release_gate_rejects_mathematically_invalid_evidence(
     section: str, path: tuple[str, ...], bad: object
 ) -> None:
     from copy import deepcopy
+
     from apps.api.tests.test_operations import evaluate, passing_reports
 
     reports = deepcopy(passing_reports())
@@ -356,21 +372,25 @@ def test_js_divergence_rejects_boolean_probability_mass() -> None:
     with pytest.raises(ValueError, match="finite non-negative"):
         jensen_shannon_divergence([True, 1.0], [1.0, 1.0])
 
+
 @pytest.mark.parametrize("bad_requests", [True, 1.5, "1"])
-def test_production_reliability_requires_discrete_positive_request_counts(bad_requests: object) -> None:
+def test_production_reliability_requires_discrete_positive_request_counts(
+    bad_requests: object,
+) -> None:
     from copy import deepcopy
-    from apps.api.tests.test_production_reliability import _evidence
+
     from korpus.application.production_reliability import evaluate_reliability_evidence
+
+    from apps.api.tests.test_production_reliability import _evidence
 
     internal, chaos, load, recovery = _evidence()
     load = deepcopy(load)
     for phase in ("load", "spike", "soak"):
         load[phase]["requests"] = bad_requests
-    checks = evaluate_reliability_evidence(
-        internal, chaos, load, recovery, source="s", release="v"
-    )
+    checks = evaluate_reliability_evidence(internal, chaos, load, recovery, source="s", release="v")
     assert checks["live_load_soak_executed"] is False
     assert not all(checks.values())
+
 
 @pytest.mark.parametrize("bad_timeout", [True, float("nan"), float("inf"), 0.0, -1.0])
 def test_gcp_identity_timeout_is_finite_positive(bad_timeout: object) -> None:
@@ -393,10 +413,15 @@ def test_gcp_metadata_token_ttl_is_strict_positive_integer(bad_expiry: object) -
     import httpx
     from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 
-    client = httpx.Client(transport=httpx.MockTransport(lambda _r: httpx.Response(
-        200, headers={"Metadata-Flavor": "Google"},
-        json={"access_token": "token", "expires_in": bad_expiry, "token_type": "Bearer"},
-    )))
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda _r: httpx.Response(
+                200,
+                headers={"Metadata-Flavor": "Google"},
+                json={"access_token": "token", "expires_in": bad_expiry, "token_type": "Bearer"},
+            )
+        )
+    )
     with pytest.raises(MetadataIdentityError, match="invalid"):
         MetadataIdentityProvider(client=client).access_token()
 
@@ -406,48 +431,67 @@ def test_gcp_metadata_access_token_is_not_string_coerced(bad_token: object) -> N
     import httpx
     from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 
-    client = httpx.Client(transport=httpx.MockTransport(lambda _r: httpx.Response(
-        200, headers={"Metadata-Flavor": "Google"},
-        json={"access_token": bad_token, "expires_in": 3600, "token_type": "Bearer"},
-    )))
+    client = httpx.Client(
+        transport=httpx.MockTransport(
+            lambda _r: httpx.Response(
+                200,
+                headers={"Metadata-Flavor": "Google"},
+                json={"access_token": bad_token, "expires_in": 3600, "token_type": "Bearer"},
+            )
+        )
+    )
     with pytest.raises(MetadataIdentityError, match="invalid"):
         MetadataIdentityProvider(client=client).access_token()
+
 
 @pytest.mark.parametrize(
     "field,bad",
     [
         ("ocr_enabled", "false"),
-        ("max_pdf_pages", True), ("max_pdf_pages", 1.5), ("max_pdf_pages", "10"),
-        ("ocr_total_timeout_seconds", True), ("ocr_total_timeout_seconds", 1.5),
+        ("max_pdf_pages", True),
+        ("max_pdf_pages", 1.5),
+        ("max_pdf_pages", "10"),
+        ("ocr_total_timeout_seconds", True),
+        ("ocr_total_timeout_seconds", 1.5),
     ],
 )
 def test_parser_ipc_rejects_numeric_and_boolean_coercion(field: str, bad: object) -> None:
     from korpus.infrastructure.parser_contracts import parse_parser_request
 
     request = {
-        "path": "/tmp/x.pdf", "filename": "x.pdf", "mime_type": "application/pdf",
-        "ocr_enabled": False, "ocr_languages": "ukr", "max_pdf_pages": 10,
+        "path": "/tmp/x.pdf",
+        "filename": "x.pdf",
+        "mime_type": "application/pdf",
+        "ocr_enabled": False,
+        "ocr_languages": "ukr",
+        "max_pdf_pages": 10,
         "ocr_total_timeout_seconds": 5,
     }
     request[field] = bad
     with pytest.raises(ValueError):
         parse_parser_request(request)
 
+
 @pytest.mark.parametrize("bad_schema", [True, "1", 1.0])
 def test_provenance_schema_version_is_a_strict_integer(bad_schema: object) -> None:
     from korpus.application.provenance import PROVENANCE_KEY, ProvenanceError, read_provenance
 
     block = {
-        "schema_version": bad_schema, "source_digest": "a" * 64,
-        "generator": "test", "generated_at": "2026-08-20T00:00:00+00:00",
+        "schema_version": bad_schema,
+        "source_digest": "a" * 64,
+        "generator": "test",
+        "generated_at": "2026-08-20T00:00:00+00:00",
     }
     with pytest.raises(ProvenanceError, match="unsupported provenance schema"):
         read_provenance({PROVENANCE_KEY: block})
 
 
 @pytest.mark.parametrize("bad_schema", [True, "1", 1.0])
-def test_admission_register_schema_version_is_a_strict_integer(tmp_path, bad_schema: object) -> None:
+def test_admission_register_schema_version_is_a_strict_integer(
+    tmp_path, bad_schema: object
+) -> None:
     import json
+
     from korpus.application.admission import load_register
 
     path = tmp_path / "admission.json"
@@ -455,16 +499,26 @@ def test_admission_register_schema_version_is_a_strict_integer(tmp_path, bad_sch
     with pytest.raises(ValueError, match="unsupported admission register schema"):
         load_register(path)
 
-@pytest.mark.parametrize("field,bad", [
-    ("clock_skew_seconds", float("nan")), ("clock_skew_seconds", float("inf")),
-    ("max_auth_age_seconds", float("nan")), ("max_auth_age_seconds", float("inf")),
-])
+
+@pytest.mark.parametrize(
+    "field,bad",
+    [
+        ("clock_skew_seconds", float("nan")),
+        ("clock_skew_seconds", float("inf")),
+        ("max_auth_age_seconds", float("nan")),
+        ("max_auth_age_seconds", float("inf")),
+    ],
+)
 def test_oidc_freshness_cannot_be_disabled_by_nonfinite_policy(field: str, bad: object) -> None:
     from korpus.security.oidc import OIDCVerifier
 
     values = {
-        "jwks_url": "https://id.example/jwks", "issuer": "https://id.example",
-        "audience": "korpus", "algorithms": ["RS256"], "client": object(), field: bad,
+        "jwks_url": "https://id.example/jwks",
+        "issuer": "https://id.example",
+        "audience": "korpus",
+        "algorithms": ["RS256"],
+        "client": object(),
+        field: bad,
     }
     with pytest.raises(ValueError):
         OIDCVerifier(**values)  # type: ignore[arg-type]
@@ -476,18 +530,29 @@ def test_oidc_auth_time_requires_finite_numericdate(bad_auth_time: object) -> No
     from korpus.security.oidc import OIDCVerifier
 
     verifier = OIDCVerifier(
-        jwks_url="https://id.example/jwks", issuer="https://id.example",
-        audience="korpus", algorithms=["RS256"], client=object(),
+        jwks_url="https://id.example/jwks",
+        issuer="https://id.example",
+        audience="korpus",
+        algorithms=["RS256"],
+        client=object(),
     )
     with pytest.raises(jwt.InvalidTokenError, match="auth_time claim is invalid"):
         verifier._validate_assurance({"auth_time": bad_auth_time})
 
-@pytest.mark.parametrize("field,bad", [
-    ("candidate_budget", True), ("candidate_budget", 8.0),
-    ("candidate_budget", float("nan")), ("candidate_budget", float("inf")),
-    ("timeout_ms", True), ("timeout_ms", 10.0),
-    ("timeout_ms", float("nan")), ("timeout_ms", float("inf")),
-])
+
+@pytest.mark.parametrize(
+    "field,bad",
+    [
+        ("candidate_budget", True),
+        ("candidate_budget", 8.0),
+        ("candidate_budget", float("nan")),
+        ("candidate_budget", float("inf")),
+        ("timeout_ms", True),
+        ("timeout_ms", 10.0),
+        ("timeout_ms", float("nan")),
+        ("timeout_ms", float("inf")),
+    ],
+)
 def test_retrieval_runtime_limits_are_discrete_and_finite(field: str, bad: object) -> None:
     from korpus.application.retrieval import HybridLexicalRetriever
 
@@ -499,6 +564,7 @@ def test_retrieval_runtime_limits_are_discrete_and_finite(field: str, bad: objec
 @pytest.mark.parametrize("bad_count", ["0.9", "-1", "NaN", "Infinity", "+1", "1e2"])
 def test_junit_counts_reject_non_integer_cardinalities(tmp_path, bad_count: str) -> None:
     import xml.etree.ElementTree as ET
+
     from korpus.application.junit_contracts import junit_counts
 
     path = tmp_path / "bad.xml"
@@ -509,6 +575,7 @@ def test_junit_counts_reject_non_integer_cardinalities(tmp_path, bad_count: str)
 
 def test_junit_counts_reject_impossible_outcome_cardinality(tmp_path) -> None:
     import xml.etree.ElementTree as ET
+
     from korpus.application.junit_contracts import junit_counts
 
     path = tmp_path / "impossible.xml"
@@ -520,21 +587,37 @@ def test_junit_counts_reject_impossible_outcome_cardinality(tmp_path) -> None:
 @pytest.mark.parametrize("bad", [float("nan"), float("inf"), 1.5, True])
 def test_object_store_size_limit_is_a_discrete_finite_count(tmp_path, bad: object) -> None:
     from korpus.infrastructure.object_store import LocalObjectStore
+
     with pytest.raises(ValueError):
         LocalObjectStore(tmp_path / "objects", max_object_bytes=bad)  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize(("field", "bad"), [
-    ("max_attempts", float("nan")), ("max_attempts", 1.5), ("max_attempts", True),
-    ("max_response_bytes", float("nan")), ("max_response_bytes", 1024.5),
-    ("timeout_seconds", float("nan")), ("timeout_seconds", float("inf")),
-    ("dimensions", 8.0), ("dimensions", True),
-])
-def test_embedding_resource_bounds_reject_nonfinite_or_nondiscrete_values(field: str, bad: object) -> None:
+@pytest.mark.parametrize(
+    ("field", "bad"),
+    [
+        ("max_attempts", float("nan")),
+        ("max_attempts", 1.5),
+        ("max_attempts", True),
+        ("max_response_bytes", float("nan")),
+        ("max_response_bytes", 1024.5),
+        ("timeout_seconds", float("nan")),
+        ("timeout_seconds", float("inf")),
+        ("dimensions", 8.0),
+        ("dimensions", True),
+    ],
+)
+def test_embedding_resource_bounds_reject_nonfinite_or_nondiscrete_values(
+    field: str, bad: object
+) -> None:
     from korpus.infrastructure.semantic import HttpEmbeddingProvider
+
     class Dummy:
-        def close(self) -> None: pass
-    values = dict(endpoint="https://embed.example/v1", model_id="embed-1", dimensions=8, client=Dummy())
+        def close(self) -> None:
+            pass
+
+    values = dict(
+        endpoint="https://embed.example/v1", model_id="embed-1", dimensions=8, client=Dummy()
+    )
     values[field] = bad
     with pytest.raises(ValueError):
         HttpEmbeddingProvider(**values)  # type: ignore[arg-type]
@@ -542,17 +625,25 @@ def test_embedding_resource_bounds_reject_nonfinite_or_nondiscrete_values(field:
 
 def test_local_object_store_put_bytes_enforces_max_object_bytes(tmp_path) -> None:
     import hashlib
+
     from korpus.infrastructure.object_store import LocalObjectStore
-    content = b"ab"; store = LocalObjectStore(tmp_path / "objects", max_object_bytes=1)
+
+    content = b"ab"
+    store = LocalObjectStore(tmp_path / "objects", max_object_bytes=1)
     with pytest.raises(ValueError, match="size limit"):
         store.put(content, hashlib.sha256(content).hexdigest(), "x.bin")
 
 
 def test_s3_object_store_put_bytes_enforces_max_object_bytes() -> None:
     import hashlib
+
     from korpus.infrastructure.object_store import S3ObjectStore
-    class Dummy: pass
-    content = b"ab"; store = S3ObjectStore(bucket="abc", max_object_bytes=1, client=Dummy())
+
+    class Dummy:
+        pass
+
+    content = b"ab"
+    store = S3ObjectStore(bucket="abc", max_object_bytes=1, client=Dummy())
     with pytest.raises(ValueError, match="size limit"):
         store.put(content, hashlib.sha256(content).hexdigest(), "x.bin")
 
@@ -560,11 +651,19 @@ def test_s3_object_store_put_bytes_enforces_max_object_bytes() -> None:
 @pytest.mark.parametrize("bad_size", [True, 1.5, "1.5", "NaN", "Infinity"])
 def test_gcs_metadata_size_rejects_noncanonical_counts_before_download(bad_size: object) -> None:
     from korpus.infrastructure.gcs import GcsObjectStore
+
     class Fake:
         downloaded = False
-        def metadata(self, _key): return {"size": bad_size}
-        def download(self, _key): self.downloaded = True; return b"x"
-    fake = Fake(); store = GcsObjectStore(bucket="abc", max_object_bytes=4, gcs=fake)
+
+        def metadata(self, _key):
+            return {"size": bad_size}
+
+        def download(self, _key):
+            self.downloaded = True
+            return b"x"
+
+    fake = Fake()
+    store = GcsObjectStore(bucket="abc", max_object_bytes=4, gcs=fake)
     with pytest.raises((ValueError, RuntimeError)):
         store.get("objects/aa/aa/" + "a" * 64)
     assert fake.downloaded is False
@@ -572,11 +671,19 @@ def test_gcs_metadata_size_rejects_noncanonical_counts_before_download(bad_size:
 
 def test_gcs_metadata_oversize_decimal_is_rejected_before_download() -> None:
     from korpus.infrastructure.gcs import GcsObjectStore
+
     class Fake:
         downloaded = False
-        def metadata(self, _key): return {"size": "5"}
-        def download(self, _key): self.downloaded = True; return b"12345"
-    fake = Fake(); store = GcsObjectStore(bucket="abc", max_object_bytes=4, gcs=fake)
+
+        def metadata(self, _key):
+            return {"size": "5"}
+
+        def download(self, _key):
+            self.downloaded = True
+            return b"12345"
+
+    fake = Fake()
+    store = GcsObjectStore(bucket="abc", max_object_bytes=4, gcs=fake)
     with pytest.raises(RuntimeError, match="read limit"):
         store.get("objects/aa/aa/" + "a" * 64)
     assert fake.downloaded is False

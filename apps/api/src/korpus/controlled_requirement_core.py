@@ -1,4 +1,5 @@
 """Small, reusable predicates used by the controlled-environment requirement ledger."""
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -37,12 +38,14 @@ def verified_database_transport(settings: Any) -> bool:
 
 
 def browser_settings_present(settings: Any) -> bool:
-    return all((
-        settings.oidc_authorization_endpoint,
-        settings.oidc_token_endpoint,
-        settings.oidc_client_id,
-        settings.oidc_redirect_uri,
-    ))
+    return all(
+        (
+            settings.oidc_authorization_endpoint,
+            settings.oidc_token_endpoint,
+            settings.oidc_client_id,
+            settings.oidc_redirect_uri,
+        )
+    )
 
 
 def file_present(path: Any) -> bool:

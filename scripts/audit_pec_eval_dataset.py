@@ -35,13 +35,24 @@ def main() -> int:
     inventory = _inventory(args.version_inventory)
     issues, groups, queries = audit_rows(rows, inventory)
     corpus_binding = "PASS" if inventory is not None else "UNKNOWN"
-    status = "FAIL" if issues else ("PASS" if corpus_binding == "PASS" and args.production_judged else "UNKNOWN")
-    report = receipt("pec_dataset_audit", {
-        "status": status, "dataset_sha256": sha256_file(args.dataset), "rows": len(rows),
-        "groups": len(groups), "unique_queries": len(queries),
-        "production_judged": args.production_judged, "corpus_binding": corpus_binding,
-        "issues": issues[:100],
-    })
+    status = (
+        "FAIL"
+        if issues
+        else ("PASS" if corpus_binding == "PASS" and args.production_judged else "UNKNOWN")
+    )
+    report = receipt(
+        "pec_dataset_audit",
+        {
+            "status": status,
+            "dataset_sha256": sha256_file(args.dataset),
+            "rows": len(rows),
+            "groups": len(groups),
+            "unique_queries": len(queries),
+            "production_judged": args.production_judged,
+            "corpus_binding": corpus_binding,
+            "issues": issues[:100],
+        },
+    )
     write_json(args.out, report)
     print(json.dumps(report, indent=2))
     return 0 if status == "PASS" or (status == "UNKNOWN" and not args.release_gate) else 1

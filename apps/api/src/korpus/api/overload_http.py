@@ -5,7 +5,9 @@ from fastapi import HTTPException, status
 from korpus.application.overload import OverloadedError, OverloadReason
 
 
-def overload_http_exception(error: OverloadedError, *, retry_after_seconds: int = 1) -> HTTPException:
+def overload_http_exception(
+    error: OverloadedError, *, retry_after_seconds: int = 1
+) -> HTTPException:
     """Map typed admission refusal to stable HTTP semantics.
 
     A subject that exhausted only its own share is being throttled (429). Global

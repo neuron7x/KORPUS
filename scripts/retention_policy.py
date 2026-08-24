@@ -165,31 +165,40 @@ def _check(arguments: argparse.Namespace) -> dict[str, Any]:
         body = json.loads(registry.read_text(encoding="utf-8"))
         registry_sealed = bool(body.get("content_digest"))
 
-    edge = (ROOT / "deploy/public/nginx.conf").read_text(encoding="utf-8") if (
-        ROOT / "deploy/public/nginx.conf"
-    ).is_file() else ""
-    serve = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8") if (
-        ROOT / "scripts/serve_public.sh"
-    ).is_file() else ""
+    edge = (
+        (ROOT / "deploy/public/nginx.conf").read_text(encoding="utf-8")
+        if (ROOT / "deploy/public/nginx.conf").is_file()
+        else ""
+    )
+    serve = (
+        (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
+        if (ROOT / "scripts/serve_public.sh").is_file()
+        else ""
+    )
 
     observed = {
-        "copies.at_least_two_media": (local_count + offsite_count >= 2,
-                                      f"{local_count} local, {offsite_count} second-location"),
+        "copies.at_least_two_media": (
+            local_count + offsite_count >= 2,
+            f"{local_count} local, {offsite_count} second-location",
+        ),
         "copies.second_location": (offsite_count >= 1, f"{offsite_count} in {offsite}"),
         "copies.offsite": (False, "no storage outside this host is configured"),
         "copies.immutable": (immutable, how),
         "restore.cadence": (fresh_restore, f"last restore {restored_at or 'never'}"),
         "evidence.retained": (registry_present, f"registry at {registry}"),
-        "evidence.tamper_evident": (registry_sealed, "content_digest present"
-                                    if registry_sealed else "no digest over the registry"),
+        "evidence.tamper_evident": (
+            registry_sealed,
+            "content_digest present" if registry_sealed else "no digest over the registry",
+        ),
         "quota.rate_policy": (
             "real_ip_header" in edge and "korpus_public_total" in edge,
             "per-visitor key and an aggregate zone" if "korpus_public_total" in edge else "absent",
         ),
         "quota.admission_budget": (
             "KORPUS_MAX_CONCURRENT_ANSWERS" in serve,
-            "admission limit set for the public identity" if "KORPUS_MAX_CONCURRENT_ANSWERS"
-            in serve else "absent",
+            "admission limit set for the public identity"
+            if "KORPUS_MAX_CONCURRENT_ANSWERS" in serve
+            else "absent",
         ),
     }
 

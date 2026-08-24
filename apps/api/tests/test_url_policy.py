@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from korpus.security.external_destination import parse_external_https_url
 from korpus.security.url_policy import (
     is_explicit_loopback_http_origin,

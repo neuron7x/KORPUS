@@ -133,8 +133,10 @@ def _audit_actions(client: TestClient) -> list[str]:
     ("kwargs", "kind"),
     [
         ({"corpus_id": "restricted-demo"}, "corpus_out_of_scope"),
-        ({"access_tier": AccessTier.RESTRICTED, "classification": Classification.RESTRICTED},
-         "reader_not_cleared"),
+        (
+            {"access_tier": AccessTier.RESTRICTED, "classification": Classification.RESTRICTED},
+            "reader_not_cleared",
+        ),
         ({"compartments": frozenset({"alpha"})}, "reader_not_cleared"),
     ],
 )

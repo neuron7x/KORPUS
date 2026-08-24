@@ -1,5 +1,7 @@
 """Fail-closed parsing for HTTPS destinations that must be outside the deployment."""
+
 from __future__ import annotations
+
 import ipaddress
 from urllib.parse import SplitResult
 
@@ -21,4 +23,3 @@ def parse_external_https_url(
     if not address.is_global:
         raise ValueError(f"{name} must use a globally routable address")
     return parts
-

@@ -1,9 +1,13 @@
 """Bounded feature helpers for PEC evidence-state construction."""
+
 from __future__ import annotations
 
 import math
 
-from korpus.application.evidence_admission import AdmissionBoundarySummary, admission_boundary_summary
+from korpus.application.evidence_admission import (
+    AdmissionBoundarySummary,
+    admission_boundary_summary,
+)
 from korpus.application.retrieval_math import character_ngrams, jaccard
 from korpus.application.risk import RiskThresholds
 from korpus.domain.models import RetrievedEvidence
@@ -28,7 +32,11 @@ def redundancy(evidence: list[RetrievedEvidence]) -> float:
         return 0.0
     grams = [character_ngrams(item.span.text) for item in evidence]
     maximum = max(
-        (jaccard(grams[left], grams[right]) for left in range(len(grams)) for right in range(left + 1, len(grams))),
+        (
+            jaccard(grams[left], grams[right])
+            for left in range(len(grams))
+            for right in range(left + 1, len(grams))
+        ),
         default=0.0,
     )
     return round(max(0.0, min(1.0, maximum)), 12)
@@ -50,7 +58,8 @@ def boundary_for_state(
     if thresholds is None:
         passed = eligible_count > 0
         return AdmissionBoundarySummary(
-            bool(evidence), passed,
+            bool(evidence),
+            passed,
             0.0 if passed else -1.0,
             0.0 if passed else -1.0,
             0.0 if passed else -1.0,

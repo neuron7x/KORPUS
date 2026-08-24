@@ -6,6 +6,7 @@ only for the weighted engineering-readiness assessment: it proves that the pre-e
 product runtime surface is byte-identical to the baseline and that every allowed delta is
 explicitly enumerated and covered by a fresh targeted test campaign.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,8 +21,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.junit_contracts import junit_counts  # noqa: E402
-from korpus.application.provenance import EVIDENCE_SOURCE_PATHS, _digest_candidates, compute_source_digest  # noqa: E402
+from korpus.application.provenance import (  # noqa: E402
+    EVIDENCE_SOURCE_PATHS,
+    _digest_candidates,
+    compute_source_digest,
+)
 from korpus.release import RELEASE_TAG  # noqa: E402
+
 
 def _json(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -50,7 +56,9 @@ def _baseline_records(payload: dict[str, Any]) -> dict[str, str]:
     return result
 
 
-def diff_records(old: dict[str, str], new: dict[str, str]) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
+def diff_records(
+    old: dict[str, str], new: dict[str, str]
+) -> tuple[tuple[str, ...], tuple[str, ...], tuple[str, ...]]:
     added = tuple(sorted(set(new) - set(old)))
     removed = tuple(sorted(set(old) - set(new)))
     modified = tuple(sorted(path for path in set(old) & set(new) if old[path] != new[path]))
@@ -72,24 +80,44 @@ def evaluate(policy: dict[str, Any], root: Path = ROOT) -> dict[str, Any]:
     new = _current_records(root)
     added, removed, modified = diff_records(old, new)
     changed = set(added) | set(modified)
-    allowed = {str(item) for item in policy.get("allowed_added_or_modified_evidence_source_paths", [])}
-    allowed_removed = {str(item) for item in policy.get("allowed_removed_evidence_source_paths", [])}
-    forbidden_prefixes = tuple(str(item) for item in policy.get("forbidden_runtime_change_prefixes", []))
+    allowed = {
+        str(item) for item in policy.get("allowed_added_or_modified_evidence_source_paths", [])
+    }
+    allowed_removed = {
+        str(item) for item in policy.get("allowed_removed_evidence_source_paths", [])
+    }
+    forbidden_prefixes = tuple(
+        str(item) for item in policy.get("forbidden_runtime_change_prefixes", [])
+    )
     junit_path = root / str(policy["targeted_junit"])
-    junit = junit_summary(junit_path) if junit_path.is_file() else {"tests": 0, "failures": 1, "errors": 0, "skipped": 0}
+    junit = (
+        junit_summary(junit_path)
+        if junit_path.is_file()
+        else {"tests": 0, "failures": 1, "errors": 0, "skipped": 0}
+    )
     checks = {
-        "baseline_manifest_identity": baseline_manifest.get("source_tree_sha256") == policy.get("baseline_source_tree_sha256"),
-        "baseline_backend_pass": baseline_backend.get("status") == "PASS" and baseline_backend.get("failed") == 0 and baseline_backend.get("errors") == 0,
-        "baseline_backend_identity": baseline_backend.get("source_tree_sha256") == policy.get("baseline_source_tree_sha256"),
-        "baseline_mutation_pass": baseline_mutation.get("status") == "PASS" and baseline_mutation.get("killed") == baseline_mutation.get("valid_mutants") == baseline_mutation.get("mutants"),
-        "baseline_mutation_identity": baseline_mutation.get("source_tree_sha256") == policy.get("baseline_source_tree_sha256"),
+        "baseline_manifest_identity": baseline_manifest.get("source_tree_sha256")
+        == policy.get("baseline_source_tree_sha256"),
+        "baseline_backend_pass": baseline_backend.get("status") == "PASS"
+        and baseline_backend.get("failed") == 0
+        and baseline_backend.get("errors") == 0,
+        "baseline_backend_identity": baseline_backend.get("source_tree_sha256")
+        == policy.get("baseline_source_tree_sha256"),
+        "baseline_mutation_pass": baseline_mutation.get("status") == "PASS"
+        and baseline_mutation.get("killed")
+        == baseline_mutation.get("valid_mutants")
+        == baseline_mutation.get("mutants"),
+        "baseline_mutation_identity": baseline_mutation.get("source_tree_sha256")
+        == policy.get("baseline_source_tree_sha256"),
         "no_unexpected_added_or_modified_paths": changed <= allowed,
         "no_unexpected_removed_paths": set(removed) <= allowed_removed,
-        "no_forbidden_runtime_changes": not any(path.startswith(forbidden_prefixes) for path in changed),
+        "no_forbidden_runtime_changes": not any(
+            path.startswith(forbidden_prefixes) for path in changed
+        ),
         "targeted_junit_present": junit_path.is_file(),
         "targeted_tests_minimum": junit["tests"] >= int(policy.get("minimum_targeted_tests", 0)),
         "targeted_tests_clean": junit["failures"] == 0 and junit["errors"] == 0,
-        "target_release": RELEASE_TAG == str(policy.get("target_release")),
+        "target_release": str(policy.get("target_release")) == RELEASE_TAG,
     }
     failures = [name for name, ok in checks.items() if not ok]
     return {
@@ -109,8 +137,14 @@ def evaluate(policy: dict[str, Any], root: Path = ROOT) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy", type=Path, default=ROOT / "config/assurance/regression-carry-forward-v0.7.0.json")
-    parser.add_argument("--out", type=Path, default=ROOT / "reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json")
+    parser.add_argument(
+        "--policy",
+        type=Path,
+        default=ROOT / "config/assurance/regression-carry-forward-v0.7.0.json",
+    )
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json"
+    )
     args = parser.parse_args()
     payload = evaluate(_json(args.policy.resolve()))
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
-from collections.abc import Mapping, Collection
+from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from typing import Any
 

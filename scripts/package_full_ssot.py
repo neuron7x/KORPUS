@@ -21,7 +21,9 @@ def main() -> int:
     out = args.out or (root.parent / identity["distribution_artifact"])
     out = out if out.is_absolute() else root / out
     payload = build(root, out)
-    out.with_suffix(out.suffix + ".sha256").write_text(f"{payload['sha256']}  {out.name}\n", encoding="utf-8")
+    out.with_suffix(out.suffix + ".sha256").write_text(
+        f"{payload['sha256']}  {out.name}\n", encoding="utf-8"
+    )
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
 

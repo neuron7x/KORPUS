@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed validation and OIDC discovery verification for external production inputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -8,17 +9,23 @@ import os
 import re
 import ssl
 import sys
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
 PROJECT_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
 BUCKET_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$")
-DOMAIN_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$")
-SA_RE = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]@[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com$")
-WIF_RE = re.compile(r"^projects/[0-9]+/locations/global/workloadIdentityPools/[a-z0-9-]+/providers/[a-z0-9-]+$")
+DOMAIN_RE = re.compile(
+    r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
+SA_RE = re.compile(
+    r"^[a-z][a-z0-9-]{4,28}[a-z0-9]@[a-z][a-z0-9-]{4,28}[a-z0-9]\.iam\.gserviceaccount\.com$"
+)
+WIF_RE = re.compile(
+    r"^projects/[0-9]+/locations/global/workloadIdentityPools/[a-z0-9-]+/providers/[a-z0-9-]+$"
+)
 OCI_DIGEST_RE = re.compile(r"^[A-Za-z0-9._:-]+(?:/[A-Za-z0-9._-]+)+@sha256:[0-9a-f]{64}$")
 CHANNEL_RE = re.compile(r"^projects/[^/]+/notificationChannels/[0-9]+$")
 
@@ -27,6 +34,7 @@ CHANNEL_RE = re.compile(r"^projects/[^/]+/notificationChannels/[0-9]+$")
 class InputReport:
     values: dict[str, object]
 
+
 def _required(values: Mapping[str, str], name: str) -> str:
     value = values.get(name, "")
     if not value or value != value.strip():
@@ -34,6 +42,7 @@ def _required(values: Mapping[str, str], name: str) -> str:
     if any(token in value.lower() for token in ("<replace", "changeme", "example.invalid")):
         raise ValueError(f"{name} contains a placeholder")
     return value
+
 
 def _https(value: str, *, name: str, allow_query: bool = True) -> str:
     if "\\" in value or any(ord(c) < 0x20 or ord(c) == 0x7F for c in value):
@@ -53,6 +62,7 @@ def _https(value: str, *, name: str, allow_query: bool = True) -> str:
         raise ValueError(f"{name} must not contain a query")
     return value
 
+
 def _identity_inputs(values: Mapping[str, str]) -> dict[str, str]:
     project = _required(values, "GCP_PROJECT_ID")
     bucket = _required(values, "TF_STATE_BUCKET")
@@ -66,10 +76,19 @@ def _identity_inputs(values: Mapping[str, str]) -> dict[str, str]:
     if not DOMAIN_RE.fullmatch(domain) or domain != domain.lower():
         raise ValueError("DOMAIN must be a canonical lowercase DNS hostname")
     if not WIF_RE.fullmatch(wif):
-        raise ValueError("WIF_PROVIDER must be a full Google Workload Identity Provider resource name")
+        raise ValueError(
+            "WIF_PROVIDER must be a full Google Workload Identity Provider resource name"
+        )
     if not SA_RE.fullmatch(sa):
         raise ValueError("DEPLOYER_SA must be a Google service-account email")
-    return {"project_id": project, "state_bucket": bucket, "domain": domain, "wif_provider": wif, "deployer_service_account": sa}
+    return {
+        "project_id": project,
+        "state_bucket": bucket,
+        "domain": domain,
+        "wif_provider": wif,
+        "deployer_service_account": sa,
+    }
+
 
 def _oidc_inputs(values: Mapping[str, str]) -> dict[str, object]:
     issuer = _https(_required(values, "OIDC_ISSUER"), name="OIDC_ISSUER", allow_query=False)
@@ -110,12 +129,21 @@ def _delivery_inputs(values: Mapping[str, str]) -> dict[str, object]:
         channels = json.loads(channels_raw)
     except json.JSONDecodeError as exc:
         raise ValueError("MONITORING_CHANNELS must be JSON") from exc
-    valid_channels = isinstance(channels, list) and bool(channels) and all(
-        isinstance(item, str) and CHANNEL_RE.fullmatch(item) for item in channels
+    valid_channels = (
+        isinstance(channels, list)
+        and bool(channels)
+        and all(isinstance(item, str) and CHANNEL_RE.fullmatch(item) for item in channels)
     )
     if not valid_channels:
-        raise ValueError("MONITORING_CHANNELS must be a non-empty JSON list of Cloud Monitoring channel resources")
-    return {"clamav_source_digest_pinned": True, "notification_channels": channels, "database_disk_autoresize_limit_gb": disk_limit, "otlp_endpoint": otlp}
+        raise ValueError(
+            "MONITORING_CHANNELS must be a non-empty JSON list of Cloud Monitoring channel resources"
+        )
+    return {
+        "clamav_source_digest_pinned": True,
+        "notification_channels": channels,
+        "database_disk_autoresize_limit_gb": disk_limit,
+        "otlp_endpoint": otlp,
+    }
 
 
 def validate(values: Mapping[str, str]) -> InputReport:
@@ -131,12 +159,18 @@ def verify_oidc_discovery(report: InputReport, *, timeout: float = 10.0) -> dict
     assert isinstance(oidc, dict)
     issuer = str(oidc["issuer"])
     discovery_url = issuer.rstrip("/") + "/.well-known/openid-configuration"
-    req = Request(discovery_url, headers={"Accept": "application/json", "User-Agent": "korpus-production-preflight/1"})
+    req = Request(
+        discovery_url,
+        headers={"Accept": "application/json", "User-Agent": "korpus-production-preflight/1"},
+    )
     context = ssl.create_default_context()
-    with urlopen(req, timeout=timeout, context=context) as response:  # noqa: S310 - validated HTTPS endpoint
+    with urlopen(req, timeout=timeout, context=context) as response:
         if response.status != 200:
             raise ValueError(f"OIDC discovery returned HTTP {response.status}")
-        if response.headers.get_content_type() not in {"application/json", "application/jwk-set+json"}:
+        if response.headers.get_content_type() not in {
+            "application/json",
+            "application/jwk-set+json",
+        }:
             raise ValueError("OIDC discovery did not return a JSON content type")
         body = response.read(1_048_577)
         if len(body) > 1_048_576:
@@ -151,9 +185,15 @@ def verify_oidc_discovery(report: InputReport, *, timeout: float = 10.0) -> dict
         "authorization_endpoint": oidc["authorization_endpoint"],
         "token_endpoint": oidc["token_endpoint"],
     }
-    mismatches = {key: {"expected": value, "observed": doc.get(key)} for key, value in expected.items() if doc.get(key) != value}
+    mismatches = {
+        key: {"expected": value, "observed": doc.get(key)}
+        for key, value in expected.items()
+        if doc.get(key) != value
+    }
     if mismatches:
-        raise ValueError(f"OIDC discovery metadata mismatch: {json.dumps(mismatches, sort_keys=True)}")
+        raise ValueError(
+            f"OIDC discovery metadata mismatch: {json.dumps(mismatches, sort_keys=True)}"
+        )
     return {"status": "PASS", "discovery_url": discovery_url, "matched_fields": sorted(expected)}
 
 

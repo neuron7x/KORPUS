@@ -4,11 +4,23 @@ from korpus.application.predictive_evidence_control import RetrievalAction
 
 def _row(action, *, latency=10, searches=1, planner=0, quality=True, error=False, auth=True):
     return ReplayOutcome(
-        query_id="q1", group_id="g1", action=action, state_fingerprint="a" * 64,
-        features={}, authorization_ok=auth, answer_error=error, quality_ok=quality,
-        answer_status="answered", gold_hit=True, latency_ms=latency,
-        search_count=searches, planner_calls=planner, semantic_calls=0,
-        candidate_count=8, external_tokens=0, provider_cost_microunits=0,
+        query_id="q1",
+        group_id="g1",
+        action=action,
+        state_fingerprint="a" * 64,
+        features={},
+        authorization_ok=auth,
+        answer_error=error,
+        quality_ok=quality,
+        answer_status="answered",
+        gold_hit=True,
+        latency_ms=latency,
+        search_count=searches,
+        planner_calls=planner,
+        semantic_calls=0,
+        candidate_count=8,
+        external_tokens=0,
+        provider_cost_microunits=0,
     )
 
 
@@ -22,9 +34,7 @@ def test_oracle_selects_unique_pareto_minimum_without_weighted_utility():
 
 
 def test_oracle_refuses_to_invent_tradeoff_between_incomparable_resources():
-    baseline = _row(
-        RetrievalAction.STOP_USE_CURRENT_EVIDENCE, latency=1, searches=1, quality=False
-    )
+    baseline = _row(RetrievalAction.STOP_USE_CURRENT_EVIDENCE, latency=1, searches=1, quality=False)
     fast_expensive = _row(RetrievalAction.PLAN_QUERY_VARIANTS, latency=5, searches=4)
     slow_cheap = _row(RetrievalAction.ENABLE_SEMANTIC_RETRIEVAL, latency=10, searches=1)
     decision = solve_oracle([baseline, fast_expensive, slow_cheap])

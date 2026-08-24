@@ -5,6 +5,7 @@ reconstruct them from roles, local configuration, or DOM state. This projection 
 identity, effective permissions, release identity and deploy-time capabilities in one
 response so every UI surface observes the same server decision.
 """
+
 from __future__ import annotations
 
 from typing import Literal

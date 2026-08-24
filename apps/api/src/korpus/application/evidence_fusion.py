@@ -5,10 +5,11 @@ combined. Compatible observations are deduplicated while retaining the strongest
 available evidence class. Contradictory observations are never averaged, voted away,
 or silently collapsed: they remain explicit conflicts and the fused claim is FAIL.
 """
+
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from korpus.application.assurance_calculus import EvidenceClass, EvidencePoint, join_evidence
 
@@ -103,7 +104,9 @@ def _conflicts(observations: tuple[ClaimEvidence, ...]) -> tuple[EvidenceConflic
     return tuple(found)
 
 
-def _failed_point(observations: tuple[ClaimEvidence, ...], identity: tuple[str, str]) -> EvidencePoint:
+def _failed_point(
+    observations: tuple[ClaimEvidence, ...], identity: tuple[str, str]
+) -> EvidencePoint:
     source_digest, release = identity
     strongest = max(item.point.evidence_class for item in observations)
     return EvidencePoint(
@@ -124,8 +127,10 @@ def fuse_claim_evidence(items: Iterable[ClaimEvidence]) -> FusedClaim:
     observations = tuple(items)
     identity = _validate_fusion_scope(observations)
     conflicts = _conflicts(observations)
-    point = _failed_point(observations, identity) if conflicts else _strongest(
-        item.point for item in observations
+    point = (
+        _failed_point(observations, identity)
+        if conflicts
+        else _strongest(item.point for item in observations)
     )
     return FusedClaim(
         claim_id=observations[0].claim_id,

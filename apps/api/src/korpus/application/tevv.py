@@ -21,7 +21,6 @@ TEVV however good its point estimate looks.
 
 from __future__ import annotations
 
-import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
@@ -110,7 +109,9 @@ def evaluate_tevv(
 ) -> TevvVerdict:
     """Decide whether this run may be cited as a measurement of the system."""
 
-    maximum_interval_width, minimum_observations = validate_tevv_policy(maximum_interval_width, minimum_observations)
+    maximum_interval_width, minimum_observations = validate_tevv_policy(
+        maximum_interval_width, minimum_observations
+    )
 
     reasons = corpus_declaration_problems(corpus_declaration)
     interval = wilson_interval(passed, total)

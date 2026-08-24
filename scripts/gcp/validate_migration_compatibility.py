@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed expand/contract policy for production Alembic migrations."""
+
 from __future__ import annotations
 
 import ast
@@ -20,9 +21,14 @@ def _sha256(path: Path) -> str:
 def _literal_assignment(tree: ast.Module, name: str) -> str | None:
     for node in tree.body:
         value: ast.expr | None = None
-        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name) and node.target.id == name:
-            value = node.value
-        elif isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name for t in node.targets):
+        if (
+            isinstance(node, ast.AnnAssign)
+            and isinstance(node.target, ast.Name)
+            and node.target.id == name
+        ) or (
+            isinstance(node, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id == name for t in node.targets)
+        ):
             value = node.value
         if isinstance(value, ast.Constant) and isinstance(value.value, str):
             return value.value
@@ -30,12 +36,20 @@ def _literal_assignment(tree: ast.Module, name: str) -> str | None:
 
 
 def _upgrade_function(tree: ast.Module) -> ast.FunctionDef | None:
-    return next((n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "upgrade"), None)
+    return next(
+        (n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "upgrade"), None
+    )
 
 
 def _op_call_name(call: ast.Call) -> str | None:
     func = call.func
-    return func.attr if isinstance(func, ast.Attribute) and isinstance(func.value, ast.Name) and func.value.id == "op" else None
+    return (
+        func.attr
+        if isinstance(func, ast.Attribute)
+        and isinstance(func.value, ast.Name)
+        and func.value.id == "op"
+        else None
+    )
 
 
 def _unsafe_add_column(call: ast.Call) -> str | None:
@@ -45,12 +59,18 @@ def _unsafe_add_column(call: ast.Call) -> str | None:
     if not isinstance(column, ast.Call):
         return "add_column uses a non-literal Column expression"
     func = column.func
-    is_column = (isinstance(func, ast.Attribute) and func.attr == "Column") or (isinstance(func, ast.Name) and func.id == "Column")
+    is_column = (isinstance(func, ast.Attribute) and func.attr == "Column") or (
+        isinstance(func, ast.Name) and func.id == "Column"
+    )
     if not is_column:
         return "add_column second argument is not a Column constructor"
     keywords = {kw.arg: kw.value for kw in column.keywords if kw.arg}
     nullable, default = keywords.get("nullable"), keywords.get("server_default")
-    if isinstance(nullable, ast.Constant) and nullable.value is False and (default is None or isinstance(default, ast.Constant) and default.value is None):
+    if (
+        isinstance(nullable, ast.Constant)
+        and nullable.value is False
+        and (default is None or (isinstance(default, ast.Constant) and default.value is None))
+    ):
         return "non-null column without server_default is not expand-safe for existing rows"
     return None
 
@@ -83,13 +103,18 @@ def _inspect_future(path: Path, relative: str, tree: ast.Module, forbidden: set[
     return findings
 
 
-def _inspect_history(current: dict[str, Path], baseline: dict[str, str], forbidden: set[str]) -> tuple[dict[str, tuple[str | None, str]], list[Path], list[str]]:
+def _inspect_history(
+    current: dict[str, Path], baseline: dict[str, str], forbidden: set[str]
+) -> tuple[dict[str, tuple[str | None, str]], list[Path], list[str]]:
     revisions: dict[str, tuple[str | None, str]] = {}
     future: list[Path] = []
     findings: list[str] = []
     for relative, path in current.items():
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=relative)
-        revision, down = _literal_assignment(tree, "revision"), _literal_assignment(tree, "down_revision")
+        revision, down = (
+            _literal_assignment(tree, "revision"),
+            _literal_assignment(tree, "down_revision"),
+        )
         if not revision:
             findings.append(f"migration has no literal revision: {relative}")
             continue
@@ -102,12 +127,16 @@ def _inspect_history(current: dict[str, Path], baseline: dict[str, str], forbidd
     return revisions, future, findings
 
 
-def _verify_graph(revisions: dict[str, tuple[str | None, str]], baseline_revision: str) -> tuple[list[str], list[str]]:
+def _verify_graph(
+    revisions: dict[str, tuple[str | None, str]], baseline_revision: str
+) -> tuple[list[str], list[str]]:
     children: dict[str | None, list[str]] = {}
     for revision, (down, _) in revisions.items():
         children.setdefault(down, []).append(revision)
     findings: list[str] = []
-    forks = {parent: vals for parent, vals in children.items() if parent is not None and len(vals) > 1}
+    forks = {
+        parent: vals for parent, vals in children.items() if parent is not None and len(vals) > 1
+    }
     if forks:
         findings.append(f"migration history forks are forbidden in production lane: {forks}")
     heads = sorted(set(revisions) - {down for down, _ in revisions.values() if down})
@@ -124,7 +153,9 @@ def evaluate(root: Path = ROOT) -> dict[str, Any]:
     baseline: dict[str, str] = policy["baseline_files"]
     current = {str(p.relative_to(root)): p for p in sorted(versions.glob("*.py"))}
     findings = _verify_baseline(current, baseline)
-    revisions, future, history_findings = _inspect_history(current, baseline, set(policy["future_upgrade_forbidden_calls"]))
+    revisions, future, history_findings = _inspect_history(
+        current, baseline, set(policy["future_upgrade_forbidden_calls"])
+    )
     findings.extend(history_findings)
     heads, graph_findings = _verify_graph(revisions, policy["baseline_revision"])
     findings.extend(graph_findings)

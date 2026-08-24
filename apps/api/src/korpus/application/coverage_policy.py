@@ -1,4 +1,5 @@
 """Canonical source-path normalization and deterministic coverage risk weighting."""
+
 from __future__ import annotations
 
 _SOURCE_MARKERS = ("apps/api/src/korpus/", "/apps/api/src/korpus/")

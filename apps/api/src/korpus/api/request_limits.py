@@ -1,4 +1,5 @@
 """Application-level request body ceilings for endpoints that bypass user auth."""
+
 from __future__ import annotations
 
 from fastapi import HTTPException, Request, status

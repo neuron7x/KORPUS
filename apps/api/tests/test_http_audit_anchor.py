@@ -50,9 +50,7 @@ class MonotonicAnchorServer:
 
 
 def store(server: MonotonicAnchorServer) -> HttpAuditAnchorStore:
-    return HttpAuditAnchorStore(
-        "https://anchor.example/v1/head", b"a" * 40, client=server
-    )
+    return HttpAuditAnchorStore("https://anchor.example/v1/head", b"a" * 40, client=server)
 
 
 def test_remote_anchor_is_monotonic_idempotent_and_authenticated():

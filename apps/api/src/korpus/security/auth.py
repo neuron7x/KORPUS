@@ -67,9 +67,7 @@ def _validate_lifetime(claims: dict[str, Any], settings: Settings) -> None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token timestamps"
         ) from exc
-    if expires <= issued or expires - issued > timedelta(
-        minutes=settings.jwt_max_lifetime_minutes
-    ):
+    if expires <= issued or expires - issued > timedelta(minutes=settings.jwt_max_lifetime_minutes):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="token lifetime exceeds policy"
         )

@@ -78,9 +78,7 @@ def test_an_impossible_window_is_refused_rather_than_clamped() -> None:
 
 def test_a_naive_timestamp_is_read_as_utc_rather_than_crashing() -> None:
     """SQLite hands back naive datetimes; a retention job must not die on a dialect."""
-    plan = plan_retention(
-        [(uuid4(), datetime(2020, 1, 1, 0, 0))], window_days=30, now=NOW
-    )
+    plan = plan_retention([(uuid4(), datetime(2020, 1, 1, 0, 0))], window_days=30, now=NOW)
     assert len(plan.expired) == 1
 
 
@@ -152,9 +150,18 @@ def _run(database: Path, *arguments: str, window: str | None = None) -> tuple[in
     if window is not None:
         environment["KORPUS_CONVERSATION_RETENTION_DAYS"] = window
     completed = subprocess.run(
-        [sys.executable, str(ROOT / "scripts/conversation_retention.py"),
-         "--out", str(database.parent / "report.json"), *arguments],
-        capture_output=True, text=True, check=False, env=environment, timeout=300,
+        [
+            sys.executable,
+            str(ROOT / "scripts/conversation_retention.py"),
+            "--out",
+            str(database.parent / "report.json"),
+            *arguments,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=environment,
+        timeout=300,
     )
     body = json.loads(completed.stdout) if completed.stdout.strip() else {}
     return completed.returncode, body
@@ -204,14 +211,18 @@ def test_the_script_deletes_only_with_a_window_and_an_explicit_apply(tmp_path: P
     fresh = tenancy.conversation_service.create(owner, "свіжа")
     tenancy.conversations.append_message(
         owner.id,
-        MessageRecord(conversation_id=old.id, role=MessageRole.USER, raw_text="давнє",
-                      created_at=datetime.now(UTC)),
+        MessageRecord(
+            conversation_id=old.id,
+            role=MessageRole.USER,
+            raw_text="давнє",
+            created_at=datetime.now(UTC),
+        ),
     )
     with tenancy.repository.engine.begin() as connection:
         connection.execute(
-            update(table).where(table.c.id == str(old.id)).values(
-                updated_at=datetime.now(UTC) - timedelta(days=400)
-            )
+            update(table)
+            .where(table.c.id == str(old.id))
+            .values(updated_at=datetime.now(UTC) - timedelta(days=400))
         )
     tenancy.close()
 

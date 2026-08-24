@@ -3,11 +3,12 @@
 The projection may improve ranking, but the evidence text/hash are immutable and remain
 the only material that may enter citations or claims.
 """
+
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 from korpus.domain.models import DocumentRecord, DocumentVersionRecord, EvidenceSpanRecord
 
@@ -52,7 +53,9 @@ def build_contextual_projection(
     ]
     if aliases:
         context_fields.append("aliases=" + " | ".join(aliases))
-    context = " [KORPUS_CONTEXT] ".join(field for field in context_fields if not field.endswith("="))
+    context = " [KORPUS_CONTEXT] ".join(
+        field for field in context_fields if not field.endswith("=")
+    )
     retrieval_text = f"{context}\n{span.text}" if context else span.text
     projection_hash = hashlib.sha256(retrieval_text.encode("utf-8")).hexdigest()
     return ContextualProjection(

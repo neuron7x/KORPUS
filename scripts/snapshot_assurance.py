@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Promote successful assurance outputs into content-hashed release evidence."""
+
 from __future__ import annotations
+
 import hashlib
 import json
 import os
@@ -8,8 +10,10 @@ import shutil
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from release_identity import release_tag
+
 ROOT = Path(__file__).resolve().parents[1]
 VAR = ROOT / "var"
 REPORTS = ROOT / "reports"
@@ -185,6 +189,7 @@ def main() -> int:
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(index, ensure_ascii=False, indent=2))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

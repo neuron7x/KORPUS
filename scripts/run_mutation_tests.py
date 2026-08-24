@@ -5,13 +5,13 @@ This deliberately mutates security- and evidence-critical predicates and proves
 that the focused verification suite kills every mutant. It uses only stdlib and
 pytest, so it runs in constrained/offline CI environments.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -21,12 +21,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
+from bounded_process import run_bounded  # noqa: E402
 from korpus.application.provenance import (  # noqa: E402  (path set above)
     PROVENANCE_KEY,
     read_provenance,
     stamp,
 )
-from bounded_process import run_bounded  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -59,7 +59,9 @@ MUTANTS = (
         "apps/api/src/korpus/application/answer_query.py",
         "            support_score = extractive_support(candidate.text, item.span.text)",
         "            support_score = 0.0",
-        ("apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation",),
+        (
+            "apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation",
+        ),
     ),
     Mutant(
         "M04_AUDIT_PREDECESSOR_BYPASS",
@@ -69,14 +71,16 @@ MUTANTS = (
         (
             'if row["previous_hash"] != previous_hash or not self.audit_keyring.verify(\n'
             '                signed_by, canonical, str(row["event_hash"])\n'
-            '            ):'
+            "            ):"
         ),
         (
-            'if not self.audit_keyring.verify(\n'
+            "if not self.audit_keyring.verify(\n"
             '                signed_by, canonical, str(row["event_hash"])\n'
-            '            ):'
+            "            ):"
         ),
-        ("apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",),
+        (
+            "apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link",
+        ),
     ),
     Mutant(
         # Until 2026-08-05 this predicate appeared twice in one file — in the
@@ -90,7 +94,9 @@ MUTANTS = (
         # is now the one place both projections read it from. One occurrence, one mutant.
         "        documents.c.access_tier <= int(identity.clearance),",
         "        documents.c.access_tier <= 3,",
-        ("apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",),
+        (
+            "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification",
+        ),
     ),
     Mutant(
         # Anchored on the corpus filter above it: the same clearance predicate now
@@ -126,14 +132,18 @@ MUTANTS = (
             "'corpora': frozenset({'public', 'restricted-demo'})}), "
             "frozenset({'public', 'restricted-demo'}), as_of)"
         ),
-        ("apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",),
+        (
+            "apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release",
+        ),
     ),
     Mutant(
         "M07_SUPERSESSION_EDGE_DROPPED",
         "apps/api/src/korpus/application/ingestion.py",
         "**version_data.model_dump(),",
-        "**version_data.model_dump(exclude={\"supersedes_version_id\"}),",
-        ("apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval",),
+        '**version_data.model_dump(exclude={"supersedes_version_id"}),',
+        (
+            "apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval",
+        ),
     ),
     Mutant(
         "M08_OBJECT_HASH_CHECK_REMOVED",
@@ -142,8 +152,10 @@ MUTANTS = (
             "if hashlib.sha256(content).hexdigest() != source_hash:\n"
             '            raise ValueError("source hash does not match content")'
         ),
-        "if False:\n            raise ValueError(\"source hash does not match content\")",
-        ("apps/api/tests/test_more_edges.py::test_object_store_is_content_addressed_atomic_and_filename_independent",),
+        'if False:\n            raise ValueError("source hash does not match content")',
+        (
+            "apps/api/tests/test_more_edges.py::test_object_store_is_content_addressed_atomic_and_filename_independent",
+        ),
     ),
     Mutant(
         "M09_CLASSIFICATION_GATE_REMOVED",
@@ -164,7 +176,9 @@ MUTANTS = (
         "apps/api/src/korpus/application/ingestion.py",
         "if self.review_separation_required:",
         "if False:",
-        ("apps/api/tests/test_state_machine.py::test_controlled_review_separation_is_subject_based",),
+        (
+            "apps/api/tests/test_state_machine.py::test_controlled_review_separation_is_subject_based",
+        ),
     ),
     Mutant(
         "M12_REMOTE_ANCHOR_MAC_BYPASS",
@@ -178,21 +192,27 @@ MUTANTS = (
         "apps/api/src/korpus/application/operational_math.py",
         '_count_at_most(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
         '_count_at_least(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
-        ("apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression",),
+        (
+            "apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression",
+        ),
     ),
     Mutant(
         "M14_SEMANTIC_OUTAGE_FALLBACK",
         "apps/api/src/korpus/application/retrieval_execution.py",
         '        raise ExecutionUnavailable("required semantic retrieval is unavailable") from exc',
-        '        hits = []',
-        ("apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical",),
+        "        hits = []",
+        (
+            "apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical",
+        ),
     ),
     Mutant(
         "M15_TOKEN_PRIVILEGE_TRUST",
         "apps/api/src/korpus/security/entitlements.py",
         "roles=grant.roles,",
         "roles=frozenset(claims.get('roles', grant.roles)),",
-        ("apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims",),
+        (
+            "apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims",
+        ),
     ),
     Mutant(
         # `self.malware_scanner.scan(path)` appears on both ingestion paths — a new
@@ -204,7 +224,9 @@ MUTANTS = (
         "                    duplicate=True,\n                )\n"
         "        self.malware_scanner.scan(path)",
         "                    duplicate=True,\n                )\n        None",
-        ("apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",),
+        (
+            "apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects",
+        ),
     ),
     Mutant(
         "M17_SOURCE_SIGNATURE_BYPASS",
@@ -217,14 +239,18 @@ MUTANTS = (
             "            )"
         ),
         "None",
-        ("apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata",),
+        (
+            "apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata",
+        ),
     ),
     Mutant(
         "M18_CALIBRATION_BINDING_BYPASS",
         "apps/api/src/korpus/application/calibration.py",
         "if actual != expected:",
         "if False:",
-        ("apps/api/tests/test_calibration.py::test_calibration_profile_and_bound_artifacts_reject_tampering",),
+        (
+            "apps/api/tests/test_calibration.py::test_calibration_profile_and_bound_artifacts_reject_tampering",
+        ),
     ),
     Mutant(
         "M19_NEAR_DUPLICATE_ACK_BYPASS",
@@ -233,25 +259,28 @@ MUTANTS = (
             "            current.near_duplicate_of_version_id is not None\n"
             "            and not acknowledge_near_duplicate\n"
         ),
+        ("            False\n            and False\n"),
         (
-            "            False\n"
-            "            and False\n"
+            "apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",
         ),
-        ("apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",),
     ),
     Mutant(
         "M20_EXTRACTION_QUALITY_ACK_BYPASS",
         "apps/api/src/korpus/infrastructure/review_transitions.py",
         "if current.extraction_quality_flags and not acknowledge_extraction_quality:",
         "if False:",
-        ("apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement",),
+        (
+            "apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement",
+        ),
     ),
     Mutant(
         "M21_CSRF_GATE_BYPASS",
         "apps/api/src/korpus/security/browser_csrf.py",
         'return None if valid else (403, "CSRF validation failed")',
         "return None",
-        ("apps/api/tests/test_browser_oidc.py::test_global_browser_csrf_gate_refuses_missing_double_submit_material",),
+        (
+            "apps/api/tests/test_browser_oidc.py::test_global_browser_csrf_gate_refuses_missing_double_submit_material",
+        ),
     ),
     Mutant(
         # The decision moved behind the Extractor port on 2026-08-06. It is now a value
@@ -261,7 +290,9 @@ MUTANTS = (
         "apps/api/src/korpus/application/ingestion.py",
         "            sandboxed=self.extraction.parser_sandbox_enabled,",
         "            sandboxed=False,",
-        ("apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser",),
+        (
+            "apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser",
+        ),
     ),
     Mutant(
         "M172_EXTRACTION_ADAPTER_IGNORES_THE_SANDBOX_FLAG",
@@ -285,7 +316,9 @@ MUTANTS = (
         "apps/api/src/korpus/security/reviewers.py",
         "if grant.revoked or target not in grant.stages:",
         "if target not in grant.stages:",
-        ("apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",),
+        (
+            "apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",
+        ),
     ),
     Mutant(
         "M25_REVIEWER_SCOPE_BYPASS",
@@ -294,18 +327,19 @@ MUTANTS = (
             "                document.corpus_id not in grant.corpora\n"
             "                or version.authority not in grant.authorities\n"
         ),
+        ("                False\n                or False\n"),
         (
-            "                False\n"
-            "                or False\n"
+            "apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",
         ),
-        ("apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed",),
     ),
     Mutant(
         "M26_EXTERNAL_EMBEDDING_EGRESS_BYPASS",
         "apps/api/src/korpus/security/corpus_governance.py",
         "if denied:",
         "if False:",
-        ("apps/api/tests/test_corpus_governance.py::test_ingestion_authority_classification_ocr_and_egress_are_governed",),
+        (
+            "apps/api/tests/test_corpus_governance.py::test_ingestion_authority_classification_ocr_and_egress_are_governed",
+        ),
     ),
     Mutant(
         # Shifts the end of a document's validity by one day. This exact mutation was
@@ -316,7 +350,9 @@ MUTANTS = (
         "apps/api/src/korpus/domain/temporal.py",
         "    if effective_until is not None and effective_until < as_of:",
         "    if effective_until is not None and effective_until <= as_of:",
-        ("apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",),
+        (
+            "apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",
+        ),
     ),
     Mutant(
         # The mirror image: rescission is an act, not a term, so its boundary is open
@@ -326,7 +362,9 @@ MUTANTS = (
         "apps/api/src/korpus/domain/temporal.py",
         "    if rescinded_at is not None and rescinded_at.date() <= as_of:",
         "    if rescinded_at is not None and rescinded_at.date() < as_of:",
-        ("apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission",),
+        (
+            "apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission",
+        ),
     ),
     Mutant(
         # The same three boundaries exist a second time, in the SQL that picks
@@ -339,7 +377,9 @@ MUTANTS = (
         "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
         "              AND (v.effective_until IS NULL OR v.effective_until > :as_of)\n"
         "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
-        ("apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",),
+        (
+            "apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",
+        ),
     ),
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
@@ -348,7 +388,9 @@ MUTANTS = (
         "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
         "              AND d.classification IN ({class_placeholders})\n"
         "              AND COALESCE(v.effective_from, v.publication_date) < :as_of",
-        ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
+        (
+            "apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",
+        ),
     ),
     Mutant(
         "M31_SQL_RESCISSION_SHIFT",
@@ -360,31 +402,30 @@ MUTANTS = (
         # Behaviourally this one is equivalent — `_materialize_current` re-checks the
         # domain and the answer is unchanged — so only the test that asserts the SQL
         # layer on its own can kill it.
-        ("apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version",),
+        (
+            "apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version",
+        ),
     ),
     Mutant(
-        'M32_RETRIEVER_CORPUS_RECHECK_REMOVED',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        'if document.corpus_id not in corpora:',
-        'if False:',
-        ('apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer',),
+        "M32_RETRIEVER_CORPUS_RECHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "if document.corpus_id not in corpora:",
+        "if False:",
+        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
     ),
     Mutant(
-        'M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        'if not decision.allowed:',
-        'if False:',
-        ('apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer',),
+        "M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "if not decision.allowed:",
+        "if False:",
+        ("apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer",),
     ),
     Mutant(
         # Turns the breach into a silent filter — the failure mode the check exists to
         # prevent: the answer looks normal and the defective adapter stays in service.
         "M34_SCOPE_BREACH_DOWNGRADED_TO_FILTER",
         "apps/api/src/korpus/application/answer_retrieval_gate.py",
-        (
-            "    breaches = service._scope_breaches(identity, corpora, retrieved)\n"
-            "    if breaches:"
-        ),
+        ("    breaches = service._scope_breaches(identity, corpora, retrieved)\n    if breaches:"),
         (
             "    breaches = service._scope_breaches(identity, corpora, retrieved)\n"
             "    retrieved = [\n"
@@ -394,7 +435,9 @@ MUTANTS = (
             "    ]\n"
             "    if False:"
         ),
-        ("apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch",),
+        (
+            "apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch",
+        ),
     ),
     Mutant(
         # Restores the ratio that counted citations instead of statements: it exceeds
@@ -403,14 +446,18 @@ MUTANTS = (
         "apps/api/src/korpus/application/evidence.py",
         "    coverage = (total - len(unsupported)) / total",
         "    coverage = len(available) / total",
-        ("apps/api/tests/test_citation_alignment.py::test_extra_citations_do_not_push_coverage_above_one",),
+        (
+            "apps/api/tests/test_citation_alignment.py::test_extra_citations_do_not_push_coverage_above_one",
+        ),
     ),
     Mutant(
         "M36_MISALIGNMENT_GATE_REMOVED",
         "apps/api/src/korpus/application/answer_query.py",
         "if claims and not support.aligned:",
         "if False:",
-        ("apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising",),
+        (
+            "apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising",
+        ),
     ),
     Mutant(
         # Partial credit: a claim with one carried span and one dangling reference
@@ -423,7 +470,9 @@ MUTANTS = (
             "            set() if referenced & available else referenced.difference(available)\n"
             "        )"
         ),
-        ("apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim",),
+        (
+            "apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim",
+        ),
     ),
     Mutant(
         # Puts authority back into the convex sum, where a 0.0756 prior gap loses to
@@ -435,26 +484,28 @@ MUTANTS = (
             "                priors[item.version.authority],\n"
             "                mmr,\n"
         ),
+        ("            return (\n                0.0,\n                mmr,\n"),
         (
-            "            return (\n"
-            "                0.0,\n"
-            "                mmr,\n"
+            "apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",
         ),
-        ("apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",),
     ),
     Mutant(
         "M39_LOWER_RANK_CAN_VETO_AGAIN",
         "apps/api/src/korpus/application/answer_query.py",
         "        eligible, outranked = self._confine_to_top_authority(eligible)",
         "        outranked: list[RetrievedEvidence] = []",
-        ("apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer",),
+        (
+            "apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer",
+        ),
     ),
     Mutant(
-        'M40_VERSION_CONFLICT_CHECK_REMOVED',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        '        if len(version_ids) > 1:',
-        '        if False:',
-        ('apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human',),
+        "M40_VERSION_CONFLICT_CHECK_REMOVED",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "        if len(version_ids) > 1:",
+        "        if False:",
+        (
+            "apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human",
+        ),
     ),
     Mutant(
         # One version cited twice reads as two independent sources.
@@ -465,7 +516,9 @@ MUTANTS = (
         "apps/api/src/korpus/application/retrieval.py",
         "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 1,",
         "    diversity_lambda: float = 0.82,\n    per_version_cap: int = 2,",
-        ("apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match",),
+        (
+            "apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match",
+        ),
     ),
     Mutant(
         # The same cap, but the value the application is wired with rather than the
@@ -474,7 +527,9 @@ MUTANTS = (
         "apps/api/src/korpus/api/dependencies.py",
         "        per_version_cap = 1",
         "        per_version_cap = 2",
-        ("apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version",),
+        (
+            "apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version",
+        ),
     ),
     Mutant(
         # Unpadded base64 accepts a second spelling of the same bytes, so a session
@@ -483,7 +538,9 @@ MUTANTS = (
         "apps/api/src/korpus/security/browser_oidc.py",
         'if base64.urlsafe_b64encode(decoded).rstrip(b"=").decode("ascii") != value:',
         "if False:",
-        ("apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token",),
+        (
+            "apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token",
+        ),
     ),
     Mutant(
         # Makes captured material normative — the rule that lived only in prose.
@@ -491,7 +548,9 @@ MUTANTS = (
         "apps/api/src/korpus/domain/models.py",
         "        return self not in {AuthorityClass.ADVERSARY, AuthorityClass.UNKNOWN}",
         "        return self is not AuthorityClass.UNKNOWN",
-        ("apps/api/tests/test_governance_boundaries.py::test_an_adversary_source_cannot_be_approved",),
+        (
+            "apps/api/tests/test_governance_boundaries.py::test_an_adversary_source_cannot_be_approved",
+        ),
     ),
     Mutant(
         "M45_APPROVER_TIER_DISCARDED",
@@ -505,14 +564,18 @@ MUTANTS = (
         "apps/api/src/korpus/infrastructure/review_transitions.py",
         "    if int(access_tier) > int(actor.clearance):",
         "    if False:",
-        ("apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance",),
+        (
+            "apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance",
+        ),
     ),
     Mutant(
         "M47_DENIED_CORPORA_UNTYPED_AGAIN",
         "apps/api/src/korpus/application/policy.py",
         "            raise UnauthorizedCorporaError(requested, denied)",
         '            raise AuthorizationError("requested corpora exceed identity authorization")',
-        ("apps/api/tests/test_governance_boundaries.py::test_an_unheld_corpus_denies_the_request_and_names_which",),
+        (
+            "apps/api/tests/test_governance_boundaries.py::test_an_unheld_corpus_denies_the_request_and_names_which",
+        ),
     ),
     Mutant(
         # Deduplication on bytes alone: the re-issue disappears into the version it
@@ -527,7 +590,9 @@ MUTANTS = (
             "        if False:\n"
             "            statement = statement.where(versions.c.revision == revision)"
         ),
-        ("apps/api/tests/test_governance_boundaries.py::test_the_same_bytes_under_a_new_revision_are_a_new_version",),
+        (
+            "apps/api/tests/test_governance_boundaries.py::test_the_same_bytes_under_a_new_revision_are_a_new_version",
+        ),
     ),
     Mutant(
         # Back to a global bound: one subject takes the service.
@@ -535,7 +600,9 @@ MUTANTS = (
         "apps/api/src/korpus/application/resilience.py",
         "                if held >= self.per_subject_limit:",
         "                if False:",
-        ("apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service",),
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service",
+        ),
     ),
     Mutant(
         # The share is taken and never returned — a slow denial of service.
@@ -543,14 +610,18 @@ MUTANTS = (
         "apps/api/src/korpus/application/resilience.py",
         "            self._release_subject(subject)\n            self._semaphore.release()",
         "            self._semaphore.release()",
-        ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_per_subject_share_is_returned_when_the_work_finishes",),
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::test_the_per_subject_share_is_returned_when_the_work_finishes",
+        ),
     ),
     Mutant(
         "M51_INTEGRITY_PROBE_REMOVED",
         "apps/api/src/korpus/infrastructure/repository.py",
         "                return self._integrity_ok(connection)",
         "                return True",
-        ("apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database",),
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database",
+        ),
     ),
     Mutant(
         # A scoped read that ignores its scope returns another request's events.
@@ -558,14 +629,18 @@ MUTANTS = (
         "apps/api/src/korpus/infrastructure/audit_reader.py",
         "            .where(self._audits.c.payload_json.contains(needle))",
         "            .where(self._audits.c.sequence >= 1)",
-        ("apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",),
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests",
+        ),
     ),
     Mutant(
-        'M53_AUDIT_READ_PERMISSION_DROPPED',
-        'apps/api/src/korpus/api/routes_audit.py',
+        "M53_AUDIT_READ_PERMISSION_DROPPED",
+        "apps/api/src/korpus/api/routes_audit.py",
         '        policy.require(identity, "audit:read")',
-        '        pass',
-        ('apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission',),
+        "        pass",
+        (
+            "apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission",
+        ),
     ),
     Mutant(
         # Restores the seam that manufactured sentences: the tail of one span joined
@@ -581,14 +656,18 @@ MUTANTS = (
         "apps/api/src/korpus/application/answer_query.py",
         "        unsourced = self._unsourced_quotes(eligible, citations)",
         "        unsourced: list[str] = []",
-        ("apps/api/tests/test_quote_provenance.py::test_a_quote_absent_from_its_span_stops_the_answer",),
+        (
+            "apps/api/tests/test_quote_provenance.py::test_a_quote_absent_from_its_span_stops_the_answer",
+        ),
     ),
     Mutant(
         "M56_RESCISSION_STATE_GUARD_REMOVED",
         "apps/api/src/korpus/infrastructure/repository.py",
         "            if current.rescinded_at is not None:",
         "            if False:",
-        ("apps/api/tests/test_rescission_and_clock.py::test_withdrawing_twice_is_refused_as_already_withdrawn",),
+        (
+            "apps/api/tests/test_rescission_and_clock.py::test_withdrawing_twice_is_refused_as_already_withdrawn",
+        ),
     ),
     Mutant(
         "M57_RESCISSION_NOT_WRITTEN",
@@ -603,7 +682,9 @@ MUTANTS = (
         "apps/api/src/korpus/domain/models.py",
         "    as_of: date = Field(default_factory=lambda: datetime.now(UTC).date())",
         "    as_of: date = Field(default_factory=date.today)",
-        ("apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone",),
+        (
+            "apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone",
+        ),
     ),
     Mutant(
         "M59_PROVENANCE_DIGEST_NOT_COMPARED",
@@ -619,9 +700,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/operations.py",
         '            else (False, ("source digest was not supplied to the gate",))',
         "            else (True, ())",
-        (
-            "apps/api/tests/test_evidence_provenance.py::test_gate_without_a_digest_cannot_pass",
-        ),
+        ("apps/api/tests/test_evidence_provenance.py::test_gate_without_a_digest_cannot_pass",),
     ),
     Mutant(
         "M61_MISSING_PROVENANCE_TREATED_AS_VALID",
@@ -643,18 +722,14 @@ MUTANTS = (
         "        hasher.update(relative)\n"
         '        with path.open("rb") as handle:\n'
         "            expected_size = path.stat().st_size",
-        (
-            "apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content",
-        ),
+        ("apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content",),
     ),
     Mutant(
         "M63_ZERO_TESTS_COUNTS_AS_A_RUN",
         "apps/api/src/korpus/application/assurance.py",
         '        "tests_executed": executed_tests >= _as_int(settings["minimum_tests"]),',
         '        "tests_executed": True,',
-        (
-            "apps/api/tests/test_assurance_aggregation.py::test_zero_tests_is_not_a_successful_run",
-        ),
+        ("apps/api/tests/test_assurance_aggregation.py::test_zero_tests_is_not_a_successful_run",),
     ),
     Mutant(
         "M64_SKIPPED_SUITE_COUNTS_AS_EXECUTED",
@@ -697,9 +772,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/deployment.py",
         '            raise RenderError(f"{directory}: patch target {target} matches no resource")',
         "            continue",
-        (
-            "apps/api/tests/test_deployment_overlays.py::test_a_patch_matching_nothing_is_refused",
-        ),
+        ("apps/api/tests/test_deployment_overlays.py::test_a_patch_matching_nothing_is_refused",),
     ),
     Mutant(
         "M69_ONLY_BASE_IS_DISCOVERED",
@@ -719,18 +792,14 @@ MUTANTS = (
         "apps/api/src/korpus/kubernetes_requirements.py",
         '            holds=lambda context: security.get("readOnlyRootFilesystem") is True,',
         "            holds=lambda context: True,",
-        (
-            "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
-        ),
+        ("apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",),
     ),
     Mutant(
         "M71_FLOATING_IMAGE_TAG_ACCEPTED",
         "apps/api/src/korpus/kubernetes_requirements.py",
         '            holds=lambda context: "@sha256:" in image,',
         "            holds=lambda context: True,",
-        (
-            "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",
-        ),
+        ("apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught",),
     ),
     Mutant(
         "M134_DROPPED_CAPABILITY_SUBSET_ACCEPTED",
@@ -758,9 +827,7 @@ MUTANTS = (
         "apps/api/src/korpus/kubernetes_requirements.py",
         "            holds=lambda context: not (REQUIRED_KINDS - set(context.by_kind)),",
         "            holds=lambda context: True,",
-        (
-            "apps/api/tests/test_deployment_overlays.py::test_missing_workloads_are_reported",
-        ),
+        ("apps/api/tests/test_deployment_overlays.py::test_missing_workloads_are_reported",),
     ),
     Mutant(
         # Survived its first probe against
@@ -790,9 +857,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/evidence_registry.py",
         "        if not path.exists():",
         "        if False:",
-        (
-            "apps/api/tests/test_evidence_registry.py::test_a_missing_file_is_reported",
-        ),
+        ("apps/api/tests/test_evidence_registry.py::test_a_missing_file_is_reported",),
     ),
     Mutant(
         "M74_CITED_TEST_NAME_NOT_RESOLVED",
@@ -823,11 +888,13 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M77_SPAN_SELF_REFUTATION_IGNORED',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        '            if refutation is not None:',
-        '            if False:',
-        ('apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer',),
+        "M77_SPAN_SELF_REFUTATION_IGNORED",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "            if refutation is not None:",
+        "            if False:",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer",
+        ),
     ),
     Mutant(
         "M78_REFUTATION_LOOKS_ONLY_AT_SELECTED_SENTENCES",
@@ -839,11 +906,13 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        '        for item in eligible:\n            refutation = refuting_sentence(claim.text, item.span.text)',
-        '        for item in [\n            found\n            for found in eligible\n            if found.span.id in {citation.span_id for citation in citations}\n        ]:\n            refutation = refuting_sentence(claim.text, item.span.text)',
-        ('apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones',),
+        "M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "        for item in eligible:\n            refutation = refuting_sentence(claim.text, item.span.text)",
+        "        for item in [\n            found\n            for found in eligible\n            if found.span.id in {citation.span_id for citation in citations}\n        ]:\n            refutation = refuting_sentence(claim.text, item.span.text)",
+        (
+            "apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones",
+        ),
     ),
     Mutant(
         "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
@@ -860,8 +929,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/ingestion.py",
         "        if version_data.supersedes_version_id is not None:\n"
         "            # Supersession is an edge inside one canonical document.",
-        "        if False:\n"
-        "            # Supersession is an edge inside one canonical document.",
+        "        if False:\n            # Supersession is an edge inside one canonical document.",
         (
             "apps/api/tests/test_foreign_supersession.py::test_a_new_document_cannot_declare_itself_successor_of_another",
         ),
@@ -921,18 +989,22 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M88_AUDIT_DOES_NOT_NAME_THE_GOVERNING_VERSION',
-        'apps/api/src/korpus/application/answer_audit.py',
+        "M88_AUDIT_DOES_NOT_NAME_THE_GOVERNING_VERSION",
+        "apps/api/src/korpus/application/answer_audit.py",
         '                    "version_id": str(citation.version_id),',
         '                    "version_id": "",',
-        ('apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on',),
+        (
+            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_names_the_version_and_span_the_answer_stood_on",
+        ),
     ),
     Mutant(
-        'M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR',
-        'apps/api/src/korpus/application/answer_audit.py',
+        "M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR",
+        "apps/api/src/korpus/application/answer_audit.py",
         '            "as_of": query.as_of.isoformat(),',
         '            "as_of": "",',
-        ('apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for',),
+        (
+            "apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for",
+        ),
     ),
     Mutant(
         "M90_CURRENCY_HAS_NO_LOWER_BOUND",
@@ -1013,18 +1085,22 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER',
-        'apps/api/src/korpus/api/routes_answers.py',
-        '    rows = repository.get_retrievable_spans_by_ids(\n        identity, identity.corpora, effective, [span_id]\n    )',
+        "M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER",
+        "apps/api/src/korpus/api/routes_answers.py",
+        "    rows = repository.get_retrievable_spans_by_ids(\n        identity, identity.corpora, effective, [span_id]\n    )",
         "    rows = repository.get_retrievable_spans_by_ids(\n        identity.model_copy(update={'clearance': 3, 'corpora': frozenset({'public', 'restricted-demo'})}),\n        frozenset({'public', 'restricted-demo'}), effective, [span_id]\n    )",
-        ('apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited',),
+        (
+            "apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited",
+        ),
     ),
     Mutant(
-        'M99_SPAN_LISTING_IGNORES_THE_DATE',
-        'apps/api/src/korpus/api/routes_answers.py',
-        '    effective = as_of or datetime.now(UTC).date()\n    rows = repository.list_retrievable_spans(',
-        '    effective = date(1900, 1, 1)\n    rows = repository.list_retrievable_spans(',
-        ('apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern',),
+        "M99_SPAN_LISTING_IGNORES_THE_DATE",
+        "apps/api/src/korpus/api/routes_answers.py",
+        "    effective = as_of or datetime.now(UTC).date()\n    rows = repository.list_retrievable_spans(",
+        "    effective = date(1900, 1, 1)\n    rows = repository.list_retrievable_spans(",
+        (
+            "apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern",
+        ),
     ),
     Mutant(
         "M100_CITATION_SPAN_HASH_NOT_BOUND_TO_THE_SPAN",
@@ -1040,9 +1116,7 @@ MUTANTS = (
         "apps/api/src/korpus/infrastructure/extraction.py",
         '                        "section": _section_at(markers, offset),',
         '                        "section": None,',
-        (
-            "apps/api/tests/test_span_lookup.py::test_a_span_carries_the_section_it_sits_under",
-        ),
+        ("apps/api/tests/test_span_lookup.py::test_a_span_carries_the_section_it_sits_under",),
     ),
     Mutant(
         "M102_SUPPORT_GATE_CANNOT_FAIL",
@@ -1111,7 +1185,7 @@ MUTANTS = (
     Mutant(
         "M108_GATE_INVENTORY_MISSES_ASSURANCE_PREDICATES",
         "apps/api/src/korpus/application/gate_inventory.py",
-        "    return _dictionary_keys(evaluate_assurance, \"checks\")",
+        '    return _dictionary_keys(evaluate_assurance, "checks")',
         "    return ()",
         (
             "apps/api/tests/test_gate_negative_controls.py::"
@@ -1214,29 +1288,21 @@ MUTANTS = (
         "apps/api/src/korpus/application/recovery.py",
         "        return self.status != MISSING",
         "        return True",
-        (
-            "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",
-        ),
+        ("apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass",),
     ),
     Mutant(
         "M153_SWITCH_ALLOWED_ON_INCOMPLETE_INDEX",
         "apps/api/src/korpus/application/embedding_migration.py",
         "    if spans_embedded_target < spans_total:",
         "    if False:",
-        (
-            "apps/api/tests/test_embedding_migration.py::"
-            "test_the_switch_requires_complete_coverage",
-        ),
+        ("apps/api/tests/test_embedding_migration.py::test_the_switch_requires_complete_coverage",),
     ),
     Mutant(
         "M154_RETIRE_ALLOWED_BEFORE_SWITCH",
         "apps/api/src/korpus/application/embedding_migration.py",
         "    if not switched:",
         "    if False:",
-        (
-            "apps/api/tests/test_embedding_migration.py::"
-            "test_retiring_before_the_switch_is_refused",
-        ),
+        ("apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused",),
     ),
     Mutant(
         "M155_RESUME_SKIPS_A_GAP",
@@ -1253,9 +1319,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/risk.py",
         "    if risk is QueryRisk.UNCLASSIFIED:",
         "    if False:",
-        (
-            "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
-        ),
+        ("apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",),
     ),
     Mutant(
         "M151_UNRECOGNISED_QUERY_READS_AS_ORDINARY",
@@ -1280,20 +1344,19 @@ MUTANTS = (
     Mutant(
         "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
         "apps/api/src/korpus/infrastructure_requirements.py",
-        "                    lambda c, n=name: not c.service(n).get(\"image\")\n"
-        "                    or bool(DIGEST_PINNED.search(str(c.service(n)[\"image\"]))),",
+        '                    lambda c, n=name: not c.service(n).get("image")\n'
+        '                    or bool(DIGEST_PINNED.search(str(c.service(n)["image"]))),',
         "                    lambda c, n=name: True,",
-        (
-            "apps/api/tests/test_image_pinning.py::"
-            "test_a_tag_without_a_digest_is_refused",
-        ),
+        ("apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",),
     ),
     Mutant(
-        'M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED',
-        'apps/api/src/korpus/repository_requirements.py',
+        "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
+        "apps/api/src/korpus/repository_requirements.py",
         '        if (\n            relative.startswith("infra/secrets/")\n            and path.suffix == ".txt"\n            and relative in git_tracked\n        ):',
-        '        if False:',
-        ('apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected',),
+        "        if False:",
+        (
+            "apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected",
+        ),
     ),
     Mutant(
         # The fallback direction. Outside a repository nothing can tell an ignored
@@ -1310,31 +1373,27 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED',
-        'apps/api/src/korpus/repository_requirements.py',
-        '            and relative in git_tracked\n',
-        '            and True\n',
-        ('apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked',),
+        "M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED",
+        "apps/api/src/korpus/repository_requirements.py",
+        "            and relative in git_tracked\n",
+        "            and True\n",
+        (
+            "apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked",
+        ),
     ),
     Mutant(
         "M147_OVERSIZED_FILE_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
         "        if _is_oversized_file(context, path, relative):",
         "        if False:",
-        (
-            "apps/api/tests/test_repository_register.py::"
-            "test_an_oversized_file_is_detected",
-        ),
+        ("apps/api/tests/test_repository_register.py::test_an_oversized_file_is_detected",),
     ),
     Mutant(
         "M148_UNRESOLVED_PLACEHOLDER_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
         "            if any(pattern.search(text) for pattern in PLACEHOLDER_PATTERNS):",
         "            if False:",
-        (
-            "apps/api/tests/test_repository_register.py::"
-            "test_an_unresolved_placeholder_is_detected",
-        ),
+        ("apps/api/tests/test_repository_register.py::test_an_unresolved_placeholder_is_detected",),
     ),
     Mutant(
         "M143_REQUIREMENTS_STOP_AT_THE_FIRST_FAILURE",
@@ -1364,20 +1423,14 @@ MUTANTS = (
         "apps/api/src/korpus/application/requirements.py",
         "    return sorted(identifier for identifier, count in seen.items() if count > 1)",
         "    return []",
-        (
-            "apps/api/tests/test_requirement_registry.py::"
-            "test_duplicate_ids_are_actually_detected",
-        ),
+        ("apps/api/tests/test_requirement_registry.py::test_duplicate_ids_are_actually_detected",),
     ),
     Mutant(
         "M139_UNSIGNED_ATTESTATION_ACCEPTED",
         "apps/api/src/korpus/security/attestors.py",
         "        if not key_id or not signature_b64:",
         "        if False:",
-        (
-            "apps/api/tests/test_attestation_signatures.py::"
-            "test_an_unsigned_attestation_is_refused",
-        ),
+        ("apps/api/tests/test_attestation_signatures.py::test_an_unsigned_attestation_is_refused",),
     ),
     Mutant(
         "M140_ANY_ENROLLED_KEY_MAY_ATTEST_ANY_GROUND",
@@ -1432,7 +1485,7 @@ MUTANTS = (
     Mutant(
         "M137_ASSESSMENT_MAY_BE_SELF_SIGNED",
         "apps/api/src/korpus/application/admission.py",
-        "    if ground.get(\"kind\") == \"external_assessment\":",
+        '    if ground.get("kind") == "external_assessment":',
         "    if False:",
         (
             "apps/api/tests/test_admission_cannot_be_self_granted.py::"
@@ -1454,10 +1507,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/table_integrity.py",
         "        if len(widths) > 1:",
         "        if False:",
-        (
-            "apps/api/tests/test_table_integrity.py::"
-            "test_a_row_that_lost_a_column_is_flagged",
-        ),
+        ("apps/api/tests/test_table_integrity.py::test_a_row_that_lost_a_column_is_flagged",),
     ),
     Mutant(
         "M133_TABLE_DAMAGE_NEVER_REACHES_REVIEW",
@@ -1472,8 +1522,8 @@ MUTANTS = (
     Mutant(
         "M134_PROSE_FLAGGED_AS_A_BROKEN_TABLE",
         "apps/api/src/korpus/application/table_integrity.py",
-        "COLUMN_GAP = re.compile(r\"(?: {2,}|\\t+)\")",
-        "COLUMN_GAP = re.compile(r\"(?: +|\\t+)\")",
+        'COLUMN_GAP = re.compile(r"(?: {2,}|\\t+)")',
+        'COLUMN_GAP = re.compile(r"(?: +|\\t+)")',
         (
             "apps/api/tests/test_table_integrity.py::"
             "test_wrapped_prose_with_single_spaces_is_not_a_table",
@@ -1484,10 +1534,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/numeric_integrity.py",
         "    for match in SPLIT_NUMBER.finditer(text):",
         "    for match in []:",
-        (
-            "apps/api/tests/test_numeric_integrity.py::"
-            "test_a_number_split_by_a_space_is_flagged",
-        ),
+        ("apps/api/tests/test_numeric_integrity.py::test_a_number_split_by_a_space_is_flagged",),
     ),
     Mutant(
         "M128_NUMERIC_DAMAGE_NEVER_REACHES_REVIEW",
@@ -1514,10 +1561,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/embedding_coverage.py",
         "    elif spans_stale_text > 0:",
         "    elif False:",
-        (
-            "apps/api/tests/test_embedding_coverage.py::"
-            "test_a_stale_vector_outranks_a_missing_one",
-        ),
+        ("apps/api/tests/test_embedding_coverage.py::test_a_stale_vector_outranks_a_missing_one",),
     ),
     Mutant(
         "M131_REQUIRED_SEMANTIC_MODE_FALLS_BACK_SILENTLY",
@@ -1534,10 +1578,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/audit_export.py",
         "        if current.sequence != previous.sequence + 1:",
         "        if False:",
-        (
-            "apps/api/tests/test_audit_export.py::"
-            "test_a_sequence_gap_inside_the_batch_is_refused",
-        ),
+        ("apps/api/tests/test_audit_export.py::test_a_sequence_gap_inside_the_batch_is_refused",),
     ),
     Mutant(
         "M125_EXPORT_SHIPS_A_BROKEN_CHAIN_LINK",
@@ -1554,10 +1595,7 @@ MUTANTS = (
         "apps/api/src/korpus/application/audit_export.py",
         "                payload=json.loads(canonical) if include_payload else None,",
         "                payload=json.loads(canonical),",
-        (
-            "apps/api/tests/test_audit_export.py::"
-            "test_payloads_are_excluded_unless_asked_for",
-        ),
+        ("apps/api/tests/test_audit_export.py::test_payloads_are_excluded_unless_asked_for",),
     ),
     Mutant(
         "M121_LEGAL_HOLD_DOES_NOT_OUTRANK_THE_TIMER",
@@ -1679,10 +1717,7 @@ MUTANTS = (
         "apps/api/src/korpus/infrastructure/extraction.py",
         '    if b"<!doctype" in head or b"<!entity" in head:',
         "    if False:",
-        (
-            "apps/api/tests/test_extraction.py::"
-            "test_a_docx_declaring_an_entity_is_refused",
-        ),
+        ("apps/api/tests/test_extraction.py::test_a_docx_declaring_an_entity_is_refused",),
     ),
     Mutant(
         # The gap `table_integrity` looks for was erased before it could see it, so the
@@ -1704,23 +1739,25 @@ MUTANTS = (
         # malformed documents rather than one wrong variable.
         "M192_PARSER_SANDBOX_PATH_LEFT_RELATIVE",
         "apps/api/src/korpus/infrastructure/extraction.py",
-                '''        "PYTHONPATH": os.pathsep.join(
+        """        "PYTHONPATH": os.pathsep.join(
             str(Path(entry).resolve())
             for entry in os.environ.get("PYTHONPATH", "").split(os.pathsep)
             if entry
-        ),''',
-        '''        "PYTHONPATH": os.environ.get("PYTHONPATH", ""),''',
+        ),""",
+        """        "PYTHONPATH": os.environ.get("PYTHONPATH", ""),""",
         (
             "apps/api/tests/test_parser_sandbox_path.py::"
             "test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it",
         ),
     ),
     Mutant(
-        'M193_UNDATED_SOURCE_PASSES_UNANNOUNCED',
-        'apps/api/src/korpus/application/answer_analysis.py',
-        '    cited_undated = sum(1 for citation in citations if citation.version_id in undated)',
-        '    cited_undated = 0',
-        ('apps/api/tests/test_undated_source_limitation.py::test_a_citation_without_a_publication_date_says_so',),
+        "M193_UNDATED_SOURCE_PASSES_UNANNOUNCED",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "    cited_undated = sum(1 for citation in citations if citation.version_id in undated)",
+        "    cited_undated = 0",
+        (
+            "apps/api/tests/test_undated_source_limitation.py::test_a_citation_without_a_publication_date_says_so",
+        ),
     ),
     Mutant(
         # pypdf walks the page tree lazily, so `PdfReader(strict=True)` succeeding says
@@ -1728,9 +1765,9 @@ MUTANTS = (
         # and ended a 1740-document import at 918.
         "M194_PAGE_TREE_WALK_LEFT_UNGUARDED",
         "apps/api/src/korpus/infrastructure/pdf_extraction.py",
-        '    except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:\n'
+        "    except (KeyError, ValueError, TypeError, RecursionError, PdfReadError) as exc:\n"
         '        raise ValueError("malformed PDF page tree") from exc',
-        '    except RecursionError as exc:\n'
+        "    except RecursionError as exc:\n"
         '        raise ValueError("malformed PDF page tree") from exc',
         (
             "apps/api/tests/test_malformed_pdf_containment.py::"
@@ -1927,28 +1964,29 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M187_DECLARATION_RECORDED_AS_VERIFIED',
-        'apps/api/src/korpus/application/answer_audit.py',
+        "M187_DECLARATION_RECORDED_AS_VERIFIED",
+        "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',
         '                    "verified": True,',
-        ('apps/api/tests/test_answers.py::test_the_operator_declaration_enters_the_audit_chain_marked_unverified',),
+        (
+            "apps/api/tests/test_answers.py::test_the_operator_declaration_enters_the_audit_chain_marked_unverified",
+        ),
     ),
     Mutant(
         "M188_DECLARATION_ACCEPTS_CONTROL_CHARACTERS",
         "apps/api/src/korpus/domain/models.py",
         '            raise ValueError("declared field contains control characters")',
         "            pass",
-        (
-            "apps/api/tests/test_answers.py::"
-            "test_a_declaration_with_control_characters_is_refused",
-        ),
+        ("apps/api/tests/test_answers.py::test_a_declaration_with_control_characters_is_refused",),
     ),
     Mutant(
-        'M184_RESCISSION_WITHOUT_ENTITLEMENT',
-        'apps/api/src/korpus/api/routes_review.py',
-        '        if document is None or not policy.can_access_document(identity, document).allowed:',
-        '        if document is None:',
-        ('apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force',),
+        "M184_RESCISSION_WITHOUT_ENTITLEMENT",
+        "apps/api/src/korpus/api/routes_review.py",
+        "        if document is None or not policy.can_access_document(identity, document).allowed:",
+        "        if document is None:",
+        (
+            "apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force",
+        ),
     ),
     Mutant(
         # The exact-hash half of the same oracle. The code was careful not to return the
@@ -2081,19 +2119,14 @@ MUTANTS = (
         "apps/api/src/korpus/config.py",
         "        and name not in known",
         "        and name not in known and False",
-        (
-            "apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named",
-        ),
+        ("apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named",),
     ),
     Mutant(
         "M175_OPERATIONAL_VARIABLES_REPORTED_AS_TYPOS",
         "apps/api/src/korpus/config.py",
         "        and name not in OPERATIONAL_VARIABLES",
         "        and True",
-        (
-            "apps/api/tests/test_configuration_typos.py::"
-            "test_operational_variables_are_not_flagged",
-        ),
+        ("apps/api/tests/test_configuration_typos.py::test_operational_variables_are_not_flagged",),
     ),
     Mutant(
         "M124_UNOBSERVED_ARTEFACT_TREATED_AS_IN_SYNC",
@@ -2130,18 +2163,14 @@ MUTANTS = (
         "apps/api/src/korpus/application/environment_drift.py",
         "    for path in sorted(set(observed) - set(desired)):",
         "    for path in ():",
-        (
-            "apps/api/tests/test_environment_drift.py::"
-            "test_undeclared_artefact_is_extra_not_drift",
-        ),
+        ("apps/api/tests/test_environment_drift.py::test_undeclared_artefact_is_extra_not_drift",),
     ),
     Mutant(
         "M128_DRIFTED_ENVIRONMENT_NOT_BLOCKED",
         "apps/api/src/korpus/application/environment_drift.py",
-        '    if report.in_sync:\n'
+        "    if report.in_sync:\n"
         '        return False, "the environment matches the approved desired state"',
-        '    if True:\n'
-        '        return False, "the environment matches the approved desired state"',
+        '    if True:\n        return False, "the environment matches the approved desired state"',
         (
             "apps/api/tests/test_environment_drift.py::"
             "test_changed_digest_is_drift_and_carries_both_sides",
@@ -2206,10 +2235,7 @@ MUTANTS = (
         "apps/api/src/korpus/domain/tenancy.py",
         "        return self is SubscriptionStatus.ACTIVE",
         "        return self in {SubscriptionStatus.ACTIVE, SubscriptionStatus.PAST_DUE}",
-        (
-            "apps/api/tests/test_entitlement_gate.py::"
-            "test_a_past_due_subscription_pays_for_nothing",
-        ),
+        ("apps/api/tests/test_entitlement_gate.py::test_a_past_due_subscription_pays_for_nothing",),
     ),
     Mutant(
         "M132_CANCELLED_SUBSCRIPTION_CAN_BE_RESURRECTED",
@@ -2259,20 +2285,14 @@ MUTANTS = (
         "                .mappings()\n"
         "                .first()",
         "                )\n                .mappings()\n                .first()",
-        (
-            "apps/api/tests/test_conversations.py::"
-            "test_a_conversation_is_visible_only_to_its_owner",
-        ),
+        ("apps/api/tests/test_conversations.py::test_a_conversation_is_visible_only_to_its_owner",),
     ),
     Mutant(
         "M137_DUPLICATE_BILLING_EVENT_REAPPLIED",
         "apps/api/src/korpus/application/subscriptions.py",
         "        if existing is not None:",
         "        if False:",
-        (
-            "apps/api/tests/test_billing_events.py::"
-            "test_a_redelivered_event_changes_nothing",
-        ),
+        ("apps/api/tests/test_billing_events.py::test_a_redelivered_event_changes_nothing",),
     ),
     Mutant(
         "M138_UNSIGNED_BILLING_EVENT_ACCEPTED",
@@ -2282,28 +2302,29 @@ MUTANTS = (
         ("apps/api/tests/test_billing_events.py::test_an_unsigned_event_is_refused",),
     ),
     Mutant(
-        'M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS',
-        'apps/api/src/korpus/application/billing_adjudication.py',
-        '        if subscription.last_event_at is not None and occurred < subscription.last_event_at:',
-        '        if False:  # noqa',
-        ('apps/api/tests/test_billing_events.py::test_a_replayed_older_event_does_not_move_the_subscription_backwards',),
+        "M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS",
+        "apps/api/src/korpus/application/billing_adjudication.py",
+        "        if subscription.last_event_at is not None and occurred < subscription.last_event_at:",
+        "        if False:  # noqa",
+        (
+            "apps/api/tests/test_billing_events.py::test_a_replayed_older_event_does_not_move_the_subscription_backwards",
+        ),
     ),
     Mutant(
-        'M140_LOCAL_ONLY_ACCEPTS_ARBITRARY_DNS_NAME',
-        'apps/api/src/korpus/application/egress.py',
-        '        except ValueError:\n            return False',
-        '        except ValueError:\n            return True',
-        ('apps/api/tests/test_model_egress.py::test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private',),
+        "M140_LOCAL_ONLY_ACCEPTS_ARBITRARY_DNS_NAME",
+        "apps/api/src/korpus/application/egress.py",
+        "        except ValueError:\n            return False",
+        "        except ValueError:\n            return True",
+        (
+            "apps/api/tests/test_model_egress.py::test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private",
+        ),
     ),
     Mutant(
         "M141_MODEL_DISABLED_STILL_CALLS_OUT",
         "apps/api/src/korpus/application/egress.py",
         "        if self.posture is EgressPosture.MODEL_DISABLED:",
         "        if False:",
-        (
-            "apps/api/tests/test_model_egress.py::"
-            "test_model_disabled_refuses_even_a_local_endpoint",
-        ),
+        ("apps/api/tests/test_model_egress.py::test_model_disabled_refuses_even_a_local_endpoint",),
     ),
     Mutant(
         "M142_IDENTITY_CLAIMS_GRANT_AUTHORIZATION",
@@ -2330,10 +2351,7 @@ MUTANTS = (
         "apps/api/src/korpus/infrastructure/conversation_repository.py",
         "        return [_conversation(row) for row in rows[:wanted]], len(rows) > wanted",
         "        return [_conversation(row) for row in rows[:wanted]], False",
-        (
-            "apps/api/tests/test_conversations.py::"
-            "test_a_truncated_list_says_it_was_truncated",
-        ),
+        ("apps/api/tests/test_conversations.py::test_a_truncated_list_says_it_was_truncated",),
     ),
     Mutant(
         "M145_TRANSCRIPT_HIDES_ITS_NEWEST_TURNS",
@@ -2351,10 +2369,7 @@ MUTANTS = (
         "            .limit(wanted + 1)\n            .offset(max(0, offset))\n        )\n"
         "        if not include_archived:",
         "            .limit(wanted + 1)\n        )\n        if not include_archived:",
-        (
-            "apps/api/tests/test_conversations.py::"
-            "test_a_truncated_list_says_it_was_truncated",
-        ),
+        ("apps/api/tests/test_conversations.py::test_a_truncated_list_says_it_was_truncated",),
     ),
     Mutant(
         "M147_ANSWER_BOUND_REMOVED",
@@ -2424,7 +2439,7 @@ MUTANTS = (
         "M153_ANY_ROLE_MAY_SWITCH_A_PERSON_OFF",
         "apps/api/src/korpus/api/routes_admin.py",
         "        PolicyEngine().require(identity, ACCOUNT_MANAGE)",
-        "        PolicyEngine().require(identity, \"answer:read\")",
+        '        PolicyEngine().require(identity, "answer:read")',
         (
             "apps/api/tests/test_account_administration.py::"
             "test_only_an_administrator_may_switch_a_person_off",
@@ -2463,18 +2478,22 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M157_LINK_LOCAL_ACCEPTED_AS_LOCAL',
-        'apps/api/src/korpus/application/egress.py',
-        '        if parsed.is_link_local:\n            return False',
-        '        if False:\n            return False',
-        ('apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint',),
+        "M157_LINK_LOCAL_ACCEPTED_AS_LOCAL",
+        "apps/api/src/korpus/application/egress.py",
+        "        if parsed.is_link_local:\n            return False",
+        "        if False:\n            return False",
+        (
+            "apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint",
+        ),
     ),
     Mutant(
-        'M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN',
-        'apps/api/src/korpus/api/routes_health.py',
-        '    expected = settings.resolved_metrics_token\n    if expected is None:\n        return True',
-        '    expected = settings.resolved_metrics_token\n    if True:\n        return True',
-        ('apps/api/tests/test_infrastructure_hardening.py::test_not_ready_hides_the_internal_snapshot_without_the_metrics_token',),
+        "M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN",
+        "apps/api/src/korpus/api/routes_health.py",
+        "    expected = settings.resolved_metrics_token\n    if expected is None:\n        return True",
+        "    expected = settings.resolved_metrics_token\n    if True:\n        return True",
+        (
+            "apps/api/tests/test_infrastructure_hardening.py::test_not_ready_hides_the_internal_snapshot_without_the_metrics_token",
+        ),
     ),
     Mutant(
         "M159_ORPHAN_REAPER_TERMINATES_LIVE_JOBS",
@@ -2487,11 +2506,13 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M160_BILLING_REPLAY_GUARD_USES_PROCESSING_CLOCK',
-        'apps/api/src/korpus/application/billing_adjudication.py',
-        '        if subscription.last_event_at is not None and occurred < subscription.last_event_at:',
-        '        if subscription.last_event_at is not None and occurred < subscription.updated_at:',
-        ('apps/api/tests/test_billing_events.py::test_a_legitimate_in_order_event_is_not_rejected_as_a_replay',),
+        "M160_BILLING_REPLAY_GUARD_USES_PROCESSING_CLOCK",
+        "apps/api/src/korpus/application/billing_adjudication.py",
+        "        if subscription.last_event_at is not None and occurred < subscription.last_event_at:",
+        "        if subscription.last_event_at is not None and occurred < subscription.updated_at:",
+        (
+            "apps/api/tests/test_billing_events.py::test_a_legitimate_in_order_event_is_not_rejected_as_a_replay",
+        ),
     ),
     Mutant(
         "M161_INTEGRITY_ERROR_SWALLOWED_AS_DUPLICATE",
@@ -2506,11 +2527,13 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        'M162_DB_OUTAGE_NOT_RETRYABLE',
-        'apps/api/src/korpus/api/routes_corpus.py',
+        "M162_DB_OUTAGE_NOT_RETRYABLE",
+        "apps/api/src/korpus/api/routes_corpus.py",
         '                detail="upload staging is full; retry shortly",\n                headers={"Retry-After": "2"},',
         '                detail="upload staging is full; retry shortly",\n                headers={},',
-        ('apps/api/tests/test_reliability_degradation.py::test_a_full_upload_spool_is_a_503_not_a_500',),
+        (
+            "apps/api/tests/test_reliability_degradation.py::test_a_full_upload_spool_is_a_503_not_a_500",
+        ),
     ),
     Mutant(
         # GOV-006. The egress ceiling admits material *at* the ceiling and refuses above
@@ -2556,245 +2579,309 @@ MUTANTS = (
         "M166_EGRESS_GATE_BYPASSED",
         "apps/api/src/korpus/application/answer_query.py",
         "        if not self._composition_egress_permitted(claims, eligible):\n"
-        "            return None, \"egress_tier_exceeded\"",
-        "        if False:\n"
-        "            return None, \"egress_tier_exceeded\"",
+        '            return None, "egress_tier_exceeded"',
+        '        if False:\n            return None, "egress_tier_exceeded"',
         (
             "apps/api/tests/test_egress_material_ceiling.py::"
             "test_restricted_material_never_reaches_an_external_composer",
         ),
     ),
     Mutant(
-        'M208_WEBHOOK_DECLARED_SIZE_LIMIT_BYPASSED',
-        'apps/api/src/korpus/api/request_limits.py',
-        '            if int(declared) > MAX_WEBHOOK_BYTES:',
-        '            if False:',
-        ('apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption',),
+        "M208_WEBHOOK_DECLARED_SIZE_LIMIT_BYPASSED",
+        "apps/api/src/korpus/api/request_limits.py",
+        "            if int(declared) > MAX_WEBHOOK_BYTES:",
+        "            if False:",
+        (
+            "apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption",
+        ),
     ),
     Mutant(
-        'M209_WEBHOOK_STREAM_SIZE_LIMIT_BYPASSED',
-        'apps/api/src/korpus/api/request_limits.py',
-        '        if len(payload) + len(chunk) > MAX_WEBHOOK_BYTES:',
-        '        if False:',
-        ('apps/api/tests/test_tenancy_threats.py::test_t12b_chunked_oversize_stops_at_the_first_excess_chunk',),
+        "M209_WEBHOOK_STREAM_SIZE_LIMIT_BYPASSED",
+        "apps/api/src/korpus/api/request_limits.py",
+        "        if len(payload) + len(chunk) > MAX_WEBHOOK_BYTES:",
+        "        if False:",
+        (
+            "apps/api/tests/test_tenancy_threats.py::test_t12b_chunked_oversize_stops_at_the_first_excess_chunk",
+        ),
     ),
     Mutant(
-        'M210_ADMIN_UNKNOWN_PERMISSION_FAILS_OPEN',
-        'apps/api/src/korpus/application/policy.py',
+        "M210_ADMIN_UNKNOWN_PERMISSION_FAILS_OPEN",
+        "apps/api/src/korpus/application/policy.py",
         '        if permission not in KNOWN_PERMISSIONS:\n            raise AuthorizationError(f"unknown permission: {permission}")',
         '        if False:\n            raise AuthorizationError(f"unknown permission: {permission}")',
-        ('apps/api/tests/test_permission_contract.py::test_admin_wildcard_does_not_authorize_an_unknown_permission',),
+        (
+            "apps/api/tests/test_permission_contract.py::test_admin_wildcard_does_not_authorize_an_unknown_permission",
+        ),
     ),
     Mutant(
-        'M211_INTERNAL_REDTEAM_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M211_INTERNAL_REDTEAM_PROMOTED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "redteam.independent": redteam.get("evidence_class") == external.get("redteam_evidence_class"),',
         '        "redteam.independent": redteam.get("evidence_class") != external.get("redteam_evidence_class"),',
-        ('apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production",
+        ),
     ),
     Mutant(
-        'M212_STALE_PRODUCTION_GATE_ACCEPTED',
-        'apps/api/src/korpus/application/production_assurance.py',
+        "M212_STALE_PRODUCTION_GATE_ACCEPTED",
+        "apps/api/src/korpus/application/production_assurance.py",
         '        checks[f"{gate_id}.source_bound"] = gate.get("source_tree_sha256") == source_digest',
         '        checks[f"{gate_id}.source_bound"] = True',
-        ('apps/api/tests/test_production_assurance.py::test_stale_gate_digest_is_rejected_even_if_it_says_pass',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_stale_gate_digest_is_rejected_even_if_it_says_pass",
+        ),
     ),
     Mutant(
-        'M213_NON_POSTGRES_BACKEND_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M213_NON_POSTGRES_BACKEND_PROMOTED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "postgres.real_backend": postgres.get("backend") == external.get("postgres_backend"),',
         '        "postgres.real_backend": True,',
-        ('apps/api/tests/test_production_assurance.py::test_non_postgres_backend_cannot_promote_production',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_non_postgres_backend_cannot_promote_production",
+        ),
     ),
     Mutant(
-        'M214_PARTIAL_SUPPLY_CHAIN_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M214_PARTIAL_SUPPLY_CHAIN_PROMOTED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "supply_chain.complete": supply.get("completeness") == external.get("supply_chain_completeness"),',
         '        "supply_chain.complete": True,',
-        ('apps/api/tests/test_production_assurance.py::test_partial_supply_chain_evidence_cannot_promote_production',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_partial_supply_chain_evidence_cannot_promote_production",
+        ),
     ),
     Mutant(
-        'M215_PARTIAL_MUTATION_SCOPE_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M215_PARTIAL_MUTATION_SCOPE_PROMOTED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "mutation.full_catalogue": mutation.get("scope") == external.get("mutation_scope"),',
         '        "mutation.full_catalogue": True,',
-        ('apps/api/tests/test_production_assurance.py::test_partial_mutation_scope_cannot_promote_production',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_partial_mutation_scope_cannot_promote_production",
+        ),
     ),
     Mutant(
-        'M216_SECURITY_METRIC_LABEL_VOCABULARY_BYPASSED',
-        'apps/api/src/korpus/infrastructure/observability.py',
-        '        if event not in SECURITY_EVENTS or outcome not in SECURITY_OUTCOMES:',
-        '        if False:',
-        ('apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels',),
+        "M216_SECURITY_METRIC_LABEL_VOCABULARY_BYPASSED",
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "        if event not in SECURITY_EVENTS or outcome not in SECURITY_OUTCOMES:",
+        "        if False:",
+        (
+            "apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels",
+        ),
     ),
     Mutant(
-        'M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "redteam.attestation_verified": redteam.get("attestation_verified") is external.get("redteam_attestation_verified"),',
         '        "redteam.attestation_verified": True,',
-        ('apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
+        ),
     ),
     Mutant(
-        'M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED',
-        'apps/api/src/korpus/application/production_assurance_external.py',
+        "M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED",
+        "apps/api/src/korpus/application/production_assurance_external.py",
         '        "redteam.trusted_signer": redteam.get("trusted_signer") is external.get("redteam_trusted_signer_required"),',
         '        "redteam.trusted_signer": True,',
-        ('apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
+        ),
     ),
     Mutant(
-        'M219_LOCAL_LOAD_PROMOTED_TO_PRODUCTION',
-        'apps/api/src/korpus/application/production_reliability.py',
+        "M219_LOCAL_LOAD_PROMOTED_TO_PRODUCTION",
+        "apps/api/src/korpus/application/production_reliability.py",
         '        "load_environment": load.get("environment_class") in ALLOWED_ENVIRONMENTS,',
         '        "load_environment": True,',
-        ('apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed',),
+        (
+            "apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed",
+        ),
     ),
     Mutant(
-        'M220_FIXTURE_RECOVERY_PROMOTED_TO_PRODUCTION',
-        'apps/api/src/korpus/application/production_reliability.py',
+        "M220_FIXTURE_RECOVERY_PROMOTED_TO_PRODUCTION",
+        "apps/api/src/korpus/application/production_reliability.py",
         '        "recovery_environment": recovery.get("environment_class") in ALLOWED_ENVIRONMENTS,',
         '        "recovery_environment": True,',
-        ('apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed',),
+        (
+            "apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed",
+        ),
     ),
     Mutant(
-        'M221_STALE_RELIABILITY_LOAD_ACCEPTED',
-        'apps/api/src/korpus/application/production_reliability.py',
+        "M221_STALE_RELIABILITY_LOAD_ACCEPTED",
+        "apps/api/src/korpus/application/production_reliability.py",
         '        "load_source_bound": _bound(load, source, release),',
         '        "load_source_bound": True,',
-        ('apps/api/tests/test_production_reliability.py::test_reliability_evidence_from_another_tree_is_rejected',),
+        (
+            "apps/api/tests/test_production_reliability.py::test_reliability_evidence_from_another_tree_is_rejected",
+        ),
     ),
     Mutant(
-        'M222_ENGINEERING_REPORT_DIGEST_DOMAIN_CONFUSED',
-        'scripts/run_engineering_production_gate.py',
+        "M222_ENGINEERING_REPORT_DIGEST_DOMAIN_CONFUSED",
+        "scripts/run_engineering_production_gate.py",
         '        "source_bound": report.get("evidence_source_sha256") == source,',
         '        "source_bound": report.get("source_tree_sha256") == source,',
-        ('apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain',),
+        (
+            "apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain",
+        ),
     ),
     Mutant(
-        'M223_PACKAGE_MODE_INTEGRITY_BYPASSED',
-        'scripts/manifest_lib/integrity.py',
+        "M223_PACKAGE_MODE_INTEGRITY_BYPASSED",
+        "scripts/manifest_lib/integrity.py",
         '    if record.get("mode") != actual_mode:',
-        '    if False:',
-        ('apps/api/tests/test_package_mode_integrity.py::test_package_verifier_refuses_lost_executable_mode',),
+        "    if False:",
+        (
+            "apps/api/tests/test_package_mode_integrity.py::test_package_verifier_refuses_lost_executable_mode",
+        ),
     ),
     Mutant(
-        'M224_MANIFEST_ROOT_IGNORES_MODE',
-        'scripts/manifest_lib/integrity.py',
-        "        f'{item[\"path\"]}\\0{item[\"mode\"]}\\0{item[\"sha256\"]}\\n' for item in records",
-        "        f'{item[\"path\"]}\\0{item[\"sha256\"]}\\n' for item in records",
-        ('apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes',),
+        "M224_MANIFEST_ROOT_IGNORES_MODE",
+        "scripts/manifest_lib/integrity.py",
+        '        f\'{item["path"]}\\0{item["mode"]}\\0{item["sha256"]}\\n\' for item in records',
+        '        f\'{item["path"]}\\0{item["sha256"]}\\n\' for item in records',
+        (
+            "apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes",
+        ),
     ),
-
     Mutant(
-        'M225_UNTRUSTED_ASSURANCE_SIGNER_ACCEPTED',
-        'apps/api/src/korpus/application/attested_evidence.py',
+        "M225_UNTRUSTED_ASSURANCE_SIGNER_ACCEPTED",
+        "apps/api/src/korpus/application/attested_evidence.py",
         '        "trusted_signer": bool(fingerprint) and fingerprint in set(trusted_fingerprints),',
         '        "trusted_signer": True,',
-        ('apps/api/tests/test_attested_evidence.py::test_valid_but_untrusted_self_signature_is_not_trust_evidence',),
+        (
+            "apps/api/tests/test_attested_evidence.py::test_valid_but_untrusted_self_signature_is_not_trust_evidence",
+        ),
     ),
     Mutant(
-        'M226_TAMPERED_ASSURANCE_SIGNATURE_ACCEPTED',
-        'apps/api/src/korpus/application/attested_evidence.py',
+        "M226_TAMPERED_ASSURANCE_SIGNATURE_ACCEPTED",
+        "apps/api/src/korpus/application/attested_evidence.py",
         '        "signature": signature_ok,',
         '        "signature": True,',
-        ('apps/api/tests/test_attested_evidence.py::test_tampered_evidence_breaks_signature_and_digest_binding',),
+        (
+            "apps/api/tests/test_attested_evidence.py::test_tampered_evidence_breaks_signature_and_digest_binding",
+        ),
     ),
     Mutant(
-        'M227_ENVIRONMENT_ATTESTATION_VERIFICATION_BYPASSED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        "M227_ENVIRONMENT_ATTESTATION_VERIFICATION_BYPASSED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
         '        f"{prefix}_attestation_verified": verdict.cryptographically_valid,',
         '        f"{prefix}_attestation_verified": True,',
-        ('apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability',),
+        (
+            "apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability",
+        ),
     ),
     Mutant(
-        'M228_ENVIRONMENT_TRUSTED_SIGNER_BYPASSED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        "M228_ENVIRONMENT_TRUSTED_SIGNER_BYPASSED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
         '        f"{prefix}_trusted_signer": verdict.trusted_signer,',
         '        f"{prefix}_trusted_signer": True,',
-        ('apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability',),
+        (
+            "apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability",
+        ),
     ),
     Mutant(
-        'M229_SECURITY_SCANNER_SET_EMPTIED',
-        'apps/api/src/korpus/application/supply_chain_scanners.py',
+        "M229_SECURITY_SCANNER_SET_EMPTIED",
+        "apps/api/src/korpus/application/supply_chain_scanners.py",
         'EXPECTED_SECURITY_SCANNERS = frozenset({"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"})',
-        'EXPECTED_SECURITY_SCANNERS = frozenset()',
-        ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_summary_status_string_alone_is_not_clean',),
+        "EXPECTED_SECURITY_SCANNERS = frozenset()",
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_summary_status_string_alone_is_not_clean",
+        ),
     ),
     Mutant(
-        'M230_NON_CYCLONEDX_SBOM_ACCEPTED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        "M230_NON_CYCLONEDX_SBOM_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
         '        data.get("bomFormat") == "CycloneDX"',
-        '        True',
-        ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence',),
+        "        True",
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence",
+        ),
     ),
     Mutant(
-        'M231_INCOMPLETE_SOURCE_SBOM_ACCEPTED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
-        '    return all((name, version) in components for name, version in locked.items())',
-        '    return True',
-        ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_source_sbom_must_cover_every_locked_component',),
+        "M231_INCOMPLETE_SOURCE_SBOM_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
+        "    return all((name, version) in components for name, version in locked.items())",
+        "    return True",
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_source_sbom_must_cover_every_locked_component",
+        ),
     ),
     Mutant(
-        'M232_STALE_SUPPLY_CHAIN_MANIFEST_ACCEPTED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        "M232_STALE_SUPPLY_CHAIN_MANIFEST_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
         '        and manifest.get("source_tree_sha256") == source',
-        '        and True',
-        ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected',),
+        "        and True",
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected",
+        ),
     ),
     Mutant(
-        'M233_TAMPERED_SUPPLY_CHAIN_ARTIFACT_ACCEPTED',
-        'apps/api/src/korpus/application/assurance_evidence.py',
+        "M233_TAMPERED_SUPPLY_CHAIN_ARTIFACT_ACCEPTED",
+        "apps/api/src/korpus/application/assurance_evidence.py",
         '            and declared[name].get("sha256") == hashlib.sha256(data).hexdigest()',
-        '            and True',
-        ('apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_is_bound_to_artifact_bytes',),
+        "            and True",
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_is_bound_to_artifact_bytes",
+        ),
     ),
     Mutant(
-        'M234_UNMANAGED_DISTRIBUTIONS_ACCEPTED',
-        'apps/api/src/korpus/application/exact_environment.py',
+        "M234_UNMANAGED_DISTRIBUTIONS_ACCEPTED",
+        "apps/api/src/korpus/application/exact_environment.py",
         '        "no_unmanaged_distributions": not extras,',
         '        "no_unmanaged_distributions": True,',
-        ('apps/api/tests/test_exact_environment_evidence.py::test_unmanaged_distribution_prevents_exact_environment_claim',),
+        (
+            "apps/api/tests/test_exact_environment_evidence.py::test_unmanaged_distribution_prevents_exact_environment_claim",
+        ),
     ),
     Mutant(
-        'M235_WRONG_PRODUCTION_PYTHON_ACCEPTED',
-        'apps/api/src/korpus/application/exact_environment.py',
+        "M235_WRONG_PRODUCTION_PYTHON_ACCEPTED",
+        "apps/api/src/korpus/application/exact_environment.py",
         '        "production_python_exact": python_version == required_python,',
         '        "production_python_exact": True,',
-        ('apps/api/tests/test_exact_environment_evidence.py::test_wrong_python_patch_version_prevents_exact_environment_claim',),
+        (
+            "apps/api/tests/test_exact_environment_evidence.py::test_wrong_python_patch_version_prevents_exact_environment_claim",
+        ),
     ),
     Mutant(
-        'M236_FORGED_PRODUCTION_REPORT_BYPASSES_RECOMPUTATION',
-        'apps/api/src/korpus/application/production_report_verification.py',
+        "M236_FORGED_PRODUCTION_REPORT_BYPASSES_RECOMPUTATION",
+        "apps/api/src/korpus/application/production_report_verification.py",
         '        "recomputed_pass": verdict.passed,',
         '        "recomputed_pass": True,',
-        ('apps/api/tests/test_production_report_verification.py::test_forged_pass_report_cannot_override_failing_current_gate',),
+        (
+            "apps/api/tests/test_production_report_verification.py::test_forged_pass_report_cannot_override_failing_current_gate",
+        ),
     ),
     Mutant(
-        'M237_STALE_PRODUCTION_GATE_HASH_ACCEPTED',
-        'apps/api/src/korpus/application/production_report_verification.py',
+        "M237_STALE_PRODUCTION_GATE_HASH_ACCEPTED",
+        "apps/api/src/korpus/application/production_report_verification.py",
         '        "gate_hashes_current": report.get("gate_sha256") == dict(gate_sha256),',
         '        "gate_hashes_current": True,',
-        ('apps/api/tests/test_production_report_verification.py::test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match',),
+        (
+            "apps/api/tests/test_production_report_verification.py::test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match",
+        ),
     ),
     Mutant(
-        'M238_UNSIGNED_PRODUCTION_ASSURANCE_ACCEPTED',
-        'apps/api/src/korpus/application/production_report_verification.py',
+        "M238_UNSIGNED_PRODUCTION_ASSURANCE_ACCEPTED",
+        "apps/api/src/korpus/application/production_report_verification.py",
         '        "assurance_attestation_verified": attestation_verified,',
         '        "assurance_attestation_verified": True,',
-        ('apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected',),
+        (
+            "apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected",
+        ),
     ),
     Mutant(
-        'M239_UNTRUSTED_PRODUCTION_ASSURANCE_SIGNER_ACCEPTED',
-        'apps/api/src/korpus/application/production_report_verification.py',
+        "M239_UNTRUSTED_PRODUCTION_ASSURANCE_SIGNER_ACCEPTED",
+        "apps/api/src/korpus/application/production_report_verification.py",
         '        "assurance_trusted_signer": trusted_signer,',
         '        "assurance_trusted_signer": True,',
-        ('apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected',),
+        (
+            "apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected",
+        ),
     ),
     Mutant(
-        'M240_RELEASE_TRUST_REQUIREMENT_IGNORED',
-        'scripts/release_attestation.py',
+        "M240_RELEASE_TRUST_REQUIREMENT_IGNORED",
+        "scripts/release_attestation.py",
         '    if not require_trusted: checks.pop("trusted_signer", None)',
         '    if True: checks.pop("trusted_signer", None)',
-        ('apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer',),
+        (
+            "apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer",
+        ),
     ),
     Mutant(
         "M241_SUBJECT_OVERLOAD_REASON_COLLAPSED",
@@ -2879,7 +2966,7 @@ MUTANTS = (
     Mutant(
         "M249_RELEASE_RUNTIME_TRUST_IGNORED",
         "scripts/release_attestation.py",
-        "trusted = trusted_fingerprints(trust_config or Path(\"/nonexistent\"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)",
+        'trusted = trusted_fingerprints(trust_config or Path("/nonexistent"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)',
         "trusted = _trusted(trust_config, trust_field)",
         (
             "apps/api/tests/test_production_promotion_plumbing.py::"
@@ -3021,353 +3108,438 @@ MUTANTS = (
         "apps/api/src/korpus/application/supply_chain_scanners.py",
         "    return _scanner_marker_clean(scan, EXPECTED_CONTAINER_SCANNERS)",
         "    return True",
-        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_scan_marker_requires_both_image_scans_exit_zero",),
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_scan_marker_requires_both_image_scans_exit_zero",
+        ),
     ),
     Mutant(
         "M264_SUPPLY_MANIFEST_EXTRA_ARTIFACT_ACCEPTED",
         "apps/api/src/korpus/application/assurance_evidence.py",
         "        and set(declared) == set(artifacts)",
         "        and True",
-        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact",),
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact",
+        ),
     ),
-
     Mutant(
         "M265_SCANNER_MARKER_COMMIT_REPLAY_ACCEPTED",
         "apps/api/src/korpus/application/supply_chain_scanners.py",
         '    return bool(expected_commit) and scan.get("commit_sha") == expected_commit',
         "    return True",
-        ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",),
+        (
+            "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",
+        ),
     ),
-
     Mutant(
         "M266_MISSION_HARD_FAILURE_COMPENSATED",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
-        "    if failures: reasons.append(f\"{failures} cases contain hard mission-assurance failures\")",
-        "    if False: reasons.append(f\"{failures} cases contain hard mission-assurance failures\")",
-        ("apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy",),
+        '    if failures: reasons.append(f"{failures} cases contain hard mission-assurance failures")',
+        '    if False: reasons.append(f"{failures} cases contain hard mission-assurance failures")',
+        (
+            "apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy",
+        ),
     ),
     Mutant(
         "M267_MISSION_CONFIDENCE_BOUND_BYPASSED",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
         "    if hard_interval.upper > maximum_hard_failure_rate_upper_95:",
         "    if False:",
-        ("apps/api/tests/test_mission_assurance_v2.py::test_confidence_bound_alone_blocks_small_zero_failure_sample",),
+        (
+            "apps/api/tests/test_mission_assurance_v2.py::test_confidence_bound_alone_blocks_small_zero_failure_sample",
+        ),
     ),
     Mutant(
         "M268_MISSION_INDEPENDENCE_BYPASSED",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
-        "    if not independent: reasons.append(\"evaluation is not independent\")",
-        "    if False: reasons.append(\"evaluation is not independent\")",
-        ("apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission",),
+        '    if not independent: reasons.append("evaluation is not independent")',
+        '    if False: reasons.append("evaluation is not independent")',
+        (
+            "apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission",
+        ),
     ),
-
     Mutant(
-        'M269_BROWSER_SESSION_COOKIE_PREFIX_BYPASSED',
-        'apps/api/src/korpus/security/browser_cookie_policy.py',
+        "M269_BROWSER_SESSION_COOKIE_PREFIX_BYPASSED",
+        "apps/api/src/korpus/security/browser_cookie_policy.py",
         '    if not settings.browser_session_cookie.startswith("__Host-"):',
-        '    if False:',
-        ('apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening',),
+        "    if False:",
+        (
+            "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening",
+        ),
     ),
     Mutant(
-        'M270_LOGOUT_CSRF_PAIR_BYPASSED',
-        'apps/api/src/korpus/security/browser_cookie_policy.py',
-        '    return bool(supplied and cookie and secrets.compare_digest(supplied, cookie))',
-        '    return True',
-        ('apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie',),
+        "M270_LOGOUT_CSRF_PAIR_BYPASSED",
+        "apps/api/src/korpus/security/browser_cookie_policy.py",
+        "    return bool(supplied and cookie and secrets.compare_digest(supplied, cookie))",
+        "    return True",
+        (
+            "apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie",
+        ),
     ),
     Mutant(
-        'M271_ZIP_ENTRY_BUDGET_BYPASSED',
-        'scripts/zip_resource_policy.py',
-        '    if len(infos) > MAX_ARCHIVE_ENTRIES:',
-        '    if False:',
-        ('apps/api/tests/test_package_zip_safety.py::test_entry_count_budget_refuses_before_structural_processing',),
+        "M271_ZIP_ENTRY_BUDGET_BYPASSED",
+        "scripts/zip_resource_policy.py",
+        "    if len(infos) > MAX_ARCHIVE_ENTRIES:",
+        "    if False:",
+        (
+            "apps/api/tests/test_package_zip_safety.py::test_entry_count_budget_refuses_before_structural_processing",
+        ),
     ),
     Mutant(
-        'M272_ZIP_COMPRESSION_RATIO_BYPASSED',
-        'scripts/zip_resource_policy.py',
-        '        elif info.compress_size and info.file_size / info.compress_size > MAX_COMPRESSION_RATIO:',
-        '        elif False:',
-        ('apps/api/tests/test_package_zip_safety.py::test_compression_ratio_budget_is_enforced',),
+        "M272_ZIP_COMPRESSION_RATIO_BYPASSED",
+        "scripts/zip_resource_policy.py",
+        "        elif info.compress_size and info.file_size / info.compress_size > MAX_COMPRESSION_RATIO:",
+        "        elif False:",
+        ("apps/api/tests/test_package_zip_safety.py::test_compression_ratio_budget_is_enforced",),
     ),
     Mutant(
-        'M273_SAFE_EXTRACTION_ADMISSION_BYPASSED',
-        'scripts/safe_archive_extract.py',
-        '        if failures:',
-        '        if False:',
-        ('apps/api/tests/test_full_ssot_packager.py::test_safe_extractor_refuses_unsafe_archive_before_write',),
+        "M273_SAFE_EXTRACTION_ADMISSION_BYPASSED",
+        "scripts/safe_archive_extract.py",
+        "        if failures:",
+        "        if False:",
+        (
+            "apps/api/tests/test_full_ssot_packager.py::test_safe_extractor_refuses_unsafe_archive_before_write",
+        ),
     ),
     Mutant(
-        'M274_NGINX_HSTS_INHERITANCE_BROKEN',
-        'apps/web/nginx.cloudrun.conf',
+        "M274_NGINX_HSTS_INHERITANCE_BROKEN",
+        "apps/web/nginx.cloudrun.conf",
         '    location = /api {\n      default_type application/json;\n      add_header X-Content-Type-Options nosniff always;\n      add_header X-Frame-Options DENY always;\n      add_header Referrer-Policy no-referrer always;\n      add_header Strict-Transport-Security "max-age=31536000" always;',
-        '    location = /api {\n      default_type application/json;\n      add_header X-Content-Type-Options nosniff always;\n      add_header X-Frame-Options DENY always;\n      add_header Referrer-Policy no-referrer always;',
-        ('apps/api/tests/test_nginx_security_headers.py::test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance',),
+        "    location = /api {\n      default_type application/json;\n      add_header X-Content-Type-Options nosniff always;\n      add_header X-Frame-Options DENY always;\n      add_header Referrer-Policy no-referrer always;",
+        (
+            "apps/api/tests/test_nginx_security_headers.py::test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance",
+        ),
     ),
     Mutant(
-        'M275_AUDIT_ANCHOR_EXTERNAL_HTTPS_BYPASSED',
-        'apps/api/src/korpus/controlled_requirements.py',
+        "M275_AUDIT_ANCHOR_EXTERNAL_HTTPS_BYPASSED",
+        "apps/api/src/korpus/controlled_requirements.py",
         '        lambda s: (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))',
         '        lambda s: (s.audit_anchor_mode == "http" and bool(s.audit_anchor_url))',
-        ('apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening',),
+        (
+            "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening",
+        ),
     ),
     Mutant(
-        'M276_PEC_ADMISSION_THRESHOLD_BYPASSED',
-        'apps/api/src/korpus/application/evidence_admission.py',
-        '    return margins.minimum >= 0.0',
-        '    return True',
-        ('apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate',),
+        "M276_PEC_ADMISSION_THRESHOLD_BYPASSED",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "    return margins.minimum >= 0.0",
+        "    return True",
+        (
+            "apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate",
+        ),
     ),
     Mutant(
-        'M277_PEC_STRUCTURAL_ADMISSION_BYPASSED',
-        'apps/api/src/korpus/application/evidence_admission.py',
+        "M277_PEC_STRUCTURAL_ADMISSION_BYPASSED",
+        "apps/api/src/korpus/application/evidence_admission.py",
         '    return item.version.review_state.value == "approved" and item.version.authority.is_normative',
-        '    return True',
-        ('apps/api/tests/test_decision_sensitivity.py::test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary',),
+        "    return True",
+        (
+            "apps/api/tests/test_decision_sensitivity.py::test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary",
+        ),
     ),
     Mutant(
-        'M278_PEC_BOUNDARY_DIVERGENCE_TOLERATED',
-        'apps/api/src/korpus/application/pec_evidence_features.py',
-        '    if boundary.retrieval_gate_passed != (eligible_count > 0):',
-        '    if False:',
-        ('apps/api/tests/test_decision_sensitivity.py::test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge',),
+        "M278_PEC_BOUNDARY_DIVERGENCE_TOLERATED",
+        "apps/api/src/korpus/application/pec_evidence_features.py",
+        "    if boundary.retrieval_gate_passed != (eligible_count > 0):",
+        "    if False:",
+        (
+            "apps/api/tests/test_decision_sensitivity.py::test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge",
+        ),
     ),
     Mutant(
-        'M279_DGC_ADMISSIBLE_BASELINE_ESCALATED',
-        'apps/api/src/korpus/application/pec_oracle_policy.py',
-        '    if baseline.admissible():',
-        '    if False:',
-        ('apps/api/tests/test_pec_replay.py::test_oracle_never_buys_compute_when_baseline_is_already_admissible_even_if_noisy_latency_is_lower',),
+        "M279_DGC_ADMISSIBLE_BASELINE_ESCALATED",
+        "apps/api/src/korpus/application/pec_oracle_policy.py",
+        "    if baseline.admissible():",
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_replay.py::test_oracle_never_buys_compute_when_baseline_is_already_admissible_even_if_noisy_latency_is_lower",
+        ),
     ),
     Mutant(
-        'M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL',
-        'apps/api/src/korpus/application/pec_oracle_policy.py',
+        "M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL",
+        "apps/api/src/korpus/application/pec_oracle_policy.py",
         '        return _decision(query_id, RetrievalAction.BASELINE, "UNKNOWN", "missing_original_query_stop_baseline", [])',
         '        return _decision(query_id, RetrievalAction.PLAN_QUERY_VARIANTS, "PASS", "mutated", [])',
-        ('apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline',),
+        ("apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline",),
     ),
     Mutant(
-        'M281_PEC_ABLATION_QUALITY_REGRESSION_IGNORED',
-        'apps/api/src/korpus/application/pec_ablation.py',
+        "M281_PEC_ABLATION_QUALITY_REGRESSION_IGNORED",
+        "apps/api/src/korpus/application/pec_ablation.py",
         '        "FAIL"\n        if safety_regressions or quality_regressions',
         '        "FAIL"\n        if safety_regressions',
-        ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses',),
+        (
+            "apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses",
+        ),
     ),
     Mutant(
-        'M282_PEC_ABLATION_EFFICIENCY_EVIDENCE_BYPASSED',
-        'apps/api/src/korpus/application/pec_ablation.py',
+        "M282_PEC_ABLATION_EFFICIENCY_EVIDENCE_BYPASSED",
+        "apps/api/src/korpus/application/pec_ablation.py",
         '        else "PASS"\n        if supported_improvement',
         '        else "PASS"\n        if True',
-        ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_without_supported_efficiency_gain_remains_unknown',),
+        (
+            "apps/api/tests/test_pec_protocol_gates.py::test_ablation_without_supported_efficiency_gain_remains_unknown",
+        ),
     ),
     Mutant(
-        'M283_PEC_METAMORPHIC_RISK_WEAKENING_IGNORED',
-        'apps/api/src/korpus/application/pec_metamorphic_rules.py',
-        '    elif transformed_risk < base_risk:',
-        '    elif False:',
-        ('apps/api/tests/test_pec_protocol_gates.py::test_metamorphic_invariant_kills_risk_weakening_and_source_unbinding',),
+        "M283_PEC_METAMORPHIC_RISK_WEAKENING_IGNORED",
+        "apps/api/src/korpus/application/pec_metamorphic_rules.py",
+        "    elif transformed_risk < base_risk:",
+        "    elif False:",
+        (
+            "apps/api/tests/test_pec_protocol_gates.py::test_metamorphic_invariant_kills_risk_weakening_and_source_unbinding",
+        ),
     ),
     Mutant(
-        'M284_PEC_PROMOTION_NONPASS_RECEIPT_IGNORED',
-        'apps/api/src/korpus/application/pec_promotion.py',
-        '    if nonpass:',
-        '    if False:',
-        ('apps/api/tests/test_pec_protocol_gates.py::test_promotion_refuses_any_nonpass_required_receipt',),
+        "M284_PEC_PROMOTION_NONPASS_RECEIPT_IGNORED",
+        "apps/api/src/korpus/application/pec_promotion.py",
+        "    if nonpass:",
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_protocol_gates.py::test_promotion_refuses_any_nonpass_required_receipt",
+        ),
     ),
     Mutant(
-        'M285_DGC_DECISION_BOUNDARY_AUDIT_DROPPED',
-        'apps/api/src/korpus/application/pec_trace_projection.py',
+        "M285_DGC_DECISION_BOUNDARY_AUDIT_DROPPED",
+        "apps/api/src/korpus/application/pec_trace_projection.py",
         '        "decision_boundary_distance": trace.decision_boundary_distance,',
         '        "decision_boundary_distance_mutated": trace.decision_boundary_distance,',
-        ('apps/api/tests/test_pec_integration.py::test_controller_trace_reaches_completed_answer_audit',),
+        (
+            "apps/api/tests/test_pec_integration.py::test_controller_trace_reaches_completed_answer_audit",
+        ),
     ),
     Mutant(
-        'M286_PEC_CONTEXTUAL_EVIDENCE_MUTATION_IGNORED',
-        'apps/api/src/korpus/application/pec_contextual_benchmark.py',
-        '        if not evidence_unchanged:',
-        '        if False:',
-        ('apps/api/tests/test_pec_contextual_benchmark.py::test_contextual_benchmark_refuses_evidence_mutation',),
+        "M286_PEC_CONTEXTUAL_EVIDENCE_MUTATION_IGNORED",
+        "apps/api/src/korpus/application/pec_contextual_benchmark.py",
+        "        if not evidence_unchanged:",
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_contextual_benchmark.py::test_contextual_benchmark_refuses_evidence_mutation",
+        ),
     ),
     Mutant(
-        'M287_PEC_TERMINAL_ABSTAIN_BYPASSED',
-        'apps/api/src/korpus/application/answer_retrieval_gate.py',
-        '    if early_abstain:',
-        '    if False:',
-        ('apps/api/tests/test_pec_integration.py::test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence',),
+        "M287_PEC_TERMINAL_ABSTAIN_BYPASSED",
+        "apps/api/src/korpus/application/answer_retrieval_gate.py",
+        "    if early_abstain:",
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_integration.py::test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence",
+        ),
     ),
     Mutant(
-        'M288_PEC_ORIGINAL_QUERY_REPEATED_ON_ESCALATION',
-        'apps/api/src/korpus/application/pec_retrieval.py',
-        '    searches = plan.searches if include_asked else plan.variants',
-        '    searches = plan.searches',
-        ('apps/api/tests/test_pec_integration.py::test_planner_escalation_does_not_repeat_original_lexical_search',),
+        "M288_PEC_ORIGINAL_QUERY_REPEATED_ON_ESCALATION",
+        "apps/api/src/korpus/application/pec_retrieval.py",
+        "    searches = plan.searches if include_asked else plan.variants",
+        "    searches = plan.searches",
+        (
+            "apps/api/tests/test_pec_integration.py::test_planner_escalation_does_not_repeat_original_lexical_search",
+        ),
     ),
     Mutant(
-        'M289_PEC_PROMOTION_CROSS_RUN_REPLAY_ACCEPTED',
-        'apps/api/src/korpus/application/pec_promotion_bindings.py',
+        "M289_PEC_PROMOTION_CROSS_RUN_REPLAY_ACCEPTED",
+        "apps/api/src/korpus/application/pec_promotion_bindings.py",
         '        ("oracle", "replay_sha256", receipt_file_sha256.get("counterfactual_replay", "")),',
         '        ("oracle", "replay_sha256", str(receipts.get("oracle", {}).get("replay_sha256", ""))),',
-        ('apps/api/tests/test_pec_protocol_gates.py::test_promotion_rejects_green_but_cross_run_evidence_chain',),
+        (
+            "apps/api/tests/test_pec_protocol_gates.py::test_promotion_rejects_green_but_cross_run_evidence_chain",
+        ),
     ),
     Mutant(
-        'M290_PEC_CONTEXTUAL_CANDIDATE_RECOVERY_DISABLED',
-        'apps/api/src/korpus/infrastructure/repository_search.py',
-        '    if len(baseline) >= candidate_limit or not corpora or not terms:',
-        '    if True:',
-        ('apps/api/tests/test_search_index.py::test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence',),
+        "M290_PEC_CONTEXTUAL_CANDIDATE_RECOVERY_DISABLED",
+        "apps/api/src/korpus/infrastructure/repository_search.py",
+        "    if len(baseline) >= candidate_limit or not corpora or not terms:",
+        "    if True:",
+        (
+            "apps/api/tests/test_search_index.py::test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence",
+        ),
     ),
     Mutant(
-        'M291_PEC_CONTROLLED_CONTEXTUAL_GOVERNANCE_BYPASSED',
-        'apps/api/src/korpus/pec_config_policy.py',
-        '        if settings.contextual_retrieval_enabled and controlled:',
-        '        if False:',
-        ('apps/api/tests/test_pec_act_hardening.py::test_controlled_contextual_retrieval_cannot_run_outside_pec_governance',),
+        "M291_PEC_CONTROLLED_CONTEXTUAL_GOVERNANCE_BYPASSED",
+        "apps/api/src/korpus/pec_config_policy.py",
+        "        if settings.contextual_retrieval_enabled and controlled:",
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_act_hardening.py::test_controlled_contextual_retrieval_cannot_run_outside_pec_governance",
+        ),
     ),
     Mutant(
-        'M292_PEC_REPLAY_STRING_BOOLEAN_ACCEPTED',
-        'scripts/pec_replay_validation.py',
-        '        if field in observation and not isinstance(observation.get(field), bool):',
-        '        if False:',
-        ('apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes',),
+        "M292_PEC_REPLAY_STRING_BOOLEAN_ACCEPTED",
+        "scripts/pec_replay_validation.py",
+        "        if field in observation and not isinstance(observation.get(field), bool):",
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes",
+        ),
     ),
     Mutant(
-        'M293_PEC_EXPORT_CROSS_RUN_TRAINING_ACCEPTED',
-        'scripts/pec_controller_export_impl.py',
+        "M293_PEC_EXPORT_CROSS_RUN_TRAINING_ACCEPTED",
+        "scripts/pec_controller_export_impl.py",
         '        ("training.dataset_sha256", training.get("dataset_sha256"), dataset_sha256),',
         '        ("training.dataset_sha256", dataset_sha256, dataset_sha256),',
-        ('apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding',),
+        (
+            "apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding",
+        ),
     ),
     Mutant(
-        'M294_PEC_GROUPED_VALIDATION_SPLITS_SOURCE_LINEAGE',
-        'apps/api/src/korpus/application/pec_training_validation.py',
-        '        (\n            [row for row in data if buckets[row.group_id] != index],\n            [row for row in data if buckets[row.group_id] == index],\n        )',
-        '        (\n            [row for row in data if _bucket(row.query_id, folds) != index],\n            [row for row in data if _bucket(row.query_id, folds) == index],\n        )',
-        ('apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint',),
+        "M294_PEC_GROUPED_VALIDATION_SPLITS_SOURCE_LINEAGE",
+        "apps/api/src/korpus/application/pec_training_validation.py",
+        "        (\n            [row for row in data if buckets[row.group_id] != index],\n            [row for row in data if buckets[row.group_id] == index],\n        )",
+        "        (\n            [row for row in data if _bucket(row.query_id, folds) != index],\n            [row for row in data if _bucket(row.query_id, folds) == index],\n        )",
+        (
+            "apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint",
+        ),
     ),
     Mutant(
-        'M295_PEC_CONDITIONAL_RISK_UNDERPOWERED_ADMITTED',
-        'apps/api/src/korpus/application/pec_research.py',
-        '        is_admitted = len(values) >= minimum_samples and upper <= risk_limit',
-        '        is_admitted = len(values) >= minimum_samples or upper <= risk_limit',
-        ('apps/api/tests/test_pec_research.py::test_conditional_risk_underpowered_stratum_falls_back',),
+        "M295_PEC_CONDITIONAL_RISK_UNDERPOWERED_ADMITTED",
+        "apps/api/src/korpus/application/pec_research.py",
+        "        is_admitted = len(values) >= minimum_samples and upper <= risk_limit",
+        "        is_admitted = len(values) >= minimum_samples or upper <= risk_limit",
+        (
+            "apps/api/tests/test_pec_research.py::test_conditional_risk_underpowered_stratum_falls_back",
+        ),
     ),
     Mutant(
-        'M296_PEC_REPLAY_PRIORITY_INVERTS_ACCEPTED_ERROR',
-        'apps/api/src/korpus/application/pec_replay.py',
-        '        0 if flags[1] else 1,',
-        '        1 if flags[1] else 0,',
-        ('apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures',),
+        "M296_PEC_REPLAY_PRIORITY_INVERTS_ACCEPTED_ERROR",
+        "apps/api/src/korpus/application/pec_replay.py",
+        "        0 if flags[1] else 1,",
+        "        1 if flags[1] else 0,",
+        ("apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures",),
     ),
     Mutant(
-        'M297_PEC_PRODUCTION_JUDGMENT_PROVENANCE_BYPASSED',
-        'apps/api/src/korpus/application/pec_research.py',
+        "M297_PEC_PRODUCTION_JUDGMENT_PROVENANCE_BYPASSED",
+        "apps/api/src/korpus/application/pec_research.py",
         '        if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):',
-        '        if False:',
-        ('apps/api/tests/test_pec_research.py::test_production_judgment_requires_bound_provenance',),
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_research.py::test_production_judgment_requires_bound_provenance",
+        ),
     ),
     Mutant(
-        'M298_PEC_INFORMATION_GAIN_SCALAR_UTILITY_INTRODUCED',
-        'apps/api/src/korpus/application/pec_research.py',
+        "M298_PEC_INFORMATION_GAIN_SCALAR_UTILITY_INTRODUCED",
+        "apps/api/src/korpus/application/pec_research.py",
         '                "retrieval_quality_deltas": deltas,',
         '                "retrieval_quality_deltas": deltas, "utility": 0.0,',
-        ('apps/api/tests/test_pec_research.py::test_information_gain_is_vector_not_weighted_scalar',),
+        (
+            "apps/api/tests/test_pec_research.py::test_information_gain_is_vector_not_weighted_scalar",
+        ),
     ),
     Mutant(
-        'M299_PEC_SYNTHETIC_RESEARCH_GRANTED_PRODUCTION_AUTHORITY',
-        'apps/api/src/korpus/application/pec_research.py',
+        "M299_PEC_SYNTHETIC_RESEARCH_GRANTED_PRODUCTION_AUTHORITY",
+        "apps/api/src/korpus/application/pec_research.py",
         '    authority = validity.get("status") == "PASS"',
-        '    authority = True',
-        ('apps/api/tests/test_pec_research.py::test_research_status_refuses_non_production_authority',),
+        "    authority = True",
+        (
+            "apps/api/tests/test_pec_research.py::test_research_status_refuses_non_production_authority",
+        ),
     ),
     Mutant(
-        'M300_PEC_NESTED_SELECTION_SEES_OUTER_VALIDATION',
-        'apps/api/src/korpus/application/pec_training_validation.py',
-        '            depth, min_leaf, inner = select_hyperparameters(outer_train)',
-        '            depth, min_leaf, inner = select_hyperparameters(data)',
-        ('apps/api/tests/test_pec_research.py::test_nested_selection_never_sees_outer_validation',),
+        "M300_PEC_NESTED_SELECTION_SEES_OUTER_VALIDATION",
+        "apps/api/src/korpus/application/pec_training_validation.py",
+        "            depth, min_leaf, inner = select_hyperparameters(outer_train)",
+        "            depth, min_leaf, inner = select_hyperparameters(data)",
+        ("apps/api/tests/test_pec_research.py::test_nested_selection_never_sees_outer_validation",),
     ),
     Mutant(
-        'M301_PEC_PRODUCTION_ENVIRONMENT_BYPASSED',
-        'apps/api/src/korpus/application/pec_revision_binding.py',
+        "M301_PEC_PRODUCTION_ENVIRONMENT_BYPASSED",
+        "apps/api/src/korpus/application/pec_revision_binding.py",
         '        if environment != "PRODUCTION":',
-        '        if False:',
-        ('apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment',),
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment",
+        ),
     ),
     Mutant(
-        'M302_PEC_AUDIT_REVISION_BINDING_BYPASSED',
-        'apps/api/src/korpus/application/pec_audit_trace.py',
+        "M302_PEC_AUDIT_REVISION_BINDING_BYPASSED",
+        "apps/api/src/korpus/application/pec_audit_trace.py",
         '        if str(row.get("revision", "")) != binding.revision:',
-        '        if False:',
-        ('apps/api/tests/test_pec_audit_trace_v097.py::test_audit_trace_rejects_revision_drift',),
+        "        if False:",
+        ("apps/api/tests/test_pec_audit_trace_v097.py::test_audit_trace_rejects_revision_drift",),
     ),
     Mutant(
-        'M303_PEC_COHORT_MISSING_CASE_ACCEPTED',
-        'apps/api/src/korpus/application/pec_cohort.py',
-        '    complete = not missing and not unexpected and not duplicates and len(observed) == len(expected)',
-        '    complete = not unexpected and not duplicates and len(observed) <= len(expected)',
-        ('apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_cherry_picked_missing_case',),
+        "M303_PEC_COHORT_MISSING_CASE_ACCEPTED",
+        "apps/api/src/korpus/application/pec_cohort.py",
+        "    complete = not missing and not unexpected and not duplicates and len(observed) == len(expected)",
+        "    complete = not unexpected and not duplicates and len(observed) <= len(expected)",
+        ("apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_cherry_picked_missing_case",),
     ),
     Mutant(
-        'M304_PEC_MODEL_SELF_JUDGMENT_ACCEPTED',
-        'apps/api/src/korpus/application/pec_human_judgment.py',
-        '        elif model_self_judgment:',
-        '        elif False:',
-        ('apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative',),
+        "M304_PEC_MODEL_SELF_JUDGMENT_ACCEPTED",
+        "apps/api/src/korpus/application/pec_human_judgment.py",
+        "        elif model_self_judgment:",
+        "        elif False:",
+        (
+            "apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative",
+        ),
     ),
     Mutant(
-        'M305_PEC_HUMAN_JUDGMENT_REVISION_DRIFT_ACCEPTED',
-        'apps/api/src/korpus/application/pec_human_judgment.py',
+        "M305_PEC_HUMAN_JUDGMENT_REVISION_DRIFT_ACCEPTED",
+        "apps/api/src/korpus/application/pec_human_judgment.py",
         '        if str(row.get("revision", "")) != binding.revision:',
-        '        if False:',
-        ('apps/api/tests/test_pec_human_judgment_v097.py::test_human_judgment_rejects_revision_drift',),
+        "        if False:",
+        (
+            "apps/api/tests/test_pec_human_judgment_v097.py::test_human_judgment_rejects_revision_drift",
+        ),
     ),
     Mutant(
-        'M306_PEC_CANARY_REVISION_DRIFT_ACCEPTED',
-        'apps/api/src/korpus/application/pec_canary_admission.py',
+        "M306_PEC_CANARY_REVISION_DRIFT_ACCEPTED",
+        "apps/api/src/korpus/application/pec_canary_admission.py",
         '    if str(receipt.get("cloud_run_revision", "")) != cloud_run_revision:',
-        '    if False:',
-        ('apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch',),
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch",
+        ),
     ),
     Mutant(
-        'M307_PEC_CANARY_UNDERPOWERED_SAMPLE_ACCEPTED',
-        'apps/api/src/korpus/application/pec_canary_admission.py',
-        '    if isinstance(samples, bool) or not isinstance(samples, int) or samples < minimum_samples:',
-        '    if False:',
-        ('apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample',),
+        "M307_PEC_CANARY_UNDERPOWERED_SAMPLE_ACCEPTED",
+        "apps/api/src/korpus/application/pec_canary_admission.py",
+        "    if isinstance(samples, bool) or not isinstance(samples, int) or samples < minimum_samples:",
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample",
+        ),
     ),
     Mutant(
-        'M308_PEC_TRAINING_DATASET_DRIFT_ACCEPTED',
-        'apps/api/src/korpus/application/pec_training_lineage.py',
+        "M308_PEC_TRAINING_DATASET_DRIFT_ACCEPTED",
+        "apps/api/src/korpus/application/pec_training_lineage.py",
         '        "dataset_sha256": str(receipt.get("dataset_sha256", "")) == dataset_sha256,',
         '        "dataset_sha256": True,',
-        ('apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_rejects_dataset_drift',),
+        (
+            "apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_rejects_dataset_drift",
+        ),
     ),
     Mutant(
-        'M309_PEC_EVIDENCE_RECEIPT_RELEASE_DRIFT_ACCEPTED',
-        'apps/api/src/korpus/application/pec_evidence_receipt.py',
+        "M309_PEC_EVIDENCE_RECEIPT_RELEASE_DRIFT_ACCEPTED",
+        "apps/api/src/korpus/application/pec_evidence_receipt.py",
         '    if str(payload.get("release", "")) != release:',
-        '    if False:',
-        ('apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_release_drift',),
+        "    if False:",
+        (
+            "apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_release_drift",
+        ),
     ),
     Mutant(
-        'M310_PEC_LOCAL_SELF_ATTESTATION_ACCEPTED',
-        'apps/api/src/korpus/application/pec_hosted_evidence.py',
+        "M310_PEC_LOCAL_SELF_ATTESTATION_ACCEPTED",
+        "apps/api/src/korpus/application/pec_hosted_evidence.py",
         '        "not_local_self_attested": receipt.get("local_self_attested") is not True,',
         '        "not_local_self_attested": True,',
-        ('apps/api/tests/test_pec_hosted_evidence_v097.py::test_hosted_evidence_rejects_local_self_attestation',),
+        (
+            "apps/api/tests/test_pec_hosted_evidence_v097.py::test_hosted_evidence_rejects_local_self_attestation",
+        ),
     ),
     Mutant(
-        'M311_PEC_UNTRUSTED_EXTERNAL_SIGNER_ACCEPTED',
-        'apps/api/src/korpus/application/pec_external_assurance.py',
+        "M311_PEC_UNTRUSTED_EXTERNAL_SIGNER_ACCEPTED",
+        "apps/api/src/korpus/application/pec_external_assurance.py",
         '        "trusted_signer": str(receipt.get("signer_fingerprint", "")) in trusted,',
         '        "trusted_signer": True,',
-        ('apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer',),
+        (
+            "apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer",
+        ),
     ),
     Mutant(
-        'M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED',
-        'apps/api/src/korpus/application/supply_chain_attestation.py',
+        "M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED",
+        "apps/api/src/korpus/application/supply_chain_attestation.py",
         '    return item.get("name") == artifact_name and isinstance(digest, Mapping) and digest.get("sha256") == hashlib.sha256(artifact_bytes).hexdigest()',
         '    return item.get("name") == artifact_name and isinstance(digest, Mapping)',
-        ('apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation',),
+        (
+            "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation",
+        ),
     ),
 )
 
@@ -3650,7 +3822,7 @@ def _run_catalogue(args: argparse.Namespace) -> tuple[dict[str, object], Path]:
     shard_index = 0 if args.shard_index is None else args.shard_index
     if not 0 <= shard_index < args.shard_count:
         raise SystemExit("--shard-index must satisfy 0 <= index < shard-count")
-    selected = list(MUTANTS[shard_index::args.shard_count])
+    selected = list(MUTANTS[shard_index :: args.shard_count])
     results = run_selected(selected, args.jobs)
     report = summarize(
         results,

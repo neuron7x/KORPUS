@@ -116,9 +116,7 @@ class SqlConversationStore:
             )
         return _conversation(row) if row else None
 
-    def archive_conversation(
-        self, account_id: UUID, conversation_id: UUID
-    ) -> ConversationRecord:
+    def archive_conversation(self, account_id: UUID, conversation_id: UUID) -> ConversationRecord:
         moment = datetime.now(UTC)
         with self.engine.begin() as connection:
             result = connection.execute(
@@ -225,11 +223,7 @@ class SqlConversationStore:
         # be asserting the invariant rather than checking it. A row that somehow carried
         # NULL is dropped and would surface as a conversation retention never considers,
         # which is the safe direction: a plan that omits a row deletes nothing.
-        return [
-            (UUID(row[0]), moment)
-            for row in rows
-            if (moment := aware(row[1])) is not None
-        ]
+        return [(UUID(row[0]), moment) for row in rows if (moment := aware(row[1])) is not None]
 
     def delete_conversations(self, conversation_ids: list[UUID]) -> int:
         """Erase named conversations and their turns. Returns how many turns went.
@@ -257,9 +251,7 @@ class SqlConversationStore:
         nobody can check.
         """
         with self.engine.begin() as connection:
-            owned = select(conversations.c.id).where(
-                conversations.c.account_id == str(account_id)
-            )
+            owned = select(conversations.c.id).where(conversations.c.account_id == str(account_id))
             removed = connection.execute(
                 delete(messages).where(messages.c.conversation_id.in_(owned))
             ).rowcount

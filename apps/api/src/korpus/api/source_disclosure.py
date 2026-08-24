@@ -3,6 +3,7 @@
 The API route only authorizes and selects.  This module owns the stable disclosure
 projection so adding validity/provenance fields cannot bloat the routing surface.
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime

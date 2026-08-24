@@ -40,9 +40,7 @@ def test_inference_security_profile_is_fail_closed_on_empty_or_duplicate_scope()
 
 def test_inference_security_profile_rejects_unmapped_attack_family() -> None:
     profile = _profile()
-    profile["family_targets"] = {
-        "direct_prompt_injection": ["apps/api/tests/test_model_egress.py"]
-    }
+    profile["family_targets"] = {"direct_prompt_injection": ["apps/api/tests/test_model_egress.py"]}
     checks, _, _ = gate._profile_checks(profile)
     assert checks["family_target_mapping_complete"] is False
 
@@ -55,7 +53,9 @@ def test_inference_security_profile_rejects_missing_test_target() -> None:
 
 
 def test_repository_inference_security_profile_has_executable_scope() -> None:
-    profile = json.loads((ROOT / "config/assurance/inference-security-v1.json").read_text(encoding="utf-8"))
+    profile = json.loads(
+        (ROOT / "config/assurance/inference-security-v1.json").read_text(encoding="utf-8")
+    )
     checks, families, targets = gate._profile_checks(profile)
     assert all(checks.values()), checks
     assert len(families) == 7

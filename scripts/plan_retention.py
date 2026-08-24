@@ -14,6 +14,7 @@ Exit codes carry the finding, so this can be a gate:
        corpus with no governance policy at all. Neither is an error in the code; both
        are decisions nobody has made, and reporting them as "clean" would be the lie.
 """
+
 from __future__ import annotations
 
 import json
@@ -85,8 +86,11 @@ def main() -> int:
     rendered["reconciliation"] = problems
     OUTPUT.parent.mkdir(exist_ok=True)
     OUTPUT.write_text(json.dumps(rendered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({k: v for k, v in rendered.items() if k != "items"}, ensure_ascii=False,
-                     indent=2))
+    print(
+        json.dumps(
+            {k: v for k, v in rendered.items() if k != "items"}, ensure_ascii=False, indent=2
+        )
+    )
 
     if problems:
         return 1

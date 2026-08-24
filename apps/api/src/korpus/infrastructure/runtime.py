@@ -5,7 +5,11 @@ from korpus.application.ports import ObjectStore
 from korpus.config import Settings
 from korpus.infrastructure.object_store import LocalObjectStore, S3ObjectStore
 from korpus.infrastructure.repository import SqlRepository
-from korpus.infrastructure.runtime_cloud import create_audit_anchor, create_gcs_store, s3_bucket_name
+from korpus.infrastructure.runtime_cloud import (
+    create_audit_anchor,
+    create_gcs_store,
+    s3_bucket_name,
+)
 
 
 def create_repository(settings: Settings, policy: PolicyEngine | None = None) -> SqlRepository:

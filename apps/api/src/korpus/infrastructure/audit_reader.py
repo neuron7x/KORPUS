@@ -18,7 +18,8 @@ against a shape the writer never produced.
 
 from __future__ import annotations
 
-import hmac, json
+import hmac
+import json
 from datetime import UTC, datetime
 from typing import Any
 
@@ -26,12 +27,10 @@ from sqlalchemy import Engine, func, select
 
 from korpus.application.keyring import LEGACY_KEY_ID, AuditKeyRing
 from korpus.application.trace import TRACE_ID_PATTERN
-from korpus.infrastructure.audit_event_view import audit_event_view
 from korpus.domain.models import AuditVerification, Identity
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore
-
-
 from korpus.infrastructure.audit_canonical import audit_canonical
+from korpus.infrastructure.audit_event_view import audit_event_view
 
 
 def iso(value: datetime) -> str:
@@ -218,7 +217,6 @@ class AuditReader:
             rows = connection.execute(statement).mappings().all()
         return [audit_event_view(row) for row in rows]
 
-
     def readiness_snapshot(
         self, *, max_pending_events: int, max_pending_age_seconds: float
     ) -> dict[str, object]:
@@ -257,7 +255,9 @@ class AuditReader:
                     )
                 ).scalar_one_or_none()
             recoverable_gap = connection.execute(
-                select(func.count()).select_from(self._outbox).where(
+                select(func.count())
+                .select_from(self._outbox)
+                .where(
                     self._outbox.c.sequence > anchor.sequence,
                     self._outbox.c.delivered_at.is_(None),
                 )

@@ -59,9 +59,7 @@ def test_the_schema_module_does_not_import_what_reads_it() -> None:
     """Otherwise the cycle comes back and the split is nominal."""
     tree = ast.parse(SCHEMA_SOURCE.read_text(encoding="utf-8"))
     imported = {
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module
+        node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) and node.module
     }
 
     assert not any(
@@ -156,7 +154,11 @@ def test_a_query_with_no_usable_term_returns_no_statement() -> None:
     """None, not an empty statement: the caller must not open a transaction for it."""
     assert (
         retrieval_queries.candidate_span_query(
-            _identity(AccessTier.PUBLIC), frozenset({"public"}), date(2026, 8, 5), "  ", 10,
+            _identity(AccessTier.PUBLIC),
+            frozenset({"public"}),
+            date(2026, 8, 5),
+            "  ",
+            10,
             "sqlite",
         )
         is None
@@ -166,15 +168,23 @@ def test_a_query_with_no_usable_term_returns_no_statement() -> None:
 def test_an_unsupported_dialect_refuses_rather_than_returning_a_broken_statement() -> None:
     with pytest.raises(RuntimeError, match="unsupported search dialect"):
         retrieval_queries.candidate_span_query(
-            _identity(AccessTier.PUBLIC), frozenset({"public"}), date(2026, 8, 5),
-            "наказ", 10, "mysql",
+            _identity(AccessTier.PUBLIC),
+            frozenset({"public"}),
+            date(2026, 8, 5),
+            "наказ",
+            10,
+            "mysql",
         )
 
 
 def test_the_candidate_query_binds_the_readers_clearance_rather_than_a_constant() -> None:
     prepared = retrieval_queries.candidate_span_query(
-        _identity(AccessTier.REVIEWED), frozenset({"public"}), date(2026, 8, 5),
-        "наказ", 25, "sqlite",
+        _identity(AccessTier.REVIEWED),
+        frozenset({"public"}),
+        date(2026, 8, 5),
+        "наказ",
+        25,
+        "sqlite",
     )
     assert prepared is not None
     _, parameters = prepared

@@ -5,6 +5,7 @@ booleans, strings, NaN/Inf, negative counts and inconsistent Bernoulli counts ar
 rejected rather than coerced.  This keeps offline admission mathematics and TEVV
 reporting on one executable contract.
 """
+
 from __future__ import annotations
 
 import math
@@ -51,9 +52,7 @@ def wilson_score_interval(
     z2 = zf * zf
     denominator = 1.0 + z2 / total_i
     centre = (p + z2 / (2.0 * total_i)) / denominator
-    spread = zf * math.sqrt(
-        p * (1.0 - p) / total_i + z2 / (4.0 * total_i * total_i)
-    ) / denominator
+    spread = zf * math.sqrt(p * (1.0 - p) / total_i + z2 / (4.0 * total_i * total_i)) / denominator
     lower = max(0.0, centre - spread)
     upper = min(1.0, centre + spread)
     if abs(lower) < 1e-15:

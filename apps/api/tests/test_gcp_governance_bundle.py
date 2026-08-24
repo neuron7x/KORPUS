@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-from scripts.gcp.verify_governance_bundle import verify
 from apps.api.tests.security_fixtures import (
     write_calibration_bundle,
     write_corpus_governance_profile,
@@ -13,6 +12,7 @@ from apps.api.tests.security_fixtures import (
     write_reviewer_registry,
     write_source_trust_profile,
 )
+from scripts.gcp.verify_governance_bundle import verify
 
 
 def _bundle(tmp_path: Path) -> Path:
@@ -39,7 +39,9 @@ def test_bundle_id_changes_when_entitlements_change(tmp_path: Path) -> None:
     obj = json.loads((root / "entitlements.json").read_text(encoding="utf-8"))
     obj["profile_id"] = "test-entitlements-v2"
     (root / "entitlements.json").write_text(json.dumps(obj), encoding="utf-8")
-    second = verify(root, oidc_issuer="https://id.example", oidc_audience="korpus-api")["release_id"]
+    second = verify(root, oidc_issuer="https://id.example", oidc_audience="korpus-api")[
+        "release_id"
+    ]
     assert first != second
 
 

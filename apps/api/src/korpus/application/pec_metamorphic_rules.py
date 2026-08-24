@@ -1,4 +1,5 @@
 """Semantics-preserving PEC metamorphic invariants."""
+
 from __future__ import annotations
 
 from korpus.application.numeric_contracts import strict_int
@@ -19,7 +20,10 @@ def metamorphic_issues(base: dict[str, object], transformed: dict[str, object]) 
     elif transformed_risk < base_risk:
         issues.append("risk_class_weakened")
 
-    base_authority, transformed_authority = base.get("authority_rank"), transformed.get("authority_rank")
+    base_authority, transformed_authority = (
+        base.get("authority_rank"),
+        transformed.get("authority_rank"),
+    )
     if not strict_int(base_authority) or not strict_int(transformed_authority):
         issues.append("invalid_authority_rank")
     elif transformed_authority < base_authority:
@@ -40,6 +44,10 @@ def metamorphic_issues(base: dict[str, object], transformed: dict[str, object]) 
         expanded = False
     if expanded:
         issues.append("planner_permission_expanded")
-    if str(base.get("answer_status")) in ABSTAIN_OR_REVIEW and str(transformed.get("answer_status")) == "answered" and expanded:
+    if (
+        str(base.get("answer_status")) in ABSTAIN_OR_REVIEW
+        and str(transformed.get("answer_status")) == "answered"
+        and expanded
+    ):
         issues.append("permissive_rephrase_changed_decision")
     return issues

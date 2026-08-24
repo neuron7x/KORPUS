@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed source policy for GitHub Actions workflows."""
+
 from __future__ import annotations
 
 import json
@@ -59,7 +60,9 @@ def _checkout_findings(name: str, job_name: str, steps: object) -> list[str]:
         return [f"{name}:{job_name}: steps is not a list"]
     findings: list[str] = []
     for step in steps:
-        if not isinstance(step, dict) or not str(step.get("uses", "")).startswith("actions/checkout@"):
+        if not isinstance(step, dict) or not str(step.get("uses", "")).startswith(
+            "actions/checkout@"
+        ):
             continue
         inputs = step.get("with")
         persist = inputs.get("persist-credentials") if isinstance(inputs, dict) else None
@@ -74,7 +77,9 @@ def validate_workflow(path: Path) -> list[str]:
         data = _load(path)
     except (OSError, yaml.YAMLError, ValueError) as error:
         return [f"{path.name}: invalid YAML: {error}"]
-    findings = [] if "permissions" in data else [f"{path.name}: missing explicit top-level permissions"]
+    findings = (
+        [] if "permissions" in data else [f"{path.name}: missing explicit top-level permissions"]
+    )
     findings.extend(
         f"{path.name}: forbidden privileged trigger {trigger}"
         for trigger in FORBIDDEN_TRIGGERS
@@ -87,7 +92,11 @@ def validate_workflow(path: Path) -> list[str]:
 
 def validate_repository(root: Path = ROOT) -> list[str]:
     workflow_dir = root / ".github/workflows"
-    paths = sorted((*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml"))) if workflow_dir.is_dir() else []
+    paths = (
+        sorted((*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")))
+        if workflow_dir.is_dir()
+        else []
+    )
     if not paths:
         return [".github/workflows: no workflow files"]
     findings = [finding for path in paths for finding in validate_workflow(path)]

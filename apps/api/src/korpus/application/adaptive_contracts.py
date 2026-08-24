@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+
 from korpus.application.adaptive_types import (
     AdaptationPolicyLike,
     AdaptationStateLike,

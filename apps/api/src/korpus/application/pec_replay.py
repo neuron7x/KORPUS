@@ -1,15 +1,21 @@
 """Offline counterfactual replay/oracle primitives for PEC."""
+
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Iterable, Mapping
 
 from korpus.application.numeric_contracts import finite_number, nonnegative_count
-
-from korpus.application.pec_oracle_policy import OracleDecision, dominates, solve_oracle
+from korpus.application.pec_oracle_policy import (
+    dominates as dominates,
+)
+from korpus.application.pec_oracle_policy import (
+    solve_oracle as solve_oracle,
+)
 from korpus.application.predictive_evidence_control import RetrievalAction
+
 RESOURCE_FIELDS = (
     "latency_ms",
     "search_count",
@@ -19,6 +25,7 @@ RESOURCE_FIELDS = (
     "external_tokens",
     "provider_cost_microunits",
 )
+
 
 @dataclass(frozen=True, slots=True)
 class ReplayOutcome:
@@ -69,23 +76,30 @@ class ReplayOutcome:
                 raise ValueError("retrieved span ids must be non-empty")
             if nonnegative_count(rank) is None or rank < 1:
                 raise ValueError("retrieved span rank must be a positive integer")
+
     def resources(self) -> tuple[float, ...]:
         return tuple(float(getattr(self, name)) for name in RESOURCE_FIELDS)
+
     def admissible(self) -> bool:
         return self.authorization_ok and not self.answer_error and self.quality_ok
+
     def decision_signature(self) -> tuple[str, str]:
         return self.answer_status, self.decision_reason
+
 
 def replay_priority(row: Mapping[str, object]) -> tuple[object, ...]:
     """Lexicographic replay priority: safety before error before compute residual."""
     flags: list[bool] = []
-    for field in (
-        "authorization_violation", "accepted_answer_error", "false_abstention",
-        "controller_oracle_disagreement", "out_of_support",
+    for flag_name in (
+        "authorization_violation",
+        "accepted_answer_error",
+        "false_abstention",
+        "controller_oracle_disagreement",
+        "out_of_support",
     ):
-        value = row.get(field, False)
+        value = row.get(flag_name, False)
         if not isinstance(value, bool):
-            raise ValueError(f"{field} must be boolean")
+            raise ValueError(f"{flag_name} must be boolean")
         flags.append(value)
     residual = row.get("retrieval_benefit_residual", 0.0)
     if not finite_number(residual):
@@ -99,6 +113,7 @@ def replay_priority(row: Mapping[str, object]) -> tuple[object, ...]:
         0 if flags[4] else 1,
         str(row.get("query_id", "")),
     )
+
 
 def canonical_digest(value: object) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()

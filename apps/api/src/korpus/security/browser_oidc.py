@@ -14,6 +14,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from korpus.security.browser_oidc_urls import (
     authorization_url as build_authorization_url,
+)
+from korpus.security.browser_oidc_urls import (
     canonical_https_endpoint,
 )
 
@@ -78,9 +80,7 @@ class BrowserSessionCodec:
             raise BrowserSessionError("browser session envelope is truncated")
         nonce, ciphertext = raw[:12], raw[12:]
         try:
-            body = AESGCM(self._key).decrypt(
-                nonce, ciphertext, expected_kind.encode("utf-8")
-            )
+            body = AESGCM(self._key).decrypt(nonce, ciphertext, expected_kind.encode("utf-8"))
             data = json.loads(body)
         # cryptographic parser boundary: all failures are indistinguishable
         except Exception as exc:
@@ -139,9 +139,11 @@ class BrowserOIDCClient:
     @staticmethod
     def new_flow() -> dict[str, str]:
         verifier = secrets.token_urlsafe(64)
-        challenge = base64.urlsafe_b64encode(
-            hashlib.sha256(verifier.encode("ascii")).digest()
-        ).rstrip(b"=").decode("ascii")
+        challenge = (
+            base64.urlsafe_b64encode(hashlib.sha256(verifier.encode("ascii")).digest())
+            .rstrip(b"=")
+            .decode("ascii")
+        )
         return {
             "state": secrets.token_urlsafe(32),
             "nonce": secrets.token_urlsafe(32),

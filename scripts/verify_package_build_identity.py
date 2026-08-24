@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify clean-source package-build metadata against canonical source/release identity."""
+
 from __future__ import annotations
 
 import argparse

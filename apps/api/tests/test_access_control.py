@@ -44,9 +44,9 @@ def test_restricted_corpus_update_does_not_change_public_release(
     client, admin_identity, public_identity
 ):
     set_identity(client, public_identity)
-    before = client.post(
-        "/v1/answers", json={"text": "невідомий публічний запит"}
-    ).json()["corpus_release"]
+    before = client.post("/v1/answers", json={"text": "невідомий публічний запит"}).json()[
+        "corpus_release"
+    ]
 
     set_identity(client, admin_identity)
     restricted = ingest_text(
@@ -59,9 +59,9 @@ def test_restricted_corpus_update_does_not_change_public_release(
     approve(client, restricted["version"]["id"])
 
     set_identity(client, public_identity)
-    after = client.post(
-        "/v1/answers", json={"text": "невідомий публічний запит"}
-    ).json()["corpus_release"]
+    after = client.post("/v1/answers", json={"text": "невідомий публічний запит"}).json()[
+        "corpus_release"
+    ]
     assert before == after
 
 

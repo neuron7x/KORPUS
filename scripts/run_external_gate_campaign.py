@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Execute every locally callable external gate and emit a 24-gate causal scorecard."""
+
 from __future__ import annotations
 
 import argparse
@@ -14,15 +15,21 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
-from korpus.application.production_hard_predicates import evaluate_hard_predicates, load_hard_predicate_profile  # noqa: E402
+from korpus.application.production_hard_predicates import (  # noqa: E402
+    evaluate_hard_predicates,
+    load_hard_predicate_profile,
+)
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 PROFILE = "config/assurance/production-hard-predicates-v1.json"
 GATE_FILES = {
-    "redteam": "redteam-gate.json", "supply_chain": "supply_chain-gate.json",
-    "postgres_security": "postgres_security-gate.json", "tevv": "tevv-gate.json",
-    "reliability": "reliability-gate.json", "exact_environment": "exact_environment-gate.json",
+    "redteam": "redteam-gate.json",
+    "supply_chain": "supply_chain-gate.json",
+    "postgres_security": "postgres_security-gate.json",
+    "tevv": "tevv-gate.json",
+    "reliability": "reliability-gate.json",
+    "exact_environment": "exact_environment-gate.json",
     "final_release": "final_release-gate.json",
 }
 RUNNERS = {
@@ -47,8 +54,13 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
     executions: dict[str, dict[str, Any]] = {}
     for gate, relative in RUNNERS.items():
         completed = subprocess.run(
-            [sys.executable, relative], cwd=root, capture_output=True, text=True,
-            check=False, timeout=900, env={**os.environ, "PYTHONPATH": str(root / "apps/api/src")},
+            [sys.executable, relative],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=900,
+            env={**os.environ, "PYTHONPATH": str(root / "apps/api/src")},
         )
         executions[gate] = {
             "exit_code": completed.returncode,
@@ -59,7 +71,21 @@ def _execute(root: Path) -> dict[str, dict[str, Any]]:
 
 
 def _capabilities() -> dict[str, Any]:
-    tools = {name: shutil.which(name) for name in ("docker", "podman", "psql", "postgres", "trivy", "gitleaks", "grype", "syft", "terraform", "cosign")}
+    tools = {
+        name: shutil.which(name)
+        for name in (
+            "docker",
+            "podman",
+            "psql",
+            "postgres",
+            "trivy",
+            "gitleaks",
+            "grype",
+            "syft",
+            "terraform",
+            "cosign",
+        )
+    }
     return {
         "python": platform.python_version(),
         "tools": tools,
@@ -68,23 +94,40 @@ def _capabilities() -> dict[str, Any]:
     }
 
 
-def _cause(predicate_id: str, externally_satisfied: bool, gate: dict[str, Any], capabilities: dict[str, Any]) -> str:
+def _cause(
+    predicate_id: str,
+    externally_satisfied: bool,
+    gate: dict[str, Any],
+    capabilities: dict[str, Any],
+) -> str:
     if externally_satisfied:
         return "PASS"
     tools = capabilities["tools"]
-    if predicate_id == "live_postgres_rls" and not (capabilities["test_database_url"] or tools["docker"] or tools["podman"]):
+    if predicate_id == "live_postgres_rls" and not (
+        capabilities["test_database_url"] or tools["docker"] or tools["podman"]
+    ):
         return "RUNTIME_UNAVAILABLE"
-    if predicate_id == "live_vulnerability_scanners" and not any(tools[name] for name in ("trivy", "gitleaks", "grype")):
+    if predicate_id == "live_vulnerability_scanners" and not any(
+        tools[name] for name in ("trivy", "gitleaks", "grype")
+    ):
         return "TOOL_UNAVAILABLE"
     if predicate_id == "exact_python_3_12_13_environment" and capabilities["python"] != "3.12.13":
         return "RUNTIME_UNAVAILABLE"
     if predicate_id in {"external_independent_redteam", "independent_tevv"}:
         return "INDEPENDENCE_REQUIRED"
-    if predicate_id in {"trusted_load_attestation", "trusted_recovery_attestation", "trusted_release_signing"}:
+    if predicate_id in {
+        "trusted_load_attestation",
+        "trusted_recovery_attestation",
+        "trusted_release_signing",
+    }:
         return "TRUST_ROOT_OR_ATTESTATION_MISSING"
     if predicate_id == "trusted_hosted_builder":
         return "HOSTED_BUILDER_REQUIRED"
-    if predicate_id in {"real_domain_corpus_tevv", "production_like_tevv_environment", "production_like_load"}:
+    if predicate_id in {
+        "real_domain_corpus_tevv",
+        "production_like_tevv_environment",
+        "production_like_load",
+    }:
         return "EXTERNAL_INPUT_MISSING"
     return "EXECUTED_FAIL" if gate else "EVIDENCE_MISSING"
 
@@ -99,10 +142,17 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
     capabilities = _capabilities()
     external = []
     for state in states:
-        external.append({
-            **state.as_dict(),
-            "causal_status": _cause(state.predicate_id, state.externally_satisfied, gates.get(state.gate, {}), capabilities),
-        })
+        external.append(
+            {
+                **state.as_dict(),
+                "causal_status": _cause(
+                    state.predicate_id,
+                    state.externally_satisfied,
+                    gates.get(state.gate, {}),
+                    capabilities,
+                ),
+            }
+        )
     software_pass = sum(state.software_ready for state in states)
     external_pass = sum(state.externally_satisfied for state in states)
     completed, total = software_pass + external_pass, len(states) * 2
@@ -113,7 +163,11 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
         "status": "PASS" if completed == total else "FAIL_CLOSED",
         "software_gates": {"passed": software_pass, "total": len(states)},
         "external_gates": {"passed": external_pass, "total": len(states)},
-        "combined": {"passed": completed, "total": total, "percent": round(100.0 * completed / total, 6)},
+        "combined": {
+            "passed": completed,
+            "total": total,
+            "percent": round(100.0 * completed / total, 6),
+        },
         "capabilities": capabilities,
         "executions": executions,
         "predicates": external,
@@ -129,7 +183,9 @@ def main() -> int:
     args = parser.parse_args()
     root = args.root.resolve()
     payload = build(root, execute=not args.no_execute)
-    out = args.out or (root / f"reports/release/{payload['release']}/PRODUCTION_24_GATE_SCORECARD.json")
+    out = args.out or (
+        root / f"reports/release/{payload['release']}/PRODUCTION_24_GATE_SCORECARD.json"
+    )
     out = out if out.is_absolute() else root / out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

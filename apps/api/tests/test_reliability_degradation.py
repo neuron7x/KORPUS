@@ -87,11 +87,20 @@ def test_a_full_upload_spool_is_a_503_not_a_500(client: Any, monkeypatch) -> Non
     class _FullDisk:
         """A spool handle on a tmpfs with no room left: every write is ENOSPC."""
 
-        def __enter__(self): return self
-        def __exit__(self, *args): return False
-        def write(self, _data): raise OSError(28, "No space left on device")
-        def flush(self): pass
-        def fileno(self): return 0
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def write(self, _data):
+            raise OSError(28, "No space left on device")
+
+        def flush(self):
+            pass
+
+        def fileno(self):
+            return 0
 
     def fdopen(descriptor, *args, **kwargs):
         _os.close(descriptor)  # take ownership as the real fdopen would, then fail on write
@@ -127,7 +136,9 @@ def test_a_crashed_worker_leaves_no_zombie_running_job(tmp_path: Path) -> None:
     from sqlalchemy import update
 
     repo = SqlRepository(
-        f"sqlite:///{tmp_path / 'reap.db'}", "reap-key", PolicyEngine(),
+        f"sqlite:///{tmp_path / 'reap.db'}",
+        "reap-key",
+        PolicyEngine(),
         tmp_path / "reap-anchor.json",
     )
     repo.initialize()
@@ -138,6 +149,7 @@ def test_a_crashed_worker_leaves_no_zombie_running_job(tmp_path: Path) -> None:
         # Seed a job, claim it (RUNNING), then simulate a crash: force it to the ceiling
         # with an expired lease directly, the state claim() will not re-pick.
         from apps.api.tests.tenancy_fixtures import reader  # reuse a valid Identity
+
         actor = reader("worker-subject")
         from korpus.domain.models import (
             DocumentCreate,
@@ -150,12 +162,20 @@ def test_a_crashed_worker_leaves_no_zombie_running_job(tmp_path: Path) -> None:
             kind=IngestionJobKind.DOCUMENT,
             actor=actor,
             document=DocumentCreate(
-                canonical_title="Настанова", corpus_id="public", issuer="ГШ",
-                jurisdiction="UA", document_type="order", access_tier=0, classification="public",
+                canonical_title="Настанова",
+                corpus_id="public",
+                issuer="ГШ",
+                jurisdiction="UA",
+                document_type="order",
+                access_tier=0,
+                classification="public",
             ),
             version=VersionCreate(revision="1.0", authority="official_ua"),
-            filename="d.txt", mime_type="text/plain", source_hash="a" * 64,
-            staging_object_key="00/00/" + "a" * 64, max_attempts=1,
+            filename="d.txt",
+            mime_type="text/plain",
+            source_hash="a" * 64,
+            staging_object_key="00/00/" + "a" * 64,
+            max_attempts=1,
         )
         queue.create(actor, job)
         claimed = queue.claim("worker-1", lease_seconds=5)
@@ -173,10 +193,14 @@ def test_a_crashed_worker_leaves_no_zombie_running_job(tmp_path: Path) -> None:
         # A second job that still has an attempt left, also with an expired lease: this one
         # belongs to `claim`, not the reaper. The reaper must leave it alone — the mutant
         # that reaps on `attempts >= 0` would wrongly bury it, and dies here.
-        live = job.model_copy(update={
-            "id": __import__("uuid").uuid4(), "max_attempts": 3,
-            "staging_object_key": "11/11/" + "b" * 64, "source_hash": "b" * 64,
-        })
+        live = job.model_copy(
+            update={
+                "id": __import__("uuid").uuid4(),
+                "max_attempts": 3,
+                "staging_object_key": "11/11/" + "b" * 64,
+                "source_hash": "b" * 64,
+            }
+        )
         queue.create(actor, live)
         queue.claim("worker-live", lease_seconds=5)  # attempts now 1 of 3
         with repo.engine.begin() as connection:

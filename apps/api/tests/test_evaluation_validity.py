@@ -4,9 +4,11 @@ from korpus.application.evaluation_validity import (
     EvaluationObservation,
     HardFailureClass,
     TEVVDimension,
-    TestedSystemIdentity as SystemIdentity,
     evaluate_campaign,
     wilson_interval,
+)
+from korpus.application.evaluation_validity import (
+    TestedSystemIdentity as SystemIdentity,
 )
 
 HEX = "a" * 64
@@ -62,13 +64,17 @@ def test_zero_failures_400_cases_satisfies_one_percent_wilson_upper_bound():
 
 
 def test_100_percent_accuracy_is_not_enough_without_independence():
-    result = evaluate_campaign([obs(i) for i in range(400)], context=ctx(independent_evaluation=False), policy=policy())
+    result = evaluate_campaign(
+        [obs(i) for i in range(400)], context=ctx(independent_evaluation=False), policy=policy()
+    )
     assert result["checks"]["independent_evaluation"] is False
     assert result["admitted"] is False
 
 
 def test_100_percent_accuracy_is_not_enough_on_synthetic_domain():
-    result = evaluate_campaign([obs(i) for i in range(400)], context=ctx(real_domain=False), policy=policy())
+    result = evaluate_campaign(
+        [obs(i) for i in range(400)], context=ctx(real_domain=False), policy=policy()
+    )
     assert result["checks"]["real_domain"] is False
     assert result["admitted"] is False
 

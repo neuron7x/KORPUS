@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from korpus.application.assurance_calculus import EvidenceClass, EvidencePoint
 from korpus.application.evidence_fusion import ClaimEvidence, fuse_claim_evidence
 
@@ -54,7 +53,10 @@ def test_cross_identity_merge_is_rejected() -> None:
     foreign = EvidencePoint(EvidenceClass.EXECUTED, "b" * 64, RELEASE, "PASS", executed=True)
     with pytest.raises(ValueError, match="different source/release"):
         fuse_claim_evidence(
-            [ClaimEvidence("claim", "same", "a", point()), ClaimEvidence("claim", "same", "b", foreign)]
+            [
+                ClaimEvidence("claim", "same", "a", point()),
+                ClaimEvidence("claim", "same", "b", foreign),
+            ]
         )
 
 

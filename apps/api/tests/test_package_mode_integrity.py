@@ -19,16 +19,19 @@ def _write_zip(path: Path, *, stored_mode: int) -> None:
     manifest = {
         "schema": "korpus.distribution-manifest.v2",
         "kind": "distribution",
-        "files": [{
-            "path": "scripts/run.sh",
-            "bytes": 17,
-            "sha256": "37f5ca4b67635e260d9c74c2a932608b654c3c368506735b7d6696c67a43ffb7",
-            "mode": "0755",
-        }],
+        "files": [
+            {
+                "path": "scripts/run.sh",
+                "bytes": 17,
+                "sha256": "37f5ca4b67635e260d9c74c2a932608b654c3c368506735b7d6696c67a43ffb7",
+                "mode": "0755",
+            }
+        ],
     }
     # sha256 is for the exact bytes below.
     payload = b"#!/bin/sh\nexit 0\n"
     import hashlib
+
     manifest["files"][0]["bytes"] = len(payload)
     manifest["files"][0]["sha256"] = hashlib.sha256(payload).hexdigest()
     with zipfile.ZipFile(path, "w") as zf:

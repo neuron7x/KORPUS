@@ -68,9 +68,7 @@ def test_gate_rejects_a_single_stale_report_among_fresh_ones() -> None:
 
 
 def test_gate_rejects_reports_without_provenance() -> None:
-    result = OperationalReleaseGate.load(POLICY).evaluate(
-        passing_reports(), source_digest="a" * 64
-    )
+    result = OperationalReleaseGate.load(POLICY).evaluate(passing_reports(), source_digest="a" * 64)
     assert result.passed is False
     assert any("no provenance" in failure for failure in result.failures)
 

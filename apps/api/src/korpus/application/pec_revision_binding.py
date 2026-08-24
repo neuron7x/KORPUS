@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 _HEX = frozenset("0123456789abcdef")
 
@@ -30,7 +30,9 @@ class RevisionBinding:
     training_receipt_sha256: str
 
     @classmethod
-    def from_mapping(cls, payload: Mapping[str, object], *, expected_release: str) -> "RevisionBinding":
+    def from_mapping(
+        cls, payload: Mapping[str, object], *, expected_release: str
+    ) -> RevisionBinding:
         release = _required(payload.get("release"), "release")
         if release != expected_release:
             raise ValueError("release binding mismatch")
@@ -43,5 +45,7 @@ class RevisionBinding:
             profile=_required(payload.get("profile"), "profile"),
             phase=_required(payload.get("phase"), "phase"),
             environment_class=environment,
-            training_receipt_sha256=_sha256(payload.get("training_receipt_sha256"), "training_receipt_sha256"),
+            training_receipt_sha256=_sha256(
+                payload.get("training_receipt_sha256"), "training_receipt_sha256"
+            ),
         )

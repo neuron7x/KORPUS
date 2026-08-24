@@ -121,9 +121,7 @@ def _sql_verdicts(client, span_id: str, identity, days: list[date]) -> dict[date
     repository = client.app.state.repository
     verdicts: dict[date, bool] = {}
     for day in days:
-        rows = repository.search_retrievable_spans(
-            identity, frozenset({"public"}), day, MARKER, 20
-        )
+        rows = repository.search_retrievable_spans(identity, frozenset({"public"}), day, MARKER, 20)
         verdicts[day] = any(str(span.id) == span_id for span, _, _ in rows)
     return verdicts
 
@@ -179,9 +177,7 @@ def test_sql_and_domain_agree_on_every_day_around_both_bounds(client, admin_iden
         )
 
 
-def test_rescission_removes_the_document_from_search_on_its_own_day(
-    client, admin_identity
-) -> None:
+def test_rescission_removes_the_document_from_search_on_its_own_day(client, admin_identity) -> None:
     """`rescinded_at` has no ingestion path yet, so the row is set directly.
 
     The boundary still has to hold: the SQL candidate query uses
