@@ -1,0 +1,209 @@
+{
+  "schema": "korpus.blocker-registry.v2",
+  "generated_at": "2026-08-17T12:30:54.764738+00:00",
+  "release": "v0.8.2",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "items": [
+    {
+      "id": "release_identity",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "repository_validation",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "openapi_contract",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "import_cycles",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "module_budget",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "dependency_lock_structure",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "builtin_security",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "internal_redteam",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "internal_reliability",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "determinism",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "stress",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "plasticity",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "web_suite",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "evidence_conflict_preservation",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "bounded_inference_budget",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "regression_carry_forward",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "hard_predicate_software_preconditions",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "current v0.8.2 source-bound campaign"
+    },
+    {
+      "id": "external_independent_redteam",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED"
+    },
+    {
+      "id": "live_vulnerability_scanners",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED"
+    },
+    {
+      "id": "live_postgres_rls",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "REAL_POSTGRESQL"
+    },
+    {
+      "id": "real_domain_corpus_tevv",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "REAL_DOMAIN_CORPUS"
+    },
+    {
+      "id": "independent_tevv",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "INDEPENDENT_ATTESTED"
+    },
+    {
+      "id": "production_like_tevv_environment",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED"
+    },
+    {
+      "id": "production_like_load",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "PRODUCTION_LIKE_LOAD"
+    },
+    {
+      "id": "trusted_load_attestation",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "TRUSTED_LOAD_ATTESTATION"
+    },
+    {
+      "id": "trusted_recovery_attestation",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION"
+    },
+    {
+      "id": "trusted_hosted_builder",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "HOSTED_BUILDER_PROVENANCE"
+    },
+    {
+      "id": "trusted_release_signing",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER"
+    },
+    {
+      "id": "exact_python_3_12_13_environment",
+      "state": "INTERNAL_BLOCKED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": false,
+      "software_ready": false,
+      "externally_satisfied": false,
+      "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
+    }
+  ],
+  "counts": {
+    "CLOSED_ANCHORED": 17,
+    "INTERNAL_BLOCKED": 12
+  },
+  "internal_executable_unresolved": 12,
+  "production_external_or_runtime_unresolved": 0,
+  "hard_predicates_total": 12,
+  "hard_predicate_report_current": false
+}

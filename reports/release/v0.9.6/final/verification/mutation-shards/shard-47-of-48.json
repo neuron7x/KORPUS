@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 47,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M46_APPROVER_TIER_ABOVE_CLEARANCE_ALLOWED",
+      "file": "apps/api/src/korpus/infrastructure/review_transitions.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "tionError: {\"id\":\"df4593cb-4a6c-4d7a-af0f-8d2bb0a8f1c3\",\"document_id\":\"b1409edc-2687-4c13-8ce3-19fa35cb4012\",\"revision\":\"1.0\",\"publication_identifier\":\"TEST-1.0\",\"source_uri\":null,\"source_hash\":\"6aa41c69e3ab01c9097346016bb566acca0be26d2f2afb8e4fcb7f4ba22e81f9\",\"object_key\":\"6a/a4/6aa41c69e3ab01c9097346016bb566acca0be26d2f2afb8e4fcb7f4ba22e81f9\",\"mime_type\":\"text/plain\",\"publication_date\":\"2020-01-01\",\"effective_from\":null,\"effective_until\":null,\"rescinded_at\":null,\"authority\":\"official_ua\",\"source_key_id\":null,\"source_signature_b64\":null,\"content_fingerprint\":\"3deffe17cdaf2bf2\",\"near_duplicate_of_version_id\":null,\"near_duplicate_similarity\":null,\"near_duplicate_acknowledged_by\":null,\"extraction_text_chars\":85,\"extraction_alnum_ratio\":0.847059,\"extraction_replacement_ratio\":0.0,\"extraction_quality_flags\":[],\"extraction_quality_acknowledged_by\":null,\"review_state\":\"approved\",\"supersedes_version_id\":null,\"state_version\":3,\"metadata_reviewed_by\":\"admin-test\",\"metadata_reviewer_credential_id\":null,\"content_reviewed_by\":\"admin-test\",\"content_reviewer_credential_id\":null,\"approved_at\":\"2026-08-22T16:44:31.676083\",\"approved_by\":\"authenticated-test\",\"approver_credential_id\":null,\"is_current\":true,\"created_at\":\"2026-08-22T16:44:31.576251\"}\nE       assert 200 == 403\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_governance_boundaries.py:121: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_governance_boundaries.py::test_an_approver_cannot_assign_a_tier_above_their_own_clearance - AssertionError: {\"id\":\"df4593cb-4a6c-4d7a-af0f-8d2bb0a8f1c3\",\"document_id\":\"b1409edc-2687-4c13-8ce3-19fa35cb4012\",\"revision\":\"1.0\",\"publication_identifier\":\"TEST-1.0\",\"source_uri\":null,\"source_hash\":\"6aa41c69e3ab01c9097346016bb566acca0be26d2f2afb8e4fcb7f4ba22e81f9\",\"object_key\":\"6a/a4/6aa41c69e3ab01c9097346016bb566acca0be26d2f2afb8e4fcb7f4ba22e81f9\",\"mime_type\":\"text/plain\",\"publication_date\":\"2020-01-01\",\"effective_from\":null,\"effective_until\":null,\"rescinded_at\":null,\"authority\":\"official_ua\",\"source_key_id\":null,\"source_signature_b64\":null,\"content_fingerprint\":\"3deffe17cdaf2bf2\",\"near_duplicate_of_version_id\":null,\"near_duplicate_similarity\":null,\"near_duplicate_acknowledged_by\":null,\"extraction_text_chars\":85,\"extraction_alnum_ratio\":0.847059,\"extraction_replacement_ratio\":0.0,\"extraction_quality_flags\":[],\"extraction_quality_acknowledged_by\":null,\"review_state\":\"approved\",\"supersedes_version_id\":null,\"state_version\":3,\"metadata_reviewed_by\":\"admin-test\",\"metadata_reviewer_credential_id\":null,\"content_reviewed_by\":\"admin-test\",\"content_reviewer_credential_id\":null,\"approved_at\":\"2026-08-22T16:44:31.676083\",\"approved_by\":\"authenticated-test\",\"approver_credential_id\":null,\"is_current\":true,\"created_at\":\"2026-08-22T16:44:31.576251\"}\nassert 200 == 403\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M90_CURRENCY_HAS_NO_LOWER_BOUND",
+      "file": "apps/api/src/korpus/domain/temporal.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_currency_lower_bound.py::test_the_projection_ignores_an_unbounded_version_already_in_the_database"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_the_projection_ignores_an_unbounded_version_already_in_the_database ___\n\nclient = <starlette.testclient.TestClient object at 0x7f6bff6c42f0>\n\n    def test_the_projection_ignores_an_unbounded_version_already_in_the_database(\n        client: TestClient,\n    ) -> None:\n        \"\"\"The second line, where the approval check can no longer reach.\n    \n        With approval refusing an unbounded version, the SQL filter guards a state the API\n        cannot produce. The row is written directly, which is what a bulk import or a\n        migration from an older schema leaves behind.\n        \"\"\"\n        from datetime import date as date_type\n    \n        from sqlalchemy import text as sql\n    \n        result = ingest_text(client, text=BODY, effective_from=date(2026, 6, 1))\n        version_id = result[\"version\"][\"id\"]\n        approve(client, version_id)\n        repository = client.app.state.repository\n        with privileged_connection(client) as connection:\n            connection.execute(\n                sql(\n                    \"UPDATE document_versions SET effective_from = NULL, publication_date = NULL \"\n                    \"WHERE id = :id\"\n                ),\n                {\"id\": version_id},\n            )\n    \n        rows = repository.list_retrievable_spans(\n            client.identity_provider.current,  # type: ignore[attr-defined]\n            frozenset({\"public\"}),\n            date_type(1900, 1, 1),\n        )\n    \n>       assert all(str(version.id) != version_id for _span, _document, version in rows), (\n            \"a version with no lower bound must not be retrievable on an arbitrary past date\"\n        )\nE       AssertionError: a version with no lower bound must not be retrievable on an arbitrary past date\nE       assert False\nE        +  where False = all(<generator object test_the_projection_ignores_an_unbounded_version_already_in_the_database.<locals>.<genexpr> at 0x7f6bfeca9120>)\n\napps/api/tests/test_currency_lower_bound.py:112: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_currency_lower_bound.py::test_the_projection_ignores_an_unbounded_version_already_in_the_database - AssertionError: a version with no lower bound must not be retrievable on an arbitrary past date\nassert False\n +  where False = all(<generator object test_the_projection_ignores_an_unbounded_version_already_in_the_database.<locals>.<genexpr> at 0x7f6bfeca9120>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M136_ATTESTATION_DIGEST_NOT_CHECKED",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_attestation_whose_digest_does_not_match_the_document_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_an_attestation_whose_digest_does_not_match_the_document_is_refused ____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-979/test_an_attestation_whose_dige0')\n\n    def test_an_attestation_whose_digest_does_not_match_the_document_is_refused(\n        tmp_path: Path,\n    ) -> None:\n        \"\"\"Otherwise the digest field is decoration and any document clears any ground.\"\"\"\n        forged = _cleared(_register(), \"2.5\", _attested(tmp_path, sha256=\"a\" * 64))\n    \n        verdict = evaluate_admission(ROOT, forged)\n    \n        assert verdict.production_authorized is False\n>       assert any(\"digest\" in problem for problem in verdict.problems), verdict.problems\nE       AssertionError: ('2.5: the attestation carries no signature; a name in signed_by is a string this repository chose',)\nE       assert False\nE        +  where False = any(<generator object test_an_attestation_whose_digest_does_not_match_the_document_is_refused.<locals>.<genexpr> at 0x7fec2c145cb0>)\n\napps/api/tests/test_admission_cannot_be_self_granted.py:174: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_attestation_whose_digest_does_not_match_the_document_is_refused - AssertionError: ('2.5: the attestation carries no signature; a name in signed_by is a string this repository chose',)\nassert False\n +  where False = any(<generator object test_an_attestation_whose_digest_does_not_match_the_document_is_refused.<locals>.<genexpr> at 0x7fec2c145cb0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M182_RETRIEVER_PER_VERSION_CAP_WIDENED",
+      "file": "apps/api/src/korpus/application/retrieval.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to ______\n\n    def test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to() -> None:\n        \"\"\"Two defaults for one decision, and production uses neither.\n    \n        `diversify_evidence(per_version_cap=1)` and `HybridLexicalRetriever(per_version_cap=1)`\n        are separate literals. `dependencies.py` passes the value explicitly from the\n        calibration profile, so the retriever's default is never exercised in production —\n        which means it can drift from the function it forwards to and nothing observes it.\n    \n        Found 2026-08-06: a single mutant covered both literals, so a test of either answered\n        for the pair and neither was individually falsified. Asserting they agree is the\n        cheapest thing that makes the drift visible; removing one of them is the real fix and\n        is recorded in TECHNICAL_DEBT_V5.md.\n        \"\"\"\n        import inspect\n    \n        from korpus.application.retrieval import HybridLexicalRetriever, diversify_evidence\n    \n        function_default = inspect.signature(diversify_evidence).parameters[\"per_version_cap\"].default\n        retriever_default = (\n            inspect.signature(HybridLexicalRetriever.__init__).parameters[\"per_version_cap\"].default\n        )\n    \n>       assert function_default == retriever_default == 1\nE       assert 1 == 2\n\napps/api/tests/test_authority_ranking.py:310: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to - assert 1 == 2\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M162_DB_OUTAGE_NOT_RETRYABLE",
+      "file": "apps/api/src/korpus/api/routes_corpus.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_reliability_degradation.py::test_a_full_upload_spool_is_a_503_not_a_500"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ient = <starlette.testclient.TestClient object at 0x7f30af9f0440>\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f30afda7a80>\n\n    def test_a_full_upload_spool_is_a_503_not_a_500(client: Any, monkeypatch) -> None:\n        import os as _os\n    \n        import korpus.api.routes_corpus as routes\n    \n        class _FullDisk:\n            \"\"\"A spool handle on a tmpfs with no room left: every write is ENOSPC.\"\"\"\n    \n            def __enter__(self): return self\n            def __exit__(self, *args): return False\n            def write(self, _data): raise OSError(28, \"No space left on device\")\n            def flush(self): pass\n            def fileno(self): return 0\n    \n        def fdopen(descriptor, *args, **kwargs):\n            _os.close(descriptor)  # take ownership as the real fdopen would, then fail on write\n            return _FullDisk()\n    \n        monkeypatch.setattr(routes.os, \"fdopen\", fdopen)\n        response = client.post(\n            \"/v1/documents/ingest\",\n            data={\n                \"document_json\": '{\"canonical_title\":\"Настанова тест\",\"corpus_id\":\"public\",'\n                '\"issuer\":\"ГШ\",\"jurisdiction\":\"UA\",\"document_type\":\"order\",\"access_tier\":0,'\n                '\"classification\":\"public\"}',\n                \"version_json\": '{\"revision\":\"1.0\",\"authority\":\"official_ua\",'\n                '\"publication_date\":\"2020-01-01\"}',\n            },\n            files={\"file\": (\"d.txt\", b\"a\" * 4096, \"text/plain\")},\n        )\n        assert response.status_code == 503, response.text\n>       assert response.headers[\"Retry-After\"]\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_reliability_degradation.py:113: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = Headers({'content-length': '50', 'content-type': 'application/json', 'x-request-id': '87bd1133-7f8b-4caf-907a-e1b585472dea', 'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer', 'cache-control': 'no-store'})\nkey = 'Retry-After'\n\n    def __getitem__(self, key: str) -> str:\n        \"\"\"\n        Return a single header value.\n    \n        If there are multiple headers with the same key, then we concatenate\n        them with commas. See: https://tools.ietf.org/html/rfc7230#section-3.2.2\n        \"\"\"\n        normalized_key = key.lower().encode(self.encoding)\n    \n        items = [\n            header_value.decode(self.encoding)\n            for _, header_key, header_value in self._list\n            if header_key == normalized_key\n        ]\n    \n        if items:\n            return \", \".join(items)\n    \n>       raise KeyError(key)\nE       KeyError: 'Retry-After'\n\n/opt/pyvenv/lib/python3.13/site-packages/httpx/_models.py:302: KeyError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_reliability_degradation.py::test_a_full_upload_spool_is_a_503_not_a_500 - KeyError: 'Retry-After'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M251_EXTERNAL_REDTEAM_BLOCKING_FINDING_ACCEPTED",
+      "file": "apps/api/src/korpus/application/external_redteam.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_external_redteam_admissibility.py::test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted _____\n\n    def test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted() -> None:\n        accepted = {\"id\": \"F-1\", \"severity\": \"HIGH\", \"status\": \"RISK_ACCEPTED\"}\n        fixed = {\"id\": \"F-1\", \"severity\": \"HIGH\", \"status\": \"VERIFIED_FIXED\"}\n>       assert evaluate_external_redteam(_report(findings=[accepted]), PROFILE)[\"pass\"] is False\nE       assert True is False\n\napps/api/tests/test_external_redteam_admissibility.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_external_redteam_admissibility.py::test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M299_PEC_SYNTHETIC_RESEARCH_GRANTED_PRODUCTION_AUTHORITY",
+      "file": "apps/api/src/korpus/application/pec_research.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_research_status_refuses_non_production_authority"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_research_status_refuses_non_production_authority _____________\n\n    def test_research_status_refuses_non_production_authority() -> None:\n        from korpus.application.pec_research import research_status\n        status, authority = research_status({\"status\": \"UNKNOWN\"}, [{\"status\": \"PASS\"}])\n        assert status == \"UNKNOWN\"\n>       assert authority is False\nE       assert True is False\n\napps/api/tests/test_pec_research.py:92: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_research_status_refuses_non_production_authority - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:44:36+00:00"
+  }
+}

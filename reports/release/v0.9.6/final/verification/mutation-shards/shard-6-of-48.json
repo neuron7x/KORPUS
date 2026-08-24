@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 6,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M06_RELEASE_SCOPE_BROADENED",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_restricted_corpus_update_does_not_change_public_release _________\n\nclient = <starlette.testclient.TestClient object at 0x7f46f65e42f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_restricted_corpus_update_does_not_change_public_release(\n        client, admin_identity, public_identity\n    ):\n        set_identity(client, public_identity)\n        before = client.post(\n            \"/v1/answers\", json={\"text\": \"невідомий публічний запит\"}\n        ).json()[\"corpus_release\"]\n    \n        set_identity(client, admin_identity)\n        restricted = ingest_text(\n            client,\n            title=\"Restricted delta\",\n            corpus_id=\"restricted-demo\",\n            access_tier=3,\n            text=\"RESTRICTED-DELTA-ONLY\",\n        )\n        approve(client, restricted[\"version\"][\"id\"])\n    \n        set_identity(client, public_identity)\n        after = client.post(\n            \"/v1/answers\", json={\"text\": \"невідомий публічний запит\"}\n        ).json()[\"corpus_release\"]\n>       assert before == after\nE       AssertionError: assert 'e3b0c44298fc1c14' == 'ac42056e0e5b0736'\nE         \nE         - ac42056e0e5b0736\nE         + e3b0c44298fc1c14\n\napps/api/tests/test_access_control.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_control.py::test_restricted_corpus_update_does_not_change_public_release - AssertionError: assert 'e3b0c44298fc1c14' == 'ac42056e0e5b0736'\n  \n  - ac42056e0e5b0736\n  + e3b0c44298fc1c14\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M53_AUDIT_READ_PERMISSION_DROPPED",
+      "file": "apps/api/src/korpus/api/routes_audit.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_reading_the_audit_requires_the_audit_permission _____________\n\nclient = <starlette.testclient.TestClient object at 0x7f17a34fc2f0>\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_reading_the_audit_requires_the_audit_permission(\n        client: TestClient, public_identity: Identity\n    ) -> None:\n        set_identity(client, public_identity)\n    \n        refusal = client.get(\"/v1/audit/events\", params={\"trace_id\": \"trace-alpha\"})\n    \n>       assert refusal.status_code == 403\nE       assert 200 == 403\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_resilience_and_audit_scope.py:179: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_reading_the_audit_requires_the_audit_permission - assert 200 == 403\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M97_ANCHOR_POSITION_HASH_NOT_COMPARED",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_that_disagrees_at_its_own_position_is_invalid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_an_anchor_that_disagrees_at_its_own_position_is_invalid _________\n\nclient = <starlette.testclient.TestClient object at 0x7f59430c42f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_an_anchor_that_disagrees_at_its_own_position_is_invalid(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        \"\"\"The property the anchor exists for: the chain was rewritten under it.\"\"\"\n        repository = client.app.state.repository\n        repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"1\", {\"n\": 1})\n        repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"2\", {\"n\": 2})\n        repository.anchor_store.reset()\n        repository.anchor_store.write(1, \"f\" * 64)\n    \n        verification = repository.verify_audit()\n    \n>       assert verification.valid is False\nE       AssertionError: assert True is False\nE        +  where True = AuditVerification(valid=True, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n\napps/api/tests/test_audit_anchor_semantics.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_that_disagrees_at_its_own_position_is_invalid - AssertionError: assert True is False\n +  where True = AuditVerification(valid=True, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M128_NUMERIC_DAMAGE_NEVER_REACHES_REVIEW",
+      "file": "apps/api/src/korpus/application/extraction_quality.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_numeric_integrity.py::test_numeric_damage_reaches_the_reviewer_through_the_extraction_quality_gate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_numeric_damage_reaches_the_reviewer_through_the_extraction_quality_gate _\n\n    def test_numeric_damage_reaches_the_reviewer_through_the_extraction_quality_gate() -> None:\n        \"\"\"A detector nothing consults changes no decision.\n    \n        `extraction_quality_flags` already blocks a review transition until a reviewer\n        acknowledges them (repository.transition_version). Putting the numeric flags in\n        that same set means a passage with a split number cannot be approved silently —\n        which is the only place the detection is worth anything.\n        \"\"\"\n        from korpus.application.extraction_quality import assess_extraction_quality\n    \n        damaged = assess_extraction_quality(\"Встановити зону безпеки не менше 3 00 м від межі.\")\n        clean = assess_extraction_quality(\"Встановити зону безпеки не менше 300 м від межі.\")\n    \n>       assert SPLIT_NUMBER_FLAG in damaged.flags\nE       AssertionError: assert 'split_number' in frozenset()\nE        +  where frozenset() = ExtractionQuality(text_chars=49, alnum_ratio=0.795918, replacement_ratio=0.0, flags=frozenset()).flags\n\napps/api/tests/test_numeric_integrity.py:162: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_numeric_integrity.py::test_numeric_damage_reaches_the_reviewer_through_the_extraction_quality_gate - AssertionError: assert 'split_number' in frozenset()\n +  where frozenset() = ExtractionQuality(text_chars=49, alnum_ratio=0.795918, replacement_ratio=0.0, flags=frozenset()).flags\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M124_UNOBSERVED_ARTEFACT_TREATED_AS_IN_SYNC",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_absent_from_observation_is_unobserved_not_in_sync"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_absent_from_observation_is_unobserved_not_in_sync ____________\n\n    def test_absent_from_observation_is_unobserved_not_in_sync() -> None:\n        \"\"\"The finding this whole module exists for.\n    \n        A reconciler handed a partial observation must not answer for the artefacts it was\n        not told about. Deleting a file from the cluster produces exactly this input.\n        \"\"\"\n>       report = drift.compare(APPROVED, {\"a.yml\": \"a\" * 64})\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_environment_drift.py:53: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\ndesired = {'a.yml': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'b.yml': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}\nobserved = {'a.yml': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}\n\n    def compare(\n        desired: Mapping[str, str], observed: Mapping[str, str | None]\n    ) -> DriftReport:\n        \"\"\"Compare approved digests against observed ones.\n    \n        `desired` maps path to the approved sha256; `observed` maps path to what the\n        environment reports, with `None` for \"present but unreadable\". A path absent from\n        `observed` is unobserved, which is not the same as absent from the environment —\n        the reconciler cannot tell those apart, and saying so is the honest output.\n        \"\"\"\n        findings: list[DriftFinding] = []\n        for path in sorted(desired):\n            approved = desired[path]\n            if False:\n                findings.append(DriftFinding(path, UNOBSERVED, approved, None))\n                continue\n>           seen = observed[path]\n                   ^^^^^^^^^^^^^^\nE           KeyError: 'b.yml'\n\n/tmp/korpus-m124_unobserved_artefact_treated_as_in_sync-cn5i1pk1/api-src/korpus/application/environment_drift.py:113: KeyError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_absent_from_observation_is_unobserved_not_in_sync - KeyError: 'b.yml'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M210_ADMIN_UNKNOWN_PERMISSION_FAILS_OPEN",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_permission_contract.py::test_admin_wildcard_does_not_authorize_an_unknown_permission"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_admin_wildcard_does_not_authorize_an_unknown_permission _________\n\n    def test_admin_wildcard_does_not_authorize_an_unknown_permission() -> None:\n        from korpus.application.policy import AuthorizationError, PolicyEngine\n        from korpus.domain.models import Identity\n        import pytest\n    \n        admin = Identity(subject=\"admin\", roles=frozenset({\"admin\"}), corpora=frozenset({\"public\"}))\n>       with pytest.raises(AuthorizationError, match=\"unknown permission\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.policy.AuthorizationError'>\n\napps/api/tests/test_permission_contract.py:139: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_permission_contract.py::test_admin_wildcard_does_not_authorize_an_unknown_permission - Failed: DID NOT RAISE <class 'korpus.application.policy.AuthorizationError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M258_TEVV_LEAKAGE_LEDGER_IGNORED",
+      "file": "scripts/run_tevv_production_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure _________\n\n    def test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure() -> None:\n        evidence, _ = _evidence()\n        evidence[\"observation_ledger\"][0][\"leakage_failures\"] = 1\n        evidence[\"leakage_failures\"] = 0\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n>       assert result[\"checks\"][\"leakage\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:119: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:31:31+00:00"
+  }
+}

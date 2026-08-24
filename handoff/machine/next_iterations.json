@@ -1,0 +1,371 @@
+{
+  "schema": "korpus.next-iterations.v1",
+  "status": "PARTIALLY_EXECUTED",
+  "items": [
+    {
+      "id": "IT-01",
+      "priority": "P0",
+      "title": "Live PostgreSQL/pgvector proof",
+      "objective": "Replace the single PostgreSQL-only skip with reproducible live integration evidence.",
+      "findings": [
+        "INF-001",
+        "IAM-006",
+        "INF-005"
+      ],
+      "touchpoints": [
+        "docker-compose.yml",
+        ".gitlab-ci.yml",
+        "apps/api/tests/test_postgres_integration.py",
+        "scripts/verify_postgres_restore.py"
+      ],
+      "methods_tools": [
+        "PostgreSQL non-superuser role",
+        "pgvector",
+        "Alembic",
+        "pytest",
+        "encrypted backup/restore drill"
+      ],
+      "acceptance": [
+        "0 PostgreSQL integration skips",
+        "FORCE RLS isolation proven for documents/versions/spans/embeddings",
+        "backup restores into a new database",
+        "schema parity and audit head pass"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "api:postgres-and-restore runs the suite against a migrated PostgreSQL 17 with a non-superuser role and restores an encrypted dump into a fresh database; 430 tests and the RLS isolation checks pass there. What remains is pgvector under load and a cluster nobody here operates.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-02",
+      "priority": "P0",
+      "title": "Immutable software supply chain",
+      "objective": "Make every Python, container and CI dependency content-addressed and verifiable.",
+      "findings": [
+        "SUP-001",
+        "SUP-002",
+        "SUP-003",
+        "SUP-009"
+      ],
+      "touchpoints": [
+        "apps/api/requirements*.lock",
+        "Dockerfiles",
+        ".gitlab-ci.yml",
+        "reports/SUPPLY_CHAIN_INVENTORY.json"
+      ],
+      "methods_tools": [
+        "pip-tools/uv hash locks",
+        "OCI digests",
+        "Syft",
+        "Grype/Trivy",
+        "Cosign",
+        "SLSA provenance"
+      ],
+      "acceptance": [
+        "all Python requirements contain hashes",
+        "all OCI images use digests",
+        "SBOM generated and retained",
+        "signed provenance verifies before promotion",
+        "license inventory reviewed"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "Both lock files carry sha256 for all 68 artefacts, every install site passes --require-hashes, and every image in the pipeline, the compose file and both Dockerfiles is pinned by digest. SUP-002 and SUP-001 are CLOSED_LOCAL. Signed build provenance and immutable registry promotion remain external.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-03",
+      "priority": "P0",
+      "title": "Real-corpus TEVV and calibration",
+      "objective": "Replace synthetic-only evidence with blinded, adjudicated corpus-specific evaluation.",
+      "findings": [
+        "RAG-001",
+        "RAG-003",
+        "RAG-007",
+        "RAG-014",
+        "RAG-020"
+      ],
+      "touchpoints": [
+        "evals/",
+        "apps/api/src/korpus/application/tuning.py",
+        "apps/api/src/korpus/application/calibration.py"
+      ],
+      "methods_tools": [
+        "stratified sampling",
+        "double annotation",
+        "adjudication",
+        "inter-annotator agreement",
+        "frozen holdout",
+        "bootstrap confidence intervals"
+      ],
+      "acceptance": [
+        ">=100 judged ranking queries",
+        ">=200 accepted-answer calibration samples",
+        "blind holdout never used for tuning",
+        "IAA reported",
+        "profile hashes bind dataset/protocol/code/model",
+        "hard leakage/citation gates remain zero"
+      ],
+      "status": "NOT_EXECUTED",
+      "execution_note": "The frozen eval is 30 fixture observations with a 0.114-wide interval and no declared corpus; it reports admissible_as_tevv=false for exactly that reason. Real-corpus TEVV needs annotated queries and an independent assessor."
+    },
+    {
+      "id": "IT-04",
+      "priority": "P1",
+      "title": "Ukrainian retrieval and structured evidence",
+      "objective": "Improve Ukrainian morphology and prove table/number/unit/formula handling.",
+      "findings": [
+        "RAG-011",
+        "RAG-012",
+        "RAG-013"
+      ],
+      "touchpoints": [
+        "apps/api/src/korpus/application/retrieval.py",
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "evals/"
+      ],
+      "methods_tools": [
+        "Ukrainian analyzer benchmark",
+        "layout-aware extraction",
+        "table cell provenance",
+        "numeric/unit normalization",
+        "property tests"
+      ],
+      "acceptance": [
+        "domain slices for inflection/abbreviation/table/number/unit/formula",
+        "claim offsets remain source-bound",
+        "no regression on frozen 30 cases",
+        "new critical mutants killed"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "numeric_integrity.py and table_integrity.py detect the extraction failures that leave text looking clean; they join the review gate rather than filling a field. Formula structure and layout-aware table recovery remain.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-05",
+      "priority": "P1",
+      "title": "Risk and injection model replacement",
+      "objective": "Replace regex-only risk and injection classification with measurable layered controls.",
+      "findings": [
+        "RAG-009",
+        "RAG-010",
+        "RAG-018"
+      ],
+      "touchpoints": [
+        "apps/api/src/korpus/application/risk.py",
+        "apps/api/src/korpus/application/answer_query.py",
+        "evals/"
+      ],
+      "methods_tools": [
+        "rules + constrained classifier",
+        "prompt/RAG poisoning corpus",
+        "fuzzing",
+        "calibration curves",
+        "false-positive/false-negative slices"
+      ],
+      "acceptance": [
+        "explicit confusion matrix",
+        "attack-family coverage",
+        "abstention calibration",
+        "no control text reaches instruction channel",
+        "evasion mutants killed"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "risk_rules.py carries ids, rationales and its own examples, and an unmatched query is UNCLASSIFIED scored at the stricter setting rather than falling to the loosest one. A trained classifier on a blind set with per-class metrics remains.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-06",
+      "priority": "P1",
+      "title": "Repository and configuration decomposition",
+      "objective": "Split god objects without weakening transactions, RLS or audit invariants.",
+      "findings": [
+        "COD-001",
+        "COD-002",
+        "COD-003"
+      ],
+      "touchpoints": [
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/src/korpus/config.py"
+      ],
+      "methods_tools": [
+        "ports/adapters decomposition",
+        "transaction façade",
+        "typed configuration sections",
+        "exception taxonomy",
+        "characterization tests"
+      ],
+      "acceptance": [
+        "repository responsibilities split by bounded capability",
+        "single transaction boundary preserved",
+        "no broad exception in critical path without rethrow policy",
+        "all state-machine/concurrency tests pass"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "SqlRepository 1855 -> 1047 across four extractions (audit_reader, row_mapping, schema, retrieval_queries), held by a line/complexity ratchet and seam tests that assert the query builders never open a connection. validate_security_and_calibration 103 -> 57 and validate_infrastructure.main 102 -> 5. The transactional core is deliberately not split: CRUD, review, audit append and readiness share one transaction.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-07",
+      "priority": "P1",
+      "title": "Embedding lifecycle and drift",
+      "objective": "Make embedding synchronization, model migration and rollback explicit and auditable.",
+      "findings": [
+        "RAG-016",
+        "RAG-017",
+        "DATA-004"
+      ],
+      "touchpoints": [
+        "apps/api/src/korpus/infrastructure/semantic.py",
+        "apps/api/migrations/",
+        "scripts/",
+        "reports/"
+      ],
+      "methods_tools": [
+        "versioned embedding jobs",
+        "dual-index migration",
+        "shadow evaluation",
+        "drift metrics",
+        "reconciliation ledger"
+      ],
+      "acceptance": [
+        "zero orphan embeddings",
+        "model/version bound to every vector",
+        "backfill resume/retry/dead-letter",
+        "rollback tested",
+        "drift threshold opens incident and disables semantic weight when violated"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "embedding_coverage.py distinguishes four index states and embedding_migration.py plans a resumable blue-green move with switch/retire/rollback admissibility. Executing it against a real index and embedding service remains.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-08",
+      "priority": "P1",
+      "title": "Retention, deletion and legal hold execution",
+      "objective": "Convert corpus policy fields into scheduled, reconciled lifecycle operations.",
+      "findings": [
+        "DATA-001",
+        "DATA-004",
+        "OPS-003"
+      ],
+      "touchpoints": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/src/korpus/application/ingestion_jobs.py",
+        "scripts/",
+        "docs/runbooks/"
+      ],
+      "methods_tools": [
+        "policy scheduler",
+        "dry-run diff",
+        "WORM-aware deletion",
+        "legal-hold precedence",
+        "reconciliation reports"
+      ],
+      "acceptance": [
+        "deletion never bypasses legal hold",
+        "object/DB/index converge",
+        "signed data-owner manifest",
+        "evidence retention policy executed and audited"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "retention.py computes a disposition per document and plan_retention.py reconciles it against storage. It deletes nothing and is not a timer: AWAITING_DECISION exists because keeping expired material quietly reports a clean posture over something nobody ruled on. Executing deletions needs an owner's decision.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-09",
+      "priority": "P1",
+      "title": "SRE capacity, chaos and recovery proof",
+      "objective": "Turn reference topology into measured service limits and recovery guarantees.",
+      "findings": [
+        "SRE-001",
+        "SRE-002",
+        "SRE-004",
+        "SRE-005",
+        "SRE-007",
+        "INF-004",
+        "INF-008",
+        "INF-011"
+      ],
+      "touchpoints": [
+        "deploy/kubernetes/",
+        "docs/operations/",
+        "docs/runbooks/",
+        "reports/"
+      ],
+      "methods_tools": [
+        "k6/Locust",
+        "toxiproxy/chaos testing",
+        "PITR drill",
+        "canary",
+        "rollback rehearsal",
+        "error budgets"
+      ],
+      "acceptance": [
+        "p50/p95/p99 by workload",
+        "saturation point measured",
+        "RTO/RPO measured",
+        "failure matrix executed",
+        "rollback and corpus-release rollback demonstrated",
+        "named on-call owners"
+      ],
+      "status": "PARTIALLY_EXECUTED",
+      "execution_note": "recovery.py classifies an RTO/RPO claim (MISSING / INCOMPLETE_PROVENANCE / OVERSTATED_SCALE / FIXTURE_SCALE / MEASURED) and environment_drift.py compares a desired state against an observed environment with UNOBSERVED kept apart from IN_SYNC. Both are refusals about evidence, not evidence: load, soak, chaos and a measured recovery on production-scale data remain external.",
+      "executed_on": [
+        "2026-08-05"
+      ]
+    },
+    {
+      "id": "IT-10",
+      "priority": "P1",
+      "title": "Independent security and authorization closure",
+      "objective": "Produce evidence the repository cannot self-issue: independent tests and formal go/no-go.",
+      "findings": [
+        "GOV-001",
+        "GOV-004",
+        "GOV-006",
+        "INF-003",
+        "INF-006",
+        "SUP-007"
+      ],
+      "touchpoints": [
+        "docs/governance/",
+        "docs/security/",
+        "docs/audit/closure/"
+      ],
+      "methods_tools": [
+        "external application pentest",
+        "AI/RAG red-team",
+        "parser/container assessment",
+        "threat-model review",
+        "authorization package"
+      ],
+      "acceptance": [
+        "all applicable P0 closed or formally time-bounded with compensating controls",
+        "signed residual-risk decision",
+        "document rights/classification approved",
+        "production_authorized becomes true only through signed external evidence"
+      ],
+      "status": "NOT_EXECUTED",
+      "execution_note": "attestors.py verifies Ed25519 attestations against enrolled keys and admission is computed from admission-grounds.json rather than asserted, so an external assessment can no longer be granted by editing the tree. The registry ships empty, which is the honest state: no independent assessment has been received."
+    }
+  ],
+  "status_note": "Read this as eight of ten started and none finished. Every PARTIALLY_EXECUTED item has code that runs and a test that fails without it; not one of them has met its own acceptance list, because every list ends in evidence from a system nobody here operates — a cluster, an assessor, an annotated corpus, a risk owner. The register read PLANNED_NOT_EXECUTED until 2026-08-05 while eight items had shipped, which is the same defect the closure counts had: a document about progress that had not closed its own loop.",
+  "status_counts": {
+    "PARTIALLY_EXECUTED": 8,
+    "NOT_EXECUTED": 2
+  }
+}

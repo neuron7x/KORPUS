@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: korpus-web
+  namespace: korpus
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app.kubernetes.io/name: korpus-web}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: korpus-web, app.kubernetes.io/part-of: korpus}
+    spec:
+      serviceAccountName: korpus-web
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: web
+          image: registry.invalid/korpus/web@sha256:REPLACE_WITH_VERIFIED_DIGEST
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8080, protocol: TCP}
+          startupProbe:
+            httpGet: {path: /healthz, port: http}
+            failureThreshold: 15
+            periodSeconds: 3
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi, ephemeral-storage: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi, ephemeral-storage: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: tmp
+          emptyDir: {sizeLimit: 128Mi}

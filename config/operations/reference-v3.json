@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "profile_id": "korpus-engineering-release-v3",
+  "evaluation": {
+    "minimum_pass_rate": 1.0,
+    "maximum_citation_failures": 0,
+    "maximum_leakage_failures": 0,
+    "maximum_determinism_failures": 0,
+    "require_audit_valid": true
+  },
+  "mutation": {
+    "minimum_critical_mutation_score": 1.0,
+    "maximum_survivors": 0
+  },
+  "migration": {
+    "require_table_set_match": true,
+    "require_audit_head": true,
+    "require_sqlite_fts5": true,
+    "required_tables": [
+      "audit_anchor_outbox",
+      "audit_events",
+      "audit_heads",
+      "documents",
+      "document_versions",
+      "evidence_spans",
+      "span_embeddings"
+    ]
+  },
+  "scale_probe": {
+    "minimum_top1_recall": 1.0,
+    "maximum_candidate_count": 256,
+    "maximum_local_p95_ms": 50.0,
+    "metric_status": "ANCHORED_LOCAL_MEASUREMENT"
+  },
+  "drift": {
+    "maximum_js_divergence": 0.08,
+    "minimum_observations": 1000
+  },
+  "status": "ENGINEERING_GATE_ONLY_NOT_PRODUCTION_AUTHORIZATION"
+}

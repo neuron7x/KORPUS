@@ -1,0 +1,12 @@
+{
+  "schema": "korpus.full-ssot-package-receipt.v2",
+  "package_role": "FULL_SSOT_CANONICAL",
+  "release": "v0.9.7",
+  "source_manifest_root_sha256": "7ec82e6eebca4471e46c33edfd90285ce30117af84c247685db60b35275cd721",
+  "source_manifest_files": 1181,
+  "web_dist_files": 30,
+  "lineage_files": 18,
+  "history_included": false,
+  "distribution_manifest_policy": "regenerated_from_exact_staged_bytes",
+  "distribution_records": 2150
+}

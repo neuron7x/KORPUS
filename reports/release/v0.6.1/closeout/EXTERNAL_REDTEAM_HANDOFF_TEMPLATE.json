@@ -1,0 +1,81 @@
+{
+  "schema": "korpus.external-redteam.v1",
+  "template_only": true,
+  "status": "PENDING_EXTERNAL_EXECUTION",
+  "evidence_class": "EXTERNAL_INDEPENDENT",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "preregistration_sha256": "c84b52af23470f7704c438bce4affa23d96c8a8e2893c5628cac8a6b6bc187df",
+  "test_cases": [
+    {
+      "id": "EXT-01",
+      "attack_family": "auth_bypass",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-02",
+      "attack_family": "idor",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-03",
+      "attack_family": "tenant_escape",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-04",
+      "attack_family": "privilege_escalation",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-05",
+      "attack_family": "ssrf_egress",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-06",
+      "attack_family": "injection_parser",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-07",
+      "attack_family": "webhook_forgery_replay",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-08",
+      "attack_family": "host_header",
+      "result": "PENDING",
+      "evidence_ref": null
+    },
+    {
+      "id": "EXT-09",
+      "attack_family": "data_exfiltration",
+      "result": "PENDING",
+      "evidence_ref": null
+    }
+  ],
+  "findings": [],
+  "required_finding_rule": {
+    "blocking_severities": [
+      "CRITICAL",
+      "HIGH"
+    ],
+    "blocking_finding_allowed_statuses": [
+      "VERIFIED_FIXED"
+    ]
+  },
+  "required_attestation": {
+    "algorithm": "Ed25519",
+    "trusted_signer_required": true,
+    "trust_registry": "config/assurance/trusted-external-signers.json"
+  },
+  "interpretation": "Template only. It is deliberately non-PASS and must not be used as evidence until an independent operator executes the cases, records findings, signs the completed report, and the signer is pre-admitted."
+}

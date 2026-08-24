@@ -1,19 +1,11 @@
-# Agent definitions
+# Agent lanes
 
-Agents are narrow policies over shared retrieval and audit infrastructure. They do not
-own authorization, source precedence, or safety rules; those remain deterministic
-domain code.
+Use `scripts/create_agent_worktree.sh ISSUE_ID AGENT SLUG` to create isolated branches.
 
-Initial roles:
+Recommended lanes:
 
-- `router`: selects domain/corpus and asks clarifying questions;
-- `researcher`: produces evidence-bound answers;
-- `instructor`: drafts curricula and assessments from approved objectives;
-- `document_assistant`: fills versioned administrative templates;
-- `citation_verifier`: checks claim-to-evidence coverage;
-- `corpus_curator`: proposes metadata only; cannot approve its own proposal.
+- `codex`: implementation and test expansion;
+- `claude`: independent review, threat analysis, documentation consistency;
+- `human`: scope, corpus authority, risk acceptance, merge decision.
 
-Adding multiple autonomous agents is not a quality feature. Use parallel agents only
-when evals show independent decomposition improves an outcome enough to justify cost,
-latency and tracing complexity.
-
+Switch implementation/review agents between issues to prevent fixed-role bias. Never share production tokens through prompts or repository files.

@@ -1,33 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://korpus.local/contracts/document.schema.json",
-  "title": "CorpusDocument",
+  "$id": "https://korpus.local/contracts/document.v1.schema.json",
+  "title": "KORPUS Document v1",
   "type": "object",
-  "additionalProperties": false,
-  "required": ["id", "title", "sha256", "authority", "review_state", "access_tier", "provenance"],
+  "required": ["canonical_title", "corpus_id", "issuer", "jurisdiction", "document_type", "access_tier", "classification"],
   "properties": {
-    "id": {"type": "string", "format": "uuid"},
-    "title": {"type": "string", "minLength": 1},
-    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "language": {"type": "string"},
-    "authority": {"enum": ["official_ua", "official_allied", "manufacturer", "approved_training", "analytical", "adversary", "historical", "unknown"]},
-    "review_state": {"enum": ["quarantined", "metadata_reviewed", "content_reviewed", "approved", "rejected"]},
-    "access_tier": {"enum": ["public", "authenticated", "reviewed", "restricted"]},
-    "published_at": {"type": ["string", "null"], "format": "date"},
-    "valid_from": {"type": ["string", "null"], "format": "date"},
-    "valid_until": {"type": ["string", "null"], "format": "date"},
-    "supersedes": {"type": "array", "items": {"type": "string", "format": "uuid"}},
-    "provenance": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["source_uri", "acquired_at", "rights_basis"],
-      "properties": {
-        "source_uri": {"type": "string"},
-        "acquired_at": {"type": "string", "format": "date-time"},
-        "rights_basis": {"enum": ["public_domain", "open_license", "permission", "owned", "review_required"]},
-        "license": {"type": ["string", "null"]}
-      }
-    }
+    "canonical_title": {"type": "string", "minLength": 3, "maxLength": 500},
+    "corpus_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"},
+    "issuer": {"type": "string", "minLength": 2},
+    "jurisdiction": {"type": "string", "minLength": 2},
+    "document_type": {"type": "string", "minLength": 2},
+    "access_tier": {"type": "integer", "minimum": 0, "maximum": 3},
+    "classification": {"enum": ["public", "internal", "restricted"]}
   }
 }
-

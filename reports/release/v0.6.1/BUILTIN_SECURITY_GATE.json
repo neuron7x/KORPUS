@@ -1,0 +1,30 @@
+{
+  "schema": "korpus.builtin-security-gate.v1",
+  "status": "PASS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "scope": {
+    "python_roots": [
+      "apps/api/src/korpus",
+      "scripts"
+    ],
+    "secret_roots": [
+      "apps/api/src/korpus",
+      "scripts",
+      "config",
+      "infra",
+      "deploy"
+    ]
+  },
+  "checks": {
+    "python_sources_parse": true,
+    "no_high_confidence_dangerous_primitives": true,
+    "no_high_confidence_hardcoded_secrets": true
+  },
+  "findings": [],
+  "limitations": [
+    "not_a_dependency_vulnerability_scan",
+    "not_a_container_or_os_vulnerability_scan",
+    "not_equivalent_to_gitleaks_trivy_pip_audit_or_osv_scanner"
+  ]
+}

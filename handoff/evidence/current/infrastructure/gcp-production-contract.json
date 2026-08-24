@@ -1,0 +1,368 @@
+{
+  "passed": 72,
+  "predicates": [
+    {
+      "evidence": "bootstrap/foundation/runtime pin Terraform 1.15.8",
+      "id": "TOOLCHAIN_TERRAFORM_PIN",
+      "passed": true
+    },
+    {
+      "evidence": "bootstrap/foundation/runtime pin hashicorp/google 7.43.0",
+      "id": "TOOLCHAIN_GOOGLE_PROVIDER_PIN",
+      "passed": true
+    },
+    {
+      "evidence": "installer authenticates signed checksums then verifies archive SHA-256",
+      "id": "SUPPLY_TERRAFORM_SIGNATURE",
+      "passed": true
+    },
+    {
+      "evidence": "Terraform creates secret containers only; no secret payload resource is present",
+      "id": "NO_TERRAFORM_SECRET_VALUES",
+      "passed": true
+    },
+    {
+      "evidence": "no static Google service-account key resource or credentials_json path",
+      "id": "NO_SERVICE_ACCOUNT_KEYS",
+      "passed": true
+    },
+    {
+      "evidence": "foundation/runtime/drill each use a dedicated WIF pool/provider bound to immutable repository IDs, main ref, and exact workflow_ref",
+      "id": "WIF_PLANE_ISOLATION",
+      "passed": true
+    },
+    {
+      "evidence": "web/api/worker/migrator use distinct service accounts",
+      "id": "IDENTITY_SEPARATION",
+      "passed": true
+    },
+    {
+      "evidence": "routine runtime deployer can actAs only the four dedicated KORPUS runtime service accounts; bootstrap grants no project-wide actAs",
+      "id": "DEPLOYER_ACTAS_SCOPED",
+      "passed": true
+    },
+    {
+      "evidence": "routine production delivery cannot apply foundation or seed secret material; those mutations live in an isolated manual foundation workflow",
+      "id": "DELIVERY_PLANE_SEPARATION",
+      "passed": true
+    },
+    {
+      "evidence": "destructive-isolated PITR drill uses a dedicated WIF identity with Cloud SQL + temporary job permissions and actAs only the migrator",
+      "id": "DRILL_PLANE_ISOLATION",
+      "passed": true
+    },
+    {
+      "evidence": "routine runtime identity can deploy app/edge, write images/governance, and read scanner evidence but has no Secret Manager or Cloud SQL admin",
+      "id": "RUNTIME_CONTROL_PLANE_LEAST_PRIVILEGE",
+      "passed": true
+    },
+    {
+      "evidence": "web service account is excluded from database client set",
+      "id": "WEB_NO_DATA_PLANE_IAM",
+      "passed": true
+    },
+    {
+      "evidence": "worker has no Secret Manager accessor binding for disabled metrics token",
+      "id": "WORKER_NO_UNUSED_METRICS_SECRET",
+      "passed": true
+    },
+    {
+      "evidence": "the four-key bucket map is instantiated through one PAP-enforced GCS resource",
+      "id": "GCS_PUBLIC_ACCESS_PREVENTION",
+      "passed": true
+    },
+    {
+      "evidence": "the four-key bucket map is instantiated through one uniform-access GCS resource",
+      "id": "GCS_UNIFORM_ACCESS",
+      "passed": true
+    },
+    {
+      "evidence": "runtime custom storage roles grant no update/delete permissions",
+      "id": "GCS_RUNTIME_NO_MUTATE_DELETE",
+      "passed": true
+    },
+    {
+      "evidence": "ingestion uses the GA Cloud Run Worker Pool primitive rather than an HTTP service or beta launch-stage override",
+      "id": "WORKER_POOL_GA",
+      "passed": true
+    },
+    {
+      "evidence": "API, web, and ClamAV image variables require sha256 digest references",
+      "id": "IMMUTABLE_RUNTIME_IMAGES",
+      "passed": true
+    },
+    {
+      "evidence": "API revision receives CPU outside request handling for reconciler task",
+      "id": "API_BACKGROUND_CPU",
+      "passed": true
+    },
+    {
+      "evidence": "worker pool uses explicit non-zero manual capacity; it cannot silently scale to zero",
+      "id": "WORKER_POOL_MANUAL_CAPACITY",
+      "passed": true
+    },
+    {
+      "evidence": "web/api each have one service scaling block and worker pool has one explicit manual-capacity block",
+      "id": "SERVICE_SCALING_SSOT",
+      "passed": true
+    },
+    {
+      "evidence": "web and API accept network ingress only from internal/load-balancer paths",
+      "id": "EDGE_ONLY_INGRESS",
+      "passed": true
+    },
+    {
+      "evidence": "worker pool executes the queue consumer directly and exposes no synthetic HTTP worker endpoint",
+      "id": "WORKER_POOL_DIRECT_NON_HTTP",
+      "passed": true
+    },
+    {
+      "evidence": "ingestion starts only after the ClamAV sidecar passes an explicit startup probe",
+      "id": "WORKER_POOL_SIDECAR_ORDER",
+      "passed": true
+    },
+    {
+      "evidence": "worker pool retains Cloud SQL connector, read-only governance GCS, and secret-volume contracts",
+      "id": "WORKER_POOL_DATA_MOUNTS",
+      "passed": true
+    },
+    {
+      "evidence": "load balancer routes exact /api and /api/* to API and has URL-map tests",
+      "id": "LB_API_FAIL_CLOSED_ROUTING",
+      "passed": true
+    },
+    {
+      "evidence": "uptime alert condition is scoped to canonical production host",
+      "id": "MONITORING_HOST_SCOPED",
+      "passed": true
+    },
+    {
+      "evidence": "every production alert policy is bound to explicit notification channels and production requires at least one channel",
+      "id": "MONITORING_DELIVERY_REQUIRED",
+      "passed": true
+    },
+    {
+      "evidence": "foundation enables Artifact Analysis metadata and automatic container scanning APIs",
+      "id": "ARTIFACT_ANALYSIS_ENABLED",
+      "passed": true
+    },
+    {
+      "evidence": "runtime deployment identity can read vulnerability occurrences without Container Analysis admin",
+      "id": "ARTIFACT_ANALYSIS_LEAST_PRIVILEGE",
+      "passed": true
+    },
+    {
+      "evidence": "production workflow uses SHA-pinned Google auth with WIF and no key JSON input",
+      "id": "PRODUCTION_WORKFLOW_KEYLESS",
+      "passed": true
+    },
+    {
+      "evidence": "all third-party actions in production workflow are full-SHA pinned",
+      "id": "PRODUCTION_WORKFLOW_ACTION_PINS",
+      "passed": true
+    },
+    {
+      "evidence": "deploy order is governance -> build -> scan -> migrate -> live PostgreSQL/RLS gate -> predecessor snapshot -> fresh plan -> apply at tagged candidate -> exact probe -> bounded canary -> revision metrics -> full promotion -> live smoke",
+      "id": "PRODUCTION_WORKFLOW_ORDER",
+      "passed": true
+    },
+    {
+      "evidence": "cloud mutation is gated by an explicit repository variable and named GitHub environment; live environment protection is verified by bootstrap evidence, not asserted here",
+      "id": "PRODUCTION_WORKFLOW_DISABLED_BY_DEFAULT",
+      "passed": true
+    },
+    {
+      "evidence": "workflow installs signature-verified Terraform and validates every stack before deploy",
+      "id": "PRODUCTION_WORKFLOW_VERIFIED_TERRAFORM",
+      "passed": true
+    },
+    {
+      "evidence": "state bucket is securely pre-created, immediately imported into GCS-backed Terraform state, and local Terraform state/cache artifacts are ignored",
+      "id": "BOOTSTRAP_REMOTE_STATE_TRUST_ROOT",
+      "passed": true
+    },
+    {
+      "evidence": "bootstrap binds immutable GitHub IDs, configures selected-branch production environment, and leaves production disabled without inventing an independent reviewer",
+      "id": "BOOTSTRAP_GITHUB_BRANCH_GATE",
+      "passed": true
+    },
+    {
+      "evidence": "migration job executes the image secret-resolving entrypoint before Alembic/role provisioning",
+      "id": "MIGRATION_SECRET_RESOLUTION_ENTRYPOINT",
+      "passed": true
+    },
+    {
+      "evidence": "a non-destructive Cloud SQL job verifies schema, app-role least privilege, exact grants, FORCE RLS and denial paths after migration and before full rollout",
+      "id": "LIVE_POSTGRES_RLS_GATE",
+      "passed": true
+    },
+    {
+      "evidence": "existing serving revisions stay pinned while the new latest revision is created at 0% with a candidate tag; first deploy has no predecessor and serves latest",
+      "id": "ZERO_TRAFFIC_CANDIDATE",
+      "passed": true
+    },
+    {
+      "evidence": "tagged API/web revisions are deterministically probed by a VPC-routed Cloud Run job before traffic promotion",
+      "id": "PRIVATE_EXACT_CANDIDATE_PROBE",
+      "passed": true
+    },
+    {
+      "evidence": "non-initial releases progress exact private probe -> bounded public canary -> minimum-sample/error-rate revision admission -> full promotion, with existing failure rollback covering every downstream step",
+      "id": "STAGED_TRAFFIC_PROMOTION",
+      "passed": true
+    },
+    {
+      "evidence": "API/web autoscaling and ingestion worker capacity have explicit finite operator-policy ceilings",
+      "id": "FINITE_RUNTIME_CAPACITY",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL is REGIONAL HA",
+      "id": "CLOUDSQL_HA",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL requires connectors",
+      "id": "CLOUDSQL_CONNECTOR_ONLY",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL storage auto-growth has an explicit operator-owned finite ceiling and Terraform cannot reconcile server-side growth downward",
+      "id": "CLOUDSQL_BOUNDED_AUTOGROWTH",
+      "passed": true
+    },
+    {
+      "evidence": "PITR, transaction-log retention, retained backups, and dual deletion protection configured",
+      "id": "CLOUDSQL_RECOVERY",
+      "passed": true
+    },
+    {
+      "evidence": "API, web, and mirrored ClamAV candidates resolve to registry digests and are scanned before runtime",
+      "id": "PRODUCTION_WORKFLOW_DIGEST_SCAN",
+      "passed": true
+    },
+    {
+      "evidence": "web and API backend services both attach the foundation-owned Cloud Armor policy",
+      "id": "EDGE_CLOUD_ARMOR_ATTACHED",
+      "passed": true
+    },
+    {
+      "evidence": "high-confidence OWASP CRS 4.22 SQLi/XSS/LFI/RCE rules enforce at sensitivity 1",
+      "id": "EDGE_WAF_ENFORCED",
+      "passed": true
+    },
+    {
+      "evidence": "per-IP Cloud Armor throttle is present in preview for traffic-calibrated promotion",
+      "id": "EDGE_RATE_LIMIT_CALIBRATION",
+      "passed": true
+    },
+    {
+      "evidence": "both external LB backends emit full request logs for WAF/rate-limit calibration and incident evidence",
+      "id": "EDGE_FULL_REQUEST_LOGGING",
+      "passed": true
+    },
+    {
+      "evidence": "runtime deployer may read/use but cannot mutate foundation-owned Cloud Armor policy",
+      "id": "RUNTIME_EDGE_POLICY_LEAST_PRIVILEGE",
+      "passed": true
+    },
+    {
+      "evidence": "migration history is immutable and post-baseline schema changes are admitted as expand-only before the live migration job",
+      "id": "EXPAND_CONTRACT_MIGRATION_ADMISSION",
+      "passed": true
+    },
+    {
+      "evidence": "dedicated custom VPC and Private Services Access peering exist for managed-service private IPs",
+      "id": "PRIVATE_SERVICES_ACCESS",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL public IPv4 is disabled and the instance is bound to the dedicated VPC after PSA establishment",
+      "id": "CLOUDSQL_PRIVATE_ONLY",
+      "passed": true
+    },
+    {
+      "evidence": "API, ingestion worker, migration job, and PostgreSQL verifier use Direct VPC egress; web remains off the data-plane VPC",
+      "id": "RUNTIME_DIRECT_VPC_DB_PLANE",
+      "passed": true
+    },
+    {
+      "evidence": "runtime consumes the network/subnet identity from immutable foundation remote state rather than duplicating names",
+      "id": "PRIVATE_NETWORK_STATE_BINDING",
+      "passed": true
+    },
+    {
+      "evidence": "external readiness check crosses API, schema/Cloud SQL, object store and audit backlog and pages on sustained failure",
+      "id": "API_DEEP_READINESS_MONITOR",
+      "passed": true
+    },
+    {
+      "evidence": "edge and deep-readiness monitors page when their check_passed telemetry disappears for five minutes",
+      "id": "UPTIME_TELEMETRY_FAIL_CLOSED",
+      "passed": true
+    },
+    {
+      "evidence": "production HTTPS certificate expiry is monitored against the exact edge uptime-check ID",
+      "id": "TLS_EXPIRY_ALERT",
+      "passed": true
+    },
+    {
+      "evidence": "Secret Manager, GCS and Cloud SQL Admin data-access reads/writes are explicitly auditable",
+      "id": "DATA_ACCESS_AUDIT_LOGGING",
+      "passed": true
+    },
+    {
+      "evidence": "full assurance campaign runs daily without operator initiation",
+      "id": "AUTONOMOUS_ASSURANCE_SCHEDULE",
+      "passed": true
+    },
+    {
+      "evidence": "PITR restore verification runs monthly in an isolated temporary clone",
+      "id": "AUTONOMOUS_PITR_DRILL_SCHEDULE",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL disk pressure uses the GA utilization metric and the 80% threshold",
+      "id": "CLOUDSQL_DISK_ALERT",
+      "passed": true
+    },
+    {
+      "evidence": "Cloud SQL memory pressure uses the GA utilization metric and 90% ceiling",
+      "id": "CLOUDSQL_MEMORY_ALERT",
+      "passed": true
+    },
+    {
+      "evidence": "Worker Pool active+idle instance count is compared with declared manual capacity",
+      "id": "WORKER_CAPACITY_ALERT",
+      "passed": true
+    },
+    {
+      "evidence": "DR workflow uses the same SHA-pinned checkout/auth trust set as production",
+      "id": "DRILL_WORKFLOW_ACTION_PINS",
+      "passed": true
+    },
+    {
+      "evidence": "pre-deploy revision-exact traffic allocation is captured and restored automatically after a failed promotion",
+      "id": "AUTOMATIC_TRAFFIC_ROLLBACK",
+      "passed": true
+    },
+    {
+      "evidence": "API/web deployment is admitted only after OCI-hosted SLSA provenance verifies against exact repository, workflow, main ref and commit on a GitHub-hosted runner",
+      "id": "PROVENANCE_ADMISSION_ENFORCED",
+      "passed": true
+    },
+    {
+      "evidence": "offline HCL structure gate runs before signature-verified provider-schema validation",
+      "id": "TERRAFORM_STRUCTURAL_ADMISSION",
+      "passed": true
+    },
+    {
+      "evidence": "global HTTPS proxy is bound to an explicit MODERN TLS policy with TLS 1.2 minimum",
+      "id": "EDGE_TLS_POLICY_ENFORCED",
+      "passed": true
+    }
+  ],
+  "schema_version": "1.0",
+  "total": 72,
+  "verdict": "PASS"
+}

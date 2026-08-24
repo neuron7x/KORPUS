@@ -100,11 +100,12 @@ Retrieval і generation оцінюються окремо. Базові крит
 ## Склад переданого репозиторію
 
 - виконуваний FastAPI API;
-- Next.js PWA;
+- dependency-free offline-capable PWA;
 - JSON-контракти документа та відповіді;
 - Docker Compose для PostgreSQL/pgvector, Redis, MinIO й OpenTelemetry;
 - агентні політики;
 - протоколи ingestion, відповіді, інтеграцій, релізу та приймання;
 - модель даних, загроз, спостережуваності та відновлення;
-- тести, evaluation fixtures і GitLab CI/CD;
+- тести, evaluation fixtures і GitHub Actions CI;
 - дорожня карта та каталог сервісів.
+

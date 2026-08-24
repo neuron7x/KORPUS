@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: korpus-config
+  namespace: korpus
+data:
+  KORPUS_ENVIRONMENT: production
+  KORPUS_SCHEMA_MODE: migrations
+  KORPUS_AUTH_MODE: oidc
+  KORPUS_BROWSER_AUTH_ENABLED: "true"
+  KORPUS_OIDC_JWKS_URL: https://idp.invalid/.well-known/jwks.json
+  KORPUS_ENTITLEMENT_PROFILE_PATH: /etc/korpus/governance/entitlements.json
+  KORPUS_SOURCE_TRUST_PROFILE_PATH: /etc/korpus/governance/source-trust.json
+  KORPUS_REVIEWER_REGISTRY_PATH: /etc/korpus/governance/reviewers.json
+  KORPUS_CORPUS_GOVERNANCE_PROFILE_PATH: /etc/korpus/governance/corpus-governance.json
+  KORPUS_CALIBRATION_PROFILE_PATH: /etc/korpus/governance/calibration-profile.json
+  KORPUS_CALIBRATION_DATASET_PATH: /etc/korpus/governance/calibration-dataset.jsonl
+  KORPUS_CALIBRATION_SYSTEM_MANIFEST_PATH: /etc/korpus/governance/system-manifest.json
+  KORPUS_CALIBRATION_EVALUATION_PROTOCOL_PATH: /etc/korpus/governance/evaluation-protocol.md
+  KORPUS_BROWSER_COOKIE_SECURE: "true"
+  KORPUS_OIDC_AUTHORIZATION_ENDPOINT: https://idp.invalid/authorize
+  KORPUS_OIDC_TOKEN_ENDPOINT: https://idp.invalid/token
+  KORPUS_OIDC_CLIENT_ID: korpus-browser
+  KORPUS_OIDC_REDIRECT_URI: https://korpus.invalid/api/v1/auth/callback
+  KORPUS_INGESTION_MODE: durable_async
+  KORPUS_OBJECT_STORE_MODE: s3
+  KORPUS_AUDIT_ANCHOR_MODE: http
+  KORPUS_ANSWER_POLICY_MODE: calibrated
+  KORPUS_MALWARE_SCAN_MODE: clamd
+  KORPUS_PARSER_SANDBOX_ENABLED: "true"
+  KORPUS_REQUIRE_SOURCE_SIGNATURES: "true"
+  KORPUS_REVIEW_SEPARATION_REQUIRED: "true"
+  KORPUS_METRICS_ENABLED: "true"
+  KORPUS_S3_GOVERNANCE_RETENTION_DAYS: "365"
+  KORPUS_DATABASE_POOL_SIZE: "16"
+  KORPUS_DATABASE_MAX_OVERFLOW: "16"
+  KORPUS_MAX_CONCURRENT_ANSWERS: "32"
+  KORPUS_MAX_CONCURRENT_INGESTIONS: "4"

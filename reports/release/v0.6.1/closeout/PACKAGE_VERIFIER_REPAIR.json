@@ -1,0 +1,24 @@
+{
+  "schema": "korpus.predecessor-package-verifier-audit.v1",
+  "status": "FAIL_DISCOVERED_AND_TARGETED_FOR_WRAPPER_REPAIR",
+  "predecessor": "KORPUS_v0.6.1_HARDENED_PRODUCTION_CANDIDATE_2026-08-16.zip",
+  "predecessor_sha256": "661d6f7ee9b2909f82ec33aaf0c71e5b4333d91d1cc5f79c87422fdf0f75affd",
+  "verifier_exit_code": 1,
+  "verifier_valid": false,
+  "failure_count": 914,
+  "path_parity_failure_count": 1,
+  "digest_failure_count": 913,
+  "mode_failure_count": 0,
+  "root_cause": [
+    "outer distribution-manifest records used field 'size' while the canonical verifier requires 'bytes'",
+    "the canonical verifier excludes every file whose basename is DISTRIBUTION_MANIFEST.json from its actual-path set, while the predecessor outer manifest recorded the nested KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"
+  ],
+  "repair_rule": "Final closeout wrapper emits canonical bytes/sha256/mode records and follows the verifier's basename exclusion for DISTRIBUTION_MANIFEST.json; the nested source distribution manifest is verified separately before packaging.",
+  "sample_failures": [
+    "path parity mismatch missing=['KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json'] extra=[]",
+    "digest mismatch: KORPUS_SOURCE/.dockerignore",
+    "digest mismatch: KORPUS_SOURCE/.env.example",
+    "digest mismatch: KORPUS_SOURCE/.github/CODEOWNERS",
+    "digest mismatch: KORPUS_SOURCE/.github/ISSUE_TEMPLATE/engineering-change.yml"
+  ]
+}

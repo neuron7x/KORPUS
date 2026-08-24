@@ -1,0 +1,16 @@
+{
+  "schema": "korpus.release-envelope.v2",
+  "product": "KORPUS",
+  "release": "v0.9.7",
+  "release_authority_class": "LOCAL_SELF_ATTESTED_FULL_SSOT_RESEARCH_HARDENED_CANDIDATE",
+  "canonical_binding": "AUTHORITATIVE_SOURCE_VALUES_ARE_IN_SOURCE_MANIFEST_AND_PACKAGE_BUILD_TO_AVOID_SELF_REFERENTIAL_DIGESTS",
+  "engineering_readiness_percent": null,
+  "engineering_readiness_status": "CURRENT_SOURCE_BOUND_ASSURANCE_REQUIRED",
+  "readiness_target_percent": 94.7,
+  "production_authorized": false,
+  "predecessor": {
+    "artifact": "KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22.zip",
+    "sha256": "964ae44b0fa0e38f18a930808a28d62ae80506a28cd65c4625e0ca97bdb5dc20",
+    "storage": "USER_PROVIDED_CANONICAL_PREDECESSOR"
+  }
+}

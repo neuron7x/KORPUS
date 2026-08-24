@@ -1,0 +1,8 @@
+{
+  "schema": "korpus.lineage.v2",
+  "release": "v0.8.2",
+  "predecessor_release": "v0.8.1",
+  "predecessor_archive": "LINEAGE/v0.8.1/ORIGINAL_CANONICAL_SNAPSHOT.zip",
+  "predecessor_sha256": "0b3b18d41620988d3ce68491064dcbcbdf15301f787e1e19683562f4c2429623",
+  "relationship": "v0.8.2 is a source-bound security/debt hardening successor; predecessor preserved byte-exact for audit/recovery"
+}

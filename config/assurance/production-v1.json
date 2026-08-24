@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "profile_id": "korpus-production-assurance-v1",
+  "required_gates": [
+    "engineering",
+    "tevv",
+    "observability",
+    "state_contracts",
+    "authorization",
+    "redteam",
+    "reliability",
+    "inference_security",
+    "postgres_security",
+    "supply_chain",
+    "exact_environment",
+    "mutation",
+    "pec_authority",
+    "pec_canary"
+  ],
+  "external_requirements": {
+    "redteam_evidence_class": "EXTERNAL_INDEPENDENT",
+    "tevv_environment_classes": [
+      "PRODUCTION_LIKE",
+      "PRODUCTION"
+    ],
+    "postgres_backend": "postgresql",
+    "supply_chain_completeness": "COMPLETE",
+    "mutation_scope": "FULL_CATALOGUE",
+    "redteam_attestation_verified": true,
+    "redteam_trusted_signer_required": true,
+    "tevv_independent_class": "EXTERNAL_INDEPENDENT",
+    "tevv_trusted_assessor_required": true
+  },
+  "interpretation": "All listed predicates are conjunctive. Missing, stale or weaker-class evidence fails closed."
+}

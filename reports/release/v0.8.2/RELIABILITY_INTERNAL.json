@@ -1,0 +1,37 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "reliability_internal",
+  "status": "PASS",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "release": "v0.8.2",
+  "checks": {
+    "campaign_executed": true,
+    "pytest_passed": true,
+    "attack_families_declared": true
+  },
+  "failures": [],
+  "evidence_class": "INTERNAL_FAULT_INJECTION",
+  "attack_families": [
+    "concurrency",
+    "idempotency",
+    "retry",
+    "lease_expiry",
+    "partial_failure",
+    "database_outage",
+    "object_store_outage",
+    "audit_backlog",
+    "cache_failure"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_durable_ingestion_jobs.py",
+    "apps/api/tests/test_reliability_degradation.py",
+    "apps/api/tests/test_resilience.py",
+    "apps/api/tests/test_resilience_and_audit_scope.py",
+    "apps/api/tests/test_anchor_delivery_backlog.py",
+    "apps/api/tests/test_query_cache.py",
+    "apps/api/tests/test_recovery_measurement.py"
+  ],
+  "pytest_exit_code": 0,
+  "stdout_tail": "..........................................                               [100%]\n",
+  "stderr_tail": ""
+}

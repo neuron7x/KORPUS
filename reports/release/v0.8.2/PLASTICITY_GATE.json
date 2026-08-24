@@ -1,0 +1,23 @@
+{
+  "schema": "korpus.plasticity-model-check.v2",
+  "status": "PASS",
+  "release": "v0.8.2",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "policy_path": "config/operations/plasticity-policy.json",
+  "policy_sha256": "1bfef00253584d83e084d29501459e862b8ca4ca0b5e94b2c86082e5015dae7c",
+  "states_checked": 6912,
+  "unique_proposals": 6912,
+  "action_counts": {
+    "noop": 3928,
+    "tighten_safety": 2592,
+    "reduce_work": 360,
+    "expand_recall": 32
+  },
+  "invariants": {
+    "pure_replay": true,
+    "safety_thresholds_monotone": true,
+    "resource_knobs_bounded": true,
+    "unsafe_observations_have_priority": true
+  },
+  "failures": []
+}

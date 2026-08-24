@@ -1,38 +1,526 @@
-version: "3.9"
+name: korpus
+x-service-hardening:
+  restart: unless-stopped
+  init: true
+  security_opt: &id001
+  - no-new-privileges:true
+  cap_drop: &id002
+  - ALL
+  pids_limit: 256
+  ulimits: &id003
+    nofile:
+      soft: 65536
+      hard: 65536
+  stop_grace_period: 30s
+  logging: &id004
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
 services:
   postgres:
-    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    image: pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f
+    mem_limit: 2g
+    cpus: 2.0
+    shm_size: 256m
+    command:
+    - postgres
+    - -c
+    - max_connections=100
+    - -c
+    - shared_buffers=256MB
+    - -c
+    - effective_cache_size=1GB
+    - -c
+    - work_mem=8MB
+    - -c
+    - maintenance_work_mem=128MB
+    - -c
+    - wal_compression=on
+    - -c
+    - password_encryption=scram-sha-256
+    - -c
+    - idle_in_transaction_session_timeout=60000
+    - -c
+    - log_min_duration_statement=1000
     environment:
       POSTGRES_DB: korpus
-      POSTGRES_USER: korpus
-      POSTGRES_PASSWORD: korpus
-    ports: ["5432:5432"]
-    volumes: ["postgres-data:/var/lib/postgresql/data"]
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_admin_password
+      POSTGRES_INITDB_ARGS: --data-checksums --auth-host=scram-sha-256
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    cap_add:
+    - CHOWN
+    - DAC_OVERRIDE
+    - FOWNER
+    - SETGID
+    - SETUID
+    secrets:
+    - postgres_admin_password
+    expose:
+    - '5432'
+    volumes:
+    - postgres-data:/var/lib/postgresql/data
+    networks:
+    - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U korpus"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U postgres -d korpus
       interval: 5s
       timeout: 3s
-      retries: 10
-  redis:
-    image: redis:7.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
-    ports: ["6379:6379"]
-    volumes: ["redis-data:/data"]
+      retries: 20
+      start_period: 10s
+  migrate:
+    restart: 'no'
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    mem_limit: 512m
+    cpus: 1.0
+    read_only: true
+    tmpfs:
+    - /tmp:size=128m,mode=1770,uid=10001,gid=10001
+    environment:
+      KORPUS_ENVIRONMENT: local
+      KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://postgres:{password}@postgres:5432/korpus
+      KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_admin_password
+      KORPUS_POSTGRES_APP_ROLE: korpus_app
+      KORPUS_POSTGRES_APP_PASSWORD_FILE: /run/secrets/postgres_app_password
+    secrets:
+    - postgres_admin_password
+    - postgres_app_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+    - backend
+    command:
+    - /bin/sh
+    - -ec
+    - cd /app/apps/api && python -m alembic -c alembic.ini upgrade head && cd /app && python scripts/prepare_postgres_role.py
   minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e
+    mem_limit: 1g
+    cpus: 1.0
     command: server /data --console-address :9001
     environment:
-      MINIO_ROOT_USER: korpus
-      MINIO_ROOT_PASSWORD: change-me-in-non-local-environments
-    ports: ["9000:9000", "9001:9001"]
-    volumes: ["minio-data:/data"]
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.127.0
-    command: ["--config=/etc/otelcol/config.yaml"]
+      MINIO_ROOT_USER: korpus-local
+      MINIO_ROOT_PASSWORD_FILE: /run/secrets/minio_root_password
+    secrets:
+    - minio_root_password
+    expose:
+    - '9000'
+    - '9001'
     volumes:
-      - ./infra/otel-collector.yaml:/etc/otelcol/config.yaml:ro
-    ports: ["4317:4317", "4318:4318"]
+    - minio-data:/data
+    networks:
+    - backend
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - curl -fsS http://127.0.0.1:9000/minio/health/ready >/dev/null
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  minio-init:
+    restart: 'no'
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z@sha256:aead63c77f9db9107f1696fb08ecb0faeda23729cde94b0f663edf4fe09728e3
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+    - /tmp:size=32m,mode=1770
+    # `mc` writes its alias configuration to $HOME/.mc, and $HOME is / on a read-only
+    # root filesystem: "Unable to save new mc config. mkdir /root/.mc: read-only file
+    # system", executed 2026-08-06. Pointed at the tmpfs it already has rather than
+    # making the root filesystem writable for a directory that lives for one command.
+    environment:
+      HOME: /tmp
+      MC_CONFIG_DIR: /tmp/.mc
+    secrets:
+    - minio_root_password
+    - minio_app_access_key
+    - minio_app_secret_key
+    volumes:
+    - ./infra/minio/korpus-app-policy.json:/config/korpus-app-policy.json:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+    - backend
+    entrypoint:
+    - /bin/sh
+    - -ec
+    - mc alias set local http://minio:9000 korpus-local "$$(cat /run/secrets/minio_root_password)" && mc mb --ignore-existing
+      --with-lock local/korpus && mc version enable local/korpus && mc anonymous set none local/korpus && (mc admin
+      user remove local "$$(cat /run/secrets/minio_app_access_key)" >/dev/null 2>&1 || true) && (mc admin policy
+      remove local korpus-app >/dev/null 2>&1 || true) && mc admin user add local "$$(cat /run/secrets/minio_app_access_key)"
+      "$$(cat /run/secrets/minio_app_secret_key)" && mc admin policy create local korpus-app /config/korpus-app-policy.json
+      && mc admin policy attach local korpus-app --user "$$(cat /run/secrets/minio_app_access_key)"
+  otel-collector:
+    restart: unless-stopped
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    image: otel/opentelemetry-collector-contrib:0.157.0@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6
+    mem_limit: 512m
+    cpus: 0.5
+    command:
+    - --config=/etc/otelcol/config.yaml
+    read_only: true
+    tmpfs:
+    - /tmp:size=64m,mode=1770
+    volumes:
+    - ./infra/otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    expose:
+    - '4317'
+    - '4318'
+    - '13133'
+    networks:
+    - backend
+    healthcheck:
+      test:
+      - CMD
+      - /otelcol-contrib
+      - validate
+      - --config=/etc/otelcol/config.yaml
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+  clamav:
+    restart: unless-stopped
+    init: true
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+    pids_limit: 256
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    image: clamav/clamav:1.4.3@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4
+    # The image's entrypoint drops from root to the clamav user and chowns its database
+    # directory on the way. With every capability dropped it cannot, and it restarted
+    # forever: `chown: /var/lib/clamav: Operation not permitted`, executed 2026-08-06.
+    # These three are what the drop-privileges dance needs and nothing more — not
+    # DAC_OVERRIDE, not SYS_ADMIN, and `no-new-privileges` still stands above them.
+    cap_add:
+    - CHOWN
+    - SETUID
+    - SETGID
+    mem_limit: 2g
+    cpus: 1.5
+    expose:
+    - '3310'
+    networks:
+    - backend
+    volumes:
+    - clamav-db:/var/lib/clamav
+    # The entrypoint chowns its database directory and nothing else, so both daemons
+    # died opening their log files: "Failed to open log file /var/log/clamav/clamd.log:
+    # Permission denied", executed 2026-08-06. A tmpfs rather than a volume — these are
+    # logs, the container already ships them to stdout, and a log directory that
+    # survives a restart is a log directory that fills a disk.
+    tmpfs:
+    - /var/log/clamav:mode=1777,size=32m
+    - /tmp:mode=1777,size=64m
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - clamdscan --ping 1 >/dev/null 2>&1
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+  api:
+    restart: unless-stopped
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    mem_limit: 2g
+    cpus: 2.0
+    read_only: true
+    tmpfs:
+    - /tmp:size=256m,mode=1770,uid=10001,gid=10001
+    environment:
+      KORPUS_ENVIRONMENT: local
+      KORPUS_SCHEMA_MODE: migrations
+      KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_app:{password}@postgres:5432/korpus
+      KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
+      KORPUS_DATABASE_POOL_SIZE: '8'
+      KORPUS_DATABASE_MAX_OVERFLOW: '8'
+      KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
+      KORPUS_DATABASE_STATEMENT_TIMEOUT_MS: '30000'
+      KORPUS_OBJECT_STORE_MODE: s3
+      KORPUS_S3_BUCKET: korpus
+      KORPUS_S3_PREFIX: objects
+      KORPUS_S3_ENDPOINT_URL: http://minio:9000
+      KORPUS_S3_REGION: us-east-1
+      KORPUS_S3_FORCE_PATH_STYLE: 'true'
+      KORPUS_S3_CONNECT_TIMEOUT_SECONDS: '3'
+      KORPUS_S3_READ_TIMEOUT_SECONDS: '15'
+      AWS_ACCESS_KEY_ID_FILE: /run/secrets/minio_app_access_key
+      AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/minio_app_secret_key
+      KORPUS_AUTH_MODE: jwt
+      KORPUS_AUDIT_ANCHOR_MODE: file
+      KORPUS_AUDIT_ANCHOR_PATH: /audit/audit-anchor.json
+      KORPUS_AUDIT_HMAC_KEY_FILE: /run/secrets/audit_hmac_key
+      KORPUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
+      KORPUS_METRICS_TOKEN_FILE: /run/secrets/metrics_token
+      KORPUS_OTLP_ENDPOINT: http://otel-collector:4317
+      KORPUS_CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      KORPUS_TRUSTED_HOSTS: localhost,127.0.0.1,testserver
+      KORPUS_AUDIT_RECONCILE_INTERVAL_SECONDS: '2'
+      KORPUS_AUDIT_MAX_PENDING_EVENTS: '64'
+      KORPUS_AUDIT_MAX_PENDING_AGE_SECONDS: '30'
+      KORPUS_INGESTION_MODE: durable_async
+      KORPUS_S3_QUARANTINE_PREFIX: quarantine
+      KORPUS_MALWARE_SCAN_MODE: clamd
+      KORPUS_CLAMD_HOST: clamav
+      KORPUS_CLAMD_PORT: '3310'
+      KORPUS_PARSER_SANDBOX_ENABLED: 'true'
+    secrets:
+    - source: postgres_app_password
+      target: postgres_app_password
+    - source: minio_app_access_key
+      target: minio_app_access_key
+    - source: minio_app_secret_key
+      target: minio_app_secret_key
+    - audit_hmac_key
+    - jwt_secret
+    - metrics_token
+    volumes:
+    - audit-anchor:/audit
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      otel-collector:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+    expose:
+    - '8000'
+    networks:
+    - edge
+    - backend
+    - egress
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)
+      interval: 10s
+      timeout: 4s
+      retries: 12
+      start_period: 20s
+  worker:
+    restart: unless-stopped
+    init: true
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+    pids_limit: 256
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    mem_limit: 2g
+    cpus: 2.0
+    read_only: true
+    tmpfs:
+    - /tmp:size=256m,mode=1770,uid=10001,gid=10001
+    environment:
+      KORPUS_ENVIRONMENT: local
+      KORPUS_SCHEMA_MODE: migrations
+      KORPUS_DATABASE_URL_TEMPLATE: postgresql+psycopg://korpus_app:{password}@postgres:5432/korpus
+      KORPUS_DATABASE_PASSWORD_FILE: /run/secrets/postgres_app_password
+      KORPUS_DATABASE_POOL_SIZE: '8'
+      KORPUS_DATABASE_MAX_OVERFLOW: '8'
+      KORPUS_DATABASE_POOL_TIMEOUT_SECONDS: '10'
+      KORPUS_DATABASE_STATEMENT_TIMEOUT_MS: '30000'
+      KORPUS_OBJECT_STORE_MODE: s3
+      KORPUS_S3_BUCKET: korpus
+      KORPUS_S3_PREFIX: objects
+      KORPUS_S3_ENDPOINT_URL: http://minio:9000
+      KORPUS_S3_REGION: us-east-1
+      KORPUS_S3_FORCE_PATH_STYLE: 'true'
+      KORPUS_S3_CONNECT_TIMEOUT_SECONDS: '3'
+      KORPUS_S3_READ_TIMEOUT_SECONDS: '15'
+      AWS_ACCESS_KEY_ID_FILE: /run/secrets/minio_app_access_key
+      AWS_SECRET_ACCESS_KEY_FILE: /run/secrets/minio_app_secret_key
+      KORPUS_AUTH_MODE: jwt
+      KORPUS_AUDIT_ANCHOR_MODE: file
+      KORPUS_AUDIT_ANCHOR_PATH: /audit/audit-anchor.json
+      KORPUS_AUDIT_HMAC_KEY_FILE: /run/secrets/audit_hmac_key
+      KORPUS_JWT_SECRET_FILE: /run/secrets/jwt_secret
+      KORPUS_METRICS_TOKEN_FILE: /run/secrets/metrics_token
+      KORPUS_OTLP_ENDPOINT: http://otel-collector:4317
+      KORPUS_CORS_ORIGINS: http://127.0.0.1:3000,http://localhost:3000
+      KORPUS_TRUSTED_HOSTS: localhost,127.0.0.1,testserver
+      KORPUS_AUDIT_RECONCILE_INTERVAL_SECONDS: '2'
+      KORPUS_AUDIT_MAX_PENDING_EVENTS: '64'
+      KORPUS_AUDIT_MAX_PENDING_AGE_SECONDS: '30'
+      KORPUS_INGESTION_MODE: durable_async
+      KORPUS_S3_QUARANTINE_PREFIX: quarantine
+      KORPUS_MALWARE_SCAN_MODE: clamd
+      KORPUS_CLAMD_HOST: clamav
+      KORPUS_CLAMD_PORT: '3310'
+      KORPUS_PARSER_SANDBOX_ENABLED: 'true'
+    secrets:
+    - source: postgres_app_password
+      target: postgres_app_password
+    - source: minio_app_access_key
+      target: minio_app_access_key
+    - source: minio_app_secret_key
+      target: minio_app_secret_key
+    - audit_hmac_key
+    - jwt_secret
+    - metrics_token
+    volumes:
+    - audit-anchor:/audit
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio-init:
+        condition: service_completed_successfully
+      otel-collector:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+    networks:
+    - backend
+    - egress
+    healthcheck:
+      disable: true
+    command:
+    - python
+    - -m
+    - korpus.cli
+    - worker-loop
+    - --idle-seconds
+    - '1'
+  web:
+    restart: unless-stopped
+    init: true
+    security_opt: *id001
+    cap_drop: *id002
+    pids_limit: 256
+    ulimits: *id003
+    stop_grace_period: 30s
+    logging: *id004
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    mem_limit: 256m
+    cpus: 0.5
+    read_only: true
+    tmpfs:
+    - /tmp:size=128m,mode=1770,uid=101,gid=101
+    ports:
+    - 127.0.0.1:3000:8080
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+    - edge
+    - frontend
+secrets:
+  postgres_admin_password:
+    file: ./infra/secrets/postgres_admin_password.txt
+  postgres_app_password:
+    file: ./infra/secrets/postgres_app_password.txt
+  minio_app_access_key:
+    file: ./infra/secrets/minio_app_access_key.txt
+  minio_app_secret_key:
+    file: ./infra/secrets/minio_app_secret_key.txt
+  minio_root_password:
+    file: ./infra/secrets/minio_root_password.txt
+  audit_hmac_key:
+    file: ./infra/secrets/audit_hmac_key.txt
+  jwt_secret:
+    file: ./infra/secrets/jwt_secret.txt
+  metrics_token:
+    file: ./infra/secrets/metrics_token.txt
 volumes:
-  postgres-data:
-  redis-data:
-  minio-data:
+  postgres-data: null
+  minio-data: null
+  audit-anchor: null
+  clamav-db: null
+networks:
+  # `edge` carries web↔api and stays internal so api cannot reach the internet except
+  # through `egress`. A published port does NOT work on an internal-only network — proved
+  # empirically 2026-08-08: host→container DNAT needs a network with a gateway. So web
+  # also joins `frontend`, whose only job is to make web's published port reachable from
+  # the host. web has no outbound needs (it serves fixed assets and proxies to api over
+  # edge), so the gateway `frontend` gives it is unused; api is deliberately not on it, so
+  # the egress-only rule for api is preserved.
+  edge:
+    internal: true
+  frontend: null
+  backend:
+    internal: true
+  egress: null

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "production_authorized": false,
+  "admission": {
+    "schema_version": 1,
+    "production_authorized": false,
+    "open_grounds": [
+      "2.5",
+      "2.6",
+      "2.7",
+      "2.9",
+      "superseded-never-current"
+    ],
+    "cleared_grounds": [
+      "2.8"
+    ],
+    "problems": []
+  },
+  "checks": {
+    "reports_present": true,
+    "evidence_provenance": true,
+    "eval_pass_rate": true,
+    "citation_integrity": true,
+    "access_noninterference": true,
+    "access_noninterference_measured": true,
+    "determinism": true,
+    "audit_chain": true,
+    "critical_mutation_score": true,
+    "critical_mutation_survivors": true,
+    "migration_table_parity": true,
+    "migration_required_tables": true,
+    "migration_audit_head": true,
+    "migration_fts5": true,
+    "scale_status": true,
+    "scale_metric_provenance": true,
+    "scale_top1": true,
+    "scale_candidate_bound": true,
+    "scale_local_p95": true
+  },
+  "failures": [],
+  "evidence_sha256": {
+    "eval": "ac5d6a84f4cc600a9828e8a3798ca4253fb2d03d6d64efe5f6a639ec51eb1649",
+    "mutation": "9a32f9bcf389737928bccca9669b243f2de140972486f079bb8fac911563bd26",
+    "migration": "7a460c32f2e45f0baf5ba0ab69924bc048000a70f98c747fd61a48d5e055b04d",
+    "scale": "6381658a6b3dff21e355606ddc7e952c832b965f1c89b23526f278ffec819860"
+  },
+  "interpretation": "Engineering release predicates passed; this is not corpus, security, regulatory, operational-SLA or military authorization."
+}

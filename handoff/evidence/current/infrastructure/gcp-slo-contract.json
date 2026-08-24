@@ -1,0 +1,62 @@
+{
+  "passed": 11,
+  "predicates": [
+    {
+      "evidence": "edge SLO is attached to an explicit Cloud Monitoring custom service",
+      "id": "SLO_CUSTOM_SERVICE",
+      "passed": true
+    },
+    {
+      "evidence": "availability SLI is a request-based ratio scoped to the exact production HTTPS URL map",
+      "id": "SLO_LB_REQUEST_RATIO",
+      "passed": true
+    },
+    {
+      "evidence": "client 4xx responses are excluded from demanded-service and good-service filters",
+      "id": "SLO_CLIENT_ERRORS_EXCLUDED",
+      "passed": true
+    },
+    {
+      "evidence": "5xx and no-response class 0 consume error budget",
+      "id": "SLO_SERVICE_FAILURES_BAD",
+      "passed": true
+    },
+    {
+      "evidence": "availability target is explicit, bounded and tagged as operator policy rather than measured fact",
+      "id": "SLO_TARGET_IS_POLICY_VARIABLE",
+      "passed": true
+    },
+    {
+      "evidence": "rolling SLO period is configurable inside Cloud Monitoring's supported 1..30 day range",
+      "id": "SLO_ROLLING_PERIOD_BOUNDED",
+      "passed": true
+    },
+    {
+      "evidence": "Terraform refuses accidental SLO deletion",
+      "id": "SLO_DELETE_PROTECTED",
+      "passed": true
+    },
+    {
+      "evidence": "fast-burn page requires 14.4x burn in both 1h and 5m windows",
+      "id": "SLO_FAST_BURN_MULTIWINDOW",
+      "passed": true
+    },
+    {
+      "evidence": "sustained page requires 6x burn in both 6h and 30m windows",
+      "id": "SLO_SUSTAINED_BURN_MULTIWINDOW",
+      "passed": true
+    },
+    {
+      "evidence": "all burn alerts use Cloud Monitoring's native select_slo_burn_rate selector",
+      "id": "SLO_BURN_USES_NATIVE_SELECTOR",
+      "passed": true
+    },
+    {
+      "evidence": "each SLO burn-rate policy is bound to production notification channels",
+      "id": "SLO_ALERT_DELIVERY_REQUIRED",
+      "passed": true
+    }
+  ],
+  "status": "PASS",
+  "total": 11
+}

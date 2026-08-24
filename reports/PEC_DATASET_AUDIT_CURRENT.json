@@ -1,0 +1,14 @@
+{
+  "corpus_binding": "UNKNOWN",
+  "dataset_sha256": "e48bb48871f9a96f15d9ced0fca016e6144ebc1bd3d5abe7da9b0e79735e020f",
+  "generated_at": "2026-08-21T18:58:33.582111+00:00",
+  "groups": 113,
+  "issues": [],
+  "kind": "pec_dataset_audit",
+  "production_judged": false,
+  "receipt_sha256": "ad2e5b68074c8c5c7900ebe4d050d070de63db27df0015f9c2018f4fba91ef97",
+  "rows": 151,
+  "schema": "korpus.pec-receipt.v1",
+  "status": "UNKNOWN",
+  "unique_queries": 151
+}

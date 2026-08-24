@@ -1,0 +1,86 @@
+name: assurance
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assurance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+  KORPUS_ENVIRONMENT: test
+  KORPUS_SCHEMA_MODE: auto
+  KORPUS_DATABASE_URL: sqlite:///${{ github.workspace }}/var/assurance.db
+  KORPUS_OBJECT_ROOT: ${{ github.workspace }}/var/objects
+  KORPUS_AUTH_MODE: dev
+  KORPUS_DEV_MODE_ACKNOWLEDGEMENT: I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE
+  KORPUS_BIND_HOST: 127.0.0.1
+  KORPUS_AUDIT_HMAC_KEY: ci-only-audit-key
+  KORPUS_JWT_SECRET: ci-only-jwt-key
+
+jobs:
+  research-assurance:
+    name: research-assurance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Verify exact locked environment
+        run: make production-exact-environment PY=python
+      - name: Execute falsification campaign
+        run: |
+          mkdir -p var/objects
+          make eval mutation migration-gate scale operational-gate PY=python
+          make production-hard-predicates PY=python
+
+  postgres:
+    name: postgres-full-suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Run PostgreSQL 17 and pgvector suite
+        env:
+          PYTHON: python
+        run: scripts/run_postgres_suite.sh
+      - name: Verify production PostgreSQL security gate
+        env:
+          PYTHON: python
+        run: make production-postgres-security PY=python

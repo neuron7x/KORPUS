@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 39,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M38_AUTHORITY_BACK_TO_A_SCORE_TERM",
+      "file": "apps/api/src/korpus/application/retrieval.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one ______\n\n    def test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one() -> None:\n        \"\"\"Selection is lexicographic: authority class first, marginal relevance inside it.\"\"\"\n        analytical = _evidence(AuthorityClass.ANALYTICAL, 0.99)\n        official = _evidence(AuthorityClass.OFFICIAL_UA, 0.20)\n    \n        selected = diversify_evidence([analytical, official], limit=1)\n    \n>       assert [item.version.authority for item in selected] == [AuthorityClass.OFFICIAL_UA], (\n            \"an analytical passage scoring 0.99 must still rank below an official one at \"\n            \"0.20; otherwise authority is a quantity similarity can outbid\"\n        )\nE       AssertionError: an analytical passage scoring 0.99 must still rank below an official one at 0.20; otherwise authority is a quantity similarity can outbid\nE       assert [<AuthorityCl...'analytical'>] == [<AuthorityCl...official_ua'>]\nE         \nE         At index 0 diff: <AuthorityClass.ANALYTICAL: 'analytical'> != <AuthorityClass.OFFICIAL_UA: 'official_ua'>\nE         \nE         Full diff:\nE           [\nE         -     <AuthorityClass.OFFICIAL_UA: 'official_ua'>,\nE         +     <AuthorityClass.ANALYTICAL: 'analytical'>,\nE           ]\n\napps/api/tests/test_authority_ranking.py:91: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one - AssertionError: an analytical passage scoring 0.99 must still rank below an official one at 0.20; otherwise authority is a quantity similarity can outbid\nassert [<AuthorityCl...'analytical'>] == [<AuthorityCl...official_ua'>]\n  \n  At index 0 diff: <AuthorityClass.ANALYTICAL: 'analytical'> != <AuthorityClass.OFFICIAL_UA: 'official_ua'>\n  \n  Full diff:\n    [\n  -     <AuthorityClass.OFFICIAL_UA: 'official_ua'>,\n  +     <AuthorityClass.ANALYTICAL: 'analytical'>,\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M82_SQL_HONOURS_A_CROSSING_SUPERSESSION_EDGE",
+      "file": "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_foreign_supersession.py::test_a_crossing_edge_already_in_the_database_is_not_honoured"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "e14982f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_a_crossing_edge_already_in_the_database_is_not_honoured(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        \"\"\"The second line, stated where the application layer can no longer reach.\n    \n        With ingest refusing to write a crossing edge, the SQL filter that consumes it can\n        be weakened without any behaviour changing — the state it guards is unreachable\n        through the API. The row is therefore written directly, which is exactly the state\n        a bulk import, a migration or a future path that forgets the check would produce.\n        \"\"\"\n        victim = ingest_text(\n            client,\n            title=\"Наказ потерпілого\",\n            text=f\"Журнал {VICTIM_MARKER} ведеться у підрозділі щодоби.\",\n        )\n        victim_version_id = victim[\"version\"][\"id\"]\n        approve(client, victim_version_id)\n        attacker = ingest_text(\n            client, title=\"Сторонній наказ\", text=\"Стороннє положення без стосунку до журналу.\"\n        )\n        approve(client, attacker[\"version\"][\"id\"])\n    \n        repository = client.app.state.repository\n        with privileged_connection(client) as connection:\n            connection.execute(\n                text(\n                    \"UPDATE document_versions SET supersedes_version_id = :victim WHERE id = :attacker\"\n                ),\n                {\"victim\": victim_version_id, \"attacker\": attacker[\"version\"][\"id\"]},\n            )\n    \n        rows = repository.list_retrievable_spans(\n            admin_identity, frozenset({\"public\"}), date(2026, 8, 4)\n        )\n    \n>       assert any(str(version.id) == victim_version_id for _span, _document, version in rows), (\n            \"a supersession edge that crosses documents must be ignored by the projection, \"\n            \"not merely refused at ingest\"\n        )\nE       AssertionError: a supersession edge that crosses documents must be ignored by the projection, not merely refused at ingest\nE       assert False\nE        +  where False = any(<generator object test_a_crossing_edge_already_in_the_database_is_not_honoured.<locals>.<genexpr> at 0x7fcae0a925c0>)\n\napps/api/tests/test_foreign_supersession.py:139: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_foreign_supersession.py::test_a_crossing_edge_already_in_the_database_is_not_honoured - AssertionError: a supersession edge that crosses documents must be ignored by the projection, not merely refused at ingest\nassert False\n +  where False = any(<generator object test_a_crossing_edge_already_in_the_database_is_not_honoured.<locals>.<genexpr> at 0x7fcae0a925c0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M143_REQUIREMENTS_STOP_AT_THE_FIRST_FAILURE",
+      "file": "apps/api/src/korpus/application/requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_all_requirements_are_evaluated_not_just_up_to_the_first_failure"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_all_requirements_are_evaluated_not_just_up_to_the_first_failure _____\n\n    def test_all_requirements_are_evaluated_not_just_up_to_the_first_failure() -> None:\n        \"\"\"A review that reports one problem at a time is a queue, not a report.\"\"\"\n        report = evaluate_requirements(\n            [\n                _requirement(\"first\", lambda _: False),\n                _requirement(\"second\", lambda _: True),\n                _requirement(\"third\", lambda _: False),\n            ],\n            context=None,\n        )\n    \n>       assert [failure.id for failure in report.unmet] == [\"first\", \"third\"]\nE       AssertionError: assert ['first'] == ['first', 'third']\nE         \nE         Right contains one more item: 'third'\nE         \nE         Full diff:\nE           [\nE               'first',\nE         -     'third',\nE           ]\n\napps/api/tests/test_requirement_registry.py:111: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_all_requirements_are_evaluated_not_just_up_to_the_first_failure - AssertionError: assert ['first'] == ['first', 'third']\n  \n  Right contains one more item: 'third'\n  \n  Full diff:\n    [\n        'first',\n  -     'third',\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M207_COMPOSED_OPENING_MAY_ADD_A_WORD",
+      "file": "apps/api/src/korpus/application/composition.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answer_composition.py::test_an_opening_that_states_something_the_evidence_does_not_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_an_opening_that_states_something_the_evidence_does_not_is_refused ____\n\n    def test_an_opening_that_states_something_the_evidence_does_not_is_refused() -> None:\n        \"\"\"The whole point. A word nobody can check against a quote is a claim.\"\"\"\n        composition, reason = _compose(\"Джгут накладається на стегнову артерію\")\n    \n>       assert composition is None\nE       assert Composition(opening='Джгут накладається на стегнову артерію', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n\napps/api/tests/test_answer_composition.py:58: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answer_composition.py::test_an_opening_that_states_something_the_evidence_does_not_is_refused - assert Composition(opening='Джгут накладається на стегнову артерію', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M154_AN_ADMIN_CAN_LOCK_THEMSELVES_OUT",
+      "file": "apps/api/src/korpus/api/routes_admin.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_account_administration.py::test_an_administrator_cannot_disable_the_account_they_are_using"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_an_administrator_cannot_disable_the_account_they_are_using ________\n\nclient = <starlette.testclient.TestClient object at 0x7f10ee0d8590>\n\n    def test_an_administrator_cannot_disable_the_account_they_are_using(client: Any) -> None:\n        \"\"\"It would lock out the role that has to undo it, and most deployments have one.\"\"\"\n        admin_account = _account_of(client, ADMIN)\n    \n        response = client.post(\n            f\"/v1/admin/accounts/{admin_account}/status\",\n            json={\"status\": \"disabled\", \"reason\": \"помилковий вибір рядка у списку\"},\n        )\n    \n>       assert response.status_code == 409, response.text\nE       AssertionError: {\"id\":\"680666d9-88de-4c84-87e0-bd39cfa84c6d\",\"auth_subject\":\"oidc|duty-admin\",\"email\":null,\"display_name\":null,\"status\":\"disabled\",\"created_at\":\"2026-08-22T16:42:11.237204+00:00\"}\nE       assert 200 == 409\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_account_administration.py:150: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_account_administration.py::test_an_administrator_cannot_disable_the_account_they_are_using - AssertionError: {\"id\":\"680666d9-88de-4c84-87e0-bd39cfa84c6d\",\"auth_subject\":\"oidc|duty-admin\",\"email\":null,\"display_name\":null,\"status\":\"disabled\",\"created_at\":\"2026-08-22T16:42:11.237204+00:00\"}\nassert 200 == 409\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M243_BAD_LOAD_SLO_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_reliability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_signed_bad_load_cannot_pass_reliability_quality_predicates"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_signed_bad_load_cannot_pass_reliability_quality_predicates ________\n\n    def test_signed_bad_load_cannot_pass_reliability_quality_predicates() -> None:\n        internal, chaos, load, recovery = _evidence()\n        load[\"soak\"][\"statuses\"] = {\"503\": 10}\n        load[\"soak\"][\"refusal_reasons\"] = {\"subject_share_exhausted\": 10}\n        load_bytes = (json.dumps(load, sort_keys=True) + \"\\n\").encode()\n        recovery_bytes = (json.dumps(recovery, sort_keys=True) + \"\\n\").encode()\n        load_att, load_fp = _signed(load_bytes, \"load-probe.json\")\n        recovery_att, recovery_fp = _signed(recovery_bytes, \"recovery-report.json\")\n        checks, _, _ = evaluate_attested_reliability(\n            internal, chaos, load, recovery, source=\"s\", release=\"v\",\n            load_bytes=load_bytes, recovery_bytes=recovery_bytes,\n            load_attestation=load_att, recovery_attestation=recovery_att,\n            trusted={load_fp, recovery_fp},\n        )\n        assert checks[\"load_attestation_verified\"] and checks[\"load_trusted_signer\"]\n>       assert checks[\"load_slo_no_5xx_rated\"] is False\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'load_slo_no_5xx_rated'\n\napps/api/tests/test_production_reliability.py:89: KeyError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_signed_bad_load_cannot_pass_reliability_quality_predicates - KeyError: 'load_slo_no_5xx_rated'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M291_PEC_CONTROLLED_CONTEXTUAL_GOVERNANCE_BYPASSED",
+      "file": "apps/api/src/korpus/pec_config_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_act_hardening.py::test_controlled_contextual_retrieval_cannot_run_outside_pec_governance"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_controlled_contextual_retrieval_cannot_run_outside_pec_governance ____\n\n    def test_controlled_contextual_retrieval_cannot_run_outside_pec_governance() -> None:\n        settings = SimpleNamespace(\n            pec_enabled=False,\n            pec_profile_sha256=None,\n            pec_profile_path=None,\n            contextual_retrieval_enabled=True,\n        )\n>       with pytest.raises(ValueError, match=\"controlled contextual retrieval requires PEC governance\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_pec_act_hardening.py:20: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_act_hardening.py::test_controlled_contextual_retrieval_cannot_run_outside_pec_governance - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:42:13+00:00"
+  }
+}

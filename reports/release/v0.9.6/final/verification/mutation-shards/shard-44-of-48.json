@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 44,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M42_TOKEN_CANONICALITY_CHECK_REMOVED",
+      "file": "apps/api/src/korpus/security/browser_oidc.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_codec_rejects_a_second_spelling_of_the_same_token __________\n\n    def test_the_codec_rejects_a_second_spelling_of_the_same_token():\n        \"\"\"Unpadded base64 is malleable at the tail; AES-GCM cannot see it.\n    \n        When the sealed byte length is not a multiple of three, the final character holds\n        bits no byte uses, so a different character decodes to identical plaintext and the\n        cipher authenticates it. That made the sweep above pass or fail depending on the\n        random nonce — one run in five. The decoder now rejects any spelling it would not\n        itself produce, so the token-to-bytes mapping is one-to-one and the sweep is a\n        statement about the codec rather than about luck.\n        \"\"\"\n        codec = BrowserSessionCodec(\"x\" * 40, clock=lambda: 1000.0)\n        token = codec.seal(\"session\", {\"access_token\": \"a\", \"csrf\": \"c\"}, ttl_seconds=30)\n        alphabet = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\"\n        decoded = base64.urlsafe_b64decode(token + \"=\" * (-len(token) % 4))\n    \n        variants = [\n            token[:-1] + char\n            for char in alphabet\n            if char != token[-1]\n            and base64.urlsafe_b64decode(token[:-1] + char + \"=\" * (-len(token) % 4)) == decoded\n        ]\n    \n        assert variants, (\n            \"this token happens to have no equivalent spelling; the property under test \"\n            \"is only exercised when the payload length is not a multiple of three\"\n        )\n        for variant in variants:\n>           with pytest.raises(BrowserSessionError):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.security.browser_oidc.BrowserSessionError'>\n\napps/api/tests/test_browser_oidc.py:185: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token - Failed: DID NOT RAISE <class 'korpus.security.browser_oidc.BrowserSessionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M87_WITHHELD_IDENTIFIERS_NOT_SEARCHED",
+      "file": "apps/api/src/korpus/application/noninterference.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak ______\n\nclient = <starlette.testclient.TestClient object at 0x7f15dd73c590>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak(\n        client: TestClient, admin_identity: Identity, public_identity: Identity\n    ) -> None:\n        \"\"\"Naming a span the reader may not see already discloses that it exists.\"\"\"\n        _seed(client)\n        repository = client.app.state.repository\n        withheld = withheld_material(repository, admin_identity, public_identity, AS_OF)\n        target = withheld[0]\n    \n        reasons = leaked_material(f'{{\"span_id\": \"{target.span_id}\"}}', [], withheld)\n    \n>       assert any(reason.startswith(\"withheld_span_identifier:\") for reason in reasons), reasons\nE       AssertionError: []\nE       assert False\nE        +  where False = any(<generator object test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f15dcd07030>)\n\napps/api/tests/test_noninterference_measurement.py:104: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak - AssertionError: []\nassert False\n +  where False = any(<generator object test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f15dcd07030>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M141_SIGNATURE_NOT_BOUND_TO_THE_GROUND",
+      "file": "apps/api/src/korpus/security/attestors.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attestation_signatures.py::test_a_signature_obtained_for_another_ground_cannot_be_moved"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_a_signature_obtained_for_another_ground_cannot_be_moved _________\n\n    def test_a_signature_obtained_for_another_ground_cannot_be_moved() -> None:\n        \"\"\"A signed TEVV report must not clear the security assessment.\"\"\"\n        registry, private = _registry()\n        attestation = _attestation(private, ground_id=\"2.6\", document_sha256=_document_digest())\n    \n        problems = _verify(registry, attestation, \"external_assessment\")\n    \n>       assert problems and \"does not verify\" in problems[0]\nE       assert ([])\n\napps/api/tests/test_attestation_signatures.py:186: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attestation_signatures.py::test_a_signature_obtained_for_another_ground_cannot_be_moved - assert ([])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M185_NEAR_DUPLICATE_PROBE_IGNORES_COMPARTMENTS",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "1, extraction_method='plain_text', duplicate=False).version\nE            +  and   UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3') = DocumentVersionRecord(id=UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3'), document_id=UUID('ceb5840a-b2f1-4715-8ddf-a08f2...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)).id\nE            +    where DocumentVersionRecord(id=UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3'), document_id=UUID('ceb5840a-b2f1-4715-8ddf-a08f2...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('ceb5840a-b2f1-4715-8ddf-a08f289384fd'), canonical_title='Прихований за c... 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n\napps/api/tests/test_access_oracles.py:256: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[clearance-document1-reader1] - AssertionError: assert UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3') != UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3')\n +  where UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3') = DocumentVersionRecord(id=UUID('90fdb2ca-596d-4640-9a5d-c4e327f375d9'), document_id=UUID('1a932e64-4c19-4ae4-9020-cd37c...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 409426, tzinfo=datetime.timezone.utc)).near_duplicate_of_version_id\n +    where DocumentVersionRecord(id=UUID('90fdb2ca-596d-4640-9a5d-c4e327f375d9'), document_id=UUID('1a932e64-4c19-4ae4-9020-cd37c...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 409426, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('1a932e64-4c19-4ae4-9020-cd37c7e4b71d'), canonical_title='Здогад', corpus... 22, 16, 43, 31, 409426, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n +  and   UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3') = DocumentVersionRecord(id=UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3'), document_id=UUID('ceb5840a-b2f1-4715-8ddf-a08f2...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)).id\n +    where DocumentVersionRecord(id=UUID('518ac58b-c930-43b6-a0ea-01e8f55986f3'), document_id=UUID('ceb5840a-b2f1-4715-8ddf-a08f2...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('ceb5840a-b2f1-4715-8ddf-a08f289384fd'), canonical_title='Прихований за c... 22, 16, 43, 31, 315000, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M159_ORPHAN_REAPER_TERMINATES_LIVE_JOBS",
+      "file": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_reliability_degradation.py::test_a_crashed_worker_leaves_no_zombie_running_job"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ime_type=\"text/plain\", source_hash=\"a\" * 64,\n                staging_object_key=\"00/00/\" + \"a\" * 64, max_attempts=1,\n            )\n            queue.create(actor, job)\n            claimed = queue.claim(\"worker-1\", lease_seconds=5)\n            assert claimed is not None and claimed.state is IngestionJobState.RUNNING\n    \n            # The crash: lease expired, attempts at the ceiling, still RUNNING.\n            with repo.engine.begin() as connection:\n                connection.execute(\n                    update(ingestion_jobs)\n                    .where(ingestion_jobs.c.id == str(job.id))\n                    .values(lease_expires_at=datetime.now(UTC) - timedelta(seconds=1))\n                )\n            assert queue.claim(\"worker-2\", lease_seconds=5) is None, \"claim re-picked an exhausted job\"\n    \n            # A second job that still has an attempt left, also with an expired lease: this one\n            # belongs to `claim`, not the reaper. The reaper must leave it alone — the mutant\n            # that reaps on `attempts >= 0` would wrongly bury it, and dies here.\n            live = job.model_copy(update={\n                \"id\": __import__(\"uuid\").uuid4(), \"max_attempts\": 3,\n                \"staging_object_key\": \"11/11/\" + \"b\" * 64, \"source_hash\": \"b\" * 64,\n            })\n            queue.create(actor, live)\n            queue.claim(\"worker-live\", lease_seconds=5)  # attempts now 1 of 3\n            with repo.engine.begin() as connection:\n                connection.execute(\n                    update(ingestion_jobs)\n                    .where(ingestion_jobs.c.id == str(live.id))\n                    .values(lease_expires_at=datetime.now(UTC) - timedelta(seconds=1))\n                )\n    \n            reaped = queue.reap_orphaned_leases()\n>           assert [r.id for r in reaped] == [job.id], \"the reaper touched a re-claimable job\"\nE           AssertionError: the reaper touched a re-claimable job\nE           assert [UUID('4c5538...8e721dadd6c')] == [UUID('4c5538...daeff5961bb')]\nE             \nE             Left contains one more item: UUID('466f1bb9-457e-444e-a6ab-98e721dadd6c')\nE             \nE             Full diff:\nE               [\nE                   UUID('4c5538e8-bf1f-4063-8261-2daeff5961bb'),\nE             +     UUID('466f1bb9-457e-444e-a6ab-98e721dadd6c'),\nE               ]\n\napps/api/tests/test_reliability_degradation.py:190: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_reliability_degradation.py::test_a_crashed_worker_leaves_no_zombie_running_job - AssertionError: the reaper touched a re-claimable job\nassert [UUID('4c5538...8e721dadd6c')] == [UUID('4c5538...daeff5961bb')]\n  \n  Left contains one more item: UUID('466f1bb9-457e-444e-a6ab-98e721dadd6c')\n  \n  Full diff:\n    [\n        UUID('4c5538e8-bf1f-4063-8261-2daeff5961bb'),\n  +     UUID('466f1bb9-457e-444e-a6ab-98e721dadd6c'),\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M248_PRODUCTION_ASSURANCE_RUNTIME_TRUST_DISCONNECTED",
+      "file": "scripts/verify_production_assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_promotion_plumbing.py::test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard _\n\n    def test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard() -> None:\n        source = (ROOT / \"scripts/verify_production_assurance.py\").read_text(encoding=\"utf-8\")\n>       assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in source\nE       assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in '#!/usr/bin/env python3\\nfrom __future__ import annotations\\nimport argparse, hashlib, json, sys\\nfrom pathlib import ..., \"failures\": failures}, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n\napps/api/tests/test_production_promotion_plumbing.py:11: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_promotion_plumbing.py::test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard - assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in '#!/usr/bin/env python3\\nfrom __future__ import annotations\\nimport argparse, hashlib, json, sys\\nfrom pathlib import ..., \"failures\": failures}, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M296_PEC_REPLAY_PRIORITY_INVERTS_ACCEPTED_ERROR",
+      "file": "apps/api/src/korpus/application/pec_replay.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_replay_priority_enriches_explicit_failures ________________\n\n    def test_replay_priority_enriches_explicit_failures() -> None:\n        rows = [{\"query_id\": f\"q{i}\"} for i in range(40)]\n        for i in range(8): rows[i][\"accepted_answer_error\"] = True\n        report = replay_priority_enrichment(rows, top_fraction=0.2, alpha=0.05)\n>       assert report[\"failures_captured\"] == 8\nE       assert 0 == 8\n\napps/api/tests/test_pec_research.py:28: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures - assert 0 == 8\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:43:38+00:00"
+  }
+}

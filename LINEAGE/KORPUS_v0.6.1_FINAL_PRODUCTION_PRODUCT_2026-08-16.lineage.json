@@ -1,0 +1,49 @@
+{
+  "schema": "korpus.lineage-chunks.v1",
+  "artifact": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip",
+  "sha256": "d118db97847b14a63dd5db53ed9d01d61ee595678fe76c486b8bb4b379ba4176",
+  "bytes": 29841101,
+  "reassembly": "ordered_byte_concatenation",
+  "parts": [
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-00",
+      "bytes": 4000000,
+      "sha256": "42348bf5c52957f7839b1a4e05d12148c6f64241709cd49912327eb8a4008234"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-01",
+      "bytes": 4000000,
+      "sha256": "7f973b71abf2f22b40c9fc6ba82c473ee99b13ef2716aabf6d09cc50d8e8329a"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-02",
+      "bytes": 4000000,
+      "sha256": "6cd8aca75dac9fc55f94cfac1b7e5193376f1e238ed4c99e95853e24a60fb43d"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-03",
+      "bytes": 4000000,
+      "sha256": "c0950eafd789d33d2213b35fe3ff8384a9a5de639f587657d9f7402a5796d74b"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-04",
+      "bytes": 4000000,
+      "sha256": "92c7972d8a62a9cc8883e3acc30aae0529957396eb4f5007e798b3af1550d0e6"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-05",
+      "bytes": 4000000,
+      "sha256": "2d6fb16f95455a0cbd12c189b9b01b0186a5dd0df92edd37e2df9eb3f9a993c8"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-06",
+      "bytes": 4000000,
+      "sha256": "8ab765ae4444731d979e09086e6f4ffe0f4b2aededaf237a6828a210be0f82e3"
+    },
+    {
+      "path": "KORPUS_v0.6.1_FINAL_PRODUCTION_PRODUCT_2026-08-16.zip.part-07",
+      "bytes": 1841101,
+      "sha256": "0bf1954d6900f4a44cd647a353c81a98091ed6956a8b9475fceeeba2d7974fcc"
+    }
+  ]
+}

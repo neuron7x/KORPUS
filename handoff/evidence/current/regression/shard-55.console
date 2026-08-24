@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "source_digest": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "collection_count": 2345,
+  "shard_index": 55,
+  "shard_count": 64,
+  "selected_count": 47,
+  "junit": {
+    "tests": 47,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "timed_out": false,
+  "elapsed_seconds": 11.98557
+}

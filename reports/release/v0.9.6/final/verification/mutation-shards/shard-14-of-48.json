@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 14,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M14_SEMANTIC_OUTAGE_FALLBACK",
+      "file": "apps/api/src/korpus/application/retrieval_execution.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_required_semantic_failure_never_silently_falls_back_to_lexical ______\n\n    def test_required_semantic_failure_never_silently_falls_back_to_lexical():\n        from korpus.application.retrieval import RetrievalUnavailable\n    \n        lexical = _bundle(\"evacuation procedure\", \"d\")\n        retriever = HybridLexicalRetriever(\n            FusionRepo(lexical, lexical),\n            candidate_budget=8,\n            weights=RetrievalWeights(\n                lexical=0.12, semantic=0.30, query_coverage=0.20, character=0.08,\n                authority=0.18, phrase=0.08, temporal=0.04,\n            ),\n            semantic_source=FailingSemanticSource(),\n        )\n        identity = Identity(\n            subject=\"u\", roles=frozenset({\"user\"}), clearance=AccessTier.PUBLIC,\n            corpora=frozenset({\"public\"}),\n        )\n>       with pytest.raises(RetrievalUnavailable, match=\"semantic retrieval\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.retrieval.RetrievalUnavailable'>\n\napps/api/tests/test_semantic_integration.py:137: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical - Failed: DID NOT RAISE <class 'korpus.application.retrieval.RetrievalUnavailable'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M61_MISSING_PROVENANCE_TREATED_AS_VALID",
+      "file": "apps/api/src/korpus/application/provenance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_reports_without_provenance"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_gate_rejects_reports_without_provenance _________________\n\n    def test_gate_rejects_reports_without_provenance() -> None:\n        result = OperationalReleaseGate.load(POLICY).evaluate(\n            passing_reports(), source_digest=\"a\" * 64\n        )\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n\napps/api/tests/test_evidence_provenance.py:74: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_provenance.py::test_gate_rejects_reports_without_provenance - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M105_ANCHOR_DELIVERY_WALKS_ONE_ROW_PER_PASS",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_anchor_delivery_backlog.py::test_one_pass_clears_a_backlog_larger_than_the_batch"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_one_pass_clears_a_backlog_larger_than_the_batch _____________\n\nclient = <starlette.testclient.TestClient object at 0x7f35a94a02f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_one_pass_clears_a_backlog_larger_than_the_batch(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        repository = client.app.state.repository\n        _make_backlog(client, repository, admin_identity, 120)\n        assert repository.verify_audit().anchor_pending == 120\n    \n        repository.reconcile_audit_anchor(limit=64)\n    \n>       assert repository.verify_audit().anchor_pending == 0, (\n            \"one pass must bring the anchor to the head: an older checkpoint carries \"\n            \"nothing a newer one does not\"\n        )\nE       AssertionError: one pass must bring the anchor to the head: an older checkpoint carries nothing a newer one does not\nE       assert 119 == 0\nE        +  where 119 = AuditVerification(valid=True, event_count=120, head_sequence=120, anchor_valid=False, anchor_pending=119, first_invalid_sequence=None, reason='119 checkpoints awaiting anchor delivery').anchor_pending\nE        +    where AuditVerification(valid=True, event_count=120, head_sequence=120, anchor_valid=False, anchor_pending=119, first_invalid_sequence=None, reason='119 checkpoints awaiting anchor delivery') = verify_audit()\nE        +      where verify_audit = <korpus.infrastructure.repository.SqlRepository object at 0x7f35a94a2e40>.verify_audit\n\napps/api/tests/test_anchor_delivery_backlog.py:56: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_anchor_delivery_backlog.py::test_one_pass_clears_a_backlog_larger_than_the_batch - AssertionError: one pass must bring the anchor to the head: an older checkpoint carries nothing a newer one does not\nassert 119 == 0\n +  where 119 = AuditVerification(valid=True, event_count=120, head_sequence=120, anchor_valid=False, anchor_pending=119, first_invalid_sequence=None, reason='119 checkpoints awaiting anchor delivery').anchor_pending\n +    where AuditVerification(valid=True, event_count=120, head_sequence=120, anchor_valid=False, anchor_pending=119, first_invalid_sequence=None, reason='119 checkpoints awaiting anchor delivery') = verify_audit()\n +      where verify_audit = <korpus.infrastructure.repository.SqlRepository object at 0x7f35a94a2e40>.verify_audit\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M122_EXPIRED_MATERIAL_DELETED_WITHOUT_PERMISSION",
+      "file": "apps/api/src/korpus/application/retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retention_planning.py::test_a_document_past_its_period_without_delete_permission_awaits_a_decision"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_a_document_past_its_period_without_delete_permission_awaits_a_decision __\n\n    def test_a_document_past_its_period_without_delete_permission_awaits_a_decision() -> None:\n        \"\"\"Neither deleted nor silently kept: the owner has not ruled, and that is visible.\"\"\"\n        plan = plan_retention(_documents(400), {\"public\": _policy()}, now=NOW)\n    \n        item = plan.items[0]\n>       assert item.disposition == AWAITING_DECISION\nE       AssertionError: assert 'ELIGIBLE' == 'AWAITING_DECISION'\nE         \nE         - AWAITING_DECISION\nE         + ELIGIBLE\n\napps/api/tests/test_retention_planning.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retention_planning.py::test_a_document_past_its_period_without_delete_permission_awaits_a_decision - AssertionError: assert 'ELIGIBLE' == 'AWAITING_DECISION'\n  \n  - AWAITING_DECISION\n  + ELIGIBLE\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M129_EMPTY_DESIRED_STATE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_manifest_without_records_refuses_rather_than_returning_empty"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_manifest_without_records_refuses_rather_than_returning_empty _______\n\n    def test_manifest_without_records_refuses_rather_than_returning_empty() -> None:\n        \"\"\"An empty desired state would make every environment IN_SYNC.\"\"\"\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_environment_drift.py:119: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_manifest_without_records_refuses_rather_than_returning_empty - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_assurance_external.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_self_declared_external_redteam_without_trusted_attestation_is_rejected __\n\n    def test_self_declared_external_redteam_without_trusted_attestation_is_rejected() -> None:\n        gates = _sound_gates()\n        gates[\"redteam\"][\"attestation_verified\"] = False\n        gates[\"redteam\"][\"trusted_signer\"] = False\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n        assert \"redteam.attestation_verified\" in verdict.failures\n>       assert \"redteam.trusted_signer\" in verdict.failures\nE       AssertionError: assert 'redteam.trusted_signer' in ('redteam.attestation_verified',)\nE        +  where ('redteam.attestation_verified',) = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....nd': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=('redteam.attestation_verified',)).failures\n\napps/api/tests/test_production_assurance.py:98: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected - AssertionError: assert 'redteam.trusted_signer' in ('redteam.attestation_verified',)\n +  where ('redteam.attestation_verified',) = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....nd': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=('redteam.attestation_verified',)).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M266_MISSION_HARD_FAILURE_COMPENSATED",
+      "file": "apps/api/src/korpus/application/mission_assurance_v2.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy _____\n\n    def test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy():\n        rows = _rows(500)\n        rows[0] = MissionObservation(case_id=\"bad\", hard_failures=frozenset({HardFailure.ACCESS_LEAKAGE}),\n                                     atomic_claims=1000, correct_atomic_claims=1000, latency_ms=1)\n        verdict = evaluate_mission_assurance(rows, maximum_hard_failure_rate_upper_95=0.02, independent=True, real_domain=True, operational_environment=True)\n>       assert not verdict.admissible\nE       assert not True\nE        +  where True = MissionAssuranceVerdict(admissible=True, observations=500, hard_failure_count=1, hard_failure_interval=Interval(lower=...80810374340251, upper=1.0, confidence=0.95), p50_latency_ms=9.5, p95_latency_ms=18.05, p99_latency_ms=19.0, reasons=()).admissible\n\napps/api/tests/test_mission_assurance_v2.py:22: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy - assert not True\n +  where True = MissionAssuranceVerdict(admissible=True, observations=500, hard_failure_count=1, hard_failure_interval=Interval(lower=...80810374340251, upper=1.0, confidence=0.95), p50_latency_ms=9.5, p95_latency_ms=18.05, p99_latency_ms=19.0, reasons=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:33:43+00:00"
+  }
+}

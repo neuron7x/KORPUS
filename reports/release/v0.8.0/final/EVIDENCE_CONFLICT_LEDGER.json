@@ -1,0 +1,30 @@
+{
+  "schema": "korpus.evidence-conflict-ledger.v1",
+  "release": "v0.8.0",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "fusion_rule": "same claim + same source digest + same release + compatible values only",
+  "items": [
+    {
+      "id": "CF-001",
+      "observation_a": "preliminary readiness 92.05 on source 10428c12…",
+      "observation_b": "final readiness 95.24 on source 40cad99b…",
+      "classification": "INCOMPATIBLE_CROSS_SOURCE_NOT_FUSED",
+      "resolution": "final source-bound campaign supersedes preliminary observation"
+    },
+    {
+      "id": "CF-002",
+      "observation_a": "earlier v0.8.0 current reports bound to prior source digests",
+      "observation_b": "final current reports bound to 40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "classification": "STALE_CURRENT_REJECTED",
+      "resolution": "regenerated and current-truth verifier PASS"
+    },
+    {
+      "id": "CF-003",
+      "observation_a": "historical migration/load reports do not expose a common top-level status field",
+      "observation_b": "v0.8.0 carry validators require exact baseline source identity plus report-specific structural success predicates",
+      "classification": "SCHEMA_VARIANCE_RESOLVED_WITH_EXPLICIT_VALIDATOR",
+      "resolution": "admitted only through regression carry-forward and negative validators"
+    }
+  ],
+  "unresolved_material_conflicts": 0
+}

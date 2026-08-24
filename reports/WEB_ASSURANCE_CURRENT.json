@@ -1,0 +1,14 @@
+{
+  "schema": "korpus.web-assurance-summary.v1",
+  "release": "v0.9.7",
+  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "tests": 146,
+  "passed": 146,
+  "failed": 0,
+  "skipped": 0,
+  "duration_ms": 176096.102471,
+  "command": "npm test",
+  "log_sha256": "8922df6ea89075e7a1abb6a70145fb908615998d16238b6c02ee98408763930f",
+  "evidence_class": "ANCHORED_LOCAL_EXECUTION",
+  "status": "PASS"
+}

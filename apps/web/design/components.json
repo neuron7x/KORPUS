@@ -1,0 +1,285 @@
+{
+  "version": "1.0.0",
+  "principles": [
+    "evidence-first",
+    "fail-closed",
+    "declared-is-not-verified",
+    "history-is-not-evidence",
+    "keyboard-operable",
+    "mobile-first-critical-actions"
+  ],
+  "components": [
+    {
+      "id": "button",
+      "selectors": [
+        "button",
+        ".primary",
+        ".secondary",
+        ".ghost",
+        ".link"
+      ],
+      "variants": [
+        "primary",
+        "secondary",
+        "ghost",
+        "link"
+      ],
+      "states": [
+        "default",
+        "hover",
+        "focus-visible",
+        "active",
+        "disabled"
+      ],
+      "contract": [
+        "preferred interactive height is 44px; compact controls remain >=24px",
+        "2px visible focus perimeter",
+        "text/icon has accessible name"
+      ]
+    },
+    {
+      "id": "composer",
+      "selectors": [
+        ".composer",
+        "#query",
+        "#submit"
+      ],
+      "variants": [
+        "idle",
+        "focused",
+        "pending",
+        "error"
+      ],
+      "states": [
+        "empty",
+        "typed",
+        "submitting",
+        "disabled"
+      ],
+      "contract": [
+        "Enter submits",
+        "Shift+Enter inserts newline",
+        "IME composition never submits",
+        "textarea auto-grows",
+        "submit exposes aria-busy"
+      ]
+    },
+    {
+      "id": "verdict",
+      "selectors": [
+        ".verdict",
+        ".verdict.ok",
+        ".verdict.withheld",
+        ".verdict.denied"
+      ],
+      "variants": [
+        "admitted",
+        "withheld",
+        "denied"
+      ],
+      "states": [
+        "rendered"
+      ],
+      "contract": [
+        "state is conveyed by text and structure, not color alone"
+      ]
+    },
+    {
+      "id": "citation",
+      "selectors": [
+        ".citation",
+        ".citation-index",
+        ".citation .meta"
+      ],
+      "variants": [
+        "source-evidence"
+      ],
+      "states": [
+        "rendered"
+      ],
+      "contract": [
+        "evidence remains independently scannable",
+        "source metadata stays adjacent to quoted span"
+      ]
+    },
+    {
+      "id": "identity-chip",
+      "selectors": [
+        ".chip.verified",
+        ".chip.declared"
+      ],
+      "variants": [
+        "verified",
+        "declared"
+      ],
+      "states": [
+        "present",
+        "absent"
+      ],
+      "contract": [
+        "declared context stays visually distinct from verified authorization"
+      ]
+    },
+    {
+      "id": "conversation-navigation",
+      "selectors": [
+        ".conversations",
+        ".conversation-row",
+        ".new-chat"
+      ],
+      "variants": [
+        "desktop-rail",
+        "tablet-strip",
+        "mobile-compact"
+      ],
+      "states": [
+        "loading",
+        "empty",
+        "active",
+        "archived"
+      ],
+      "contract": [
+        "history is context, never evidence",
+        "current conversation exposes aria-current",
+        "mobile disclosure starts collapsed"
+      ]
+    },
+    {
+      "id": "plan-card",
+      "selectors": [
+        ".plan-card",
+        ".plan-card.current-plan",
+        ".plan-card button"
+      ],
+      "variants": [
+        "available",
+        "current"
+      ],
+      "states": [
+        "idle",
+        "checkout-pending",
+        "disabled"
+      ],
+      "contract": [
+        "price/currency originate from server plan",
+        "payment handoff is explicit"
+      ]
+    },
+    {
+      "id": "trust-demo",
+      "selectors": [
+        ".trust-demo",
+        ".demo-answer",
+        ".demo-source"
+      ],
+      "variants": [
+        "landing-proof"
+      ],
+      "states": [
+        "static"
+      ],
+      "contract": [
+        "demonstrates epistemic policy without impersonating live production data"
+      ]
+    },
+    {
+      "id": "error-region",
+      "selectors": [
+        ".errors"
+      ],
+      "variants": [
+        "blocking"
+      ],
+      "states": [
+        "hidden",
+        "visible"
+      ],
+      "contract": [
+        "role=alert",
+        "programmatically focusable",
+        "actionable message"
+      ]
+    },
+    {
+      "id": "inference-status",
+      "selectors": [
+        "#inference-state"
+      ],
+      "variants": [
+        "off",
+        "provider-assisted",
+        "unknown"
+      ],
+      "states": [
+        "loading",
+        "disabled",
+        "enabled",
+        "unavailable"
+      ],
+      "contract": [
+        "provider assistance is visible without implying factual authority",
+        "status never exposes API keys or provider base URLs",
+        "answer authority remains extractive evidence"
+      ]
+    },
+    {
+      "id": "pixel-wordmark",
+      "selectors": [
+        ".pixel-wordmark",
+        ".pixel-wordmark .ltr",
+        ".pixel-wordmark .scan"
+      ],
+      "variants": [
+        "topbar",
+        "hero"
+      ],
+      "states": [
+        "idle",
+        "animated",
+        "reduced-motion"
+      ],
+      "contract": [
+        "visual identity only; animation never encodes operational state",
+        "prefers-reduced-motion disables motion"
+      ]
+    },
+    {
+      "id": "quick-action",
+      "selectors": [
+        ".quick-actions",
+        ".quick-action"
+      ],
+      "variants": [
+        "prefill"
+      ],
+      "states": [
+        "idle",
+        "hover",
+        "focus-visible"
+      ],
+      "contract": [
+        "only pre-fills the canonical query composer",
+        "cannot bypass identity, authorization, retrieval, evidence admission, or API transport"
+      ]
+    },
+    {
+      "id": "premium-trust",
+      "selectors": [
+        ".premium-trust",
+        ".premium-grid"
+      ],
+      "variants": [
+        "entry",
+        "workspace"
+      ],
+      "states": [
+        "collapsed",
+        "expanded"
+      ],
+      "contract": [
+        "describes implemented trust architecture, not external certification",
+        "native disclosure remains keyboard-operable"
+      ]
+    }
+  ]
+}

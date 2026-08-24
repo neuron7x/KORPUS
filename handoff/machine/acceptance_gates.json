@@ -1,0 +1,32 @@
+{
+  "schema": "korpus.local-handoff-acceptance-gates.v1",
+  "merge_blockers": [
+    "Any access leakage or cross-compartment noninterference failure",
+    "Any citation offset/hash mismatch or unsupported claim",
+    "Any surviving selected critical mutant relevant to the change",
+    "Any migration drift or irreversible migration without approved rollback",
+    "Any controlled-mode fallback to development identity, SQLite, mutable object storage or uncalibrated semantic retrieval",
+    "Any stale or mismatched source/evidence manifest"
+  ],
+  "required_for_each_agent_task": [
+    "value hypothesis",
+    "trust boundary",
+    "killable invariants",
+    "negative/null tests",
+    "acceptance predicates",
+    "forbidden changes",
+    "migration/rollback",
+    "executed evidence",
+    "unexecuted gates and debt"
+  ],
+  "production_gate": {
+    "current": false,
+    "required": [
+      "Live infrastructure evidence",
+      "real-corpus TEVV",
+      "independent security assessment",
+      "rights/classification approval",
+      "signed residual-risk authorization"
+    ]
+  }
+}

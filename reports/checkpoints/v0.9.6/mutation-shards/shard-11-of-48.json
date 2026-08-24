@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 11,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M11_REVIEW_SEPARATION_BYPASS",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_state_machine.py::test_controlled_review_separation_is_subject_based"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": " from korpus.domain.models import AccessTier, Identity\n        from korpus.main import create_app\n        from korpus.security.auth import get_identity\n    \n        from .helpers import ingest_text\n    \n        settings = Settings(\n            environment=\"test\",\n            database_url=f\"sqlite:///{tmp_path / 'separation.db'}\",\n            object_root=tmp_path / \"objects\",\n            audit_anchor_path=tmp_path / \"anchor.json\",\n            audit_hmac_key=\"test-audit-key\",\n            auth_mode=\"dev\",\n            dev_mode_acknowledgement=\"I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE\",\n            bind_host=\"127.0.0.1\",\n            review_separation_required=True,\n        )\n        identities = {\n            \"curator-a\": Identity(\n                subject=\"curator-a\",\n                roles=frozenset({\"curator\"}),\n                clearance=AccessTier.PUBLIC,\n                corpora=frozenset({\"public\"}),\n            ),\n            \"reviewer-a\": Identity(\n                subject=\"curator-a\",\n                roles=frozenset({\"reviewer\"}),\n                clearance=AccessTier.PUBLIC,\n                corpora=frozenset({\"public\"}),\n            ),\n            \"reviewer-b\": Identity(\n                subject=\"reviewer-b\",\n                roles=frozenset({\"reviewer\"}),\n                clearance=AccessTier.PUBLIC,\n                corpora=frozenset({\"public\"}),\n            ),\n            \"approver-c\": Identity(\n                subject=\"approver-c\",\n                roles=frozenset({\"reviewer\"}),\n                clearance=AccessTier.PUBLIC,\n                corpora=frozenset({\"public\"}),\n            ),\n        }\n        current = [identities[\"curator-a\"]]\n        app = create_app(settings)\n        app.dependency_overrides[get_identity] = lambda: current[0]\n        with TestClient(app) as client:\n            created = ingest_text(client)\n            version_id = created[\"version\"][\"id\"]\n            metadata = client.post(\n                f\"/v1/document-versions/{version_id}/review\",\n                json={\"target\": \"metadata_reviewed\", \"note\": \"metadata review complete\"},\n            )\n            assert metadata.status_code == 200\n            assert metadata.json()[\"metadata_reviewed_by\"] == \"curator-a\"\n    \n            current[0] = identities[\"reviewer-a\"]\n            same_subject = client.post(\n                f\"/v1/document-versions/{version_id}/review\",\n                json={\"target\": \"content_reviewed\", \"note\": \"content review attempted\"},\n            )\n>           assert same_subject.status_code == 409\nE           assert 200 == 409\nE            +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_state_machine.py:99: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_state_machine.py::test_controlled_review_separation_is_subject_based - assert 200 == 409\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M58_AS_OF_READS_LOCAL_CLOCK",
+      "file": "apps/api/src/korpus/domain/models.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_the_default_as_of_does_not_depend_on_the_host_timezone __________\n\n    def test_the_default_as_of_does_not_depend_on_the_host_timezone() -> None:\n        \"\"\"The same instant, two zones, one answer date.\"\"\"\n        previous = os.environ.get(\"TZ\")\n        try:\n            os.environ[\"TZ\"] = \"Etc/GMT+12\"\n            time.tzset()\n            west = QueryRequest(text=\"питання про дату\").as_of\n            os.environ[\"TZ\"] = \"Etc/GMT-14\"\n            time.tzset()\n            east = QueryRequest(text=\"питання про дату\").as_of\n        finally:\n            if previous is None:\n                os.environ.pop(\"TZ\", None)\n            else:\n                os.environ[\"TZ\"] = previous\n            time.tzset()\n    \n>       assert west == east == datetime.now(UTC).date(), (\n            \"validity is a property of the corpus, not of where the process runs\"\n        )\nE       AssertionError: validity is a property of the corpus, not of where the process runs\nE       assert datetime.date(2026, 8, 22) == datetime.date(2026, 8, 23)\n\napps/api/tests/test_rescission_and_clock.py:170: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_rescission_and_clock.py::test_the_default_as_of_does_not_depend_on_the_host_timezone - AssertionError: validity is a property of the corpus, not of where the process runs\nassert datetime.date(2026, 8, 22) == datetime.date(2026, 8, 23)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M102_SUPPORT_GATE_CANNOT_FAIL",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_support_gate.py::test_the_extraction_step_drops_a_claim_below_the_support_threshold"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "  \"\"\"Stated at the layer that decides, because a second line masks it end to end.\n    \n        A drifting claim that survives this gate is caught downstream by the check that a\n        quote must be a substring of its span (§2.0), and the answer is withheld either\n        way. So the behavioural test cannot tell a measured `support_score` from the\n        constant 1.0, and a mutation to the constant survives it. `_extract` is therefore\n        asked directly.\n        \"\"\"\n        from korpus.application.risk import RiskThresholds\n    \n        from apps.api.tests.test_intra_span_contradiction import _evidence\n    \n        evidence = _evidence(BODY)\n        service = DriftingService.__new__(DriftingService)\n        service.answer_policy = AnswerPolicy(\n            minimum_score=0.0,\n            minimum_query_coverage=0.0,\n            minimum_support_score=0.9,\n            calibration_id=\"test\",\n        )\n    \n        claims, citations, _covered = service._extract(\n            [evidence],\n            frozenset({\"журнал\"}),\n            RiskThresholds(\n                minimum_score=0.0,\n                minimum_query_coverage=0.0,\n                minimum_support_score=0.9,\n                minimum_authority=0.0,\n            ),\n        )\n    \n>       assert claims == []\nE       AssertionError: assert [Claim(text='...coverage=1.0)] == []\nE         \nE         Left contains one more item: Claim(text='Журнал ПІДТРИМКА підлягає негайному знищенню за розпорядженням чергового офіцера оперативного відділу.', e...c1-bd3c-86d394452537'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0)\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     Claim(text='Журнал ПІДТРИМКА підлягає негайному знищенню за розпорядженням чергового офіцера оперативного відділу.', evidence_span_ids=(UUID('a59d7ec3-4870-42c1-bd3c-86d394452537'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0),\nE         + ]\n\napps/api/tests/test_support_gate.py:105: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_support_gate.py::test_the_extraction_step_drops_a_claim_below_the_support_threshold - AssertionError: assert [Claim(text='...coverage=1.0)] == []\n  \n  Left contains one more item: Claim(text='Журнал ПІДТРИМКА підлягає негайному знищенню за розпорядженням чергового офіцера оперативного відділу.', e...c1-bd3c-86d394452537'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0)\n  \n  Full diff:\n  - []\n  + [\n  +     Claim(text='Журнал ПІДТРИМКА підлягає негайному знищенню за розпорядженням чергового офіцера оперативного відділу.', evidence_span_ids=(UUID('a59d7ec3-4870-42c1-bd3c-86d394452537'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0),\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M125_EXPORT_SHIPS_A_BROKEN_CHAIN_LINK",
+      "file": "apps/api/src/korpus/application/audit_export.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_export.py::test_a_broken_link_is_refused_even_when_the_sequences_are_consecutive"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_a_broken_link_is_refused_even_when_the_sequences_are_consecutive _____\n\n    def test_a_broken_link_is_refused_even_when_the_sequences_are_consecutive() -> None:\n        \"\"\"Renumbering a forged event is not enough: the chain has to join as well.\"\"\"\n        rows = _rows(3)\n        rows[2][\"previous_hash\"] = hashlib.sha256(b\"somewhere else\").hexdigest()\n    \n>       with pytest.raises(ExportContinuityError, match=\"does not link\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.audit_export.ExportContinuityError'>\n\napps/api/tests/test_audit_export.py:115: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_export.py::test_a_broken_link_is_refused_even_when_the_sequences_are_consecutive - Failed: DID NOT RAISE <class 'korpus.application.audit_export.ExportContinuityError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M131_STALE_OBSERVATION_ACCEPTED",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_an_observation_past_the_limit_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_an_observation_past_the_limit_is_refused _________________\n\n    def test_an_observation_past_the_limit_is_refused() -> None:\n        taken = (NOW - timedelta(seconds=drift.DEFAULT_MAX_AGE_SECONDS + 1)).isoformat()\n        admissible, reason = drift.observation_age_admissible(taken, NOW)\n>       assert not admissible\nE       assert not True\n\napps/api/tests/test_environment_drift.py:214: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_an_observation_past_the_limit_is_refused - assert not True\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M215_PARTIAL_MUTATION_SCOPE_PROMOTED",
+      "file": "apps/api/src/korpus/application/production_assurance_external.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_partial_mutation_scope_cannot_promote_production"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_partial_mutation_scope_cannot_promote_production _____________\n\n    def test_partial_mutation_scope_cannot_promote_production() -> None:\n        gates = _sound_gates()\n        gates[\"mutation\"][\"scope\"] = \"PROBE\"\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n>       assert \"mutation.full_catalogue\" in verdict.failures\nE       AssertionError: assert 'mutation.full_catalogue' in ()\nE        +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n\napps/api/tests/test_production_assurance.py:89: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_partial_mutation_scope_cannot_promote_production - AssertionError: assert 'mutation.full_catalogue' in ()\n +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M263_CONTAINER_IMAGE_SCAN_MARKER_IGNORED",
+      "file": "apps/api/src/korpus/application/supply_chain_scanners.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_scan_marker_requires_both_image_scans_exit_zero"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_container_scan_marker_requires_both_image_scans_exit_zero ________\n\n    def test_container_scan_marker_requires_both_image_scans_exit_zero() -> None:\n        clean = {\"status\": \"PASS\", \"worst_exit_code\": 0, \"scanners\": [\n            {\"scanner\": \"trivy:api-image\", \"exit_code\": 0},\n            {\"scanner\": \"trivy:web-image\", \"exit_code\": 0},\n        ]}\n        assert container_scan_marker_clean(clean) is True\n        clean[\"scanners\"].pop()\n>       assert container_scan_marker_clean(clean) is False\nE       AssertionError: assert True is False\nE        +  where True = container_scan_marker_clean({'scanners': [{'exit_code': 0, 'scanner': 'trivy:api-image'}], 'status': 'PASS', 'worst_exit_code': 0})\n\napps/api/tests/test_supply_chain_evidence_boundary.py:68: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_scan_marker_requires_both_image_scans_exit_zero - AssertionError: assert True is False\n +  where True = container_scan_marker_clean({'scanners': [{'exit_code': 0, 'scanner': 'trivy:api-image'}], 'status': 'PASS', 'worst_exit_code': 0})\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T14:56:31+00:00"
+  }
+}

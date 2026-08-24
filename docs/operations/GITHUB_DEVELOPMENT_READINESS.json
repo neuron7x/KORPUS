@@ -1,0 +1,56 @@
+{
+  "schema": "korpus.github-development-readiness.v1",
+  "observed_at": "2026-08-12T21:15:48+03:00",
+  "repository": "neuron7x/KORPUS",
+  "visibility": "private",
+  "default_branch": "main",
+  "release_commit": "9183924cf554b0e4d0f928fcd6eeb259ed69e9bf",
+  "development_verdict": "PASS_WITH_EXTERNAL_BLOCKERS",
+  "production_authorized": false,
+  "controls": {
+    "issue_branch_worktree_pr_contract": {
+      "status": "VERIFIED_SOURCE_AND_PROCESS",
+      "evidence": [
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "scripts/create_agent_worktree.sh",
+        "https://github.com/neuron7x/KORPUS/issues/1"
+      ]
+    },
+    "canonical_code_owner": {
+      "status": "VERIFIED_SOURCE",
+      "evidence": [".github/CODEOWNERS", "@neuron7x"]
+    },
+    "branch_protection": {
+      "status": "BLOCKED_EXTERNAL",
+      "observation": "GitHub API returned HTTP 403: Upgrade to GitHub Pro or make this repository public to enable this feature.",
+      "consequence": "CODEOWNERS and pull-request policy are documented controls, not enforceable merge predicates. Direct pushes remain technically possible.",
+      "resolution": "Upgrade the account/plan or change repository visibility only by explicit owner decision, then configure and re-observe branch protection."
+    },
+    "github_actions": {
+      "status": "BLOCKED_EXTERNAL",
+      "observation": "Workflow and Dependabot runs terminate with startup_failure before jobs execute because the account is locked due to a billing issue.",
+      "consequence": "Required source workflows exist but provide no executed GitHub evidence and cannot be required checks.",
+      "resolution": "Resolve the account billing lock, rerun representative workflows, and bind observed check names into branch protection."
+    },
+    "vulnerability_alerts": {
+      "status": "ENABLED_EXTERNAL",
+      "observation": "GitHub REST API returned HTTP 204 when enabling vulnerability alerts on 2026-08-12."
+    },
+    "automated_security_fixes": {
+      "status": "ENABLED_EXTERNAL",
+      "observation": "GitHub REST API returned HTTP 204 when enabling automated security fixes on 2026-08-12."
+    },
+    "production_external_debt": {
+      "status": "BLOCKED_EXTERNAL",
+      "count": 9,
+      "evidence": [
+        "docs/operations/CURRENT_STATUS.md",
+        "docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json"
+      ],
+      "consequence": "Development may proceed on synthetic/open data, but production authorization remains false."
+    }
+  },
+  "allowed_next_state": "Issue-scoped development on isolated branches/worktrees with local evidence and draft PR review.",
+  "forbidden_inference": "This report does not claim protected main, functioning GitHub CI, independent verification, or production authorization."
+}

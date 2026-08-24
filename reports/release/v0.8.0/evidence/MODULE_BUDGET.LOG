@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "modules": 274,
+  "unbudgeted": [],
+  "violations": [],
+  "improvements_to_record": [
+    "scripts/build_readiness_947_evidence.py: now 305 lines / complexity 7 against a ceiling of 310 / 8",
+    "scripts/chaos_matrix.py: now 383 lines / complexity 8 against a ceiling of 390 / 8",
+    "scripts/verify_package.py: now 89 lines / complexity 5 against a ceiling of 95 / 5",
+    "scripts/zip_safety.py: now 140 lines / complexity 8 against a ceiling of 150 / 12"
+  ],
+  "largest": [
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "lines": 3313,
+      "max_complexity": 21,
+      "worst_function": "main"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "lines": 1041,
+      "max_complexity": 13,
+      "worst_function": "initialize"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "lines": 848,
+      "max_complexity": 23,
+      "worst_function": "main"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure_requirements.py",
+      "lines": 666,
+      "max_complexity": 12,
+      "worst_function": "_service_requirements"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "lines": 589,
+      "max_complexity": 25,
+      "worst_function": "_validate_type_path"
+    }
+  ]
+}

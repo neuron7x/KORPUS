@@ -1,0 +1,14 @@
+{
+  "schema": "korpus.web-regression-report.v1",
+  "release": "v0.8.2",
+  "status": "PASS",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "tests": 142,
+  "passed": 142,
+  "failed": 0,
+  "skipped": 0,
+  "execution": "8 ordinary Node test files executed per file; validate_gate.test.mjs split into 4 name groups plus one apostrophe-containing exact test; all 61 validate-gate tests executed",
+  "lint": "PASS",
+  "build": "PASS",
+  "web_contract": "PASS"
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "korpus.local-handoff-state.v3",
+  "canonical_release": "v0.9.7",
+  "handoff_release": "v0.9.7",
+  "production_authorized": false,
+  "source_digest": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "regression": {
+    "collection_count": 2345,
+    "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
+    "full_current_freeze": {
+      "status": "PASS",
+      "shards": 64,
+      "tests": 2345,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "KORPUS_POSTGRES_TEST_URL is not configured"
+    }
+  },
+  "mutation": {
+    "catalogue": 349,
+    "full_current_freeze": {
+      "status": "PASS",
+      "valid_mutants": 349,
+      "killed": 349,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "mutation_score_over_catalogue": 1.0
+    }
+  },
+  "web": {
+    "lint": "PASS",
+    "build": "PASS",
+    "functional": {
+      "tests": 84,
+      "passed": 84,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "long_validate_gate": {
+      "catalogue": 62,
+      "completed": 62,
+      "passed": 62,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "full_node_suite": {
+      "tests": 146,
+      "passed": 146,
+      "failed": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "browser_e2e": {
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "status": "PASS",
+      "network_navigation_executed": false,
+      "oidc_session_executed": false
+    }
+  },
+  "ratchets": {
+    "modules": 456,
+    "module_violations": 0,
+    "module_unbudgeted": 0,
+    "workflows": 10,
+    "workflow_policy_findings": 0
+  },
+  "production_hard_predicates": {
+    "total": 14,
+    "software_ready": 14,
+    "externally_satisfied": 0,
+    "production_satisfied": 0
+  },
+  "external_evidence": {
+    "live_postgres_rls": "UNKNOWN",
+    "production_like_load_soak": "UNKNOWN",
+    "independent_tevv": "UNKNOWN",
+    "external_independent_redteam": "UNKNOWN",
+    "hosted_builder_provenance": "UNKNOWN",
+    "trusted_release_signing": "UNKNOWN",
+    "human_pec_production_judgments": 0,
+    "hosted_vulnerability_scanners": "UNKNOWN"
+  },
+  "canonical_identity": "apps/api/src/korpus/release.json + SOURCE_MANIFEST.json + PACKAGE_BUILD.json",
+  "audit": {
+    "findings_total": 99,
+    "status_counts": {
+      "CLOSED_LOCAL": 24,
+      "EXTERNAL_DEBT": 9,
+      "MITIGATED_LOCAL": 66
+    },
+    "remaining_total": 75,
+    "remaining_by_severity": {
+      "P0": 19,
+      "P1": 46,
+      "P2": 10
+    }
+  },
+  "determinism": {
+    "status": "PASS",
+    "python_hash_seeds": [
+      0,
+      1,
+      42,
+      31337
+    ],
+    "tests_per_seed": 66,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "unique_outcome_digests": 1,
+    "unique_semantic_replay_digests": 1
+  },
+  "portable_evidence": {
+    "manifest": "handoff/evidence/current/MANIFEST.json",
+    "files": 224
+  }
+}

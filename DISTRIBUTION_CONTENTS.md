@@ -1,18 +1,11 @@
-# Вміст технічного пакета
+# KORPUS v0.9.7 distribution contract
 
-Цей пакет містить вихідний код і повний комплект технічної та теоретичної
-документації стартового рівня.
+This release is constructed from one **gitless canonical source snapshot** inside the ChatGPT
+execution environment. The source boundary is byte-inventoried by `SOURCE_MANIFEST.json`; no Git
+commit or historical branch identity is invented. The final recovery envelope contains the clean
+source tree plus the byte-preserved uploaded predecessor under `LINEAGE/`, so provenance recovery
+does not require contaminating the source tree with a nested archive.
 
-Для огляду почати з:
-
-1. `docs/EXECUTIVE_TECHNICAL_BRIEF.md` — загальна технічна концепція;
-2. `docs/product/SPECIFICATION.md` — продуктова специфікація;
-3. `docs/architecture/SYSTEM.md` — архітектура;
-4. `docs/architecture/SECURITY.md` — модель загроз і контролі;
-5. `docs/protocols/INGESTION.md` — підключення документів;
-6. `docs/product/ROADMAP.md` — план реалізації;
-7. `README.md` — локальний запуск.
-
-До пакета навмисно не включаються кеші, встановлені залежності, секрети,
-віртуальні середовища, Git-історія та вихідні корпусні документи.
-
+Generated local assurance evidence is explicitly identified as local and cannot satisfy predicates
+that require independent assessment, production-like PostgreSQL, a trusted hosted builder or exact
+deployment attestation. `reports/PRODUCTION_ASSURANCE_REPORT.json` remains the production authority.

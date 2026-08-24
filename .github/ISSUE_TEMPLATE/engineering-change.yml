@@ -1,0 +1,61 @@
+name: Engineering change
+about: Falsifiable engineering change request
+title: "[ENG] "
+labels: []
+body:
+  - type: textarea
+    id: value
+    attributes:
+      label: Value hypothesis
+      description: Which user/system outcome should improve, and why is this the smallest valuable change?
+    validations:
+      required: true
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Trust boundary touched
+      description: Which identities, data, tools, services, permissions, or release controls may be affected?
+    validations:
+      required: true
+  - type: textarea
+    id: invariants
+    attributes:
+      label: Invariants that may fall
+      description: List the properties that must remain true and identify the critical invariant.
+    validations:
+      required: true
+  - type: textarea
+    id: adversarial
+    attributes:
+      label: Null and adversarial tests
+      description: What counterexample, negative control, mutation, or failure injection can reject the mechanism?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance predicates
+      description: State observable pass/fail predicates. Avoid aggregate metrics that can hide a critical failure.
+    validations:
+      required: true
+  - type: textarea
+    id: forbidden
+    attributes:
+      label: Forbidden changes
+      description: What must not change, expand, weaken, access, or be inferred from this work?
+    validations:
+      required: true
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback and data migration
+      description: Define the smallest reversible rollback, compatibility boundary, and migration/reconciliation path.
+    validations:
+      required: true
+  - type: textarea
+    id: verifier
+    attributes:
+      label: Evidence expected from the verifier
+      description: Exact commands, artifacts, environments, and independent observations required for a verdict.
+    validations:
+      required: true

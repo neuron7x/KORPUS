@@ -4,27 +4,40 @@ build-backend = "hatchling.build"
 
 [project]
 name = "korpus-api"
-version = "0.1.0"
-description = "Evidence-first knowledge platform API"
+version = "0.9.7"
+description = "Evidence-bound controlled-corpus platform API"
 requires-python = ">=3.12"
 dependencies = [
-  "fastapi>=0.116,<1",
-  "pydantic>=2.11,<3",
-  "pydantic-settings>=2.10,<3",
+  "alembic>=1.18,<2",
+  "boto3>=1.43,<2",
+  "fastapi>=0.128,<1",
+  "httpx>=0.28,<1",
+  "opentelemetry-api>=1.42,<2",
+  "opentelemetry-exporter-otlp-proto-grpc>=1.42,<2",
+  "opentelemetry-sdk>=1.42,<2",
+  "orjson>=3.11,<4",
+  "pydantic>=2.13,<3",
+  "pydantic-settings>=2.14,<3",
+  "prometheus-client>=0.25,<1",
+  "PyJWT[crypto]>=2.10,<3",
+  "pypdf>=6.14,<7",
+  "python-multipart>=0.0.20,<1",
+  "sqlalchemy>=2.0.50,<3",
   "uvicorn[standard]>=0.35,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "httpx>=0.28,<1",
-  "hypothesis>=6.100,<7",
-  "jsonschema>=4.23,<5",
-  "mypy>=1.16,<2",
-  "pytest>=8.4,<9",
-  "pytest-asyncio>=1.1,<2",
-  "pytest-cov>=6.2,<7",
-  "ruff>=0.12,<1",
+  "mypy>=2.3,<3",
+  "pytest>=9,<10",
+  "pytest-asyncio>=1.3,<2",
+  "pytest-cov>=7,<8",
+  "ruff>=0.15.22,<1",
 ]
+postgres = ["psycopg[binary]>=3.2,<4"]
+
+[project.scripts]
+korpus = "korpus.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/korpus"]
@@ -32,13 +45,49 @@ packages = ["src/korpus"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-q --strict-markers"
-asyncio_mode = "auto"
+addopts = "-q --strict-markers --strict-config"
+markers = [
+  "integration: database/API integration test",
+  "postgres: PostgreSQL service-container integration test",
+  "adversarial: attack-oriented test",
+  "concurrency: concurrent state or transaction test",
+  "metamorphic: metamorphic or noninterference property",
+]
 
-# Lint configuration lives in the repository-root ruff.toml so that every path —
-# apps, scripts and tools — is checked under identical rules in CI and locally.
+# The [tool.ruff] section that used to live here has moved to /ruff.toml.
+# Keeping it meant ruff resolved two different rule sets in one command: files under
+# apps/api/ took this narrow selection (E4, E7, E9, F, B) while scripts/ walked past
+# the repository root and took whatever pyproject.toml sat above the checkout. Adding
+# a root config did not fix it — this file was nearer, so it still won for apps/api,
+# and 233 violations stayed invisible. One config, at the root, is the only
+# arrangement where the same command means the same thing for every path.
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
 packages = ["korpus"]
+plugins = ["pydantic.mypy"]
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_optional = true
+warn_return_any = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+strict_equality = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pypdf.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+branch = true
+source = ["korpus"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 82
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "if __name__ == .__main__.:",
+]

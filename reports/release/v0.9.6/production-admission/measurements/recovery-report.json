@@ -1,0 +1,28 @@
+{
+  "schema_version": 2,
+  "status": "PASS",
+  "scale_class": "ci-fixture",
+  "environment_class": "CI_FIXTURE",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "rto_seconds": 15.905,
+  "restore_seconds": 15.809,
+  "verify_seconds": 0.096,
+  "rpo_seconds": 16.502,
+  "lost_events": 0,
+  "lost_documents": 5,
+  "provenance": {
+    "backup_bytes": 419882,
+    "plaintext_bytes": 419840,
+    "document_rows": 4,
+    "audit_event_rows": 4,
+    "source_audit_event_rows": 4,
+    "writes_after_backup": 5,
+    "newest_source_write": "2026-08-22T20:37:58.909106+00:00",
+    "newest_restored_write": "2026-08-22T20:37:42.407302+00:00",
+    "engine_version": "3.46.1",
+    "measured_at": "2026-08-22T20:38:21.613983+00:00",
+    "backup_key_id": "sqlite-drill"
+  },
+  "interpretation": "Recovery time and loss measured against a CI fixture database. It is evidence that the drill runs and that the numbers are collected, not evidence about operational recovery: no RTO or RPO objective has been declared by anyone entitled to declare one (admission ground 2.9)."
+}

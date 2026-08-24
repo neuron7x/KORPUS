@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 9,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M09_CLASSIFICATION_GATE_REMOVED",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_more_edges.py::test_access_tier_parse_and_document_decision"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "suer=\"Issuer\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.RESTRICTED,\n            classification=\"restricted\",\n        )\n        from korpus.application.policy import PolicyEngine\n    \n        policy = PolicyEngine()\n        decision = policy.can_access_document(public_identity, document)\n        assert decision.allowed is False\n    \n        tier_only = DocumentRecord(\n            canonical_title=\"Tier-gated public-classification document\",\n            corpus_id=\"public\",\n            issuer=\"Issuer\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.RESTRICTED,\n            classification=\"public\",\n        )\n        assert policy.can_access_document(public_identity, tier_only).allowed is False\n    \n        classification_only = DocumentRecord(\n            canonical_title=\"Classification-gated document\",\n            corpus_id=\"public\",\n            issuer=\"Issuer\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.PUBLIC,\n            classification=\"restricted\",\n        )\n>       assert policy.can_access_document(public_identity, classification_only).allowed is False\nE       AssertionError: assert True is False\nE        +  where True = PolicyDecision(allowed=True, reason='authorized').allowed\nE        +    where PolicyDecision(allowed=True, reason='authorized') = can_access_document(Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset()), DocumentRecord(id=UUID('7f64c211-f972-4496-8e23-c7d6a08b625f'), canonical_title='Classification-gated document', corpu... compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 14, 55, 53, 607972, tzinfo=datetime.timezone.utc)))\nE        +      where can_access_document = <korpus.application.policy.PolicyEngine object at 0x7f15756181a0>.can_access_document\n\napps/api/tests/test_more_edges.py:64: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_more_edges.py::test_access_tier_parse_and_document_decision - AssertionError: assert True is False\n +  where True = PolicyDecision(allowed=True, reason='authorized').allowed\n +    where PolicyDecision(allowed=True, reason='authorized') = can_access_document(Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset()), DocumentRecord(id=UUID('7f64c211-f972-4496-8e23-c7d6a08b625f'), canonical_title='Classification-gated document', corpu... compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 14, 55, 53, 607972, tzinfo=datetime.timezone.utc)))\n +      where can_access_document = <korpus.application.policy.PolicyEngine object at 0x7f15756181a0>.can_access_document\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M56_RESCISSION_STATE_GUARD_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_rescission_and_clock.py::test_withdrawing_twice_is_refused_as_already_withdrawn"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_withdrawing_twice_is_refused_as_already_withdrawn ____________\n\nclient = <starlette.testclient.TestClient object at 0x7fbc7d8a81a0>\n\n    def test_withdrawing_twice_is_refused_as_already_withdrawn(client: TestClient) -> None:\n        \"\"\"And says so: \"already rescinded\" and \"write raced\" are different operator states.\n    \n        The row guard alone also produces a 409, by way of a zero-row update reported as a\n        concurrency failure — which would send an operator looking for a second writer that\n        does not exist. The state check names the actual condition, and the first\n        withdrawal's date must survive the second attempt.\n        \"\"\"\n        result = ingest_text(client, text=BODY)\n        approve(client, result[\"version\"][\"id\"])\n        body = {\"note\": \"withdrawn by the issuing authority on exercise order 12\"}\n        first = client.post(f\"/v1/document-versions/{result['version']['id']}/rescission\", json=body)\n        stamped = first.json()[\"rescinded_at\"]\n    \n        second = client.post(f\"/v1/document-versions/{result['version']['id']}/rescission\", json=body)\n    \n        assert second.status_code == 409\n>       assert \"already rescinded\" in second.json()[\"detail\"], second.json()[\"detail\"]\nE       AssertionError: transaction retry budget exhausted\nE       assert 'already rescinded' in 'transaction retry budget exhausted'\n\napps/api/tests/test_rescission_and_clock.py:113: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_rescission_and_clock.py::test_withdrawing_twice_is_refused_as_already_withdrawn - AssertionError: transaction retry budget exhausted\nassert 'already rescinded' in 'transaction retry budget exhausted'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M100_CITATION_SPAN_HASH_NOT_BOUND_TO_THE_SPAN",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_span_lookup.py::test_the_answer_citation_resolves_to_a_span_that_contains_the_quote"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_the_answer_citation_resolves_to_a_span_that_contains_the_quote ______\n\nclient = <starlette.testclient.TestClient object at 0x7fe28b4e4440>\n\n    def test_the_answer_citation_resolves_to_a_span_that_contains_the_quote(\n        client: TestClient,\n    ) -> None:\n        \"\"\"The link that was missing: quote → span → document.\"\"\"\n        result = ingest_text(client, text=STRUCTURED)\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = client.post(\"/v1/answers\", json={\"text\": f\"як ведеться журнал {MARKER}\"}).json()\n        assert answer[\"status\"] == \"answered\", answer[\"decision_reason\"]\n        citation = answer[\"citations\"][0]\n    \n        span = client.get(f\"/v1/spans/{citation['span_id']}\").json()\n    \n        assert span[\"text\"][citation[\"quote_start\"] : citation[\"quote_end\"]] == citation[\"quote\"]\n>       assert span[\"text_hash\"] == citation[\"span_hash\"]\nE       AssertionError: assert '0d64dc42da01...a67f07c1ab979' == ''\nE         \nE         + 0d64dc42da012061a8e7818c09385e95997ef86d8ec750e60eaa67f07c1ab979\n\napps/api/tests/test_span_lookup.py:87: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_span_lookup.py::test_the_answer_citation_resolves_to_a_span_that_contains_the_quote - AssertionError: assert '0d64dc42da01...a67f07c1ab979' == ''\n  \n  + 0d64dc42da012061a8e7818c09385e95997ef86d8ec750e60eaa67f07c1ab979\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M131_REQUIRED_SEMANTIC_MODE_FALLS_BACK_SILENTLY",
+      "file": "apps/api/src/korpus/application/embedding_coverage.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_coverage.py::test_required_semantic_mode_refuses_an_incomplete_index"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_required_semantic_mode_refuses_an_incomplete_index ____________\n\n    def test_required_semantic_mode_refuses_an_incomplete_index() -> None:\n        \"\"\"The policy says required semantic mode never silently falls back.\"\"\"\n        allowed, reason = semantic_retrieval_admissible(_coverage(spans_embedded_active=99))\n    \n>       assert allowed is False\nE       assert True is False\n\napps/api/tests/test_embedding_coverage.py:88: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_coverage.py::test_required_semantic_mode_refuses_an_incomplete_index - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M127_UNDECLARED_ARTEFACT_IGNORED",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_undeclared_artefact_is_extra_not_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_undeclared_artefact_is_extra_not_drift __________________\n\n    def test_undeclared_artefact_is_extra_not_drift() -> None:\n        report = drift.compare(APPROVED, {**APPROVED, \"rogue.yml\": \"d\" * 64})\n        extra = report.of_state(drift.EXTRA)\n>       assert [finding.path for finding in extra] == [\"rogue.yml\"]\nE       AssertionError: assert [] == ['rogue.yml']\nE         \nE         Right contains one more item: 'rogue.yml'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'rogue.yml',\nE         - ]\n\napps/api/tests/test_environment_drift.py:68: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_undeclared_artefact_is_extra_not_drift - AssertionError: assert [] == ['rogue.yml']\n  \n  Right contains one more item: 'rogue.yml'\n  \n  Full diff:\n  + []\n  - [\n  -     'rogue.yml',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M213_NON_POSTGRES_BACKEND_PROMOTED",
+      "file": "apps/api/src/korpus/application/production_assurance_external.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_non_postgres_backend_cannot_promote_production"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_non_postgres_backend_cannot_promote_production ______________\n\n    def test_non_postgres_backend_cannot_promote_production() -> None:\n        gates = _sound_gates()\n        gates[\"postgres_security\"][\"backend\"] = \"sqlite\"\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n>       assert \"postgres.real_backend\" in verdict.failures\nE       AssertionError: assert 'postgres.real_backend' in ()\nE        +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n\napps/api/tests/test_production_assurance.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_non_postgres_backend_cannot_promote_production - AssertionError: assert 'postgres.real_backend' in ()\n +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M261_TEVV_EVIDENCE_SCHEMA_BYPASSED",
+      "file": "scripts/run_tevv_production_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_wrong_evidence_schema_fails_closed"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_trusted_tevv_wrong_evidence_schema_fails_closed _____________\n\n    def test_trusted_tevv_wrong_evidence_schema_fails_closed() -> None:\n        evidence, _ = _evidence()\n        evidence[\"schema\"] = \"korpus.tevv-evidence.v1\"\n        result = _trusted_result(evidence)\n>       assert result[\"status\"] == \"FAIL\"\nE       AssertionError: assert 'PASS' == 'FAIL'\nE         \nE         - FAIL\nE         + PASS\n\napps/api/tests/test_tevv_attestation_boundary.py:145: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_wrong_evidence_schema_fails_closed - AssertionError: assert 'PASS' == 'FAIL'\n  \n  - FAIL\n  + PASS\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T14:55:59+00:00"
+  }
+}

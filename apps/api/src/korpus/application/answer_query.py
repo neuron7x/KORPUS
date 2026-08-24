@@ -1,191 +1,561 @@
-"""Answer orchestration.
+from __future__ import annotations
 
-The order of operations is the security property here, not an implementation
-detail: authorize, retrieve inside authorized tiers only, filter by review state and
-validity, rank by authority, apply the evidence threshold, and only then let a
-generator see anything. Every exit path records one audit event.
-"""
-
-import asyncio
+import hashlib
 from dataclasses import dataclass
-from uuid import uuid4
+from datetime import date
 
-from korpus.application.evidence import EvidenceLimits, gather
-from korpus.application.ports import AuditSink, Clock, Generator, Retriever
-from korpus.application.verification import verify
-from korpus.domain.access import Principal
-from korpus.domain.authority import conflicting_versions
-from korpus.domain.models import Answer, AnswerStatus, Citation, Claim, Query
-
-ABSTENTION_TEXT = "У перевіреному корпусі недостатньо даних для надійної відповіді."
-ACCESS_DENIED_TEXT = "Запитаний корпус недоступний для вашого рівня доступу."
-REVIEW_TEXT = "Відповідь затримано: потрібна перевірка людиною."
+from korpus.application.answer_analysis import (
+    ScopeBreach,
+    SentenceCandidate,
+    confine_to_top_authority,
+    contains_control_injection,
+    find_contradiction,
+    scope_breaches,
+    sentence_candidates,
+    source_limitations,
+    unsourced_quotes,
+)
+from korpus.application.answer_audit import append_answer_audit
+from korpus.application.answer_retrieval_gate import apply_retrieval_gate
+from korpus.application.composition import AnswerComposer, Composition, compose_answer
+from korpus.application.egress import ModelEgressPolicy
+from korpus.application.evidence_admission import eligible_evidence
+from korpus.application.evidence import (
+    SupportVerdict,
+    assess_control_injection,
+    extractive_support,
+    verify_claim_support,
+)
+from korpus.application.policy import PolicyEngine
+from korpus.application.pec_retrieval import adaptive_retrieval
+from korpus.application.predictive_evidence_control import (
+    ControllerTrace,
+    PredictiveEvidenceController,
+)
+from korpus.application.ports import Repository, Retriever
+from korpus.application.query_plan import QueryPlan, QueryPlanner
+from korpus.application.retrieval import (
+    RetrievalDeadlineExceeded,
+    RetrievalUnavailable,
+    tokenize,
+)
+from korpus.application.risk import (
+    QueryRisk,
+    RiskThresholds,
+    classify_query_risk,
+    risk_adjusted_thresholds,
+)
+from korpus.domain.models import (
+    AccessTier,
+    Answer,
+    AnswerStatus,
+    Citation,
+    Claim,
+    Identity,
+    QueryRequest,
+    RetrievedEvidence,
+    SupportState,
+)
 
 
 @dataclass(frozen=True)
 class AnswerPolicy:
-    minimum_score: float = 0.72
-    minimum_approved_spans: int = 1
-    maximum_spans: int = 8
-    generator_timeout_seconds: float = 30.0
-    # Candidates are fetched wider than the answer, because eligibility is decided
-    # here and not in the index: asking for exactly `maximum_spans` lets unapproved,
-    # superseded or adversary-authored chunks with a better lexical match crowd the
-    # governing source out of the candidate set before it is ever examined.
-    candidate_multiplier: int = 8
+    minimum_score: float
+    minimum_query_coverage: float
+    minimum_support_score: float
+    calibration_id: str
+    max_claims: int = 4
+
+    def eligible(
+        self, evidence: list[RetrievedEvidence], risk: QueryRisk = QueryRisk.STANDARD
+    ) -> list[RetrievedEvidence]:
+        thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.minimum_score,
+            minimum_query_coverage=self.minimum_query_coverage,
+            minimum_support_score=self.minimum_support_score,
+        )
+        return eligible_evidence(evidence, thresholds)
 
 
-class AnswerQuery:
+class ExtractiveAnswerService:
     def __init__(
         self,
+        repository: Repository,
         retriever: Retriever,
-        generator: Generator,
-        audit: AuditSink,
-        policy: AnswerPolicy,
-        clock: Clock,
+        policy_engine: PolicyEngine,
+        answer_policy: AnswerPolicy,
+        query_planner: QueryPlanner | None = None,
+        answer_composer: AnswerComposer | None = None,
+        egress_policy: ModelEgressPolicy | None = None,
+        predictive_controller: PredictiveEvidenceController | None = None,
     ) -> None:
-        self._retriever = retriever
-        self._generator = generator
-        self._audit = audit
-        self._policy = policy
-        self._clock = clock
+        self.repository = repository
+        self.retriever = retriever
+        self.policy_engine = policy_engine
+        self.answer_policy = answer_policy
+        #: Optional by construction. Absent, this service behaves exactly as it did
+        #: before one existed — which is what every failure of a present one degrades to.
+        self.query_planner = query_planner
+        #: Arranges the retrieved sentences and proposes one opening line. Absent, or
+        #: refused, the answer is the extract exactly as it was.
+        self.answer_composer = answer_composer
+        #: GOV-006. Governs whether the material a composer would send may leave the
+        #: deployment for its classification. Absent, no ceiling is applied — the seam a
+        #: test uses to build the service without a corpus posture, and the pre-existing
+        #: behaviour of every service that never had one. The composition root always
+        #: supplies it.
+        self.egress_policy = egress_policy
+        self.predictive_controller = predictive_controller
 
-    @property
-    def limits(self) -> EvidenceLimits:
-        return EvidenceLimits(
-            minimum_score=self._policy.minimum_score,
-            maximum_spans=self._policy.maximum_spans,
-            candidate_multiplier=self._policy.candidate_multiplier,
+    def execute(self, identity: Identity, query: QueryRequest) -> Answer:
+        corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
+        release_id = self.repository.corpus_release_id(identity, corpora, query.as_of)
+        injection = assess_control_injection(query.text)
+        if injection.blocked:
+            answer = self._abstain(
+                release_id,
+                "query_control_injection",
+                "Запит містить інструкції керування системою замість предметного питання.",
+                limitations=[f"Injection signals: {', '.join(injection.reasons)}"],
+            )
+            self._audit(identity, query, answer, [], [], classify_query_risk(query.text))
+            return answer
+
+        risk = classify_query_risk(query.text)
+        retrieval_thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.answer_policy.minimum_score,
+            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
+            minimum_support_score=self.answer_policy.minimum_support_score,
         )
-
-    async def execute(self, query: Query, principal: Principal) -> Answer:
-        trace_id = uuid4()
-
-        gathered = await gather(
-            self._retriever, query, principal, self.limits, self._clock.now()
-        )
-        decision = gathered.decision
-        if gathered.denied:
-            answer = Answer(
-                trace_id=trace_id,
-                status=AnswerStatus.ACCESS_DENIED,
-                text=ACCESS_DENIED_TEXT,
-                confidence=0,
-                limitations=["Запит не виконувався: доступ до корпусу не надано."],
-            )
-            await self._record(
-                answer,
-                principal,
-                retrieved=0,
-                eligible=0,
-                extra={
-                    "denial_reason": decision.reason.value if decision.reason else None,
-                    "denied_corpora": len(decision.denied_corpora),
-                },
-            )
-            return answer
-
-        if gathered.breached:
-            await self._audit.record(
-                "evidence.tier_violation",
-                {"trace_id": str(trace_id), "spans": gathered.leaked},
-            )
-            answer = Answer(
-                trace_id=trace_id,
-                status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                text=REVIEW_TEXT,
-                confidence=0,
-                limitations=["Ретривер повернув матеріал поза рівнем доступу читача."],
-            )
-            await self._record(answer, principal, gathered.retrieved, 0)
-            return answer
-
-        eligible = gathered.spans
-        if len(eligible) < self._policy.minimum_approved_spans:
-            answer = Answer(
-                trace_id=trace_id,
-                status=AnswerStatus.INSUFFICIENT_EVIDENCE,
-                text=ABSTENTION_TEXT,
-                confidence=0,
-                limitations=["Відповідь не згенеровано без належного джерела."],
-            )
-            await self._record(answer, principal, gathered.retrieved, len(eligible))
-            return answer
-
-        citations: list[Citation] = [span.citation for span in eligible]
+        pec_trace: ControllerTrace | None = None
+        plan = QueryPlan(asked=query.text)
         try:
-            async with asyncio.timeout(self._policy.generator_timeout_seconds):
-                claims: list[Claim] = await self._generator.compose(query, eligible)
-        except Exception:  # noqa: BLE001 — a failed or hanging generator must not answer
-            answer = Answer(
-                trace_id=trace_id,
-                status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                text=REVIEW_TEXT,
-                confidence=0,
-                limitations=["Генератор відповіді недоступний."],
+            retrieval_outcome = adaptive_retrieval(
+                identity=identity,
+                query_text=query.text,
+                corpora=corpora,
+                as_of=query.as_of,
+                risk=risk,
+                admission_thresholds=retrieval_thresholds,
+                retriever=self.retriever,
+                planner=self.query_planner,
+                controller=self.predictive_controller,
+                answer_calibration_id=self.answer_policy.calibration_id,
+                corpus_release_id=release_id,
+                eligible_count=lambda items: len(self.answer_policy.eligible(items, risk)),
             )
-            await self._record(answer, principal, gathered.retrieved, len(eligible))
+            retrieved = retrieval_outcome.retrieved
+            plan = retrieval_outcome.plan
+            pec_trace = retrieval_outcome.trace
+        except RetrievalDeadlineExceeded:
+            answer = self._abstain(
+                release_id,
+                "retrieval_deadline_exceeded",
+                "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
+            )
+            self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
+            return answer
+        except RetrievalUnavailable:
+            answer = self._abstain(
+                release_id,
+                "retrieval_dependency_unavailable",
+                "Обов’язковий пошуковий контур недоступний;"
+                " відповідь зупинено без слабшого fallback.",
+            )
+            self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
             return answer
 
-        result = verify(claims, citations, eligible, principal)
-        limitations = list(result.limitations)
-        conflicts = conflicting_versions(eligible)
-        if conflicts:
-            limitations.append(
-                f"Джерела рівної сили розходяться: {len(conflicts)} фрагменти."
-            )
 
-        # Any unsupported claim blocks. There is deliberately no ratio to tune: a
-        # 0.95 floor let one uncited sentence in twenty ship inside an `answered`
-        # response, and a threshold that cannot be set to anything but 1.0 without
-        # breaking the promise is not a setting, it is a hole with a dial on it.
-        if result.integrity_breach or result.unsupported or result.empty:
-            # A held answer returns no evidence to the caller. The reviewer reads it
-            # from the audit trail; shipping the quotes with the refusal would hand
-            # over exactly the material the hold exists to withhold.
-            answer = Answer(
-                trace_id=trace_id,
-                status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                text=REVIEW_TEXT,
-                confidence=0,
-                citation_coverage=result.coverage,
-                limitations=limitations or ["Відповідь не пройшла перевірку посилань."],
-            )
-            await self._record(answer, principal, gathered.retrieved, len(eligible))
-            return answer
-
-        answer = Answer(
-            trace_id=trace_id,
-            status=AnswerStatus.ANSWERED,
-            text=" ".join(claim.text for claim in claims),
-            claims=claims,
-            citations=citations,
-            confidence=min(span.retrieval_score for span in eligible),
-            citation_coverage=result.coverage,
-            limitations=limitations,
+        gated, eligible = apply_retrieval_gate(
+            self, identity=identity, query=query, release_id=release_id, corpora=corpora,
+            retrieved=retrieved, risk=risk, plan=plan, pec_trace=pec_trace,
+            early_abstain=retrieval_outcome.early_abstain,
         )
-        await self._record(answer, principal, gathered.retrieved, len(eligible))
+        if gated is not None:
+            return gated
+        assert eligible is not None
+
+        thresholds = retrieval_thresholds
+        eligible, outranked = self._confine_to_top_authority(eligible)
+        query_tokens = frozenset(tokenize(query.text))
+        claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
+
+        unsourced = self._unsourced_quotes(eligible, citations)
+        if unsourced:
+            answer = self._unsourced_answer(release_id, unsourced)
+            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace)
+            return answer
+
+        query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
+        support = verify_claim_support(
+            [(index, claim.evidence_span_ids) for index, claim in enumerate(claims)],
+            [citation.span_id for citation in citations],
+        )
+        evidence_coverage = support.coverage
+        if claims and not support.aligned:
+            answer = self._misaligned(release_id, support)
+            self._audit(
+                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan, pec_trace=pec_trace
+            )
+            return answer
+        # Before every branch, not inside one: three of them reach the same audit call,
+        # and initialising it in the branch that uses it surfaced as an UnboundLocalError
+        # on the other two rather than as a missing field.
+        composition_reason = "not attempted"
+        if not claims or query_coverage < thresholds.minimum_query_coverage:
+            answer = self._abstain(
+                release_id,
+                "claim_support_gate_failed",
+                "Джерела знайдено, але вони не підтримують конкретну відповідь на запит.",
+                max((item.score for item in eligible), default=0.0),
+                query_coverage=query_coverage,
+            )
+        else:
+            contradiction = self._find_contradiction(claims, citations, eligible)
+            if contradiction is not None:
+                answer = Answer(
+                    status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+                    text=(
+                        "Затверджені джерела містять взаємно несумісні твердження;"
+                        " автоматичну відповідь зупинено."
+                    ),
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="contradictory_authoritative_evidence",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[f"Conflict: {contradiction}"],
+                    corpus_release=release_id,
+                )
+            else:
+                # The model may arrange what was found and open with one line. It may
+                # not add a fact: `compose_answer` refuses an opening that states a
+                # number, introduces a negation, or uses a content word the cited spans
+                # do not contain, and a refusal leaves the extract untouched.
+                #
+                # GOV-006: before that, whether the material may leave at all. If the
+                # sentences outrank the egress ceiling, the composer is not called with
+                # them — sending them to a model outside the deployment would exfiltrate
+                # restricted spans, whatever the composer returned. The extract stands and
+                # the reason travels into the audit chain.
+                composition, composition_reason = self._compose(query, claims, eligible)
+                body = (
+                    "\n\n".join(composition.sentences)
+                    if composition is not None
+                    else "\n\n".join(claim.text for claim in claims)
+                )
+                answer = Answer(
+                    status=AnswerStatus.ANSWERED,
+                    text=body,
+                    opening=composition.opening if composition is not None else "",
+                    claims=claims,
+                    citations=citations,
+                    retrieval_score=max(item.score for item in eligible),
+                    evidence_coverage=evidence_coverage,
+                    query_coverage=query_coverage,
+                    decision_reason="extractive_claims_passed_calibrated_gates",
+                    calibration_id=self.answer_policy.calibration_id,
+                    limitations=[
+                        "Відповідь екстрактивна: система не додає фактів"
+                        " поза точними цитованими реченнями.",
+                        "Retrieval score є ranking utility, а не ймовірністю істинності.",
+                        *self._source_limitations(citations, outranked, eligible),
+                        *(
+                            [
+                                "Перший рядок написала система з наведених цитат: без "
+                                "цифр, без заперечень, лише словами, що є в цитатах."
+                            ]
+                            if composition is not None
+                            else []
+                        ),
+                    ],
+                    corpus_release=release_id,
+                )
+        self._audit(
+            identity, query, answer, retrieved, eligible, risk, plan=plan,
+            composition=composition_reason,
+            pec_trace=pec_trace,
+        )
         return answer
 
-    async def _record(
+    def _compose(
+        self, query: QueryRequest, claims: list[Claim], eligible: list[RetrievedEvidence]
+    ) -> tuple[Composition | None, str]:
+        """The arranged answer and why — or the extract and the reason it was withheld.
+
+        The egress ceiling is asked before the composer, not inside it: the composer never
+        sees material it may not send, rather than being trusted to refuse it. Its own
+        `compose_answer` still guards what a permitted composer may *say*.
+        """
+        if not self._composition_egress_permitted(claims, eligible):
+            return None, "egress_tier_exceeded"
+        return compose_answer(
+            query.text, [claim.text for claim in claims], self.answer_composer
+        )
+
+    def _composition_egress_permitted(
+        self, claims: list[Claim], eligible: list[RetrievedEvidence]
+    ) -> bool:
+        """Whether the sentences a composer would send may leave the deployment.
+
+        The material sent is the claim text, so the tier that matters is the highest
+        classification among the documents whose spans actually back those claims — not
+        every eligible document, which would refuse composition for a public answer merely
+        because a restricted document ranked alongside it and produced no surviving claim.
+        A span with no known tier is treated as the most restrictive, not the least: the
+        one case where guessing is a leak.
+        """
+        if self.egress_policy is None:
+            return True
+        tier_by_span = {str(item.span.id): item.document.access_tier for item in eligible}
+        material_tier = max(
+            (
+                tier_by_span.get(str(span_id), AccessTier.RESTRICTED)
+                for claim in claims
+                for span_id in claim.evidence_span_ids
+            ),
+            default=AccessTier.PUBLIC,
+        )
+        return self.egress_policy.permits_material(material_tier)
+
+    def _extract(
         self,
+        eligible: list[RetrievedEvidence],
+        query_tokens: frozenset[str],
+        thresholds: RiskThresholds,
+    ) -> tuple[list[Claim], list[Citation], set[str]]:
+        """Build claim/citation pairs from eligible evidence.
+
+        Kept separate from `execute` so that the alignment check downstream has an
+        adversary: a substituted extraction can emit a claim that references a span the
+        answer does not carry, which is exactly the condition `verify_claim_support`
+        exists to catch and which the coupled loop could never produce.
+        """
+        claims: list[Claim] = []
+        citations: list[Citation] = []
+        seen_sentences: set[str] = set()
+        covered_tokens: set[str] = set()
+
+        for item in eligible:
+            candidates = sorted(
+                self._candidates(item.span.text, query_tokens),
+                key=lambda candidate: (-candidate.query_coverage, candidate.start),
+            )
+            candidate = next(
+                (
+                    current
+                    for current in candidates
+                    if current.text not in seen_sentences
+                    and not contains_control_injection(current.text)
+                ),
+                None,
+            )
+            if candidate is None or candidate.query_coverage < thresholds.minimum_query_coverage:
+                continue
+            # Measured rather than asserted. It used to be the constant 1.0 against a
+            # threshold clamped to at most 1.0, so the branch below was unreachable in
+            # every configuration and `SupportState.UNSUPPORTED` was produced nowhere.
+            # For a byte-for-byte extract the value is 1.0 by construction; it moves
+            # only if extraction stops being exact, which is the case the gate exists
+            # for. Relevance remains a separate query-coverage gate.
+            support_score = extractive_support(candidate.text, item.span.text)
+            if support_score < thresholds.minimum_support_score:
+                continue
+            claims.append(
+                Claim(
+                    text=candidate.text,
+                    evidence_span_ids=(item.span.id,),
+                    support_state=SupportState.EXTRACTIVE,
+                    support_score=support_score,
+                    query_coverage=candidate.query_coverage,
+                )
+            )
+            quote_hash = hashlib.sha256(candidate.text.encode("utf-8")).hexdigest()
+            citations.append(
+                Citation(
+                    document_id=item.document.id,
+                    version_id=item.version.id,
+                    span_id=item.span.id,
+                    title=item.document.canonical_title,
+                    revision=item.version.revision,
+                    page=item.span.page,
+                    section=item.span.section,
+                    quote=candidate.text,
+                    quote_start=candidate.start,
+                    quote_end=candidate.end,
+                    quote_hash=quote_hash,
+                    span_hash=item.span.text_hash,
+                    source_uri=item.version.source_uri,
+                    source_hash=item.version.source_hash,
+                )
+            )
+            seen_sentences.add(candidate.text)
+            covered_tokens.update(set(tokenize(candidate.text)).intersection(query_tokens))
+            if len(claims) >= self.answer_policy.max_claims:
+                break
+        return claims, citations, covered_tokens
+
+    @staticmethod
+    def _candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
+        return sentence_candidates(text, query_tokens)
+
+    def _scope_breaches(
+        self,
+        identity: Identity,
+        corpora: frozenset[str],
+        retrieved: list[RetrievedEvidence],
+    ) -> list[ScopeBreach]:
+        return scope_breaches(identity, corpora, retrieved, self.policy_engine)
+
+    def _breach(self, release_id: str, breaches: list[ScopeBreach]) -> Answer:
+        kinds = sorted({breach.kind for breach in breaches})
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Пошуковий контур повернув матеріал поза дозволеною областю читача;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="retriever_scope_breach",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Це не брак доказів, а порушення цілісності доступу в шарі пошуку.",
+                f"Breach kinds: {', '.join(kinds)}.",
+                f"Affected versions: {len(breaches)}.",
+            ],
+            corpus_release=release_id,
+        )
+
+    @staticmethod
+    def _unsourced_quotes(
+        eligible: list[RetrievedEvidence], citations: list[Citation]
+    ) -> list[str]:
+        return unsourced_quotes(eligible, citations)
+
+    def _unsourced_answer(self, release_id: str, span_ids: list[str]) -> Answer:
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Цитата не знайдена дослівно у фрагменті, на який посилається;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="citation_not_present_in_source",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Хеш цитати доводить збіг цитати із самою собою, не з документом.",
+                f"Affected spans: {len(span_ids)}.",
+            ],
+            corpus_release=release_id,
+        )
+
+    def _misaligned(self, release_id: str, support: SupportVerdict) -> Answer:
+        """A claim that points outside the answer's own citations carries no evidence.
+
+        The previous shape of this computation could produce `evidence_coverage > 1`
+        and raise `ValidationError` inside the response model — a 500 where the value
+        function requires an abstention. Coverage is reported as 0.0 here because a
+        partially referenced answer earns no partial credit.
+        """
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Твердження посилаються на докази поза набором цитат цієї відповіді;"
+                " відповідь зупинено до перевірки людиною."
+            ),
+            retrieval_score=0.0,
+            evidence_coverage=0.0,
+            query_coverage=0.0,
+            decision_reason="citation_evidence_misalignment",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                "Відповідь не містить тверджень: жодне з них не доведене власними цитатами.",
+                *support.reasons[:8],
+            ],
+            corpus_release=release_id,
+        )
+
+    @staticmethod
+    def _source_limitations(
+        citations: list[Citation],
+        outranked: list[RetrievedEvidence],
+        used: list[RetrievedEvidence],
+    ) -> list[str]:
+        return source_limitations(citations, outranked, used)
+
+    @staticmethod
+    def _confine_to_top_authority(
+        eligible: list[RetrievedEvidence],
+    ) -> tuple[list[RetrievedEvidence], list[RetrievedEvidence]]:
+        return confine_to_top_authority(eligible)
+
+    @staticmethod
+    def _find_contradiction(
+        claims: list[Claim],
+        citations: list[Citation],
+        eligible: list[RetrievedEvidence],
+    ) -> str | None:
+        return find_contradiction(claims, citations, eligible)
+
+    def _abstain(
+        self,
+        release_id: str,
+        reason: str,
+        text: str,
+        retrieval_score: float = 0.0,
+        *,
+        query_coverage: float = 0.0,
+        limitations: list[str] | None = None,
+    ) -> Answer:
+        return Answer(
+            status=AnswerStatus.INSUFFICIENT_EVIDENCE,
+            text=text,
+            retrieval_score=retrieval_score,
+            evidence_coverage=0.0,
+            query_coverage=query_coverage,
+            decision_reason=reason,
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=["Генерацію зупинено fail-closed.", *(limitations or [])],
+            corpus_release=release_id,
+        )
+
+    def _audit(
+        self,
+        identity: Identity,
+        query: QueryRequest,
         answer: Answer,
-        principal: Principal,
-        retrieved: int,
-        eligible: int,
-        extra: dict[str, object] | None = None,
+        retrieved: list[RetrievedEvidence],
+        eligible: list[RetrievedEvidence],
+        risk: QueryRisk = QueryRisk.STANDARD,
+        *,
+        breaches: list[ScopeBreach] | None = None,
+        support: SupportVerdict | None = None,
+        plan: QueryPlan | None = None,
+        composition: str | None = None,
+        pec_trace: ControllerTrace | None = None,
     ) -> None:
-        payload: dict[str, object] = {
-            "answer_id": str(answer.id),
-            "trace_id": str(answer.trace_id),
-            "subject_id": principal.subject_id,
-            "principal_tier": principal.tier.value,
-            "status": answer.status.value,
-            "retrieved": retrieved,
-            "eligible": eligible,
-            "citations": len(answer.citations),
-            "citation_coverage": answer.citation_coverage,
-        }
-        if extra:
-            payload.update(extra)
-        await self._audit.record("answer.completed", payload)
+        append_answer_audit(
+            self.repository,
+            identity,
+            query,
+            answer,
+            retrieved,
+            eligible,
+            risk,
+            minimum_score=self.answer_policy.minimum_score,
+            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
+            minimum_support_score=self.answer_policy.minimum_support_score,
+            breaches=breaches,
+            support=support,
+            plan=plan,
+            composition=composition,
+            pec_trace=pec_trace.as_audit_record() if pec_trace is not None else None,
+        )
