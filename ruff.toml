@@ -48,6 +48,11 @@ ignore = ["RUF001", "RUF002", "RUF003"]
 # identity switch widens the surface that can set a Postgres session identity.
 "apps/api/src/korpus/infrastructure/semantic.py" = ["BLE001", "SLF001"]
 
+# The GCS health probe is a degradation boundary over an injected transport. Any
+# transport/parser/client failure means "unhealthy"; leaking an unexpected exception
+# would turn readiness into a 500 and expose adapter-specific failure details.
+"apps/api/src/korpus/infrastructure/gcs.py" = ["BLE001"]
+
 # The whole module is a subprocess entry point: its contract with the parent is
 # "exit 2 + one stderr line" for *any* parser failure (extraction.py checks the
 # returncode). A narrower catch would emit a traceback and exit 1 instead.

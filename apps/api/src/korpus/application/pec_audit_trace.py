@@ -16,18 +16,20 @@ class AuditTrace:
     sha256: str
 
 
-def extract_audit_trace(rows: Iterable[Mapping[str, object]], binding: RevisionBinding) -> AuditTrace:
-    materialized = list(rows)
-    for row in materialized:
+def extract_audit_trace(
+    rows: Iterable[Mapping[str, object]], binding: RevisionBinding
+) -> AuditTrace:
+    validated: list[tuple[int, Mapping[str, object]]] = []
+    for row in rows:
         sequence = row.get("sequence")
         if not strict_int(sequence) or sequence < 0:
             raise ValueError("audit sequence must be a non-negative integer")
-    ordered = sorted(materialized, key=lambda row: row["sequence"])
+        validated.append((sequence, row))
+    ordered = sorted(validated, key=lambda item: item[0])
     event_ids: list[str] = []
     canonical: list[dict[str, object]] = []
     previous_sequence = -1
-    for row in ordered:
-        sequence = row["sequence"]
+    for sequence, row in ordered:
         if sequence <= previous_sequence:
             raise ValueError("audit sequence must be strictly increasing")
         previous_sequence = sequence
@@ -36,11 +38,18 @@ def extract_audit_trace(rows: Iterable[Mapping[str, object]], binding: RevisionB
             raise ValueError("audit event IDs must be non-empty and unique")
         if str(row.get("revision", "")) != binding.revision:
             raise ValueError("audit revision binding mismatch")
-        if str(row.get("profile", "")) != binding.profile or str(row.get("phase", "")) != binding.phase:
+        if (
+            str(row.get("profile", "")) != binding.profile
+            or str(row.get("phase", "")) != binding.phase
+        ):
             raise ValueError("audit profile/phase binding mismatch")
         if str(row.get("environment_class", "")) != binding.environment_class:
             raise ValueError("audit environment binding mismatch")
         event_ids.append(event_id)
-        canonical.append({"sequence": sequence, "event_id": event_id, "action": str(row.get("action", ""))})
-    payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+        canonical.append(
+            {"sequence": sequence, "event_id": event_id, "action": str(row.get("action", ""))}
+        )
+    payload = json.dumps(
+        canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode()
     return AuditTrace(tuple(event_ids), hashlib.sha256(payload).hexdigest())

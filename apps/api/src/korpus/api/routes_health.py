@@ -14,13 +14,14 @@ from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 from korpus.security.auth import get_identity
 
-
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
+
 
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
 
 def _readiness_detail_permitted(settings: Settings, authorization: str | None) -> bool:
     """Whether this caller may see the internal readiness snapshot.
@@ -43,9 +44,7 @@ def ready(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
     settings: Annotated[Settings, Depends(get_settings)],
-    observability: Annotated[Observability, Depends(get_observability)] = (  # type: ignore[assignment]
-        None
-    ),
+    observability: Annotated[Observability | None, Depends(get_observability)] = None,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, object]:
     detail_permitted = _readiness_detail_permitted(settings, authorization)
@@ -90,8 +89,10 @@ def ready(
         # named conditions are the ones an operator with the token can then read in full.
         if not detail_permitted:
             reason = (
-                "object_store" if not object_store_ok
-                else "schema" if not schema_ok
+                "object_store"
+                if not object_store_ok
+                else "schema"
+                if not schema_ok
                 else "audit_backlog"
             )
             raise HTTPException(

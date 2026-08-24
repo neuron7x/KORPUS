@@ -1291,7 +1291,7 @@ MUTANTS = (
     Mutant(
         'M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED',
         'apps/api/src/korpus/repository_requirements.py',
-        '        if relative.startswith("infra/secrets/") and path.suffix == ".txt" and relative in git_tracked:',
+        '        if (\n            relative.startswith("infra/secrets/")\n            and path.suffix == ".txt"\n            and relative in git_tracked\n        ):',
         '        if False:',
         ('apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected',),
     ),
@@ -1312,8 +1312,8 @@ MUTANTS = (
     Mutant(
         'M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED',
         'apps/api/src/korpus/repository_requirements.py',
-        'and relative in git_tracked:',
-        'and True:',
+        '            and relative in git_tracked\n',
+        '            and True\n',
         ('apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked',),
     ),
     Mutant(
@@ -3148,15 +3148,15 @@ MUTANTS = (
     Mutant(
         'M281_PEC_ABLATION_QUALITY_REGRESSION_IGNORED',
         'apps/api/src/korpus/application/pec_ablation.py',
-        '        "FAIL" if safety_regressions or quality_regressions',
-        '        "FAIL" if safety_regressions',
+        '        "FAIL"\n        if safety_regressions or quality_regressions',
+        '        "FAIL"\n        if safety_regressions',
         ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses',),
     ),
     Mutant(
         'M282_PEC_ABLATION_EFFICIENCY_EVIDENCE_BYPASSED',
         'apps/api/src/korpus/application/pec_ablation.py',
-        '        else "PASS" if supported_improvement',
-        '        else "PASS" if True',
+        '        else "PASS"\n        if supported_improvement',
+        '        else "PASS"\n        if True',
         ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_without_supported_efficiency_gain_remains_unknown',),
     ),
     Mutant(
@@ -3239,8 +3239,8 @@ MUTANTS = (
     Mutant(
         'M294_PEC_GROUPED_VALIDATION_SPLITS_SOURCE_LINEAGE',
         'apps/api/src/korpus/application/pec_training_validation.py',
-        '        ([row for row in data if buckets[row.group_id] != index], [row for row in data if buckets[row.group_id] == index])',
-        '        ([row for row in data if _bucket(row.query_id, folds) != index], [row for row in data if _bucket(row.query_id, folds) == index])',
+        '        (\n            [row for row in data if buckets[row.group_id] != index],\n            [row for row in data if buckets[row.group_id] == index],\n        )',
+        '        (\n            [row for row in data if _bucket(row.query_id, folds) != index],\n            [row for row in data if _bucket(row.query_id, folds) == index],\n        )',
         ('apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint',),
     ),
     Mutant(

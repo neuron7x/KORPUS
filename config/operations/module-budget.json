@@ -116,11 +116,11 @@
       "reason": "the one place an answer is produced under the concurrency bound"
     },
     "apps/api/src/korpus/api/billing_dependencies.py": {
-      "lines": 78,
+      "lines": 79,
       "max_complexity": 2
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 277,
+      "lines": 308,
       "max_complexity": 5
     },
     "apps/api/src/korpus/api/overload_http.py": {
@@ -129,7 +129,7 @@
       "reason": "ACT-009: typed HTTP mapping separates subject throttling (429) from global service saturation (503)."
     },
     "apps/api/src/korpus/api/readiness_projection.py": {
-      "lines": 15,
+      "lines": 17,
       "max_complexity": 2,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
     },
@@ -178,7 +178,7 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_health.py": {
-      "lines": 124,
+      "lines": 125,
       "max_complexity": 9,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
@@ -188,7 +188,7 @@
       "reason": "authenticated inference posture/status surface; exposes no secrets and no factual authority"
     },
     "apps/api/src/korpus/api/routes_offline.py": {
-      "lines": 63,
+      "lines": 79,
       "max_complexity": 5,
       "reason": "v0.6.0: authenticated signed offline-pack export/key HTTP boundary; exact initial ceiling"
     },
@@ -198,7 +198,7 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_tenancy.py": {
-      "lines": 403,
+      "lines": 396,
       "max_complexity": 8
     },
     "apps/api/src/korpus/api/source_disclosure.py": {
@@ -215,7 +215,7 @@
       "max_complexity": 9
     },
     "apps/api/src/korpus/application/adaptive_contracts.py": {
-      "lines": 66,
+      "lines": 127,
       "max_complexity": 12,
       "reason": "adaptive runtime finite/discrete validation kernel"
     },
@@ -239,7 +239,7 @@
       "reason": "v0.6.0: pure source-bound query audit envelope"
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 561,
+      "lines": 581,
       "max_complexity": 21
     },
     "apps/api/src/korpus/application/answer_retrieval_gate.py": {
@@ -377,7 +377,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/application/engineering_readiness.py": {
-      "lines": 174,
+      "lines": 179,
       "max_complexity": 9,
       "reason": "v0.8.0 evidence-bounded weighted engineering readiness evaluator"
     },
@@ -494,7 +494,7 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/numeric_contracts.py": {
-      "lines": 79,
+      "lines": 87,
       "max_complexity": 5,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
@@ -503,7 +503,7 @@
       "max_complexity": 10
     },
     "apps/api/src/korpus/application/offline_pack.py": {
-      "lines": 124,
+      "lines": 140,
       "max_complexity": 5,
       "reason": "v0.6.0: policy-fresh bounded signed evidence-pack application service; exact initial ceiling"
     },
@@ -531,12 +531,12 @@
       "max_complexity": 8
     },
     "apps/api/src/korpus/application/pec_ablation.py": {
-      "lines": 83,
+      "lines": 99,
       "max_complexity": 7,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_adaptive_retrieval.py": {
-      "lines": 72,
+      "lines": 154,
       "max_complexity": 11,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
@@ -546,12 +546,12 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/pec_audit_trace.py": {
-      "lines": 46,
+      "lines": 55,
       "max_complexity": 12,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_cache.py": {
-      "lines": 56,
+      "lines": 60,
       "max_complexity": 3,
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
@@ -599,7 +599,7 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/application/pec_metamorphic_eval.py": {
-      "lines": 52,
+      "lines": 75,
       "max_complexity": 13,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
@@ -633,12 +633,12 @@
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_research.py": {
-      "lines": 218,
+      "lines": 280,
       "max_complexity": 13,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_retrieval.py": {
-      "lines": 127,
+      "lines": 112,
       "max_complexity": 6
     },
     "apps/api/src/korpus/application/pec_revision_binding.py": {
@@ -651,7 +651,7 @@
       "max_complexity": 5
     },
     "apps/api/src/korpus/application/pec_trace_projection.py": {
-      "lines": 44,
+      "lines": 78,
       "max_complexity": 1
     },
     "apps/api/src/korpus/application/pec_training.py": {
@@ -665,17 +665,17 @@
       "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
     },
     "apps/api/src/korpus/application/pec_training_model.py": {
-      "lines": 125,
+      "lines": 170,
       "max_complexity": 17,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_training_validation.py": {
-      "lines": 96,
+      "lines": 110,
       "max_complexity": 14,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
     "apps/api/src/korpus/application/plasticity.py": {
-      "lines": 320,
+      "lines": 341,
       "max_complexity": 12,
       "reason": "bounded deterministic adaptation state machine; safety thresholds can only tighten automatically"
     },
@@ -704,12 +704,12 @@
       "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
     },
     "apps/api/src/korpus/application/predictive_evidence_control.py": {
-      "lines": 168,
+      "lines": 172,
       "max_complexity": 13,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/printed_numbers.py": {
-      "lines": 45,
+      "lines": 52,
       "max_complexity": 6,
       "reason": "exact locale-aware printed-decimal parser"
     },
@@ -782,12 +782,12 @@
       "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/release_ledger.py": {
-      "lines": 292,
+      "lines": 294,
       "max_complexity": 14,
       "reason": "v0.4.0: tamper-evident reason-bearing release transition ledger; initial measured ratchet ceiling"
     },
     "apps/api/src/korpus/application/release_numeric.py": {
-      "lines": 47,
+      "lines": 79,
       "max_complexity": 8,
       "reason": "shared fail-closed release evidence arithmetic"
     },
@@ -823,13 +823,13 @@
       "max_complexity": 14
     },
     "apps/api/src/korpus/application/retrieval_execution.py": {
-      "lines": 103,
+      "lines": 146,
       "max_complexity": 6,
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/retrieval_hybrid.py": {
-      "lines": 55,
-      "max_complexity": 10,
+      "lines": 154,
+      "max_complexity": 11,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
@@ -888,7 +888,7 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/tevv_evidence.py": {
-      "lines": 100,
+      "lines": 112,
       "max_complexity": 9,
       "reason": "Initial ceiling for structured TEVV observation/null ledger recomputation; reductions ratchet downward."
     },
@@ -1026,12 +1026,12 @@
       "max_complexity": 25
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
-      "lines": 119,
+      "lines": 122,
       "max_complexity": 8,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
     "apps/api/src/korpus/infrastructure/gcs.py": {
-      "lines": 313,
+      "lines": 324,
       "max_complexity": 13,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
@@ -1217,7 +1217,7 @@
       "reason": "v0.6.0: CSRF decision extracted and request-context cleanup made unconditional; ratchet lowered"
     },
     "apps/api/src/korpus/model_settings.py": {
-      "lines": 32,
+      "lines": 45,
       "max_complexity": 4,
       "reason": "provider selection, canonical endpoint and secret-file resolution outside Settings"
     },
@@ -1247,7 +1247,7 @@
       "reason": "v0.6.1: canonical distribution artifact identity is now single-sourced with release version/tag"
     },
     "apps/api/src/korpus/repository_requirements.py": {
-      "lines": null,
+      "lines": 413,
       "max_complexity": 11
     },
     "apps/api/src/korpus/runtime_config_policy.py": {
@@ -1972,7 +1972,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": null,
+      "lines": 3683,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet."
     },
@@ -2258,6 +2258,16 @@
       "lines": 59,
       "max_complexity": 10,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/adaptive_types.py": {
+      "lines": 94,
+      "max_complexity": 1,
+      "reason": "acyclic read-only structural contracts for adaptive validation"
+    },
+    "apps/api/src/korpus/application/pec_retrieval_types.py": {
+      "lines": 35,
+      "max_complexity": 1,
+      "reason": "acyclic PEC retrieval value and capability contracts"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden.",

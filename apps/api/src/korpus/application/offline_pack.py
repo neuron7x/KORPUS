@@ -5,6 +5,7 @@ freezes only currently retrievable spans, binds the exact corpus-release identit
 signs the whole payload.  A pack that exceeds the configured bound is refused rather
 than silently truncated.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -15,7 +16,12 @@ from typing import Protocol
 from korpus.application.policy import PolicyEngine
 from korpus.application.policy_evidence import answer_policy_decision_id
 from korpus.application.ports import Repository
-from korpus.domain.models import Identity
+from korpus.domain.models import (
+    DocumentRecord,
+    DocumentVersionRecord,
+    EvidenceSpanRecord,
+    Identity,
+)
 
 
 class OfflinePackLimitError(RuntimeError):
@@ -99,7 +105,11 @@ class OfflinePackService:
         return pack
 
     @staticmethod
-    def _span_payload(span: object, document: object, version: object) -> dict[str, object]:
+    def _span_payload(
+        span: EvidenceSpanRecord,
+        document: DocumentRecord,
+        version: DocumentVersionRecord,
+    ) -> dict[str, object]:
         return {
             "span_id": str(span.id),
             "version_id": str(version.id),
@@ -112,9 +122,15 @@ class OfflinePackService:
             "authority": version.authority.value,
             "source_hash": version.source_hash,
             "source_uri": version.source_uri,
-            "publication_date": version.publication_date.isoformat() if version.publication_date else None,
-            "effective_from": version.effective_from.isoformat() if version.effective_from else None,
-            "effective_until": version.effective_until.isoformat() if version.effective_until else None,
+            "publication_date": version.publication_date.isoformat()
+            if version.publication_date
+            else None,
+            "effective_from": version.effective_from.isoformat()
+            if version.effective_from
+            else None,
+            "effective_until": version.effective_until.isoformat()
+            if version.effective_until
+            else None,
             "rescinded_at": version.rescinded_at.isoformat() if version.rescinded_at else None,
             "ordinal": span.ordinal,
             "page": span.page,
