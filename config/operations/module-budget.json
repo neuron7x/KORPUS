@@ -1350,9 +1350,14 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/learning.py": {
-      "lines": 290,
+      "lines": 291,
       "max_complexity": 12,
-      "reason": "v0.6.1 ACT-LRN-002: immutable evidence-bound learning graph; publication validation decomposed below the default complexity ceiling"
+      "reason": "ACT-LRN-003 adds the minimal competency identity edge to an objective; publication validation remains below the existing complexity ceiling"
+    },
+    "apps/api/src/korpus/domain/operational_competency.py": {
+      "lines": 151,
+      "max_complexity": 13,
+      "reason": "ACT-LRN-003 initial exact ceiling for the closed role-task-competency graph and conjunctive course-alignment validator"
     },
     "apps/api/src/korpus/domain/models.py": {
       "lines": 564,

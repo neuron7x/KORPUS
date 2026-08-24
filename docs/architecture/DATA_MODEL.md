@@ -18,6 +18,11 @@ reproducibility without storing unnecessary personal data.
 `Course`, `Competency`, `Lesson`, `Assessment`, `QuestionVersion`, `Attempt`, and
 `ReviewerDecision` support learning. Passing an assessment is not certification.
 
+An `OperationalRole` names required `OperationalTask` records. Each task states its
+conditions and observable standard and requires a conjunction of competencies. Learning
+objectives may reference those competency identities. Alignment means that every required
+competency has a course objective; it never means that a learner is qualified or certified.
+
 `Template`, `TemplateVersion`, `Draft`, and `ValidationResult` support documents.
 
 ## Validity boundaries
@@ -117,6 +122,8 @@ Required learning invariants:
 - a retired publication cannot be resurrected; reviewer provenance is immutable after draft;
 - source deapproval/rescission/effectivity changes invalidate dependent published versions;
 - time-only source expiry is caught by the fail-closed serving lane and persists invalidation.
+- role alignment is conjunctive: one covered competency cannot compensate for a missing one;
+- unknown role, task, competency, or objective edges fail closed rather than widening scope;
 
 | table | what it holds |
 |---|---|

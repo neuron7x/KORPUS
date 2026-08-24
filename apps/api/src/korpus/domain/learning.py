@@ -32,6 +32,7 @@ class LearningObjective(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: str = Field(pattern=LEARNING_ID_PATTERN)
     statement: str = Field(min_length=3, max_length=1000)
+    competency_ids: frozenset[str] = Field(default_factory=frozenset, max_length=128)
 
 
 class SourceBinding(BaseModel):
