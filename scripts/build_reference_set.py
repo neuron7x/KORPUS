@@ -319,8 +319,7 @@ def main() -> int:
         "judges": [
             "retrieval: a sentence exists verbatim in one approved version; if the system "
             "answers, it must cite that version",
-            "citation integrity: every quote appears character for character in the span "
-            "it names",
+            "citation integrity: every quote appears character for character in the span it names",
             "refusal: every term verified absent from the full-text index at freeze time",
             "adversarial: injection, a date before anything took force, and authority",
         ],

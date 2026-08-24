@@ -10,12 +10,14 @@ from starlette.responses import RedirectResponse
 from korpus.config import Settings, get_settings
 from korpus.domain.models import Identity
 from korpus.security.auth import get_identity
-from korpus.security.browser_oidc import BrowserSessionError
 from korpus.security.browser_cookie_policy import (
-    browser_csrf_pair_valid, clear_browser_cookies, clear_flow_cookie,
-    set_flow_cookie, set_session_cookies,
+    browser_csrf_pair_valid,
+    clear_browser_cookies,
+    clear_flow_cookie,
+    set_flow_cookie,
+    set_session_cookies,
 )
-
+from korpus.security.browser_oidc import BrowserSessionError
 
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
@@ -88,10 +90,14 @@ def browser_callback(
             raise BrowserSessionError("OIDC state mismatch")
         tokens = client.exchange(code, str(flow.get("code_verifier", "")))
         id_claims = verifier.verify(
-            tokens.id_token, audience=settings.oidc_client_id,
-            expected_nonce=str(flow.get("nonce", "")), authorized_party=settings.oidc_client_id,
+            tokens.id_token,
+            audience=settings.oidc_client_id,
+            expected_nonce=str(flow.get("nonce", "")),
+            authorized_party=settings.oidc_client_id,
         )
-        access_claims = verifier.verify(tokens.access_token, authorized_party=settings.oidc_client_id)
+        access_claims = verifier.verify(
+            tokens.access_token, authorized_party=settings.oidc_client_id
+        )
         if str(id_claims.get("sub")) != str(access_claims.get("sub")):
             raise BrowserSessionError("OIDC token subjects differ")
         csrf = __import__("secrets").token_urlsafe(32)

@@ -25,8 +25,10 @@ GATE_FILES = {
     "reliability": "reliability-gate.json",
     "exact_environment": "exact_environment-gate.json",
     "final_release": "final_release-gate.json",
-    "pec_authority": "pec_authority-gate.json", "pec_canary": "pec_canary-gate.json",
+    "pec_authority": "pec_authority-gate.json",
+    "pec_canary": "pec_canary-gate.json",
 }
+
 
 def _json(path: Path) -> dict[str, Any]:
     if not path.is_file():

@@ -3,6 +3,7 @@
 `release.json` is the authoritative current-release identity. Code imports this module;
 release tooling reads the same JSON rather than carrying independent defaults.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,6 +16,7 @@ RELEASE_VERSION: Final[str] = str(_RELEASE["version"])
 RELEASE_TAG: Final[str] = str(_RELEASE["tag"])
 ARTIFACT_STEM: Final[str] = str(_RELEASE["artifact_stem"])
 DISTRIBUTION_ARTIFACT: Final[str] = str(_RELEASE["distribution_artifact"])
+
 
 def release_identity() -> dict[str, str]:
     return {str(k): str(v) for k, v in _RELEASE.items()}

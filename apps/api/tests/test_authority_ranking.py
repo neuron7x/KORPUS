@@ -40,9 +40,7 @@ from apps.api.tests.helpers import approve, ingest_text, ingest_version
 
 QUESTION = "скільки записів за добу вносить підрозділ до журналу перевірок"
 OFFICIAL = "Підрозділ вносить до журналу перевірок не менше 3 записів за добу."
-ANALYTICAL = (
-    "Підрозділ вносить до журналу перевірок не менше 9 записів за добу за спостереженнями."
-)
+ANALYTICAL = "Підрозділ вносить до журналу перевірок не менше 9 записів за добу за спостереженнями."
 
 
 def _ask(client: TestClient) -> dict[str, object]:
@@ -279,8 +277,7 @@ def test_two_live_versions_of_one_document_require_a_human(client: TestClient) -
     answer = _ask(client)
 
     assert answer["status"] == "requires_human_review", (
-        "two live versions of one document is a corpus state the system may not "
-        "resolve by ranking"
+        "two live versions of one document is a corpus state the system may not resolve by ranking"
     )
     assert "multiple_current_versions" in str(answer["limitations"])
 

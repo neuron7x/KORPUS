@@ -1,6 +1,12 @@
 from __future__ import annotations
-import hashlib, json, os, subprocess, sys
+
+import hashlib
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
+
 import pytest
 from korpus.application.external_redteam import evaluate_external_redteam
 from korpus.application.provenance import compute_source_digest
@@ -14,11 +20,23 @@ SIGNER = ROOT / "scripts/release_attestation.py"
 
 
 def _cases() -> list[dict[str, str]]:
-    return [{"id": f"case-{i}", "attack_family": family} for i, family in enumerate(PROFILE["required_attack_families"], 1)]
+    return [
+        {"id": f"case-{i}", "attack_family": family}
+        for i, family in enumerate(PROFILE["required_attack_families"], 1)
+    ]
 
 
-def _report(*, findings: list[dict[str, str]] | None = None, cases: list[dict[str, str]] | None = None, status: str = "PASS") -> dict:
-    return {"status": status, "test_cases": _cases() if cases is None else cases, "findings": [] if findings is None else findings}
+def _report(
+    *,
+    findings: list[dict[str, str]] | None = None,
+    cases: list[dict[str, str]] | None = None,
+    status: str = "PASS",
+) -> dict:
+    return {
+        "status": status,
+        "test_cases": _cases() if cases is None else cases,
+        "findings": [] if findings is None else findings,
+    }
 
 
 def test_all_required_families_and_no_blocking_findings_pass_content_recomputation() -> None:
@@ -49,33 +67,94 @@ def test_blocking_finding_must_be_verified_fixed_not_merely_risk_accepted() -> N
     assert evaluate_external_redteam(_report(findings=[fixed]), PROFILE)["pass"] is True
 
 
-def _signed_gate(tmp_path: Path, report: dict, *, evidence_class: str = "EXTERNAL_INDEPENDENT", trust: bool = True) -> subprocess.CompletedProcess[bytes]:
-    report.update({
-        "schema": "korpus.external-redteam.v1", "evidence_class": evidence_class,
-        "source_tree_sha256": compute_source_digest(ROOT), "release": RELEASE_TAG,
-    })
-    report.setdefault("preregistration_sha256", hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest())
-    report_path, key, attestation, out = tmp_path / "external-redteam-report.json", tmp_path / "key.pem", tmp_path / "attestation.json", tmp_path / "gate.json"
+def _signed_gate(
+    tmp_path: Path,
+    report: dict,
+    *,
+    evidence_class: str = "EXTERNAL_INDEPENDENT",
+    trust: bool = True,
+) -> subprocess.CompletedProcess[bytes]:
+    report.update(
+        {
+            "schema": "korpus.external-redteam.v1",
+            "evidence_class": evidence_class,
+            "source_tree_sha256": compute_source_digest(ROOT),
+            "release": RELEASE_TAG,
+        }
+    )
+    report.setdefault(
+        "preregistration_sha256", hashlib.sha256(PROFILE_PATH.read_bytes()).hexdigest()
+    )
+    report_path, key, attestation, out = (
+        tmp_path / "external-redteam-report.json",
+        tmp_path / "key.pem",
+        tmp_path / "attestation.json",
+        tmp_path / "gate.json",
+    )
     report_path.write_text(json.dumps(report, sort_keys=True) + "\n", encoding="utf-8")
-    subprocess.run(["openssl", "genpkey", "-algorithm", "Ed25519", "-out", str(key)], check=True, capture_output=True)
-    subprocess.run([sys.executable, str(SIGNER), "sign", "--manifest", str(report_path), "--key", str(key), "--out", str(attestation)], cwd=ROOT, check=True, capture_output=True)
+    subprocess.run(
+        ["openssl", "genpkey", "-algorithm", "Ed25519", "-out", str(key)],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        [
+            sys.executable,
+            str(SIGNER),
+            "sign",
+            "--manifest",
+            str(report_path),
+            "--key",
+            str(key),
+            "--out",
+            str(attestation),
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    )
     fingerprint = json.loads(attestation.read_text(encoding="utf-8"))["public_key_sha256"]
-    env = os.environ.copy(); env.update({"GITLAB_CI":"true", "CI_COMMIT_REF_PROTECTED":"true", "PYTHONPATH":".:apps/api/src:scripts"})
+    env = os.environ.copy()
+    env.update(
+        {
+            "GITLAB_CI": "true",
+            "CI_COMMIT_REF_PROTECTED": "true",
+            "PYTHONPATH": ".:apps/api/src:scripts",
+        }
+    )
     if trust:
         env["KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256"] = fingerprint
     else:
         env.pop("KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256", None)
-    return subprocess.run([sys.executable, str(VALIDATOR), "--report", str(report_path), "--attestation", str(attestation), "--out", str(out)], cwd=ROOT, env=env, capture_output=True)
+    return subprocess.run(
+        [
+            sys.executable,
+            str(VALIDATOR),
+            "--report",
+            str(report_path),
+            "--attestation",
+            str(attestation),
+            "--out",
+            str(out),
+        ],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        check=False,
+    )
 
 
-def test_trusted_signature_cannot_turn_structurally_incomplete_report_into_pass(tmp_path: Path) -> None:
+def test_trusted_signature_cannot_turn_structurally_incomplete_report_into_pass(
+    tmp_path: Path,
+) -> None:
     result = _signed_gate(tmp_path, _report(cases=[]))
     assert result.returncode != 0
     assert b"required_attack_families_covered" in result.stdout
 
 
 def test_trusted_signature_cannot_bypass_wrong_preregistration(tmp_path: Path) -> None:
-    report = _report(); report["preregistration_sha256"] = "0" * 64
+    report = _report()
+    report["preregistration_sha256"] = "0" * 64
     result = _signed_gate(tmp_path, report)
     assert result.returncode != 0
     assert b"preregistered" in result.stdout

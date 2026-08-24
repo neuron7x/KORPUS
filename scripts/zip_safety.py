@@ -4,26 +4,39 @@ Security property: an archive is extraction-eligible only when every entry has o
 canonical relative POSIX name, no aliases/collisions, and is a regular file or directory.
 The validator is intentionally independent of ``ZipFile.extractall`` path handling.
 """
+
 from __future__ import annotations
+
 import argparse
 import json
 import re
 import stat
 import unicodedata
 import zipfile
-from pathlib import PurePosixPath, Path
+from pathlib import Path, PurePosixPath
+
 _DRIVE = re.compile(r"^[A-Za-z]:")
 from importlib import import_module
-resource_failures = import_module(f"{__package__ + chr(46) if __package__ else chr(39)*0}zip_resource_policy").resource_failures
+
+resource_failures = import_module(
+    f"{__package__ + chr(46) if __package__ else chr(39) * 0}zip_resource_policy"
+).resource_failures
+
+
 def _basic_name_failure(name: str) -> str | None:
     checks = (
         (not name, "empty archive entry name"),
         ("\x00" in name, f"NUL byte in archive entry: {name!r}"),
         ("\\" in name, f"backslash path separator rejected: {name!r}"),
         (unicodedata.normalize("NFC", name) != name, f"non-NFC archive entry rejected: {name!r}"),
-        (name.startswith("/") or bool(_DRIVE.match(name)), f"absolute archive path rejected: {name!r}"),
+        (
+            name.startswith("/") or bool(_DRIVE.match(name)),
+            f"absolute archive path rejected: {name!r}",
+        ),
     )
     return next((message for failed, message in checks if failed), None)
+
+
 def _canonical_name(name: str) -> tuple[str | None, str | None]:
     basic_failure = _basic_name_failure(name)
     if basic_failure:
@@ -100,8 +113,6 @@ def _structural_collision_failures(file_paths: set[str], dir_paths: set[str]) ->
     return failures
 
 
-
-
 def safety_failures(zf: zipfile.ZipFile) -> list[str]:
     resource_violations = resource_failures(zf)
     if resource_violations:
@@ -132,7 +143,9 @@ def main() -> int:
     parser.add_argument("archive", type=Path)
     archive = parser.parse_args().archive.resolve()
     failures = verify_zip_safety(archive)
-    print(json.dumps({"safe": not failures, "archive": str(archive), "failures": failures}, indent=2))
+    print(
+        json.dumps({"safe": not failures, "archive": str(archive), "failures": failures}, indent=2)
+    )
     return 1 if failures else 0
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify semantics-preserving PEC query transformations against hard invariants."""
+
 from __future__ import annotations
 
 import argparse
@@ -24,9 +25,16 @@ def main() -> int:
     if args.minimum_pairs < 1:
         raise SystemExit("minimum pairs must be positive")
     result = evaluate_metamorphic_pairs(read_jsonl(args.observations), args.minimum_pairs)
-    report = receipt("pec_metamorphic", {**result, "observations_sha256": sha256_file(args.observations)})
-    write_json(args.out, report); print(json.dumps(report, ensure_ascii=False, indent=2))
-    return 0 if result["status"] == "PASS" or (result["status"] == "UNKNOWN" and not args.release_gate) else 1
+    report = receipt(
+        "pec_metamorphic", {**result, "observations_sha256": sha256_file(args.observations)}
+    )
+    write_json(args.out, report)
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    return (
+        0
+        if result["status"] == "PASS" or (result["status"] == "UNKNOWN" and not args.release_gate)
+        else 1
+    )
 
 
 if __name__ == "__main__":

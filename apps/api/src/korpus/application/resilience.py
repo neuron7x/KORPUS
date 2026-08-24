@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TypeVar
 
-
 from korpus.application.overload import OverloadedError, OverloadReason
 from korpus.application.runtime_contracts import admission_parameters, circuit_parameters
 
@@ -50,7 +49,9 @@ class AdmissionController:
         *,
         per_subject_limit: int | None = None,
     ) -> None:
-        capacity, wait_timeout_seconds, per_subject_limit = admission_parameters(capacity, wait_timeout_seconds, per_subject_limit)
+        capacity, wait_timeout_seconds, per_subject_limit = admission_parameters(
+            capacity, wait_timeout_seconds, per_subject_limit
+        )
         self.capacity = capacity
         self.wait_timeout_seconds = float(wait_timeout_seconds)
         # Default: no single subject may hold more than half the service, and never
@@ -128,7 +129,9 @@ class CircuitBreaker:
         recovery_timeout_seconds: float = 15.0,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        failure_threshold, recovery_timeout_seconds = circuit_parameters(failure_threshold, recovery_timeout_seconds)
+        failure_threshold, recovery_timeout_seconds = circuit_parameters(
+            failure_threshold, recovery_timeout_seconds
+        )
         self.failure_threshold = failure_threshold
         self.recovery_timeout_seconds = float(recovery_timeout_seconds)
         self.clock = clock

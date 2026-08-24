@@ -1,11 +1,16 @@
 """Dialect-specific bounded lexical candidate statement builder."""
+
 from __future__ import annotations
+
 from datetime import date
 from typing import Any
+
 from sqlalchemy import text as sql_text
+
 from korpus.application.retrieval_math import candidate_terms
 from korpus.domain.models import Identity
 from korpus.infrastructure import row_mapping
+
 
 def candidate_span_query(
     identity: Identity,
@@ -27,21 +32,15 @@ def candidate_span_query(
         return None
     classifications = row_mapping.allowed_classifications(identity.clearance)
     sorted_corpora = tuple(sorted(corpora))
-    corpus_placeholders = ",".join(
-        f":corpus_{index}" for index, _ in enumerate(sorted_corpora)
-    )
-    class_placeholders = ",".join(
-        f":class_{index}" for index, _ in enumerate(classifications)
-    )
+    corpus_placeholders = ",".join(f":corpus_{index}" for index, _ in enumerate(sorted_corpora))
+    class_placeholders = ",".join(f":class_{index}" for index, _ in enumerate(classifications))
     parameters: dict[str, Any] = {
         "clearance": int(identity.clearance),
         "as_of": as_of.isoformat(),
         "limit": limit,
     }
     parameters.update({f"corpus_{index}": value for index, value in enumerate(sorted_corpora)})
-    parameters.update(
-        {f"class_{index}": value for index, value in enumerate(classifications)}
-    )
+    parameters.update({f"class_{index}": value for index, value in enumerate(classifications)})
     if dialect == "sqlite":
         match_query = " OR ".join(
             f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")

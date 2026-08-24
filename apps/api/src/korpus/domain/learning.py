@@ -1,4 +1,5 @@
 """Immutable learning graph bound to exact canonical KORPUS evidence."""
+
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
@@ -238,18 +239,15 @@ def _validate_source_bindings(
                 continue
             if state.document_id != binding.document_id:
                 violations.add(
-                    f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:"
-                    f"{lesson.id}:{binding.id}"
+                    f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:{lesson.id}:{binding.id}"
                 )
             if not state.is_effective(observed):
                 violations.add(
-                    f"{CourseGraphViolation.SOURCE_NOT_EFFECTIVE}:"
-                    f"{lesson.id}:{binding.version_id}"
+                    f"{CourseGraphViolation.SOURCE_NOT_EFFECTIVE}:{lesson.id}:{binding.version_id}"
                 )
             if not binding.evidence_span_ids <= state.evidence_span_ids:
                 violations.add(
-                    f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:"
-                    f"{lesson.id}:{binding.id}"
+                    f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:{lesson.id}:{binding.id}"
                 )
     return violations
 

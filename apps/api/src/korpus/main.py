@@ -20,11 +20,13 @@ from korpus.api.routes_billing import billing_router
 from korpus.api.routes_tenancy import tenancy_router
 from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
+from korpus.application.request_audit_context import (
+    request_audit_context,
+    reset_request_audit_context,
+    set_request_audit_context,
+)
 from korpus.application.resilience import AdmissionController
 from korpus.application.trace import reset_trace_id, set_trace_id
-from korpus.application.request_audit_context import (
-    request_audit_context, reset_request_audit_context, set_request_audit_context,
-)
 from korpus.config import Settings, get_settings, unknown_settings_variables
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
@@ -42,6 +44,7 @@ from korpus.security.oidc import OIDCVerifier
 from korpus.tenancy_composition import install_tenancy
 
 REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
+
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
@@ -258,7 +261,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=selected.cors_origin_list,
         allow_credentials=selected.browser_auth_enabled,
         allow_methods=["GET", "POST"],
-        allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token", "X-KORPUS-Client-Version"],
+        allow_headers=[
+            "Authorization",
+            "Content-Type",
+            "X-Request-ID",
+            "X-CSRF-Token",
+            "X-KORPUS-Client-Version",
+        ],
     )
     app.include_router(router)
     app.include_router(tenancy_router)

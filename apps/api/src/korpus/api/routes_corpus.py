@@ -22,9 +22,9 @@ from korpus.api.dependencies import (
     get_policy,
     get_repository,
 )
+from korpus.api.overload_http import overload_http_exception
 from korpus.application.ingestion import IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
-from korpus.api.overload_http import overload_http_exception
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.config import Settings, get_settings
@@ -41,7 +41,6 @@ from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 from korpus.security.auth import get_identity
 
-
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
 
@@ -51,6 +50,7 @@ class SpoolUpload:
     path: Path
     source_hash: str
     size: int
+
 
 async def _spool_upload_limited(file: UploadFile, maximum_bytes: int) -> SpoolUpload:
     suffix = Path(file.filename or "upload.bin").suffix[:16]
@@ -89,6 +89,7 @@ async def _spool_upload_limited(file: UploadFile, maximum_bytes: int) -> SpoolUp
         raise
     finally:
         await file.close()
+
 
 async def _run_bounded_ingestion[T](
     admission: AdmissionController,

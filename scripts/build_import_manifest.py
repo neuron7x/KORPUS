@@ -190,9 +190,7 @@ def main() -> int:
         if path.suffix.casefold() not in INGESTIBLE:
             unreadable.append(relative.as_posix())
             continue
-        documents.append(
-            _entry_for(path, relative, snapshot.get(relative.as_posix()), arguments)
-        )
+        documents.append(_entry_for(path, relative, snapshot.get(relative.as_posix()), arguments))
 
     manifest = {
         "corpus_id": arguments.corpus_id,

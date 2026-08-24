@@ -6,11 +6,15 @@ from datetime import UTC, datetime
 import pytest
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from fastapi.testclient import TestClient
+from korpus.application.offline_pack import (
+    OfflinePackLimitError,
+    OfflinePackService,
+    canonical_json,
+)
+from korpus.domain.models import Identity
+from korpus.infrastructure.offline_pack_signer import Ed25519OfflinePackSigner
 
 from apps.api.tests.helpers import approve, ingest_text
-from korpus.application.offline_pack import OfflinePackLimitError, OfflinePackService, canonical_json
-from korpus.infrastructure.offline_pack_signer import Ed25519OfflinePackSigner
-from korpus.domain.models import Identity
 
 
 def service(client: TestClient, *, max_spans: int = 100) -> OfflinePackService:
@@ -25,7 +29,9 @@ def service(client: TestClient, *, max_spans: int = 100) -> OfflinePackService:
 
 
 def test_export_is_fresh_policy_bound_signed_and_audited(client: TestClient) -> None:
-    ingested = ingest_text(client, text="Офлайн доказ: резервний канал працює тільки з чинним наказом.")
+    ingested = ingest_text(
+        client, text="Офлайн доказ: резервний канал працює тільки з чинним наказом."
+    )
     approve(client, ingested["version"]["id"])
     offline = service(client)
     client.app.state.offline_pack_service = offline
@@ -55,7 +61,9 @@ def test_export_is_fresh_policy_bound_signed_and_audited(client: TestClient) -> 
     assert exported["payload"]["corpus_release"] == pack["corpus_release"]
 
 
-def test_pack_never_silently_truncates_authorized_evidence(client: TestClient, public_identity: Identity) -> None:
+def test_pack_never_silently_truncates_authorized_evidence(
+    client: TestClient, public_identity: Identity
+) -> None:
     ingested = ingest_text(client, text="Перший фрагмент. Другий фрагмент. Третій фрагмент.")
     approve(client, ingested["version"]["id"])
     offline = service(client, max_spans=0)

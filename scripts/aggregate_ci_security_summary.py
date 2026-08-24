@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Aggregate scanner success markers produced by their pinned CI images."""
+
 from __future__ import annotations
 
 import argparse

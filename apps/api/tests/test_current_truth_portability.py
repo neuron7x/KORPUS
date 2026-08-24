@@ -12,7 +12,9 @@ ROOT = Path(__file__).resolve().parents[3]
 def test_release_identity_can_be_read_from_foreign_root(tmp_path: Path) -> None:
     target = tmp_path / "snapshot"
     (target / "apps/api/src/korpus").mkdir(parents=True)
-    shutil.copy2(ROOT / "apps/api/src/korpus/release.json", target / "apps/api/src/korpus/release.json")
+    shutil.copy2(
+        ROOT / "apps/api/src/korpus/release.json", target / "apps/api/src/korpus/release.json"
+    )
     assert release_tag(target) == release_tag(ROOT)
 
 

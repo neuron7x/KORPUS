@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import scripts.run_local_production_preflight as preflight
 from korpus.application.provenance import compute_source_digest
+
+import scripts.run_local_production_preflight as preflight
 from scripts.coverage_gap_plan import build_plan
 from scripts.release_identity import release_tag
 
@@ -43,7 +44,6 @@ def test_coverage_ratchet_accepts_only_when_both_floors_hold(tmp_path: Path) -> 
     assert report["release"] == release_tag()
 
 
-
 def test_coverage_ratchet_refuses_growth_in_uncovered_branch_edges(tmp_path: Path) -> None:
     policy = json.loads((ROOT / "config/operations/test-adaptation-policy.json").read_text())
     # 250 missing edges exceeds the current ratcheted ceiling even though rates pass.
@@ -52,10 +52,14 @@ def test_coverage_ratchet_refuses_growth_in_uncovered_branch_edges(tmp_path: Pat
     assert report["remaining_missing_branches"] > report["missing_branch_ceiling"]
     assert report["status"] == "FAIL"
 
+
 def _seed_preflight_reports(root: Path, *, digest: str | None) -> None:
     policy = root / "config/operations/reference-v5.json"
     policy.parent.mkdir(parents=True, exist_ok=True)
-    policy.write_text(json.dumps({"assurance": {"minimum_line_rate": 0.95, "minimum_branch_rate": 0.90}}), encoding="utf-8")
+    policy.write_text(
+        json.dumps({"assurance": {"minimum_line_rate": 0.95, "minimum_branch_rate": 0.90}}),
+        encoding="utf-8",
+    )
     if digest is None:
         digest = compute_source_digest(root)
     report_dir = root / "reports/release/v0.5.0"
@@ -69,9 +73,7 @@ def _seed_preflight_reports(root: Path, *, digest: str | None) -> None:
         if name == "backend":
             payload.update({"failed": 0, "errors": 0})
         if name == "coverage":
-            payload.update(
-                {"statement_coverage_percent": 95.1, "branch_coverage_percent": 90.1}
-            )
+            payload.update({"statement_coverage_percent": 95.1, "branch_coverage_percent": 90.1})
         (report_dir / filename).write_text(json.dumps(payload), encoding="utf-8")
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bind the fresh engineering assurance report into the production gate schema."""
+
 from __future__ import annotations
 
 import argparse
@@ -18,7 +19,9 @@ from release_identity import release_tag  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--report", type=Path, default=ROOT / "reports/RESEARCH_ASSURANCE_REPORT.json")
+    parser.add_argument(
+        "--report", type=Path, default=ROOT / "reports/RESEARCH_ASSURANCE_REPORT.json"
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/engineering-gate.json")
     args = parser.parse_args()
     source, release = compute_source_digest(ROOT), release_tag()
@@ -31,9 +34,14 @@ def main() -> int:
     }
     failures = [name for name, passed in checks.items() if not passed]
     payload = gate_payload(
-        "engineering", status="PASS" if not failures else "FAIL", source_digest=source,
-        release=release, checks=checks, failures=failures,
-        evidence_class="FRESH_LOCAL_ENGINEERING", report=str(report_path.relative_to(ROOT)),
+        "engineering",
+        status="PASS" if not failures else "FAIL",
+        source_digest=source,
+        release=release,
+        checks=checks,
+        failures=failures,
+        evidence_class="FRESH_LOCAL_ENGINEERING",
+        report=str(report_path.relative_to(ROOT)),
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

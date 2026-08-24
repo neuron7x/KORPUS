@@ -3,6 +3,7 @@
 Checkout is server-authored; callbacks are provider-authenticated; neither the browser nor
 an otherwise valid callback may change price, currency, account ownership or lifecycle.
 """
+
 from __future__ import annotations
 
 import base64
@@ -14,7 +15,12 @@ import pytest
 from korpus.application.checkout import CheckoutService
 from korpus.application.subscriptions import SubscriptionService
 from korpus.application.tenancy_ports import BillingEventIgnored, BillingEventRejected
-from korpus.domain.tenancy import BillingEventResult, BillingInterval, PlanRecord, SubscriptionStatus
+from korpus.domain.tenancy import (
+    BillingEventResult,
+    BillingInterval,
+    PlanRecord,
+    SubscriptionStatus,
+)
 from korpus.infrastructure.liqpay import CHECKOUT_URL, LiqPayBillingProvider
 from pydantic import ValidationError
 
@@ -193,9 +199,7 @@ def test_yearly_checkout_declares_yearly_recurrence(tmp_path: Path) -> None:
         plan = _sellable(tenancy, interval=BillingInterval.YEARLY)
         provider = _provider()
         service = SubscriptionService(tenancy.subscriptions, tenancy.accounts, provider)
-        checkout = CheckoutService(
-            tenancy.accounts, tenancy.subscriptions, service, provider, BASE
-        )
+        checkout = CheckoutService(tenancy.accounts, tenancy.subscriptions, service, provider, BASE)
         descriptor = checkout.start("oidc|year", account.id, plan.code)
         body = json.loads(base64.b64decode(descriptor.fields["data"]).decode("utf-8"))
         assert body["subscribe_periodicity"] == "year"
@@ -342,9 +346,7 @@ def test_http_callback_rejects_signed_wrong_amount(tmp_path: Path) -> None:
                 entitled_corpora=frozenset({"training"}),
             )
         )
-        descriptor = client.post(
-            "/v1/billing/checkout", json={"plan_code": "standard"}
-        ).json()
+        descriptor = client.post("/v1/billing/checkout", json={"plan_code": "standard"}).json()
         provider: LiqPayBillingProvider = client.app.state.billing_provider
         event, signature = _event(
             provider,
@@ -366,8 +368,8 @@ def test_http_callback_rejects_signed_wrong_amount(tmp_path: Path) -> None:
 
 
 def test_deployment_plan_bootstrap_is_idempotent(tmp_path: Path) -> None:
-    from korpus.main import create_app
     from korpus.config import Settings
+    from korpus.main import create_app
 
     database = tmp_path / "bootstrap.db"
     settings = Settings(

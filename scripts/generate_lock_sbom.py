@@ -21,19 +21,28 @@ def main() -> int:
                 continue
             name, version = match.groups()
             components[(name.lower(), version)] = {
-                "type": "library", "name": name, "version": version,
-                "scope": scope, "purl": f"pkg:pypi/{name.lower()}@{version}",
+                "type": "library",
+                "name": name,
+                "version": version,
+                "scope": scope,
+                "purl": f"pkg:pypi/{name.lower()}@{version}",
             }
     serial_seed = "\n".join(f"{n}=={v}" for n, v in sorted(components))
     bom = {
-        "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "version": 1,
         "serialNumber": "urn:uuid:" + hashlib.sha256(serial_seed.encode()).hexdigest()[:32],
         "metadata": {"component": {"type": "application", "name": "korpus-api"}},
         "components": [components[key] for key in sorted(components)],
     }
     out = ROOT / "source-sbom.cdx.json"
     out.write_text(json.dumps(bom, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": "PASS", "components": len(components), "path": str(out.relative_to(ROOT))}))
+    print(
+        json.dumps(
+            {"status": "PASS", "components": len(components), "path": str(out.relative_to(ROOT))}
+        )
+    )
     return 0
 
 

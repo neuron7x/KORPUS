@@ -5,6 +5,7 @@ This is intentionally offline. It verifies the mapping substrate, not that exter
 standards pages still say what the engineering review recorded. Online source freshness is
 a separate research activity and cannot be silently conflated with local PASS.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,10 +18,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+
 from scripts.release_identity import release_tag  # noqa: E402
+
 ALLOWED_REFERENCE_KINDS = {
-    "normative-final", "normative-stable", "normative-approved", "draft-informative",
-    "industry-methodology", "research",
+    "normative-final",
+    "normative-stable",
+    "normative-approved",
+    "draft-informative",
+    "industry-methodology",
+    "research",
 }
 ALLOWED_LOCAL_STATUS = {"EXECUTABLE", "EXTERNAL_REQUIRED", "INFORMATIVE"}
 
@@ -87,19 +94,27 @@ def _verify_controls(
             failures.append(f"control[{index}].local_status")
         executable += int(status == "EXECUTABLE")
         external += int(status == "EXTERNAL_REQUIRED")
-        failures.extend(_control_reference_failures(index, item.get("references"), known_references))
+        failures.extend(
+            _control_reference_failures(index, item.get("references"), known_references)
+        )
         failures.extend(_control_evidence_failures(root, index, item.get("evidence")))
     return failures, executable, external
 
 
 def _draft_classification_failure(references: list[object]) -> list[str]:
     item = next(
-        (value for value in references if isinstance(value, dict) and value.get("id") == "NIST-SSDF-1.2-DRAFT"),
+        (
+            value
+            for value in references
+            if isinstance(value, dict) and value.get("id") == "NIST-SSDF-1.2-DRAFT"
+        ),
         None,
     )
-    return [] if item is not None and item.get("kind") == "draft-informative" else [
-        "nist_ssdf_1_2_must_remain_draft_informative"
-    ]
+    return (
+        []
+        if item is not None and item.get("kind") == "draft-informative"
+        else ["nist_ssdf_1_2_must_remain_draft_informative"]
+    )
 
 
 def verify(root: Path, config: Path) -> dict[str, object]:
@@ -130,7 +145,9 @@ def verify(root: Path, config: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--config", type=Path, default=Path("config/assurance/standards-control-map.v1.json"))
+    parser.add_argument(
+        "--config", type=Path, default=Path("config/assurance/standards-control-map.v1.json")
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     root = args.root.resolve()

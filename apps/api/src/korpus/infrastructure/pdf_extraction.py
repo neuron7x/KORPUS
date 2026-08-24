@@ -5,8 +5,8 @@ import subprocess
 import tempfile
 import time
 from collections.abc import Callable
-from typing import Any
 from pathlib import Path
+from typing import Any
 
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
@@ -23,7 +23,9 @@ def _remaining(deadline: float) -> float:
     return remaining
 
 
-def _open_pdf(path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]) -> tuple[PdfReader, bool]:
+def _open_pdf(
+    path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]
+) -> tuple[PdfReader, bool]:
     try:
         reader = reader_factory(str(path), strict=True)
     except (OSError, ValueError, TypeError, PdfReadError) as exc:
@@ -46,7 +48,9 @@ def _open_pdf(path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]
     return reader, owner_restricted
 
 
-def _embedded_pages(reader: PdfReader, deadline: float, normalize: Normalize) -> list[ExtractedPage]:
+def _embedded_pages(
+    reader: PdfReader, deadline: float, normalize: Normalize
+) -> list[ExtractedPage]:
     pages: list[ExtractedPage] = []
     try:
         for index, page in enumerate(reader.pages, start=1):
@@ -71,7 +75,18 @@ def _ocr_pages(
         root = Path(directory)
         prefix = root / "page"
         subprocess.run(
-            ["pdftoppm", "-png", "-r", "220", "-f", "1", "-l", str(max_pages), str(path), str(prefix)],
+            [
+                "pdftoppm",
+                "-png",
+                "-r",
+                "220",
+                "-f",
+                "1",
+                "-l",
+                str(max_pages),
+                str(path),
+                str(prefix),
+            ],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -89,7 +104,9 @@ def _ocr_pages(
                 timeout=_remaining(deadline),
                 env={"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "LC_ALL": "C"},
             )
-            pages.append(ExtractedPage(page=index, text=normalize(completed.stdout.decode("utf-8"))))
+            pages.append(
+                ExtractedPage(page=index, text=normalize(completed.stdout.decode("utf-8")))
+            )
     return pages
 
 

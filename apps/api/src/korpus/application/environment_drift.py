@@ -94,9 +94,7 @@ class DriftReport:
         }
 
 
-def compare(
-    desired: Mapping[str, str], observed: Mapping[str, str | None]
-) -> DriftReport:
+def compare(desired: Mapping[str, str], observed: Mapping[str, str | None]) -> DriftReport:
     """Compare approved digests against observed ones.
 
     `desired` maps path to the approved sha256; `observed` maps path to what the

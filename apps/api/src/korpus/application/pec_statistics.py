@@ -1,4 +1,5 @@
 """Small finite-sample statistics used by PEC offline admission gates."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -19,7 +20,9 @@ class DirectionalComparison:
         return self.wins + self.losses
 
 
-def wilson_interval(successes: int, total: int, *, z: float = 1.959963984540054) -> tuple[float, float]:
+def wilson_interval(
+    successes: int, total: int, *, z: float = 1.959963984540054
+) -> tuple[float, float]:
     return wilson_score_interval(successes, total, z=z)
 
 

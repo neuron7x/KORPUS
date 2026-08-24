@@ -3,6 +3,7 @@
 Both the renderer and the requirement registry depend on this module. Keeping these
 constants here prevents the renderer and the policy registry from importing each other.
 """
+
 from __future__ import annotations
 
 SUPPORTED_KUSTOMIZATION_FIELDS = frozenset(

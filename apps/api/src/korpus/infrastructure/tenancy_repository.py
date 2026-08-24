@@ -95,9 +95,7 @@ class SqlAccountStore:
         if existing is not None:
             return existing, False
 
-        record = AccountRecord(
-            auth_subject=auth_subject, email=email, display_name=display_name
-        )
+        record = AccountRecord(auth_subject=auth_subject, email=email, display_name=display_name)
 
         def operation(connection: Connection) -> tuple[AccountRecord, tuple[int, str]]:
             connection.execute(
@@ -154,9 +152,7 @@ class SqlAccountStore:
     def get_account_by_subject(self, auth_subject: str) -> AccountRecord | None:
         with self.engine.connect() as connection:
             row = (
-                connection.execute(
-                    select(accounts).where(accounts.c.auth_subject == auth_subject)
-                )
+                connection.execute(select(accounts).where(accounts.c.auth_subject == auth_subject))
                 .mappings()
                 .first()
             )

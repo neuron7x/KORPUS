@@ -149,7 +149,8 @@ def test_the_answer_text_comes_only_from_the_corpus(
     answer = _ask(answered_corpus, f"дії при нальоті {MARKER}")
 
     rendered = str(answer["text"]) + "".join(
-        str(claim["text"]) for claim in answer["claims"]  # type: ignore[index,union-attr]
+        str(claim["text"])
+        for claim in answer["claims"]  # type: ignore[index,union-attr]
     )
     assert INJECTED not in rendered, rendered
     for citation in answer["citations"]:  # type: ignore[union-attr]
@@ -195,11 +196,13 @@ def test_a_planner_that_blocks_does_not_hold_the_reader() -> None:
     assert plan.searches == ("як діяти при нальоті",)
     assert plan.refused and "deadline" in plan.refused[0], plan.refused
 
+
 class _GeneratorPlanner:
     def variants(self, question: str, subjects: list[str]):
         def hostile():
             raise AssertionError("generator must never be iterated outside planner deadline")
             yield "unreachable"
+
         return hostile()
 
 

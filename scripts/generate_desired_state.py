@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from release_identity import release_tag
+
 ROOT = Path(__file__).resolve().parents[1]
 EXACT = [
     ".gitlab-ci.yml",
@@ -18,6 +19,8 @@ EXACT = [
     "infra/otel-collector.yaml",
     "infra/minio/korpus-app-policy.json",
 ]
+
+
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -66,8 +69,7 @@ def main() -> int:
                 try:
                     stored = json.loads(target.read_text(encoding="utf-8"))
                     previous = {
-                        str(item["path"]): str(item["sha256"])
-                        for item in stored.get("records", [])
+                        str(item["path"]): str(item["sha256"]) for item in stored.get("records", [])
                     }
                 except (json.JSONDecodeError, KeyError, TypeError):
                     previous = {}
@@ -89,6 +91,7 @@ def main() -> int:
     summary = {"valid": True, "records": len(records), "root_sha256": output["root_sha256"]}
     print(json.dumps(summary, indent=2))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

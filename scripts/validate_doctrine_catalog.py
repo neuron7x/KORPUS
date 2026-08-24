@@ -159,9 +159,7 @@ def evaluate(catalog: dict[str, object]) -> dict[str, object]:
         "restricted_quarantined": len(
             [e for e in dicts if str(e.get("classification")) == "restricted"]
         ),
-        "rights_blocked": len(
-            [e for e in dicts if str(e.get("rights_status", "open")) != "open"]
-        ),
+        "rights_blocked": len([e for e in dicts if str(e.get("rights_status", "open")) != "open"]),
     }
     return {
         "status": "PASS" if not problems else "FAIL",

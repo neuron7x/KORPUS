@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Run the reproducible local assurance stack and aggregate machine-readable evidence."""
+
 from __future__ import annotations
 
 import json
@@ -86,7 +87,8 @@ def main() -> int:
                 "--junitxml=var/pytest.xml",
                 "--cov=apps/api/src/korpus",
                 "--cov-branch",
-                "--cov-report=xml:var/coverage.xml", "--cov-report=json:var/coverage.json",
+                "--cov-report=xml:var/coverage.xml",
+                "--cov-report=json:var/coverage.json",
                 "--cov-fail-under=82",
             ],
         ),
@@ -97,8 +99,7 @@ def main() -> int:
     ]
     with ThreadPoolExecutor(max_workers=len(parallel_commands)) as pool:
         futures = [
-            pool.submit(run, name, command, environment)
-            for name, command in parallel_commands
+            pool.submit(run, name, command, environment) for name, command in parallel_commands
         ]
         steps.extend(future.result() for future in futures)
     if all(step["returncode"] == 0 for step in steps):

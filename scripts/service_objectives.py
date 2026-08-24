@@ -20,17 +20,33 @@ from korpus.application.service_levels import (  # noqa: E402
 )
 
 OBJECTIVES: dict[str, tuple[str, str]] = {
-    "load_slo_steady_p95": ("answer_latency_steady", f"p95 <= {STEADY_P95_LIMIT_SECONDS:g}s at rated load"),
-    "load_slo_cold_start": ("answer_latency_cold", f"cold first request <= {COLD_START_LIMIT_SECONDS:g}s"),
+    "load_slo_steady_p95": (
+        "answer_latency_steady",
+        f"p95 <= {STEADY_P95_LIMIT_SECONDS:g}s at rated load",
+    ),
+    "load_slo_cold_start": (
+        "answer_latency_cold",
+        f"cold first request <= {COLD_START_LIMIT_SECONDS:g}s",
+    ),
     "load_slo_no_5xx_rated": ("answers_are_delivered", "no 5xx under rated load"),
-    "load_slo_no_subject_throttle_rated": ("rated_capacity_is_honest", "no subject throttling under rated load"),
-    "load_slo_no_retrieval_deadline": ("search_completes", "no retrieval_deadline_exceeded under rated load"),
+    "load_slo_no_subject_throttle_rated": (
+        "rated_capacity_is_honest",
+        "no subject throttling under rated load",
+    ),
+    "load_slo_no_retrieval_deadline": (
+        "search_completes",
+        "no retrieval_deadline_exceeded under rated load",
+    ),
 }
 
 
 def _objective_rows(report: dict[str, Any], checks: dict[str, bool]) -> list[dict[str, Any]]:
     soak = report.get("soak", {}) if isinstance(report.get("soak"), dict) else {}
-    cold = report.get("cold_first_request", {}) if isinstance(report.get("cold_first_request"), dict) else {}
+    cold = (
+        report.get("cold_first_request", {})
+        if isinstance(report.get("cold_first_request"), dict)
+        else {}
+    )
     measured = {
         "load_slo_steady_p95": soak.get("p95_seconds"),
         "load_slo_cold_start": cold.get("seconds"),

@@ -1,10 +1,12 @@
 """Append-only audit anchoring backed by generation-conditional GCS objects."""
+
 from __future__ import annotations
 
 import json
 
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchor, _SignedAnchorCodec
 from korpus.infrastructure.gcs import GcsJsonClient, GcsPreconditionFailed
+
 
 class GcsAuditAnchorStore:
     """Append-only audit anchor over GCS create-only objects.
@@ -49,11 +51,11 @@ class GcsAuditAnchorStore:
         body = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
         try:
             self.gcs.upload_create_only(name, body)
-        except GcsPreconditionFailed:
+        except GcsPreconditionFailed as error:
             existing = self._read_name(name)
             if existing.sequence == sequence and existing.head_hash == head_hash:
                 return
-            raise AnchorError("GCS audit anchor rejected conflicting sequence")
+            raise AnchorError("GCS audit anchor rejected conflicting sequence") from error
         written = self._read_name(name)
         if written.sequence != sequence or written.head_hash != head_hash:
             raise AnchorError("GCS audit anchor failed post-write verification")
@@ -85,7 +87,7 @@ class GcsAuditAnchorStore:
         prefix = f"{self.prefix}/"
         if not name.startswith(prefix) or not name.endswith(".json"):
             raise AnchorError("GCS audit anchor inventory contains an invalid object name")
-        digits = name[len(prefix):-5]
+        digits = name[len(prefix) : -5]
         if len(digits) != 32 or not digits.isdigit():
             raise AnchorError("GCS audit anchor inventory contains an invalid sequence")
         return int(digits)
@@ -96,4 +98,3 @@ class GcsAuditAnchorStore:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise AnchorError("GCS audit anchor is unreadable") from exc
         return self.codec.decode(payload)
-

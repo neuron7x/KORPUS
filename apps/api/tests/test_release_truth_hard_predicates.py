@@ -4,7 +4,10 @@ import importlib.util
 import json
 from pathlib import Path
 
-from korpus.application.production_hard_predicates import evaluate_hard_predicates, load_hard_predicate_profile
+from korpus.application.production_hard_predicates import (
+    evaluate_hard_predicates,
+    load_hard_predicate_profile,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 PROFILE = ROOT / "config/assurance/production-hard-predicates-v1.json"
@@ -41,7 +44,11 @@ def test_release_truth_rejects_stale_hard_predicate_report(monkeypatch, tmp_path
         registry = module._blockers("1" * 64, str(payload.get("release")))
     finally:
         report.write_bytes(original)
-    hard = [item for item in registry["items"] if item["id"] in {p["id"] for p in json.loads(PROFILE.read_text())["predicates"]}]
+    hard = [
+        item
+        for item in registry["items"]
+        if item["id"] in {p["id"] for p in json.loads(PROFILE.read_text())["predicates"]}
+    ]
     assert registry["hard_predicate_report_current"] is False
     assert len(hard) == len(json.loads(PROFILE.read_text())["predicates"])
     assert all(item["state"] == "INTERNAL_BLOCKED" for item in hard)

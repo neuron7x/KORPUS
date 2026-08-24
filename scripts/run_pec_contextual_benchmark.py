@@ -16,18 +16,27 @@ def main() -> int:
     parser.add_argument("--observations", type=Path, required=True)
     parser.add_argument("--minimum-informative-pairs", type=int, required=True)
     parser.add_argument("--release-gate", action="store_true")
-    parser.add_argument("--out", type=Path, default=ROOT / "reports/PEC_CONTEXTUAL_BENCHMARK_CURRENT.json")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/PEC_CONTEXTUAL_BENCHMARK_CURRENT.json"
+    )
     args = parser.parse_args()
     result = evaluate_contextual_benchmark(
         read_jsonl(args.observations), minimum_informative_pairs=args.minimum_informative_pairs
     )
-    report = receipt("pec_contextual_benchmark", {
-        **result,
-        "observations_sha256": sha256_file(args.observations),
-    })
+    report = receipt(
+        "pec_contextual_benchmark",
+        {
+            **result,
+            "observations_sha256": sha256_file(args.observations),
+        },
+    )
     write_json(args.out, report)
     print(json.dumps(report, indent=2))
-    return 0 if report["status"] == "PASS" or (report["status"] == "UNKNOWN" and not args.release_gate) else 1
+    return (
+        0
+        if report["status"] == "PASS" or (report["status"] == "UNKNOWN" and not args.release_gate)
+        else 1
+    )
 
 
 if __name__ == "__main__":

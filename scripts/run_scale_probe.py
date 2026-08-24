@@ -4,6 +4,7 @@
 The result is an environment-specific measurement, not a universal benchmark.
 It verifies bounded candidate generation and records latency procedure/provenance.
 """
+
 from __future__ import annotations
 
 import json
@@ -120,9 +121,7 @@ def main() -> int:
         report = {
             "schema_version": 1,
             "status": (
-                "PASS"
-                if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET
-                else "FAIL"
+                "PASS" if top_hits == ITERATIONS and candidate_count <= CANDIDATE_BUDGET else "FAIL"
             ),
             "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
             "procedure": {

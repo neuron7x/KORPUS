@@ -4,8 +4,8 @@ import asyncio
 import os
 import subprocess
 import sys
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from fastapi import FastAPI, Response, status
 
@@ -30,7 +30,7 @@ class WorkerProcessSupervisor:
             raise RuntimeError("worker process already started")
         environment = os.environ.copy()
         environment["KORPUS_RUNTIME_ROLE"] = "worker"
-        self._process = subprocess.Popen(  # noqa: S603 - fixed interpreter/module argv
+        self._process = subprocess.Popen(
             [
                 sys.executable,
                 "-m",

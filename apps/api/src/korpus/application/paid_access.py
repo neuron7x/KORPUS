@@ -114,9 +114,7 @@ class EntitlementProjection:
             entitled_corpora=frozenset(self._free_corpora),
             subscription_status=latest,
             evaluated_at=moment,
-            reason=(
-                f"no_active_subscription:{latest.value}" if latest else "no_subscription"
-            ),
+            reason=(f"no_active_subscription:{latest.value}" if latest else "no_subscription"),
         )
 
     def authorize_corpora(

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Write the current production verdict for diagnostics without promoting it."""
+
 from __future__ import annotations
 
 import json

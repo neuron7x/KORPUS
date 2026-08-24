@@ -1,4 +1,5 @@
 """Public PEC metamorphic evaluation surface."""
+
 from korpus.application.pec_metamorphic_eval import evaluate_metamorphic_pairs
 from korpus.application.pec_metamorphic_rules import ABSTAIN_OR_REVIEW, metamorphic_issues
 

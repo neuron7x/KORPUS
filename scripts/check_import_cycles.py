@@ -28,9 +28,13 @@ def _imports(tree: ast.AST, known: set[str]) -> set[str]:
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             candidates.extend(alias.name for alias in node.names if alias.name.startswith(PREFIX))
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-            if node.module.startswith(PREFIX):
-                candidates.append(node.module)
+        elif (
+            isinstance(node, ast.ImportFrom)
+            and node.level == 0
+            and node.module
+            and node.module.startswith(PREFIX)
+        ):
+            candidates.append(node.module)
     return {target for item in candidates if (target := _known_target(item, known))}
 
 

@@ -36,9 +36,7 @@ def _registry() -> tuple[dict[str, list[str]], dict[str, str]]:
             name = getattr(target, "id", "")
             if name in {"CLOSED_LOCAL", "MITIGATED_LOCAL", "EXTERNAL_DEBT", "OPEN_TECH_DEBT"}:
                 sets[name] = set(ast.literal_eval(node.value))
-    statuses = {
-        finding: status for status, members in sets.items() for finding in members
-    }
+    statuses = {finding: status for status, members in sets.items() for finding in members}
     assert evidence and statuses, "the closure registry could not be read"
     return evidence, statuses
 

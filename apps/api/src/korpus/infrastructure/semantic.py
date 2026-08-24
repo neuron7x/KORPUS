@@ -15,8 +15,8 @@ from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
 
 from korpus.application.resilience import CircuitBreaker
-from korpus.infrastructure.resource_contracts import embedding_limits
 from korpus.domain.models import Identity
+from korpus.infrastructure.resource_contracts import embedding_limits
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.url_policy import is_https_or_loopback_url
 
@@ -51,6 +51,7 @@ class EmbeddingProvider(Protocol):
     def healthcheck(self) -> bool: ...
     def close(self) -> None: ...
 
+
 @dataclass
 class HttpEmbeddingProvider:
     """Bounded vendor-neutral embedding integration.
@@ -70,10 +71,19 @@ class HttpEmbeddingProvider:
     def __post_init__(self) -> None:
         if not is_https_or_loopback_url(self.endpoint):
             raise ValueError("embedding endpoint must use HTTPS or loopback HTTP")
-        if not MODEL_PATTERN.fullmatch(self.model_id): raise ValueError("invalid embedding model configuration")
+        if not MODEL_PATTERN.fullmatch(self.model_id):
+            raise ValueError("invalid embedding model configuration")
         try:
-            self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds = embedding_limits(self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds)
-        except ValueError as exc: raise ValueError(f"invalid embedding resilience configuration: {exc}") from exc
+            self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds = (
+                embedding_limits(
+                    self.dimensions,
+                    self.max_attempts,
+                    self.max_response_bytes,
+                    self.timeout_seconds,
+                )
+            )
+        except ValueError as exc:
+            raise ValueError(f"invalid embedding resilience configuration: {exc}") from exc
         if self.client is None:
             headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
             self.client = httpx.Client(
@@ -217,7 +227,9 @@ CAST(:vector AS vector)))) AS score
         if corpus_row is None:
             raise PermissionError("embedding target is not visible to the identity")
         if self.corpus_governance is not None:
-            self.corpus_governance.require_external_embedding(frozenset({str(corpus_row.corpus_id)}))
+            self.corpus_governance.require_external_embedding(
+                frozenset({str(corpus_row.corpus_id)})
+            )
         vector = self.provider.embed(text)
         vector_literal = "[" + ",".join(f"{value:.9g}" for value in vector) + "]"
         with self.engine.begin() as connection:

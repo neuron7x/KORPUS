@@ -1,4 +1,5 @@
 """Exact-version dependency publisher metadata for offline supply-chain inventory."""
+
 from __future__ import annotations
 
 import json

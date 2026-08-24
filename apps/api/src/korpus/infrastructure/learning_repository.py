@@ -1,4 +1,5 @@
 """Transactional persistence adapter for immutable learning course graphs."""
+
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
@@ -49,9 +50,13 @@ class SqlLearningRepository:
 
     def get_course(self, course_id: str) -> Course | None:
         with self.engine.connect() as connection:
-            row = connection.execute(
-                select(learning_courses).where(learning_courses.c.id == course_id)
-            ).mappings().first()
+            row = (
+                connection.execute(
+                    select(learning_courses).where(learning_courses.c.id == course_id)
+                )
+                .mappings()
+                .first()
+            )
         if row is None:
             return None
         return Course(
@@ -86,11 +91,15 @@ class SqlLearningRepository:
 
     def get_publication(self, version_id: str) -> CoursePublication | None:
         with self.engine.connect() as connection:
-            row = connection.execute(
-                select(learning_publications).where(
-                    learning_publications.c.course_version_id == version_id
+            row = (
+                connection.execute(
+                    select(learning_publications).where(
+                        learning_publications.c.course_version_id == version_id
+                    )
                 )
-            ).mappings().first()
+                .mappings()
+                .first()
+            )
         if row is None:
             return None
         reviewed_at = row["reviewed_at"]
@@ -172,11 +181,15 @@ class SqlLearningRepository:
             raise ValueError("reviewed_by must be non-empty")
         stamp = reviewed_at or datetime.now(UTC)
         with self.engine.begin() as connection:
-            publication = connection.execute(
-                select(learning_publications).where(
-                    learning_publications.c.course_version_id == version_id
+            publication = (
+                connection.execute(
+                    select(learning_publications).where(
+                        learning_publications.c.course_version_id == version_id
+                    )
                 )
-            ).mappings().first()
+                .mappings()
+                .first()
+            )
             if publication is None:
                 raise LookupError(f"course version not found: {version_id}")
             if str(publication["state"]) != CoursePublicationState.DRAFT.value:
@@ -220,11 +233,15 @@ class SqlLearningRepository:
     ) -> CoursePublication:
         stamp = retired_at or datetime.now(UTC)
         with self.engine.begin() as connection:
-            row = connection.execute(
-                select(learning_publications).where(
-                    learning_publications.c.course_version_id == version_id
+            row = (
+                connection.execute(
+                    select(learning_publications).where(
+                        learning_publications.c.course_version_id == version_id
+                    )
                 )
-            ).mappings().first()
+                .mappings()
+                .first()
+            )
             if row is None:
                 raise LookupError(f"course version not found: {version_id}")
             if str(row["state"]) not in {
@@ -266,8 +283,6 @@ class SqlLearningRepository:
                 )
             )
             result = connection.execute(
-                delete(learning_course_versions).where(
-                    learning_course_versions.c.id == version_id
-                )
+                delete(learning_course_versions).where(learning_course_versions.c.id == version_id)
             )
             return bool(result.rowcount)

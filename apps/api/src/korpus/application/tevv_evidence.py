@@ -1,4 +1,5 @@
 """Recompute production TEVV aggregates from a signed case ledger."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -29,12 +30,13 @@ def _normalize_observations(value: object) -> tuple[list[dict[str, Any]], list[s
             continue
         case_id, passed = candidate.get("id"), candidate.get("passed")
         families = _families(candidate.get("attack_families"))
-        valid = (
-            isinstance(case_id, str) and bool(case_id)
-            and isinstance(passed, bool) and families is not None
+        if not (
+            isinstance(case_id, str)
+            and bool(case_id)
+            and isinstance(passed, bool)
+            and families is not None
             and all(_nonnegative_int(candidate.get(field)) for field in _COUNT_FIELDS)
-        )
-        if not valid:
+        ):
             structured = False
             continue
         row = dict(candidate)
@@ -70,7 +72,9 @@ def _metrics(observations: list[dict[str, Any]], nulls: list[dict[str, Any]]) ->
         **{field: sum(int(row[field]) for row in observations) for field in _COUNT_FIELDS},
         "null_controls": len(nulls),
         "null_control_false_accepts": sum(bool(row["false_accept"]) for row in nulls),
-        "attack_families": sorted({family for row in observations for family in row["attack_families"]}),
+        "attack_families": sorted(
+            {family for row in observations for family in row["attack_families"]}
+        ),
     }
 
 
@@ -78,14 +82,22 @@ def _declared_consistent(evidence: dict[str, Any], metrics: dict[str, Any]) -> b
     return all(
         evidence.get(key) is None or evidence.get(key) == metrics[key]
         for key in (
-            "observations", "passed", "citation_failures", "leakage_failures",
-            "determinism_failures", "null_controls", "null_control_false_accepts", "attack_families",
+            "observations",
+            "passed",
+            "citation_failures",
+            "leakage_failures",
+            "determinism_failures",
+            "null_controls",
+            "null_control_false_accepts",
+            "attack_families",
         )
     )
 
 
 def evaluate_tevv_ledger(evidence: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
-    observations, observation_ids, observations_ok = _normalize_observations(evidence.get("observation_ledger"))
+    observations, observation_ids, observations_ok = _normalize_observations(
+        evidence.get("observation_ledger")
+    )
     nulls, null_ids, nulls_ok = _normalize_nulls(evidence.get("null_control_ledger"))
     metrics = _metrics(observations, nulls)
     required = set(profile.get("required_attack_families", ()))

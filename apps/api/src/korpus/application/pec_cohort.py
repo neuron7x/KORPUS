@@ -12,7 +12,9 @@ class CohortVerdict:
     duplicates: tuple[str, ...]
 
 
-def validate_complete_cohort(expected_ids: Iterable[str], rows: Iterable[Mapping[str, object]]) -> CohortVerdict:
+def validate_complete_cohort(
+    expected_ids: Iterable[str], rows: Iterable[Mapping[str, object]]
+) -> CohortVerdict:
     expected = tuple(str(item) for item in expected_ids)
     if not expected or len(expected) != len(set(expected)):
         raise ValueError("expected cohort IDs must be non-empty and unique")

@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 import hashlib
-import json
 import os
 import tempfile
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
+
 import httpx
+
 from korpus.application.ports import ObjectStoreUnavailable
-from korpus.infrastructure.gcp_identity import MetadataIdentityProvider, MetadataIdentityError
-from korpus.infrastructure.resource_contracts import count as resource_count, object_limits, timeout as resource_timeout
+from korpus.infrastructure.gcp_identity import MetadataIdentityError, MetadataIdentityProvider
 from korpus.infrastructure.object_store import (
     BUCKET_PATTERN,
     DEFAULT_MAX_OBJECT_BYTES,
@@ -17,6 +18,16 @@ from korpus.infrastructure.object_store import (
     KEY_PATTERN,
     PREFIX_PATTERN,
 )
+from korpus.infrastructure.resource_contracts import (
+    count as resource_count,
+)
+from korpus.infrastructure.resource_contracts import (
+    object_limits,
+)
+from korpus.infrastructure.resource_contracts import (
+    timeout as resource_timeout,
+)
+
 _STORAGE_API = "https://storage.googleapis.com"
 _JSON_API = f"{_STORAGE_API}/storage/v1"
 _UPLOAD_API = f"{_STORAGE_API}/upload/storage/v1"
@@ -43,7 +54,8 @@ class GcsJsonClient:
         client: Any | None = None,
     ) -> None:
         timeout_seconds = resource_timeout(timeout_seconds, "timeout_seconds")
-        if not BUCKET_PATTERN.fullmatch(bucket): raise ValueError("invalid GCS configuration")
+        if not BUCKET_PATTERN.fullmatch(bucket):
+            raise ValueError("invalid GCS configuration")
         self.bucket = bucket
         self.identity = identity or MetadataIdentityProvider()
         self.client = client or httpx.Client(
@@ -67,9 +79,9 @@ class GcsJsonClient:
             payload = response.json()
         except (TypeError, ValueError) as exc:
             raise ObjectStoreUnavailable("GCS upload returned invalid metadata") from exc
-        if str(payload.get("name", "")) != name:
+        if not isinstance(payload, dict) or str(payload.get("name", "")) != name:
             raise ObjectStoreUnavailable("GCS upload metadata does not identify the object")
-        return payload
+        return {str(key): value for key, value in payload.items()}
 
     def download(self, name: str) -> bytes:
         response = self._request(
@@ -187,14 +199,11 @@ class GcsObjectStore:
     ) -> None:
         normalized_prefix = prefix.strip("/")
         retention_seconds, max_object_bytes = object_limits(retention_seconds, max_object_bytes)
-        if (
-            not BUCKET_PATTERN.fullmatch(bucket)
-            or (
-                normalized_prefix
-                and (
-                    not PREFIX_PATTERN.fullmatch(normalized_prefix)
-                    or ".." in normalized_prefix.split("/")
-                )
+        if not BUCKET_PATTERN.fullmatch(bucket) or (
+            normalized_prefix
+            and (
+                not PREFIX_PATTERN.fullmatch(normalized_prefix)
+                or ".." in normalized_prefix.split("/")
             )
         ):
             raise ValueError("invalid GCS object store configuration")
@@ -249,7 +258,9 @@ class GcsObjectStore:
         metadata = self.gcs.metadata(object_key)
         if metadata is None:
             raise FileNotFoundError(object_key)
-        declared_size = resource_count(metadata.get("size", 0), 0, "GCS object size", allow_digit_string=True)
+        declared_size = resource_count(
+            metadata.get("size", 0), 0, "GCS object size", allow_digit_string=True
+        )
         if declared_size > self.max_object_bytes:
             raise RuntimeError("GCS object exceeds configured read limit")
         content = self.gcs.download(object_key)

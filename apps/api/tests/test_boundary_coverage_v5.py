@@ -276,6 +276,7 @@ def test_parser_worker_success_and_failure(monkeypatch: pytest.MonkeyPatch, tmp_
     assert parser_worker.main() == 2
     assert "parser error" in error.getvalue()
 
+
 class DummyAuditVerification:
     def model_dump_json(self, indent: int = 2) -> str:
         del indent
@@ -474,9 +475,7 @@ class PaginatedS3:
 
 def test_s3_path_download_inventory_and_cleanup(tmp_path: Path) -> None:
     client = PaginatedS3()
-    object_store = __import__(
-        "korpus.infrastructure.object_store", fromlist=["S3ObjectStore"]
-    )
+    object_store = __import__("korpus.infrastructure.object_store", fromlist=["S3ObjectStore"])
     store = object_store.S3ObjectStore(bucket="bucket", prefix="objects", client=client)
     content = b"downloaded"
     digest = hashlib.sha256(content).hexdigest()

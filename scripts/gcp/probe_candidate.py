@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Deterministic tagged-revision smoke probe executed from the production VPC."""
+
 from __future__ import annotations
 
 import argparse

@@ -119,7 +119,12 @@ class OpenAIQueryPlanner:
         return parse_query_variants(_response_text(body))
 
     def _request(
-        self, *, instructions: str, input_text: str, max_output_tokens: int, text_format: dict[str, Any]
+        self,
+        *,
+        instructions: str,
+        input_text: str,
+        max_output_tokens: int,
+        text_format: dict[str, Any],
     ) -> Any:
         payload = {
             "model": self._model,

@@ -3,7 +3,6 @@ from __future__ import annotations
 import itertools
 
 import pytest
-
 from korpus.application.assurance_calculus import (
     DimensionObservation,
     DimensionPolicy,
@@ -69,10 +68,7 @@ def policy() -> ReadinessPolicy:
 
 def observations(score: float = 95.0) -> dict[str, DimensionObservation]:
     ev = evidence()
-    return {
-        item.dimension_id: DimensionObservation(score, ev)
-        for item in policy().dimensions
-    }
+    return {item.dimension_id: DimensionObservation(score, ev) for item in policy().dimensions}
 
 
 def test_policy_refuses_weights_that_do_not_sum_to_one() -> None:

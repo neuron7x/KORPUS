@@ -81,9 +81,7 @@ def evaluate_assurance(
         if source_digest is not None
         else (False, ("source digest was not supplied to the aggregator",))
     )
-    missing_reports = tuple(
-        name for name in PROVENANCE_BOUND_REPORTS if name not in reports
-    )
+    missing_reports = tuple(name for name in PROVENANCE_BOUND_REPORTS if name not in reports)
 
     # A release without evidence that the data can come back is a release that has
     # never been asked the question. The drill runs in the PostgreSQL job, so a local
@@ -100,7 +98,9 @@ def evaluate_assurance(
         >= _as_int(settings["minimum_executed_tests"]),
         "tests_outcome": failures == 0 and errors == 0,
         "coverage_line": rate_at_least(coverage.get("line-rate"), settings["minimum_line_rate"]),
-        "coverage_branch": rate_at_least(coverage.get("branch-rate"), settings["minimum_branch_rate"]),
+        "coverage_branch": rate_at_least(
+            coverage.get("branch-rate"), settings["minimum_branch_rate"]
+        ),
         "quality_tooling_executed": tools_passed,
         "reports_present": not missing_reports,
         "evidence_provenance": provenance_ok,

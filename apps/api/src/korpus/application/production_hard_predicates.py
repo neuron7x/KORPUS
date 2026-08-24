@@ -45,40 +45,73 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
     "external_independent_redteam": PredicateRequirement(
         "redteam",
         (
-            "report_present", "attestation_present", "attestation_verified", "trusted_signer",
-            "source_bound", "release_bound", "independent_class", "preregistered",
-            "test_cases_structured", "required_attack_families_covered", "findings_structured",
-            "blocking_findings_closed", "declared_status_consistent",
+            "report_present",
+            "attestation_present",
+            "attestation_verified",
+            "trusted_signer",
+            "source_bound",
+            "release_bound",
+            "independent_class",
+            "preregistered",
+            "test_cases_structured",
+            "required_attack_families_covered",
+            "findings_structured",
+            "blocking_findings_closed",
+            "declared_status_consistent",
         ),
         (("status", "PASS"),),
     ),
     "live_vulnerability_scanners": PredicateRequirement(
         "supply_chain",
         (
-            "security_scanners_executed_clean", "security_scanners_current_commit",
-            "container_scanners_executed_clean", "container_scanners_current_commit",
-            "container_sboms_valid", "evidence_manifest_bound", "evidence_attestation_verified",
+            "security_scanners_executed_clean",
+            "security_scanners_current_commit",
+            "container_scanners_executed_clean",
+            "container_scanners_current_commit",
+            "container_sboms_valid",
+            "evidence_manifest_bound",
+            "evidence_attestation_verified",
             "evidence_trusted_signer",
         ),
     ),
     "live_postgres_rls": PredicateRequirement(
         "postgres_security",
-        ("target_files_present", "grant_contract_static", "postgres_runtime_available", "postgres_adversarial_suite"),
+        (
+            "target_files_present",
+            "grant_contract_static",
+            "postgres_runtime_available",
+            "postgres_adversarial_suite",
+        ),
         (("backend", "postgresql"),),
     ),
     "real_domain_corpus_tevv": PredicateRequirement(
         "tevv",
         (
-            "evidence_schema", "preregistered", "source_bound", "release_bound",
-            "observation_ledger_structured", "null_control_ledger_structured",
-            "required_attack_families_covered", "tevv_admissible", "pass_rate",
-            "citation_integrity", "leakage", "determinism", "null_controls",
-            "null_false_accepts", "attack_families",
+            "evidence_schema",
+            "preregistered",
+            "source_bound",
+            "release_bound",
+            "observation_ledger_structured",
+            "null_control_ledger_structured",
+            "required_attack_families_covered",
+            "tevv_admissible",
+            "pass_rate",
+            "citation_integrity",
+            "leakage",
+            "determinism",
+            "null_controls",
+            "null_false_accepts",
+            "attack_families",
         ),
     ),
     "independent_tevv": PredicateRequirement(
         "tevv",
-        ("independent_class", "assessor_structured", "assessor_attestation_verified", "assessor_trusted_signer"),
+        (
+            "independent_class",
+            "assessor_structured",
+            "assessor_attestation_verified",
+            "assessor_trusted_signer",
+        ),
     ),
     "production_like_tevv_environment": PredicateRequirement(
         "tevv", ("environment_class", "assessor_attestation_verified", "assessor_trusted_signer")
@@ -86,9 +119,14 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
     "production_like_load": PredicateRequirement(
         "reliability",
         (
-            "live_load_soak_executed", "load_source_bound", "load_environment",
-            "load_slo_steady_p95", "load_slo_cold_start", "load_slo_no_5xx_rated",
-            "load_slo_no_subject_throttle_rated", "load_slo_no_retrieval_deadline",
+            "live_load_soak_executed",
+            "load_source_bound",
+            "load_environment",
+            "load_slo_steady_p95",
+            "load_slo_cold_start",
+            "load_slo_no_5xx_rated",
+            "load_slo_no_subject_throttle_rated",
+            "load_slo_no_retrieval_deadline",
         ),
     ),
     "trusted_load_attestation": PredicateRequirement(
@@ -97,28 +135,67 @@ _REQUIREMENTS: dict[str, PredicateRequirement] = {
     "trusted_recovery_attestation": PredicateRequirement(
         "reliability",
         (
-            "recovery_drill_executed", "recovery_source_bound", "recovery_environment",
-            "recovery_attestation_verified", "recovery_trusted_signer",
+            "recovery_drill_executed",
+            "recovery_source_bound",
+            "recovery_environment",
+            "recovery_attestation_verified",
+            "recovery_trusted_signer",
         ),
     ),
     "trusted_hosted_builder": PredicateRequirement(
         "final_release",
-        ("builder_provenance_verified", "builder_trusted", "builder_attestation_verified", "builder_trusted_signer"),
+        (
+            "builder_provenance_verified",
+            "builder_trusted",
+            "builder_attestation_verified",
+            "builder_trusted_signer",
+        ),
     ),
     "trusted_release_signing": PredicateRequirement(
-        "final_release", ("release_manifest_bound", "release_attestation_verified", "release_trusted_signer")
+        "final_release",
+        ("release_manifest_bound", "release_attestation_verified", "release_trusted_signer"),
     ),
     "exact_python_3_12_13_environment": PredicateRequirement(
         "exact_environment",
         (
-            "all_locked_components_installed", "all_versions_exact", "no_unmanaged_distributions",
-            "production_python_exact", "lock_hashes_present",
+            "all_locked_components_installed",
+            "all_versions_exact",
+            "no_unmanaged_distributions",
+            "production_python_exact",
+            "lock_hashes_present",
         ),
         (("status", "PASS"),),
     ),
-    "pec_human_production_authority": PredicateRequirement("pec_authority", ("evidence_schema", "source_bound", "binding_valid", "audit_trace_nonempty", "training_lineage", "human_judgments", "hosted_evidence", "attestation_verified", "trusted_signer"), (("environment_class", "PRODUCTION"),)),
-    "pec_canary_revision_admission": PredicateRequirement("pec_canary", ("authority_pass", "source_bound", "release_bound", "exact_cloud_run_revision", "minimum_samples", "server_error_rate", "human_judgment_admissible"), (("environment_class", "PRODUCTION"),)),
+    "pec_human_production_authority": PredicateRequirement(
+        "pec_authority",
+        (
+            "evidence_schema",
+            "source_bound",
+            "binding_valid",
+            "audit_trace_nonempty",
+            "training_lineage",
+            "human_judgments",
+            "hosted_evidence",
+            "attestation_verified",
+            "trusted_signer",
+        ),
+        (("environment_class", "PRODUCTION"),),
+    ),
+    "pec_canary_revision_admission": PredicateRequirement(
+        "pec_canary",
+        (
+            "authority_pass",
+            "source_bound",
+            "release_bound",
+            "exact_cloud_run_revision",
+            "minimum_samples",
+            "server_error_rate",
+            "human_judgment_admissible",
+        ),
+        (("environment_class", "PRODUCTION"),),
+    ),
 }
+
 
 def load_hard_predicate_profile(path: Path) -> Mapping[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
@@ -133,6 +210,7 @@ def load_hard_predicate_profile(path: Path) -> Mapping[str, Any]:
     if set(ids) != set(_REQUIREMENTS):
         raise ValueError("hard-predicate profile and evaluator predicate sets differ")
     return value
+
 
 def _all_checks(gate: Mapping[str, Any], names: Sequence[str]) -> tuple[bool, tuple[str, ...]]:
     checks = gate.get("checks", {})
@@ -159,7 +237,9 @@ def external_predicate_state(
     return checks_ok and not metadata_failed, (*failed, *metadata_failed)
 
 
-def _state(root: Path, raw: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]]) -> HardPredicateState:
+def _state(
+    root: Path, raw: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]]
+) -> HardPredicateState:
     predicate_id = str(raw.get("id", ""))
     gate = str(raw.get("gate", ""))
     proof = str(raw.get("required_proof_class", ""))
@@ -168,7 +248,9 @@ def _state(root: Path, raw: Mapping[str, Any], gates: Mapping[str, Mapping[str, 
         raise ValueError(f"invalid hard-predicate record: {predicate_id or '<missing-id>'}")
     requirement = _REQUIREMENTS[predicate_id]
     if gate != requirement.gate:
-        raise ValueError(f"hard-predicate gate drift for {predicate_id}: {gate} != {requirement.gate}")
+        raise ValueError(
+            f"hard-predicate gate drift for {predicate_id}: {gate} != {requirement.gate}"
+        )
     missing = tuple(str(item) for item in artifacts if not (root / str(item)).is_file())
     external_ok, external_failed = external_predicate_state(predicate_id, gates)
     return HardPredicateState(

@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from korpus.api.dependencies import build_answer_composer, build_query_planner
 from korpus.application.egress import EgressPosture, ModelEgressPolicy
 from korpus.application.query_plan import PlannerUnavailable
@@ -70,8 +69,10 @@ def test_openai_composer_uses_same_contract_and_store_false(
 ) -> None:
     seen: dict[str, Any] = {}
     sentences = ["Особовий склад займає укриття.", "Рух виконується за командою."]
-    body = '{"opening":"Особовий склад займає укриття","sentences":' \
+    body = (
+        '{"opening":"Особовий склад займає укриття","sentences":'
         '["Особовий склад займає укриття.","Рух виконується за командою."]}'
+    )
 
     def post(url: str, **kwargs: Any) -> _Response:
         seen.update(url=url, **kwargs)

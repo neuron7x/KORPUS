@@ -4,6 +4,7 @@ This module deliberately does not own the order of answer gates. `ExtractiveAnsw
 keeps that sequence explicit; these functions only evaluate one bounded predicate or
 projection at a time.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -84,9 +85,7 @@ def scope_breaches(
     return breaches
 
 
-def unsourced_quotes(
-    eligible: list[RetrievedEvidence], citations: list[Citation]
-) -> list[str]:
+def unsourced_quotes(eligible: list[RetrievedEvidence], citations: list[Citation]) -> list[str]:
     """Return citation span ids whose quote is not verbatim in the named span."""
     span_text = {str(item.span.id): item.span.text for item in eligible}
     return [

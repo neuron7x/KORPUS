@@ -6,11 +6,11 @@ from fastapi import Depends, Request
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.cache import EvidenceQueryCache
-from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.composition import AnswerComposer
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
+from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore
 from korpus.application.query_plan import QueryPlanner
@@ -23,16 +23,16 @@ from korpus.infrastructure.anthropic_planner import (
     AnthropicQueryPlanner,
 )
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
-from korpus.infrastructure.openai_planner import OpenAIAnswerComposer, OpenAIQueryPlanner
 from korpus.infrastructure.observability import Observability
+from korpus.infrastructure.openai_planner import OpenAIAnswerComposer, OpenAIQueryPlanner
 from korpus.infrastructure.repository import SqlRepository
 from korpus.model_settings import resolved_model_api_key, resolved_model_base_url
+from korpus.pec_composition import build_predictive_controller
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
 from korpus.tenancy_composition import build_egress_policy
-from korpus.pec_composition import build_predictive_controller
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
@@ -251,24 +251,55 @@ def _model_adapter(settings: Settings, *, composer: bool) -> AnswerComposer | Qu
     layers remain unaware of OpenAI, Anthropic, HTTP, API keys, or response formats.
     """
     api_key = resolved_model_api_key(settings)
-    common = {
-        "model": settings.query_planner_model,
-        "base_url": resolved_model_base_url(settings),
-        "timeout_seconds": max(settings.query_planner_timeout_seconds, 8.0)
-        if composer else settings.query_planner_timeout_seconds,
-        "egress": build_egress_policy(settings),
-    }
+    model = settings.query_planner_model
+    base_url = resolved_model_base_url(settings)
+    timeout_seconds = (
+        max(settings.query_planner_timeout_seconds, 8.0)
+        if composer
+        else settings.query_planner_timeout_seconds
+    )
+    egress = build_egress_policy(settings)
     if settings.query_planner_provider == "openai":
-        adapter = OpenAIAnswerComposer if composer else OpenAIQueryPlanner
-    else:
-        adapter = AnthropicAnswerComposer if composer else AnthropicQueryPlanner
-    return adapter(api_key, **common)
+        if composer:
+            return OpenAIAnswerComposer(
+                api_key,
+                model=model,
+                base_url=base_url,
+                timeout_seconds=timeout_seconds,
+                egress=egress,
+            )
+        return OpenAIQueryPlanner(
+            api_key,
+            model=model,
+            base_url=base_url,
+            timeout_seconds=timeout_seconds,
+            egress=egress,
+        )
+    if composer:
+        return AnthropicAnswerComposer(
+            api_key,
+            model=model,
+            base_url=base_url,
+            timeout_seconds=timeout_seconds,
+            egress=egress,
+        )
+    return AnthropicQueryPlanner(
+        api_key,
+        model=model,
+        base_url=base_url,
+        timeout_seconds=timeout_seconds,
+        egress=egress,
+    )
+
+
 def build_answer_composer(settings: Settings) -> AnswerComposer | None:
     """The bounded arranger, when explicitly enabled and credentialled."""
     if not settings.answer_composer_enabled or not resolved_model_api_key(settings):
         return None
     adapter = _model_adapter(settings, composer=True)
     return adapter  # type: ignore[return-value]
+
+
 def build_query_planner(settings: Settings) -> QueryPlanner | None:
     """The bounded reformulator, when explicitly enabled and credentialled."""
     if not settings.query_planner_enabled or not resolved_model_api_key(settings):

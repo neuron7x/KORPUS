@@ -15,15 +15,17 @@ Thresholds are read from the policy rather than repeated here. A second copy is 
 second thing to forget: the Makefile and the CI job would drift from the aggregator,
 and the drift would look like a passing build.
 """
+
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 from korpus.application.release_numeric import coverage_policy_rate, coverage_rates  # noqa: E402
+
 POLICY = ROOT / "config/operations/reference-v5.json"
 COVERAGE = ROOT / "var/coverage.json"
 
@@ -51,9 +53,13 @@ def main() -> int:
     try:
         line_rate, branch_rate = coverage_rates(totals)
         measured = {"line": line_rate, "branch": branch_rate}
-        minimums = {"line": coverage_policy_rate(policy["minimum_line_rate"], "minimum_line_rate"), "branch": coverage_policy_rate(policy["minimum_branch_rate"], "minimum_branch_rate")}
+        minimums = {
+            "line": coverage_policy_rate(policy["minimum_line_rate"], "minimum_line_rate"),
+            "branch": coverage_policy_rate(policy["minimum_branch_rate"], "minimum_branch_rate"),
+        }
     except (KeyError, ValueError) as exc:
-        print(json.dumps({"status": "FAIL", "reason": str(exc)}, indent=2)); return 1
+        print(json.dumps({"status": "FAIL", "reason": str(exc)}, indent=2))
+        return 1
     failures = [
         f"{name} coverage {measured[name]:.4f} is below the policy minimum {minimums[name]}"
         for name in sorted(measured)

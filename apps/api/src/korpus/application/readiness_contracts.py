@@ -1,4 +1,5 @@
 """Fail-closed criterion and target validation for readiness scoring."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
@@ -7,7 +8,9 @@ from typing import Any
 from korpus.application.numeric_contracts import bounded_number
 
 
-def count_boolean_criteria(results: Mapping[str, Any], criterion_ids: Sequence[str], dimension_id: str) -> int:
+def count_boolean_criteria(
+    results: Mapping[str, Any], criterion_ids: Sequence[str], dimension_id: str
+) -> int:
     invalid = sorted(key for key, value in results.items() if not isinstance(value, bool))
     if invalid:
         raise ValueError(f"dimension {dimension_id} criterion results must be booleans: {invalid}")

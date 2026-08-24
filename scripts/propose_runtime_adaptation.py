@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Produce a deterministic, auditable runtime adaptation proposal from JSON inputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -12,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
 from korpus.application.plasticity import (  # noqa: E402
-    AdaptationPolicy,
     AdaptationState,
     ObservationWindow,
     RuntimeKnobs,
@@ -36,7 +36,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--state", type=Path, required=True)
     parser.add_argument("--window", type=Path, required=True)
-    parser.add_argument("--policy", type=Path, default=ROOT / "config/operations/plasticity-policy.json")
+    parser.add_argument(
+        "--policy", type=Path, default=ROOT / "config/operations/plasticity-policy.json"
+    )
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     try:

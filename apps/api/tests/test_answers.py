@@ -173,12 +173,16 @@ def test_the_operator_declaration_enters_the_audit_chain_marked_unverified(
 
     repository = client.app.state.repository
     with repository.engine.begin() as connection:
-        rows = connection.execute(
-            select(audits.c.payload_json)
-            .where(audits.c.action == "answer.completed")
-            .order_by(audits.c.sequence.desc())
-            .limit(1)
-        ).scalars().all()
+        rows = (
+            connection.execute(
+                select(audits.c.payload_json)
+                .where(audits.c.action == "answer.completed")
+                .order_by(audits.c.sequence.desc())
+                .limit(1)
+            )
+            .scalars()
+            .all()
+        )
     declared = json.loads(rows[0])["declared"]
 
     assert declared["family_name"] == "Василенко"
@@ -204,12 +208,16 @@ def test_a_query_without_a_declaration_records_its_absence(client, admin_identit
 
     repository = client.app.state.repository
     with repository.engine.begin() as connection:
-        rows = connection.execute(
-            select(audits.c.payload_json)
-            .where(audits.c.action == "answer.completed")
-            .order_by(audits.c.sequence.desc())
-            .limit(1)
-        ).scalars().all()
+        rows = (
+            connection.execute(
+                select(audits.c.payload_json)
+                .where(audits.c.action == "answer.completed")
+                .order_by(audits.c.sequence.desc())
+                .limit(1)
+            )
+            .scalars()
+            .all()
+        )
 
     assert json.loads(rows[0])["declared"] is None
 

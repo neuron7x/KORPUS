@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create the non-superuser application role with an explicit fail-closed grant set."""
+
 from __future__ import annotations
 
 import os

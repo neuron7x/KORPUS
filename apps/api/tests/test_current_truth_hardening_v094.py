@@ -5,6 +5,7 @@ from pathlib import Path
 
 from korpus.application.provenance import compute_source_digest
 from korpus.application.release_claims import claim_ledger
+
 from scripts.current_truth_admission import claim_admission_checks
 from scripts.current_truth_aliases import alias_checks
 
@@ -35,10 +36,26 @@ def test_supported_claim_must_resolve_to_current_evidence(tmp_path: Path) -> Non
     release, digest = "v9", "a" * 64
     ledger = tmp_path / f"reports/release/{release}/final/CLAIM_LEDGER.json"
     _write(ledger, {"claims": [{"status": "SUPPORTED", "evidence": "evidence.json"}]})
-    _write(tmp_path / "evidence.json", {"release": release, "source_tree_sha256": "b" * 64, "status": "PASS"})
-    assert claim_admission_checks(tmp_path, release, digest)["CLAIM_LEDGER.supported_evidence_resolves"] is False
-    _write(tmp_path / "evidence.json", {"release": release, "source_tree_sha256": digest, "status": "PASS"})
-    assert claim_admission_checks(tmp_path, release, digest)["CLAIM_LEDGER.supported_evidence_resolves"] is True
+    _write(
+        tmp_path / "evidence.json",
+        {"release": release, "source_tree_sha256": "b" * 64, "status": "PASS"},
+    )
+    assert (
+        claim_admission_checks(tmp_path, release, digest)[
+            "CLAIM_LEDGER.supported_evidence_resolves"
+        ]
+        is False
+    )
+    _write(
+        tmp_path / "evidence.json",
+        {"release": release, "source_tree_sha256": digest, "status": "PASS"},
+    )
+    assert (
+        claim_admission_checks(tmp_path, release, digest)[
+            "CLAIM_LEDGER.supported_evidence_resolves"
+        ]
+        is True
+    )
 
 
 def test_alias_checks_bind_git_imports_and_package_build(tmp_path: Path) -> None:
@@ -48,7 +65,10 @@ def test_alias_checks_bind_git_imports_and_package_build(tmp_path: Path) -> None
     report = {"release": release}
     _write(tmp_path / "CANONICAL_RELEASE_REPORT.json", report)
     _write(tmp_path / "reports/CANONICAL_RELEASE_REPORT.json", report)
-    _write(tmp_path / "FULL_SSOT_PACKAGE_RECEIPT.json", {"release": release, "package_role": "FULL_SSOT_CANONICAL"})
+    _write(
+        tmp_path / "FULL_SSOT_PACKAGE_RECEIPT.json",
+        {"release": release, "package_role": "FULL_SSOT_CANONICAL"},
+    )
     _write(tmp_path / "PACKAGE_BUILD.json", {"release": release})
     for name in ("GITHUB_IMPORT.md", "GITLAB_IMPORT.md"):
         (tmp_path / name).write_text(f"{release} {artifact}\n", encoding="utf-8")

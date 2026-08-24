@@ -1,15 +1,18 @@
 from __future__ import annotations
+
 from typing import Any
+
 from korpus.application.calibration import CalibrationProfile
 from korpus.billing_config_policy import validate_billing_settings
 from korpus.controlled_requirements import first_unmet
 from korpus.model_settings import resolved_model_api_key, validate_model_provider
 from korpus.offline_pack_config_policy import validate_offline_pack_settings
 from korpus.pec_config_policy import validate_pec_settings
-from korpus.security.external_destination import parse_external_https_url
-from korpus.security.browser_cookie_policy import validate_browser_cookie_policy
-from korpus.security.url_policy import is_browser_redirect_url, is_https_url
 from korpus.runtime_config_policy import validate_storage_integrations
+from korpus.security.browser_cookie_policy import validate_browser_cookie_policy
+from korpus.security.external_destination import parse_external_https_url
+from korpus.security.url_policy import is_browser_redirect_url, is_https_url
+
 
 def validate_runtime_settings(settings: Any) -> None:
     """Validate cross-field runtime policy in contractual failure order."""
@@ -25,6 +28,8 @@ def validate_runtime_settings(settings: Any) -> None:
     _load_security_profiles(settings)
     _validate_calibration(settings)
     validate_pec_settings(settings, controlled=controlled)
+
+
 def _validate_auth(settings: Any, *, controlled: bool) -> None:
     # Only the HTTP API accepts end-user credentials. Background workers are authenticated
     # to Google Cloud by workload identity and replay the already-authorized actor snapshot
@@ -46,12 +51,16 @@ def _validate_auth(settings: Any, *, controlled: bool) -> None:
             raise ValueError("dev authentication requires loopback-only binding")
     if settings.auth_mode == "disabled" and controlled:
         raise ValueError("controlled environments cannot disable authentication")
+
+
 def _validate_controlled_requirements(settings: Any, *, controlled: bool) -> None:
     if not controlled:
         return
     unmet = first_unmet(settings)
     if unmet is not None:
         raise ValueError(unmet.message)
+
+
 def _validate_browser_oidc(settings: Any, *, controlled: bool) -> None:
     if not settings.browser_auth_enabled:
         return
@@ -78,6 +87,8 @@ def _validate_browser_oidc(settings: Any, *, controlled: bool) -> None:
             raise ValueError("OIDC browser endpoints must use HTTPS external destinations") from exc
     if not is_browser_redirect_url(redirect_uri):
         raise ValueError("OIDC redirect URI must be HTTPS or an explicit loopback test URI")
+
+
 def _validate_model_integrations(settings: Any) -> None:
     validate_model_provider(settings)
     if settings.answer_composer_enabled and not resolved_model_api_key(settings):
@@ -154,6 +165,8 @@ def _load_security_profiles(settings: Any) -> None:
             settings.corpus_governance_profile_path,
             settings.corpus_governance_profile_sha256,
         )
+
+
 def _validate_calibration(settings: Any) -> None:
     if settings.answer_policy_mode != "calibrated":
         return
@@ -168,9 +181,7 @@ def _validate_calibration(settings: Any) -> None:
         "evaluation protocol": protocol_path,
     }
     missing = [
-        name
-        for name, path in required_artifacts.items()
-        if path is None or not path.is_file()
+        name for name, path in required_artifacts.items() if path is None or not path.is_file()
     ]
     if (
         missing

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import shutil
 from pathlib import Path
 
@@ -10,7 +9,9 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _copy_surface(tmp_path: Path) -> Path:
-    shutil.copytree(ROOT / "apps/api/migrations/versions", tmp_path / "apps/api/migrations/versions")
+    shutil.copytree(
+        ROOT / "apps/api/migrations/versions", tmp_path / "apps/api/migrations/versions"
+    )
     policy = tmp_path / "config/production/migration-policy.json"
     policy.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "config/production/migration-policy.json", policy)

@@ -10,14 +10,16 @@ is modeled as a small partially ordered set.  Evidence from a different source t
 or release cannot be joined; callers must re-run or explicitly re-bind it instead of
 silently mixing observations from different systems.
 """
+
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import IntEnum
 from math import isclose
-from typing import Mapping, Sequence
 
 from korpus.application.numeric_contracts import validate_evidence_flags
+
 
 class EvidenceClass(IntEnum):
     """Increasing strength of evidence, not increasing certainty of a claim."""
@@ -57,7 +59,12 @@ class EvidencePoint:
             self.executed and self.negative_control
         ):
             raise ValueError("negative-control evidence class requires execution and a control")
-        validate_evidence_flags(int(self.evidence_class), int(EvidenceClass.INDEPENDENT_ATTESTED), independent=self.independent, attested=self.attested)
+        validate_evidence_flags(
+            int(self.evidence_class),
+            int(EvidenceClass.INDEPENDENT_ATTESTED),
+            independent=self.independent,
+            attested=self.attested,
+        )
         if self.evidence_class >= EvidenceClass.INDEPENDENT_ATTESTED and not (
             self.executed and self.negative_control and self.independent and self.attested
         ):
@@ -67,6 +74,7 @@ class EvidencePoint:
     def passed(self) -> bool:
         return self.status == "PASS"
 
+
 @dataclass(frozen=True, slots=True)
 class GateRequirement:
     gate_id: str
@@ -74,6 +82,7 @@ class GateRequirement:
     require_negative_control: bool = False
     require_independent: bool = False
     require_attestation: bool = False
+
 
 @dataclass(frozen=True, slots=True)
 class DimensionPolicy:
@@ -135,6 +144,7 @@ class ReadinessVerdict:
 def _same_identity(left: EvidencePoint, right: EvidencePoint) -> bool:
     return left.source_digest == right.source_digest and left.release == right.release
 
+
 def dominates(left: EvidencePoint, right: EvidencePoint) -> bool:
     """Return whether ``left`` is at least as strong as ``right`` for one identity."""
 
@@ -146,9 +156,13 @@ def dominates(left: EvidencePoint, right: EvidencePoint) -> bool:
     outcome_dominates = right.status == "UNKNOWN" or left.status == right.status
     return (
         left.evidence_class >= right.evidence_class
-        and all((not required) or present for present, required in zip(flags_left, flags_right))
+        and all(
+            (not required) or present
+            for present, required in zip(flags_left, flags_right, strict=False)
+        )
         and outcome_dominates
     )
+
 
 def join_evidence(left: EvidencePoint, right: EvidencePoint) -> EvidencePoint:
     """Join same-identity evidence; conflicting PASS/FAIL collapses fail-closed."""
@@ -173,6 +187,7 @@ def join_evidence(left: EvidencePoint, right: EvidencePoint) -> EvidencePoint:
         independent=left.independent or right.independent,
         attested=left.attested or right.attested,
     )
+
 
 def evidence_ceiling(policy: DimensionPolicy, evidence: EvidencePoint) -> float:
     if not evidence.executed:
@@ -311,5 +326,5 @@ def weighted_score_is_bounded(policy: ReadinessPolicy, scores: Sequence[float]) 
         return False
     if any(not 0.0 <= score <= 100.0 for score in scores):
         return False
-    value = sum(item.weight * score for item, score in zip(policy.dimensions, scores))
+    value = sum(item.weight * score for item, score in zip(policy.dimensions, scores, strict=False))
     return -1e-12 <= value <= 100.0 + 1e-12

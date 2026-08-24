@@ -1,4 +1,5 @@
 """Low-level insertion of immutable learning course-version graphs."""
+
 from __future__ import annotations
 
 from datetime import datetime

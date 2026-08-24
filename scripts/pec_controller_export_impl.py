@@ -81,8 +81,7 @@ def _rules(training: dict[str, object]) -> tuple[ControllerRule, ...]:
             ControllerRule(
                 rule_id=f"rule-{item['leaf_id']}",
                 conditions=tuple(
-                    RuleCondition.model_validate(condition)
-                    for condition in item["conditions"]
+                    RuleCondition.model_validate(condition) for condition in item["conditions"]
                 ),
                 leaf=ControllerLeaf(
                     leaf_id=str(item["leaf_id"]),
@@ -129,7 +128,9 @@ def main() -> int:
     parser.add_argument("--answer-calibration-id", required=True)
     parser.add_argument("--profile-id", required=True)
     parser.add_argument("--out", type=Path, default=ROOT / "config/pec/controller-profile.json")
-    parser.add_argument("--receipt", type=Path, default=ROOT / "reports/PEC_CONTROLLER_EXPORT_CURRENT.json")
+    parser.add_argument(
+        "--receipt", type=Path, default=ROOT / "reports/PEC_CONTROLLER_EXPORT_CURRENT.json"
+    )
     parser.add_argument("--release-gate", action="store_true")
     args = parser.parse_args()
 
@@ -157,7 +158,9 @@ def main() -> int:
             errors.append(f"upstream_fail:{name}")
 
     rules = _rules(training)
-    upstream_pass = all(str(raw.get("status", "UNKNOWN")) == "PASS" for raw in (training, oracle, replay))
+    upstream_pass = all(
+        str(raw.get("status", "UNKNOWN")) == "PASS" for raw in (training, oracle, replay)
+    )
     admitted = any(rule.leaf.admitted for rule in rules)
     status = "FAIL" if errors else ("PASS" if upstream_pass and admitted else "UNKNOWN")
 
@@ -188,7 +191,9 @@ def main() -> int:
         "pec_controller_export",
         {
             "status": status,
-            "profile": str(args.out.relative_to(ROOT)) if args.out.is_relative_to(ROOT) else str(args.out),
+            "profile": str(args.out.relative_to(ROOT))
+            if args.out.is_relative_to(ROOT)
+            else str(args.out),
             "profile_sha256": sha256_file(args.out),
             "profile_semantic_digest": profile.digest,
             "dataset_sha256": dataset_digest,

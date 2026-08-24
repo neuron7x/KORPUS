@@ -6,7 +6,21 @@ from scripts.run_external_gate_campaign import _cause
 def capabilities(**overrides: object) -> dict[str, object]:
     value: dict[str, object] = {
         "python": "3.13.5",
-        "tools": {name: None for name in ("docker", "podman", "psql", "postgres", "trivy", "gitleaks", "grype", "syft", "terraform", "cosign")},
+        "tools": {
+            name: None
+            for name in (
+                "docker",
+                "podman",
+                "psql",
+                "postgres",
+                "trivy",
+                "gitleaks",
+                "grype",
+                "syft",
+                "terraform",
+                "cosign",
+            )
+        },
         "test_database_url": False,
         "trusted_builder_id": False,
     }
@@ -15,7 +29,10 @@ def capabilities(**overrides: object) -> dict[str, object]:
 
 
 def test_campaign_does_not_confuse_missing_postgres_with_executed_failure() -> None:
-    assert _cause("live_postgres_rls", False, {"status": "FAIL"}, capabilities()) == "RUNTIME_UNAVAILABLE"
+    assert (
+        _cause("live_postgres_rls", False, {"status": "FAIL"}, capabilities())
+        == "RUNTIME_UNAVAILABLE"
+    )
 
 
 def test_campaign_preserves_independence_as_a_proof_property() -> None:

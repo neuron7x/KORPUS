@@ -47,9 +47,7 @@ class Case:
 
 
 def _ask(client: Any, question: str = QUESTION) -> dict[str, Any]:
-    response = client.post(
-        "/v1/answers", json={"text": question, "declaration": DECLARATION}
-    )
+    response = client.post("/v1/answers", json={"text": question, "declaration": DECLARATION})
     body: dict[str, Any]
     try:
         body = dict(response.json())
@@ -103,9 +101,7 @@ def _corpus_emptied(client: Any, database: Path) -> dict[str, Any]:
         connection.commit()
         return _ask(client)
     finally:
-        connection.execute(
-            "UPDATE document_versions SET review_state = 'approved', is_current = 1"
-        )
+        connection.execute("UPDATE document_versions SET review_state = 'approved', is_current = 1")
         connection.commit()
         connection.close()
 
@@ -200,7 +196,6 @@ def _planner_hostile(client: Any) -> dict[str, Any]:
     return result
 
 
-
 def _case_ok(case: str, outcome: dict[str, Any], verdict: str) -> bool:
     verdict_expectations = {
         "baseline": "extractive_claims_passed_calibrated_gates",
@@ -212,10 +207,17 @@ def _case_ok(case: str, outcome: dict[str, Any], verdict: str) -> bool:
     }
     if case in verdict_expectations:
         citation_expected = case not in {"corpus_emptied", "clock_skew_past"}
-        return verdict == verdict_expectations[case] and bool(outcome.get("citations")) == citation_expected
+        return (
+            verdict == verdict_expectations[case]
+            and bool(outcome.get("citations")) == citation_expected
+        )
     if case == "database_removed":
         return verdict.startswith("http_5") and not outcome.get("citations")
-    return case == "planner_hostile" and verdict == "extractive_claims_passed_calibrated_gates" and outcome.get("planner_text_leaked") is False
+    return (
+        case == "planner_hostile"
+        and verdict == "extractive_claims_passed_calibrated_gates"
+        and outcome.get("planner_text_leaked") is False
+    )
 
 
 def main() -> int:
@@ -340,6 +342,7 @@ def main() -> int:
     shutil.rmtree(workdir, ignore_errors=True)
     from korpus.application.provenance import compute_source_digest
     from korpus.release import RELEASE_TAG
+
     failures = [item["case"] for item in results if not item.get("ok")]
     report = {
         "schema_version": 2,

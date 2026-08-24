@@ -5,13 +5,14 @@ job is green; this module answers whether evidence for the exact source/release 
 sufficient to change the semantic state of a release.  Production authorization is a
 one-way transition: after authorization, the only safety transition is WITHDRAWN.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Mapping
 
 from korpus.application.assurance_calculus import EvidencePoint, GateRequirement, evaluate_gate
 
@@ -101,6 +102,7 @@ def _requirements(policy: PromotionPolicy, target: ReleaseStage) -> tuple[GateRe
     if target == ReleaseStage.PRODUCTION_AUTHORIZED:
         return policy.production_gates
     return ()
+
 
 def evaluate_promotion(
     record: ReleaseRecord,

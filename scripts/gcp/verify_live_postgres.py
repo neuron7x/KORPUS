@@ -5,6 +5,7 @@ This gate is intentionally non-destructive. It verifies the migrated schema, rol
 capabilities, grants and FORCE RLS from two independent connections: the Cloud SQL
 admin identity and the exact non-superuser application role used by KORPUS.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -16,11 +17,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from korpus.infrastructure.schema import SCHEMA_REVISION
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DBAPIError
-
-from korpus.infrastructure.schema import SCHEMA_REVISION
 
 RLS_TABLES = frozenset(
     {
@@ -84,53 +84,78 @@ def _expected_grants(contract: dict[str, set[str]]) -> dict[str, set[str]]:
     return expected
 
 
-def _collect_admin(conn: Any, app_role: str, expected_grants: dict[str, set[str]]) -> dict[str, Any]:
+def _collect_admin(
+    conn: Any, app_role: str, expected_grants: dict[str, set[str]]
+) -> dict[str, Any]:
     return {
         "server_version_num": int(conn.execute(text("SHOW server_version_num")).scalar_one()),
-        "database": str(conn.execute(text("SELECT current_database()")) .scalar_one()),
-        "schema_revision": conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one_or_none(),
+        "database": str(conn.execute(text("SELECT current_database()")).scalar_one()),
+        "schema_revision": conn.execute(
+            text("SELECT version_num FROM alembic_version")
+        ).scalar_one_or_none(),
         "app_role": conn.execute(
             text(
                 "SELECT rolname, rolcanlogin, rolsuper, rolcreatedb, rolcreaterole, "
                 "rolinherit, rolbypassrls, rolconnlimit, COALESCE(rolconfig, ARRAY[]::text[]) AS rolconfig "
                 "FROM pg_roles WHERE rolname = :role"
-            ), {"role": app_role},
-        ).mappings().one_or_none(),
+            ),
+            {"role": app_role},
+        )
+        .mappings()
+        .one_or_none(),
         "rls_rows": conn.execute(
             text(
                 "SELECT c.relname AS table_name, c.relrowsecurity, c.relforcerowsecurity "
                 "FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
                 "WHERE n.nspname='public' AND c.relname = ANY(CAST(:tables AS text[]))"
-            ), {"tables": sorted(RLS_TABLES)},
-        ).mappings().all(),
+            ),
+            {"tables": sorted(RLS_TABLES)},
+        )
+        .mappings()
+        .all(),
         "policy_rows": conn.execute(
             text(
                 "SELECT tablename, policyname, cmd FROM pg_policies "
                 "WHERE schemaname='public' AND tablename = ANY(CAST(:tables AS text[]))"
-            ), {"tables": sorted(RLS_TABLES)},
-        ).mappings().all(),
+            ),
+            {"tables": sorted(RLS_TABLES)},
+        )
+        .mappings()
+        .all(),
         "grant_rows": conn.execute(
             text(
                 "SELECT table_name, privilege_type FROM information_schema.table_privileges "
                 "WHERE table_schema='public' AND grantee=:role"
-            ), {"role": app_role},
-        ).mappings().all(),
+            ),
+            {"role": app_role},
+        )
+        .mappings()
+        .all(),
         "public_grants": conn.execute(
             text(
                 "SELECT table_name, privilege_type FROM information_schema.table_privileges "
                 "WHERE table_schema='public' AND grantee='PUBLIC' AND table_name = ANY(CAST(:tables AS text[]))"
-            ), {"tables": sorted(expected_grants)},
-        ).mappings().all(),
-        "default_grants_to_app": int(conn.execute(
-            text(
-                "SELECT COUNT(*) FROM pg_default_acl d "
-                "CROSS JOIN LATERAL aclexplode(d.defaclacl) x "
-                "JOIN pg_roles r ON r.oid=x.grantee WHERE r.rolname=:role"
-            ), {"role": app_role},
-        ).scalar_one()),
-        "app_schema_create": bool(conn.execute(
-            text("SELECT has_schema_privilege(:role, 'public', 'CREATE')"), {"role": app_role},
-        ).scalar_one()),
+            ),
+            {"tables": sorted(expected_grants)},
+        )
+        .mappings()
+        .all(),
+        "default_grants_to_app": int(
+            conn.execute(
+                text(
+                    "SELECT COUNT(*) FROM pg_default_acl d "
+                    "CROSS JOIN LATERAL aclexplode(d.defaclacl) x "
+                    "JOIN pg_roles r ON r.oid=x.grantee WHERE r.rolname=:role"
+                ),
+                {"role": app_role},
+            ).scalar_one()
+        ),
+        "app_schema_create": bool(
+            conn.execute(
+                text("SELECT has_schema_privilege(:role, 'public', 'CREATE')"),
+                {"role": app_role},
+            ).scalar_one()
+        ),
     }
 
 
@@ -168,7 +193,9 @@ def _collect_app(conn: Any) -> dict[str, Any]:
 
 
 def _normalized_snapshot(
-    admin_snapshot: dict[str, Any], app_snapshot: dict[str, Any], expected_grants: dict[str, set[str]]
+    admin_snapshot: dict[str, Any],
+    app_snapshot: dict[str, Any],
+    expected_grants: dict[str, set[str]],
 ) -> dict[str, Any]:
     grants: dict[str, set[str]] = {table: set() for table in expected_grants}
     for row in admin_snapshot.pop("grant_rows"):
@@ -177,7 +204,8 @@ def _normalized_snapshot(
             grants[table].add(str(row["privilege_type"]).upper())
     rls = {
         str(row["table_name"]): {
-            "enabled": bool(row["relrowsecurity"]), "forced": bool(row["relforcerowsecurity"])
+            "enabled": bool(row["relrowsecurity"]),
+            "forced": bool(row["relforcerowsecurity"]),
         }
         for row in admin_snapshot.pop("rls_rows")
     }
@@ -213,24 +241,30 @@ def _collect(admin_url: str, app_url: str, app_role: str) -> dict[str, Any]:
 
 
 def _role_capabilities_ok(role: dict[str, Any], app_role: str) -> bool:
-    return all((
-        role.get("rolname") == app_role,
-        role.get("rolcanlogin") is True,
-        role.get("rolsuper") is False,
-        role.get("rolcreatedb") is False,
-        role.get("rolcreaterole") is False,
-        role.get("rolinherit") is False,
-        role.get("rolbypassrls") is False,
-        int(role.get("rolconnlimit", -1)) == 64,
-    ))
+    return all(
+        (
+            role.get("rolname") == app_role,
+            role.get("rolcanlogin") is True,
+            role.get("rolsuper") is False,
+            role.get("rolcreatedb") is False,
+            role.get("rolcreaterole") is False,
+            role.get("rolinherit") is False,
+            role.get("rolbypassrls") is False,
+            int(role.get("rolconnlimit", -1)) == 64,
+        )
+    )
 
 
 def _force_rls_complete(rls: dict[str, Any]) -> bool:
-    return set(rls) == RLS_TABLES and all(v.get("enabled") and v.get("forced") for v in rls.values())
+    return set(rls) == RLS_TABLES and all(
+        v.get("enabled") and v.get("forced") for v in rls.values()
+    )
 
 
 def _policy_coverage_complete(policies: dict[str, set[str]]) -> bool:
-    return set(policies) == RLS_TABLES and all(v == EXPECTED_POLICY_COMMANDS for v in policies.values())
+    return set(policies) == RLS_TABLES and all(
+        v == EXPECTED_POLICY_COMMANDS for v in policies.values()
+    )
 
 
 def _grants_exact(expected: dict[str, set[str]], actual: dict[str, set[str]]) -> bool:
@@ -238,37 +272,96 @@ def _grants_exact(expected: dict[str, set[str]], actual: dict[str, set[str]]) ->
 
 
 def _missing_identity_denied(counts: dict[str, Any]) -> bool:
-    return set(counts) == (RLS_TABLES - {"ingestion_jobs"}) and all(int(v) == 0 for v in counts.values())
+    return set(counts) == (RLS_TABLES - {"ingestion_jobs"}) and all(
+        int(v) == 0 for v in counts.values()
+    )
 
 
 def _destructive_actions_denied(denials: dict[str, Any]) -> bool:
-    return all(denials.get(key) is True for key in (
-        "alembic_update_denied", "disable_rls_denied", "set_role_postgres_denied"
-    ))
+    return all(
+        denials.get(key) is True
+        for key in ("alembic_update_denied", "disable_rls_denied", "set_role_postgres_denied")
+    )
 
 
 def evaluate(snapshot: dict[str, Any], app_role: str = "korpus_app") -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
-    add = lambda i, ok, evidence: checks.append({"id": i, "passed": bool(ok), "evidence": evidence})
+
+    def add(i, ok, evidence):
+        return checks.append({"id": i, "passed": bool(ok), "evidence": evidence})
+
     version = int(snapshot.get("server_version_num", 0))
     add("POSTGRES_MAJOR_17", 170000 <= version < 180000, {"server_version_num": version})
-    add("POSTGRES_DATABASE", snapshot.get("database") == "korpus", {"database": snapshot.get("database")})
-    add("SCHEMA_HEAD", snapshot.get("schema_revision") == SCHEMA_REVISION, {"expected": SCHEMA_REVISION, "actual": snapshot.get("schema_revision")})
+    add(
+        "POSTGRES_DATABASE",
+        snapshot.get("database") == "korpus",
+        {"database": snapshot.get("database")},
+    )
+    add(
+        "SCHEMA_HEAD",
+        snapshot.get("schema_revision") == SCHEMA_REVISION,
+        {"expected": SCHEMA_REVISION, "actual": snapshot.get("schema_revision")},
+    )
     role = snapshot.get("app_role") or {}
-    add("APP_ROLE_CAPABILITIES", _role_capabilities_ok(role, app_role), {k: role.get(k) for k in ("rolname","rolcanlogin","rolsuper","rolcreatedb","rolcreaterole","rolinherit","rolbypassrls","rolconnlimit")})
+    add(
+        "APP_ROLE_CAPABILITIES",
+        _role_capabilities_ok(role, app_role),
+        {
+            k: role.get(k)
+            for k in (
+                "rolname",
+                "rolcanlogin",
+                "rolsuper",
+                "rolcreatedb",
+                "rolcreaterole",
+                "rolinherit",
+                "rolbypassrls",
+                "rolconnlimit",
+            )
+        },
+    )
     role_config = {str(x).split("=", 1)[0] for x in role.get("rolconfig", []) if "=" in str(x)}
-    add("APP_ROLE_TIMEOUT_DEFAULTS", {"statement_timeout","lock_timeout","idle_in_transaction_session_timeout"} <= role_config, {"configured": sorted(role_config)})
+    add(
+        "APP_ROLE_TIMEOUT_DEFAULTS",
+        {"statement_timeout", "lock_timeout", "idle_in_transaction_session_timeout"} <= role_config,
+        {"configured": sorted(role_config)},
+    )
     rls = snapshot.get("rls", {})
     add("FORCE_RLS_ALL_BOUNDARY_TABLES", _force_rls_complete(rls), rls)
     policies = {k: set(v) for k, v in snapshot.get("policies", {}).items()}
-    add("RLS_POLICY_COMMAND_COVERAGE", _policy_coverage_complete(policies), {k: sorted(v) for k,v in policies.items()})
+    add(
+        "RLS_POLICY_COMMAND_COVERAGE",
+        _policy_coverage_complete(policies),
+        {k: sorted(v) for k, v in policies.items()},
+    )
     expected = {k: set(v) for k, v in snapshot.get("expected_grants", {}).items()}
     actual = {k: set(v) for k, v in snapshot.get("grants", {}).items()}
-    add("APP_TABLE_GRANTS_EXACT", _grants_exact(expected, actual), {"expected": {k:sorted(v) for k,v in expected.items()}, "actual": {k:sorted(v) for k,v in actual.items()}})
-    add("NO_PUBLIC_TABLE_GRANTS", snapshot.get("public_grants") == [], snapshot.get("public_grants"))
-    add("NO_DEFAULT_GRANT_EXPANSION", snapshot.get("default_grants_to_app") == 0, {"count": snapshot.get("default_grants_to_app")})
-    add("APP_CANNOT_CREATE_IN_PUBLIC_SCHEMA", snapshot.get("app_schema_create") is False, {"has_create": snapshot.get("app_schema_create")})
-    add("APP_LOGIN_IDENTITY", snapshot.get("app_current_user") == app_role, {"current_user": snapshot.get("app_current_user")})
+    add(
+        "APP_TABLE_GRANTS_EXACT",
+        _grants_exact(expected, actual),
+        {
+            "expected": {k: sorted(v) for k, v in expected.items()},
+            "actual": {k: sorted(v) for k, v in actual.items()},
+        },
+    )
+    add(
+        "NO_PUBLIC_TABLE_GRANTS", snapshot.get("public_grants") == [], snapshot.get("public_grants")
+    )
+    add(
+        "NO_DEFAULT_GRANT_EXPANSION",
+        snapshot.get("default_grants_to_app") == 0,
+        {"count": snapshot.get("default_grants_to_app")},
+    )
+    add(
+        "APP_CANNOT_CREATE_IN_PUBLIC_SCHEMA",
+        snapshot.get("app_schema_create") is False,
+        {"has_create": snapshot.get("app_schema_create")},
+    )
+    add(
+        "APP_LOGIN_IDENTITY",
+        snapshot.get("app_current_user") == app_role,
+        {"current_user": snapshot.get("app_current_user")},
+    )
     counts = snapshot.get("missing_identity_counts", {})
     add("RLS_MISSING_IDENTITY_DENIES_CORPUS", _missing_identity_denied(counts), counts)
     denials = snapshot.get("destructive_denials", {})
@@ -294,7 +387,7 @@ def main() -> int:
     checks = evaluate(snapshot, args.app_role)
     result = {
         "schema_version": 1,
-        "observed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "observed_at": dt.datetime.now(dt.UTC).isoformat(),
         "status": "PASS" if all(c["passed"] for c in checks) else "FAIL",
         "checks": checks,
         "snapshot": _redact_snapshot(snapshot),

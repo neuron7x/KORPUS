@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create and verify authenticated PostgreSQL backup manifests."""
+
 from __future__ import annotations
 
 import argparse

@@ -1,5 +1,7 @@
 """Exact locale-aware parsing of printed decimal quantities."""
+
 from __future__ import annotations
+
 from decimal import Decimal, InvalidOperation
 
 
@@ -14,8 +16,13 @@ def _mixed(cleaned: str) -> str | None:
     decimal = "," if cleaned.rfind(",") > cleaned.rfind(".") else "."
     grouping = "." if decimal == "," else ","
     integer, fraction = cleaned.rsplit(decimal, 1)
-    integer = _grouped(integer, grouping)
-    return None if integer is None or not fraction.isdigit() else integer + "." + fraction
+    grouped_integer = _grouped(integer, grouping)
+    return (
+        None
+        if grouped_integer is None or not fraction.isdigit()
+        else grouped_integer + "." + fraction
+    )
+
 
 def _single(cleaned: str, separator: str) -> str | None:
     if cleaned.count(separator) == 1:

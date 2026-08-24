@@ -1,4 +1,5 @@
 """Stable request-level fields embedded in every completed-answer audit event."""
+
 from __future__ import annotations
 
 import hashlib

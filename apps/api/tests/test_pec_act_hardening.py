@@ -5,7 +5,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from korpus.application.pec_training import TrainingRow, grouped_folds
 from korpus.pec_config_policy import validate_pec_settings
 
@@ -37,8 +36,20 @@ def test_grouped_folds_never_split_a_group_across_train_and_validation() -> None
 def test_dataset_audit_rejects_group_partition_leakage(tmp_path: Path) -> None:
     dataset = tmp_path / "dataset.jsonl"
     rows = [
-        {"id": "q1", "query": "alpha", "group_id": "same", "partition": "train", "gold_version_ids": []},
-        {"id": "q2", "query": "beta", "group_id": "same", "partition": "locked_eval", "gold_version_ids": []},
+        {
+            "id": "q1",
+            "query": "alpha",
+            "group_id": "same",
+            "partition": "train",
+            "gold_version_ids": [],
+        },
+        {
+            "id": "q2",
+            "query": "beta",
+            "group_id": "same",
+            "partition": "locked_eval",
+            "gold_version_ids": [],
+        },
     ]
     dataset.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
 
@@ -57,8 +68,7 @@ def test_dataset_audit_rejects_group_partition_leakage(tmp_path: Path) -> None:
             str(receipt_path),
         ],
         cwd=root,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
     )
@@ -103,18 +113,24 @@ def test_replay_rejects_string_booleans_in_observed_outcomes(tmp_path: Path) -> 
         [
             sys.executable,
             "scripts/run_counterfactual_replay.py",
-            "--dataset", str(dataset),
-            "--observations", str(observations),
-            "--actions", "STOP_USE_CURRENT_EVIDENCE",
-            "--out", str(report_path),
+            "--dataset",
+            str(dataset),
+            "--observations",
+            str(observations),
+            "--actions",
+            "STOP_USE_CURRENT_EVIDENCE",
+            "--out",
+            str(report_path),
         ],
         cwd=root,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
     )
     assert proc.returncode == 1, proc.stdout + proc.stderr
     report = json.loads(report_path.read_text())
     assert report["status"] == "FAIL"
-    assert any("invalid_boolean:q1:STOP_USE_CURRENT_EVIDENCE:authorization_ok" in issue for issue in report["validation_issues"])
+    assert any(
+        "invalid_boolean:q1:STOP_USE_CURRENT_EVIDENCE:authorization_ok" in issue
+        for issue in report["validation_issues"]
+    )

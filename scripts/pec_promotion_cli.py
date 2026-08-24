@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Governed, atomic promotion of a content-addressed PEC controller profile."""
+
 from __future__ import annotations
 
 import argparse
@@ -14,8 +15,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.controller_profile import ControllerProfile
-from korpus.application.pec_promotion import REQUIRED_RECEIPTS, promotion_binding_errors, promotion_errors
+from korpus.application.pec_promotion import (
+    REQUIRED_RECEIPTS,
+    promotion_binding_errors,
+    promotion_errors,
+)
 from pec_common import receipt, sha256_file, write_json
+
 
 def _named(value: str) -> tuple[str, Path]:
     if "=" not in value:
@@ -31,8 +37,6 @@ def _load(path: Path) -> dict[str, object]:
     if not isinstance(raw, dict):
         raise ValueError(f"receipt must be a JSON object: {path}")
     return raw
-
-
 
 
 def _atomic_copy(source: Path, destination: Path) -> None:
@@ -62,9 +66,11 @@ def main() -> int:
     receipt_digests = {name: sha256_file(path) for name, path in sorted(evidence.items())}
     profile_file_digest = sha256_file(args.profile)
     errors = promotion_errors(profile, statuses)
-    errors.extend(promotion_binding_errors(
-        profile, raw_receipts, receipt_digests, profile_file_sha256=profile_file_digest
-    ))
+    errors.extend(
+        promotion_binding_errors(
+            profile, raw_receipts, receipt_digests, profile_file_sha256=profile_file_digest
+        )
+    )
     errors = sorted(set(errors))
     status = "PASS" if not errors else "FAIL"
     if status == "PASS":
@@ -72,19 +78,22 @@ def main() -> int:
         promoted_sha256 = sha256_file(args.out)
     else:
         promoted_sha256 = ""
-    report = receipt("pec_promotion", {
-        "status": status,
-        "profile_sha256": profile_file_digest,
-        "profile_semantic_digest": profile.digest,
-        "promoted_path": str(args.out.relative_to(ROOT)),
-        "promoted_sha256": promoted_sha256,
-        "approved_by": args.approved_by,
-        "change_id": args.change_id,
-        "required_receipts": list(REQUIRED_RECEIPTS),
-        "receipt_statuses": statuses,
-        "receipt_sha256": receipt_digests,
-        "errors": errors,
-    })
+    report = receipt(
+        "pec_promotion",
+        {
+            "status": status,
+            "profile_sha256": profile_file_digest,
+            "profile_semantic_digest": profile.digest,
+            "promoted_path": str(args.out.relative_to(ROOT)),
+            "promoted_sha256": promoted_sha256,
+            "approved_by": args.approved_by,
+            "change_id": args.change_id,
+            "required_receipts": list(REQUIRED_RECEIPTS),
+            "receipt_statuses": statuses,
+            "receipt_sha256": receipt_digests,
+            "errors": errors,
+        },
+    )
     write_json(args.receipt, report)
     print(json.dumps(report, indent=2))
     return 0 if status == "PASS" else 1

@@ -8,8 +8,14 @@ import subprocess
 from pathlib import Path
 
 from pec_common import read_jsonl, receipt, sha256_file, write_json
+from pec_replay_run import (
+    collect_observations,
+    coverage_issues,
+    replay_status,
+    validate_actions,
+    validate_observations,
+)
 from pec_replay_validation import record_issues
-from pec_replay_run import collect_observations, coverage_issues, replay_status, validate_actions, validate_observations
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_ACTIONS = (
@@ -40,8 +46,7 @@ def execute(runner: Path, row: dict[str, object], action: str, timeout: float) -
     proc = subprocess.run(
         [str(runner)],
         input=(json.dumps(row, ensure_ascii=False) + "\n").encode(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         env=env,
         timeout=timeout,
         check=False,
@@ -68,21 +73,34 @@ def main() -> int:
     parser.add_argument("--answer-calibration-id")
     parser.add_argument("--evaluation-protocol", type=Path)
     parser.add_argument("--release-gate", action="store_true")
-    parser.add_argument("--out", type=Path, default=ROOT / "reports/PEC_COUNTERFACTUAL_REPLAY_CURRENT.json")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/PEC_COUNTERFACTUAL_REPLAY_CURRENT.json"
+    )
     args = parser.parse_args()
 
     dataset = read_jsonl(args.dataset)
     dataset_by_id = {str(row["id"]): row for row in dataset}
     actions = tuple(value for value in args.actions.split(",") if value)
     errors = validate_actions(actions, DEFAULT_ACTIONS)
-    observations, execution_errors = collect_observations(args, dataset, actions, read_jsonl, execute)
+    observations, execution_errors = collect_observations(
+        args, dataset, actions, read_jsonl, execute
+    )
     errors.extend(execution_errors)
-    expected_protocol_sha256 = sha256_file(args.evaluation_protocol) if args.evaluation_protocol else None
-    binding_inputs_complete = bool(args.corpus_release_id and args.answer_calibration_id and expected_protocol_sha256)
+    expected_protocol_sha256 = (
+        sha256_file(args.evaluation_protocol) if args.evaluation_protocol else None
+    )
+    binding_inputs_complete = bool(
+        args.corpus_release_id and args.answer_calibration_id and expected_protocol_sha256
+    )
     if args.release_gate and not binding_inputs_complete:
-        errors.append("release_gate_requires_corpus_release_answer_calibration_and_evaluation_protocol")
+        errors.append(
+            "release_gate_requires_corpus_release_answer_calibration_and_evaluation_protocol"
+        )
     validation_issues = validate_observations(
-        observations, record_issues=record_issues, dataset_by_id=dataset_by_id, actions=actions,
+        observations,
+        record_issues=record_issues,
+        dataset_by_id=dataset_by_id,
+        actions=actions,
         expected_corpus_release_id=args.corpus_release_id,
         expected_protocol_sha256=expected_protocol_sha256,
         expected_answer_calibration_id=args.answer_calibration_id,
@@ -110,5 +128,7 @@ def main() -> int:
         },
     )
     write_json(args.out, report)
-    print(json.dumps({key: value for key, value in report.items() if key != "observations"}, indent=2))
+    print(
+        json.dumps({key: value for key, value in report.items() if key != "observations"}, indent=2)
+    )
     return 0 if status == "PASS" or (status == "UNKNOWN" and not args.release_gate) else 1

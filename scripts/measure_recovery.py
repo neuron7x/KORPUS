@@ -5,6 +5,7 @@ RTO is restore plus verification time; RPO is measured from writes made after ba
 The report records scale, source and release so production assurance can reject a CI
 fixture even when the restore itself succeeds.
 """
+
 from __future__ import annotations
 
 import json
@@ -21,6 +22,7 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
+
 OUTPUT = ROOT / "var/recovery-report.json"
 
 
@@ -134,7 +136,9 @@ def main() -> int:
     report = {
         "schema_version": 2,
         "status": "PASS",
-        "scale_class": "ci-fixture" if environment_class == "CI_FIXTURE" else environment_class.lower().replace("_", "-"),
+        "scale_class": "ci-fixture"
+        if environment_class == "CI_FIXTURE"
+        else environment_class.lower().replace("_", "-"),
         "environment_class": environment_class,
         "source_tree_sha256": compute_source_digest(ROOT),
         "release": release_tag(),
@@ -152,7 +156,9 @@ def main() -> int:
             "source_audit_event_rows": source_audit_rows,
             "writes_after_backup": written_after,
             "newest_source_write": None if newest is None else newest.isoformat(),
-            "newest_restored_write": None if newest_restored is None else newest_restored.isoformat(),
+            "newest_restored_write": None
+            if newest_restored is None
+            else newest_restored.isoformat(),
             "engine_version": engine_version,
             "measured_at": datetime.now(UTC).isoformat(),
             "backup_key_id": str(manifest["key_id"]),

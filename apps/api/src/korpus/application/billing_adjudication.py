@@ -1,4 +1,5 @@
 """Adjudicate an authenticated provider claim against KORPUS subscription state."""
+
 from __future__ import annotations
 
 import calendar
@@ -27,7 +28,9 @@ class BillingEventAdjudicator:
     ) -> BillingEventResult:
         subscription, provider_id = self._resolve_subscription(view)
         if subscription is None:
-            return self._reject(record, None, "the event names a subscription this system has never created")
+            return self._reject(
+                record, None, "the event names a subscription this system has never created"
+            )
         requested = self._requested_status(record, subscription, view)
         if requested is None:
             return BillingEventResult.REJECTED
@@ -38,16 +41,16 @@ class BillingEventAdjudicator:
         if plan is None:
             return self._reject(record, subscription, "subscription plan no longer exists")
         if not self._terms_match(plan.price_minor, plan.currency, requested, view):
-            return self._reject(record, subscription, "provider amount/currency does not match plan")
+            return self._reject(
+                record, subscription, "provider amount/currency does not match plan"
+            )
         self._require_transition(record, subscription, requested)
         start, end = self._period_bounds(view, requested, occurred, moment, plan.billing_interval)
         return self._record_applied(
             record, subscription, requested, view, occurred, start, end, provider_id
         )
 
-    def _resolve_subscription(
-        self, view: dict[str, Any]
-    ) -> tuple[SubscriptionRecord | None, str]:
+    def _resolve_subscription(self, view: dict[str, Any]) -> tuple[SubscriptionRecord | None, str]:
         provider_id = str(view.get("provider_subscription_id") or "")
         subscription = (
             self._subscriptions.find_subscription_by_provider_id(self._provider_name, provider_id)
@@ -75,7 +78,7 @@ class BillingEventAdjudicator:
 
     def _occurred_at(
         self, record: BillingEventRecord, subscription: SubscriptionRecord, view: dict[str, Any]
-    ) -> datetime | None | bool:
+    ) -> datetime | bool | None:
         value = view.get("occurred_at")
         if not isinstance(value, datetime):
             return None
@@ -115,7 +118,7 @@ class BillingEventAdjudicator:
     def _period_bounds(
         view: dict[str, Any],
         requested: SubscriptionStatus,
-        occurred: datetime | None | bool,
+        occurred: datetime | bool | None,
         moment: datetime,
         interval: BillingInterval,
     ) -> tuple[datetime | None, datetime | None]:
@@ -132,7 +135,7 @@ class BillingEventAdjudicator:
         subscription: SubscriptionRecord,
         requested: SubscriptionStatus,
         view: dict[str, Any],
-        occurred: datetime | None | bool,
+        occurred: datetime | bool | None,
         period_start: datetime | None,
         period_end: datetime | None,
         provider_id: str,

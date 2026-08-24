@@ -10,6 +10,7 @@ legacy snippets on the same documentation still show SHA-1. The algorithm is the
 explicit deployment setting, never an "accept either" fallback: accepting two algorithms
 would quietly keep the weaker one alive after an operator thought it had been removed.
 """
+
 from __future__ import annotations
 
 import base64
@@ -21,14 +22,14 @@ from typing import Any
 
 from korpus.application.checkout import CheckoutDescriptor
 from korpus.application.tenancy_ports import BillingEventIgnored
-from korpus.infrastructure.liqpay_math import amount_minor, provider_datetime
 from korpus.domain.tenancy import (
+    MAX_PLAN_PRICE_MINOR,
     AccountRecord,
     BillingInterval,
-    MAX_PLAN_PRICE_MINOR,
     PlanRecord,
     SubscriptionRecord,
 )
+from korpus.infrastructure.liqpay_math import amount_minor, provider_datetime
 
 CHECKOUT_URL = "https://www.liqpay.ua/api/3/checkout"
 _FINAL = frozenset({"error", "failure", "reversed", "subscribed", "success", "unsubscribed"})
@@ -58,7 +59,7 @@ class LiqPayBillingProvider:
         return hashlib.sha1(value, usedforsecurity=False).digest()
 
     def sign_data(self, data: str) -> str:
-        material = f"{self._private_key}{data}{self._private_key}".encode("utf-8")
+        material = f"{self._private_key}{data}{self._private_key}".encode()
         return base64.b64encode(self._digest(material)).decode("ascii")
 
     def create_checkout(

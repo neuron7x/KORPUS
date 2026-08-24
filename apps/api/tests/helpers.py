@@ -22,8 +22,7 @@ def ingest_text(
     # date in the past, and the tests that do care pass their own or None.
     publication_date: date | None = date(2020, 1, 1),
     text: str = (
-        "Підрозділ веде журнал перевірок. "
-        "Кожен запис має містити дату та відповідальну особу."
+        "Підрозділ веде журнал перевірок. Кожен запис має містити дату та відповідальну особу."
     ),
 ) -> dict[str, object]:
     version: dict[str, object] = {

@@ -6,6 +6,7 @@ A proposal is pure, replayable and bounded by policy.  Safety thresholds may tig
 automatically but may never relax automatically; capacity/latency knobs may move only
 inside declared bounds.  Promotion remains a separate governed action.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -13,8 +14,14 @@ import json
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 
+from korpus.application.adaptive_contracts import (
+    validate_adaptation_policy,
+    validate_adaptation_state,
+    validate_observation_window,
+    validate_runtime_knobs,
+)
 
-from korpus.application.adaptive_contracts import validate_adaptation_policy, validate_adaptation_state, validate_observation_window, validate_runtime_knobs
+
 class AdaptationAction(StrEnum):
     NOOP = "noop"
     TIGHTEN_SAFETY = "tighten_safety"
@@ -32,6 +39,8 @@ class RuntimeKnobs:
 
     def __post_init__(self) -> None:
         validate_runtime_knobs(self)
+
+
 @dataclass(frozen=True, slots=True)
 class AdaptationPolicy:
     min_candidate_budget: int = 32
@@ -56,6 +65,11 @@ class AdaptationPolicy:
 
     def __post_init__(self) -> None:
         validate_adaptation_policy(self)
+
+
+DEFAULT_ADAPTATION_POLICY = AdaptationPolicy()
+
+
 @dataclass(frozen=True, slots=True)
 class ObservationWindow:
     sequence: int
@@ -68,6 +82,8 @@ class ObservationWindow:
 
     def __post_init__(self) -> None:
         validate_observation_window(self)
+
+
 @dataclass(frozen=True, slots=True)
 class AdaptationState:
     knobs: RuntimeKnobs
@@ -76,6 +92,8 @@ class AdaptationState:
 
     def __post_init__(self) -> None:
         validate_adaptation_state(self)
+
+
 @dataclass(frozen=True, slots=True)
 class AdaptationProposal:
     action: AdaptationAction
@@ -117,7 +135,9 @@ def _healthy(window: ObservationWindow, policy: AdaptationPolicy) -> bool:
     )
 
 
-def _cooldown_elapsed(state: AdaptationState, window: ObservationWindow, policy: AdaptationPolicy) -> bool:
+def _cooldown_elapsed(
+    state: AdaptationState, window: ObservationWindow, policy: AdaptationPolicy
+) -> bool:
     return (
         state.last_change_sequence < 0
         or window.sequence - state.last_change_sequence > policy.cooldown_windows
@@ -157,7 +177,7 @@ def _canonical_payload(
 def propose_adaptation(
     state: AdaptationState,
     window: ObservationWindow,
-    policy: AdaptationPolicy = AdaptationPolicy(),
+    policy: AdaptationPolicy = DEFAULT_ADAPTATION_POLICY,
 ) -> AdaptationProposal:
     """Return one deterministic bounded proposal.
 
@@ -168,6 +188,7 @@ def propose_adaptation(
     4. otherwise no state mutation occurs.
     """
 
+    reasons: tuple[str, ...]
     if window.samples < policy.min_samples:
         action = AdaptationAction.NOOP
         proposed = state.knobs
@@ -285,7 +306,7 @@ def propose_adaptation(
 
 def validate_proposal(
     proposal: AdaptationProposal,
-    policy: AdaptationPolicy = AdaptationPolicy(),
+    policy: AdaptationPolicy = DEFAULT_ADAPTATION_POLICY,
 ) -> None:
     """Fail closed if a proposal violates the adaptation safety envelope."""
 

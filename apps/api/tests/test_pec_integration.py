@@ -3,9 +3,6 @@ from __future__ import annotations
 import json
 from datetime import date
 
-from sqlalchemy import select
-
-from apps.api.tests.helpers import approve, ingest_text
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.controller_profile import (
     ControllerLeaf,
@@ -18,6 +15,9 @@ from korpus.application.predictive_evidence_control import PredictiveEvidenceCon
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.domain.models import QueryRequest
 from korpus.infrastructure.repository import audits
+from sqlalchemy import select
+
+from apps.api.tests.helpers import approve, ingest_text
 
 
 class CountingPlanner:
@@ -157,7 +157,9 @@ def test_stale_profile_falls_back_to_baseline_and_calls_planner(client, admin_id
     assert planner.calls == 1
 
 
-def test_controller_cannot_turn_insufficient_evidence_into_an_answer(client, admin_identity) -> None:
+def test_controller_cannot_turn_insufficient_evidence_into_an_answer(
+    client, admin_identity
+) -> None:
     query = QueryRequest(text="Який пароль адміністратора системи?", as_of=date(2026, 8, 21))
     release_id = client.app.state.repository.corpus_release_id(
         admin_identity, frozenset({"public"}), query.as_of

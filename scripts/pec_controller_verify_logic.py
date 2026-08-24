@@ -1,7 +1,6 @@
 """Composable verification predicates for exported PEC controller profiles."""
-from __future__ import annotations
 
-from pathlib import Path
+from __future__ import annotations
 
 from pec_common import sha256_file
 

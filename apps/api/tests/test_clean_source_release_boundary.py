@@ -12,7 +12,7 @@ def test_package_producer_excludes_git_history_by_construction() -> None:
     assert "git bundle" not in producer
     assert 'git archive --format=tar "$source_commit"' in producer
     assert '"history_included":false' in producer
-    assert 'git rev-parse HEAD' in producer
+    assert "git rev-parse HEAD" in producer
 
 
 def test_package_only_metadata_cannot_expand_source_authority() -> None:

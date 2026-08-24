@@ -10,7 +10,13 @@ class ExternalAssuranceVerdict:
     failures: tuple[str, ...]
 
 
-def validate_external_assurance(receipt: Mapping[str, object], *, release: str, source_digest: str, trusted_signers: Iterable[str]) -> ExternalAssuranceVerdict:
+def validate_external_assurance(
+    receipt: Mapping[str, object],
+    *,
+    release: str,
+    source_digest: str,
+    trusted_signers: Iterable[str],
+) -> ExternalAssuranceVerdict:
     trusted = set(trusted_signers)
     checks = {
         "independent": receipt.get("independent") is True,

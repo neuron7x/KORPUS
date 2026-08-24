@@ -1,4 +1,5 @@
 """Process-lifecycle primitives for long-running ingestion workers."""
+
 from __future__ import annotations
 
 import signal

@@ -98,9 +98,7 @@ def test_readiness_reports_the_schema_revision_the_migrations_declare(
     """
     repository = _repository(tmp_path)
 
-    snapshot = repository.readiness_snapshot(
-        max_pending_events=64, max_pending_age_seconds=60.0
-    )
+    snapshot = repository.readiness_snapshot(max_pending_events=64, max_pending_age_seconds=60.0)
 
     assert snapshot["expected_schema_revision"] == repository.schema_revision() or (
         snapshot["schema_revision"] is None

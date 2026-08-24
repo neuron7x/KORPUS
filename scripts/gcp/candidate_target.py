@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Resolve one immutable tagged Cloud Run candidate from a service description."""
+
 from __future__ import annotations
 
 import argparse

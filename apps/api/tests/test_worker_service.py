@@ -4,7 +4,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from korpus.worker_service import WorkerProcessSupervisor, create_worker_service
 
 

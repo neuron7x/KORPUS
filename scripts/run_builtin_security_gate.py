@@ -5,6 +5,7 @@ This gate supplements, but never substitutes for, external secret/dependency/ima
 scanners. It exists so the repository retains a zero-install security floor when
 networked tooling is unavailable.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,12 +15,25 @@ import re
 from pathlib import Path
 
 from korpus.application.provenance import compute_source_digest
-release_tag = __import__("scripts.release_identity" if __package__ else "release_identity", fromlist=["release_tag"]).release_tag
+
+release_tag = __import__(
+    "scripts.release_identity" if __package__ else "release_identity", fromlist=["release_tag"]
+).release_tag
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON_ROOTS = ("apps/api/src/korpus", "scripts")
 SECRET_ROOTS = ("apps/api/src/korpus", "scripts", "config", "infra", "deploy")
-EXCLUDED_PARTS = {"tests", "test", "docs", "evals", "reports", "var", "node_modules", ".venv", ".git"}
+EXCLUDED_PARTS = {
+    "tests",
+    "test",
+    "docs",
+    "evals",
+    "reports",
+    "var",
+    "node_modules",
+    ".venv",
+    ".git",
+}
 SECRET_PATTERNS = {
     "private_key": re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     "aws_access_key": re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
@@ -53,8 +67,11 @@ def _dangerous_rule(node: ast.Call) -> str | None:
     if name in {"os.system", "os.popen"}:
         return "shell_execution"
     subprocess_calls = {
-        "subprocess.run", "subprocess.Popen", "subprocess.call",
-        "subprocess.check_call", "subprocess.check_output",
+        "subprocess.run",
+        "subprocess.Popen",
+        "subprocess.call",
+        "subprocess.check_call",
+        "subprocess.check_output",
     }
     if name in subprocess_calls and _kw_bool(node, "shell"):
         return "subprocess_shell_true"
@@ -79,19 +96,28 @@ def _scan_python_file(root: Path, path: Path) -> list[dict[str, object]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(relative))
     except (OSError, UnicodeError, SyntaxError) as exc:
-        return [{"rule": "python_parse_failure", "path": relative.as_posix(), "line": 0, "detail": str(exc)}]
+        return [
+            {
+                "rule": "python_parse_failure",
+                "path": relative.as_posix(),
+                "line": 0,
+                "detail": str(exc),
+            }
+        ]
     findings: list[dict[str, object]] = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
         rule = _dangerous_rule(node)
         if rule:
-            findings.append({
-                "rule": rule,
-                "path": relative.as_posix(),
-                "line": getattr(node, "lineno", 0),
-                "detail": _call_name(node),
-            })
+            findings.append(
+                {
+                    "rule": rule,
+                    "path": relative.as_posix(),
+                    "line": getattr(node, "lineno", 0),
+                    "detail": _call_name(node),
+                }
+            )
     return findings
 
 
@@ -124,16 +150,30 @@ def _secret_findings(root: Path) -> list[dict[str, object]]:
             for rule, pattern in SECRET_PATTERNS.items():
                 match = pattern.search(text)
                 if match:
-                    findings.append({"rule": f"hardcoded_{rule}", "path": relative.as_posix(), "line": text[:match.start()].count("\n") + 1})
+                    findings.append(
+                        {
+                            "rule": f"hardcoded_{rule}",
+                            "path": relative.as_posix(),
+                            "line": text[: match.start()].count("\n") + 1,
+                        }
+                    )
     return findings
 
 
 def evaluate(root: Path) -> dict[str, object]:
     findings = [*_ast_findings(root), *_secret_findings(root)]
     checks = {
-        "python_sources_parse": not any(item["rule"] == "python_parse_failure" for item in findings),
-        "no_high_confidence_dangerous_primitives": not any(not str(item["rule"]).startswith("hardcoded_") and item["rule"] != "python_parse_failure" for item in findings),
-        "no_high_confidence_hardcoded_secrets": not any(str(item["rule"]).startswith("hardcoded_") for item in findings),
+        "python_sources_parse": not any(
+            item["rule"] == "python_parse_failure" for item in findings
+        ),
+        "no_high_confidence_dangerous_primitives": not any(
+            not str(item["rule"]).startswith("hardcoded_")
+            and item["rule"] != "python_parse_failure"
+            for item in findings
+        ),
+        "no_high_confidence_hardcoded_secrets": not any(
+            str(item["rule"]).startswith("hardcoded_") for item in findings
+        ),
     }
     return {
         "schema": "korpus.builtin-security-gate.v1",

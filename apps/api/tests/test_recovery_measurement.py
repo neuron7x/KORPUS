@@ -123,7 +123,10 @@ def test_non_finite_recovery_duration_is_not_a_measurement(bad: float) -> None:
     assert classify_recovery(_report(rpo_seconds=bad)).status == INCOMPLETE_PROVENANCE
 
 
-@pytest.mark.parametrize("field", ["backup_bytes", "plaintext_bytes", "document_rows", "audit_event_rows", "writes_after_backup"])
+@pytest.mark.parametrize(
+    "field",
+    ["backup_bytes", "plaintext_bytes", "document_rows", "audit_event_rows", "writes_after_backup"],
+)
 def test_recovery_provenance_counts_are_discrete_and_finite(field: str) -> None:
     for bad in (True, 1.5, float("inf"), -1):
         provenance = _report()["provenance"] | {field: bad}

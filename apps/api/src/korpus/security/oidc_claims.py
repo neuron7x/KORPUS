@@ -1,4 +1,5 @@
 """Small, independently testable OIDC claim predicates used after signature verification."""
+
 from __future__ import annotations
 
 import secrets
@@ -18,7 +19,9 @@ def validate_algorithms(algorithms: list[str]) -> tuple[str, ...]:
         or len(set(algorithms)) != len(algorithms)
         or any(algorithm not in ALLOWED_ASYMMETRIC_ALGORITHMS for algorithm in algorithms)
     ):
-        raise ValueError("OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned")
+        raise ValueError(
+            "OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned"
+        )
     return tuple(algorithms)
 
 

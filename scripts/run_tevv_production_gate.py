@@ -5,15 +5,15 @@ from pathlib import Path
 from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
-from korpus.application.assurance_evidence import attestation_checks  # noqa: E402
-from korpus.application.assurance_trust import trusted_fingerprints  # noqa: E402
-from korpus.application.production_assurance import gate_payload  # noqa: E402
-from korpus.application.provenance import compute_source_digest  # noqa: E402
-from korpus.application.tevv import evaluate_tevv  # noqa: E402
+from korpus.application.assurance_evidence import attestation_checks
+from korpus.application.assurance_trust import trusted_fingerprints
+from korpus.application.production_assurance import gate_payload
+from korpus.application.provenance import compute_source_digest
+from korpus.application.tevv import evaluate_tevv
 from korpus.application.tevv_assessor import assessor_identity_valid
-from korpus.application.tevv_evidence import evaluate_tevv_ledger  # noqa: E402
-from korpus.application.tevv_profile_contracts import validate_tevv_profile  # noqa: E402
-from release_identity import release_tag  # noqa: E402
+from korpus.application.tevv_evidence import evaluate_tevv_ledger
+from korpus.application.tevv_profile_contracts import validate_tevv_profile
+from release_identity import release_tag
 PROFILE = ROOT / "config/assurance/tevv-production-v1.json"; TRUST = ROOT / "config/assurance/trusted-assurance-signers.json"
 def evaluate(evidence: dict[str, Any], profile: dict[str, Any], attestation: dict[str, Any],
              trusted: set[str], evidence_bytes: bytes, manifest_name: str) -> dict[str, Any]:

@@ -25,7 +25,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 from uuid import uuid4
 
 import pytest
@@ -94,9 +94,7 @@ def test_t02_a_replayed_event_is_a_duplicate_and_an_old_one_is_refused(
     tenancy = build_tenancy(tmp_path)
     try:
         _identity, _account, subscription = _paying(tenancy)
-        payload, signature = _signed(
-            tenancy, "t02", "subscription.activated", str(subscription.id)
-        )
+        payload, signature = _signed(tenancy, "t02", "subscription.activated", str(subscription.id))
         assert tenancy.subscription_service.handle_event(payload, signature) is (
             BillingEventResult.APPLIED
         )
@@ -184,9 +182,7 @@ def test_t05_a_plan_cannot_escalate_beyond_the_identity(tmp_path: Path) -> None:
         subscription = tenancy.subscription_service.start_subscription(
             identity.subject, account.id, "everything"
         )
-        payload, signature = _signed(
-            tenancy, "t05", "subscription.activated", str(subscription.id)
-        )
+        payload, signature = _signed(tenancy, "t05", "subscription.activated", str(subscription.id))
         tenancy.subscription_service.handle_event(payload, signature)
 
         gate = tenancy.entitlements(required=True)
@@ -296,9 +292,7 @@ def test_t11_a_restricted_deployment_does_not_send_the_question_anywhere(
 
     monkeypatch.setattr(anthropic_planner.httpx, "post", explode)
     for posture in (EgressPosture.MODEL_DISABLED, EgressPosture.LOCAL_ONLY):
-        planner = AnthropicQueryPlanner(
-            "key", model="m", egress=ModelEgressPolicy(posture)
-        )
+        planner = AnthropicQueryPlanner("key", model="m", egress=ModelEgressPolicy(posture))
         with pytest.raises(PlannerUnavailable):
             planner.variants("координати підрозділу", [])
 
@@ -342,11 +336,12 @@ def test_a_denial_is_not_a_silent_pass(tmp_path: Path) -> None:
 
 def test_t12a_declared_oversize_is_refused_before_stream_consumption() -> None:
     import asyncio
+
     from fastapi import HTTPException
     from korpus.api.request_limits import bounded_webhook_body
 
     class Request:
-        headers = {"content-length": str(64 * 1024 + 1)}
+        headers: ClassVar[dict[str, str]] = {"content-length": str(64 * 1024 + 1)}
 
         async def stream(self):
             raise AssertionError("oversized declared body was consumed")
@@ -359,11 +354,12 @@ def test_t12a_declared_oversize_is_refused_before_stream_consumption() -> None:
 
 def test_t12b_chunked_oversize_stops_at_the_first_excess_chunk() -> None:
     import asyncio
+
     from fastapi import HTTPException
     from korpus.api.request_limits import bounded_webhook_body
 
     class Request:
-        headers: dict[str, str] = {}
+        headers: ClassVar[dict[str, str]] = {}
 
         async def stream(self):
             yield b"a" * (64 * 1024)
@@ -373,4 +369,3 @@ def test_t12b_chunked_oversize_stops_at_the_first_excess_chunk() -> None:
     with pytest.raises(HTTPException) as denial:
         asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]
     assert denial.value.status_code == 413
-

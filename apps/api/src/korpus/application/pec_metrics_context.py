@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from contextvars import ContextVar, Token
-from typing import Callable
 
 from korpus.application.predictive_evidence_control import ControllerTrace
 

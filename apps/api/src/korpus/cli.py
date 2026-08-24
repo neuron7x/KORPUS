@@ -6,7 +6,6 @@ import socket
 from datetime import UTC, datetime
 
 from korpus.application.ingestion import ExtractionSettings, IngestionService
-from korpus.worker_lifecycle import install_stop_event
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore, Repository
@@ -24,6 +23,8 @@ from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
+from korpus.worker_lifecycle import install_stop_event
+
 
 def _ingestion_service(
     settings: Settings,
@@ -134,6 +135,7 @@ def main() -> None:
                 "quarantine_orphaned": sorted(actual_quarantine - expected["quarantine"]),
             }
             import json
+
             print(json.dumps(report, indent=2))
             if report["content_missing"] or report["quarantine_missing"]:
                 raise SystemExit(2)

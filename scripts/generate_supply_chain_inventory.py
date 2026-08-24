@@ -50,11 +50,16 @@ def _python_components() -> dict[tuple[str, str], dict[str, object]]:
             component = components.setdefault(
                 key,
                 {
-                    "type": "library", "name": name, "version": version,
-                    "purl": f"pkg:pypi/{name}@{version}", "license": license_expression,
-                    "license_status": status, "license_evidence": declaration,
+                    "type": "library",
+                    "name": name,
+                    "version": version,
+                    "purl": f"pkg:pypi/{name}@{version}",
+                    "license": license_expression,
+                    "license_status": status,
+                    "license_evidence": declaration,
                     "installed_in_inventory_environment": name in installed,
-                    "artifact_hashes_present": "--hash=" in line, "sources": [],
+                    "artifact_hashes_present": "--hash=" in line,
+                    "sources": [],
                 },
             )
             component["sources"].append(lock.relative_to(ROOT).as_posix())
@@ -68,21 +73,44 @@ def build_inventory() -> dict[str, object]:
         for name, version in sorted(package.get(section, {}).items()):
             normalized = str(version).removeprefix("=")
             components[(name, normalized)] = {
-                "type": "library", "name": name, "version": normalized,
-                "purl": f"pkg:npm/{name}@{normalized}", "license": None,
-                "license_status": UNRESOLVED, "license_evidence": None,
+                "type": "library",
+                "name": name,
+                "version": normalized,
+                "purl": f"pkg:npm/{name}@{normalized}",
+                "license": None,
+                "license_status": UNRESOLVED,
+                "license_evidence": None,
                 "installed_in_inventory_environment": False,
-                "artifact_hashes_present": False, "sources": ["apps/web/package.json"],
+                "artifact_hashes_present": False,
+                "sources": ["apps/web/package.json"],
             }
-    ordered = sorted(components.values(), key=lambda item: (str(item["name"]), str(item["version"])))
-    unresolved = [str(item["name"]) for item in ordered if item["license_status"] in {NOT_INSTALLED, UNRESOLVED}]
-    missing_env = [str(item["name"]) for item in ordered if not item["installed_in_inventory_environment"]]
+    ordered = sorted(
+        components.values(), key=lambda item: (str(item["name"]), str(item["version"]))
+    )
+    unresolved = [
+        str(item["name"])
+        for item in ordered
+        if item["license_status"] in {NOT_INSTALLED, UNRESOLVED}
+    ]
+    missing_env = [
+        str(item["name"]) for item in ordered if not item["installed_in_inventory_environment"]
+    ]
     return {
-        "schema": "korpus.supply-chain-inventory.v2", "release": release_tag(),
-        "status": "COMPLETE_LICENSE_METADATA_NOT_LEGAL_CLEARANCE" if not unresolved else "PARTIAL_LICENSE_METADATA_NOT_LEGAL_CLEARANCE",
-        "environment_status": "LOCKED_PACKAGES_PRESENT" if not missing_env else "PARTIAL_LOCAL_ENVIRONMENT",
-        "lockfiles": [{"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS],
-        "publisher_metadata": {"path": PUBLISHER_METADATA.relative_to(ROOT).as_posix(), "sha256": sha256(PUBLISHER_METADATA)},
+        "schema": "korpus.supply-chain-inventory.v2",
+        "release": release_tag(),
+        "status": "COMPLETE_LICENSE_METADATA_NOT_LEGAL_CLEARANCE"
+        if not unresolved
+        else "PARTIAL_LICENSE_METADATA_NOT_LEGAL_CLEARANCE",
+        "environment_status": "LOCKED_PACKAGES_PRESENT"
+        if not missing_env
+        else "PARTIAL_LOCAL_ENVIRONMENT",
+        "lockfiles": [
+            {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS
+        ],
+        "publisher_metadata": {
+            "path": PUBLISHER_METADATA.relative_to(ROOT).as_posix(),
+            "sha256": sha256(PUBLISHER_METADATA),
+        },
         "components": ordered,
         "limitations": [
             "License fields are publisher/upstream declarations, not legal clearance.",
@@ -103,12 +131,19 @@ def main() -> int:
     components = output["components"]
     assert isinstance(components, list)
     summary = {
-        "status": output["status"], "environment_status": output["environment_status"],
+        "status": output["status"],
+        "environment_status": output["environment_status"],
         "components": len(components),
-        "licenses_from_installed_metadata": sum(1 for item in components if item["license_status"] == DECLARED),
-        "licenses_from_publisher_metadata": sum(1 for item in components if item["license_status"] == PUBLISHER_DECLARED),
+        "licenses_from_installed_metadata": sum(
+            1 for item in components if item["license_status"] == DECLARED
+        ),
+        "licenses_from_publisher_metadata": sum(
+            1 for item in components if item["license_status"] == PUBLISHER_DECLARED
+        ),
         "unresolved_license_metadata": output["unresolved_license_metadata"],
-        "packages_not_installed_in_inventory_environment": output["packages_not_installed_in_inventory_environment"],
+        "packages_not_installed_in_inventory_environment": output[
+            "packages_not_installed_in_inventory_environment"
+        ],
         "path": str(target.relative_to(ROOT)),
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))

@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json, os, shutil, subprocess, sys
+import json
+import os
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,8 +23,15 @@ TARGETS = [
 
 
 def _run(command: list[str], timeout: int) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(command, cwd=ROOT, env={**os.environ, "PYTHONPATH": str(ROOT / "apps/api/src")},
-                          capture_output=True, text=True, check=False, timeout=timeout)
+    return subprocess.run(
+        command,
+        cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": str(ROOT / "apps/api/src")},
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=timeout,
+    )
 
 
 def _runtime(targets_present: bool) -> tuple[bool, int | None, str]:
@@ -43,14 +54,24 @@ def main() -> int:
     }
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
-        "postgres_security", status="PASS" if not failures else "FAIL", source_digest=compute_source_digest(ROOT),
-        release=release_tag(), checks=checks, failures=failures, backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
-        evidence_class="REAL_POSTGRESQL_REQUIRED", pytest_targets=TARGETS, runtime_exit_code=runtime_exit,
-        runtime_tail=runtime_tail, static_tail=(static.stdout + static.stderr)[-4000:],
+        "postgres_security",
+        status="PASS" if not failures else "FAIL",
+        source_digest=compute_source_digest(ROOT),
+        release=release_tag(),
+        checks=checks,
+        failures=failures,
+        backend="postgresql" if runtime_exit == 0 else "UNEXECUTED",
+        evidence_class="REAL_POSTGRESQL_REQUIRED",
+        pytest_targets=TARGETS,
+        runtime_exit_code=runtime_exit,
+        runtime_tail=runtime_tail,
+        static_tail=(static.stdout + static.stderr)[-4000:],
     )
     out = ROOT / "var/production/postgres_security-gate.json"
-    out.parent.mkdir(parents=True, exist_ok=True); out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
-    print(json.dumps(result, ensure_ascii=False, indent=2)); return 0 if result["status"] == "PASS" else 1
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0 if result["status"] == "PASS" else 1
 
 
 if __name__ == "__main__":

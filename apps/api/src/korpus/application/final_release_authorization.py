@@ -7,7 +7,6 @@ from typing import Any
 
 from korpus.application.attested_evidence import verify_ed25519_attestation
 
-
 STATEMENT_TYPE = "https://in-toto.io/Statement/v1"
 PREDICATE_TYPE = "https://slsa.dev/provenance/v1"
 
@@ -41,7 +40,9 @@ class FinalReleaseVerdict:
         }
 
 
-def _builder_parts(statement: Mapping[str, Any]) -> tuple[str, Mapping[str, Any], Mapping[str, Any]]:
+def _builder_parts(
+    statement: Mapping[str, Any],
+) -> tuple[str, Mapping[str, Any], Mapping[str, Any]]:
     predicate = statement.get("predicate")
     predicate = predicate if isinstance(predicate, Mapping) else {}
     definition = predicate.get("buildDefinition")
@@ -105,13 +106,15 @@ def evaluate_final_release(
     )
     checks = {
         "production_assurance_pass": production_assurance.get("status") == "PASS",
-        "production_assurance_authorized": production_assurance.get("production_authorized") is True,
+        "production_assurance_authorized": production_assurance.get("production_authorized")
+        is True,
         "release_manifest_bound": (
             release_manifest.get("release") == release
             and release_manifest.get("artifact") == artifact_name
             and release_manifest.get("artifact_sha256") == artifact_sha
             and release_manifest.get("source_manifest_sha256") == _sha(source_manifest_bytes)
-            and release_manifest.get("production_assurance_sha256") == _sha(production_assurance_bytes)
+            and release_manifest.get("production_assurance_sha256")
+            == _sha(production_assurance_bytes)
         ),
         "builder_statement_type": (
             builder_statement.get("_type") == STATEMENT_TYPE
@@ -127,7 +130,8 @@ def evaluate_final_release(
         "builder_trusted_signer": builder_att.trusted_signer,
         "release_attestation_verified": release_att.cryptographically_valid,
         "release_trusted_signer": release_att.trusted_signer,
-        "separation_of_duties": bool(builder_att.fingerprint) and builder_att.fingerprint != release_att.fingerprint,
+        "separation_of_duties": bool(builder_att.fingerprint)
+        and builder_att.fingerprint != release_att.fingerprint,
     }
     return FinalReleaseVerdict(
         checks=checks,

@@ -4,10 +4,11 @@ The benchmark never treats contextual text as evidence. It evaluates only whethe
 retrieval-only projection improves the location/rank of already-judged gold evidence
 without losing a baseline hit or weakening source binding.
 """
+
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict
-from typing import Iterable, Mapping
 
 from korpus.application.numeric_contracts import require_count, strict_int
 from korpus.application.pec_statistics import paired_direction
@@ -33,9 +34,7 @@ def _rank(row: Mapping[str, object], prefix: str) -> float:
 def evaluate_contextual_benchmark(
     rows: Iterable[Mapping[str, object]], *, minimum_informative_pairs: int
 ) -> dict[str, object]:
-    require_count(
-        minimum_informative_pairs, positive=True, label="minimum_informative_pairs"
-    )
+    require_count(minimum_informative_pairs, positive=True, label="minimum_informative_pairs")
     data = list(rows)
     issues: list[str] = []
     baseline: list[float] = []

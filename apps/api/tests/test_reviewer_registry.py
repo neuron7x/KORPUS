@@ -79,9 +79,12 @@ def test_registry_digest_revocation_and_scope_are_fail_closed(tmp_path: Path):
         mime_type="text/plain",
         authority=AuthorityClass.OFFICIAL_UA,
     )
-    assert loaded.authorize(
-        subject="approver", target=ReviewState.APPROVED, document=document, version=version
-    ) == "cred-approver"
+    assert (
+        loaded.authorize(
+            subject="approver", target=ReviewState.APPROVED, document=document, version=version
+        )
+        == "cred-approver"
+    )
     with pytest.raises(PermissionError, match="no active reviewer credential"):
         _registry(revoked=True).authorize(
             subject="approver", target=ReviewState.APPROVED, document=document, version=version

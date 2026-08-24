@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail if artifacts labelled current describe another source/release identity."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,10 +11,10 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
-from korpus.application.provenance import compute_source_digest  # noqa: E402
-from current_truth_contract import final_truth_checks, report_binding_checks  # noqa: E402
+from current_truth_admission import blocker_state_checks, claim_admission_checks  # noqa: E402
 from current_truth_aliases import alias_checks  # noqa: E402
-from current_truth_admission import claim_admission_checks, blocker_state_checks  # noqa: E402
+from current_truth_contract import final_truth_checks, report_binding_checks  # noqa: E402
+from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 

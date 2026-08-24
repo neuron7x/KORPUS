@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate the consumer transport contract from canonical OpenAPI + release identity."""
+
 from __future__ import annotations
 
 import argparse
@@ -57,7 +58,11 @@ def main() -> int:
             print(json.dumps({"valid": False, "reason": "transport contract stale"}))
             return 1
         payload = build(json.loads(OPENAPI.read_text(encoding="utf-8")))
-        print(json.dumps({"valid": True, "release": payload["release"], "paths": len(payload["paths"])}))
+        print(
+            json.dumps(
+                {"valid": True, "release": payload["release"], "paths": len(payload["paths"])}
+            )
+        )
         return 0
     TARGET.write_text(rendered, encoding="utf-8")
     print(json.dumps({"valid": True, "written": str(TARGET.relative_to(ROOT))}))
