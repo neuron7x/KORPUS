@@ -102,3 +102,21 @@ variable "github_drill_deployer_service_account" {
     error_message = "github_drill_deployer_service_account must be a Google service-account email."
   }
 }
+
+variable "gitlab_runtime_deployer_service_account" {
+  type        = string
+  description = "GitLab WIF runtime deployer; granted the same bounded delivery-plane permissions as GitHub."
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]@[a-z][a-z0-9-]{4,28}[a-z0-9]\\.iam\\.gserviceaccount\\.com$", var.gitlab_runtime_deployer_service_account))
+    error_message = "gitlab_runtime_deployer_service_account must be a Google service-account email."
+  }
+}
+
+variable "gitlab_drill_deployer_service_account" {
+  type        = string
+  description = "GitLab WIF DR-drill deployer with drill-only control-plane permissions."
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{4,28}[a-z0-9]@[a-z][a-z0-9-]{4,28}[a-z0-9]\\.iam\\.gserviceaccount\\.com$", var.gitlab_drill_deployer_service_account))
+    error_message = "gitlab_drill_deployer_service_account must be a Google service-account email."
+  }
+}

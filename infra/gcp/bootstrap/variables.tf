@@ -42,6 +42,30 @@ variable "github_deploy_branch" {
   default     = "main"
 }
 
+variable "gitlab_project_id" {
+  type        = string
+  description = "Immutable numeric GitLab project ID allowed to deploy."
+  validation {
+    condition     = can(regex("^[0-9]+$", var.gitlab_project_id))
+    error_message = "gitlab_project_id must be the immutable numeric project ID."
+  }
+}
+
+variable "gitlab_namespace_id" {
+  type        = string
+  description = "Immutable numeric GitLab namespace ID owning the deployment project."
+  validation {
+    condition     = can(regex("^[0-9]+$", var.gitlab_namespace_id))
+    error_message = "gitlab_namespace_id must be the immutable numeric namespace ID."
+  }
+}
+
+variable "gitlab_deploy_branch" {
+  type        = string
+  description = "Protected GitLab branch admitted to production deployment."
+  default     = "main"
+}
+
 variable "state_retention_seconds" {
   type        = number
   description = "Minimum retention for Terraform state object generations."

@@ -18,6 +18,7 @@ stages:
   - verify-image
   - package
   - release
+  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -581,3 +582,62 @@ production:release:
       - dist/*.release-attestation.json
       - dist/*.production.sha256
     expire_in: 90 days
+
+gcp:production-contract:
+  extends: .python-job
+  stage: validate
+  script:
+    - python scripts/verify_gcp_production.py --output reports/GCP_PRODUCTION_CONTRACT.json
+    - python scripts/verify_gcp_slo.py --output reports/GCP_SLO_CONTRACT.json
+    - python scripts/gcp/validate_terraform_structure.py --output reports/TERRAFORM_STRUCTURE.json
+    - bash -n scripts/gcp/authenticate_gitlab_wif.sh
+    - bash -n scripts/gcp/deploy_gitlab_production.sh
+  artifacts:
+    when: always
+    paths:
+      - reports/GCP_PRODUCTION_CONTRACT.json
+      - reports/GCP_SLO_CONTRACT.json
+      - reports/TERRAFORM_STRUCTURE.json
+
+gcp:deploy-production:
+  stage: deploy
+  image:
+    name: google/cloud-sdk:578.0.0-slim@sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0
+    entrypoint: [""]
+  interruptible: false
+  timeout: 90m
+  resource_group: gcp-production
+  environment:
+    name: production
+    deployment_tier: production
+    url: "https://$KORPUS_DOMAIN"
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: "$GCP_WIF_AUDIENCE"
+  needs:
+    - job: container:build
+      artifacts: true
+    - job: container:scan
+      artifacts: true
+    - job: gcp:production-contract
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true" && $GCP_PRODUCTION_ENABLED == "true"'
+      when: manual
+    - when: never
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl docker.io git gnupg python3-pip unzip && rm -rf /var/lib/apt/lists/*
+    - python3 -m pip install --break-system-packages --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+    - scripts/gcp/install_terraform_verified.sh "${TERRAFORM_VERSION:-1.15.8}"
+    - export PATH="$HOME/.local/bin:$PATH"
+  script:
+    - scripts/gcp/authenticate_gitlab_wif.sh
+    - source var/gcp-auth.env
+    - scripts/gcp/deploy_gitlab_production.sh
+  after_script:
+    - rm -f .gitlab-oidc.jwt .gcp-wif.json var/gcp-auth.env
+  artifacts:
+    when: always
+    paths:
+      - reports/production/
+    expire_in: 30 days

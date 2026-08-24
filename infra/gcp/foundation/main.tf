@@ -98,6 +98,14 @@ resource "google_service_account_iam_member" "github_deployer_act_as" {
   member             = "serviceAccount:${var.github_runtime_deployer_service_account}"
 }
 
+resource "google_service_account_iam_member" "gitlab_deployer_act_as" {
+  for_each = local.runtime_service_account_resources
+
+  service_account_id = each.value
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
+}
+
 resource "google_sql_database_instance" "postgres" {
   project          = var.project_id
   name             = "${var.name_prefix}-postgres"
@@ -344,13 +352,13 @@ resource "google_storage_bucket_iam_member" "governance_viewer" {
 
 locals {
   secret_access = {
-    "api-db"      = [google_service_account.api.email, "korpus-db-app-password"]
-    "api-audit"   = [google_service_account.api.email, "korpus-audit-hmac-key"]
-    "api-browser" = [google_service_account.api.email, "korpus-browser-session-key"]
-    "api-metrics" = [google_service_account.api.email, "korpus-metrics-token"]
-    "api-oidc"    = [google_service_account.api.email, "korpus-oidc-client-secret"]
-    "worker-db"   = [google_service_account.worker.email, "korpus-db-app-password"]
-    "worker-audit" = [google_service_account.worker.email, "korpus-audit-hmac-key"]
+    "api-db"         = [google_service_account.api.email, "korpus-db-app-password"]
+    "api-audit"      = [google_service_account.api.email, "korpus-audit-hmac-key"]
+    "api-browser"    = [google_service_account.api.email, "korpus-browser-session-key"]
+    "api-metrics"    = [google_service_account.api.email, "korpus-metrics-token"]
+    "api-oidc"       = [google_service_account.api.email, "korpus-oidc-client-secret"]
+    "worker-db"      = [google_service_account.worker.email, "korpus-db-app-password"]
+    "worker-audit"   = [google_service_account.worker.email, "korpus-audit-hmac-key"]
     "migrator-admin" = [google_service_account.migrator.email, "korpus-db-admin-password"]
     "migrator-app"   = [google_service_account.migrator.email, "korpus-db-app-password"]
   }
@@ -384,12 +392,28 @@ resource "google_project_iam_member" "runtime_deployer" {
   member  = "serviceAccount:${var.github_runtime_deployer_service_account}"
 }
 
+resource "google_project_iam_member" "gitlab_runtime_deployer" {
+  for_each = local.runtime_deployer_project_roles
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
+}
+
 resource "google_artifact_registry_repository_iam_member" "runtime_writer" {
   project    = var.project_id
   location   = google_artifact_registry_repository.containers.location
   repository = google_artifact_registry_repository.containers.repository_id
   role       = "roles/artifactregistry.writer"
   member     = "serviceAccount:${var.github_runtime_deployer_service_account}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "gitlab_runtime_writer" {
+  project    = var.project_id
+  location   = google_artifact_registry_repository.containers.location
+  repository = google_artifact_registry_repository.containers.repository_id
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
 }
 
 resource "google_storage_bucket_iam_member" "runtime_governance_creator" {
@@ -402,6 +426,18 @@ resource "google_storage_bucket_iam_member" "runtime_governance_viewer" {
   bucket = google_storage_bucket.korpus["governance"].name
   role   = "roles/storage.objectViewer"
   member = "serviceAccount:${var.github_runtime_deployer_service_account}"
+}
+
+resource "google_storage_bucket_iam_member" "gitlab_runtime_governance_creator" {
+  bucket = google_storage_bucket.korpus["governance"].name
+  role   = "roles/storage.objectCreator"
+  member = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
+}
+
+resource "google_storage_bucket_iam_member" "gitlab_runtime_governance_viewer" {
+  bucket = google_storage_bucket.korpus["governance"].name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
 }
 
 locals {
@@ -434,6 +470,28 @@ resource "google_service_account_iam_member" "drill_migrator_act_as" {
   member             = "serviceAccount:${var.github_drill_deployer_service_account}"
 }
 
+resource "google_project_iam_member" "gitlab_drill_deployer" {
+  for_each = local.drill_deployer_project_roles
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${var.gitlab_drill_deployer_service_account}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "gitlab_drill_reader" {
+  project    = var.project_id
+  location   = google_artifact_registry_repository.containers.location
+  repository = google_artifact_registry_repository.containers.repository_id
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${var.gitlab_drill_deployer_service_account}"
+}
+
+resource "google_service_account_iam_member" "gitlab_drill_migrator_act_as" {
+  service_account_id = google_service_account.migrator.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${var.gitlab_drill_deployer_service_account}"
+}
+
 
 # Routine delivery may attach the foundation-owned Cloud Armor policy to backend
 # services, but cannot edit or delete the policy itself.
@@ -452,4 +510,10 @@ resource "google_project_iam_member" "runtime_edge_policy_user" {
   project = var.project_id
   role    = google_project_iam_custom_role.edge_policy_user.name
   member  = "serviceAccount:${var.github_runtime_deployer_service_account}"
+}
+
+resource "google_project_iam_member" "gitlab_runtime_edge_policy_user" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.edge_policy_user.name
+  member  = "serviceAccount:${var.gitlab_runtime_deployer_service_account}"
 }

@@ -16,3 +16,17 @@ output "github_deployer_service_accounts" {
   }
   description = "Workflow-isolated GitHub deployment identities."
 }
+
+output "gitlab_workload_identity_providers" {
+  value = {
+    for plane, provider in google_iam_workload_identity_pool_provider.gitlab : plane => provider.name
+  }
+  description = "Protected-project GitLab Workload Identity Providers."
+}
+
+output "gitlab_deployer_service_accounts" {
+  value = {
+    for plane, account in google_service_account.gitlab_deployer : plane => account.email
+  }
+  description = "Plane-separated GitLab deployment identities."
+}
