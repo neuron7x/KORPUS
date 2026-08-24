@@ -26,7 +26,14 @@ from korpus.domain.models import (
     EvidenceSpanRecord,
     ReviewState,
 )
+from korpus.domain.operational_competency import (
+    Competency,
+    CompetencyFramework,
+    OperationalRole,
+    OperationalTask,
+)
 from korpus.infrastructure import row_mapping
+from korpus.infrastructure.competency_repository import SqlCompetencyRepository
 from korpus.infrastructure.learning_repository import LearningStateError, SqlLearningRepository
 from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import documents, spans, versions
@@ -135,6 +142,89 @@ def test_learning_repository_round_trip_and_publish(stores) -> None:
     )
     assert publication.state is CoursePublicationState.PUBLISHED
     assert learning.get_publication(version.id) == publication
+
+
+def test_learning_repository_round_trips_framework_and_competency_edges(stores) -> None:
+    repository, learning = stores
+    SqlCompetencyRepository(repository.engine).create(
+        CompetencyFramework(
+            id="framework.medical",
+            revision="1",
+            roles=(OperationalRole(id="role.medic", title="Combat medic", task_ids={"task"}),),
+            tasks=(
+                OperationalTask(
+                    id="task",
+                    statement="Perform the task",
+                    conditions="Under training conditions",
+                    standard="Meet every stated criterion",
+                    competency_ids={"competency.safety"},
+                ),
+            ),
+            competencies=(
+                Competency(id="competency.safety", statement="Apply the safety check"),
+            ),
+        )
+    )
+    version = _version()
+    objective = version.modules[0].lessons[0].objectives[0].model_copy(
+        update={"competency_ids": frozenset({"competency.safety"})}
+    )
+    lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
+    module = version.modules[0].model_copy(update={"lessons": (lesson,)})
+    bound = version.model_copy(
+        update={
+            "competency_framework_id": "framework.medical",
+            "competency_framework_revision": "1",
+            "modules": (module,),
+        }
+    )
+    learning.create_version(bound)
+    assert learning.get_version(bound.id) == bound
+
+
+def test_learning_repository_refuses_unknown_framework_and_competency(stores) -> None:
+    repository, learning = stores
+    version = _version()
+    missing_framework = version.model_copy(
+        update={
+            "competency_framework_id": "missing",
+            "competency_framework_revision": "1",
+        }
+    )
+    with pytest.raises(LearningStateError, match="framework revision not found"):
+        learning.create_version(missing_framework)
+
+    SqlCompetencyRepository(repository.engine).create(
+        CompetencyFramework(
+            id="framework.empty",
+            revision="1",
+            roles=(OperationalRole(id="role", title="Defined role", task_ids={"task"}),),
+            tasks=(
+                OperationalTask(
+                    id="task",
+                    statement="Defined task",
+                    conditions="Defined conditions",
+                    standard="Defined standard",
+                    competency_ids={"known"},
+                ),
+            ),
+            competencies=(Competency(id="known", statement="Known competency"),),
+        )
+    )
+    objective = version.modules[0].lessons[0].objectives[0].model_copy(
+        update={"competency_ids": frozenset({"invented"})}
+    )
+    lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
+    module = version.modules[0].model_copy(update={"lessons": (lesson,)})
+    unknown_competency = version.model_copy(
+        update={
+            "competency_framework_id": "framework.empty",
+            "competency_framework_revision": "1",
+            "modules": (module,),
+        }
+    )
+    with pytest.raises(LearningStateError, match="unknown framework competencies: invented"):
+        learning.create_version(unknown_competency)
 
 
 def test_learning_repository_refuses_source_less_block(stores) -> None:

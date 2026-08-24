@@ -14,6 +14,7 @@ from korpus.infrastructure.learning_schema import (
     learning_lesson_blocks,
     learning_lessons,
     learning_modules,
+    learning_objective_competencies,
     learning_objectives,
     learning_prerequisites,
     learning_publications,
@@ -35,6 +36,8 @@ def insert_course_version(
             id=version.id,
             course_id=version.course_id,
             revision=version.revision,
+            competency_framework_id=version.competency_framework_id,
+            competency_framework_revision=version.competency_framework_revision,
             created_at=stamp,
         )
     )
@@ -79,6 +82,20 @@ def insert_course_version(
                     for objective in lesson.objectives
                 ],
             )
+            objective_competency_rows = [
+                {
+                    "course_version_id": version.id,
+                    "lesson_id": lesson.id,
+                    "objective_id": objective.id,
+                    "competency_id": competency_id,
+                }
+                for objective in lesson.objectives
+                for competency_id in sorted(objective.competency_ids)
+            ]
+            if objective_competency_rows:
+                connection.execute(
+                    insert(learning_objective_competencies), objective_competency_rows
+                )
             for binding in lesson.source_bindings:
                 connection.execute(
                     insert(learning_source_bindings).values(

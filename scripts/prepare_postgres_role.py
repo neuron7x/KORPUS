@@ -39,6 +39,7 @@ READ_WRITE_TABLES = (
     "learning_modules",
     "learning_lessons",
     "learning_objectives",
+    "learning_objective_competencies",
     "learning_source_bindings",
     "learning_source_binding_spans",
     "learning_lesson_blocks",
@@ -46,6 +47,12 @@ READ_WRITE_TABLES = (
     "learning_prerequisites",
     "learning_publications",
     "learning_mastery",
+    "competency_frameworks",
+    "operational_roles",
+    "operational_tasks",
+    "operational_competencies",
+    "operational_role_tasks",
+    "operational_task_competencies",
 )
 AUDIT_APPEND_TABLES = ("audit_events",)
 AUDIT_MUTABLE_TABLES = ("audit_anchor_outbox", "audit_heads")

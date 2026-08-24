@@ -1,6 +1,6 @@
 {
   "schema": "korpus.migration-compatibility-policy.v1",
-  "baseline_revision": "0017_learning_mastery",
+  "baseline_revision": "0018_operational_competencies",
   "baseline_files": {
     "apps/api/migrations/versions/0001_initial.py": "20931a3bfcdf87d7eaf811683b8cd28e108cdcccc171bb510416d810208d329e",
     "apps/api/migrations/versions/0002_database_defense_and_vectors.py": "12d4c81da92bbef0f2e0116df85ca2d6d46a2b56c7db8bd1063463970b7bdb9b",
@@ -18,7 +18,8 @@
     "apps/api/migrations/versions/0014_subscription_last_event.py": "264b213e0c51fd6dd7d437865efb5ed3ec4781a868fed09e1af82f33ab0b175d",
     "apps/api/migrations/versions/0015_plan_pricing.py": "7182482c4669909edfb17aca4f65fe621ae5fc5a5e3d7d1b245a730148c5ef61",
     "apps/api/migrations/versions/0016_learning_course_graph.py": "7eee4d2d66928056fb506af2dad71d841e96a733d461c69f31d36c8b770be203",
-    "apps/api/migrations/versions/0017_learning_mastery.py": "1f2a0dff3dd8a290e97fcab3a12992c82a95425259621e1a32339432aac9e144"
+    "apps/api/migrations/versions/0017_learning_mastery.py": "1f2a0dff3dd8a290e97fcab3a12992c82a95425259621e1a32339432aac9e144",
+    "apps/api/migrations/versions/0018_operational_competencies.py": "b87cb404af1f53523680f17878d40514832b9fc9c67c5221ec2186b96f25d152"
   },
   "future_upgrade_forbidden_calls": [
     "drop_table",

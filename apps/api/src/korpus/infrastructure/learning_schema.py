@@ -37,6 +37,8 @@ learning_course_versions = Table(
         index=True,
     ),
     Column("revision", String(120), nullable=False),
+    Column("competency_framework_id", String(128)),
+    Column("competency_framework_revision", String(120)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint("course_id", "revision", name="uq_learning_course_revision"),
 )
@@ -87,6 +89,20 @@ learning_objectives = Table(
         ["learning_lessons.course_version_id", "learning_lessons.id"],
         ondelete="CASCADE",
         name="fk_learning_objective_lesson",
+    ),
+)
+
+learning_objective_competencies = Table(
+    "learning_objective_competencies",
+    metadata,
+    Column("course_version_id", String(128), primary_key=True),
+    Column("lesson_id", String(128), primary_key=True),
+    Column("objective_id", String(128), primary_key=True),
+    Column("competency_id", String(128), primary_key=True),
+    ForeignKeyConstraint(
+        ["course_version_id", "lesson_id", "objective_id"],
+        ["learning_objectives.course_version_id", "learning_objectives.lesson_id", "learning_objectives.id"],
+        ondelete="CASCADE",
     ),
 )
 
@@ -263,6 +279,8 @@ LEARNING_CONTENT_TABLES = (
 )
 
 # Compatibility re-export after table construction avoids the schema import cycle.
+# Register the independent framework graph on the shared metadata.
+from korpus.infrastructure.competency_schema import COMPETENCY_TABLES as COMPETENCY_TABLES
 from korpus.infrastructure.learning_progress_schema import (
     learning_mastery as learning_mastery,
 )
