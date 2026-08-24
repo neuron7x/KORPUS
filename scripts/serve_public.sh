@@ -109,6 +109,10 @@ sleep 1
 # rule that exists. Separate processes have separate interpreters; SQLite in WAL mode
 # takes concurrent readers across them.
 WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"
+# Deployment-only controls are not application settings. If the caller supplied this
+# one through the environment it retained Bash's export attribute and leaked into each
+# Uvicorn worker, where strict KORPUS_* validation correctly rejected it as unknown.
+unset KORPUS_PUBLIC_WORKERS
 nohup "$PY" -m uvicorn korpus.main:app \
   --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
   > "$STATE/api.log" 2>&1 &
