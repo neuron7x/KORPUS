@@ -11,7 +11,7 @@ const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_s
 const SCRIPTS = [
   "public/transport_contract.js", "public/api.js", "public/app.js", "public/chat_fsm.js", "public/routes.js", "public/offline_pack.js", "public/offline_store.js", "public/offline_controller.js", "public/workspace_routes.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
-  "public/combat_scene.js",
+  "public/combat_scene.js", "public/trace.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];

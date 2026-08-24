@@ -35,6 +35,14 @@ test("canonical and combat themes share one functional surface", async()=>{
   assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);
   assert.doesNotMatch(html,/combat[^>]+href=/i);
 });
+test("KORPUS TRACE projects the canonical chat state machine", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const trace=await read("public/trace.js");
+  assert.match(html,/id="evidence-trace"[^>]+KORPUS TRACE/);
+  assert.match(trace,/KORPUS TRACE/); assert.match(trace,/data-trace-stage="\$\{key\}"/); assert.match(trace,/aria-live="polite"/);
+  assert.match(app,/import\("\.\/trace\.js"\)/);
+  assert.match(app,/renderTraceState\(machine\.state\)/);
+  assert.match(trace,/FAIL_CLOSED: \[3,/);
+});
 test("delivery CSS is generated from the readable approved source", async()=>{
   assert.equal(await read("public/styles.css"),minifyCss(await read("design/consumer.css")));
 });

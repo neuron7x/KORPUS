@@ -246,10 +246,17 @@ async function main() {
     await runCase("consumer_authenticated_boot", async () => {
       await loadPage(cdp, "index.html", "app.js");
       await waitFor(cdp, '!document.getElementById("product").hidden', "authenticated product surface");
-      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0})`);
+      await waitFor(cdp, 'document.getElementById("trace-status")?.textContent', "KORPUS TRACE boot state");
+      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0, trace:document.getElementById("trace-status").textContent})`);
       assert(state.identity.includes("browser-e2e"), "server identity was not rendered");
       assert(state.entryHidden && !state.productHidden, "authenticated workspace state is inconsistent");
       assert(state.queryVisible, "authenticated query surface is not visible");
+      assert(state.trace.includes("Готовий"), "TRACE did not project the READY state");
+    }, results);
+
+    await runCase("trace_explains_the_selected_gate", async () => {
+      const text = await cdp.evaluate(`(() => { document.querySelector('[data-trace-stage="access"]').click(); return document.getElementById("trace-explainer").textContent; })()`);
+      assert(text.includes("допуск") && text.includes("до початку пошуку"), "TRACE did not explain access-before-retrieval");
     }, results);
 
     await runCase("combat_theme_is_reversible_and_accessible", async () => {
@@ -268,10 +275,11 @@ async function main() {
       assert(probe.ok, `direct API fixture probe failed: ${JSON.stringify(probe)}`);
       await cdp.evaluate(`(() => { const q=document.getElementById("query"); q.value="перевір доказ"; q.dispatchEvent(new Event("input",{bubbles:true})); document.getElementById("query-form").requestSubmit(); })()`);
       await waitFor(cdp, 'document.querySelectorAll("#result .turn").length >= 1 && !document.getElementById("result").hasAttribute("aria-busy")', "evidence answer");
-      const state = await cdp.evaluate(`({text:document.querySelector("#result .turn:last-child .answer-text")?.textContent, citation:document.querySelector("#result .turn:last-child .citation blockquote")?.textContent, citationCount:document.querySelectorAll("#result .turn:last-child .citation").length, injected:Boolean(document.querySelector("#pwn, #citation-pwn")), pwned:globalThis.__KORPUS_PWNED ?? 0})`);
+      const state = await cdp.evaluate(`({text:document.querySelector("#result .turn:last-child .answer-text")?.textContent, citation:document.querySelector("#result .turn:last-child .citation blockquote")?.textContent, citationCount:document.querySelectorAll("#result .turn:last-child .citation").length, injected:Boolean(document.querySelector("#pwn, #citation-pwn")), pwned:globalThis.__KORPUS_PWNED ?? 0, trace:document.getElementById("trace-status").textContent, completed:document.querySelectorAll('[data-trace-stage][data-state="done"]').length})`);
       assert(state.text?.includes("<img id=\"pwn\""), `answer XSS payload was not preserved as text: ${JSON.stringify(state)}`);
       assert(state.citation.includes("<svg id=\"citation-pwn\""), "citation XSS payload was not preserved as text");
       assert(state.citationCount === 1, "citation card was not rendered");
+      assert(state.trace.includes("завершено") && state.completed === 4, "TRACE did not project the completed route");
       assert(!state.injected && state.pwned === 0, "untrusted answer/citation became executable DOM");
     }, results);
 

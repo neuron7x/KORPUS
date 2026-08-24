@@ -1,9 +1,3 @@
-// KORPUS consumer surface: identity → commercial entitlement → evidence chat.
-//
-// The interface is intentionally thinner than the trust kernel. Identity comes from the
-// server, price comes from the server, evidence comes from the server. The browser may
-// present those decisions and initiate checkout; it never manufactures one.
-
 import {
   ApiRefusal, NetworkError, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
 } from "./api.js";
@@ -72,21 +66,25 @@ const emptyChat = $("empty-chat");
 
 let identity = null;
 let bootstrap = null;
-// Optional operator-provided context. It is kept for the tab and sent as `declaration`,
-// because the audit contract already distinguishes it from authenticated identity. It
-// is never required to enter the consumer chat and never grants access.
 let declaration = null;
 let commerce = null;
 let chatMachine = createChatMachine();
 const observedSources = new Map();
+let traceControllerPromise;
+function renderTraceState(state) {
+  traceControllerPromise ??= import("./trace.js").then(({createTraceController}) => createTraceController());
+  traceControllerPromise.then(controller => controller.render(state));
+}
 
 function setChatMachine(machine) {
   chatMachine = machine;
   if (product) product.dataset.chatState = machine.state;
+  renderTraceState(machine.state);
 }
 function chatEvent(event) {
   const state = chatMachine.send(event);
   if (product) product.dataset.chatState = state;
+  renderTraceState(state);
   return state;
 }
 
@@ -380,6 +378,7 @@ async function ask() {
     pending.remove();
     replayServerOutcome(chatMachine, answer);
     if (product) product.dataset.chatState = chatMachine.state;
+    renderTraceState(chatMachine.state);
     render(answer, question);
     void conversationController.refresh();
     query.value = "";
