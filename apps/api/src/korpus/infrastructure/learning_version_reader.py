@@ -23,6 +23,7 @@ from korpus.infrastructure.learning_schema import (
     learning_lesson_blocks,
     learning_lessons,
     learning_modules,
+    learning_objective_competencies,
     learning_objectives,
     learning_prerequisites,
     learning_source_binding_spans,
@@ -70,6 +71,19 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
             select(learning_objectives)
             .where(learning_objectives.c.course_version_id == version_id)
             .order_by(learning_objectives.c.lesson_id, learning_objectives.c.id)
+        )
+        .mappings()
+        .all()
+    )
+    objective_competency_rows = (
+        connection.execute(
+            select(learning_objective_competencies)
+            .where(learning_objective_competencies.c.course_version_id == version_id)
+            .order_by(
+                learning_objective_competencies.c.lesson_id,
+                learning_objective_competencies.c.objective_id,
+                learning_objective_competencies.c.competency_id,
+            )
         )
         .mappings()
         .all()
@@ -136,9 +150,20 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
     )
 
     objectives: dict[str, list[LearningObjective]] = defaultdict(list)
+    objective_competencies: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for row in objective_competency_rows:
+        objective_competencies[(str(row["lesson_id"]), str(row["objective_id"]))].add(
+            str(row["competency_id"])
+        )
     for row in objective_rows:
+        lesson_id = str(row["lesson_id"])
+        objective_id = str(row["id"])
         objectives[str(row["lesson_id"])].append(
-            LearningObjective(id=str(row["id"]), statement=str(row["statement"]))
+            LearningObjective(
+                id=objective_id,
+                statement=str(row["statement"]),
+                competency_ids=frozenset(objective_competencies[(lesson_id, objective_id)]),
+            )
         )
 
     binding_spans: dict[tuple[str, str], set[str]] = defaultdict(set)
@@ -210,5 +235,7 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
         id=str(version_row["id"]),
         course_id=str(version_row["course_id"]),
         revision=str(version_row["revision"]),
+        competency_framework_id=version_row["competency_framework_id"],
+        competency_framework_revision=version_row["competency_framework_revision"],
         modules=modules,
     )

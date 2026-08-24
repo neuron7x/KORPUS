@@ -132,6 +132,7 @@ Required learning invariants:
 | `learning_modules` | ordered modules inside one course version |
 | `learning_lessons` | ordered lessons inside a module |
 | `learning_objectives` | explicit learning objectives bound to a lesson |
+| `learning_objective_competencies` | objective-to-competency edges under the course version's exact framework revision |
 | `learning_source_bindings` | exact document/version identities used by a lesson |
 | `learning_source_binding_spans` | exact evidence spans proving a source binding |
 | `learning_lesson_blocks` | ordered typed content blocks without copied source truth |
@@ -139,3 +140,9 @@ Required learning invariants:
 | `learning_prerequisites` | directed lesson prerequisite edges |
 | `learning_publications` | draft/published/invalidated/retired lifecycle and reviewer provenance |
 | `learning_mastery` | per-learner objective mastery projection bound to the source-binding set that justified the latest state |
+| `competency_frameworks` | immutable identity and revision of an operational competency framework |
+| `operational_roles` | roles defined inside one exact framework revision |
+| `operational_tasks` | tasks with explicit conditions and observable standards |
+| `operational_competencies` | atomic competencies defined by a framework revision |
+| `operational_role_tasks` | role-to-required-task edges inside the same framework revision |
+| `operational_task_competencies` | conjunctive task-to-required-competency edges inside the same framework revision |

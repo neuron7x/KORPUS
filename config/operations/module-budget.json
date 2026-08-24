@@ -1350,9 +1350,9 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/domain/learning.py": {
-      "lines": 291,
-      "max_complexity": 12,
-      "reason": "ACT-LRN-003 adds the minimal competency identity edge to an objective; publication validation remains below the existing complexity ceiling"
+      "lines": 307,
+      "max_complexity": 18,
+      "reason": "ACT-LRN-003 exact ceiling after fail-closed framework identity pairing and competency-edge admission; decomposition is required before further growth"
     },
     "apps/api/src/korpus/domain/operational_competency.py": {
       "lines": 151,
@@ -1452,14 +1452,24 @@
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
     },
     "apps/api/src/korpus/infrastructure/learning_repository.py": {
-      "lines": 288,
-      "max_complexity": 8,
-      "reason": "v0.6.1 ACT-LRN-002: lifecycle transaction boundary after writer/reader/source-state decomposition"
+      "lines": 324,
+      "max_complexity": 12,
+      "reason": "ACT-LRN-003 exact ceiling after transactional framework existence and competency membership validation; further growth requires extraction"
+    },
+    "apps/api/src/korpus/infrastructure/competency_repository.py": {
+      "lines": 173,
+      "max_complexity": 11,
+      "reason": "ACT-LRN-003 initial exact ceiling for transactional immutable framework round-trip"
+    },
+    "apps/api/src/korpus/infrastructure/competency_schema.py": {
+      "lines": 104,
+      "max_complexity": 0,
+      "reason": "ACT-LRN-003 normalized framework schema declaration"
     },
     "apps/api/src/korpus/infrastructure/learning_schema.py": {
-      "lines": 268,
+      "lines": 286,
       "max_complexity": 0,
-      "reason": "v0.6.1 ACT-LRN-002: normalized learning schema initial ratchet"
+      "reason": "ACT-LRN-003 exact ceiling after framework revision identity and objective competency edge schema"
     },
     "apps/api/src/korpus/infrastructure/learning_source_state.py": {
       "lines": 59,
@@ -1467,14 +1477,14 @@
       "reason": "v0.6.1 ACT-LRN-002: canonical source-state projection extracted from repository"
     },
     "apps/api/src/korpus/infrastructure/learning_version_reader.py": {
-      "lines": 214,
-      "max_complexity": 10,
-      "reason": "v0.6.1 ACT-LRN-002: deterministic graph reconstruction extracted from repository"
+      "lines": 241,
+      "max_complexity": 11,
+      "reason": "ACT-LRN-003 exact ceiling after deterministic competency-edge reconstruction"
     },
     "apps/api/src/korpus/infrastructure/learning_version_writer.py": {
-      "lines": 137,
-      "max_complexity": 11,
-      "reason": "v0.6.1 ACT-LRN-002: immutable graph insertion extracted from repository"
+      "lines": 154,
+      "max_complexity": 14,
+      "reason": "ACT-LRN-003 exact ceiling after objective competency edge insertion"
     },
     "apps/api/src/korpus/infrastructure/liqpay.py": {
       "lines": 204,
@@ -2266,9 +2276,9 @@
       "max_complexity": 7
     },
     "scripts/prepare_postgres_role.py": {
-      "lines": 124,
+      "lines": 131,
       "max_complexity": 4,
-      "reason": "ACT-LRN-002/ITER5: explicit least-privilege grant surface includes learning_mastery; no blanket/default privilege expansion."
+      "reason": "ACT-LRN-003: explicit least-privilege grant surface includes competency framework and objective-edge tables; no blanket/default privilege expansion."
     },
     "scripts/process_group_control.py": {
       "lines": 53,

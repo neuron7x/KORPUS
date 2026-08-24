@@ -53,6 +53,8 @@ def _course(*competency_ids: str) -> CourseVersion:
         id="course-v1",
         course_id="course",
         revision="1",
+        competency_framework_id="framework.medical",
+        competency_framework_revision="2026-08-24",
         modules=(
             CourseModule(
                 id="module",
@@ -132,6 +134,19 @@ def test_framework_refuses_dangling_task_and_competency_edges() -> None:
         CompetencyFramework.model_validate(
             _framework().model_dump()
             | {"roles": [{"id": "role.medic", "title": "Medic", "task_ids": ["x"]}]}
+        )
+
+
+def test_competency_bound_course_requires_exact_framework_revision() -> None:
+    with pytest.raises(ValidationError, match="require a framework revision"):
+        CourseVersion.model_validate(
+            _course("competency.safety").model_dump()
+            | {"competency_framework_id": None, "competency_framework_revision": None}
+        )
+
+    with pytest.raises(ValidationError, match="must be set together"):
+        CourseVersion.model_validate(
+            _course().model_dump() | {"competency_framework_revision": None}
         )
 
     with pytest.raises(ValidationError, match="unknown competencies"):
