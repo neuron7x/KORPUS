@@ -40,9 +40,7 @@ def review_version(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
-@router.post(
-    "/v1/document-versions/{version_id}/rescission", response_model=DocumentVersionRecord
-)
+@router.post("/v1/document-versions/{version_id}/rescission", response_model=DocumentVersionRecord)
 def rescind_version(
     version_id: UUID,
     request_body: RescissionRequest,

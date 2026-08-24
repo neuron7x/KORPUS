@@ -1,4 +1,5 @@
 """Numeric contracts for OIDC freshness and cache timing."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -13,7 +14,10 @@ def _positive_timeout(value: object) -> float:
 
 
 def validate_oidc_timing(
-    jwks_cache_seconds: object, http_timeout_seconds: object, clock_skew_seconds: object, max_auth_age_seconds: object,
+    jwks_cache_seconds: object,
+    http_timeout_seconds: object,
+    clock_skew_seconds: object,
+    max_auth_age_seconds: object,
 ) -> tuple[int, float, int, int]:
     cache = require_count(jwks_cache_seconds, positive=True, label="jwks_cache_seconds")
     timeout = _positive_timeout(http_timeout_seconds)

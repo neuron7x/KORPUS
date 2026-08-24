@@ -14,7 +14,14 @@ class CanaryVerdict:
     failures: tuple[str, ...]
 
 
-def evaluate_canary(receipt: Mapping[str, object], *, binding: RevisionBinding, cloud_run_revision: str, minimum_samples: int, maximum_server_error_rate: float) -> CanaryVerdict:
+def evaluate_canary(
+    receipt: Mapping[str, object],
+    *,
+    binding: RevisionBinding,
+    cloud_run_revision: str,
+    minimum_samples: int,
+    maximum_server_error_rate: float,
+) -> CanaryVerdict:
     if not strict_int(minimum_samples) or minimum_samples < 1:
         raise ValueError("minimum_samples must be a positive integer")
     if not finite_rate(maximum_server_error_rate):

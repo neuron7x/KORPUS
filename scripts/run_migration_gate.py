@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Apply Alembic from an empty database and verify parity with runtime metadata."""
+
 from __future__ import annotations
 
 import json
@@ -87,12 +88,16 @@ def main() -> int:
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(json.dumps(report, indent=2))
-        return 0 if (
-            report["table_set_match"]
-            and not table_failures
-            and report["audit_head_seeded"]
-            and report["sqlite_fts5_present"]
-        ) else 1
+        return (
+            0
+            if (
+                report["table_set_match"]
+                and not table_failures
+                and report["audit_head_seeded"]
+                and report["sqlite_fts5_present"]
+            )
+            else 1
+        )
 
 
 if __name__ == "__main__":

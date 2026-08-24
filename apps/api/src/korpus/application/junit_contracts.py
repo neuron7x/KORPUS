@@ -1,15 +1,21 @@
 """Strict arithmetic for JUnit suite cardinalities."""
+
 from __future__ import annotations
+
 import xml.etree.ElementTree as ET
+
 _FIELDS = ("tests", "failures", "errors", "skipped")
 
 
 def _count(raw: object, field: str) -> int:
-    if raw is None: return 0
+    if raw is None:
+        return 0
     if not isinstance(raw, str) or not raw.isascii() or not raw.isdecimal():
         raise ValueError(f"JUnit {field} must be an ASCII non-negative integer")
-    try: return int(raw)
-    except ValueError as exc: raise ValueError(f"JUnit {field} is outside the supported integer domain") from exc
+    try:
+        return int(raw)
+    except ValueError as exc:
+        raise ValueError(f"JUnit {field} is outside the supported integer domain") from exc
 
 
 def _suite_counts(suite: ET.Element) -> dict[str, int]:
@@ -24,5 +30,6 @@ def junit_counts(root: ET.Element) -> dict[str, int]:
     totals = {field: 0 for field in _FIELDS}
     for suite in suites:
         counts = _suite_counts(suite)
-        for field in _FIELDS: totals[field] += counts[field]
+        for field in _FIELDS:
+            totals[field] += counts[field]
     return totals

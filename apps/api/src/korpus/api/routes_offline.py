@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field, field_validator
@@ -15,7 +15,7 @@ IdentityDependency = Annotated[Identity, Depends(get_identity)]
 
 
 def get_offline_pack_service(request: Request) -> OfflinePackService | None:
-    return request.app.state.offline_pack_service
+    return cast(OfflinePackService | None, request.app.state.offline_pack_service)
 
 
 class OfflinePackRequest(BaseModel):
@@ -39,18 +39,27 @@ def export_offline_pack(
     service: Annotated[OfflinePackService | None, Depends(get_offline_pack_service)],
 ) -> dict[str, object]:
     if service is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="offline pack export is disabled")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="offline pack export is disabled",
+        )
     try:
         return service.export(identity, request.corpora)
     except UnauthorizedCorporaError as exc:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail={"reason": exc.reason, "denied_corpora": exc.denied, "requested_corpora": exc.requested},
+            detail={
+                "reason": exc.reason,
+                "denied_corpora": exc.denied,
+                "requested_corpora": exc.requested,
+            },
         ) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except OfflinePackLimitError as exc:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=str(exc)
+        ) from exc
 
 
 @router.get("/v1/offline-pack/key")
@@ -59,5 +68,12 @@ def offline_pack_key(
     service: Annotated[OfflinePackService | None, Depends(get_offline_pack_service)],
 ) -> dict[str, str]:
     if service is None:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="offline pack export is disabled")
-    return {"algorithm": "Ed25519", "key_id": service.signer.key_id, "public_key_b64": service.signer.public_key_b64}
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="offline pack export is disabled",
+        )
+    return {
+        "algorithm": "Ed25519",
+        "key_id": service.signer.key_id,
+        "public_key_b64": service.signer.public_key_b64,
+    }

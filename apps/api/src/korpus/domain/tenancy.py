@@ -153,6 +153,8 @@ class AccountRecord(BaseModel):
 
 
 MAX_PLAN_PRICE_MINOR = 100_000_000
+
+
 class PlanRecord(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: UUID = Field(default_factory=uuid4)
@@ -167,11 +169,13 @@ class PlanRecord(BaseModel):
     entitled_corpora: frozenset[str] = Field(default_factory=frozenset)
     created_at: datetime = Field(default_factory=_now)
     updated_at: datetime = Field(default_factory=_now)
+
     @model_validator(mode="after")
-    def _sellable_price_is_an_atomic_pair(self) -> "PlanRecord":
+    def _sellable_price_is_an_atomic_pair(self) -> PlanRecord:
         if (self.price_minor is None) != (self.currency is None):
             raise ValueError("price_minor and currency must be configured together")
         return self
+
 
 class SubscriptionRecord(BaseModel):
     model_config = ConfigDict(frozen=True)

@@ -19,11 +19,16 @@ def _module():
 def test_current_report_requires_exact_source_and_release(tmp_path: Path, monkeypatch) -> None:
     module = _module()
     report = tmp_path / "report.json"
-    report.write_text(json.dumps({
-        "status": "PASS",
-        "source_tree_sha256": "a" * 64,
-        "release": "v0.8.0",
-    }), encoding="utf-8")
+    report.write_text(
+        json.dumps(
+            {
+                "status": "PASS",
+                "source_tree_sha256": "a" * 64,
+                "release": "v0.8.0",
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setattr(module, "ROOT", tmp_path)
     assert module._report_pass("report.json", source_digest="a" * 64, release="v0.8.0")
     assert not module._report_pass("report.json", source_digest="b" * 64, release="v0.8.0")
@@ -39,8 +44,11 @@ def test_missing_report_never_becomes_pass(tmp_path: Path, monkeypatch) -> None:
 def test_historical_migration_carry_requires_baseline_binding() -> None:
     module = _module()
     report = {
-        "migration": "head", "table_set_match": True, "column_failures": {},
-        "audit_head_seeded": True, "sqlite_fts5_present": True,
+        "migration": "head",
+        "table_set_match": True,
+        "column_failures": {},
+        "audit_head_seeded": True,
+        "sqlite_fts5_present": True,
         "provenance": {"source_digest": "a" * 64},
     }
     assert module._migration_carry_ok(report, "a" * 64)
@@ -51,8 +59,12 @@ def test_local_load_carry_requires_complete_successful_phases_and_binding() -> N
     module = _module()
     phase = {"requests": 3, "statuses": {"200": 3}}
     report = {
-        "source_tree_sha256": "a" * 64, "release": "v0.6.1",
-        "environment_class": "LOCAL_DEV", "load": phase, "spike": phase, "soak": phase,
+        "source_tree_sha256": "a" * 64,
+        "release": "v0.6.1",
+        "environment_class": "LOCAL_DEV",
+        "load": phase,
+        "spike": phase,
+        "soak": phase,
         "drift_p50_seconds": 0.01,
     }
     assert module._local_load_carry_ok(report, "a" * 64)

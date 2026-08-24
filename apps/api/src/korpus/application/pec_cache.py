@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date
+from typing import cast
 
 from korpus.application.cache import CachedRetriever
 from korpus.domain.models import Identity, RetrievedEvidence
@@ -25,7 +26,7 @@ class PECCachedRetriever(CachedRetriever):
     ) -> str:
         baseline = self._key(identity, text, corpus_ids, as_of, limit)
         mode = "semantic" if semantic_enabled else "lexical"
-        return hashlib.sha256(f"{baseline}\x1f{mode}".encode("utf-8")).hexdigest()
+        return hashlib.sha256(f"{baseline}\x1f{mode}".encode()).hexdigest()
 
     def search_with_semantic(
         self,
@@ -44,13 +45,16 @@ class PECCachedRetriever(CachedRetriever):
         cached = self.cache.get(key)
         if cached is not None:
             return list(cached)
-        result = method(
-            identity,
-            text,
-            corpus_ids,
-            as_of,
-            limit,
-            semantic_enabled=semantic_enabled,
+        result = cast(
+            list[RetrievedEvidence],
+            method(
+                identity,
+                text,
+                corpus_ids,
+                as_of,
+                limit,
+                semantic_enabled=semantic_enabled,
+            ),
         )
         self.cache.put(key, result)
         return result

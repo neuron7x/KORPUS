@@ -56,9 +56,9 @@ def test_a_thousands_separator_is_not_a_split_number() -> None:
 @pytest.mark.parametrize(
     "text",
     [
-        "Дистанція З00 м.",       # Cyrillic З for 3
-        "Термін 1О діб.",         # Cyrillic О for 0
-        "Норма 5б кг.",           # б for 6
+        "Дистанція З00 м.",  # Cyrillic З for 3
+        "Термін 1О діб.",  # Cyrillic О for 0
+        "Норма 5б кг.",  # б for 6
     ],
 )
 def test_a_letter_standing_in_for_a_digit_is_flagged(text: str) -> None:
@@ -109,7 +109,7 @@ def test_an_ordinary_range_is_not_flagged() -> None:
 
 
 def test_a_decimal_range_is_compared_numerically_not_lexically() -> None:
-    """"9,5" > "10,0" as strings; a lexical comparison would invent an inversion."""
+    """ "9,5" > "10,0" as strings; a lexical comparison would invent an inversion."""
     assert INVERTED_RANGE_FLAG not in assess_numeric_integrity("Від 9,5 до 10,5 год.").flags
 
 
@@ -124,9 +124,9 @@ def test_us_grouped_decimal_range_preserves_magnitude() -> None:
 
 
 def test_grouped_decimal_non_inversion_is_not_invented() -> None:
-    assert INVERTED_RANGE_FLAG not in assess_numeric_integrity(
-        "Глибина від 900 до 1.234,5 м."
-    ).flags
+    assert (
+        INVERTED_RANGE_FLAG not in assess_numeric_integrity("Глибина від 900 до 1.234,5 м.").flags
+    )
 
 
 def test_samples_are_bounded_so_a_report_does_not_carry_the_passage() -> None:

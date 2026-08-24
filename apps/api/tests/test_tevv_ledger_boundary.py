@@ -7,7 +7,9 @@ from pathlib import Path
 from korpus.application.tevv_evidence import evaluate_tevv_ledger
 
 ROOT = Path(__file__).resolve().parents[3]
-PROFILE = json.loads((ROOT / "config/assurance/tevv-production-v1.json").read_text(encoding="utf-8"))
+PROFILE = json.loads(
+    (ROOT / "config/assurance/tevv-production-v1.json").read_text(encoding="utf-8")
+)
 
 
 def _evidence() -> dict:
@@ -15,15 +17,17 @@ def _evidence() -> dict:
     return {
         "observation_ledger": [
             {
-                "id": f"obs-{index}", "passed": True,
-                "citation_failures": 0, "leakage_failures": 0, "determinism_failures": 0,
+                "id": f"obs-{index}",
+                "passed": True,
+                "citation_failures": 0,
+                "leakage_failures": 0,
+                "determinism_failures": 0,
                 "attack_families": [families[index % len(families)]],
             }
             for index in range(220)
         ],
         "null_control_ledger": [
-            {"id": f"null-{index}", "false_accept": False}
-            for index in range(20)
+            {"id": f"null-{index}", "false_accept": False} for index in range(20)
         ],
     }
 
@@ -32,18 +36,26 @@ def test_tevv_aggregates_are_recomputed_from_case_ledgers() -> None:
     result = evaluate_tevv_ledger(_evidence(), PROFILE)
     assert all(result["checks"].values()), result
     assert result["metrics"] == {
-        "observations": 220, "passed": 220,
-        "citation_failures": 0, "leakage_failures": 0, "determinism_failures": 0,
-        "null_controls": 20, "null_control_false_accepts": 0,
+        "observations": 220,
+        "passed": 220,
+        "citation_failures": 0,
+        "leakage_failures": 0,
+        "determinism_failures": 0,
+        "null_controls": 20,
+        "null_control_false_accepts": 0,
         "attack_families": sorted(PROFILE["required_attack_families"]),
     }
 
 
 def test_signed_summary_counters_without_observation_ledger_are_not_evidence() -> None:
     legacy = {
-        "observations": 1000, "passed": 1000, "citation_failures": 0,
-        "leakage_failures": 0, "determinism_failures": 0,
-        "null_controls": 100, "null_control_false_accepts": 0,
+        "observations": 1000,
+        "passed": 1000,
+        "citation_failures": 0,
+        "leakage_failures": 0,
+        "determinism_failures": 0,
+        "null_controls": 100,
+        "null_control_false_accepts": 0,
         "attack_families": PROFILE["required_attack_families"],
     }
     result = evaluate_tevv_ledger(legacy, PROFILE)

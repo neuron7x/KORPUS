@@ -56,42 +56,62 @@ OPERATIONAL_BREAKERS: dict[str, Any] = {
         for name, report in reports.items()
     },
     "eval_pass_rate": lambda reports: reports | {"eval": reports["eval"] | {"pass_rate": 0.5}},
-    "citation_integrity": lambda reports: reports
-    | {"eval": reports["eval"] | {"citation_failures": 1}},
-    "access_noninterference": lambda reports: reports
-    | {"eval": reports["eval"] | {"leakage_failures": 1}},
-    "access_noninterference_measured": lambda reports: reports
-    | {"eval": reports["eval"] | {"leakage_checks": 0}},
-    "determinism": lambda reports: reports
-    | {"eval": reports["eval"] | {"determinism_failures": 1}},
+    "citation_integrity": lambda reports: (
+        reports | {"eval": reports["eval"] | {"citation_failures": 1}}
+    ),
+    "access_noninterference": lambda reports: (
+        reports | {"eval": reports["eval"] | {"leakage_failures": 1}}
+    ),
+    "access_noninterference_measured": lambda reports: (
+        reports | {"eval": reports["eval"] | {"leakage_checks": 0}}
+    ),
+    "determinism": lambda reports: (
+        reports | {"eval": reports["eval"] | {"determinism_failures": 1}}
+    ),
     "audit_chain": lambda reports: reports | {"eval": reports["eval"] | {"audit_valid": False}},
-    "critical_mutation_score": lambda reports: reports
-    | {"mutation": reports["mutation"] | {"mutation_score": 0.99}},
-    "critical_mutation_survivors": lambda reports: reports
-    | {"mutation": reports["mutation"] | {"survived": ["M01_SOMETHING"]}},
-    "migration_table_parity": lambda reports: reports
-    | {"migration": reports["migration"] | {"table_set_match": False}},
-    "migration_required_tables": lambda reports: reports
-    | {"migration": reports["migration"] | {"tables_actual": ["audit_events"]}},
-    "migration_audit_head": lambda reports: reports
-    | {"migration": reports["migration"] | {"audit_head_seeded": False}},
-    "migration_fts5": lambda reports: reports
-    | {"migration": reports["migration"] | {"sqlite_fts5_present": False}},
+    "critical_mutation_score": lambda reports: (
+        reports | {"mutation": reports["mutation"] | {"mutation_score": 0.99}}
+    ),
+    "critical_mutation_survivors": lambda reports: (
+        reports | {"mutation": reports["mutation"] | {"survived": ["M01_SOMETHING"]}}
+    ),
+    "migration_table_parity": lambda reports: (
+        reports | {"migration": reports["migration"] | {"table_set_match": False}}
+    ),
+    "migration_required_tables": lambda reports: (
+        reports | {"migration": reports["migration"] | {"tables_actual": ["audit_events"]}}
+    ),
+    "migration_audit_head": lambda reports: (
+        reports | {"migration": reports["migration"] | {"audit_head_seeded": False}}
+    ),
+    "migration_fts5": lambda reports: (
+        reports | {"migration": reports["migration"] | {"sqlite_fts5_present": False}}
+    ),
     "scale_status": lambda reports: reports | {"scale": reports["scale"] | {"status": "FAIL"}},
-    "scale_metric_provenance": lambda reports: reports
-    | {"scale": reports["scale"] | {"metric_status": "ASSUMED"}},
-    "scale_top1": lambda reports: reports
-    | {"scale": reports["scale"] | {"results": reports["scale"]["results"] | {"top1_recall": 0.1}}},
-    "scale_candidate_bound": lambda reports: reports
-    | {
-        "scale": reports["scale"]
-        | {"results": reports["scale"]["results"] | {"candidate_count": 10**6}}
-    },
-    "scale_local_p95": lambda reports: reports
-    | {
-        "scale": reports["scale"]
-        | {"results": reports["scale"]["results"] | {"query_latency_ms_p95": 10**6}}
-    },
+    "scale_metric_provenance": lambda reports: (
+        reports | {"scale": reports["scale"] | {"metric_status": "ASSUMED"}}
+    ),
+    "scale_top1": lambda reports: (
+        reports
+        | {
+            "scale": reports["scale"]
+            | {"results": reports["scale"]["results"] | {"top1_recall": 0.1}}
+        }
+    ),
+    "scale_candidate_bound": lambda reports: (
+        reports
+        | {
+            "scale": reports["scale"]
+            | {"results": reports["scale"]["results"] | {"candidate_count": 10**6}}
+        }
+    ),
+    "scale_local_p95": lambda reports: (
+        reports
+        | {
+            "scale": reports["scale"]
+            | {"results": reports["scale"]["results"] | {"query_latency_ms_p95": 10**6}}
+        }
+    ),
 }
 
 
@@ -181,59 +201,78 @@ def _assurance_inputs() -> dict[str, Any]:
 
 ASSURANCE_BREAKERS: dict[str, Any] = {
     "tests_executed": lambda inputs: inputs | {"junit": inputs["junit"] | {"tests": "0"}},
-    "tests_not_mostly_skipped": lambda inputs: inputs
-    | {"junit": inputs["junit"] | {"skipped": "399"}},
+    "tests_not_mostly_skipped": lambda inputs: (
+        inputs | {"junit": inputs["junit"] | {"skipped": "399"}}
+    ),
     "tests_outcome": lambda inputs: inputs | {"junit": inputs["junit"] | {"failures": "1"}},
-    "coverage_line": lambda inputs: inputs
-    | {"coverage": inputs["coverage"] | {"line-rate": "0.10"}},
-    "coverage_branch": lambda inputs: inputs
-    | {"coverage": inputs["coverage"] | {"branch-rate": "0.10"}},
+    "coverage_line": lambda inputs: (
+        inputs | {"coverage": inputs["coverage"] | {"line-rate": "0.10"}}
+    ),
+    "coverage_branch": lambda inputs: (
+        inputs | {"coverage": inputs["coverage"] | {"branch-rate": "0.10"}}
+    ),
     "quality_tooling_executed": lambda inputs: inputs | {"quality": None},
-    "reports_present": lambda inputs: inputs
-    | {"reports": {k: v for k, v in inputs["reports"].items() if k != "mutation"}},
+    "reports_present": lambda inputs: (
+        inputs | {"reports": {k: v for k, v in inputs["reports"].items() if k != "mutation"}}
+    ),
     "evidence_provenance": lambda inputs: inputs | {"source_digest": None},
-    "eval": lambda inputs: inputs
-    | {"reports": inputs["reports"] | {"eval": inputs["reports"]["eval"] | {"pass_rate": 0.5}}},
-    "mutation": lambda inputs: inputs
-    | {
-        "reports": inputs["reports"]
+    "eval": lambda inputs: (
+        inputs
+        | {"reports": inputs["reports"] | {"eval": inputs["reports"]["eval"] | {"pass_rate": 0.5}}}
+    ),
+    "mutation": lambda inputs: (
+        inputs
         | {
-            "mutation": inputs["reports"]["mutation"] | {"mutation_score_over_catalogue": 0.99}
+            "reports": inputs["reports"]
+            | {"mutation": inputs["reports"]["mutation"] | {"mutation_score_over_catalogue": 0.99}}
         }
-    },
-    "migration": lambda inputs: inputs
-    | {
-        "reports": inputs["reports"]
-        | {"migration": inputs["reports"]["migration"] | {"table_set_match": False}}
-    },
-    "scale": lambda inputs: inputs
-    | {"reports": inputs["reports"] | {"scale": inputs["reports"]["scale"] | {"status": "FAIL"}}},
-    "operational": lambda inputs: inputs
-    | {"reports": inputs["reports"] | {"operational": {"status": "FAIL"}}},
-    # No drill at all — the state every release before 2026-08-05 was assembled in.
-    "recovery_drill_executed": lambda inputs: inputs
-    | {"reports": {k: v for k, v in inputs["reports"].items() if k != "recovery"}},
-    # A duration with nothing to interpret it against: how much data, on what engine.
-    "recovery_provenance_complete": lambda inputs: inputs
-    | {
-        "reports": inputs["reports"]
+    ),
+    "migration": lambda inputs: (
+        inputs
         | {
-            "recovery": inputs["reports"]["recovery"]
+            "reports": inputs["reports"]
+            | {"migration": inputs["reports"]["migration"] | {"table_set_match": False}}
+        }
+    ),
+    "scale": lambda inputs: (
+        inputs
+        | {
+            "reports": inputs["reports"]
+            | {"scale": inputs["reports"]["scale"] | {"status": "FAIL"}}
+        }
+    ),
+    "operational": lambda inputs: (
+        inputs | {"reports": inputs["reports"] | {"operational": {"status": "FAIL"}}}
+    ),
+    # No drill at all — the state every release before 2026-08-05 was assembled in.
+    "recovery_drill_executed": lambda inputs: (
+        inputs | {"reports": {k: v for k, v in inputs["reports"].items() if k != "recovery"}}
+    ),
+    # A duration with nothing to interpret it against: how much data, on what engine.
+    "recovery_provenance_complete": lambda inputs: (
+        inputs
+        | {
+            "reports": inputs["reports"]
             | {
-                "provenance": {
-                    k: v
-                    for k, v in inputs["reports"]["recovery"]["provenance"].items()
-                    if k != "document_rows"
+                "recovery": inputs["reports"]["recovery"]
+                | {
+                    "provenance": {
+                        k: v
+                        for k, v in inputs["reports"]["recovery"]["provenance"].items()
+                        if k != "document_rows"
+                    }
                 }
             }
         }
-    },
+    ),
     # The TEVV failure mode transplanted: a fixture relabelled as the real thing.
-    "recovery_scale_not_overstated": lambda inputs: inputs
-    | {
-        "reports": inputs["reports"]
-        | {"recovery": inputs["reports"]["recovery"] | {"scale_class": "production-like"}}
-    },
+    "recovery_scale_not_overstated": lambda inputs: (
+        inputs
+        | {
+            "reports": inputs["reports"]
+            | {"recovery": inputs["reports"]["recovery"] | {"scale_class": "production-like"}}
+        }
+    ),
 }
 
 

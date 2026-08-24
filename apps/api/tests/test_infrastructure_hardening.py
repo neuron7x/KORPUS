@@ -145,6 +145,7 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
 
 def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
     import pytest
+
     calibration = write_calibration_bundle(tmp_path, weight_semantic=0.0)
     with pytest.raises(ValueError, match="calibration assigns zero semantic weight"):
         Settings(
@@ -413,6 +414,7 @@ def test_not_ready_hides_the_internal_snapshot_without_the_metrics_token(tmp_pat
 
         # Force a not-ready state the same way the existing backlog test does.
         import pytest as _pytest  # local, to keep the module import block untouched
+
         _pytest.MonkeyPatch().setattr(repository.anchor_store, "write", unavailable)
         repository.append_audit(admin(), "leak.probe", "test", "one", {"probe": True})
 
@@ -446,7 +448,6 @@ def test_malformed_host_header_is_rejected_before_routing(client) -> None:
         headers={"Host": "example.com/health?x=", "Authorization": "Bearer invalid"},
     )
     assert response.status_code == 400
-
 
 
 def test_ready_hides_internal_snapshot_without_metrics_token_on_public_deployment(tmp_path: Path):

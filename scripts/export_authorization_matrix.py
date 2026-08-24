@@ -16,13 +16,15 @@ from korpus.application.policy import (  # noqa: E402
     PolicyEngine,
 )
 from korpus.application.production_assurance import gate_payload  # noqa: E402
+from korpus.application.provenance import compute_source_digest  # noqa: E402
 from korpus.domain.models import Identity  # noqa: E402
 from release_identity import release_tag  # noqa: E402
-from korpus.application.provenance import compute_source_digest  # noqa: E402
 
 
 def _identity(role: str) -> Identity:
-    return Identity(subject=f"matrix:{role}", roles=frozenset({role}), corpora=frozenset({"public"}))
+    return Identity(
+        subject=f"matrix:{role}", roles=frozenset({role}), corpora=frozenset({"public"})
+    )
 
 
 def main() -> int:
@@ -60,9 +62,14 @@ def main() -> int:
     }
     failures = [name for name, ok in checks.items() if not ok]
     result = gate_payload(
-        "authorization", status="PASS" if not failures else "FAIL",
-        source_digest=compute_source_digest(ROOT), release=release_tag(), checks=checks,
-        failures=failures, matrix=matrix, unknown_permission_denied=unknown_denied,
+        "authorization",
+        status="PASS" if not failures else "FAIL",
+        source_digest=compute_source_digest(ROOT),
+        release=release_tag(),
+        checks=checks,
+        failures=failures,
+        matrix=matrix,
+        unknown_permission_denied=unknown_denied,
         evidence_class="EXECUTABLE_MATRIX",
     )
     out = ROOT / "var/production/authorization-gate.json"

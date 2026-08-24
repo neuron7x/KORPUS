@@ -1,4 +1,5 @@
 """Finite-sample numerical contracts for TEVV."""
+
 from __future__ import annotations
 
 from korpus.application.numeric_contracts import finite_number, strict_int

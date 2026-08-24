@@ -1,4 +1,5 @@
 """Ed25519 signer whose private key exists only in an operator-provided PEM file."""
+
 from __future__ import annotations
 
 import base64

@@ -5,6 +5,7 @@ This is the adaptive part of the test loop: measured uncovered branch edges beco
 next work queue. The algorithm is deterministic, source-relative, and policy-bound; it
 never lowers the threshold or excludes code to make the number move.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,9 +19,15 @@ sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
 from korpus.application.coverage_policy import relative_source_path, risk_weight  # noqa: E402
 from korpus.application.numeric_contracts import require_count  # noqa: E402
-from korpus.application.release_numeric import coverage_policy_rate, coverage_rates, risk_weight_value  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from korpus.application.release_numeric import (  # noqa: E402
+    coverage_policy_rate,
+    coverage_rates,
+    risk_weight_value,
+)
+
 from scripts.release_identity import release_tag  # noqa: E402
+
 POLICY = ROOT / "config/operations/test-adaptation-policy.json"
 
 
@@ -39,7 +46,12 @@ def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> 
             {
                 "path": relative,
                 "missing_branches": missing,
-                "branch_rate": round(coverage_policy_rate(float(summary.get("percent_branches_covered", 0.0)) / 100.0, "branch_rate"), 6),
+                "branch_rate": round(
+                    coverage_policy_rate(
+                        float(summary.get("percent_branches_covered", 0.0)) / 100.0, "branch_rate"
+                    ),
+                    6,
+                ),
                 "risk_weight": risk,
                 "priority": round(missing * risk, 6),
             }
@@ -47,8 +59,12 @@ def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> 
     files.sort(key=lambda item: (-item["priority"], -item["missing_branches"], item["path"]))
     statement_rate, branch_rate = coverage_rates(totals)
     minimum = policy["coverage"]
-    minimum_statement_rate = coverage_policy_rate(minimum["minimum_statement_rate"], "minimum_statement_rate")
-    minimum_branch_rate = coverage_policy_rate(minimum["minimum_branch_rate"], "minimum_branch_rate")
+    minimum_statement_rate = coverage_policy_rate(
+        minimum["minimum_statement_rate"], "minimum_statement_rate"
+    )
+    minimum_branch_rate = coverage_policy_rate(
+        minimum["minimum_branch_rate"], "minimum_branch_rate"
+    )
     missing_branches = require_count(totals["missing_branches"])
     baseline_missing = require_count(minimum["baseline_missing_branches"])
     maximum_regression = require_count(minimum.get("maximum_missing_branch_regression", 0))
@@ -72,6 +88,8 @@ def build_plan(coverage: dict[str, Any], policy: dict[str, Any], root: Path) -> 
         "missing_branch_regression": missing_branches - baseline_missing,
         "priority_queue": files,
     }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--coverage", type=Path, default=ROOT / "var/coverage.json")

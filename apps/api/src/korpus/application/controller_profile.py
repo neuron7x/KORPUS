@@ -3,6 +3,7 @@
 Profiles are learned/promoted offline. Runtime only validates and interprets a bounded
 rule list.  A profile has no authority to alter answer thresholds or source evidence.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -24,13 +25,14 @@ ActionName = Literal[
 ]
 Operator = Literal["lt", "le", "gt", "ge", "eq", "ne"]
 
+
 class FeatureRange(BaseModel):
     model_config = ConfigDict(frozen=True)
     minimum: float | None = None
     maximum: float | None = None
 
     @model_validator(mode="after")
-    def valid_range(self) -> "FeatureRange":
+    def valid_range(self) -> FeatureRange:
         for label, value in (("minimum", self.minimum), ("maximum", self.maximum)):
             if value is not None and not math.isfinite(value):
                 raise ValueError(f"feature support {label} must be finite")
@@ -46,7 +48,7 @@ class RuleCondition(BaseModel):
     value: float | int | bool | str
 
     @model_validator(mode="after")
-    def known_feature(self) -> "RuleCondition":
+    def known_feature(self) -> RuleCondition:
         if self.feature not in FEATURE_NAMES:
             raise ValueError(f"unknown PEC feature: {self.feature}")
         if isinstance(self.value, float) and not math.isfinite(self.value):
@@ -64,7 +66,7 @@ class ControllerLeaf(BaseModel):
     support: dict[str, FeatureRange] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def known_support_features(self) -> "ControllerLeaf":
+    def known_support_features(self) -> ControllerLeaf:
         unknown = set(self.support) - set(FEATURE_NAMES)
         if unknown:
             raise ValueError(f"unknown PEC support feature(s): {sorted(unknown)}")
@@ -98,7 +100,7 @@ class ControllerProfile(BaseModel):
     fallback_action: Literal["BASELINE"] = "BASELINE"
 
     @model_validator(mode="after")
-    def validate_profile(self) -> "ControllerProfile":
+    def validate_profile(self) -> ControllerProfile:
         if self.feature_schema_sha256 != feature_schema_sha256():
             raise ValueError("PEC feature schema digest mismatch")
         rule_ids = [rule.rule_id for rule in self.rules]
@@ -123,7 +125,7 @@ class ControllerProfile(BaseModel):
         return json.dumps(self.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
 
     @classmethod
-    def load(cls, path: Path, expected_sha256: str | None = None) -> "ControllerProfile":
+    def load(cls, path: Path, expected_sha256: str | None = None) -> ControllerProfile:
         raw = path.read_bytes()
         actual = hashlib.sha256(raw).hexdigest()
         if expected_sha256 is not None and actual != expected_sha256:

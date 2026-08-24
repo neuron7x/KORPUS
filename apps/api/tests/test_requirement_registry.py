@@ -33,13 +33,15 @@ ROOT = Path(__file__).resolve().parents[3]
 
 def _repository_validation_context() -> str:
     """Use distribution semantics only when exercising an actual FULL SSOT package."""
-    return "FULL_SSOT_DISTRIBUTION" if (ROOT / "FULL_SSOT_PACKAGE_RECEIPT.json").is_file() else "SOURCE_CHECKOUT"
+    return (
+        "FULL_SSOT_DISTRIBUTION"
+        if (ROOT / "FULL_SSOT_PACKAGE_RECEIPT.json").is_file()
+        else "SOURCE_CHECKOUT"
+    )
 
 
 def _requirement(identifier: str, holds) -> Requirement:
-    return Requirement(
-        id=identifier, subject="test", statement=f"{identifier} holds", holds=holds
-    )
+    return Requirement(id=identifier, subject="test", statement=f"{identifier} holds", holds=holds)
 
 
 def test_the_shipped_infrastructure_register_is_satisfied() -> None:
@@ -194,7 +196,9 @@ def test_the_shipped_repository_register_is_satisfied() -> None:
     from korpus.repository_requirements import REPOSITORY_REQUIREMENTS
     from korpus.repository_requirements import load_context as load_repository_context
 
-    report = evaluate_requirements(REPOSITORY_REQUIREMENTS, load_repository_context(ROOT, _repository_validation_context()))
+    report = evaluate_requirements(
+        REPOSITORY_REQUIREMENTS, load_repository_context(ROOT, _repository_validation_context())
+    )
 
     assert report.satisfied, [failure.id for failure in report.unmet]
     assert report.total >= 90

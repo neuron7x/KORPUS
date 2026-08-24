@@ -11,7 +11,11 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.numeric_contracts import finite_number, require_count, require_rate
 from korpus.application.pec_training import (
-    TrainingRow, hoeffding_upper, nested_group_validation, select_hyperparameters, train_tree,
+    TrainingRow,
+    hoeffding_upper,
+    nested_group_validation,
+    select_hyperparameters,
+    train_tree,
 )
 from pec_common import read_jsonl, receipt, sha256_file, write_json
 
@@ -24,7 +28,9 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--risk-limit", type=float, required=True)
     parser.add_argument("--minimum-leaf-samples", type=int, default=30)
     parser.add_argument("--release-gate", action="store_true")
-    parser.add_argument("--out", type=Path, default=ROOT / "reports/PEC_CONTROLLER_TRAINING_CURRENT.json")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/PEC_CONTROLLER_TRAINING_CURRENT.json"
+    )
     return parser.parse_args()
 
 
@@ -52,16 +58,20 @@ def _training_rows(dataset: dict[str, dict], decisions: dict[str, dict]) -> list
     for query_id, decision in decisions.items():
         meta = dataset.get(query_id)
         if meta and meta.get("partition") == "train":
-            rows.append(TrainingRow(
-                query_id,
-                str(meta["group_id"]),
-                dict(decision["features"]),
-                str(decision["oracle_action"]),
-            ))
+            rows.append(
+                TrainingRow(
+                    query_id,
+                    str(meta["group_id"]),
+                    dict(decision["features"]),
+                    str(decision["oracle_action"]),
+                )
+            )
     return rows
 
 
-def _calibration_rows(dataset: dict[str, dict], decisions: dict[str, dict]) -> list[tuple[dict, dict]]:
+def _calibration_rows(
+    dataset: dict[str, dict], decisions: dict[str, dict]
+) -> list[tuple[dict, dict]]:
     return [
         (meta, decision)
         for query_id, decision in decisions.items()
@@ -99,17 +109,22 @@ def _export_leaves(model: object, stats: dict[str, dict], args: argparse.Namespa
         state = stats[leaf.leaf_id]
         upper = hoeffding_upper(int(state["errors"]), int(state["samples"]), args.delta)
         admitted = state["samples"] >= args.minimum_leaf_samples and upper <= args.risk_limit
-        leaves.append({
-            "leaf_id": leaf.leaf_id,
-            "conditions": [condition.model_dump(mode="json") for condition in leaf.conditions],
-            "action": leaf.action,
-            "training_samples": leaf.training_samples,
-            "calibration_samples": state["samples"],
-            "calibration_errors": state["errors"],
-            "upper_error_bound": upper,
-            "admitted": admitted,
-            "support": {name: {"minimum": bounds[0], "maximum": bounds[1]} for name, bounds in state["support"].items()},
-        })
+        leaves.append(
+            {
+                "leaf_id": leaf.leaf_id,
+                "conditions": [condition.model_dump(mode="json") for condition in leaf.conditions],
+                "action": leaf.action,
+                "training_samples": leaf.training_samples,
+                "calibration_samples": state["samples"],
+                "calibration_errors": state["errors"],
+                "upper_error_bound": upper,
+                "admitted": admitted,
+                "support": {
+                    name: {"minimum": bounds[0], "maximum": bounds[1]}
+                    for name, bounds in state["support"].items()
+                },
+            }
+        )
     return leaves
 
 
@@ -126,20 +141,27 @@ def main() -> int:
     model = train_tree(rows, max_depth=depth, min_leaf=min_leaf)
     calibration = _calibration_rows(dataset, decisions)
     leaves = _export_leaves(model, _leaf_stats(model, calibration), args)
-    status = "PASS" if any(leaf["admitted"] for leaf in leaves) and nested["status"] == "PASS" else "UNKNOWN"
-    report = receipt("pec_controller_training", {
-        "status": status,
-        "dataset_sha256": sha256_file(args.dataset),
-        "oracle_sha256": sha256_file(args.oracle),
-        "train_rows": len(rows),
-        "calibration_rows": len(calibration),
-        "selected": {"max_depth": depth, "min_leaf": min_leaf, **cv},
-        "nested_generalization": nested,
-        "confidence_delta": args.delta,
-        "controller_risk_limit": args.risk_limit,
-        "minimum_leaf_samples": args.minimum_leaf_samples,
-        "leaves": leaves,
-    })
+    status = (
+        "PASS"
+        if any(leaf["admitted"] for leaf in leaves) and nested["status"] == "PASS"
+        else "UNKNOWN"
+    )
+    report = receipt(
+        "pec_controller_training",
+        {
+            "status": status,
+            "dataset_sha256": sha256_file(args.dataset),
+            "oracle_sha256": sha256_file(args.oracle),
+            "train_rows": len(rows),
+            "calibration_rows": len(calibration),
+            "selected": {"max_depth": depth, "min_leaf": min_leaf, **cv},
+            "nested_generalization": nested,
+            "confidence_delta": args.delta,
+            "controller_risk_limit": args.risk_limit,
+            "minimum_leaf_samples": args.minimum_leaf_samples,
+            "leaves": leaves,
+        },
+    )
     write_json(args.out, report)
     print(json.dumps({key: value for key, value in report.items() if key != "leaves"}, indent=2))
     return 0 if status == "PASS" or (status == "UNKNOWN" and not args.release_gate) else 1

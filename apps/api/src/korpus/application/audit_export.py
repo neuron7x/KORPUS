@@ -143,9 +143,7 @@ def to_jsonl(records: Sequence[ExportRecord]) -> str:
     )
 
 
-def batch_manifest(
-    records: Sequence[ExportRecord], *, include_payload: bool
-) -> dict[str, Any]:
+def batch_manifest(records: Sequence[ExportRecord], *, include_payload: bool) -> dict[str, Any]:
     """What the batch is, and — as importantly — what receiving it does not prove."""
     return {
         "schema_version": 1,

@@ -13,7 +13,8 @@ def _scanner_marker_clean(scan: Mapping[str, Any], expected: frozenset[str]) -> 
         return False
     parsed = {
         str(item.get("scanner")): item.get("exit_code")
-        for item in records if isinstance(item, Mapping)
+        for item in records
+        if isinstance(item, Mapping)
     }
     return (
         scan.get("status") == "PASS"

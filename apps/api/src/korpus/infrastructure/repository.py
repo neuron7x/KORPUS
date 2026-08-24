@@ -20,7 +20,6 @@ from sqlalchemy import (
     inspect,
     select,
     update,
-    or_,
 )
 from sqlalchemy import (
     text as sql_text,
@@ -30,7 +29,6 @@ from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
 from korpus.application.keyring import AuditKeyRing
-from korpus.application.retrieval_math import candidate_terms
 from korpus.application.policy import PolicyEngine
 from korpus.application.trace import current_trace_id
 from korpus.domain.models import (
@@ -42,7 +40,10 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
-from korpus.infrastructure import retrieval_queries, row_mapping, review_transitions
+
+# ACT-LRN-002: register the normalized learning graph on the shared metadata.
+from korpus.infrastructure import learning_schema as _learning_schema  # noqa: F401
+from korpus.infrastructure import retrieval_queries, review_transitions, row_mapping
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
 
@@ -61,9 +62,6 @@ from korpus.infrastructure.schema import (
     spans,
     versions,
 )
-
-# ACT-LRN-002: register the normalized learning graph on the shared metadata.
-from korpus.infrastructure import learning_schema as _learning_schema  # noqa: F401
 
 # ACT-001: the account/subscription/conversation tables hang off the same `MetaData`, and
 # nothing in this module reads them. The import is what registers them, so `create_all`
@@ -304,9 +302,11 @@ class SqlRepository:
     def get_document(self, identity: Identity, document_id: UUID) -> DocumentRecord | None:
         with self.engine.begin() as connection:
             self._apply_postgres_identity(connection, identity)
-            row = connection.execute(
-                select(documents).where(documents.c.id == str(document_id))
-            ).mappings().first()
+            row = (
+                connection.execute(select(documents).where(documents.c.id == str(document_id)))
+                .mappings()
+                .first()
+            )
         return self._document(row) if row else None
 
     def list_documents(self, identity: Identity) -> list[DocumentRecord]:
@@ -483,9 +483,11 @@ class SqlRepository:
 
         def operation(connection: Connection) -> tuple[DocumentVersionRecord, tuple[int, str]]:
             self._apply_postgres_identity(connection, actor)
-            row = connection.execute(
-                select(versions).where(versions.c.id == str(version_id))
-            ).mappings().first()
+            row = (
+                connection.execute(select(versions).where(versions.c.id == str(version_id)))
+                .mappings()
+                .first()
+            )
             if row is None:
                 raise LookupError("version not found")
             current = self._version(row)
@@ -503,9 +505,9 @@ class SqlRepository:
             if result.rowcount != 1:
                 raise ConcurrentWriteError("optimistic rescission failed")
             updated = self._version(
-                connection.execute(
-                    select(versions).where(versions.c.id == str(version_id))
-                ).mappings().one()
+                connection.execute(select(versions).where(versions.c.id == str(version_id)))
+                .mappings()
+                .one()
             )
             anchor = self._append_audit_in_connection(
                 connection,
@@ -573,19 +575,37 @@ class SqlRepository:
         return retrieval_queries.materialize_current(ordered, as_of)
 
     def search_retrievable_spans(
-        self, identity: Identity, corpus_ids: frozenset[str], as_of: date,
-        query: str, candidate_limit: int,
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        query: str,
+        candidate_limit: int,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
         from korpus.infrastructure.repository_search import search_retrievable_spans
+
         return search_retrievable_spans(self, identity, corpus_ids, as_of, query, candidate_limit)
 
     def search_contextual_retrievable_spans(
-        self, identity: Identity, corpus_ids: frozenset[str], as_of: date, query: str,
-        candidate_limit: int, *, approved_aliases: dict[str, tuple[str, ...]] | None = None,
+        self,
+        identity: Identity,
+        corpus_ids: frozenset[str],
+        as_of: date,
+        query: str,
+        candidate_limit: int,
+        *,
+        approved_aliases: dict[str, tuple[str, ...]] | None = None,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
         from korpus.infrastructure.repository_search import search_contextual_retrievable_spans
+
         return search_contextual_retrievable_spans(
-            self, identity, corpus_ids, as_of, query, candidate_limit, approved_aliases=approved_aliases
+            self,
+            identity,
+            corpus_ids,
+            as_of,
+            query,
+            candidate_limit,
+            approved_aliases=approved_aliases,
         )
 
     def _candidate_span_ids(
@@ -735,9 +755,7 @@ class SqlRepository:
                 .offset(max(limit - 1, 0))
                 .scalar_subquery()
             )
-            statement = statement.where(
-                audit_anchor_outbox.c.sequence >= func.coalesce(floor, 0)
-            )
+            statement = statement.where(audit_anchor_outbox.c.sequence >= func.coalesce(floor, 0))
         with self.engine.begin() as connection:
             result = connection.execute(statement)
         return int(result.rowcount or 0)
@@ -1006,8 +1024,6 @@ class SqlRepository:
     # it produced itself. Kept as a staticmethod alias because the mutation catalogue
     # and the write path both name it.
     _audit_canonical = staticmethod(audit_canonical)
-
-
 
     # Moved to infrastructure/row_mapping.py (COD-001). Bound as staticmethods because
     # the mutation catalogue and the call sites both name them on the class, and a

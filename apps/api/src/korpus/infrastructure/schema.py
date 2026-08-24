@@ -235,4 +235,3 @@ Index(
     audit_anchor_outbox.c.created_at,
     audit_anchor_outbox.c.sequence,
 )
-

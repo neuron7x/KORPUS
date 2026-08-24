@@ -31,9 +31,7 @@ MESSAGE = b"sequence=1|action=answer.completed"
 
 
 def _rotated() -> AuditKeyRing:
-    return AuditKeyRing(
-        keys={"2026-08-a": FIRST, "2026-08-b": SECOND}, active_key_id="2026-08-b"
-    )
+    return AuditKeyRing(keys={"2026-08-a": FIRST, "2026-08-b": SECOND}, active_key_id="2026-08-b")
 
 
 def test_events_signed_before_a_rotation_still_verify() -> None:
@@ -63,9 +61,7 @@ def test_an_event_naming_an_unknown_key_is_invalid() -> None:
 
 def test_events_written_before_key_ids_existed_are_attributed_not_orphaned() -> None:
     """They were all signed with the one key the deployment held; naming it keeps them."""
-    ring = AuditKeyRing(
-        keys={LEGACY_KEY_ID: FIRST, "2026-08-b": SECOND}, active_key_id="2026-08-b"
-    )
+    ring = AuditKeyRing(keys={LEGACY_KEY_ID: FIRST, "2026-08-b": SECOND}, active_key_id="2026-08-b")
     _, signature = AuditKeyRing.single(FIRST).sign(MESSAGE)
 
     assert ring.verify(LEGACY_KEY_ID, MESSAGE, signature) is True
@@ -74,7 +70,7 @@ def test_events_written_before_key_ids_existed_are_attributed_not_orphaned() -> 
 
 
 def test_a_revoked_key_still_verifies_and_is_reported_as_revoked() -> None:
-    """"Signed by something we no longer trust" and "cannot be verified" differ."""
+    """ "Signed by something we no longer trust" and "cannot be verified" differ."""
     ring = AuditKeyRing(
         keys={"2026-08-a": FIRST, "2026-08-b": SECOND},
         active_key_id="2026-08-b",

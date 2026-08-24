@@ -2,15 +2,19 @@
 The answer service owns *when* audit events are emitted. This module owns only the stable
 serialization of that decision into the audit port, keeping the orchestration spine small.
 """
+
 from __future__ import annotations
+
 from korpus.application.answer_analysis import ScopeBreach
 from korpus.application.answer_audit_envelope import answer_request_envelope
 from korpus.application.evidence import SupportVerdict
-from korpus.application.ports import Repository
 from korpus.application.pec_audit import pec_audit_payload
+from korpus.application.ports import Repository
 from korpus.application.query_plan import QueryPlan
 from korpus.application.risk import QueryRisk, risk_adjusted_thresholds
 from korpus.domain.models import Answer, Identity, QueryRequest, RetrievedEvidence
+
+
 def append_answer_audit(
     repository: Repository,
     identity: Identity,

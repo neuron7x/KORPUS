@@ -36,6 +36,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from korpus.application.embedding_contracts import counters_within_total
+
 BUILD = "BUILD"
 SWITCH = "SWITCH"
 RETIRE = "RETIRE"
@@ -82,6 +83,7 @@ class MigrationPlan:
         avoid, entered deliberately.
         """
         return (BUILD, SWITCH, RETIRE)
+
     def as_dict(self) -> dict[str, Any]:
         return {
             "schema_version": 1,
@@ -100,6 +102,8 @@ class MigrationPlan:
                 "this against a real index and embedding service is external evidence."
             ),
         }
+
+
 def plan_migration(
     *,
     from_model: str,
@@ -155,7 +159,8 @@ def switch_admissible(
     would do so silently, because retrieval reports no error when a filter matches
     nothing.
     """
-    if not counters_within_total(spans_total, spans_embedded_target, spans_stale_text): return False, "coverage counters are inconsistent with total spans"
+    if not counters_within_total(spans_total, spans_embedded_target, spans_stale_text):
+        return False, "coverage counters are inconsistent with total spans"
     if spans_total == 0:
         return False, "no spans exist, so coverage under the target model is not evidence"
     if spans_stale_text:
@@ -200,7 +205,8 @@ def rollback_available(*, spans_embedded_source: int, spans_total: int) -> tuple
 
     The question a rollback plan has to answer before it is needed, not after.
     """
-    if not counters_within_total(spans_total, spans_embedded_source): return False, "rollback coverage counters are inconsistent"
+    if not counters_within_total(spans_total, spans_embedded_source):
+        return False, "rollback coverage counters are inconsistent"
     if spans_total and spans_embedded_source == spans_total:
         return True, "the previous model still covers every span"
     return False, (

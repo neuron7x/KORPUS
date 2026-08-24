@@ -45,7 +45,7 @@ def test_a_table_that_kept_its_shape_is_not_flagged() -> None:
 
 
 def test_a_row_that_lost_a_column_is_flagged() -> None:
-    """"Друга 1,8" — the unit is gone, and nothing downstream can tell which one."""
+    """ "Друга 1,8" — the unit is gone, and nothing downstream can tell which one."""
     result = assess_table_integrity(RAGGED)
 
     assert TABLE_STRUCTURE_LOST in result.flags

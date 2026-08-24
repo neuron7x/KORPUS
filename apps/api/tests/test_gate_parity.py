@@ -176,7 +176,7 @@ def test_mypy_is_invoked_so_that_its_configuration_applies() -> None:
         "which leaves mypy unable to resolve the project's own imports"
     )
     source = QUALITY_GATE.read_text(encoding="utf-8")
-    assert 'MYPYPATH' in source, (
+    assert "MYPYPATH" in source, (
         "the quality gate no longer sets MYPYPATH, so mypy cannot resolve korpus.*"
     )
 
@@ -355,8 +355,9 @@ def test_the_ci_configuration_is_parseable_yaml() -> None:
     passing on a broken document, so the parse itself has to be asserted.
     """
     yaml = pytest.importorskip(
-        "yaml", reason="PyYAML is in requirements.runtime.lock; a missing parser here "
-        "means the environment is wrong, not that the check is optional"
+        "yaml",
+        reason="PyYAML is in requirements.runtime.lock; a missing parser here "
+        "means the environment is wrong, not that the check is optional",
     )
     document = yaml.safe_load(CI.read_text(encoding="utf-8"))
     assert isinstance(document, dict), ".gitlab-ci.yml did not parse into a mapping"
@@ -455,9 +456,7 @@ def test_the_closure_check_runs_after_whatever_produces_the_evidence_it_resolves
             "artefact — the check can only pass on a runner that happens to have it"
         )
         for consumer in consumers:
-            block = next(
-                b for b in re.split(r"\n(?=\S)", text) if b.startswith(f"{consumer}:")
-            )
+            block = next(b for b in re.split(r"\n(?=\S)", text) if b.startswith(f"{consumer}:"))
             needed = set(re.findall(r"-\s+job:\s*(\S+)", block))
             assert needed & producers, (
                 f"{consumer} resolves {artefact} but declares no needs on any of its "
@@ -815,13 +814,13 @@ def test_the_module_budget_is_enforced_in_both_entry_points() -> None:
     assert "module-budget" in _makefile_prerequisites("validate"), (
         "make validate no longer enforces the module budget"
     )
-    assert any(
-        "check_module_budget.py" in line for line in _ci_script("repository:validate")
-    ), "repository:validate no longer enforces the module budget"
+    assert any("check_module_budget.py" in line for line in _ci_script("repository:validate")), (
+        "repository:validate no longer enforces the module budget"
+    )
 
 
 def test_every_module_is_in_the_budget() -> None:
-    """"Not yet budgeted" is how a file reaches two thousand lines unnoticed."""
+    """ "Not yet budgeted" is how a file reaches two thousand lines unnoticed."""
     result = subprocess.run(
         [sys.executable, "scripts/check_module_budget.py"],
         cwd=ROOT,
@@ -867,9 +866,7 @@ def test_no_job_reaches_a_relaxed_runner() -> None:
     # that explains why privileged mode is banned, so documenting the ban broke the
     # check on the ban. Fifth instance today of a guard reading text instead of the
     # thing it guards.
-    directives = [
-        line for line in text.splitlines() if not line.lstrip().startswith("#")
-    ]
+    directives = [line for line in text.splitlines() if not line.lstrip().startswith("#")]
     assert not any("privileged: true" in line for line in directives), (
         "a privileged runner would make the tag pointless and is banned outright"
     )
@@ -934,9 +931,7 @@ def test_every_ci_image_pins_an_exact_tag() -> None:
     # bytes. The version invented on 2026-08-05 reached a queued pipeline before
     # anything caught it, and a digest could not have been invented at all.
     without_digest = [image for image in images if "@sha256:" not in image]
-    assert not without_digest, (
-        f"these CI images are pinned by tag alone: {without_digest}"
-    )
+    assert not without_digest, f"these CI images are pinned by tag alone: {without_digest}"
 
 
 def test_a_failed_generator_does_not_leave_its_previous_report_behind() -> None:
@@ -954,7 +949,7 @@ def test_a_failed_generator_does_not_leave_its_previous_report_behind() -> None:
     assert "rm -f" in shards and "mutation-report.json" in shards, (
         "the shard runner no longer removes its report when a shard fails"
     )
-    failure_block = shards[shards.index('if [[ "$failed" -ne 0 ]]'):]
+    failure_block = shards[shards.index('if [[ "$failed" -ne 0 ]]') :]
     assert "rm -f" in failure_block.split("exit 1")[0], (
         "the report is removed outside the failure path, so a successful run would "
         "delete the evidence it just produced"
@@ -989,8 +984,7 @@ def test_the_browsers_copy_of_the_request_contract_cannot_go_stale() -> None:
     submit something they never tried to submit.
     """
     assert any(
-        "generate_web_contract.py --check" in line
-        for line in _ci_script("repository:validate")
+        "generate_web_contract.py --check" in line for line in _ci_script("repository:validate")
     ), "repository:validate no longer checks the generated web contract"
     assert "web-contract-check" in _makefile_prerequisites("web-build"), (
         "make web-build no longer checks the generated web contract"
@@ -1088,15 +1082,10 @@ def test_every_lock_file_is_audited_for_known_vulnerabilities() -> None:
         for line in script
         if "pip-audit" in line and line.rstrip().endswith(".lock")
     }
-    locks = {
-        f"apps/api/{path.name}"
-        for path in (ROOT / "apps/api").glob("requirements*.lock")
-    }
+    locks = {f"apps/api/{path.name}" for path in (ROOT / "apps/api").glob("requirements*.lock")}
 
     assert locks, "no lock files found — this test is out of date"
-    assert locks <= audited, (
-        f"these lock files are never audited: {sorted(locks - audited)}"
-    )
+    assert locks <= audited, f"these lock files are never audited: {sorted(locks - audited)}"
 
 
 def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> None:
@@ -1113,8 +1102,7 @@ def test_no_lock_file_pins_a_package_with_a_known_advisory_recorded_here() -> No
         ("cryptography", "50.0.0", "PYSEC-2026-3552/3553/3554"),
     }
     text = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in (ROOT / "apps/api").glob("requirements*.lock")
+        path.read_text(encoding="utf-8") for path in (ROOT / "apps/api").glob("requirements*.lock")
     )
     pinned = dict(re.findall(r"^([A-Za-z0-9_.\-]+)==([0-9][^\s\\]*)", text, re.MULTILINE))
 
@@ -1193,14 +1181,24 @@ def test_every_script_is_reachable_from_a_runner() -> None:
     that never runs. It is deleted.
     """
     scripts = sorted(
-        [path.name for path in (ROOT / "scripts").glob("*.py") if path.name != "__init__.py" and 'if __name__ == "__main__"' in path.read_text(encoding="utf-8", errors="ignore")]
+        [
+            path.name
+            for path in (ROOT / "scripts").glob("*.py")
+            if path.name != "__init__.py"
+            and 'if __name__ == "__main__"' in path.read_text(encoding="utf-8", errors="ignore")
+        ]
         + [path.name for path in (ROOT / "scripts").glob("*.sh")]
     )
     assert scripts, "no scripts found — this test is out of date"
 
     haystacks = {
         "Makefile": MAKEFILE.read_text(encoding="utf-8"),
-        "CI": CI.read_text(encoding="utf-8") + "\n" + "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in (ROOT / ".github/workflows").glob("*.yml")),
+        "CI": CI.read_text(encoding="utf-8")
+        + "\n"
+        + "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / ".github/workflows").glob("*.yml")
+        ),
         "tests": "\n".join(
             path.read_text(encoding="utf-8") for path in (ROOT / "apps/api/tests").rglob("*.py")
         ),
@@ -1323,9 +1321,9 @@ def test_every_mutant_cites_a_test_that_exists() -> None:
     import sys
 
     sys.path.insert(0, str(ROOT / "scripts"))
-    from run_mutation_tests import MUTANTS
-
     import ast
+
+    from run_mutation_tests import MUTANTS
 
     missing = []
     node_cache: dict[Path, set[str]] = {}
@@ -1340,11 +1338,16 @@ def test_every_mutant_cites_a_test_that_exists() -> None:
                 continue
             if target not in node_cache:
                 tree = ast.parse(target.read_text(encoding="utf-8"))
-                names = {item.name for item in tree.body if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))}
+                names = {
+                    item.name
+                    for item in tree.body
+                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
                 for item in tree.body:
                     if isinstance(item, ast.ClassDef):
                         names.update(
-                            f"{item.name}::{child.name}" for child in item.body
+                            f"{item.name}::{child.name}"
+                            for child in item.body
                             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
                         )
                 node_cache[target] = names
@@ -1367,7 +1370,9 @@ def test_source_inspection_mutants_use_a_full_repository_copy() -> None:
     sys.path.insert(0, str(ROOT / "scripts"))
     from run_mutation_tests import MUTANTS
 
-    mutant = next(item for item in MUTANTS if item.id == "M148_CONVERSATION_ROUTE_BYPASSES_THE_BOUND")
+    mutant = next(
+        item for item in MUTANTS if item.id == "M148_CONVERSATION_ROUTE_BYPASSES_THE_BOUND"
+    )
     assert mutant.full_copy is True
 
 
@@ -1486,7 +1491,9 @@ def test_production_gate_generators_are_wired_to_the_ci_evidence_locations() -> 
     postgres = "\n".join(_ci_script("api:postgres-and-restore"))
     package = "\n".join(_ci_script("source:package"))
     assert "run_postgres_security_gate.py" in postgres
-    assert "run_engineering_production_gate.py --report var/research-assurance-report.json" in package
+    assert (
+        "run_engineering_production_gate.py --report var/research-assurance-report.json" in package
+    )
     assert "run_exact_environment_gate.py" in package
     assert "run_inference_security_gate.py" in package
     assert "run_mutation_production_gate.py" in package

@@ -1,11 +1,16 @@
 """Strict production-TEVV policy contracts; no numeric coercion."""
+
 from __future__ import annotations
+
 from typing import Any
+
 from korpus.application.numeric_contracts import finite_number, strict_int
 
 _MAX_COUNTS = (
-    "maximum_citation_failures", "maximum_leakage_failures",
-    "maximum_determinism_failures", "maximum_null_control_false_accepts",
+    "maximum_citation_failures",
+    "maximum_leakage_failures",
+    "maximum_determinism_failures",
+    "maximum_null_control_false_accepts",
 )
 
 
@@ -18,7 +23,9 @@ def _count(profile: dict[str, Any], field: str, *, positive: bool) -> int:
 
 def _rate(profile: dict[str, Any], field: str, *, positive: bool = False) -> float:
     value = profile.get(field)
-    if not finite_number(value) or not (0 < float(value) <= 1 if positive else 0 <= float(value) <= 1):
+    if not finite_number(value) or not (
+        0 < float(value) <= 1 if positive else 0 <= float(value) <= 1
+    ):
         raise ValueError(f"{field} must be a numeric rate in {'(0, 1]' if positive else '[0, 1]'}")
     return float(value)
 

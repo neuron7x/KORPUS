@@ -78,7 +78,12 @@ def main() -> int:
         failures, files = verify(archive)
     except (RuntimeError, OSError, zipfile.BadZipFile, json.JSONDecodeError) as exc:
         failures, files = [str(exc)], 0
-    payload = {"valid": not failures, "archive": str(archive), "sha256": file_sha256(archive), "files": files}
+    payload = {
+        "valid": not failures,
+        "archive": str(archive),
+        "sha256": file_sha256(archive),
+        "files": files,
+    }
     if failures:
         payload["failures"] = failures
     print(json.dumps(payload, indent=2))

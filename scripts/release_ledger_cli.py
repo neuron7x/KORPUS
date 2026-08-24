@@ -6,6 +6,7 @@ Events are created by the domain APIs that execute the actual promotion/withdraw
 this tool is intentionally a verifier/export surface for CI, incident response and an
 external head-anchor service.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,7 +30,9 @@ def load_ledger(path: Path) -> list[ReleaseLedgerEvent]:
         try:
             events.append(ReleaseLedgerEvent(**value))
         except (TypeError, ValueError, KeyError) as error:
-            raise ValueError(f"line {line_number}: invalid release ledger event: {error}") from error
+            raise ValueError(
+                f"line {line_number}: invalid release ledger event: {error}"
+            ) from error
     return events
 
 
@@ -54,12 +57,17 @@ def main() -> int:
 
     if args.command == "head":
         verdict = verify_ledger(events)
-        print(json.dumps({
-            "status": "PASS" if verdict.valid else "FAIL",
-            "events": verdict.events,
-            "head_sha256": verdict.head_sha256,
-            "failures": list(verdict.failures),
-        }, indent=2))
+        print(
+            json.dumps(
+                {
+                    "status": "PASS" if verdict.valid else "FAIL",
+                    "events": verdict.events,
+                    "head_sha256": verdict.head_sha256,
+                    "failures": list(verdict.failures),
+                },
+                indent=2,
+            )
+        )
         return 0 if verdict.valid else 1
 
     verdict = verify_ledger(
@@ -67,12 +75,17 @@ def main() -> int:
         expected_release_identity_digest=args.expected_release_identity_digest,
         expected_head_sha256=args.expected_head_sha256,
     )
-    print(json.dumps({
-        "status": "PASS" if verdict.valid else "FAIL",
-        "events": verdict.events,
-        "head_sha256": verdict.head_sha256,
-        "failures": list(verdict.failures),
-    }, indent=2))
+    print(
+        json.dumps(
+            {
+                "status": "PASS" if verdict.valid else "FAIL",
+                "events": verdict.events,
+                "head_sha256": verdict.head_sha256,
+                "failures": list(verdict.failures),
+            },
+            indent=2,
+        )
+    )
     return 0 if verdict.valid else 1
 
 

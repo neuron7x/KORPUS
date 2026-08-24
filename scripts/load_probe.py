@@ -15,16 +15,16 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
-from release_identity import release_tag  # noqa: E402
 from load_probe_lib.metrics import Outcome, refusal_reason  # noqa: E402
+from release_identity import release_tag  # noqa: E402
 
 DECLARATION = {
     "given_name": "Навантаження",
@@ -52,8 +52,6 @@ QUESTIONS = (
     "радіаційний хімічний контроль",
     "штурм окопу дії групи",
 )
-
-
 
 
 #: Set when the probe talks to the API directly. Through the edge it is not needed and
@@ -120,7 +118,11 @@ def main() -> int:
     parser.add_argument("--soak-seconds", type=float, default=60.0)
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--out", default="var/load-probe.json")
-    parser.add_argument("--environment-class", choices=("LOCAL_DEV", "CI_FIXTURE", "PRODUCTION_LIKE", "PRODUCTION"), default="LOCAL_DEV")
+    parser.add_argument(
+        "--environment-class",
+        choices=("LOCAL_DEV", "CI_FIXTURE", "PRODUCTION_LIKE", "PRODUCTION"),
+        default="LOCAL_DEV",
+    )
     parser.add_argument("--source-tree-sha256", default="")
     parser.add_argument("--release", default="")
     parser.add_argument(

@@ -70,9 +70,7 @@ def test_no_grant_names_a_table_that_does_not_exist() -> None:
     lists = _grant_lists()
     granted = set().union(*lists.values())
     unknown = sorted(granted - set(metadata.tables) - NOT_APPLICATION_TABLES)
-    assert not unknown, (
-        f"these tables are granted but not defined in the metadata: {unknown}"
-    )
+    assert not unknown, f"these tables are granted but not defined in the metadata: {unknown}"
 
 
 def test_a_table_is_classified_exactly_once() -> None:
@@ -85,6 +83,4 @@ def test_a_table_is_classified_exactly_once() -> None:
             if table in seen:
                 duplicates.append((table, seen[table], name))
             seen[table] = name
-    assert not duplicates, (
-        f"these tables appear in more than one grant list: {duplicates}"
-    )
+    assert not duplicates, f"these tables appear in more than one grant list: {duplicates}"

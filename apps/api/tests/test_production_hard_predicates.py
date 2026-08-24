@@ -44,7 +44,9 @@ def test_exact_environment_requires_every_runtime_check() -> None:
             "lock_hashes_present": False,
         },
     }
-    ok, failed = external_predicate_state("exact_python_3_12_13_environment", {"exact_environment": gate})
+    ok, failed = external_predicate_state(
+        "exact_python_3_12_13_environment", {"exact_environment": gate}
+    )
     assert ok is False
     assert failed == ("lock_hashes_present",)
 
@@ -63,13 +65,33 @@ def test_hosted_builder_cannot_be_inferred_from_workflow_presence() -> None:
         },
     )
     assert ok is False
-    assert set(failed) == {"builder_provenance_verified", "builder_trusted", "builder_attestation_verified", "builder_trusted_signer"}
+    assert set(failed) == {
+        "builder_provenance_verified",
+        "builder_trusted",
+        "builder_attestation_verified",
+        "builder_trusted_signer",
+    }
 
 
 def test_profile_ids_match_canonical_hard_predicate_list() -> None:
     profile = json.loads(PROFILE.read_text(encoding="utf-8"))
     ids = [item["id"] for item in profile["predicates"]]
-    assert ids == ["external_independent_redteam", "live_vulnerability_scanners", "live_postgres_rls", "real_domain_corpus_tevv", "independent_tevv", "production_like_tevv_environment", "production_like_load", "trusted_load_attestation", "trusted_recovery_attestation", "trusted_hosted_builder", "trusted_release_signing", "exact_python_3_12_13_environment", "pec_human_production_authority", "pec_canary_revision_admission"]
+    assert ids == [
+        "external_independent_redteam",
+        "live_vulnerability_scanners",
+        "live_postgres_rls",
+        "real_domain_corpus_tevv",
+        "independent_tevv",
+        "production_like_tevv_environment",
+        "production_like_load",
+        "trusted_load_attestation",
+        "trusted_recovery_attestation",
+        "trusted_hosted_builder",
+        "trusted_release_signing",
+        "exact_python_3_12_13_environment",
+        "pec_human_production_authority",
+        "pec_canary_revision_admission",
+    ]
 
 
 def test_postgres_gate_targets_all_exist() -> None:

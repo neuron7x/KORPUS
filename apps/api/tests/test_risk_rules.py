@@ -36,11 +36,7 @@ def test_every_rule_matches_its_own_examples(rule, example: str) -> None:
 @pytest.mark.parametrize(
     "rule,counterexample",
     [(rule, text) for rule in RISK_RULES for text in rule.counterexamples],
-    ids=[
-        f"{rule.id}:not:{i}"
-        for rule in RISK_RULES
-        for i, _ in enumerate(rule.counterexamples)
-    ],
+    ids=[f"{rule.id}:not:{i}" for rule in RISK_RULES for i, _ in enumerate(rule.counterexamples)],
 )
 def test_no_rule_fires_on_its_own_counterexamples(rule, counterexample: str) -> None:
     """A rule that fires on ordinary questions is a rule operators learn to ignore."""
@@ -110,7 +106,7 @@ def test_the_deciding_rule_travels_with_the_class() -> None:
 
 
 def test_operational_outranks_temporal_when_both_apply() -> None:
-    """"Which order is current and what do I do" is a question about acting."""
+    """ "Which order is current and what do I do" is a question about acting."""
     risk, _ = classify("Яка редакція чинна і що я маю робити?")
 
     assert risk is QueryRisk.OPERATIONAL

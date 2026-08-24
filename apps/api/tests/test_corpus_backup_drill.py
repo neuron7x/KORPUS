@@ -119,9 +119,7 @@ def test_the_drill_refuses_a_corpus_that_restores_empty(
     database = tmp_path / "korpus.db"
     _corpus(database, documents=0)
 
-    backup = _run(
-        BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)}
-    )
+    backup = _run(BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)})
     completed = subprocess.run(
         ["bash", str(RESTORE), backup, str(tmp_path / "restored")],
         capture_output=True,
@@ -141,9 +139,7 @@ def test_a_tampered_backup_is_refused_before_it_is_decrypted(
 ) -> None:
     database = tmp_path / "korpus.db"
     _corpus(database)
-    backup = _run(
-        BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)}
-    )
+    backup = _run(BACKUP, [], {**environment, "KORPUS_BACKUP_SQLITE_PATH": str(database)})
 
     # The file is 0444 by the time it lands: ransomware and a careless script both work
     # by writing, and this is the local half of INF-012's immutability clause. Asserted

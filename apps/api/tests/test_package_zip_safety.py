@@ -32,16 +32,20 @@ def _safety_module():
 
 
 def _manifest(payload: bytes) -> bytes:
-    return json.dumps({
-        "schema": "korpus.distribution-manifest.v2",
-        "kind": "distribution",
-        "files": [{
-            "path": "payload.txt",
-            "bytes": len(payload),
-            "sha256": hashlib.sha256(payload).hexdigest(),
-            "mode": "0644",
-        }],
-    }).encode()
+    return json.dumps(
+        {
+            "schema": "korpus.distribution-manifest.v2",
+            "kind": "distribution",
+            "files": [
+                {
+                    "path": "payload.txt",
+                    "bytes": len(payload),
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                    "mode": "0644",
+                }
+            ],
+        }
+    ).encode()
 
 
 def _info(name: str, mode: int = stat.S_IFREG | 0o644) -> zipfile.ZipInfo:
@@ -118,11 +122,13 @@ def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Pat
         "sha256": hashlib.sha256(nested).hexdigest(),
         "mode": "0644",
     }
-    outer = json.dumps({
-        "schema": "korpus.distribution-manifest.v2",
-        "kind": "distribution",
-        "files": [record],
-    }).encode()
+    outer = json.dumps(
+        {
+            "schema": "korpus.distribution-manifest.v2",
+            "kind": "distribution",
+            "files": [record],
+        }
+    ).encode()
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr(_info("KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"), nested)
         zf.writestr(_info("DISTRIBUTION_MANIFEST.json"), outer)
@@ -133,7 +139,9 @@ def test_nested_distribution_manifest_is_not_an_unbound_blind_spot(tmp_path: Pat
     assert count == 2
 
 
-def test_entry_count_budget_refuses_before_structural_processing(tmp_path: Path, monkeypatch) -> None:
+def test_entry_count_budget_refuses_before_structural_processing(
+    tmp_path: Path, monkeypatch
+) -> None:
     archive = tmp_path / "too-many.zip"
     with zipfile.ZipFile(archive, "w") as zf:
         zf.writestr(_info("a.txt"), b"a")
@@ -141,9 +149,11 @@ def test_entry_count_budget_refuses_before_structural_processing(tmp_path: Path,
     module = _safety_module()
     policy = sys.modules[module.resource_failures.__module__]
     monkeypatch.setattr(policy, "MAX_ARCHIVE_ENTRIES", 1)
-    monkeypatch.setattr(module, "_record_entry", lambda *args, **kwargs: (_ for _ in ()).throw(
-        AssertionError("structural parser ran")
-    ))
+    monkeypatch.setattr(
+        module,
+        "_record_entry",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("structural parser ran")),
+    )
     with zipfile.ZipFile(archive) as zf:
         failures = module.safety_failures(zf)
     assert any("entry budget exceeded" in item for item in failures)
@@ -154,7 +164,9 @@ def test_per_entry_uncompressed_budget_is_enforced(tmp_path: Path, monkeypatch) 
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         zf.writestr(_info("payload.txt"), b"12345")
     module = _safety_module()
-    monkeypatch.setattr(sys.modules[module.resource_failures.__module__], "MAX_ENTRY_UNCOMPRESSED_BYTES", 4)
+    monkeypatch.setattr(
+        sys.modules[module.resource_failures.__module__], "MAX_ENTRY_UNCOMPRESSED_BYTES", 4
+    )
     with zipfile.ZipFile(archive) as zf:
         safety = module.safety_failures(zf)
     assert any("entry uncompressed budget exceeded" in item for item in safety)
@@ -166,7 +178,9 @@ def test_total_uncompressed_budget_is_enforced(tmp_path: Path, monkeypatch) -> N
         zf.writestr(_info("a.txt"), b"1234")
         zf.writestr(_info("b.txt"), b"5678")
     module = _safety_module()
-    monkeypatch.setattr(sys.modules[module.resource_failures.__module__], "MAX_TOTAL_UNCOMPRESSED_BYTES", 7)
+    monkeypatch.setattr(
+        sys.modules[module.resource_failures.__module__], "MAX_TOTAL_UNCOMPRESSED_BYTES", 7
+    )
     with zipfile.ZipFile(archive) as zf:
         safety = module.safety_failures(zf)
     assert any("total uncompressed budget exceeded" in item for item in safety)
@@ -177,7 +191,9 @@ def test_compression_ratio_budget_is_enforced(tmp_path: Path, monkeypatch) -> No
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("zeros.txt", b"0" * 4096)
     module = _safety_module()
-    monkeypatch.setattr(sys.modules[module.resource_failures.__module__], "MAX_COMPRESSION_RATIO", 2.0)
+    monkeypatch.setattr(
+        sys.modules[module.resource_failures.__module__], "MAX_COMPRESSION_RATIO", 2.0
+    )
     with zipfile.ZipFile(archive) as zf:
         safety = module.safety_failures(zf)
     assert any("compression ratio exceeded" in item for item in safety)

@@ -71,15 +71,17 @@ def test_durable_job_submission_is_non_parsing_and_worker_completes(tmp_path: Pa
         response = client.post(
             "/v1/ingestion-jobs/documents",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Durable job document",
-                    "corpus_id": "public",
-                    "issuer": "Authorized Test Authority",
-                    "jurisdiction": "UA",
-                    "document_type": "order",
-                    "access_tier": 0,
-                    "classification": "public",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Durable job document",
+                        "corpus_id": "public",
+                        "issuer": "Authorized Test Authority",
+                        "jurisdiction": "UA",
+                        "document_type": "order",
+                        "access_tier": 0,
+                        "classification": "public",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1", "authority": "official_ua"}),
             },
             files={"file": ("document.txt", payload, "text/plain")},
@@ -108,11 +110,13 @@ def test_synchronous_endpoint_is_disabled_in_durable_mode(tmp_path: Path):
         response = client.post(
             "/v1/documents/ingest",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Rejected synchronous ingest",
-                    "corpus_id": "public",
-                    "issuer": "Authority",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Rejected synchronous ingest",
+                        "corpus_id": "public",
+                        "issuer": "Authority",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1"}),
             },
             files={"file": ("document.txt", b"text", "text/plain")},
@@ -127,11 +131,13 @@ def test_job_failure_is_dead_lettered_for_deterministic_parser_error(tmp_path: P
         response = client.post(
             "/v1/ingestion-jobs/documents",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Bad type",
-                    "corpus_id": "public",
-                    "issuer": "Authority",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Bad type",
+                        "corpus_id": "public",
+                        "issuer": "Authority",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1"}),
             },
             files={"file": ("fake.pdf", b"not a pdf", "application/pdf")},
@@ -150,11 +156,13 @@ def test_job_lease_is_exclusive(tmp_path: Path):
         response = client.post(
             "/v1/ingestion-jobs/documents",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Lease exclusive",
-                    "corpus_id": "public",
-                    "issuer": "Authority",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Lease exclusive",
+                        "corpus_id": "public",
+                        "issuer": "Authority",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1"}),
             },
             files={"file": ("document.txt", b"valid content", "text/plain")},
@@ -227,11 +235,13 @@ def test_a_worker_cannot_complete_a_job_it_does_not_hold(tmp_path: Path):
         response = client.post(
             "/v1/ingestion-jobs/documents",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Lease ownership",
-                    "corpus_id": "public",
-                    "issuer": "Authority",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Lease ownership",
+                        "corpus_id": "public",
+                        "issuer": "Authority",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1"}),
             },
             files={"file": ("document.txt", b"valid content", "text/plain")},
@@ -273,11 +283,13 @@ def test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold(tmp_path: Pa
         response = client.post(
             "/v1/ingestion-jobs/documents",
             data={
-                "document_json": json.dumps({
-                    "canonical_title": "Completion ownership",
-                    "corpus_id": "public",
-                    "issuer": "Authority",
-                }),
+                "document_json": json.dumps(
+                    {
+                        "canonical_title": "Completion ownership",
+                        "corpus_id": "public",
+                        "issuer": "Authority",
+                    }
+                ),
                 "version_json": json.dumps({"revision": "1"}),
             },
             files={"file": ("document.txt", b"valid content", "text/plain")},

@@ -189,10 +189,13 @@ def test_an_unknown_status_is_refused_by_the_contract(client: Any) -> None:
 
 def test_an_unknown_account_is_a_404_not_a_500(client: Any) -> None:
     _as(client, ADMIN)
-    assert client.post(
-        f"/v1/admin/accounts/{uuid4()}/status",
-        json={"status": "disabled", "reason": "акаунт, якого немає"},
-    ).status_code == 404
+    assert (
+        client.post(
+            f"/v1/admin/accounts/{uuid4()}/status",
+            json={"status": "disabled", "reason": "акаунт, якого немає"},
+        ).status_code
+        == 404
+    )
     assert client.get("/v1/admin/accounts/oidc%7Cnobody").status_code == 404
 
 
@@ -278,12 +281,13 @@ def test_a_disabled_administrator_cannot_administer(client: Any) -> None:
     for method, path, body in (
         ("get", "/v1/admin/accounts", None),
         ("get", f"/v1/admin/accounts/{second_admin.subject}", None),
-        ("post", f"/v1/admin/accounts/{first}/status",
-         {"status": "active", "reason": "спроба самостійно повернути доступ"}),
+        (
+            "post",
+            f"/v1/admin/accounts/{first}/status",
+            {"status": "active", "reason": "спроба самостійно повернути доступ"},
+        ),
     ):
-        response = (
-            client.get(path) if method == "get" else client.post(path, json=body)
-        )
+        response = client.get(path) if method == "get" else client.post(path, json=body)
         assert response.status_code == 403, f"a disabled administrator reached {path}"
         assert response.json()["detail"]["reason"] == "account_disabled"
 
@@ -303,8 +307,10 @@ def test_being_switched_off_and_not_being_an_admin_are_different_answers(
 
     admin_account = _account_of(client, ADMIN)
     second = Identity(
-        subject="oidc|third-admin", roles=frozenset({"admin"}),
-        clearance=AccessTier.RESTRICTED, corpora=frozenset({"public"}),
+        subject="oidc|third-admin",
+        roles=frozenset({"admin"}),
+        clearance=AccessTier.RESTRICTED,
+        corpora=frozenset({"public"}),
     )
     _account_of(client, second)
     _as(client, second)

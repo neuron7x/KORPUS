@@ -4,6 +4,7 @@ No repository, clock or I/O dependencies live here.  Keeping the numerical kerne
 pure makes differential, metamorphic and mutation testing cheap enough to run on every
 change to the inference path.
 """
+
 from __future__ import annotations
 
 import math
@@ -14,15 +15,85 @@ from dataclasses import dataclass
 
 TOKEN_PATTERN = re.compile(r"[\w'’\-]{2,}", re.UNICODE)
 STOP_WORDS = {
-    "але", "без", "був", "була", "були", "для", "його", "коли", "про", "та", "так", "це", "що",
-    "який", "яка", "яке", "які", "має", "мати", "the", "and", "for", "from", "that", "this", "with",
+    "але",
+    "без",
+    "був",
+    "була",
+    "були",
+    "для",
+    "його",
+    "коли",
+    "про",
+    "та",
+    "так",
+    "це",
+    "що",
+    "який",
+    "яка",
+    "яке",
+    "які",
+    "має",
+    "мати",
+    "the",
+    "and",
+    "for",
+    "from",
+    "that",
+    "this",
+    "with",
 }
-UKRAINIAN_SUFFIXES = tuple(sorted({
-    "ування", "ювання", "овувати", "ювати", "еві", "ові", "ями", "ами", "ого", "ому",
-    "ими", "ій", "ою", "ею", "ення", "ання", "яння", "ість", "остей", "ати", "ити",
-    "увати", "ений", "аний", "альна", "альне", "альний", "альні", "у", "ю",
-    "а", "я", "і", "и", "е", "є", "ом", "ем", "ів", "їв", "ах", "ях", "ам", "ям",
-}, key=len, reverse=True))
+UKRAINIAN_SUFFIXES = tuple(
+    sorted(
+        {
+            "ування",
+            "ювання",
+            "овувати",
+            "ювати",
+            "еві",
+            "ові",
+            "ями",
+            "ами",
+            "ого",
+            "ому",
+            "ими",
+            "ій",
+            "ою",
+            "ею",
+            "ення",
+            "ання",
+            "яння",
+            "ість",
+            "остей",
+            "ати",
+            "ити",
+            "увати",
+            "ений",
+            "аний",
+            "альна",
+            "альне",
+            "альний",
+            "альні",
+            "у",
+            "ю",
+            "а",
+            "я",
+            "і",
+            "и",
+            "е",
+            "є",
+            "ом",
+            "ем",
+            "ів",
+            "їв",
+            "ах",
+            "ях",
+            "ам",
+            "ям",
+        },
+        key=len,
+        reverse=True,
+    )
+)
 
 
 def normalize_text(text: str) -> str:
@@ -34,12 +105,14 @@ def _ukrainian_stem(token: str) -> str:
         return token
     for suffix in UKRAINIAN_SUFFIXES:
         if token.endswith(suffix) and len(token) - len(suffix) >= 4:
-            return token[:-len(suffix)]
+            return token[: -len(suffix)]
     return token
 
 
 def raw_tokens(text: str) -> list[str]:
-    return [token for token in TOKEN_PATTERN.findall(normalize_text(text)) if token not in STOP_WORDS]
+    return [
+        token for token in TOKEN_PATTERN.findall(normalize_text(text)) if token not in STOP_WORDS
+    ]
 
 
 def tokenize(text: str) -> list[str]:
@@ -61,7 +134,7 @@ def _character_ngrams_normalized(normalized_text: str, n: int = 3) -> frozenset[
     compact = re.sub(r"\s+", " ", normalized_text).strip()
     if len(compact) < n:
         return frozenset({compact}) if compact else frozenset()
-    return frozenset(compact[index:index+n] for index in range(len(compact)-n+1))
+    return frozenset(compact[index : index + n] for index in range(len(compact) - n + 1))
 
 
 def character_ngrams(text: str, n: int = 3) -> frozenset[str]:
@@ -104,11 +177,32 @@ class RetrievalWeights:
             raise ValueError("retrieval weights must sum to 1")
 
     def as_tuple(self) -> tuple[float, ...]:
-        return (self.lexical, self.semantic, self.query_coverage, self.character,
-                self.authority, self.phrase, self.temporal)
+        return (
+            self.lexical,
+            self.semantic,
+            self.query_coverage,
+            self.character,
+            self.authority,
+            self.phrase,
+            self.temporal,
+        )
 
     def as_dict(self) -> dict[str, float]:
-        return dict(zip(("lexical", "semantic", "query_coverage", "character", "authority", "phrase", "temporal"), self.as_tuple(), strict=True))
+        return dict(
+            zip(
+                (
+                    "lexical",
+                    "semantic",
+                    "query_coverage",
+                    "character",
+                    "authority",
+                    "phrase",
+                    "temporal",
+                ),
+                self.as_tuple(),
+                strict=True,
+            )
+        )
 
 
 DEFAULT_BM25_PARAMETERS = BM25Parameters()
@@ -133,21 +227,35 @@ class ScoredCandidate:
 
     @property
     def normalized_score(self) -> float:
-        components = (self.lexical_normalized, self.semantic_score, self.query_coverage,
-                      self.character_score, self.authority_score, self.phrase_score,
-                      self.temporal_score)
-        combined = sum(weight * value for weight, value in zip(self.weights.as_tuple(), components, strict=True))
+        components = (
+            self.lexical_normalized,
+            self.semantic_score,
+            self.query_coverage,
+            self.character_score,
+            self.authority_score,
+            self.phrase_score,
+            self.temporal_score,
+        )
+        combined = sum(
+            weight * value
+            for weight, value in zip(self.weights.as_tuple(), components, strict=True)
+        )
         return min(1.0, max(0.0, combined))
 
 
-def _component_vectors(texts: list[str], official: list[bool] | None,
-                       authority_scores: list[float] | None,
-                       semantic_scores: list[float] | None,
-                       temporal_scores: list[float] | None) -> tuple[list[float], list[float], list[float]]:
+def _component_vectors(
+    texts: list[str],
+    official: list[bool] | None,
+    authority_scores: list[float] | None,
+    semantic_scores: list[float] | None,
+    temporal_scores: list[float] | None,
+) -> tuple[list[float], list[float], list[float]]:
     flags = [False] * len(texts) if official is None else official
     if len(flags) != len(texts):
         raise ValueError("texts and authority flags must have equal length")
-    authority = [1.0 if value else 0.0 for value in flags] if authority_scores is None else authority_scores
+    authority = (
+        [1.0 if value else 0.0 for value in flags] if authority_scores is None else authority_scores
+    )
     semantic = [0.0] * len(texts) if semantic_scores is None else semantic_scores
     temporal = [0.0] * len(texts) if temporal_scores is None else temporal_scores
     if any(len(values) != len(texts) for values in (authority, semantic, temporal)):
@@ -157,8 +265,14 @@ def _component_vectors(texts: list[str], official: list[bool] | None,
     return authority, semantic, temporal
 
 
-def _bm25(query_set: set[str], tokens: list[str], document_frequency: Counter[str],
-          document_count: int, average_length: float, parameters: BM25Parameters) -> float:
+def _bm25(
+    query_set: set[str],
+    tokens: list[str],
+    document_frequency: Counter[str],
+    document_count: int,
+    average_length: float,
+    parameters: BM25Parameters,
+) -> float:
     frequencies = Counter(tokens)
     score = 0.0
     for term in query_set:
@@ -167,23 +281,39 @@ def _bm25(query_set: set[str], tokens: list[str], document_frequency: Counter[st
             continue
         df = document_frequency[term]
         inverse_document_frequency = math.log(1 + (document_count - df + 0.5) / (df + 0.5))
-        denominator = frequency + parameters.k1 * (1 - parameters.b + parameters.b * len(tokens) / max(average_length, 1))
+        denominator = frequency + parameters.k1 * (
+            1 - parameters.b + parameters.b * len(tokens) / max(average_length, 1)
+        )
         score += inverse_document_frequency * (frequency * (parameters.k1 + 1)) / denominator
     return score
 
 
-def score_candidates(query: str, texts: list[str], official: list[bool] | None = None,
-                     parameters: BM25Parameters = DEFAULT_BM25_PARAMETERS, *,
-                     authority_scores: list[float] | None = None,
-                     semantic_scores: list[float] | None = None,
-                     temporal_scores: list[float] | None = None,
-                     weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS) -> list[ScoredCandidate]:
-    authority, semantic, temporal = _component_vectors(texts, official, authority_scores, semantic_scores, temporal_scores)
+def score_candidates(
+    query: str,
+    texts: list[str],
+    official: list[bool] | None = None,
+    parameters: BM25Parameters = DEFAULT_BM25_PARAMETERS,
+    *,
+    authority_scores: list[float] | None = None,
+    semantic_scores: list[float] | None = None,
+    temporal_scores: list[float] | None = None,
+    weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS,
+) -> list[ScoredCandidate]:
+    authority, semantic, temporal = _component_vectors(
+        texts, official, authority_scores, semantic_scores, temporal_scores
+    )
     query_tokens = tokenize(query)
     if not query_tokens or not texts:
         return []
     normalized_texts = [normalize_text(text) for text in texts]
-    tokenized = [[_ukrainian_stem(token) for token in TOKEN_PATTERN.findall(normalized) if token not in STOP_WORDS] for normalized in normalized_texts]
+    tokenized = [
+        [
+            _ukrainian_stem(token)
+            for token in TOKEN_PATTERN.findall(normalized)
+            if token not in STOP_WORDS
+        ]
+        for normalized in normalized_texts
+    ]
     document_frequency: Counter[str] = Counter()
     for tokens in tokenized:
         document_frequency.update(set(tokens))
@@ -195,15 +325,26 @@ def score_candidates(query: str, texts: list[str], official: list[bool] | None =
         if not tokens:
             continue
         token_set = set(tokens)
-        scored.append(ScoredCandidate(
-            index=index,
-            lexical_score=_bm25(query_set, tokens, document_frequency, len(tokenized), average_length, parameters),
-            semantic_score=semantic[index],
-            query_coverage=len(query_set.intersection(token_set)) / len(query_set),
-            character_score=jaccard(query_grams, _character_ngrams_normalized(normalized_texts[index])),
-            authority_score=authority[index],
-            phrase_score=1.0 if normalized_query in normalized_texts[index] else 0.0,
-            temporal_score=temporal[index],
-            weights=weights,
-        ))
+        scored.append(
+            ScoredCandidate(
+                index=index,
+                lexical_score=_bm25(
+                    query_set,
+                    tokens,
+                    document_frequency,
+                    len(tokenized),
+                    average_length,
+                    parameters,
+                ),
+                semantic_score=semantic[index],
+                query_coverage=len(query_set.intersection(token_set)) / len(query_set),
+                character_score=jaccard(
+                    query_grams, _character_ngrams_normalized(normalized_texts[index])
+                ),
+                authority_score=authority[index],
+                phrase_score=1.0 if normalized_query in normalized_texts[index] else 0.0,
+                temporal_score=temporal[index],
+                weights=weights,
+            )
+        )
     return scored

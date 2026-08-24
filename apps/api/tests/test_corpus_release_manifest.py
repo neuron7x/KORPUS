@@ -96,9 +96,7 @@ def key(tmp_path: Path) -> Path:
     return path
 
 
-def test_a_frozen_release_verifies_against_the_corpus_it_names(
-    tmp_path: Path, key: Path
-) -> None:
+def test_a_frozen_release_verifies_against_the_corpus_it_names(tmp_path: Path, key: Path) -> None:
     database = tmp_path / "korpus.db"
     _corpus(database)
     manifest = tmp_path / "release.json"
@@ -106,16 +104,12 @@ def test_a_frozen_release_verifies_against_the_corpus_it_names(
     code, _ = _run(["freeze", "--database", str(database), "--out", str(manifest)], key)
     assert code == 0
 
-    code, result = _run(
-        ["verify", "--manifest", str(manifest), "--database", str(database)], key
-    )
+    code, result = _run(["verify", "--manifest", str(manifest), "--database", str(database)], key)
     assert code == 0, result
     assert result["status"] == "PASS", result
 
 
-def test_a_different_corpus_is_reported_as_a_different_release(
-    tmp_path: Path, key: Path
-) -> None:
+def test_a_different_corpus_is_reported_as_a_different_release(tmp_path: Path, key: Path) -> None:
     """The rollback-detection property: after a restore, which corpus is this?"""
     database = tmp_path / "korpus.db"
     _corpus(database, versions=3)
@@ -154,9 +148,7 @@ def test_raising_an_authority_class_breaks_the_signature(tmp_path: Path, key: Pa
     assert result["signature_intact"] is False, result
 
 
-def test_a_manifest_signed_with_another_key_does_not_verify(
-    tmp_path: Path, key: Path
-) -> None:
+def test_a_manifest_signed_with_another_key_does_not_verify(tmp_path: Path, key: Path) -> None:
     """The control: without this, "the signature holds" could mean "nothing is checked"."""
     database = tmp_path / "korpus.db"
     _corpus(database)

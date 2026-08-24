@@ -21,6 +21,7 @@ be comparable to yesterday's run of this one.
 New modules get a default ceiling rather than being unmeasured, because "not yet in the
 budget" is how a file gets to be two thousand lines without anyone noticing.
 """
+
 from __future__ import annotations
 
 import ast
@@ -76,9 +77,7 @@ def measure() -> dict[str, dict[str, object]]:
 
 def main() -> int:
     measurements = measure()
-    budget = (
-        json.loads(BUDGET.read_text(encoding="utf-8"))["modules"] if BUDGET.is_file() else {}
-    )
+    budget = json.loads(BUDGET.read_text(encoding="utf-8"))["modules"] if BUDGET.is_file() else {}
 
     violations: list[str] = []
     for path, measured in sorted(measurements.items()):
@@ -91,8 +90,7 @@ def main() -> int:
         # never exempt: a registry that grew a branch is no longer a registry.
         if ceiling["lines"] is not None and int(measured["lines"]) > int(ceiling["lines"]):
             violations.append(
-                f"{path}: {measured['lines']} lines exceeds the recorded ceiling "
-                f"{ceiling['lines']}"
+                f"{path}: {measured['lines']} lines exceeds the recorded ceiling {ceiling['lines']}"
             )
         if int(measured["max_complexity"]) > int(ceiling["max_complexity"]):
             violations.append(
@@ -125,10 +123,7 @@ def main() -> int:
         "violations": violations,
         "improvements_to_record": improvements[:20],
         "largest": sorted(
-            (
-                {"path": path, **measured}
-                for path, measured in measurements.items()
-            ),
+            ({"path": path, **measured} for path, measured in measurements.items()),
             key=lambda item: int(item["lines"]),
             reverse=True,
         )[:5],

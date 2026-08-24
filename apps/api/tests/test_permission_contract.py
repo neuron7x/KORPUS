@@ -131,9 +131,9 @@ def test_account_management_is_held_by_no_ordinary_role() -> None:
 
 
 def test_admin_wildcard_does_not_authorize_an_unknown_permission() -> None:
+    import pytest
     from korpus.application.policy import AuthorizationError, PolicyEngine
     from korpus.domain.models import Identity
-    import pytest
 
     admin = Identity(subject="admin", roles=frozenset({"admin"}), corpora=frozenset({"public"}))
     with pytest.raises(AuthorizationError, match="unknown permission"):

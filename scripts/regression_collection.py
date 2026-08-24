@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Source/release-bound pytest collection manifests for deterministic regression sharding."""
+
 from __future__ import annotations
 
 import hashlib
@@ -7,7 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 def sha_lines(items: list[str]) -> str:
@@ -32,9 +33,11 @@ sys.exit(pytest.main(['--rootdir', {str(root)!r}, '--collect-only', '-q', *json.
         check=False,
     )
     if completed.returncode != 0:
-        raise RuntimeError(f"pytest collection failed ({completed.returncode}):\n{completed.stdout}\n{completed.stderr}")
+        raise RuntimeError(
+            f"pytest collection failed ({completed.returncode}):\n{completed.stdout}\n{completed.stderr}"
+        )
     line = next((item for item in completed.stdout.splitlines() if item.startswith(marker)), "")
-    nodeids = json.loads(line[len(marker):]) if line else []
+    nodeids = json.loads(line[len(marker) :]) if line else []
     unique = sorted(set(str(item) for item in nodeids))
     if not unique or len(unique) != len(nodeids):
         raise RuntimeError(f"invalid pytest collection: total={len(nodeids)} unique={len(unique)}")

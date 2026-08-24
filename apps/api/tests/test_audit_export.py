@@ -67,14 +67,17 @@ def test_payloads_are_excluded_unless_asked_for() -> None:
     rendered = records[0].as_dict()
 
     assert "payload" not in rendered
-    assert rendered["payload_sha256"] == hashlib.sha256(
-        json.dumps(
-            {"quote": "classified passage"},
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        ).encode("utf-8")
-    ).hexdigest()
+    assert (
+        rendered["payload_sha256"]
+        == hashlib.sha256(
+            json.dumps(
+                {"quote": "classified passage"},
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest()
+    )
 
 
 def test_payloads_travel_only_when_explicitly_included() -> None:

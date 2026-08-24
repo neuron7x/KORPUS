@@ -1,13 +1,15 @@
 """Strict contracts for metadata identity timing and token payloads."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
 
 from korpus.application.numeric_contracts import finite_number, require_count, strict_int
 
 
-def validate_identity_config(timeout_seconds: object, refresh_skew_seconds: object) -> tuple[float, int]:
+def validate_identity_config(
+    timeout_seconds: object, refresh_skew_seconds: object
+) -> tuple[float, int]:
     if not finite_number(timeout_seconds) or float(timeout_seconds) <= 0.0:
         raise ValueError("metadata timeout_seconds must be finite and positive")
     if not strict_int(refresh_skew_seconds) or refresh_skew_seconds < 0:

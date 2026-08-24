@@ -51,7 +51,9 @@ def test_privileged_pr_trigger_is_rejected(tmp_path: Path) -> None:
         tmp_path,
         """name: x\non:\n  pull_request_target:\npermissions:\n  contents: read\njobs:\n  x:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 1\n    steps: []\n""",
     )
-    assert any("forbidden privileged trigger" in finding for finding in module.validate_workflow(path))
+    assert any(
+        "forbidden privileged trigger" in finding for finding in module.validate_workflow(path)
+    )
 
 
 def test_release_workflow_rebuilds_bound_evidence_before_packaging() -> None:
@@ -68,5 +70,9 @@ def test_release_workflow_rebuilds_bound_evidence_before_packaging() -> None:
         "scripts/package_repository.sh",
     )
     offsets = [text.find(token) for token in required]
-    assert all(offset >= 0 for offset in offsets), "release path is missing a required evidence step"
-    assert offsets == sorted(offsets), "release evidence must be rebuilt and verified before packaging"
+    assert all(offset >= 0 for offset in offsets), (
+        "release path is missing a required evidence step"
+    )
+    assert offsets == sorted(offsets), (
+        "release evidence must be rebuilt and verified before packaging"
+    )

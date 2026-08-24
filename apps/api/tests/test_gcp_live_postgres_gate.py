@@ -62,30 +62,36 @@ def test_valid_live_postgres_snapshot_passes_all_predicates():
 
 
 def test_bypassrls_role_mutation_is_killed():
-    x = good_snapshot(); x["app_role"]["rolbypassrls"] = True
+    x = good_snapshot()
+    x["app_role"]["rolbypassrls"] = True
     assert status(x)["APP_ROLE_CAPABILITIES"] is False
 
 
 def test_force_rls_mutation_is_killed():
-    x = good_snapshot(); x["rls"]["documents"]["forced"] = False
+    x = good_snapshot()
+    x["rls"]["documents"]["forced"] = False
     assert status(x)["FORCE_RLS_ALL_BOUNDARY_TABLES"] is False
 
 
 def test_grant_expansion_mutation_is_killed():
-    x = good_snapshot(); x["grants"]["audit_events"].append("UPDATE")
+    x = good_snapshot()
+    x["grants"]["audit_events"].append("UPDATE")
     assert status(x)["APP_TABLE_GRANTS_EXACT"] is False
 
 
 def test_missing_identity_visibility_mutation_is_killed():
-    x = good_snapshot(); x["missing_identity_counts"]["documents"] = 1
+    x = good_snapshot()
+    x["missing_identity_counts"]["documents"] = 1
     assert status(x)["RLS_MISSING_IDENTITY_DENIES_CORPUS"] is False
 
 
 def test_schema_revision_drift_is_killed():
-    x = good_snapshot(); x["schema_revision"] = "old"
+    x = good_snapshot()
+    x["schema_revision"] = "old"
     assert status(x)["SCHEMA_HEAD"] is False
 
 
 def test_schema_mutation_capability_is_killed():
-    x = good_snapshot(); x["destructive_denials"]["disable_rls_denied"] = False
+    x = good_snapshot()
+    x["destructive_denials"]["disable_rls_denied"] = False
     assert status(x)["APP_CANNOT_MUTATE_SCHEMA_STATE"] is False

@@ -5,6 +5,7 @@ Every accepted local report must belong to the current release and source digest
 prevents a stale green report from authorizing a changed tree.  External/production-like
 controls remain explicit blockers; absence can never be converted into PASS locally.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,11 +16,19 @@ from pathlib import Path
 
 from korpus.application.provenance import compute_source_digest
 from korpus.application.release_numeric import preflight_report_pass
-release_tag = __import__("scripts.release_identity" if __package__ else "release_identity", fromlist=["release_tag"]).release_tag
+
+release_tag = __import__(
+    "scripts.release_identity" if __package__ else "release_identity", fromlist=["release_tag"]
+).release_tag
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
 def assurance_policy(root: Path) -> dict[str, object]:
-    return json.loads((root / "config/operations/reference-v5.json").read_text(encoding="utf-8"))["assurance"]
+    return json.loads((root / "config/operations/reference-v5.json").read_text(encoding="utf-8"))[
+        "assurance"
+    ]
+
 
 REPORT_NAMES = {
     "backend": "FULL_BACKEND_REPORT.json",
@@ -51,6 +60,8 @@ INHERENT_EXTERNAL = (
     "TRUSTED_HOSTED_BUILDER_ATTESTATION_REQUIRED",
     "EXACT_DEPLOYMENT_ENVIRONMENT_ATTESTATION_REQUIRED",
 )
+
+
 def release_report_dir(root: Path) -> Path:
     return root / "reports" / "release" / release_tag(root)
 
@@ -68,10 +79,7 @@ def _report_pass(name: str, report: dict[str, object], policy: dict[str, object]
 
 
 def _bound_to_current(report: dict[str, object], source_digest: str, release: str) -> bool:
-    return (
-        report.get("source_tree_sha256") == source_digest
-        and report.get("release") == release
-    )
+    return report.get("source_tree_sha256") == source_digest and report.get("release") == release
 
 
 def evaluate(root: Path, which: Callable[[str], str | None] = shutil.which) -> dict[str, object]:

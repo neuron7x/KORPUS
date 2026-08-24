@@ -3,8 +3,6 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
-from pydantic import ValidationError
-
 from korpus.domain.learning import (
     BoundSourceState,
     CourseGraphViolation,
@@ -19,6 +17,7 @@ from korpus.domain.learning import (
     SourceBinding,
     validate_course_publication,
 )
+from pydantic import ValidationError
 
 
 def _lesson(
@@ -125,9 +124,7 @@ def test_publication_validation_passes_exact_effective_source_binding() -> None:
 
 
 def test_publication_validation_fails_closed_on_missing_source() -> None:
-    result = validate_course_publication(
-        _version(_lesson("lesson")), {}, as_of=date(2026, 8, 16)
-    )
+    result = validate_course_publication(_version(_lesson("lesson")), {}, as_of=date(2026, 8, 16))
     assert not result.publishable
     assert result.violations == (
         f"{CourseGraphViolation.MISSING_SOURCE_VERSION}:lesson:"
@@ -170,8 +167,7 @@ def test_publication_validation_detects_prerequisite_cycle_deterministically() -
     assert not result.publishable
     assert result.violations == tuple(sorted(result.violations))
     assert any(
-        item.startswith(f"{CourseGraphViolation.PREREQUISITE_CYCLE}:")
-        for item in result.violations
+        item.startswith(f"{CourseGraphViolation.PREREQUISITE_CYCLE}:") for item in result.violations
     )
 
 
@@ -347,9 +343,7 @@ def test_course_version_refuses_duplicate_module_ordinal() -> None:
 
 def test_course_version_refuses_duplicate_objective_identity_across_lessons() -> None:
     first = _lesson("a", ordinal=0)
-    second = _lesson("b", ordinal=1).model_copy(
-        update={"objectives": first.objectives}
-    )
+    second = _lesson("b", ordinal=1).model_copy(update={"objectives": first.objectives})
     with pytest.raises(ValidationError, match="objective ids must be unique across course version"):
         _version(first, second)
 
@@ -382,7 +376,10 @@ def test_publication_validation_rejects_source_document_mismatch() -> None:
     result = validate_course_publication(
         _version(_lesson("lesson")), states, as_of=date(2026, 8, 16)
     )
-    assert f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:lesson:binding-lesson" in result.violations
+    assert (
+        f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:lesson:binding-lesson"
+        in result.violations
+    )
 
 
 def test_publication_validation_rejects_evidence_span_mismatch() -> None:
@@ -392,4 +389,6 @@ def test_publication_validation_rejects_evidence_span_mismatch() -> None:
     result = validate_course_publication(
         _version(_lesson("lesson")), states, as_of=date(2026, 8, 16)
     )
-    assert f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:lesson:binding-lesson" in result.violations
+    assert (
+        f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:lesson:binding-lesson" in result.violations
+    )

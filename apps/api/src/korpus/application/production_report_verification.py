@@ -7,9 +7,16 @@ from korpus.application.production_assurance import evaluate_production_assuranc
 
 
 def verify_production_report(
-    report: Mapping[str, Any], profile: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]],
-    *, source: str, release: str, profile_sha256: str, gate_sha256: Mapping[str, str],
-    attestation_verified: bool, trusted_signer: bool,
+    report: Mapping[str, Any],
+    profile: Mapping[str, Any],
+    gates: Mapping[str, Mapping[str, Any]],
+    *,
+    source: str,
+    release: str,
+    profile_sha256: str,
+    gate_sha256: Mapping[str, str],
+    attestation_verified: bool,
+    trusted_signer: bool,
 ) -> dict[str, bool]:
     verdict = evaluate_production_assurance(profile, gates, source_digest=source, release=release)
     return {

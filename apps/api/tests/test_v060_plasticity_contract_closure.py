@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import os
 import sys
 import xml.etree.ElementTree as ET
 from dataclasses import replace
 from pathlib import Path
 
-import pytest
-
 import korpus.application.plasticity as plasticity
+import pytest
 from korpus.application.determinism import failures, junit_contract, run_json
 from korpus.application.plasticity import (
     AdaptationPolicy,
@@ -102,7 +100,12 @@ def test_validator_refuses_even_correctly_rehashed_policy_escapes(
 
 def _junit(path: Path) -> None:
     suite = ET.Element("testsuite", tests="4", failures="1", errors="1", skipped="1")
-    for name, child in (("pass", None), ("fail", "failure"), ("error", "error"), ("skip", "skipped")):
+    for name, child in (
+        ("pass", None),
+        ("fail", "failure"),
+        ("error", "error"),
+        ("skip", "skipped"),
+    ):
         case = ET.SubElement(suite, "testcase", classname="C", name=name)
         if child:
             ET.SubElement(case, child)
@@ -133,8 +136,13 @@ def test_determinism_json_subprocess_boundary(tmp_path: Path) -> None:
 
 def test_determinism_failure_algebra_is_conjunctive() -> None:
     good = {
-        "tests": 4, "skipped": 0, "exit_code": 0, "replay_exit_code": 0,
-        "failures": 0, "errors": 0, "outcome_sha256": "a" * 64,
+        "tests": 4,
+        "skipped": 0,
+        "exit_code": 0,
+        "replay_exit_code": 0,
+        "failures": 0,
+        "errors": 0,
+        "outcome_sha256": "a" * 64,
         "semantic_replay_sha256": "b" * 64,
     }
     policy = {"require_identical_test_cardinality": True, "require_zero_failures": True}

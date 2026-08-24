@@ -24,7 +24,14 @@ def _fixture(tmp_path: Path) -> Path:
     release = root / "apps/api/src/korpus/release.json"
     release.parent.mkdir(parents=True)
     release.write_text(
-        json.dumps({"schema": "korpus.release-identity.v1", "version": "0.4.0", "tag": "v0.4.0", "artifact_stem": "KORPUS_SYSTEM_v0.4.0"}),
+        json.dumps(
+            {
+                "schema": "korpus.release-identity.v1",
+                "version": "0.4.0",
+                "tag": "v0.4.0",
+                "artifact_stem": "KORPUS_SYSTEM_v0.4.0",
+            }
+        ),
         encoding="utf-8",
     )
     digest = hashlib.sha256(b"source").hexdigest()
@@ -33,15 +40,17 @@ def _fixture(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     (root / "PACKAGE_BUILD.json").write_text(
-        json.dumps({
-            "schema": "korpus.package-build.v2",
-            "release": "v0.4.0",
-            "derived_from_source_commit": "a" * 40,
-            "source_commit": None,
-            "source_manifest_root_sha256": digest,
-            "history_included": False,
-            "import_required_to_obtain_git_commit": True,
-        }),
+        json.dumps(
+            {
+                "schema": "korpus.package-build.v2",
+                "release": "v0.4.0",
+                "derived_from_source_commit": "a" * 40,
+                "source_commit": None,
+                "source_manifest_root_sha256": digest,
+                "history_included": False,
+                "import_required_to_obtain_git_commit": True,
+            }
+        ),
         encoding="utf-8",
     )
     return root

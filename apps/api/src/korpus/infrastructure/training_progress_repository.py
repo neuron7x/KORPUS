@@ -1,4 +1,5 @@
 """Transactional persistence for deterministic learner mastery state."""
+
 from __future__ import annotations
 
 import json
@@ -7,7 +8,11 @@ from datetime import UTC
 from sqlalchemy import delete, insert, select
 from sqlalchemy.engine import Engine
 
-from korpus.application.training_progression import LearnerProgress, ObjectiveMastery, ObjectiveState
+from korpus.application.training_progression import (
+    LearnerProgress,
+    ObjectiveMastery,
+    ObjectiveState,
+)
 from korpus.infrastructure.learning_schema import learning_course_versions, learning_mastery
 
 
@@ -41,7 +46,9 @@ class SqlTrainingProgressRepository:
                             "objective_id": item.objective_id,
                             "state": item.state.value,
                             "last_check_id": item.last_check_id,
-                            "source_binding_ids": json.dumps(list(item.source_binding_ids), separators=(",", ":")),
+                            "source_binding_ids": json.dumps(
+                                list(item.source_binding_ids), separators=(",", ":")
+                            ),
                             "updated_at": item.updated_at,
                         }
                         for item in progress.mastery
@@ -57,14 +64,18 @@ class SqlTrainingProgressRepository:
             ).scalar_one_or_none()
             if exists is None:
                 raise LookupError(f"course version not found: {course_version_id}")
-            rows = connection.execute(
-                select(learning_mastery)
-                .where(
-                    learning_mastery.c.subject == subject,
-                    learning_mastery.c.course_version_id == course_version_id,
+            rows = (
+                connection.execute(
+                    select(learning_mastery)
+                    .where(
+                        learning_mastery.c.subject == subject,
+                        learning_mastery.c.course_version_id == course_version_id,
+                    )
+                    .order_by(learning_mastery.c.objective_id)
                 )
-                .order_by(learning_mastery.c.objective_id)
-            ).mappings().all()
+                .mappings()
+                .all()
+            )
         mastery = []
         for row in rows:
             stamp = row["updated_at"]

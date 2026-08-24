@@ -30,17 +30,29 @@ def test_current_slo_contract_passes() -> None:
 
 
 def test_lb_url_map_scope_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated(tmp_path, "infra/gcp/runtime/slo.tf", 'resource.label.url_map_name=\\"${google_compute_url_map.https.name}\\"', 'resource.label.url_map_name=\\"any\\"')
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        'resource.label.url_map_name=\\"${google_compute_url_map.https.name}\\"',
+        'resource.label.url_map_name=\\"any\\"',
+    )
     assert _status(root)["SLO_LB_REQUEST_RATIO"] is False
 
 
 def test_5xx_failure_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated(tmp_path, "infra/gcp/runtime/slo.tf", 'metric.label.response_code_class!=\\"500\\"', 'metric.label.response_code_class!=\\"200\\"')
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        'metric.label.response_code_class!=\\"500\\"',
+        'metric.label.response_code_class!=\\"200\\"',
+    )
     assert _status(root)["SLO_SERVICE_FAILURES_BAD"] is False
 
 
 def test_fast_burn_threshold_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated(tmp_path, "infra/gcp/runtime/slo.tf", "threshold_value = 14.4", "threshold_value = 144")
+    root = _mutated(
+        tmp_path, "infra/gcp/runtime/slo.tf", "threshold_value = 14.4", "threshold_value = 144"
+    )
     assert _status(root)["SLO_FAST_BURN_MULTIWINDOW"] is False
 
 
@@ -50,7 +62,12 @@ def test_sustained_short_window_mutation_is_killed(tmp_path: Path) -> None:
 
 
 def test_alert_delivery_mutation_is_killed(tmp_path: Path) -> None:
-    root = _mutated(tmp_path, "infra/gcp/runtime/slo.tf", "notification_channels = var.notification_channel_ids", "# no delivery")
+    root = _mutated(
+        tmp_path,
+        "infra/gcp/runtime/slo.tf",
+        "notification_channels = var.notification_channel_ids",
+        "# no delivery",
+    )
     assert _status(root)["SLO_ALERT_DELIVERY_REQUIRED"] is False
 
 

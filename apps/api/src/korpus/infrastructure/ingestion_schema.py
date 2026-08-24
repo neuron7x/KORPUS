@@ -3,6 +3,7 @@
 Separated from the core document schema so ingestion persistence can be imported by
 its adapter without creating a repository/adapter cycle. It shares the same MetaData.
 """
+
 from sqlalchemy import Column, DateTime, Index, Integer, String, Table, Text
 
 from korpus.infrastructure.schema import metadata

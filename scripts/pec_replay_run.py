@@ -1,4 +1,5 @@
 """Counterfactual replay execution and completeness helpers."""
+
 from __future__ import annotations
 
 
@@ -12,7 +13,9 @@ def validate_actions(actions: tuple[str, ...], allowed: tuple[str, ...]) -> list
     return errors
 
 
-def collect_observations(args, dataset: list[dict[str, object]], actions: tuple[str, ...], read_jsonl, execute):
+def collect_observations(
+    args, dataset: list[dict[str, object]], actions: tuple[str, ...], read_jsonl, execute
+):
     errors: list[str] = []
     if args.observations:
         return read_jsonl(args.observations), errors
@@ -31,7 +34,9 @@ def collect_observations(args, dataset: list[dict[str, object]], actions: tuple[
 def coverage_issues(dataset, actions, observations) -> tuple[list[str], list[str]]:
     coverage = {(str(row.get("query_id")), str(row.get("action"))) for row in observations}
     missing = [
-        f"{row['id']}:{action}" for row in dataset for action in actions
+        f"{row['id']}:{action}"
+        for row in dataset
+        for action in actions
         if (str(row["id"]), action) not in coverage
     ]
     issues: list[str] = []
@@ -41,26 +46,36 @@ def coverage_issues(dataset, actions, observations) -> tuple[list[str], list[str
     return missing, issues
 
 
-def replay_status(errors: list[str], missing: list[str], validation_issues: list[str], bindings_complete: bool) -> str:
+def replay_status(
+    errors: list[str], missing: list[str], validation_issues: list[str], bindings_complete: bool
+) -> str:
     if errors or missing or validation_issues:
         return "FAIL"
     return "PASS" if bindings_complete else "UNKNOWN"
 
 
 def validate_observations(
-    observations, *, record_issues, dataset_by_id, actions,
-    expected_corpus_release_id, expected_protocol_sha256,
-    expected_answer_calibration_id, require_bindings,
+    observations,
+    *,
+    record_issues,
+    dataset_by_id,
+    actions,
+    expected_corpus_release_id,
+    expected_protocol_sha256,
+    expected_answer_calibration_id,
+    require_bindings,
 ) -> list[str]:
     issues: list[str] = []
     for row in observations:
-        issues.extend(record_issues(
-            row,
-            dataset_by_id=dataset_by_id,
-            actions=actions,
-            expected_corpus_release_id=expected_corpus_release_id,
-            expected_protocol_sha256=expected_protocol_sha256,
-            expected_answer_calibration_id=expected_answer_calibration_id,
-            require_bindings=require_bindings,
-        ))
+        issues.extend(
+            record_issues(
+                row,
+                dataset_by_id=dataset_by_id,
+                actions=actions,
+                expected_corpus_release_id=expected_corpus_release_id,
+                expected_protocol_sha256=expected_protocol_sha256,
+                expected_answer_calibration_id=expected_answer_calibration_id,
+                require_bindings=require_bindings,
+            )
+        )
     return issues

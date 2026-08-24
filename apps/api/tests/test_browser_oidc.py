@@ -226,8 +226,7 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
         assert callback.status_code == 303, callback.text
         combined_cookies = callback.headers.get_list("set-cookie")
         assert any(
-            "__Host-korpus_session=" in value and "HttpOnly" in value
-            for value in combined_cookies
+            "__Host-korpus_session=" in value and "HttpOnly" in value for value in combined_cookies
         )
         assert all("access-token" not in value for value in combined_cookies)
 
@@ -245,9 +244,7 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
 
 def test_oidc_authorization_endpoint_preserves_provider_query_without_shadowing_flow():
     client = BrowserOIDCClient(
-        authorization_endpoint=(
-            "https://id.example/authorize?tenant=alpha&state=provider-fixed"
-        ),
+        authorization_endpoint=("https://id.example/authorize?tenant=alpha&state=provider-fixed"),
         token_endpoint="https://id.example/token",
         client_id="browser",
         redirect_uri="https://app.example/callback",
@@ -282,7 +279,9 @@ def test_browser_oidc_rejects_credential_bearing_fragmented_or_malformed_endpoin
 def test_global_browser_csrf_gate_refuses_missing_double_submit_material(tmp_path: Path):
     settings = _settings(tmp_path)
     codec = BrowserSessionCodec(settings.browser_session_key)
-    session_cookie = codec.seal("session", {"access_token": "a", "csrf": "expected-csrf"}, ttl_seconds=60)
+    session_cookie = codec.seal(
+        "session", {"access_token": "a", "csrf": "expected-csrf"}, ttl_seconds=60
+    )
     app = SimpleNamespace(state=SimpleNamespace(browser_session_codec=codec))
     request = SimpleNamespace(
         method="POST",

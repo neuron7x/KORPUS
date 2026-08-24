@@ -5,6 +5,7 @@ plan, account or subscription state. Those values come from the persisted plan a
 account derived from authentication. Starting checkout creates an INCOMPLETE subscription;
 only a verified callback may activate it.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

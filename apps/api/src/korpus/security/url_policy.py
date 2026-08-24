@@ -1,4 +1,5 @@
 """Canonical URL parsing for security-sensitive configuration and outbound endpoints."""
+
 from __future__ import annotations
 
 from urllib.parse import SplitResult, urlsplit
@@ -26,9 +27,7 @@ def _validate_authority(parts: SplitResult, *, name: str) -> None:
         raise ValueError(f"{name} must not contain a fragment")
 
 
-def _validate_shape(
-    parts: SplitResult, *, name: str, allow_query: bool, origin_only: bool
-) -> None:
+def _validate_shape(parts: SplitResult, *, name: str, allow_query: bool, origin_only: bool) -> None:
     if not allow_query and parts.query:
         raise ValueError(f"{name} must not contain a query")
     if origin_only and (parts.path not in {"", "/"} or parts.query):
@@ -83,7 +82,10 @@ def is_explicit_loopback_http_url(
     except (TypeError, ValueError):
         return False
     return parts.scheme.casefold() == "http" and parts.hostname in {
-        "127.0.0.1", "::1", "localhost", "testserver"
+        "127.0.0.1",
+        "::1",
+        "localhost",
+        "testserver",
     }
 
 

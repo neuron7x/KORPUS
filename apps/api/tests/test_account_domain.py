@@ -82,9 +82,9 @@ def test_concurrent_first_logins_converge_on_one_account(tmp_path: Path) -> None
             from korpus.infrastructure.tenancy_schema import accounts
 
             rows = connection.execute(
-                select(func.count()).select_from(accounts).where(
-                    accounts.c.auth_subject == "oidc|race"
-                )
+                select(func.count())
+                .select_from(accounts)
+                .where(accounts.c.auth_subject == "oidc|race")
             ).scalar_one()
         assert rows == 1
     finally:

@@ -117,6 +117,4 @@ def test_both_dialects_gather_the_superseded_set_once(dialect: str) -> None:
     sql = str(built[0])
 
     assert "WITH superseded AS" in sql, sql
-    assert "NOT EXISTS" not in sql, (
-        f"the correlated form is back in the {dialect} statement: {sql}"
-    )
+    assert "NOT EXISTS" not in sql, f"the correlated form is back in the {dialect} statement: {sql}"

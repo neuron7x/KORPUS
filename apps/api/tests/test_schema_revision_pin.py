@@ -37,9 +37,7 @@ def _revision_graph() -> tuple[dict[str, str | None], set[str]]:
         for node in tree.body:
             if not isinstance(node, ast.AnnAssign | ast.Assign):
                 continue
-            targets = (
-                [node.target] if isinstance(node, ast.AnnAssign) else list(node.targets)
-            )
+            targets = [node.target] if isinstance(node, ast.AnnAssign) else list(node.targets)
             names = [target.id for target in targets if isinstance(target, ast.Name)]
             if not names or node.value is None:
                 continue

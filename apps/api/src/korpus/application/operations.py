@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from korpus.application.admission import evaluate_admission, load_register
-from korpus.application.provenance import verify_reports
 from korpus.application.numeric_contracts import finite_number
 from korpus.application.operational_math import evaluate_operational_checks
+from korpus.application.provenance import verify_reports
 
 
 def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> float:
@@ -149,8 +149,14 @@ class OperationalReleaseGate:
             "reports_present": True,
             "evidence_provenance": provenance_ok,
             **evaluate_operational_checks(
-                evaluation, mutation, migration, scale,
-                eval_policy, mutation_policy, migration_policy, scale_policy,
+                evaluation,
+                mutation,
+                migration,
+                scale,
+                eval_policy,
+                mutation_policy,
+                migration_policy,
+                scale_policy,
             ),
         }
         failures = tuple(name for name, passed in checks.items() if not passed) + provenance_reasons

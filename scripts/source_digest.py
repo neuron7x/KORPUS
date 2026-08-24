@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Digest the complete release source tree, excluding generated evidence."""
+
 from __future__ import annotations
 
 import hashlib
@@ -26,7 +27,9 @@ def _git_paths(ref: str) -> list[Path] | None:
         names = [item.decode() for item in listing if item]
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
-    included = sorted((Path(name) for name in names if _included(name)), key=lambda value: value.as_posix())
+    included = sorted(
+        (Path(name) for name in names if _included(name)), key=lambda value: value.as_posix()
+    )
     return included or None
 
 

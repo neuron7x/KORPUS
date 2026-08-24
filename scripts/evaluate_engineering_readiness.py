@@ -24,7 +24,9 @@ def _load(path: Path) -> dict[str, object]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--profile", type=Path, default=ROOT / "config/assurance/engineering-readiness-87.v1.json")
+    parser.add_argument(
+        "--profile", type=Path, default=ROOT / "config/assurance/engineering-readiness-87.v1.json"
+    )
     parser.add_argument("--evidence", type=Path, required=True)
     parser.add_argument("--out", type=Path, default=ROOT / "reports/ENGINEERING_READINESS_87.json")
     args = parser.parse_args()

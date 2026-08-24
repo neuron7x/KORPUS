@@ -37,7 +37,9 @@ def _mapping(value: object) -> Mapping[str, object] | None:
     return value if isinstance(value, Mapping) else None
 
 
-def _binding(evidence: Mapping[str, object], release: str) -> tuple[RevisionBinding | None, list[str]]:
+def _binding(
+    evidence: Mapping[str, object], release: str
+) -> tuple[RevisionBinding | None, list[str]]:
     raw = _mapping(evidence.get("binding"))
     if raw is None:
         return None, ["binding:missing"]
@@ -94,7 +96,11 @@ def _judgments(
         expected_case_ids=[str(item) for item in expected],
         binding=binding,
     )
-    return verdict.admissible, verdict.judgments, [f"human_judgments:{item}" for item in verdict.failures]
+    return (
+        verdict.admissible,
+        verdict.judgments,
+        [f"human_judgments:{item}" for item in verdict.failures],
+    )
 
 
 def _hosted(
@@ -181,10 +187,12 @@ def _canary_gate(
         "authority_pass": authority.get("status") == "PASS",
         "source_bound": evidence.get("source_digest") == source_digest,
         "release_bound": binding is not None and binding.release == release,
-        "exact_cloud_run_revision": canary is not None and "cloud_run_revision_mismatch" not in canary_failures,
+        "exact_cloud_run_revision": canary is not None
+        and "cloud_run_revision_mismatch" not in canary_failures,
         "minimum_samples": canary is not None and "insufficient_samples" not in canary_failures,
         "server_error_rate": canary is not None and "server_error_rate" not in canary_failures,
-        "human_judgment_admissible": canary is not None and "human_judgment_not_admissible" not in canary_failures,
+        "human_judgment_admissible": canary is not None
+        and "human_judgment_not_admissible" not in canary_failures,
     }
     failures = [name for name, ok in checks.items() if not ok]
     return gate_payload(

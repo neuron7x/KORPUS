@@ -21,9 +21,11 @@ def main() -> int:
             max_pdf_pages=request["max_pdf_pages"],
             ocr_total_timeout_seconds=request["ocr_total_timeout_seconds"],
         )
-        sys.stdout.write(json.dumps(
-            {"pages": [asdict(page) for page in pages], "method": method}, ensure_ascii=False
-        ))
+        sys.stdout.write(
+            json.dumps(
+                {"pages": [asdict(page) for page in pages], "method": method}, ensure_ascii=False
+            )
+        )
         return 0
     except Exception as exc:
         sys.stderr.write(f"parser error: {type(exc).__name__}: {exc}")

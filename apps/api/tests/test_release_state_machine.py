@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from korpus.application.assurance_calculus import EvidenceClass, EvidencePoint, GateRequirement
 from korpus.application.release_state_machine import (
     PromotionPolicy,
@@ -25,7 +24,11 @@ def gate(
     release: str = RELEASE,
     independent: bool = False,
 ) -> tuple[str, EvidencePoint]:
-    cls = EvidenceClass.INDEPENDENT_ATTESTED if independent else EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL
+    cls = (
+        EvidenceClass.INDEPENDENT_ATTESTED
+        if independent
+        else EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL
+    )
     return gate_id, EvidencePoint(
         cls,
         source,

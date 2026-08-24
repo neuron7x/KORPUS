@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Reject stale, incomplete, or source-mismatched release evidence."""
+
 from __future__ import annotations
 
 import hashlib
@@ -7,9 +8,9 @@ import json
 import os
 from pathlib import Path
 
+from release_identity import release_tag
 from source_digest import source_tree_digest
 
-from release_identity import release_tag
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
 
@@ -48,6 +49,7 @@ def main() -> int:
     summary = {"valid": True, "release": expected_release, "source_tree_sha256": actual_digest}
     print(json.dumps(summary, indent=2))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

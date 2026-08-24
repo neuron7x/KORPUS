@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
+
 def load_release_identity(root: Path = ROOT) -> dict[str, str]:
     data = json.loads((root / "apps/api/src/korpus/release.json").read_text(encoding="utf-8"))
     required = {"schema", "product", "version", "tag", "artifact_stem", "distribution_artifact"}

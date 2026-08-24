@@ -6,12 +6,12 @@ predicate. It intentionally does *not* claim a SLSA level: levels describe prope
 the build platform. A local workstation builder is recorded as local/unattested and a
 production verifier may require an explicitly trusted builder id.
 """
+
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import sys
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -99,7 +99,9 @@ def build_statement(
                 },
                 "internalParameters": {
                     "builderTrustClass": (
-                        "LOCAL_UNATTESTED" if builder_id == LOCAL_BUILDER else "EXTERNALLY_IDENTIFIED"
+                        "LOCAL_UNATTESTED"
+                        if builder_id == LOCAL_BUILDER
+                        else "EXTERNALLY_IDENTIFIED"
                     )
                 },
                 "resolvedDependencies": resolved,
@@ -138,7 +140,11 @@ def _dependency_index(statement: dict[str, Any]) -> dict[str, str]:
             continue
         uri = item.get("uri")
         digest = item.get("digest")
-        if isinstance(uri, str) and isinstance(digest, dict) and isinstance(digest.get("sha256"), str):
+        if (
+            isinstance(uri, str)
+            and isinstance(digest, dict)
+            and isinstance(digest.get("sha256"), str)
+        ):
             result[uri] = digest["sha256"]
     return result
 
@@ -253,9 +259,7 @@ def verify_statement(
     build, run = _predicate_parts(statement)
     failures.extend(_build_failures(root, build))
     failures.extend(_material_failures(root, statement))
-    builder_failures, builder_id = _builder_failures(
-        run, trusted_builders, require_trusted_builder
-    )
+    builder_failures, builder_id = _builder_failures(run, trusted_builders, require_trusted_builder)
     failures.extend(builder_failures)
     failures.extend(_metadata_failures(run))
 
@@ -304,13 +308,19 @@ def main() -> int:
         )
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(statement, indent=2) + "\n", encoding="utf-8")
-        print(json.dumps({"status": "PASS", "out": str(args.out), "builder_id": args.builder_id}, indent=2))
+        print(
+            json.dumps(
+                {"status": "PASS", "out": str(args.out), "builder_id": args.builder_id}, indent=2
+            )
+        )
         return 0
 
     try:
         statement = json.loads(args.statement.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
-        print(json.dumps({"status": "FAIL", "failures": [f"statement unreadable: {error}"]}, indent=2))
+        print(
+            json.dumps({"status": "FAIL", "failures": [f"statement unreadable: {error}"]}, indent=2)
+        )
         return 1
     if not isinstance(statement, dict):
         print(json.dumps({"status": "FAIL", "failures": ["statement must be an object"]}, indent=2))

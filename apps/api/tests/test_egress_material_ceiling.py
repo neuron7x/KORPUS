@@ -95,9 +95,7 @@ def _run(
         answer_composer=spy,
         egress_policy=ModelEgressPolicy(posture, max_external_tier=ceiling),
     )
-    answer = service.execute(
-        identity, QueryRequest(text="Що має містити запис журналу?")
-    )
+    answer = service.execute(identity, QueryRequest(text="Що має містити запис журналу?"))
     return spy, answer
 
 

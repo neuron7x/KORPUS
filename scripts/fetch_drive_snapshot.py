@@ -80,7 +80,11 @@ def _listing(remote: str, folder_id: str) -> list[dict[str, Any]]:
     the account's My Drive, so a path expression cannot reach it.
     """
     completed = _rclone(
-        "lsjson", remote, "--recursive", "--files-only", "--hash",
+        "lsjson",
+        remote,
+        "--recursive",
+        "--files-only",
+        "--hash",
         f"--drive-root-folder-id={folder_id}",
     )
     if completed.returncode != 0:
@@ -116,10 +120,13 @@ def main() -> int:
     previous = _load_previous(destination)
 
     completed = _rclone(
-        "copy", arguments.remote, str(destination),
+        "copy",
+        arguments.remote,
+        str(destination),
         f"--drive-root-folder-id={arguments.folder_id}",
         f"--drive-export-formats={EXPORT_FORMATS}",
-        "--transfers=4", "--checkers=8",
+        "--transfers=4",
+        "--checkers=8",
     )
     if completed.returncode != 0:
         raise SystemExit(f"rclone copy failed: {completed.stderr.strip()[:400]}")
@@ -199,9 +206,7 @@ def _load_previous(destination: Path) -> dict[str, dict[str, Any]]:
     except (OSError, json.JSONDecodeError):
         return {}
     return {
-        str(record["path"]): record
-        for record in stored.get("records", [])
-        if record.get("path")
+        str(record["path"]): record for record in stored.get("records", []) if record.get("path")
     }
 
 

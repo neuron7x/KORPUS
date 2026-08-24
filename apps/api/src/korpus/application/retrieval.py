@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from datetime import date
 from typing import Any
@@ -18,10 +17,35 @@ class RetrievalDeadlineExceeded(TimeoutError):
 class RetrievalUnavailable(RuntimeError):
     """Raised when a required retrieval dependency is unavailable."""
 
+
 from korpus.application.retrieval_math import (
-    BM25Parameters, DEFAULT_BM25_PARAMETERS, DEFAULT_RETRIEVAL_WEIGHTS, RetrievalWeights,
-    ScoredCandidate, _ukrainian_stem, candidate_terms, character_ngrams, jaccard, normalize_text, raw_tokens,
-    score_candidates, tokenize,
+    DEFAULT_BM25_PARAMETERS,
+    DEFAULT_RETRIEVAL_WEIGHTS,
+    BM25Parameters,
+    RetrievalWeights,
+    character_ngrams,
+    jaccard,
+)
+from korpus.application.retrieval_math import (
+    ScoredCandidate as ScoredCandidate,
+)
+from korpus.application.retrieval_math import (
+    _ukrainian_stem as _ukrainian_stem,
+)
+from korpus.application.retrieval_math import (
+    candidate_terms as candidate_terms,
+)
+from korpus.application.retrieval_math import (
+    normalize_text as normalize_text,
+)
+from korpus.application.retrieval_math import (
+    raw_tokens as raw_tokens,
+)
+from korpus.application.retrieval_math import (
+    score_candidates as score_candidates,
+)
+from korpus.application.retrieval_math import (
+    tokenize as tokenize,
 )
 
 AUTHORITY_PRIOR: dict[AuthorityClass, float] = {
@@ -156,9 +180,7 @@ class HybridLexicalRetriever(Retriever):
         as_of: date,
         limit: int = 8,
     ) -> list[RetrievedEvidence]:
-        return self._search(
-            identity, text, corpus_ids, as_of, limit, semantic_enabled=None
-        )
+        return self._search(identity, text, corpus_ids, as_of, limit, semantic_enabled=None)
 
     def search_with_semantic(
         self,
@@ -187,25 +209,38 @@ class HybridLexicalRetriever(Retriever):
         semantic_enabled: bool | None,
     ) -> list[RetrievedEvidence]:
         from korpus.application.retrieval_execution import (
-            ExecutionDeadlineExceeded, ExecutionUnavailable, execute_hybrid_search,
+            ExecutionDeadlineExceeded,
+            ExecutionUnavailable,
+            execute_hybrid_search,
         )
+
         try:
             return execute_hybrid_search(
-                repository=self.repository, parameters=self.parameters,
-                candidate_budget=self.candidate_budget, weights=self.weights,
-                timeout_ms=self.timeout_ms, semantic_source=self.semantic_source,
-                semantic_available=self.semantic_available(), authority_priors=self.authority_priors,
+                repository=self.repository,
+                parameters=self.parameters,
+                candidate_budget=self.candidate_budget,
+                weights=self.weights,
+                timeout_ms=self.timeout_ms,
+                semantic_source=self.semantic_source,
+                semantic_available=self.semantic_available(),
+                authority_priors=self.authority_priors,
                 contextual_projection_enabled=self.contextual_projection_enabled,
-                approved_aliases=self.approved_aliases, identity=identity, text=text,
-                corpus_ids=corpus_ids, as_of=as_of, limit=limit, semantic_enabled=semantic_enabled,
-                temporal_relevance=_temporal_relevance, diversify=diversify_evidence,
-                diversity_lambda=self.diversity_lambda, per_version_cap=self.per_version_cap,
+                approved_aliases=self.approved_aliases,
+                identity=identity,
+                text=text,
+                corpus_ids=corpus_ids,
+                as_of=as_of,
+                limit=limit,
+                semantic_enabled=semantic_enabled,
+                temporal_relevance=_temporal_relevance,
+                diversify=diversify_evidence,
+                diversity_lambda=self.diversity_lambda,
+                per_version_cap=self.per_version_cap,
             )
         except ExecutionDeadlineExceeded as exc:
             raise RetrievalDeadlineExceeded(str(exc)) from exc
         except ExecutionUnavailable as exc:
             raise RetrievalUnavailable(str(exc)) from exc
-
 
 
 LexicalRetriever = HybridLexicalRetriever

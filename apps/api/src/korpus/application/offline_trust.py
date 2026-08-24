@@ -1,11 +1,16 @@
 """Trusted-key rotation and revocation for signed offline knowledge packs."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from korpus.application.military_assurance import OfflinePackVerification, OfflinePackState, verify_offline_pack
+from korpus.application.military_assurance import (
+    OfflinePackState,
+    OfflinePackVerification,
+    verify_offline_pack,
+)
 
 
 class TrustedOfflineKey(BaseModel):

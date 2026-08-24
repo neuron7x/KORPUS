@@ -256,7 +256,10 @@ def test_a_stored_answer_remembers_whether_it_was_one(tmp_path: Path) -> None:
 
         stored = service.messages(owner, conversation.id).items
         assert [message.answer_status for message in stored] == [
-            None, "answered", None, "insufficient_evidence",
+            None,
+            "answered",
+            None,
+            "insufficient_evidence",
         ]
     finally:
         tenancy.close()
@@ -270,9 +273,7 @@ def test_a_turn_stored_before_the_verdict_existed_reports_it_as_unrecorded(
     try:
         owner, _stranger = _two_accounts(tenancy)
         conversation = tenancy.conversation_service.create(owner)
-        tenancy.conversation_service.record_answer(
-            owner, conversation.id, "Стара відповідь.", None
-        )
+        tenancy.conversation_service.record_answer(owner, conversation.id, "Стара відповідь.", None)
         stored = tenancy.conversation_service.messages(owner, conversation.id).items
         assert stored[0].answer_status is None
     finally:

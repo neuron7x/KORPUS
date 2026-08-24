@@ -9,11 +9,15 @@ SOURCE_GENERATED_PREFIXES = {
     ("handoff", "evidence"),
     ("evidence",),
     ("PACKAGE_BOUNDARY.md",),
-    ("PACKAGE_BUILD.json",), ("FULL_SSOT_PACKAGE_RECEIPT.json",),
+    ("PACKAGE_BUILD.json",),
+    ("FULL_SSOT_PACKAGE_RECEIPT.json",),
     ("CANONICAL_RELEASE_REPORT.json",),
     ("CANONICAL_RELEASE_REPORT.md",),
 }
-LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = {".coverage"}, {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
+LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = (
+    {".coverage"},
+    {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"},
+)
 
 
 def source_included(relative: Path) -> bool:
@@ -33,13 +37,16 @@ def _git_tracked_paths(root: Path) -> list[Path] | None:
     try:
         probe = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "--is-inside-work-tree"],
-            check=True, capture_output=True, text=True,
+            check=True,
+            capture_output=True,
+            text=True,
         )
         if probe.stdout.strip() != "true":
             return None
         output = subprocess.run(
             ["git", "-C", str(root), "ls-files", "-z"],
-            check=True, capture_output=True,
+            check=True,
+            capture_output=True,
         ).stdout
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
@@ -49,7 +56,11 @@ def _git_tracked_paths(root: Path) -> list[Path] | None:
 
 def _walk_files(root: Path, predicate) -> list[Path]:
     return sorted(
-        (path.relative_to(root) for path in root.rglob("*") if path.is_file() and predicate(path.relative_to(root))),
+        (
+            path.relative_to(root)
+            for path in root.rglob("*")
+            if path.is_file() and predicate(path.relative_to(root))
+        ),
         key=Path.as_posix,
     )
 
@@ -64,6 +75,8 @@ def distribution_paths(root: Path) -> list[Path]:
     excluded = {".git", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
     return _walk_files(
         root,
-        lambda relative: not any(part in excluded for part in relative.parts)
-        and relative.as_posix() != "DISTRIBUTION_MANIFEST.json",
+        lambda relative: (
+            not any(part in excluded for part in relative.parts)
+            and relative.as_posix() != "DISTRIBUTION_MANIFEST.json"
+        ),
     )

@@ -8,6 +8,7 @@ the test surface unchanged while making completion, timeout and failure attribut
 
 This runner never converts external TEVV/production obligations into PASS.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -25,10 +26,37 @@ TEST_ROOT = ROOT / "apps/api/tests"
 BASELINE = [
     ("current_truth", [sys.executable, "scripts/verify_current_truth.py"]),
     ("package_identity", [sys.executable, "scripts/verify_package_build_identity.py"]),
-    ("module_ratchet", [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_branch_cycle2_ratchet_v050.py"]),
-    ("evaluation_validity", [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_evaluation_validity.py"]),
-    ("military_assurance", [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_military_assurance.py", "apps/api/tests/test_military_knowledge.py"]),
-    ("tevv_boundaries", [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_tevv_admissibility.py", "apps/api/tests/test_tevv_attestation_boundary.py", "apps/api/tests/test_tevv_ledger_boundary.py"]),
+    (
+        "module_ratchet",
+        [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_branch_cycle2_ratchet_v050.py"],
+    ),
+    (
+        "evaluation_validity",
+        [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_evaluation_validity.py"],
+    ),
+    (
+        "military_assurance",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "apps/api/tests/test_military_assurance.py",
+            "apps/api/tests/test_military_knowledge.py",
+        ],
+    ),
+    (
+        "tevv_boundaries",
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "apps/api/tests/test_tevv_admissibility.py",
+            "apps/api/tests/test_tevv_attestation_boundary.py",
+            "apps/api/tests/test_tevv_ledger_boundary.py",
+        ],
+    ),
 ]
 
 
@@ -38,7 +66,7 @@ def regression_batches(batch_size: int) -> list[tuple[str, list[str]]]:
     files = sorted(TEST_ROOT.glob("test_*.py"), key=lambda path: path.name)
     batches: list[tuple[str, list[str]]] = []
     for index in range(0, len(files), batch_size):
-        group = files[index:index + batch_size]
+        group = files[index : index + batch_size]
         argv = [
             sys.executable,
             "-m",
@@ -86,7 +114,9 @@ def run_one(name: str, argv: list[str], timeout: int) -> dict[str, object]:
         }
 
 
-def run_parallel(checks: list[tuple[str, list[str]]], timeout: int, workers: int) -> list[dict[str, object]]:
+def run_parallel(
+    checks: list[tuple[str, list[str]]], timeout: int, workers: int
+) -> list[dict[str, object]]:
     if workers < 1:
         raise ValueError("workers must be positive")
     results: dict[str, dict[str, object]] = {}
@@ -109,9 +139,13 @@ def aggregate_status(results: list[dict[str, object]]) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--full", action="store_true", help="execute the complete backend regression surface")
+    parser.add_argument(
+        "--full", action="store_true", help="execute the complete backend regression surface"
+    )
     parser.add_argument("--timeout", type=int, default=180, help="seconds per baseline check")
-    parser.add_argument("--full-timeout", type=int, default=180, help="seconds per regression batch")
+    parser.add_argument(
+        "--full-timeout", type=int, default=180, help="seconds per regression batch"
+    )
     parser.add_argument("--regression-batch-size", type=int, default=8)
     parser.add_argument("--regression-workers", type=int, default=2)
     parser.add_argument("--output", default="reports/MILITARY_READINESS_CAMPAIGN_CURRENT.json")
@@ -119,11 +153,15 @@ def main() -> int:
 
     baseline = [run_one(name, argv, args.timeout) for name, argv in BASELINE]
     regression_commands = regression_batches(args.regression_batch_size) if args.full else []
-    regression = run_parallel(
-        regression_commands,
-        args.full_timeout,
-        args.regression_workers,
-    ) if regression_commands else []
+    regression = (
+        run_parallel(
+            regression_commands,
+            args.full_timeout,
+            args.regression_workers,
+        )
+        if regression_commands
+        else []
+    )
     results = [*baseline, *regression]
     report = {
         "schema": "korpus.military-readiness-campaign.v2",

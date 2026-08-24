@@ -17,6 +17,7 @@ import httpx
 
 from korpus.security.url_policy import is_https_or_loopback_url
 
+
 class AnchorError(RuntimeError):
     pass
 
@@ -226,4 +227,3 @@ class HttpAuditAnchorStore:
         except Exception as exc:
             status = getattr(response, "status_code", "UNKNOWN")
             raise AnchorError(f"remote audit anchor request failed: {status}") from exc
-

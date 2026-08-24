@@ -73,9 +73,7 @@ class AnthropicQueryPlanner:
 
     def variants(self, question: str, subjects: list[str]) -> list[str]:
         _refuse_if_egress_denied(self._egress, self._base_url)
-        hint = (
-            f"\n\nРозділи корпусу: {', '.join(subjects[:40])}." if subjects else ""
-        )
+        hint = f"\n\nРозділи корпусу: {', '.join(subjects[:40])}." if subjects else ""
         payload: dict[str, Any] = {
             "model": self._model,
             "max_tokens": _MAX_OUTPUT_TOKENS,

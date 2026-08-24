@@ -3,7 +3,6 @@ from __future__ import annotations
 from copy import deepcopy
 
 import pytest
-
 from korpus.application.engineering_readiness import evaluate_engineering_profile
 
 SOURCE = "a" * 64
@@ -15,7 +14,11 @@ def profile() -> dict:
         "profile_id": "test",
         "target_percent": 87.0,
         "dimensions": {
-            "a": {"weight": 0.6, "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL", "criteria": ["a1", "a2"]},
+            "a": {
+                "weight": 0.6,
+                "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+                "criteria": ["a1", "a2"],
+            },
             "b": {"weight": 0.4, "evidence_class": "EXECUTED", "criteria": ["b1", "b2"]},
         },
         "hard_external_predicates": ["b2"],
@@ -25,14 +28,26 @@ def profile() -> dict:
 def evidence() -> dict:
     return {
         "dimensions": {
-            "a": {"status": "PASS", "source_tree_sha256": SOURCE, "release": RELEASE, "criteria": {"a1": True, "a2": True}},
-            "b": {"status": "PASS", "source_tree_sha256": SOURCE, "release": RELEASE, "criteria": {"b1": True, "b2": False}},
+            "a": {
+                "status": "PASS",
+                "source_tree_sha256": SOURCE,
+                "release": RELEASE,
+                "criteria": {"a1": True, "a2": True},
+            },
+            "b": {
+                "status": "PASS",
+                "source_tree_sha256": SOURCE,
+                "release": RELEASE,
+                "criteria": {"b1": True, "b2": False},
+            },
         }
     }
 
 
 def test_score_is_weighted_and_evidence_capped() -> None:
-    result = evaluate_engineering_profile(profile(), evidence(), source_digest=SOURCE, release=RELEASE)
+    result = evaluate_engineering_profile(
+        profile(), evidence(), source_digest=SOURCE, release=RELEASE
+    )
     assert result["dimensions"]["a"]["calibrated_percent"] == 97.0
     assert result["dimensions"]["b"]["raw_percent"] == 50.0
     assert result["engineering_readiness_percent"] == 78.2

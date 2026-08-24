@@ -12,8 +12,6 @@ places for the refusal to stop being made.
 
 from __future__ import annotations
 
-from typing import Annotated
-
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, ConfigDict
 
@@ -28,7 +26,10 @@ from korpus.api.billing_dependencies import (
 )
 from korpus.api.routes_billing_callbacks import callback_router
 from korpus.api.routes_tenancy import (
-    AccountServiceDependency, EntitlementDependency, IdentityDependency, account_for,
+    AccountServiceDependency,
+    EntitlementDependency,
+    IdentityDependency,
+    account_for,
 )
 from korpus.application.tenancy_ports import (
     BillingEventRejected,
@@ -155,11 +156,10 @@ def start_subscription(
         status=subscription.status.value,
         provider=subscription.provider,
         current_period_end=(
-            subscription.current_period_end.isoformat()
-            if subscription.current_period_end
-            else None
+            subscription.current_period_end.isoformat() if subscription.current_period_end else None
         ),
         cancel_at_period_end=subscription.cancel_at_period_end,
     )
+
 
 billing_router.include_router(callback_router)

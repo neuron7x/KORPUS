@@ -30,6 +30,9 @@ from korpus.domain.models import (
     version_is_valid_on_fields,
 )
 from korpus.infrastructure import row_mapping
+from korpus.infrastructure.retrieval_candidate_query import (
+    candidate_span_query as candidate_span_query,
+)
 from korpus.infrastructure.schema import document_compartments, documents, spans, versions
 
 
@@ -68,17 +71,10 @@ def _visibility_filters(
         # check would otherwise let any document remove any other from retrieval.
         .where(superseding.c.document_id == versions.c.document_id)
         .where(superseding.c.review_state == ReviewState.APPROVED.value)
+        .where(func.coalesce(superseding.c.effective_from, superseding.c.publication_date) <= as_of)
+        .where((superseding.c.effective_until.is_(None)) | (superseding.c.effective_until >= as_of))
         .where(
-            func.coalesce(superseding.c.effective_from, superseding.c.publication_date)
-            <= as_of
-        )
-        .where(
-            (superseding.c.effective_until.is_(None))
-            | (superseding.c.effective_until >= as_of)
-        )
-        .where(
-            (superseding.c.rescinded_at.is_(None))
-            | (func.date(superseding.c.rescinded_at) > as_of)
+            (superseding.c.rescinded_at.is_(None)) | (func.date(superseding.c.rescinded_at) > as_of)
         )
         .exists()
     )
@@ -92,9 +88,7 @@ def _visibility_filters(
     ]
 
 
-def release_projection(
-    identity: Identity, authorized_corpora: frozenset[str], as_of: date
-) -> Any:
+def release_projection(identity: Identity, authorized_corpora: frozenset[str], as_of: date) -> Any:
     """The versions behind the retrievable spans, once each, without the spans.
 
     `corpus_release_id` used to read the full span projection and build a span, a
@@ -194,6 +188,7 @@ def retrievable_projection(
         .order_by(documents.c.id, versions.c.created_at.desc(), spans.c.ordinal)
     )
 
+
 def materialize_current(
     rows: Sequence[RowMapping],
     as_of: date,
@@ -241,6 +236,3 @@ def release_row_is_current(row: Any, as_of: date) -> bool:
         effective_until=row["effective_until"],
         rescinded_at=row["rescinded_at"],
     )
-
-
-from korpus.infrastructure.retrieval_candidate_query import candidate_span_query

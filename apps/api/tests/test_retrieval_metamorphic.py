@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 import random
 import unicodedata
+
 from korpus.application.retrieval import RetrievalWeights, score_candidates
 
 
@@ -18,10 +20,16 @@ def test_unicode_normalization_is_semantics_preserving():
 
 
 def test_candidate_permutation_is_equivariant_for_unique_texts():
-    texts = ["тактична медицина", "засоби зв’язку", "інженерна підготовка", "логістичне забезпечення"]
+    texts = [
+        "тактична медицина",
+        "засоби зв’язку",
+        "інженерна підготовка",
+        "логістичне забезпечення",
+    ]
     query = "засоби зв’язку"
     baseline = _by_text(texts, score_candidates(query, texts))
-    shuffled = list(texts); random.Random(20260820).shuffle(shuffled)
+    shuffled = list(texts)
+    random.Random(20260820).shuffle(shuffled)
     observed = _by_text(shuffled, score_candidates(query, shuffled))
     assert baseline.keys() == observed.keys()
     for text in baseline:

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from korpus.application.controller_profile import ControllerLeaf, ControllerProfile, ControllerRule
+from korpus.application.evidence_state import feature_schema_sha256
 from korpus.application.pec_ablation import compare_ablation
 from korpus.application.pec_metamorphic import metamorphic_issues
 from korpus.application.pec_promotion import REQUIRED_RECEIPTS, promotion_errors
-from korpus.application.controller_profile import ControllerProfile, ControllerRule, ControllerLeaf
-from korpus.application.evidence_state import feature_schema_sha256
-
 
 RESOURCE_FIELDS = (
     "latency_ms",
@@ -119,13 +118,18 @@ def _admitted_profile() -> ControllerProfile:
         admission_status="PASS",
         controller_risk_limit=0.05,
         minimum_leaf_samples=1,
-        rules=(ControllerRule(
-            rule_id="r",
-            leaf=ControllerLeaf(
-                leaf_id="l", action="STOP_USE_CURRENT_EVIDENCE", admitted=True,
-                observed_samples=1, upper_error_bound=0.0,
+        rules=(
+            ControllerRule(
+                rule_id="r",
+                leaf=ControllerLeaf(
+                    leaf_id="l",
+                    action="STOP_USE_CURRENT_EVIDENCE",
+                    admitted=True,
+                    observed_samples=1,
+                    upper_error_bound=0.0,
+                ),
             ),
-        ),),
+        ),
     )
 
 
@@ -164,21 +168,23 @@ def test_promotion_rejects_green_but_cross_run_evidence_chain() -> None:
             "oracle_sha256": digests["oracle"],
         },
         "controller_verify": {"profile_sha256": "7" * 64},
-        "ablation": {"binding": {
-            "dataset_sha256": profile.dataset_sha256,
-            "corpus_release_id": profile.corpus_release_id,
-            "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
-            "answer_calibration_id": profile.answer_calibration_id,
-        }},
-        "metamorphic": {"binding": {
-            "source_digest": "8" * 64,
-            "corpus_release_id": profile.corpus_release_id,
-            "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
-            "answer_calibration_id": profile.answer_calibration_id,
-        }},
+        "ablation": {
+            "binding": {
+                "dataset_sha256": profile.dataset_sha256,
+                "corpus_release_id": profile.corpus_release_id,
+                "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
+                "answer_calibration_id": profile.answer_calibration_id,
+            }
+        },
+        "metamorphic": {
+            "binding": {
+                "source_digest": "8" * 64,
+                "corpus_release_id": profile.corpus_release_id,
+                "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
+                "answer_calibration_id": profile.answer_calibration_id,
+            }
+        },
     }
-    errors = promotion_binding_errors(
-        profile, receipts, digests, profile_file_sha256="9" * 64
-    )
+    errors = promotion_binding_errors(profile, receipts, digests, profile_file_sha256="9" * 64)
     assert "binding_mismatch:oracle:replay_sha256" in errors
     assert "binding_mismatch:controller_verify:profile_sha256" in errors

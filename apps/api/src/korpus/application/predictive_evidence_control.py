@@ -1,8 +1,9 @@
 """Pure runtime evaluator for Predictive Evidence Control (PEC)."""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
@@ -43,7 +44,6 @@ class ControllerTrace:
         return trace_audit_record(self)
 
 
-
 class PredictiveEvidenceController:
     """Evaluate an offline-promoted rule profile without network/model access."""
 
@@ -70,10 +70,14 @@ class PredictiveEvidenceController:
                 if not leaf.admitted:
                     return self._fallback(state, "leaf_not_admitted", rule.rule_id, leaf.leaf_id)
                 predicted = RetrievalAction(leaf.action)
-                if predicted in {
-                    RetrievalAction.ENABLE_SEMANTIC_RETRIEVAL,
-                    RetrievalAction.PLAN_AND_SEMANTIC,
-                } and not state.semantic_available:
+                if (
+                    predicted
+                    in {
+                        RetrievalAction.ENABLE_SEMANTIC_RETRIEVAL,
+                        RetrievalAction.PLAN_AND_SEMANTIC,
+                    }
+                    and not state.semantic_available
+                ):
                     return self._fallback(
                         state, "semantic_retrieval_unavailable", rule.rule_id, leaf.leaf_id
                     )
@@ -132,7 +136,7 @@ class PredictiveEvidenceController:
 
 def _condition_matches(state: EvidenceState, condition: RuleCondition) -> bool:
     actual = state.feature_value(condition.feature)
-    expected: Any = condition.value
+    expected = condition.value
     if condition.operator == "eq":
         return actual == expected
     if condition.operator == "ne":

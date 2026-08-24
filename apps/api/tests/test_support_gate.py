@@ -36,9 +36,7 @@ def test_a_verbatim_extract_is_fully_supported() -> None:
 
 
 def test_a_claim_the_span_does_not_carry_is_not_fully_supported() -> None:
-    score = extractive_support(
-        "Журнал знищується негайно після завершення операції", BODY
-    )
+    score = extractive_support("Журнал знищується негайно після завершення операції", BODY)
 
     assert 0.0 <= score < 1.0, score
 
@@ -62,11 +60,7 @@ class DriftingService(ExtractiveAnswerService):
             f"Журнал {MARKER} підлягає негайному знищенню за розпорядженням чергового"
             " офіцера оперативного відділу."
         )
-        return [
-            SentenceCandidate(
-                text=invented, start=0, end=len(invented), query_coverage=1.0
-            )
-        ]
+        return [SentenceCandidate(text=invented, start=0, end=len(invented), query_coverage=1.0)]
 
 
 def test_the_extraction_step_drops_a_claim_below_the_support_threshold() -> None:
@@ -155,9 +149,7 @@ def test_a_claim_that_drifts_from_its_span_is_dropped(client: TestClient) -> Non
         minimum_support_score=0.9,
         calibration_id=real.answer_policy.calibration_id,
     )
-    service = DriftingService(
-        client.app.state.repository, real.retriever, PolicyEngine(), policy
-    )
+    service = DriftingService(client.app.state.repository, real.retriever, PolicyEngine(), policy)
     client.app.dependency_overrides[get_answer_service] = lambda: service
 
     answer = client.post("/v1/answers", json={"text": f"як ведеться журнал {MARKER}"}).json()

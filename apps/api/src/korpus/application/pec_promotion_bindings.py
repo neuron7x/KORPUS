@@ -1,4 +1,5 @@
 """Artifact-lineage validation for PEC promotion receipts."""
+
 from __future__ import annotations
 
 from collections.abc import Mapping
@@ -6,7 +7,9 @@ from collections.abc import Mapping
 from korpus.application.controller_profile import ControllerProfile
 
 
-def _field_error(receipt: Mapping[str, object] | None, name: str, field: str, expected: str) -> str | None:
+def _field_error(
+    receipt: Mapping[str, object] | None, name: str, field: str, expected: str
+) -> str | None:
     actual = "" if receipt is None else str(receipt.get(field, ""))
     if not actual:
         return f"binding_missing:{name}:{field}"
@@ -68,15 +71,27 @@ def promotion_binding_errors(
 ) -> list[str]:
     """Require all green PEC receipts to belong to one exact artifact lineage."""
     errors = _flat_binding_errors(profile, receipts, receipt_file_sha256, profile_file_sha256)
-    errors.extend(_nested_binding_errors(receipts.get("ablation"), "ablation", {
-        "dataset_sha256": profile.dataset_sha256,
-        "corpus_release_id": profile.corpus_release_id,
-        "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
-        "answer_calibration_id": profile.answer_calibration_id,
-    }))
-    errors.extend(_nested_binding_errors(receipts.get("metamorphic"), "metamorphic", {
-        "corpus_release_id": profile.corpus_release_id,
-        "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
-        "answer_calibration_id": profile.answer_calibration_id,
-    }))
+    errors.extend(
+        _nested_binding_errors(
+            receipts.get("ablation"),
+            "ablation",
+            {
+                "dataset_sha256": profile.dataset_sha256,
+                "corpus_release_id": profile.corpus_release_id,
+                "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
+                "answer_calibration_id": profile.answer_calibration_id,
+            },
+        )
+    )
+    errors.extend(
+        _nested_binding_errors(
+            receipts.get("metamorphic"),
+            "metamorphic",
+            {
+                "corpus_release_id": profile.corpus_release_id,
+                "evaluation_protocol_sha256": profile.evaluation_protocol_sha256,
+                "answer_calibration_id": profile.answer_calibration_id,
+            },
+        )
+    )
     return sorted(set(errors))

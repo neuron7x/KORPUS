@@ -88,6 +88,7 @@ class CalibrationProfile(BaseModel):
             phrase=self.weight_phrase,
             temporal=self.weight_temporal,
         )
+
     @property
     def bm25_parameters(self) -> BM25Parameters:
         return BM25Parameters(k1=self.bm25_k1, b=self.bm25_b)

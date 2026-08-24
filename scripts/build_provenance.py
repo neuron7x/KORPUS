@@ -167,10 +167,9 @@ def verify(arguments: argparse.Namespace) -> int:
     if arguments.sbom:
         sbom = Path(arguments.sbom)
         recorded_sbom = statement.get("subject", {}).get("sbom", {})
-        result["sbom_matches"] = (
-            sbom.is_file()
-            and hashlib.sha256(sbom.read_bytes()).hexdigest() == recorded_sbom.get("sha256")
-        )
+        result["sbom_matches"] = sbom.is_file() and hashlib.sha256(
+            sbom.read_bytes()
+        ).hexdigest() == recorded_sbom.get("sha256")
 
     material_drift = [
         relative

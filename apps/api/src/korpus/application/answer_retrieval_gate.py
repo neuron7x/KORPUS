@@ -1,4 +1,5 @@
 """Fail-closed post-retrieval admission gate for extractive answering."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -20,7 +21,17 @@ def apply_retrieval_gate(
     breaches = service._scope_breaches(identity, corpora, retrieved)
     if breaches:
         answer = service._breach(release_id, breaches)
-        service._audit(identity, query, answer, retrieved, [], risk, breaches=breaches, plan=plan, pec_trace=pec_trace)
+        service._audit(
+            identity,
+            query,
+            answer,
+            retrieved,
+            [],
+            risk,
+            breaches=breaches,
+            plan=plan,
+            pec_trace=pec_trace,
+        )
         return answer, None
     if early_abstain:
         answer = service._abstain(
@@ -39,6 +50,8 @@ def apply_retrieval_gate(
             "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
             max((item.score for item in retrieved), default=0.0),
         )
-        service._audit(identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace)
+        service._audit(
+            identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace
+        )
         return answer, eligible
     return None, eligible

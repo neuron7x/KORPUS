@@ -94,9 +94,7 @@ class RequirementReport:
         }
 
 
-def evaluate_requirements(
-    requirements: Iterable[Requirement], context: Any
-) -> RequirementReport:
+def evaluate_requirements(requirements: Iterable[Requirement], context: Any) -> RequirementReport:
     """Every requirement is evaluated; the first failure does not stop the rest.
 
     Reporting one failure at a time turns a review into a queue: fix, re-run, discover

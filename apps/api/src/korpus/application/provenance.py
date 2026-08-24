@@ -29,7 +29,11 @@ PROVENANCE_SCHEMA_VERSION = 1
 
 from korpus.application.provenance_surface import (
     EVIDENCE_SOURCE_PATHS,
+)
+from korpus.application.provenance_surface import (
     EXCLUDED_DIRECTORY_NAMES as _EXCLUDED_DIRECTORY_NAMES,
+)
+from korpus.application.provenance_surface import (
     EXCLUDED_SUFFIXES as _EXCLUDED_SUFFIXES,
 )
 
@@ -62,9 +66,7 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
     return sorted(set(files), key=lambda path: path.relative_to(root).as_posix())
 
 
-def compute_source_digest(
-    root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS
-) -> str:
+def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS) -> str:
     """Digest the evidence-bearing source surface of a working tree.
 
     Length-prefixed path and content are both fed to the hash so that moving a
@@ -125,7 +127,10 @@ def read_provenance(report: Mapping[str, Any]) -> SourceProvenance:
     block = report.get(PROVENANCE_KEY)
     if not isinstance(block, Mapping):
         raise ProvenanceError("report carries no provenance block")
-    if (type(block.get("schema_version")), block.get("schema_version")) != (int, PROVENANCE_SCHEMA_VERSION):
+    if (type(block.get("schema_version")), block.get("schema_version")) != (
+        int,
+        PROVENANCE_SCHEMA_VERSION,
+    ):
         raise ProvenanceError("unsupported provenance schema")
     digest = block.get("source_digest")
     if not isinstance(digest, str) or len(digest) != 64:

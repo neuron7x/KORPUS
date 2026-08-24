@@ -31,8 +31,7 @@ def test_duplicate_content_is_deduplicated_only_inside_same_corpus(client, admin
         corpus_id="restricted-demo",
         access_tier=3,
         text=(
-            "Підрозділ веде журнал перевірок. "
-            "Кожен запис має містити дату та відповідальну особу."
+            "Підрозділ веде журнал перевірок. Кожен запис має містити дату та відповідальну особу."
         ),
     )
     assert restricted["version"]["id"] != first["version"]["id"]

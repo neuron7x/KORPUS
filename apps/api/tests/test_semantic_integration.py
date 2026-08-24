@@ -67,14 +67,22 @@ class SemanticSource:
 
 def _bundle(text, suffix):
     document = DocumentRecord(
-        canonical_title=f"Doc {suffix}", corpus_id="public", issuer="Authority",
-        jurisdiction="UA", document_type="order", access_tier=AccessTier.PUBLIC,
+        canonical_title=f"Doc {suffix}",
+        corpus_id="public",
+        issuer="Authority",
+        jurisdiction="UA",
+        document_type="order",
+        access_tier=AccessTier.PUBLIC,
         classification=Classification.PUBLIC,
     )
     version = DocumentVersionRecord(
-        document_id=document.id, revision="1", source_hash=suffix * 64,
-        object_key=f"objects/{suffix}", mime_type="text/plain",
-        authority=AuthorityClass.OFFICIAL_UA, review_state=ReviewState.APPROVED,
+        document_id=document.id,
+        revision="1",
+        source_hash=suffix * 64,
+        object_key=f"objects/{suffix}",
+        mime_type="text/plain",
+        authority=AuthorityClass.OFFICIAL_UA,
+        review_state=ReviewState.APPROVED,
     )
     span = EvidenceSpanRecord(version_id=version.id, ordinal=0, text=text)
     return span, document, version
@@ -88,13 +96,20 @@ def test_semantic_candidates_are_authorized_materialized_and_fused():
         repo,
         candidate_budget=8,
         weights=RetrievalWeights(
-            lexical=0.12, semantic=0.30, query_coverage=0.20, character=0.08,
-            authority=0.18, phrase=0.08, temporal=0.04,
+            lexical=0.12,
+            semantic=0.30,
+            query_coverage=0.20,
+            character=0.08,
+            authority=0.18,
+            phrase=0.08,
+            temporal=0.04,
         ),
         semantic_source=SemanticSource(semantic[0].id),
     )
     identity = Identity(
-        subject="u", roles=frozenset({"user"}), clearance=AccessTier.PUBLIC,
+        subject="u",
+        roles=frozenset({"user"}),
+        clearance=AccessTier.PUBLIC,
         corpora=frozenset({"public"}),
     )
     result = retriever.search(identity, "evacuation procedure", identity.corpora, date.today())
@@ -103,7 +118,7 @@ def test_semantic_candidates_are_authorized_materialized_and_fused():
 
 def test_postgres_rls_migration_is_default_deny_when_context_is_absent():
     migration_path = (
-        __import__('pathlib').Path(__file__).parents[1]
+        __import__("pathlib").Path(__file__).parents[1]
         / "migrations/versions/0002_database_defense_and_vectors.py"
     )
     migration = migration_path.read_text()
@@ -125,13 +140,20 @@ def test_required_semantic_failure_never_silently_falls_back_to_lexical():
         FusionRepo(lexical, lexical),
         candidate_budget=8,
         weights=RetrievalWeights(
-            lexical=0.12, semantic=0.30, query_coverage=0.20, character=0.08,
-            authority=0.18, phrase=0.08, temporal=0.04,
+            lexical=0.12,
+            semantic=0.30,
+            query_coverage=0.20,
+            character=0.08,
+            authority=0.18,
+            phrase=0.08,
+            temporal=0.04,
         ),
         semantic_source=FailingSemanticSource(),
     )
     identity = Identity(
-        subject="u", roles=frozenset({"user"}), clearance=AccessTier.PUBLIC,
+        subject="u",
+        roles=frozenset({"user"}),
+        clearance=AccessTier.PUBLIC,
         corpora=frozenset({"public"}),
     )
     with pytest.raises(RetrievalUnavailable, match="semantic retrieval"):

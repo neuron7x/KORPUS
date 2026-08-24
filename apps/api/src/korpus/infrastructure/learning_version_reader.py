@@ -1,4 +1,5 @@
 """Deterministic reconstruction of immutable learning course-version graphs."""
+
 from __future__ import annotations
 
 from collections import defaultdict
@@ -32,71 +33,107 @@ from korpus.infrastructure.learning_schema import (
 def load_course_version(connection: Connection, version_id: str) -> CourseVersion | None:
     """Load one graph with stable ordering so repeated reads are deterministic."""
 
-    version_row = connection.execute(
-        select(learning_course_versions).where(learning_course_versions.c.id == version_id)
-    ).mappings().first()
+    version_row = (
+        connection.execute(
+            select(learning_course_versions).where(learning_course_versions.c.id == version_id)
+        )
+        .mappings()
+        .first()
+    )
     if version_row is None:
         return None
 
-    module_rows = connection.execute(
-        select(learning_modules)
-        .where(learning_modules.c.course_version_id == version_id)
-        .order_by(learning_modules.c.ordinal, learning_modules.c.id)
-    ).mappings().all()
-    lesson_rows = connection.execute(
-        select(learning_lessons)
-        .where(learning_lessons.c.course_version_id == version_id)
-        .order_by(
-            learning_lessons.c.module_id,
-            learning_lessons.c.ordinal,
-            learning_lessons.c.id,
+    module_rows = (
+        connection.execute(
+            select(learning_modules)
+            .where(learning_modules.c.course_version_id == version_id)
+            .order_by(learning_modules.c.ordinal, learning_modules.c.id)
         )
-    ).mappings().all()
-    objective_rows = connection.execute(
-        select(learning_objectives)
-        .where(learning_objectives.c.course_version_id == version_id)
-        .order_by(learning_objectives.c.lesson_id, learning_objectives.c.id)
-    ).mappings().all()
-    binding_rows = connection.execute(
-        select(learning_source_bindings)
-        .where(learning_source_bindings.c.course_version_id == version_id)
-        .order_by(learning_source_bindings.c.lesson_id, learning_source_bindings.c.id)
-    ).mappings().all()
-    span_rows = connection.execute(
-        select(learning_source_binding_spans)
-        .where(learning_source_binding_spans.c.course_version_id == version_id)
-        .order_by(
-            learning_source_binding_spans.c.lesson_id,
-            learning_source_binding_spans.c.binding_id,
-            learning_source_binding_spans.c.span_id,
+        .mappings()
+        .all()
+    )
+    lesson_rows = (
+        connection.execute(
+            select(learning_lessons)
+            .where(learning_lessons.c.course_version_id == version_id)
+            .order_by(
+                learning_lessons.c.module_id,
+                learning_lessons.c.ordinal,
+                learning_lessons.c.id,
+            )
         )
-    ).mappings().all()
-    block_rows = connection.execute(
-        select(learning_lesson_blocks)
-        .where(learning_lesson_blocks.c.course_version_id == version_id)
-        .order_by(
-            learning_lesson_blocks.c.lesson_id,
-            learning_lesson_blocks.c.ordinal,
-            learning_lesson_blocks.c.id,
+        .mappings()
+        .all()
+    )
+    objective_rows = (
+        connection.execute(
+            select(learning_objectives)
+            .where(learning_objectives.c.course_version_id == version_id)
+            .order_by(learning_objectives.c.lesson_id, learning_objectives.c.id)
         )
-    ).mappings().all()
-    block_source_rows = connection.execute(
-        select(learning_block_sources)
-        .where(learning_block_sources.c.course_version_id == version_id)
-        .order_by(
-            learning_block_sources.c.lesson_id,
-            learning_block_sources.c.block_id,
-            learning_block_sources.c.binding_id,
+        .mappings()
+        .all()
+    )
+    binding_rows = (
+        connection.execute(
+            select(learning_source_bindings)
+            .where(learning_source_bindings.c.course_version_id == version_id)
+            .order_by(learning_source_bindings.c.lesson_id, learning_source_bindings.c.id)
         )
-    ).mappings().all()
-    prerequisite_rows = connection.execute(
-        select(learning_prerequisites)
-        .where(learning_prerequisites.c.course_version_id == version_id)
-        .order_by(
-            learning_prerequisites.c.lesson_id,
-            learning_prerequisites.c.prerequisite_lesson_id,
+        .mappings()
+        .all()
+    )
+    span_rows = (
+        connection.execute(
+            select(learning_source_binding_spans)
+            .where(learning_source_binding_spans.c.course_version_id == version_id)
+            .order_by(
+                learning_source_binding_spans.c.lesson_id,
+                learning_source_binding_spans.c.binding_id,
+                learning_source_binding_spans.c.span_id,
+            )
         )
-    ).mappings().all()
+        .mappings()
+        .all()
+    )
+    block_rows = (
+        connection.execute(
+            select(learning_lesson_blocks)
+            .where(learning_lesson_blocks.c.course_version_id == version_id)
+            .order_by(
+                learning_lesson_blocks.c.lesson_id,
+                learning_lesson_blocks.c.ordinal,
+                learning_lesson_blocks.c.id,
+            )
+        )
+        .mappings()
+        .all()
+    )
+    block_source_rows = (
+        connection.execute(
+            select(learning_block_sources)
+            .where(learning_block_sources.c.course_version_id == version_id)
+            .order_by(
+                learning_block_sources.c.lesson_id,
+                learning_block_sources.c.block_id,
+                learning_block_sources.c.binding_id,
+            )
+        )
+        .mappings()
+        .all()
+    )
+    prerequisite_rows = (
+        connection.execute(
+            select(learning_prerequisites)
+            .where(learning_prerequisites.c.course_version_id == version_id)
+            .order_by(
+                learning_prerequisites.c.lesson_id,
+                learning_prerequisites.c.prerequisite_lesson_id,
+            )
+        )
+        .mappings()
+        .all()
+    )
 
     objectives: dict[str, list[LearningObjective]] = defaultdict(list)
     for row in objective_rows:
@@ -106,9 +143,7 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
 
     binding_spans: dict[tuple[str, str], set[str]] = defaultdict(set)
     for row in span_rows:
-        binding_spans[(str(row["lesson_id"]), str(row["binding_id"]))].add(
-            str(row["span_id"])
-        )
+        binding_spans[(str(row["lesson_id"]), str(row["binding_id"]))].add(str(row["span_id"]))
 
     bindings: dict[str, list[SourceBinding]] = defaultdict(list)
     for row in binding_rows:
@@ -125,9 +160,7 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
 
     block_sources: dict[tuple[str, str], set[str]] = defaultdict(set)
     for row in block_source_rows:
-        block_sources[(str(row["lesson_id"]), str(row["block_id"]))].add(
-            str(row["binding_id"])
-        )
+        block_sources[(str(row["lesson_id"]), str(row["block_id"]))].add(str(row["binding_id"]))
 
     blocks: dict[str, list[LessonBlock]] = defaultdict(list)
     for row in block_rows:

@@ -117,9 +117,7 @@ def test_a_disabled_account_entitles_nothing_however_much_it_paid(tmp_path: Path
         gate = tenancy.entitlements(required=True)
         assert gate.project(account).grants_paid_access
 
-        disabled = tenancy.account_service.disable(
-            reader("operator"), account.id, reason="revoked"
-        )
+        disabled = tenancy.account_service.disable(reader("operator"), account.id, reason="revoked")
         projection = gate.project(disabled)
         assert projection.entitled_corpora == frozenset()
         assert projection.reason == "account_disabled"

@@ -10,14 +10,15 @@ Both are deliberately inference-free.  They are safe building blocks for navigat
 training and change review because they can explain *where* a relation/change came from
 without inventing military facts.
 """
+
 from __future__ import annotations
 
 import hashlib
 import unicodedata
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date
 from enum import StrEnum
-from typing import Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -53,9 +54,8 @@ class EvidenceBinding(BaseModel):
     effective_until: date | None = None
 
     def effective_on(self, observed: date) -> bool:
-        return (
-            (self.effective_from is None or self.effective_from <= observed)
-            and (self.effective_until is None or observed <= self.effective_until)
+        return (self.effective_from is None or self.effective_from <= observed) and (
+            self.effective_until is None or observed <= self.effective_until
         )
 
 
@@ -77,7 +77,7 @@ class KnowledgeRelation(BaseModel):
     bindings: tuple[EvidenceBinding, ...] = Field(min_length=1, max_length=64)
 
     @model_validator(mode="after")
-    def reject_self_relation(self) -> "KnowledgeRelation":
+    def reject_self_relation(self) -> KnowledgeRelation:
         if self.source_id == self.target_id:
             raise ValueError("knowledge relation cannot target itself")
         return self
@@ -96,7 +96,7 @@ class MilitaryKnowledgeGraph(BaseModel):
     relations: tuple[KnowledgeRelation, ...] = Field(default_factory=tuple, max_length=500_000)
 
     @model_validator(mode="after")
-    def validate_identity(self) -> "MilitaryKnowledgeGraph":
+    def validate_identity(self) -> MilitaryKnowledgeGraph:
         node_ids = [node.id for node in self.nodes]
         if len(node_ids) != len(set(node_ids)):
             raise ValueError("knowledge node ids must be unique")
@@ -267,21 +267,28 @@ def effective_neighborhood(
     seen = {start_id}
     frontier = {start_id}
     for _ in range(max_depth):
-        frontier = {target for source in sorted(frontier) for target in adjacency[source] if target not in seen}
+        frontier = {
+            target
+            for source in sorted(frontier)
+            for target in adjacency[source]
+            if target not in seen
+        }
         if not frontier:
             break
         seen.update(frontier)
     return tuple(sorted(seen))
 
+
 @dataclass(frozen=True)
 class EffectiveGraphIndex:
     """Precomputed immutable adjacency for repeated same-date graph navigation."""
+
     as_of: date
     node_ids: frozenset[str]
     adjacency: dict[KnowledgeRelationKind, dict[str, frozenset[str]]]
 
     @classmethod
-    def build(cls, graph: MilitaryKnowledgeGraph, *, as_of: date) -> "EffectiveGraphIndex":
+    def build(cls, graph: MilitaryKnowledgeGraph, *, as_of: date) -> EffectiveGraphIndex:
         node_ids = frozenset(node.id for node in graph.nodes)
         mutable: dict[KnowledgeRelationKind, dict[str, set[str]]] = {
             kind: {node_id: set() for node_id in node_ids} for kind in KnowledgeRelationKind

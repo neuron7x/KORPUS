@@ -1,10 +1,11 @@
 """Group-aware and nested validation for offline PEC controller training."""
+
 from __future__ import annotations
 
 import hashlib
 from collections.abc import Iterable
 
-from korpus.application.pec_training_model import train_tree
+from korpus.application.pec_training_model import TrainingRow, train_tree
 from korpus.application.statistical_bounds import hoeffding_upper_bound
 
 
@@ -13,22 +14,31 @@ def _bucket(group_id: str, folds: int) -> int:
     return int.from_bytes(digest[:8], "big") % folds
 
 
-def grouped_folds(rows: Iterable[object], folds: int = 5) -> list[tuple[list[object], list[object]]]:
+def grouped_folds(
+    rows: Iterable[TrainingRow], folds: int = 5
+) -> list[tuple[list[TrainingRow], list[TrainingRow]]]:
     if folds < 2:
         raise ValueError("PEC grouped validation requires at least two folds")
     data = list(rows)
     buckets = {group: _bucket(group, folds) for group in sorted({row.group_id for row in data})}
     return [
-        ([row for row in data if buckets[row.group_id] != index], [row for row in data if buckets[row.group_id] == index])
+        (
+            [row for row in data if buckets[row.group_id] != index],
+            [row for row in data if buckets[row.group_id] == index],
+        )
         for index in range(folds)
     ]
 
 
-def _candidates(data: list[object]) -> list[tuple[int, int]]:
-    return [(depth, leaf) for depth in (1, 2, 3, 4) for leaf in (5, 10, 20, 30) if len(data) >= 2 * leaf]
+def _candidates(data: list[TrainingRow]) -> list[tuple[int, int]]:
+    return [
+        (depth, leaf) for depth in (1, 2, 3, 4) for leaf in (5, 10, 20, 30) if len(data) >= 2 * leaf
+    ]
 
 
-def select_hyperparameters(rows: Iterable[object]) -> tuple[int, int, dict[str, object]]:
+def select_hyperparameters(
+    rows: Iterable[TrainingRow],
+) -> tuple[int, int, dict[str, object]]:
     data = list(rows)
     scored: list[tuple[float, int, int, int, int, int]] = []
     for depth, min_leaf in _candidates(data):
@@ -44,10 +54,14 @@ def select_hyperparameters(rows: Iterable[object]) -> tuple[int, int, dict[str, 
     if not scored:
         raise ValueError("insufficient grouped data for PEC hyperparameter selection")
     best = max(scored)
-    return best[3], best[4], {"grouped_cv_accuracy": best[0], "validation_rows": best[5], "candidates": len(scored)}
+    return (
+        best[3],
+        best[4],
+        {"grouped_cv_accuracy": best[0], "validation_rows": best[5], "candidates": len(scored)},
+    )
 
 
-def nested_group_validation(rows: Iterable[object], outer_folds: int = 5) -> dict[str, object]:
+def nested_group_validation(rows: Iterable[TrainingRow], outer_folds: int = 5) -> dict[str, object]:
     """Estimate generalization with hyperparameter selection confined to each outer train split."""
     data = list(rows)
     results: list[dict[str, object]] = []
@@ -65,16 +79,18 @@ def nested_group_validation(rows: Iterable[object], outer_folds: int = 5) -> dic
         total += len(outer_valid)
         train_groups = {row.group_id for row in outer_train}
         valid_groups = {row.group_id for row in outer_valid}
-        results.append({
-            "fold": index,
-            "train_rows": len(outer_train),
-            "validation_rows": len(outer_valid),
-            "correct": fold_correct,
-            "max_depth": depth,
-            "min_leaf": min_leaf,
-            "inner_cv": inner,
-            "group_disjoint": train_groups.isdisjoint(valid_groups),
-        })
+        results.append(
+            {
+                "fold": index,
+                "train_rows": len(outer_train),
+                "validation_rows": len(outer_valid),
+                "correct": fold_correct,
+                "max_depth": depth,
+                "min_leaf": min_leaf,
+                "inner_cv": inner,
+                "group_disjoint": train_groups.isdisjoint(valid_groups),
+            }
+        )
     covered = total == len(data) and bool(data)
     disjoint = bool(results) and all(bool(item["group_disjoint"]) for item in results)
     status = "PASS" if covered and disjoint and len(results) >= 2 else "UNKNOWN"

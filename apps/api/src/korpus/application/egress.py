@@ -24,7 +24,10 @@ import ipaddress
 from enum import StrEnum
 
 from korpus.domain.models import AccessTier
-from korpus.security.model_endpoint_policy import local_model_endpoint_host, validate_external_model_endpoint
+from korpus.security.model_endpoint_policy import (
+    local_model_endpoint_host,
+    validate_external_model_endpoint,
+)
 
 
 class EgressPosture(StrEnum):

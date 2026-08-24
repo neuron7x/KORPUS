@@ -52,9 +52,7 @@ def test_publisher_fallback_never_claims_package_is_installed() -> None:
             "source_url": "https://pypi.org/project/demo/1.0/",
         }
     }
-    license_expression, status, evidence = module.component_license(
-        "demo", "1.0", {}, publisher
-    )
+    license_expression, status, evidence = module.component_license("demo", "1.0", {}, publisher)
     assert license_expression == "MIT"
     assert status == module.PUBLISHER_DECLARED
     assert evidence is publisher[("demo", "1.0")]
@@ -69,9 +67,7 @@ def test_unknown_version_stays_unresolved_instead_of_reusing_adjacent_license() 
             "source_url": "https://pypi.org/project/demo/1.0/",
         }
     }
-    license_expression, status, evidence = module.component_license(
-        "demo", "2.0", {}, publisher
-    )
+    license_expression, status, evidence = module.component_license("demo", "2.0", {}, publisher)
     assert license_expression is None
     assert status == module.NOT_INSTALLED
     assert evidence is None
@@ -79,6 +75,8 @@ def test_unknown_version_stays_unresolved_instead_of_reusing_adjacent_license() 
 
 def test_inventory_language_never_claims_legal_or_vulnerability_clearance() -> None:
     metadata_source = SCRIPT.read_text(encoding="utf-8")
-    inventory_source = (ROOT / "scripts/generate_supply_chain_inventory.py").read_text(encoding="utf-8")
+    inventory_source = (ROOT / "scripts/generate_supply_chain_inventory.py").read_text(
+        encoding="utf-8"
+    )
     assert "NOT_LEGAL_CLEARANCE" in metadata_source
     assert "Vulnerability status remains UNKNOWN" in inventory_source

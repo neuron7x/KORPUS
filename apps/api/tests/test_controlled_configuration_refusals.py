@@ -222,7 +222,11 @@ WEAKENINGS: dict[str, tuple[dict[str, Any], str]] = {
 @pytest.mark.parametrize("requirement", sorted(WEAKENINGS))
 def test_a_controlled_deployment_refuses_each_weakening(requirement: str, tmp_path: Path) -> None:
     overrides, message = WEAKENINGS[requirement]
-    role = "worker" if requirement in {"malware scanning disabled", "parser sandbox disabled"} else "api"
+    role = (
+        "worker"
+        if requirement in {"malware scanning disabled", "parser sandbox disabled"}
+        else "api"
+    )
     settings = _base(tmp_path) | {"runtime_role": role} | overrides
 
     with pytest.raises(ValueError, match=message):
@@ -233,7 +237,7 @@ def test_a_controlled_deployment_refuses_each_weakening(requirement: str, tmp_pa
 def test_every_controlled_environment_name_carries_the_same_refusals(
     environment: str, tmp_path: Path
 ) -> None:
-    """"controlled" and "isolated" are not weaker spellings of "production".
+    """ "controlled" and "isolated" are not weaker spellings of "production".
 
     A deployment that names itself differently must not thereby acquire permission to
     run on SQLite without authentication.
@@ -245,7 +249,6 @@ def test_every_controlled_environment_name_carries_the_same_refusals(
 
     with pytest.raises(ValueError, match="require PostgreSQL"):
         Settings(**settings)
-
 
 
 def test_gcp_production_configuration_is_accepted(tmp_path: Path) -> None:
@@ -296,6 +299,7 @@ def test_direct_tls_transport_still_requires_peer_verification(tmp_path: Path) -
     }
     with pytest.raises(ValueError, match="sslmode=verify-full"):
         Settings(**settings)
+
 
 def test_a_local_environment_is_not_held_to_the_controlled_requirements(tmp_path: Path) -> None:
     """The refusals have to be conditional, or they would say nothing about control.

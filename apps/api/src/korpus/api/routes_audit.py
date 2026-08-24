@@ -10,7 +10,6 @@ from korpus.domain.models import AuditVerification, Identity
 from korpus.infrastructure.repository import SqlRepository
 from korpus.security.auth import get_identity
 
-
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
 

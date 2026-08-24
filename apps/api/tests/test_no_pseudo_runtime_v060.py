@@ -28,8 +28,11 @@ def test_bare_pass_is_only_an_exception_marker_class() -> None:
                     continue
                 parent = parents.get(node)
                 allowed = isinstance(parent, ast.ClassDef) and any(
-                    isinstance(base, ast.Name) and base.id.endswith(("Error", "Exception"))
-                    or isinstance(base, ast.Name) and base.id in {"RuntimeError", "ValueError", "PermissionError"}
+                    (isinstance(base, ast.Name) and base.id.endswith(("Error", "Exception")))
+                    or (
+                        isinstance(base, ast.Name)
+                        and base.id in {"RuntimeError", "ValueError", "PermissionError"}
+                    )
                     for base in parent.bases
                 )
                 if not allowed:
@@ -46,7 +49,11 @@ def test_ellipsis_bodies_exist_only_in_protocol_methods() -> None:
             tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             parents = _parents(tree)
             for node in ast.walk(tree):
-                if not (isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and node.value.value is Ellipsis):
+                if not (
+                    isinstance(node, ast.Expr)
+                    and isinstance(node.value, ast.Constant)
+                    and node.value.value is Ellipsis
+                ):
                     continue
                 function = parents.get(node)
                 cls = parents.get(function) if function is not None else None

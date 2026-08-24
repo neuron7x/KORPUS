@@ -6,11 +6,23 @@ from collections.abc import Iterator
 from typing import Any
 
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
+
 from korpus.infrastructure.pec_observability import PECMetrics
 
-SECURITY_EVENTS = frozenset({"auth_denied", "authorization_denied", "csrf_denied", "egress_denied",
-                             "inference_boundary_denied", "rate_limited", "webhook_rejected", "recovery_failure"})
+SECURITY_EVENTS = frozenset(
+    {
+        "auth_denied",
+        "authorization_denied",
+        "csrf_denied",
+        "egress_denied",
+        "inference_boundary_denied",
+        "rate_limited",
+        "webhook_rejected",
+        "recovery_failure",
+    }
+)
 SECURITY_OUTCOMES = frozenset({"denied", "error", "observed"})
+
 
 class Observability:
     """Low-cardinality metrics and optional OpenTelemetry traces."""
@@ -83,8 +95,10 @@ class Observability:
             registry=self.registry,
         )
         self.security_events = Counter(
-            "korpus_security_events_total", "Bounded security decisions.",
-            ["event", "outcome"], registry=self.registry,
+            "korpus_security_events_total",
+            "Bounded security decisions.",
+            ["event", "outcome"],
+            registry=self.registry,
         )
         self.requested_otlp_endpoint = otlp_endpoint
         self._provider, self._tracer = self._configure_tracer(service_name, otlp_endpoint)
@@ -159,8 +173,10 @@ class Observability:
         if event not in SECURITY_EVENTS or outcome not in SECURITY_OUTCOMES:
             raise ValueError("security metric labels are outside the bounded vocabulary")
         self.security_events.labels(event=event, outcome=outcome).inc()
+
     def export_prometheus(self) -> bytes:
         return generate_latest(self.registry)
+
     def close(self) -> None:
         if self._provider is not None:
             self._provider.shutdown()

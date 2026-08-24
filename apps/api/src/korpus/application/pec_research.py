@@ -3,6 +3,7 @@
 These functions measure evidence; they never grant runtime authority.  A missing,
 underpowered, synthetic, or unbound observation is reported as UNKNOWN by the caller.
 """
+
 from __future__ import annotations
 
 import math
@@ -10,7 +11,13 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 
 from korpus.application.evidence_state import FEATURE_NAMES
-from korpus.application.numeric_contracts import finite_number, nonnegative_count, require_count, require_rate
+from korpus.application.numeric_contracts import (
+    bounded_number,
+    finite_number,
+    nonnegative_count,
+    require_count,
+    require_rate,
+)
 from korpus.application.pec_replay import replay_priority
 from korpus.application.pec_training import TrainingRow, nested_group_validation
 from korpus.application.statistical_bounds import hoeffding_upper_bound
@@ -22,8 +29,13 @@ def simultaneous_hoeffding_upper(errors: int, samples: int, delta: float, hypoth
 
 
 def conditional_risk_report(
-    rows: Iterable[Mapping[str, object]], *, stratum_key: str, error_key: str,
-    risk_limit: float, delta: float, minimum_samples: int,
+    rows: Iterable[Mapping[str, object]],
+    *,
+    stratum_key: str,
+    error_key: str,
+    risk_limit: float,
+    delta: float,
+    minimum_samples: int,
 ) -> dict[str, object]:
     risk_limit = require_rate(risk_limit, label="risk_limit")
     delta = require_rate(delta, label="delta")
@@ -48,14 +60,20 @@ def conditional_risk_report(
         is_admitted = len(values) >= minimum_samples and upper <= risk_limit
         admitted += int(is_admitted)
         strata[name] = {
-            "samples": len(values), "errors": errors, "upper_error_bound": upper,
-            "risk_limit": risk_limit, "admitted": is_admitted,
+            "samples": len(values),
+            "errors": errors,
+            "upper_error_bound": upper,
+            "risk_limit": risk_limit,
+            "admitted": is_admitted,
             "fallback_required": not is_admitted,
         }
     status = "FAIL" if invalid else ("PASS" if grouped else "UNKNOWN")
     return {
-        "status": status, "simultaneous_delta": delta, "strata": strata,
-        "strata_total": len(grouped), "strata_admitted": admitted,
+        "status": status,
+        "simultaneous_delta": delta,
+        "strata": strata,
+        "strata_total": len(grouped),
+        "strata_admitted": admitted,
         "invalid_rows": invalid,
     }
 
@@ -67,11 +85,18 @@ def feature_ablation_generalization(rows: Iterable[TrainingRow]) -> dict[str, ob
     full = nested_group_validation(data)
     if full["status"] != "PASS":
         return {"status": "UNKNOWN", "reason": "nested_full_model_not_estimable", "full": full}
-    full_accuracy = float(full["oof_accuracy"])
+    full_accuracy = bounded_number(full.get("oof_accuracy"), 0.0, 1.0)
+    if full_accuracy is None:
+        return {"status": "UNKNOWN", "reason": "invalid_full_model_accuracy", "full": full}
     ablations: dict[str, object] = {}
     for feature in FEATURE_NAMES:
         masked = [
-            TrainingRow(row.query_id, row.group_id, {k: v for k, v in row.features.items() if k != feature}, row.label)
+            TrainingRow(
+                row.query_id,
+                row.group_id,
+                {k: v for k, v in row.features.items() if k != feature},
+                row.label,
+            )
             for row in data
         ]
         result = nested_group_validation(masked)
@@ -79,7 +104,11 @@ def feature_ablation_generalization(rows: Iterable[TrainingRow]) -> dict[str, ob
         ablations[feature] = {
             "status": result["status"],
             "oof_accuracy": accuracy,
-            "delta_vs_full": None if accuracy is None else float(accuracy) - full_accuracy,
+            "delta_vs_full": (
+                None
+                if (parsed_accuracy := bounded_number(accuracy, 0.0, 1.0)) is None
+                else parsed_accuracy - full_accuracy
+            ),
         }
     return {"status": "PASS", "full": full, "ablations": ablations}
 
@@ -100,10 +129,16 @@ def _optional_count(row: Mapping[str, object], key: str) -> int:
 
 
 def _failure(row: Mapping[str, object]) -> bool:
-    return any(_optional_bool(row, key) for key in (
-        "authorization_violation", "accepted_answer_error", "false_abstention",
-        "controller_oracle_disagreement", "out_of_support",
-    ))
+    return any(
+        _optional_bool(row, key)
+        for key in (
+            "authorization_violation",
+            "accepted_answer_error",
+            "false_abstention",
+            "controller_oracle_disagreement",
+            "out_of_support",
+        )
+    )
 
 
 def _hypergeom_tail(population: int, successes: int, draws: int, observed: int) -> float:
@@ -123,7 +158,10 @@ def _hypergeom_tail(population: int, successes: int, draws: int, observed: int) 
 
 
 def replay_priority_enrichment(
-    rows: Iterable[Mapping[str, object]], *, top_fraction: float = 0.2, alpha: float = 0.05,
+    rows: Iterable[Mapping[str, object]],
+    *,
+    top_fraction: float = 0.2,
+    alpha: float = 0.05,
 ) -> dict[str, object]:
     if not finite_number(top_fraction) or not 0.0 < float(top_fraction) <= 1.0:
         return {"status": "UNKNOWN", "reason": "insufficient_rows_or_fraction"}
@@ -142,9 +180,14 @@ def replay_priority_enrichment(
     expected = failures * draws / len(data)
     status = "PASS" if failures and captured > expected and p_value <= alpha else "UNKNOWN"
     return {
-        "status": status, "rows": len(data), "failures": failures, "top_rows": draws,
-        "failures_captured": captured, "uniform_expected": expected,
-        "hypergeometric_tail_p": p_value, "alpha": alpha,
+        "status": status,
+        "rows": len(data),
+        "failures": failures,
+        "top_rows": draws,
+        "failures_captured": captured,
+        "uniform_expected": expected,
+        "hypergeometric_tail_p": p_value,
+        "alpha": alpha,
     }
 
 
@@ -158,11 +201,15 @@ def observed_information_gain(rows: Iterable[Mapping[str, object]]) -> dict[str,
         baseline = actions.get("STOP_USE_CURRENT_EVIDENCE")
         if not query_id or baseline is None:
             continue
-        base_quality = baseline.get("retrieval_quality") if isinstance(baseline.get("retrieval_quality"), Mapping) else {}
+        raw_base_quality = baseline.get("retrieval_quality")
+        base_quality: Mapping[str, object] = (
+            raw_base_quality if isinstance(raw_base_quality, Mapping) else {}
+        )
         for action, row in sorted(actions.items()):
             if action == "STOP_USE_CURRENT_EVIDENCE":
                 continue
-            quality = row.get("retrieval_quality") if isinstance(row.get("retrieval_quality"), Mapping) else {}
+            raw_quality = row.get("retrieval_quality")
+            quality: Mapping[str, object] = raw_quality if isinstance(raw_quality, Mapping) else {}
             metrics = sorted(set(base_quality) & set(quality))
             deltas: dict[str, float] = {}
             for key in metrics:
@@ -170,15 +217,23 @@ def observed_information_gain(rows: Iterable[Mapping[str, object]]) -> dict[str,
                 if not finite_number(candidate_value) or not finite_number(baseline_value):
                     raise ValueError(f"retrieval_quality[{key}] must contain finite numbers")
                 deltas[key] = float(candidate_value) - float(baseline_value)
-            comparisons.append({
-                "query_id": query_id, "action": action,
-                "gold_hit_delta": int(_optional_bool(row, "gold_hit")) - int(_optional_bool(baseline, "gold_hit")),
-                "quality_ok_delta": int(_optional_bool(row, "quality_ok")) - int(_optional_bool(baseline, "quality_ok")),
-                "retrieval_quality_deltas": deltas,
-                "extra_searches": _optional_count(row, "search_count") - _optional_count(baseline, "search_count"),
-                "extra_planner_calls": _optional_count(row, "planner_calls") - _optional_count(baseline, "planner_calls"),
-                "extra_semantic_calls": _optional_count(row, "semantic_calls") - _optional_count(baseline, "semantic_calls"),
-            })
+            comparisons.append(
+                {
+                    "query_id": query_id,
+                    "action": action,
+                    "gold_hit_delta": int(_optional_bool(row, "gold_hit"))
+                    - int(_optional_bool(baseline, "gold_hit")),
+                    "quality_ok_delta": int(_optional_bool(row, "quality_ok"))
+                    - int(_optional_bool(baseline, "quality_ok")),
+                    "retrieval_quality_deltas": deltas,
+                    "extra_searches": _optional_count(row, "search_count")
+                    - _optional_count(baseline, "search_count"),
+                    "extra_planner_calls": _optional_count(row, "planner_calls")
+                    - _optional_count(baseline, "planner_calls"),
+                    "extra_semantic_calls": _optional_count(row, "semantic_calls")
+                    - _optional_count(baseline, "semantic_calls"),
+                }
+            )
     return {"status": "PASS" if comparisons else "UNKNOWN", "comparisons": comparisons}
 
 
@@ -202,14 +257,21 @@ def production_judgment_validity(rows: Iterable[Mapping[str, object]]) -> dict[s
             invalid.append(f"missing_adjudication_protocol:{rid}")
     status = "FAIL" if invalid else ("PASS" if judged == len(data) and data else "UNKNOWN")
     return {
-        "status": status, "rows": len(data), "production_judged_rows": judged,
+        "status": status,
+        "rows": len(data),
+        "production_judged_rows": judged,
         "invalid": invalid[:100],
     }
 
 
-def research_status(validity: Mapping[str, object], components: Iterable[Mapping[str, object]]) -> tuple[str, bool]:
+def research_status(
+    validity: Mapping[str, object], components: Iterable[Mapping[str, object]]
+) -> tuple[str, bool]:
     """Grant scientific authority only when production judgment validity itself passes."""
-    statuses = [str(validity.get("status", "UNKNOWN")), *(str(item.get("status", "UNKNOWN")) for item in components)]
+    statuses = [
+        str(validity.get("status", "UNKNOWN")),
+        *(str(item.get("status", "UNKNOWN")) for item in components),
+    ]
     authority = validity.get("status") == "PASS"
     if "FAIL" in statuses:
         return "FAIL", authority

@@ -34,9 +34,11 @@ def test_one_subject_cannot_take_the_whole_service() -> None:
     controller = AdmissionController(capacity=4, per_subject_limit=2)
 
     with controller.acquire("loud"), controller.acquire("loud"):
-        with pytest.raises(OverloadedError, match="per-subject") as refused:
-            with controller.acquire("loud"):
-                pass
+        with (
+            pytest.raises(OverloadedError, match="per-subject") as refused,
+            controller.acquire("loud"),
+        ):
+            pass
         assert refused.value.reason.value == "subject_share_exhausted"
         with controller.acquire("quiet"):
             assert controller.snapshot().active == 3, (
@@ -132,9 +134,7 @@ def test_an_auditor_reads_the_events_of_one_request(client: TestClient) -> None:
 
     assert events, "the answer wrote at least one event under this trace"
     assert all(event["payload"]["trace_id"] == "trace-under-test" for event in events)
-    assert [event["sequence"] for event in events] == sorted(
-        event["sequence"] for event in events
-    )
+    assert [event["sequence"] for event in events] == sorted(event["sequence"] for event in events)
     completed = next(event for event in events if event["action"] == "answer.completed")
     payload = completed["payload"]
     assert payload["client_version"] == "v0.6.0-test"

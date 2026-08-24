@@ -23,7 +23,7 @@ Three rules hold across every route here:
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
@@ -58,6 +58,7 @@ from korpus.security.auth import get_identity
 tenancy_router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
 
+
 def _state(request: Request, name: str) -> Any:
     value = getattr(request.app.state, name, None)
     if value is None:
@@ -84,8 +85,7 @@ def get_entitlements(request: Request) -> EntitlementProjection:
 
 
 def get_account_store(request: Request) -> AccountStore:
-    return _state(request, "account_store")
-
+    return cast(AccountStore, _state(request, "account_store"))
 
 
 AccountServiceDependency = Annotated[AccountService, Depends(get_account_service)]
@@ -124,7 +124,6 @@ class AccountView(BaseModel):
     display_name: str | None
     status: str
     created_at: str
-
 
 
 class ConversationView(BaseModel):
@@ -214,9 +213,7 @@ def _message_view(message: MessageRecord) -> MessageView:
 
 
 @tenancy_router.get("/v1/account", response_model=AccountView)
-def read_account(
-    identity: IdentityDependency, service: AccountServiceDependency
-) -> AccountView:
+def read_account(identity: IdentityDependency, service: AccountServiceDependency) -> AccountView:
     """The caller's own account, created on first sight.
 
     There is no registration step. A person who authenticates has an account by the time
@@ -291,9 +288,7 @@ def read_conversation(
         ) from missing
 
 
-@tenancy_router.post(
-    "/v1/conversations/{conversation_id}/archive", response_model=ConversationView
-)
+@tenancy_router.post("/v1/conversations/{conversation_id}/archive", response_model=ConversationView)
 def archive_conversation(
     conversation_id: UUID,
     identity: IdentityDependency,
@@ -371,9 +366,7 @@ async def ask_within_conversation(
             },
         ) from denial
     except AuthorizationError as denial:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=str(denial)
-        ) from denial
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(denial)) from denial
 
     try:
         conversations.record_question(account, conversation_id, query.text)

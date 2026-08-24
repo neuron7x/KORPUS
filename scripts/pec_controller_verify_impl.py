@@ -11,9 +11,17 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.controller_profile import ControllerProfile
 from korpus.application.evidence_state import FEATURE_SCHEMA_VERSION, EvidenceState
-from korpus.application.predictive_evidence_control import PredictiveEvidenceController, RetrievalAction
+from korpus.application.predictive_evidence_control import (
+    PredictiveEvidenceController,
+    RetrievalAction,
+)
 from pec_common import receipt, sha256_file, write_json
-from pec_controller_verify_logic import artifact_errors, empty_oracle_report, oracle_errors, verification_status
+from pec_controller_verify_logic import (
+    artifact_errors,
+    empty_oracle_report,
+    oracle_errors,
+    verification_status,
+)
 
 
 def _state_from_features(features: object) -> EvidenceState:
@@ -88,7 +96,9 @@ def main() -> int:
     parser.add_argument("--training-receipt", type=Path, required=True)
     parser.add_argument("--oracle", type=Path)
     parser.add_argument("--release-gate", action="store_true")
-    parser.add_argument("--out", type=Path, default=ROOT / "reports/PEC_CONTROLLER_VERIFY_CURRENT.json")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "reports/PEC_CONTROLLER_VERIFY_CURRENT.json"
+    )
     args = parser.parse_args()
 
     profile = ControllerProfile.load(args.profile, args.profile_sha256)

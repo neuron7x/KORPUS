@@ -9,11 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
-from korpus.application.numeric_contracts import finite_number, strict_int
 from korpus.application.decision_sensitivity import (
     additional_compute_has_decision_value,
     decision_transitions,
 )
+from korpus.application.numeric_contracts import finite_number, strict_int
 from korpus.application.pec_replay import ReplayOutcome, solve_oracle
 from korpus.application.predictive_evidence_control import RetrievalAction
 from pec_common import receipt, sha256_file, write_json
@@ -31,8 +31,6 @@ def _strict_int(row: dict[str, object], key: str, default: int | None = None) ->
     if isinstance(value, bool) or not isinstance(value, int):
         raise ValueError(f"replay observation {key} must be integer")
     return value
-
-
 
 
 def _strict_nonnegative_number(row: dict[str, object], key: str) -> float:
@@ -160,7 +158,9 @@ def main() -> int:
     elif replay_status != "PASS":
         status = "UNKNOWN"
     else:
-        status = "PASS" if decisions and unknown == 0 and nonbaseline_without_value == 0 else "UNKNOWN"
+        status = (
+            "PASS" if decisions and unknown == 0 and nonbaseline_without_value == 0 else "UNKNOWN"
+        )
     report = receipt(
         "pec_oracle",
         {

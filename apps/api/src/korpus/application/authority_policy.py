@@ -1,21 +1,34 @@
 """Normative authority-order invariant for calibrated retrieval priors."""
+
 from __future__ import annotations
 
+import itertools
 import math
 from collections.abc import Mapping
+
 from korpus.domain.models import AuthorityClass
 
-NORMATIVE_AUTHORITY_ORDER = (AuthorityClass.OFFICIAL_UA, AuthorityClass.OFFICIAL_ALLIED,
-    AuthorityClass.MANUFACTURER, AuthorityClass.APPROVED_TRAINING,
-    AuthorityClass.ANALYTICAL, AuthorityClass.HISTORICAL)
+NORMATIVE_AUTHORITY_ORDER = (
+    AuthorityClass.OFFICIAL_UA,
+    AuthorityClass.OFFICIAL_ALLIED,
+    AuthorityClass.MANUFACTURER,
+    AuthorityClass.APPROVED_TRAINING,
+    AuthorityClass.ANALYTICAL,
+    AuthorityClass.HISTORICAL,
+)
 
 
 def _valid_prior(value: object) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(float(value)) and 0 <= float(value) <= 1
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+        and 0 <= float(value) <= 1
+    )
 
 
 def _strictly_descending(values: list[float]) -> bool:
-    return all(left > right for left, right in zip(values, values[1:]))
+    return all(left > right for left, right in itertools.pairwise(values))
 
 
 def validate_authority_priors(priors: Mapping[AuthorityClass, float]) -> None:

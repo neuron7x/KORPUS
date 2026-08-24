@@ -551,6 +551,7 @@ class IngestionJobRecord(BaseModel):
     error_detail: str | None = Field(default=None, max_length=2000)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
     @model_validator(mode="after")
     def validate_target(self) -> IngestionJobRecord:
         if self.kind is IngestionJobKind.DOCUMENT:

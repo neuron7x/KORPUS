@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Compare PEC ablations on exactly the same locked tasks and evidence bindings."""
+
 from __future__ import annotations
 
 import argparse
@@ -54,7 +55,6 @@ def _binding(raw: dict[str, object]) -> tuple[str, ...]:
     return tuple(str(raw.get(key, "")) for key in BINDING_KEYS)
 
 
-
 def _compare_candidates(
     candidates: list[tuple[str, Path]],
     baseline_rows: dict[str, dict[str, object]],
@@ -69,10 +69,9 @@ def _compare_candidates(
             failures.append(name)
             comparisons[name] = {"status": "FAIL", "reason": "binding_mismatch"}
             continue
-        comparisons[name] = compare_ablation(
-            baseline_rows, _rows(raw), minimum_pairs=minimum_pairs
-        )
+        comparisons[name] = compare_ablation(baseline_rows, _rows(raw), minimum_pairs=minimum_pairs)
     return comparisons, failures
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -93,18 +92,30 @@ def main() -> int:
         args.candidate, baseline_rows, baseline_binding, args.minimum_informative_pairs
     )
     required = args.required_candidate or (args.candidate[0][0] if len(args.candidate) == 1 else "")
-    required_status = str(comparisons.get(required, {}).get("status", "UNKNOWN")) if required else "UNKNOWN"
+    required_status = (
+        str(comparisons.get(required, {}).get("status", "UNKNOWN")) if required else "UNKNOWN"
+    )
     status = (
-        "FAIL" if binding_failures or required_status == "FAIL"
-        else "PASS" if binding_complete and required_status == "PASS"
+        "FAIL"
+        if binding_failures or required_status == "FAIL"
+        else "PASS"
+        if binding_complete and required_status == "PASS"
         else "UNKNOWN"
     )
-    report = receipt("pec_ablation", {
-        "status": status, "baseline": baseline_name, "baseline_sha256": sha256_file(baseline_path),
-        "binding": dict(zip(BINDING_KEYS, baseline_binding, strict=True)),
-        "binding_completeness": "PASS" if binding_complete else "UNKNOWN",
-        "required_candidate": required, "minimum_informative_pairs": args.minimum_informative_pairs,
-        "binding_failures": binding_failures, "comparisons": comparisons,
-    })
-    write_json(args.out, report); print(json.dumps(report, indent=2))
+    report = receipt(
+        "pec_ablation",
+        {
+            "status": status,
+            "baseline": baseline_name,
+            "baseline_sha256": sha256_file(baseline_path),
+            "binding": dict(zip(BINDING_KEYS, baseline_binding, strict=True)),
+            "binding_completeness": "PASS" if binding_complete else "UNKNOWN",
+            "required_candidate": required,
+            "minimum_informative_pairs": args.minimum_informative_pairs,
+            "binding_failures": binding_failures,
+            "comparisons": comparisons,
+        },
+    )
+    write_json(args.out, report)
+    print(json.dumps(report, indent=2))
     return 0 if status == "PASS" or (status == "UNKNOWN" and not args.release_gate) else 1

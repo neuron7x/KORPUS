@@ -169,8 +169,5 @@ class AttestorRegistry(BaseModel):
         try:
             public.verify(base64.b64decode(signature_b64, validate=True), payload)
         except (InvalidSignature, ValueError, TypeError):
-            return [
-                f"{ground_id}: the signature does not verify against the enrolled key "
-                f"{key_id}"
-            ]
+            return [f"{ground_id}: the signature does not verify against the enrolled key {key_id}"]
         return []

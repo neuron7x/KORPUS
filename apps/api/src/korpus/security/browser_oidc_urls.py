@@ -1,4 +1,5 @@
 """OIDC browser URL construction with provider metadata unable to shadow flow state."""
+
 from __future__ import annotations
 
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit

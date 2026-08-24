@@ -40,18 +40,24 @@ def verify(directory: Path, *, oidc_issuer: str, oidc_audience: str) -> dict[str
 
     hashes = {name: sha256(directory / name) for name in FILES}
 
-    entitlements = EntitlementProfile.load(directory / "entitlements.json", hashes["entitlements.json"])
+    entitlements = EntitlementProfile.load(
+        directory / "entitlements.json", hashes["entitlements.json"]
+    )
     if entitlements.issuer != oidc_issuer:
         raise ValueError("entitlement issuer does not match production OIDC issuer")
     if entitlements.audience != oidc_audience:
         raise ValueError("entitlement audience does not match production OIDC audience")
-    active_entitlement_targets = int(bool(entitlements.default.roles)) + sum(
-        bool(grant.roles) for grant in entitlements.subjects.values()
-    ) + sum(bool(grant.roles) for grant in entitlements.groups.values())
+    active_entitlement_targets = (
+        int(bool(entitlements.default.roles))
+        + sum(bool(grant.roles) for grant in entitlements.subjects.values())
+        + sum(bool(grant.roles) for grant in entitlements.groups.values())
+    )
     if active_entitlement_targets < 1:
         raise ValueError("production entitlement profile grants no application role")
 
-    source_trust = SourceTrustProfile.load(directory / "source-trust.json", hashes["source-trust.json"])
+    source_trust = SourceTrustProfile.load(
+        directory / "source-trust.json", hashes["source-trust.json"]
+    )
     active_source_keys = sum(not key.revoked for key in source_trust.keys.values())
     if active_source_keys < 1:
         raise ValueError("production source-trust profile has no active signing key")
@@ -69,7 +75,9 @@ def verify(directory: Path, *, oidc_issuer: str, oidc_audience: str) -> dict[str
     if not governance.corpora:
         raise ValueError("production corpus governance has no corpus")
 
-    calibration = CalibrationProfile.load(directory / "calibration.json", hashes["calibration.json"])
+    calibration = CalibrationProfile.load(
+        directory / "calibration.json", hashes["calibration.json"]
+    )
     calibration.validate_artifact_bindings(
         dataset=directory / "calibration-dataset.jsonl",
         system_manifest=directory / "system-manifest.json",
@@ -113,7 +121,9 @@ def main() -> int:
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     try:
-        result = verify(args.directory, oidc_issuer=args.oidc_issuer, oidc_audience=args.oidc_audience)
+        result = verify(
+            args.directory, oidc_issuer=args.oidc_issuer, oidc_audience=args.oidc_audience
+        )
     except Exception as exc:
         print(json.dumps({"verdict": "FAIL", "error": str(exc)}, sort_keys=True))
         return 1

@@ -25,8 +25,8 @@ from fastapi import HTTPException
 
 from korpus.api.overload_http import overload_http_exception
 from korpus.application.answer_query import ExtractiveAnswerService
-from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.application.pec_metrics_context import reset_pec_observer, set_pec_observer
+from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.domain.models import Answer, Identity, QueryRequest
 from korpus.infrastructure.observability import Observability
 
@@ -61,7 +61,10 @@ def bounded_answer(
     )
     return answer
 
+
 def overloaded(error: OverloadedError) -> HTTPException:
     """Compatibility seam: all answer doors share the canonical overload mapper."""
     return overload_http_exception(error)
+
+
 __all__ = ["AdmissionController", "OverloadedError", "bounded_answer", "overloaded"]

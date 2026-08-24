@@ -128,8 +128,10 @@ def main() -> int:
         if line.strip()
     ]
 
-    results = [_judge(case, _ask(arguments.base, case, arguments.token, arguments.timeout))
-               for case in cases]
+    results = [
+        _judge(case, _ask(arguments.base, case, arguments.token, arguments.timeout))
+        for case in cases
+    ]
 
     per_stratum: dict[str, dict[str, int]] = defaultdict(lambda: {"cases": 0, "passed": 0})
     per_kind: dict[str, dict[str, int]] = defaultdict(lambda: {"cases": 0, "passed": 0})
