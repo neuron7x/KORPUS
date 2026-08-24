@@ -306,6 +306,10 @@ kubernetes-validate:
 github-actions-validate:
 	PYTHONPATH=apps/api/src $(PY) scripts/validate_github_actions.py
 
+.PHONY: public-web-deploy
+public-web-deploy:
+	$(PY) scripts/deploy_public_web.py
+
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.

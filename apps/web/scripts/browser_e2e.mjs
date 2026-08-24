@@ -291,15 +291,21 @@ async function main() {
       assert(state.reason.includes("Ліміт одночасних запитів"), "typed refusal reason was lost");
     }, results);
 
-    await runCase("mobile_viewport_has_no_horizontal_overflow", async () => {
-      await cdp.send("Emulation.setDeviceMetricsOverride", {width:390, height:844, deviceScaleFactor:1, mobile:true});
-      await loadPage(cdp, "index.html", "app.js");
-      await waitFor(cdp, '!document.getElementById("product").hidden', "mobile authenticated product surface");
-      const state = await cdp.evaluate(`({viewport:innerWidth, scroll:document.documentElement.scrollWidth, composer:(()=>{const r=document.querySelector(".composer").getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};})(), queryVisible:document.getElementById("query").getBoundingClientRect().height>0})`);
-      assert(state.scroll <= state.viewport + 1, `horizontal overflow ${state.scroll}px > ${state.viewport}px`);
-      assert(state.composer.left >= -1 && state.composer.right <= state.viewport + 1, "composer escapes mobile viewport");
-      assert(state.queryVisible, "mobile query field is not visible");
+    await runCase("mobile_viewport_matrix_is_touch_safe_without_overflow", async () => {
+      await cdp.send("Emulation.setTouchEmulationEnabled", {enabled:true, maxTouchPoints:5});
+      for (const viewport of [{width:320,height:568}, {width:390,height:844}, {width:844,height:390}]) {
+        await cdp.send("Emulation.setDeviceMetricsOverride", {...viewport, deviceScaleFactor:2, mobile:true});
+        await loadPage(cdp, "index.html", "app.js");
+        await waitFor(cdp, '!document.getElementById("product").hidden', "mobile authenticated product surface");
+        const state = await cdp.evaluate(`(() => { const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};}; return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,composer:box(".composer"),query:box("#query"),theme:box("#theme-toggle"),nav:[...document.querySelectorAll(".mobile-nav a")].map(node=>node.getBoundingClientRect().height)}; })()`);
+        assert(state.scroll <= state.viewport + 1, `${viewport.width}x${viewport.height}: horizontal overflow ${state.scroll}px > ${state.viewport}px`);
+        assert(state.composer.left >= -1 && state.composer.right <= state.viewport + 1, `${viewport.width}x${viewport.height}: composer escapes viewport`);
+        assert(state.query.height > 0, `${viewport.width}x${viewport.height}: query field is not visible`);
+        assert(state.theme.width >= 44 && state.theme.height >= 44, `${viewport.width}x${viewport.height}: theme control is not touch safe`);
+        assert(state.nav.every(height => height >= 44), `${viewport.width}x${viewport.height}: mobile navigation is not touch safe`);
+      }
       await cdp.send("Emulation.clearDeviceMetricsOverride");
+      await cdp.send("Emulation.setTouchEmulationEnabled", {enabled:false});
     }, results);
 
     await runCase("operator_console_roles_and_preview_gate", async () => {

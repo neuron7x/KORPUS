@@ -780,4 +780,6 @@ body{background:#010101;color:var(--text)}
 @media(max-width:600px){.primary-nav{display:none}.evidence-dialog{width:100%;height:100%;max-height:none;border-radius:0;border:0;margin:0}}
 
 .theme-toggle{min-height:36px;padding:0 10px;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line-strong);border-radius:6px;background:#050505;color:var(--muted);box-shadow:none;font:750 9px/1 var(--mono);letter-spacing:.09em}.theme-toggle:hover:not(:disabled){transform:none;box-shadow:none}.theme-toggle-mark{width:14px;height:9px;background:#403b2d;clip-path:polygon(0 0,100% 0,78% 100%,0 100%)}
-@media(max-width:600px){.theme-toggle{padding:0 8px}.theme-toggle [data-theme-label]{display:none}}
+@media(max-width:600px){.theme-toggle{min-height:var(--target-min);min-width:var(--target-min);padding:0 8px;justify-content:center}.theme-toggle [data-theme-label]{display:none}}
+@media(max-width:360px){.quick-actions{grid-template-columns:1fr}.mobile-nav a{font-size:8px}.chat-stage{padding-inline:10px}.composer{padding:11px}}
+@media(pointer:coarse){.theme-toggle{min-height:44px;min-width:44px}}
