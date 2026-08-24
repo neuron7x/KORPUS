@@ -97,7 +97,8 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     elif release_path.is_file():
         release = json.loads(release_path.read_text(encoding="utf-8"))
         text = import_doc.read_text(encoding="utf-8")
-        if str(release.get("tag", "")) not in text or f'{release.get("artifact_stem", "")}.bundle' not in text:
+        artifact = str(release.get("distribution_artifact", ""))
+        if not artifact or str(release.get("tag", "")) not in text or artifact not in text:
             findings.append("GITHUB_IMPORT.md: release identity is stale")
     return sorted(findings)
 

@@ -551,7 +551,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "packaging.from_committed_tree",
         "packaging",
         "the release archive originates from the committed Git tree",
-        lambda c: "git archive --format=tar HEAD" in c.package_text,
+        lambda c: 'git archive --format=tar "$source_commit"' in c.package_text and 'source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"' in c.package_text,
         "packaging a working directory ships whatever happened to be lying in it",
     ),
     _requirement(

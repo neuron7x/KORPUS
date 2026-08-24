@@ -1,0 +1,36 @@
+{
+  "schema": "korpus.backend-test-summary.v2",
+  "status": "PASS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "collected": 1675,
+  "passed": 1673,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 2,
+  "executed_pass_rate": 1.0,
+  "procedure": {
+    "suite": "apps/api/tests",
+    "execution": "complete monolithic regression with branch coverage on exact source tree",
+    "junit": "var/pytest.xml",
+    "junit_sha256": "ee7e97d4aa64216fca4464fda35fbd83f29860c65c20ff1ec47517e60155bdfa",
+    "skip_cases": [
+      {
+        "test": "tests.test_evidence_provenance::test_gate_script_exits_nonzero_on_foreign_evidence",
+        "reason": "assurance artifacts absent: ['mutation']"
+      },
+      {
+        "test": "tests.test_postgres_integration::test_postgres_migrated_search_rls_access_and_audit",
+        "reason": "KORPUS_POSTGRES_TEST_URL is not configured"
+      }
+    ],
+    "supplemental_skip_closure": {
+      "test": "tests.test_evidence_provenance::test_gate_script_exits_nonzero_on_foreign_evidence",
+      "result": "PASS",
+      "exit_code": 0,
+      "log": "/mnt/data/korpus_runs/evidence_provenance_post_mutation.log",
+      "interpretation": "The mutation-artifact-dependent skip was re-executed after the fresh mutation report existed. The only unexecuted full-suite integration remains live PostgreSQL."
+    }
+  },
+  "evidence_status": "MEASURED_WITH_SUPPLEMENTAL_SKIP_CLOSURE"
+}

@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -47,10 +49,13 @@ jobs:
         run: |
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
+      - name: Verify exact locked environment
+        run: make production-exact-environment PY=python
       - name: Execute falsification campaign
         run: |
           mkdir -p var/objects
           make eval mutation migration-gate scale operational-gate PY=python
+          make production-hard-predicates PY=python
 
   postgres:
     name: postgres-full-suite
@@ -75,3 +80,7 @@ jobs:
         env:
           PYTHON: python
         run: scripts/run_postgres_suite.sh
+      - name: Verify production PostgreSQL security gate
+        env:
+          PYTHON: python
+        run: make production-postgres-security PY=python

@@ -6,6 +6,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
+from korpus.infrastructure.pec_observability import PECMetrics
 
 SECURITY_EVENTS = frozenset({"auth_denied", "authorization_denied", "csrf_denied", "egress_denied",
                              "inference_boundary_denied", "rate_limited", "webhook_rejected", "recovery_failure"})
@@ -22,6 +23,7 @@ class Observability:
         registry: CollectorRegistry | None = None,
     ) -> None:
         self.registry = registry or CollectorRegistry(auto_describe=True)
+        self.pec = PECMetrics(self.registry)
         self.http_requests = Counter(
             "korpus_http_requests_total",
             "HTTP requests handled by route and status class.",
@@ -157,10 +159,8 @@ class Observability:
         if event not in SECURITY_EVENTS or outcome not in SECURITY_OUTCOMES:
             raise ValueError("security metric labels are outside the bounded vocabulary")
         self.security_events.labels(event=event, outcome=outcome).inc()
-
     def export_prometheus(self) -> bytes:
         return generate_latest(self.registry)
-
     def close(self) -> None:
         if self._provider is not None:
             self._provider.shutdown()

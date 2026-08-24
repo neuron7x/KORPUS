@@ -115,3 +115,21 @@ def test_zero_loss_without_writes_after_the_backup_is_not_a_measurement() -> Non
     assert verdict.status == INCOMPLETE_PROVENANCE
     assert "trivially zero" in verdict.reasons[0]
     assert not verdict.provenance_complete
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+def test_non_finite_recovery_duration_is_not_a_measurement(bad: float) -> None:
+    assert classify_recovery(_report(rto_seconds=bad)).status == INCOMPLETE_PROVENANCE
+    assert classify_recovery(_report(rpo_seconds=bad)).status == INCOMPLETE_PROVENANCE
+
+
+@pytest.mark.parametrize("field", ["backup_bytes", "plaintext_bytes", "document_rows", "audit_event_rows", "writes_after_backup"])
+def test_recovery_provenance_counts_are_discrete_and_finite(field: str) -> None:
+    for bad in (True, 1.5, float("inf"), -1):
+        provenance = _report()["provenance"] | {field: bad}
+        assert classify_recovery(_report(provenance=provenance)).status == INCOMPLETE_PROVENANCE
+
+
+@pytest.mark.parametrize("bad", [True, 1.5, float("inf"), -1])
+def test_lost_event_count_is_a_nonnegative_integer(bad: object) -> None:
+    assert classify_recovery(_report(lost_events=bad)).status == INCOMPLETE_PROVENANCE

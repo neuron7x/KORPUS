@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "variants": {
+    "base": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    },
+    "overlays/production": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    }
+  },
+  "note": "static topology validation only; cluster execution remains external evidence"
+}

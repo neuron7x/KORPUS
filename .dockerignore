@@ -21,3 +21,6 @@ coverage.xml
 infra/secrets/*.txt
 KORPUS_*.zip
 KORPUS_*.bundle
+
+# Ephemeral google-github-actions/auth credential files
+gha-creds-*.json

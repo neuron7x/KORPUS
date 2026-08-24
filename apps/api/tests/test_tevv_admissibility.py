@@ -132,3 +132,39 @@ def test_the_eval_report_carries_the_verdict_and_the_interval() -> None:
 
     assert report["calibration_status"] == report["tevv"]["calibration_status"]
     assert report["tevv"]["pass_rate_interval"]["width"] > 0
+
+
+@pytest.mark.parametrize("bad_z", [True, 0.0, -1.96, float("nan"), float("inf")])
+def test_wilson_parameter_cannot_create_an_invalid_interval(bad_z: object) -> None:
+    with pytest.raises(ValueError, match="z must be finite and positive"):
+        wilson_interval(50, 100, bad_z)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("successes,total", [(True, 1), (1.0, 2), (1, True), (1, 2.0), (0, -1)])
+def test_wilson_counts_are_discrete_observations(successes: object, total: object) -> None:
+    with pytest.raises(ValueError):
+        wilson_interval(successes, total)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("bad_width", [True, 0.0, -0.1, 1.1, float("nan"), float("inf")])
+def test_tevv_width_policy_is_a_finite_probability_scale(bad_width: object) -> None:
+    with pytest.raises(ValueError, match="maximum_interval_width"):
+        evaluate_tevv(
+            passed=980,
+            total=1000,
+            corpus_declaration=REAL_CORPUS,
+            maximum_interval_width=bad_width,  # type: ignore[arg-type]
+            minimum_observations=200,
+        )
+
+
+@pytest.mark.parametrize("bad_floor", [True, 0, -1, 1.5])
+def test_tevv_observation_floor_is_a_positive_integer(bad_floor: object) -> None:
+    with pytest.raises(ValueError, match="minimum_observations"):
+        evaluate_tevv(
+            passed=980,
+            total=1000,
+            corpus_declaration=REAL_CORPUS,
+            maximum_interval_width=0.10,
+            minimum_observations=bad_floor,  # type: ignore[arg-type]
+        )

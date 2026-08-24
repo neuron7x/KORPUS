@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 33,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M32_RETRIEVER_CORPUS_RECHECK_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_out_of_scope_evidence_stops_the_answer[kwargs0-corpus_out_of_scope] ___\n\nclient = <starlette.testclient.TestClient object at 0x7ff3924e02f0>\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\nkwargs = {'corpus_id': 'restricted-demo'}, kind = 'corpus_out_of_scope'\n\n    @pytest.mark.parametrize(\n        (\"kwargs\", \"kind\"),\n        [\n            ({\"corpus_id\": \"restricted-demo\"}, \"corpus_out_of_scope\"),\n            ({\"access_tier\": AccessTier.RESTRICTED, \"classification\": Classification.RESTRICTED},\n             \"reader_not_cleared\"),\n            ({\"compartments\": frozenset({\"alpha\"})}, \"reader_not_cleared\"),\n        ],\n    )\n    def test_out_of_scope_evidence_stops_the_answer(\n        client: TestClient, public_identity: Identity, kwargs: dict[str, object], kind: str\n    ) -> None:\n        _install(client, _evidence(**kwargs))  # type: ignore[arg-type]\n        set_identity(client, public_identity)\n    \n        answer = _ask(client)\n    \n        assert answer[\"status\"] == \"requires_human_review\", (\n            \"evidence outside the reader's scope is an integrity breach, not thin coverage\"\n        )\n        assert answer[\"decision_reason\"] == \"retriever_scope_breach\"\n        assert answer[\"citations\"] == []\n        assert answer[\"claims\"] == []\n        assert LEAK not in json.dumps(answer, ensure_ascii=False), (\n            \"the leaked text must not reach the reader through the abstention either\"\n        )\n>       assert any(kind in str(limitation) for limitation in answer[\"limitations\"])  # type: ignore[union-attr]\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       assert False\nE        +  where False = any(<generator object test_out_of_scope_evidence_stops_the_answer.<locals>.<genexpr> at 0x7ff392522dc0>)\n\napps/api/tests/test_retriever_scope.py:158: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer[kwargs0-corpus_out_of_scope] - assert False\n +  where False = any(<generator object test_out_of_scope_evidence_stops_the_answer.<locals>.<genexpr> at 0x7ff392522dc0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M76_UNCALIBRATED_SCORE_DISCLAIMER_UNGUARDED",
+      "file": "apps/web/scripts/validate.mjs",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_the_web_validator_enforces_the_disclaimer ________________\n\n    def test_the_web_validator_enforces_the_disclaimer() -> None:\n        \"\"\"Otherwise this file is the only thing holding it, and it does not run in web CI.\"\"\"\n    \n        validator = WEB_VALIDATOR.read_text(encoding=\"utf-8\")\n>       assert DISCLAIMER in validator, (\n            \"apps/web/scripts/validate.mjs no longer checks for the disclaimer, so the \"\n            \"web pipeline would accept a build that dropped it\"\n        )\nE       AssertionError: apps/web/scripts/validate.mjs no longer checks for the disclaimer, so the web pipeline would accept a build that dropped it\nE       assert 'Ranking utility не є ймовірністю правильності' in 'import { readFile, stat } from \"node:fs/promises\";\\nimport { spawnSync } from \"node:child_process\";\\nimport { gzipSyn...d for ${surfaces.length} surfaces`);\\n}\\n\\nconsole.log(`accessibility validation passed for ${PAGES.length} pages`);\\n'\n\napps/api/tests/test_web_score_presentation.py:39: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_web_score_presentation.py::test_the_web_validator_enforces_the_disclaimer - AssertionError: apps/web/scripts/validate.mjs no longer checks for the disclaimer, so the web pipeline would accept a build that dropped it\nassert 'Ranking utility не є ймовірністю правильності' in 'import { readFile, stat } from \"node:fs/promises\";\\nimport { spawnSync } from \"node:child_process\";\\nimport { gzipSyn...d for ${surfaces.length} surfaces`);\\n}\\n\\nconsole.log(`accessibility validation passed for ${PAGES.length} pages`);\\n'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
+      "file": "apps/api/src/korpus/infrastructure_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_a_tag_without_a_digest_is_refused ____________________\n\n    def test_a_tag_without_a_digest_is_refused() -> None:\n        \"\"\"The state the whole tree was in until SUP-001 was closed.\"\"\"\n        context = _context(\"pgvector/pgvector:0.8.5-pg17-trixie\")\n    \n>       assert _api_digest_requirement().evaluate(context) is False\nE       AssertionError: assert True is False\nE        +  where True = evaluate(InfrastructureContext(root=PosixPath('/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SS...manifest_text='', make_text='', dockerignore='', api_dockerfile='', web_dockerfile='', minio_policy={}, load_errors=[]))\nE        +    where evaluate = Requirement(id='compose.api.digest_pinned', subject='docker-compose', statement='api pins its image by digest', holds=...UP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed', failure='').evaluate\nE        +      where Requirement(id='compose.api.digest_pinned', subject='docker-compose', statement='api pins its image by digest', holds=...UP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed', failure='') = _api_digest_requirement()\n\napps/api/tests/test_image_pinning.py:56: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused - AssertionError: assert True is False\n +  where True = evaluate(InfrastructureContext(root=PosixPath('/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SS...manifest_text='', make_text='', dockerignore='', api_dockerfile='', web_dockerfile='', minio_policy={}, load_errors=[]))\n +    where evaluate = Requirement(id='compose.api.digest_pinned', subject='docker-compose', statement='api pins its image by digest', holds=...UP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed', failure='').evaluate\n +      where Requirement(id='compose.api.digest_pinned', subject='docker-compose', statement='api pins its image by digest', holds=...UP-001, and the reason a version number invented on 2026-08-05 reached a pipeline before anything noticed', failure='') = _api_digest_requirement()\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M201_RELEASE_MANIFEST_SIGNATURE_NOT_CHECKED",
+      "file": "scripts/corpus_release.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_corpus_release_manifest.py::test_raising_an_authority_class_breaks_the_signature"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_raising_an_authority_class_breaks_the_signature _____________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-910/test_raising_an_authority_clas0')\nkey = PosixPath('/tmp/pytest-of-root/pytest-910/test_raising_an_authority_clas0/release.key')\n\n    def test_raising_an_authority_class_breaks_the_signature(tmp_path: Path, key: Path) -> None:\n        \"\"\"The smallest edit that changes what the system will say.\n    \n        `authority` decides whether a source may govern an answer at all. Moving one version\n        from `analytical` to `official_ua` changes every answer it appears in and is invisible\n        in a file nobody signed.\n        \"\"\"\n        database = tmp_path / \"korpus.db\"\n        _corpus(database)\n        manifest = tmp_path / \"release.json\"\n        _run([\"freeze\", \"--database\", str(database), \"--out\", str(manifest)], key)\n    \n        payload = json.loads(manifest.read_text(encoding=\"utf-8\"))\n        payload[\"entries\"][0][\"authority\"] = \"official_ua\"\n        manifest.write_text(json.dumps(payload, ensure_ascii=False), encoding=\"utf-8\")\n    \n        code, result = _run([\"verify\", \"--manifest\", str(manifest)], key)\n    \n>       assert code != 0\nE       assert 0 != 0\n\napps/api/tests/test_corpus_release_manifest.py:153: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_corpus_release_manifest.py::test_raising_an_authority_class_breaks_the_signature - assert 0 != 0\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M148_CONVERSATION_ROUTE_BYPASSES_THE_BOUND",
+      "file": "apps/api/src/korpus/api/routes_tenancy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answer_paths_are_bounded.py::test_every_answer_path_goes_through_the_shared_bound"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_every_answer_path_goes_through_the_shared_bound _____________\n\n    def test_every_answer_path_goes_through_the_shared_bound() -> None:\n        callers = _functions_calling(ANSWER_CALL)\n        assert callers, \"no function reaches the answer service — this test is stale\"\n    \n        unbounded = []\n        for qualified, module in sorted(callers.items()):\n            if module == \"answering.py\":\n                continue\n            source = (API / module).read_text(encoding=\"utf-8\")\n            function = qualified.split(\"::\", 1)[1]\n            body = _function_source(source, function)\n            if BOUNDED not in body:\n                unbounded.append(qualified)\n    \n>       assert not unbounded, (\n            \"these answer paths reach retrieval without the concurrency bound, so one \"\n            f\"account can saturate the service through them: {unbounded}\"\n        )\nE       AssertionError: these answer paths reach retrieval without the concurrency bound, so one account can saturate the service through them: ['routes_tenancy.py::ask_within_conversation']\nE       assert not ['routes_tenancy.py::ask_within_conversation']\n\napps/api/tests/test_answer_paths_are_bounded.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answer_paths_are_bounded.py::test_every_answer_path_goes_through_the_shared_bound - AssertionError: these answer paths reach retrieval without the concurrency bound, so one account can saturate the service through them: ['routes_tenancy.py::ask_within_conversation']\nassert not ['routes_tenancy.py::ask_within_conversation']\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M237_STALE_PRODUCTION_GATE_HASH_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_report_verification.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_report_verification.py::test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match _______\n\n    def test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match() -> None:\n        source, release, profile = \"c\" * 64, \"v9.9.9\", _profile()\n        gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)\n        hashes = dict(hashes); hashes[\"engineering\"] = \"0\" * 64\n        checks = _verify(report, profile, gates, source, release, hashes)\n>       assert checks[\"gate_hashes_current\"] is False\nE       assert True is False\n\napps/api/tests/test_production_report_verification.py:99: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_report_verification.py::test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M285_DGC_DECISION_BOUNDARY_AUDIT_DROPPED",
+      "file": "apps/api/src/korpus/application/pec_trace_projection.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_integration.py::test_controller_trace_reaches_completed_answer_audit"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_controller_trace_reaches_completed_answer_audit _____________\n\nclient = <starlette.testclient.TestClient object at 0x7fe09a5f02f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_controller_trace_reaches_completed_answer_audit(client, admin_identity) -> None:\n        result = ingest_text(client)\n        approve(client, result[\"version\"][\"id\"])\n        query = QueryRequest(text=\"Що має містити кожен запис?\", as_of=date(2026, 8, 21))\n        release_id = client.app.state.repository.corpus_release_id(\n            admin_identity, frozenset({\"public\"}), query.as_of\n        )\n        planner = CountingPlanner([\"дата відповідальна особа\"])\n        _service(client, admin_identity, planner, release_id).execute(admin_identity, query)\n        with client.app.state.repository.engine.begin() as connection:\n            payload_raw = connection.execute(\n                select(audits.c.payload_json)\n                .where(audits.c.action == \"answer.completed\")\n                .order_by(audits.c.sequence.desc())\n                .limit(1)\n            ).scalar_one()\n        payload = json.loads(payload_raw)\n        assert payload[\"pec\"][\"profile_id\"] == \"pec-integration-v1\"\n        assert payload[\"pec\"][\"state_fingerprint\"]\n        assert payload[\"pec\"][\"predicted_action\"] == \"STOP_USE_CURRENT_EVIDENCE\"\n        assert payload[\"pec\"][\"effective_action\"] == \"STOP_USE_CURRENT_EVIDENCE\"\n        assert payload[\"pec\"][\"retrieval_gate_passed\"] is True\n>       assert payload[\"pec\"][\"decision_boundary_distance\"] >= 0.0\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       KeyError: 'decision_boundary_distance'\n\napps/api/tests/test_pec_integration.py:193: KeyError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_integration.py::test_controller_trace_reaches_completed_answer_audit - KeyError: 'decision_boundary_distance'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:40:02+00:00"
+  }
+}

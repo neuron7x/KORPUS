@@ -1,20 +1,16 @@
 """Audit serialization for answer decisions.
-
 The answer service owns *when* audit events are emitted. This module owns only the stable
 serialization of that decision into the audit port, keeping the orchestration spine small.
 """
 from __future__ import annotations
-
-import hashlib
-
 from korpus.application.answer_analysis import ScopeBreach
+from korpus.application.answer_audit_envelope import answer_request_envelope
 from korpus.application.evidence import SupportVerdict
 from korpus.application.ports import Repository
+from korpus.application.pec_audit import pec_audit_payload
 from korpus.application.query_plan import QueryPlan
 from korpus.application.risk import QueryRisk, risk_adjusted_thresholds
 from korpus.domain.models import Answer, Identity, QueryRequest, RetrievedEvidence
-
-
 def append_answer_audit(
     repository: Repository,
     identity: Identity,
@@ -31,6 +27,7 @@ def append_answer_audit(
     support: SupportVerdict | None = None,
     plan: QueryPlan | None = None,
     composition: str | None = None,
+    pec_trace: dict[str, object] | None = None,
 ) -> None:
     if support is not None and not support.aligned:
         repository.append_audit(
@@ -64,6 +61,7 @@ def append_answer_audit(
                 "reader_clearance": int(identity.clearance),
             },
         )
+    pec_payload = pec_audit_payload(pec_trace, retrieved)
     thresholds = risk_adjusted_thresholds(
         risk,
         minimum_score=minimum_score,
@@ -78,7 +76,7 @@ def append_answer_audit(
         {
             "status": answer.status.value,
             "decision_reason": answer.decision_reason,
-            "query_hash": hashlib.sha256(query.text.encode("utf-8")).hexdigest(),
+            **answer_request_envelope(identity, query),
             "requested_corpora": query.corpus_ids,
             "declared": (
                 {
@@ -91,6 +89,7 @@ def append_answer_audit(
                 else None
             ),
             "query_plan": plan.as_audit_record() if plan is not None else None,
+            "pec": pec_payload,
             "composition": composition,
             "retrieved": len(retrieved),
             "eligible": len(eligible),

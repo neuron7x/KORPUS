@@ -1,0 +1,14 @@
+{
+  "schema": "korpus.status-ontology.v2",
+  "states": {
+    "CLOSED_ANCHORED": "Executed or byte-verified and supported by source-bound evidence.",
+    "CARRY_FORWARD_SOURCE_BOUND": "Historical execution is admissible only after byte-level proof over unchanged governed runtime paths.",
+    "RUNTIME_UNAVAILABLE": "Required tool/runtime is unavailable; this is neither PASS nor code failure.",
+    "INTERNAL_BLOCKED": "Repository-side executable or admission precondition is missing.",
+    "EXTERNAL_REQUIRED": "Predicate requires independent authority, production-like infrastructure, or pre-admitted trust root.",
+    "CONFLICT": "Compatible evidence contradicts; conflict remains explicit and fails closed.",
+    "FAIL": "Executed predicate failed.",
+    "UNKNOWN": "Insufficient evidence."
+  },
+  "promotion_rule": "Readiness is weighted and non-authorizing; production authorization is conjunctive and cannot be compensated by score."
+}

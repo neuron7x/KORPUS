@@ -42,8 +42,8 @@
   "assurance": {
     "minimum_tests": 250,
     "minimum_executed_tests": 245,
-    "minimum_line_rate": 0.82,
-    "minimum_branch_rate": 0.75,
+    "minimum_line_rate": 0.95,
+    "minimum_branch_rate": 0.9,
     "required_quality_tools": [
       "ruff",
       "mypy"

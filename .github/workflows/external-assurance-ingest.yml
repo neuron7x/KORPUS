@@ -1,0 +1,71 @@
+name: external-assurance-ingest
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_run_id:
+        description: "Run ID containing external-assurance-input artifact"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: external-assurance-ingest-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+
+jobs:
+  ingest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Download external assurance bundle
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: external-assurance-input
+          path: var/incoming/external
+          run-id: ${{ inputs.evidence_run_id }}
+          github-token: ${{ github.token }}
+      - name: Stage only complete externally controlled evidence groups
+        env:
+          KORPUS_EXTERNAL_TEVV_EVIDENCE_FILE: ${{ github.workspace }}/var/incoming/external/tevv-evidence.json
+          KORPUS_EXTERNAL_TEVV_ATTESTATION_FILE: ${{ github.workspace }}/var/incoming/external/tevv-evidence.attestation.json
+          KORPUS_EXTERNAL_REDTEAM_REPORT_FILE: ${{ github.workspace }}/var/incoming/external/external-redteam-report.json
+          KORPUS_EXTERNAL_REDTEAM_ATTESTATION_FILE: ${{ github.workspace }}/var/incoming/external/external-redteam-attestation.json
+          KORPUS_TRUSTED_TEVV_SIGNER_SHA256: ${{ secrets.KORPUS_TRUSTED_TEVV_SIGNER_SHA256 }}
+          KORPUS_TRUSTED_REDTEAM_SIGNER_SHA256: ${{ secrets.KORPUS_TRUSTED_REDTEAM_SIGNER_SHA256 }}
+        run: |
+          python scripts/stage_external_production_evidence.py > var/production/external-stage-summary.json
+          python scripts/run_tevv_production_gate.py
+          python scripts/validate_external_redteam_evidence.py
+      - name: Publish verified external gate receipts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: external-assurance-gates-${{ github.run_id }}
+          path: |
+            var/production/external-stage-summary.json
+            var/production/tevv-gate.json
+            var/production/redteam-gate.json
+          if-no-files-found: error
+          retention-days: 90

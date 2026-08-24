@@ -1,0 +1,43 @@
+{
+  "schema": "korpus.local-signing-mechanism-proof.v1",
+  "status": "CRYPTOGRAPHICALLY_VALID_UNTRUSTED",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "algorithm": "Ed25519",
+  "signed_manifest": "PRODUCTION_BLOCKER_CLOSEOUT.json",
+  "manifest_sha256": "6f11e722938684eca66d0d2b3f6e4b4ca3f4924aa05054b866017934db9d3f17",
+  "public_key_sha256": "6d5bc381af4bb39384d1f4325dbd714e80574c99255f32311cc1e1edf862033b",
+  "cryptographic_verification_exit_code": 0,
+  "cryptographic_verification": {
+    "valid": true,
+    "checks": {
+      "algorithm": true,
+      "release": true,
+      "manifest_name": true,
+      "manifest_sha256": true,
+      "public_key_sha256": true,
+      "signature": true
+    },
+    "failures": [],
+    "public_key_sha256": "6d5bc381af4bb39384d1f4325dbd714e80574c99255f32311cc1e1edf862033b"
+  },
+  "trusted_verification_exit_code": 1,
+  "trusted_verification": {
+    "valid": false,
+    "checks": {
+      "algorithm": true,
+      "release": true,
+      "manifest_name": true,
+      "manifest_sha256": true,
+      "public_key_sha256": true,
+      "signature": true,
+      "trusted_signer": false
+    },
+    "failures": [
+      "trusted_signer"
+    ],
+    "public_key_sha256": "6d5bc381af4bb39384d1f4325dbd714e80574c99255f32311cc1e1edf862033b"
+  },
+  "private_key_packaged": false,
+  "interpretation": "The detached-signature mechanism executed successfully. The signer is intentionally not in the production trust registry, so this proves signing capability but does not satisfy trusted hosted-builder or production signer predicates."
+}

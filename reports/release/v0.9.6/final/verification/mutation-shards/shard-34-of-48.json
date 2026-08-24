@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 34,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M33_RETRIEVER_CLEARANCE_RECHECK_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": ".F\n=================================== FAILURES ===================================\n___ test_out_of_scope_evidence_stops_the_answer[kwargs1-reader_not_cleared] ____\n\nclient = <starlette.testclient.TestClient object at 0x7fbe5463de50>\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\nkwargs = {'access_tier': <AccessTier.RESTRICTED: 3>, 'classification': <Classification.RESTRICTED: 'restricted'>}\nkind = 'reader_not_cleared'\n\n    @pytest.mark.parametrize(\n        (\"kwargs\", \"kind\"),\n        [\n            ({\"corpus_id\": \"restricted-demo\"}, \"corpus_out_of_scope\"),\n            ({\"access_tier\": AccessTier.RESTRICTED, \"classification\": Classification.RESTRICTED},\n             \"reader_not_cleared\"),\n            ({\"compartments\": frozenset({\"alpha\"})}, \"reader_not_cleared\"),\n        ],\n    )\n    def test_out_of_scope_evidence_stops_the_answer(\n        client: TestClient, public_identity: Identity, kwargs: dict[str, object], kind: str\n    ) -> None:\n        _install(client, _evidence(**kwargs))  # type: ignore[arg-type]\n        set_identity(client, public_identity)\n    \n        answer = _ask(client)\n    \n>       assert answer[\"status\"] == \"requires_human_review\", (\n            \"evidence outside the reader's scope is an integrity breach, not thin coverage\"\n        )\nE       AssertionError: evidence outside the reader's scope is an integrity breach, not thin coverage\nE       assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_retriever_scope.py:149: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retriever_scope.py::test_out_of_scope_evidence_stops_the_answer[kwargs1-reader_not_cleared] - AssertionError: evidence outside the reader's scope is an integrity breach, not thin coverage\nassert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M77_SPAN_SELF_REFUTATION_IGNORED",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_span_that_reverses_itself_stops_the_answer _______________\n\nclient = <starlette.testclient.TestClient object at 0x7fd928cd42f0>\n\n    def test_a_span_that_reverses_itself_stops_the_answer(client: TestClient) -> None:\n        \"\"\"Both sentences live in one span; only the first matches the query.\"\"\"\n        body = (\n            f\"Ведення журналу {MARKER} є обов'язковим для кожного підрозділу. \"\n            f\"Ведення журналу {MARKER} не є обов'язковим для підрозділів забезпечення.\"\n        )\n        result = ingest_text(client, text=body)\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = client.post(\n            \"/v1/answers\", json={\"text\": f\"чи обов'язкове ведення журналу {MARKER}\"}\n        ).json()\n    \n>       assert answer[\"status\"] == \"requires_human_review\", answer[\"decision_reason\"]\nE       AssertionError: extractive_claims_passed_calibrated_gates\nE       assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_intra_span_contradiction.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer - AssertionError: extractive_claims_passed_calibrated_gates\nassert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M146_PLAINTEXT_SECRET_IN_TREE_UNDETECTED",
+      "file": "apps/api/src/korpus/repository_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_a_plaintext_secret_in_the_tree_is_detected ________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-920/test_a_plaintext_secret_in_the0')\n\n    def test_a_plaintext_secret_in_the_tree_is_detected(tmp_path: Path) -> None:\n        \"\"\"A secret in the tree is disclosed to everyone who ever clones it, forever.\"\"\"\n        root = _tree(tmp_path)\n        (root / \"infra/secrets/postgres_password.txt\").write_text(\"hunter2\", encoding=\"utf-8\")\n    \n>       assert load_context(root).tracked_secrets == [\"infra/secrets/postgres_password.txt\"]\nE       AssertionError: assert [] == ['infra/secre...password.txt']\nE         \nE         Right contains one more item: 'infra/secrets/postgres_password.txt'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'infra/secrets/postgres_password.txt',\nE         - ]\n\napps/api/tests/test_repository_register.py:42: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected - AssertionError: assert [] == ['infra/secre...password.txt']\n  \n  Right contains one more item: 'infra/secrets/postgres_password.txt'\n  \n  Full diff:\n  + []\n  - [\n  -     'infra/secrets/postgres_password.txt',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M202_RELEASE_MATCHES_ANY_DATABASE",
+      "file": "scripts/corpus_release.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_corpus_release_manifest.py::test_a_different_corpus_is_reported_as_a_different_release"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_a_different_corpus_is_reported_as_a_different_release __________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-921/test_a_different_corpus_is_rep0')\nkey = PosixPath('/tmp/pytest-of-root/pytest-921/test_a_different_corpus_is_rep0/release.key')\n\n    def test_a_different_corpus_is_reported_as_a_different_release(\n        tmp_path: Path, key: Path\n    ) -> None:\n        \"\"\"The rollback-detection property: after a restore, which corpus is this?\"\"\"\n        database = tmp_path / \"korpus.db\"\n        _corpus(database, versions=3)\n        manifest = tmp_path / \"release.json\"\n        _run([\"freeze\", \"--database\", str(database), \"--out\", str(manifest)], key)\n    \n        older = tmp_path / \"older.db\"\n        _corpus(older, versions=2)\n    \n        code, result = _run([\"verify\", \"--manifest\", str(manifest), \"--database\", str(older)], key)\n    \n>       assert code != 0\nE       assert 0 != 0\n\napps/api/tests/test_corpus_release_manifest.py:130: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_corpus_release_manifest.py::test_a_different_corpus_is_reported_as_a_different_release - assert 0 != 0\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M149_UNDECLARED_RETENTION_READS_AS_COMPLIANT",
+      "file": "apps/api/src/korpus/application/conversation_retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_conversation_retention.py::test_no_declared_window_is_reported_as_undecided_not_as_compliant"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_no_declared_window_is_reported_as_undecided_not_as_compliant _______\n\n    def test_no_declared_window_is_reported_as_undecided_not_as_compliant() -> None:\n        plan = plan_retention([_aged(4000)], window_days=None, now=NOW)\n        assert plan.state is RetentionState.NOT_DECLARED\n>       assert plan.status == \"NOT_DECLARED\"\nE       AssertionError: assert 'NOTHING_DUE' == 'NOT_DECLARED'\nE         \nE         - NOT_DECLARED\nE         + NOTHING_DUE\n\napps/api/tests/test_conversation_retention.py:42: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_conversation_retention.py::test_no_declared_window_is_reported_as_undecided_not_as_compliant - AssertionError: assert 'NOTHING_DUE' == 'NOT_DECLARED'\n  \n  - NOT_DECLARED\n  + NOTHING_DUE\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M238_UNSIGNED_PRODUCTION_ASSURANCE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_report_verification.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_unsigned_or_untrusted_production_assurance_report_is_rejected ______\n\n    def test_unsigned_or_untrusted_production_assurance_report_is_rejected() -> None:\n        source, release, profile = \"d\" * 64, \"v9.9.9\", _profile()\n        gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)\n>       assert _verify(report, profile, gates, source, release, hashes, attested=False)[\"assurance_attestation_verified\"] is False\nE       assert True is False\n\napps/api/tests/test_production_report_verification.py:105: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M286_PEC_CONTEXTUAL_EVIDENCE_MUTATION_IGNORED",
+      "file": "apps/api/src/korpus/application/pec_contextual_benchmark.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_contextual_benchmark.py::test_contextual_benchmark_refuses_evidence_mutation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_contextual_benchmark_refuses_evidence_mutation ______________\n\n    def test_contextual_benchmark_refuses_evidence_mutation() -> None:\n        item = row(\"q1\", 2, 1)\n        item[\"evidence_unchanged\"] = False\n        report = evaluate_contextual_benchmark([item], minimum_informative_pairs=1)\n>       assert report[\"status\"] == \"FAIL\"\nE       AssertionError: assert 'UNKNOWN' == 'FAIL'\nE         \nE         - FAIL\nE         + UNKNOWN\n\napps/api/tests/test_pec_contextual_benchmark.py:34: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_contextual_benchmark.py::test_contextual_benchmark_refuses_evidence_mutation - AssertionError: assert 'UNKNOWN' == 'FAIL'\n  \n  - FAIL\n  + UNKNOWN\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:40:42+00:00"
+  }
+}

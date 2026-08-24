@@ -2,26 +2,45 @@
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
+
 default_version="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import release_tag; print(release_tag())')"
 version="${KORPUS_RELEASE_VERSION:-$default_version}"
-# The artifact stem is release metadata, not an independent version declaration.
 default_name="$(python3 -c 'import sys; sys.path.insert(0, "scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
 name="${KORPUS_PACKAGE_NAME:-$default_name}"
+current_head="$(git rev-parse HEAD)"
+source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"
+[[ "$source_commit" =~ ^[0-9a-f]{40}$ ]] || { echo "invalid package source commit" >&2; exit 1; }
+[[ "$current_head" == "$source_commit" ]] || { echo "package source commit is not current HEAD" >&2; exit 1; }
+
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
 python3 "$root/scripts/check_release_identity.py" --require-git-tag
-PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
 python3 "$root/scripts/verify_source_manifest.py"
+
+# Research evidence is mandatory for a formal research release. A canonical engineering
+# candidate may carry an explicit release report instead; production-release remains stricter.
+if [[ "${KORPUS_ENGINEERING_CANDIDATE:-0}" == "1" ]]; then
+  [[ -f reports/CANONICAL_RELEASE_REPORT.json ]] || { echo "canonical release report missing" >&2; exit 1; }
+  python3 - <<'PY'
+import json
+from pathlib import Path
+p=json.loads(Path('reports/CANONICAL_RELEASE_REPORT.json').read_text())
+if p.get('engineering_release_candidate') is not True or p.get('status') not in {'PASS_WITH_CAVEATS','PASS'}:
+    raise SystemExit('canonical release report does not authorize engineering candidate packaging')
+PY
+else
+  PYTHONPATH="$root/scripts" python3 "$root/scripts/verify_release_evidence.py"
+fi
 
 tmp="$(mktemp -d)"
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT INT TERM
 
-# The source tree is exactly the committed revision; generated evidence is copied explicitly.
-git archive --format=tar HEAD | tar -xf - -C "$tmp"
-# History is a separate artifact inside the distribution. Clone/check out the release tag;
-# do not infer a branch name from whichever worktree assembled the package.
-git bundle create "$tmp/${name}.bundle" --all
+# Freeze exactly one committed source revision. No .git, branches, refs or deleted blobs.
+git archive --format=tar "$source_commit" | tar -xf - -C "$tmp"
+printf '{"schema":"korpus.package-build.v1","source_commit":"%s","release":"%s","history_included":false}\n' \
+  "$source_commit" "$version" > "$tmp/PACKAGE_BUILD.json"
+
 if [[ -d reports ]]; then
   rm -rf "$tmp/reports"
   cp -a reports "$tmp/reports"
@@ -31,10 +50,6 @@ for artifact in source-sbom.cdx.json api-sbom.cdx.json web-sbom.cdx.json; do
 done
 find "$tmp" -type f -path '*/infra/secrets/*.txt' -delete
 
-# The sealed evidence registry and the frozen corpus release travel with the source.
-# Without them the package is a system nobody can check: the reports that show what it
-# does under load, when a dependency is broken, and against its own corpus all live in
-# `var/`, which is cleaned, and in CI artefacts, which expire in weeks.
 if [[ -d var/evidence ]]; then
   mkdir -p "$tmp/evidence"
   cp -a var/evidence/. "$tmp/evidence/"
@@ -44,29 +59,32 @@ if [[ -d var/releases ]]; then
   cp -a var/releases/. "$tmp/evidence/releases/"
 fi
 
-# Named explicitly rather than left for a reader to discover by its absence.
 cat > "$tmp/PACKAGE_BOUNDARY.md" <<'DOC'
 # Що в цьому пакеті
 
-Це перевірюваний distribution artifact: source snapshot, Git bundle, release reports,
-sealed evidence registry та manifests. `DISTRIBUTION_MANIFEST.json` описує точні байти
-архіву; `SOURCE_MANIFEST.json` — source snapshot без generated assurance artifacts.
+Це один перевірюваний clean-source distribution artifact: exact committed source,
+release reports, selected evidence and manifests. `DISTRIBUTION_MANIFEST.json` описує
+точні байти архіву; `SOURCE_MANIFEST.json` — canonical source boundary.
 
 ## Навмисно не включено
 
+- `.git`, branches, refs, pull-request lineage та deleted historical blobs;
 - production secrets та credentials;
 - приватний/обмежений corpus payload;
-- production authorization, risk-owner signature або зовнішня атестація.
+- production authorization або зовнішня атестація, якщо вони не були реально отримані.
 
-Відсутність цих речей не маскується як PASS. Поточні зовнішні залежності й допуски
-зафіксовані в `docs/audit/closure/` та release assurance reports.
+Відсутність production-only evidence не маскується як PASS. `PACKAGE_BUILD.json` зв'язує
+архів з одним commit source tree. Старі гілки не є частиною release payload.
 DOC
+
+[[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved before manifest construction" >&2; exit 1; }
 python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output "$tmp/DISTRIBUTION_MANIFEST.json"
 (
   cd "$tmp"
   find . -type f -print0 | LC_ALL=C sort -z | xargs -0 touch -h -d '@0'
   LC_ALL=C find . -type f -print | LC_ALL=C sort | zip -X -q "$root/dist/${name}.zip" -@
 )
+[[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved during package construction" >&2; exit 1; }
 sha256sum "dist/${name}.zip" > "dist/${name}.zip.sha256"
 python3 "$root/scripts/verify_package.py" "dist/${name}.zip"
 cat "dist/${name}.zip.sha256"

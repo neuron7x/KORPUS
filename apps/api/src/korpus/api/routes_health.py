@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 
 from korpus.api.dependencies import get_object_store, get_observability, get_repository
+from korpus.api.readiness_projection import success_payload
 from korpus.application.ports import ObjectStore
 from korpus.config import Settings, get_settings
 from korpus.domain.models import Identity
@@ -16,7 +17,6 @@ from korpus.security.auth import get_identity
 
 router = APIRouter()
 IdentityDependency = Annotated[Identity, Depends(get_identity)]
-
 
 @router.get("/health")
 def health() -> dict[str, str]:
@@ -99,9 +99,9 @@ def ready(
                 detail={"ready": False, "reason": reason},
             )
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=payload)
-    # readiness_snapshot always stores an int under this key (repository.readiness_snapshot)
-    audit_head = int(snapshot["audit_head_sequence"])  # type: ignore[call-overload]
-    return {"status": "ready", "audit_head": audit_head, "telemetry": telemetry}
+    return success_payload(
+        detail_permitted=detail_permitted, snapshot=snapshot, telemetry=telemetry
+    )
 
 
 @router.get("/metrics", include_in_schema=False)

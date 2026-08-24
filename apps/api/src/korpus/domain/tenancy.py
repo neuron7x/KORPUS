@@ -152,6 +152,7 @@ class AccountRecord(BaseModel):
         return self.status is AccountStatus.ACTIVE
 
 
+MAX_PLAN_PRICE_MINOR = 100_000_000
 class PlanRecord(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: UUID = Field(default_factory=uuid4)
@@ -161,7 +162,7 @@ class PlanRecord(BaseModel):
     billing_interval: BillingInterval = BillingInterval.MONTHLY
     external_product_reference: str | None = Field(default=None, max_length=255)
     external_price_reference: str | None = Field(default=None, max_length=255)
-    price_minor: int | None = Field(default=None, ge=1, le=100_000_000)
+    price_minor: int | None = Field(default=None, strict=True, ge=1, le=MAX_PLAN_PRICE_MINOR)
     currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
     entitled_corpora: frozenset[str] = Field(default_factory=frozenset)
     created_at: datetime = Field(default_factory=_now)
@@ -171,7 +172,6 @@ class PlanRecord(BaseModel):
         if (self.price_minor is None) != (self.currency is None):
             raise ValueError("price_minor and currency must be configured together")
         return self
-
 
 class SubscriptionRecord(BaseModel):
     model_config = ConfigDict(frozen=True)

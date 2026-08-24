@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 13,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M13_OPERATIONAL_LEAKAGE_GATE_INVERTED",
+      "file": "apps/api/src/korpus/application/operational_math.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_operational_gate_fails_closed_on_trust_regression[eval-leakage_failures-1-access_noninterference] _\n\nsection = 'eval', key = 'leakage_failures', value = 1\nfailed_check = 'access_noninterference'\n\n    @pytest.mark.parametrize(\n        \"section,key,value,failed_check\",\n        [\n            (\"eval\", \"leakage_failures\", 1, \"access_noninterference\"),\n            (\"eval\", \"citation_failures\", 1, \"citation_integrity\"),\n            (\"mutation\", \"mutation_score\", 0.99, \"critical_mutation_score\"),\n        ],\n    )\n    def test_operational_gate_fails_closed_on_trust_regression(section, key, value, failed_check):\n        reports = passing_reports()\n        reports[section][key] = value\n        result = evaluate(reports)\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n\napps/api/tests/test_operations.py:111: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression[eval-leakage_failures-1-access_noninterference] - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M60_GATE_ASSUMES_PROVENANCE_WHEN_ABSENT",
+      "file": "apps/api/src/korpus/application/operations.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_provenance.py::test_gate_without_a_digest_cannot_pass"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_gate_without_a_digest_cannot_pass ____________________\n\n    def test_gate_without_a_digest_cannot_pass() -> None:\n        result = OperationalReleaseGate.load(POLICY).evaluate(stamped_reports(\"a\" * 64))\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n\napps/api/tests/test_evidence_provenance.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_provenance.py::test_gate_without_a_digest_cannot_pass - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M104_VERSION_NARROWING_DROPPED_FROM_SQL",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_span_lookup.py::test_listing_one_version_does_not_read_the_whole_corpus"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ent, admin_identity: Identity\n    ) -> None:\n        \"\"\"The narrowing is in SQL, not in a Python filter over everything readable.\n    \n        Filtering the full projection in the handler made the cost of showing one order's\n        passages grow with the corpus: measured 2026-08-05, 20 spans of one version took\n        5 ms in a corpus of 20 spans and 364 ms in a corpus of 10 020 — 73× for a document\n        that had not changed, and the cheapest denial of service in the system.\n    \n        Stated as a row count rather than a duration, because a timing assertion is a\n        flake: a repository that ignores `version_id` returns every readable span here.\n        \"\"\"\n        from datetime import date\n    \n        target = ingest_text(client, title=\"Цільовий наказ\", text=STRUCTURED)\n        approve(client, target[\"version\"][\"id\"])\n        for index in range(3):\n            # Distinct bytes: identical content deduplicates to the same version.\n            other = ingest_text(\n                client,\n                title=f\"Інший наказ {index}\",\n                text=f\"{STRUCTURED}\\n\\nДодаток {index}. Окреме положення частини.\",\n            )\n            approve(client, other[\"version\"][\"id\"])\n    \n        rows = client.app.state.repository.list_retrievable_spans(\n            admin_identity,\n            frozenset({\"public\"}),\n            date(2026, 8, 5),\n            version_id=UUID(str(target[\"version\"][\"id\"])),\n        )\n    \n        assert rows, \"the target version must still be readable\"\n>       assert {str(version.id) for _span, _document, version in rows} == {\n            str(target[\"version\"][\"id\"])\n        }\nE       AssertionError: assert {'3e1311c4-cf...c801c85d8e5a'} == {'d38c65d9-ba...c801c85d8e5a'}\nE         \nE         Extra items in the left set:\nE         '3e1311c4-cfa8-4eef-835c-88e3469d3514'\nE         '8c908cc2-98da-43df-a4aa-694f9fcb2608'\nE         '6760be20-ea0b-4dac-b512-1b490a6b05eb'\nE         \nE         Full diff:\nE           {\nE         +     '3e1311c4-cfa8-4eef-835c-88e3469d3514',\nE         +     '6760be20-ea0b-4dac-b512-1b490a6b05eb',\nE         +     '8c908cc2-98da-43df-a4aa-694f9fcb2608',\nE               'd38c65d9-ba6f-4fcc-aefd-c801c85d8e5a',\nE           }\n\napps/api/tests/test_span_lookup.py:179: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_span_lookup.py::test_listing_one_version_does_not_read_the_whole_corpus - AssertionError: assert {'3e1311c4-cf...c801c85d8e5a'} == {'d38c65d9-ba...c801c85d8e5a'}\n  \n  Extra items in the left set:\n  '3e1311c4-cfa8-4eef-835c-88e3469d3514'\n  '8c908cc2-98da-43df-a4aa-694f9fcb2608'\n  '6760be20-ea0b-4dac-b512-1b490a6b05eb'\n  \n  Full diff:\n    {\n  +     '3e1311c4-cfa8-4eef-835c-88e3469d3514',\n  +     '6760be20-ea0b-4dac-b512-1b490a6b05eb',\n  +     '8c908cc2-98da-43df-a4aa-694f9fcb2608',\n        'd38c65d9-ba6f-4fcc-aefd-c801c85d8e5a',\n    }\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M121_LEGAL_HOLD_DOES_NOT_OUTRANK_THE_TIMER",
+      "file": "apps/api/src/korpus/application/retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retention_planning.py::test_legal_hold_outranks_the_retention_period"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_legal_hold_outranks_the_retention_period _________________\n\n    def test_legal_hold_outranks_the_retention_period() -> None:\n        \"\"\"Hold is the answer whatever the age; a timer must not release evidence.\"\"\"\n        policy = _policy(\n            legal_hold=True,\n            allowed_operations=frozenset({CorpusOperation.INDEX}),\n            retention_days=1,\n        )\n    \n        plan = plan_retention(_documents(3650), {\"public\": policy}, now=NOW)\n    \n>       assert [item.disposition for item in plan.items] == [HELD]\nE       AssertionError: assert ['AWAITING_DECISION'] == ['HELD']\nE         \nE         At index 0 diff: 'AWAITING_DECISION' != 'HELD'\nE         \nE         Full diff:\nE           [\nE         -     'HELD',\nE         +     'AWAITING_DECISION',\nE           ]\n\napps/api/tests/test_retention_planning.py:95: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retention_planning.py::test_legal_hold_outranks_the_retention_period - AssertionError: assert ['AWAITING_DECISION'] == ['HELD']\n  \n  At index 0 diff: 'AWAITING_DECISION' != 'HELD'\n  \n  Full diff:\n    [\n  -     'HELD',\n  +     'AWAITING_DECISION',\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M133_NAIVE_TIMESTAMP_ASSUMED_UTC",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_a_naive_timestamp_is_refused_rather_than_assumed_utc"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_a_naive_timestamp_is_refused_rather_than_assumed_utc ___________\n\n    def test_a_naive_timestamp_is_refused_rather_than_assumed_utc() -> None:\n        \"\"\"Assuming a timezone silently shifts the age by hours in either direction.\"\"\"\n>       admissible, reason = drift.observation_age_admissible(\"2026-08-05T12:00:00\", NOW)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_environment_drift.py:225: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nobserved_at = '2026-08-05T12:00:00'\nnow = datetime.datetime(2026, 8, 5, 12, 0, tzinfo=datetime.timezone.utc)\nmax_age_seconds = 3600\n\n    def observation_age_admissible(\n        observed_at: str | None, now: datetime, max_age_seconds: int = DEFAULT_MAX_AGE_SECONDS\n    ) -> tuple[bool, str]:\n        \"\"\"Whether an observation is recent enough to be compared.\n    \n        An observation without a timestamp is refused rather than assumed fresh: the whole\n        point of the check is that a stale answer and a current one are indistinguishable\n        once the verdict is printed.\n        \"\"\"\n        if not observed_at:\n            return False, (\n                \"the observation carries no timestamp, so it cannot be told from one taken \"\n                \"before the change it is meant to detect\"\n            )\n        try:\n            taken = datetime.fromisoformat(observed_at)\n        except ValueError:\n            return False, f\"the observation timestamp is not an ISO instant: {observed_at!r}\"\n        if False:\n            return False, \"the observation timestamp carries no timezone\"\n>       age = (now - taken).total_seconds()\n               ^^^^^^^^^^^\nE       TypeError: can't subtract offset-naive and offset-aware datetimes\n\n/tmp/korpus-m133_naive_timestamp_assumed_utc-2cxpmfu6/api-src/korpus/application/environment_drift.py:165: TypeError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_a_naive_timestamp_is_refused_rather_than_assumed_utc - TypeError: can't subtract offset-naive and offset-aware datetimes\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED",
+      "file": "apps/api/src/korpus/application/production_assurance_external.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_self_declared_external_redteam_without_trusted_attestation_is_rejected __\n\n    def test_self_declared_external_redteam_without_trusted_attestation_is_rejected() -> None:\n        gates = _sound_gates()\n        gates[\"redteam\"][\"attestation_verified\"] = False\n        gates[\"redteam\"][\"trusted_signer\"] = False\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n>       assert \"redteam.attestation_verified\" in verdict.failures\nE       AssertionError: assert 'redteam.attestation_verified' in ('redteam.trusted_signer',)\nE        +  where ('redteam.trusted_signer',) = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering...._backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=('redteam.trusted_signer',)).failures\n\napps/api/tests/test_production_assurance.py:97: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected - AssertionError: assert 'redteam.attestation_verified' in ('redteam.trusted_signer',)\n +  where ('redteam.trusted_signer',) = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering...._backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=('redteam.trusted_signer',)).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M265_SCANNER_MARKER_COMMIT_REPLAY_ACCEPTED",
+      "file": "apps/api/src/korpus/application/supply_chain_scanners.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_scanner_marker_commit_must_match_current_pipeline_commit _________\n\n    def test_scanner_marker_commit_must_match_current_pipeline_commit() -> None:\n        marker = {\"commit_sha\": \"old\"}\n>       assert scanner_marker_current(marker, \"current\") is False\nE       AssertionError: assert True is False\nE        +  where True = scanner_marker_current({'commit_sha': 'old'}, 'current')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:85: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit - AssertionError: assert True is False\n +  where True = scanner_marker_current({'commit_sha': 'old'}, 'current')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:33:25+00:00"
+  }
+}

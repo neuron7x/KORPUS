@@ -1,0 +1,56 @@
+{
+  "schema": "korpus.claim-ledger.v1",
+  "generated_at": "2026-08-18T16:53:11.082353+00:00",
+  "release": "v0.9.1",
+  "source_tree_sha256": "5a85de448a976e1b11f07944cdd161efbb8faddd2edbe5d6a9ee191e504db089",
+  "claims": [
+    {
+      "id": "CLM-SOURCE-INTEGRITY",
+      "claim": "Current source manifest verifies the frozen source boundary.",
+      "status": "SUPPORTED",
+      "evidence": "SOURCE_MANIFEST.json"
+    },
+    {
+      "id": "CLM-REGRESSION",
+      "claim": "v0.6.1 regression evidence is admissible only through explicit v0.9.1 byte-level carry-forward over unchanged governed runtime paths.",
+      "status": "SUPPORTED_SCOPED",
+      "evidence": "reports/release/v0.9.1/REGRESSION_CARRY_FORWARD.json"
+    },
+    {
+      "id": "CLM-TARGETED",
+      "claim": "Current v0.9.1 assurance delta has a fresh targeted campaign with no failures/errors/skips.",
+      "status": "SUPPORTED",
+      "evidence": "var/readiness947/focused-current.xml"
+    },
+    {
+      "id": "CLM-CONFLICTS",
+      "claim": "Contradictory evidence is preserved explicitly and cannot be averaged into PASS.",
+      "status": "SUPPORTED",
+      "evidence": "apps/api/tests/test_evidence_fusion.py"
+    },
+    {
+      "id": "CLM-INFERENCE-BUDGET",
+      "claim": "Recursive assurance review stops at epistemic fixpoint or hard budget.",
+      "status": "SUPPORTED",
+      "evidence": "apps/api/tests/test_inference_budget.py"
+    },
+    {
+      "id": "CLM-PRODUCTION-AUTH",
+      "claim": "System is production-authorized.",
+      "status": "REFUTED",
+      "evidence": "reports/release/v0.9.1/final/BLOCKER_REGISTRY.json"
+    },
+    {
+      "id": "CLM-INDEPENDENT",
+      "claim": "System is independently validated.",
+      "status": "REFUTED",
+      "evidence": "reports/release/v0.9.1/final/BLOCKER_REGISTRY.json"
+    },
+    {
+      "id": "CLM-READINESS-94-7",
+      "claim": "Engineering readiness is at least 94.7%.",
+      "status": "PENDING_FINAL_SCORE",
+      "evidence": "reports/release/v0.9.1/ENGINEERING_READINESS_94_7.json"
+    }
+  ]
+}

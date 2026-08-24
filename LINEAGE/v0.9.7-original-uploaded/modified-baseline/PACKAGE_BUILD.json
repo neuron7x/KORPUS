@@ -1,0 +1,9 @@
+{
+  "schema": "korpus.package-build.v2",
+  "release": "v0.9.7",
+  "source_manifest_root_sha256": "7ec82e6eebca4471e46c33edfd90285ce30117af84c247685db60b35275cd721",
+  "history_included": false,
+  "source_commit": null,
+  "import_required_to_obtain_git_commit": true,
+  "derived_from_source_commit": null
+}

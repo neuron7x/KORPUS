@@ -32,6 +32,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from korpus.application.recovery_contracts import recovery_numeric_problem, recovery_scale_counts
+
 MISSING = "MISSING"
 INCOMPLETE_PROVENANCE = "INCOMPLETE_PROVENANCE"
 OVERSTATED_SCALE = "OVERSTATED_SCALE"
@@ -82,14 +84,6 @@ class RecoveryVerdict:
         return self.status != OVERSTATED_SCALE
 
 
-def _positive_number(value: Any) -> float | None:
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return None
-    return number if number >= 0 else None
-
-
 def classify_recovery(report: Mapping[str, Any] | None) -> RecoveryVerdict:
     """Decide what the drill report supports, without deciding whether it is enough."""
 
@@ -109,21 +103,9 @@ def classify_recovery(report: Mapping[str, Any] | None) -> RecoveryVerdict:
             (f"recovery provenance is missing: {', '.join(sorted(absent))}",),
         )
 
-    rto = _positive_number(report.get("rto_seconds"))
-    if rto is None:
-        return RecoveryVerdict(
-            INCOMPLETE_PROVENANCE,
-            ("recovery report has no non-negative rto_seconds",),
-        )
-
-    if (_positive_number(provenance.get("writes_after_backup")) or 0.0) <= 0:
-        return RecoveryVerdict(
-            INCOMPLETE_PROVENANCE,
-            (
-                "no writes were made after the backup, so the loss figure is trivially "
-                "zero and the drill could not have come out any other way",
-            ),
-        )
+    numeric_problem = recovery_numeric_problem(report, provenance)
+    if numeric_problem:
+        return RecoveryVerdict(INCOMPLETE_PROVENANCE, (numeric_problem,))
 
     declared = str(report.get("scale_class", "")).strip()
     if declared not in {FIXTURE, PRODUCTION_LIKE}:
@@ -133,8 +115,7 @@ def classify_recovery(report: Mapping[str, Any] | None) -> RecoveryVerdict:
         )
 
     if declared == PRODUCTION_LIKE:
-        rows = _positive_number(provenance.get("document_rows")) or 0.0
-        plaintext = _positive_number(provenance.get("plaintext_bytes")) or 0.0
+        rows, plaintext = recovery_scale_counts(provenance)
         if rows < PRODUCTION_LIKE_MINIMUM_ROWS and plaintext < PRODUCTION_LIKE_MINIMUM_BYTES:
             reasons.append(
                 f"report claims {PRODUCTION_LIKE!r} on {rows:.0f} document rows and "

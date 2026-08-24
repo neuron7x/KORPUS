@@ -8,10 +8,14 @@ import secrets
 import time
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlencode
 
 import httpx
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+from korpus.security.browser_oidc_urls import (
+    authorization_url as build_authorization_url,
+    canonical_https_endpoint,
+)
 
 
 class BrowserSessionError(ValueError):
@@ -114,9 +118,10 @@ class BrowserOIDCClient:
         timeout_seconds: float = 5.0,
         client: httpx.Client | None = None,
     ) -> None:
-        for endpoint in (authorization_endpoint, token_endpoint):
-            if not endpoint.startswith("https://"):
-                raise ValueError("OIDC browser endpoints must use HTTPS")
+        authorization_endpoint = canonical_https_endpoint(
+            authorization_endpoint, name="OIDC authorization endpoint"
+        )
+        token_endpoint = canonical_https_endpoint(token_endpoint, name="OIDC token endpoint")
         if not client_id or not redirect_uri:
             raise ValueError("OIDC client id and redirect URI are required")
         self.authorization_endpoint = authorization_endpoint
@@ -146,20 +151,13 @@ class BrowserOIDCClient:
         }
 
     def authorization_url(self, flow: dict[str, str]) -> str:
-        query = urlencode(
-            {
-                "response_type": "code",
-                "client_id": self.client_id,
-                "redirect_uri": self.redirect_uri,
-                "scope": " ".join(self.scopes),
-                "state": flow["state"],
-                "nonce": flow["nonce"],
-                "code_challenge": flow["code_challenge"],
-                "code_challenge_method": "S256",
-                "prompt": "select_account",
-            }
+        return build_authorization_url(
+            self.authorization_endpoint,
+            client_id=self.client_id,
+            redirect_uri=self.redirect_uri,
+            scopes=self.scopes,
+            flow=flow,
         )
-        return f"{self.authorization_endpoint}?{query}"
 
     def exchange(self, code: str, code_verifier: str) -> BrowserOIDCTokens:
         if not code or not code_verifier:

@@ -15,8 +15,10 @@ from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
 
 from korpus.application.resilience import CircuitBreaker
+from korpus.infrastructure.resource_contracts import embedding_limits
 from korpus.domain.models import Identity
 from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.url_policy import is_https_or_loopback_url
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
 
@@ -49,13 +51,11 @@ class EmbeddingProvider(Protocol):
     def healthcheck(self) -> bool: ...
     def close(self) -> None: ...
 
-
 @dataclass
 class HttpEmbeddingProvider:
     """Bounded vendor-neutral embedding integration.
 
-    The service is not authoritative. Failures open a circuit and retrieval
-    falls back to the lexical path rather than blocking corpus access.
+    The service is non-authoritative; failures open a circuit and fall back to lexical retrieval.
     """
 
     endpoint: str
@@ -68,12 +68,12 @@ class HttpEmbeddingProvider:
     client: EmbeddingHttpClient | None = None
 
     def __post_init__(self) -> None:
-        if not self.endpoint.startswith(("https://", "http://127.0.0.1", "http://localhost")):
+        if not is_https_or_loopback_url(self.endpoint):
             raise ValueError("embedding endpoint must use HTTPS or loopback HTTP")
-        if not MODEL_PATTERN.fullmatch(self.model_id) or self.dimensions < 8:
-            raise ValueError("invalid embedding model configuration")
-        if self.max_attempts < 1 or self.max_response_bytes < 1024:
-            raise ValueError("invalid embedding resilience limits")
+        if not MODEL_PATTERN.fullmatch(self.model_id): raise ValueError("invalid embedding model configuration")
+        try:
+            self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds = embedding_limits(self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds)
+        except ValueError as exc: raise ValueError(f"invalid embedding resilience configuration: {exc}") from exc
         if self.client is None:
             headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
             self.client = httpx.Client(

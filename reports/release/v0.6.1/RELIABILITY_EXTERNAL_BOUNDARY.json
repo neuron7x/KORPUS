@@ -1,0 +1,48 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "reliability",
+  "status": "FAIL",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "internal_fault_injection": true,
+    "chaos_matrix": true,
+    "live_load_soak_executed": false,
+    "load_source_bound": false,
+    "load_environment": false,
+    "recovery_drill_executed": true,
+    "recovery_source_bound": true,
+    "recovery_environment": false,
+    "load_slo_steady_p95": false,
+    "load_slo_cold_start": false,
+    "load_slo_no_5xx_rated": true,
+    "load_slo_no_subject_throttle_rated": true,
+    "load_slo_no_retrieval_deadline": true,
+    "load_attestation_verified": false,
+    "load_trusted_signer": false,
+    "recovery_attestation_verified": false,
+    "recovery_trusted_signer": false
+  },
+  "failures": [
+    "live_load_soak_executed",
+    "load_source_bound",
+    "load_environment",
+    "recovery_environment",
+    "load_slo_steady_p95",
+    "load_slo_cold_start",
+    "load_attestation_verified",
+    "load_trusted_signer",
+    "recovery_attestation_verified",
+    "recovery_trusted_signer"
+  ],
+  "evidence_class": "ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED",
+  "load_metrics": {
+    "load": {},
+    "spike": {},
+    "soak": {}
+  },
+  "chaos_cases": 8,
+  "recovery_status": "PASS",
+  "load_signer_fingerprint": "",
+  "recovery_signer_fingerprint": ""
+}

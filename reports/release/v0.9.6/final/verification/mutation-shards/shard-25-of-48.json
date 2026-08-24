@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 25,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M24_REVIEWER_REVOCATION_BYPASS",
+      "file": "apps/api/src/korpus/security/reviewers.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_registry_digest_revocation_and_scope_are_fail_closed ___________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-883/test_registry_digest_revocatio0')\n\n    def test_registry_digest_revocation_and_scope_are_fail_closed(tmp_path: Path):\n        registry = _registry()\n        path = tmp_path / \"reviewers.json\"\n        raw = registry.model_dump_json().encode(\"utf-8\")\n        path.write_bytes(raw)\n        with pytest.raises(ValueError, match=\"digest mismatch\"):\n            ReviewerRegistry.load(path, \"0\" * 64)\n        loaded = ReviewerRegistry.load(path, hashlib.sha256(raw).hexdigest())\n    \n        document = DocumentRecord(\n            canonical_title=\"Review target\",\n            corpus_id=\"public\",\n            issuer=\"Authorized Test Authority\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.PUBLIC,\n            classification=Classification.PUBLIC,\n        )\n        version = DocumentVersionRecord(\n            document_id=document.id,\n            revision=\"1\",\n            source_hash=\"0\" * 64,\n            object_key=\"00/00/\" + \"0\" * 64,\n            mime_type=\"text/plain\",\n            authority=AuthorityClass.OFFICIAL_UA,\n        )\n        assert loaded.authorize(\n            subject=\"approver\", target=ReviewState.APPROVED, document=document, version=version\n        ) == \"cred-approver\"\n>       with pytest.raises(PermissionError, match=\"no active reviewer credential\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'PermissionError'>\n\napps/api/tests/test_reviewer_registry.py:85: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed - Failed: DID NOT RAISE <class 'PermissionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M134_DROPPED_CAPABILITY_SUBSET_ACCEPTED",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_rendering_refusals.py::test_a_container_that_loosens_its_own_context_is_reported"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "...F\n=================================== FAILURES ===================================\n_ test_a_container_that_loosens_its_own_context_is_reported[<lambda>-capabilities must be dropped] _\n\nmutation = <function <lambda> at 0x7f30e88c32e0>\nreason = 'capabilities must be dropped'\n\n    @pytest.mark.parametrize(\n        \"mutation,reason\",\n        [\n            (lambda c: c.update({\"image\": \"registry.example/korpus:latest\"}), \"digest-addressed\"),\n            (\n                lambda c: c[\"securityContext\"].update({\"allowPrivilegeEscalation\": True}),\n                \"privilege escalation\",\n            ),\n            (\n                lambda c: c[\"securityContext\"].update({\"readOnlyRootFilesystem\": False}),\n                \"root filesystem must be read-only\",\n            ),\n            (\n                lambda c: c[\"securityContext\"].update({\"capabilities\": {\"drop\": [\"NET_RAW\"]}}),\n                \"capabilities must be dropped\",\n            ),\n            (lambda c: c.update({\"resources\": {\"requests\": {\"cpu\": \"1\"}}}), \"requests/limits\"),\n        ],\n    )\n    def test_a_container_that_loosens_its_own_context_is_reported(mutation, reason: str) -> None:\n        \"\"\"These are the exact loosenings the 2026-08-03 destruction stage got past.\"\"\"\n        document = yaml.safe_load(yaml.safe_dump(DEPLOYMENT))\n        mutation(document[\"spec\"][\"template\"][\"spec\"][\"containers\"][0])\n    \n        problems = manifest_violations([document])\n    \n>       assert any(reason in problem for problem in problems), problems\nE       AssertionError: [\"missing Kubernetes resource kinds: ['ConfigMap', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'Po...tion config missing: KORPUS_AUTH_MODE=oidc', 'secure production config missing: KORPUS_BROWSER_AUTH_ENABLED=true', ...]\nE       assert False\nE        +  where False = any(<generator object test_a_container_that_loosens_its_own_context_is_reported.<locals>.<genexpr> at 0x7f30e88d1be0>)\n\napps/api/tests/test_deployment_rendering_refusals.py:262: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_rendering_refusals.py::test_a_container_that_loosens_its_own_context_is_reported[<lambda>-capabilities must be dropped] - AssertionError: [\"missing Kubernetes resource kinds: ['ConfigMap', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'Po...tion config missing: KORPUS_AUTH_MODE=oidc', 'secure production config missing: KORPUS_BROWSER_AUTH_ENABLED=true', ...]\nassert False\n +  where False = any(<generator object test_a_container_that_loosens_its_own_context_is_reported.<locals>.<genexpr> at 0x7f30e88d1be0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M116_RECOVERY_SCALE_CLAIM_TAKEN_ON_TRUST",
+      "file": "apps/api/src/korpus/application/recovery.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_recovery_measurement.py::test_a_fixture_cannot_promote_itself_by_editing_a_string"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_a_fixture_cannot_promote_itself_by_editing_a_string ___________\n\n    def test_a_fixture_cannot_promote_itself_by_editing_a_string() -> None:\n        \"\"\"Two rows and 128 KB do not become the operational corpus by being labelled so.\"\"\"\n        verdict = classify_recovery(_report(scale_class=\"production-like\"))\n>       assert verdict.status == OVERSTATED_SCALE\nE       AssertionError: assert 'MEASURED' == 'OVERSTATED_SCALE'\nE         \nE         - OVERSTATED_SCALE\nE         + MEASURED\n\napps/api/tests/test_recovery_measurement.py:86: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_recovery_measurement.py::test_a_fixture_cannot_promote_itself_by_editing_a_string - AssertionError: assert 'MEASURED' == 'OVERSTATED_SCALE'\n  \n  - OVERSTATED_SCALE\n  + MEASURED\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M193_UNDATED_SOURCE_PASSES_UNANNOUNCED",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_undated_source_limitation.py::test_a_citation_without_a_publication_date_says_so"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_citation_without_a_publication_date_says_so ______________\n\nclient = <starlette.testclient.TestClient object at 0x7f94711802f0>\n\n    def test_a_citation_without_a_publication_date_says_so(client: TestClient) -> None:\n        result = ingest_text(client, text=BODY, effective_from=date(2024, 3, 11), publication_date=None)\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = _answer(client)\n    \n        assert answer[\"status\"] == \"answered\", answer[\"decision_reason\"]\n        limitations = [str(item) for item in answer[\"limitations\"]]  # type: ignore[union-attr]\n>       assert any(NOTICE in item for item in limitations), limitations\nE       AssertionError: ['Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями.', 'Retrieval score є ranking utility, а не ймовірністю істинності.']\nE       assert False\nE        +  where False = any(<generator object test_a_citation_without_a_publication_date_says_so.<locals>.<genexpr> at 0x7f947120dff0>)\n\napps/api/tests/test_undated_source_limitation.py:45: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_undated_source_limitation.py::test_a_citation_without_a_publication_date_says_so - AssertionError: ['Відповідь екстрактивна: система не додає фактів поза точними цитованими реченнями.', 'Retrieval score є ranking utility, а не ймовірністю істинності.']\nassert False\n +  where False = any(<generator object test_a_citation_without_a_publication_date_says_so.<locals>.<genexpr> at 0x7f947120dff0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M140_LOCAL_ONLY_ACCEPTS_ARBITRARY_DNS_NAME",
+      "file": "apps/api/src/korpus/application/egress.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_model_egress.py::test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private _\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8347c5f820>\n\n    def test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private(\n        monkeypatch: pytest.MonkeyPatch,\n    ) -> None:\n        \"\"\"DNS rebinding: policy must not depend on a lookup the transport will repeat.\"\"\"\n        import socket\n    \n        calls = 0\n    \n        def resolve(host: str, *args: Any, **kwargs: Any) -> list[Any]:\n            nonlocal calls\n            calls += 1\n            address = \"10.0.0.5\" if calls == 1 else \"169.254.169.254\"\n            return [(socket.AF_INET, socket.SOCK_STREAM, 6, \"\", (address, 443))]\n    \n        monkeypatch.setattr(socket, \"getaddrinfo\", resolve)\n        policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)\n>       with pytest.raises(EgressDenied):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n\napps/api/tests/test_model_egress.py:94: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_model_egress.py::test_local_only_refuses_arbitrary_dns_names_even_if_the_first_lookup_would_be_private - Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M229_SECURITY_SCANNER_SET_EMPTIED",
+      "file": "apps/api/src/korpus/application/supply_chain_scanners.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_summary_status_string_alone_is_not_clean"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_scanner_summary_status_string_alone_is_not_clean _____________\n\n    def test_scanner_summary_status_string_alone_is_not_clean() -> None:\n>       assert scanner_summary_clean({\"status\": \"PASS\", \"worst_exit_code\": 0, \"scanners\": []}) is False\nE       AssertionError: assert True is False\nE        +  where True = scanner_summary_clean({'scanners': [], 'status': 'PASS', 'worst_exit_code': 0})\n\napps/api/tests/test_supply_chain_evidence_boundary.py:17: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_summary_status_string_alone_is_not_clean - AssertionError: assert True is False\n +  where True = scanner_summary_clean({'scanners': [], 'status': 'PASS', 'worst_exit_code': 0})\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M277_PEC_STRUCTURAL_ADMISSION_BYPASSED",
+      "file": "apps/api/src/korpus/application/evidence_admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_decision_sensitivity.py::test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary ___\n\n    def test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary() -> None:\n        item = _evidence(score=1.0, coverage=1.0, authority=AuthorityClass.ADVERSARY)\n        summary = admission_boundary_summary([item], _thresholds())\n>       assert summary.structural_candidate_exists is False\nE       assert True is False\nE        +  where True = AdmissionBoundarySummary(structural_candidate_exists=True, retrieval_gate_passed=False, best_score_margin=0.5, best_query_coverage_margin=0.4, best_authority_margin=-0.74, minimum_admission_margin=-0.74, decision_boundary_distance=0.74).structural_candidate_exists\n\napps/api/tests/test_decision_sensitivity.py:143: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_decision_sensitivity.py::test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary - assert True is False\n +  where True = AdmissionBoundarySummary(structural_candidate_exists=True, retrieval_gate_passed=False, best_score_margin=0.5, best_query_coverage_margin=0.4, best_authority_margin=-0.74, minimum_admission_margin=-0.74, decision_boundary_distance=0.74).structural_candidate_exists\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:37:45+00:00"
+  }
+}

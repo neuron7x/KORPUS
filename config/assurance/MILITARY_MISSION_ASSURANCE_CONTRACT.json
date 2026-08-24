@@ -1,0 +1,40 @@
+{
+  "schema": "korpus.military-mission-assurance.v1",
+  "as_of": "2026-08-20",
+  "purpose": "Evidence-bound military education and authoritative information retrieval. The system supports human learning and information access; it does not self-authorize operational decisions.",
+  "tested_system_identity": {
+    "must_bind": ["source_tree_sha256", "release", "harness_sha256", "dataset_sha256", "configuration_sha256", "environment_identity"],
+    "rule": "Any material change creates a different tested system and invalidates carry-forward performance evidence unless explicitly requalified."
+  },
+  "hard_failure_classes": [
+    "access_leakage",
+    "stale_authority",
+    "unsupported_claim",
+    "citation_integrity",
+    "missed_mandatory_abstention",
+    "source_identity_mismatch",
+    "offline_rollback_acceptance"
+  ],
+  "admission": {
+    "minimum_cases": 400,
+    "maximum_hard_failure_rate_upper_95": 0.01,
+    "hard_failures_observed_allowed": 0,
+    "independent_evaluation_required": true,
+    "real_domain_required": true,
+    "operational_environment_required": true
+  },
+  "te_dimensions": [
+    "model_and_retrieval",
+    "human_systems_integration",
+    "systems_integration",
+    "operational_suitability"
+  ],
+  "human_factors": ["calibrated_trust", "cognitive_load", "source_comprehension", "abstention_comprehension", "time_to_verified_answer"],
+  "principles": [
+    "hard failures are conjunctive gates and cannot be compensated by mean accuracy",
+    "synthetic assurance is not production-domain evidence",
+    "outcome, transcript, harness, budget and environment are separately recorded",
+    "uncertainty is reported with confidence intervals rather than point estimates alone",
+    "offline knowledge must expose freshness and fail closed on signature, revocation or rollback failure"
+  ]
+}

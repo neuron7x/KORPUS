@@ -24,40 +24,15 @@ is acceptable — because a list of negations is read wrong under pressure.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from korpus.security.url_policy import is_https_origin, is_https_url
+from korpus.security.destination_predicates import is_external_https_url
+from korpus.controlled_requirement_core import (
+    API_ONLY, WORKER_ONLY, ControlledRequirement, browser_settings_present,
+    file_present, verified_database_transport,
+)
 
 CONTROLLED_ENVIRONMENTS = frozenset({"production", "controlled", "isolated"})
-
-
-@dataclass(frozen=True)
-class ControlledRequirement:
-    name: str
-    holds: Callable[[Any], bool]
-    message: str
-
-
-def _sslmode(settings: Any) -> str:
-    normalized = str(settings.database_url).replace("postgresql+psycopg", "postgresql", 1)
-    return parse_qs(urlparse(normalized).query).get("sslmode", [""])[0]
-
-
-def _browser_settings_present(settings: Any) -> bool:
-    return all(
-        (
-            settings.oidc_authorization_endpoint,
-            settings.oidc_token_endpoint,
-            settings.oidc_client_id,
-            settings.oidc_redirect_uri,
-        )
-    )
-
-
-def _file_present(path: Any) -> bool:
-    return path is not None and path.is_file()
-
 
 CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ControlledRequirement(
@@ -66,14 +41,15 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
         "controlled environments require PostgreSQL",
     ),
     ControlledRequirement(
-        "verified_tls",
-        lambda s: _sslmode(s) == "verify-full",
-        "controlled PostgreSQL connections require sslmode=verify-full",
+        "verified_database_transport",
+        verified_database_transport,
+        "controlled PostgreSQL connections require sslmode=verify-full or an explicit Cloud SQL Unix socket transport",
     ),
     ControlledRequirement(
         "oidc",
         lambda s: s.auth_mode == "oidc",
         "OIDC authentication is required in controlled environments",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "migration_managed_schema",
@@ -84,43 +60,51 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
         "jwks_url",
         lambda s: bool(s.oidc_jwks_url),
         "OIDC JWKS URL is required",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "browser_authentication",
         lambda s: bool(s.browser_auth_enabled),
         "controlled environments require browser OIDC/BFF authentication",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "browser_settings",
-        _browser_settings_present,
+        browser_settings_present,
         "browser OIDC settings are missing: authorization endpoint, token endpoint, "
         "client id, redirect URI",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "browser_session_key",
         lambda s: bool(s.resolved_browser_session_key)
         and len(s.resolved_browser_session_key) >= 32,
         "controlled browser sessions require a strong session key",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "secure_cookie",
         lambda s: bool(s.browser_cookie_secure),
         "controlled browser session cookies must be Secure",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "https_redirect_uri",
-        lambda s: str(s.oidc_redirect_uri or "").startswith("https://"),
+        lambda s: is_https_url(s.oidc_redirect_uri or ""),
         "controlled OIDC redirect URI must use HTTPS",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "entitlement_profile",
-        lambda s: _file_present(s.entitlement_profile_path),
+        lambda s: file_present(s.entitlement_profile_path),
         "controlled environments require a server-side entitlement profile",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "entitlement_profile_digest",
         lambda s: bool(s.entitlement_profile_sha256),
         "controlled environments require an entitlement profile digest",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "source_signatures",
@@ -129,7 +113,7 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "source_trust_profile",
-        lambda s: _file_present(s.source_trust_profile_path),
+        lambda s: file_present(s.source_trust_profile_path),
         "controlled environments require a source trust profile",
     ),
     ControlledRequirement(
@@ -139,7 +123,7 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "reviewer_registry",
-        lambda s: _file_present(s.reviewer_registry_path),
+        lambda s: file_present(s.reviewer_registry_path),
         "controlled environments require a reviewer credential registry",
     ),
     ControlledRequirement(
@@ -149,7 +133,7 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "corpus_governance_profile",
-        lambda s: _file_present(s.corpus_governance_profile_path),
+        lambda s: file_present(s.corpus_governance_profile_path),
         "controlled environments require a corpus governance profile",
     ),
     ControlledRequirement(
@@ -167,6 +151,7 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
         "calibrated_answers",
         lambda s: s.answer_policy_mode == "calibrated" and s.calibration_profile_path is not None,
         "validated calibration profile is required",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "reviewer_separation",
@@ -175,45 +160,56 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "remote_audit_anchor",
-        lambda s: s.audit_anchor_mode == "http" and bool(s.audit_anchor_url),
-        "controlled environments require a remote HTTP audit anchor",
+        lambda s: (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))
+        or (s.audit_anchor_mode == "gcs" and bool(s.gcs_audit_bucket)),
+        "controlled environments require a remote HTTPS audit anchor or GCS audit anchor",
     ),
     ControlledRequirement(
         "audit_anchor_authentication",
-        lambda s: bool(s.resolved_audit_anchor_token),
+        lambda s: (s.audit_anchor_mode == "http" and bool(s.resolved_audit_anchor_token))
+        or s.audit_anchor_mode == "gcs",
         "controlled environments require audit anchor authentication",
     ),
     ControlledRequirement(
         "metrics",
         lambda s: bool(s.metrics_enabled),
         "controlled environments require operational metrics",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "metrics_authentication",
         lambda s: bool(s.resolved_metrics_token),
         "controlled environments require an authenticated metrics endpoint",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "explicit_https_cors",
-        lambda s: all(
-            origin != "*" and origin.startswith("https://") for origin in s.cors_origin_list
-        ),
+        lambda s: all(origin != "*" and is_https_origin(origin) for origin in s.cors_origin_list),
         "controlled CORS origins must be explicit HTTPS origins",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "explicit_trusted_hosts",
         lambda s: bool(s.trusted_host_list) and "*" not in s.trusted_host_list,
         "controlled environments require explicit trusted hosts",
+        roles=API_ONLY,
     ),
     ControlledRequirement(
         "https_s3_endpoint",
-        lambda s: not s.s3_endpoint_url or str(s.s3_endpoint_url).startswith("https://"),
+        lambda s: not s.s3_endpoint_url or is_https_url(s.s3_endpoint_url),
         "controlled S3 endpoints must use HTTPS",
     ),
     ControlledRequirement(
         "object_governance_retention",
-        lambda s: s.s3_governance_retention_days >= 1,
+        lambda s: (s.object_store_mode == "s3" and s.s3_governance_retention_days >= 1)
+        or (s.object_store_mode == "gcs" and s.gcs_retention_seconds >= 1),
         "controlled object storage requires governance retention",
+    ),
+    ControlledRequirement(
+        "gcs_quarantine_separation",
+        lambda s: s.object_store_mode != "gcs"
+        or (bool(s.gcs_quarantine_bucket) and s.gcs_quarantine_bucket != s.gcs_bucket),
+        "controlled GCS deployments require a separate quarantine bucket",
     ),
     ControlledRequirement(
         "durable_ingestion",
@@ -224,15 +220,17 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
         "malware_scanning",
         lambda s: s.malware_scan_mode == "clamd",
         "controlled environments require fail-closed malware scanning",
+        roles=WORKER_ONLY,
     ),
     ControlledRequirement(
         "parser_isolation",
         lambda s: bool(s.parser_sandbox_enabled),
         "controlled environments require parser process isolation",
+        roles=WORKER_ONLY,
     ),
     ControlledRequirement(
         "https_otlp_endpoint",
-        lambda s: not s.otlp_endpoint or str(s.otlp_endpoint).startswith("https://"),
+        lambda s: not s.otlp_endpoint or is_https_url(s.otlp_endpoint),
         "controlled OTLP endpoints must use HTTPS",
     ),
 )
@@ -241,6 +239,6 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
 def first_unmet(settings: Any) -> ControlledRequirement | None:
     """The first requirement this deployment does not satisfy, in declared order."""
     for requirement in CONTROLLED_REQUIREMENTS:
-        if not requirement.holds(settings):
+        if requirement.violated(settings):
             return requirement
     return None

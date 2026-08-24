@@ -113,6 +113,22 @@ def test_a_decimal_range_is_compared_numerically_not_lexically() -> None:
     assert INVERTED_RANGE_FLAG not in assess_numeric_integrity("Від 9,5 до 10,5 год.").flags
 
 
+def test_european_grouped_decimal_range_preserves_magnitude() -> None:
+    result = assess_numeric_integrity("Глибина від 1.234,5 до 900 м.")
+    assert INVERTED_RANGE_FLAG in result.flags
+
+
+def test_us_grouped_decimal_range_preserves_magnitude() -> None:
+    result = assess_numeric_integrity("Глибина від 1,234.5 до 900 м.")
+    assert INVERTED_RANGE_FLAG in result.flags
+
+
+def test_grouped_decimal_non_inversion_is_not_invented() -> None:
+    assert INVERTED_RANGE_FLAG not in assess_numeric_integrity(
+        "Глибина від 900 до 1.234,5 м."
+    ).flags
+
+
 def test_samples_are_bounded_so_a_report_does_not_carry_the_passage() -> None:
     """This record travels into gate artefacts; it must not become a corpus extract."""
     text = " ".join(f"{index} 0{index} м" for index in range(1, 40))

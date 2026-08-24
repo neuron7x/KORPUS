@@ -1,0 +1,549 @@
+{
+  "schema_version": 3,
+  "shard_index": 4,
+  "shard_count": 8,
+  "mutants": 44,
+  "valid_mutants": 44,
+  "killed": 44,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M05_SQL_CLEARANCE_FILTER_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_access_tier_is_enforced_in_repository_even_for_public_classification ___\n\nclient = <starlette.testclient.TestClient object at 0x7f04c468c1a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_access_tier_is_enforced_in_repository_even_for_public_classification(\n        client, admin_identity, public_identity\n    ):\n        set_identity(client, admin_identity)\n        result = ingest_text(\n            client,\n            title=\"Tier-only restricted document\",\n            corpus_id=\"public\",\n            access_tier=3,\n            classification=\"public\",\n            text=\"TIER-ONLY-SECRET must never enter public candidate memory.\",\n        )\n        approve(client, result[\"version\"][\"id\"])\n        rows = client.app.state.repository.list_retrievable_spans(\n            public_identity, frozenset({\"public\"}), date.today()\n        )\n>       assert all(\"TIER-ONLY-SECRET\" not in span.text for span, _, _ in rows)\nE       assert False\nE        +  where False = all(<generator object test_access_tier_is_enforced_in_repository_even_for_public_classification.<locals>.<genexpr> at 0x7f04c44f7300>)\n\napps/api/tests/test_access_control.py:116: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification - assert False\n +  where False = all(<generator object test_access_tier_is_enforced_in_repository_even_for_public_classification.<locals>.<genexpr> at 0x7f04c44f7300>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M12_REMOTE_ANCHOR_MAC_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/audit_anchor.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_http_audit_anchor.py::test_remote_anchor_detects_payload_tampering"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_remote_anchor_detects_payload_tampering _________________\n\n    def test_remote_anchor_detects_payload_tampering():\n        server = MonotonicAnchorServer()\n        anchor = store(server)\n        anchor.write(2, \"2\" * 64)\n        assert server.payload is not None\n        server.payload[\"head_hash\"] = \"f\" * 64\n>       with pytest.raises(AnchorError, match=\"MAC mismatch\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.infrastructure.audit_anchor.AnchorError'>\n\napps/api/tests/test_http_audit_anchor.py:87: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_http_audit_anchor.py::test_remote_anchor_detects_payload_tampering - Failed: DID NOT RAISE <class 'korpus.infrastructure.audit_anchor.AnchorError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M20_EXTRACTION_QUALITY_ACK_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/review_transitions.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_low_quality_extraction_requires_explicit_reviewer_acknowledgement ____\n\nclient = <starlette.testclient.TestClient object at 0x7f27f8ed01a0>\n\n    def test_low_quality_extraction_requires_explicit_reviewer_acknowledgement(client):\n        result = ingest_text(\n            client,\n            title=\"Damaged OCR sample\",\n            text=(\n                \"Нормативний текст \\ufffd\\ufffd\\ufffd \"\n                \"із пошкодженими символами та контрольованою перевіркою.\"\n            ),\n        )\n        version = result[\"version\"]\n        assert \"replacement_characters\" in version[\"extraction_quality_flags\"]\n        assert version[\"extraction_replacement_ratio\"] > 0.001\n    \n        blocked = client.post(\n            f\"/v1/document-versions/{version['id']}/review\",\n            json={\n                \"target\": \"metadata_reviewed\",\n                \"note\": \"metadata review without quality acknowledgement\",\n            },\n        )\n>       assert blocked.status_code == 409\nE       assert 200 == 409\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_extraction_quality_governance.py:26: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_extraction_quality_governance.py::test_low_quality_extraction_requires_explicit_reviewer_acknowledgement - assert 200 == 409\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M27_VALIDITY_END_BOUNDARY_SHIFT",
+      "file": "apps/api/src/korpus/domain/temporal.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_version_still_governs_on_the_last_day_it_names _____________\n\n    def test_a_version_still_governs_on_the_last_day_it_names() -> None:\n        \"\"\"effective_until is inclusive: «чинний до 31 грудня» includes the 31st.\"\"\"\n        version = _version(effective_until=DAY)\n    \n>       assert version.is_valid_on(DAY) is True, (\n            \"a document valid until D must still govern an answer asked on D\"\n        )\nE       AssertionError: a document valid until D must still govern an answer asked on D\nE       assert False is True\nE        +  where False = is_valid_on(datetime.date(2026, 6, 15))\nE        +    where is_valid_on = DocumentVersionRecord(id=UUID('74f0dff3-acad-4823-b64d-2099ee85156e'), document_id=UUID('c6086afc-670f-4d4a-b1c7-30abd...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 30, 44, 374226, tzinfo=datetime.timezone.utc)).is_valid_on\n\napps/api/tests/test_validity_boundaries.py:70: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names - AssertionError: a document valid until D must still govern an answer asked on D\nassert False is True\n +  where False = is_valid_on(datetime.date(2026, 6, 15))\n +    where is_valid_on = DocumentVersionRecord(id=UUID('74f0dff3-acad-4823-b64d-2099ee85156e'), document_id=UUID('c6086afc-670f-4d4a-b1c7-30abd...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 30, 44, 374226, tzinfo=datetime.timezone.utc)).is_valid_on\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M35_COVERAGE_COUNTS_CITATIONS_AGAIN",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_citation_alignment.py::test_extra_citations_do_not_push_coverage_above_one"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_extra_citations_do_not_push_coverage_above_one ______________\n\n    def test_extra_citations_do_not_push_coverage_above_one() -> None:\n        \"\"\"The old ratio returned 2.0 here and the response model raised on it.\"\"\"\n        span = uuid4()\n    \n        verdict = verify_claim_support([(0, [span])], [span, uuid4(), uuid4()])\n    \n>       assert verdict.coverage == 1.0, \"coverage is a fraction of claims, not a citation count\"\nE       AssertionError: coverage is a fraction of claims, not a citation count\nE       assert 3.0 == 1.0\nE        +  where 3.0 = SupportVerdict(coverage=3.0, unsupported_claim_indexes=(), reasons=()).coverage\n\napps/api/tests/test_citation_alignment.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_citation_alignment.py::test_extra_citations_do_not_push_coverage_above_one - AssertionError: coverage is a fraction of claims, not a citation count\nassert 3.0 == 1.0\n +  where 3.0 = SupportVerdict(coverage=3.0, unsupported_claim_indexes=(), reasons=()).coverage\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M42_TOKEN_CANONICALITY_CHECK_REMOVED",
+      "file": "apps/api/src/korpus/security/browser_oidc.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_codec_rejects_a_second_spelling_of_the_same_token __________\n\n    def test_the_codec_rejects_a_second_spelling_of_the_same_token():\n        \"\"\"Unpadded base64 is malleable at the tail; AES-GCM cannot see it.\n    \n        When the sealed byte length is not a multiple of three, the final character holds\n        bits no byte uses, so a different character decodes to identical plaintext and the\n        cipher authenticates it. That made the sweep above pass or fail depending on the\n        random nonce — one run in five. The decoder now rejects any spelling it would not\n        itself produce, so the token-to-bytes mapping is one-to-one and the sweep is a\n        statement about the codec rather than about luck.\n        \"\"\"\n        codec = BrowserSessionCodec(\"x\" * 40, clock=lambda: 1000.0)\n        token = codec.seal(\"session\", {\"access_token\": \"a\", \"csrf\": \"c\"}, ttl_seconds=30)\n        alphabet = \"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_\"\n        decoded = base64.urlsafe_b64decode(token + \"=\" * (-len(token) % 4))\n    \n        variants = [\n            token[:-1] + char\n            for char in alphabet\n            if char != token[-1]\n            and base64.urlsafe_b64decode(token[:-1] + char + \"=\" * (-len(token) % 4)) == decoded\n        ]\n    \n        assert variants, (\n            \"this token happens to have no equivalent spelling; the property under test \"\n            \"is only exercised when the payload length is not a multiple of three\"\n        )\n        for variant in variants:\n>           with pytest.raises(BrowserSessionError):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.security.browser_oidc.BrowserSessionError'>\n\napps/api/tests/test_browser_oidc.py:185: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_browser_oidc.py::test_the_codec_rejects_a_second_spelling_of_the_same_token - Failed: DID NOT RAISE <class 'korpus.security.browser_oidc.BrowserSessionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M51_INTEGRITY_PROBE_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_healthcheck_fails_on_a_corrupt_database _________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-365/test_healthcheck_fails_on_a_co0')\n\n    def test_healthcheck_fails_on_a_corrupt_database(tmp_path: Path) -> None:\n        \"\"\"Readable is not intact: the probe has to be able to fail.\"\"\"\n        database = tmp_path / \"corrupt.db\"\n        repository = SqlRepository(\n            f\"sqlite:///{database}\", audit_hmac_key=\"k\" * 32, audit_anchor_path=tmp_path / \"anchor.json\"\n        )\n        repository.initialize()\n        assert repository.healthcheck() is True\n        repository.close()\n    \n        with sqlite3.connect(database) as raw:\n            page_size = raw.execute(\"PRAGMA page_size\").fetchone()[0]\n        with database.open(\"r+b\") as handle:\n            handle.seek(page_size * 2)\n            handle.write(b\"\\x00\" * page_size)\n    \n        broken = SqlRepository(\n            f\"sqlite:///{database}\", audit_hmac_key=\"k\" * 32, audit_anchor_path=tmp_path / \"anchor.json\"\n        )\n        try:\n>           assert broken.healthcheck() is False, (\n                \"SELECT 1 succeeds against a corrupt file; the integrity probe must not\"\n            )\nE           AssertionError: SELECT 1 succeeds against a corrupt file; the integrity probe must not\nE           assert True is False\nE            +  where True = healthcheck()\nE            +    where healthcheck = <korpus.infrastructure.repository.SqlRepository object at 0x7fd568922d50>.healthcheck\n\napps/api/tests/test_resilience_and_audit_scope.py:109: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database - AssertionError: SELECT 1 succeeds against a corrupt file; the integrity probe must not\nassert True is False\n +  where True = healthcheck()\n +    where healthcheck = <korpus.infrastructure.repository.SqlRepository object at 0x7fd568922d50>.healthcheck\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M59_PROVENANCE_DIGEST_NOT_COMPARED",
+      "file": "apps/api/src/korpus/application/provenance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_evidence_from_a_foreign_tree"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_gate_rejects_evidence_from_a_foreign_tree ________________\n\n    def test_gate_rejects_evidence_from_a_foreign_tree() -> None:\n        result = OperationalReleaseGate.load(POLICY).evaluate(\n            stamped_reports(FOREIGN_DIGEST), source_digest=\"a\" * 64\n        )\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n\napps/api/tests/test_evidence_provenance.py:57: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_provenance.py::test_gate_rejects_evidence_from_a_foreign_tree - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M67_AGGREGATOR_IGNORES_EVIDENCE_ORIGIN",
+      "file": "apps/api/src/korpus/application/assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_aggregation.py::test_evidence_from_a_foreign_tree_fails_the_aggregate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_evidence_from_a_foreign_tree_fails_the_aggregate _____________\n\n    def test_evidence_from_a_foreign_tree_fails_the_aggregate() -> None:\n        result = evaluate(source_digest=\"e\" * 64)\n        assert result.passed is False\n>       assert result.checks[\"evidence_provenance\"] is False\nE       assert True is False\n\napps/api/tests/test_assurance_aggregation.py:175: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_aggregation.py::test_evidence_from_a_foreign_tree_fails_the_aggregate - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M137_PRODUCTION_CONFIG_NOT_REQUIRED",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_a_deployed_configuration_that_drifts_from_policy_is_reported"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_a_deployed_configuration_that_drifts_from_policy_is_reported _______\n\n    def test_a_deployed_configuration_that_drifts_from_policy_is_reported() -> None:\n        \"\"\"A register that lists the config keys is not the same as one that checks them.\n    \n        The first version of this test counted the requirements and asserted the base\n        deployment passes. Mutant M137 replaced the config predicate with `True` and\n        survived: a register can name every key and still assert nothing about their values.\n        \"\"\"\n        from korpus.application.deployment import REQUIRED_PRODUCTION_CONFIG\n        from korpus.kubernetes_requirements import manifest_violations\n    \n        key, value = next(iter(REQUIRED_PRODUCTION_CONFIG.items()))\n        configmap = {\n            \"kind\": \"ConfigMap\",\n            \"metadata\": {\"name\": \"korpus-config\"},\n            \"data\": {**REQUIRED_PRODUCTION_CONFIG, key: \"wrong\"},\n        }\n    \n        violations = manifest_violations([configmap])\n    \n>       assert f\"secure production config missing: {key}={value}\" in violations\nE       assert 'secure production config missing: KORPUS_ENVIRONMENT=production' in [\"missing Kubernetes resource kinds: ['Deployment', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'P...']\", \"required workloads missing: ['korpus-api', 'korpus-web', 'korpus-worker']\", 'default-deny NetworkPolicy missing']\n\napps/api/tests/test_requirement_registry.py:328: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_a_deployed_configuration_that_drifts_from_policy_is_reported - assert 'secure production config missing: KORPUS_ENVIRONMENT=production' in [\"missing Kubernetes resource kinds: ['Deployment', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'P...']\", \"required workloads missing: ['korpus-api', 'korpus-web', 'korpus-worker']\", 'default-deny NetworkPolicy missing']\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M79_REFUTATION_SCAN_NARROWED_TO_CITATIONS",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_the_scan_covers_eligible_spans_not_only_cited_ones ____________\n\n    def test_the_scan_covers_eligible_spans_not_only_cited_ones() -> None:\n        \"\"\"Stated against the decision function, because end to end cannot separate them.\n    \n        Extraction takes at most one sentence per span and stops at `max_claims`, so a\n        refutation can sit in a span that cleared every eligibility gate and still was not\n        quoted. Driving that through HTTP is not reproducible on demand — which span the\n        chunker forms and which sentence wins are not properties of the requirement — so\n        the width of the scan is asserted where it is decided. A narrowing of the scan to\n        citations passes every end-to-end test in this file and fails here.\n        \"\"\"\n        quoted = _evidence(f\"Ведення журналу {MARKER} є обов'язковим для кожного підрозділу.\")\n        unquoted = _evidence(\n            f\"Ведення журналу {MARKER} не є обов'язковим для підрозділів забезпечення.\"\n        )\n        claim = Claim(\n            text=quoted.span.text,\n            evidence_span_ids=(quoted.span.id,),\n            support_state=SupportState.EXTRACTIVE,\n            support_score=1.0,\n            query_coverage=1.0,\n        )\n        citation = Citation(\n            document_id=quoted.document.id,\n            version_id=quoted.version.id,\n            span_id=quoted.span.id,\n            title=quoted.document.canonical_title,\n            revision=quoted.version.revision,\n            quote=quoted.span.text,\n            quote_start=0,\n            quote_end=len(quoted.span.text),\n            quote_hash=hashlib.sha256(quoted.span.text.encode(\"utf-8\")).hexdigest(),\n            source_hash=quoted.version.source_hash,\n        )\n    \n        reason = ExtractiveAnswerService._find_contradiction(\n            [claim], [citation], [quoted, unquoted]\n        )\n    \n>       assert reason is not None and reason.startswith(\"refuted_by_evidence:\"), (\n            \"a refutation in an eligible span the answer did not quote must still stop it\"\n        )\nE       AssertionError: a refutation in an eligible span the answer did not quote must still stop it\nE       assert (None is not None)\n\napps/api/tests/test_intra_span_contradiction.py:138: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_intra_span_contradiction.py::test_the_scan_covers_eligible_spans_not_only_cited_ones - AssertionError: a refutation in an eligible span the answer did not quote must still stop it\nassert (None is not None)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M87_WITHHELD_IDENTIFIERS_NOT_SEARCHED",
+      "file": "apps/api/src/korpus/application/noninterference.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak ______\n\nclient = <starlette.testclient.TestClient object at 0x7f3272fe4440>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak(\n        client: TestClient, admin_identity: Identity, public_identity: Identity\n    ) -> None:\n        \"\"\"Naming a span the reader may not see already discloses that it exists.\"\"\"\n        _seed(client)\n        repository = client.app.state.repository\n        withheld = withheld_material(repository, admin_identity, public_identity, AS_OF)\n        target = withheld[0]\n    \n        reasons = leaked_material(f'{{\"span_id\": \"{target.span_id}\"}}', [], withheld)\n    \n>       assert any(reason.startswith(\"withheld_span_identifier:\") for reason in reasons), reasons\nE       AssertionError: []\nE       assert False\nE        +  where False = any(<generator object test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f3272516e90>)\n\napps/api/tests/test_noninterference_measurement.py:104: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_noninterference_measurement.py::test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak - AssertionError: []\nassert False\n +  where False = any(<generator object test_an_answer_naming_a_withheld_identifier_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f3272516e90>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M95_DELAYED_ANCHOR_REPORTED_AS_BROKEN_CHAIN",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_an_anchor_behind_the_head_is_pending_not_invalid _____________\n\nclient = <starlette.testclient.TestClient object at 0x7fe2d0ad41a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_an_anchor_behind_the_head_is_pending_not_invalid(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        repository = client.app.state.repository\n        first = repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"1\", {\"n\": 1})\n        repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"2\", {\"n\": 2})\n        # The store is monotonic by design, so an anchor cannot be moved backwards;\n        # resetting and re-writing reproduces the state a slow delivery leaves.\n        repository.anchor_store.reset()\n        repository.anchor_store.write(1, first)\n    \n        verification = repository.verify_audit()\n    \n>       assert verification.valid is True, verification.reason\nE       AssertionError: 1 checkpoints awaiting anchor delivery\nE       assert False is True\nE        +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n\napps/api/tests/test_audit_anchor_semantics.py:66: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid - AssertionError: 1 checkpoints awaiting anchor delivery\nassert False is True\n +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M103_EMPTY_CLAIM_TRIVIALLY_SUPPORTED",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_an_empty_claim_has_no_support ______________________\n\n    def test_an_empty_claim_has_no_support() -> None:\n        \"\"\"Zero, not one: nothing is not trivially supported by everything.\"\"\"\n>       assert extractive_support(\"   \", BODY) == 0.0\nE       AssertionError: assert 1.0 == 0.0\nE        +  where 1.0 = extractive_support('   ', 'Журнал ПІДТРИМКА ведеться щодоби відповідальною особою підрозділу.')\n\napps/api/tests/test_support_gate.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support - AssertionError: assert 1.0 == 0.0\n +  where 1.0 = extractive_support('   ', 'Журнал ПІДТРИМКА ведеться щодоби відповідальною особою підрозділу.')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M111_CLEARED_GROUND_EVIDENCE_NOT_RESOLVED",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused _______\n\n    def test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused() -> None:\n        register = _register()\n        for ground in register[\"grounds\"]:\n            if ground[\"id\"] == \"2.8\":\n                ground[\"evidence\"] = [\"apps/api/tests/test_gone.py::test_removed\"]\n    \n        verdict = evaluate_admission(ROOT, register)\n    \n        assert verdict.production_authorized is False\n>       assert any(\"does not exist\" in problem for problem in verdict.problems), verdict.problems\nE       AssertionError: ()\nE       assert False\nE        +  where False = any(<generator object test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused.<locals>.<genexpr> at 0x7fda9cea7440>)\n\napps/api/tests/test_admission_register.py:148: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_register.py::test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused - AssertionError: ()\nassert False\n +  where False = any(<generator object test_a_ground_cleared_with_a_test_that_does_not_exist_is_refused.<locals>.<genexpr> at 0x7fda9cea7440>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M154_RETIRE_ALLOWED_BEFORE_SWITCH",
+      "file": "apps/api/src/korpus/application/embedding_migration.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_retiring_before_the_switch_is_refused __________________\n\n    def test_retiring_before_the_switch_is_refused() -> None:\n        \"\"\"The old population is the only thing that can answer while the new one is\n        incomplete; deleting it first destroys the rollback path.\"\"\"\n        allowed, reason = retire_admissible(\n            switched=False, spans_embedded_target=1200, spans_total=1200\n        )\n    \n>       assert allowed is False\nE       assert True is False\n\napps/api/tests/test_embedding_migration.py:124: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M171_IGNORED_LOCAL_SECRET_REPORTED_AS_TRACKED",
+      "file": "apps/api/src/korpus/repository_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_a_secret_git_ignores_is_not_reported_as_tracked _____________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-385/test_a_secret_git_ignores_is_n0')\n\n    def test_a_secret_git_ignores_is_not_reported_as_tracked(tmp_path: Path) -> None:\n        \"\"\"`make infra-secrets` writes eight key files that git never sees.\n    \n        The requirement is named `tracked_secrets` and measured presence on disk, so\n        following the repository's own documented setup step made `make validate` fail on\n        files `infra/secrets/.gitignore` explicitly excludes. A developer broke the\n        validator by following the README (2026-08-06).\n        \"\"\"\n        root = _tree(tmp_path)\n        subprocess.run([\"git\", \"init\", \"-q\"], cwd=root, check=True)\n        (root / \"infra/secrets/.gitignore\").write_text(\"*.txt\\n\", encoding=\"utf-8\")\n        (root / \"infra/secrets/postgres_password.txt\").write_text(\"hunter2\", encoding=\"utf-8\")\n        subprocess.run([\"git\", \"add\", \"-A\"], cwd=root, check=True)\n    \n>       assert load_context(root).tracked_secrets == []\nE       AssertionError: assert ['infra/secre...password.txt'] == []\nE         \nE         Left contains one more item: 'infra/secrets/postgres_password.txt'\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     'infra/secrets/postgres_password.txt',\nE         + ]\n\napps/api/tests/test_repository_register.py:123: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_register.py::test_a_secret_git_ignores_is_not_reported_as_tracked - AssertionError: assert ['infra/secre...password.txt'] == []\n  \n  Left contains one more item: 'infra/secrets/postgres_password.txt'\n  \n  Full diff:\n  - []\n  + [\n  +     'infra/secrets/postgres_password.txt',\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M141_SIGNATURE_NOT_BOUND_TO_THE_GROUND",
+      "file": "apps/api/src/korpus/security/attestors.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attestation_signatures.py::test_a_signature_obtained_for_another_ground_cannot_be_moved"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_a_signature_obtained_for_another_ground_cannot_be_moved _________\n\n    def test_a_signature_obtained_for_another_ground_cannot_be_moved() -> None:\n        \"\"\"A signed TEVV report must not clear the security assessment.\"\"\"\n        registry, private = _registry()\n        attestation = _attestation(private, ground_id=\"2.6\", document_sha256=_document_digest())\n    \n        problems = _verify(registry, attestation, \"external_assessment\")\n    \n>       assert problems and \"does not verify\" in problems[0]\nE       assert ([])\n\napps/api/tests/test_attestation_signatures.py:186: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attestation_signatures.py::test_a_signature_obtained_for_another_ground_cannot_be_moved - assert ([])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M134_PROSE_FLAGGED_AS_A_BROKEN_TABLE",
+      "file": "apps/api/src/korpus/application/table_integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_table_integrity.py::test_wrapped_prose_with_single_spaces_is_not_a_table"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_wrapped_prose_with_single_spaces_is_not_a_table _____________\n\n    def test_wrapped_prose_with_single_spaces_is_not_a_table() -> None:\n        \"\"\"Single spaces are word gaps; only an aligned run survives as a column boundary.\"\"\"\n        text = \"\\n\".join(\n            [\n                \"Норма добових витрат становить 2,5 кг на особу\",\n                \"для першої категорії та 1,8 кг для другої\",\n                \"категорії згідно з додатком 3 до наказу\",\n            ]\n        )\n    \n>       assert assess_table_integrity(text).flags == frozenset()\nE       AssertionError: assert frozenset({'t...ucture_lost'}) == frozenset()\nE         \nE         Extra items in the left set:\nE         'table_structure_lost'\nE         \nE         Full diff:\nE         - frozenset()\nE         ?           ^\nE         + frozenset({\nE         ?           ^\nE         +     'table_structure_lost',\nE         + })\n\napps/api/tests/test_table_integrity.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_table_integrity.py::test_wrapped_prose_with_single_spaces_is_not_a_table - AssertionError: assert frozenset({'t...ucture_lost'}) == frozenset()\n  \n  Extra items in the left set:\n  'table_structure_lost'\n  \n  Full diff:\n  - frozenset()\n  ?           ^\n  + frozenset({\n  ?           ^\n  +     'table_structure_lost',\n  + })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M126_EXPORT_LEAKS_PAYLOADS_BY_DEFAULT",
+      "file": "apps/api/src/korpus/application/audit_export.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_export.py::test_payloads_are_excluded_unless_asked_for"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_payloads_are_excluded_unless_asked_for __________________\n\n    def test_payloads_are_excluded_unless_asked_for() -> None:\n        \"\"\"The corpus material an audit payload quotes must not leave by default.\"\"\"\n        records = build_records(_rows(1, payload={\"quote\": \"classified passage\"}))\n    \n        rendered = records[0].as_dict()\n    \n>       assert \"payload\" not in rendered\nE       AssertionError: assert 'payload' not in {'action': 'document.ingested', 'actor_subject': 'curator', 'event_hash': 'ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d', 'event_id': '00000000-0000-0000-0000-000000000001', ...}\n\napps/api/tests/test_audit_export.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_export.py::test_payloads_are_excluded_unless_asked_for - AssertionError: assert 'payload' not in {'action': 'document.ingested', 'actor_subject': 'curator', 'event_hash': 'ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d', 'event_id': '00000000-0000-0000-0000-000000000001', ...}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M179_CITATION_SOURCE_HASH_UNCONSTRAINED",
+      "file": "apps/api/src/korpus/domain/models.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_architecture.py::test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at _____\n\n    def test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at() -> None:\n        \"\"\"`source_hash` is what a reader uses to check the quote came from that document.\n    \n        `DocumentVersionRecord.source_hash` has carried `^[a-f0-9]{64}$` since the\n        beginning; `Citation.source_hash` was an unconstrained string until 2026-08-06 — on\n        the one field where the shape has to be certain.\n        \"\"\"\n        import hashlib\n    \n        import pytest\n        from korpus.domain.models import Citation\n    \n        quote = \"Кожен запис журналу має містити дату.\"\n        fields = {\n            \"document_id\": uuid4(),\n            \"version_id\": uuid4(),\n            \"span_id\": uuid4(),\n            \"title\": \"t\",\n            \"revision\": \"1\",\n            \"quote\": quote,\n            \"quote_start\": 0,\n            \"quote_end\": len(quote),\n            # The real hash. The first version of this test passed a fabricated one, so the\n            # model refused on `quote_hash does not match quote` and the assertion held with\n            # the source_hash pattern removed — mutant M179 survived. A refusal test that\n            # can be satisfied by a *different* refusal asserts nothing about the one it\n            # names.\n            \"quote_hash\": hashlib.sha256(quote.encode(\"utf-8\")).hexdigest(),\n        }\n    \n        # The dual first: with a real digest the citation constructs, so the refusal below\n        # is about the digest and nothing else.\n        assert Citation(**fields, source_hash=\"b\" * 64).source_hash == \"b\" * 64\n    \n>       with pytest.raises(ValidationError, match=\"source_hash\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>\n\napps/api/tests/test_architecture.py:367: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_architecture.py::test_the_citation_hash_has_the_same_shape_as_the_version_it_points_at - Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M196_RELEASE_ID_IGNORES_CURRENCY",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_corpus_release_identity.py::test_a_version_not_yet_in_force_is_not_in_the_release"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_version_not_yet_in_force_is_not_in_the_release _____________\n\nclient = <starlette.testclient.TestClient object at 0x7fa4c7ad81a0>\n\n    def test_a_version_not_yet_in_force_is_not_in_the_release(client: TestClient) -> None:\n        \"\"\"The release names what could be cited *on the date asked*, not what exists.\n    \n        The currency rule used to come free: the old path built a version model for every\n        span and called `is_valid_on`. Computing the digest from a projection means asking\n        the same question explicitly, and forgetting to would put tomorrow's order into\n        today's fingerprint.\n        \"\"\"\n        repository = _repository(client)\n        as_of = date.today()\n        before = repository.corpus_release_id(  # type: ignore[attr-defined]\n            READER, frozenset({\"public\"}), as_of\n        )\n    \n        result = ingest_text(\n            client,\n            title=\"Наказ, що набирає сили пізніше\",\n            text=\"Порядок, який починає діяти наступного місяця.\",\n            publication_date=None,\n            effective_from=as_of + timedelta(days=30),\n        )\n        approve(client, result[\"version\"][\"id\"])\n    \n        after = repository.corpus_release_id(  # type: ignore[attr-defined]\n            READER, frozenset({\"public\"}), as_of\n        )\n>       assert after == before, \"a version that governs nothing today entered today's release\"\nE       AssertionError: a version that governs nothing today entered today's release\nE       assert 'c33839ae795552b2' == 'e3b0c44298fc1c14'\nE         \nE         - e3b0c44298fc1c14\nE         + c33839ae795552b2\n\napps/api/tests/test_corpus_release_identity.py:159: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_corpus_release_identity.py::test_a_version_not_yet_in_force_is_not_in_the_release - AssertionError: a version that governs nothing today entered today's release\nassert 'c33839ae795552b2' == 'e3b0c44298fc1c14'\n  \n  - e3b0c44298fc1c14\n  + c33839ae795552b2\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M204_UNKNOWN_SIGNING_KEY_TREATED_AS_VALID",
+      "file": "apps/api/src/korpus/application/keyring.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_key_rotation.py::test_an_event_naming_an_unknown_key_is_invalid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_an_event_naming_an_unknown_key_is_invalid ________________\n\n    def test_an_event_naming_an_unknown_key_is_invalid() -> None:\n        \"\"\"Fail closed. A verifier that skips what it cannot check reports a hole as intact.\"\"\"\n        _, signature = _rotated().sign(MESSAGE)\n    \n>       assert _rotated().verify(\"a-key-nobody-has\", MESSAGE, signature) is False\nE       AssertionError: assert True is False\nE        +  where True = verify('a-key-nobody-has', b'sequence=1|action=answer.completed', '7a8923e3e0e654258bef352d28d865e9219fae0ee59548c7d9957022ee653367')\nE        +    where verify = AuditKeyRing(keys={'2026-08-a': b'first-key-material-0123456789abcdef', '2026-08-b': b'second-key-material-0123456789abcd'}, active_key_id='2026-08-b', revoked=frozenset()).verify\nE        +      where AuditKeyRing(keys={'2026-08-a': b'first-key-material-0123456789abcdef', '2026-08-b': b'second-key-material-0123456789abcd'}, active_key_id='2026-08-b', revoked=frozenset()) = _rotated()\n\napps/api/tests/test_audit_key_rotation.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_key_rotation.py::test_an_event_naming_an_unknown_key_is_invalid - AssertionError: assert True is False\n +  where True = verify('a-key-nobody-has', b'sequence=1|action=answer.completed', '7a8923e3e0e654258bef352d28d865e9219fae0ee59548c7d9957022ee653367')\n +    where verify = AuditKeyRing(keys={'2026-08-a': b'first-key-material-0123456789abcdef', '2026-08-b': b'second-key-material-0123456789abcd'}, active_key_id='2026-08-b', revoked=frozenset()).verify\n +      where AuditKeyRing(keys={'2026-08-a': b'first-key-material-0123456789abcdef', '2026-08-b': b'second-key-material-0123456789abcd'}, active_key_id='2026-08-b', revoked=frozenset()) = _rotated()\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M185_NEAR_DUPLICATE_PROBE_IGNORES_COMPARTMENTS",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "1, extraction_method='plain_text', duplicate=False).version\nE            +  and   UUID('edd4f0cd-74c7-4398-9963-9759093f28a3') = DocumentVersionRecord(id=UUID('edd4f0cd-74c7-4398-9963-9759093f28a3'), document_id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)).id\nE            +    where DocumentVersionRecord(id=UUID('edd4f0cd-74c7-4398-9963-9759093f28a3'), document_id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50195f66b'), canonical_title='Прихований за c... 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n\napps/api/tests/test_access_oracles.py:256: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_oracles.py::test_the_near_duplicate_probe_is_not_a_graded_content_oracle[clearance-document1-reader1] - AssertionError: assert UUID('edd4f0cd-74c7-4398-9963-9759093f28a3') != UUID('edd4f0cd-74c7-4398-9963-9759093f28a3')\n +  where UUID('edd4f0cd-74c7-4398-9963-9759093f28a3') = DocumentVersionRecord(id=UUID('053a35d1-2d5d-4c40-949c-588ca7c3f10a'), document_id=UUID('29e8189a-b992-4356-a2df-7dfe5...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 700355, tzinfo=datetime.timezone.utc)).near_duplicate_of_version_id\n +    where DocumentVersionRecord(id=UUID('053a35d1-2d5d-4c40-949c-588ca7c3f10a'), document_id=UUID('29e8189a-b992-4356-a2df-7dfe5...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 700355, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('29e8189a-b992-4356-a2df-7dfe52fdcf69'), canonical_title='Здогад', corpus... 23, 16, 32, 31, 700355, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n +  and   UUID('edd4f0cd-74c7-4398-9963-9759093f28a3') = DocumentVersionRecord(id=UUID('edd4f0cd-74c7-4398-9963-9759093f28a3'), document_id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)).id\n +    where DocumentVersionRecord(id=UUID('edd4f0cd-74c7-4398-9963-9759093f28a3'), document_id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)) = IngestResult(document=DocumentRecord(id=UUID('3fcd985f-ed8f-44b2-ac56-2ff50195f66b'), canonical_title='Прихований за c... 23, 16, 32, 31, 628274, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False).version\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M174_TYPO_DETECTOR_ACCEPTS_EVERYTHING",
+      "file": "apps/api/src/korpus/config.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_a_misspelled_setting_is_named ______________________\n\n    def test_a_misspelled_setting_is_named() -> None:\n        unknown = unknown_settings_variables({\"KORPUS_REQUIRE_SOURCE_SIGNATURE\": \"true\"})\n    \n>       assert unknown == [\"KORPUS_REQUIRE_SOURCE_SIGNATURE\"]\nE       AssertionError: assert [] == ['KORPUS_REQU...CE_SIGNATURE']\nE         \nE         Right contains one more item: 'KORPUS_REQUIRE_SOURCE_SIGNATURE'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'KORPUS_REQUIRE_SOURCE_SIGNATURE',\nE         - ]\n\napps/api/tests/test_configuration_typos.py:27: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named - AssertionError: assert [] == ['KORPUS_REQU...CE_SIGNATURE']\n  \n  Right contains one more item: 'KORPUS_REQUIRE_SOURCE_SIGNATURE'\n  \n  Full diff:\n  + []\n  - [\n  -     'KORPUS_REQUIRE_SOURCE_SIGNATURE',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M132_UNDATED_OBSERVATION_ASSUMED_FRESH",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_an_observation_without_a_timestamp_is_refused ______________\n\n    def test_an_observation_without_a_timestamp_is_refused() -> None:\n        \"\"\"The replay this closes: an observation taken before the change, compared after.\n    \n        It produces a verdict identical to a current one. \"Periodic attestation\" is in the\n        finding's required action precisely because a comparator that cannot date its own\n        evidence answers about the past.\n        \"\"\"\n>       admissible, reason = drift.observation_age_admissible(None, NOW)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_environment_drift.py:199: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nobserved_at = None\nnow = datetime.datetime(2026, 8, 5, 12, 0, tzinfo=datetime.timezone.utc)\nmax_age_seconds = 3600\n\n    def observation_age_admissible(\n        observed_at: str | None, now: datetime, max_age_seconds: int = DEFAULT_MAX_AGE_SECONDS\n    ) -> tuple[bool, str]:\n        \"\"\"Whether an observation is recent enough to be compared.\n    \n        An observation without a timestamp is refused rather than assumed fresh: the whole\n        point of the check is that a stale answer and a current one are indistinguishable\n        once the verdict is printed.\n        \"\"\"\n        if False:\n            return False, (\n                \"the observation carries no timestamp, so it cannot be told from one taken \"\n                \"before the change it is meant to detect\"\n            )\n        try:\n>           taken = datetime.fromisoformat(observed_at)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           TypeError: fromisoformat: argument must be str\n\n/tmp/korpus-m132_undated_observation_assumed_fresh-e0vi2bbr/api-src/korpus/application/environment_drift.py:160: TypeError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused - TypeError: fromisoformat: argument must be str\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M135_DISABLED_ACCOUNT_ADMITTED",
+      "file": "apps/api/src/korpus/application/accounts.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_account_domain.py::test_a_disabled_account_cannot_use_protected_functionality"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_a_disabled_account_cannot_use_protected_functionality __________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-399/test_a_disabled_account_cannot0')\n\n    def test_a_disabled_account_cannot_use_protected_functionality(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            service: AccountService = tenancy.account_service\n            identity = reader(\"oidc|disabled-later\")\n            account = service.require_active_account(identity)\n    \n            service.disable(reader(\"operator\"), account.id, reason=\"left the unit\")\n    \n>           with pytest.raises(AccountDisabled):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.AccountDisabled'>\n\napps/api/tests/test_account_domain.py:127: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_account_domain.py::test_a_disabled_account_cannot_use_protected_functionality - Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.AccountDisabled'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M143_ENTITLEMENT_CHECK_SKIPPED_WHEN_EMPTY",
+      "file": "apps/api/src/korpus/application/paid_access.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_without_an_active_subscription_the_paid_corpus_is_denied"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_without_an_active_subscription_the_paid_corpus_is_denied _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-403/test_without_an_active_subscri0')\n\n    def test_without_an_active_subscription_the_paid_corpus_is_denied(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|unpaid\", frozenset({\"public\", \"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            tenancy.subscription_service.start_subscription(identity.subject, account.id, \"standard\")\n    \n            gate = tenancy.entitlements(required=True)\n>           with pytest.raises(EntitlementDenied):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.paid_access.EntitlementDenied'>\n\napps/api/tests/test_entitlement_gate.py:56: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_without_an_active_subscription_the_paid_corpus_is_denied - Failed: DID NOT RAISE <class 'korpus.application.paid_access.EntitlementDenied'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M151_RETENTION_APPLIES_WITHOUT_A_DECLARED_WINDOW",
+      "file": "scripts/conversation_retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_conversation_retention.py::test_the_script_refuses_to_apply_a_policy_nobody_declared"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_script_refuses_to_apply_a_policy_nobody_declared ___________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-407/test_the_script_refuses_to_app0')\n\n    def test_the_script_refuses_to_apply_a_policy_nobody_declared(tmp_path: Path) -> None:\n        \"\"\"`--apply` with no window would delete everything or nothing by an unchosen default.\"\"\"\n        tenancy = build_tenancy(tmp_path, name=\"cli\")\n        owner = tenancy.account_service.require_active_account(reader(\"oidc|cli\"))\n        conversation = tenancy.conversation_service.create(owner, \"розмова\")\n        tenancy.close()\n    \n        code, report = _run(tmp_path / \"cli.db\", \"--apply\")\n    \n        assert code == 2\n        assert report[\"applied\"] is False\n>       assert \"nobody has declared\" in report[\"detail\"]\n                                        ^^^^^^^^^^^^^^^^\nE       KeyError: 'detail'\n\napps/api/tests/test_conversation_retention.py:186: KeyError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_conversation_retention.py::test_the_script_refuses_to_apply_a_policy_nobody_declared - KeyError: 'detail'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M159_ORPHAN_REAPER_TERMINATES_LIVE_JOBS",
+      "file": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_reliability_degradation.py::test_a_crashed_worker_leaves_no_zombie_running_job"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ime_type=\"text/plain\", source_hash=\"a\" * 64,\n                staging_object_key=\"00/00/\" + \"a\" * 64, max_attempts=1,\n            )\n            queue.create(actor, job)\n            claimed = queue.claim(\"worker-1\", lease_seconds=5)\n            assert claimed is not None and claimed.state is IngestionJobState.RUNNING\n    \n            # The crash: lease expired, attempts at the ceiling, still RUNNING.\n            with repo.engine.begin() as connection:\n                connection.execute(\n                    update(ingestion_jobs)\n                    .where(ingestion_jobs.c.id == str(job.id))\n                    .values(lease_expires_at=datetime.now(UTC) - timedelta(seconds=1))\n                )\n            assert queue.claim(\"worker-2\", lease_seconds=5) is None, \"claim re-picked an exhausted job\"\n    \n            # A second job that still has an attempt left, also with an expired lease: this one\n            # belongs to `claim`, not the reaper. The reaper must leave it alone — the mutant\n            # that reaps on `attempts >= 0` would wrongly bury it, and dies here.\n            live = job.model_copy(update={\n                \"id\": __import__(\"uuid\").uuid4(), \"max_attempts\": 3,\n                \"staging_object_key\": \"11/11/\" + \"b\" * 64, \"source_hash\": \"b\" * 64,\n            })\n            queue.create(actor, live)\n            queue.claim(\"worker-live\", lease_seconds=5)  # attempts now 1 of 3\n            with repo.engine.begin() as connection:\n                connection.execute(\n                    update(ingestion_jobs)\n                    .where(ingestion_jobs.c.id == str(live.id))\n                    .values(lease_expires_at=datetime.now(UTC) - timedelta(seconds=1))\n                )\n    \n            reaped = queue.reap_orphaned_leases()\n>           assert [r.id for r in reaped] == [job.id], \"the reaper touched a re-claimable job\"\nE           AssertionError: the reaper touched a re-claimable job\nE           assert [UUID('505e6e...251fb13e4f1')] == [UUID('505e6e...bc1d999eb7b')]\nE             \nE             Left contains one more item: UUID('f9d2e44f-e158-4cbc-a969-4251fb13e4f1')\nE             \nE             Full diff:\nE               [\nE                   UUID('505e6ee7-01cd-43d7-9e09-0bc1d999eb7b'),\nE             +     UUID('f9d2e44f-e158-4cbc-a969-4251fb13e4f1'),\nE               ]\n\napps/api/tests/test_reliability_degradation.py:190: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_reliability_degradation.py::test_a_crashed_worker_leaves_no_zombie_running_job - AssertionError: the reaper touched a re-claimable job\nassert [UUID('505e6e...251fb13e4f1')] == [UUID('505e6e...bc1d999eb7b')]\n  \n  Left contains one more item: UUID('f9d2e44f-e158-4cbc-a969-4251fb13e4f1')\n  \n  Full diff:\n    [\n        UUID('505e6ee7-01cd-43d7-9e09-0bc1d999eb7b'),\n  +     UUID('f9d2e44f-e158-4cbc-a969-4251fb13e4f1'),\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M208_WEBHOOK_DECLARED_SIZE_LIMIT_BYPASSED",
+      "file": "apps/api/src/korpus/api/request_limits.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_t12a_declared_oversize_is_refused_before_stream_consumption _______\n\n    def test_t12a_declared_oversize_is_refused_before_stream_consumption() -> None:\n        import asyncio\n        from fastapi import HTTPException\n        from korpus.api.request_limits import bounded_webhook_body\n    \n        class Request:\n            headers = {\"content-length\": str(64 * 1024 + 1)}\n    \n            async def stream(self):\n                raise AssertionError(\"oversized declared body was consumed\")\n                yield b\"\"\n    \n        with pytest.raises(HTTPException) as denial:\n>           asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_tenancy_threats.py:356: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/lib/python3.13/asyncio/runners.py:195: in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/runners.py:118: in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/base_events.py:725: in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n/tmp/korpus-m208_webhook_declared_size_limit_bypassed-p_7hl8ik/api-src/korpus/api/request_limits.py:23: in bounded_webhook_body\n    async for chunk in request.stream():\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <apps.api.tests.test_tenancy_threats.test_t12a_declared_oversize_is_refused_before_stream_consumption.<locals>.Request object at 0x7f345c8f4440>\n\n    async def stream(self):\n>       raise AssertionError(\"oversized declared body was consumed\")\nE       AssertionError: oversized declared body was consumed\n\napps/api/tests/test_tenancy_threats.py:352: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption - AssertionError: oversized declared body was consumed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M216_SECURITY_METRIC_LABEL_VOCABULARY_BYPASSED",
+      "file": "apps/api/src/korpus/infrastructure/observability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_security_metrics_reject_unbounded_or_invented_labels ___________\n\n    def test_security_metrics_reject_unbounded_or_invented_labels():\n        import pytest\n    \n        obs = Observability(registry=CollectorRegistry())\n        obs.observe_security_event(\"authorization_denied\")\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_observability.py:34: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M224_MANIFEST_ROOT_IGNORES_MODE",
+      "file": "scripts/manifest_lib/integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_manifest_root_changes_when_only_mode_changes _______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-412/test_manifest_root_changes_whe0')\n\n    def test_manifest_root_changes_when_only_mode_changes(tmp_path: Path) -> None:\n        root = Path(__file__).resolve().parents[3]\n        module = _module(root)\n        repo = tmp_path / \"repo\"\n        repo.mkdir()\n        script = repo / \"tool.sh\"\n        script.write_text(\"#!/bin/sh\\nexit 0\\n\", encoding=\"utf-8\")\n        subprocess.run([\"git\", \"init\", \"-q\", str(repo)], check=True)\n        subprocess.run([\"git\", \"-C\", str(repo), \"add\", \"tool.sh\"], check=True)\n        script.chmod(0o644)\n        before = module.build_manifest(repo)[\"root_sha256\"]\n        script.chmod(0o755)\n        after = module.build_manifest(repo)[\"root_sha256\"]\n>       assert before != after\nE       AssertionError: assert '1ed30671fe25686c4c58920da1eda06a565320785122a5e643542d378c6f53d4' != '1ed30671fe25686c4c58920da1eda06a565320785122a5e643542d378c6f53d4'\n\napps/api/tests/test_manifest_generation.py:108: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes - AssertionError: assert '1ed30671fe25686c4c58920da1eda06a565320785122a5e643542d378c6f53d4' != '1ed30671fe25686c4c58920da1eda06a565320785122a5e643542d378c6f53d4'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M232_STALE_SUPPLY_CHAIN_MANIFEST_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_supply_chain_manifest_from_another_source_tree_is_rejected ________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-413/test_supply_chain_manifest_fro0')\n\n    def test_supply_chain_manifest_from_another_source_tree_is_rejected(tmp_path: Path) -> None:\n        artifact = tmp_path / \"a\"; artifact.write_bytes(b\"x\")\n        digest = __import__(\"hashlib\").sha256(b\"x\").hexdigest()\n        manifest = {\"schema\": \"korpus.supply-chain-evidence.v1\", \"source_tree_sha256\": \"old\", \"release\": \"v\",\n                    \"artifacts\": {\"a\": {\"sha256\": digest, \"bytes\": 1}}}\n>       assert artifact_manifest_bound(manifest, {\"a\": (b\"x\", 1)}, source=\"current\", release=\"v\") is False\nE       AssertionError: assert True is False\nE        +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 'old'}, {'a': (b'x', 1)}, source='current', release='v')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:52: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected - AssertionError: assert True is False\n +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 'old'}, {'a': (b'x', 1)}, source='current', release='v')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M240_RELEASE_TRUST_REQUIREMENT_IGNORED",
+      "file": "scripts/release_attestation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_release_attestation_requires_pretrusted_signer ______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-415/test_release_attestation_requi0')\n\n    def test_release_attestation_requires_pretrusted_signer(tmp_path: Path) -> None:\n        key, manifest, attestation = tmp_path / \"key.pem\", tmp_path / \"manifest.json\", tmp_path / \"attestation.json\"\n        subprocess.run([\"openssl\", \"genpkey\", \"-algorithm\", \"Ed25519\", \"-out\", str(key)], check=True, capture_output=True)\n        manifest.write_text('{\"release\":\"test\"}\\n', encoding=\"utf-8\")\n        subprocess.run([sys.executable, str(SCRIPT), \"sign\", \"--manifest\", str(manifest), \"--key\", str(key), \"--out\", str(attestation)], cwd=ROOT, check=True, capture_output=True)\n        empty = tmp_path / \"empty.json\"; empty.write_text('{\"release_ed25519_public_key_sha256\":[]}\\n', encoding=\"utf-8\")\n        rejected = subprocess.run([sys.executable, str(SCRIPT), \"verify\", \"--manifest\", str(manifest), \"--attestation\", str(attestation), \"--trust-config\", str(empty), \"--require-trusted\"], cwd=ROOT, capture_output=True)\n>       assert rejected.returncode != 0\nE       assert 0 != 0\nE        +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m240_release_trust_requirement_ignored-hx1tlp1f/repo/sc...res\": [],\\n  \"public_key_sha256\": \"e8033b1c6588441657a71a904015b8b5743c1eb6abce9337afc9ff445bd5502c\"\\n}\\n', stderr=b'').returncode\n\napps/api/tests/test_release_attestation_trust.py:19: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer - assert 0 != 0\n +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m240_release_trust_requirement_ignored-hx1tlp1f/repo/sc...res\": [],\\n  \"public_key_sha256\": \"e8033b1c6588441657a71a904015b8b5743c1eb6abce9337afc9ff445bd5502c\"\\n}\\n', stderr=b'').returncode\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M248_PRODUCTION_ASSURANCE_RUNTIME_TRUST_DISCONNECTED",
+      "file": "scripts/verify_production_assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_promotion_plumbing.py::test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard _\n\n    def test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard() -> None:\n        source = (ROOT / \"scripts/verify_production_assurance.py\").read_text(encoding=\"utf-8\")\n>       assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in source\nE       assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in '#!/usr/bin/env python3\\nfrom __future__ import annotations\\nimport argparse, hashlib, json, sys\\nfrom pathlib import ..., \"failures\": failures}, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n\napps/api/tests/test_production_promotion_plumbing.py:11: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_promotion_plumbing.py::test_production_assurance_verifier_accepts_runtime_trust_only_through_shared_guard - assert 'KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256' in '#!/usr/bin/env python3\\nfrom __future__ import annotations\\nimport argparse, hashlib, json, sys\\nfrom pathlib import ..., \"failures\": failures}, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M256_TEVV_ATTACK_COVERAGE_BYPASSED",
+      "file": "apps/api/src/korpus/application/tevv_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_ledger_must_cover_required_attack_families"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_trusted_tevv_ledger_must_cover_required_attack_families _________\n\n    def test_trusted_tevv_ledger_must_cover_required_attack_families() -> None:\n        evidence, _ = _evidence()\n        required = json.loads(tevv_gate.PROFILE.read_text())[\"required_attack_families\"]\n        missing = required[-1]\n        for row in evidence[\"observation_ledger\"]:\n            if missing in row[\"attack_families\"]:\n                row[\"attack_families\"] = [required[0]]\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n>       assert result[\"checks\"][\"required_attack_families_covered\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:110: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_ledger_must_cover_required_attack_families - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M264_SUPPLY_MANIFEST_EXTRA_ARTIFACT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_supply_chain_manifest_rejects_unverified_extra_artifact _________\n\n    def test_supply_chain_manifest_rejects_unverified_extra_artifact() -> None:\n        digest = __import__(\"hashlib\").sha256(b\"x\").hexdigest()\n        manifest = {\n            \"schema\": \"korpus.supply-chain-evidence.v1\", \"source_tree_sha256\": \"s\", \"release\": \"v\",\n            \"artifacts\": {\n                \"a\": {\"sha256\": digest, \"bytes\": 1},\n                \"unverified\": {\"sha256\": digest, \"bytes\": 1},\n            },\n        }\n>       assert artifact_manifest_bound(manifest, {\"a\": (b\"x\", 1)}, source=\"s\", release=\"v\") is False\nE       AssertionError: assert True is False\nE        +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}, 'unver...fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'a': (b'x', 1)}, source='s', release='v')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact - AssertionError: assert True is False\n +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}, 'unver...fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'a': (b'x', 1)}, source='s', release='v')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M272_ZIP_COMPRESSION_RATIO_BYPASSED",
+      "file": "scripts/zip_resource_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_package_zip_safety.py::test_compression_ratio_budget_is_enforced"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_compression_ratio_budget_is_enforced ___________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-418/test_compression_ratio_budget_0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fa9b5ee9cd0>\n\n    def test_compression_ratio_budget_is_enforced(tmp_path: Path, monkeypatch) -> None:\n        archive = tmp_path / \"ratio.zip\"\n        with zipfile.ZipFile(archive, \"w\", compression=zipfile.ZIP_DEFLATED) as zf:\n            zf.writestr(\"zeros.txt\", b\"0\" * 4096)\n        module = _safety_module()\n        monkeypatch.setattr(sys.modules[module.resource_failures.__module__], \"MAX_COMPRESSION_RATIO\", 2.0)\n        with zipfile.ZipFile(archive) as zf:\n            safety = module.safety_failures(zf)\n>       assert any(\"compression ratio exceeded\" in item for item in safety)\nE       assert False\nE        +  where False = any(<generator object test_compression_ratio_budget_is_enforced.<locals>.<genexpr> at 0x7fa9b5d79d80>)\n\napps/api/tests/test_package_zip_safety.py:183: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_package_zip_safety.py::test_compression_ratio_budget_is_enforced - assert False\n +  where False = any(<generator object test_compression_ratio_budget_is_enforced.<locals>.<genexpr> at 0x7fa9b5d79d80>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL",
+      "file": "apps/api/src/korpus/application/pec_oracle_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_oracle_requires_original_query_stop_baseline _______________\n\n    def test_oracle_requires_original_query_stop_baseline():\n        plan = _row(RetrievalAction.PLAN_QUERY_VARIANTS, latency=5, searches=2)\n        decision = solve_oracle([plan])\n>       assert decision.action is RetrievalAction.BASELINE\nE       AssertionError: assert <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> is <RetrievalAction.BASELINE: 'BASELINE'>\nE        +  where <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> = OracleDecision(query_id='q1', action=<RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'>, status='PASS', reason='mutated', admissible_actions=()).action\nE        +  and   <RetrievalAction.BASELINE: 'BASELINE'> = RetrievalAction.BASELINE\n\napps/api/tests/test_pec_replay.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline - AssertionError: assert <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> is <RetrievalAction.BASELINE: 'BASELINE'>\n +  where <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> = OracleDecision(query_id='q1', action=<RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'>, status='PASS', reason='mutated', admissible_actions=()).action\n +  and   <RetrievalAction.BASELINE: 'BASELINE'> = RetrievalAction.BASELINE\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M288_PEC_ORIGINAL_QUERY_REPEATED_ON_ESCALATION",
+      "file": "apps/api/src/korpus/application/pec_retrieval.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_integration.py::test_planner_escalation_does_not_repeat_original_lexical_search"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_planner_escalation_does_not_repeat_original_lexical_search ________\n\nclient = <starlette.testclient.TestClient object at 0x7f2b206e81a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_planner_escalation_does_not_repeat_original_lexical_search(client, admin_identity) -> None:\n        result = ingest_text(client)\n        approve(client, result[\"version\"][\"id\"])\n        query = QueryRequest(text=\"Що має містити кожен запис?\", as_of=date(2026, 8, 21))\n        release_id = client.app.state.repository.corpus_release_id(\n            admin_identity, frozenset({\"public\"}), query.as_of\n        )\n        planner = CountingPlanner([\"дата відповідальна особа\"])\n        retriever = CountingRetriever(HybridLexicalRetriever(client.app.state.repository))\n        service = ExtractiveAnswerService(\n            client.app.state.repository,\n            retriever,\n            client.app.state.policy,\n            AnswerPolicy(0.1, 0.1, 0.1, \"pec-test-cal\"),\n            query_planner=planner,\n            predictive_controller=_controller(release_id, mode=\"plan\"),\n        )\n        answer = service.execute(admin_identity, query)\n        assert answer.status.value == \"answered\"\n>       assert retriever.searches == [query.text, \"дата відповідальна особа\"]\nE       AssertionError: assert ['Що має міст...дальна особа'] == ['Що має міст...дальна особа']\nE         \nE         At index 1 diff: 'Що має містити кожен запис?' != 'дата відповідальна особа'\nE         Left contains one more item: 'дата відповідальна особа'\nE         \nE         Full diff:\nE           [\nE         +     'Що має містити кожен запис?',\nE               'Що має містити кожен запис?',\nE               'дата відповідальна особа',\nE           ]\n\napps/api/tests/test_pec_integration.py:273: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_integration.py::test_planner_escalation_does_not_repeat_original_lexical_search - AssertionError: assert ['Що має міст...дальна особа'] == ['Що має міст...дальна особа']\n  \n  At index 1 diff: 'Що має містити кожен запис?' != 'дата відповідальна особа'\n  Left contains one more item: 'дата відповідальна особа'\n  \n  Full diff:\n    [\n  +     'Що має містити кожен запис?',\n        'Що має містити кожен запис?',\n        'дата відповідальна особа',\n    ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M296_PEC_REPLAY_PRIORITY_INVERTS_ACCEPTED_ERROR",
+      "file": "apps/api/src/korpus/application/pec_replay.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_replay_priority_enriches_explicit_failures ________________\n\n    def test_replay_priority_enriches_explicit_failures() -> None:\n        rows = [{\"query_id\": f\"q{i}\"} for i in range(40)]\n        for i in range(8): rows[i][\"accepted_answer_error\"] = True\n        report = replay_priority_enrichment(rows, top_fraction=0.2, alpha=0.05)\n>       assert report[\"failures_captured\"] == 8\nE       assert 0 == 8\n\napps/api/tests/test_pec_research.py:28: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures - assert 0 == 8\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M304_PEC_MODEL_SELF_JUDGMENT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_human_judgment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_model_self_judgment_is_never_authoritative ________________\n\n    def test_model_self_judgment_is_never_authoritative():\n        r=row(); r[\"model_self_judgment\"]=True\n        v=evaluate_human_judgments([r], expected_case_ids=[\"a\"], binding=B)\n>       assert not v.admissible and \"model_self_judgment:a\" in v.failures\nE       assert (not True)\nE        +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n\napps/api/tests/test_pec_human_judgment_v097.py:15: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative - assert (not True)\n +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED",
+      "file": "apps/api/src/korpus/application/supply_chain_attestation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_in_toto_subject_rejects_artifact_mutation ________________\n\n    def test_in_toto_subject_rejects_artifact_mutation():\n>       assert not verify_in_toto_subject(statement(),artifact_name=\"korpus.zip\",artifact_bytes=b\"changed\")\nE       AssertionError: assert not True\nE        +  where True = verify_in_toto_subject({'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]}, artifact_name='korpus.zip', artifact_bytes=b'changed')\nE        +    where {'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]} = statement()\n\napps/api/tests/test_supply_chain_attestation_v097.py:14: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation - AssertionError: assert not True\n +  where True = verify_in_toto_subject({'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]}, artifact_name='korpus.zip', artifact_bytes=b'changed')\n +    where {'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]} = statement()\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-23T16:34:25+00:00"
+  }
+}

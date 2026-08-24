@@ -1,0 +1,13 @@
+{
+  "schema": "korpus.status-ontology.v1",
+  "states": {
+    "CLOSED_ANCHORED": "Executed or byte-verified and supported by package-local evidence.",
+    "CARRY_FORWARD_SOURCE_BOUND": "Previously executed evidence remains admissible because every source-manifest byte is unchanged and the source manifest verifies.",
+    "PARTIAL_REEXECUTION": "Current harness reproduced a subset; no full-pass claim is inferred from the partial run.",
+    "RUNTIME_UNAVAILABLE": "Required tool is absent from this harness; absence is not a code failure and not a pass.",
+    "EXTERNAL_REQUIRED": "Predicate requires independent authority, production-like infrastructure, or a pre-admitted trust root and cannot be self-attested.",
+    "FAIL": "Executed predicate failed.",
+    "UNKNOWN": "Insufficient evidence."
+  },
+  "promotion_rule": "Production authorization is conjunctive; only CLOSED_ANCHORED or admissible trusted external PASS may satisfy required production predicates."
+}

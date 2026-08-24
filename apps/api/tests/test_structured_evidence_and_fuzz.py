@@ -37,12 +37,16 @@ def test_sentence_offsets_preserve_decimals_abbreviations_and_rows():
     assert any("37,5 °C" in sentence for sentence, _, _ in segments)
 
 
-def test_numeric_unit_conflicts_are_detected_without_cross_unit_false_positive():
+def test_numeric_unit_conflicts_are_detected_across_exactly_convertible_units():
     assert (
         contradiction_reason("Тиск має бути 120 кПа.", "Тиск має бути 140 кПа.")
-        == "numeric_conflict:кпа"
+        == "numeric_conflict:pressure_pa"
     )
-    assert contradiction_reason("Відстань 120 м.", "Відстань 120 км.") is None
+    assert (
+        contradiction_reason("Відстань 120 м.", "Відстань 120 км.")
+        == "numeric_conflict:length_m"
+    )
+    assert contradiction_reason("Відстань 1 км.", "Відстань 1000 м.") is None
 
 
 def test_text_html_json_parser_seeded_fuzz_is_bounded(tmp_path: Path, monkeypatch):

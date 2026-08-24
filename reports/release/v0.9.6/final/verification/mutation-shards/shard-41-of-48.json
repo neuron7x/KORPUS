@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 41,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M40_VERSION_CONFLICT_CHECK_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_analysis.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ich version governs is not a question ranking may answer,\n        so the answer layer checks it too — one document, two cited versions, no answer.\n        \"\"\"\n        first = ingest_text(client, title=\"Наказ про журнал\", text=OFFICIAL)\n        approve(client, first[\"version\"][\"id\"])\n        repository = client.app.state.repository\n        rows = repository.list_retrievable_spans(\n            client.identity_provider.current, frozenset({\"public\"}), date.today()\n        )\n        span, document, version = rows[0]\n        sibling = version.model_copy(update={\"id\": uuid4(), \"revision\": \"2.0\"}, deep=True)\n        sibling_span = EvidenceSpanRecord(\n            version_id=sibling.id,\n            ordinal=0,\n            text=\"Підрозділ вносить до журналу перевірок не менше 3 записів щодоби.\",\n        )\n    \n        class TwoVersionRetriever:\n            def search(\n                self,\n                identity: Identity,\n                text: str,\n                corpus_ids: frozenset[str],\n                as_of: date,\n                limit: int = 8,\n            ) -> list[RetrievedEvidence]:\n                return [\n                    RetrievedEvidence(\n                        span=span, document=document, version=version, score=0.9, query_coverage=1.0\n                    ),\n                    RetrievedEvidence(\n                        span=sibling_span,\n                        document=document,\n                        version=sibling,\n                        score=0.85,\n                        query_coverage=1.0,\n                    ),\n                ]\n    \n        service = ExtractiveAnswerService(\n            repository,\n            TwoVersionRetriever(),\n            PolicyEngine(),\n            AnswerPolicy(\n                minimum_score=0.08,\n                minimum_query_coverage=0.15,\n                minimum_support_score=0.08,\n                calibration_id=\"test-versions\",\n            ),\n        )\n        client.app.dependency_overrides[get_answer_service] = lambda: service\n    \n        answer = _ask(client)\n    \n>       assert answer[\"status\"] == \"requires_human_review\", (\n            \"two live versions of one document is a corpus state the system may not \"\n            \"resolve by ranking\"\n        )\nE       AssertionError: two live versions of one document is a corpus state the system may not resolve by ranking\nE       assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_authority_ranking.py:281: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_two_live_versions_of_one_document_require_a_human - AssertionError: two live versions of one document is a corpus state the system may not resolve by ranking\nassert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M84_LEAKAGE_DENOMINATOR_NOT_REQUIRED_BY_GATE",
+      "file": "apps/api/src/korpus/application/operational_math.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_gate_fails_when_the_metric_had_nothing_to_measure __________\n\n    def test_the_gate_fails_when_the_metric_had_nothing_to_measure() -> None:\n        \"\"\"Zero failures over zero measurable rows is the metric reporting it never ran.\"\"\"\n        verdict = _verdict(leakage_checks=0)\n    \n>       assert verdict.checks[\"access_noninterference_measured\"] is False\nE       assert True is False\n\napps/api/tests/test_leakage_measurement.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M145_DUPLICATE_REQUIREMENT_IDS_UNDETECTED",
+      "file": "apps/api/src/korpus/application/requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_duplicate_ids_are_actually_detected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_duplicate_ids_are_actually_detected ___________________\n\n    def test_duplicate_ids_are_actually_detected() -> None:\n        \"\"\"The register has no duplicates, so asserting over it alone proves nothing.\n    \n        Probed 2026-08-05: a mutant replacing the whole detector with `return []` survived\n        the test above, because an empty result is the correct answer for a clean register.\n        The detector has to be shown detecting.\n        \"\"\"\n        duplicated = [\n            _requirement(\"compose.api.read_only_root\", lambda _: True),\n            _requirement(\"ci.no_global_cache\", lambda _: True),\n            _requirement(\"compose.api.read_only_root\", lambda _: True),\n        ]\n    \n>       assert duplicate_ids(duplicated) == [\"compose.api.read_only_root\"]\nE       AssertionError: assert [] == ['compose.api.read_only_root']\nE         \nE         Right contains one more item: 'compose.api.read_only_root'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'compose.api.read_only_root',\nE         - ]\n\napps/api/tests/test_requirement_registry.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_duplicate_ids_are_actually_detected - AssertionError: assert [] == ['compose.api.read_only_root']\n  \n  Right contains one more item: 'compose.api.read_only_root'\n  \n  Full diff:\n  + []\n  - [\n  -     'compose.api.read_only_root',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M188_DECLARATION_ACCEPTS_CONTROL_CHARACTERS",
+      "file": "apps/api/src/korpus/domain/models.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answers.py::test_a_declaration_with_control_characters_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_declaration_with_control_characters_is_refused _____________\n\nclient = <starlette.testclient.TestClient object at 0x7faf25fdc440>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_a_declaration_with_control_characters_is_refused(client, admin_identity) -> None:\n        \"\"\"It goes into an append-only chain; a name carrying a newline forges a line there.\"\"\"\n        response = client.post(\n            \"/v1/answers\",\n            json={\n                \"text\": \"Що має містити запис журналу?\",\n                \"declaration\": {\n                    \"given_name\": \"Ярослав\\nsubject=admin\",\n                    \"family_name\": \"Василенко\",\n                    \"specialty\": \"Інженерне забезпечення\",\n                },\n            },\n        )\n    \n>       assert response.status_code == 422\nE       assert 200 == 422\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_answers.py:231: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answers.py::test_a_declaration_with_control_characters_is_refused - assert 200 == 422\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M156_AN_ORDINARY_ROLE_IS_GRANTED_ACCOUNT_MANAGEMENT",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_permission_contract.py::test_account_management_is_held_by_no_ordinary_role"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_account_management_is_held_by_no_ordinary_role ______________\n\n    def test_account_management_is_held_by_no_ordinary_role() -> None:\n        \"\"\"The specific rule the general check exists to keep: only the wildcard reaches it.\"\"\"\n        for role, permissions in ROLE_PERMISSIONS.items():\n            if role == \"admin\":\n                assert \"*\" in permissions\n                continue\n>           assert \"account:manage\" not in permissions, f\"{role} may switch a person off\"\nE           AssertionError: auditor may switch a person off\nE           assert 'account:manage' not in frozenset({'account:manage', 'audit:read', 'audit:verify', 'document:list'})\n\napps/api/tests/test_permission_contract.py:130: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_permission_contract.py::test_account_management_is_held_by_no_ordinary_role - AssertionError: auditor may switch a person off\nassert 'account:manage' not in frozenset({'account:manage', 'audit:read', 'audit:verify', 'document:list'})\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M245_PARTIAL_EXTERNAL_RELIABILITY_EVIDENCE_ACCEPTED",
+      "file": "scripts/stage_external_production_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_external_production_evidence_staging.py::test_partial_group_fails_closed"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "  monkeypatch.setenv(env, str(source))\n        with pytest.raises(ValueError, match=\"external tevv evidence is partial\"):\n>           staging.stage()\n\napps/api/tests/test_external_production_evidence_staging.py:26: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nscripts/stage_external_production_evidence.py:44: in stage\n    results = [_stage_group(name, specs) for name, specs in GROUPS.items()]\n               ^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nname = 'tevv'\nspecs = (('KORPUS_EXTERNAL_TEVV_EVIDENCE_FILE', PosixPath('/tmp/korpus-m245_partial_external_reliability_evidence_accepted-6xg...pus-m245_partial_external_reliability_evidence_accepted-6xg4td8g/repo/var/production/tevv-evidence.attestation.json')))\n\n    def _stage_group(name: str, specs: tuple[tuple[str, Path], ...]) -> dict[str, object]:\n        supplied = [(env, Path(os.environ[env])) for env, _ in specs if os.environ.get(env)]\n        if not supplied:\n            return {\"group\": name, \"status\": \"NO_EXTERNAL_EVIDENCE\", \"staged\": []}\n        if False:\n            missing = [env for env, _ in specs if not os.environ.get(env)]\n            raise ValueError(f\"external {name} evidence is partial; missing: {missing}\")\n        staged: list[str] = []\n>       for (env, destination), (_, source) in zip(specs, supplied, strict=True):\n                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       ValueError: zip() argument 2 is shorter than argument 1\n\nscripts/stage_external_production_evidence.py:34: ValueError\n\nDuring handling of the above exception, another exception occurred:\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-955/test_partial_group_fails_close0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f844d5cdba0>\n\n    def test_partial_group_fails_closed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:\n        _clear(monkeypatch)\n        env, _ = staging.GROUPS[\"tevv\"][0]\n        source = tmp_path / \"tevv.json\"; source.write_text(\"{}\", encoding=\"utf-8\")\n        monkeypatch.setenv(env, str(source))\n>       with pytest.raises(ValueError, match=\"external tevv evidence is partial\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'external tevv evidence is partial'\nE         Actual message: 'zip() argument 2 is shorter than argument 1'\n\napps/api/tests/test_external_production_evidence_staging.py:25: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_external_production_evidence_staging.py::test_partial_group_fails_closed - AssertionError: Regex pattern did not match.\n  Expected regex: 'external tevv evidence is partial'\n  Actual message: 'zip() argument 2 is shorter than argument 1'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M293_PEC_EXPORT_CROSS_RUN_TRAINING_ACCEPTED",
+      "file": "scripts/pec_controller_export_impl.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "  profile = target / \"profile.json\"\n            report = target / \"export.json\"\n            dataset.write_text('{\"id\":\"q1\"}\\n', encoding=\"utf-8\")\n            manifest.write_text('{\"system\":\"test\"}\\n', encoding=\"utf-8\")\n            protocol.write_text('# protocol\\n', encoding=\"utf-8\")\n    \n            def digest(path: Path) -> str:\n                return hashlib.sha256(path.read_bytes()).hexdigest()\n    \n            replay.write_text(\n                json.dumps({\n                    \"status\": \"PASS\",\n                    \"dataset_sha256\": digest(dataset),\n                    \"corpus_release_id\": \"a\" * 16,\n                    \"evaluation_protocol_sha256\": digest(protocol),\n                    \"answer_calibration_id\": \"cal-test\",\n                }),\n                encoding=\"utf-8\",\n            )\n            oracle.write_text(\n                json.dumps({\"status\": \"PASS\", \"replay_sha256\": digest(replay), \"decisions\": []}),\n                encoding=\"utf-8\",\n            )\n            training.write_text(\n                json.dumps({\n                    \"status\": \"PASS\",\n                    \"dataset_sha256\": \"f\" * 64,\n                    \"oracle_sha256\": digest(oracle),\n                    \"controller_risk_limit\": 0.05,\n                    \"minimum_leaf_samples\": 1,\n                    \"leaves\": [],\n                }),\n                encoding=\"utf-8\",\n            )\n            proc = subprocess.run(\n                [\n                    sys.executable,\n                    \"scripts/export_pec_controller.py\",\n                    \"--training\", str(training),\n                    \"--oracle\", str(oracle),\n                    \"--dataset\", str(dataset),\n                    \"--system-manifest\", str(manifest),\n                    \"--evaluation-protocol\", str(protocol),\n                    \"--replay-receipt\", str(replay),\n                    \"--corpus-release-id\", \"a\" * 16,\n                    \"--answer-calibration-id\", \"cal-test\",\n                    \"--profile-id\", \"pec-export-test\",\n                    \"--out\", str(profile),\n                    \"--receipt\", str(report),\n                    \"--release-gate\",\n                ],\n                cwd=ROOT,\n                stdout=subprocess.PIPE,\n                stderr=subprocess.PIPE,\n                text=True,\n                check=False,\n            )\n            assert proc.returncode == 1, proc.stdout + proc.stderr\n            payload = json.loads(report.read_text())\n>           assert payload[\"status\"] == \"FAIL\"\nE           AssertionError: assert 'UNKNOWN' == 'FAIL'\nE             \nE             - FAIL\nE             + UNKNOWN\n\napps/api/tests/test_pec_cli_paths.py:254: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding - AssertionError: assert 'UNKNOWN' == 'FAIL'\n  \n  - FAIL\n  + UNKNOWN\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:42:47+00:00"
+  }
+}

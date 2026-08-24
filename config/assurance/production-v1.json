@@ -13,7 +13,9 @@
     "postgres_security",
     "supply_chain",
     "exact_environment",
-    "mutation"
+    "mutation",
+    "pec_authority",
+    "pec_canary"
   ],
   "external_requirements": {
     "redteam_evidence_class": "EXTERNAL_INDEPENDENT",
@@ -25,7 +27,9 @@
     "supply_chain_completeness": "COMPLETE",
     "mutation_scope": "FULL_CATALOGUE",
     "redteam_attestation_verified": true,
-    "redteam_trusted_signer_required": true
+    "redteam_trusted_signer_required": true,
+    "tevv_independent_class": "EXTERNAL_INDEPENDENT",
+    "tevv_trusted_assessor_required": true
   },
   "interpretation": "All listed predicates are conjunctive. Missing, stale or weaker-class evidence fails closed."
 }

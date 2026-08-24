@@ -1,0 +1,27 @@
+{
+  "schema": "korpus.mutation-catalogue-revalidation.v4",
+  "status": "PASS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "scope": "FULL_CATALOGUE_EXECUTED",
+  "catalogue_mutants": 302,
+  "valid_mutants": 302,
+  "killed": 302,
+  "survived": [],
+  "invalid": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "shard_count": 48,
+  "fresh_full_current_tree_execution": true,
+  "evidence_class": "EXECUTED_FIRST_ORDER_MUTATION",
+  "raw_report": "var/mutation-report.json",
+  "raw_report_sha256": "895d3f71e41bf8a3dc4752ff3fe26f1484ee203a815e34da527dfd9c62c51948",
+  "production_gate": "var/production/mutation-gate.json",
+  "production_gate_sha256": "55274fb60c0a535fc560409fd1537da0d87458bf3096427d5d9b4fc2bc66a3c2",
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-16T14:29:50+00:00"
+  }
+}

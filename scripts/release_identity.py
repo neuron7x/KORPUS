@@ -4,22 +4,22 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-RELEASE_PATH = ROOT / "apps/api/src/korpus/release.json"
 
-def load_release_identity() -> dict[str, str]:
-    data = json.loads(RELEASE_PATH.read_text(encoding="utf-8"))
-    required = {"schema", "product", "version", "tag", "artifact_stem"}
+def load_release_identity(root: Path = ROOT) -> dict[str, str]:
+    data = json.loads((root / "apps/api/src/korpus/release.json").read_text(encoding="utf-8"))
+    required = {"schema", "product", "version", "tag", "artifact_stem", "distribution_artifact"}
     missing = required.difference(data)
     if missing:
         raise RuntimeError(f"release identity missing fields: {sorted(missing)}")
-    version = str(data["version"])
-    tag = str(data["tag"])
+    version, tag = str(data["version"]), str(data["tag"])
     if tag != f"v{version}":
         raise RuntimeError("release identity tag/version mismatch")
-    return {str(k): str(v) for k, v in data.items()}
+    return {str(key): str(value) for key, value in data.items()}
 
-def release_version() -> str:
-    return load_release_identity()["version"]
 
-def release_tag() -> str:
-    return load_release_identity()["tag"]
+def release_version(root: Path = ROOT) -> str:
+    return load_release_identity(root)["version"]
+
+
+def release_tag(root: Path = ROOT) -> str:
+    return load_release_identity(root)["tag"]

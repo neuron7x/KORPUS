@@ -1,0 +1,75 @@
+{
+  "schema": "korpus.gpt-maximum-elicitation-report.v1",
+  "status": "OBSERVED_HARNESS_BOUND",
+  "release": "v0.6.1",
+  "tested_system": {
+    "model": "GPT-5.6 Sol",
+    "role": "agentic systems-engineering orchestrator",
+    "tooling": [
+      "filesystem/container",
+      "Python/runtime execution",
+      "web research"
+    ],
+    "project": "KORPUS v0.6.1"
+  },
+  "claim_class": "capability_elicitation",
+  "claim": "Under this ChatGPT tool harness, GPT-5.6 Sol recovered, analyzed, hardened, verified, evidence-bound, and packaged the KORPUS software system while preserving fail-closed external production predicates.",
+  "not_claimed": [
+    "universal intelligence ceiling",
+    "AGI",
+    "model-only capability independent of harness",
+    "production authorization",
+    "third-party validation"
+  ],
+  "observed_evidence": {
+    "source_manifest_files": 824,
+    "source_manifest_root_sha256": "f490d25bd824adf6c9e7c3fa79630b5d4f3345a2668026acd038824179c27acf",
+    "evidence_source_digest": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+    "complete_source_tree_sha256": "a9d583786c060ae986156d75d860057503c3aa6b7ef9d582b67a9c1f8d196267",
+    "backend_collected": 1675,
+    "backend_passed": 1673,
+    "backend_failed": 0,
+    "backend_errors": 0,
+    "backend_skipped": 2,
+    "supplemental_evidence_provenance_test": "PASS",
+    "remaining_full_suite_skip": "live PostgreSQL integration",
+    "statement_coverage_percent": 96.26388104648974,
+    "branch_coverage_percent": 91.91011235955057,
+    "missing_branches": 216,
+    "missing_branch_ceiling": 220,
+    "mutation_catalogue": 302,
+    "mutation_killed": 302,
+    "mutation_survivors": 0,
+    "mutation_invalid": 0,
+    "web_tests": 142,
+    "web_passed": 142,
+    "web_failed": 0,
+    "determinism_runs": 4,
+    "determinism_tests_per_run": 66,
+    "stress_cycles": 3,
+    "stress_tests_per_cycle": 55,
+    "plasticity_states_checked": 6912,
+    "standards_references": 15,
+    "standards_controls": 12,
+    "standards_executable_controls": 10,
+    "standards_external_required_controls": 2,
+    "synthetic_eval_passed": 30,
+    "synthetic_eval_total": 30,
+    "tevv_admissible": false,
+    "scale_probe_spans": 5000,
+    "scale_probe_iterations": 80
+  },
+  "methodology": {
+    "maximum_elicitation": "OpenAI 2026: capability claims must be scoped to tested system, harness, tools, budget and validity checks; a still-improving result is not a universal ceiling.",
+    "benchmark_integrity": "OpenAI 2026 coding-eval audit: broken or contaminated benchmark tasks can materially misstate capability.",
+    "reproducibility": "Stanford HELM: curated scenarios, prompt-level transparency and reproducible evaluation.",
+    "risk_management": "NIST AI RMF GenAI Profile + SSDF 1.1/218A; SSDF 1.2 remains draft-informative as of the cited 2026 status page."
+  },
+  "limitations": [
+    "token/inference-cost budget unavailable to this artifact and therefore UNKNOWN",
+    "independent external red-team absent",
+    "live PostgreSQL production-like execution absent",
+    "network vulnerability/container scanners absent",
+    "trusted hosted-builder/signing attestations absent"
+  ]
+}

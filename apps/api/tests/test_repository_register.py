@@ -133,3 +133,13 @@ def test_a_secret_git_does_track_is_still_reported(tmp_path: Path) -> None:
     )
 
     assert load_context(root).tracked_secrets == ["infra/secrets/postgres_password.txt"]
+
+
+def test_full_ssot_allows_only_oversized_lineage_archive(tmp_path: Path) -> None:
+    root = _tree(tmp_path)
+    (root / "LINEAGE").mkdir()
+    (root / "LINEAGE/archive.zip").write_bytes(b"x" * 5_000_001)
+    assert load_context(root, "SOURCE_CHECKOUT").oversized == ["LINEAGE/archive.zip"]
+    assert load_context(root, "FULL_SSOT_DISTRIBUTION").oversized == []
+    (root / "payload.bin").write_bytes(b"x" * 5_000_001)
+    assert load_context(root, "FULL_SSOT_DISTRIBUTION").oversized == ["payload.bin"]

@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from pathlib import Path
 
 from pydantic import BaseModel, Field, model_validator
 
+from korpus.application.authority_policy import validate_authority_priors
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights
+from korpus.application.statistical_bounds import hoeffding_upper_bound
 from korpus.domain.models import AuthorityClass
 
 
@@ -73,6 +74,7 @@ class CalibrationProfile(BaseModel):
         # out of range. The values are discarded: only the validation runs here.
         _convex_weight_check = self.retrieval_weights
         _bm25_range_check = self.bm25_parameters
+        validate_authority_priors(self.authority_priors)
         return self
 
     @property
@@ -86,11 +88,9 @@ class CalibrationProfile(BaseModel):
             phrase=self.weight_phrase,
             temporal=self.weight_temporal,
         )
-
     @property
     def bm25_parameters(self) -> BM25Parameters:
         return BM25Parameters(k1=self.bm25_k1, b=self.bm25_b)
-
 
     @property
     def authority_priors(self) -> dict[AuthorityClass, float]:
@@ -115,8 +115,9 @@ class CalibrationProfile(BaseModel):
     def upper_error_bound(self) -> float:
         if self.accepted_samples == 0:
             return 1.0
-        radius = math.sqrt(math.log(1 / self.confidence_delta) / (2 * self.accepted_samples))
-        return min(1.0, self.empirical_error + radius)
+        return hoeffding_upper_bound(
+            self.observed_errors, self.accepted_samples, self.confidence_delta
+        )
 
     @property
     def ranking_valid(self) -> bool:

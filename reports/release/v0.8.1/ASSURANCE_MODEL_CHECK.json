@@ -1,0 +1,31 @@
+{
+  "schema": "korpus.assurance-model-check.v2",
+  "status": "PASS",
+  "release": "v0.8.1",
+  "source_tree_sha256": "968944ce15ce93cb512ec95bb2bfd830b3ba2309ee8e03916b06819a148d326d",
+  "model_identity": {
+    "source": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "release": "v-model"
+  },
+  "counts": {
+    "join_pairs": 324,
+    "join_triples": 5832,
+    "dominance_cases": 18,
+    "gate_negative_cases": 6,
+    "gate_positive_cases": 1,
+    "weighted_vectors": 6561,
+    "release_transitions": 36,
+    "release_independence_cases": 1
+  },
+  "total_states_checked": 12779,
+  "failures": [],
+  "properties": [
+    "evidence join commutative/idempotent/associative",
+    "PASS and FAIL are incomparable under dominance",
+    "UNKNOWN is outcome bottom",
+    "mandatory gate mismatches fail closed",
+    "weighted readiness remains in [0,100]",
+    "release promotion is sequential and withdrawal uses a reason-bearing API",
+    "production verifier cannot equal author"
+  ]
+}

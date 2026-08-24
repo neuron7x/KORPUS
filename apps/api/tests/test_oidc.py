@@ -83,3 +83,87 @@ def test_oidc_rejects_symmetric_unknown_and_duplicate_algorithms():
                 algorithms=algorithms,
                 client=object(),
             )
+
+
+def test_oidc_rejects_credential_bearing_or_ambiguous_provider_urls():
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    for jwks_url, issuer in (
+        ("https://user:secret@id.example/jwks", "https://id.example"),
+        ("https://id.example/jwks#fragment", "https://id.example"),
+        ("https://id.example/jwks", "https://id.example?tenant=alpha"),
+        ("https://id.example:bad/jwks", "https://id.example"),
+    ):
+        with pytest.raises(ValueError):
+            OIDCVerifier(
+                jwks_url=jwks_url,
+                issuer=issuer,
+                audience="korpus-api",
+                algorithms=["RS256"],
+                client=FakeJWKClient(key),
+            )
+
+
+def test_oidc_multi_audience_requires_azp_and_rejects_wrong_authorized_party():
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    client = FakeJWKClient(key)
+    verifier = OIDCVerifier(
+        jwks_url="https://id.example/jwks",
+        issuer="https://id.example",
+        audience="korpus-api",
+        algorithms=["RS256"],
+        client=client,
+    )
+    now = datetime.now(UTC)
+    base = {
+        "sub": "user-1",
+        "iss": "https://id.example",
+        "aud": ["korpus-api", "secondary-api"],
+        "iat": now,
+        "nbf": now - timedelta(seconds=1),
+        "auth_time": int(now.timestamp()),
+        "jti": "multi-aud-jti",
+        "exp": now + timedelta(minutes=5),
+    }
+    missing_azp = jwt.encode(base, key, algorithm="RS256", headers={"kid": "k1"})
+    with pytest.raises(jwt.InvalidTokenError, match="requires azp"):
+        verifier.verify(missing_azp)
+
+    valid = jwt.encode(
+        {**base, "azp": "browser-client"},
+        key,
+        algorithm="RS256",
+        headers={"kid": "k1"},
+    )
+    assert verifier.verify(valid, authorized_party="browser-client")["sub"] == "user-1"
+    with pytest.raises(jwt.InvalidTokenError, match="authorized party"):
+        verifier.verify(valid, authorized_party="other-client")
+
+
+def test_oidc_rejects_unexpected_explicit_jwt_media_type():
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    verifier = OIDCVerifier(
+        jwks_url="https://id.example/jwks",
+        issuer="https://id.example",
+        audience="korpus-api",
+        algorithms=["RS256"],
+        client=FakeJWKClient(key),
+    )
+    now = datetime.now(UTC)
+    payload = {
+        "sub": "user-1",
+        "iss": "https://id.example",
+        "aud": "korpus-api",
+        "iat": now,
+        "nbf": now - timedelta(seconds=1),
+        "auth_time": int(now.timestamp()),
+        "jti": "bad-typ-jti",
+        "exp": now + timedelta(minutes=5),
+    }
+    encoded = jwt.encode(
+        payload,
+        key,
+        algorithm="RS256",
+        headers={"kid": "k1", "typ": "JOSE"},
+    )
+    with pytest.raises(jwt.InvalidTokenError, match="typ"):
+        verifier.verify(encoded)

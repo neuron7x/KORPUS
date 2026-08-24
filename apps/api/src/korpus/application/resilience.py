@@ -10,6 +10,7 @@ from typing import TypeVar
 
 
 from korpus.application.overload import OverloadedError, OverloadReason
+from korpus.application.runtime_contracts import admission_parameters, circuit_parameters
 
 
 class CircuitOpenError(RuntimeError):
@@ -49,12 +50,9 @@ class AdmissionController:
         *,
         per_subject_limit: int | None = None,
     ) -> None:
-        if capacity < 1 or wait_timeout_seconds < 0:
-            raise ValueError("invalid admission limits")
-        if per_subject_limit is not None and per_subject_limit < 1:
-            raise ValueError("per_subject_limit must be positive")
+        capacity, wait_timeout_seconds, per_subject_limit = admission_parameters(capacity, wait_timeout_seconds, per_subject_limit)
         self.capacity = capacity
-        self.wait_timeout_seconds = wait_timeout_seconds
+        self.wait_timeout_seconds = float(wait_timeout_seconds)
         # Default: no single subject may hold more than half the service, and never
         # fewer than one slot, so a capacity of 1 still admits somebody.
         self.per_subject_limit = per_subject_limit or max(1, capacity // 2)
@@ -130,10 +128,9 @@ class CircuitBreaker:
         recovery_timeout_seconds: float = 15.0,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
-        if failure_threshold < 1 or recovery_timeout_seconds <= 0:
-            raise ValueError("invalid circuit breaker parameters")
+        failure_threshold, recovery_timeout_seconds = circuit_parameters(failure_threshold, recovery_timeout_seconds)
         self.failure_threshold = failure_threshold
-        self.recovery_timeout_seconds = recovery_timeout_seconds
+        self.recovery_timeout_seconds = float(recovery_timeout_seconds)
         self.clock = clock
         self._lock = threading.Lock()
         self._failures = 0

@@ -20,6 +20,7 @@ from sqlalchemy import (
     inspect,
     select,
     update,
+    or_,
 )
 from sqlalchemy import (
     text as sql_text,
@@ -29,6 +30,7 @@ from sqlalchemy.exc import DatabaseError, OperationalError
 from sqlalchemy.pool import NullPool
 
 from korpus.application.keyring import AuditKeyRing
+from korpus.application.retrieval_math import candidate_terms
 from korpus.application.policy import PolicyEngine
 from korpus.application.trace import current_trace_id
 from korpus.domain.models import (
@@ -59,6 +61,9 @@ from korpus.infrastructure.schema import (
     spans,
     versions,
 )
+
+# ACT-LRN-002: register the normalized learning graph on the shared metadata.
+from korpus.infrastructure import learning_schema as _learning_schema  # noqa: F401
 
 # ACT-001: the account/subscription/conversation tables hang off the same `MetaData`, and
 # nothing in this module reads them. The import is what registers them, so `create_all`
@@ -568,32 +573,20 @@ class SqlRepository:
         return retrieval_queries.materialize_current(ordered, as_of)
 
     def search_retrievable_spans(
-        self,
-        identity: Identity,
-        corpus_ids: frozenset[str],
-        as_of: date,
-        query: str,
-        candidate_limit: int,
+        self, identity: Identity, corpus_ids: frozenset[str], as_of: date,
+        query: str, candidate_limit: int,
     ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
-        if candidate_limit < 1:
-            raise ValueError("candidate_limit must be positive")
-        authorized_corpora = corpus_ids.intersection(identity.corpora)
-        if not authorized_corpora:
-            return []
-        with self.engine.begin() as connection:
-            self._apply_postgres_identity(connection, identity)
-            span_ids = self._candidate_span_ids(
-                identity, authorized_corpora, as_of, query, candidate_limit * 4, connection
-            )
-            if not span_ids:
-                return []
-            statement = retrieval_queries.retrievable_projection(
-                identity, authorized_corpora, as_of
-            ).where(spans.c.id.in_(span_ids))
-            rows = connection.execute(statement).mappings().all()
-        by_id = {row["span_id"]: row for row in rows}
-        ordered = [by_id[span_id] for span_id in span_ids if span_id in by_id]
-        return retrieval_queries.materialize_current(ordered, as_of)[:candidate_limit]
+        from korpus.infrastructure.repository_search import search_retrievable_spans
+        return search_retrievable_spans(self, identity, corpus_ids, as_of, query, candidate_limit)
+
+    def search_contextual_retrievable_spans(
+        self, identity: Identity, corpus_ids: frozenset[str], as_of: date, query: str,
+        candidate_limit: int, *, approved_aliases: dict[str, tuple[str, ...]] | None = None,
+    ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
+        from korpus.infrastructure.repository_search import search_contextual_retrievable_spans
+        return search_contextual_retrievable_spans(
+            self, identity, corpus_ids, as_of, query, candidate_limit, approved_aliases=approved_aliases
+        )
 
     def _candidate_span_ids(
         self,

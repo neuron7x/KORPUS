@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from korpus.application.ports import ObjectStoreUnavailable
+from korpus.infrastructure.resource_contracts import count as resource_count, object_limits, timeout as resource_timeout
 
 HASH_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 KEY_PATTERN = re.compile(r"^[a-f0-9]{2}/[a-f0-9]{2}/[a-f0-9]{64}$")
@@ -32,8 +33,7 @@ class LocalObjectStore:
     """Atomic, content-addressed local object store with durable directory updates."""
 
     def __init__(self, root: Path, *, max_object_bytes: int = DEFAULT_MAX_OBJECT_BYTES) -> None:
-        if max_object_bytes < 1:
-            raise ValueError("max_object_bytes must be positive")
+        max_object_bytes = resource_count(max_object_bytes, 1, "max_object_bytes")
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         os.chmod(self.root, 0o700)
@@ -41,8 +41,8 @@ class LocalObjectStore:
 
     def put(self, content: bytes, source_hash: str, filename: str) -> str:
         del filename
-        if not HASH_PATTERN.fullmatch(source_hash):
-            raise ValueError("invalid source hash")
+        if len(content) > self.max_object_bytes: raise ValueError("object exceeds configured size limit")
+        if not HASH_PATTERN.fullmatch(source_hash): raise ValueError("invalid source hash")
         if hashlib.sha256(content).hexdigest() != source_hash:
             raise ValueError("source hash does not match content")
         key = f"{source_hash[:2]}/{source_hash[2:4]}/{source_hash}"
@@ -215,10 +215,10 @@ class S3ObjectStore:
         client: Any | None = None,
     ) -> None:
         normalized_prefix = prefix.strip("/")
+        governance_retention_days, max_object_bytes = object_limits(governance_retention_days, max_object_bytes)
+        max_attempts = resource_count(max_attempts, 1, "max_attempts"); connect_timeout_seconds = resource_timeout(connect_timeout_seconds, "connect_timeout_seconds"); read_timeout_seconds = resource_timeout(read_timeout_seconds, "read_timeout_seconds")
         if (
             not BUCKET_PATTERN.fullmatch(bucket)
-            or governance_retention_days < 0
-            or max_object_bytes < 1
             or (
                 normalized_prefix
                 and (
@@ -298,9 +298,8 @@ class S3ObjectStore:
     @_translates_transport_failures
     def put(self, content: bytes, source_hash: str, filename: str) -> str:
         del filename
-        actual = hashlib.sha256(content).hexdigest()
-        if actual != source_hash:
-            raise ValueError("source hash does not match content")
+        if len(content) > self.max_object_bytes: raise ValueError("object exceeds configured size limit")
+        if hashlib.sha256(content).hexdigest() != source_hash: raise ValueError("source hash does not match content")
         key = self._key(source_hash)
         head = self._head(key)
         if head is not None:

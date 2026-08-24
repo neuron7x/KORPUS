@@ -150,11 +150,39 @@ WEAKENINGS: dict[str, tuple[dict[str, Any], str]] = {
     ),
     "audit anchored to a local file": (
         {"audit_anchor_mode": "file"},
-        "remote HTTP audit anchor",
+        "remote HTTPS audit anchor",
     ),
     "audit anchor without authentication": (
         {"audit_anchor_token": None},
         "audit anchor authentication",
+    ),
+    "plaintext audit anchor": (
+        {"audit_anchor_url": "http://anchor.example/v1/head"},
+        "remote HTTPS audit anchor",
+    ),
+    "loopback audit anchor": (
+        {"audit_anchor_url": "https://127.0.0.1/v1/head"},
+        "remote HTTPS audit anchor",
+    ),
+    "session cookie without host prefix": (
+        {"browser_session_cookie": "korpus_session"},
+        "__Host- prefix",
+    ),
+    "csrf cookie without host prefix": (
+        {"browser_csrf_cookie": "korpus_csrf"},
+        "__Host- prefix",
+    ),
+    "flow cookie without secure prefix": (
+        {"browser_flow_cookie": "korpus_flow"},
+        "__Secure- prefix",
+    ),
+    "duplicate browser cookie names": (
+        {"browser_flow_cookie": "__Host-korpus_session"},
+        "cookie names must be distinct",
+    ),
+    "placeholder browser session key": (
+        {"browser_session_key": "replace-browser-session-key-0000000000000000"},
+        "must not be a placeholder",
     ),
     "metrics disabled": ({"metrics_enabled": False}, "operational metrics"),
     "metrics endpoint unauthenticated": (
@@ -194,7 +222,8 @@ WEAKENINGS: dict[str, tuple[dict[str, Any], str]] = {
 @pytest.mark.parametrize("requirement", sorted(WEAKENINGS))
 def test_a_controlled_deployment_refuses_each_weakening(requirement: str, tmp_path: Path) -> None:
     overrides, message = WEAKENINGS[requirement]
-    settings = _base(tmp_path) | overrides
+    role = "worker" if requirement in {"malware scanning disabled", "parser sandbox disabled"} else "api"
+    settings = _base(tmp_path) | {"runtime_role": role} | overrides
 
     with pytest.raises(ValueError, match=message):
         Settings(**settings)
@@ -218,6 +247,56 @@ def test_every_controlled_environment_name_carries_the_same_refusals(
         Settings(**settings)
 
 
+
+def test_gcp_production_configuration_is_accepted(tmp_path: Path) -> None:
+    """The managed-GCP production path satisfies the same controlled predicates."""
+    settings = Settings(
+        **(
+            _base(tmp_path)
+            | {
+                "database_url": (
+                    "postgresql+psycopg://korpus_app:p@/korpus"
+                    "?host=/cloudsql/project:europe-west1:korpus-prod"
+                ),
+                "database_transport": "cloud_sql_socket",
+                "object_store_mode": "gcs",
+                "gcs_bucket": "korpus-prod-objects",
+                "gcs_quarantine_bucket": "korpus-prod-quarantine",
+                "gcs_retention_seconds": 30 * 24 * 3600,
+                "audit_anchor_mode": "gcs",
+                "gcs_audit_bucket": "korpus-prod-audit",
+                "audit_anchor_url": None,
+                "audit_anchor_token": None,
+                "s3_bucket": None,
+                "s3_governance_retention_days": 0,
+            }
+        )
+    )
+    assert settings.database_transport == "cloud_sql_socket"
+    assert settings.object_store_mode == "gcs"
+    assert settings.audit_anchor_mode == "gcs"
+
+
+def test_cloud_sql_socket_transport_refuses_a_network_hostname(tmp_path: Path) -> None:
+    settings = _base(tmp_path) | {
+        "database_url": (
+            "postgresql+psycopg://korpus_app:p@db.example/korpus"
+            "?host=/cloudsql/project:europe-west1:korpus-prod"
+        ),
+        "database_transport": "cloud_sql_socket",
+    }
+    with pytest.raises(ValueError, match="Cloud SQL Unix socket transport"):
+        Settings(**settings)
+
+
+def test_direct_tls_transport_still_requires_peer_verification(tmp_path: Path) -> None:
+    settings = _base(tmp_path) | {
+        "database_url": "postgresql+psycopg://u:p@db/korpus?sslmode=require",
+        "database_transport": "direct_tls",
+    }
+    with pytest.raises(ValueError, match="sslmode=verify-full"):
+        Settings(**settings)
+
 def test_a_local_environment_is_not_held_to_the_controlled_requirements(tmp_path: Path) -> None:
     """The refusals have to be conditional, or they would say nothing about control.
 
@@ -232,3 +311,68 @@ def test_a_local_environment_is_not_held_to_the_controlled_requirements(tmp_path
         bind_host="127.0.0.1",
     )
     assert settings.environment == "local"
+
+
+def test_production_worker_does_not_receive_browser_or_oidc_secrets(tmp_path: Path) -> None:
+    """A background ingestion principal is not an HTTP authentication principal.
+
+    The worker must still satisfy DB, durable-storage, provenance, audit, malware and
+    parser-isolation predicates, but giving it browser/OIDC secrets only widens the
+    credential blast radius. This test makes least privilege executable.
+    """
+    security = controlled_security_kwargs(tmp_path)
+    for key in (
+        "entitlement_profile_path",
+        "entitlement_profile_sha256",
+        "browser_auth_enabled",
+        "browser_session_key",
+        "browser_cookie_secure",
+        "oidc_authorization_endpoint",
+        "oidc_token_endpoint",
+        "oidc_client_id",
+        "oidc_redirect_uri",
+    ):
+        security.pop(key, None)
+    settings = Settings(
+        environment="production",
+        runtime_role="worker",
+        database_url=(
+            "postgresql+psycopg://korpus_app:p@/korpus"
+            "?host=/cloudsql/project:europe-central2:korpus-prod"
+        ),
+        database_transport="cloud_sql_socket",
+        schema_mode="migrations",
+        object_store_mode="gcs",
+        gcs_bucket="korpus-prod-objects",
+        gcs_quarantine_bucket="korpus-prod-quarantine",
+        gcs_retention_seconds=30 * 24 * 3600,
+        auth_mode="disabled",
+        audit_hmac_key="a" * 40,
+        audit_anchor_mode="gcs",
+        gcs_audit_bucket="korpus-prod-audit",
+        answer_policy_mode="development",
+        review_separation_required=True,
+        metrics_enabled=False,
+        cors_origins="*",
+        trusted_hosts="*",
+        **security,
+    )
+    assert settings.runtime_role == "worker"
+    assert settings.auth_mode == "disabled"
+    assert settings.browser_auth_enabled is False
+
+
+def test_production_api_still_refuses_browser_authentication_removal(tmp_path: Path) -> None:
+    settings = _base(tmp_path) | {"runtime_role": "api", "browser_auth_enabled": False}
+    with pytest.raises(ValueError, match="browser OIDC/BFF authentication"):
+        Settings(**settings)
+
+
+def test_background_runtime_refuses_dev_auth_even_outside_http_api(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="background runtime roles cannot use dev authentication"):
+        Settings(
+            environment="local",
+            runtime_role="worker",
+            auth_mode="dev",
+            dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        )

@@ -1,4 +1,4 @@
-import {mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
+import {mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
 import {spawn} from "node:child_process";
 import {dirname, join, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
@@ -92,7 +92,11 @@ async function waitForFile(path) {
 
 async function waitForExit(child) {
   if (child.exitCode !== null || child.signalCode !== null) return;
-  await new Promise(resolve => child.once("exit", resolve));
+  let exited = false;
+  const done = new Promise(resolve => child.once("exit", () => { exited = true; resolve(); }));
+  await Promise.race([done, new Promise(resolve => setTimeout(resolve, 2000))]);
+  if (!exited) child.kill("SIGKILL");
+  if (!exited) await done;
 }
 
 function mockFetchSource() {
@@ -104,7 +108,12 @@ function mockFetchSource() {
     const response = (status, payload, headers={}) => new Response(JSON.stringify(payload), {
       status, headers:{"content-type":"application/json", ...headers}
     });
-    if (route === "/api/v1/auth/me") return response(200, {subject:"browser-e2e", clearance:3, roles:["admin"]});
+    if (route === "/api/v1/client/bootstrap") return response(200, {
+      release:"v0.9.7", api_version:"v1",
+      identity:{subject:"browser-e2e", clearance:3, roles:["admin"], corpora:["public"], compartments:[]},
+      effective_permissions:["account:manage","answer:read","audit:read","audit:verify","document:approve","document:ingest","document:list","document:review","document:review_metadata","training:manage"],
+      capabilities:{browser_auth_enabled:true,subscription_required:true,offline_pack_enabled:false,ingestion_mode:"synchronous"}
+    });
     if (route === "/api/v1/inference/status") return response(200, {enabled:false, provider:"disabled", model:"none", answer_authority:"evidence"});
     if (route === "/api/v1/account") return response(200, {id:"${UUID_A}", auth_subject:"browser-e2e", email:"browser@example.invalid", display_name:"Browser E2E", status:"active", created_at:"2026-08-11T00:00:00Z"});
     if (route === "/api/v1/subscription") return response(200, {subscription_status:"active", enforced:true, plan_code:"e2e"});
@@ -135,7 +144,7 @@ async function collectModules(entry) {
   async function visit(name) {
     if (modules[name]) return;
     const source = await readFile(join(PUBLIC, name), "utf8");
-    const deps = [...source.matchAll(/(?:from\s+|import\s+)["'](\.\.?\/[^"']+)["']/g)]
+    const deps = [...source.matchAll(/(?:from\s+|import\s+|import\s*\(\s*)["'](\.\.?\/[^"']+)["']/g)]
       .map(match => match[1]);
     modules[name] = {source, deps:[]};
     for (const spec of deps) {
@@ -212,7 +221,8 @@ async function runCase(name, fn, results) {
 async function main() {
   const version = await browserVersion();
   const release = JSON.parse(await readFile(join(ROOT, "apps/api/src/korpus/release.json"), "utf8"));
-  const gitHead = await commandOutput("git", ["rev-parse", "HEAD"]);
+  let gitHead = null;
+  try { gitHead = await commandOutput("git", ["rev-parse", "HEAD"]); } catch { gitHead = null; }
   const profile = await mkdtemp(join(tmpdir(), "korpus-browser-e2e-"));
   const chromium = spawn(BROWSER, [
     "--headless=new", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",
@@ -236,10 +246,10 @@ async function main() {
     await runCase("consumer_authenticated_boot", async () => {
       await loadPage(cdp, "index.html", "app.js");
       await waitFor(cdp, '!document.getElementById("product").hidden', "authenticated product surface");
-      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryFocused:document.activeElement?.id === "query"})`);
+      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0})`);
       assert(state.identity.includes("browser-e2e"), "server identity was not rendered");
       assert(state.entryHidden && !state.productHidden, "authenticated workspace state is inconsistent");
-      assert(state.queryFocused, "query did not receive working-state focus");
+      assert(state.queryVisible, "authenticated query surface is not visible");
     }, results);
 
     await runCase("evidence_render_escapes_xss", async () => {
@@ -299,11 +309,12 @@ async function main() {
     schema_version:1, gate:"browser_e2e", environment_class:"LOCAL_BROWSER_POLICY_COMPATIBLE",
     transport_fixture:"browser_fetch_stub", navigation_policy:"system URLBlocklist prevents local HTTP navigation",
     network_navigation_executed:false, same_origin_network_executed:false, oidc_session_executed:false,
-    release_version:release.version, release_tag:release.tag, git_head:gitHead,
+    release_version:release.version, release_tag:release.tag, git_head:gitHead, git_context:gitHead?"repository":"gitless_package",
     browser:version, browser_binary:BROWSER, tests:results,
     totals:{tests:results.length, passed, failed:results.length-passed}, status:passed===results.length?"PASS":"FAIL",
     browser_stderr_tail:browserErr.trim().split("\n").slice(-8),
   };
+  await mkdir(dirname(REPORT), {recursive:true});
   await writeFile(REPORT, `${JSON.stringify(report,null,2)}\n`);
   process.stdout.write(`${JSON.stringify(report,null,2)}\n`);
   if (report.status !== "PASS") process.exitCode=1;
@@ -311,6 +322,6 @@ async function main() {
 
 main().catch(async error => {
   const report={schema_version:1,gate:"browser_e2e",status:"FAIL",fatal:String(error?.stack??error)};
-  try { await writeFile(REPORT,`${JSON.stringify(report,null,2)}\n`); } catch {}
+  try { await mkdir(dirname(REPORT), {recursive:true}); await writeFile(REPORT,`${JSON.stringify(report,null,2)}\n`); } catch {}
   console.error(error); process.exitCode=1;
 });

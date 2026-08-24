@@ -1,0 +1,41 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "reliability_internal",
+  "status": "PASS",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "release": "v0.8.0",
+  "checks": {
+    "campaign_executed": true,
+    "pytest_passed": true,
+    "attack_families_declared": true
+  },
+  "failures": [],
+  "evidence_class": "INTERNAL_FAULT_INJECTION",
+  "attack_families": [
+    "concurrency",
+    "idempotency",
+    "retry",
+    "lease_expiry",
+    "partial_failure",
+    "database_outage",
+    "object_store_outage",
+    "audit_backlog",
+    "cache_failure"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_durable_ingestion_jobs.py",
+    "apps/api/tests/test_reliability_degradation.py",
+    "apps/api/tests/test_resilience.py",
+    "apps/api/tests/test_resilience_and_audit_scope.py",
+    "apps/api/tests/test_anchor_delivery_backlog.py",
+    "apps/api/tests/test_query_cache.py",
+    "apps/api/tests/test_recovery_measurement.py"
+  ],
+  "junit": {
+    "tests": 42,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_path": "var/readiness947/reliability-current.xml"
+}

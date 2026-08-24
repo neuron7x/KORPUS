@@ -4,6 +4,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+from korpus.application.production_assurance_external import evaluate_external_requirements
+
 
 @dataclass(frozen=True)
 class ProductionAssuranceVerdict:
@@ -33,20 +35,7 @@ def evaluate_production_assurance(
         checks[f"{gate_id}.source_bound"] = gate.get("source_tree_sha256") == source_digest
         checks[f"{gate_id}.release_bound"] = gate.get("release") == release
 
-    redteam = gates.get("redteam", {})
-    checks["redteam.independent"] = redteam.get("evidence_class") == external.get("redteam_evidence_class")
-    checks["redteam.attestation_verified"] = redteam.get("attestation_verified") is external.get("redteam_attestation_verified")
-    checks["redteam.trusted_signer"] = redteam.get("trusted_signer") is external.get("redteam_trusted_signer_required")
-    tevv = gates.get("tevv", {})
-    allowed_envs = set(external.get("tevv_environment_classes", ()))
-    checks["tevv.environment"] = tevv.get("environment_class") in allowed_envs
-    postgres = gates.get("postgres_security", {})
-    checks["postgres.real_backend"] = postgres.get("backend") == external.get("postgres_backend")
-    supply = gates.get("supply_chain", {})
-    checks["supply_chain.complete"] = supply.get("completeness") == external.get("supply_chain_completeness")
-    mutation = gates.get("mutation", {})
-    checks["mutation.full_catalogue"] = mutation.get("scope") == external.get("mutation_scope")
-
+    checks.update(evaluate_external_requirements(external, gates))
     failures = tuple(name for name, passed in checks.items() if not passed)
     return ProductionAssuranceVerdict("PASS" if not failures else "FAIL", checks, failures)
 

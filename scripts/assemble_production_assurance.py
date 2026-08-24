@@ -29,8 +29,8 @@ DEFAULT_GATES = {
     "supply_chain": "supply_chain-gate.json",
     "exact_environment": "exact_environment-gate.json",
     "mutation": "mutation-gate.json",
+    "pec_authority": "pec_authority-gate.json", "pec_canary": "pec_canary-gate.json",
 }
-
 
 def _load(path: Path) -> dict[str, object]:
     if not path.is_file():

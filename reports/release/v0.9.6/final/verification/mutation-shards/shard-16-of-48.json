@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 16,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M16_MALWARE_SCAN_BYPASS",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_ingestion_stops_before_parser_when_malware_scanner_rejects ________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-837/test_ingestion_stops_before_pa0')\n\n    def test_ingestion_stops_before_parser_when_malware_scanner_rejects(tmp_path: Path):\n        from korpus.application.ingestion import ExtractionSettings\n        from korpus.application.policy import PolicyEngine\n        from korpus.composition import build_ingestion_service\n        from korpus.domain.models import AuthorityClass, VersionCreate\n        from korpus.infrastructure.object_store import LocalObjectStore\n        from korpus.infrastructure.repository import SqlRepository\n    \n        class RejectingScanner:\n            def scan(self, path: Path) -> None:\n                raise MalwareDetectedError(\"malware detected: test-signature\")\n    \n        repository = SqlRepository(\n            f\"sqlite:///{tmp_path / 'malware.db'}\",\n            audit_hmac_key=\"malware-test-key\",\n            policy=PolicyEngine(),\n            audit_anchor_path=tmp_path / \"malware-anchor.json\",\n        )\n        repository.initialize(create_schema=True)\n        service = build_ingestion_service(\n            repository,\n            LocalObjectStore(tmp_path / \"malware-objects\"),\n            PolicyEngine(),\n            ExtractionSettings(False, \"ukr+eng\"),\n            malware_scanner=RejectingScanner(),\n        )\n        actor = Identity(\n            subject=\"scanner-test\",\n            roles=frozenset({\"admin\", \"curator\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"public\"}),\n        )\n        try:\n>           with pytest.raises(MalwareDetectedError, match=\"test-signature\"):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.security.scanning.MalwareDetectedError'>\n\napps/api/tests/test_v5_security_kernel.py:422: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_ingestion_stops_before_parser_when_malware_scanner_rejects - Failed: DID NOT RAISE <class 'korpus.security.scanning.MalwareDetectedError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M63_ZERO_TESTS_COUNTS_AS_A_RUN",
+      "file": "apps/api/src/korpus/application/assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_aggregation.py::test_zero_tests_is_not_a_successful_run"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_zero_tests_is_not_a_successful_run ____________________\n\n    def test_zero_tests_is_not_a_successful_run() -> None:\n        result = evaluate(junit=junit(tests=0, skipped=0))\n        assert result.passed is False\n>       assert result.checks[\"tests_executed\"] is False\nE       assert True is False\n\napps/api/tests/test_assurance_aggregation.py:102: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_aggregation.py::test_zero_tests_is_not_a_successful_run - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M107_GATE_INVENTORY_REPORTS_NOTHING",
+      "file": "apps/api/src/korpus/application/gate_inventory.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_gate_negative_controls.py::test_every_gate_predicate_has_a_negative_control"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_every_gate_predicate_has_a_negative_control _______________\n\n    def test_every_gate_predicate_has_a_negative_control() -> None:\n        \"\"\"The inventory comes from the code, so a new predicate lands here uncovered.\"\"\"\n        missing = set(operational_predicates()) - set(OPERATIONAL_BREAKERS)\n        stale = set(OPERATIONAL_BREAKERS) - set(operational_predicates())\n    \n        assert missing == set(), (\n            f\"operational predicates with no case that makes them false: {sorted(missing)} — \"\n            \"a gate that has never been shown to fail is not evidence about the system (§2.8)\"\n        )\n>       assert stale == set(), f\"negative controls for predicates that no longer exist: {sorted(stale)}\"\nE       AssertionError: negative controls for predicates that no longer exist: ['evidence_provenance', 'reports_present']\nE       assert {'evidence_pr...orts_present'} == set()\nE         \nE         Extra items in the left set:\nE         'evidence_provenance'\nE         'reports_present'\nE         \nE         Full diff:\nE         - set()\nE         + {\nE         +     'evidence_provenance',\nE         +     'reports_present',\nE         + }\n\napps/api/tests/test_gate_negative_controls.py:107: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_gate_negative_controls.py::test_every_gate_predicate_has_a_negative_control - AssertionError: negative controls for predicates that no longer exist: ['evidence_provenance', 'reports_present']\nassert {'evidence_pr...orts_present'} == set()\n  \n  Extra items in the left set:\n  'evidence_provenance'\n  'reports_present'\n  \n  Full diff:\n  - set()\n  + {\n  +     'evidence_provenance',\n  +     'reports_present',\n  + }\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M119_REVIEW_TRANSITION_SKIPS_ENTITLEMENT",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_access_refusals.py::test_a_reviewer_cannot_transition_a_version_from_another_corpus"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_a_reviewer_cannot_transition_a_version_from_another_corpus ________\n\nrepository = <korpus.infrastructure.repository.SqlRepository object at 0x7f2a98e0c2f0>\noutsider = Identity(subject='outsider', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'training'}), compartments=frozenset())\ningested = IngestResult(document=DocumentRecord(id=UUID('77eaa5d0-e6db-4529-b8ce-7cbaa5781fd8'), canonical_title='Order 7', corpu... 22, 16, 34, 11, 794975, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False)\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-836/test_a_reviewer_cannot_transit0')\n\n    def test_a_reviewer_cannot_transition_a_version_from_another_corpus(\n        repository: SqlRepository, outsider: Identity, ingested, tmp_path: Path\n    ) -> None:\n        \"\"\"Found 2026-08-05: holding a review role was enough, entitlement was not checked.\n    \n        `transition` fetched the version and the document with calls that filter by\n        nothing, checked the role, and proceeded. On PostgreSQL row-level security would\n        have refused first — which is why nothing here had ever noticed.\n        \"\"\"\n        from korpus.domain.models import ReviewState, ReviewTransition\n    \n        reviewer_elsewhere = Identity(\n            subject=\"reviewer-training\",\n            roles=frozenset({\"user\", \"reviewer\", \"curator\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"training\"}),\n        )\n        service = build_ingestion_service(\n            repository,\n            LocalObjectStore(tmp_path / \"objects\"),\n            PolicyEngine(),\n            ExtractionSettings(False, \"ukr\"),\n        )\n    \n>       with pytest.raises(PermissionError, match=\"cannot access target document\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'PermissionError'>\n\napps/api/tests/test_repository_access_refusals.py:232: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_access_refusals.py::test_a_reviewer_cannot_transition_a_version_from_another_corpus - Failed: DID NOT RAISE <class 'PermissionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M131_PAST_DUE_KEEPS_PAYING",
+      "file": "apps/api/src/korpus/domain/tenancy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_a_past_due_subscription_pays_for_nothing"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "========================= FAILURES ===================================\n________________ test_a_past_due_subscription_pays_for_nothing _________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-838/test_a_past_due_subscription_p0')\n\n    def test_a_past_due_subscription_pays_for_nothing(tmp_path: Path) -> None:\n        \"\"\"No implicit grace period. The mutation gate found this gap: every earlier test\n        reached the refusal through INCOMPLETE, so a rule that also honoured PAST_DUE would\n        have passed all of them.\n    \n        A grace period is a commercial decision somebody makes on purpose. Defaulting to one\n        means the first unpaid invoice silently keeps access open, which is the state nobody\n        notices until the month it matters.\n        \"\"\"\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|lapsing\", frozenset({\"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            subscription = tenancy.subscription_service.start_subscription(\n                identity.subject, account.id, \"standard\"\n            )\n            _activate(tenancy, subscription.id)\n    \n            gate = tenancy.entitlements(required=True)\n            assert gate.authorize_corpora(identity, account, [\"training\"]) == frozenset({\"training\"})\n    \n            moment = datetime.now(UTC) + timedelta(minutes=5)\n            body = {\n                \"id\": \"evt-past-due\",\n                \"type\": \"subscription.payment_failed\",\n                \"occurred_at\": moment.isoformat(),\n                \"data\": {\"reference\": str(subscription.id)},\n            }\n            payload = json.dumps(body).encode(\"utf-8\")\n            tenancy.subscription_service.handle_event(payload, tenancy.provider.sign(payload))\n    \n            stored = tenancy.subscriptions.get_subscription(subscription.id)\n            assert stored is not None and stored.status is SubscriptionStatus.PAST_DUE\n>           assert gate.project(account).entitled_corpora == frozenset()\nE           AssertionError: assert frozenset({'training'}) == frozenset()\nE             \nE             Extra items in the left set:\nE             'training'\nE             \nE             Full diff:\nE             - frozenset()\nE             ?           ^\nE             + frozenset({\nE             ?           ^\nE             +     'training',\nE             + })\n\napps/api/tests/test_entitlement_gate.py:305: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_a_past_due_subscription_pays_for_nothing - AssertionError: assert frozenset({'training'}) == frozenset()\n  \n  Extra items in the left set:\n  'training'\n  \n  Full diff:\n  - frozenset()\n  ?           ^\n  + frozenset({\n  ?           ^\n  +     'training',\n  + })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M220_FIXTURE_RECOVERY_PROMOTED_TO_PRODUCTION",
+      "file": "apps/api/src/korpus/application/production_reliability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed _\n\n    def test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed() -> None:\n        internal, chaos, load, recovery = _evidence(); load[\"environment_class\"] = \"LOCAL_DEV\"; recovery[\"environment_class\"] = \"CI_FIXTURE\"\n        checks = evaluate_reliability_evidence(internal, chaos, load, recovery, source=\"s\", release=\"v\")\n>       assert checks[\"load_environment\"] is False and checks[\"recovery_environment\"] is False\nE       assert (False is False and True is False)\n\napps/api/tests/test_production_reliability.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed - assert (False is False and True is False)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M268_MISSION_INDEPENDENCE_BYPASSED",
+      "file": "apps/api/src/korpus/application/mission_assurance_v2.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_independence_alone_is_required_for_admission _______________\n\n    def test_independence_alone_is_required_for_admission():\n        verdict = evaluate_mission_assurance(_rows(500), independent=False, real_domain=True, operational_environment=True)\n>       assert not verdict.admissible\nE       assert not True\nE        +  where True = MissionAssuranceVerdict(admissible=True, observations=500, hard_failure_count=0, hard_failure_interval=Interval(lower=... upper=0.9999999999999999, confidence=0.95), p50_latency_ms=9.5, p95_latency_ms=18.05, p99_latency_ms=19.0, reasons=()).admissible\n\napps/api/tests/test_mission_assurance_v2.py:49: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission - assert not True\n +  where True = MissionAssuranceVerdict(admissible=True, observations=500, hard_failure_count=0, hard_failure_interval=Interval(lower=... upper=0.9999999999999999, confidence=0.95), p50_latency_ms=9.5, p95_latency_ms=18.05, p99_latency_ms=19.0, reasons=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:34:17+00:00"
+  }
+}

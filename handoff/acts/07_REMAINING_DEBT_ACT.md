@@ -1,17 +1,8 @@
-# Act 07 — remaining debt
+# ACT 07 — Remaining Debt — KORPUS v0.9.7
 
-- Total frozen findings: 99.
-- Closed locally: 20.
-- Mitigated locally but requiring external/live acceptance: 33.
-- External debt: 31.
-- Open technical debt: 15.
-- Total non-closed: 79.
-- Remaining severity: P0=21, P1=48, P2=10.
+- Software predicates: **14/14**.
+- External predicates: **0/14**.
+- Production-satisfied: **0/14**.
+- Production authorization: **false**.
 
-Authoritative item-level debt:
-
-- `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json`
-- `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.csv`
-- `docs/operations/TECHNICAL_DEBT_V5.md`
-
-An agent may close an item only by satisfying its exact acceptance predicate and attaching new immutable evidence. Renaming, reclassifying or deleting a finding is not closure.
+No unresolved local regression or mutation defect is carried forward. Remaining launch debt is enumerated in `handoff/operations/NEXT_STAGE_EXTERNAL_EVIDENCE_v0.9.7.md`.

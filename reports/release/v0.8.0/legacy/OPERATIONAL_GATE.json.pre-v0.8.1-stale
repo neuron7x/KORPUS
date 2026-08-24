@@ -1,0 +1,13 @@
+{
+  "schema": "korpus.operational-gate-summary.v1",
+  "status": "PASS_WITH_CAVEATS",
+  "release": "v0.8.0",
+  "source_tree_sha256": "f9a5b6c6f06206454bf8b46dc9b60b38f9066277dbdfce2fd3e413205cefbff7",
+  "evidence_source_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "production_authorized": false,
+  "generated_at": "2026-08-16T20:24:18.139954+00:00",
+  "basis": {
+    "engineering": "PASS",
+    "production_hard_predicates": "FAIL_CLOSED"
+  }
+}

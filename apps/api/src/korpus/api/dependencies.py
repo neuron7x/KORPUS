@@ -5,7 +5,8 @@ from typing import Annotated, Any
 from fastapi import Depends, Request
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
-from korpus.application.cache import CachedRetriever, EvidenceQueryCache
+from korpus.application.cache import EvidenceQueryCache
+from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.composition import AnswerComposer
 from korpus.application.ingestion import ExtractionSettings, IngestionService
@@ -31,6 +32,7 @@ from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
 from korpus.tenancy_composition import build_egress_policy
+from korpus.pec_composition import build_predictive_controller
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
@@ -227,8 +229,9 @@ def get_answer_service(
         timeout_ms=timeout_ms,
         semantic_source=semantic_source,
         authority_priors=authority_priors,
+        contextual_projection_enabled=settings.contextual_retrieval_enabled,
     )
-    retriever = CachedRetriever(repository, base, cache, configuration_id)
+    retriever = PECCachedRetriever(repository, base, cache, configuration_id)
     return ExtractiveAnswerService(
         repository,
         retriever,
@@ -237,6 +240,7 @@ def get_answer_service(
         query_planner=build_query_planner(settings),
         answer_composer=build_answer_composer(settings),
         egress_policy=build_egress_policy(settings),
+        predictive_controller=build_predictive_controller(settings),
     )
 
 
@@ -259,16 +263,12 @@ def _model_adapter(settings: Settings, *, composer: bool) -> AnswerComposer | Qu
     else:
         adapter = AnthropicAnswerComposer if composer else AnthropicQueryPlanner
     return adapter(api_key, **common)
-
-
 def build_answer_composer(settings: Settings) -> AnswerComposer | None:
     """The bounded arranger, when explicitly enabled and credentialled."""
     if not settings.answer_composer_enabled or not resolved_model_api_key(settings):
         return None
     adapter = _model_adapter(settings, composer=True)
     return adapter  # type: ignore[return-value]
-
-
 def build_query_planner(settings: Settings) -> QueryPlanner | None:
     """The bounded reformulator, when explicitly enabled and credentialled."""
     if not settings.query_planner_enabled or not resolved_model_api_key(settings):

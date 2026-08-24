@@ -1,0 +1,24 @@
+{
+  "schema": "korpus.release-supersession-map.v1",
+  "generated_at": "2026-08-16T18:15:29.669118+00:00",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "supersedes_for_release_truth": [
+    {
+      "legacy": "docs/assurance/EXECUTABLE_EVIDENCE_INDEX.md",
+      "current": "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
+      "reason": "legacy static counts are stale; source document retained byte-for-byte to preserve the verified source digest"
+    },
+    {
+      "legacy": "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json@pre-closeout",
+      "current": "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json",
+      "reason": "regenerated against current source digest"
+    },
+    {
+      "legacy": "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json@pre-closeout",
+      "current": "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json",
+      "reason": "regenerated against current source digest"
+    }
+  ],
+  "policy": "Release-truth consumers MUST prefer the current release overlay over stale source-document counters. The source tree itself was intentionally left immutable so prior executable evidence remains source-bound."
+}

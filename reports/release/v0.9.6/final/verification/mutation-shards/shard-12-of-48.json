@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 12,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M12_REMOTE_ANCHOR_MAC_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/audit_anchor.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_http_audit_anchor.py::test_remote_anchor_detects_payload_tampering"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_remote_anchor_detects_payload_tampering _________________\n\n    def test_remote_anchor_detects_payload_tampering():\n        server = MonotonicAnchorServer()\n        anchor = store(server)\n        anchor.write(2, \"2\" * 64)\n        assert server.payload is not None\n        server.payload[\"head_hash\"] = \"f\" * 64\n>       with pytest.raises(AnchorError, match=\"MAC mismatch\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.infrastructure.audit_anchor.AnchorError'>\n\napps/api/tests/test_http_audit_anchor.py:87: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_http_audit_anchor.py::test_remote_anchor_detects_payload_tampering - Failed: DID NOT RAISE <class 'korpus.infrastructure.audit_anchor.AnchorError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M59_PROVENANCE_DIGEST_NOT_COMPARED",
+      "file": "apps/api/src/korpus/application/provenance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_provenance.py::test_gate_rejects_evidence_from_a_foreign_tree"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_gate_rejects_evidence_from_a_foreign_tree ________________\n\n    def test_gate_rejects_evidence_from_a_foreign_tree() -> None:\n        result = OperationalReleaseGate.load(POLICY).evaluate(\n            stamped_reports(FOREIGN_DIGEST), source_digest=\"a\" * 64\n        )\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n\napps/api/tests/test_evidence_provenance.py:57: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_provenance.py::test_gate_rejects_evidence_from_a_foreign_tree - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...e_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=False, admission=None).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M103_EMPTY_CLAIM_TRIVIALLY_SUPPORTED",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_an_empty_claim_has_no_support ______________________\n\n    def test_an_empty_claim_has_no_support() -> None:\n        \"\"\"Zero, not one: nothing is not trivially supported by everything.\"\"\"\n>       assert extractive_support(\"   \", BODY) == 0.0\nE       AssertionError: assert 1.0 == 0.0\nE        +  where 1.0 = extractive_support('   ', 'Журнал ПІДТРИМКА ведеться щодоби відповідальною особою підрозділу.')\n\napps/api/tests/test_support_gate.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_support_gate.py::test_an_empty_claim_has_no_support - AssertionError: assert 1.0 == 0.0\n +  where 1.0 = extractive_support('   ', 'Журнал ПІДТРИМКА ведеться щодоби відповідальною особою підрозділу.')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M126_EXPORT_LEAKS_PAYLOADS_BY_DEFAULT",
+      "file": "apps/api/src/korpus/application/audit_export.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_export.py::test_payloads_are_excluded_unless_asked_for"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_payloads_are_excluded_unless_asked_for __________________\n\n    def test_payloads_are_excluded_unless_asked_for() -> None:\n        \"\"\"The corpus material an audit payload quotes must not leave by default.\"\"\"\n        records = build_records(_rows(1, payload={\"quote\": \"classified passage\"}))\n    \n        rendered = records[0].as_dict()\n    \n>       assert \"payload\" not in rendered\nE       AssertionError: assert 'payload' not in {'action': 'document.ingested', 'actor_subject': 'curator', 'event_hash': 'ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d', 'event_id': '00000000-0000-0000-0000-000000000001', ...}\n\napps/api/tests/test_audit_export.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_export.py::test_payloads_are_excluded_unless_asked_for - AssertionError: assert 'payload' not in {'action': 'document.ingested', 'actor_subject': 'curator', 'event_hash': 'ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d', 'event_id': '00000000-0000-0000-0000-000000000001', ...}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M132_UNDATED_OBSERVATION_ASSUMED_FRESH",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_an_observation_without_a_timestamp_is_refused ______________\n\n    def test_an_observation_without_a_timestamp_is_refused() -> None:\n        \"\"\"The replay this closes: an observation taken before the change, compared after.\n    \n        It produces a verdict identical to a current one. \"Periodic attestation\" is in the\n        finding's required action precisely because a comparator that cannot date its own\n        evidence answers about the past.\n        \"\"\"\n>       admissible, reason = drift.observation_age_admissible(None, NOW)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_environment_drift.py:199: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nobserved_at = None\nnow = datetime.datetime(2026, 8, 5, 12, 0, tzinfo=datetime.timezone.utc)\nmax_age_seconds = 3600\n\n    def observation_age_admissible(\n        observed_at: str | None, now: datetime, max_age_seconds: int = DEFAULT_MAX_AGE_SECONDS\n    ) -> tuple[bool, str]:\n        \"\"\"Whether an observation is recent enough to be compared.\n    \n        An observation without a timestamp is refused rather than assumed fresh: the whole\n        point of the check is that a stale answer and a current one are indistinguishable\n        once the verdict is printed.\n        \"\"\"\n        if False:\n            return False, (\n                \"the observation carries no timestamp, so it cannot be told from one taken \"\n                \"before the change it is meant to detect\"\n            )\n        try:\n>           taken = datetime.fromisoformat(observed_at)\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           TypeError: fromisoformat: argument must be str\n\n/tmp/korpus-m132_undated_observation_assumed_fresh-y5tg9h73/api-src/korpus/application/environment_drift.py:160: TypeError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_an_observation_without_a_timestamp_is_refused - TypeError: fromisoformat: argument must be str\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M216_SECURITY_METRIC_LABEL_VOCABULARY_BYPASSED",
+      "file": "apps/api/src/korpus/infrastructure/observability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_security_metrics_reject_unbounded_or_invented_labels ___________\n\n    def test_security_metrics_reject_unbounded_or_invented_labels():\n        import pytest\n    \n        obs = Observability(registry=CollectorRegistry())\n        obs.observe_security_event(\"authorization_denied\")\n>       with pytest.raises(ValueError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_observability.py:34: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_observability.py::test_security_metrics_reject_unbounded_or_invented_labels - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M264_SUPPLY_MANIFEST_EXTRA_ARTIFACT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_supply_chain_manifest_rejects_unverified_extra_artifact _________\n\n    def test_supply_chain_manifest_rejects_unverified_extra_artifact() -> None:\n        digest = __import__(\"hashlib\").sha256(b\"x\").hexdigest()\n        manifest = {\n            \"schema\": \"korpus.supply-chain-evidence.v1\", \"source_tree_sha256\": \"s\", \"release\": \"v\",\n            \"artifacts\": {\n                \"a\": {\"sha256\": digest, \"bytes\": 1},\n                \"unverified\": {\"sha256\": digest, \"bytes\": 1},\n            },\n        }\n>       assert artifact_manifest_bound(manifest, {\"a\": (b\"x\", 1)}, source=\"s\", release=\"v\") is False\nE       AssertionError: assert True is False\nE        +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}, 'unver...fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'a': (b'x', 1)}, source='s', release='v')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_rejects_unverified_extra_artifact - AssertionError: assert True is False\n +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}, 'unver...fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'a': (b'x', 1)}, source='s', release='v')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:33:13+00:00"
+  }
+}

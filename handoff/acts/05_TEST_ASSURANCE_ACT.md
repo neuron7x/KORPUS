@@ -1,27 +1,13 @@
-# Act 05 — tests and assurance
+# ACT 05 — Test & Assurance — KORPUS v0.9.7
 
-## Executed evidence
+| Gate | Result |
+|---|---:|
+| Full regression | 2345/2345 PASS; 1 external PostgreSQL skip |
+| Full mutation | 349/349 KILLED |
+| Web Node | 146/146 PASS |
+| Browser E2E | 5/5 PASS |
+| Determinism | 264/264 test executions across 4 seeds |
+| Release/package/handoff targeted | 47/47 PASS |
+| Operational engineering gate | PASS |
 
-- Pytest: 172 collected; 171 passed; 1 skipped; zero failures/errors.
-- Line coverage: 87.00%.
-- Branch coverage: 66.87%.
-- Frozen adversarial evaluation: 30/30.
-- Citation failures: 0.
-- Access leakage failures: 0.
-- Determinism failures: 0.
-- Selected critical mutants killed: 26/26.
-- Migration parity: PASS.
-- Local scale probe: 5000 spans, p50 2.315 ms, p95 2.783 ms, top-1 recall 1.0; local synthetic measurement only.
-- Operational gate: PASS with `production_authorized=false`.
-
-## What these tests do not prove
-
-They do not prove real-corpus correctness, production PostgreSQL behavior, production capacity, penetration resistance, legal rights, classification, operator readiness or military authorization.
-
-## Mandatory agent rule
-
-Every new behavior must add a plausible failure model and a test that kills it. Coverage increase without a killable invariant is insufficient.
-
-## v5.1.0 handoff extension verification
-
-The handoff extension was re-tested after adding the machine contracts and release-manifest repair. Authoritative numbers are in `handoff/evidence/HANDOFF_VERIFICATION.json`; they include the additional handoff and manifest regression tests. Product production authorization remains false.
+The regression skip remains explicit: `KORPUS_POSTGRES_TEST_URL` is not configured. Local eval 30/30 is not production TEVV; interval width **0.113513** and sample floor requirements are not satisfied.

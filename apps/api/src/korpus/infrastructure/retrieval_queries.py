@@ -17,19 +17,17 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date
 from typing import Any
-from uuid import UUID
 
 from sqlalchemy import func, select
-from sqlalchemy import text as sql_text
 from sqlalchemy.engine import RowMapping
 
 from korpus.domain.models import (
-    AuthorityClass,
     DocumentRecord,
     DocumentVersionRecord,
     EvidenceSpanRecord,
     Identity,
     ReviewState,
+    version_is_valid_on_fields,
 )
 from korpus.infrastructure import row_mapping
 from korpus.infrastructure.schema import document_compartments, documents, spans, versions
@@ -197,8 +195,20 @@ def retrievable_projection(
     )
 
 def materialize_current(
-    rows: Sequence[RowMapping], as_of: date
+    rows: Sequence[RowMapping],
+    as_of: date,
+    *,
+    limit: int | None = None,
 ) -> list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]]:
+    """Materialize current rows, optionally stopping after enough valid results.
+
+    SQL already applies the currency predicate, but the domain check is retained as a
+    fail-closed second line. Candidate search can therefore stop constructing Pydantic
+    objects once the requested number of *valid* rows has been reached without changing
+    ordering or the returned set.
+    """
+    if limit is not None and limit < 1:
+        return []
     authorized: list[tuple[EvidenceSpanRecord, DocumentRecord, DocumentVersionRecord]] = []
     for row in rows:
         version = row_mapping.version_from_projection(row)
@@ -211,152 +221,26 @@ def materialize_current(
                 version,
             )
         )
+        if limit is not None and len(authorized) >= limit:
+            break
     return authorized
 
 
 def release_row_is_current(row: Any, as_of: date) -> bool:
-    """`DocumentVersionRecord.is_valid_on`, asked of a row that carries only dates.
+    """Projection-only call into the same currency predicate as the domain record.
 
-    The four date fields are lifted into the domain record rather than compared here:
-    the rule about what is in force — the lower bound standing in from
-    `publication_date`, the exclusive rescission boundary — lives in one place, and a
-    reimplementation beside it is how two answers to "is this current" appear.
+    `corpus_release_id` can inspect thousands of versions per question. Constructing a
+    full Pydantic `DocumentVersionRecord` only to read four date fields is semantically
+    redundant and measurably expensive; this remains single-source-of-truth because the
+    model method delegates to the same pure predicate.
     """
-    probe = DocumentVersionRecord(
-        id=UUID(str(row["version_id"])),
-        document_id=UUID(str(row["document_id"])),
-        revision="",
-        source_hash=str(row["source_hash"]),
-        object_key="",
-        mime_type="application/octet-stream",
+    return version_is_valid_on_fields(
+        as_of,
         publication_date=row["publication_date"],
         effective_from=row["effective_from"],
         effective_until=row["effective_until"],
         rescinded_at=row["rescinded_at"],
-        # Not read by `is_valid_on`, and not projected: naming it here keeps the probe
-        # constructible without widening the query for a field the digest never sees.
-        authority=AuthorityClass.UNKNOWN,
-        review_state=ReviewState(str(row["review_state"])),
     )
-    return probe.is_valid_on(as_of)
 
 
-def candidate_span_query(
-    identity: Identity,
-    corpora: frozenset[str],
-    as_of: date,
-    query: str,
-    limit: int,
-    dialect: str,
-) -> tuple[Any, dict[str, Any]] | None:
-    """The full-text candidate statement and its parameters, without a connection.
-
-    Returns None when the query holds no usable term — distinct from a statement that
-    matches nothing, because the caller must not open a transaction for it.
-    """
-
-    from korpus.application.retrieval import candidate_terms
-
-    term_specs = candidate_terms(query)
-    terms = [value for value, _ in term_specs]
-    if not terms:
-        return None
-    classifications = row_mapping.allowed_classifications(identity.clearance)
-    corpus_placeholders = ",".join(
-        f":corpus_{index}" for index, _ in enumerate(sorted(corpora))
-    )
-    class_placeholders = ",".join(
-        f":class_{index}" for index, _ in enumerate(classifications)
-    )
-    parameters: dict[str, Any] = {
-        "clearance": int(identity.clearance),
-        "as_of": as_of.isoformat(),
-        "limit": limit,
-    }
-    parameters.update({f"corpus_{index}": value for index, value in enumerate(sorted(corpora))})
-    parameters.update(
-        {f"class_{index}": value for index, value in enumerate(classifications)}
-    )
-    if dialect == "sqlite":
-        match_query = " OR ".join(
-            f'"{term.replace(chr(34), chr(34) * 2)}"' + ("*" if prefix else "")
-            for term, prefix in term_specs
-        )
-        parameters["query"] = match_query
-        # The supersession test used to be a correlated NOT EXISTS. `ORDER BY bm25`
-        # forces every match through it, so on a 116 000-span corpus a five-token
-        # question evaluated it 23 626 times — 2.5 s against a 1200 ms budget. The
-        # answer that reached the reader was "insufficient evidence": the system said
-        # the corpus held nothing when it had not finished looking.
-        #
-        # Gathered once instead, and anti-joined. Identical rows on every query probed
-        # (2026-08-06), 15.8 s of retrieval down to 0.7 s across eight questions.
-        statement = sql_text(
-            f"""
-            WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
-              FROM document_versions sv
-              WHERE sv.supersedes_version_id IS NOT NULL
-                AND sv.review_state = 'approved'
-                AND COALESCE(sv.effective_from, sv.publication_date) <= :as_of
-                AND (sv.effective_until IS NULL OR sv.effective_until >= :as_of)
-                AND (sv.rescinded_at IS NULL OR date(sv.rescinded_at) > :as_of)
-            )
-            SELECT s.id AS span_id
-            FROM evidence_fts f
-            JOIN evidence_spans s ON s.id = f.span_id
-            JOIN document_versions v ON v.id = s.version_id
-            JOIN documents d ON d.id = v.document_id
-            WHERE evidence_fts MATCH :query
-              AND v.review_state = 'approved'
-              AND d.corpus_id IN ({corpus_placeholders})
-              AND d.access_tier <= :clearance
-              AND d.classification IN ({class_placeholders})
-              AND COALESCE(v.effective_from, v.publication_date) <= :as_of
-              AND (v.effective_until IS NULL OR v.effective_until >= :as_of)
-              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)
-              AND v.id NOT IN (SELECT id FROM superseded)
-            ORDER BY bm25(evidence_fts), s.id
-            LIMIT :limit
-            """
-        )
-    elif dialect == "postgresql":
-        parameters["query"] = " | ".join(
-            f"{term}:*" if prefix else term for term, prefix in term_specs
-        )
-        # Interpolated verbatim so the emitted SQL text is unchanged; it only keeps
-        # the repeated bound-parameter cast off the right-hand margin.
-        as_of_date = "CAST(:as_of AS date)"
-        statement = sql_text(
-            f"""
-            WITH superseded AS (
-              SELECT DISTINCT sv.supersedes_version_id AS id
-              FROM document_versions sv
-              WHERE sv.supersedes_version_id IS NOT NULL
-                AND sv.review_state = 'approved'
-                AND COALESCE(sv.effective_from, sv.publication_date) <= {as_of_date}
-                AND (sv.effective_until IS NULL OR sv.effective_until >= {as_of_date})
-                AND (sv.rescinded_at IS NULL OR CAST(sv.rescinded_at AS date) > {as_of_date})
-            )
-            SELECT s.id AS span_id
-            FROM evidence_spans s
-            JOIN document_versions v ON v.id = s.version_id
-            JOIN documents d ON d.id = v.document_id
-            WHERE to_tsvector('simple', s.text) @@ to_tsquery('simple', :query)
-              AND v.review_state = 'approved'
-              AND d.corpus_id IN ({corpus_placeholders})
-              AND d.access_tier <= :clearance
-              AND d.classification IN ({class_placeholders})
-              AND COALESCE(v.effective_from, v.publication_date) <= {as_of_date}
-              AND (v.effective_until IS NULL OR v.effective_until >= {as_of_date})
-              AND (v.rescinded_at IS NULL OR CAST(v.rescinded_at AS date) > {as_of_date})
-              AND v.id NOT IN (SELECT id FROM superseded)
-            ORDER BY ts_rank_cd(
-                to_tsvector('simple', s.text), to_tsquery('simple', :query)
-            ) DESC, s.id
-            LIMIT :limit
-            """
-        )
-    else:
-        raise RuntimeError(f"unsupported search dialect: {dialect}")
-    return statement, parameters
+from korpus.infrastructure.retrieval_candidate_query import candidate_span_query

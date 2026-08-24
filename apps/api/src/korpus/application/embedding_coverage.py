@@ -31,6 +31,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from korpus.application.embedding_contracts import validate_embedding_coverage
 COMPLETE = "COMPLETE"
 BACKFILL_REQUIRED = "BACKFILL_REQUIRED"
 MODEL_MIGRATION_REQUIRED = "MODEL_MIGRATION_REQUIRED"
@@ -83,8 +84,6 @@ class EmbeddingCoverage:
                 "set than the calibrated profile assumed."
             ),
         }
-
-
 def assess_embedding_coverage(
     *,
     active_model_id: str,
@@ -96,8 +95,9 @@ def assess_embedding_coverage(
 ) -> EmbeddingCoverage:
     """Classify the index without deciding whether the deployment may run."""
 
+    validate_embedding_coverage(active_model_id, active_dimensions, spans_total, spans_embedded_active, spans_embedded_other_model, spans_stale_text)
     reasons: list[str] = []
-    missing = max(spans_total - spans_embedded_active, 0)
+    missing = spans_total - spans_embedded_active
 
     if spans_total == 0:
         status = NO_CORPUS

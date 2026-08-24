@@ -1,0 +1,45 @@
+{
+  "schema": "korpus.chat-ssot-recovery-bundle.v1",
+  "release": "v0.9.7",
+  "date": "2026-08-24",
+  "purpose": "lossless chat-SSOT recovery checkpoint",
+  "repository_recovery_integrity": "PASS",
+  "production_authority": false,
+  "entries": [
+    {
+      "path": "repository/KORPUS_v0.9.7_RECOVERED_FULL_SSOT_CANONICAL_2026-08-24.zip",
+      "bytes": 122933178,
+      "sha256": "375db482291b159a483ea8e01499f092c3eea2dcbb49fb788676aa65adeb6f4a"
+    },
+    {
+      "path": "recovery/KORPUS_v0.9.7_RECOVERY_MANIFEST_2026-08-24.json",
+      "bytes": 802474,
+      "sha256": "b2fcd94fbc3458c425c63fc0ce5e8788ddc2a8a19a0368bf3c7d375b26573a0b"
+    },
+    {
+      "path": "recovery/KORPUS_v0.9.7_ACT_OF_WORK_2026-08-24.md",
+      "bytes": 4973,
+      "sha256": "5e49f249ed3053ff5162dbca2d1d4673e1d952ca88c6a50aa690566a8bc7a555"
+    },
+    {
+      "path": "recovery/KORPUS_v0.9.7_NEXT_TASKS_2026-08-24.md",
+      "bytes": 3450,
+      "sha256": "4d1bd5e6e16c882cc1f4e7f015c4c2ec83c6efc7faf69715c650ca1a36dc9e3a"
+    },
+    {
+      "path": "provenance/original_uploaded/KORPUS_v0.9.7_MATHEMATICAL_ASSURANCE_HARDENED_FULL_SSOT_2026-08-24.zip",
+      "bytes": 118205151,
+      "sha256": "3538c4559206e35f76d90b70ff1d109ddbb70f5e454a5315b64a012649bb1ac0"
+    },
+    {
+      "path": "provenance/original_uploaded/MATHEMATICAL_ASSURANCE_RECEIPT_CURRENT.json",
+      "bytes": 5397,
+      "sha256": "cac428775e3f0c6d7387b411ca7d5a2da566fb4a9efa2d065eed9a0801642f54"
+    },
+    {
+      "path": "provenance/original_uploaded/MATHEMATICAL_ASSURANCE_SPEC_v0.9.7.md",
+      "bytes": 12360,
+      "sha256": "6e3021ce9bc8dc71f19c46ace98b1bc3e16e71606836898f17dafd8bf8d11c43"
+    }
+  ]
+}

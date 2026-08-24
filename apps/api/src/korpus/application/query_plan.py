@@ -34,6 +34,8 @@ from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 from typing import Protocol
 
+from korpus.application.evidence import assess_control_injection
+
 #: A reformulation is a query. Anything long enough to be a sentence of prose is not one,
 #: and is the shape an attempt to smuggle text into the answer would take.
 MAX_QUERY_CHARS = 120
@@ -123,33 +125,28 @@ class QueryPlan:
 
 
 def admissible_variant(candidate: object, asked: str) -> str | None:
-    """The one gate a suggestion passes through. Returns None with no explanation owed.
-
-    Written as a whitelist of shape rather than a blacklist of content wherever it can
-    be: the question is not "is this string malicious" — that is unanswerable — but "is
-    this a short search phrase", which is decidable.
-    """
+    """Admit only a short search phrase; all other model output is data, never control."""
     if not isinstance(candidate, str):
         return None
     text = unicodedata.normalize("NFC", candidate).strip()
-    if not text or len(text) > MAX_QUERY_CHARS:
-        return None
-    if _FORBIDDEN.search(text):
-        return None
-    if "\n" in text or "\r" in text:
-        return None
-    if text[-1] in _TERMINAL:
-        return None
-    if len(text.split()) > MAX_QUERY_TOKENS:
+    shape_refused = (
+        not text
+        or len(text) > MAX_QUERY_CHARS
+        or bool(_FORBIDDEN.search(text))
+        or "\n" in text
+        or "\r" in text
+        or text.endswith(tuple(_TERMINAL))
+        or len(text.split()) > MAX_QUERY_TOKENS
+    )
+    if shape_refused:
         return None
     lowered = text.casefold()
     if any(marker in lowered for marker in _INSTRUCTION_MARKERS):
         return None
-    if lowered == unicodedata.normalize("NFC", asked).strip().casefold():
-        # Not a refusal, a duplicate: searching the question twice costs a full-text
-        # scan and changes nothing.
+    if assess_control_injection(text).blocked:
         return None
-    return text
+    asked_key = unicodedata.normalize("NFC", asked).strip().casefold()
+    return None if lowered == asked_key else text
 
 
 #: The caller's bound on a third party, independent of whatever timeout the adapter
@@ -207,6 +204,10 @@ def build_plan(
             asked=question,
             refused=(f"planner unavailable: {type(error).__name__}: {error}"[:200],),
         )
+
+    if not isinstance(suggested, (list, tuple)):
+        message = f"planner contract violation: expected list/tuple, got {type(suggested).__name__}"
+        return QueryPlan(asked=question, refused=(message[:200],))
 
     accepted: list[str] = []
     refused: list[str] = []

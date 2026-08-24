@@ -17,14 +17,15 @@ import hashlib
 import hmac
 import json
 from datetime import UTC, datetime
-from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from korpus.application.checkout import CheckoutDescriptor
 from korpus.application.tenancy_ports import BillingEventIgnored
+from korpus.infrastructure.liqpay_math import amount_minor, provider_datetime
 from korpus.domain.tenancy import (
     AccountRecord,
     BillingInterval,
+    MAX_PLAN_PRICE_MINOR,
     PlanRecord,
     SubscriptionRecord,
 )
@@ -195,34 +196,8 @@ def _minor_to_decimal(minor: int) -> str:
 
 
 def _amount_minor(value: Any) -> int | None:
-    if value in (None, ""):
-        return None
-    try:
-        amount = Decimal(str(value)) * 100
-    except (InvalidOperation, ValueError) as exc:
-        raise ValueError("LiqPay amount is not numeric") from exc
-    if amount != amount.to_integral_value():
-        raise ValueError("LiqPay amount has sub-minor precision")
-    integer = int(amount)
-    if integer <= 0:
-        raise ValueError("LiqPay amount is not positive")
-    return integer
+    return amount_minor(value, MAX_PLAN_PRICE_MINOR)
 
 
 def _provider_datetime(value: Any) -> datetime | None:
-    if value in (None, ""):
-        return None
-    if isinstance(value, (int, float)) or (isinstance(value, str) and value.isdigit()):
-        raw = float(value)
-        seconds = raw / 1000 if raw > 10_000_000_000 else raw
-        try:
-            return datetime.fromtimestamp(seconds, tz=UTC)
-        except (OverflowError, OSError, ValueError):
-            return None
-    if isinstance(value, str):
-        try:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except ValueError:
-            return None
-        return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
-    return None
+    return provider_datetime(value)

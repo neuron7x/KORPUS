@@ -21,3 +21,15 @@ coverage.xml
 junit.xml
 .env.*.local
 .DS_Store
+
+# Ephemeral google-github-actions/auth credential files
+gha-creds-*.json
+# Terraform local state/cache/plan artifacts must never enter source control.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfbackend
+crash.log
+crash.*.log
+

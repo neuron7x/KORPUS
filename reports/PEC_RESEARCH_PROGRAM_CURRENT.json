@@ -1,0 +1,33 @@
+{
+  "conditional_risk": {
+    "reason": "no_replay_risk_rows",
+    "status": "UNKNOWN"
+  },
+  "dataset_sha256": "e48bb48871f9a96f15d9ced0fca016e6144ebc1bd3d5abe7da9b0e79735e020f",
+  "feature_generalization": {
+    "reason": "no_training_rows",
+    "status": "UNKNOWN"
+  },
+  "generated_at": "2026-08-22T13:52:20.524902+00:00",
+  "kind": "pec_research_program",
+  "observed_information_gain": {
+    "reason": "no_replay_rows",
+    "status": "UNKNOWN"
+  },
+  "oracle_sha256": "",
+  "production_judgment_validity": {
+    "invalid": [],
+    "production_judged_rows": 0,
+    "rows": 151,
+    "status": "UNKNOWN"
+  },
+  "receipt_sha256": "ea923a2b428dad5870544e7c43c29cb77d6ba6a1322b7aa06aafe4531d2362ef",
+  "replay_priority": {
+    "reason": "no_replay_rows",
+    "status": "UNKNOWN"
+  },
+  "replay_sha256": "",
+  "schema": "korpus.pec-receipt.v1",
+  "scientific_authority": "NONE",
+  "status": "UNKNOWN"
+}

@@ -1,23 +1,29 @@
-# Current verification entry point
+# KORPUS v0.9.7 — Verification Entry Point
 
-Current machine-verifiable release evidence lives under `reports/` and is valid only for
-the source digest named by `reports/RESEARCH_ASSURANCE_REPORT.json`.
+Behavioral source digest: `15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa`.
 
-Authoritative verification sequence:
+## Current verified local state
+
+- Regression: **2345/2345 PASS**, 64/64 shards, 0 failures/errors, 1 real-PostgreSQL skip.
+- Mutation: **349/349 KILLED**.
+- Web Node: **146/146 PASS**.
+- Browser E2E: **5/5 PASS**.
+- Determinism: **4 seeds × 66 tests PASS**.
+- Current truth: PASS.
+- Production authorization: **false**.
+
+## Verify extracted repository
 
 ```bash
-python3 scripts/verify_source_manifest.py
-PYTHONPATH=apps/api/src:scripts python3 scripts/verify_release_evidence.py
-PYTHONPATH=apps/api/src python3 scripts/check_import_cycles.py
-make validate
-make web-build
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_source_manifest.py
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_current_truth.py --root .
+PYTHONPATH=apps/api/src:scripts python3 scripts/check_release_identity.py
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_package_build_identity.py --root .
+PYTHONPATH=apps/api/src:scripts python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 ```
 
-After packaging, verify the final distribution separately:
+## Evidence
 
-```bash
-python3 scripts/verify_package.py dist/KORPUS_SYSTEM_v6.3.0.zip
-```
+Current portable raw receipts are under `handoff/evidence/current/` and hash-bound by its `MANIFEST.json`.
 
-`VERIFICATION_REPORT_V5.md` is retained as a historical v5 snapshot. Its counts are not
-current-release claims.
+Production-only evidence is intentionally not fabricated; see `handoff/operations/NEXT_STAGE_EXTERNAL_EVIDENCE_v0.9.7.md`.

@@ -11,6 +11,10 @@ from korpus.config import Settings, get_settings
 from korpus.domain.models import Identity
 from korpus.security.auth import get_identity
 from korpus.security.browser_oidc import BrowserSessionError
+from korpus.security.browser_cookie_policy import (
+    browser_csrf_pair_valid, clear_browser_cookies, clear_flow_cookie,
+    set_flow_cookie, set_session_cookies,
+)
 
 
 router = APIRouter()
@@ -52,15 +56,7 @@ def browser_login(
         ttl_seconds=settings.browser_flow_ttl_seconds,
     )
     response = RedirectResponse(client.authorization_url(flow), status_code=status.HTTP_302_FOUND)
-    response.set_cookie(
-        settings.browser_flow_cookie,
-        flow_cookie,
-        max_age=settings.browser_flow_ttl_seconds,
-        httponly=True,
-        secure=settings.browser_cookie_secure,
-        samesite="lax",
-        path="/v1/auth",
-    )
+    set_flow_cookie(response, settings, flow_cookie)
     return response
 
 
@@ -92,11 +88,10 @@ def browser_callback(
             raise BrowserSessionError("OIDC state mismatch")
         tokens = client.exchange(code, str(flow.get("code_verifier", "")))
         id_claims = verifier.verify(
-            tokens.id_token,
-            audience=settings.oidc_client_id,
-            expected_nonce=str(flow.get("nonce", "")),
+            tokens.id_token, audience=settings.oidc_client_id,
+            expected_nonce=str(flow.get("nonce", "")), authorized_party=settings.oidc_client_id,
         )
-        access_claims = verifier.verify(tokens.access_token)
+        access_claims = verifier.verify(tokens.access_token, authorized_party=settings.oidc_client_id)
         if str(id_claims.get("sub")) != str(access_claims.get("sub")):
             raise BrowserSessionError("OIDC token subjects differ")
         csrf = __import__("secrets").token_urlsafe(32)
@@ -114,34 +109,20 @@ def browser_callback(
         _safe_return_path(str(flow.get("return_to", "/"))),
         status_code=status.HTTP_303_SEE_OTHER,
     )
-    response.delete_cookie(settings.browser_flow_cookie, path="/v1/auth")
-    response.set_cookie(
-        settings.browser_session_cookie,
-        session_cookie,
-        max_age=ttl,
-        httponly=True,
-        secure=settings.browser_cookie_secure,
-        samesite="strict",
-        path="/",
-    )
-    response.set_cookie(
-        settings.browser_csrf_cookie,
-        csrf,
-        max_age=ttl,
-        httponly=False,
-        secure=settings.browser_cookie_secure,
-        samesite="strict",
-        path="/",
-    )
+    clear_flow_cookie(response, settings)
+    set_session_cookies(response, settings, session_cookie, csrf, ttl)
     return response
 
 
 @router.post("/v1/auth/logout", status_code=status.HTTP_204_NO_CONTENT, include_in_schema=False)
-def browser_logout(settings: Annotated[Settings, Depends(get_settings)]) -> Response:
+def browser_logout(
+    request: Request,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> Response:
+    if settings.browser_auth_enabled and not browser_csrf_pair_valid(request, settings):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF validation failed")
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
-    response.delete_cookie(settings.browser_session_cookie, path="/")
-    response.delete_cookie(settings.browser_csrf_cookie, path="/")
-    response.delete_cookie(settings.browser_flow_cookie, path="/v1/auth")
+    clear_browser_cookies(response, settings)
     return response
 
 

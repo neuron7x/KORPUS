@@ -1,0 +1,11 @@
+{
+  "schema": "korpus.release-attestation.v1",
+  "algorithm": "Ed25519",
+  "release": "v0.6.1",
+  "manifest": "PRODUCTION_BLOCKER_CLOSEOUT.json",
+  "manifest_sha256": "6f11e722938684eca66d0d2b3f6e4b4ca3f4924aa05054b866017934db9d3f17",
+  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAOLi3B661jvCQu999KLmnhAzRrGmnlaJT8Egu/PMUYRo=\n-----END PUBLIC KEY-----\n",
+  "public_key_sha256": "6d5bc381af4bb39384d1f4325dbd714e80574c99255f32311cc1e1edf862033b",
+  "signature_base64": "u720FEbfIRtefX8Rq5NuAafnOblPBKc4M1OjVcgrTLI7XpfFPgo9zaaRq83N8Bz8QEI5i1wwRZZW2cgVySdHAQ==",
+  "trust_class": "KEY_PROVIDED_BY_RELEASE_OPERATOR"
+}

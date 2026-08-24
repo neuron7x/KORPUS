@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from korpus.application.printed_numbers import parse_printed_decimal as _to_decimal
 
 # A quantity: digits, optional decimal separator, optional unit. Units are listed
 # rather than pattern-matched because "м" is also a word fragment; requiring a word
@@ -81,18 +82,6 @@ class NumericIntegrity:
         return bool(self.flags)
 
 
-def _to_float(raw: str) -> float | None:
-    cleaned = raw.replace(" ", "").replace(" ", "")
-    if cleaned.count(",") == 1 and "." not in cleaned:
-        cleaned = cleaned.replace(",", ".")
-    else:
-        cleaned = cleaned.replace(",", "")
-    try:
-        return float(cleaned)
-    except ValueError:
-        return None
-
-
 def assess_numeric_integrity(text: str) -> NumericIntegrity:
     """Deterministic suspicion flags over the quantities in an extracted passage."""
 
@@ -120,7 +109,7 @@ def assess_numeric_integrity(text: str) -> NumericIntegrity:
         samples.append(" ".join(match.group(0).split()))
 
     for low_raw, high_raw in RANGE.findall(text):
-        low, high = _to_float(low_raw), _to_float(high_raw)
+        low, high = _to_decimal(low_raw), _to_decimal(high_raw)
         if low is not None and high is not None and low > high:
             flags.add(INVERTED_RANGE_FLAG)
             samples.append(f"від {low_raw.strip()} до {high_raw.strip()}")

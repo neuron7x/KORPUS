@@ -1,0 +1,77 @@
+{
+  "schema_version": 2,
+  "status": "PASS",
+  "release": "v0.9.6",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "ran_at": "2026-08-22T20:37:16.414210+00:00",
+  "failures": [],
+  "cases": [
+    {
+      "case": "baseline",
+      "breaks": "nothing",
+      "expectation": "an answer with citations",
+      "verdict": "extractive_claims_passed_calibrated_gates",
+      "ok": true,
+      "citations": 1
+    },
+    {
+      "case": "object_store_unreadable",
+      "breaks": "var/objects moved away",
+      "expectation": "unchanged: citations come from spans in the database",
+      "verdict": "extractive_claims_passed_calibrated_gates",
+      "ok": true,
+      "citations": 1
+    },
+    {
+      "case": "corpus_emptied",
+      "breaks": "every version un-approved",
+      "expectation": "insufficient_evidence — the corpus really is empty",
+      "verdict": "retrieval_gate_failed",
+      "ok": true,
+      "citations": 0
+    },
+    {
+      "case": "clock_skew_future",
+      "breaks": "as_of ten years ahead",
+      "expectation": "an answer or an abstention, never a claim the sources were rescinded",
+      "verdict": "extractive_claims_passed_calibrated_gates",
+      "ok": true,
+      "citations": 1
+    },
+    {
+      "case": "clock_skew_past",
+      "breaks": "as_of before any source existed",
+      "expectation": "insufficient_evidence: nothing governed 1990",
+      "verdict": "retrieval_gate_failed",
+      "ok": true,
+      "citations": 0
+    },
+    {
+      "case": "database_removed",
+      "breaks": "the database file moved away mid-flight",
+      "expectation": "5xx — nothing is left to answer with, and absence must not be claimed",
+      "verdict": "http_503",
+      "ok": true,
+      "citations": 0
+    },
+    {
+      "case": "planner_hangs",
+      "breaks": "the query planner blocks for eight seconds",
+      "expectation": "an answer: a slow third party costs the reader the wait, not the answer",
+      "verdict": "extractive_claims_passed_calibrated_gates",
+      "ok": true,
+      "citations": 1,
+      "seconds": 8.1
+    },
+    {
+      "case": "planner_hostile",
+      "breaks": "the planner emits text designed to be quoted",
+      "expectation": "no planner text in the answer",
+      "verdict": "extractive_claims_passed_calibrated_gates",
+      "ok": true,
+      "citations": 1,
+      "planner_text_leaked": false
+    }
+  ],
+  "interpretation": "A failure must never render as an answer about the corpus. 'Немає підстави' asserts that no approved source holds this; a database that is gone or an object store that is unreadable establishes nothing about the corpus, and reporting either as absence teaches a reader that a rule does not exist because a disk was full."
+}

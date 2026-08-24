@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 24,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M23_INGESTION_LEASE_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_durable_ingestion_jobs.py::test_job_lease_is_exclusive"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________________ test_job_lease_is_exclusive __________________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-879/test_job_lease_is_exclusive0')\n\n    def test_job_lease_is_exclusive(tmp_path: Path):\n        app = create_app(_settings(tmp_path))\n        app.dependency_overrides[get_identity] = _admin\n        with TestClient(app) as client:\n            response = client.post(\n                \"/v1/ingestion-jobs/documents\",\n                data={\n                    \"document_json\": json.dumps({\n                        \"canonical_title\": \"Lease exclusive\",\n                        \"corpus_id\": \"public\",\n                        \"issuer\": \"Authority\",\n                    }),\n                    \"version_json\": json.dumps({\"revision\": \"1\"}),\n                },\n                files={\"file\": (\"document.txt\", b\"valid content\", \"text/plain\")},\n            )\n            assert response.status_code == 202\n            queue = client.app.state.ingestion_jobs\n            first = queue.claim(\"worker-a\", lease_seconds=30)\n            second = queue.claim(\"worker-b\", lease_seconds=30)\n            assert first is not None\n>           assert second is None\nE           AssertionError: assert IngestionJobRecord(id=UUID('34cbacae-16a6-42fc-a41b-0b40ca29e8ce'), kind=<IngestionJobKind.DOCUMENT: 'document'>, acto...d_at=datetime.datetime(2026, 8, 22, 16, 37, 13, 507081), updated_at=datetime.datetime(2026, 8, 22, 16, 37, 13, 537603)) is None\n\napps/api/tests/test_durable_ingestion_jobs.py:167: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_durable_ingestion_jobs.py::test_job_lease_is_exclusive - AssertionError: assert IngestionJobRecord(id=UUID('34cbacae-16a6-42fc-a41b-0b40ca29e8ce'), kind=<IngestionJobKind.DOCUMENT: 'document'>, acto...d_at=datetime.datetime(2026, 8, 22, 16, 37, 13, 507081), updated_at=datetime.datetime(2026, 8, 22, 16, 37, 13, 537603)) is None\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M71_FLOATING_IMAGE_TAG_ACCEPTED",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_a_hostile_overlay_patch_is_caught ____________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-880/test_a_hostile_overlay_patch_i0')\n\n    def test_a_hostile_overlay_patch_is_caught(tmp_path: Path) -> None:\n        \"\"\"The reproduction: :latest plus a writable root filesystem, via the overlay.\"\"\"\n    \n        overlay = tmp_path / \"kustomization.yaml\"\n        text = (PRODUCTION / \"kustomization.yaml\").read_text(encoding=\"utf-8\")\n        resources_path = (PRODUCTION / \"../../base\").resolve()\n        text = text.replace(\"  - ../../base\", f\"  - {resources_path}\")\n        overlay.write_text(text + HOSTILE_PATCH, encoding=\"utf-8\")\n    \n        documents = render_kustomization(tmp_path, ROOT)\n        violations = manifest_violations(documents)\n>       assert any(\"digest-addressed\" in violation for violation in violations), violations\nE       AssertionError: ['korpus-api: root filesystem must be read-only']\nE       assert False\nE        +  where False = any(<generator object test_a_hostile_overlay_patch_is_caught.<locals>.<genexpr> at 0x7f918e9117d0>)\n\napps/api/tests/test_deployment_overlays.py:68: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught - AssertionError: ['korpus-api: root filesystem must be read-only']\nassert False\n +  where False = any(<generator object test_a_hostile_overlay_patch_is_caught.<locals>.<genexpr> at 0x7f918e9117d0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M115_UNCERTAINTY_REPORTED_AS_CERTAINTY",
+      "file": "apps/api/src/korpus/application/tevv.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_admissibility.py::test_a_wide_interval_is_refused_even_on_a_real_corpus"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_wide_interval_is_refused_even_on_a_real_corpus _____________\n\n    def test_a_wide_interval_is_refused_even_on_a_real_corpus() -> None:\n        \"\"\"Enough rows to clear the floor, not enough agreement to constrain the answer.\"\"\"\n        verdict = evaluate_tevv(\n            passed=150,\n            total=250,\n            corpus_declaration=REAL_CORPUS,\n            maximum_interval_width=0.10,\n            minimum_observations=200,\n        )\n    \n>       assert verdict.admissible is False\nE       AssertionError: assert True is False\nE        +  where True = TevvVerdict(admissible=True, calibration_status='MEASURED_ON_DECLARED_CORPUS', interval=Interval(lower=0.5382016632228189, upper=0.658771676876693, confidence=0.95), reasons=()).admissible\n\napps/api/tests/test_tevv_admissibility.py:119: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_admissibility.py::test_a_wide_interval_is_refused_even_on_a_real_corpus - AssertionError: assert True is False\n +  where True = TevvVerdict(admissible=True, calibration_status='MEASURED_ON_DECLARED_CORPUS', interval=Interval(lower=0.5382016632228189, upper=0.658771676876693, confidence=0.95), reasons=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M192_PARSER_SANDBOX_PATH_LEFT_RELATIVE",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_parser_sandbox_path.py::test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it _______\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-878/test_a_relative_pythonpath_is_0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f1a8dabf6f0>\ncaptured = {'cwd': '/tmp/pytest-of-root/pytest-878/test_a_relative_pythonpath_is_0/documents', 'env': {'LC_ALL': 'C.UTF-8', 'NO_P.../usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.sdkman/candidates/kotlin/current/bin', 'PYTHONHASHSEED': '0', ...}}\n\n    def test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it(\n        tmp_path: Path, monkeypatch: pytest.MonkeyPatch, captured: dict[str, Any]\n    ) -> None:\n        package = tmp_path / \"src\"\n        package.mkdir()\n        document = tmp_path / \"documents\" / \"order.pdf\"\n        document.parent.mkdir()\n        document.write_bytes(b\"%PDF-1.4\\n\")\n    \n        monkeypatch.chdir(tmp_path)\n        monkeypatch.setenv(\"PYTHONPATH\", \"src\")\n        _launch(document)\n    \n        passed = captured[\"env\"][\"PYTHONPATH\"]\n>       assert passed != \"src\", \"a relative entry reached a worker whose cwd is the document's\"\nE       AssertionError: a relative entry reached a worker whose cwd is the document's\nE       assert 'src' != 'src'\n\n/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22/apps/api/tests/test_parser_sandbox_path.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_parser_sandbox_path.py::test_a_relative_pythonpath_is_resolved_before_the_worker_sees_it - AssertionError: a relative entry reached a worker whose cwd is the document's\nassert 'src' != 'src'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M139_REPLAYED_EVENT_MOVES_STATE_BACKWARDS",
+      "file": "apps/api/src/korpus/application/billing_adjudication.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_billing_events.py::test_a_replayed_older_event_does_not_move_the_subscription_backwards"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "                occurred_at=now(),\n            )\n            tenancy.subscription_service.handle_event(activate, activate_signature)\n    \n            stale, stale_signature = _event(\n                tenancy,\n                \"evt-old\",\n                \"subscription.payment_failed\",\n                reference=str(subscription.id),\n                occurred_at=now() - timedelta(days=40),\n            )\n>           assert tenancy.subscription_service.handle_event(stale, stale_signature) is (\n                BillingEventResult.REJECTED\n            )\nE           assert <BillingEventResult.APPLIED: 'applied'> is <BillingEventResult.REJECTED: 'rejected'>\nE            +  where <BillingEventResult.APPLIED: 'applied'> = handle_event(b'{\"id\": \"evt-old\", \"type\": \"subscription.payment_failed\", \"occurred_at\": \"2026-07-13T16:37:17.137879+00:00\", \"data\": ...tion_id\": null, \"period_start\": \"2026-07-13T16:37:17.137879+00:00\", \"period_end\": \"2026-08-12T16:37:17.137879+00:00\"}}', '5c8c633b130dfa9fd2411a61cb779bf1c44ea09d2f90d503eaaf89df330c6de9')\nE            +    where handle_event = <korpus.application.subscriptions.SubscriptionService object at 0x7f0a8f4cde80>.handle_event\nE            +      where <korpus.application.subscriptions.SubscriptionService object at 0x7f0a8f4cde80> = Tenancy(repository=<korpus.infrastructure.repository.SqlRepository object at 0x7f0a8f4cc590>, accounts=<korpus.infrast...ticBillingProvider object at 0x7f0a8f4cda90>, policy=<korpus.application.policy.PolicyEngine object at 0x7f0a8f4cc440>).subscription_service\nE            +  and   <BillingEventResult.REJECTED: 'rejected'> = BillingEventResult.REJECTED\n\napps/api/tests/test_billing_events.py:361: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_billing_events.py::test_a_replayed_older_event_does_not_move_the_subscription_backwards - assert <BillingEventResult.APPLIED: 'applied'> is <BillingEventResult.REJECTED: 'rejected'>\n +  where <BillingEventResult.APPLIED: 'applied'> = handle_event(b'{\"id\": \"evt-old\", \"type\": \"subscription.payment_failed\", \"occurred_at\": \"2026-07-13T16:37:17.137879+00:00\", \"data\": ...tion_id\": null, \"period_start\": \"2026-07-13T16:37:17.137879+00:00\", \"period_end\": \"2026-08-12T16:37:17.137879+00:00\"}}', '5c8c633b130dfa9fd2411a61cb779bf1c44ea09d2f90d503eaaf89df330c6de9')\n +    where handle_event = <korpus.application.subscriptions.SubscriptionService object at 0x7f0a8f4cde80>.handle_event\n +      where <korpus.application.subscriptions.SubscriptionService object at 0x7f0a8f4cde80> = Tenancy(repository=<korpus.infrastructure.repository.SqlRepository object at 0x7f0a8f4cc590>, accounts=<korpus.infrast...ticBillingProvider object at 0x7f0a8f4cda90>, policy=<korpus.application.policy.PolicyEngine object at 0x7f0a8f4cc440>).subscription_service\n +  and   <BillingEventResult.REJECTED: 'rejected'> = BillingEventResult.REJECTED\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M228_ENVIRONMENT_TRUSTED_SIGNER_BYPASSED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_production_like_strings_without_attestations_cannot_promote_reliability _\n\n    def test_production_like_strings_without_attestations_cannot_promote_reliability() -> None:\n        internal, chaos, load, recovery = _evidence()\n        load_bytes = (json.dumps(load, sort_keys=True) + \"\\n\").encode(); recovery_bytes = (json.dumps(recovery, sort_keys=True) + \"\\n\").encode()\n        checks, _, _ = evaluate_attested_reliability(\n            internal, chaos, load, recovery, source=\"s\", release=\"v\", load_bytes=load_bytes,\n            recovery_bytes=recovery_bytes, load_attestation={}, recovery_attestation={}, trusted=set())\n        assert checks[\"load_environment\"] and checks[\"recovery_environment\"]\n        assert not checks[\"load_attestation_verified\"] and not checks[\"recovery_attestation_verified\"]\n>       assert not checks[\"load_trusted_signer\"] and not checks[\"recovery_trusted_signer\"]\nE       assert (not True)\n\napps/api/tests/test_production_reliability.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability - assert (not True)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M276_PEC_ADMISSION_THRESHOLD_BYPASSED",
+      "file": "apps/api/src/korpus/application/evidence_admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ime.timezone.utc)), score=0.49, query_coverage=0.8, lexical_score=1.0, semantic_score=0.0, character_score=0.2, authority_bonus=1.0, rank=1),\nE         + ]\n\napps/api/tests/test_decision_sensitivity.py:110: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate - AssertionError: assert [RetrievedEvi...=1.0, rank=1)] == []\n  \n  Left contains one more item: RetrievedEvidence(span=EvidenceSpanRecord(id=UUID('1067e0de-ec4f-4ced-9c17-e560cdf5f361'), version_id=UUID('edebafb8-d...core=0.49, query_coverage=0.8, lexical_score=1.0, semantic_score=0.0, character_score=0.2, authority_bonus=1.0, rank=1)\n  \n  Full diff:\n  - []\n  + [\n  +     RetrievedEvidence(span=EvidenceSpanRecord(id=UUID('1067e0de-ec4f-4ced-9c17-e560cdf5f361'), version_id=UUID('edebafb8-d28e-456f-b6d8-6f62f62d8448'), ordinal=0, page=None, section='S', text='alpha beta', text_hash='1a989ea86150171c687b0727f218eedbb94c4665a7da9b0add1bf5de607f2bf1', created_at=datetime.datetime(2026, 8, 22, 16, 37, 17, 174900, tzinfo=datetime.timezone.utc)), document=DocumentRecord(id=UUID('1e61599f-38d7-4f2f-8d85-6f0611dc44a9'), canonical_title='Protocol', corpus_id='public', issuer='UA', jurisdiction='UA', document_type='doctrine', access_tier=<AccessTier.PUBLIC: 0>, classification=<Classification.PUBLIC: 'public'>, compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 37, 17, 174732, tzinfo=datetime.timezone.utc)), version=DocumentVersionRecord(id=UUID('edebafb8-d28e-456f-b6d8-6f62f62d8448'), document_id=UUID('1e61599f-38d7-4f2f-8d85-6f0611dc44a9'), revision='1', publication_identifier=None, source_uri=None, source_hash='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', object_key='docs/a', mime_type='text/plain', publication_date=datetime.date(2026, 1, 1), effective_from=None, effective_until=None, rescinded_at=None, authority=<AuthorityClass.OFFICIAL_UA: 'official_ua'>, source_key_id=None, source_signature_b64=None, content_fingerprint='0000000000000000', near_duplicate_of_version_id=None, near_duplicate_similarity=None, near_duplicate_acknowledged_by=None, extraction_text_chars=0, extraction_alnum_ratio=0.0, extraction_replacement_ratio=0.0, extraction_quality_flags=frozenset(), extraction_quality_acknowledged_by=None, review_state=<ReviewState.APPROVED: 'approved'>, supersedes_version_id=None, state_version=0, metadata_reviewed_by=None, metadata_reviewer_credential_id=None, content_reviewed_by=None, content_reviewer_credential_id=None, approved_at=None, approved_by=None, approver_credential_id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 37, 17, 174872, tzinfo=datetime.timezone.utc)), score=0.49, query_coverage=0.8, lexical_score=1.0, semantic_score=0.0, character_score=0.2, authority_bonus=1.0, rank=1),\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:37:18+00:00"
+  }
+}

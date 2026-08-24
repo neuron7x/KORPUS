@@ -1,0 +1,89 @@
+{
+  "schema": "korpus.engineering-readiness-profile.v1",
+  "profile_id": "engineering-technical-academic-readiness-87",
+  "target_percent": 87.0,
+  "interpretation": "Weighted engineering/technical/academic/theoretical readiness. It is not a probability and never authorizes production; production authorization remains conjunctive under config/assurance/production-v1.json.",
+  "dimensions": {
+    "product_core": {
+      "weight": 0.12,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "release_identity", "repository_validation", "openapi_contract", "import_cycles",
+        "module_budget", "dependency_lock_structure", "state_contracts", "authorization",
+        "learning_graph", "backend_regression", "web_contract", "startup_failure_semantics"
+      ]
+    },
+    "architecture_invariants": {
+      "weight": 0.13,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "identity_before_query", "authorization_before_retrieval", "retrieval_scope_noninterference",
+        "claim_evidence_binding", "conflict_surface", "abstention", "provenance_binding",
+        "privileged_action_boundary", "offline_integrity", "tamper_evident_audit",
+        "learning_graph_immutability", "release_state_machine", "bounded_model_check"
+      ]
+    },
+    "security_trust_boundaries": {
+      "weight": 0.18,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "builtin_dangerous_primitive_scan", "authorization_matrix", "indirect_prompt_injection",
+        "egress_classification", "idor_refusal", "ssrf_egress", "webhook_replay",
+        "host_header", "csrf_session", "upload_quarantine", "parser_bounds", "audit_integrity",
+        "tenant_scope_application", "secrets_static_heuristic", "internal_redteam",
+        "external_independent_redteam", "live_vulnerability_scanners", "live_postgres_rls"
+      ]
+    },
+    "tests_tevv": {
+      "weight": 0.17,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "backend_regression", "statement_coverage", "branch_coverage", "mutation_catalogue",
+        "determinism", "stress", "plasticity", "web_suite", "evaluation_harness_contract",
+        "synthetic_adversarial_eval", "null_controls", "attack_family_coverage", "migration_gate",
+        "fresh_current_runtime_campaign", "real_domain_corpus_tevv", "independent_tevv",
+        "production_like_tevv_environment"
+      ]
+    },
+    "release_package_integrity": {
+      "weight": 0.15,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "clean_source", "source_manifest", "distribution_manifest", "package_verifier",
+        "reproducible_archive", "release_identity", "package_root_contract", "file_mode_normalization",
+        "duplicate_path_rejection", "zip_traversal_rejection", "checksum", "claim_ledger",
+        "blocker_registry", "portable_evidence_index", "stale_current_rejection"
+      ]
+    },
+    "reliability_operations": {
+      "weight": 0.12,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "internal_fault_injection", "chaos_matrix", "local_load", "local_spike", "local_soak",
+        "local_recovery", "observability_contract", "slo_policy", "retry_idempotency",
+        "production_like_load", "trusted_load_attestation", "trusted_recovery_attestation"
+      ]
+    },
+    "ui_ux": {
+      "weight": 0.05,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "web_lint", "web_tests", "web_build", "contract_sync", "destruction_validation"
+      ]
+    },
+    "maintainability_reproducibility": {
+      "weight": 0.08,
+      "evidence_class": "EXECUTED",
+      "criteria": [
+        "module_budget", "dependency_locks", "standards_map", "documentation_truth",
+        "source_inventory", "deterministic_packaging", "ruff_exact", "mypy_exact"
+      ]
+    }
+  },
+  "hard_external_predicates": [
+    "external_independent_redteam", "live_vulnerability_scanners", "live_postgres_rls",
+    "real_domain_corpus_tevv", "independent_tevv", "production_like_tevv_environment",
+    "production_like_load", "trusted_load_attestation", "trusted_recovery_attestation",
+    "ruff_exact", "mypy_exact"
+  ]
+}

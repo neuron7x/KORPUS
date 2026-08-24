@@ -6,7 +6,7 @@ novelty.
 
 ## P0 — development-control plane
 
-1. **Truthful GitHub governance bootstrap — IMPLEMENTED by issue #1 / PR #2; enforcement blockers remain below.**
+1. **Truthful GitHub governance bootstrap — IN PROGRESS in issue #1.**
    Real CODEOWNER, complete issue contract, isolated worktree, readiness observation,
    vulnerability alerts and draft-PR path.
 2. **Restore executed GitHub evidence — BLOCKED_EXTERNAL.**

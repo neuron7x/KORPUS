@@ -1,0 +1,166 @@
+{
+  "schema_version": 3,
+  "shard_index": null,
+  "shard_count": 1,
+  "mutants": 12,
+  "valid_mutants": 12,
+  "killed": 12,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M301_PEC_PRODUCTION_ENVIRONMENT_BYPASSED",
+      "file": "apps/api/src/korpus/application/pec_revision_binding.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_revision_binding_rejects_nonproduction_environment ____________\n\n    def test_revision_binding_rejects_nonproduction_environment():\n        row=payload(); row[\"environment_class\"]=\"PRODUCTION_LIKE\"\n>       with pytest.raises(ValueError, match=\"environment_class=PRODUCTION\"): RevisionBinding.from_mapping(row, expected_release=\"v0.9.7\")\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_pec_revision_binding_v097.py:19: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M302_PEC_AUDIT_REVISION_BINDING_BYPASSED",
+      "file": "apps/api/src/korpus/application/pec_audit_trace.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_audit_trace_v097.py::test_audit_trace_rejects_revision_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_audit_trace_rejects_revision_drift ____________________\n\n    def test_audit_trace_rejects_revision_drift():\n        data=rows(); data[0][\"revision\"]=\"other\"\n>       with pytest.raises(ValueError, match=\"revision binding mismatch\"): extract_audit_trace(data,B)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_pec_audit_trace_v097.py:16: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_audit_trace_v097.py::test_audit_trace_rejects_revision_drift - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M303_PEC_COHORT_MISSING_CASE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_cohort.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_cherry_picked_missing_case"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_cohort_rejects_cherry_picked_missing_case ________________\n\n    def test_cohort_rejects_cherry_picked_missing_case():\n        v=validate_complete_cohort([\"a\",\"b\"],[{\"case_id\":\"a\"}])\n>       assert not v.complete and v.missing==(\"b\",)\nE       AssertionError: assert (not True)\nE        +  where True = CohortVerdict(complete=True, missing=('b',), unexpected=(), duplicates=()).complete\n\napps/api/tests/test_pec_cohort_v097.py:11: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_cherry_picked_missing_case - AssertionError: assert (not True)\n +  where True = CohortVerdict(complete=True, missing=('b',), unexpected=(), duplicates=()).complete\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M304_PEC_MODEL_SELF_JUDGMENT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_human_judgment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_model_self_judgment_is_never_authoritative ________________\n\n    def test_model_self_judgment_is_never_authoritative():\n        r=row(); r[\"model_self_judgment\"]=True\n        v=evaluate_human_judgments([r], expected_case_ids=[\"a\"], binding=B)\n>       assert not v.admissible and \"model_self_judgment:a\" in v.failures\nE       assert (not True)\nE        +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n\napps/api/tests/test_pec_human_judgment_v097.py:15: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative - assert (not True)\n +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M305_PEC_HUMAN_JUDGMENT_REVISION_DRIFT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_human_judgment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_human_judgment_v097.py::test_human_judgment_rejects_revision_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_human_judgment_rejects_revision_drift __________________\n\n    def test_human_judgment_rejects_revision_drift():\n        r=row(); r[\"revision\"]=\"old\"\n        v=evaluate_human_judgments([r], expected_case_ids=[\"a\"], binding=B)\n>       assert not v.admissible and \"revision_mismatch:a\" in v.failures\nE       assert (not True)\nE        +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n\napps/api/tests/test_pec_human_judgment_v097.py:25: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_human_judgment_v097.py::test_human_judgment_rejects_revision_drift - assert (not True)\n +  where True = JudgmentVerdict(admissible=True, failures=(), judgments=1).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M306_PEC_CANARY_REVISION_DRIFT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_canary_admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_canary_rejects_revision_mismatch _____________________\n\n    def test_canary_rejects_revision_mismatch():\n        r=receipt(); r[\"cloud_run_revision\"]=\"api-old\"\n        v=evaluate_canary(r,binding=B,cloud_run_revision=\"api-00042-x\",minimum_samples=100,maximum_server_error_rate=0.01)\n>       assert not v.admitted and \"cloud_run_revision_mismatch\" in v.failures\nE       assert (not True)\nE        +  where True = CanaryVerdict(admitted=True, failures=()).admitted\n\napps/api/tests/test_pec_canary_admission_v097.py:14: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch - assert (not True)\n +  where True = CanaryVerdict(admitted=True, failures=()).admitted\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M307_PEC_CANARY_UNDERPOWERED_SAMPLE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_canary_admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_canary_rejects_underpowered_sample ____________________\n\n    def test_canary_rejects_underpowered_sample():\n        r=receipt(); r[\"samples\"]=99\n        v=evaluate_canary(r,binding=B,cloud_run_revision=\"api-00042-x\",minimum_samples=100,maximum_server_error_rate=0.01)\n>       assert not v.admitted and \"insufficient_samples\" in v.failures\nE       assert (not True)\nE        +  where True = CanaryVerdict(admitted=True, failures=()).admitted\n\napps/api/tests/test_pec_canary_admission_v097.py:19: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample - assert (not True)\n +  where True = CanaryVerdict(admitted=True, failures=()).admitted\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M308_PEC_TRAINING_DATASET_DRIFT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_training_lineage.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_rejects_dataset_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_training_lineage_rejects_dataset_drift __________________\n\n    def test_training_lineage_rejects_dataset_drift():\n        v=validate_training_lineage(receipt(),release=\"v0.9.7\",profile=\"prod-v1\",source_revision=\"rev-7\",dataset_sha256=\"c\"*64)\n>       assert not v.valid and \"dataset_sha256\" in v.failures\nE       assert (not True)\nE        +  where True = TrainingLineageVerdict(valid=True, failures=()).valid\n\napps/api/tests/test_pec_training_lineage_v097.py:11: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_rejects_dataset_drift - assert (not True)\n +  where True = TrainingLineageVerdict(valid=True, failures=()).valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M309_PEC_EVIDENCE_RECEIPT_RELEASE_DRIFT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_evidence_receipt.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_release_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_evidence_receipt_rejects_release_drift __________________\n\n    def test_evidence_receipt_rejects_release_drift():\n        r=payload(); r[\"release\"]=\"v0.9.6\"\n>       with pytest.raises(ValueError, match=\"release mismatch\"): canonical_receipt(r,release=\"v0.9.7\",source_digest=S,collection_digest=C)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_pec_evidence_receipt_v097.py:16: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_release_drift - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M310_PEC_LOCAL_SELF_ATTESTATION_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_hosted_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_hosted_evidence_v097.py::test_hosted_evidence_rejects_local_self_attestation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_hosted_evidence_rejects_local_self_attestation ______________\n\n    def test_hosted_evidence_rejects_local_self_attestation():\n        r=receipt(); r[\"local_self_attested\"]=True\n        v=validate_hosted_evidence(r,release=\"v0.9.7\",source_digest=S)\n>       assert not v.valid and \"not_local_self_attested\" in v.failures\nE       assert (not True)\nE        +  where True = HostedEvidenceVerdict(valid=True, failures=()).valid\n\napps/api/tests/test_pec_hosted_evidence_v097.py:13: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_hosted_evidence_v097.py::test_hosted_evidence_rejects_local_self_attestation - assert (not True)\n +  where True = HostedEvidenceVerdict(valid=True, failures=()).valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M311_PEC_UNTRUSTED_EXTERNAL_SIGNER_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_external_assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_external_assurance_rejects_untrusted_signer _______________\n\n    def test_external_assurance_rejects_untrusted_signer():\n        v=validate_external_assurance(receipt(),release=\"v0.9.7\",source_digest=S,trusted_signers={\"other\"})\n>       assert not v.admissible and \"trusted_signer\" in v.failures\nE       assert (not True)\nE        +  where True = ExternalAssuranceVerdict(admissible=True, failures=()).admissible\n\napps/api/tests/test_pec_external_assurance_v097.py:17: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer - assert (not True)\n +  where True = ExternalAssuranceVerdict(admissible=True, failures=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED",
+      "file": "apps/api/src/korpus/application/supply_chain_attestation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_in_toto_subject_rejects_artifact_mutation ________________\n\n    def test_in_toto_subject_rejects_artifact_mutation():\n>       assert not verify_in_toto_subject(statement(),artifact_name=\"korpus.zip\",artifact_bytes=b\"changed\")\nE       AssertionError: assert not True\nE        +  where True = verify_in_toto_subject({'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]}, artifact_name='korpus.zip', artifact_bytes=b'changed')\nE        +    where {'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]} = statement()\n\napps/api/tests/test_supply_chain_attestation_v097.py:14: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation - AssertionError: assert not True\n +  where True = verify_in_toto_subject({'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]}, artifact_name='korpus.zip', artifact_bytes=b'changed')\n +    where {'_type': 'https://in-toto.io/Statement/v1', 'predicate': {'buildDefinition': {'buildType': 'https://korpus.dev/build/...t': [{'digest': {'sha256': 'c7c5c1d70c5dec4416ab6158afd0b223ef40c29b1dc1f97ed9428b94d4cadb1c'}, 'name': 'korpus.zip'}]} = statement()\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "af9db31546fd2ab184da2fbc703be3cd47438b2eedd233a67425fca2736fc483",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-23T13:44:21+00:00"
+  },
+  "probe": true
+}

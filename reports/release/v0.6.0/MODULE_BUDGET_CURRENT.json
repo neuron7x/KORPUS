@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "modules": 259,
+  "unbudgeted": [],
+  "violations": [],
+  "improvements_to_record": [],
+  "largest": [
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "lines": 3313,
+      "max_complexity": 21,
+      "worst_function": "main"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "lines": 1038,
+      "max_complexity": 13,
+      "worst_function": "initialize"
+    },
+    {
+      "path": "scripts/build_audit_closure.py",
+      "lines": 848,
+      "max_complexity": 23,
+      "worst_function": "main"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure_requirements.py",
+      "lines": 666,
+      "max_complexity": 12,
+      "worst_function": "_service_requirements"
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "lines": 589,
+      "max_complexity": 25,
+      "worst_function": "_validate_type_path"
+    }
+  ]
+}

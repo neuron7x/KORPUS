@@ -38,3 +38,11 @@ def test_release_identity_covers_handoff_and_package_surfaces() -> None:
         "handoff_release",
     ):
         assert payload["checks"][key] is True, f"release surface drift: {key}"
+
+
+def test_distribution_artifact_is_single_sourced() -> None:
+    release = json.loads((ROOT / "apps/api/src/korpus/release.json").read_text(encoding="utf-8"))
+    artifact = release["distribution_artifact"]
+    assert artifact.endswith(".zip")
+    assert artifact in (ROOT / "GITHUB_IMPORT.md").read_text(encoding="utf-8")
+    assert artifact in (ROOT / "GITLAB_IMPORT.md").read_text(encoding="utf-8")

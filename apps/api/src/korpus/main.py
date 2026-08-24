@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import os
 import re
-import secrets
 import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -23,6 +22,9 @@ from korpus.application.cache import EvidenceQueryCache
 from korpus.application.policy import PolicyEngine
 from korpus.application.resilience import AdmissionController
 from korpus.application.trace import reset_trace_id, set_trace_id
+from korpus.application.request_audit_context import (
+    request_audit_context, reset_request_audit_context, set_request_audit_context,
+)
 from korpus.config import Settings, get_settings, unknown_settings_variables
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
 from korpus.infrastructure.observability import Observability
@@ -32,7 +34,9 @@ from korpus.infrastructure.runtime import (
     create_repository,
 )
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
-from korpus.security.browser_oidc import BrowserOIDCClient, BrowserSessionCodec, BrowserSessionError
+from korpus.offline_pack_composition import build_offline_pack_service
+from korpus.security.browser_csrf import browser_csrf_denial
+from korpus.security.browser_oidc import BrowserOIDCClient, BrowserSessionCodec
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.oidc import OIDCVerifier
 from korpus.tenancy_composition import install_tenancy
@@ -144,6 +148,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.oidc_verifier = oidc_verifier
         app.state.browser_session_codec = browser_session_codec
         app.state.browser_oidc_client = browser_oidc_client
+        app.state.offline_pack_service = build_offline_pack_service(selected, repository, policy)
         # ACT-001. Built once here rather than per request: each store holds an engine
         # reference, and constructing them in a dependency would mean a new one per call
         # with no benefit. `tenancy_composition` is the only module that names both an
@@ -216,28 +221,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         request_id = supplied if REQUEST_ID_PATTERN.fullmatch(supplied) else str(uuid.uuid4())
         request.state.request_id = request_id
         trace_token = set_trace_id(request_id)
-        if request.method in {"POST", "PUT", "PATCH", "DELETE"} and selected.browser_auth_enabled:
-            session_cookie = request.cookies.get(selected.browser_session_cookie)
-            if session_cookie:
-                codec = getattr(app.state, "browser_session_codec", None)
-                try:
-                    session = codec.open(session_cookie, expected_kind="session") if codec else {}
-                    expected_csrf = session.get("csrf")
-                except BrowserSessionError:
-                    return JSONResponse({"detail": "invalid browser session"}, status_code=401)
-                supplied_csrf = request.headers.get("X-CSRF-Token", "")
-                csrf_cookie = request.cookies.get(selected.browser_csrf_cookie, "")
-                if (
-                    not isinstance(expected_csrf, str)
-                    or not supplied_csrf
-                    or not csrf_cookie
-                    or not secrets.compare_digest(supplied_csrf, expected_csrf)
-                    or not secrets.compare_digest(csrf_cookie, expected_csrf)
-                ):
-                    return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)
+        session_cookie = request.cookies.get(selected.browser_session_cookie)
+        audit_context_token = set_request_audit_context(
+            request_audit_context(
+                session_cookie=session_cookie,
+                authorization=request.headers.get("Authorization"),
+                client_version=request.headers.get("X-KORPUS-Client-Version"),
+            )
+        )
         started = time.monotonic()
         status_code = 500
         try:
+            denial = browser_csrf_denial(app, request, selected, session_cookie)
+            if denial is not None:
+                status_code, detail = denial
+                return JSONResponse({"detail": detail}, status_code=status_code)
             response = await call_next(request)
             status_code = response.status_code
             response.headers["X-Request-ID"] = request_id
@@ -246,6 +244,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             response.headers["Cache-Control"] = "no-store"
             return response
         finally:
+            reset_request_audit_context(audit_context_token)
             reset_trace_id(trace_token)
             route = getattr(request.scope.get("route"), "path", "unmatched")
             if hasattr(app.state, "observability"):
@@ -259,7 +258,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=selected.cors_origin_list,
         allow_credentials=selected.browser_auth_enabled,
         allow_methods=["GET", "POST"],
-        allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token"],
+        allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-CSRF-Token", "X-KORPUS-Client-Version"],
     )
     app.include_router(router)
     app.include_router(tenancy_router)

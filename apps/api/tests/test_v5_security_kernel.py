@@ -152,7 +152,7 @@ def test_contradiction_gate_detects_negation_and_numeric_conflicts():
     assert contradiction_reason(
         "Гранична відстань становить 5 км.",
         "Гранична відстань становить 7 км.",
-    ) == "numeric_conflict:км"
+    ) == "numeric_conflict:length_m"
     assert contradiction_reason(
         "Гранична відстань становить 5 км.",
         "Граничний час становить 7 хв.",

@@ -30,6 +30,35 @@ from korpus.infrastructure.repository import SqlRepository
 
 DATASET = Path("evals/datasets/assurance.jsonl")
 PROTOCOL = Path("evals/EVALUATION_PROTOCOL.md")
+HARNESS_CONTRACT = Path("evals/EVALUATION_HARNESS_CONTRACT.json")
+
+REQUIRED_VALIDITY_CHECKS = frozenset({
+    "deterministic_replay",
+    "citation_span_integrity",
+    "unauthorized_material_leakage",
+    "temporal_source_selection",
+    "indirect_prompt_injection",
+    "refusals_or_abstentions",
+    "reward_hacking",
+    "contamination",
+    "sandbagging",
+    "broken_problem_risk",
+})
+
+
+def validate_harness_contract(value: object) -> dict[str, Any]:
+    """Reject underspecified evaluation claims before any score can be emitted."""
+    if not isinstance(value, dict) or value.get("schema") != "korpus.evaluation-harness-contract.v1":
+        raise ValueError("evaluation harness contract schema is invalid")
+    checks = value.get("validity_checks")
+    if not isinstance(checks, dict) or set(checks) != REQUIRED_VALIDITY_CHECKS:
+        raise ValueError("evaluation harness validity checks are incomplete or unexpected")
+    independence = value.get("independence")
+    if not isinstance(independence, dict) or independence.get("production_authorization_sufficient") is not False:
+        raise ValueError("local evaluation harness must not self-authorize production")
+    if value.get("claim_class") not in {"capability_elicitation", "safeguard_performance", "comparison"}:
+        raise ValueError("evaluation claim class is invalid")
+    return value
 
 
 def _approve(ingestion: IngestionService, actor: Identity, version_id: Any) -> None:
@@ -116,6 +145,9 @@ def main() -> None:
         corpus_declaration = rows.pop(0)
     dataset_hash = hashlib.sha256(DATASET.read_bytes()).hexdigest()
     protocol_hash = hashlib.sha256(PROTOCOL.read_bytes()).hexdigest()
+    harness_bytes = HARNESS_CONTRACT.read_bytes()
+    harness_contract = validate_harness_contract(json.loads(harness_bytes))
+    harness_hash = hashlib.sha256(harness_bytes).hexdigest()
     from build_system_manifest import build as build_system_manifest
     system_manifest = build_system_manifest()
     system_manifest_bytes = (json.dumps(system_manifest, indent=2, sort_keys=True) + "\n").encode()
@@ -322,8 +354,8 @@ def main() -> None:
             passed=passed,
             total=len(rows),
             corpus_declaration=corpus_declaration,
-            maximum_interval_width=float(tevv_policy["maximum_interval_width"]),
-            minimum_observations=int(tevv_policy["minimum_observations"]),
+            maximum_interval_width=tevv_policy["maximum_interval_width"],
+            minimum_observations=tevv_policy["minimum_observations"],
         )
         report = {
             "schema": 2,
@@ -331,6 +363,11 @@ def main() -> None:
             "dataset_sha256": dataset_hash,
             "evaluation_protocol": str(PROTOCOL),
             "evaluation_protocol_sha256": protocol_hash,
+            "evaluation_harness_contract": str(HARNESS_CONTRACT),
+            "evaluation_harness_contract_sha256": harness_hash,
+            "evaluation_claim_class": harness_contract["claim_class"],
+            "evaluation_claim": harness_contract["claim"],
+            "evaluation_harness": harness_contract,
             "system_manifest_sha256": system_manifest_hash,
             "system_manifest_root_sha256": system_manifest["manifest_root_sha256"],
             "source_commit": system_manifest["commit"],

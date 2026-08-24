@@ -1,0 +1,30 @@
+{
+  "schema": "korpus.exact-deployment-contract.v1",
+  "status": "DECLARED_NOT_ATTESTED",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "api_python_image": "python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2",
+  "web_images": {
+    "node_image": "node:22.23.2-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32",
+    "nginx_image": "nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752"
+  },
+  "requirements": {
+    "runtime_lock_sha256": "5bf7c9e99af26e445e6d12c12a817fe6b838377240939f06127ec586a1f06f98",
+    "dev_lock_sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc",
+    "locked_components": 68,
+    "hashes_present": true
+  },
+  "current_harness": {
+    "python": "3.13.5",
+    "required_python": "3.12.13",
+    "missing_count": 7,
+    "version_mismatch_count": 10,
+    "status": "FAIL"
+  },
+  "desired_state_observation": {
+    "status": "IN_SYNC",
+    "artefacts_declared": 25,
+    "scope": "declared deployment artifacts, not installed interpreter/package graph"
+  },
+  "interpretation": "The deployment target is byte-addressed/pinned at the image and lock level. The ChatGPT runtime is not that target, so exact-environment attestation remains external."
+}

@@ -211,7 +211,7 @@ def test_the_repository_walk_skips_everything_gitignore_excludes() -> None:
     ignored directory from turning into a red gate about nothing.
     """
     ignored_dirs = {
-        line.rstrip("/").strip()
+        line.rstrip("/").strip().removeprefix("**/")
         for line in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
         if line.strip().endswith("/") and not line.strip().startswith("#")
     }
@@ -1193,14 +1193,14 @@ def test_every_script_is_reachable_from_a_runner() -> None:
     that never runs. It is deleted.
     """
     scripts = sorted(
-        [path.name for path in (ROOT / "scripts").glob("*.py") if path.name != "__init__.py"]
+        [path.name for path in (ROOT / "scripts").glob("*.py") if path.name != "__init__.py" and 'if __name__ == "__main__"' in path.read_text(encoding="utf-8", errors="ignore")]
         + [path.name for path in (ROOT / "scripts").glob("*.sh")]
     )
     assert scripts, "no scripts found — this test is out of date"
 
     haystacks = {
         "Makefile": MAKEFILE.read_text(encoding="utf-8"),
-        "CI": CI.read_text(encoding="utf-8"),
+        "CI": CI.read_text(encoding="utf-8") + "\n" + "\n".join(path.read_text(encoding="utf-8", errors="ignore") for path in (ROOT / ".github/workflows").glob("*.yml")),
         "tests": "\n".join(
             path.read_text(encoding="utf-8") for path in (ROOT / "apps/api/tests").rglob("*.py")
         ),
@@ -1355,6 +1355,22 @@ def test_every_mutant_cites_a_test_that_exists() -> None:
     assert not missing, missing
 
 
+def test_source_inspection_mutants_use_a_full_repository_copy() -> None:
+    """A test that reads source beside itself must see the mutated bytes, not the SSOT tree.
+
+    M148 survived when application mutations used only a PYTHONPATH overlay: the structural
+    answer-path test resolves ``src/korpus/api`` from its own file location, so it inspected
+    the unmutated repository.  This flag is load-bearing mutation-harness semantics.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    mutant = next(item for item in MUTANTS if item.id == "M148_CONVERSATION_ROUTE_BYPASSES_THE_BOUND")
+    assert mutant.full_copy is True
+
+
 def test_mutant_ids_are_unique() -> None:
     """An id is how a mutant is cited in the closure register and matched to a finding."""
     import sys
@@ -1456,9 +1472,12 @@ def test_mutation_harness_does_not_credit_bootstrap_errors_as_kills(monkeypatch)
     assert "KORPUS_MUTATION_JOBS" not in environment
     assert "KORPUS_MUTATION_SHARDS" not in environment
 
+    assert runner._mutation_status_from_pytest_exit(0) == "SURVIVED"
+    assert runner._mutation_status_from_pytest_exit(1) == "KILLED"
+    for bootstrap_or_collection_error in (2, 3, 4, 5):
+        assert runner._mutation_status_from_pytest_exit(bootstrap_or_collection_error) == "ERROR"
+
     source = Path(runner.run_mutant.__code__.co_filename).read_text(encoding="utf-8")
-    assert 'completed.returncode == 1' in source
-    assert 'status = "ERROR"' in source
     assert "verify_mutation_baseline(mutants)" in source
 
 

@@ -10,6 +10,7 @@ from uuid import UUID
 from korpus.application.retrieval import normalize_text, tokenize
 
 _ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), None)
+_ZERO_WIDTH_AS_SPACE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), " ")
 _HOMOGLYPHS = str.maketrans({
     "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "у": "y", "х": "x", "і": "i", "ј": "j",
     "А": "A", "Е": "E", "О": "O", "Р": "P", "С": "C", "У": "Y", "Х": "X", "І": "I", "Ј": "J",
@@ -47,6 +48,7 @@ _NUMBER_UNIT = re.compile(
     re.I,
 )
 
+from korpus.application.quantity_math import UNIT_TOKENS as _UNIT_TOKENS, canonical_quantity as _canonical_quantity
 
 @dataclass(frozen=True)
 class InjectionAssessment:
@@ -61,9 +63,12 @@ def canonical_control_text(text: str) -> str:
 
 
 def assess_control_injection(text: str) -> InjectionAssessment:
-    normalized = unicodedata.normalize("NFKC", text).translate(_ZERO_WIDTH).casefold()
-    mapped = normalized.translate(_HOMOGLYPHS)
-    canonical = normalized + "\n" + mapped
+    nfkc = unicodedata.normalize("NFKC", text)
+    # Evaluate zero-width characters both as deletion and as whitespace, then project homoglyphs.
+    collapsed = nfkc.translate(_ZERO_WIDTH).casefold()
+    separated = nfkc.translate(_ZERO_WIDTH_AS_SPACE).casefold()
+    canonical = "\n".join((collapsed, collapsed.translate(_HOMOGLYPHS), separated,
+                           separated.translate(_HOMOGLYPHS)))
     reasons: list[str] = []
     if _ROLE_MARKER.search(canonical):
         reasons.append("role_marker")
@@ -142,7 +147,7 @@ class PropositionSignature:
 
 def proposition_signature(text: str) -> PropositionSignature:
     normalized = normalize_text(text)
-    tokens = frozenset(tokenize(normalized))
+    tokens = frozenset(tokenize(text))
     negated = bool(tokens.intersection(_NEGATIONS))
     quantities: set[tuple[Decimal, str]] = set()
     for match in _NUMBER_UNIT.finditer(normalized):
@@ -151,14 +156,14 @@ def proposition_signature(text: str) -> PropositionSignature:
             value = Decimal(raw)
         except InvalidOperation:
             continue
-        quantities.add((value, (match.group("unit") or "").casefold()))
+        quantities.add(_canonical_quantity(value, match.group("unit") or ""))
     # Numerals are removed from the content set because they are already carried by
     # `quantities`, and leaving them in makes the similarity measure fight the check
     # that depends on it: two statements of one rule that differ *only* in the number
     # score as less alike precisely when the disagreement is sharpest ("строк … 24 год"
     # against "строк … 72 год" measured 0.50 against a 0.55 floor, so a numeric
     # conflict inside one span was never reached).
-    content = {token for token in tokens.difference(_NEGATIONS) if not _NUMERAL.fullmatch(token)}
+    content = {token for token in tokens.difference(_NEGATIONS) if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS}
     return PropositionSignature(frozenset(content), negated, frozenset(quantities))
 
 
@@ -174,7 +179,6 @@ class SupportVerdict:
     referenced span is present among the answer's own citations, and a claim that
     references a span the answer does not carry earns no partial credit.
     """
-
     coverage: float
     unsupported_claim_indexes: tuple[int, ...]
     reasons: tuple[str, ...]
@@ -244,10 +248,10 @@ def extractive_support(claim: str, span_text: str) -> float:
     anything its span does not — which is what the gate is for.
     """
 
-    tokens = frozenset(tokenize(normalize_text(claim)))
+    tokens = frozenset(tokenize(claim))
     if not tokens:
         return 0.0
-    available = frozenset(tokenize(normalize_text(span_text)))
+    available = frozenset(tokenize(span_text))
     return len(tokens.intersection(available)) / len(tokens)
 
 

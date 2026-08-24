@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 35,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M34_SCOPE_BREACH_DOWNGRADED_TO_FILTER",
+      "file": "apps/api/src/korpus/application/answer_retrieval_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_one_out_of_scope_row_stops_an_otherwise_valid_batch ___________\n\nclient = <starlette.testclient.TestClient object at 0x7f6ca70e42f0>\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_one_out_of_scope_row_stops_an_otherwise_valid_batch(\n        client: TestClient, public_identity: Identity\n    ) -> None:\n        \"\"\"Majority-in-scope is not a defence: the breach is about the port, not the batch.\"\"\"\n        authorized = _evidence()\n        leaked = _evidence(corpus_id=\"restricted-demo\")\n    \n        class MixedRetriever(LeakyRetriever):\n            def search(\n                self,\n                identity: Identity,\n                text: str,\n                corpus_ids: frozenset[str],\n                as_of: date,\n                limit: int = 8,\n            ) -> list[RetrievedEvidence]:\n                return [authorized, leaked]\n    \n        service = ExtractiveAnswerService(\n            client.app.state.repository,\n            MixedRetriever(authorized),\n            PolicyEngine(),\n            AnswerPolicy(\n                minimum_score=0.08,\n                minimum_query_coverage=0.15,\n                minimum_support_score=0.08,\n                calibration_id=\"test-scope\",\n            ),\n        )\n        client.app.dependency_overrides[get_answer_service] = lambda: service\n        set_identity(client, public_identity)\n    \n        answer = _ask(client)\n    \n>       assert answer[\"status\"] == \"requires_human_review\"\nE       AssertionError: assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_retriever_scope.py:221: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch - AssertionError: assert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M78_REFUTATION_LOOKS_ONLY_AT_SELECTED_SENTENCES",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_span_that_reverses_itself_stops_the_answer _______________\n\nclient = <starlette.testclient.TestClient object at 0x7fb3ffe2c1a0>\n\n    def test_a_span_that_reverses_itself_stops_the_answer(client: TestClient) -> None:\n        \"\"\"Both sentences live in one span; only the first matches the query.\"\"\"\n        body = (\n            f\"Ведення журналу {MARKER} є обов'язковим для кожного підрозділу. \"\n            f\"Ведення журналу {MARKER} не є обов'язковим для підрозділів забезпечення.\"\n        )\n        result = ingest_text(client, text=body)\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = client.post(\n            \"/v1/answers\", json={\"text\": f\"чи обов'язкове ведення журналу {MARKER}\"}\n        ).json()\n    \n>       assert answer[\"status\"] == \"requires_human_review\", answer[\"decision_reason\"]\nE       AssertionError: extractive_claims_passed_calibrated_gates\nE       assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_intra_span_contradiction.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_intra_span_contradiction.py::test_a_span_that_reverses_itself_stops_the_answer - AssertionError: extractive_claims_passed_calibrated_gates\nassert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M170_UNTRACKABLE_SECRETS_ASSUMED_IGNORED",
+      "file": "apps/api/src/korpus/repository_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_a_plaintext_secret_in_the_tree_is_detected ________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-924/test_a_plaintext_secret_in_the0')\n\n    def test_a_plaintext_secret_in_the_tree_is_detected(tmp_path: Path) -> None:\n        \"\"\"A secret in the tree is disclosed to everyone who ever clones it, forever.\"\"\"\n        root = _tree(tmp_path)\n        (root / \"infra/secrets/postgres_password.txt\").write_text(\"hunter2\", encoding=\"utf-8\")\n    \n>       assert load_context(root).tracked_secrets == [\"infra/secrets/postgres_password.txt\"]\nE       AssertionError: assert [] == ['infra/secre...password.txt']\nE         \nE         Right contains one more item: 'infra/secrets/postgres_password.txt'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'infra/secrets/postgres_password.txt',\nE         - ]\n\napps/api/tests/test_repository_register.py:42: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_register.py::test_a_plaintext_secret_in_the_tree_is_detected - AssertionError: assert [] == ['infra/secre...password.txt']\n  \n  Right contains one more item: 'infra/secrets/postgres_password.txt'\n  \n  Full diff:\n  + []\n  - [\n  -     'infra/secrets/postgres_password.txt',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M203_AUDIT_EVENT_VERIFIED_WITH_THE_WRONG_KEY",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_key_rotation.py::test_the_chain_written_under_one_key_verifies_after_rotating_to_another"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_the_chain_written_under_one_key_verifies_after_rotating_to_another ____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-926/test_the_chain_written_under_o0')\n\n    def test_the_chain_written_under_one_key_verifies_after_rotating_to_another(tmp_path) -> None:\n        \"\"\"The drill, end to end through the database rather than over a ring in memory.\n    \n        Two events under key A, then the same database opened with a ring whose active key is\n        B and whose A is verify-only. The chain must still verify: the reader has to use the\n        key each *row* names, and a reader that used the active key would find every\n        pre-rotation event forged.\n        \"\"\"\n        first = AuditKeyRing(keys={\"2026-08-a\": FIRST}, active_key_id=\"2026-08-a\")\n        before = _repository(tmp_path, first)\n        try:\n            before.append_audit(ACTOR, \"drill.one\", \"drill\", \"1\", {\"n\": 1})\n            before.append_audit(ACTOR, \"drill.two\", \"drill\", \"2\", {\"n\": 2})\n            assert before.verify_audit().valid is True\n        finally:\n            before.close()\n    \n        after = _repository(tmp_path, _rotated())\n        try:\n            verification = after.verify_audit()\n>           assert verification.valid is True, verification\nE           AssertionError: AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=0, first_invalid_sequence=1, reason='audit hash mismatch')\nE           assert False is True\nE            +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=0, first_invalid_sequence=1, reason='audit hash mismatch').valid\n\napps/api/tests/test_audit_key_rotation.py:154: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_key_rotation.py::test_the_chain_written_under_one_key_verifies_after_rotating_to_another - AssertionError: AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=0, first_invalid_sequence=1, reason='audit hash mismatch')\nassert False is True\n +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=0, first_invalid_sequence=1, reason='audit hash mismatch').valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M150_RETENTION_BOUNDARY_DELETES_AT_THE_WINDOW",
+      "file": "apps/api/src/korpus/application/conversation_retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_conversation_retention.py::test_the_boundary_keeps_rather_than_deletes"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_the_boundary_keeps_rather_than_deletes __________________\n\n    def test_the_boundary_keeps_rather_than_deletes() -> None:\n        \"\"\"Exactly at the window is inside it. A rounding error must not erase a shift.\"\"\"\n        plan = plan_retention([_aged(90)], window_days=90, now=NOW)\n>       assert plan.expired == ()\nE       AssertionError: assert (Decision(con...eclared 90'),) == ()\nE         \nE         Left contains one more item: Decision(conversation_id=UUID('0a8e61ab-40f5-48d7-9425-2898bc0f162e'), disposition=<Disposition.EXPIRED: 'expired'>, age_days=90, reason='no activity for 90 days, beyond the declared 90')\nE         \nE         Full diff:\nE         - ()\nE         + (\nE         +     Decision(\nE         +         conversation_id=UUID('0a8e61ab-40f5-48d7-9425-2898bc0f162e'),\nE         +         disposition=<Disposition.EXPIRED: 'expired'>,\nE         +         age_days=90,\nE         +         reason='no activity for 90 days, beyond the declared 90',\nE         +     ),\nE         + )\n\napps/api/tests/test_conversation_retention.py:66: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_conversation_retention.py::test_the_boundary_keeps_rather_than_deletes - AssertionError: assert (Decision(con...eclared 90'),) == ()\n  \n  Left contains one more item: Decision(conversation_id=UUID('0a8e61ab-40f5-48d7-9425-2898bc0f162e'), disposition=<Disposition.EXPIRED: 'expired'>, age_days=90, reason='no activity for 90 days, beyond the declared 90')\n  \n  Full diff:\n  - ()\n  + (\n  +     Decision(\n  +         conversation_id=UUID('0a8e61ab-40f5-48d7-9425-2898bc0f162e'),\n  +         disposition=<Disposition.EXPIRED: 'expired'>,\n  +         age_days=90,\n  +         reason='no activity for 90 days, beyond the declared 90',\n  +     ),\n  + )\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M239_UNTRUSTED_PRODUCTION_ASSURANCE_SIGNER_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_report_verification.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_unsigned_or_untrusted_production_assurance_report_is_rejected ______\n\n    def test_unsigned_or_untrusted_production_assurance_report_is_rejected() -> None:\n        source, release, profile = \"d\" * 64, \"v9.9.9\", _profile()\n        gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)\n        assert _verify(report, profile, gates, source, release, hashes, attested=False)[\"assurance_attestation_verified\"] is False\n>       assert _verify(report, profile, gates, source, release, hashes, trusted=False)[\"assurance_trusted_signer\"] is False\nE       assert True is False\n\napps/api/tests/test_production_report_verification.py:106: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_report_verification.py::test_unsigned_or_untrusted_production_assurance_report_is_rejected - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M287_PEC_TERMINAL_ABSTAIN_BYPASSED",
+      "file": "apps/api/src/korpus/application/answer_retrieval_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_integration.py::test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence _\n\nclient = <starlette.testclient.TestClient object at 0x7fc7b64ac2f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence(\n        client, admin_identity\n    ) -> None:\n        result = ingest_text(client)\n        approve(client, result[\"version\"][\"id\"])\n        query = QueryRequest(text=\"Що має містити кожен запис?\", as_of=date(2026, 8, 21))\n        release_id = client.app.state.repository.corpus_release_id(\n            admin_identity, frozenset({\"public\"}), query.as_of\n        )\n        planner = CountingPlanner([\"дата відповідальна особа\"])\n        service = ExtractiveAnswerService(\n            client.app.state.repository,\n            HybridLexicalRetriever(client.app.state.repository),\n            client.app.state.policy,\n            AnswerPolicy(0.1, 0.1, 0.1, \"pec-test-cal\"),\n            query_planner=planner,\n            predictive_controller=_controller(release_id, mode=\"abstain\"),\n        )\n        answer = service.execute(admin_identity, query)\n>       assert answer.status.value == \"insufficient_evidence\"\nE       AssertionError: assert 'answered' == 'insufficient_evidence'\nE         \nE         - insufficient_evidence\nE         + answered\n\napps/api/tests/test_pec_integration.py:248: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_integration.py::test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence - AssertionError: assert 'answered' == 'insufficient_evidence'\n  \n  - insufficient_evidence\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:41:02+00:00"
+  }
+}

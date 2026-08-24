@@ -30,10 +30,10 @@ jobs:
         with:
           python-version: 3.12.13
           check-latest: false
-      - name: Install Node 22.16.0
+      - name: Install Node 22.23.2
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22.16.0
+          node-version: 22.23.2
           check-latest: false
       - name: Install locked verification environment
         run: |
@@ -44,14 +44,18 @@ jobs:
         run: |
           python scripts/check_release_identity.py --require-git-tag
           make validate PY=python
+          make production-exact-environment PY=python
           make api-test PY=python
           make api-lint PY=python
           npm --prefix apps/web run lint
           npm --prefix apps/web run test
           npm --prefix apps/web run build
           make eval mutation migration-gate scale operational-gate PY=python
+          make production-postgres-security PY=python
           make sqlite-recovery-drill PY=python
           make audit-closure PY=python
+          make production-hard-predicates PY=python
+          make release-truth PY=python
           make assemble-assurance PY=python
           make snapshot PY=python
           PYTHONPATH=scripts python scripts/verify_release_evidence.py

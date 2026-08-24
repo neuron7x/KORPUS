@@ -1,0 +1,5 @@
+{
+  "schema": "korpus.trusted-builders.v1",
+  "trusted_builder_ids": [],
+  "interpretation": "Empty by default. Local provenance can be structurally valid but cannot satisfy production builder trust until an independently governed CI/build platform identity is admitted."
+}

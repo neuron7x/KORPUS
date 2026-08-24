@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights, score_candidates
 
 
+from korpus.application.adaptive_contracts import validate_judged_candidate, validate_simplex_step
+
 @dataclass(frozen=True)
 class JudgedCandidate:
     text: str
@@ -17,14 +19,7 @@ class JudgedCandidate:
     temporal_score: float = 0.0
 
     def __post_init__(self) -> None:
-        if self.relevance < 0 or self.relevance > 3:
-            raise ValueError("relevance must be an integer in [0, 3]")
-        if (
-            not 0 <= self.authority_score <= 1
-            or not 0 <= self.semantic_score <= 1
-            or not 0 <= self.temporal_score <= 1
-        ):
-            raise ValueError("component scores must be in [0, 1]")
+        validate_judged_candidate(self)
 
 
 @dataclass(frozen=True)
@@ -111,8 +106,7 @@ def evaluate_ranking(
 
 
 def _simplex_weight_candidates(step: float = 0.1) -> Iterable[RetrievalWeights]:
-    if step <= 0 or step > 0.5 or not math.isclose(round(1 / step) * step, 1.0, abs_tol=1e-9):
-        raise ValueError("step must evenly divide 1")
+    step = validate_simplex_step(step)
     units = round(1 / step)
     # Authority remains nonzero to resist keyword stuffing. Semantic may be zero
     # when no independently validated embedding model exists.
@@ -149,6 +143,8 @@ def tune_ranking(
     queries = tuple(dataset)
     if len(queries) < 2:
         raise ValueError("at least two judged queries are required for tuning")
+    if not bm25_candidates:
+        raise ValueError("at least one BM25 candidate is required")
     best: TuningResult | None = None
     for bm25 in bm25_candidates:
         for weights in _simplex_weight_candidates(weight_step):

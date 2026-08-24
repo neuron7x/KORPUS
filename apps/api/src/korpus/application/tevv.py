@@ -26,6 +26,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from korpus.application.tevv_math import validate_tevv_policy, wilson_bounds
+
 FIXTURE_STATUS = "UNVALIDATED_TEST_FIXTURE"
 MEASURED_STATUS = "MEASURED_ON_DECLARED_CORPUS"
 REQUIRED_CORPUS_FIELDS = ("corpus_id", "owner", "document_set_sha256")
@@ -59,19 +61,8 @@ def wilson_interval(successes: int, total: int, z: float = 1.959963985) -> Inter
     thirty observations. Wilson gives [0.885, 1.0]: the same data, honestly stated.
     """
 
-    if total <= 0:
-        return Interval(0.0, 1.0, 0.95)
-    if not 0 <= successes <= total:
-        raise ValueError("successes must lie within the number of observations")
-    proportion = successes / total
-    denominator = 1 + z**2 / total
-    centre = (proportion + z**2 / (2 * total)) / denominator
-    spread = (
-        z
-        * math.sqrt(proportion * (1 - proportion) / total + z**2 / (4 * total**2))
-        / denominator
-    )
-    return Interval(max(0.0, centre - spread), min(1.0, centre + spread), 0.95)
+    lower, upper = wilson_bounds(successes, total, z)
+    return Interval(lower, upper, 0.95)
 
 
 @dataclass(frozen=True)
@@ -118,6 +109,8 @@ def evaluate_tevv(
     minimum_observations: int,
 ) -> TevvVerdict:
     """Decide whether this run may be cited as a measurement of the system."""
+
+    maximum_interval_width, minimum_observations = validate_tevv_policy(maximum_interval_width, minimum_observations)
 
     reasons = corpus_declaration_problems(corpus_declaration)
     interval = wilson_interval(passed, total)

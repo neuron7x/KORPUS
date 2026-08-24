@@ -179,3 +179,29 @@ def test_listing_one_version_does_not_read_the_whole_corpus(
     assert {str(version.id) for _span, _document, version in rows} == {
         str(target["version"]["id"])
     }
+
+
+def test_disclosed_span_exposes_source_version_validity_for_reader_verification(
+    client: TestClient,
+) -> None:
+    """Citation inspection includes the metadata needed to judge currency, not only text."""
+    from datetime import date
+
+    result = ingest_text(
+        client,
+        title="Чинний наказ",
+        text=STRUCTURED,
+        effective_from=date(2026, 6, 1),
+    )
+    version_id = result["version"]["id"]
+    approve(client, version_id)
+
+    span = client.get(f"/v1/document-versions/{version_id}/spans").json()[0]
+
+    assert span["version_id"] == version_id
+    assert span["effective_from"] == "2026-06-01"
+    assert "effective_until" in span
+    assert "rescinded_at" in span
+    assert "publication_date" in span
+    assert span["authority"]
+    assert len(span["source_hash"]) == 64

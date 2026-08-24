@@ -220,33 +220,34 @@ function wireTabs() {
 //: field somebody can type into.
 let signedIn = null;
 
-function applyIdentity(currentIdentity) {
-  signedIn = currentIdentity;
-  const visible = new Set(currentIdentity ? visibleConsoles(currentIdentity) : []);
+function applyBootstrap(currentBootstrap) {
+  signedIn = currentBootstrap?.identity ?? null;
+  const visible = new Set(currentBootstrap ? visibleConsoles(currentBootstrap) : []);
   for (const name of TABS) {
     $(`tab-${name}`).hidden = !visible.has(name);
     $(name).hidden = true;
   }
-  $("console-none").hidden = !(currentIdentity && visible.size === 0);
+  $("console-none").hidden = !(currentBootstrap && visible.size === 0);
   const first = TABS.find(name => visible.has(name));
   if (first) selectTab(first);
 }
 
 async function loadIdentity() {
   identityState.textContent = "Перевірка…";
-  const loaded = await call("/v1/auth/me");
+  const loaded = await call("/v1/client/bootstrap");
+  const identity = loaded.identity;
   identityState.innerHTML =
-    `<strong>${escapeHtml(loaded.subject)}</strong> · clearance ${escapeHtml(loaded.clearance)} · ` +
-    `${escapeHtml([...loaded.roles].sort().join(", "))}`;
+    `<strong>${escapeHtml(identity.subject)}</strong> · clearance ${escapeHtml(identity.clearance)} · ` +
+    `${escapeHtml([...identity.roles].sort().join(", "))} · ${escapeHtml(loaded.release)}`;
   $("login").hidden = true;
   $("logout").hidden = false;
-  applyIdentity(loaded);
+  applyBootstrap(loaded);
   return loaded;
 }
 
 function forgetIdentity(message) {
   clearBearerToken();
-  applyIdentity(null);
+  applyBootstrap(null);
   $("login").hidden = false;
   $("logout").hidden = true;
   identityState.textContent = message;

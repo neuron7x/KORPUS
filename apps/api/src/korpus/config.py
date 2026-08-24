@@ -28,40 +28,8 @@ def _read_optional_secret_file(path: Path | None, fallback: str | None) -> str |
     return value
 
 
-#: `KORPUS_*` names that belong to the operational scripts rather than to `Settings`:
-#: backup and restore, recovery measurement, PostgreSQL role provisioning, mutation
-#: sharding. They share a process environment with the application in CI and in the
-#: compose file, so a check over the namespace has to know they are legitimate.
-#:
-#: Declared here rather than inferred, because the point of the check below is that an
-#: unrecognised `KORPUS_*` name is an error — and a rule that quietly accepts whatever
-#: it finds is the rule it is replacing.
-OPERATIONAL_VARIABLES: frozenset[str] = frozenset(
-    {
-        "KORPUS_BACKUP_DATABASE_URL",
-        "KORPUS_BACKUP_DIR",
-        "KORPUS_BACKUP_ENCRYPTION_KEY",
-        "KORPUS_BACKUP_ENCRYPTION_KEY_FILE",
-        "KORPUS_BACKUP_KEY_ID",
-        "KORPUS_BACKUP_OBJECT_ROOT", "KORPUS_BACKUP_RETENTION_COUNT",
-        "KORPUS_BACKUP_RETENTION_DAYS", "KORPUS_BACKUP_SECOND_DIR",
-        "KORPUS_BACKUP_SQLITE_PATH", "KORPUS_DATABASE_PASSWORD_FILE",
-        "KORPUS_DATABASE_URL_TEMPLATE",
-        "KORPUS_MUTATION_JOBS", "KORPUS_MUTATION_SHARDS",
-        "KORPUS_POSTGRES_ADMIN_URL",
-        "KORPUS_POSTGRES_APP_PASSWORD",
-        "KORPUS_POSTGRES_APP_PASSWORD_FILE",
-        "KORPUS_POSTGRES_APP_ROLE",
-        "KORPUS_POSTGRES_TEST_URL",
-        "KORPUS_RECOVERY_BACKUP_PATH", "KORPUS_RECOVERY_ENVIRONMENT_CLASS",
-        "KORPUS_RECOVERY_PHASE", "KORPUS_RECOVERY_RESTORED_URL",
-        "KORPUS_RECOVERY_RESTORE_SECONDS", "KORPUS_RECOVERY_SEED_URL",
-        "KORPUS_RECOVERY_SOURCE_URL",
-        "KORPUS_RESTORE_DATABASE_URL",
-        "KORPUS_TEST_DATABASE_ADMIN_URL",
-        "KORPUS_TEST_DATABASE_URL",
-    }
-)
+from korpus.config_namespace import OPERATIONAL_VARIABLES
+
 
 
 def unknown_settings_variables(environ: Mapping[str, str]) -> list[str]:
@@ -92,6 +60,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="KORPUS_", env_file=".env", extra="ignore")
 
     environment: str = "local"
+    runtime_role: str = "api"
     database_url: str = "sqlite:///./var/korpus.db"
     database_pool_size: int = Field(default=8, ge=1, le=128)
     database_max_overflow: int = Field(default=8, ge=0, le=256)
@@ -103,6 +72,12 @@ class Settings(BaseSettings):
     schema_mode: str = "auto"
     object_root: Path = Path("./var/objects")
     object_store_mode: str = "local"
+    database_transport: str = "direct_tls"
+    gcs_bucket: str | None = None
+    gcs_prefix: str = "objects"
+    gcs_quarantine_bucket: str | None = None
+    gcs_quarantine_prefix: str = "quarantine"
+    gcs_retention_seconds: int = Field(default=0, ge=0, le=100 * 365 * 24 * 3600)
     s3_bucket: str | None = None
     s3_prefix: str = "objects"
     s3_endpoint_url: str | None = None
@@ -118,6 +93,8 @@ class Settings(BaseSettings):
     audit_anchor_token: str | None = None
     audit_anchor_token_file: Path | None = None
     audit_anchor_timeout_seconds: float = Field(default=5.0, gt=0, le=30)
+    gcs_audit_bucket: str | None = None
+    gcs_audit_prefix: str = "audit/anchors"
     audit_reconcile_interval_seconds: float = Field(default=2.0, ge=0.2, le=60)
     audit_reconcile_batch_size: int = Field(default=64, ge=1, le=10_000)
     audit_max_pending_events: int = Field(default=64, ge=0, le=1_000_000)
@@ -156,7 +133,7 @@ class Settings(BaseSettings):
     browser_flow_ttl_seconds: int = Field(default=600, ge=60, le=1800)
     browser_cookie_secure: bool = True
     browser_session_cookie: str = "__Host-korpus_session"
-    browser_flow_cookie: str = "__Host-korpus_flow"
+    browser_flow_cookie: str = "__Secure-korpus_flow"
     browser_csrf_cookie: str = "__Host-korpus_csrf"
     entitlement_profile_path: Path | None = None
     entitlement_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
@@ -179,6 +156,16 @@ class Settings(BaseSettings):
     calibration_dataset_path: Path | None = None
     calibration_system_manifest_path: Path | None = None
     calibration_evaluation_protocol_path: Path | None = None
+    #: Predictive Evidence Control (PEC) is profile-governed and defaults to shadow/off.
+    pec_enabled: bool = False
+    pec_shadow_mode: bool = True
+    pec_profile_path: Path | None = None
+    pec_profile_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    pec_dataset_path: Path | None = None
+    pec_system_manifest_path: Path | None = None
+    pec_evaluation_protocol_path: Path | None = None
+    pec_replay_receipt_path: Path | None = None
+    contextual_retrieval_enabled: bool = False
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
     min_query_coverage: float = Field(0.25, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
@@ -197,6 +184,12 @@ class Settings(BaseSettings):
     #: Paid access only narrows policy-authorized corpora.
     subscription_required: bool = False
     free_corpora: str = ""
+    #: Signed, policy-fresh evidence snapshot for disconnected operation.
+    offline_pack_enabled: bool = False
+    offline_pack_signing_key_file: Path | None = None
+    offline_pack_key_id: str = Field(default="offline-pack-v1", min_length=3, max_length=120)
+    offline_pack_ttl_seconds: int = Field(default=24 * 3600, ge=60, le=7 * 24 * 3600)
+    offline_pack_max_spans: int = Field(default=5000, ge=1, le=100_000)
     #: Deterministic test-provider secret; empty disables that provider.
     billing_webhook_secret: str = ""
     billing_webhook_secret_file: Path | None = None
@@ -271,18 +264,33 @@ class Settings(BaseSettings):
             raise ValueError(f"environment must be one of {sorted(allowed)}")
         return value
 
+    @field_validator("runtime_role")
+    @classmethod
+    def validate_runtime_role(cls, value: str) -> str:
+        allowed = {"api", "worker", "tool"}
+        if value not in allowed:
+            raise ValueError(f"runtime_role must be one of {sorted(allowed)}")
+        return value
+
     @field_validator("audit_anchor_mode")
     @classmethod
     def validate_audit_anchor_mode(cls, value: str) -> str:
-        if value not in {"file", "http"}:
-            raise ValueError("audit_anchor_mode must be file or http")
+        if value not in {"file", "http", "gcs"}:
+            raise ValueError("audit_anchor_mode must be file, http, or gcs")
         return value
 
     @field_validator("object_store_mode")
     @classmethod
     def validate_object_store_mode(cls, value: str) -> str:
-        if value not in {"local", "s3"}:
-            raise ValueError("object_store_mode must be local or s3")
+        if value not in {"local", "s3", "gcs"}:
+            raise ValueError("object_store_mode must be local, s3, or gcs")
+        return value
+
+    @field_validator("database_transport")
+    @classmethod
+    def validate_database_transport(cls, value: str) -> str:
+        if value not in {"direct_tls", "cloud_sql_socket"}:
+            raise ValueError("database_transport must be direct_tls or cloud_sql_socket")
         return value
 
     @field_validator("schema_mode")
@@ -370,52 +378,42 @@ class Settings(BaseSettings):
     @property
     def resolved_oidc_client_secret(self) -> str | None:
         return _read_optional_secret_file(self.oidc_client_secret_file, self.oidc_client_secret)
-
     @property
     def resolved_browser_session_key(self) -> str | None:
         return _read_optional_secret_file(self.browser_session_key_file, self.browser_session_key)
-
     @property
     def resolved_billing_webhook_secret(self) -> str | None:
         return _read_optional_secret_file(
             self.billing_webhook_secret_file, self.billing_webhook_secret or None
         )
-
     @property
     def resolved_liqpay_private_key(self) -> str | None:
         return _read_optional_secret_file(
             self.liqpay_private_key_file, self.liqpay_private_key or None
         )
-
     @property
     def billing_plan_corpus_set(self) -> frozenset[str]:
         return frozenset(
             part.strip() for part in self.billing_plan_corpora.split(",") if part.strip()
         )
-
     @property
     def free_corpus_set(self) -> frozenset[str]:
         return frozenset(part.strip() for part in self.free_corpora.split(",") if part.strip())
-
     @property
     def oidc_scope_list(self) -> list[str]:
         scopes = [part.strip() for part in self.oidc_scopes.split() if part.strip()]
         if "openid" not in scopes:
             scopes.insert(0, "openid")
         return scopes
-
     @property
     def cors_origin_list(self) -> list[str]:
         return [part.strip() for part in self.cors_origins.split(",") if part.strip()]
-
     @property
     def oidc_algorithm_list(self) -> list[str]:
         return [part.strip() for part in self.oidc_algorithms.split(",") if part.strip()]
-
     @property
     def trusted_host_list(self) -> list[str]:
         return [part.strip() for part in self.trusted_hosts.split(",") if part.strip()]
-
 @lru_cache
 def get_settings() -> Settings:
     return Settings()

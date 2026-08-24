@@ -4,7 +4,7 @@
 
 Вимоги з префіксом `k8s.` побудовані з `deploy/kubernetes/base`: покомпонентні правила породжуються з набору документів, тому перелік описує саме це розгортання, а не Kubernetes узагалі.
 
-Усього вимог: **332**.
+Усього вимог: **335**.
 
 Кожна має ідентифікатор, за яким її можна процитувати в аудиті, позначити як прийнятий ризик із названим власником, зіставити з мутантом і порахувати. До 05.08.2026 їх не було: перевірка існувала як рядок, дописаний у місці збою.
 
@@ -77,6 +77,7 @@
 | `controlled.entitlement_profile_digest` | controlled environments require an entitlement profile digest | — |
 | `controlled.explicit_https_cors` | controlled CORS origins must be explicit HTTPS origins | — |
 | `controlled.explicit_trusted_hosts` | controlled environments require explicit trusted hosts | — |
+| `controlled.gcs_quarantine_separation` | controlled GCS deployments require a separate quarantine bucket | — |
 | `controlled.https_otlp_endpoint` | controlled OTLP endpoints must use HTTPS | — |
 | `controlled.https_redirect_uri` | controlled OIDC redirect URI must use HTTPS | — |
 | `controlled.https_s3_endpoint` | controlled S3 endpoints must use HTTPS | — |
@@ -89,7 +90,7 @@
 | `controlled.oidc` | OIDC authentication is required in controlled environments | — |
 | `controlled.parser_isolation` | controlled environments require parser process isolation | — |
 | `controlled.postgresql` | controlled environments require PostgreSQL | — |
-| `controlled.remote_audit_anchor` | controlled environments require a remote HTTP audit anchor | — |
+| `controlled.remote_audit_anchor` | controlled environments require a remote HTTPS audit anchor or GCS audit anchor | — |
 | `controlled.reviewer_registry` | controlled environments require a reviewer credential registry | — |
 | `controlled.reviewer_registry_digest` | controlled environments require a reviewer registry digest | — |
 | `controlled.reviewer_separation` | controlled environments require reviewer separation | — |
@@ -97,7 +98,7 @@
 | `controlled.source_signatures` | controlled environments require detached source signatures | — |
 | `controlled.source_trust_profile` | controlled environments require a source trust profile | — |
 | `controlled.source_trust_profile_digest` | controlled environments require a source trust profile digest | — |
-| `controlled.verified_tls` | controlled PostgreSQL connections require sslmode=verify-full | — |
+| `controlled.verified_database_transport` | controlled PostgreSQL connections require sslmode=verify-full or an explicit Cloud SQL Unix socket transport | — |
 
 ## deployment
 
@@ -348,11 +349,13 @@
 | `repo.file.docs_audit_closure_korpus_v5_findings_closure_json` | docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json is present | — |
 | `repo.file.docs_audit_closure_korpus_v5_remaining_debt_csv` | docs/audit/closure/KORPUS_v5_REMAINING_DEBT.csv is present | — |
 | `repo.file.docs_audit_closure_korpus_v5_remaining_debt_json` | docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json is present | — |
+| `repo.file.docs_audit_source_korpus_v4_audit_artifacts_2026_08_01_sha256` | docs/audit/source/KORPUS_v4_AUDIT_ARTIFACTS_2026-08-01.sha256 is present | — |
+| `repo.file.docs_audit_source_korpus_v4_audit_package_readme_2026_08_01_md` | docs/audit/source/KORPUS_v4_AUDIT_PACKAGE_README_2026-08-01.md is present | — |
 | `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_docx` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.docx is present | — |
 | `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_md` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.md is present | — |
 | `repo.file.docs_audit_source_korpus_v4_extended_assurance_act_2026_08_01_pdf` | docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.pdf is present | — |
-| `repo.file.docs_audit_source_korpus_v4_extended_audit_package_2026_08_01_zip` | docs/audit/source/KORPUS_v4_EXTENDED_AUDIT_PACKAGE_2026-08-01.zip is present | — |
 | `repo.file.docs_audit_source_korpus_v4_findings_register_2026_08_01_json` | docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json is present | — |
+| `repo.file.docs_audit_source_korpus_v4_remediation_backlog_2026_08_01_csv` | docs/audit/source/KORPUS_v4_REMEDIATION_BACKLOG_2026-08-01.csv is present | — |
 | `repo.file.docs_governance_ai_system_card_v5_md` | docs/governance/AI_SYSTEM_CARD_V5.md is present | — |
 | `repo.file.docs_governance_authorization_package_v5_md` | docs/governance/AUTHORIZATION_PACKAGE_V5.md is present | — |
 | `repo.file.docs_governance_data_handling_standard_v5_md` | docs/governance/DATA_HANDLING_STANDARD_V5.md is present | — |
@@ -419,8 +422,8 @@
 | `repo.no_oversized_files` | no tracked file exceeds 5 MB | a large binary in the tree is a thing nobody reviews and everybody clones |
 | `repo.no_plaintext_secrets` | no plaintext runtime secret is tracked | a secret in the tree is disclosed to everyone who ever clones it, forever |
 | `repo.no_unresolved_placeholders` | no shipped source carries an unresolved implementation placeholder | NotImplementedError in a delivered path is a promise the runtime cannot keep |
-| `repo.version.api_pyproject` | api_pyproject declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.readme_header` | readme_header declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.release_identity` | release_identity declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.runtime_dunder` | runtime_dunder declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
-| `repo.version.web_package` | web_package declares release 0.1.1 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.api_pyproject` | api_pyproject declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.readme_header` | readme_header declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.release_identity` | release_identity declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.runtime_dunder` | runtime_dunder declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |
+| `repo.version.web_package` | web_package declares release 0.9.7 | release identity and its derivative surfaces must agree; one mismatch means the artefacts describe different builds |

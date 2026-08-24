@@ -15,6 +15,7 @@ from typing import Any, Protocol
 
 import httpx
 
+from korpus.security.url_policy import is_https_or_loopback_url
 
 class AnchorError(RuntimeError):
     pass
@@ -148,10 +149,8 @@ class FileAuditAnchorStore:
 
 class HttpAuditAnchorStore:
     """Remote monotonic anchor client.
-
-    The remote endpoint must provide GET and conditional PUT semantics. PUT must
-    reject sequence regression and conflicting hashes at an identical sequence
-    with HTTP 409. The client additionally verifies the HMAC on every read.
+    The endpoint provides GET/conditional PUT, rejects sequence regression or conflicting
+    identical-sequence hashes with HTTP 409, and every read is HMAC-verified.
     """
 
     def __init__(
@@ -163,7 +162,7 @@ class HttpAuditAnchorStore:
         timeout_seconds: float = 5.0,
         client: Any | None = None,
     ) -> None:
-        if not endpoint.startswith(("https://", "http://127.0.0.1", "http://localhost")):
+        if not is_https_or_loopback_url(endpoint):
             raise ValueError("audit anchor endpoint must use HTTPS or loopback HTTP")
         self.endpoint = endpoint.rstrip("/")
         self.codec = _SignedAnchorCodec(key)
@@ -227,3 +226,4 @@ class HttpAuditAnchorStore:
         except Exception as exc:
             status = getattr(response, "status_code", "UNKNOWN")
             raise AnchorError(f"remote audit anchor request failed: {status}") from exc
+

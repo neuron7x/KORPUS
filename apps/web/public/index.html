@@ -116,6 +116,16 @@
           <span aria-hidden="true">＋</span><span>Нова розмова</span>
         </button>
 
+        <nav id="primary-nav" class="primary-nav" aria-label="Основна навігація">
+          <a href="/chat" data-route-link>Чат</a>
+          <a href="/knowledge" data-route-link>База знань</a>
+          <a href="/documents" data-route-link>Документи</a>
+          <a href="/sources" data-route-link>Джерела</a>
+          <a href="/offline" data-route-link>Офлайн</a>
+          <a href="/audit" data-route-link>Аудит</a>
+          <a href="/profile" data-route-link>Профіль</a>
+        </nav>
+
         <details id="conversations" class="conversations" hidden>
           <summary id="conversations-summary">Розмови</summary>
           <div class="conversations-actions" hidden></div>
@@ -171,7 +181,7 @@
       </aside>
 
       <section class="chat-stage">
-        <div class="chat-topline">
+        <div class="chat-topline" data-chat-only>
           <div>
             <p class="eyebrow">KORPUS / EVIDENCE CHAT</p>
             <h2>Діалог із базою знань</h2>
@@ -183,10 +193,13 @@
           </section>
         </div>
 
-        <section id="result" class="answer-stream hidden" role="status" aria-live="polite"
+
+        <section id="route-view" class="route-view" hidden aria-live="polite" aria-label="Поточний розділ"></section>
+
+        <section id="result" data-chat-only class="answer-stream hidden" role="status" aria-live="polite"
                  aria-label="Результат запиту"></section>
 
-        <div id="empty-chat" class="empty-chat">
+        <div id="empty-chat" data-chat-only class="empty-chat">
           <div class="empty-symbol" aria-hidden="true">⊛</div>
           <h2>Що потрібно перевірити?</h2>
           <p>Поставте питання звичайною мовою. KORPUS відповість лише в межах доступних доказів.</p>
@@ -195,7 +208,7 @@
           </div>
         </div>
 
-        <section id="ask-section" class="ask-section" aria-labelledby="ask-heading">
+        <section id="ask-section" data-chat-only class="ask-section" aria-labelledby="ask-heading">
           <h2 id="ask-heading" class="sr-only">Запит</h2>
           <div class="quick-actions" aria-label="Швидкі операції">
             <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти норму</button>
@@ -255,6 +268,22 @@
       </div>
     </section>
   </main>
+
+
+  <dialog id="evidence-dialog" class="evidence-dialog" aria-labelledby="evidence-dialog-title">
+    <div class="evidence-dialog-head">
+      <div><span class="rail-kicker">EVIDENCE / EXACT FRAGMENT</span><h2 id="evidence-dialog-title">Джерело</h2></div>
+      <button id="evidence-close" type="button" class="secondary" aria-label="Закрити джерело">Закрити</button>
+    </div>
+    <p id="evidence-validity" class="route-note"></p>
+    <blockquote id="evidence-text" tabindex="-1"></blockquote>
+    <dl id="evidence-meta" class="route-metrics"></dl>
+  </dialog>
+
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Мобільна навігація">
+    <a href="/chat" data-route-link>Чат</a><a href="/documents" data-route-link>Документи</a>
+    <a href="/sources" data-route-link>Джерела</a><a href="/offline" data-route-link>Офлайн</a><a href="/profile" data-route-link>Профіль</a>
+  </nav>
 
   <script src="/config.js"></script>
   <script type="module" src="/app.js"></script>

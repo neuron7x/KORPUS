@@ -12,40 +12,34 @@ import {CONTRACT} from "./contract.js";
 // Generated from ROLE_PERMISSIONS in apps/api/src/korpus/application/policy.py. Used to
 // decide which console to *show*, never whether an action is allowed: the server
 // refuses regardless, and a UI that hides a button has not implemented access control.
-export function permissionsOf(identity) {
-  const granted = new Set();
-  for (const role of identity?.roles ?? []) {
-    for (const permission of CONTRACT.roles[role] ?? []) granted.add(permission);
+export function permissionsOf(bootstrap) {
+  const granted = new Set(bootstrap?.effective_permissions ?? []);
+  for (const permission of granted) {
+    if (permission === "*" || !CONTRACT.permissions.includes(permission)) {
+      throw new Error(`unknown server permission: ${permission}`);
+    }
   }
   return granted;
 }
 
-export function permits(identity, permission) {
-  // A permission the system does not name cannot be held. `account:manage` was checked by
-  // a route and absent from this table for a release: `admin` reached it through the
-  // wildcard and nothing failed, while a role granted it without the wildcard would have
-  // been allowed by the API and shown nothing here. Throwing makes the next such gap a
-  // failing test rather than a tab that quietly does not appear.
+export function permits(bootstrap, permission) {
   if (!CONTRACT.permissions.includes(permission)) {
     throw new Error(`unknown permission: ${permission}`);
   }
-  const granted = permissionsOf(identity);
-  return granted.has("*") || granted.has(permission);
+  return permissionsOf(bootstrap).has(permission);
 }
 
-export function visibleConsoles(identity) {
+export function visibleConsoles(bootstrap) {
   const visible = [];
-  if (permits(identity, "document:ingest")) visible.push("console-curator");
-  if (permits(identity, "document:review") || permits(identity, "document:approve")) {
+  if (permits(bootstrap, "document:ingest")) visible.push("console-curator");
+  if (permits(bootstrap, "document:review") || permits(bootstrap, "document:approve")) {
     visible.push("console-reviewer");
   }
-  if (permits(identity, "document:list")) visible.push("console-corpus");
-  if (permits(identity, "audit:verify") || permits(identity, "audit:read")) {
+  if (permits(bootstrap, "document:list")) visible.push("console-corpus");
+  if (permits(bootstrap, "audit:verify") || permits(bootstrap, "audit:read")) {
     visible.push("console-auditor");
   }
-  // Held by `admin` alone, through the wildcard. Switching a person off is not a
-  // curation decision and does not belong beside one.
-  if (permits(identity, "account:manage")) visible.push("console-accounts");
+  if (permits(bootstrap, "account:manage")) visible.push("console-accounts");
   return visible;
 }
 

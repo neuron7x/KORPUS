@@ -1,63 +1,90 @@
 {
-  "schema": "korpus.local-handoff-state.v1",
-  "base_release": "v5.0.0",
-  "base_commit": "5cec8eeaaf6a09f1faf5d7dfcea70da51c1a0e60",
+  "schema": "korpus.local-handoff-state.v3",
+  "canonical_release": "v0.9.7",
+  "handoff_release": "v0.9.7",
   "production_authorized": false,
-  "verification": {
-    "tests_collected": 1415,
-    "failures": 0,
-    "errors": 0,
-    "skipped": 1,
-    "line_coverage": 0.9175335120643432,
-    "branch_coverage": 0.7884948096885813,
-    "adversarial_passed": 30,
-    "adversarial_total": 30,
-    "citation_failures": 0,
-    "leakage_failures": 0,
-    "determinism_failures": 0,
-    "critical_mutants_killed": 302,
-    "critical_mutants_total": 302,
-    "scale_probe": {
-      "schema_version": 1,
+  "source_digest": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "regression": {
+    "collection_count": 2345,
+    "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
+    "full_current_freeze": {
       "status": "PASS",
-      "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
-      "procedure": {
-        "database": "SQLite FTS5",
-        "spans": 5000,
-        "iterations": 80,
-        "warmup_queries": 1,
-        "candidate_budget": 256,
-        "query": "ALPHA-OMEGA deterministic target"
-      },
-      "results": {
-        "ingest_seconds": 0.10527349800031516,
-        "query_latency_ms_p50": 2.549169,
-        "query_latency_ms_p95": 3.153503,
-        "query_latency_ms_max": 4.710001,
-        "candidate_count": 1,
-        "top1_recall": 1.0
-      },
-      "environment": {
-        "python": "3.13.5",
-        "platform": "Linux-6.18.35-x86_64-with-glibc2.41",
-        "processor": "UNKNOWN"
-      },
-      "limitations": [
-        "Synthetic local probe; not a production SLA.",
-        "PostgreSQL network, concurrency and disk behavior are not represented."
-      ],
-      "provenance": {
-        "schema_version": 1,
-        "source_digest": "c7652f78927d6e7f6d475beeb2b967e8ebb297c44dc60309f102d8235a83d18f",
-        "generator": "scripts/run_scale_probe.py",
-        "generated_at": "2026-08-11T17:08:37+00:00"
-      },
-      "baseline_release": "v6.17.0"
-    },
-    "last_full_source_release": "v6.18.3",
-    "current_release_verification": "V0_1_1_GITHUB_HARDENING_LOCAL_TRANSITION_VERIFIED",
-    "production_gate": "FAIL_CLOSED"
+      "shards": 64,
+      "tests": 2345,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "skip_reason": "KORPUS_POSTGRES_TEST_URL is not configured"
+    }
   },
+  "mutation": {
+    "catalogue": 349,
+    "full_current_freeze": {
+      "status": "PASS",
+      "valid_mutants": 349,
+      "killed": 349,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "mutation_score_over_catalogue": 1.0
+    }
+  },
+  "web": {
+    "lint": "PASS",
+    "build": "PASS",
+    "functional": {
+      "tests": 84,
+      "passed": 84,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "long_validate_gate": {
+      "catalogue": 62,
+      "completed": 62,
+      "passed": 62,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "full_node_suite": {
+      "tests": 146,
+      "passed": 146,
+      "failed": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "browser_e2e": {
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "status": "PASS",
+      "network_navigation_executed": false,
+      "oidc_session_executed": false
+    }
+  },
+  "ratchets": {
+    "modules": 456,
+    "module_violations": 0,
+    "module_unbudgeted": 0,
+    "workflows": 10,
+    "workflow_policy_findings": 0
+  },
+  "production_hard_predicates": {
+    "total": 14,
+    "software_ready": 14,
+    "externally_satisfied": 0,
+    "production_satisfied": 0
+  },
+  "external_evidence": {
+    "live_postgres_rls": "UNKNOWN",
+    "production_like_load_soak": "UNKNOWN",
+    "independent_tevv": "UNKNOWN",
+    "external_independent_redteam": "UNKNOWN",
+    "hosted_builder_provenance": "UNKNOWN",
+    "trusted_release_signing": "UNKNOWN",
+    "human_pec_production_judgments": 0,
+    "hosted_vulnerability_scanners": "UNKNOWN"
+  },
+  "canonical_identity": "apps/api/src/korpus/release.json + SOURCE_MANIFEST.json + PACKAGE_BUILD.json",
   "audit": {
     "findings_total": 99,
     "status_counts": {
@@ -72,15 +99,23 @@
       "P2": 10
     }
   },
-  "ssot_order": [
-    "Git commit/tag and repository manifest",
-    "Executable code, migrations, configuration and machine reports",
-    "Machine-readable audit closure and remaining-debt registers",
-    "Human-readable handoff acts and runbooks",
-    "Chat messages are context only and are not authoritative"
-  ],
-  "handoff_release": "v0.1.1",
-  "handoff_verification": "handoff/evidence/HANDOFF_VERIFICATION.json",
-  "canonical_release": "v0.1.1",
-  "canonical_identity": "apps/api/src/korpus/release.json + Git tag + SOURCE_MANIFEST.json"
+  "determinism": {
+    "status": "PASS",
+    "python_hash_seeds": [
+      0,
+      1,
+      42,
+      31337
+    ],
+    "tests_per_seed": 66,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "unique_outcome_digests": 1,
+    "unique_semantic_replay_digests": 1
+  },
+  "portable_evidence": {
+    "manifest": "handoff/evidence/current/MANIFEST.json",
+    "files": 224
+  }
 }

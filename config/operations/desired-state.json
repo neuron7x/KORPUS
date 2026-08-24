@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
-  "release": "v0.1.1",
-  "root_sha256": "9b250efe04d9cfedae71b53618f1305cc8526c70f69e039994c498e0c92974b2",
+  "release": "v0.9.7",
+  "root_sha256": "3cc09027a51a4eaf7ecaa7ac8fc78cea33cd5d10bf96c9ee256638ec672d4d1b",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -10,13 +10,13 @@
     },
     {
       "path": ".github/workflows/assurance.yml",
-      "sha256": "bb591cf5a2377c1bac04da4266ff7e8c8e5d3c4beea7935c9745584bc0d7ccc0",
-      "bytes": 2468
+      "sha256": "23d3cead359161f9759dd16b0400713b603c0073ed4dc061eb752390bd4bc30c",
+      "bytes": 2812
     },
     {
       "path": ".github/workflows/ci.yml",
-      "sha256": "017d4dbe17ca9fa13f7fc97360172ba3100fc3bfd2a9d1dc25903e3e47083831",
-      "bytes": 3854
+      "sha256": "b81402f27b5cea776a7883e18d15f98a55e75a801aea1aed713315a045233c74",
+      "bytes": 3953
     },
     {
       "path": ".github/workflows/dependency-review.yml",
@@ -24,14 +24,44 @@
       "bytes": 661
     },
     {
+      "path": ".github/workflows/external-assurance-ingest.yml",
+      "sha256": "04986f884dd26aa6baa278b114ac3e05db29c8a80fb8c43210959d878668f725",
+      "bytes": 2943
+    },
+    {
+      "path": ".github/workflows/gcp-drill.yml",
+      "sha256": "841d7bc701526d4ada64aeeb0dde1c56b13e737e54630b7c89ccdab2be2512ba",
+      "bytes": 1965
+    },
+    {
+      "path": ".github/workflows/gcp-foundation.yml",
+      "sha256": "74b02d6aa60455071c71f1424a75db7d4f99bc6da3d84ee4a4f9ed25c92c8a8d",
+      "bytes": 3695
+    },
+    {
+      "path": ".github/workflows/gcp-production.yml",
+      "sha256": "aed917b4076390399a33aa069c513fb5d217b7a35c05ff096ecf188f480d6fcf",
+      "bytes": 26233
+    },
+    {
+      "path": ".github/workflows/pec-production-evidence.yml",
+      "sha256": "f36949cefcc1f53ed6c12ce306298f74137d4ae310b1809500852f1012ed5e29",
+      "bytes": 4383
+    },
+    {
+      "path": ".github/workflows/production-load-evidence.yml",
+      "sha256": "0148643c714d1a02ee9742b71e23ff1c77796ca63d7b20088120045f5bd6c713",
+      "bytes": 3093
+    },
+    {
       "path": ".github/workflows/release.yml",
-      "sha256": "ba120233973397cfa909d92a372068dcd5dc21346dcbec6254075bbc3600702d",
-      "bytes": 2889
+      "sha256": "dc09925fb474cd5d83c5fce499367b778646d541e391a986bb8955c17bf04ce5",
+      "bytes": 3088
     },
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "78e3113ffb93c37628aa02ea2a26bec2927a65c5e969ddd7aa9c8883ff4b5435",
-      "bytes": 31113
+      "sha256": "27183c8d470864b976095518b3135a8947bad1f4a131ea0a055f96257f0d833d",
+      "bytes": 31139
     },
     {
       "path": "apps/api/Dockerfile",

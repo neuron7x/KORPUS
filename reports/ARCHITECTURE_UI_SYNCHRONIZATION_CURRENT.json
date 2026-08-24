@@ -1,0 +1,94 @@
+{
+  "schema": "korpus.architecture-ui-synchronization.v1",
+  "status": "PASS_WITH_CAVEATS",
+  "release": "v0.9.7",
+  "source_tree_sha256": "d5f7452e4d2a327c1047a9280e9087e090b887b0226c9f808179c89d847cbc24",
+  "collection_count": 2343,
+  "collection_digest": "5ad3387a00fa0b4631439c879d00775b3aeef4fcd59e58a0a69f3ca1fc21cdbe",
+  "architecture_contract": {
+    "server_bootstrap": "GET /v1/client/bootstrap",
+    "effective_permissions_source": "PolicyEngine -> server projection",
+    "runtime_capabilities": [
+      "browser_auth_enabled",
+      "subscription_required",
+      "offline_pack_enabled",
+      "ingestion_mode"
+    ],
+    "transport_source": "contracts/openapi.json + release identity",
+    "transport_public_paths": 31,
+    "transport_hidden_browser_routes": 1,
+    "release_header_source": "TRANSPORT_CONTRACT.release",
+    "route_policy": "auth + server effective permission + server capability"
+  },
+  "evidence": {
+    "backend_targeted": {
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "status": "PASS"
+    },
+    "web_functional": {
+      "tests": 84,
+      "passed": 84,
+      "failed": 0,
+      "status": "PASS"
+    },
+    "web_lint": {
+      "status": "PASS",
+      "consumer_gzip_bytes": 31977,
+      "ceiling_bytes": 32768
+    },
+    "web_build": {
+      "status": "PASS"
+    },
+    "browser_e2e": {
+      "tests": 5,
+      "passed": 5,
+      "failed": 0,
+      "status": "PASS",
+      "network_navigation_executed": false,
+      "oidc_session_executed": false
+    },
+    "validate_gate_long_campaign": {
+      "catalogue": 62,
+      "completed_before_execution_window": 13,
+      "passed": 13,
+      "failed": 0,
+      "status": "PARTIAL_UNKNOWN"
+    },
+    "module_ratchet": {
+      "modules": 455,
+      "violations": 0,
+      "unbudgeted": 0,
+      "status": "PASS"
+    },
+    "github_actions_policy": {
+      "workflows": 10,
+      "findings": 0,
+      "status": "PASS"
+    },
+    "openapi": {
+      "paths": 31,
+      "drift": "0"
+    },
+    "production_hard_predicates": {
+      "total": 14,
+      "software_ready": 14,
+      "externally_satisfied": 0,
+      "production_satisfied": 0
+    }
+  },
+  "not_claimed_current": [
+    "full regression on this exact source freeze",
+    "full mutation 349/349 on this exact source freeze",
+    "previous-source M301-M312 mutation receipts",
+    "real PostgreSQL/RLS execution",
+    "real hosted browser navigation/OIDC session",
+    "production-like load/soak",
+    "independent TEVV/red-team",
+    "exact external Python 3.12.13",
+    "hosted builder/signing/scanner evidence",
+    "HUMAN production PEC judgments"
+  ]
+}
