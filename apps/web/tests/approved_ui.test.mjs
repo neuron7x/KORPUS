@@ -24,6 +24,14 @@ test("quick actions only prefill the canonical query composer", async()=>{
 test("conversation navigation starts collapsed", async()=>{
   const app=await read("public/app.js"); assert.match(app,/conversationsPanel\.open = false/);
 });
+test("canonical and combat themes share one functional surface", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
+  assert.match(html,/id="theme-toggle"[^>]*aria-pressed="false"/);
+  assert.match(app,/document\.documentElement\.dataset\.theme/);
+  assert.match(app,/sessionStorage\.setItem\("korpus-theme", combat/);
+  assert.match(source,/html\[data-theme="combat"\]/);
+  assert.doesNotMatch(html,/combat[^>]+href=/i);
+});
 test("delivery CSS is generated from the readable approved source", async()=>{
   assert.equal(await read("public/styles.css"),minifyCss(await read("design/consumer.css")));
 });

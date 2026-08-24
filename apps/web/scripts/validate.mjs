@@ -16,7 +16,7 @@ const SCRIPTS = [
 ];
 const PAGES = ["public/index.html", "public/console.html"];
 const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/workspace.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
-  "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css"];
+  "public/combat.css", "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css", "design/combat.css"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));

@@ -15,5 +15,7 @@ export function minifyCss(source){
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const source=await readFile(asset("design/consumer.css"),"utf8");
   await writeFile(asset("public/styles.css"),minifyCss(source),"utf8");
+  const combat=await readFile(asset("design/combat.css"),"utf8");
+  await writeFile(asset("public/combat.css"),minifyCss(combat),"utf8");
   console.log("consumer styles generated");
 }

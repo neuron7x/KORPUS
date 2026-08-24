@@ -252,6 +252,14 @@ async function main() {
       assert(state.queryVisible, "authenticated query surface is not visible");
     }, results);
 
+    await runCase("combat_theme_is_reversible_and_accessible", async () => {
+      const combat = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed"), label:button.getAttribute("aria-label"), stylesheet:document.getElementById("combat-theme")?.getAttribute("href")}; })()`);
+      assert(combat.theme === "combat" && combat.pressed === "true", "combat theme state was not exposed accessibly");
+      assert(combat.label.includes("основну") && combat.stylesheet === "/combat.css", "combat theme did not load its optional stylesheet");
+      const core = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed")}; })()`);
+      assert(core.theme === "core" && core.pressed === "false", "canonical theme was not restored by the same control");
+    }, results);
+
     await runCase("evidence_render_escapes_xss", async () => {
       const probe = await cdp.evaluate(`(async()=>{ const api=await import(globalThis.__KORPUS_MODULE_URLS["api.js"]); try { const value=await api.call("/v1/answers",{method:"POST",body:{text:"probe",declaration:null}}); return {ok:true,status:value.status,text:value.text}; } catch(error) { return {ok:false,name:error?.name,message:error?.message,ctor:error?.constructor?.name,stack:error?.stack}; } })()`);
       assert(probe.ok, `direct API fixture probe failed: ${JSON.stringify(probe)}`);

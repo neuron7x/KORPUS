@@ -18,6 +18,32 @@ import {UNFINISHED, VERDICT} from "./reader_verdicts.js";
 
 const $ = id => document.getElementById(id);
 
+const themeToggle = $("theme-toggle");
+
+function applyTheme(combat) {
+  if (combat && !document.getElementById("combat-theme")) {
+    const link = document.createElement("link");
+    Object.assign(link, {id: "combat-theme", rel: "stylesheet", href: "/combat.css"});
+    document.head.append(link);
+  }
+  document.documentElement.dataset.theme = combat ? "combat" : "core";
+  themeToggle?.setAttribute("aria-pressed", String(combat));
+  themeToggle?.setAttribute("aria-label", combat ? "Увімкнути основну тему" : "Увімкнути бойову тему");
+  const label = themeToggle?.querySelector("[data-theme-label]");
+  if (label) label.textContent = combat ? "ОСНОВНА" : "БОЙОВА";
+}
+
+let combat = false;
+try {
+  combat = sessionStorage.getItem("korpus-theme") === "combat";
+} catch { /* Core remains canonical when browser storage is unavailable. */ }
+applyTheme(combat);
+themeToggle?.addEventListener("click", () => {
+  combat = !combat;
+  applyTheme(combat);
+  try { sessionStorage.setItem("korpus-theme", combat ? "combat" : "core"); } catch { /* Applies in-memory. */ }
+});
+
 const entry = $("entry");
 const product = $("product");
 const standing = $("standing");
