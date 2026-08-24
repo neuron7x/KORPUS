@@ -310,6 +310,13 @@ github-actions-validate:
 public-web-deploy:
 	$(PY) scripts/deploy_public_web.py
 
+.PHONY: public-watchdog-install public-health
+public-watchdog-install:
+	python3 scripts/install_public_watchdog.py
+
+public-health:
+	python3 scripts/public_health_controller.py --observe-only
+
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.

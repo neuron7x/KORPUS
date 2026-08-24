@@ -1,0 +1,11 @@
+[Unit]
+Description=Check and recover the KORPUS public deployment every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=korpus-public-watchdog.service
+
+[Install]
+WantedBy=timers.target
