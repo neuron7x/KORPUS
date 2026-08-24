@@ -136,6 +136,73 @@ resource "google_service_account_iam_member" "github_wif" {
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github[each.key].name}/attribute.repository_id/${var.github_repository_id}"
 }
 
+# GitLab is a separate trust plane. It receives distinct service accounts and
+# pools so revoking GitHub cannot affect GitLab (and vice versa), and so audit
+# logs identify the delivery system that performed each mutation.
+resource "google_service_account" "gitlab_deployer" {
+  for_each = local.deployment_planes
+
+  project      = var.project_id
+  account_id   = replace(each.value.account_id, "github", "gitlab")
+  display_name = replace(each.value.display_name, "GitHub", "GitLab")
+}
+
+resource "google_iam_workload_identity_pool" "gitlab" {
+  for_each = local.deployment_planes
+
+  project                   = var.project_id
+  workload_identity_pool_id = replace(each.value.pool_id, "github", "gitlab")
+  display_name              = "KORPUS ${each.key} GitLab CI"
+  description               = "Keyless ${each.key} plane for the canonical GitLab KORPUS project."
+}
+
+resource "google_iam_workload_identity_pool_provider" "gitlab" {
+  for_each = local.deployment_planes
+
+  project                            = var.project_id
+  workload_identity_pool_id          = google_iam_workload_identity_pool.gitlab[each.key].workload_identity_pool_id
+  workload_identity_pool_provider_id = "gitlab"
+  display_name                       = "GitLab CI ${each.key}"
+
+  attribute_mapping = {
+    "google.subject"                  = "assertion.sub"
+    "attribute.project_id"            = "assertion.project_id"
+    "attribute.namespace_id"          = "assertion.namespace_id"
+    "attribute.ref"                   = "assertion.ref"
+    "attribute.ref_type"              = "assertion.ref_type"
+    "attribute.ref_protected"         = "assertion.ref_protected"
+    "attribute.environment"           = "assertion.environment"
+    "attribute.environment_protected" = "assertion.environment_protected"
+    "attribute.deployment_tier"       = "assertion.deployment_tier"
+  }
+
+  # GitLab.com is a shared issuer. Admission is conjunctive: immutable project
+  # and namespace IDs, exact protected branch, and protected production
+  # environment/tier must all be present in the same job token.
+  attribute_condition = join(" && ", [
+    "assertion.project_id == '${var.gitlab_project_id}'",
+    "assertion.namespace_id == '${var.gitlab_namespace_id}'",
+    "assertion.ref_type == 'branch'",
+    "assertion.ref == '${var.gitlab_deploy_branch}'",
+    "assertion.ref_protected == 'true'",
+    "assertion.environment == 'production'",
+    "assertion.environment_protected == 'true'",
+    "assertion.deployment_tier == 'production'",
+  ])
+
+  oidc {
+    issuer_uri = "https://gitlab.com"
+  }
+}
+
+resource "google_service_account_iam_member" "gitlab_wif" {
+  for_each = local.deployment_planes
+
+  service_account_id = google_service_account.gitlab_deployer[each.key].name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.gitlab[each.key].name}/attribute.project_id/${var.gitlab_project_id}"
+}
+
 resource "google_project_iam_member" "foundation_deployer" {
   for_each = local.foundation_project_roles
 
@@ -150,4 +217,18 @@ resource "google_storage_bucket_iam_member" "runtime_state" {
   bucket = google_storage_bucket.terraform_state.name
   role   = "roles/storage.objectAdmin"
   member = "serviceAccount:${google_service_account.github_deployer["runtime"].email}"
+}
+
+resource "google_storage_bucket_iam_member" "gitlab_runtime_state" {
+  bucket = google_storage_bucket.terraform_state.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.gitlab_deployer["runtime"].email}"
+}
+
+resource "google_project_iam_member" "gitlab_foundation_deployer" {
+  for_each = local.foundation_project_roles
+
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.gitlab_deployer["foundation"].email}"
 }
