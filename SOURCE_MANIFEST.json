@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1193,
-  "root_sha256": "3292daca1624430b6ecd152aa23b518704a17082f9ed2ef318f3433d1ef5dc0a",
+  "file_count": 1194,
+  "root_sha256": "ace81e2f2fa3a56aad10706897d4346b31d77ab371734db3aa6a7628b5a1fa50",
   "files": [
     {
       "path": ".dockerignore",
@@ -3474,6 +3474,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_public_deployment_script.py",
+      "bytes": 448,
+      "sha256": "736a2b31bb47ee762c4d826c70a9b2f28b937dd1ddb62e37c5a31cbe03dc3f28",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_query_cache.py",
       "bytes": 3554,
       "sha256": "7183a7d2ffe4d20d2f4f8e18bc4b3560db51f627d7173d872e291d8d1adf20d4",
@@ -6931,8 +6937,8 @@
     },
     {
       "path": "scripts/serve_public.sh",
-      "bytes": 8991,
-      "sha256": "2c13707a683f9c5c90541abf4433d005c4b57b45d0e8d13bf7bfebc686ec3ab5",
+      "bytes": 9276,
+      "sha256": "cfd20d86b8c7e7f82ce67888c43a87438b591cc10ddd002605f6ca74e393d390",
       "mode": "0755"
     },
     {
