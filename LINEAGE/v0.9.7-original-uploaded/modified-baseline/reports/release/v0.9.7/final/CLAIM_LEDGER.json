@@ -1,0 +1,50 @@
+{
+  "schema": "korpus.claim-ledger.v2",
+  "generated_at": "2026-08-24T07:04:46.275207+00:00",
+  "release": "v0.9.7",
+  "source_tree_sha256": "21300455373197b9fac1c03660aa970b71ac62aadfde9c0e71449b811f1fbe97",
+  "claims": [
+    {
+      "id": "CLM-SOURCE-INTEGRITY",
+      "claim": "Current source manifest is the release source boundary.",
+      "status": "SUPPORTED",
+      "evidence": "SOURCE_MANIFEST.json"
+    },
+    {
+      "id": "CLM-REGRESSION",
+      "claim": "Current backend regression is source-bound and failure-free.",
+      "status": "STALE_EVIDENCE",
+      "evidence": "reports/release/v0.9.7/FULL_BACKEND_REPORT.json"
+    },
+    {
+      "id": "CLM-WEB",
+      "claim": "Current web lint/build/test surface is source-bound and failure-free.",
+      "status": "PENDING_EVIDENCE",
+      "evidence": "reports/release/v0.9.7/WEB_REGRESSION_REPORT.json"
+    },
+    {
+      "id": "CLM-MUTATION",
+      "claim": "Declared full mutation catalogue has no surviving valid mutants.",
+      "status": "SUPPORTED",
+      "evidence": "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
+    },
+    {
+      "id": "CLM-INFERENCE-SECURITY",
+      "claim": "Current inference-security suite passes its declared attack surface.",
+      "status": "STALE_EVIDENCE",
+      "evidence": "reports/release/v0.9.7/INFERENCE_SECURITY_GATE.json"
+    },
+    {
+      "id": "CLM-PRODUCTION-AUTH",
+      "claim": "System is production-authorized.",
+      "status": "REFUTED",
+      "evidence": "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
+    },
+    {
+      "id": "CLM-INDEPENDENT",
+      "claim": "System is independently validated.",
+      "status": "REFUTED",
+      "evidence": "reports/release/v0.9.7/final/BLOCKER_REGISTRY.json"
+    }
+  ]
+}

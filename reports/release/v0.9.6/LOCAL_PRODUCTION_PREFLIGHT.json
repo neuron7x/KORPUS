@@ -1,0 +1,115 @@
+{
+  "schema": "korpus.local-production-preflight.v2",
+  "status": "FAIL_LOCAL",
+  "release": "v0.9.6",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "local_checks": {
+    "backend": false,
+    "coverage": false,
+    "coverage_ratchet": false,
+    "determinism": false,
+    "stress": false,
+    "plasticity": false,
+    "dependency_locks": false,
+    "builtin_security": false,
+    "inference_security": false,
+    "standards_map": false,
+    "mutation_delta": false
+  },
+  "reports": {
+    "backend": {
+      "path": "reports/release/v0.9.6/FULL_BACKEND_REPORT.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "coverage": {
+      "path": "reports/release/v0.9.6/COVERAGE_REPORT.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "coverage_ratchet": {
+      "path": "reports/release/v0.9.6/COVERAGE_GAP_PLAN.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "determinism": {
+      "path": "reports/release/v0.9.6/DETERMINISM_GATE.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "stress": {
+      "path": "reports/release/v0.9.6/STRESS_GATE.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "plasticity": {
+      "path": "reports/release/v0.9.6/PLASTICITY_GATE.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "dependency_locks": {
+      "path": "reports/release/v0.9.6/DEPENDENCY_LOCK_REPORT.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "builtin_security": {
+      "path": "reports/release/v0.9.6/BUILTIN_SECURITY_GATE.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "inference_security": {
+      "path": "reports/release/v0.9.6/INFERENCE_SECURITY_GATE.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "standards_map": {
+      "path": "reports/release/v0.9.6/STANDARDS_CONTROL_MAP_VERIFICATION.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    },
+    "mutation_delta": {
+      "path": "reports/release/v0.9.6/MUTATION_DELTA_REPORT.json",
+      "status": null,
+      "release": null,
+      "source_tree_sha256": null,
+      "source_bound": false
+    }
+  },
+  "external_blockers": [
+    "CONTAINER_OS_SCANNER_UNAVAILABLE",
+    "EXACT_DEPLOYMENT_ENVIRONMENT_ATTESTATION_REQUIRED",
+    "EXTERNAL_INDEPENDENT_REDTEAM_REQUIRED",
+    "OSV_SCANNER_UNAVAILABLE",
+    "POSTGRES_CLIENT_UNAVAILABLE",
+    "PYTHON_VULNERABILITY_SCANNER_UNAVAILABLE",
+    "QUALITY_MYPY_UNAVAILABLE",
+    "QUALITY_RUFF_UNAVAILABLE",
+    "REAL_POSTGRES_CONTAINER_RUNTIME_UNAVAILABLE",
+    "REAL_POSTGRES_PRODUCTION_LIKE_EVIDENCE_REQUIRED",
+    "SECRET_SCANNER_UNAVAILABLE",
+    "TRUSTED_ARTIFACT_SIGNING_TOOL_UNAVAILABLE",
+    "TRUSTED_HOSTED_BUILDER_ATTESTATION_REQUIRED"
+  ],
+  "production_authorized": false,
+  "authorization_reason": "formal production authorization requires independent, production-like and trusted-builder evidence that cannot be self-attested by this local build"
+}

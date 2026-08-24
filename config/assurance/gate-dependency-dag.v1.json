@@ -1,0 +1,33 @@
+{
+  "schema": "korpus.gate-dependency-dag.v1",
+  "nodes": [
+    "source_identity", "repository_contract", "quality", "unit_integration", "coverage",
+    "mutation", "migration", "security_static", "supply_chain", "postgres_real_backend",
+    "reliability", "tevv", "external_redteam", "package_integrity", "release_candidate",
+    "production_authorization"
+  ],
+  "edges": [
+    ["source_identity", "repository_contract"],
+    ["source_identity", "quality"],
+    ["source_identity", "unit_integration"],
+    ["unit_integration", "coverage"],
+    ["unit_integration", "mutation"],
+    ["source_identity", "migration"],
+    ["source_identity", "security_static"],
+    ["source_identity", "supply_chain"],
+    ["migration", "postgres_real_backend"],
+    ["postgres_real_backend", "reliability"],
+    ["coverage", "tevv"],
+    ["mutation", "tevv"],
+    ["security_static", "external_redteam"],
+    ["repository_contract", "package_integrity"],
+    ["quality", "release_candidate"],
+    ["tevv", "release_candidate"],
+    ["package_integrity", "release_candidate"],
+    ["release_candidate", "production_authorization"],
+    ["external_redteam", "production_authorization"],
+    ["supply_chain", "production_authorization"],
+    ["reliability", "production_authorization"]
+  ],
+  "policy": "a downstream PASS is invalid when any required upstream evidence is absent, stale, or source-mismatched"
+}

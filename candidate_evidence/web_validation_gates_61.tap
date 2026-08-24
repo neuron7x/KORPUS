@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: the unmutated tree passes, so a failure below means the mutation
+ok 1 - the unmutated tree passes, so a failure below means the mutation
+  ---
+  duration_ms: 558.271234
+  type: 'test'
+  ...
+# Subtest: a syntax error in a module is caught
+ok 2 - a syntax error in a module is caught
+  ---
+  duration_ms: 313.410721
+  type: 'test'
+  ...
+# Subtest: a token written to persistent storage is caught
+ok 3 - a token written to persistent storage is caught
+  ---
+  duration_ms: 528.103443
+  type: 'test'
+  ...
+# Subtest: a bare localStorage reference is caught (sessionStorage is now allowed)
+ok 4 - a bare localStorage reference is caught (sessionStorage is now allowed)
+  ---
+  duration_ms: 1323.398422
+  type: 'test'
+  ...
+# Subtest: a console calling fetch behind api.js is caught
+ok 5 - a console calling fetch behind api.js is caught
+  ---
+  duration_ms: 685.378183
+  type: 'test'
+  ...
+# Subtest: a console reading cookies directly is caught
+ok 6 - a console reading cookies directly is caught
+  ---
+  duration_ms: 719.715658
+  type: 'test'
+  ...
+# Subtest: dropping the CSRF header from state-changing requests is caught
+ok 7 - dropping the CSRF header from state-changing requests is caught
+  ---
+  duration_ms: 756.401955
+  type: 'test'
+  ...
+# Subtest: a submit button that ships enabled is caught
+ok 8 - a submit button that ships enabled is caught
+  ---
+  duration_ms: 808.502631
+  type: 'test'
+  ...
+# Subtest: removing a preview button is caught
+ok 9 - removing a preview button is caught
+  ---
+  duration_ms: 872.928819
+  type: 'test'
+  ...
+# Subtest: weakening the preview gate to a boolean is caught
+ok 10 - weakening the preview gate to a boolean is caught
+  ---
+  duration_ms: 835.464845
+  type: 'test'
+  ...
+# Subtest: swallowing the refusal reason is caught
+ok 11 - swallowing the refusal reason is caught
+  ---
+  duration_ms: 686.576224
+  type: 'test'
+  ...
+# Subtest: a hand-written length constraint in the console is caught
+ok 12 - a hand-written length constraint in the console is caught
+  ---
+  duration_ms: 661.023579
+  type: 'test'
+  ...
+# Subtest: a hand-copied role table is caught
+ok 13 - a hand-copied role table is caught
+  ---
+  duration_ms: 650.588331
+  type: 'test'
+  ...
+# Subtest: a hand-edited contract.js is caught
+ok 14 - a hand-edited contract.js is caught
+  ---
+  duration_ms: 690.429921
+  type: 'test'
+  ...
+# Subtest: a form control losing its label is caught
+ok 15 - a form control losing its label is caught
+  ---
+  duration_ms: 581.868156
+  type: 'test'
+  ...
+# Subtest: a second h1 on the console page is caught
+ok 16 - a second h1 on the console page is caught
+  ---
+  duration_ms: 643.768901
+  type: 'test'
+  ...
+# Subtest: a result panel that cannot announce itself is caught
+ok 17 - a result panel that cannot announce itself is caught
+  ---
+  duration_ms: 523.692996
+  type: 'test'
+  ...
+# Subtest: removing the statement that hiding is not access control is caught
+ok 18 - removing the statement that hiding is not access control is caught
+  ---
+  duration_ms: 532.053309
+  type: 'test'
+  ...
+# Subtest: removing the uncalibrated-score disclaimer is caught
+ok 19 - removing the uncalibrated-score disclaimer is caught
+  ---
+  duration_ms: 539.330352
+  type: 'test'
+  ...
+# Subtest: an empty asset is caught
+ok 20 - an empty asset is caught
+  ---
+  duration_ms: 46.784644
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops stripping the prefix nginx strips is caught
+ok 21 - a dev proxy that stops stripping the prefix nginx strips is caught
+  ---
+  duration_ms: 535.823853
+  type: 'test'
+  ...
+# Subtest: a dev proxy whose prefix drifts from nginx is caught
+ok 22 - a dev proxy whose prefix drifts from nginx is caught
+  ---
+  duration_ms: 528.756788
+  type: 'test'
+  ...
+# Subtest: dropping nginx's prefix strip is caught
+ok 23 - dropping nginx's prefix strip is caught
+  ---
+  duration_ms: 532.654989
+  type: 'test'
+  ...
+# Subtest: a dev server that stops saying it is not the production edge is caught
+ok 24 - a dev server that stops saying it is not the production edge is caught
+  ---
+  duration_ms: 583.803139
+  type: 'test'
+  ...
+# Subtest: a syntax error in the dev server is caught
+ok 25 - a syntax error in the dev server is caught
+  ---
+  duration_ms: 456.842666
+  type: 'test'
+  ...
+# Subtest: a tab without its panel is caught
+ok 26 - a tab without its panel is caught
+  ---
+  duration_ms: 538.075587
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops stripping hop-by-hop headers is caught
+ok 27 - a dev proxy that stops stripping hop-by-hop headers is caught
+  ---
+  duration_ms: 529.319043
+  type: 'test'
+  ...
+# Subtest: a dev proxy that stops binding loopback is caught
+ok 28 - a dev proxy that stops binding loopback is caught
+  ---
+  duration_ms: 544.880766
+  type: 'test'
+  ...
+# Subtest: merging the verified and declared identities is caught
+ok 29 - merging the verified and declared identities is caught
+  ---
+  duration_ms: 527.754278
+  type: 'test'
+  ...
+# Subtest: styling a declared attribute like a verified one is caught
+ok 30 - styling a declared attribute like a verified one is caught
+  ---
+  duration_ms: 530.388297
+  type: 'test'
+  ...
+# Subtest: dropping the declaration from the query is caught
+ok 31 - dropping the declaration from the query is caught
+  ---
+  duration_ms: 550.91279
+  type: 'test'
+  ...
+# Subtest: the negative control above still edits something
+ok 32 - the negative control above still edits something
+  ---
+  duration_ms: 1.334195
+  type: 'test'
+  ...
+# Subtest: renaming the question variable is not caught
+ok 33 - renaming the question variable is not caught
+  ---
+  duration_ms: 531.473831
+  type: 'test'
+  ...
+# Subtest: a consumer shell that blows the transfer budget is caught
+ok 34 - a consumer shell that blows the transfer budget is caught
+  ---
+  duration_ms: 60.621748
+  type: 'test'
+  ...
+# Subtest: turning plain Enter into a newline-only composer is caught
+ok 35 - turning plain Enter into a newline-only composer is caught
+  ---
+  duration_ms: 539.214846
+  type: 'test'
+  ...
+# Subtest: an error summary that does not take focus is caught
+ok 36 - an error summary that does not take focus is caught
+  ---
+  duration_ms: 523.108476
+  type: 'test'
+  ...
+# Subtest: a hidden section that a display rule can override is caught
+ok 37 - a hidden section that a display rule can override is caught
+  ---
+  duration_ms: 529.113791
+  type: 'test'
+  ...
+# Subtest: a location that sets a header without repeating the CSP is caught
+ok 38 - a location that sets a header without repeating the CSP is caught
+  ---
+  duration_ms: 533.668184
+  type: 'test'
+  ...
+# Subtest: a colour token below AA contrast is caught
+ok 39 - a colour token below AA contrast is caught
+  ---
+  duration_ms: 553.964223
+  type: 'test'
+  ...
+# Subtest: introducing a second palette root is caught
+ok 40 - introducing a second palette root is caught
+  ---
+  duration_ms: 543.026867
+  type: 'test'
+  ...
+# Subtest: design token drift is caught before CSS can silently diverge
+ok 41 - design token drift is caught before CSS can silently diverge
+  ---
+  duration_ms: 71.676245
+  type: 'test'
+  ...
+# Subtest: mobile conversation history no longer ships forced open
+ok 42 - mobile conversation history no longer ships forced open
+  ---
+  duration_ms: 514.310341
+  type: 'test'
+  ...
+# Subtest: removing the sentence that history is not evidence is caught
+ok 43 - removing the sentence that history is not evidence is caught
+  ---
+  duration_ms: 567.083196
+  type: 'test'
+  ...
+# Subtest: rendering a stored turn like a live one is caught
+ok 44 - rendering a stored turn like a live one is caught
+  ---
+  duration_ms: 538.726269
+  type: 'test'
+  ...
+# Subtest: dropping the stored-turn styling is caught even when the class stays
+ok 45 - dropping the stored-turn styling is caught even when the class stays
+  ---
+  duration_ms: 555.570451
+  type: 'test'
+  ...
+# Subtest: rendering a payment refusal as an evidence refusal is caught
+ok 46 - rendering a payment refusal as an evidence refusal is caught
+  ---
+  duration_ms: 548.119106
+  type: 'test'
+  ...
+# Subtest: a browser that names an account is caught
+ok 47 - a browser that names an account is caught
+  ---
+  duration_ms: 554.734532
+  type: 'test'
+  ...
+# Subtest: a fetch call added to the conversation module is caught
+ok 48 - a fetch call added to the conversation module is caught
+  ---
+  duration_ms: 801.512166
+  type: 'test'
+  ...
+# Subtest: a stored refusal rendered without its verdict is caught
+ok 49 - a stored refusal rendered without its verdict is caught
+  ---
+  duration_ms: 641.661492
+  type: 'test'
+  ...
+# Subtest: a conversation list truncated in silence is caught
+ok 50 - a conversation list truncated in silence is caught
+  ---
+  duration_ms: 667.851336
+  type: 'test'
+  ...
+# Subtest: a transcript that hides its newest turns in silence is caught
+ok 51 - a transcript that hides its newest turns in silence is caught
+  ---
+  duration_ms: 691.014129
+  type: 'test'
+  ...
+# Subtest: removing the show-more control is caught
+ok 52 - removing the show-more control is caught
+  ---
+  duration_ms: 672.194113
+  type: 'test'
+  ...
+# Subtest: an accounts console without its preview gate is caught
+ok 53 - an accounts console without its preview gate is caught
+  ---
+  duration_ms: 624.957481
+  type: 'test'
+  ...
+# Subtest: removing the accounts console surface is caught
+ok 54 - removing the accounts console surface is caught
+  ---
+  duration_ms: 530.178923
+  type: 'test'
+  ...
+# Subtest: a module imported by app but missing from the SW cache is caught
+ok 55 - a module imported by app but missing from the SW cache is caught
+  ---
+  duration_ms: 533.451695
+  type: 'test'
+  ...
+# Subtest: removing the request timeout is caught
+ok 56 - removing the request timeout is caught
+  ---
+  duration_ms: 522.363045
+  type: 'test'
+  ...
+# Subtest: rendering a lost link as a generic error is caught
+ok 57 - rendering a lost link as a generic error is caught
+  ---
+  duration_ms: 548.92609
+  type: 'test'
+  ...
+# Subtest: localStorage is still forbidden even though sessionStorage is now allowed
+ok 58 - localStorage is still forbidden even though sessionStorage is now allowed
+  ---
+  duration_ms: 522.654141
+  type: 'test'
+  ...
+# Subtest: a restored declaration trusted without re-validation is caught
+ok 59 - a restored declaration trusted without re-validation is caught
+  ---
+  duration_ms: 565.882194
+  type: 'test'
+  ...
+# Subtest: removing the LiqPay checkout form origin from CSP is caught
+ok 60 - removing the LiqPay checkout form origin from CSP is caught
+  ---
+  duration_ms: 542.278707
+  type: 'test'
+  ...
+# Subtest: removing server-derived inference status is caught
+ok 61 - removing server-derived inference status is caught
+  ---
+  duration_ms: 545.89555
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 34454.351508

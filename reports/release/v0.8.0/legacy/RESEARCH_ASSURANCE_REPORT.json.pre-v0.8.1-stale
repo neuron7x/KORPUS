@@ -1,0 +1,146 @@
+{
+  "schema": "korpus.research-assurance-report.v3",
+  "status": "PASS",
+  "scope": "ENGINEERING_ASSURANCE_NOT_PRODUCTION_AUTHORIZATION",
+  "release": "v0.8.0",
+  "evidence_source_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "generated_at": "2026-08-16T20:05:58.742013+00:00",
+  "engineering_readiness_percent": 95.24,
+  "target_percent": 94.7,
+  "target_met": true,
+  "dimensions": {
+    "product_core": {
+      "passed": 13,
+      "total": 13,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 12.61
+    },
+    "architecture_invariants": {
+      "passed": 15,
+      "total": 15,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 14.55
+    },
+    "security_internal": {
+      "passed": 17,
+      "total": 17,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 16.49
+    },
+    "tests_tevv": {
+      "passed": 17,
+      "total": 17,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 16.49
+    },
+    "release_package_integrity": {
+      "passed": 15,
+      "total": 15,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 14.55
+    },
+    "reliability_internal": {
+      "passed": 10,
+      "total": 10,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 9.7
+    },
+    "ui_ux": {
+      "passed": 5,
+      "total": 5,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 4.85
+    },
+    "maintainability_reproducibility": {
+      "passed": 6,
+      "total": 8,
+      "raw_percent": 75.0,
+      "evidence_class": "EXECUTED",
+      "calibrated_percent": 75.0,
+      "weighted_points": 6.0
+    }
+  },
+  "raw_evidence": {
+    "targeted_junit": {
+      "tests": 153,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "carry_forward": {
+      "baseline_manifest_identity": true,
+      "baseline_backend_pass": true,
+      "baseline_backend_identity": true,
+      "baseline_mutation_pass": true,
+      "baseline_mutation_identity": true,
+      "no_unexpected_added_or_modified_paths": true,
+      "no_unexpected_removed_paths": true,
+      "no_forbidden_runtime_changes": true,
+      "targeted_junit_present": true,
+      "targeted_tests_minimum": true,
+      "targeted_tests_clean": true,
+      "target_release": true
+    },
+    "baseline_backend": {
+      "collected": 1675,
+      "passed": 1673,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "coverage": {
+      "statement_coverage_percent": 96.26388104648974,
+      "branch_coverage_percent": 91.91011235955057,
+      "missing_branches": 216
+    },
+    "mutation": {
+      "mutants": 302,
+      "valid_mutants": 302,
+      "killed": 302
+    },
+    "synthetic_null_controls": 15,
+    "package_checks": {
+      "distribution_manifest": true,
+      "package_verifier": true,
+      "reproducible_archive": true,
+      "package_root_contract": true,
+      "file_mode_normalization": true,
+      "duplicate_path_rejection": true,
+      "zip_traversal_rejection": true,
+      "checksum": true
+    }
+  },
+  "external_noncompensable": [
+    "external_independent_redteam",
+    "live_vulnerability_scanners",
+    "live_postgres_rls",
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "production_like_load",
+    "trusted_load_attestation",
+    "trusted_recovery_attestation",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "exact_python_3_12_13_environment"
+  ],
+  "production_authorized": false,
+  "limitations": [
+    "This PASS is engineering-scope only. External trust/runtime predicates remain conjunctive and fail closed."
+  ],
+  "source_tree_sha256": "f9a5b6c6f06206454bf8b46dc9b60b38f9066277dbdfce2fd3e413205cefbff7"
+}

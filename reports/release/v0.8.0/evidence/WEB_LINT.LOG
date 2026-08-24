@@ -1,0 +1,10 @@
+
+> @korpus/web@0.8.0 lint
+> node scripts/validate.mjs
+
+consumer transfer budget passed: 32321 gzip bytes
+design system passed: 39 tokens / 13 component contracts
+syntax check passed for 26 modules
+web validation passed
+contrast validated for 3 surfaces
+accessibility validation passed for 2 pages

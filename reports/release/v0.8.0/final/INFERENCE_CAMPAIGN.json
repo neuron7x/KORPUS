@@ -1,0 +1,66 @@
+{
+  "schema": "korpus.inference-campaign.v1",
+  "release": "v0.8.0",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "budget": {
+    "max_cycles": 8,
+    "max_evidence_items": 512,
+    "max_conflicts": 64
+  },
+  "consumed": {
+    "cycles": 7,
+    "scored_criterion_observations": 100,
+    "unresolved_material_conflicts": 0
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "delta": "baseline inventory + preregistered 94.7 profile",
+      "new_evidence": true,
+      "decision_changed": true
+    },
+    {
+      "cycle": 2,
+      "delta": "conflict-preserving fusion + hard inference budget",
+      "new_evidence": true,
+      "decision_changed": true
+    },
+    {
+      "cycle": 3,
+      "delta": "pre-extraction ZIP traversal/duplicate/casefold/symlink rejection + destruction tests",
+      "new_evidence": true,
+      "decision_changed": true
+    },
+    {
+      "cycle": 4,
+      "delta": "stale-current source/release binding and explicit historical migration/load carry validators",
+      "new_evidence": true,
+      "decision_changed": true
+    },
+    {
+      "cycle": 5,
+      "delta": "fresh final-source eval/model/stress/red-team/reliability/chaos campaign",
+      "new_evidence": true,
+      "decision_changed": true
+    },
+    {
+      "cycle": 6,
+      "delta": "deterministic package verification and weighted readiness evaluation",
+      "new_evidence": true,
+      "decision_changed": true,
+      "decision": "TARGET_MET"
+    },
+    {
+      "cycle": 7,
+      "delta": "recompute same evidence without mutation",
+      "new_evidence": false,
+      "decision_changed": false,
+      "decision": "TARGET_MET",
+      "stop_reason": "FIXPOINT"
+    }
+  ],
+  "final_decision_fingerprint_sha256": "399c346cb8f2ecc407b69b4893f2d18a1b7e28f790fa99a38b14b237801fe99c",
+  "final_evidence_fingerprint_sha256": "5d1634e7aea4e8f678dead5568a07b4ffa519cb57cbb7c3d79eee1ba7db9b91b",
+  "stop_reason": "FIXPOINT_DECISION_UNCHANGED_AND_NO_NEW_EVIDENCE",
+  "budget_exhausted": false
+}

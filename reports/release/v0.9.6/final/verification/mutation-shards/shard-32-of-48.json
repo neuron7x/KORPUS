@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 32,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M31_SQL_RESCISSION_SHIFT",
+      "file": "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "eld = 'rescinded_at', asked_on = datetime.date(2026, 6, 15)\n\n    @pytest.mark.parametrize(\n        (\"field\", \"asked_on\"),\n        [\n            (\"effective_until\", AFTER),\n            (\"effective_from\", BEFORE),\n            (\"rescinded_at\", DAY),\n        ],\n    )\n    def test_the_candidate_query_alone_excludes_an_invalid_version(\n        client, admin_identity, field: str, asked_on: date\n    ) -> None:\n        \"\"\"The SQL half must be right on its own, not merely covered by the domain half.\n    \n        `_materialize_current` re-checks validity in Python, so a SQL filter that leaks an\n        expired candidate produces the same answer and no behavioural test can see it. The\n        leak is still real: it spends the candidate budget on rows that cannot be cited and\n        puts the whole boundary on a single point of failure. This asserts the SQL layer\n        separately, at the one date where the boundary is decided.\n        \"\"\"\n        kwargs = {} if field == \"rescinded_at\" else {field: DAY}\n        result = ingest_text(client, text=BODY, **kwargs)\n        version_id = result[\"version\"][\"id\"]\n        approve(client, version_id)\n        repository = client.app.state.repository\n        if field == \"rescinded_at\":\n            with privileged_connection(client) as connection:\n                connection.execute(\n                    update(versions)\n                    .where(versions.c.id == version_id)\n                    .values(rescinded_at=datetime(DAY.year, DAY.month, DAY.day, 9, 30, tzinfo=UTC))\n                )\n    \n        with privileged_connection(client) as connection:\n            candidates = repository._candidate_span_ids(\n                admin_identity, frozenset({\"public\"}), asked_on, MARKER, 20, connection\n            )\n    \n>       assert candidates == [], (\n            f\"the candidate query returned a version that {field} had already excluded \"\n            f\"on {asked_on.isoformat()}\"\n        )\nE       AssertionError: the candidate query returned a version that rescinded_at had already excluded on 2026-06-15\nE       assert ['c010bb61-58...e4849cc7f689'] == []\nE         \nE         Left contains one more item: 'c010bb61-58fc-41de-8bbf-e4849cc7f689'\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     'c010bb61-58fc-41de-8bbf-e4849cc7f689',\nE         + ]\n\napps/api/tests/test_validity_boundaries.py:244: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_validity_boundaries.py::test_the_candidate_query_alone_excludes_an_invalid_version[rescinded_at-asked_on2] - AssertionError: the candidate query returned a version that rescinded_at had already excluded on 2026-06-15\nassert ['c010bb61-58...e4849cc7f689'] == []\n  \n  Left contains one more item: 'c010bb61-58fc-41de-8bbf-e4849cc7f689'\n  \n  Full diff:\n  - []\n  + [\n  +     'c010bb61-58fc-41de-8bbf-e4849cc7f689',\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M75_PROSE_COUNTS_AS_CLOSURE",
+      "file": "apps/api/src/korpus/application/evidence_registry.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_registry.py::test_closure_claimed_on_prose_alone_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_closure_claimed_on_prose_alone_is_rejected ________________\n\n    def test_closure_claimed_on_prose_alone_is_rejected() -> None:\n        problems = verify_closure_registry(\n            ROOT,\n            {\"XYZ-001\": [\"docs/governance/RISK_REGISTER.md\"]},\n            {\"XYZ-001\": \"CLOSED_LOCAL\"},\n        )\n>       assert problems and \"no test or CI job\" in problems[0]\nE       assert ([])\n\napps/api/tests/test_evidence_registry.py:163: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_registry.py::test_closure_claimed_on_prose_alone_is_rejected - assert ([])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M152_REPHRASED_PERMISSION_QUESTION_SLIPS_THROUGH",
+      "file": "apps/api/src/korpus/application/risk_rules.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_risk_rules.py::test_a_rephrased_operational_question_is_still_operational"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_a_rephrased_operational_question_is_still_operational[\\u0427\\u0438 \\u043c\\u043e\\u0436\\u0443 \\u044f \\u0432\\u0438\\u0457\\u0445\\u0430\\u0442\\u0438 \\u0431\\u0435\\u0437 \\u043f\\u0438\\u0441\\u044c\\u043c\\u043e\\u0432\\u043e\\u0433\\u043e \\u043f\\u0456\\u0434\\u0442\\u0432\\u0435\\u0440\\u0434\\u0436\\u0435\\u043d\\u043d\\u044f?] _\n\nquery = 'Чи можу я виїхати без письмового підтвердження?'\n\n    @pytest.mark.parametrize(\n        \"query\",\n        [\n            \"Чи можу я виїхати без письмового підтвердження?\",\n            \"Що робити, якщо командир відсутній?\",\n            \"Am I allowed to release this to a partner unit?\",\n            \"Чи маю я доповідати про це негайно?\",\n        ],\n    )\n    def test_a_rephrased_operational_question_is_still_operational(query: str) -> None:\n        \"\"\"The RAG-009 bypass, stated as the cases that used to get through.\n    \n        None of these name an order, a procedure or an obligation. All of them ask whether\n        the reader may act, which is what makes a question operational.\n        \"\"\"\n        risk, _ = classify(query)\n    \n>       assert risk is QueryRisk.OPERATIONAL\nE       AssertionError: assert <QueryRisk.UNCLASSIFIED: 'unclassified'> is <QueryRisk.OPERATIONAL: 'operational'>\nE        +  where <QueryRisk.OPERATIONAL: 'operational'> = QueryRisk.OPERATIONAL\n\napps/api/tests/test_risk_rules.py:88: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_risk_rules.py::test_a_rephrased_operational_question_is_still_operational[\\u0427\\u0438 \\u043c\\u043e\\u0436\\u0443 \\u044f \\u0432\\u0438\\u0457\\u0445\\u0430\\u0442\\u0438 \\u0431\\u0435\\u0437 \\u043f\\u0438\\u0441\\u044c\\u043c\\u043e\\u0432\\u043e\\u0433\\u043e \\u043f\\u0456\\u0434\\u0442\\u0432\\u0435\\u0440\\u0434\\u0436\\u0435\\u043d\\u043d\\u044f?] - AssertionError: assert <QueryRisk.UNCLASSIFIED: 'unclassified'> is <QueryRisk.OPERATIONAL: 'operational'>\n +  where <QueryRisk.OPERATIONAL: 'operational'> = QueryRisk.OPERATIONAL\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M200_BACKUP_SNAPSHOT_IS_A_FILE_COPY",
+      "file": "scripts/backup_sqlite.sh",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_corpus_backup_drill.py::test_a_backup_restores_to_a_corpus_that_can_be_cited"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": " objects = tmp_path / \"objects\"\n        objects.mkdir()\n        (objects / \"sha256-abc\").write_bytes(b\"%PDF-1.4\\n\")\n    \n        backup = _run(\n            BACKUP,\n            [],\n            {\n                **environment,\n                \"KORPUS_BACKUP_SQLITE_PATH\": str(database),\n                \"KORPUS_BACKUP_OBJECT_ROOT\": str(objects),\n            },\n        )\n>       restored = _run(RESTORE, [backup, str(tmp_path / \"restored\")], environment)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_corpus_backup_drill.py:103: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nscript = PosixPath('/tmp/korpus-m200_backup_snapshot_is_a_file_copy-ph1yrbm5/repo/scripts/restore_sqlite.sh')\narguments = ['/tmp/pytest-of-root/pytest-905/test_a_backup_restores_to_a_co0/backups/korpus-20260822T163926.057720Z.tar.enc', '/tmp/pytest-of-root/pytest-905/test_a_backup_restores_to_a_co0/restored']\nenvironment = {'KORPUS_BACKUP_DIR': '/tmp/pytest-of-root/pytest-905/test_a_backup_restores_to_a_co0/backups', 'KORPUS_BACKUP_ENCRYPT...test-of-root/pytest-905/test_a_backup_restores_to_a_co0/key', 'KORPUS_BACKUP_KEY_ID': 'drill', 'PATH': '/usr/bin:/bin'}\n\n    def _run(script: Path, arguments: list[str], environment: dict[str, str]) -> str:\n        completed = subprocess.run(\n            [\"bash\", str(script), *arguments],\n            capture_output=True,\n            text=True,\n            check=False,\n            env=environment,\n            cwd=ROOT,\n            timeout=300,\n        )\n>       assert completed.returncode == 0, completed.stderr[-2000:]\nE       AssertionError: warning: could not bring the restored schema to head\nE         Traceback (most recent call last):\nE           File \"<stdin>\", line 6, in <module>\nE         sqlite3.DatabaseError: database disk image is malformed\nE         \nE       assert 1 == 0\nE        +  where 1 = CompletedProcess(args=['bash', '/tmp/korpus-m200_backup_snapshot_is_a_file_copy-ph1yrbm5/repo/scripts/restore_sqlite.s... recent call last):\\n  File \"<stdin>\", line 6, in <module>\\nsqlite3.DatabaseError: database disk image is malformed\\n').returncode\n\napps/api/tests/test_corpus_backup_drill.py:81: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_corpus_backup_drill.py::test_a_backup_restores_to_a_corpus_that_can_be_cited - AssertionError: warning: could not bring the restored schema to head\n  Traceback (most recent call last):\n    File \"<stdin>\", line 6, in <module>\n  sqlite3.DatabaseError: database disk image is malformed\n  \nassert 1 == 0\n +  where 1 = CompletedProcess(args=['bash', '/tmp/korpus-m200_backup_snapshot_is_a_file_copy-ph1yrbm5/repo/scripts/restore_sqlite.s... recent call last):\\n  File \"<stdin>\", line 6, in <module>\\nsqlite3.DatabaseError: database disk image is malformed\\n').returncode\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M147_ANSWER_BOUND_REMOVED",
+      "file": "apps/api/src/korpus/api/answering.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tenancy_api.py::test_the_conversation_route_sheds_load_like_the_stateless_one"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "======== FAILURES ===================================\n________ test_the_conversation_route_sheds_load_like_the_stateless_one _________\n\ntenant_client = <starlette.testclient.TestClient object at 0x7f01f4810590>\n\n    def test_the_conversation_route_sheds_load_like_the_stateless_one(\n        tenant_client: Any,\n    ) -> None:\n        \"\"\"Found by re-audit: this route reached retrieval with no concurrency bound at all.\n    \n        `/v1/answers` acquired the admission controller — a global limit and a per-subject\n        share inside it — and the conversation route, which the interface made the default,\n        did not. Nothing failed and the metric kept reporting; the control was simply on the\n        other door.\n    \n        Asserted by holding the only slot and watching both routes refuse identically.\n        \"\"\"\n        from korpus.application.resilience import AdmissionController\n    \n        conversation_id = tenant_client.post(\"/v1/conversations\", json={}).json()[\"id\"]\n        tenant_client.app.state.admission = AdmissionController(1, 0.0)\n    \n        with tenant_client.app.state.admission.acquire(\"someone-else\"):\n            stateless = tenant_client.post(\"/v1/answers\", json={\"text\": \"перше питання\"})\n            inside = tenant_client.post(\n                f\"/v1/conversations/{conversation_id}/ask\", json={\"text\": \"друге питання\"}\n            )\n    \n>       assert stateless.status_code == 503, stateless.text\nE       AssertionError: {\"id\":\"cb4d527c-da1a-42b2-9ebf-5630522b9f97\",\"status\":\"insufficient_evidence\",\"text\":\"У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.\",\"opening\":\"\",\"claims\":[],\"citations\":[],\"retrieval_score\":0.0,\"retrieval_score_kind\":\"ranking_utility\",\"evidence_coverage\":0.0,\"query_coverage\":0.0,\"decision_reason\":\"retrieval_gate_failed\",\"calibration_id\":\"development-unvalidated\",\"limitations\":[\"Генерацію зупинено fail-closed.\"],\"corpus_release\":\"e3b0c44298fc1c14\",\"created_at\":\"2026-08-22T16:39:30.151965Z\"}\nE       assert 200 == 503\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_tenancy_api.py:374: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tenancy_api.py::test_the_conversation_route_sheds_load_like_the_stateless_one - AssertionError: {\"id\":\"cb4d527c-da1a-42b2-9ebf-5630522b9f97\",\"status\":\"insufficient_evidence\",\"text\":\"У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.\",\"opening\":\"\",\"claims\":[],\"citations\":[],\"retrieval_score\":0.0,\"retrieval_score_kind\":\"ranking_utility\",\"evidence_coverage\":0.0,\"query_coverage\":0.0,\"decision_reason\":\"retrieval_gate_failed\",\"calibration_id\":\"development-unvalidated\",\"limitations\":[\"Генерацію зупинено fail-closed.\"],\"corpus_release\":\"e3b0c44298fc1c14\",\"created_at\":\"2026-08-22T16:39:30.151965Z\"}\nassert 200 == 503\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M236_FORGED_PRODUCTION_REPORT_BYPASSES_RECOMPUTATION",
+      "file": "apps/api/src/korpus/application/production_report_verification.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_report_verification.py::test_forged_pass_report_cannot_override_failing_current_gate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_forged_pass_report_cannot_override_failing_current_gate _________\n\n    def test_forged_pass_report_cannot_override_failing_current_gate() -> None:\n        source, release, profile = \"b\" * 64, \"v9.9.9\", _profile()\n        sound = _sound_gates(source, release); report, _ = _report(profile, sound, source, release)\n        current = deepcopy(sound); current[\"postgres_security\"][\"status\"] = \"FAIL\"\n        current_hashes = {name: hashlib.sha256(json.dumps(gate, sort_keys=True).encode()).hexdigest() for name, gate in current.items()}\n        checks = _verify(report, profile, current, source, release, current_hashes)\n>       assert checks[\"recomputed_pass\"] is False\nE       assert True is False\n\napps/api/tests/test_production_report_verification.py:89: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_report_verification.py::test_forged_pass_report_cannot_override_failing_current_gate - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M284_PEC_PROMOTION_NONPASS_RECEIPT_IGNORED",
+      "file": "apps/api/src/korpus/application/pec_promotion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_protocol_gates.py::test_promotion_refuses_any_nonpass_required_receipt"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_promotion_refuses_any_nonpass_required_receipt ______________\n\n    def test_promotion_refuses_any_nonpass_required_receipt():\n        statuses = {name: \"PASS\" for name in REQUIRED_RECEIPTS}\n        statuses[\"metamorphic\"] = \"UNKNOWN\"\n        errors = promotion_errors(_admitted_profile(), statuses)\n>       assert any(error.startswith(\"nonpass_receipts:\") for error in errors)\nE       assert False\nE        +  where False = any(<generator object test_promotion_refuses_any_nonpass_required_receipt.<locals>.<genexpr> at 0x7f9cf86a0860>)\n\napps/api/tests/test_pec_protocol_gates.py:136: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_protocol_gates.py::test_promotion_refuses_any_nonpass_required_receipt - assert False\n +  where False = any(<generator object test_promotion_refuses_any_nonpass_required_receipt.<locals>.<genexpr> at 0x7f9cf86a0860>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:39:32+00:00"
+  }
+}

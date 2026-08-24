@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 29,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M28_RESCISSION_BOUNDARY_SHIFT",
+      "file": "apps/api/src/korpus/domain/temporal.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_a_rescinded_version_stops_governing_on_the_day_of_rescission _______\n\n    def test_a_rescinded_version_stops_governing_on_the_day_of_rescission() -> None:\n        \"\"\"rescinded_at is exclusive, and it is an act rather than a term.\"\"\"\n        version = _version(rescinded_at=datetime(2026, 6, 15, 9, 30, tzinfo=UTC))\n    \n        assert version.is_valid_on(BEFORE) is True\n>       assert version.is_valid_on(DAY) is False, (\n            \"rescission takes effect on its own day; a term expires at the end of its last\"\n        )\nE       AssertionError: rescission takes effect on its own day; a term expires at the end of its last\nE       assert True is False\nE        +  where True = is_valid_on(datetime.date(2026, 6, 15))\nE        +    where is_valid_on = DocumentVersionRecord(id=UUID('1c724f8d-aab6-41b1-9658-71c456910610'), document_id=UUID('3e452097-fe25-4ae1-926f-37ded...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 38, 41, 593263, tzinfo=datetime.timezone.utc)).is_valid_on\n\napps/api/tests/test_validity_boundaries.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission - AssertionError: rescission takes effect on its own day; a term expires at the end of its last\nassert True is False\n +  where True = is_valid_on(datetime.date(2026, 6, 15))\n +    where is_valid_on = DocumentVersionRecord(id=UUID('1c724f8d-aab6-41b1-9658-71c456910610'), document_id=UUID('3e452097-fe25-4ae1-926f-37ded...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 38, 41, 593263, tzinfo=datetime.timezone.utc)).is_valid_on\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M72_UNSUPPORTED_KUSTOMIZE_FIELDS_IGNORED",
+      "file": "apps/api/src/korpus/application/deployment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_overlays.py::test_an_unsupported_kustomization_field_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_an_unsupported_kustomization_field_is_refused ______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-894/test_an_unsupported_kustomizat0')\n\n    def test_an_unsupported_kustomization_field_is_refused(tmp_path: Path) -> None:\n        \"\"\"A field the renderer ignores is a field the gate cannot see.\"\"\"\n    \n        (tmp_path / \"kustomization.yaml\").write_text(\n            yaml.safe_dump(\n                {\n                    \"apiVersion\": \"kustomize.config.k8s.io/v1beta1\",\n                    \"kind\": \"Kustomization\",\n                    \"resources\": [],\n                    \"images\": [{\"name\": \"api\", \"newTag\": \"latest\"}],\n                }\n            ),\n            encoding=\"utf-8\",\n        )\n>       with pytest.raises(RenderError, match=\"unsupported kustomization fields\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.deployment.RenderError'>\n\napps/api/tests/test_deployment_overlays.py:104: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_overlays.py::test_an_unsupported_kustomization_field_is_refused - Failed: DID NOT RAISE <class 'korpus.application.deployment.RenderError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M155_RESUME_SKIPS_A_GAP",
+      "file": "apps/api/src/korpus/application/embedding_migration.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_migration.py::test_resume_returns_the_first_gap_not_the_next_index"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_resume_returns_the_first_gap_not_the_next_index _____________\n\n    def test_resume_returns_the_first_gap_not_the_next_index() -> None:\n        \"\"\"Completing 0, 1, 3 and resuming at 4 leaves batch 2 unembedded, and the coverage\n        check then refuses the switch — correctly, after the whole corpus was processed.\"\"\"\n        plan = _plan(batch_size=300)\n    \n>       assert resume_from([0, 1, 3], plan).index == 2\nE       AssertionError: assert 0 == 2\nE        +  where 0 = MigrationBatch(index=0, first_span=0, span_count=300).index\nE        +    where MigrationBatch(index=0, first_span=0, span_count=300) = resume_from([0, 1, 3], MigrationPlan(from_model='embed-v1', to_model='embed-v2', dimensions=768, spans_total=1200, batches=(MigrationBatch(in...nBatch(index=2, first_span=600, span_count=300), MigrationBatch(index=3, first_span=900, span_count=300)), problems=()))\n\napps/api/tests/test_embedding_migration.py:160: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_migration.py::test_resume_returns_the_first_gap_not_the_next_index - AssertionError: assert 0 == 2\n +  where 0 = MigrationBatch(index=0, first_span=0, span_count=300).index\n +    where MigrationBatch(index=0, first_span=0, span_count=300) = resume_from([0, 1, 3], MigrationPlan(from_model='embed-v1', to_model='embed-v2', dimensions=768, spans_total=1200, batches=(MigrationBatch(in...nBatch(index=2, first_span=600, span_count=300), MigrationBatch(index=3, first_span=900, span_count=300)), problems=()))\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M197_PLANNER_REPLACES_THE_QUESTION",
+      "file": "apps/api/src/korpus/application/query_plan.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_query_planner_boundary.py::test_the_question_asked_is_always_the_first_search"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_the_question_asked_is_always_the_first_search ______________\n\n    def test_the_question_asked_is_always_the_first_search() -> None:\n        plan = build_plan(\"як діяти при нальоті\", _Planner([\"щілина укриття\"]))\n    \n>       assert plan.searches[0] == \"як діяти при нальоті\"\nE       AssertionError: assert 'щілина укриття' == 'як діяти при нальоті'\nE         \nE         - як діяти при нальоті\nE         + щілина укриття\n\napps/api/tests/test_query_planner_boundary.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_query_planner_boundary.py::test_the_question_asked_is_always_the_first_search - AssertionError: assert 'щілина укриття' == 'як діяти при нальоті'\n  \n  - як діяти при нальоті\n  + щілина укриття\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M144_CONVERSATION_LIST_TRUNCATES_IN_SILENCE",
+      "file": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_conversations.py::test_a_truncated_list_says_it_was_truncated"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_a_truncated_list_says_it_was_truncated __________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-895/test_a_truncated_list_says_it_0')\n\n    def test_a_truncated_list_says_it_was_truncated(tmp_path: Path) -> None:\n        \"\"\"The defect this replaces: the list stopped at fifty and said nothing.\n    \n        A reader with a hundred conversations saw fifty, which reads as an account that has\n        fifty. Over-fetching one row answers \"is there more\" without a second scan of every\n        row the account owns.\n        \"\"\"\n        tenancy = build_tenancy(tmp_path)\n        try:\n            owner, _stranger = _two_accounts(tenancy)\n            service = tenancy.conversation_service\n            for index in range(7):\n                service.create(owner, f\"розмова {index}\")\n    \n            page = service.list_conversations(owner, limit=3)\n            assert len(page.items) == 3\n>           assert page.has_more is True\nE           AssertionError: assert False is True\nE            +  where False = Page(items=[ConversationRecord(id=UUID('da257ff1-a373-426d-b9f9-b947da8cc87f'), account_id=UUID('706711fa-cc5f-4f50-aa...(2026, 8, 22, 16, 38, 44, 709646, tzinfo=datetime.timezone.utc), archived_at=None)], has_more=False, offset=0, limit=3).has_more\n\napps/api/tests/test_conversations.py:298: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_conversations.py::test_a_truncated_list_says_it_was_truncated - AssertionError: assert False is True\n +  where False = Page(items=[ConversationRecord(id=UUID('da257ff1-a373-426d-b9f9-b947da8cc87f'), account_id=UUID('706711fa-cc5f-4f50-aa...(2026, 8, 22, 16, 38, 44, 709646, tzinfo=datetime.timezone.utc), archived_at=None)], has_more=False, offset=0, limit=3).has_more\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M233_TAMPERED_SUPPLY_CHAIN_ARTIFACT_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_is_bound_to_artifact_bytes"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_supply_chain_manifest_is_bound_to_artifact_bytes _____________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-896/test_supply_chain_manifest_is_0')\n\n    def test_supply_chain_manifest_is_bound_to_artifact_bytes(tmp_path: Path) -> None:\n        artifact = tmp_path / \"source-sbom.cdx.json\"\n        artifact.write_bytes(b\"alpha\")\n        manifest = {\"schema\": \"korpus.supply-chain-evidence.v1\", \"source_tree_sha256\": \"s\", \"release\": \"v\",\n                    \"artifacts\": {artifact.name: {\"sha256\": __import__(\"hashlib\").sha256(b\"alpha\").hexdigest(), \"bytes\": 5}}}\n        original = {artifact.name: (artifact.read_bytes(), artifact.stat().st_size)}\n        assert artifact_manifest_bound(manifest, original, source=\"s\", release=\"v\") is True\n        artifact.write_bytes(b\"omega\")  # same size: only the digest can detect this mutation\n        tampered = {artifact.name: (artifact.read_bytes(), artifact.stat().st_size)}\n>       assert artifact_manifest_bound(manifest, tampered, source=\"s\", release=\"v\") is False\nE       AssertionError: assert True is False\nE        +  where True = artifact_manifest_bound({'artifacts': {'source-sbom.cdx.json': {'bytes': 5, 'sha256': '8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'source-sbom.cdx.json': (b'omega', 5)}, source='s', release='v')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_is_bound_to_artifact_bytes - AssertionError: assert True is False\n +  where True = artifact_manifest_bound({'artifacts': {'source-sbom.cdx.json': {'bytes': 5, 'sha256': '8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 's'}, {'source-sbom.cdx.json': (b'omega', 5)}, source='s', release='v')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M281_PEC_ABLATION_QUALITY_REGRESSION_IGNORED",
+      "file": "apps/api/src/korpus/application/pec_ablation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_ablation_fails_before_efficiency_when_quality_regresses _________\n\n    def test_ablation_fails_before_efficiency_when_quality_regresses() -> None:\n        baseline = {f\"q{index}\": _row(latency=10.0) for index in range(30)}\n        candidate = {f\"q{index}\": _row(latency=5.0, quality=index != 0) for index in range(30)}\n        result = compare_ablation(baseline, candidate, minimum_pairs=20)\n>       assert result[\"status\"] == \"FAIL\"\nE       AssertionError: assert 'PASS' == 'FAIL'\nE         \nE         - FAIL\nE         + PASS\n\napps/api/tests/test_pec_protocol_gates.py:52: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses - AssertionError: assert 'PASS' == 'FAIL'\n  \n  - FAIL\n  + PASS\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:38:46+00:00"
+  }
+}

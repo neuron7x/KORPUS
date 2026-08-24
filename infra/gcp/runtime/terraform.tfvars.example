@@ -1,0 +1,26 @@
+project_id              = "REPLACE_GCP_PROJECT"
+state_bucket            = "REPLACE_GCP_PROJECT-korpus-tfstate"
+foundation_state_prefix = "korpus/foundation"
+domain                  = "korpus.example.com"
+
+api_image    = "europe-central2-docker.pkg.dev/REPLACE_GCP_PROJECT/korpus/api@sha256:REPLACE_64_HEX"
+web_image    = "europe-central2-docker.pkg.dev/REPLACE_GCP_PROJECT/korpus/web@sha256:REPLACE_64_HEX"
+clamav_image = "REPLACE_REGISTRY/clamav@sha256:REPLACE_64_HEX"
+
+oidc_issuer                 = "https://REPLACE_IDP/"
+oidc_jwks_url                = "https://REPLACE_IDP/.well-known/jwks.json"
+oidc_authorization_endpoint  = "https://REPLACE_IDP/authorize"
+oidc_token_endpoint          = "https://REPLACE_IDP/token"
+oidc_end_session_endpoint    = "https://REPLACE_IDP/logout"
+oidc_client_id               = "REPLACE_CLIENT_ID"
+oidc_audience                = "REPLACE_API_AUDIENCE"
+
+governance_release_id             = "REPLACE_64_HEX"
+entitlement_profile_sha256       = "REPLACE_64_HEX"
+source_trust_profile_sha256      = "REPLACE_64_HEX"
+reviewer_registry_sha256         = "REPLACE_64_HEX"
+corpus_governance_profile_sha256 = "REPLACE_64_HEX"
+calibration_profile_sha256       = "REPLACE_64_HEX"
+
+# Pre-create and verify delivery for at least one Cloud Monitoring notification channel.
+notification_channel_ids = ["projects/PROJECT_ID/notificationChannels/1234567890123456789"]

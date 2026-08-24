@@ -1,0 +1,181 @@
+{
+  "schema": "korpus.mutation-partial-evidence.v1",
+  "release": "v0.9.5",
+  "catalogue_mutants": 330,
+  "shards_required": 18,
+  "shards_completed": 16,
+  "completed_shards": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "missing_shards": [
+    16,
+    17
+  ],
+  "mutants_killed": 294,
+  "survived": 0,
+  "invalid": 0,
+  "errors": 0,
+  "gate": "UNKNOWN",
+  "reason": "execution window ended before remaining mutation shards completed",
+  "records": [
+    {
+      "shard_index": 0,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "d220cc79f2010f71ef800436afa9efd909ff06f4814f679e7bf70add5677943a"
+    },
+    {
+      "shard_index": 1,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "79d7612044513298dce614c90ebf64afca1caceb100d4d4695d619fe409ae2db"
+    },
+    {
+      "shard_index": 2,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "038fcfd7abd38166cfd4b908ad1ab83fe6fa15e73e9052de0184298df926a564"
+    },
+    {
+      "shard_index": 3,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "75adf55a87df24669525cf197a53524204eac3c264343229cfea9879cfde7950"
+    },
+    {
+      "shard_index": 4,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "fcd4750d86f449db8a27a376cb33203afaa9846009b92cbedf04c48d2d84d280"
+    },
+    {
+      "shard_index": 5,
+      "shard_count": 18,
+      "killed": 19,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "36698748a6cc51cb502615961995bad9d2477023c9bd12d296a78be1119e9678"
+    },
+    {
+      "shard_index": 6,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "50e38792bfd06a61f6c19d889257e634bcd91ccf1a542093e293da4c6b0a391e"
+    },
+    {
+      "shard_index": 7,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "0fac40772f5e20a7dd6531bbb32eca72c1ecb11a47d09a31e905c8d5583f7fca"
+    },
+    {
+      "shard_index": 8,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "2ef601dcaa2e11f833d4279025bf6bdc0f96b6c9953034e42ea7b92716c1f4c1"
+    },
+    {
+      "shard_index": 9,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "b3aba2b9ec2fce3c994bdd5ecc4974b114b9af8ae11154e3e83d13e635052974"
+    },
+    {
+      "shard_index": 10,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "ff5e9e8e1fdcaddf084ef758d3af05dd5a130e9dc051db60423a13d318efbec1"
+    },
+    {
+      "shard_index": 11,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "656b46a8ee9ca893c888aedb9930250c1f8053ded4ca1863a13078243637c767"
+    },
+    {
+      "shard_index": 12,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "e3b9ca74018f8591b1a36d397a79cb8db001f4bebf8b2b77712bd44fdad06158"
+    },
+    {
+      "shard_index": 13,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "99136f6563f0d51b77980aaa41ed2c1b508d90e73b817e4792962d711f1efdef"
+    },
+    {
+      "shard_index": 14,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "3d359326ca63631b8bb10573e7dd7388ba99ddc852c21310eb11d4277fb7dee7"
+    },
+    {
+      "shard_index": 15,
+      "shard_count": 18,
+      "killed": 18,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "sha256": "24e58286a32232d7280868ca9d62bf262fc222a694162c15076d840e2114bd39"
+    }
+  ]
+}

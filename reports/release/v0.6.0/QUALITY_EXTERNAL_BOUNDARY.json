@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.quality-toolchain-boundary.v1",
+  "status": "NOT_EXECUTED_REQUIRED_TOOLS_UNAVAILABLE",
+  "release": "v0.6.0",
+  "source_tree_sha256": "12fe9049b7170670160d8b1741b4840caa29fc717e6c594a4fe4fca7be782b98",
+  "required_tools": {
+    "ruff": null,
+    "mypy": null
+  },
+  "supplementary_security_tools": {
+    "pip-audit": null,
+    "osv-scanner": null,
+    "gitleaks": null,
+    "trivy": null,
+    "docker": null,
+    "psql": null,
+    "cosign": null
+  },
+  "builtin_static_security": "PASS",
+  "substitution_for_ruff_mypy": false,
+  "reason": "Exact required quality/security binaries are not installed in the bounded execution environment; absence is not converted into PASS."
+}

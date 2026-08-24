@@ -1,0 +1,14 @@
+{
+  "schema": "korpus.inference-budget.v1",
+  "profile_id": "canonical-assurance-inference-budget",
+  "max_cycles": 8,
+  "max_evidence_items": 512,
+  "max_conflicts": 64,
+  "stop_rule": "stop at epistemic fixpoint when neither decision fingerprint nor evidence set changes; always stop when any hard budget is exhausted",
+  "merge_rule": "merge only same-claim same-source-release compatible observations; preserve contradictions in an explicit conflict ledger and fail closed",
+  "non_goals": [
+    "Repeated reasoning is not evidence.",
+    "A stable decision without new evidence cannot raise readiness.",
+    "A weighted readiness score cannot authorize production."
+  ]
+}

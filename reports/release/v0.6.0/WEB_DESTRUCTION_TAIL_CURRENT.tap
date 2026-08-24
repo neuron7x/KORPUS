@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: removing the request timeout is caught
+ok 1 - removing the request timeout is caught
+  ---
+  duration_ms: 598.567375
+  type: 'test'
+  ...
+# Subtest: rendering a lost link as a generic error is caught
+ok 2 - rendering a lost link as a generic error is caught
+  ---
+  duration_ms: 607.445058
+  type: 'test'
+  ...
+# Subtest: localStorage is still forbidden even though sessionStorage is now allowed
+ok 3 - localStorage is still forbidden even though sessionStorage is now allowed
+  ---
+  duration_ms: 597.286544
+  type: 'test'
+  ...
+# Subtest: a restored declaration trusted without re-validation is caught
+ok 4 - a restored declaration trusted without re-validation is caught
+  ---
+  duration_ms: 568.938958
+  type: 'test'
+  ...
+# Subtest: removing the LiqPay checkout form origin from CSP is caught
+ok 5 - removing the LiqPay checkout form origin from CSP is caught
+  ---
+  duration_ms: 557.144562
+  type: 'test'
+  ...
+# Subtest: removing server-derived inference status is caught
+ok 6 - removing server-derived inference status is caught
+  ---
+  duration_ms: 552.092244
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3531.894809

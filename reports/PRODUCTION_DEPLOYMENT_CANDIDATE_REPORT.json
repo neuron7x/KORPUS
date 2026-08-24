@@ -1,0 +1,66 @@
+{
+  "schema": "korpus.production-deployment-candidate-report.v1",
+  "release": "v0.9.0",
+  "artifact": "KORPUS_v0.9.0_PRODUCTION_DEPLOYMENT_CANDIDATE_CANONICAL_2026-08-18.zip",
+  "source_manifest_root_sha256": "802a818ad4445b999f74c976b7d2980536ba4d146150ea212719bccc0a44f5cc",
+  "source_file_count": 942,
+  "local_evidence": {
+    "gcp_production_contract": {
+      "passed": 47,
+      "total": 47,
+      "verdict": "PASS"
+    },
+    "gcp_slo_contract": {
+      "passed": 11,
+      "total": 11,
+      "status": "PASS"
+    },
+    "gcp_cloud_regression_tests": {
+      "passed": 74,
+      "total": 74,
+      "status": "PASS"
+    },
+    "infrastructure_requirements": {
+      "passed": 135,
+      "total": 135,
+      "status": "PASS"
+    },
+    "github_workflows": {
+      "workflows": 7,
+      "findings": 0,
+      "status": "PASS"
+    },
+    "module_budget": {
+      "passed": 305,
+      "total": 305,
+      "status": "PASS"
+    },
+    "source_manifest": {
+      "files": 942,
+      "status": "PASS"
+    }
+  },
+  "production_predicates": {
+    "total": 12,
+    "software_ready": 12,
+    "externally_satisfied": 0,
+    "production_satisfied": 0
+  },
+  "external_blockers": [
+    "external_independent_redteam",
+    "live_vulnerability_scanners",
+    "live_postgres_rls",
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "production_like_load",
+    "trusted_load_attestation",
+    "trusted_recovery_attestation",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "exact_python_3_12_13_environment"
+  ],
+  "production_authorized": false,
+  "status": "PASS_WITH_EXTERNAL_GATES",
+  "interpretation": "The artifact is deployable by contract but is not self-authorized for live production. External runtime, assessor, scanner, environment, builder, and signing evidence must be obtained in the target environment."
+}

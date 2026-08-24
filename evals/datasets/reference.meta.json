@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-08-07T06:54:21.823735+00:00",
+  "database": "/home/neuro7/korpus-canon/var/korpus-ml.db",
+  "seed": 20260807,
+  "cases": 151,
+  "by_kind": {
+    "retrieval": 135,
+    "refusal": 12,
+    "adversarial": 4
+  },
+  "strata": 54,
+  "content_digest": "fdc0b66b1bccf816a63476a2525f46fe7adec71dcaf426cb612c8938b09c2063",
+  "judges": [
+    "retrieval: a sentence exists verbatim in one approved version; if the system answers, it must cite that version",
+    "citation integrity: every quote appears character for character in the span it names",
+    "refusal: every term verified absent from the full-text index at freeze time",
+    "adversarial: injection, a date before anything took force, and authority"
+  ],
+  "cannot_judge": [
+    "Whether an answer is good. Whether the passage found is the passage a soldier needed, whether four citations beat one, whether the wording misleads. That needs two independent annotators and an adjudicator — RAG-003 — and calling this a gold standard would be the overclaim that finding exists to prevent."
+  ]
+}

@@ -1,0 +1,4 @@
+# SHA-256 migration integrity digests, not credentials.
+config/production/migration-policy.json:generic-api-key:10
+config/production/migration-policy.json:generic-api-key:13
+config/production/migration-policy.json:generic-api-key:15

@@ -1,0 +1,117 @@
+{
+  "schema_version": 3,
+  "shard_index": 0,
+  "shard_count": 48,
+  "mutants": 8,
+  "valid_mutants": 8,
+  "killed": 8,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M01_CLEARANCE_INVERSION",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_more_edges.py::test_access_tier_parse_and_document_decision"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_access_tier_parse_and_document_decision(public_identity: Identity):\n        assert AccessTier.parse(\"restricted\") is AccessTier.RESTRICTED\n        document = DocumentRecord(\n            canonical_title=\"Restricted document\",\n            corpus_id=\"public\",\n            issuer=\"Issuer\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.RESTRICTED,\n            classification=\"restricted\",\n        )\n        from korpus.application.policy import PolicyEngine\n    \n        policy = PolicyEngine()\n        decision = policy.can_access_document(public_identity, document)\n        assert decision.allowed is False\n    \n        tier_only = DocumentRecord(\n            canonical_title=\"Tier-gated public-classification document\",\n            corpus_id=\"public\",\n            issuer=\"Issuer\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.RESTRICTED,\n            classification=\"public\",\n        )\n>       assert policy.can_access_document(public_identity, tier_only).allowed is False\nE       AssertionError: assert True is False\nE        +  where True = PolicyDecision(allowed=True, reason='authorized').allowed\nE        +    where PolicyDecision(allowed=True, reason='authorized') = can_access_document(Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset()), DocumentRecord(id=UUID('c62dd153-35d5-4974-a77b-d8378149b754'), canonical_title='Tier-gated public-classification docu... compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 27, 12, 720127, tzinfo=datetime.timezone.utc)))\nE        +      where can_access_document = <korpus.application.policy.PolicyEngine object at 0x7f08a04582f0>.can_access_document\n\napps/api/tests/test_more_edges.py:53: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_more_edges.py::test_access_tier_parse_and_document_decision - AssertionError: assert True is False\n +  where True = PolicyDecision(allowed=True, reason='authorized').allowed\n +    where PolicyDecision(allowed=True, reason='authorized') = can_access_document(Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset()), DocumentRecord(id=UUID('c62dd153-35d5-4974-a77b-d8378149b754'), canonical_title='Tier-gated public-classification docu... compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 27, 12, 720127, tzinfo=datetime.timezone.utc)))\n +      where can_access_document = <korpus.application.policy.PolicyEngine object at 0x7f08a04582f0>.can_access_document\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M47_DENIED_CORPORA_UNTYPED_AGAIN",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_governance_boundaries.py::test_an_unheld_corpus_denies_the_request_and_names_which"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_an_unheld_corpus_denies_the_request_and_names_which ___________\n\nclient = <starlette.testclient.TestClient object at 0x7f9ac9fd4440>\nauthenticated_identity = Identity(subject='authenticated-test', roles=frozenset({'user'}), clearance=<AccessTier.AUTHENTICATED: 1>, corpora=frozenset({'public', 'training'}), compartments=frozenset())\n\n    def test_an_unheld_corpus_denies_the_request_and_names_which(\n        client: TestClient, authenticated_identity: Identity\n    ) -> None:\n        set_identity(client, authenticated_identity)\n    \n        refusal = client.post(\n            \"/v1/answers\",\n            json={\"text\": \"будь-яке питання\", \"corpus_ids\": [\"training\", \"restricted-demo\"]},\n        )\n    \n        assert refusal.status_code == 403\n        detail = refusal.json()[\"detail\"]\n>       assert detail[\"reason\"] == \"requested_corpora_not_held\"\n               ^^^^^^^^^^^^^^^^\nE       TypeError: string indices must be integers, not 'str'\n\napps/api/tests/test_governance_boundaries.py:151: TypeError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_governance_boundaries.py::test_an_unheld_corpus_denies_the_request_and_names_which - TypeError: string indices must be integers, not 'str'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M91_PUBLICATION_DATE_NOT_A_LOWER_BOUND",
+      "file": "apps/api/src/korpus/domain/models.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_currency_lower_bound.py::test_publication_date_serves_as_the_lower_bound_when_effective_from_is_absent"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_publication_date_serves_as_the_lower_bound_when_effective_from_is_absent _\n\nclient = <starlette.testclient.TestClient object at 0x7f6de23c82f0>\n\n    def test_publication_date_serves_as_the_lower_bound_when_effective_from_is_absent(\n        client: TestClient,\n    ) -> None:\n        \"\"\"Many orders state a date of issue and no separate commencement date.\"\"\"\n        result = ingest_text(client, text=BODY, publication_date=date(2026, 6, 1))\n>       approve(client, result[\"version\"][\"id\"])\n\napps/api/tests/test_currency_lower_bound.py:53: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \napps/api/tests/helpers.py:108: in approve\n    result = transition(client, version_id, target)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nclient = <starlette.testclient.TestClient object at 0x7f6de23c82f0>\nversion_id = '701d9580-881d-4889-ba86-bf4e5fa3b17a', target = 'approved'\n\n    def transition(client: TestClient, version_id: str, target: str) -> dict[str, object]:\n        payload: dict[str, object] = {\n            \"target\": target,\n            \"note\": f\"independent verification completed for transition {target}\",\n        }\n        if target == \"metadata_reviewed\":\n            payload[\"acknowledge_near_duplicate\"] = True\n            payload[\"acknowledge_extraction_quality\"] = True\n        response = client.post(\n            f\"/v1/document-versions/{version_id}/review\",\n            json=payload,\n        )\n>       assert response.status_code == 200, response.text\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: {\"detail\":\"an approved version must state effective_from or publication_date: without one it would govern every past date\"}\n\napps/api/tests/helpers.py:101: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_currency_lower_bound.py::test_publication_date_serves_as_the_lower_bound_when_effective_from_is_absent - AssertionError: {\"detail\":\"an approved version must state effective_from or publication_date: without one it would govern every past date\"}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M137_ASSESSMENT_MAY_BE_SELF_SIGNED",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_independent_assessment_signed_by_the_engineering_owner_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_an_independent_assessment_signed_by_the_engineering_owner_is_refused ___\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-767/test_an_independent_assessment0')\n\n    def test_an_independent_assessment_signed_by_the_engineering_owner_is_refused(\n        tmp_path: Path,\n    ) -> None:\n        \"\"\"§2.5 exists because the internal tests were written by the process that wrote\n        the code. An assessment signed by that same process clears nothing — it restates\n        the position the ground was raised against.\"\"\"\n        forged = _cleared(_register(), \"2.5\", _attested(tmp_path, signed_by=\"інженерія\"))\n    \n        verdict = evaluate_admission(ROOT, forged)\n    \n        assert verdict.production_authorized is False\n>       assert any(\"independent\" in problem for problem in verdict.problems), verdict.problems\nE       AssertionError: ('2.5: the attestation carries no signature; a name in signed_by is a string this repository chose',)\nE       assert False\nE        +  where False = any(<generator object test_an_independent_assessment_signed_by_the_engineering_owner_is_refused.<locals>.<genexpr> at 0x7fa3bb79dd80>)\n\napps/api/tests/test_admission_cannot_be_self_granted.py:207: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_independent_assessment_signed_by_the_engineering_owner_is_refused - AssertionError: ('2.5: the attestation carries no signature; a name in signed_by is a string this repository chose',)\nassert False\n +  where False = any(<generator object test_an_independent_assessment_signed_by_the_engineering_owner_is_refused.<locals>.<genexpr> at 0x7fa3bb79dd80>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M180_LEASE_OWNERSHIP_UNCHECKED_ON_COMPLETE",
+      "file": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_durable_ingestion_jobs.py::test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "fail` and `complete`. A single mutant covered both lines, so the `fail` test\n        answered for the pair (found 2026-08-06 by checking every mutant target for\n        uniqueness in its file). `complete` is the dangerous one: a worker that does not\n        hold the job marking it succeeded records a version as ingested from bytes nobody\n        parsed, and the corpus then answers from spans that were never extracted.\n        \"\"\"\n        from korpus.domain.models import (\n            AuthorityClass,\n            DocumentRecord,\n            DocumentVersionRecord,\n            IngestResult,\n        )\n    \n        app = create_app(_settings(tmp_path))\n        app.dependency_overrides[get_identity] = _admin\n        with TestClient(app) as client:\n            response = client.post(\n                \"/v1/ingestion-jobs/documents\",\n                data={\n                    \"document_json\": json.dumps({\n                        \"canonical_title\": \"Completion ownership\",\n                        \"corpus_id\": \"public\",\n                        \"issuer\": \"Authority\",\n                    }),\n                    \"version_json\": json.dumps({\"revision\": \"1\"}),\n                },\n                files={\"file\": (\"document.txt\", b\"valid content\", \"text/plain\")},\n            )\n            assert response.status_code == 202\n            queue = client.app.state.ingestion_jobs\n            held = queue.claim(\"worker-a\", lease_seconds=30)\n            assert held is not None\n    \n            document = DocumentRecord(\n                canonical_title=\"Completion ownership\",\n                corpus_id=\"public\",\n                issuer=\"Authority\",\n                jurisdiction=\"UA\",\n                document_type=\"reference\",\n                access_tier=AccessTier.PUBLIC,\n                classification=\"public\",\n            )\n            version = DocumentVersionRecord(\n                document_id=document.id,\n                revision=\"1\",\n                source_hash=\"a\" * 64,\n                object_key=\"objects/x\",\n                mime_type=\"text/plain\",\n                authority=AuthorityClass.OFFICIAL_UA,\n            )\n            forged = IngestResult(\n                document=document, version=version, span_count=0, extraction_method=\"none\"\n            )\n    \n>           with pytest.raises(IngestionJobConflict, match=\"does not own active ingestion lease\"):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.infrastructure.ingestion_jobs.IngestionJobConflict'>\n\napps/api/tests/test_durable_ingestion_jobs.py:311: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_durable_ingestion_jobs.py::test_a_worker_cannot_mark_a_job_succeeded_that_it_does_not_hold - Failed: DID NOT RAISE <class 'korpus.infrastructure.ingestion_jobs.IngestionJobConflict'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M163_EGRESS_CEILING_OFF_BY_ONE",
+      "file": "apps/api/src/korpus/application/egress.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_egress_material_ceiling.py::test_permits_material_is_a_ceiling_not_a_floor"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_permits_material_is_a_ceiling_not_a_floor ________________\n\n    def test_permits_material_is_a_ceiling_not_a_floor() -> None:\n        \"\"\"`<=` and not `<`: material *at* the ceiling is admitted, material above is not.\"\"\"\n        policy = ModelEgressPolicy(\n            EgressPosture.EXTERNAL_ALLOWED, max_external_tier=AccessTier.AUTHENTICATED\n        )\n        assert policy.permits_material(AccessTier.PUBLIC)\n>       assert policy.permits_material(AccessTier.AUTHENTICATED)\nE       assert False\nE        +  where False = permits_material(<AccessTier.AUTHENTICATED: 1>)\nE        +    where permits_material = <korpus.application.egress.ModelEgressPolicy object at 0x7f55c33e02f0>.permits_material\nE        +    and   <AccessTier.AUTHENTICATED: 1> = AccessTier.AUTHENTICATED\n\napps/api/tests/test_egress_material_ceiling.py:173: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_egress_material_ceiling.py::test_permits_material_is_a_ceiling_not_a_floor - assert False\n +  where False = permits_material(<AccessTier.AUTHENTICATED: 1>)\n +    where permits_material = <korpus.application.egress.ModelEgressPolicy object at 0x7f55c33e02f0>.permits_material\n +    and   <AccessTier.AUTHENTICATED: 1> = AccessTier.AUTHENTICATED\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M252_EXTERNAL_REDTEAM_PREREGISTRATION_BYPASSED",
+      "file": "scripts/validate_external_redteam_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_external_redteam_admissibility.py::test_trusted_signature_cannot_bypass_wrong_preregistration"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_trusted_signature_cannot_bypass_wrong_preregistration __________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-770/test_trusted_signature_cannot_0')\n\n    def test_trusted_signature_cannot_bypass_wrong_preregistration(tmp_path: Path) -> None:\n        report = _report(); report[\"preregistration_sha256\"] = \"0\" * 64\n        result = _signed_gate(tmp_path, report)\n>       assert result.returncode != 0\nE       assert 0 != 0\nE        +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m252_external_redteam_preregistration_bypassed-cfs31o2h...hook_forgery_replay\"\\n    ],\\n    \"test_cases\": 9,\\n    \"findings\": 0,\\n    \"blocking_open\": []\\n  }\\n}\\n', stderr=b'').returncode\n\napps/api/tests/test_external_redteam_admissibility.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_external_redteam_admissibility.py::test_trusted_signature_cannot_bypass_wrong_preregistration - assert 0 != 0\n +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m252_external_redteam_preregistration_bypassed-cfs31o2h...hook_forgery_replay\"\\n    ],\\n    \"test_cases\": 9,\\n    \"findings\": 0,\\n    \"blocking_open\": []\\n  }\\n}\\n', stderr=b'').returncode\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M300_PEC_NESTED_SELECTION_SEES_OUTER_VALIDATION",
+      "file": "apps/api/src/korpus/application/pec_training_validation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_nested_selection_never_sees_outer_validation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "b749a8770>\n\n    def test_nested_selection_never_sees_outer_validation(monkeypatch) -> None:\n        import korpus.application.pec_training_validation as validation\n        data = _training_fixture()\n        original = validation.select_hyperparameters\n        seen: list[int] = []\n    \n        def guarded(rows):\n            material = list(rows)\n            seen.append(len(material))\n            assert len(material) < len(data)\n            return original(material)\n    \n        monkeypatch.setattr(validation, \"select_hyperparameters\", guarded)\n>       report = validation.nested_group_validation(data, outer_folds=4)\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_pec_research.py:83: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/tmp/korpus-m300_pec_nested_selection_sees_outer_validation-p17obj0q/api-src/korpus/application/pec_training_validation.py:59: in nested_group_validation\n    depth, min_leaf, inner = select_hyperparameters(data)\n                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nrows = [TrainingRow(query_id='q0', group_id='g0', features={'top1_score': 0.0, 'query_token_count': 1}, label='PLAN_QUERY_VAR..._id='q5', group_id='g0', features={'top1_score': 0.5, 'query_token_count': 6}, label='STOP_USE_CURRENT_EVIDENCE'), ...]\n\n    def guarded(rows):\n        material = list(rows)\n        seen.append(len(material))\n>       assert len(material) < len(data)\nE       AssertionError: assert 120 < 120\nE        +  where 120 = len([TrainingRow(query_id='q0', group_id='g0', features={'top1_score': 0.0, 'query_token_count': 1}, label='PLAN_QUERY_VAR..._id='q5', group_id='g0', features={'top1_score': 0.5, 'query_token_count': 6}, label='STOP_USE_CURRENT_EVIDENCE'), ...])\nE        +  and   120 = len([TrainingRow(query_id='q0', group_id='g0', features={'top1_score': 0.0, 'query_token_count': 1}, label='PLAN_QUERY_VAR..._id='q5', group_id='g0', features={'top1_score': 0.5, 'query_token_count': 6}, label='STOP_USE_CURRENT_EVIDENCE'), ...])\n\napps/api/tests/test_pec_research.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_nested_selection_never_sees_outer_validation - AssertionError: assert 120 < 120\n +  where 120 = len([TrainingRow(query_id='q0', group_id='g0', features={'top1_score': 0.0, 'query_token_count': 1}, label='PLAN_QUERY_VAR..._id='q5', group_id='g0', features={'top1_score': 0.5, 'query_token_count': 6}, label='STOP_USE_CURRENT_EVIDENCE'), ...])\n +  and   120 = len([TrainingRow(query_id='q0', group_id='g0', features={'top1_score': 0.0, 'query_token_count': 1}, label='PLAN_QUERY_VAR..._id='q5', group_id='g0', features={'top1_score': 0.5, 'query_token_count': 6}, label='STOP_USE_CURRENT_EVIDENCE'), ...])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:27:19+00:00"
+  }
+}

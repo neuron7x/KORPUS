@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 26,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M25_REVIEWER_SCOPE_BYPASS",
+      "file": "apps/api/src/korpus/security/reviewers.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_registry_digest_revocation_and_scope_are_fail_closed ___________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-886/test_registry_digest_revocatio0')\n\n    def test_registry_digest_revocation_and_scope_are_fail_closed(tmp_path: Path):\n        registry = _registry()\n        path = tmp_path / \"reviewers.json\"\n        raw = registry.model_dump_json().encode(\"utf-8\")\n        path.write_bytes(raw)\n        with pytest.raises(ValueError, match=\"digest mismatch\"):\n            ReviewerRegistry.load(path, \"0\" * 64)\n        loaded = ReviewerRegistry.load(path, hashlib.sha256(raw).hexdigest())\n    \n        document = DocumentRecord(\n            canonical_title=\"Review target\",\n            corpus_id=\"public\",\n            issuer=\"Authorized Test Authority\",\n            jurisdiction=\"UA\",\n            document_type=\"order\",\n            access_tier=AccessTier.PUBLIC,\n            classification=Classification.PUBLIC,\n        )\n        version = DocumentVersionRecord(\n            document_id=document.id,\n            revision=\"1\",\n            source_hash=\"0\" * 64,\n            object_key=\"00/00/\" + \"0\" * 64,\n            mime_type=\"text/plain\",\n            authority=AuthorityClass.OFFICIAL_UA,\n        )\n        assert loaded.authorize(\n            subject=\"approver\", target=ReviewState.APPROVED, document=document, version=version\n        ) == \"cred-approver\"\n        with pytest.raises(PermissionError, match=\"no active reviewer credential\"):\n            _registry(revoked=True).authorize(\n                subject=\"approver\", target=ReviewState.APPROVED, document=document, version=version\n            )\n>       with pytest.raises(PermissionError, match=\"no active reviewer credential\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'PermissionError'>\n\napps/api/tests/test_reviewer_registry.py:89: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_reviewer_registry.py::test_registry_digest_revocation_and_scope_are_fail_closed - Failed: DID NOT RAISE <class 'PermissionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M135_EMPTY_RENDER_TREATED_AS_CLEAN",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_an_empty_render_reports_one_failure_rather_than_the_whole_register"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_an_empty_render_reports_one_failure_rather_than_the_whole_register ____\n\n    def test_an_empty_render_reports_one_failure_rather_than_the_whole_register() -> None:\n        \"\"\"Twenty failures describing an empty input is a report nobody reads to the end.\"\"\"\n        from korpus.kubernetes_requirements import (\n            KubernetesContext,\n            kubernetes_requirements,\n            manifest_violations,\n        )\n    \n        requirements = kubernetes_requirements(KubernetesContext.build([]))\n    \n        assert len(requirements) == 1\n>       assert manifest_violations([]) == [\"no Kubernetes resources\"]\nE       AssertionError: assert [] == ['no Kubernetes resources']\nE         \nE         Right contains one more item: 'no Kubernetes resources'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'no Kubernetes resources',\nE         - ]\n\napps/api/tests/test_requirement_registry.py:286: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_an_empty_render_reports_one_failure_rather_than_the_whole_register - AssertionError: assert [] == ['no Kubernetes resources']\n  \n  Right contains one more item: 'no Kubernetes resources'\n  \n  Full diff:\n  + []\n  - [\n  -     'no Kubernetes resources',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M117_MISSING_RECOVERY_DRILL_READS_AS_EXECUTED",
+      "file": "apps/api/src/korpus/application/recovery.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________________ test_no_report_is_not_a_pass _________________________\n\n    def test_no_report_is_not_a_pass() -> None:\n        \"\"\"Every release assembled before today was assembled in exactly this state.\"\"\"\n        for absent in (None, {}):\n            verdict = classify_recovery(absent)\n            assert verdict.status == MISSING\n>           assert not verdict.executed\nE           AssertionError: assert not True\nE            +  where True = RecoveryVerdict(status='MISSING', reasons=('no recovery drill report was produced',)).executed\n\napps/api/tests/test_recovery_measurement.py:56: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_recovery_measurement.py::test_no_report_is_not_a_pass - AssertionError: assert not True\n +  where True = RecoveryVerdict(status='MISSING', reasons=('no recovery drill report was produced',)).executed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M194_PAGE_TREE_WALK_LEFT_UNGUARDED",
+      "file": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_malformed_pdf_containment.py::test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal _______\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-887/test_a_page_tree_that_fails_wh0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f37a52575c0>\n\n    def test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal(\n        tmp_path: Path, monkeypatch: pytest.MonkeyPatch\n    ) -> None:\n        document = tmp_path / \"order.pdf\"\n        document.write_bytes(PDF_BYTES)\n        monkeypatch.setattr(extraction, \"PdfReader\", _Reader)\n    \n        # ValueError, not PdfReadError: the caller's per-document handler is written against\n        # the vocabulary this module promises, and a library exception is not in it.\n        with pytest.raises(ValueError) as raised:\n>           _extract(document)\n\napps/api/tests/test_malformed_pdf_containment.py:72: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \napps/api/tests/test_malformed_pdf_containment.py:52: in _extract\n    extraction.extract_pages_from_path(\n/tmp/korpus-m194_page_tree_walk_left_unguarded-trejt7j_/api-src/korpus/infrastructure/extraction.py:185: in extract_pages_from_path\n    return extract_pdf_pages(\n/tmp/korpus-m194_page_tree_walk_left_unguarded-trejt7j_/api-src/korpus/infrastructure/pdf_extraction.py:107: in extract_pdf_pages\n    reader, owner_restricted = _open_pdf(path, max_pdf_pages, reader_factory)\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/tmp/korpus-m194_page_tree_walk_left_unguarded-trejt7j_/api-src/korpus/infrastructure/pdf_extraction.py:41: in _open_pdf\n    page_count = len(reader.pages)\n                 ^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <apps.api.tests.test_malformed_pdf_containment._LazilyBrokenPages object at 0x7f37a4ed46e0>\n\n    def __len__(self) -> NoReturn:\n>       raise PdfReadError(\"Multiple definitions in dictionary at byte 0x1b277 for key /Im44\")\nE       pypdf.errors.PdfReadError: Multiple definitions in dictionary at byte 0x1b277 for key /Im44\n\napps/api/tests/test_malformed_pdf_containment.py:41: PdfReadError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_malformed_pdf_containment.py::test_a_page_tree_that_fails_when_walked_leaves_as_a_named_refusal - pypdf.errors.PdfReadError: Multiple definitions in dictionary at byte 0x1b277 for key /Im44\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M141_MODEL_DISABLED_STILL_CALLS_OUT",
+      "file": "apps/api/src/korpus/application/egress.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_model_egress.py::test_model_disabled_refuses_even_a_local_endpoint"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_model_disabled_refuses_even_a_local_endpoint _______________\n\nno_transport = None\n\n    def test_model_disabled_refuses_even_a_local_endpoint(no_transport: None) -> None:\n        \"\"\"The mutation gate found this gap: MODEL_DISABLED was only ever tested against a\n        vendor URL, which `LOCAL_ONLY` would also refuse. A posture that means \"no model\" has\n        to refuse the model running on this very machine.\n        \"\"\"\n        policy = ModelEgressPolicy(EgressPosture.MODEL_DISABLED)\n        for target in (\"http://127.0.0.1:11434\", \"http://localhost:8080/v1\", \"\", None):\n>           with pytest.raises(EgressDenied):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n\napps/api/tests/test_model_egress.py:171: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_model_egress.py::test_model_disabled_refuses_even_a_local_endpoint - Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M230_NON_CYCLONEDX_SBOM_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence ____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-888/test_container_sbom_filename_w0')\n\n    def test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence(tmp_path: Path) -> None:\n        fake = tmp_path / \"api-sbom.cdx.json\"\n        fake.write_text(json.dumps({\"bomFormat\": \"NotCycloneDX\", \"specVersion\": \"1.6\", \"components\": []}), encoding=\"utf-8\")\n>       assert valid_cyclonedx(json.loads(fake.read_text())) is False\nE       assert True is False\nE        +  where True = valid_cyclonedx({'bomFormat': 'NotCycloneDX', 'components': [], 'specVersion': '1.6'})\nE        +    where {'bomFormat': 'NotCycloneDX', 'components': [], 'specVersion': '1.6'} = <function loads at 0x7f2bb0b62ca0>('{\"bomFormat\": \"NotCycloneDX\", \"specVersion\": \"1.6\", \"components\": []}')\nE        +      where <function loads at 0x7f2bb0b62ca0> = json.loads\nE        +      and   '{\"bomFormat\": \"NotCycloneDX\", \"specVersion\": \"1.6\", \"components\": []}' = read_text()\nE        +        where read_text = PosixPath('/tmp/pytest-of-root/pytest-888/test_container_sbom_filename_w0/api-sbom.cdx.json').read_text\n\napps/api/tests/test_supply_chain_evidence_boundary.py:32: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_container_sbom_filename_without_cyclonedx_payload_is_not_evidence - assert True is False\n +  where True = valid_cyclonedx({'bomFormat': 'NotCycloneDX', 'components': [], 'specVersion': '1.6'})\n +    where {'bomFormat': 'NotCycloneDX', 'components': [], 'specVersion': '1.6'} = <function loads at 0x7f2bb0b62ca0>('{\"bomFormat\": \"NotCycloneDX\", \"specVersion\": \"1.6\", \"components\": []}')\n +      where <function loads at 0x7f2bb0b62ca0> = json.loads\n +      and   '{\"bomFormat\": \"NotCycloneDX\", \"specVersion\": \"1.6\", \"components\": []}' = read_text()\n +        where read_text = PosixPath('/tmp/pytest-of-root/pytest-888/test_container_sbom_filename_w0/api-sbom.cdx.json').read_text\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M278_PEC_BOUNDARY_DIVERGENCE_TOLERATED",
+      "file": "apps/api/src/korpus/application/pec_evidence_features.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_decision_sensitivity.py::test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge ______\n\n    def test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge() -> None:\n        evidence = [_evidence(score=0.49, coverage=0.8)]\n>       with pytest.raises(ValueError, match=\"disagrees with answer eligibility\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_decision_sensitivity.py:130: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_decision_sensitivity.py::test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:37:56+00:00"
+  }
+}

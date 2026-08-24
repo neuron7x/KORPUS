@@ -1,0 +1,62 @@
+{
+  "schema": "korpus.next-integrations.v1",
+  "status": "PLANNED_NOT_EXECUTED",
+  "items": [
+    {
+      "id": "IN-01",
+      "title": "PostgreSQL + pgvector production cluster",
+      "priority": "P0",
+      "contract": "TLS verify-full, non-superuser application role, FORCE RLS, migrations Job, PITR and tested restore.",
+      "failure_policy": "No SQLite or unrestricted retry in controlled mode.",
+      "acceptance": "Live CI and staging evidence with zero RLS leakage and measured restore."
+    },
+    {
+      "id": "IN-02",
+      "title": "Enterprise OIDC + entitlement lifecycle + PAM",
+      "priority": "P0",
+      "contract": "Pinned issuer/audience/algorithms, short sessions, server-side entitlements, offboarding, break-glass approval and audit.",
+      "failure_policy": "Authentication/entitlement uncertainty denies access.",
+      "acceptance": "Rotation, revocation, offboarding and break-glass drills pass."
+    },
+    {
+      "id": "IN-03",
+      "title": "S3 Object Lock + KMS/HSM",
+      "priority": "P0",
+      "contract": "Content-addressed writes, checksum verification, governance retention, key rotation and recovery ceremony.",
+      "failure_policy": "No downgrade to mutable storage or application-held root key.",
+      "acceptance": "Retention, tamper, rotation and restore tests pass."
+    },
+    {
+      "id": "IN-04",
+      "title": "GitLab protected delivery + OCI registry",
+      "priority": "P0",
+      "contract": "Protected branches/tags, isolated runners, rootless build, digest promotion, SBOM, signing and SLSA provenance.",
+      "failure_policy": "Unsigned or unscanned artifact cannot deploy.",
+      "acceptance": "Policy evidence exported; production deploy verifies provenance and signatures."
+    },
+    {
+      "id": "IN-05",
+      "title": "OpenTelemetry + metrics/log backend + SIEM",
+      "priority": "P1",
+      "contract": "Bounded-cardinality telemetry, durable backend, security correlation, retention and alert ownership.",
+      "failure_policy": "Telemetry outage cannot alter answer semantics; security-critical audit loss fails readiness.",
+      "acceptance": "End-to-end serving-path probe, alert drill and SIEM correlation pass."
+    },
+    {
+      "id": "IN-06",
+      "title": "Controlled embedding/model gateway",
+      "priority": "P1",
+      "contract": "Corpus-policy egress decision before transmission, fixed model/version/dimension, minimized text, rate limits and drift rollback.",
+      "failure_policy": "Semantic weight remains zero when provider/profile is unavailable or unvalidated.",
+      "acceptance": "No forbidden corpus egress; model migration and drift tests pass."
+    },
+    {
+      "id": "IN-07",
+      "title": "Independent audit anchor + backup vault",
+      "priority": "P1",
+      "contract": "Separate trust domain, monotonic authenticated checkpoints, durable outbox, immutable encrypted backups and independent retention.",
+      "failure_policy": "Anchor disagreement or recovery ambiguity fails readiness and blocks promotion.",
+      "acceptance": "Truncation, replay, key rotation, anchor outage and disaster recovery drills pass."
+    }
+  ]
+}

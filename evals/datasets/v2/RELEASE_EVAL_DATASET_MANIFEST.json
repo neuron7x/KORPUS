@@ -1,0 +1,42 @@
+{
+  "schema": "korpus.release-eval-dataset-manifest.v2",
+  "seed_sha256": "88f9e670a272bc6e394a976ecf911feef172ce0572616e3a4a2a7978cc162948",
+  "generator": "evals/generators/generate_release_eval_corpus.py",
+  "synthetic_only": true,
+  "contains_personal_data": false,
+  "contains_credentials": false,
+  "records": [
+    {
+      "path": "evals/datasets/v2/adversarial_retrieval_v2.part-000.jsonl",
+      "rows": 3000,
+      "bytes": 4233359,
+      "sha256": "ea9d61402344726efc7aeb73eec43c54265df62492b1935b4b6255fb82662e85"
+    },
+    {
+      "path": "evals/datasets/v2/adversarial_retrieval_v2.part-001.jsonl",
+      "rows": 3000,
+      "bytes": 4233175,
+      "sha256": "5e069034dadfa1f7dabb58949ff27fbccf683e21b58a95aadf55208471b5a8a6"
+    },
+    {
+      "path": "evals/datasets/v2/noninterference_matrix_v2.jsonl",
+      "rows": 5000,
+      "bytes": 4736049,
+      "sha256": "4f1039b48fb050666c55a6afa3b95377442b4bb20090f0785c9c354b9db72ec5"
+    },
+    {
+      "path": "evals/datasets/v2/temporal_authority_v2.jsonl",
+      "rows": 3000,
+      "bytes": 2777461,
+      "sha256": "a82dab6841ddee89941ad88398c55ac6ea5b3b25dd0558f82213619c95fe7095"
+    },
+    {
+      "path": "evals/datasets/v2/package_tamper_vectors_v2.jsonl",
+      "rows": 2500,
+      "bytes": 2140980,
+      "sha256": "f08385317c7b23a557c517faf7c9f415f08a77e57f854bd8af848daf4803bbe1"
+    }
+  ],
+  "total_rows": 16500,
+  "total_bytes": 18121024
+}

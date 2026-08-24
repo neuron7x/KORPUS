@@ -1,0 +1,14 @@
+{
+  "schema": "korpus.full-backend-report.v2",
+  "status": "PASS",
+  "release": "v0.9.7",
+  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
+  "collected": 2345,
+  "passed": 2344,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 1,
+  "shards": 64,
+  "evidence_source": "var/regression-v097-current2/merge.json"
+}

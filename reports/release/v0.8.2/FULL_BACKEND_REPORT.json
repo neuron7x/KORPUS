@@ -1,0 +1,201 @@
+{
+  "schema": "korpus.full-backend-report.v3",
+  "release": "v0.8.2",
+  "status": "PASS",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "collected": 1769,
+  "passed": 1768,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 1,
+  "shards": [
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_01.xml",
+      "sha256": "f5160213a35a5cbfcd023fd022fcb2864ba74889923e8de7e40a030af0e19d47",
+      "counts": {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_02_CORE.xml",
+      "sha256": "081942585db3172e94ee7c057dff6239c4bd6de6967e7a87c920f8259428c518",
+      "counts": {
+        "tests": 106,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_02_META.xml",
+      "sha256": "2f273721d049df19971717b122616e85c56b6c4a15f20848c1f9660335b8fae4",
+      "counts": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_03.xml",
+      "sha256": "bfe26419b3f962f4b4ba6c85e64fb392b9939bb98434b4cd59ee9df806ce5c66",
+      "counts": {
+        "tests": 81,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_04A.xml",
+      "sha256": "b9f6f137e5fd44e309437af71979fc4dd37016625dd4217628eb1b9deb5bce00",
+      "counts": {
+        "tests": 37,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_04B.xml",
+      "sha256": "8e0c4136fbd9ac9571c4737ac83c6571f8eacf37292d5f7c99a90fe8f7f7ad1b",
+      "counts": {
+        "tests": 74,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_05.xml",
+      "sha256": "c1c02078ee27c6fa85ae76f321f040d935c3ca522919b1faddaf55624e3cc613",
+      "counts": {
+        "tests": 115,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_06.xml",
+      "sha256": "052a57d7400f76358e046b3ee3169f7ac29c5f613453f01eeeac456354ff8933",
+      "counts": {
+        "tests": 97,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_07.xml",
+      "sha256": "0526d2479079845919102c81b8f630ead9fc72aeab440235046c6cfcd4f100d4",
+      "counts": {
+        "tests": 124,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_08.xml",
+      "sha256": "00df92435ff35c97f9cc3d46ffdf5c6cfed1c139e0c71fc9f39bd574b9043a15",
+      "counts": {
+        "tests": 106,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_09.xml",
+      "sha256": "9893fe97da5617ef218350f92ace13baa2bd8777f4fc100ac894fcd03f6687bd",
+      "counts": {
+        "tests": 170,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_10.xml",
+      "sha256": "f45a16fcd65650ab58ab8b20039ecd9b003e7cbd7b976f26ddbd85758606afe2",
+      "counts": {
+        "tests": 106,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_11.xml",
+      "sha256": "b0add3f290012eb126bb8cbbc5669a416d58d88da9109219c39dc496166fb7e5",
+      "counts": {
+        "tests": 114,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_12.xml",
+      "sha256": "97a7edf27daad09149f1ab225b9ea36d9057fe23ecc8d4076df8cf9126e571e6",
+      "counts": {
+        "tests": 87,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_13.xml",
+      "sha256": "c4ad265f4a28280f65b1ece5633524cee8d712f91da625a3c7c568e665241b14",
+      "counts": {
+        "tests": 126,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_14.xml",
+      "sha256": "48b895270532fea6c1214917c0c4f88b1af78f1f4bd5ab3bb954a60113564f9e",
+      "counts": {
+        "tests": 90,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_15.xml",
+      "sha256": "36535eb66680597780745e2c78eff28cd72d9d0442ace3b6fe4719c9eee7a1ca",
+      "counts": {
+        "tests": 129,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.2/full-backend/SHARD_16.xml",
+      "sha256": "35bbaa5d91d2cf6dce9a365ae64d4bd7959fac2550b5001df4690848f37e7736",
+      "counts": {
+        "tests": 188,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "execution": "exact-current-source sharded pytest; shard 04 split into 04A/04B to avoid wrapper timeout after completed JUnit",
+  "skip_contract": [
+    {
+      "test": "tests.test_postgres_integration::test_postgres_migrated_search_rls_access_and_audit",
+      "reason": "KORPUS_POSTGRES_TEST_URL is not configured",
+      "classification": "EXTERNAL_RUNTIME_BLOCKER"
+    }
+  ]
+}

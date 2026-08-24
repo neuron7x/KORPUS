@@ -1,0 +1,150 @@
+{
+  "schema": "korpus.delta-coverage-report.v1",
+  "release": "v0.8.2",
+  "status": "MEASURED_NOT_FULL_GATE",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "scope": "changed runtime/security modules under focused relevant tests",
+  "tests": 177,
+  "failures": 0,
+  "errors": 0,
+  "covered_lines": 695,
+  "num_statements": 866,
+  "line_rate": 0.80254042,
+  "covered_branches": 172,
+  "num_branches": 280,
+  "branch_rate": 0.61428571,
+  "missing_branches": 108,
+  "eligible_as_full_suite_coverage": false,
+  "files": [
+    {
+      "path": "apps/api/src/korpus/api/routes_auth.py",
+      "covered_lines": 60,
+      "num_statements": 69,
+      "covered_branches": 7,
+      "num_branches": 14,
+      "missing_branches": 7,
+      "line_rate": 0.86956522,
+      "branch_rate": 0.5
+    },
+    {
+      "path": "apps/api/src/korpus/application/egress.py",
+      "covered_lines": 56,
+      "num_statements": 61,
+      "covered_branches": 12,
+      "num_branches": 14,
+      "missing_branches": 2,
+      "line_rate": 0.91803279,
+      "branch_rate": 0.85714286
+    },
+    {
+      "path": "apps/api/src/korpus/billing_config_policy.py",
+      "covered_lines": 21,
+      "num_statements": 26,
+      "covered_branches": 13,
+      "num_branches": 18,
+      "missing_branches": 5,
+      "line_rate": 0.80769231,
+      "branch_rate": 0.72222222
+    },
+    {
+      "path": "apps/api/src/korpus/config_policy.py",
+      "covered_lines": 92,
+      "num_statements": 124,
+      "covered_branches": 47,
+      "num_branches": 80,
+      "missing_branches": 33,
+      "line_rate": 0.74193548,
+      "branch_rate": 0.5875
+    },
+    {
+      "path": "apps/api/src/korpus/controlled_requirements.py",
+      "covered_lines": 25,
+      "num_statements": 25,
+      "covered_branches": 4,
+      "num_branches": 4,
+      "missing_branches": 0,
+      "line_rate": 1.0,
+      "branch_rate": 1.0
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/audit_anchor.py",
+      "covered_lines": 137,
+      "num_statements": 153,
+      "covered_branches": 24,
+      "num_branches": 34,
+      "missing_branches": 10,
+      "line_rate": 0.89542484,
+      "branch_rate": 0.70588235
+    },
+    {
+      "path": "apps/api/src/korpus/infrastructure/semantic.py",
+      "covered_lines": 55,
+      "num_statements": 124,
+      "covered_branches": 6,
+      "num_branches": 34,
+      "missing_branches": 28,
+      "line_rate": 0.44354839,
+      "branch_rate": 0.17647059
+    },
+    {
+      "path": "apps/api/src/korpus/security/browser_oidc.py",
+      "covered_lines": 81,
+      "num_statements": 109,
+      "covered_branches": 11,
+      "num_branches": 26,
+      "missing_branches": 15,
+      "line_rate": 0.74311927,
+      "branch_rate": 0.42307692
+    },
+    {
+      "path": "apps/api/src/korpus/security/oidc.py",
+      "covered_lines": 48,
+      "num_statements": 49,
+      "covered_branches": 12,
+      "num_branches": 14,
+      "missing_branches": 2,
+      "line_rate": 0.97959184,
+      "branch_rate": 0.85714286
+    },
+    {
+      "path": "apps/api/src/korpus/security/browser_oidc_urls.py",
+      "covered_lines": 13,
+      "num_statements": 13,
+      "covered_branches": 0,
+      "num_branches": 0,
+      "missing_branches": 0,
+      "line_rate": 1.0,
+      "branch_rate": 1.0
+    },
+    {
+      "path": "apps/api/src/korpus/security/model_endpoint_policy.py",
+      "covered_lines": 14,
+      "num_statements": 14,
+      "covered_branches": 2,
+      "num_branches": 2,
+      "missing_branches": 0,
+      "line_rate": 1.0,
+      "branch_rate": 1.0
+    },
+    {
+      "path": "apps/api/src/korpus/security/oidc_claims.py",
+      "covered_lines": 32,
+      "num_statements": 38,
+      "covered_branches": 16,
+      "num_branches": 22,
+      "missing_branches": 6,
+      "line_rate": 0.84210526,
+      "branch_rate": 0.72727273
+    },
+    {
+      "path": "apps/api/src/korpus/security/url_policy.py",
+      "covered_lines": 61,
+      "num_statements": 61,
+      "covered_branches": 18,
+      "num_branches": 18,
+      "missing_branches": 0,
+      "line_rate": 1.0,
+      "branch_rate": 1.0
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 18,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M18_CALIBRATION_BINDING_BYPASS",
+      "file": "apps/api/src/korpus/application/calibration.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_calibration.py::test_calibration_profile_and_bound_artifacts_reject_tampering"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_calibration_profile_and_bound_artifacts_reject_tampering _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-849/test_calibration_profile_and_b0')\n\n    def test_calibration_profile_and_bound_artifacts_reject_tampering(tmp_path: Path):\n        calibration = write_calibration_bundle(tmp_path)\n        settings = Settings(answer_policy_mode=\"calibrated\", **calibration)\n        assert settings.answer_policy_mode == \"calibrated\"\n    \n        dataset = calibration[\"calibration_dataset_path\"]\n        assert isinstance(dataset, Path)\n        dataset.write_text(\"tampered\", encoding=\"utf-8\")\n>       with pytest.raises(ValueError, match=\"dataset digest mismatch\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_calibration.py:105: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_calibration.py::test_calibration_profile_and_bound_artifacts_reject_tampering - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M65_UNEXECUTED_QUALITY_TOOLING_PASSES",
+      "file": "apps/api/src/korpus/application/assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_aggregation.py::test_declared_but_unexecuted_tooling_cannot_pass"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_declared_but_unexecuted_tooling_cannot_pass _______________\n\n    def test_declared_but_unexecuted_tooling_cannot_pass() -> None:\n        \"\"\"The exact historic payload: a string where a run should be.\"\"\"\n    \n        result = evaluate(\n            quality={\n                \"tools\": {\n                    \"ruff\": \"NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB\",\n                    \"mypy\": \"NOT_EXECUTED_LOCAL_PACKAGE_UNAVAILABLE; REQUIRED_IN_GITLAB\",\n                }\n            }\n        )\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = AssuranceResult(status='PASS', checks={'tests_executed': True, 'tests_not_mostly_skipped': True, 'tests_outcome': True...overy_drill_executed': True, 'recovery_provenance_complete': True, 'recovery_scale_not_overstated': True}, failures=()).passed\n\napps/api/tests/test_assurance_aggregation.py:161: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_aggregation.py::test_declared_but_unexecuted_tooling_cannot_pass - AssertionError: assert True is False\n +  where True = AssuranceResult(status='PASS', checks={'tests_executed': True, 'tests_not_mostly_skipped': True, 'tests_outcome': True...overy_drill_executed': True, 'recovery_provenance_complete': True, 'recovery_scale_not_overstated': True}, failures=()).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M109_EXTERNAL_GROUND_CLEARED_WITHOUT_ATTESTATION",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_register.py::test_an_external_ground_cannot_be_cleared_by_editing_the_register"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_an_external_ground_cannot_be_cleared_by_editing_the_register _______\n\n    def test_an_external_ground_cannot_be_cleared_by_editing_the_register() -> None:\n        \"\"\"The failure mode the register exists to prevent.\"\"\"\n        register = _register()\n        for ground in register[\"grounds\"]:\n            if ground[\"id\"] == \"2.5\":\n                ground[\"status\"] = \"cleared\"\n                ground[\"evidence\"] = [\"apps/api/tests/test_admission_register.py\"]\n    \n        verdict = evaluate_admission(ROOT, register)\n    \n        assert verdict.production_authorized is False\n>       assert any(\"attestation\" in problem for problem in verdict.problems), verdict.problems\nE       AssertionError: ()\nE       assert False\nE        +  where False = any(<generator object test_an_external_ground_cannot_be_cleared_by_editing_the_register.<locals>.<genexpr> at 0x7fcb8c211970>)\n\napps/api/tests/test_admission_register.py:83: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_register.py::test_an_external_ground_cannot_be_cleared_by_editing_the_register - AssertionError: ()\nassert False\n +  where False = any(<generator object test_an_external_ground_cannot_be_cleared_by_editing_the_register.<locals>.<genexpr> at 0x7fcb8c211970>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M118_RECOVERY_PROVENANCE_NOT_REQUIRED",
+      "file": "apps/api/src/korpus/application/recovery.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_recovery_measurement.py::test_a_duration_without_provenance_is_not_a_measurement"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "..F\n=================================== FAILURES ===================================\n___ test_a_duration_without_provenance_is_not_a_measurement[engine_version] ____\n\nfield = 'engine_version'\n\n    @pytest.mark.parametrize(\n        \"field\", [\"backup_bytes\", \"document_rows\", \"engine_version\", \"measured_at\"]\n    )\n    def test_a_duration_without_provenance_is_not_a_measurement(field: str) -> None:\n        \"\"\"12.5 seconds to restore what, from how much, on which engine version.\"\"\"\n        provenance = {k: v for k, v in _report()[\"provenance\"].items() if k != field}\n        verdict = classify_recovery(_report(provenance=provenance))\n>       assert verdict.status == INCOMPLETE_PROVENANCE\nE       AssertionError: assert 'FIXTURE_SCALE' == 'INCOMPLETE_PROVENANCE'\nE         \nE         - INCOMPLETE_PROVENANCE\nE         + FIXTURE_SCALE\n\napps/api/tests/test_recovery_measurement.py:67: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_recovery_measurement.py::test_a_duration_without_provenance_is_not_a_measurement[engine_version] - AssertionError: assert 'FIXTURE_SCALE' == 'INCOMPLETE_PROVENANCE'\n  \n  - INCOMPLETE_PROVENANCE\n  + FIXTURE_SCALE\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M133_EXPIRED_PERIOD_STILL_PAYS",
+      "file": "apps/api/src/korpus/domain/tenancy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_an_expired_period_stops_paying_without_any_event_arriving"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_an_expired_period_stops_paying_without_any_event_arriving ________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-850/test_an_expired_period_stops_p0')\n\n    def test_an_expired_period_stops_paying_without_any_event_arriving(tmp_path: Path) -> None:\n        \"\"\"A provider that stops sending events leaves a row saying ACTIVE forever.\"\"\"\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|lapsed\", frozenset({\"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            subscription = tenancy.subscription_service.start_subscription(\n                identity.subject, account.id, \"standard\"\n            )\n            _activate(tenancy, subscription.id, days=1)\n    \n            gate = tenancy.entitlements(required=True)\n            later = datetime.now(UTC) + timedelta(days=2)\n            stored = tenancy.subscriptions.get_subscription(subscription.id)\n            assert stored is not None and stored.status is SubscriptionStatus.ACTIVE\n    \n>           assert gate.project(account, now=later).entitled_corpora == frozenset()\nE           AssertionError: assert frozenset({'training'}) == frozenset()\nE             \nE             Extra items in the left set:\nE             'training'\nE             \nE             Full diff:\nE             - frozenset()\nE             ?           ^\nE             + frozenset({\nE             ?           ^\nE             +     'training',\nE             + })\n\napps/api/tests/test_entitlement_gate.py:149: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_an_expired_period_stops_paying_without_any_event_arriving - AssertionError: assert frozenset({'training'}) == frozenset()\n  \n  Extra items in the left set:\n  'training'\n  \n  Full diff:\n  - frozenset()\n  ?           ^\n  + frozenset({\n  ?           ^\n  +     'training',\n  + })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M222_ENGINEERING_REPORT_DIGEST_DOMAIN_CONFUSED",
+      "file": "scripts/run_engineering_production_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_engineering_gate_uses_evidence_digest_not_git_digest_domain _______\n\n    def test_engineering_gate_uses_evidence_digest_not_git_digest_domain() -> None:\n        text = (ROOT / \"scripts\" / \"run_engineering_production_gate.py\").read_text(encoding=\"utf-8\")\n>       assert 'report.get(\"evidence_source_sha256\") == source' in text\nE       assert 'report.get(\"evidence_source_sha256\") == source' in '#!/usr/bin/env python3\\n\"\"\"Bind the fresh engineering assurance report into the production gate schema.\"\"\"\\nfrom __fu...False, indent=2))\\n    return 0 if not failures else 1\\n\\n\\nif __name__ == \"__main__\":\\n    raise SystemExit(main())\\n'\n\napps/api/tests/test_production_assurance.py:111: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_engineering_gate_uses_evidence_digest_not_git_digest_domain - assert 'report.get(\"evidence_source_sha256\") == source' in '#!/usr/bin/env python3\\n\"\"\"Bind the fresh engineering assurance report into the production gate schema.\"\"\"\\nfrom __fu...False, indent=2))\\n    return 0 if not failures else 1\\n\\n\\nif __name__ == \"__main__\":\\n    raise SystemExit(main())\\n'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M270_LOGOUT_CSRF_PAIR_BYPASSED",
+      "file": "apps/api/src/korpus/security/browser_cookie_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie _\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-851/test_logout_without_browser_cs0')\n\n    def test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie(tmp_path: Path):\n        app = create_app(_settings(tmp_path))\n        with TestClient(app, follow_redirects=False) as client:\n            client.cookies.clear()\n            response = client.post(\"/v1/auth/logout\")\n>           assert response.status_code == 403\nE           assert 204 == 403\nE            +  where 204 = <Response [204 No Content]>.status_code\n\napps/api/tests/test_browser_oidc.py:306: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie - assert 204 == 403\n +  where 204 = <Response [204 No Content]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:35:05+00:00"
+  }
+}

@@ -1,32 +1,60 @@
-# Delivery roadmap
+# Delivery roadmap — convergence sequence
 
-## Iteration 0 — evidence and governance (2 weeks)
+## Gate 1 — structural convergence
 
-Repository, threat model, source schema, corpus policy, 100-question seed eval, and a
-20-document approved pilot. Exit: every pilot document has provenance and reviewer.
+One release identity, source/distribution manifests, acyclic internal imports, current
+architecture/product SSOT, bounded backend/frontend modules. No product behavior change.
 
-## Iteration 1 — trustworthy retrieval (3 weeks)
+## Gate 2 — consumer SaaS completion
 
-Ingestion worker, OCR, hybrid search, citations, corpus browser, admin review UI. Exit:
-Recall@10 and MRR gates pass; forbidden-tier retrieval tests are zero-leakage.
+**Implemented in v6.4.0 candidate:** LiqPay client-server checkout boundary, signed callback
+adapter, server-owned plan pricing, deployment plan bootstrap, subscription/account state and
+consumer entitlement UX. Remaining before this gate closes: production merchant credentials,
+live provider callback drill, explicit cancellation/renewal-management UX and self-service
+sign-up configuration at the selected OIDC provider. Paid/inactive/tampered/replayed states
+already have local negative controls.
 
-## Iteration 2 — answer experience (2 weeks)
+## Gate 3 — premium responsive interface
 
-Streaming answer, abstention, clarification, feedback, weak-network UX, telemetry. Exit:
-claim citation and unsupported-question gates pass.
+**Implemented in v6.4.0 candidate:** custom tokenized consumer shell, responsive desktop/tablet/
+mobile layouts, evidence-first conversation surface, history, account/subscription/pricing UI,
+operator separation, accessibility and structural visual gates. Remaining: browser-level visual
+regression baselines and device acceptance against the production edge.
 
-## Iteration 3 — instructor pilot (3 weeks)
 
-Competency graph, lesson drafts, reviewed question bank, attempts and analytics. Exit:
-two instructors complete real lesson planning faster without quality regression.
+**Implemented in v6.5.0 candidate:** premium consumer landing/workspace convergence,
+plain-Enter chat interaction with Shift+Enter newline/IME protection, bounded auto-growing
+composer, direct subscription-gate routing, accessibility busy/focus semantics and a
+32 KiB first-party consumer gzip ratchet. Official promotion remains blocked on fresh
+exact-lock assurance and live production dependencies.
 
-## Iteration 4 — document drafts (2 weeks)
+**Implemented in v6.6.0 candidate:** repository-native DesignOps: DTCG-compatible design
+tokens generate the browser palette, component/state and viewport contracts are executable,
+mobile conversation history starts collapsed, focus/contrast/target semantics remain gated,
+and design drift now has mutation controls. Browser-level pixel baselines remain external
+because the current execution environment blocks Chromium navigation.
 
-Five high-volume template families with field validation and source linkage. Exit:
-zero missing required fields in test fixtures and reviewer acceptance.
+## Gate 4 — production corpus and operations
 
-## Iteration 5 — controlled beta (4 weeks)
+Materialize approved corpus, rights/provenance decisions, backup/restore, monitoring,
+capacity/cost measurements, external TLS/KMS/service configuration and recovery drills.
 
-50–100 users, support workflow, incident drills, capacity/cost tuning, security test,
-recovery drill. Expand only after measured retention and correction rates.
+## Gate 5 — controlled production authorization
 
+Independent security assessment, risk-owner decision, production SLO evidence, incident
+workflow and release evidence bound to the deployed artifact. `production_authorized`
+remains false until this gate is explicitly signed.
+
+## Future capability track
+
+Instructor tools, administrative drafts, voice/photo input and native apps remain backlog
+hypotheses and do not participate in current MVP readiness.
+
+
+## v6.7.0 candidate — inference surface
+
+**Implemented:** provider-neutral model contract, OpenAI Responses API adapter, Anthropic
+adapter convergence on the same parsers/instructions, authenticated inference-status API,
+server-side secret-file configuration, corpus-free inference smoke test and UI visibility of
+model assistance. Model output remains non-authoritative and downstream evidence admission
+remains deterministic. Live external transport is not claimed without a deployment key.

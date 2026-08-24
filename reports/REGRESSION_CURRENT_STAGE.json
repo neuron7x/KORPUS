@@ -1,0 +1,27 @@
+{
+  "schema": "korpus.regression-current-stage.v1",
+  "release": "v0.9.7",
+  "source_digest": "af9db31546fd2ab184da2fbc703be3cd47438b2eedd233a67425fca2736fc483",
+  "collection_count": 2340,
+  "collection_digest": "4a4efd790563461160debf0eeb7a96eb8c7cecf44296828af691e1f648c0ef40",
+  "targeted_current": {
+    "tests": 62,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "status": "PASS",
+    "junit": "var/v097-targeted.xml"
+  },
+  "full_current_freeze": {
+    "status": "UNKNOWN_NOT_COMPLETED",
+    "reason": "full 64-shard rerun was invalidated by final provenance/browser/harness source hardening and was not re-executed after freeze"
+  },
+  "historical_previous_freeze": {
+    "tests": 2338,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3,
+    "status": "HISTORICAL_NONPORTABLE_AFTER_SOURCE_CHANGE"
+  },
+  "interpretation": "Targeted v0.9.7 controls are current. Full-regression production claim remains fail-closed until exact current-freeze shards are executed and merged."
+}

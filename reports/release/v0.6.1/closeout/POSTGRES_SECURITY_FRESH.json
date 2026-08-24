@@ -1,0 +1,27 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "postgres_security",
+  "status": "FAIL",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "grant_contract_static": true,
+    "postgres_runtime_available": false,
+    "postgres_adversarial_suite": false
+  },
+  "failures": [
+    "postgres_runtime_available",
+    "postgres_adversarial_suite"
+  ],
+  "backend": "UNEXECUTED",
+  "evidence_class": "REAL_POSTGRESQL_REQUIRED",
+  "pytest_targets": [
+    "apps/api/tests/test_postgres_role_grants.py",
+    "apps/api/tests/test_repository_access_refusals.py",
+    "apps/api/tests/test_tenancy_threats.py",
+    "apps/api/tests/test_concurrent_audit.py"
+  ],
+  "runtime_exit_code": null,
+  "runtime_tail": "",
+  "static_tail": "...                                                                      [100%]\n"
+}

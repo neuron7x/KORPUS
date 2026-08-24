@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 5,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M130_LISTING_CLEARANCE_FILTER_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_access_refusals.py::test_listing_hides_a_document_above_the_readers_clearance"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "sting predicate was left with nothing\n        holding it — the mutant survived, and the listing would have returned every\n        document a reader's corpora contained, at any tier.\n        \"\"\"\n        service = build_ingestion_service(\n            repository,\n            LocalObjectStore(tmp_path / \"objects\"),\n            PolicyEngine(),\n            ExtractionSettings(False, \"ukr\"),\n        )\n        service.ingest(\n            curator,\n            DocumentCreate(\n                canonical_title=\"Restricted order\",\n                issuer=\"Test Issuer\",\n                corpus_id=\"public\",\n                access_tier=AccessTier.RESTRICTED,\n            ),\n            VersionCreate(revision=\"1\", authority=AuthorityClass.OFFICIAL_UA),\n            \"restricted.txt\",\n            \"text/plain\",\n            CONTENT,\n        )\n        reader = Identity(\n            subject=\"reader\",\n            roles=frozenset({\"user\"}),\n            clearance=AccessTier.AUTHENTICATED,\n            corpora=frozenset({\"public\"}),\n        )\n    \n>       assert repository.list_documents(reader) == []\nE       AssertionError: assert [DocumentReco... 45, 291336))] == []\nE         \nE         Left contains one more item: DocumentRecord(id=UUID('64aba5da-fdea-411a-a275-4b97e87dca4f'), canonical_title='Restricted order', corpus_id='public'...ssification.PUBLIC: 'public'>, compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 30, 45, 291336))\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     DocumentRecord(id=UUID('64aba5da-fdea-411a-a275-4b97e87dca4f'), canonical_title='Restricted order', corpus_id='public', issuer='Test Issuer', jurisdiction='UA', document_type='reference', access_tier=<AccessTier.RESTRICTED: 3>, classification=<Classification.PUBLIC: 'public'>, compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 30, 45, 291336)),\nE         + ]\n\napps/api/tests/test_repository_access_refusals.py:316: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_access_refusals.py::test_listing_hides_a_document_above_the_readers_clearance - AssertionError: assert [DocumentReco... 45, 291336))] == []\n  \n  Left contains one more item: DocumentRecord(id=UUID('64aba5da-fdea-411a-a275-4b97e87dca4f'), canonical_title='Restricted order', corpus_id='public'...ssification.PUBLIC: 'public'>, compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 30, 45, 291336))\n  \n  Full diff:\n  - []\n  + [\n  +     DocumentRecord(id=UUID('64aba5da-fdea-411a-a275-4b97e87dca4f'), canonical_title='Restricted order', corpus_id='public', issuer='Test Issuer', jurisdiction='UA', document_type='reference', access_tier=<AccessTier.RESTRICTED: 3>, classification=<Classification.PUBLIC: 'public'>, compartments=frozenset(), created_at=datetime.datetime(2026, 8, 22, 16, 30, 45, 291336)),\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M52_AUDIT_TRACE_SCOPE_IGNORED",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_the_trace_scope_excludes_other_requests _________________\n\nclient = <starlette.testclient.TestClient object at 0x7fdfdc2582f0>\n\n    def test_the_trace_scope_excludes_other_requests(client: TestClient) -> None:\n        result = ingest_text(client, text=f\"Маркер {MARKER} у затвердженому наказі підрозділу.\")\n        approve(client, result[\"version\"][\"id\"])\n        client.post(\n            \"/v1/answers\",\n            json={\"text\": f\"де згадано {MARKER}\"},\n            headers={\"X-Request-ID\": \"trace-alpha\"},\n        )\n        client.post(\n            \"/v1/answers\",\n            json={\"text\": f\"де згадано {MARKER}\"},\n            headers={\"X-Request-ID\": \"trace-beta\"},\n        )\n    \n        alpha = client.get(\"/v1/audit/events\", params={\"trace_id\": \"trace-alpha\"}).json()\n    \n        assert alpha\n>       assert all(event[\"payload\"][\"trace_id\"] == \"trace-alpha\" for event in alpha), (\n            \"a scoped read that returns another request's events is not scoped\"\n        )\nE       AssertionError: a scoped read that returns another request's events is not scoped\nE       assert False\nE        +  where False = all(<generator object test_the_trace_scope_excludes_other_requests.<locals>.<genexpr> at 0x7fdfdc0da0c0>)\n\napps/api/tests/test_resilience_and_audit_scope.py:167: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_the_trace_scope_excludes_other_requests - AssertionError: a scoped read that returns another request's events is not scoped\nassert False\n +  where False = all(<generator object test_the_trace_scope_excludes_other_requests.<locals>.<genexpr> at 0x7fdfdc0da0c0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M96_ANCHOR_AHEAD_OF_HEAD_ACCEPTED",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_ahead_of_the_head_is_invalid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "w[\"resource_type\"],\n                resource_id=row[\"resource_id\"],\n                payload_json=row[\"payload_json\"],\n                previous_hash=row[\"previous_hash\"],\n            )\n            # Verified with the key the *event* names, not with whatever the process is\n            # holding. An unknown key id is invalid rather than skipped: a verifier that\n            # ignored what it could not check would report a chain as intact while its\n            # middle was unreadable.\n            signed_by = str(row[\"audit_key_id\"] or LEGACY_KEY_ID)\n            if row[\"previous_hash\"] != previous_hash or not self.audit_keyring.verify(\n                signed_by, canonical, str(row[\"event_hash\"])\n            ):\n                return AuditVerification(\n                    valid=False,\n                    event_count=len(rows),\n                    head_sequence=head_sequence,\n                    anchor_valid=False,\n                    first_invalid_sequence=row[\"sequence\"],\n                    reason=\"audit hash mismatch\",\n                )\n            previous_hash = row[\"event_hash\"]\n            expected_sequence += 1\n        if head_sequence != len(rows) or head_hash != previous_hash:\n            return AuditVerification(\n                valid=False,\n                event_count=len(rows),\n                head_sequence=head_sequence,\n                anchor_valid=False,\n                reason=\"database audit head mismatch\",\n            )\n        try:\n            anchor = self.anchor_store.read()\n        except AnchorError as exc:\n            return AuditVerification(\n                valid=False,\n                event_count=len(rows),\n                head_sequence=head_sequence,\n                anchor_valid=False,\n                reason=str(exc),\n            )\n        if False:\n            # The anchor was written for events the database no longer has: a restore\n            # from an older backup, or lost committed rows. This is the failure the\n            # anchor exists to catch.\n            return AuditVerification(\n                valid=False,\n                event_count=len(rows),\n                head_sequence=head_sequence,\n                anchor_valid=False,\n                reason=\"external audit anchor is ahead of the database head\",\n            )\n        anchor_at_position = (\n            head_hash\n            if anchor.sequence == head_sequence\n>           else (rows[anchor.sequence - 1][\"event_hash\"] if anchor.sequence >= 1 else \"0\" * 64)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^\n        )\nE       IndexError: list index out of range\n\n/tmp/korpus-m96_anchor_ahead_of_head_accepted-lgqce_ja/api-src/korpus/infrastructure/audit_reader.py:160: IndexError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_ahead_of_the_head_is_invalid - IndexError: list index out of range\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M127_SPLIT_NUMBER_NOT_FLAGGED",
+      "file": "apps/api/src/korpus/application/numeric_integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_numeric_integrity.py::test_a_number_split_by_a_space_is_flagged"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_a_number_split_by_a_space_is_flagged ___________________\n\n    def test_a_number_split_by_a_space_is_flagged() -> None:\n        \"\"\"The failure this module exists for: 300 read as 3 00, and nothing else notices.\"\"\"\n        result = assess_numeric_integrity(\"Встановити зону безпеки не менше 3 00 м від об'єкта.\")\n    \n>       assert SPLIT_NUMBER_FLAG in result.flags\nE       AssertionError: assert 'split_number' in frozenset()\nE        +  where frozenset() = NumericIntegrity(quantities=1, flags=frozenset(), samples=()).flags\n\napps/api/tests/test_numeric_integrity.py:45: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_numeric_integrity.py::test_a_number_split_by_a_space_is_flagged - AssertionError: assert 'split_number' in frozenset()\n +  where frozenset() = NumericIntegrity(quantities=1, flags=frozenset(), samples=()).flags\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M175_OPERATIONAL_VARIABLES_REPORTED_AS_TYPOS",
+      "file": "apps/api/src/korpus/config.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_configuration_typos.py::test_operational_variables_are_not_flagged"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "   Full diff:\nE         - []\nE         + [\nE         +     'KORPUS_BACKUP_DATABASE_URL',\nE         +     'KORPUS_BACKUP_DIR',\nE         +     'KORPUS_BACKUP_ENCRYPTION_KEY',\nE         +     'KORPUS_BACKUP_ENCRYPTION_KEY_FILE',\nE         +     'KORPUS_BACKUP_KEY_ID',\nE         +     'KORPUS_BACKUP_OBJECT_ROOT',\nE         +     'KORPUS_BACKUP_RETENTION_COUNT',\nE         +     'KORPUS_BACKUP_RETENTION_DAYS',\nE         +     'KORPUS_BACKUP_SECOND_DIR',\nE         +     'KORPUS_BACKUP_SQLITE_PATH',\nE         +     'KORPUS_DATABASE_PASSWORD_FILE',\nE         +     'KORPUS_DATABASE_URL_TEMPLATE',\nE         +     'KORPUS_MUTATION_JOBS',\nE         +     'KORPUS_MUTATION_SHARDS',\nE         +     'KORPUS_POSTGRES_ADMIN_URL',\nE         +     'KORPUS_POSTGRES_APP_PASSWORD',\nE         +     'KORPUS_POSTGRES_APP_PASSWORD_FILE',\nE         +     'KORPUS_POSTGRES_APP_ROLE',\nE         +     'KORPUS_POSTGRES_TEST_URL',\nE         +     'KORPUS_RECOVERY_BACKUP_PATH',\nE         +     'KORPUS_RECOVERY_ENVIRONMENT_CLASS',\nE         +     'KORPUS_RECOVERY_PHASE',\nE         +     'KORPUS_RECOVERY_RESTORED_URL',\nE         +     'KORPUS_RECOVERY_RESTORE_SECONDS',\nE         +     'KORPUS_RECOVERY_SEED_URL',\nE         +     'KORPUS_RECOVERY_SOURCE_URL',\nE         +     'KORPUS_RESTORE_DATABASE_URL',\nE         +     'KORPUS_TEST_DATABASE_ADMIN_URL',\nE         +     'KORPUS_TEST_DATABASE_URL',\nE         + ]\n\napps/api/tests/test_configuration_typos.py:39: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_configuration_typos.py::test_operational_variables_are_not_flagged - AssertionError: assert ['KORPUS_BACK...CT_ROOT', ...] == []\n  \n  Left contains 29 more items, first extra item: 'KORPUS_BACKUP_DATABASE_URL'\n  \n  Full diff:\n  - []\n  + [\n  +     'KORPUS_BACKUP_DATABASE_URL',\n  +     'KORPUS_BACKUP_DIR',\n  +     'KORPUS_BACKUP_ENCRYPTION_KEY',\n  +     'KORPUS_BACKUP_ENCRYPTION_KEY_FILE',\n  +     'KORPUS_BACKUP_KEY_ID',\n  +     'KORPUS_BACKUP_OBJECT_ROOT',\n  +     'KORPUS_BACKUP_RETENTION_COUNT',\n  +     'KORPUS_BACKUP_RETENTION_DAYS',\n  +     'KORPUS_BACKUP_SECOND_DIR',\n  +     'KORPUS_BACKUP_SQLITE_PATH',\n  +     'KORPUS_DATABASE_PASSWORD_FILE',\n  +     'KORPUS_DATABASE_URL_TEMPLATE',\n  +     'KORPUS_MUTATION_JOBS',\n  +     'KORPUS_MUTATION_SHARDS',\n  +     'KORPUS_POSTGRES_ADMIN_URL',\n  +     'KORPUS_POSTGRES_APP_PASSWORD',\n  +     'KORPUS_POSTGRES_APP_PASSWORD_FILE',\n  +     'KORPUS_POSTGRES_APP_ROLE',\n  +     'KORPUS_POSTGRES_TEST_URL',\n  +     'KORPUS_RECOVERY_BACKUP_PATH',\n  +     'KORPUS_RECOVERY_ENVIRONMENT_CLASS',\n  +     'KORPUS_RECOVERY_PHASE',\n  +     'KORPUS_RECOVERY_RESTORED_URL',\n  +     'KORPUS_RECOVERY_RESTORE_SECONDS',\n  +     'KORPUS_RECOVERY_SEED_URL',\n  +     'KORPUS_RECOVERY_SOURCE_URL',\n  +     'KORPUS_RESTORE_DATABASE_URL',\n  +     'KORPUS_TEST_DATABASE_ADMIN_URL',\n  +     'KORPUS_TEST_DATABASE_URL',\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M209_WEBHOOK_STREAM_SIZE_LIMIT_BYPASSED",
+      "file": "apps/api/src/korpus/api/request_limits.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tenancy_threats.py::test_t12b_chunked_oversize_stops_at_the_first_excess_chunk"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_t12b_chunked_oversize_stops_at_the_first_excess_chunk __________\n\n    def test_t12b_chunked_oversize_stops_at_the_first_excess_chunk() -> None:\n        import asyncio\n        from fastapi import HTTPException\n        from korpus.api.request_limits import bounded_webhook_body\n    \n        class Request:\n            headers: dict[str, str] = {}\n    \n            async def stream(self):\n                yield b\"a\" * (64 * 1024)\n                yield b\"b\"\n                raise AssertionError(\"reader continued after the hard ceiling\")\n    \n        with pytest.raises(HTTPException) as denial:\n>           asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_tenancy_threats.py:374: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/lib/python3.13/asyncio/runners.py:195: in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/runners.py:118: in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/base_events.py:725: in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n/tmp/korpus-m209_webhook_stream_size_limit_bypassed-ypi64obu/api-src/korpus/api/request_limits.py:23: in bounded_webhook_body\n    async for chunk in request.stream():\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <apps.api.tests.test_tenancy_threats.test_t12b_chunked_oversize_stops_at_the_first_excess_chunk.<locals>.Request object at 0x7f3e296e8590>\n\n    async def stream(self):\n        yield b\"a\" * (64 * 1024)\n        yield b\"b\"\n>       raise AssertionError(\"reader continued after the hard ceiling\")\nE       AssertionError: reader continued after the hard ceiling\n\napps/api/tests/test_tenancy_threats.py:371: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tenancy_threats.py::test_t12b_chunked_oversize_stops_at_the_first_excess_chunk - AssertionError: reader continued after the hard ceiling\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M257_TEVV_DECLARED_AGGREGATE_CONFLICT_IGNORED",
+      "file": "apps/api/src/korpus/application/tevv_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure _________\n\n    def test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure() -> None:\n        evidence, _ = _evidence()\n        evidence[\"observation_ledger\"][0][\"leakage_failures\"] = 1\n        evidence[\"leakage_failures\"] = 0\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n        assert result[\"checks\"][\"leakage\"] is False\n>       assert result[\"checks\"][\"declared_aggregates_consistent\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:120: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:30:50+00:00"
+  }
+}

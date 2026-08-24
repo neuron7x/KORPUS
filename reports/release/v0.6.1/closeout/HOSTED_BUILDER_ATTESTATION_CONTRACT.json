@@ -1,0 +1,32 @@
+{
+  "schema": "korpus.hosted-builder-attestation-contract.v1",
+  "status": "CONFIGURED_NOT_EXECUTED_HERE",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "workflow": ".github/workflows/release.yml",
+  "workflow_sha256": "ba120233973397cfa909d92a372068dcd5dc21346dcbec6254075bbc3600702d",
+  "action_uses": [
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "actions/attest@a1948c3f048ba23858d222213b7c278aabede763",
+    "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+  ],
+  "permissions": {
+    "contents": "read",
+    "id-token": "write",
+    "attestations": "write"
+  },
+  "expected_builder": "GitHub-hosted ubuntu-24.04",
+  "artifact_attestation_action": "actions/attest@a1948c3f048ba23858d222213b7c278aabede763",
+  "static_workflow_validation": "PASS",
+  "trust_roots": {
+    "schema": "korpus.trusted-assurance-signers.v1",
+    "environment_ed25519_public_key_sha256": [],
+    "supply_chain_ed25519_public_key_sha256": [],
+    "interpretation": "Empty by default. Production-like environment and supply-chain evidence cannot pass until independently controlled signer fingerprints are explicitly admitted.",
+    "production_assurance_ed25519_public_key_sha256": [],
+    "release_ed25519_public_key_sha256": []
+  },
+  "interpretation": "The hosted-builder and artifact-attestation path is fully declared and SHA-pinned. It is not self-executed or trusted by this ChatGPT runtime."
+}

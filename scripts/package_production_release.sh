@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$root"
+: "${GITLAB_CI:?production release is permitted only in GitLab CI}"
+[[ "$GITLAB_CI" == "true" ]] || { echo "production release requires GitLab CI" >&2; exit 1; }
+: "${CI_COMMIT_REF_PROTECTED:?protected-ref status is required}"
+[[ "$CI_COMMIT_REF_PROTECTED" == "true" ]] || { echo "production release requires a protected ref" >&2; exit 1; }
+: "${CI_COMMIT_TAG:?production release requires a tag pipeline}"
+expected_tag="$(python3 -c 'import sys; sys.path.insert(0,"scripts"); from release_identity import release_tag; print(release_tag())')"
+[[ "$CI_COMMIT_TAG" == "$expected_tag" ]] || { echo "CI tag does not match canonical release identity" >&2; exit 1; }
+: "${KORPUS_RELEASE_SIGNING_KEY:?KORPUS_RELEASE_SIGNING_KEY must point to an external Ed25519 private key}"
+: "${KORPUS_HOSTED_BUILDER_SIGNING_KEY:?hosted-builder Ed25519 signing key is required}"
+: "${KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256:?production-assurance trust root is required}"
+: "${KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256:?hosted-builder trust root is required}"
+: "${KORPUS_TRUSTED_RELEASE_SIGNER_SHA256:?release trust root is required}"
+: "${KORPUS_TRUSTED_BUILDER_ID:?trusted hosted builder id is required}"
+[[ "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256" ]] || { echo "production-assurance and release trust roots must differ" >&2; exit 1; }
+[[ "$KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256" ]] || { echo "hosted-builder and release trust roots must differ" >&2; exit 1; }
+[[ "$KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256" != "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" ]] || { echo "hosted-builder and assurance trust roots must differ" >&2; exit 1; }
+python3 scripts/check_release_identity.py --require-git-tag
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_production_assurance.py
+scripts/package_repository.sh
+name="$(python3 -c 'import sys; sys.path.insert(0,"scripts"); from release_identity import load_release_identity; print(load_release_identity()["artifact_stem"])')"
+artifact="dist/${name}.zip"
+manifest="dist/${name}.release-manifest.json"
+attestation="dist/${name}.release-attestation.json"
+builder_provenance="dist/${name}.builder-provenance.json"
+builder_attestation="dist/${name}.builder-attestation.json"
+final_authorization="dist/${name}.final-production-authorization.json"
+PYTHONPATH=apps/api/src:scripts python3 scripts/slsa_provenance.py generate --artifact "$artifact" --out "$builder_provenance" --builder-id "$KORPUS_TRUSTED_BUILDER_ID" --invocation-id "${CI_PIPELINE_ID:-${CI_JOB_ID:-unknown}}"
+python3 scripts/release_attestation.py sign --manifest "$builder_provenance" --key "$KORPUS_HOSTED_BUILDER_SIGNING_KEY" --out "$builder_attestation"
+python3 - "$artifact" "$manifest" <<'PY'
+import hashlib, json, subprocess, sys
+from pathlib import Path
+artifact, out = map(Path, sys.argv[1:])
+root = Path.cwd()
+sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+release = json.loads((root/'apps/api/src/korpus/release.json').read_text())
+payload = {
+  'schema': 'korpus.signed-release-manifest.v1',
+  'release': release['tag'],
+  'git_commit': subprocess.run(['git','rev-parse','HEAD'],capture_output=True,text=True,check=True).stdout.strip(),
+  'artifact': artifact.name,
+  'artifact_sha256': sha(artifact),
+  'source_manifest_sha256': sha(root/'SOURCE_MANIFEST.json'),
+  'production_assurance_sha256': sha(root/'reports/PRODUCTION_ASSURANCE_REPORT.json'),
+}
+out.write_text(json.dumps(payload, sort_keys=True, separators=(',', ':'))+'\n')
+PY
+python3 scripts/release_attestation.py sign --manifest "$manifest" --key "$KORPUS_RELEASE_SIGNING_KEY" --out "$attestation"
+python3 scripts/release_attestation.py verify --manifest "$manifest" --attestation "$attestation" --trust-config config/assurance/trusted-assurance-signers.json --trust-field release_ed25519_public_key_sha256 --trust-env KORPUS_TRUSTED_RELEASE_SIGNER_SHA256 --require-trusted
+PYTHONPATH=apps/api/src:scripts python3 scripts/verify_final_release_authorization.py \
+  --artifact "$artifact" --release-manifest "$manifest" --release-attestation "$attestation" \
+  --builder-provenance "$builder_provenance" --builder-attestation "$builder_attestation" \
+  --out "$final_authorization"
+sha256sum "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$final_authorization" > "dist/${name}.production.sha256"
+printf '%s\n' "$artifact" "$manifest" "$attestation" "$builder_provenance" "$builder_attestation" "$final_authorization"

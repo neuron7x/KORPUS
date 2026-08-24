@@ -1,13 +1,12 @@
-# Evaluation protocol
+# Frozen evaluation
 
-Maintain separate frozen and development sets. Questions are written or approved by
-domain reviewers and include expected source versions, acceptable alternates, answer
-requirements, access tier, risk class and expected abstention.
+`datasets/frozen.jsonl` is the minimum executable gate. Any retrieval, authorization, extraction, ranking, answer, or provider change must run it unchanged. New failure classes are appended; existing cases are never silently rewritten to make a model pass.
 
-Measure retrieval Recall@k, precision, MRR and nDCG; then answer correctness,
-claim-level faithfulness, citation precision/coverage, contradiction handling,
-abstention, access leakage, latency and cost. LLM judges are calibrated against a
-human-labeled subset and never serve as the only release gate.
+Metrics emitted by `scripts/run_evals.py`:
 
-Every production correction becomes a regression case after privacy review.
+- answer/abstention status accuracy;
+- unauthorized-corpus denial;
+- restricted-marker leakage;
+- exact case ledger.
 
+A production evaluation set additionally requires domain-expert annotations, temporal-version cases, OCR gold pages, contradiction pairs, citation precision/coverage, and inter-reviewer agreement. Those data are not fabricated in this repository.

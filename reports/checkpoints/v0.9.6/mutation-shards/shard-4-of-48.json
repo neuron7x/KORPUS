@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 4,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M05_SQL_CLEARANCE_FILTER_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_access_tier_is_enforced_in_repository_even_for_public_classification ___\n\nclient = <starlette.testclient.TestClient object at 0x7f3dd548c1a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_access_tier_is_enforced_in_repository_even_for_public_classification(\n        client, admin_identity, public_identity\n    ):\n        set_identity(client, admin_identity)\n        result = ingest_text(\n            client,\n            title=\"Tier-only restricted document\",\n            corpus_id=\"public\",\n            access_tier=3,\n            classification=\"public\",\n            text=\"TIER-ONLY-SECRET must never enter public candidate memory.\",\n        )\n        approve(client, result[\"version\"][\"id\"])\n        rows = client.app.state.repository.list_retrievable_spans(\n            public_identity, frozenset({\"public\"}), date.today()\n        )\n>       assert all(\"TIER-ONLY-SECRET\" not in span.text for span, _, _ in rows)\nE       assert False\nE        +  where False = all(<generator object test_access_tier_is_enforced_in_repository_even_for_public_classification.<locals>.<genexpr> at 0x7f3dd40b3ae0>)\n\napps/api/tests/test_access_control.py:116: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_control.py::test_access_tier_is_enforced_in_repository_even_for_public_classification - assert False\n +  where False = all(<generator object test_access_tier_is_enforced_in_repository_even_for_public_classification.<locals>.<genexpr> at 0x7f3dd40b3ae0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M51_INTEGRITY_PROBE_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________________ test_healthcheck_fails_on_a_corrupt_database _________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-378/test_healthcheck_fails_on_a_co0')\n\n    def test_healthcheck_fails_on_a_corrupt_database(tmp_path: Path) -> None:\n        \"\"\"Readable is not intact: the probe has to be able to fail.\"\"\"\n        database = tmp_path / \"corrupt.db\"\n        repository = SqlRepository(\n            f\"sqlite:///{database}\", audit_hmac_key=\"k\" * 32, audit_anchor_path=tmp_path / \"anchor.json\"\n        )\n        repository.initialize()\n        assert repository.healthcheck() is True\n        repository.close()\n    \n        with sqlite3.connect(database) as raw:\n            page_size = raw.execute(\"PRAGMA page_size\").fetchone()[0]\n        with database.open(\"r+b\") as handle:\n            handle.seek(page_size * 2)\n            handle.write(b\"\\x00\" * page_size)\n    \n        broken = SqlRepository(\n            f\"sqlite:///{database}\", audit_hmac_key=\"k\" * 32, audit_anchor_path=tmp_path / \"anchor.json\"\n        )\n        try:\n>           assert broken.healthcheck() is False, (\n                \"SELECT 1 succeeds against a corrupt file; the integrity probe must not\"\n            )\nE           AssertionError: SELECT 1 succeeds against a corrupt file; the integrity probe must not\nE           assert True is False\nE            +  where True = healthcheck()\nE            +    where healthcheck = <korpus.infrastructure.repository.SqlRepository object at 0x7fa878c5a990>.healthcheck\n\napps/api/tests/test_resilience_and_audit_scope.py:109: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_healthcheck_fails_on_a_corrupt_database - AssertionError: SELECT 1 succeeds against a corrupt file; the integrity probe must not\nassert True is False\n +  where True = healthcheck()\n +    where healthcheck = <korpus.infrastructure.repository.SqlRepository object at 0x7fa878c5a990>.healthcheck\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M95_DELAYED_ANCHOR_REPORTED_AS_BROKEN_CHAIN",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_an_anchor_behind_the_head_is_pending_not_invalid _____________\n\nclient = <starlette.testclient.TestClient object at 0x7f7bd70cc1a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_an_anchor_behind_the_head_is_pending_not_invalid(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        repository = client.app.state.repository\n        first = repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"1\", {\"n\": 1})\n        repository.append_audit(admin_identity, \"anchor.probe\", \"test\", \"2\", {\"n\": 2})\n        # The store is monotonic by design, so an anchor cannot be moved backwards;\n        # resetting and re-writing reproduces the state a slow delivery leaves.\n        repository.anchor_store.reset()\n        repository.anchor_store.write(1, first)\n    \n        verification = repository.verify_audit()\n    \n>       assert verification.valid is True, verification.reason\nE       AssertionError: 1 checkpoints awaiting anchor delivery\nE       assert False is True\nE        +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n\napps/api/tests/test_audit_anchor_semantics.py:66: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_anchor_semantics.py::test_an_anchor_behind_the_head_is_pending_not_invalid - AssertionError: 1 checkpoints awaiting anchor delivery\nassert False is True\n +  where False = AuditVerification(valid=False, event_count=2, head_sequence=2, anchor_valid=False, anchor_pending=1, first_invalid_sequence=None, reason='1 checkpoints awaiting anchor delivery').valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M134_PROSE_FLAGGED_AS_A_BROKEN_TABLE",
+      "file": "apps/api/src/korpus/application/table_integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_table_integrity.py::test_wrapped_prose_with_single_spaces_is_not_a_table"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_wrapped_prose_with_single_spaces_is_not_a_table _____________\n\n    def test_wrapped_prose_with_single_spaces_is_not_a_table() -> None:\n        \"\"\"Single spaces are word gaps; only an aligned run survives as a column boundary.\"\"\"\n        text = \"\\n\".join(\n            [\n                \"Норма добових витрат становить 2,5 кг на особу\",\n                \"для першої категорії та 1,8 кг для другої\",\n                \"категорії згідно з додатком 3 до наказу\",\n            ]\n        )\n    \n>       assert assess_table_integrity(text).flags == frozenset()\nE       AssertionError: assert frozenset({'t...ucture_lost'}) == frozenset()\nE         \nE         Extra items in the left set:\nE         'table_structure_lost'\nE         \nE         Full diff:\nE         - frozenset()\nE         ?           ^\nE         + frozenset({\nE         ?           ^\nE         +     'table_structure_lost',\nE         + })\n\napps/api/tests/test_table_integrity.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_table_integrity.py::test_wrapped_prose_with_single_spaces_is_not_a_table - AssertionError: assert frozenset({'t...ucture_lost'}) == frozenset()\n  \n  Extra items in the left set:\n  'table_structure_lost'\n  \n  Full diff:\n  - frozenset()\n  ?           ^\n  + frozenset({\n  ?           ^\n  +     'table_structure_lost',\n  + })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M174_TYPO_DETECTOR_ACCEPTS_EVERYTHING",
+      "file": "apps/api/src/korpus/config.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_a_misspelled_setting_is_named ______________________\n\n    def test_a_misspelled_setting_is_named() -> None:\n        unknown = unknown_settings_variables({\"KORPUS_REQUIRE_SOURCE_SIGNATURE\": \"true\"})\n    \n>       assert unknown == [\"KORPUS_REQUIRE_SOURCE_SIGNATURE\"]\nE       AssertionError: assert [] == ['KORPUS_REQU...CE_SIGNATURE']\nE         \nE         Right contains one more item: 'KORPUS_REQUIRE_SOURCE_SIGNATURE'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'KORPUS_REQUIRE_SOURCE_SIGNATURE',\nE         - ]\n\napps/api/tests/test_configuration_typos.py:27: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named - AssertionError: assert [] == ['KORPUS_REQU...CE_SIGNATURE']\n  \n  Right contains one more item: 'KORPUS_REQUIRE_SOURCE_SIGNATURE'\n  \n  Full diff:\n  + []\n  - [\n  -     'KORPUS_REQUIRE_SOURCE_SIGNATURE',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M208_WEBHOOK_DECLARED_SIZE_LIMIT_BYPASSED",
+      "file": "apps/api/src/korpus/api/request_limits.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_t12a_declared_oversize_is_refused_before_stream_consumption _______\n\n    def test_t12a_declared_oversize_is_refused_before_stream_consumption() -> None:\n        import asyncio\n        from fastapi import HTTPException\n        from korpus.api.request_limits import bounded_webhook_body\n    \n        class Request:\n            headers = {\"content-length\": str(64 * 1024 + 1)}\n    \n            async def stream(self):\n                raise AssertionError(\"oversized declared body was consumed\")\n                yield b\"\"\n    \n        with pytest.raises(HTTPException) as denial:\n>           asyncio.run(bounded_webhook_body(Request()))  # type: ignore[arg-type]\n            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_tenancy_threats.py:356: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/lib/python3.13/asyncio/runners.py:195: in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/runners.py:118: in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/asyncio/base_events.py:725: in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n/tmp/korpus-m208_webhook_declared_size_limit_bypassed-pur1nsif/api-src/korpus/api/request_limits.py:23: in bounded_webhook_body\n    async for chunk in request.stream():\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <apps.api.tests.test_tenancy_threats.test_t12a_declared_oversize_is_refused_before_stream_consumption.<locals>.Request object at 0x7f7e50430440>\n\n    async def stream(self):\n>       raise AssertionError(\"oversized declared body was consumed\")\nE       AssertionError: oversized declared body was consumed\n\napps/api/tests/test_tenancy_threats.py:352: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tenancy_threats.py::test_t12a_declared_oversize_is_refused_before_stream_consumption - AssertionError: oversized declared body was consumed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M256_TEVV_ATTACK_COVERAGE_BYPASSED",
+      "file": "apps/api/src/korpus/application/tevv_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_ledger_must_cover_required_attack_families"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_trusted_tevv_ledger_must_cover_required_attack_families _________\n\n    def test_trusted_tevv_ledger_must_cover_required_attack_families() -> None:\n        evidence, _ = _evidence()\n        required = json.loads(tevv_gate.PROFILE.read_text())[\"required_attack_families\"]\n        missing = required[-1]\n        for row in evidence[\"observation_ledger\"]:\n            if missing in row[\"attack_families\"]:\n                row[\"attack_families\"] = [required[0]]\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n>       assert result[\"checks\"][\"required_attack_families_covered\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:110: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_ledger_must_cover_required_attack_families - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T14:54:11+00:00"
+  }
+}

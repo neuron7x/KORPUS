@@ -1,0 +1,163 @@
+{
+  "schema": "korpus.desired-state.v1",
+  "release": "v0.9.7",
+  "root_sha256": "3cc09027a51a4eaf7ecaa7ac8fc78cea33cd5d10bf96c9ee256638ec672d4d1b",
+  "records": [
+    {
+      "path": ".github/dependabot.yml",
+      "sha256": "7c6f08bc868da67bbd3fe89a389610bac3148beb359ccdc39349cbdec1cb90e3",
+      "bytes": 911
+    },
+    {
+      "path": ".github/workflows/assurance.yml",
+      "sha256": "23d3cead359161f9759dd16b0400713b603c0073ed4dc061eb752390bd4bc30c",
+      "bytes": 2812
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "b81402f27b5cea776a7883e18d15f98a55e75a801aea1aed713315a045233c74",
+      "bytes": 3953
+    },
+    {
+      "path": ".github/workflows/dependency-review.yml",
+      "sha256": "c8c5f183533cdfe48c7e6e3b06ed9e3b2ece68f80d074b31f33b046b12f1e1a9",
+      "bytes": 661
+    },
+    {
+      "path": ".github/workflows/external-assurance-ingest.yml",
+      "sha256": "04986f884dd26aa6baa278b114ac3e05db29c8a80fb8c43210959d878668f725",
+      "bytes": 2943
+    },
+    {
+      "path": ".github/workflows/gcp-drill.yml",
+      "sha256": "841d7bc701526d4ada64aeeb0dde1c56b13e737e54630b7c89ccdab2be2512ba",
+      "bytes": 1965
+    },
+    {
+      "path": ".github/workflows/gcp-foundation.yml",
+      "sha256": "74b02d6aa60455071c71f1424a75db7d4f99bc6da3d84ee4a4f9ed25c92c8a8d",
+      "bytes": 3695
+    },
+    {
+      "path": ".github/workflows/gcp-production.yml",
+      "sha256": "aed917b4076390399a33aa069c513fb5d217b7a35c05ff096ecf188f480d6fcf",
+      "bytes": 26233
+    },
+    {
+      "path": ".github/workflows/pec-production-evidence.yml",
+      "sha256": "f36949cefcc1f53ed6c12ce306298f74137d4ae310b1809500852f1012ed5e29",
+      "bytes": 4383
+    },
+    {
+      "path": ".github/workflows/production-load-evidence.yml",
+      "sha256": "0148643c714d1a02ee9742b71e23ff1c77796ca63d7b20088120045f5bd6c713",
+      "bytes": 3093
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "sha256": "dc09925fb474cd5d83c5fce499367b778646d541e391a986bb8955c17bf04ce5",
+      "bytes": 3088
+    },
+    {
+      "path": ".gitlab-ci.yml",
+      "sha256": "27183c8d470864b976095518b3135a8947bad1f4a131ea0a055f96257f0d833d",
+      "bytes": 31139
+    },
+    {
+      "path": "apps/api/Dockerfile",
+      "sha256": "dfae41e86fa7ac1c0bcb61f6e95783bf5b0b0f2fa9786c4cc1b9bd3821d6a322",
+      "bytes": 2501
+    },
+    {
+      "path": "apps/api/requirements.dev.lock",
+      "sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc",
+      "bytes": 2370
+    },
+    {
+      "path": "apps/api/requirements.runtime.lock",
+      "sha256": "5bf7c9e99af26e445e6d12c12a817fe6b838377240939f06127ec586a1f06f98",
+      "bytes": 5771
+    },
+    {
+      "path": "apps/web/Dockerfile",
+      "sha256": "193b1f0cf4ec8c89b78f1d0da0a56ffb8e5d6b0eb6a67ebd1451c9a8dab64e49",
+      "bytes": 1716
+    },
+    {
+      "path": "deploy/kubernetes/base/api-deployment.yaml",
+      "sha256": "ec533ad523dd13acf4d39ed22d837c7fbc510e44ed993fc327549f56f1c7cb15",
+      "bytes": 2038
+    },
+    {
+      "path": "deploy/kubernetes/base/configmap.yaml",
+      "sha256": "04a6303734ed9c311868c2457a1a2fdf47e867bc9ccb1d80dd059a74225bfa1b",
+      "bytes": 1748
+    },
+    {
+      "path": "deploy/kubernetes/base/kustomization.yaml",
+      "sha256": "85137cfe7747753adcd64588d30a970e77f74677809de2fcf8bf93da82e03785",
+      "bytes": 295
+    },
+    {
+      "path": "deploy/kubernetes/base/migrate-job.yaml",
+      "sha256": "bd2b770fea37bdbe8eaa97cb23eaca7b03cb65ae6a419ec2cbdd7e586abf7b4e",
+      "bytes": 1159
+    },
+    {
+      "path": "deploy/kubernetes/base/namespace.yaml",
+      "sha256": "36fd05bbc49680ef5d35f29e42a162d67aaec1ed0c9c913aa5d0f348f4eeafb6",
+      "bytes": 214
+    },
+    {
+      "path": "deploy/kubernetes/base/networkpolicies.yaml",
+      "sha256": "5b4ff20dac2bce5ef55684f6ae91f97fd99157d8a24d0d1401e2588ffa0fd11d",
+      "bytes": 1515
+    },
+    {
+      "path": "deploy/kubernetes/base/policies.yaml",
+      "sha256": "b5ccf6935e51c5239cde55bce22b3a77d5455f2a2e25efa03909aec5c5d60dd5",
+      "bytes": 1296
+    },
+    {
+      "path": "deploy/kubernetes/base/serviceaccounts.yaml",
+      "sha256": "124e47ebf05ef6434d7d017423f772ba95d2a2bb3e2fe2786f61571b673e0919",
+      "bytes": 374
+    },
+    {
+      "path": "deploy/kubernetes/base/services.yaml",
+      "sha256": "b13f27a4cb678aeac224a176be8e2772713f1e4e4928127e7f776c7dfc195a10",
+      "bytes": 376
+    },
+    {
+      "path": "deploy/kubernetes/base/web-deployment.yaml",
+      "sha256": "3f7328b178b91760c95e6ed1888a8f2eb16be2b5516d548c2c42ac50ef0fa5ca",
+      "bytes": 1487
+    },
+    {
+      "path": "deploy/kubernetes/base/worker-deployment.yaml",
+      "sha256": "d58fb190c47eb89a22c2c37513012ff236d1df8b17070bf111d79984afab2fe6",
+      "bytes": 1575
+    },
+    {
+      "path": "deploy/kubernetes/overlays/production/kustomization.yaml",
+      "sha256": "05c05536298180f9834bdffe250b52b08ad3728296a33648991a091c45cecb4d",
+      "bytes": 507
+    },
+    {
+      "path": "docker-compose.yml",
+      "sha256": "eea8866cf43515c4e60ade8954fe605bb121650b259de9e0af238805d46b2916",
+      "bytes": 15857
+    },
+    {
+      "path": "infra/minio/korpus-app-policy.json",
+      "sha256": "c897db55cfaaf4a4aa671a7b14b7568a5837fedf2d51dce82fa8e73c106c89de",
+      "bytes": 747
+    },
+    {
+      "path": "infra/otel-collector.yaml",
+      "sha256": "e4971ff04cebeba8c813ef83fd86ad8a834ccff00c4869241000091460ddb212",
+      "bytes": 749
+    }
+  ],
+  "interpretation": "Source desired-state fingerprint only; live cluster drift requires external reconciliation."
+}

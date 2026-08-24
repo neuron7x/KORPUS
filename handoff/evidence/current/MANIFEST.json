@@ -1,0 +1,1131 @@
+{
+  "schema": "korpus.portable-evidence-manifest.v1",
+  "release": "v0.9.7",
+  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "generated_at": "2026-08-23T17:10:00Z",
+  "scope": "current local executable evidence copied from runtime-only locations into portable handoff surface",
+  "production_authorization_sufficient": false,
+  "file_count": 224,
+  "files": [
+    {
+      "path": "handoff/evidence/current/determinism/determinism-gate.json",
+      "bytes": 1623,
+      "sha256": "52ddec4b4a39af18685a2d1fa7326ff94c342f574585845ee44f557ea31bede4"
+    },
+    {
+      "path": "handoff/evidence/current/determinism/determinism-gate.log",
+      "bytes": 1623,
+      "sha256": "52ddec4b4a39af18685a2d1fa7326ff94c342f574585845ee44f557ea31bede4"
+    },
+    {
+      "path": "handoff/evidence/current/governance/production-hard-predicates.json",
+      "bytes": 8211,
+      "sha256": "349a41bc3c392452590413380b8f1e6d5b8a9e11c94a85a5a3576c2c9a7db1d1"
+    },
+    {
+      "path": "handoff/evidence/current/governance/standards-map-current.json",
+      "bytes": 318,
+      "sha256": "bcfc9f1569c5331697b4c28549ce67f8427722a7ce46dad1d81f20954796bf14"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/gcp-production-contract.json",
+      "bytes": 14068,
+      "sha256": "d1281d13de4c55837a469a605c0714ff1890b173afe0ae79ae2d0883fa8a0648"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/gcp-production-validation.log",
+      "bytes": 14068,
+      "sha256": "d1281d13de4c55837a469a605c0714ff1890b173afe0ae79ae2d0883fa8a0648"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/gcp-slo-contract.json",
+      "bytes": 1909,
+      "sha256": "8ff32f1cb6aeed9aab61e3fa971c64007bcd1af85b94defc9c50c040d11ff0dc"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/gcp-slo-validation.log",
+      "bytes": 1909,
+      "sha256": "8ff32f1cb6aeed9aab61e3fa971c64007bcd1af85b94defc9c50c040d11ff0dc"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/infrastructure-validation.json",
+      "bytes": 246,
+      "sha256": "9d5b28b2850f8db35a848f77e681be40382c038ef1b8796824be479929bc0a38"
+    },
+    {
+      "path": "handoff/evidence/current/infrastructure/kubernetes-validation.json",
+      "bytes": 566,
+      "sha256": "bf57391c4276596219d2be8c05836bed8fb110ddfd9564473f687937b10af054"
+    },
+    {
+      "path": "handoff/evidence/current/local/eval-report.json",
+      "bytes": 19174,
+      "sha256": "ac5d6a84f4cc600a9828e8a3798ca4253fb2d03d6d64efe5f6a639ec51eb1649"
+    },
+    {
+      "path": "handoff/evidence/current/local/migration-report.json",
+      "bytes": 1737,
+      "sha256": "7a460c32f2e45f0baf5ba0ab69924bc048000a70f98c747fd61a48d5e055b04d"
+    },
+    {
+      "path": "handoff/evidence/current/local/scale-report.json",
+      "bytes": 1042,
+      "sha256": "6381658a6b3dff21e355606ddc7e952c832b965f1c89b23526f278ffec819860"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/mutation-current.json",
+      "bytes": 782114,
+      "sha256": "9a32f9bcf389737928bccca9669b243f2de140972486f079bb8fac911563bd26"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/mutation-report.json",
+      "bytes": 782114,
+      "sha256": "9a32f9bcf389737928bccca9669b243f2de140972486f079bb8fac911563bd26"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-0-of-8.json",
+      "bytes": 104439,
+      "sha256": "ff788c85877b7a7a48ac77709e47dd8f56ef18969898d5993162397e7a1d3e95"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-1-of-8.json",
+      "bytes": 101200,
+      "sha256": "a90ef155f5501d854a489fcf70f95cf6568c91fa284ee8e21c1dd2b219a9d9f9"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-2-of-8.json",
+      "bytes": 89948,
+      "sha256": "609dc404d7adb4510c88408c77c2e97f2cd33394c1cfec4109adaba76defddef"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-3-of-8.json",
+      "bytes": 98108,
+      "sha256": "b9c858dc3938d6dbffded670b3c0127923c8cbb53f76fdaeaa6f0c7a982b9aef"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-4-of-8.json",
+      "bytes": 96502,
+      "sha256": "f41af054306d6034b70fc393fbf56c3b2eb65811f8348771788a7e16dae12da0"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-5-of-8.json",
+      "bytes": 105236,
+      "sha256": "e8e5aa8ff69f172251234a43a3b846628ef4c521ac27a421df7d083747c5afe9"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-6-of-8.json",
+      "bytes": 90300,
+      "sha256": "9271d19ac372e9beeefa0c239c12519984c898b9673f95a5c3515756290f9601"
+    },
+    {
+      "path": "handoff/evidence/current/mutation/shards/shard-7-of-8.json",
+      "bytes": 99819,
+      "sha256": "fb975dff1a892e4f7e4d9fb4ca2e9d17f92fe373017c579deb8b73e4da030504"
+    },
+    {
+      "path": "handoff/evidence/current/operations/operational-gate.json",
+      "bytes": 1499,
+      "sha256": "cc8210cdb71d3c4bb17097fdeb16a57d8c9737c2ec7b349ba82ee43afa7b7d01"
+    },
+    {
+      "path": "handoff/evidence/current/regression/collection.json",
+      "bytes": 261770,
+      "sha256": "72281b60862db18b41453919614879da9de9a7dd588c47a8560e002af3029f7e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/merge-current.json",
+      "bytes": 3637,
+      "sha256": "9e2c887ec3f0a5ac98ce07fe5997543c7c602ab6d6fdf1cbd844cc31d00a9ca2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/merge.bg.log",
+      "bytes": 3637,
+      "sha256": "d72824c828532e4018e3e88752ac6830915a0752ff920401ec1278e32073f874"
+    },
+    {
+      "path": "handoff/evidence/current/regression/merge.json",
+      "bytes": 3637,
+      "sha256": "28ae4f07b6c6ca43a47538253bf2c8ba2359bf470ccac0abc93c828e5e98ccf2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-0.driver.log",
+      "bytes": 361,
+      "sha256": "cd08d5ad61b74d09b602a384b95f1d9da8091cbbb1f074bed59c22c973100364"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-0.json",
+      "bytes": 4129,
+      "sha256": "2b72cb45dc82787fe85f385a03e611053ef7105563e44707f5de52a24326d121"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-0.junit.xml",
+      "bytes": 4219,
+      "sha256": "f9cb75bbed7eccd3d039a366dfb0519bbff4499f4d7b29d7a8bfd5a4d37ccfc7"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-1.driver.log",
+      "bytes": 360,
+      "sha256": "43956484548e8f9161a84d0a75b977eed43bd610bbf66b9738a5461166ffbd88"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-1.json",
+      "bytes": 5565,
+      "sha256": "e3cb8cb52e65b84dda755f8dc0c58ae8f7dfe1aa83b8492acb10dd72ea384204"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-1.junit.xml",
+      "bytes": 5960,
+      "sha256": "fe3499656a47a4333c7d939e4499f04edf00c8ca71894af30c87ddcb4d42b95c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-10.driver.log",
+      "bytes": 361,
+      "sha256": "4ecf1ea884fe5a6a56fe5d1dc46f092d91e522292d1e2f236ba13282f1f22d7c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-10.json",
+      "bytes": 6058,
+      "sha256": "a8964ff3efa544b4e4142117c5dfcc9b7835e608e85490ba9ba92b2a82c9ecda"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-10.junit.xml",
+      "bytes": 6596,
+      "sha256": "0409e2366eff1d30d4e19d34df982fa0ce81e110c0bb0502defc42f6348def57"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-11.driver.log",
+      "bytes": 361,
+      "sha256": "e89ffc0e7b6728d2421758f69272693e35f3f40c39359f74896d3d2e6d8f80a0"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-11.json",
+      "bytes": 4121,
+      "sha256": "8a4e6eaaaec3b0a30d2fbdac026d78a09a87e4d59e777d601d751a8c0845b9cc"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-11.junit.xml",
+      "bytes": 4203,
+      "sha256": "8813d142e4899c236503305a01c3d5eb571a21e16bf6a91606012660cafc1cf1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-12.driver.log",
+      "bytes": 362,
+      "sha256": "105360ee27116ae2b668c0e1e789f23b5afd42ed3ad6aac73b4c113357243690"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-12.json",
+      "bytes": 4529,
+      "sha256": "3e03cdce1b5c52aad4f20f9e9d48c76d779ffbec7040837174fd7fc09729304f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-12.junit.xml",
+      "bytes": 4706,
+      "sha256": "2e7cec1769580fe49e509e6f38ffe642c237e828d133f68e579ecb48f6de68bb"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-13.driver.log",
+      "bytes": 362,
+      "sha256": "85627e65c45fd3c5e1a39f1b3ae779e6fb13f281099c09aa1bd105194d5d8f96"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-13.json",
+      "bytes": 4297,
+      "sha256": "5057a6e6fdd9b040f1a54f554514d37814583023689892cf44c01088b6e1029e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-13.junit.xml",
+      "bytes": 4451,
+      "sha256": "ab902d146e5a8faa98b46de8f23254fa747849cb157346807baacac3a7e496f2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-14.driver.log",
+      "bytes": 361,
+      "sha256": "f82f27f3befee2268de1aa6af69336e687d485e98bfee41b4c9250eb45703d25"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-14.json",
+      "bytes": 4729,
+      "sha256": "9558984a3b4ec79d4506545fbfdc7edc781973576dee353b63e3971010d0e9d1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-14.junit.xml",
+      "bytes": 4955,
+      "sha256": "39dfb9b48b889f30d8f36df34a741041dced4c7c167ed39caf5f8a5c34fc663d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-15.driver.log",
+      "bytes": 362,
+      "sha256": "4b7ba763ca2a85f547b8efcfbcd206991d6d6a2e25a0d355e611a86f0dfbb776"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-15.json",
+      "bytes": 5586,
+      "sha256": "6474abbbae8a7f59fd9f5821b7dd95c797706d7d8cd1e618885994579b016c18"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-15.junit.xml",
+      "bytes": 6003,
+      "sha256": "0cde6bce5c02640e039e581262f3aefe520d70333e19da04e812e1289bf5d697"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-16.driver.log",
+      "bytes": 362,
+      "sha256": "b6719a532de37b334091f073c5f746fef63d6132c0d3bba5dbb3924d5e85e2ea"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-16.json",
+      "bytes": 4954,
+      "sha256": "1973abb368770a0264c101b4e4f17e70e55f8a670d2c06e8835a7e6a87dbeb95"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-16.junit.xml",
+      "bytes": 5226,
+      "sha256": "01f82df239a0d1eeb62f58522d5d417f1079a4d21692376bfd349eee56cf7678"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-17.driver.log",
+      "bytes": 362,
+      "sha256": "0bbc95634a8703e3cc2766f5eb015d316ec68156381755fbaa6ed4897210a723"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-17.json",
+      "bytes": 4709,
+      "sha256": "9de000507cede7f4592fe5c45bc73618b1784685a9b2a34f79d894426250d79d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-17.junit.xml",
+      "bytes": 4958,
+      "sha256": "af01c679f12c1c740ca5c122a08d2a4f02240fe7ea23911dd53813cea355da2c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-18.driver.log",
+      "bytes": 362,
+      "sha256": "e895eda4616e0ef066818a391a655f9376d93cc2f8a85e56bfbf7030875a5fbe"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-18.json",
+      "bytes": 4827,
+      "sha256": "3c4c2a9d804f83afbf056251314c966976115e63198488ab4a6dd4c61b7a8ed6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-18.junit.xml",
+      "bytes": 5123,
+      "sha256": "7b40e46c2f5365ef522d2c322614932a48ee161fe6075d7d1da4cf3cfe3f76de"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-19.driver.log",
+      "bytes": 362,
+      "sha256": "6a6357f384c16b64f0545adf2f00951b065f12bc1abefaf3334f37e357640fc2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-19.json",
+      "bytes": 4842,
+      "sha256": "f36a108c295ad17f687b207f99c58cf4226cf1893581bb9ee648b83684acd1b4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-19.junit.xml",
+      "bytes": 5073,
+      "sha256": "238838b300ca6f1ccb92e2639f0d565fa73cb0cfc601625f8d257e3499c9a0b8"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-2.driver.log",
+      "bytes": 361,
+      "sha256": "96160440d2cca301728e5a67f1044afe86d85b8c93bdc143516893cfacdd4f09"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-2.json",
+      "bytes": 6145,
+      "sha256": "bd204c86647201ec4d59a7d5fd4177a5ca86aa81dc3aed6c5dc38f31a0a4f04f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-2.junit.xml",
+      "bytes": 6659,
+      "sha256": "b10f4b4118ab56638bc6243c8a4925c9fd5c808b4c6d98e61a77fec4c2454a31"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-20.driver.log",
+      "bytes": 361,
+      "sha256": "da6388504d9be6dd3ca90748f46751ac0e7ed91942de17572bb7e4b1e28f5981"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-20.json",
+      "bytes": 3959,
+      "sha256": "464f24fa0e7a0fc7fac049a4623e551e0be92b4237ac03e6114847148c3daacd"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-20.junit.xml",
+      "bytes": 4015,
+      "sha256": "b480b894d30c400870b3fcae7f41b0f159a1064f8db3ca2b18c8ba00cbb27291"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-21.driver.log",
+      "bytes": 362,
+      "sha256": "c830c9c110c5e4777ef590749ef8372b63cc1de7cfda406ade7a12bb0d06c7b2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-21.json",
+      "bytes": 4816,
+      "sha256": "3657a9a5e4491720effdcf53cc6d1482a0568772d3a958535d784247dd79e90d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-21.junit.xml",
+      "bytes": 5065,
+      "sha256": "e8170a307dd8ca4d7a5cb4368876eb9983c7e63a2d7765529dd26a39490e9ff6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-22.driver.log",
+      "bytes": 362,
+      "sha256": "4336e0d14aeaefa131d18ce173fafacf843a133bfe9cdd45972808466fe02488"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-22.json",
+      "bytes": 4222,
+      "sha256": "5b15f44f9535556aba7186d99bef7e6efe4b7b6bfefcba7f01c6077fea9446cc"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-22.junit.xml",
+      "bytes": 4351,
+      "sha256": "17d25b514a85ce2481bedb7957320cc2ce5f648a0e729fcf77596a78ea06609d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-23.driver.log",
+      "bytes": 362,
+      "sha256": "9709c7e803862d66cc52fe3227e2a830b1733ae0c2d6109d7829acfb4660e90c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-23.json",
+      "bytes": 5120,
+      "sha256": "a035118edfc1bdb350fe1b59b5b485e9c1c123cd461f1a6ee241793e7cfd5149"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-23.junit.xml",
+      "bytes": 5383,
+      "sha256": "277aa00378c1b5b28219d0cec2287b4d357ba2a4b6158835c8a269b2f3ad8d49"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-24.driver.log",
+      "bytes": 362,
+      "sha256": "0a442f0c54f5bc36bf282ca5de7571a7d1b73d3f226a8af476787deb9e492d9f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-24.json",
+      "bytes": 4562,
+      "sha256": "41fe8d1e0d0623f233520396b313d269b220eb5ebaa2f3b180ea894dba49ed8c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-24.junit.xml",
+      "bytes": 4739,
+      "sha256": "bd06a57f08e13600c41a3b5e625a9bc319e551d13a6e02548f3f5fb3dc0653e7"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-25.driver.log",
+      "bytes": 362,
+      "sha256": "a4fc57de4e08e6b3a4ea97bc41bf60aa00c82715d2225f626214c4fb645024f4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-25.json",
+      "bytes": 5169,
+      "sha256": "20f8dce373dbe851efcfe236e38094bd2ac58b302e3fa293285cdc782bb2e81b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-25.junit.xml",
+      "bytes": 5490,
+      "sha256": "aac9d13c234071f83e3f2a7a61ea2d2cc73d7d1729458987eb8a5f661ada5175"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-26.driver.log",
+      "bytes": 362,
+      "sha256": "9aa5b6223740598bc2370c12c530a990fcd8458ba9c7544aa0f8b2800c9cd8bc"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-26.json",
+      "bytes": 4133,
+      "sha256": "f8bff67843047523146f02a1b3b2b535bd2d81af94a46d9ad8696fc03e4cbf6d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-26.junit.xml",
+      "bytes": 4226,
+      "sha256": "8a00ce2072440302b554dc7236016d9da84aeddd36cf5567d1f76704374eee14"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-27.driver.log",
+      "bytes": 362,
+      "sha256": "1f4830972e0c3f62a8e25f70958394a9c102e9cd92efd1dc961a67824289d522"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-27.json",
+      "bytes": 4616,
+      "sha256": "fbc58157192fcb5330c41cd301aa098460a52e71849e56a553b95d102b8b8ffc"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-27.junit.xml",
+      "bytes": 4817,
+      "sha256": "fccee8b943217dfd6a3114689c06301ef3e8fab95072b4f72d2a73761804c83d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-28.driver.log",
+      "bytes": 361,
+      "sha256": "c982118279781f4b44e6f3696be027f3766fce04f29a7fa6f7f993d5b0d1d311"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-28.json",
+      "bytes": 5273,
+      "sha256": "d0077c5733f8f8fa4e7664d39952c4d8a433c4b16063e5dc1b32223030fc35a2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-28.junit.xml",
+      "bytes": 5557,
+      "sha256": "f374c3cfd2a1e9fcfb408cb61a5cdace2c65039f7e017a738c00ed531dc60303"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-29.driver.log",
+      "bytes": 362,
+      "sha256": "f049768cadb99c8ad89148844131802f47683288e6a1100d89b163ae7252e620"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-29.json",
+      "bytes": 5402,
+      "sha256": "4df62366ebc8ca4a23b987896b05f1ca1c1d21e0689eeabb154a59a3b206aeff"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-29.junit.xml",
+      "bytes": 5763,
+      "sha256": "336e62ec4fc8d4c8fc64bd863dd5449b15b774e242e705cec14302bfc1fa5586"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-3.driver.log",
+      "bytes": 361,
+      "sha256": "56e587552dee4e842566359a76a20fb49f14f8052fb8358f8bf4f2c7bb80518d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-3.json",
+      "bytes": 4156,
+      "sha256": "0bd6f8b836d22e928f6aa1fcfecb61017ad807ecc426a170eafdebd596da5f2f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-3.junit.xml",
+      "bytes": 4310,
+      "sha256": "de282ce85992e9c3fea94a04a963ded5723873e1e330aef64e810f77aac274f4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-30.driver.log",
+      "bytes": 362,
+      "sha256": "c8b45937e574ffec510e96eec782035565b6262ae2ce1315de92bffebb090f90"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-30.json",
+      "bytes": 4962,
+      "sha256": "d9a8c000f97d25fb85803ac3f5c28c283304294e491b9b41e024e96ef5e5ebda"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-30.junit.xml",
+      "bytes": 5259,
+      "sha256": "afd4e199523365df90a032780cf32840743ead7efa237de5c14d5e6a83851a28"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-31.driver.log",
+      "bytes": 361,
+      "sha256": "8fb05c7ac84697280b9291b4854241f68f718d727e3c2a3c0e4a5bf60f7d4444"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-31.json",
+      "bytes": 5347,
+      "sha256": "dff68b571f80ad6f2275babec32ffa2fcbf3331cdaa7d105f8939938b14c4919"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-31.junit.xml",
+      "bytes": 5699,
+      "sha256": "fa396b530b41a6e087a1a0628339764352e23d4cbc6700063210f7e33ad81031"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-32.driver.log",
+      "bytes": 362,
+      "sha256": "43e6a66f7b2b2993ca1d6556fba94b9139bf3f46bdd557009821c08140ababa6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-32.json",
+      "bytes": 6799,
+      "sha256": "24ff81d69851d1865581e585d076b0848f38dc4ab4b7f02d1cffd6c5e59316cb"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-32.junit.xml",
+      "bytes": 7408,
+      "sha256": "1373adb871b0f6f2f4a149d1496247262380ebd4511e5d8af7762853df89f215"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-33.driver.log",
+      "bytes": 362,
+      "sha256": "b01a0164df6ce59c8578c8acc188be7e58367232f740b0790a9bd64a121d3af7"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-33.json",
+      "bytes": 4389,
+      "sha256": "e1e99476c7d784c9585e2c5e1e0c909c155c7f3e6b196a8d2a90a017c583c141"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-33.junit.xml",
+      "bytes": 4542,
+      "sha256": "19a4f9ffa18e4a58b288dea26437665e353125fb80c1edcaf01e6f5bab27d090"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-34.driver.log",
+      "bytes": 362,
+      "sha256": "eca335d60c0778d30a0ae99f6f46596906abca8c3d0920c35583ccfaa8aa86f0"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-34.json",
+      "bytes": 4880,
+      "sha256": "7e5f283e9d8e30f4a3ad7286dab02e488999a636ae612c1384f926c0f88f1cfd"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-34.junit.xml",
+      "bytes": 5026,
+      "sha256": "140f2e8ad8ece3a4316372225f750fbf935ed15dd5fccdae3a70cc60449df6f2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-35.driver.log",
+      "bytes": 362,
+      "sha256": "803228dae40faf91ce276a725525b066ba5d088d50d4ee0be3807f534845a896"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-35.json",
+      "bytes": 5535,
+      "sha256": "798eac8ac6d5fe7671963b705cf182ff52e04e09528d63787e635cbb358b947b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-35.junit.xml",
+      "bytes": 5928,
+      "sha256": "b27dbc683c8e38478d20d29002f9e09c6927136d5140e5c8586d2323aa3aaed5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-36.driver.log",
+      "bytes": 362,
+      "sha256": "21af90ef5d8f36201d111acd4cf9a90e67dba273ddaa03aeab3f3eabd1479448"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-36.json",
+      "bytes": 5572,
+      "sha256": "611e5d0eb82b9e1213d0a8531593bdcf2c0478e356c78fd48b2eff593fddcf72"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-36.junit.xml",
+      "bytes": 5540,
+      "sha256": "f9459594db4cbe9cdaa5e1aea41a7caac4c5c31455509a78013e9413af968be3"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-37.driver.log",
+      "bytes": 361,
+      "sha256": "6ec5db859647a84a8e39c227701aa4752b92d3524ea87f5d5733049b97f5d849"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-37.json",
+      "bytes": 4419,
+      "sha256": "cd1b73550f7e9e6c5eb5237a5235ee5ed3c948f42f90459eda1137b0315ff698"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-37.junit.xml",
+      "bytes": 4523,
+      "sha256": "f8ed3e7ff8a919c2b04a34c49de7f9a5043e8a22cb50c46ebfc7801721b01226"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-38.driver.log",
+      "bytes": 362,
+      "sha256": "2747aed8004d40914f73b6cef109d79aa022c0581ca5a6d62885bb38dada48b6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-38.json",
+      "bytes": 4718,
+      "sha256": "bceb05bd685ac66746523027880b775626d3d3e808041247ee0cee43a9ff7b3c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-38.junit.xml",
+      "bytes": 4949,
+      "sha256": "36cf342b3cb05b75cfb930b399914dc8289e99bdbf6c1380c095b2cca2b4cd72"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-39.driver.log",
+      "bytes": 361,
+      "sha256": "973e385e7f280d32ee9c9cac25fda55b57f9d1dcd73d2d3973fe2cbdf44b51db"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-39.json",
+      "bytes": 6579,
+      "sha256": "d2b595e8882277eeacb6d7dfdc2f11dcf27ee1781c852365d370ab0b2e3c15b5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-39.junit.xml",
+      "bytes": 7195,
+      "sha256": "d019c5f4bf8dc3a8994f2063ec8cc972df366242a6f9665c490502efc2768b0b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-4.driver.log",
+      "bytes": 361,
+      "sha256": "18027820813f7b5525ccd0b88b5601b74060d1c4033c21c9d5b085d9d7bf0ab9"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-4.json",
+      "bytes": 5447,
+      "sha256": "bcd44eadfba7fd7e378ce43900bebce78dbb089b72a2e9cb82238f059d9a0df1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-4.junit.xml",
+      "bytes": 5817,
+      "sha256": "c05026608f203614b1d41fc0102cac0168c6ba752200414b63a22f186f89376f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-40.driver.log",
+      "bytes": 361,
+      "sha256": "aef4394dbd7eba8496fabeb74e4379512dc4d099c9929c888911c51b8c14e92d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-40.json",
+      "bytes": 5545,
+      "sha256": "b4d1fdea06e0b662beb2aa90a1f8dacd738980e5904d3fffb3ebbbbe3e362a6a"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-40.junit.xml",
+      "bytes": 5928,
+      "sha256": "d7a69cf215331f1098d6feeaae1a867598f81c78cc8d2b3e9b287501f6379be5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-41.driver.log",
+      "bytes": 361,
+      "sha256": "9c83c2f58389fb927c37458a08bc1144e1a3e0cf983d423a242e4271f83c6e65"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-41.json",
+      "bytes": 4345,
+      "sha256": "62b2b8909bdec6f1fcf3768bf12b47eb35480aecbb89d4d39ace6b26a4f4fcf4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-41.junit.xml",
+      "bytes": 4475,
+      "sha256": "4a016c6c56a1a778d66501361cd557dc711bb024f917133644f5b05d9f2b5fa5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-42.json",
+      "bytes": 5673,
+      "sha256": "9b3289e773e58ec61346074162c5134c319900be5e942b78d0b2db84c0a84442"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-42.junit.xml",
+      "bytes": 6090,
+      "sha256": "4d6846865a7ac4cb18a498fdd13f0cdeab617c39869608f73cf446bc806b0650"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-43.json",
+      "bytes": 5970,
+      "sha256": "34fa7d3a667ab9d33bb66402ddca5b97b2d9e03cf70e8758e0f026a71a9a1348"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-43.junit.xml",
+      "bytes": 6436,
+      "sha256": "5b890a526928d9c878562924042700cb6bce5738f6f7c988d63a57f24b92fe8d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-44.json",
+      "bytes": 5516,
+      "sha256": "1db13015a91666a58a02e3f518e0969a3f0f72b71f9012dc0799be6b4e882da1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-44.junit.xml",
+      "bytes": 5851,
+      "sha256": "4601adfb31b1615a7d4f8d17d5bfa3456c236d22303e6b69bef121d4d140b39e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-45.json",
+      "bytes": 4706,
+      "sha256": "6bde7e2c62830595d96a17799b857f6affa3453d9059628b2240aad151c6b2cb"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-45.junit.xml",
+      "bytes": 4931,
+      "sha256": "cace87a51a7fe19ebffefc01aea567266360230da156cd6338fd4d77668dc430"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-46.json",
+      "bytes": 5447,
+      "sha256": "da84634ffbfb51dc33a9ec10981f98d6adbd573d55b04458c1a57da368897818"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-46.junit.xml",
+      "bytes": 5817,
+      "sha256": "5acbbeebcb8b482603dbd8de5f1b3ad31b22553edd4075628092cbd2f77e7fb3"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-47.json",
+      "bytes": 4911,
+      "sha256": "791cc825c0f39b7f81df3574892c4f18aeac04f1c39362fa1ac551ef2bb7b6f8"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-47.junit.xml",
+      "bytes": 5185,
+      "sha256": "6a12d099faa9082944215ffcebb281550f3a33aa9408a850f474386a1ed895ab"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-48.console",
+      "bytes": 345,
+      "sha256": "c671de5feaa96abf0c73961cf32ef683efe0180239ba4f965ec3f3f6fa74d706"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-48.json",
+      "bytes": 4051,
+      "sha256": "a34e8d650bc6578a5b482f959487824b63ef84bc60f9bee9af7aee6d4d4a9fb6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-48.junit.xml",
+      "bytes": 4085,
+      "sha256": "4fc843ec5529e6fef63a693bacda08d23adadc51003d02d868c9caf8bb01e0a4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-49.console",
+      "bytes": 345,
+      "sha256": "fd29161a02fb27eabf1e3f5347103bcc6641f473928314034553068ba0483796"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-49.json",
+      "bytes": 3566,
+      "sha256": "9b0d1ca824c5c0492faf352d4eb082a4bd43cbf2f5db5f205cb0207f147d2ebe"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-49.junit.xml",
+      "bytes": 3551,
+      "sha256": "73f4ddbb9ba51bc6ce7986e9723810047682c60c9efdf5c22f38219fd0ca1e37"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-5.driver.log",
+      "bytes": 361,
+      "sha256": "9f1426872318602e3d9a064367707a8018de51827d66e2f30fc8f6702ab78398"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-5.json",
+      "bytes": 4548,
+      "sha256": "3d4a083885d5394c39729bf435c692e7111df219cc20236e2e8849ef064a29ac"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-5.junit.xml",
+      "bytes": 4774,
+      "sha256": "8cebd10b4df03e962f3f02ad6d8b3b5672e169358c4859c5d57affbcfa213b04"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-50.console",
+      "bytes": 345,
+      "sha256": "6d4193cd2a38f6985ccc302e76e9e5c8c564a93b28744fd76523ba33e9acecc0"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-50.json",
+      "bytes": 4443,
+      "sha256": "166a9b834fc4e06b4758b15a0d117eb896b00dbc745faeb9976bcebec0813ce1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-50.junit.xml",
+      "bytes": 4512,
+      "sha256": "07e860c81637713f29896c25c1686fc385d80f1f8dde7f3c8f2ffce4c3946541"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-51.console",
+      "bytes": 346,
+      "sha256": "29b7f6f7ee23dab1a72e6942c4fd0c7935bf26b072cf938d331c047eb9d934bc"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-51.json",
+      "bytes": 5142,
+      "sha256": "5738cc736947e33f9c9544b9e89b66b48c21100c051f98eb2ff6f256486777a5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-51.junit.xml",
+      "bytes": 5339,
+      "sha256": "1cd7847037abec8e00f1170ed92c46e5d9543ed809a686688820f6d5091cf2b5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-52.console",
+      "bytes": 345,
+      "sha256": "ce8c9f544c70262e9643b94cca516dac02a5d94f187be752ccf08b2015fd4a84"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-52.json",
+      "bytes": 5028,
+      "sha256": "dbbd909d53c966fc5e0072993d532bf3421d3a8c75b1f9d29e219ef0a90870cb"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-52.junit.xml",
+      "bytes": 5318,
+      "sha256": "cf27a13934de345dcf98b29f2c077ad637f62d094c6603423c3a2c38cccbc0a1"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-53.console",
+      "bytes": 345,
+      "sha256": "1d56d09c9812bca1d2e78cc8e2e8efa00980383ed3f40148c4a7deb4d6a6d32b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-53.json",
+      "bytes": 4583,
+      "sha256": "32e294d484dda4a68787f54fa5d152b9c1134ab5ad9acff517c44a5079d865ff"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-53.junit.xml",
+      "bytes": 4785,
+      "sha256": "e4d59aed5de8a8c3de380ea6a69434bd005c0aa3f4fe4dc9a8b374fe734a281b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-54.console",
+      "bytes": 346,
+      "sha256": "dadecd547263715f034e8160001df0584aa59e302a098601faa43301302778c9"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-54.json",
+      "bytes": 5164,
+      "sha256": "5057d89caab3075e2c00697505d4897386dee0f4805fcf17f166bb656df7c301"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-54.junit.xml",
+      "bytes": 5438,
+      "sha256": "346c8cf6e198676b9f8feb83706170c5309af5d34c8fa4ff4c03ff86250bfaaf"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-55.console",
+      "bytes": 345,
+      "sha256": "403117b3a0d3093f5b51413d47409434bbdf3a4391e64d4033b51b799afe5a37"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-55.json",
+      "bytes": 6018,
+      "sha256": "cb1f9191337b0dc588ff5e7c86ccacc2a06db252e08b57b5a28da7deb4b2e73b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-55.junit.xml",
+      "bytes": 6532,
+      "sha256": "c867ffff29c09cd84916ae3d60849f2aaf8afe760b822c5fda05933f81d4d88e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-56.console",
+      "bytes": 345,
+      "sha256": "3ade1c95477039bf900c0eaf81ca37f3d1455ff27518b353ed12614cc52e2ac4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-56.json",
+      "bytes": 4350,
+      "sha256": "a189b7724ecee2414742a8846acd8c804ad7bf080ac7ece8959ce2a470b13312"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-56.junit.xml",
+      "bytes": 4762,
+      "sha256": "b2100964c18f1a2759a7eca36b29db3d89febb87290f62020357204dbc873b51"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-57.console",
+      "bytes": 346,
+      "sha256": "0ca901cc25b8917f56c1d20ceaa728487035de12f8f0089bb1d8d346e94d18e6"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-57.json",
+      "bytes": 5186,
+      "sha256": "2c25aaedc19d51ad2a109a52499283cc6ea279dca10b8138025c2e991817c361"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-57.junit.xml",
+      "bytes": 5504,
+      "sha256": "166a93f1b7bc819e511ddec340a76df5951a65b086b44dd015e6d193d4e54c35"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-58.console",
+      "bytes": 345,
+      "sha256": "4d97b6797a4d5703f845357c6815b4ef6707594a7d4c9fba67e8dfae37510492"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-58.json",
+      "bytes": 5380,
+      "sha256": "69ae6006cf19a0042b05122f9997fa4160199ad53c15485f823005c5035f63da"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-58.junit.xml",
+      "bytes": 5732,
+      "sha256": "edb26880dd61cc385f6f7d4c85264267a1bb21ffc13f2393c9bb4159327a66da"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-59.console",
+      "bytes": 345,
+      "sha256": "670ba4f627afde4bb789fdda0a698d7abc650f909aceba185c0c7d6cabd6c94a"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-59.json",
+      "bytes": 4455,
+      "sha256": "9d9f65d4d41e90529f617f2113d7e7fff338d81a6215c65f3a5f4b11ba6e76d5"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-59.junit.xml",
+      "bytes": 4633,
+      "sha256": "d033cf02a380e485eaca20353b0f34975b66f6ca930e72d21a4fe58d0456ef3e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-6.driver.log",
+      "bytes": 360,
+      "sha256": "f473c489ec38076e709cdba9ea1b05d2cafa938d8f3cf0123b50b1a26313fa4a"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-6.json",
+      "bytes": 3481,
+      "sha256": "e44d96c872b54672bc917eb6465f8b978abea9ce0951d3acebc8e68496fd651f"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-6.junit.xml",
+      "bytes": 3420,
+      "sha256": "f13ff93f78748e3858ae155864bec133114276f3290d0ac0c8d17306b3c7782c"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-60.console",
+      "bytes": 345,
+      "sha256": "caa48a849387c8564a0b96414220d31a4bcb66bc6f18f14ea6ac4da373389f4a"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-60.json",
+      "bytes": 4281,
+      "sha256": "50498d90def5e3a7bf96db5b3f1db1cf1223e10b58d6d7ae076b8bbf21e1b884"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-60.junit.xml",
+      "bytes": 4411,
+      "sha256": "229d181a2536cf612f718375d63f7adc6ae2e444d94bdf2f854ce0d870f46f06"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-61.console",
+      "bytes": 346,
+      "sha256": "ef670ef207cf4447e1522966406a670e95f9385bf025423402de0d61fd856d2d"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-61.json",
+      "bytes": 6407,
+      "sha256": "bc506bf57edf37bdb239ebf3327a9b8dd951a404106455b29301a042886f78b9"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-61.junit.xml",
+      "bytes": 6992,
+      "sha256": "d5ec035779f30bb37c4a7e2dd6dc3efa1a91e4111e53ca0bb1a5b55b9254f15b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-62.console",
+      "bytes": 345,
+      "sha256": "38542a5a166aefd742a3291bc438f3a7a5399085784b14a4088fa9b8545470a3"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-62.json",
+      "bytes": 4612,
+      "sha256": "c57c053af6b5bbcd1ca59d3b47335b37bd2232cd428127abc8b35264807b7432"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-62.junit.xml",
+      "bytes": 4814,
+      "sha256": "8ea05d0370008c69aa76026a99fe48d338e6007209627fd0b94bcbcfa30fb7cf"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-63.bg.log",
+      "bytes": 346,
+      "sha256": "3b07c9f8536e1eb77719dc78769a5d029deef8f8c1c1195cafb29a40825353a0"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-63.console",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-63.json",
+      "bytes": 5153,
+      "sha256": "e37c9ee757ce389649b408630f2af65fdd4c62ebea54b657ef6e25bf04b4106b"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-63.junit.xml",
+      "bytes": 5508,
+      "sha256": "ba7d0c522161fd787fe4b27a20892d9b326afa3cc44886d1924f3c3a6cda9177"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-7.driver.log",
+      "bytes": 360,
+      "sha256": "07f9b6b41b0feb72ec0e8d81b3efc60527d1b68e7f91b63c0c08fb8ecacaed96"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-7.json",
+      "bytes": 4159,
+      "sha256": "4de1b461fc5b650761128002fb18bc109fe8db7e5f5373f7428d9e62b2f2f542"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-7.junit.xml",
+      "bytes": 4242,
+      "sha256": "cef9450b9135b5edafc6c75640776cc6e2808e77810ecb5262382da1219b75ab"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-8.driver.log",
+      "bytes": 361,
+      "sha256": "f54d30563a2bb9312863f09e10e01bd3736c64dd8aefb501b5443a796e0110db"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-8.json",
+      "bytes": 5355,
+      "sha256": "f482cfc4fd56613d2622453060471c8bb50756ae1d7b2844421ed9934d112ad4"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-8.junit.xml",
+      "bytes": 5726,
+      "sha256": "4a441a346669e9a6db9adf128e8d5f8b14645db9a3b527eddac0d6a5d48157f3"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-9.driver.log",
+      "bytes": 361,
+      "sha256": "36196c94d5be0dfbf5f0065d51712011be99d3e18eaac31f2108552582739b6e"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-9.json",
+      "bytes": 5019,
+      "sha256": "3f1a2d3e2e0f64e885f27b51ee1ed64f77f5e861c4461e5adcddc17ba45ac9a2"
+    },
+    {
+      "path": "handoff/evidence/current/regression/shard-9.junit.xml",
+      "bytes": 5293,
+      "sha256": "d37eea396bd76c35f2998304592c6c934d22838fd88cf0d9fed90ca4817d5c2a"
+    },
+    {
+      "path": "handoff/evidence/current/release/release-core-tests.log",
+      "bytes": 451,
+      "sha256": "00fd9cbb9477e70140110ca5dd16bfa0c60af2c0b12f7659fa935f9d62ab77a6"
+    },
+    {
+      "path": "handoff/evidence/current/release/release-identity.log",
+      "bytes": 386,
+      "sha256": "d17bf7c8a81bcc47b6cb456b3603d2b82316c1c7aceac7b645414a3154c5820d"
+    },
+    {
+      "path": "handoff/evidence/current/release/repository-validation.log",
+      "bytes": 92,
+      "sha256": "28bfa7be3fed2d03bd82d81c1fb2f8d29863c07476417849dd51aa129437b0b6"
+    },
+    {
+      "path": "handoff/evidence/current/supply-chain/dependency-lock-current.json",
+      "bytes": 8539,
+      "sha256": "aae58bc102471d0c0cbaca18c0cccd388bf92a97c7e4d27c8008e00a044a7dad"
+    },
+    {
+      "path": "handoff/evidence/current/web/browser-e2e-console.log",
+      "bytes": 2972,
+      "sha256": "0113d2253b970f44f1c024387197c76a3d35b7b9bf6b536e7f5c0e9c38b0a5de"
+    },
+    {
+      "path": "handoff/evidence/current/web/browser-e2e-report.json",
+      "bytes": 2906,
+      "sha256": "f0c33f565a8dca06dc6a9d6d6023b5bb7c3ff3d191cf5a11f234142eca23d28b"
+    },
+    {
+      "path": "handoff/evidence/current/web/build.log",
+      "bytes": 132,
+      "sha256": "b8f368a773c016d341f30d9ee326549a3a13bf6853c718fc70a82dbde562f78a"
+    },
+    {
+      "path": "handoff/evidence/current/web/lint.log",
+      "bytes": 297,
+      "sha256": "3539d5bd5353f0c101a28fa274dd5f91f453c15d8ae314192238600638018de4"
+    },
+    {
+      "path": "handoff/evidence/current/web/npm-test.log",
+      "bytes": 26305,
+      "sha256": "8922df6ea89075e7a1abb6a70145fb908615998d16238b6c02ee98408763930f"
+    }
+  ]
+}

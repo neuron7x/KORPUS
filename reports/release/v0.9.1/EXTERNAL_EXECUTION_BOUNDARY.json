@@ -1,0 +1,109 @@
+{
+  "schema": "korpus.external-execution-boundary.v1",
+  "release": "v0.9.1",
+  "production_authorized": false,
+  "external_required_count": 12,
+  "items": [
+    {
+      "id": "external_independent_redteam",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "live_vulnerability_scanners",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "live_postgres_rls",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "REAL_POSTGRESQL",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "real_domain_corpus_tevv",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "REAL_DOMAIN_CORPUS",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "independent_tevv",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "INDEPENDENT_ATTESTED",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "production_like_tevv_environment",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "production_like_load",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "PRODUCTION_LIKE_LOAD",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "trusted_load_attestation",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "TRUSTED_LOAD_ATTESTATION",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "trusted_recovery_attestation",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "trusted_hosted_builder",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "HOSTED_BUILDER_PROVENANCE",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "trusted_release_signing",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER",
+      "software_ready": true,
+      "externally_satisfied": false
+    },
+    {
+      "id": "exact_python_3_12_13_environment",
+      "status": "UNVERIFIED_EXTERNAL",
+      "required_proof_class": "EXACT_LOCKED_ENVIRONMENT",
+      "software_ready": true,
+      "externally_satisfied": false
+    }
+  ],
+  "local_unknowns": [
+    {
+      "id": "terraform_provider_schema_validation",
+      "status": "UNKNOWN_LOCAL_EXECUTION_ENVIRONMENT",
+      "reason": "Terraform/provider binaries could not be fetched in the local execution sandbox; GitHub-hosted workflow performs signature-verified terraform init -backend=false and validate before any deploy."
+    },
+    {
+      "id": "cloud_apply",
+      "status": "CREDENTIAL_BOUND_NOT_EXECUTED",
+      "reason": "No authenticated GCP project/billing/domain/OIDC production credentials are connected to this execution environment."
+    },
+    {
+      "id": "edge_rate_limit_enforcement",
+      "status": "CALIBRATION_REQUIRED",
+      "reason": "Cloud Armor per-IP throttle intentionally remains preview until real traffic calibration; WAF rules are enforced."
+    }
+  ]
+}

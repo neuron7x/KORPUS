@@ -1,0 +1,1400 @@
+{
+  "schema": "korpus.remaining-debt.v2",
+  "release": "v5.1.0",
+  "scope": "Every v4 finding not CLOSED_LOCAL. Generated from the closure register by scripts/build_audit_closure.py; do not edit.",
+  "total_remaining": 75,
+  "counts": {
+    "EXTERNAL_DEBT": 9,
+    "MITIGATED_LOCAL": 66
+  },
+  "remaining_by_severity": {
+    "P0": 19,
+    "P1": 46,
+    "P2": 10
+  },
+  "items": [
+    {
+      "id": "GOV-001",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає формальної production authorization",
+      "evidence": "Operational gate explicitly records production_authorized=false; немає risk owner, SSP/ATO або підписаного рішення про прийняття ризику.",
+      "impact": "Запуск без юридично та організаційно визначеного власника ризику.",
+      "required_action": "Призначити system owner, data owner, security owner; створити authorization package і signed go/no-go.",
+      "tools_methods": "NIST AI RMF; NIST RMF/SSP; threat-model workshop",
+      "acceptance_predicate": "Підписаний authorization decision, scope, residual-risk register і expiry date.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "Підписаний authorization decision, scope, residual-risk register і expiry date."
+    },
+    {
+      "id": "GOV-002",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає use-case-specific AI risk profile",
+      "evidence": "Є загальні assurance-документи, але немає операційного профілю Govern→Map→Measure→Manage для конкретного військового застосування.",
+      "impact": "Ризики оцінюються без визначеного контексту, шкоди, користувачів і допустимої помилки.",
+      "required_action": "Створити AI system card, context map, harm model, risk appetite, human-oversight policy.",
+      "tools_methods": "NIST AI RMF / AIRC playbook",
+      "acceptance_predicate": "Кожен risk має owner, metric, control, evidence і review cadence.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "docs/governance/AI_SYSTEM_CARD_V5.md",
+        "docs/governance/RISK_REGISTER.md",
+        "docs/operations/TEVV_PLAN_V5.md"
+      ],
+      "v5_remaining_acceptance": "Кожен risk має owner, metric, control, evidence і review cadence."
+    },
+    {
+      "id": "GOV-003",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає затвердженої класифікації та правил обробки даних",
+      "evidence": "Реальний корпус 5 960 файлів у release відсутній; classification guide, marking rules і handling matrix не надані.",
+      "impact": "Можливий незаконний або небезпечний витік обмеженої інформації.",
+      "required_action": "Провести inventory, rights/classification review, labeling, compartment mapping, retention/declassification rules.",
+      "tools_methods": "Data inventory; DLP; classification workshop; legal review",
+      "acceptance_predicate": "100% corpus objects мають owner, class, rights, retention, releasability і access policy.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/tests/test_corpus_governance.py",
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md"
+      ],
+      "v5_remaining_acceptance": "100% corpus objects мають owner, class, rights, retention, releasability і access policy."
+    },
+    {
+      "id": "GOV-004",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає незалежного TEVV, pentest і red-team",
+      "evidence": "Усі наявні докази створені самим репозиторієм; зовнішнього аудитора й blind tests немає.",
+      "impact": "Self-confirming assurance: одна й та сама модель помилок у коді й тестах.",
+      "required_action": "Незалежний code review, API/cloud pentest, AI/RAG red-team, corpus poisoning exercise.",
+      "tools_methods": "OWASP ASVS/API Top 10; OWASP GenAI; MITRE ATLAS; NIST Dioptra",
+      "acceptance_predicate": "Незалежний звіт без відкритих P0/P1 та з повторною перевіркою remediation.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "Незалежний звіт без відкритих P0/P1 та з повторною перевіркою remediation."
+    },
+    {
+      "id": "GOV-005",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає офіційної моделі предметної відповідальності",
+      "evidence": "Review separation перевіряє лише різні subject strings; кваліфікації, повноваження, конфлікти інтересів і підпис рішення відсутні.",
+      "impact": "Неавторитетний reviewer може легалізувати неправильний документ.",
+      "required_action": "Registry reviewers/approvers, credential verification, COI policy, dual control, signed decisions.",
+      "tools_methods": "PKI/e-sign; reviewer registry; workflow engine",
+      "acceptance_predicate": "Кожне approval криптографічно прив’язане до уповноваженої ролі та scope.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/reviewers.py",
+        "apps/api/migrations/versions/0009_reviewer_credentials.py",
+        "apps/api/tests/test_reviewer_registry.py"
+      ],
+      "v5_remaining_acceptance": "Кожне approval криптографічно прив’язане до уповноваженої ролі та scope."
+    },
+    {
+      "id": "GOV-006",
+      "domain": "Governance",
+      "severity": "P0",
+      "state": "CONDITIONAL_RISK",
+      "title": "Права на індексацію, OCR, цитування й передачу документів не доведені",
+      "evidence": "Source hash доводить байти, але не license, copyright, distribution authority або право надсилати текст зовнішньому embedding provider.",
+      "impact": "Юридичне блокування продукту та disclosure третім сторонам.",
+      "required_action": "Провести rights clearance; заборонити external egress для неочищених класів.",
+      "tools_methods": "Legal/IP review; data-processing agreements",
+      "acceptance_predicate": "Для кожного джерела зафіксовані дозволені операції та заборони.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "Для кожного джерела зафіксовані дозволені операції та заборони.",
+      "code_half": {
+        "status": "DELIVERED",
+        "on": "2026-08-08",
+        "what": "Egress classification ceiling: corpus material above model_egress_max_tier (default public) is never sent to a model outside the deployment. Under external_allowed the composer does not receive restricted spans; the answer falls back to the untouched extract and the audit records egress_tier_exceeded.",
+        "evidence": [
+          "apps/api/src/korpus/application/egress.py",
+          "apps/api/src/korpus/application/answer_query.py",
+          "apps/api/tests/test_egress_material_ceiling.py",
+          "scripts/run_mutation_tests.py::M163_EGRESS_CEILING_OFF_BY_ONE",
+          "scripts/run_mutation_tests.py::M166_EGRESS_GATE_BYPASSED"
+        ],
+        "remaining_external": "Rights clearance — which sources permit which operations — is a legal/owner decision, not code. The ceiling makes the prohibition enforceable and fail-closed by default."
+      }
+    },
+    {
+      "id": "IAM-002",
+      "domain": "Identity & Access",
+      "severity": "P0",
+      "state": "VERIFIED_DEFECT",
+      "title": "Production web-клієнт не реалізує OIDC",
+      "evidence": "public/app.js викликає /v1/answers без Authorization; UI працює лише з dev auth або зовнішньою ручною інʼєкцією токена.",
+      "impact": "Користувач не може безпечно автентифікуватися в production.",
+      "required_action": "Реалізувати Authorization Code + PKCE, secure token handling/BFF, logout, expiry/refresh/error states.",
+      "tools_methods": "OIDC conformance suite; Playwright; BFF pattern",
+      "acceptance_predicate": "End-to-end OIDC login/logout/expiry/revocation проходить у staging.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/browser_oidc.py",
+        "apps/api/tests/test_browser_oidc.py",
+        "apps/web/public/app.js"
+      ],
+      "v5_remaining_acceptance": "End-to-end OIDC login/logout/expiry/revocation проходить у staging."
+    },
+    {
+      "id": "IAM-005",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "OIDC assurance неповний",
+      "evidence": "Verifier не вимагає acr/amr, azp, typ, jti; OIDC path не вимагає nbf; немає revocation/replay cache.",
+      "impact": "Використання слабкої автентифікації, replay або токена не того client context.",
+      "required_action": "Вимагати phishing-resistant MFA assurance, typ/azp, jti replay policy, revocation/CAE за можливості.",
+      "tools_methods": "OIDC conformance; token replay tests",
+      "acceptance_predicate": "Негативні тести для stale/replayed/wrong-client/low-assurance tokens PASS.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/oidc.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_oidc_assurance_requires_acr_mfa_and_recent_authentication"
+      ],
+      "v5_remaining_acceptance": "Негативні тести для stale/replayed/wrong-client/low-assurance tokens PASS."
+    },
+    {
+      "id": "IAM-006",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "RLS залежить від session GUC, який встановлює застосунок",
+      "evidence": "PostgreSQL policy context задається set_config з identity від API. Компрометований app role/process може спробувати встановити ширший context.",
+      "impact": "RLS захищає від помилки query, але не від app compromise/SQL execution.",
+      "required_action": "Винести authorization у signed session context або окремі DB roles; заборонити прямий SQL; перевірити role privileges.",
+      "tools_methods": "PostgreSQL RLS tests; pgaudit; signed context",
+      "acceptance_predicate": "App role не може самостійно розширити effective claims навіть через довільний SQL.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+        "apps/api/tests/test_postgres_integration.py",
+        ".gitlab-ci.yml::api:postgres-and-restore"
+      ],
+      "v5_remaining_acceptance": "App role не може самостійно розширити effective claims навіть через довільний SQL."
+    },
+    {
+      "id": "IAM-007",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає lifecycle entitlement/offboarding",
+      "evidence": "Не надано SCIM/HR source, deprovisioning SLA, periodic access review або stale-account tests.",
+      "impact": "Звільнений/переведений користувач зберігає доступ.",
+      "required_action": "SCIM/IdP lifecycle, quarterly recertification, emergency revoke.",
+      "tools_methods": "SCIM, IdP logs, access review",
+      "acceptance_predicate": "Disable/revoke propagation виміряна та відповідає SLA.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/entitlements.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_entitlement_profile_digest_and_deny_list_are_fail_closed"
+      ],
+      "v5_remaining_acceptance": "Disable/revoke propagation виміряна та відповідає SLA."
+    },
+    {
+      "id": "IAM-008",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає PAM/break-glass control",
+      "evidence": "Admin роль існує, але немає just-in-time elevation, approval, session recording, emergency credentials.",
+      "impact": "Постійний надмірний привілей і невідтворювані адміністративні дії.",
+      "required_action": "JIT/PAM, two-person approval, break-glass runbook, immutable session logs.",
+      "tools_methods": "PAM/Vault; SIEM",
+      "acceptance_predicate": "Усі privileged sessions attributable, time-bounded і reviewed.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/break_glass.py",
+        "apps/api/tests/test_break_glass.py"
+      ],
+      "v5_remaining_acceptance": "Усі privileged sessions attributable, time-bounded і reviewed."
+    },
+    {
+      "id": "ING-008",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Object store write не атомарний із metadata transaction",
+      "evidence": "object_store.put виконується до create_*_bundle; rollback БД залишає orphan object.",
+      "impact": "Накопичення неврахованих даних і retention/privacy drift.",
+      "required_action": "Staging key + transactional outbox/commit marker + orphan reconciler/GC.",
+      "tools_methods": "Saga/outbox; inventory reconciliation",
+      "acceptance_predicate": "Injected DB failure не лишає доступного orphan або GC видаляє його за SLA.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/ingestion_jobs.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py::test_object_inventory_reconciliation_detects_missing_and_orphaned_files"
+      ],
+      "v5_remaining_acceptance": "Injected DB failure не лишає доступного orphan або GC видаляє його за SLA."
+    },
+    {
+      "id": "ING-009",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Немає OCR/layout quality model",
+      "evidence": "Зберігається текст і page, але немає confidence, bounding boxes, table/list structure, reading order quality.",
+      "impact": "Цитата може бути формально привʼязана до хибного OCR.",
+      "required_action": "Layout-aware extraction, OCR confidence, low-confidence quarantine, visual review UI.",
+      "tools_methods": "Document AI/layoutparser; OCR benchmarks",
+      "acceptance_predicate": "CER/WER/table extraction виміряні по stratified corpus; low confidence не auto-approve.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/extraction_quality.py",
+        "apps/api/migrations/versions/0008_extraction_quality_governance.py",
+        "apps/api/tests/test_extraction_quality_governance.py"
+      ],
+      "v5_remaining_acceptance": "CER/WER/table extraction виміряні по stratified corpus; low confidence не auto-approve."
+    },
+    {
+      "id": "ING-012",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає corpus-scale ingestion recovery drill",
+      "evidence": "Немає доказу повторного імпорту тисяч файлів, resume, checkpoints, quarantine backlog і throughput.",
+      "impact": "Масова міграція може зависнути або дати частковий корпус.",
+      "required_action": "Run full-scale replay with injected failures and deterministic reconciliation.",
+      "tools_methods": "Workflow engine; fault injection; load generator",
+      "acceptance_predicate": "100% source manifest reconciled; no missing/duplicate versions.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/ingestion_recovery_drill.py",
+        "scripts/import_corpus.py"
+      ],
+      "v5_remaining_acceptance": "100% source manifest reconciled; no missing/duplicate versions."
+    },
+    {
+      "id": "RAG-001",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "state": "VERIFIED_DEFECT",
+      "title": "Evaluation dataset є synthetic fixture, не production evidence",
+      "evidence": "EVAL_REPORT: 30/30, calibration_status=UNVALIDATED_TEST_FIXTURE.",
+      "impact": "Високий pass rate не прогнозує реальну точність на українському корпусі.",
+      "required_action": "Створити frozen stratified gold set із реальних документів і adversarial holdout.",
+      "tools_methods": "Annotation platform; HELM-style scenario matrix; RAGChecker/ALCE metrics",
+      "acceptance_predicate": "Blind holdout, human adjudication, versioned dataset, confidence intervals.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/build_reference_set.py",
+        "scripts/run_reference_eval.py",
+        "apps/api/tests/test_reference_set.py",
+        "evals/datasets/reference.jsonl"
+      ],
+      "v5_remaining_acceptance": "Blind holdout, human adjudication, versioned dataset, confidence intervals."
+    },
+    {
+      "id": "RAG-003",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає human gold standard та inter-annotator agreement",
+      "evidence": "В release немає domain experts, adjudication protocol, Cohen/Fleiss kappa або disagreement set.",
+      "impact": "Невідомо, чи ground truth взагалі стабільний і предметно правильний.",
+      "required_action": "Подвійна незалежна розмітка, adjudication, reviewer qualifications, ambiguity labels.",
+      "tools_methods": "Label Studio/Argilla; statistical analysis",
+      "acceptance_predicate": "IAA threshold predefined; ambiguous cases excluded/separately scored.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "IAA threshold predefined; ambiguous cases excluded/separately scored."
+    },
+    {
+      "id": "RAG-005",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Немає contradiction resolution між джерелами",
+      "evidence": "Pipeline ранжує фрагменти, але не виявляє взаємно суперечливі чинні норми/редакції.",
+      "impact": "Система обирає одну відповідь при невирішеному конфлікті.",
+      "required_action": "Conflict graph, issuer/jurisdiction precedence, explicit conflict abstention.",
+      "tools_methods": "NLI contradiction; rule engine; temporal graph",
+      "acceptance_predicate": "Known conflict cases повертають conflict status і всі релевантні sources.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_contradiction_gate_detects_negation_and_numeric_conflicts"
+      ],
+      "v5_remaining_acceptance": "Known conflict cases повертають conflict status і всі релевантні sources."
+    },
+    {
+      "id": "RAG-007",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Authority priors є неперевіреними константами",
+      "evidence": "OFFICIAL_UA=1.0, allied=.92, manufacturer=.78 тощо без empirical provenance.",
+      "impact": "Скалярний prior може переважити релевантність і контекстну правову силу.",
+      "required_action": "Контекстна authority policy: document type, issuer competence, jurisdiction, date, task.",
+      "tools_methods": "Policy rules + calibration/ablation",
+      "acceptance_predicate": "Ablation і domain validation доводять користь; priors versioned and approved.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/calibration.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_authority_priors_are_profile_inputs_not_hidden_constants"
+      ],
+      "v5_remaining_acceptance": "Ablation і domain validation доводять користь; priors versioned and approved."
+    },
+    {
+      "id": "RAG-009",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Risk classifier є regex heuristic",
+      "evidence": "Query risk визначається невеликим набором pattern rules.",
+      "impact": "Перефразування обходить stricter thresholds; false positives блокують корисні запити.",
+      "required_action": "Train/evaluate transparent risk classifier або rule DSL з broad test corpus; fail-closed unknown.",
+      "tools_methods": "Property/adversarial tests; confusion matrix",
+      "acceptance_predicate": "Per-class precision/recall + worst-group metrics на blind set.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard"
+      ],
+      "v5_remaining_acceptance": "Per-class precision/recall + worst-group metrics на blind set."
+    },
+    {
+      "id": "RAG-010",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Prompt/control injection detector має лише пʼять regex patterns",
+      "evidence": "contains_control_injection не покриває obfuscation, Unicode, multilingual, indirect instructions.",
+      "impact": "Poisoned text може бути процитований/оброблений як evidence.",
+      "required_action": "Treat corpus as data structurally; instruction isolation; detector ensemble; poisoning metadata.",
+      "tools_methods": "MITRE ATLAS cases; Unicode fuzzing; document taint labels",
+      "acceptance_predicate": "Adversarial corpus suite із direct/indirect/obfuscated injection має defined outcomes.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers"
+      ],
+      "v5_remaining_acceptance": "Adversarial corpus suite із direct/indirect/obfuscated injection має defined outcomes."
+    },
+    {
+      "id": "RAG-011",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Sentence segmentation непридатна для складних нормативних документів",
+      "evidence": "Regex [^.!?\\n]+ не зберігає списки, таблиці, abbreviations, article/subclause hierarchy.",
+      "impact": "Citation offsets і atomic claims можуть бути семантично неправильні.",
+      "required_action": "Structure-aware parser: headings, clauses, bullets, tables, references; immutable offsets.",
+      "tools_methods": "PDF layout parser; Ukrainian sentence tokenizer",
+      "acceptance_predicate": "Gold structural extraction benchmark PASS per document class.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_sentence_segmenter_preserves_offsets_for_decimals_abbreviations_and_lists"
+      ],
+      "v5_remaining_acceptance": "Gold structural extraction benchmark PASS per document class."
+    },
+    {
+      "id": "RAG-012",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Lexical retrieval не має української морфології та domain analysis",
+      "evidence": "Tokenizer лише casefold/regex/малий stoplist; немає lemmatization, synonyms, abbreviations.",
+      "impact": "Recall падає через відмінки, військові скорочення, варіанти написання.",
+      "required_action": "Ukrainian analyzer, controlled vocabulary, acronym expansion, query rewriting with audit.",
+      "tools_methods": "Stanza/UDPipe; domain thesaurus; BEIR-style evaluation",
+      "acceptance_predicate": "Recall@20 та nDCG measured by query family, including morphology/acronyms.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/retrieval.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_ukrainian_morphology_and_temporal_relevance_are_explicit"
+      ],
+      "v5_remaining_acceptance": "Recall@20 та nDCG measured by query family, including morphology/acronyms."
+    },
+    {
+      "id": "RAG-013",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає тестів таблиць, чисел, одиниць і формул",
+      "evidence": "Eval fixtures переважно plain text; відсутні table-cell provenance і numeric consistency.",
+      "impact": "Небезпечні помилки в дозах, строках, координатах, кількостях.",
+      "required_action": "Table extraction, unit normalization, numeric entailment, exact-cell citation.",
+      "tools_methods": "Camelot/Docling/layout tools; unit tests",
+      "acceptance_predicate": "Numeric/table benchmark має zero critical unit/sign errors.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py"
+      ],
+      "v5_remaining_acceptance": "Numeric/table benchmark має zero critical unit/sign errors."
+    },
+    {
+      "id": "RAG-014",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Scale evidence не репрезентує production",
+      "evidence": "SCALE_REPORT: 5 000 synthetic spans, SQLite FTS5, 80 iterations, one target query, no concurrency/network.",
+      "impact": "Невідомі p95/p99, saturation, recall і cost на реальному corpus/Postgres.",
+      "required_action": "Benchmark real corpus, concurrent mixed workload, cold/warm cache, failure cases.",
+      "tools_methods": "k6/Locust; pg_stat_statements; OpenTelemetry",
+      "acceptance_predicate": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/load_probe.py",
+        "scripts/fetch_drive_public.py"
+      ],
+      "v5_remaining_acceptance": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves."
+    },
+    {
+      "id": "RAG-015",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "CONDITIONAL_RISK",
+      "title": "Embedding integration може створити data egress",
+      "evidence": "HttpEmbeddingProvider надсилає query/span text зовнішньому endpoint; data-class policy не enforced у provider interface.",
+      "impact": "Restricted content залишає trust boundary.",
+      "required_action": "Per-class provider policy, local models for restricted tiers, egress proxy/DLP, contracts/retention.",
+      "tools_methods": "DLP; egress gateway; local embedding service",
+      "acceptance_predicate": "Restricted test corpus ніколи не викликає external endpoint; network evidence confirms.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/src/korpus/infrastructure/semantic.py",
+        "apps/api/tests/test_corpus_governance.py"
+      ],
+      "v5_remaining_acceptance": "Restricted test corpus ніколи не викликає external endpoint; network evidence confirms."
+    },
+    {
+      "id": "RAG-016",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає доказу synchronization/model migration embeddings",
+      "evidence": "Є upsert/search, але немає доведеного durable pipeline для backfill, stale vectors, dual-index migration й rollback.",
+      "impact": "Semantic retrieval використовує неповний або змішаний index.",
+      "required_action": "Embedding job ledger, text_hash/model version reconciliation, blue-green index migration.",
+      "tools_methods": "Queue; pgvector inventory; consistency checker",
+      "acceptance_predicate": "100% approved spans have correct model/text hash before semantic weight activation.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py::test_rollback_is_checked_before_it_is_needed"
+      ],
+      "v5_remaining_acceptance": "100% approved spans have correct model/text hash before semantic weight activation."
+    },
+    {
+      "id": "RAG-017",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає drift/online quality monitoring",
+      "evidence": "Відсутні production labels, distribution shift, query slice dashboards, alerting on abstention/recall proxies.",
+      "impact": "Якість деградує непомітно після corpus/model/query changes.",
+      "required_action": "Shadow evaluation, sampled human review, drift metrics, rollback triggers.",
+      "tools_methods": "Evidently/custom metrics; review queue",
+      "acceptance_predicate": "Defined drift thresholds cause automatic freeze/rollback.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py"
+      ],
+      "v5_remaining_acceptance": "Defined drift thresholds cause automatic freeze/rollback."
+    },
+    {
+      "id": "RAG-018",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає захисту від corpus/RAG poisoning як процесу",
+      "evidence": "Є окремі injection fixtures, але немає source anomaly detection, reputation/authority compromise scenario, poisoned update drill.",
+      "impact": "Авторитетно оформлений шкідливий документ впливає на відповіді.",
+      "required_action": "Source provenance, anomaly detection, multi-review, canary corpus release, rollback.",
+      "tools_methods": "MITRE ATLAS; content diff; signed releases",
+      "acceptance_predicate": "Poisoned-source exercise detected before general release.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/source_authenticity.py",
+        "apps/api/src/korpus/security/reviewers.py",
+        "apps/api/src/korpus/application/fingerprints.py"
+      ],
+      "v5_remaining_acceptance": "Poisoned-source exercise detected before general release."
+    },
+    {
+      "id": "RAG-020",
+      "domain": "Retrieval & Evidence",
+      "severity": "P2",
+      "state": "VERIFIED_DEFECT",
+      "title": "Малі мінімальні вибірки не гарантують domain coverage",
+      "evidence": "minimum 100 ranking queries/200 accepted samples без stratification.",
+      "impact": "Aggregate metric маскує провал рідкісних критичних сценаріїв.",
+      "required_action": "Stratified sample-size plan per domain/risk; bootstrap confidence intervals; preregistered gates.",
+      "tools_methods": "Power analysis; bootstrap",
+      "acceptance_predicate": "Each critical stratum meets minimum N and upper error bound.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/calibration.py",
+        "evals/EVALUATION_PROTOCOL.md"
+      ],
+      "v5_remaining_acceptance": "Each critical stratum meets minimum N and upper error bound."
+    },
+    {
+      "id": "INF-001",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Docker/Compose runtime не був фактично виконаний у середовищі аудиту",
+      "evidence": "Release report explicitly marks container execution as external GitLab gate.",
+      "impact": "Compose може не піднятися або інтеграції можуть бути невірно wired.",
+      "required_action": "Запустити clean host deployment, smoke/E2E, restart/upgrade/downgrade, network tests.",
+      "tools_methods": "Docker/Podman; Testcontainers; GitLab runner",
+      "acceptance_predicate": "Full stack starts from zero and passes E2E under non-root roles.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "scripts/init_local_secrets.sh"
+      ],
+      "v5_remaining_acceptance": "Full stack starts from zero and passes E2E under non-root roles."
+    },
+    {
+      "id": "INF-002",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "VERIFIED_DEFECT",
+      "title": "docker-compose.yml є local topology, не production deployment",
+      "evidence": "environment=local, auth=dev, HTTP MinIO/OTLP, localhost port; single instances.",
+      "impact": "Неприпустимо використовувати manifest як production.",
+      "required_action": "Створити окремі staging/prod IaC modules; видалити implicit promotion local compose.",
+      "tools_methods": "Terraform/Pulumi; Helm/Kubernetes або hardened VMs",
+      "acceptance_predicate": "Production config passes policy-as-code and has no dev settings/plain HTTP.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "deploy/kubernetes",
+        "scripts/validate_kubernetes.py"
+      ],
+      "v5_remaining_acceptance": "Production config passes policy-as-code and has no dev settings/plain HTTP."
+    },
+    {
+      "id": "INF-003",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає production TLS ingress і service identity",
+      "evidence": "Nginx слухає HTTP 8080; внутрішні S3/OTLP HTTP у local compose; production ingress manifest відсутній.",
+      "impact": "MITM/credential exposure при неправильній мережевій межі.",
+      "required_action": "TLS 1.2/1.3 ingress, mTLS/service mesh або equivalent, certificate rotation.",
+      "tools_methods": "cert-manager/Envoy/Nginx; TLS scanners",
+      "acceptance_predicate": "All external and sensitive internal paths cryptographically authenticated.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "All external and sensitive internal paths cryptographically authenticated."
+    },
+    {
+      "id": "INF-004",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає HA/failover/PITR topology",
+      "evidence": "Один PostgreSQL, MinIO, API, web; немає replica/failover/WAL archive/multi-zone proof.",
+      "impact": "Single point of failure та втрата даних.",
+      "required_action": "Define availability class; HA Postgres, object replication, redundant API, PITR.",
+      "tools_methods": "Patroni/managed Postgres; object replication; chaos test",
+      "acceptance_predicate": "Failover drill meets defined RTO/RPO with no authorization bypass.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "Failover drill meets defined RTO/RPO with no authorization bypass."
+    },
+    {
+      "id": "INF-005",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Backup/restore не доведено на live production-like PostgreSQL",
+      "evidence": "Локально тестуються crypto/fake binaries; live job існує в CI, але не виконаний у цьому аудиті.",
+      "impact": "Backup може бути невідновним у реальному середовищі.",
+      "required_action": "Quarterly live restore to isolated environment, data validation, RLS/auth tests, timed RTO/RPO.",
+      "tools_methods": "pg_dump/pg_restore or physical backup; restore automation",
+      "acceptance_predicate": "Independent restore evidence with measured RTO/RPO and checksum reconciliation.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/backup_sqlite.sh",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_backup_drill.py"
+      ],
+      "v5_remaining_acceptance": "Independent restore evidence with measured RTO/RPO and checksum reconciliation."
+    },
+    {
+      "id": "INF-006",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає production secret manager/KMS/HSM і rotation evidence",
+      "evidence": "Local secrets — files; audit/backup keys in app runtime; rotation protocol не доведений.",
+      "impact": "Компрометація host/app відкриває keys і audit forgery/decryption.",
+      "required_action": "Vault/KMS/HSM, workload identity, envelope encryption, rotation/revocation drills.",
+      "tools_methods": "HashiCorp Vault/cloud KMS/HSM",
+      "acceptance_predicate": "No long-lived static secrets in images/files; rotation without downtime tested.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "No long-lived static secrets in images/files; rotation without downtime tested."
+    },
+    {
+      "id": "INF-007",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "API має загальний egress без destination allowlist",
+      "evidence": "Compose egress network дає API зовнішній вихід; немає proxy/policy by hostname/IP/data class.",
+      "impact": "SSRF або compromised process exfiltrates corpus/secrets.",
+      "required_action": "Default-deny egress gateway; allowlist OIDC/S3/anchor/embedding; DNS/TLS pinning where appropriate.",
+      "tools_methods": "NetworkPolicy/eBPF/proxy; SSRF tests",
+      "acceptance_predicate": "Unexpected destinations unreachable; egress logs attributable.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "deploy/kubernetes/base/networkpolicies.yaml",
+        "docker-compose.yml"
+      ],
+      "v5_remaining_acceptance": "Unexpected destinations unreachable; egress logs attributable."
+    },
+    {
+      "id": "INF-008",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Resource limits не калібровані capacity plan",
+      "evidence": "Compose CPU/memory/pids values є static; немає навантажувального provenance.",
+      "impact": "OOM/throttling або зайве резервування.",
+      "required_action": "Load/capacity model by workload; autoscaling/admission budgets; saturation alerts.",
+      "tools_methods": "k6/Locust; cAdvisor; pg metrics",
+      "acceptance_predicate": "Limits derived from measured envelope and documented headroom.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/service_objectives.py",
+        "scripts/load_probe.py"
+      ],
+      "v5_remaining_acceptance": "Limits derived from measured envelope and documented headroom."
+    },
+    {
+      "id": "INF-009",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "OTel collector healthcheck перевіряє config, не serving path",
+      "evidence": "Healthcheck запускає `otelcol validate`; не доводить, що receiver/exporter працює.",
+      "impact": "Telemetry silently unavailable while container healthy.",
+      "required_action": "Use health_check extension endpoint + synthetic trace/metric canary.",
+      "tools_methods": "OpenTelemetry Collector healthcheck; synthetic probe",
+      "acceptance_predicate": "Dropped exporter/receiver causes readiness/alert according to policy.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py"
+      ],
+      "v5_remaining_acceptance": "Dropped exporter/receiver causes readiness/alert according to policy."
+    },
+    {
+      "id": "INF-010",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Local audit anchor не є незалежним trust domain",
+      "evidence": "Compose file anchor volume керується тим самим host/operator, що API/DB.",
+      "impact": "Host compromise може змінити ledger і anchor.",
+      "required_action": "Remote append-only witness in separate account/org; asymmetric signatures/trusted timestamp.",
+      "tools_methods": "Transparency log/Rekor-like service; HSM signing",
+      "acceptance_predicate": "Single host/admin compromise cannot rewrite accepted history.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/audit_anchor.py",
+        "apps/api/tests/test_http_audit_anchor.py"
+      ],
+      "v5_remaining_acceptance": "Single host/admin compromise cannot rewrite accepted history."
+    },
+    {
+      "id": "INF-011",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає deployment rollback/canary/schema compatibility proof",
+      "evidence": "CI build/package є, але нема staged rollout, backward-compatible migrations, rollback under live traffic.",
+      "impact": "Нова версія може зробити DB/clients незворотно несумісними.",
+      "required_action": "Expand-contract migrations, canary, automated rollback, compatibility tests.",
+      "tools_methods": "Argo Rollouts/GitLab environments; contract tests",
+      "acceptance_predicate": "N-1/N compatibility and rollback drill PASS.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/migrations",
+        "scripts/prepare_postgres_role.py",
+        "apps/api/docker-entrypoint.sh"
+      ],
+      "v5_remaining_acceptance": "N-1/N compatibility and rollback drill PASS."
+    },
+    {
+      "id": "INF-012",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає offsite/immutable backup schedule and retention execution",
+      "evidence": "Scripts/manifest є; scheduler, remote immutable target, retention/deletion monitoring не надані.",
+      "impact": "Ransomware/operator error знищує primary і backup.",
+      "required_action": "3-2-1 backups, object lock, isolated credentials, restore cadence.",
+      "tools_methods": "Backup scheduler; WORM storage",
+      "acceptance_predicate": "Backup age/immutability monitored; restore sampled automatically.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/retention_policy.py",
+        "scripts/backup_sqlite.sh",
+        "apps/api/tests/test_operational_policies.py"
+      ],
+      "v5_remaining_acceptance": "Backup age/immutability monitored; restore sampled automatically."
+    },
+    {
+      "id": "SRE-001",
+      "domain": "Reliability & Operations",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає SLO/SLI/error-budget contract",
+      "evidence": "Немає визначених availability, latency, freshness, ingestion durability, answer quality SLO.",
+      "impact": "Неможливо обʼєктивно вирішити launch або regression.",
+      "required_action": "Define user journeys, SLIs, SLOs, error budget, alert policy.",
+      "tools_methods": "Google SRE methods; Prometheus/OpenTelemetry",
+      "acceptance_predicate": "Approved SLO document and burn-rate alerts validated.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/service_objectives.py",
+        "apps/api/tests/test_service_objectives.py"
+      ],
+      "v5_remaining_acceptance": "Approved SLO document and burn-rate alerts validated."
+    },
+    {
+      "id": "SRE-002",
+      "domain": "Reliability & Operations",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає on-call ownership та incident exercises",
+      "evidence": "Runbooks є, але немає roster, escalation, paging, game-day evidence, postmortems.",
+      "impact": "Інцидент не буде вчасно виявлений/локалізований.",
+      "required_action": "On-call model, severity matrix, paging, tabletop + technical game days.",
+      "tools_methods": "PagerDuty/Opsgenie equivalent; incident tooling",
+      "acceptance_predicate": "Timed exercises meet detection/containment/recovery targets.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "Timed exercises meet detection/containment/recovery targets."
+    },
+    {
+      "id": "SRE-003",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Observability не має durable backend",
+      "evidence": "OTel collector config у local topology фактично debug-oriented; нема metrics/logs/traces storage, dashboards, retention.",
+      "impact": "Немає історичного аналізу, alerting і forensic evidence.",
+      "required_action": "Deploy metrics/traces/logs backend, RED/USE dashboards, retention and access controls.",
+      "tools_methods": "Prometheus/Grafana/Loki/Tempo або managed stack",
+      "acceptance_predicate": "Synthetic failures visible end-to-end and page correct owner.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "infra/otel-collector.yaml"
+      ],
+      "v5_remaining_acceptance": "Synthetic failures visible end-to-end and page correct owner."
+    },
+    {
+      "id": "SRE-004",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає chaos/failure-injection matrix",
+      "evidence": "Не доведені outages DB/S3/IdP/anchor/embedding/network/clock/disk-full.",
+      "impact": "Невідомі cascading failures і ambiguous transaction outcomes.",
+      "required_action": "Fault injection per dependency, partial failures, latency, stale cache, clock skew.",
+      "tools_methods": "Toxiproxy/Chaos Mesh; pytest integration",
+      "acceptance_predicate": "Every dependency has defined degraded/fail-closed behavior and recovery evidence.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/chaos_matrix.py",
+        "var/chaos-matrix.json",
+        "apps/api/tests/test_query_planner_boundary.py"
+      ],
+      "v5_remaining_acceptance": "Every dependency has defined degraded/fail-closed behavior and recovery evidence."
+    },
+    {
+      "id": "SRE-005",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає production load/concurrency endurance test",
+      "evidence": "Local scale probe single query/SQLite; немає soak, ingestion+query mixed load, connection-pool saturation.",
+      "impact": "Race, leaks, queue collapse, p99 spikes зʼявляться лише в експлуатації.",
+      "required_action": "Mixed workload load/soak/spike tests; saturation and backpressure validation.",
+      "tools_methods": "k6/Locust; pgbench; profiling",
+      "acceptance_predicate": "Meet SLO under target and overload sheds load without leakage/corruption.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/load_probe.py",
+        "apps/api/tests/test_retrieval_budget_semantics.py"
+      ],
+      "v5_remaining_acceptance": "Meet SLO under target and overload sheds load without leakage/corruption."
+    },
+    {
+      "id": "SRE-006",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "state": "CONDITIONAL_RISK",
+      "title": "Readiness має невизначену degraded-mode policy",
+      "evidence": "Critical dependency failure може зробити instance unready; немає формальної read-only/lexical-only policy by risk class.",
+      "impact": "Зайва недоступність або небезпечний silent fallback.",
+      "required_action": "Define dependency matrix: required/optional per environment/query risk; expose degraded state.",
+      "tools_methods": "State machine; chaos tests",
+      "acceptance_predicate": "Each outage returns predeclared status; no silent semantic/policy downgrade.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/main.py",
+        "docs/operations/SLO_AND_RELEASE_POLICY_V5.md"
+      ],
+      "v5_remaining_acceptance": "Each outage returns predeclared status; no silent semantic/policy downgrade."
+    },
+    {
+      "id": "SRE-007",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає data/corpus release rollback drill",
+      "evidence": "Supersession/cache release logic тестується локально, але немає mass release/canary/rollback operational procedure.",
+      "impact": "Poisoned або хибний corpus release впливає на всіх.",
+      "required_action": "Immutable corpus releases, canary cohort, shadow eval, atomic rollback.",
+      "tools_methods": "Release registry; feature flags",
+      "acceptance_predicate": "Rollback restores prior answers/index within defined RTO.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/corpus_release.py",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_release_manifest.py"
+      ],
+      "v5_remaining_acceptance": "Rollback restores prior answers/index within defined RTO."
+    },
+    {
+      "id": "SUP-003",
+      "domain": "Supply Chain",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає signed build provenance і artifact signing",
+      "evidence": "Є SHA-256/manifest, але нема hosted-builder attestation, cosign signature, transparency log.",
+      "impact": "Неможливо довести, хто/як побудував production image.",
+      "required_action": "Generate SLSA provenance, sign images/SBOM, verify before deploy.",
+      "tools_methods": "GitLab OIDC + cosign/in-toto; SLSA verifier",
+      "acceptance_predicate": "Deployment admission rejects unsigned/unexpected provenance.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/build_provenance.py",
+        "apps/api/tests/test_build_provenance.py"
+      ],
+      "v5_remaining_acceptance": "Deployment admission rejects unsigned/unexpected provenance."
+    },
+    {
+      "id": "SUP-005",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Security scanners не були виконані в локальному аудиті",
+      "evidence": "Ruff/mypy/pip-audit/Trivy/Gitleaks jobs визначені, але tool results не надані з real GitLab run.",
+      "impact": "Current dependencies/config may contain known issues.",
+      "required_action": "Run pipeline in isolated runner; archive signed reports; fix all policy violations.",
+      "tools_methods": "GitLab CI; Trivy; pip-audit; Gitleaks; Ruff; mypy",
+      "acceptance_predicate": "Signed pipeline evidence, zero unaccepted high/critical findings.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/security_scan.sh",
+        "var/security/summary.json",
+        ".trivyignore.yaml"
+      ],
+      "v5_remaining_acceptance": "Signed pipeline evidence, zero unaccepted high/critical findings."
+    },
+    {
+      "id": "SUP-006",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Static security analysis coverage incomplete",
+      "evidence": "CI має Ruff/Trivy/Gitleaks/pip-audit, але нема Semgrep/Bandit/CodeQL-equivalent, DAST, parser fuzzing.",
+      "impact": "Logic/security flaws не представлені dependency/config scans.",
+      "required_action": "SAST rules, API DAST, fuzzing, IaC policies, secret history scan.",
+      "tools_methods": "Semgrep/Bandit; Schemathesis/ZAP; Atheris",
+      "acceptance_predicate": "Security test matrix maps every threat class to executable gate.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        ".gitlab-ci.yml",
+        "scripts/run_mutation_tests.py",
+        "scripts/validate_infrastructure.py"
+      ],
+      "v5_remaining_acceptance": "Security test matrix maps every threat class to executable gate."
+    },
+    {
+      "id": "SUP-007",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "GitLab branch/tag controls не доведені repository files",
+      "evidence": "CODEOWNERS/CI exist, але protected branch, approval count, signed tags, runner isolation are server settings.",
+      "impact": "Unilateral bypass або malicious runner може publish release.",
+      "required_action": "Export GitLab settings evidence; 2-person review; protected tags; isolated runners.",
+      "tools_methods": "GitLab API/audit events; SLSA Source track",
+      "acceptance_predicate": "No single contributor can alter protected release without independent approval.",
+      "v5_status": "EXTERNAL_DEBT",
+      "v5_evidence": [],
+      "v5_remaining_acceptance": "No single contributor can alter protected release without independent approval."
+    },
+    {
+      "id": "SUP-008",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає continuous re-scan/patch SLA та KEV policy",
+      "evidence": "Одноразовий build scan не доводить стан через день після release.",
+      "impact": "Нові CVE залишаються непоміченими.",
+      "required_action": "Scheduled rescans, SBOM inventory, KEV SLA, emergency rebuild/revoke.",
+      "tools_methods": "Dependency Track/Grype/Trivy; CISA KEV feed",
+      "acceptance_predicate": "High/critical/KEV triage and remediation SLA measured.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/patch_policy.py",
+        "apps/api/tests/test_operational_policies.py"
+      ],
+      "v5_remaining_acceptance": "High/critical/KEV triage and remediation SLA measured."
+    },
+    {
+      "id": "SUP-009",
+      "domain": "Supply Chain",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає license/compliance inventory",
+      "evidence": "SBOM jobs є, але license policy/notice/forbidden licenses не зафіксовані.",
+      "impact": "Юридичний ризик distribution/deployment.",
+      "required_action": "License scan, approved license policy, notices.",
+      "tools_methods": "Syft/ScanCode/FOSSA equivalent",
+      "acceptance_predicate": "Release має complete license report і zero forbidden components.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter"
+      ],
+      "v5_remaining_acceptance": "Release має complete license report і zero forbidden components."
+    },
+    {
+      "id": "COD-001",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "SqlRepository є infrastructure god object",
+      "evidence": "repository.py ≈1 289 LOC, близько 46 functions; змішує schema, CRUD, search, audit, readiness, RLS context.",
+      "impact": "Зростає change coupling і шанс неповного security fix.",
+      "required_action": "Розділити repositories/UoW: documents, versions, search, audit, health; transactional boundaries explicit.",
+      "tools_methods": "Architecture tests; dependency-cruiser equivalent",
+      "acceptance_predicate": "Кожен модуль має одну responsibility; security invariants tested across UoW.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json"
+      ],
+      "v5_remaining_acceptance": "Кожен модуль має одну responsibility; security invariants tested across UoW."
+    },
+    {
+      "id": "COD-004",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Branch coverage значно нижча за statement coverage",
+      "evidence": "Measured: statements 86.72%, branches 64.78%, combined 82.34%.",
+      "impact": "Happy-path statements маскують неперевірені decision branches.",
+      "required_action": "Per-module branch thresholds for security-critical code; MC/DC-inspired cases.",
+      "tools_methods": "coverage.py branch; diff coverage",
+      "acceptance_predicate": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py::test_the_coverage_thresholds_are_checked_where_coverage_is_produced"
+      ],
+      "v5_remaining_acceptance": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions."
+    },
+    {
+      "id": "COD-005",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Mutation score 100% стосується лише 14 hand-selected mutants",
+      "evidence": "MUTATION_REPORT: 14/14; це не exhaustive mutation testing.",
+      "impact": "Неперевірені предикати можуть бути слабкими попри 100%.",
+      "required_action": "Run broad mutation engine by module; track equivalent mutants; risk-based mutation budget.",
+      "tools_methods": "mutmut/cosmic-ray/custom operators",
+      "acceptance_predicate": "Mutation score reported over declared operator space, survivors triaged.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/run_mutation_tests.py",
+        "var/mutation-report.json"
+      ],
+      "v5_remaining_acceptance": "Mutation score reported over declared operator space, survivors triaged."
+    },
+    {
+      "id": "COD-006",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає parser/API fuzzing",
+      "evidence": "Немає Hypothesis/Atheris/libFuzzer corpus for PDF metadata, JSON, HTML, multipart, JWT, query syntax.",
+      "impact": "Crash/DoS/input edge cases невідомі.",
+      "required_action": "Coverage-guided fuzzing, property tests, regression corpus.",
+      "tools_methods": "Atheris/Hypothesis; Schemathesis; OSS-Fuzz style",
+      "acceptance_predicate": "No crash/hang/leak in defined CPU-hour budget; all findings regression-tested.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/tests/test_structured_evidence_and_fuzz.py",
+        "apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser"
+      ],
+      "v5_remaining_acceptance": "No crash/hang/leak in defined CPU-hour budget; all findings regression-tested."
+    },
+    {
+      "id": "COD-007",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "state": "VERIFIED_DEFECT",
+      "title": "mypy і Ruff policies слабкі для critical system",
+      "evidence": "mypy ignore_missing_imports=true; Ruff selects limited rules.",
+      "impact": "Integration types/security smells проходять непомічено.",
+      "required_action": "Strict typing by module, stubs/protocols, broader Ruff/security rules.",
+      "tools_methods": "mypy strict/pyright; Ruff S/C90/BLE/ASYNC",
+      "acceptance_predicate": "Zero unexplained Any at trust boundaries; complexity budgets enforced.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/pyproject.toml",
+        ".gitlab-ci.yml::api:quality"
+      ],
+      "v5_remaining_acceptance": "Zero unexplained Any at trust boundaries; complexity budgets enforced."
+    },
+    {
+      "id": "COD-008",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "state": "VERIFIED_DEFECT",
+      "title": "Web lint/typecheck є лише asset-existence validator",
+      "evidence": "package scripts lint/typecheck обидва запускають validate.mjs; JS type semantics не перевіряються.",
+      "impact": "UI auth/security regressions не ловляться.",
+      "required_action": "TypeScript, ESLint, DOM/unit/E2E tests, CSP tests.",
+      "tools_methods": "TypeScript/ESLint/Vitest/Playwright",
+      "acceptance_predicate": "OIDC/error/accessibility flows covered; real typecheck compiles.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/scripts/validate.mjs",
+        "apps/web/package.json",
+        "apps/api/tests/test_browser_oidc.py"
+      ],
+      "v5_remaining_acceptance": "OIDC/error/accessibility flows covered; real typecheck compiles."
+    },
+    {
+      "id": "COD-009",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "state": "VERIFIED_DEFECT",
+      "title": "Критичні модулі мають низьке покриття",
+      "evidence": "cli 0%, semantic ≈40.7%, extraction ≈68%, auth ≈72%, OIDC ≈77%.",
+      "impact": "Саме integration/security/error paths найменше перевірені.",
+      "required_action": "Raise targeted branch/mutation/failure-mode coverage, not aggregate only.",
+      "tools_methods": "coverage/mutation/fault injection",
+      "acceptance_predicate": "Per-risk module gates pass and no aggregate masking.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "pytest.ini",
+        ".gitlab-ci.yml::api:test"
+      ],
+      "v5_remaining_acceptance": "Per-risk module gates pass and no aggregate masking."
+    },
+    {
+      "id": "WEB-001",
+      "domain": "Product Surface",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "UI покриває лише запит-відповідь",
+      "evidence": "Немає production auth, ingestion, quarantine, review, approval, audit, corpus/version administration.",
+      "impact": "Операційні процеси виконуються API/manual, що підвищує помилки й обходи.",
+      "required_action": "Role-specific consoles with safe workflows, validation, reason codes, audit previews.",
+      "tools_methods": "Typed web app; E2E role tests",
+      "acceptance_predicate": "All critical workflows executable without raw DB/API manipulation.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "apps/web/scripts/browser_e2e.mjs",
+        "apps/web/package.json",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py::test_the_web_gate_runs_its_own_negative_controls"
+      ],
+      "v5_remaining_acceptance": "All critical workflows executable without raw DB/API manipulation."
+    },
+    {
+      "id": "WEB-002",
+      "domain": "Product Surface",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає accessibility/usability evidence",
+      "evidence": "ARIA мінімальний; немає WCAG audit, keyboard/screen-reader tests, field error semantics.",
+      "impact": "Частина користувачів не може надійно експлуатувати систему.",
+      "required_action": "WCAG 2.2 AA audit, keyboard/screen-reader, cognitive load tests.",
+      "tools_methods": "axe-core/Playwright; manual AT testing",
+      "acceptance_predicate": "Zero critical a11y defects; operational tasks pass usability tests.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/web/scripts/a11y_runtime.js",
+        "apps/web/scripts/validate.mjs",
+        "apps/web/tests/validate_gate.test.mjs"
+      ],
+      "v5_remaining_acceptance": "Zero critical a11y defects; operational tasks pass usability tests."
+    },
+    {
+      "id": "AUD-001",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Audit HMAC key доступний application process",
+      "evidence": "Той самий процес генерує events і MAC. При full app compromise attacker може forge future history.",
+      "impact": "Tamper evidence не захищає від повного compromise trust domain.",
+      "required_action": "Asymmetric signing/HSM or external append-only log; split duties.",
+      "tools_methods": "HSM/KMS; transparency log; trusted timestamp",
+      "acceptance_predicate": "Application cannot mint valid historical witness alone.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "docs/security/KEY_AND_BREAK_GLASS_V5.md"
+      ],
+      "v5_remaining_acceptance": "Application cannot mint valid historical witness alone."
+    },
+    {
+      "id": "AUD-002",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "state": "VERIFIED_DEFECT",
+      "title": "Remote anchor protocol custom HTTP/HMAC",
+      "evidence": "Немає стандартного transparency proof, asymmetric identity, external timestamp, multi-witness.",
+      "impact": "Anchor service/operator compromise зменшує гарантії.",
+      "required_action": "Use signed append-only log / independent witnesses; key rotation and inclusion proofs.",
+      "tools_methods": "Sigstore/Rekor-like; RFC3161 timestamp",
+      "acceptance_predicate": "Offline verifier detects fork/truncation with independently trusted keys.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/infrastructure/audit_anchor.py",
+        "apps/api/tests/test_http_audit_anchor.py"
+      ],
+      "v5_remaining_acceptance": "Offline verifier detects fork/truncation with independently trusted keys."
+    },
+    {
+      "id": "AUD-003",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Key rotation/recovery ceremony не доведена",
+      "evidence": "Немає live procedure for audit/backup/OIDC/service key rollover, compromise, re-encryption.",
+      "impact": "Rotation може зламати verification або лишити compromised key valid.",
+      "required_action": "Versioned key IDs, dual validation window, revocation, ceremony and drill.",
+      "tools_methods": "KMS/HSM; runbooks",
+      "acceptance_predicate": "Rotation and compromised-key drill preserve verifiability and availability.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/keyring.py",
+        "apps/api/migrations/versions/0011_audit_key_id.py",
+        "apps/api/tests/test_audit_key_rotation.py"
+      ],
+      "v5_remaining_acceptance": "Rotation and compromised-key drill preserve verifiability and availability."
+    },
+    {
+      "id": "AUD-004",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає SIEM export/correlation/retention",
+      "evidence": "Audit chain локальна; durable security analytics and alert rules not demonstrated.",
+      "impact": "Атаки виявляються запізно; forensic context розпорошений.",
+      "required_action": "Structured signed audit export to SIEM; correlation with IdP/network/deploy logs.",
+      "tools_methods": "SIEM; OTel logs; pgaudit",
+      "acceptance_predicate": "Defined attack simulations trigger alerts with complete timeline.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py"
+      ],
+      "v5_remaining_acceptance": "Defined attack simulations trigger alerts with complete timeline."
+    },
+    {
+      "id": "DATA-001",
+      "domain": "Data Lifecycle",
+      "severity": "P0",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає enforceable retention/deletion/legal-hold policy",
+      "evidence": "Object lock retention є config, але corpus-specific lifecycle, deletion, legal hold, declassification не реалізовані end-to-end.",
+      "impact": "Незаконне довічне зберігання або передчасне видалення доказів.",
+      "required_action": "Lifecycle state machine per data class; legal hold; cryptographic erasure; audit.",
+      "tools_methods": "S3 lifecycle/KMS; policy engine",
+      "acceptance_predicate": "Automated tests prove retain/delete/hold/declassify behavior.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/tests/test_corpus_governance.py",
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md"
+      ],
+      "v5_remaining_acceptance": "Automated tests prove retain/delete/hold/declassify behavior."
+    },
+    {
+      "id": "DATA-002",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає field-level privacy/minimization assessment",
+      "evidence": "Документи можуть містити персональні/операційні дані; немає PII detection/redaction workflow.",
+      "impact": "Sensitive data індексується/цитується понад потребу.",
+      "required_action": "PII/secret scanning, redaction versions, purpose limitation, disclosure review.",
+      "tools_methods": "DLP/NER; redaction tooling",
+      "acceptance_predicate": "Known sensitive fixtures never appear in unauthorized retrieval/output/logs.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md",
+        "apps/api/src/korpus/security/corpus_governance.py"
+      ],
+      "v5_remaining_acceptance": "Known sensitive fixtures never appear in unauthorized retrieval/output/logs."
+    },
+    {
+      "id": "DATA-003",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає immutable corpus release manifest підписаного data owner",
+      "evidence": "Code release має manifest, але corpus release authority/signature/process не доведені.",
+      "impact": "Неможливо довести точний набір документів, що породив відповідь.",
+      "required_action": "Signed corpus manifest: object/version hashes, policies, calibration, approvals.",
+      "tools_methods": "in-toto/cosign; corpus registry",
+      "acceptance_predicate": "Every answer resolves to signed corpus release accepted by data owner.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/corpus_release.py",
+        "apps/api/tests/test_corpus_release_manifest.py"
+      ],
+      "v5_remaining_acceptance": "Every answer resolves to signed corpus release accepted by data owner."
+    },
+    {
+      "id": "DATA-004",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає continuous inventory/reconciliation object store↔DB↔index",
+      "evidence": "Orphans/stale vectors/missing objects можуть виникнути; formal reconciliation job не доведений.",
+      "impact": "Silent incompleteness або data residue.",
+      "required_action": "Scheduled bidirectional reconciliation with repair/quarantine and alerts.",
+      "tools_methods": "Inventory jobs; checksums; pg queries",
+      "acceptance_predicate": "Zero unexplained divergence; injected drift detected within SLA.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/cli.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py::test_object_inventory_reconciliation_detects_missing_and_orphaned_files"
+      ],
+      "v5_remaining_acceptance": "Zero unexplained divergence; injected drift detected within SLA."
+    },
+    {
+      "id": "OPS-001",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає доказу reproducible container build",
+      "evidence": "Source ZIP deterministic-ish, але container bit-for-bit rebuild або reproducibility variance не виміряні.",
+      "impact": "Build environment може неявно змінювати artifact.",
+      "required_action": "Rebuild on independent runner; compare digest; record allowed nondeterminism.",
+      "tools_methods": "reproducible-build tooling; diffoscope",
+      "acceptance_predicate": "Two independent builds yield identical digest or explained signed variance.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/reproducible_build_probe.sh",
+        "apps/api/Dockerfile"
+      ],
+      "v5_remaining_acceptance": "Two independent builds yield identical digest or explained signed variance."
+    },
+    {
+      "id": "OPS-003",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає release evidence retention policy",
+      "evidence": "GitLab package artifacts expire in 30 days; long-term audit archive not demonstrated.",
+      "impact": "Пізніше неможливо відтворити evidence release.",
+      "required_action": "Immutable long-term evidence registry with retention aligned to system lifetime.",
+      "tools_methods": "Artifact registry/WORM",
+      "acceptance_predicate": "Every production release evidence retrievable and verified years later.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "scripts/evidence_registry.py",
+        "scripts/retention_policy.py"
+      ],
+      "v5_remaining_acceptance": "Every production release evidence retrievable and verified years later."
+    },
+    {
+      "id": "OPS-004",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає environment drift detection",
+      "evidence": "No evidence of desired-state vs live infrastructure reconciliation.",
+      "impact": "Manual changes bypass reviewed configuration.",
+      "required_action": "GitOps/IaC drift detection, admission policy, periodic attestation.",
+      "tools_methods": "Terraform plan/OPA/Kyverno/GitOps",
+      "acceptance_predicate": "Unauthorized drift detected and reverted/blocked.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py::test_the_environment_drift_check_runs_in_the_pipeline"
+      ],
+      "v5_remaining_acceptance": "Unauthorized drift detected and reverted/blocked."
+    },
+    {
+      "id": "OPS-005",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "state": "UNVERIFIED_BLOCKER",
+      "title": "Немає cost/capacity governance",
+      "evidence": "API/OCR/embedding/storage costs and quotas are not modeled/alerted.",
+      "impact": "Resource abuse або неконтрольована вартість.",
+      "required_action": "Per-tenant quotas, cost attribution, budget alerts, rate policy.",
+      "tools_methods": "FinOps metrics; quota service",
+      "acceptance_predicate": "Cost per ingest/query measured; budget breach triggers safe throttling.",
+      "v5_status": "MITIGATED_LOCAL",
+      "v5_evidence": [
+        "deploy/public/nginx.conf",
+        "scripts/retention_policy.py"
+      ],
+      "v5_remaining_acceptance": "Cost per ingest/query measured; budget breach triggers safe throttling."
+    }
+  ]
+}

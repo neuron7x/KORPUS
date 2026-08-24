@@ -1,0 +1,112 @@
+{
+  "schema": "korpus.canonical-release-report.v4",
+  "generated_at": "2026-08-16T18:15:55.496038+00:00",
+  "release": "v0.6.1",
+  "artifact_class": "final_production_product_candidate",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "source_manifest": {
+    "status": "PASS",
+    "files": 824,
+    "root_sha256": "f490d25bd824adf6c9e7c3fa79630b5d4f3345a2668026acd038824179c27acf"
+  },
+  "software_product_complete": true,
+  "internal_executable_debt_zero_under_current_available_tooling": true,
+  "production_authorized": false,
+  "production_authorization_reason": "External/trusted/production-like predicates remain unsatisfied and cannot be honestly self-attested in this execution authority.",
+  "verified_or_source_bound_metrics": {
+    "backend": {
+      "collected": 1675,
+      "passed": 1673,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "coverage": {
+      "statement_coverage_percent": 96.26388104648974,
+      "branch_coverage_percent": 91.91011235955057,
+      "missing_branches": 216
+    },
+    "mutation_catalogue": {
+      "catalogue_mutants": 302,
+      "valid_mutants": 302,
+      "killed": 302,
+      "survived": [],
+      "invalid": []
+    },
+    "web": {
+      "tests": 142,
+      "passed": 142,
+      "failed": 0,
+      "skipped": 0,
+      "lint": "PASS",
+      "build": "PASS"
+    },
+    "source_python_modules": 160,
+    "test_python_modules": 215,
+    "static_test_functions": 1435,
+    "static_security_high_or_critical": 0,
+    "static_security_triaged_medium": 54,
+    "repository_validate_current_runtime": "PASS"
+  },
+  "evidence_classes": {
+    "fresh_current_runtime": [
+      "source manifest verification",
+      "repository validate",
+      "dependency lock verification",
+      "standards control map verification",
+      "web lint",
+      "web build",
+      "static security audit/triage"
+    ],
+    "source_bound_carry_forward": [
+      "full backend regression",
+      "coverage",
+      "full declared mutation catalogue",
+      "canonical monolithic web test suite"
+    ],
+    "partial_current_reexecution": [
+      "backend monolithic run timed out at 8% in constrained harness",
+      "web test monolith observed 139/142 before harness timeout; remaining 3 passed individually"
+    ],
+    "external_required": [
+      "independent red team",
+      "real production-corpus TEVV",
+      "live PostgreSQL/RLS/migration destruction",
+      "exact pinned deployment environment",
+      "trusted hosted builder/signatures",
+      "production-like load/soak/recovery attestation"
+    ],
+    "runtime_unavailable": [
+      "Ruff 0.15.22",
+      "Mypy 2.3.0",
+      "Gitleaks",
+      "pip-audit",
+      "Trivy",
+      "PostgreSQL client/server"
+    ]
+  },
+  "blocker_counts": {
+    "CARRY_FORWARD_SOURCE_BOUND": 4,
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 6,
+    "RUNTIME_UNAVAILABLE": 2
+  },
+  "internal_executable_unresolved": 0,
+  "production_external_or_runtime_unresolved": 8,
+  "truth_constraints": [
+    "302/302 is scoped to the declared curated mutation catalogue and is not an exhaustive mutation-space claim.",
+    "NIST/OWASP/SLSA mappings are alignment/control evidence, not certification.",
+    "Internal red-team evidence is not independent external validation.",
+    "Local cryptographic signing proves mechanism, not trusted production signer identity.",
+    "A deployable software product can be complete while production authorization remains false until external trust predicates are satisfied."
+  ],
+  "primary_evidence": {
+    "blocker_registry": "reports/release/v0.6.1/final/BLOCKER_REGISTRY.json",
+    "claim_ledger": "reports/release/v0.6.1/final/CLAIM_LEDGER.json",
+    "current_runtime": "reports/release/v0.6.1/final/CURRENT_RUNTIME_VALIDATION.json",
+    "static_security": "reports/release/v0.6.1/final/STATIC_SECURITY_TRIAGE.json",
+    "portable_evidence_index": "reports/release/v0.6.1/final/PORTABLE_EVIDENCE_INDEX.json",
+    "supersession_map": "reports/release/v0.6.1/final/SUPERSESSION_MAP.json"
+  },
+  "verdict": "SOFTWARE_PRODUCT_COMPLETE__PRODUCTION_AUTHORIZATION_EXTERNAL_PENDING"
+}

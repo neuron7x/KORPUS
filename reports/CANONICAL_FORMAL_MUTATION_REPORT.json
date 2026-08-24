@@ -1,0 +1,82 @@
+{
+  "schema": "korpus.formal-mutation-microcampaign.v1",
+  "source_files": {
+    "apps/api/src/korpus/application/release_state_machine.py": "8fa80d62341b41cec5a942f2104318a885186f6d41c037520e1ad968431a85d5",
+    "apps/api/src/korpus/application/assurance_calculus.py": "ae9ca2cc5dd6b67dec1c377447f067037a957e506bf915a89d8bfc19e21fb4d6"
+  },
+  "mutants": 10,
+  "killed": 10,
+  "survived": [],
+  "results": [
+    {
+      "id": "AC01_cross_identity_dominance",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_stronger_same_identity_evidence_dominates_weaker",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "AC02_conflict_must_fail",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_conflicting_evidence_join_fails_closed",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "AC03_no_execution_ceiling",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_unexecuted_evidence_caps_dimension_even_when_claimed_score_is_100",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "AC04_stale_dimension_zero",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_stale_dimension_evidence_contributes_zero",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "AC05_no_score_compensation",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_high_weighted_score_cannot_compensate_for_missing_mandatory_gate",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "AC06_gate_release_binding",
+      "file": "apps/api/src/korpus/application/assurance_calculus.py",
+      "selector": "test_assurance_calculus.py::test_release_binding_is_required_even_for_independent_attestation",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "RS01_sequential_only",
+      "file": "apps/api/src/korpus/application/release_state_machine.py",
+      "selector": "test_release_state_machine.py::test_promotion_must_be_sequential",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "RS02_verifier_required",
+      "file": "apps/api/src/korpus/application/release_state_machine.py",
+      "selector": "test_release_state_machine.py::test_verified_requires_verifier_and_exact_source_bound_gate",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "RS03_independent_verifier",
+      "file": "apps/api/src/korpus/application/release_state_machine.py",
+      "selector": "test_release_state_machine.py::test_production_authorization_requires_independent_verifier",
+      "killed": true,
+      "pytest_exit_code": 1
+    },
+    {
+      "id": "RS04_withdraw_terminal",
+      "file": "apps/api/src/korpus/application/release_state_machine.py",
+      "selector": "test_release_state_machine.py::test_withdrawal_is_the_only_general_safety_escape",
+      "killed": true,
+      "pytest_exit_code": 1
+    }
+  ]
+}

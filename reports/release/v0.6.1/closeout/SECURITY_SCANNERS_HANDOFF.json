@@ -1,0 +1,48 @@
+{
+  "schema": "korpus.scanner-closeout-handoff.v1",
+  "status": "READY_FOR_EXTERNAL_EXECUTION",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "local_execution": {
+    "schema_version": 1,
+    "ran_at": "2026-08-16T15:07:30.471054+00:00",
+    "scanners": [
+      {
+        "scanner": "gitleaks",
+        "exit_code": 127
+      },
+      {
+        "scanner": "pip-audit",
+        "exit_code": 127
+      },
+      {
+        "scanner": "trivy",
+        "exit_code": 127
+      }
+    ],
+    "worst_exit_code": 127,
+    "status": "FAIL",
+    "interpretation": "Exit codes from the scanners themselves, archived beside their reports. 127 means the scanner was absent, which is neither a pass nor a finding — it is an unexecuted check, and it fails the summary."
+  },
+  "lock_evidence": {
+    "pinned_records": 68,
+    "hashed_records": 68,
+    "exact_pins_have_hashes": true,
+    "source_sbom_lock_complete": true
+  },
+  "required_scanners": [
+    "gitleaks",
+    "pip-audit:runtime",
+    "pip-audit:dev",
+    "trivy"
+  ],
+  "canonical_aggregator": "scripts/aggregate_ci_security_summary.py",
+  "container_evidence_required": [
+    "var/security/ci-container-scan.json",
+    "api-sbom.cdx.json",
+    "web-sbom.cdx.json"
+  ],
+  "attestation_required": true,
+  "trusted_signer_required": true,
+  "interpretation": "The local scan command was actually invoked. Exit 127 records tool absence; it is not a clean scan. External pinned scanner/container execution is still mandatory."
+}

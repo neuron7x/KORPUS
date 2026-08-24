@@ -1,0 +1,56 @@
+{
+  "schema": "korpus.publisher-license-metadata.v1",
+  "recorded_at": "2026-08-15",
+  "interpretation": "Exact-version publisher/upstream declarations used only when the locked distribution is absent from the local interpreter. These declarations are inventory metadata, not legal clearance and not proof that the package is installed or vulnerability-free.",
+  "records": [
+    {
+      "name": "ast-serialize",
+      "version": "0.6.0",
+      "license": "MIT",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/ast-serialize/0.6.0/"
+    },
+    {
+      "name": "librt",
+      "version": "0.13.0",
+      "license": "MIT",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/librt/0.13.0/"
+    },
+    {
+      "name": "mypy",
+      "version": "2.3.0",
+      "license": "MIT",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/mypy/2.3.0/"
+    },
+    {
+      "name": "mypy-extensions",
+      "version": "1.1.0",
+      "license": "MIT",
+      "evidence_kind": "UPSTREAM_SOURCE_LICENSE",
+      "source_url": "https://github.com/python/mypy_extensions/tree/1.1.0"
+    },
+    {
+      "name": "psycopg",
+      "version": "3.3.4",
+      "license": "LGPL-3.0-only",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/psycopg/3.3.4/"
+    },
+    {
+      "name": "psycopg-binary",
+      "version": "3.3.4",
+      "license": "LGPL-3.0-only",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/psycopg-binary/3.3.4/"
+    },
+    {
+      "name": "ruff",
+      "version": "0.15.22",
+      "license": "MIT",
+      "evidence_kind": "PYPI_PUBLISHER_METADATA",
+      "source_url": "https://pypi.org/project/ruff/0.15.22/"
+    }
+  ]
+}

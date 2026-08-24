@@ -1,0 +1,255 @@
+{
+  "schema": "korpus.standards-control-map.v1",
+  "as_of": "2026-08-16",
+  "references": [
+    {
+      "id": "NIST-SSDF-1.1",
+      "kind": "normative-final",
+      "title": "NIST SP 800-218 Secure Software Development Framework Version 1.1",
+      "url": "https://doi.org/10.6028/NIST.SP.800-218"
+    },
+    {
+      "id": "NIST-SSDF-218A",
+      "kind": "normative-final",
+      "title": "NIST SP 800-218A Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
+      "url": "https://doi.org/10.6028/NIST.SP.800-218A"
+    },
+    {
+      "id": "NIST-SSDF-1.2-DRAFT",
+      "kind": "draft-informative",
+      "title": "NIST SP 800-218 Rev. 1 SSDF Version 1.2 Initial Public Draft",
+      "url": "https://csrc.nist.gov/Projects/ssdf/publications"
+    },
+    {
+      "id": "OWASP-ASVS-5.0.0",
+      "kind": "normative-stable",
+      "title": "OWASP Application Security Verification Standard 5.0.0",
+      "url": "https://owasp.org/www-project-application-security-verification-standard/"
+    },
+    {
+      "id": "SLSA-1.2",
+      "kind": "normative-approved",
+      "title": "SLSA specification v1.2",
+      "url": "https://slsa.dev/spec/v1.2/"
+    },
+    {
+      "id": "OPENSSF-SCORECARD",
+      "kind": "industry-methodology",
+      "title": "OpenSSF Scorecard checks",
+      "url": "https://github.com/ossf/scorecard/blob/main/docs/checks.md"
+    },
+    {
+      "id": "ARXIV-2104.06020",
+      "kind": "research",
+      "title": "Reproducible Builds: Increasing the Integrity of Software Supply Chains",
+      "url": "https://arxiv.org/abs/2104.06020"
+    },
+    {
+      "id": "ARXIV-2408.05025",
+      "kind": "research",
+      "title": "Rag and Roll: An End-to-End Evaluation of Indirect Prompt Manipulations in LLM-based Application Frameworks",
+      "url": "https://arxiv.org/abs/2408.05025"
+    },
+    {
+      "id": "ARXIV-2601.07072",
+      "kind": "research",
+      "title": "Overcoming the Retrieval Barrier: Indirect Prompt Injection in the Wild for LLM Systems",
+      "url": "https://arxiv.org/abs/2601.07072"
+    },
+    {
+      "id": "NIST-AI-600-1",
+      "kind": "normative-final",
+      "title": "NIST AI 600-1 Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "id": "OPENAI-TRUSTWORTHY-3P-EVALS-2026",
+      "kind": "industry-methodology",
+      "title": "OpenAI A shared playbook for trustworthy third party evaluations (2026)",
+      "url": "https://openai.com/index/trustworthy-third-party-evaluations-foundations/"
+    },
+    {
+      "id": "OPENAI-CODING-EVAL-INTEGRITY-2026",
+      "kind": "industry-methodology",
+      "title": "OpenAI Separating signal from noise in coding evaluations (2026)",
+      "url": "https://openai.com/index/separating-signal-from-noise-coding-evaluations/"
+    },
+    {
+      "id": "OPENAI-MODEL-SPEC-APPROACH-2026",
+      "kind": "industry-methodology",
+      "title": "OpenAI Inside our approach to the Model Spec (2026)",
+      "url": "https://openai.com/index/our-approach-to-the-model-spec/"
+    },
+    {
+      "id": "STANFORD-HELM-CAPABILITIES",
+      "kind": "research",
+      "title": "Stanford CRFM HELM Capabilities reproducible transparent evaluation framework",
+      "url": "https://crfm.stanford.edu/helm/capabilities/latest/"
+    },
+    {
+      "id": "STANFORD-AI-INDEX-2026-TECH",
+      "kind": "research",
+      "title": "Stanford HAI 2026 AI Index Technical Performance",
+      "url": "https://hai.stanford.edu/ai-index/2026-ai-index-report/technical-performance"
+    }
+  ],
+  "controls": [
+    {
+      "id": "SC.DEP.PIN",
+      "claim": "Python and web dependency closures are immutable and structurally verifiable offline",
+      "references": [
+        "NIST-SSDF-1.1",
+        "OPENSSF-SCORECARD"
+      ],
+      "evidence": [
+        "scripts/verify_dependency_locks.py",
+        "apps/api/tests/test_dependency_lock_gate.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "SC.VULN.LIVE",
+      "claim": "Known-vulnerability status is determined by a current vulnerability database",
+      "references": [
+        "NIST-SSDF-1.1",
+        "OPENSSF-SCORECARD"
+      ],
+      "evidence": [
+        "reports/OSV_QUERY_BATCH.json"
+      ],
+      "local_status": "EXTERNAL_REQUIRED"
+    },
+    {
+      "id": "SC.PROV.ARTIFACT",
+      "claim": "Release provenance binds exact artifact bytes and exact build materials",
+      "references": [
+        "SLSA-1.2",
+        "ARXIV-2104.06020"
+      ],
+      "evidence": [
+        "scripts/slsa_provenance.py",
+        "apps/api/tests/test_slsa_provenance.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "SC.PROV.TRUSTED_BUILDER",
+      "claim": "Production provenance originates from an independently trusted hosted builder",
+      "references": [
+        "SLSA-1.2"
+      ],
+      "evidence": [
+        "config/assurance/trusted-builders.v1.json"
+      ],
+      "local_status": "EXTERNAL_REQUIRED"
+    },
+    {
+      "id": "REL.LEDGER",
+      "claim": "Release promotions and withdrawals form a tamper-evident ordered chain",
+      "references": [
+        "NIST-SSDF-1.1"
+      ],
+      "evidence": [
+        "apps/api/src/korpus/application/release_ledger.py",
+        "apps/api/tests/test_release_ledger.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "REL.MODEL_CHECK",
+      "claim": "Assurance aggregation and release transitions satisfy bounded exhaustive invariants",
+      "references": [
+        "NIST-SSDF-1.1"
+      ],
+      "evidence": [
+        "scripts/model_check_assurance.py",
+        "apps/api/tests/test_assurance_model_check.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "AI.IPI.RETRIEVAL",
+      "claim": "Retrieved control instructions do not cross the evidence-to-model composition boundary",
+      "references": [
+        "NIST-SSDF-218A",
+        "ARXIV-2408.05025",
+        "ARXIV-2601.07072"
+      ],
+      "evidence": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "AI.EGRESS.CLASSIFICATION",
+      "claim": "Material above the configured classification ceiling is withheld before optional model egress",
+      "references": [
+        "NIST-SSDF-218A",
+        "OWASP-ASVS-5.0.0"
+      ],
+      "evidence": [
+        "apps/api/tests/test_egress_material_ceiling.py",
+        "apps/api/src/korpus/application/egress.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "APP.AUTHZ.NONINTERFERENCE",
+      "claim": "Authorization and cross-scope retrieval controls are machine-tested rather than prompt-enforced",
+      "references": [
+        "OWASP-ASVS-5.0.0",
+        "NIST-SSDF-1.1"
+      ],
+      "evidence": [
+        "apps/api/tests/test_noninterference_measurement.py",
+        "apps/api/tests/test_retriever_scope.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "APP.STATIC.DANGEROUS_PRIMITIVES",
+      "claim": "Production source is rejected on high-confidence dynamic code execution, shell=True subprocess use, unsafe deserialization/YAML, insecure tempfile APIs, security-sensitive MD5/SHA1, or high-confidence embedded credentials",
+      "references": [
+        "NIST-SSDF-1.1",
+        "OWASP-ASVS-5.0.0"
+      ],
+      "evidence": [
+        "scripts/run_builtin_security_gate.py",
+        "apps/api/tests/test_builtin_security_gate.py"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "REL.PREFLIGHT.FAIL_CLOSED",
+      "claim": "Local release evidence and unavailable external production evidence are represented separately; missing independent or production-like evidence cannot authorize production",
+      "references": [
+        "NIST-SSDF-1.1",
+        "SLSA-1.2"
+      ],
+      "evidence": [
+        "scripts/run_local_production_preflight.py",
+        "apps/api/tests/test_local_production_preflight.py",
+        "config/assurance/production-v1.json"
+      ],
+      "local_status": "EXECUTABLE"
+    },
+    {
+      "id": "AI.EVAL.HARNESS_VALIDITY",
+      "claim": "Every local AI/evidence evaluation declares the exact claim class, tested system, execution budget, independence class and known validity hazards; the synthetic local harness cannot self-authorize production",
+      "references": [
+        "NIST-AI-600-1",
+        "OPENAI-TRUSTWORTHY-3P-EVALS-2026",
+        "OPENAI-CODING-EVAL-INTEGRITY-2026",
+        "STANFORD-HELM-CAPABILITIES",
+        "STANFORD-AI-INDEX-2026-TECH"
+      ],
+      "evidence": [
+        "evals/EVALUATION_HARNESS_CONTRACT.json",
+        "scripts/run_evals.py",
+        "apps/api/tests/test_evaluation_harness_contract.py"
+      ],
+      "local_status": "EXECUTABLE"
+    }
+  ]
+}

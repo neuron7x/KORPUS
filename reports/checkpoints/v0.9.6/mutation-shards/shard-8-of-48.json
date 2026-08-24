@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 8,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M08_OBJECT_HASH_CHECK_REMOVED",
+      "file": "apps/api/src/korpus/infrastructure/object_store.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_more_edges.py::test_object_store_is_content_addressed_atomic_and_filename_independent"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_object_store_is_content_addressed_atomic_and_filename_independent ____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-399/test_object_store_is_content_a0')\n\n    def test_object_store_is_content_addressed_atomic_and_filename_independent(tmp_path: Path):\n        store = LocalObjectStore(tmp_path)\n        payload = b\"payload\"\n        digest = hashlib.sha256(payload).hexdigest()\n        first = store.put(payload, digest, \"../unsafe.txt\")\n        second = store.put(payload, digest, \"different-name.txt\")\n        assert first == second\n        assert store.get(first) == payload\n        assert store.exists(first)\n        assert (tmp_path / first).stat().st_mode & 0o777 == 0o600\n        with pytest.raises(ValueError, match=\"invalid object key\"):\n            store.get(\"../../etc/passwd\")\n>       with pytest.raises(ValueError, match=\"does not match\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_more_edges.py:23: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_more_edges.py::test_object_store_is_content_addressed_atomic_and_filename_independent - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M55_QUOTE_SOURCE_CHECK_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_quote_provenance.py::test_a_quote_absent_from_its_span_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_quote_absent_from_its_span_stops_the_answer ______________\n\nclient = <starlette.testclient.TestClient object at 0x7f88d5f801a0>\n\n    def test_a_quote_absent_from_its_span_stops_the_answer(client: TestClient) -> None:\n        \"\"\"The second line: chunking may change again, the promise may not.\"\"\"\n        result = ingest_text(client, text=f\"Маркер {MARKER} фіксується у журналі підрозділу.\")\n        approve(client, result[\"version\"][\"id\"])\n        real = get_answer_service(\n            client.app.state.repository,\n            PolicyEngine(),\n            client.app.dependency_overrides[get_settings](),\n            client.app.state.query_cache,\n            client.app.state.semantic_source,\n        )\n        service = ForgingService(\n            client.app.state.repository, real.retriever, PolicyEngine(), real.answer_policy\n        )\n        client.app.dependency_overrides[get_answer_service] = lambda: service\n    \n        answer = client.post(\"/v1/answers\", json={\"text\": f\"де фіксується {MARKER}\"}).json()\n    \n>       assert answer[\"status\"] == \"requires_human_review\"\nE       AssertionError: assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_quote_provenance.py:131: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_quote_provenance.py::test_a_quote_absent_from_its_span_stops_the_answer - AssertionError: assert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M99_SPAN_LISTING_IGNORES_THE_DATE",
+      "file": "apps/api/src/korpus/api/routes_answers.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern _______\n\nclient = <starlette.testclient.TestClient object at 0x7fb11381c2f0>\n\n    def test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern(\n        client: TestClient,\n    ) -> None:\n        \"\"\"The same currency rule as retrieval: `as_of` decides, here too.\"\"\"\n        from datetime import date\n    \n        result = ingest_text(client, text=STRUCTURED, effective_from=date(2026, 6, 1))\n        version_id = result[\"version\"][\"id\"]\n        approve(client, version_id)\n    \n        before = client.get(\n            f\"/v1/document-versions/{version_id}/spans\", params={\"as_of\": \"2026-05-31\"}\n        ).json()\n        on_the_day = client.get(\n            f\"/v1/document-versions/{version_id}/spans\", params={\"as_of\": \"2026-06-01\"}\n        ).json()\n    \n        assert before == []\n>       assert on_the_day\nE       assert []\n\napps/api/tests/test_span_lookup.py:142: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_span_lookup.py::test_a_span_is_not_disclosed_on_a_date_the_version_did_not_govern - assert []\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M130_STALE_VECTORS_RANKED_BELOW_MISSING",
+      "file": "apps/api/src/korpus/application/embedding_coverage.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_coverage.py::test_a_stale_vector_outranks_a_missing_one"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_a_stale_vector_outranks_a_missing_one __________________\n\n    def test_a_stale_vector_outranks_a_missing_one() -> None:\n        \"\"\"Missing produces silence; stale produces confidence about absent text.\"\"\"\n        coverage = _coverage(spans_embedded_active=90, spans_stale_text=3)\n    \n>       assert coverage.status == STALE_VECTORS\nE       AssertionError: assert 'BACKFILL_REQUIRED' == 'STALE_VECTORS'\nE         \nE         - STALE_VECTORS\nE         + BACKFILL_REQUIRED\n\napps/api/tests/test_embedding_coverage.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_coverage.py::test_a_stale_vector_outranks_a_missing_one - AssertionError: assert 'BACKFILL_REQUIRED' == 'STALE_VECTORS'\n  \n  - STALE_VECTORS\n  + BACKFILL_REQUIRED\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M126_UNREADABLE_ARTEFACT_REPORTED_AS_DRIFT",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_present_but_unreadable_is_unobserved_not_drift"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_present_but_unreadable_is_unobserved_not_drift ______________\n\n    def test_present_but_unreadable_is_unobserved_not_drift() -> None:\n        report = drift.compare(APPROVED, {\"a.yml\": \"a\" * 64, \"b.yml\": None})\n>       assert [finding.path for finding in report.of_state(drift.UNOBSERVED)] == [\"b.yml\"]\nE       AssertionError: assert [] == ['b.yml']\nE         \nE         Right contains one more item: 'b.yml'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'b.yml',\nE         - ]\n\napps/api/tests/test_environment_drift.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_present_but_unreadable_is_unobserved_not_drift - AssertionError: assert [] == ['b.yml']\n  \n  Right contains one more item: 'b.yml'\n  \n  Full diff:\n  + []\n  - [\n  -     'b.yml',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M212_STALE_PRODUCTION_GATE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_stale_gate_digest_is_rejected_even_if_it_says_pass"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_stale_gate_digest_is_rejected_even_if_it_says_pass ____________\n\n    def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:\n        gates = {gate: _gate(gate) for gate in PROFILE[\"required_gates\"]}\n        gates[\"redteam\"][\"evidence_class\"] = \"EXTERNAL_INDEPENDENT\"\n        gates[\"redteam\"][\"attestation_verified\"] = True\n        gates[\"redteam\"][\"trusted_signer\"] = True\n        gates[\"tevv\"][\"environment_class\"] = \"PRODUCTION\"\n        gates[\"tevv\"][\"checks\"] = {\"independent_class\": True, \"assessor_trusted_signer\": True}\n        gates[\"postgres_security\"][\"backend\"] = \"postgresql\"\n        gates[\"supply_chain\"][\"completeness\"] = \"COMPLETE\"\n        gates[\"mutation\"][\"scope\"] = \"FULL_CATALOGUE\"\n        gates[\"authorization\"][\"source_tree_sha256\"] = \"old\"\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n>       assert \"authorization.source_bound\" in verdict.failures\nE       AssertionError: assert 'authorization.source_bound' in ()\nE        +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n\napps/api/tests/test_production_assurance.py:55: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_stale_gate_digest_is_rejected_even_if_it_says_pass - AssertionError: assert 'authorization.source_bound' in ()\n +  where () = ProductionAssuranceVerdict(status='PASS', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....or': True, 'postgres.real_backend': True, 'supply_chain.complete': True, 'mutation.full_catalogue': True}, failures=()).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M260_TEVV_DUPLICATE_OBSERVATION_IDS_ACCEPTED",
+      "file": "apps/api/src/korpus/application/tevv_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_duplicate_observation_ids_fail_closed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_trusted_tevv_duplicate_observation_ids_fail_closed ____________\n\n    def test_trusted_tevv_duplicate_observation_ids_fail_closed() -> None:\n        evidence, _ = _evidence()\n        evidence[\"observation_ledger\"][1][\"id\"] = evidence[\"observation_ledger\"][0][\"id\"]\n        result = _trusted_result(evidence)\n>       assert result[\"status\"] == \"FAIL\"\nE       AssertionError: assert 'PASS' == 'FAIL'\nE         \nE         - FAIL\nE         + PASS\n\napps/api/tests/test_tevv_attestation_boundary.py:137: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_duplicate_observation_ids_fail_closed - AssertionError: assert 'PASS' == 'FAIL'\n  \n  - FAIL\n  + PASS\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T14:55:46+00:00"
+  }
+}

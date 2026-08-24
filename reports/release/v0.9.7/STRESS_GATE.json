@@ -1,0 +1,33 @@
+{
+  "schema": "korpus.stress-gate.v2",
+  "status": "PASS",
+  "release": "v0.9.7",
+  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "runs": [
+    {
+      "cycle": 1,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "cycle": 2,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "cycle": 3,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "failures": []
+}

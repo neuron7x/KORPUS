@@ -1,0 +1,86 @@
+name: pec-production-evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_run_id:
+        description: "Run ID containing pec-production-evidence and attestation artifacts"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: pec-production-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+
+jobs:
+  verify-pec-production-evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Download PEC evidence
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pec-production-evidence
+          path: var/incoming/pec
+          run-id: ${{ inputs.evidence_run_id }}
+          github-token: ${{ github.token }}
+      - name: Stage and verify exact PEC evidence
+        env:
+          KORPUS_TRUSTED_PEC_SIGNER_SHA256: ${{ secrets.KORPUS_TRUSTED_PEC_SIGNER_SHA256 }}
+        run: |
+          mkdir -p var/production
+          cp var/incoming/pec/pec-production-evidence.json var/production/pec-production-evidence.json
+          cp var/incoming/pec/pec-production-evidence.attestation.json var/production/pec-production-evidence.attestation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from korpus.application.assurance_trust import trusted_fingerprints
+          from korpus.application.attested_evidence import verify_ed25519_attestation
+          from korpus.application.pec_hosted_evidence import evaluate_pec_production_evidence
+          from korpus.application.provenance import compute_source_digest
+          from scripts.release_identity import release_tag
+          root=Path('.').resolve(); evidence_path=root/'var/production/pec-production-evidence.json'; attestation_path=root/'var/production/pec-production-evidence.attestation.json'
+          evidence=json.loads(evidence_path.read_text()); attestation=json.loads(attestation_path.read_text()); release=release_tag(root); source=compute_source_digest(root)
+          trusted=trusted_fingerprints(root/'config/assurance/trusted-assurance-signers.json','pec_ed25519_public_key_sha256','KORPUS_TRUSTED_PEC_SIGNER_SHA256')
+          att=verify_ed25519_attestation(evidence_path.read_bytes(),manifest_name=evidence_path.name,release=release,attestation=attestation,trusted_fingerprints=trusted)
+          result=evaluate_pec_production_evidence(evidence,release=release,source_digest=source,attestation_verified=att.cryptographically_valid,trusted_signer=att.trusted_signer,signer_fingerprint=att.fingerprint)
+          for key,name in (("authority","pec_authority-gate.json"),("canary","pec_canary-gate.json")):
+              (root/'var/production'/name).write_text(json.dumps(result[key],indent=2)+'\n')
+          (root/'var/production/pec-stage-summary.json').write_text(json.dumps({"status":result["status"],"diagnostics":result["diagnostics"]},indent=2)+'\n')
+          if result['status'] != 'PASS': raise SystemExit('PEC production evidence did not pass')
+          PY
+          python scripts/verify_production_hard_predicates.py > var/production/pec-hard-predicates.json
+      - name: Publish verified PEC gate receipts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pec-production-gates-${{ github.run_id }}
+          path: |
+            var/production/pec-stage-summary.json
+            var/production/pec_authority-gate.json
+            var/production/pec_canary-gate.json
+            var/production/pec-hard-predicates.json
+          if-no-files-found: error
+          retention-days: 90

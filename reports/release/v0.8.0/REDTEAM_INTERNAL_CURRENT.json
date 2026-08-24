@@ -1,0 +1,44 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "redteam_internal",
+  "status": "PASS",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "release": "v0.8.0",
+  "checks": {
+    "campaign_executed": true,
+    "pytest_passed": true,
+    "attack_families_declared": true
+  },
+  "failures": [],
+  "evidence_class": "INTERNAL_ADVERSARIAL",
+  "attack_families": [
+    "auth_bypass",
+    "idor",
+    "tenant_escape",
+    "privilege_escalation",
+    "ssrf_egress",
+    "injection_parser",
+    "webhook_forgery_replay",
+    "host_header",
+    "data_exfiltration"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_tenancy_threats.py",
+    "apps/api/tests/test_access_oracles.py",
+    "apps/api/tests/test_repository_access_refusals.py",
+    "apps/api/tests/test_routes_permissions.py",
+    "apps/api/tests/test_browser_session_refusals.py",
+    "apps/api/tests/test_oidc.py",
+    "apps/api/tests/test_model_egress.py",
+    "apps/api/tests/test_malformed_pdf_containment.py",
+    "apps/api/tests/test_liqpay_billing.py",
+    "apps/api/tests/test_billing_events.py"
+  ],
+  "junit": {
+    "tests": 115,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_path": "var/readiness947/redteam-current.xml"
+}

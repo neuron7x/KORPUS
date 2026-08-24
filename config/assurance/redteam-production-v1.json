@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "profile_id": "korpus-external-redteam-production-v1",
+  "required_attack_families": [
+    "auth_bypass",
+    "idor",
+    "tenant_escape",
+    "privilege_escalation",
+    "ssrf_egress",
+    "injection_parser",
+    "webhook_forgery_replay",
+    "host_header",
+    "data_exfiltration"
+  ],
+  "blocking_severities": ["CRITICAL", "HIGH"],
+  "blocking_finding_allowed_statuses": ["VERIFIED_FIXED"],
+  "allowed_finding_severities": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"],
+  "allowed_finding_statuses": ["OPEN", "VERIFIED_FIXED", "RISK_ACCEPTED"],
+  "interpretation": "Coverage is derived from structured test cases. CRITICAL/HIGH findings block promotion unless independently verified fixed. No arbitrary test-count threshold is used."
+}

@@ -1,0 +1,6 @@
+{
+  "schema": "korpus.github-actions-policy.v1",
+  "valid": true,
+  "workflow_count": 7,
+  "findings": []
+}

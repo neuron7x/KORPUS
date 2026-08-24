@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 40,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M39_LOWER_RANK_CAN_VETO_AGAIN",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_lower_ranked_source_cannot_veto_the_answer _______________\n\nclient = <starlette.testclient.TestClient object at 0x7feac7ec4590>\n\n    def test_a_lower_ranked_source_cannot_veto_the_answer(client: TestClient) -> None:\n        \"\"\"The analytical note contradicts the order numerically; the order still answers.\"\"\"\n        official = ingest_text(client, title=\"Наказ про журнал\", text=OFFICIAL)\n        approve(client, official[\"version\"][\"id\"])\n        analytical = ingest_text(\n            client,\n            title=\"Аналітична записка про журнал\",\n            authority=\"analytical\",\n            revision=\"1.1\",\n            text=ANALYTICAL,\n        )\n        approve(client, analytical[\"version\"][\"id\"])\n    \n        answer = _ask(client)\n    \n>       assert answer[\"decision_reason\"] == \"extractive_claims_passed_calibrated_gates\", (\n            \"a source that cannot overrule the order cannot block it either\"\n        )\nE       AssertionError: a source that cannot overrule the order cannot block it either\nE       assert 'contradictor...tive_evidence' == 'extractive_c...ibrated_gates'\nE         \nE         - extractive_claims_passed_calibrated_gates\nE         + contradictory_authoritative_evidence\n\napps/api/tests/test_authority_ranking.py:183: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_a_lower_ranked_source_cannot_veto_the_answer - AssertionError: a source that cannot overrule the order cannot block it either\nassert 'contradictor...tive_evidence' == 'extractive_c...ibrated_gates'\n  \n  - extractive_claims_passed_calibrated_gates\n  + contradictory_authoritative_evidence\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M83_ENTITLEMENT_CACHE_FROZEN_FOR_PROCESS_LIFETIME",
+      "file": "apps/api/src/korpus/security/auth.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_revocation.py::test_revocation_on_disk_denies_the_subject_without_a_restart"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_revocation_on_disk_denies_the_subject_without_a_restart _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-949/test_revocation_on_disk_denies0')\n\n    def test_revocation_on_disk_denies_the_subject_without_a_restart(tmp_path: Path) -> None:\n        path = tmp_path / \"entitlements.json\"\n        _write(path, _profile())\n        assert load_entitlement_profile(str(path), None).resolve(CLAIMS).subject == \"revoked-subject\"\n    \n        _write(path, _profile(frozenset({\"revoked-subject\"})))\n    \n>       with pytest.raises(PermissionError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'PermissionError'>\n\napps/api/tests/test_entitlement_revocation.py:58: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_revocation.py::test_revocation_on_disk_denies_the_subject_without_a_restart - Failed: DID NOT RAISE <class 'PermissionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M144_A_BROKEN_PREDICATE_COUNTS_AS_SATISFIED",
+      "file": "apps/api/src/korpus/application/requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_a_predicate_that_raises_fails_its_own_requirement"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_predicate_that_raises_fails_its_own_requirement ____________\n\n    def test_a_predicate_that_raises_fails_its_own_requirement() -> None:\n        \"\"\"A `.dockerignore` that cannot be read excludes nothing.\n    \n        Letting the exception escape would abort the whole run at the first unreadable\n        artefact and report one failure where there are twelve.\n        \"\"\"\n    \n        def explode(_context: object) -> bool:\n            raise FileNotFoundError(\"infra/minio/korpus-app-policy.json\")\n    \n        report = evaluate_requirements(\n            [_requirement(\"reads-a-missing-file\", explode), _requirement(\"fine\", lambda _: True)],\n            context=None,\n        )\n    \n>       assert [failure.id for failure in report.unmet] == [\"reads-a-missing-file\"]\nE       AssertionError: assert [] == ['reads-a-missing-file']\nE         \nE         Right contains one more item: 'reads-a-missing-file'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'reads-a-missing-file',\nE         - ]\n\napps/api/tests/test_requirement_registry.py:130: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_a_predicate_that_raises_fails_its_own_requirement - AssertionError: assert [] == ['reads-a-missing-file']\n  \n  Right contains one more item: 'reads-a-missing-file'\n  \n  Full diff:\n  + []\n  - [\n  -     'reads-a-missing-file',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M187_DECLARATION_RECORDED_AS_VERIFIED",
+      "file": "apps/api/src/korpus/application/answer_audit.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answers.py::test_the_operator_declaration_enters_the_audit_chain_marked_unverified"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_the_operator_declaration_enters_the_audit_chain_marked_unverified ____\n\nclient = <starlette.testclient.TestClient object at 0x7fc6ec2142f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_the_operator_declaration_enters_the_audit_chain_marked_unverified(\n        client, admin_identity\n    ) -> None:\n        \"\"\"Both halves of \"who asked this\", and the difference between them preserved.\n    \n        Access is decided by the OIDC subject and the entitlement profile. The name and\n        specialty are typed on a keyboard — NIST SP 800-63-3 calls that an unproofed\n        self-asserted attribute — so they travel as a separate object and land in the audit\n        under `declared` with `verified: false`. An investigator six months later has to be\n        able to tell an assertion from a proof, and the field name is where that survives.\n        \"\"\"\n        import json\n    \n        from korpus.infrastructure.repository import audits\n        from sqlalchemy import select\n    \n        response = client.post(\n            \"/v1/answers\",\n            json={\n                \"text\": \"Що має містити запис журналу?\",\n                \"declaration\": {\n                    \"given_name\": \"Ярослав\",\n                    \"family_name\": \"Василенко\",\n                    \"specialty\": \"Інженерне забезпечення\",\n                },\n            },\n        )\n        assert response.status_code == 200\n    \n        repository = client.app.state.repository\n        with repository.engine.begin() as connection:\n            rows = connection.execute(\n                select(audits.c.payload_json)\n                .where(audits.c.action == \"answer.completed\")\n                .order_by(audits.c.sequence.desc())\n                .limit(1)\n            ).scalars().all()\n        declared = json.loads(rows[0])[\"declared\"]\n    \n        assert declared[\"family_name\"] == \"Василенко\"\n        assert declared[\"given_name\"] == \"Ярослав\"\n        assert declared[\"specialty\"] == \"Інженерне забезпечення\"\n>       assert declared[\"verified\"] is False\nE       assert True is False\n\napps/api/tests/test_answers.py:187: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answers.py::test_the_operator_declaration_enters_the_audit_chain_marked_unverified - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M155_A_CHECKED_PERMISSION_NEED_NOT_BE_NAMED",
+      "file": "apps/api/src/korpus/application/policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_permission_contract.py::test_every_permission_a_route_requires_is_a_permission_the_system_names"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___ test_every_permission_a_route_requires_is_a_permission_the_system_names ____\n\n    def test_every_permission_a_route_requires_is_a_permission_the_system_names() -> None:\n        required = _required_permissions()\n        assert required, \"no permission checks were found — this test is stale\"\n        unknown = sorted(required - KNOWN_PERMISSIONS)\n>       assert not unknown, (\n            \"these permissions are checked by the API and named nowhere, so nothing that \"\n            f\"reads the permission table can know they exist: {unknown}\"\n        )\nE       AssertionError: these permissions are checked by the API and named nowhere, so nothing that reads the permission table can know they exist: ['account:manage']\nE       assert not ['account:manage']\n\napps/api/tests/test_permission_contract.py:78: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_permission_contract.py::test_every_permission_a_route_requires_is_a_permission_the_system_names - AssertionError: these permissions are checked by the API and named nowhere, so nothing that reads the permission table can know they exist: ['account:manage']\nassert not ['account:manage']\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M244_UNPROTECTED_CI_RUNTIME_TRUST_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_trust.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_trust.py::test_runtime_trust_root_is_refused_on_unprotected_ci"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_runtime_trust_root_is_refused_on_unprotected_ci _____________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-950/test_runtime_trust_root_is_ref0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9946523820>\n\n    def test_runtime_trust_root_is_refused_on_unprotected_ci(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:\n        config = tmp_path / \"trust.json\"\n        config.write_text(json.dumps({\"field\": []}), encoding=\"utf-8\")\n        monkeypatch.setenv(\"KORPUS_TRUST\", \"c\" * 64)\n        monkeypatch.setenv(\"GITLAB_CI\", \"true\")\n        monkeypatch.setenv(\"CI_COMMIT_REF_PROTECTED\", \"false\")\n>       with pytest.raises(ValueError, match=\"unprotected GitLab ref\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_assurance_trust.py:41: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_trust.py::test_runtime_trust_root_is_refused_on_unprotected_ci - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M292_PEC_REPLAY_STRING_BOOLEAN_ACCEPTED",
+      "file": "scripts/pec_replay_validation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "      observations.write_text(json.dumps(observation) + \"\\n\", encoding=\"utf-8\")\n        proc = subprocess.run(\n            [\n                sys.executable,\n                \"scripts/run_counterfactual_replay.py\",\n                \"--dataset\", str(dataset),\n                \"--observations\", str(observations),\n                \"--actions\", \"STOP_USE_CURRENT_EVIDENCE\",\n                \"--out\", str(report_path),\n            ],\n            cwd=root,\n            stdout=subprocess.PIPE,\n            stderr=subprocess.PIPE,\n            text=True,\n            check=False,\n        )\n>       assert proc.returncode == 1, proc.stdout + proc.stderr\nE       AssertionError: {\nE           \"schema\": \"korpus.pec-receipt.v1\",\nE           \"kind\": \"pec_counterfactual_replay\",\nE           \"generated_at\": \"2026-08-22T16:42:27.600138+00:00\",\nE           \"status\": \"UNKNOWN\",\nE           \"dataset_sha256\": \"dc5a70885aaec6a663a2903f553d58e5f0f97440f8d5cb034345899094eefae7\",\nE           \"corpus_release_id\": \"\",\nE           \"evaluation_protocol_sha256\": \"\",\nE           \"answer_calibration_id\": \"\",\nE           \"binding_completeness\": \"UNKNOWN\",\nE           \"queries\": 1,\nE           \"actions\": [\nE             \"STOP_USE_CURRENT_EVIDENCE\"\nE           ],\nE           \"missing\": [],\nE           \"validation_issues\": [],\nE           \"errors\": [],\nE           \"receipt_sha256\": \"bac27e4ac237f5ed00fe8c4794da7139de4fbfe252c6abad220e4c5c6039139b\"\nE         }\nE         \nE       assert 0 == 1\nE        +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', 'scripts/run_counterfactual_replay.py', '--dataset', '/tmp/pytest-of...\"errors\": [],\\n  \"receipt_sha256\": \"bac27e4ac237f5ed00fe8c4794da7139de4fbfe252c6abad220e4c5c6039139b\"\\n}\\n', stderr='').returncode\n\napps/api/tests/test_pec_act_hardening.py:117: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes - AssertionError: {\n    \"schema\": \"korpus.pec-receipt.v1\",\n    \"kind\": \"pec_counterfactual_replay\",\n    \"generated_at\": \"2026-08-22T16:42:27.600138+00:00\",\n    \"status\": \"UNKNOWN\",\n    \"dataset_sha256\": \"dc5a70885aaec6a663a2903f553d58e5f0f97440f8d5cb034345899094eefae7\",\n    \"corpus_release_id\": \"\",\n    \"evaluation_protocol_sha256\": \"\",\n    \"answer_calibration_id\": \"\",\n    \"binding_completeness\": \"UNKNOWN\",\n    \"queries\": 1,\n    \"actions\": [\n      \"STOP_USE_CURRENT_EVIDENCE\"\n    ],\n    \"missing\": [],\n    \"validation_issues\": [],\n    \"errors\": [],\n    \"receipt_sha256\": \"bac27e4ac237f5ed00fe8c4794da7139de4fbfe252c6abad220e4c5c6039139b\"\n  }\n  \nassert 0 == 1\n +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', 'scripts/run_counterfactual_replay.py', '--dataset', '/tmp/pytest-of...\"errors\": [],\\n  \"receipt_sha256\": \"bac27e4ac237f5ed00fe8c4794da7139de4fbfe252c6abad220e4c5c6039139b\"\\n}\\n', stderr='').returncode\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:42:29+00:00"
+  }
+}

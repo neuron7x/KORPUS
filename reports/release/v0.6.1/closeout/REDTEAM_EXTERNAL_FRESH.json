@@ -1,0 +1,66 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "redteam",
+  "status": "FAIL",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "report_present": false,
+    "attestation_present": false,
+    "attestation_verified": false,
+    "trusted_signer": false,
+    "source_bound": false,
+    "release_bound": false,
+    "independent_class": false,
+    "preregistered": false,
+    "test_cases_structured": false,
+    "required_attack_families_covered": false,
+    "findings_structured": false,
+    "blocking_findings_closed": false,
+    "declared_status_consistent": false
+  },
+  "failures": [
+    "report_present",
+    "attestation_present",
+    "attestation_verified",
+    "trusted_signer",
+    "source_bound",
+    "release_bound",
+    "independent_class",
+    "preregistered",
+    "test_cases_structured",
+    "required_attack_families_covered",
+    "findings_structured",
+    "blocking_findings_closed",
+    "declared_status_consistent"
+  ],
+  "evidence_class": "EXTERNAL_INDEPENDENT",
+  "attestation_verified": false,
+  "trusted_signer": false,
+  "signer_fingerprint": "",
+  "redteam": {
+    "checks": {
+      "test_cases_structured": false,
+      "required_attack_families_covered": false,
+      "findings_structured": false,
+      "blocking_findings_closed": false,
+      "declared_status_consistent": false
+    },
+    "pass": false,
+    "required_attack_families": [
+      "auth_bypass",
+      "data_exfiltration",
+      "host_header",
+      "idor",
+      "injection_parser",
+      "privilege_escalation",
+      "ssrf_egress",
+      "tenant_escape",
+      "webhook_forgery_replay"
+    ],
+    "covered_attack_families": [],
+    "test_cases": 0,
+    "findings": 0,
+    "blocking_open": []
+  }
+}

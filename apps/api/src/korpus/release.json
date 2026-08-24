@@ -1,0 +1,8 @@
+{
+  "schema": "korpus.release-identity.v1",
+  "product": "KORPUS",
+  "version": "0.9.7",
+  "tag": "v0.9.7",
+  "artifact_stem": "KORPUS_v0.9.7_PRODUCTION_ASSURANCE_HARDENED_FULL_SSOT_CANONICAL_2026-08-23",
+  "distribution_artifact": "KORPUS_v0.9.7_PRODUCTION_ASSURANCE_HARDENED_FULL_SSOT_CANONICAL_2026-08-23.zip"
+}

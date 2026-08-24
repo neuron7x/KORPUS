@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 7,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M07_SUPERSESSION_EDGE_DROPPED",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_new_approved_version_supersedes_old_version_in_current_retrieval _____\n\nclient = <starlette.testclient.TestClient object at 0x7faf5e5e42f0>\n\n    def test_new_approved_version_supersedes_old_version_in_current_retrieval(client):\n        first = ingest_text(\n            client,\n            text=\"OLD-MARKER журнал містить старий порядок перевірки.\",\n            effective_from=date(2025, 1, 1),\n        )\n        approve(client, first[\"version\"][\"id\"])\n        second = ingest_version(\n            client,\n            first[\"document\"][\"id\"],\n            revision=\"2.0\",\n            text=\"NEW-MARKER журнал використовує чинний порядок перевірки.\",\n            supersedes_version_id=first[\"version\"][\"id\"],\n            effective_from=date(2026, 1, 1),\n        )\n>       approve(client, second[\"version\"][\"id\"])\n\napps/api/tests/test_versioning.py:27: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \napps/api/tests/helpers.py:108: in approve\n    result = transition(client, version_id, target)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nclient = <starlette.testclient.TestClient object at 0x7faf5e5e42f0>\nversion_id = '05cd633a-88c4-4563-961d-d90ba3793be8', target = 'approved'\n\n    def transition(client: TestClient, version_id: str, target: str) -> dict[str, object]:\n        payload: dict[str, object] = {\n            \"target\": target,\n            \"note\": f\"independent verification completed for transition {target}\",\n        }\n        if target == \"metadata_reviewed\":\n            payload[\"acknowledge_near_duplicate\"] = True\n            payload[\"acknowledge_extraction_quality\"] = True\n        response = client.post(\n            f\"/v1/document-versions/{version_id}/review\",\n            json=payload,\n        )\n>       assert response.status_code == 200, response.text\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: {\"detail\":\"approval must supersede the current approved version\"}\n\napps/api/tests/helpers.py:101: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_versioning.py::test_new_approved_version_supersedes_old_version_in_current_retrieval - AssertionError: {\"detail\":\"approval must supersede the current approved version\"}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M54_SPAN_SEAM_MANUFACTURES_TEXT",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_quote_provenance.py::test_every_span_is_a_slice_of_its_page"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "uote, stamped with `quote_hash` and `source_hash`. Reproduced end to\n        end on 2026-08-03 — `status=answered`, `quote in source == False`,\n        `support_score=1.0`. Since a citation is the one thing KORPUS promises to get\n        right, spans are now slices `page.text[start:end]`, so being a substring of the\n        document is a property of the construction and not of a later check. The assertion\n        at the end is there for the day someone changes the construction.\n        \"\"\"\n        if max_chars < 100:\n            raise ValueError(\"max_chars is too small\")\n        if overlap_chars < 0 or overlap_chars >= max_chars:\n            raise ValueError(\"invalid overlap_chars\")\n        output: list[dict[str, object]] = []\n        ordinal = 0\n        for page in pages:\n            text = page.text\n            markers = section_markers(text)\n            position = 0\n            while position < len(text):\n                end = min(len(text), position + max_chars)\n                if end < len(text):\n                    end = position + _cut_point(text[position:end], max_chars // 4)\n                raw = text[position:end]\n                chunk = (raw + \" \" + text[end : end + 20]).strip()\n                if chunk:\n                    offset = position + (len(raw) - len(raw.lstrip()))\n                    if len(output) >= max_spans:\n                        raise ValueError(\"document exceeds maximum span count\")\n                    # The section is the heading in force where the span starts, so a\n                    # citation can be checked against a printed order rather than only\n                    # against this database.\n                    output.append(\n                        {\n                            \"ordinal\": ordinal,\n                            \"page\": page.page,\n                            \"section\": _section_at(markers, offset),\n                            \"text\": chunk,\n                        }\n                    )\n                    ordinal += 1\n                if end >= len(text):\n                    break\n                # Step forward by at least one character so a pathological page cannot\n                # spin here, and keep the overlap so no local window is lost at a seam.\n                position = max(position + 1, end - overlap_chars)\n        if not output:\n            raise ValueError(\"document yielded no evidence spans\")\n        if any(len(str(span[\"text\"])) > max_chars for span in output):\n>           raise AssertionError(\"chunking invariant violated\")\nE           AssertionError: chunking invariant violated\n\n/tmp/korpus-m54_span_seam_manufactures_text-c_lgq1hp/api-src/korpus/infrastructure/extraction.py:526: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_quote_provenance.py::test_every_span_is_a_slice_of_its_page - AssertionError: chunking invariant violated\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER",
+      "file": "apps/api/src/korpus/api/routes_answers.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_a_reader_cannot_open_a_span_they_could_not_have_been_cited ________\n\nclient = <starlette.testclient.TestClient object at 0x7ff2e9ff0440>\n\n    def test_a_reader_cannot_open_a_span_they_could_not_have_been_cited(\n        client: TestClient,\n    ) -> None:\n        \"\"\"Disclosure runs through the retrieval filter, not around it.\"\"\"\n        restricted = ingest_text(\n            client,\n            title=\"Обмежений наказ\",\n            corpus_id=\"restricted-demo\",\n            access_tier=3,\n            classification=\"restricted\",\n            text=f\"Маркер {MARKER} доступний лише в обмеженому корпусі частини.\",\n        )\n        approve(client, restricted[\"version\"][\"id\"])\n        version_id = restricted[\"version\"][\"id\"]\n        spans = client.get(f\"/v1/document-versions/{version_id}/spans\").json()\n        span_id = spans[0][\"id\"]\n    \n        set_identity(\n            client,\n            Identity(\n                subject=\"public-reader\",\n                roles=frozenset({\"user\"}),\n                clearance=AccessTier.PUBLIC,\n                corpora=frozenset({\"public\"}),\n            ),\n        )\n    \n>       assert client.get(f\"/v1/spans/{span_id}\").status_code == 404\nE       AssertionError: assert 200 == 404\nE        +  where 200 = <Response [200 OK]>.status_code\nE        +    where <Response [200 OK]> = get('/v1/spans/4d15e68f-00f7-44df-a6fb-238246682676')\nE        +      where get = <starlette.testclient.TestClient object at 0x7ff2e9ff0440>.get\n\napps/api/tests/test_span_lookup.py:120: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited - AssertionError: assert 200 == 404\n +  where 200 = <Response [200 OK]>.status_code\n +    where <Response [200 OK]> = get('/v1/spans/4d15e68f-00f7-44df-a6fb-238246682676')\n +      where get = <starlette.testclient.TestClient object at 0x7ff2e9ff0440>.get\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M129_EMPTY_INDEX_REPORTS_FULL_COVERAGE",
+      "file": "apps/api/src/korpus/application/embedding_coverage.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_coverage.py::test_an_empty_corpus_covers_nothing_rather_than_everything"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_an_empty_corpus_covers_nothing_rather_than_everything __________\n\n    def test_an_empty_corpus_covers_nothing_rather_than_everything() -> None:\n        \"\"\"0/0 = 1.0 is the arithmetic that lets a fresh deployment pass a coverage gate.\"\"\"\n        coverage = _coverage(spans_total=0, spans_embedded_active=0)\n    \n        assert coverage.status == NO_CORPUS\n>       assert coverage.coverage_ratio == 0.0\nE       AssertionError: assert 1.0 == 0.0\nE        +  where 1.0 = EmbeddingCoverage(active_model_id='embed-v2', active_dimensions=768, spans_total=0, spans_embedded_active=0, spans_embedded_other_model=0, spans_stale_text=0, status='NO_CORPUS', reasons=('no spans exist, so the index covers nothing',)).coverage_ratio\n\napps/api/tests/test_embedding_coverage.py:80: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_coverage.py::test_an_empty_corpus_covers_nothing_rather_than_everything - AssertionError: assert 1.0 == 0.0\n +  where 1.0 = EmbeddingCoverage(active_model_id='embed-v2', active_dimensions=768, spans_total=0, spans_embedded_active=0, spans_embedded_other_model=0, spans_stale_text=0, status='NO_CORPUS', reasons=('no spans exist, so the index covers nothing',)).coverage_ratio\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M125_CHANGED_DIGEST_NOT_REPORTED",
+      "file": "apps/api/src/korpus/application/environment_drift.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_environment_drift.py::test_changed_digest_is_drift_and_carries_both_sides"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_changed_digest_is_drift_and_carries_both_sides ______________\n\n    def test_changed_digest_is_drift_and_carries_both_sides() -> None:\n        report = drift.compare(APPROVED, {\"a.yml\": \"a\" * 64, \"b.yml\": \"c\" * 64})\n        findings = report.of_state(drift.DRIFTED)\n>       assert [finding.path for finding in findings] == [\"b.yml\"]\nE       AssertionError: assert [] == ['b.yml']\nE         \nE         Right contains one more item: 'b.yml'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'b.yml',\nE         - ]\n\napps/api/tests/test_environment_drift.py:39: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_environment_drift.py::test_changed_digest_is_drift_and_carries_both_sides - AssertionError: assert [] == ['b.yml']\n  \n  Right contains one more item: 'b.yml'\n  \n  Full diff:\n  + []\n  - [\n  -     'b.yml',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M211_INTERNAL_REDTEAM_PROMOTED",
+      "file": "apps/api/src/korpus/application/production_assurance_external.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_internal_redteam_cannot_promote_production ________________\n\n    def test_internal_redteam_cannot_promote_production() -> None:\n        gates = {gate: _gate(gate) for gate in PROFILE[\"required_gates\"]}\n        gates[\"redteam\"][\"evidence_class\"] = \"INTERNAL\"\n        gates[\"tevv\"][\"environment_class\"] = \"PRODUCTION\"\n        gates[\"tevv\"][\"checks\"] = {\"independent_class\": True, \"assessor_trusted_signer\": True}\n        gates[\"postgres_security\"][\"backend\"] = \"postgresql\"\n        gates[\"supply_chain\"][\"completeness\"] = \"COMPLETE\"\n        gates[\"mutation\"][\"scope\"] = \"FULL_CATALOGUE\"\n        verdict = evaluate_production_assurance(PROFILE, gates, source_digest=\"s\", release=\"v\")\n        assert not verdict.passed\n>       assert \"redteam.independent\" in verdict.failures\nE       AssertionError: assert 'redteam.independent' in ('redteam.attestation_verified', 'redteam.trusted_signer')\nE        +  where ('redteam.attestation_verified', 'redteam.trusted_signer') = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....complete': True, 'mutation.full_catalogue': True}, failures=('redteam.attestation_verified', 'redteam.trusted_signer')).failures\n\napps/api/tests/test_production_assurance.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production - AssertionError: assert 'redteam.independent' in ('redteam.attestation_verified', 'redteam.trusted_signer')\n +  where ('redteam.attestation_verified', 'redteam.trusted_signer') = ProductionAssuranceVerdict(status='FAIL', checks={'engineering.present': True, 'engineering.pass': True, 'engineering....complete': True, 'mutation.full_catalogue': True}, failures=('redteam.attestation_verified', 'redteam.trusted_signer')).failures\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M259_TEVV_NULL_LEDGER_IGNORED",
+      "file": "scripts/run_tevv_production_gate.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_null_false_accept"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_trusted_tevv_summary_cannot_hide_null_false_accept ____________\n\n    def test_trusted_tevv_summary_cannot_hide_null_false_accept() -> None:\n        evidence, _ = _evidence()\n        evidence[\"null_control_ledger\"][0][\"false_accept\"] = True\n        evidence[\"null_control_false_accepts\"] = 0\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n>       assert result[\"checks\"][\"null_false_accepts\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:129: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_tevv_summary_cannot_hide_null_false_accept - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:31:44+00:00"
+  }
+}

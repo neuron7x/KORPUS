@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 42,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M41_PER_VERSION_CAP_WIDENED",
+      "file": "apps/api/src/korpus/application/retrieval.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_one_version_is_selected_once_however_many_spans_match __________\n\n    def test_one_version_is_selected_once_however_many_spans_match() -> None:\n        \"\"\"Two quotes from one version are one source, not two.\"\"\"\n        version = DocumentVersionRecord(\n            document_id=uuid4(),\n            revision=\"1.0\",\n            source_hash=\"c\" * 64,\n            object_key=\"objects/x\",\n            mime_type=\"text/plain\",\n            authority=AuthorityClass.OFFICIAL_UA,\n            review_state=ReviewState.APPROVED,\n        )\n        first = _evidence(AuthorityClass.OFFICIAL_UA, 0.90, version=version)\n        second = _evidence(AuthorityClass.OFFICIAL_UA, 0.80, version=version)\n    \n        selected = diversify_evidence([first, second], limit=4)\n    \n>       assert len(selected) == 1, \"per_version_cap defaults to one span per version\"\nE       AssertionError: per_version_cap defaults to one span per version\nE       assert 2 == 1\nE        +  where 2 = len([RetrievedEvidence(span=EvidenceSpanRecord(id=UUID('d0285e80-5e77-4be8-a7c6-f6e8bb497dcc'), version_id=UUID('86f7f65d-...core=0.8, query_coverage=1.0, lexical_score=0.0, semantic_score=0.0, character_score=0.0, authority_bonus=0.0, rank=2)])\n\napps/api/tests/test_authority_ranking.py:113: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_one_version_is_selected_once_however_many_spans_match - AssertionError: per_version_cap defaults to one span per version\nassert 2 == 1\n +  where 2 = len([RetrievedEvidence(span=EvidenceSpanRecord(id=UUID('d0285e80-5e77-4be8-a7c6-f6e8bb497dcc'), version_id=UUID('86f7f65d-...core=0.8, query_coverage=1.0, lexical_score=0.0, semantic_score=0.0, character_score=0.0, authority_bonus=0.0, rank=2)])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M85_WITHHELD_SET_COMPUTED_AS_EMPTY",
+      "file": "apps/api/src/korpus/application/noninterference.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_noninterference_measurement.py::test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything __\n\nclient = <starlette.testclient.TestClient object at 0x7f4139bf0590>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything(\n        client: TestClient, admin_identity: Identity, public_identity: Identity\n    ) -> None:\n        seeded = _seed(client)\n        repository = client.app.state.repository\n    \n        withheld = withheld_material(repository, admin_identity, public_identity, AS_OF)\n    \n>       assert withheld, \"a public reader must have something withheld in this corpus\"\nE       AssertionError: a public reader must have something withheld in this corpus\nE       assert []\n\napps/api/tests/test_noninterference_measurement.py:53: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_noninterference_measurement.py::test_the_withheld_set_is_not_empty_for_a_subject_who_cannot_see_everything - AssertionError: a public reader must have something withheld in this corpus\nassert []\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M139_UNSIGNED_ATTESTATION_ACCEPTED",
+      "file": "apps/api/src/korpus/security/attestors.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attestation_signatures.py::test_an_unsigned_attestation_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_an_unsigned_attestation_is_refused ____________________\n\n    def test_an_unsigned_attestation_is_refused() -> None:\n        \"\"\"The state the register was in until now: four consistent fields, no signature.\"\"\"\n        registry, _ = _registry()\n        attestation = _attestation(None, ground_id=\"2.5\", document_sha256=_document_digest())\n    \n        problems = _verify(registry, attestation, \"external_assessment\")\n    \n>       assert problems and \"carries no signature\" in problems[0]\nE       AssertionError: assert (['2.5: the signature does not verify against the enrolled key assessor-key'] and 'carries no signature' in '2.5: the signature does not verify against the enrolled key assessor-key')\n\napps/api/tests/test_attestation_signatures.py:124: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attestation_signatures.py::test_an_unsigned_attestation_is_refused - AssertionError: assert (['2.5: the signature does not verify against the enrolled key assessor-key'] and 'carries no signature' in '2.5: the signature does not verify against the enrolled key assessor-key')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M184_RESCISSION_WITHOUT_ENTITLEMENT",
+      "file": "apps/api/src/korpus/api/routes_review.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_an_unentitled_reviewer_cannot_take_an_order_out_of_force _________\n\nrestricted = (<starlette.testclient.TestClient object at 0x7fe59fbe82f0>, IngestResult(document=DocumentRecord(id=UUID('6d42c603-fe...22, 16, 42, 55, 472355, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False))\n\n    def test_an_unentitled_reviewer_cannot_take_an_order_out_of_force(restricted) -> None:\n        \"\"\"The worst of the family: an integrity attack and a disclosure in one request.\n    \n        `POST …/rescission` checked `document:approve` and nothing else, and\n        `SqlRepository.rescind_version` selects by version id alone — no corpus, no\n        clearance, no classification, no compartment. A reviewer whose document list is\n        empty could withdraw a restricted order from force with only its id, and the 200\n        handed back the full version record: source hash, source uri, object key, approver,\n        dates.\n    \n        On PostgreSQL row-level security hid the row and the request 404'd. The control\n        therefore existed in one dialect and not the other, which is the same defect this\n        repository has now found four times.\n        \"\"\"\n        client, result = restricted\n    \n        response = client.post(\n            f\"/v1/document-versions/{result.version.id}/rescission\",\n            json={\"note\": \"not mine to withdraw at all\"},\n        )\n    \n>       assert response.status_code == 404\nE       assert 200 == 404\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_access_oracles.py:137: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_oracles.py::test_an_unentitled_reviewer_cannot_take_an_order_out_of_force - assert 200 == 404\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M157_LINK_LOCAL_ACCEPTED_AS_LOCAL",
+      "file": "apps/api/src/korpus/application/egress.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_local_only_refuses_the_cloud_metadata_endpoint ______________\n\n    def test_local_only_refuses_the_cloud_metadata_endpoint() -> None:\n        \"\"\"Link-local is never a local-model destination, even though ipaddress calls it private.\"\"\"\n        policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)\n        for target in (\"http://169.254.169.254/\", \"http://[fe80::1]/\"):\n>           with pytest.raises(EgressDenied):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n\napps/api/tests/test_model_egress.py:186: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_model_egress.py::test_local_only_refuses_the_cloud_metadata_endpoint - Failed: DID NOT RAISE <class 'korpus.application.egress.EgressDenied'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M246_CANONICAL_LOAD_EVIDENCE_REGISTRY_PATH_REVERTED",
+      "file": "scripts/evidence_registry.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_ci_production_evidence_plumbing.py::test_evidence_registry_tracks_the_canonical_load_report_name"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_evidence_registry_tracks_the_canonical_load_report_name _________\n\n    def test_evidence_registry_tracks_the_canonical_load_report_name() -> None:\n        from scripts.evidence_registry import KEPT\n>       assert \"load-probe.json\" in KEPT\nE       AssertionError: assert 'load-probe.json' in {'accessibility-runtime.json': 'WCAG 2.2 AA measured in the rendered page', 'chaos-matrix.json': 'what the system said...json': 'the assurance evaluation', 'ingestion-recovery-drill.json': 'an import killed three times and reconciled', ...}\n\napps/api/tests/test_ci_production_evidence_plumbing.py:46: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_ci_production_evidence_plumbing.py::test_evidence_registry_tracks_the_canonical_load_report_name - AssertionError: assert 'load-probe.json' in {'accessibility-runtime.json': 'WCAG 2.2 AA measured in the rendered page', 'chaos-matrix.json': 'what the system said...json': 'the assurance evaluation', 'ingestion-recovery-drill.json': 'an import killed three times and reconciled', ...}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M294_PEC_GROUPED_VALIDATION_SPLITS_SOURCE_LINEAGE",
+      "file": "apps/api/src/korpus/application/pec_training_validation.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_nested_group_validation_is_outer_group_disjoint _____________\n\n    def test_nested_group_validation_is_outer_group_disjoint() -> None:\n        from korpus.application.pec_training import nested_group_validation\n        report = nested_group_validation(_training_fixture(), outer_folds=4)\n>       assert report[\"status\"] == \"PASS\"\nE       AssertionError: assert 'UNKNOWN' == 'PASS'\nE         \nE         - PASS\nE         + UNKNOWN\n\napps/api/tests/test_pec_research.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint - AssertionError: assert 'UNKNOWN' == 'PASS'\n  \n  - PASS\n  + UNKNOWN\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:43:01+00:00"
+  }
+}

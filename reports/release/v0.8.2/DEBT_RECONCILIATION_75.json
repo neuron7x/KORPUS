@@ -1,0 +1,771 @@
+{
+  "schema": "korpus.debt-reconciliation.v2",
+  "release": "v0.8.2",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "baseline_items": 75,
+  "closed_local_anchored": 8,
+  "residual_acceptance_required": 67,
+  "closed_ids": [
+    "DATA-002",
+    "GOV-002",
+    "OPS-004",
+    "RAG-010",
+    "RAG-016",
+    "RAG-018",
+    "SRE-004",
+    "SRE-006"
+  ],
+  "interpretation": "Conservative original-predicate revalidation; external/legal/human/live-environment predicates stay open.",
+  "items": [
+    {
+      "id": "GOV-001",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає формальної production authorization",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Підписаний authorization decision, scope, residual-risk register і expiry date.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "GOV-002",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає use-case-specific AI risk profile",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Кожен risk має owner, metric, control, evidence і review cadence.",
+      "evidence": "config/governance/ai-risk-profile-v1.json + apps/api/tests/test_ai_risk_profile.py",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "GOV-003",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає затвердженої класифікації та правил обробки даних",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "100% corpus objects мають owner, class, rights, retention, releasability і access policy.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "GOV-004",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає незалежного TEVV, pentest і red-team",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Незалежний звіт без відкритих P0/P1 та з повторною перевіркою remediation.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "GOV-005",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає офіційної моделі предметної відповідальності",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Кожне approval криптографічно прив’язане до уповноваженої ролі та scope.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "GOV-006",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Права на індексацію, OCR, цитування й передачу документів не доведені",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Для кожного джерела зафіксовані дозволені операції та заборони.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "IAM-002",
+      "domain": "Identity & Access",
+      "severity": "P0",
+      "title": "Production web-клієнт не реалізує OIDC",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "End-to-end OIDC login/logout/expiry/revocation проходить у staging.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "IAM-005",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "title": "OIDC assurance неповний",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Негативні тести для stale/replayed/wrong-client/low-assurance tokens PASS.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "IAM-006",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "title": "RLS залежить від session GUC, який встановлює застосунок",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "App role не може самостійно розширити effective claims навіть через довільний SQL.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "IAM-007",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "title": "Немає lifecycle entitlement/offboarding",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Disable/revoke propagation виміряна та відповідає SLA.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "IAM-008",
+      "domain": "Identity & Access",
+      "severity": "P1",
+      "title": "Немає PAM/break-glass control",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Усі privileged sessions attributable, time-bounded і reviewed.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "ING-008",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "title": "Object store write не атомарний із metadata transaction",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Injected DB failure не лишає доступного orphan або GC видаляє його за SLA.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "ING-009",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "title": "Немає OCR/layout quality model",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "CER/WER/table extraction виміряні по stratified corpus; low confidence не auto-approve.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "ING-012",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "title": "Немає corpus-scale ingestion recovery drill",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "100% source manifest reconciled; no missing/duplicate versions.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-001",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "title": "Evaluation dataset є synthetic fixture, не production evidence",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Blind holdout, human adjudication, versioned dataset, confidence intervals.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-003",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "title": "Немає human gold standard та inter-annotator agreement",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "IAA threshold predefined; ambiguous cases excluded/separately scored.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-005",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає contradiction resolution між джерелами",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Known conflict cases повертають conflict status і всі релевантні sources.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-007",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Authority priors є неперевіреними константами",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Ablation і domain validation доводять користь; priors versioned and approved.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-009",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Risk classifier є regex heuristic",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Per-class precision/recall + worst-group metrics на blind set.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-010",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Prompt/control injection detector має лише пʼять regex patterns",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Adversarial corpus suite із direct/indirect/obfuscated injection має defined outcomes.",
+      "evidence": "INFERENCE_SECURITY_GATE.json (62/62) + MUTATION_DELTA_REPORT I01 KILLED + Unicode/homoglyph/zero-width tests",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "RAG-011",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Sentence segmentation непридатна для складних нормативних документів",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Gold structural extraction benchmark PASS per document class.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-012",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Lexical retrieval не має української морфології та domain analysis",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Recall@20 та nDCG measured by query family, including morphology/acronyms.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-013",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає тестів таблиць, чисел, одиниць і формул",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Numeric/table benchmark має zero critical unit/sign errors.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-014",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Scale evidence не репрезентує production",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-015",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Embedding integration може створити data egress",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Restricted test corpus ніколи не викликає external endpoint; network evidence confirms.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-016",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає доказу synchronization/model migration embeddings",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "100% approved spans have correct model/text hash before semantic weight activation.",
+      "evidence": "FULL_BACKEND_REPORT.json + test_embedding_migration.py switch/refusal/hash-coverage invariants",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "RAG-017",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає drift/online quality monitoring",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Defined drift thresholds cause automatic freeze/rollback.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "RAG-018",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає захисту від corpus/RAG poisoning як процесу",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Poisoned-source exercise detected before general release.",
+      "evidence": "INFERENCE_SECURITY_GATE.json retrieval_poisoning family PASS",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "RAG-020",
+      "domain": "Retrieval & Evidence",
+      "severity": "P2",
+      "title": "Малі мінімальні вибірки не гарантують domain coverage",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Each critical stratum meets minimum N and upper error bound.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-001",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "Docker/Compose runtime не був фактично виконаний у середовищі аудиту",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Full stack starts from zero and passes E2E under non-root roles.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-002",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "docker-compose.yml є local topology, не production deployment",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Production config passes policy-as-code and has no dev settings/plain HTTP.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-003",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "Немає production TLS ingress і service identity",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "All external and sensitive internal paths cryptographically authenticated.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-004",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "Немає HA/failover/PITR topology",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Failover drill meets defined RTO/RPO with no authorization bypass.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-005",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "Backup/restore не доведено на live production-like PostgreSQL",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Independent restore evidence with measured RTO/RPO and checksum reconciliation.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-006",
+      "domain": "Infrastructure",
+      "severity": "P0",
+      "title": "Немає production secret manager/KMS/HSM і rotation evidence",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "No long-lived static secrets in images/files; rotation without downtime tested.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-007",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "API має загальний egress без destination allowlist",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Unexpected destinations unreachable; egress logs attributable.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-008",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "Resource limits не калібровані capacity plan",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Limits derived from measured envelope and documented headroom.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-009",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "OTel collector healthcheck перевіряє config, не serving path",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Dropped exporter/receiver causes readiness/alert according to policy.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-010",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "Local audit anchor не є незалежним trust domain",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Single host/admin compromise cannot rewrite accepted history.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-011",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "Немає deployment rollback/canary/schema compatibility proof",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "N-1/N compatibility and rollback drill PASS.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "INF-012",
+      "domain": "Infrastructure",
+      "severity": "P1",
+      "title": "Немає offsite/immutable backup schedule and retention execution",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Backup age/immutability monitored; restore sampled automatically.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SRE-001",
+      "domain": "Reliability & Operations",
+      "severity": "P0",
+      "title": "Немає SLO/SLI/error-budget contract",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Approved SLO document and burn-rate alerts validated.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SRE-002",
+      "domain": "Reliability & Operations",
+      "severity": "P0",
+      "title": "Немає on-call ownership та incident exercises",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Timed exercises meet detection/containment/recovery targets.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SRE-003",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "title": "Observability не має durable backend",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Synthetic failures visible end-to-end and page correct owner.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SRE-004",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "title": "Немає chaos/failure-injection matrix",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Every dependency has defined degraded/fail-closed behavior and recovery evidence.",
+      "evidence": "CHAOS_MATRIX.json PASS + RELIABILITY_INTERNAL.json 42/42 across 9 fault families",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "SRE-005",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "title": "Немає production load/concurrency endurance test",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Meet SLO under target and overload sheds load without leakage/corruption.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SRE-006",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "title": "Readiness має невизначену degraded-mode policy",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Each outage returns predeclared status; no silent semantic/policy downgrade.",
+      "evidence": "CHAOS_MATRIX.json fail-closed outage outcomes + RELIABILITY_INTERNAL.json",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "SRE-007",
+      "domain": "Reliability & Operations",
+      "severity": "P1",
+      "title": "Немає data/corpus release rollback drill",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Rollback restores prior answers/index within defined RTO.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-003",
+      "domain": "Supply Chain",
+      "severity": "P0",
+      "title": "Немає signed build provenance і artifact signing",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Deployment admission rejects unsigned/unexpected provenance.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-005",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "title": "Security scanners не були виконані в локальному аудиті",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Signed pipeline evidence, zero unaccepted high/critical findings.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-006",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "title": "Static security analysis coverage incomplete",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Security test matrix maps every threat class to executable gate.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-007",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "title": "GitLab branch/tag controls не доведені repository files",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "No single contributor can alter protected release without independent approval.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-008",
+      "domain": "Supply Chain",
+      "severity": "P1",
+      "title": "Немає continuous re-scan/patch SLA та KEV policy",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "High/critical/KEV triage and remediation SLA measured.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "SUP-009",
+      "domain": "Supply Chain",
+      "severity": "P2",
+      "title": "Немає license/compliance inventory",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Release має complete license report і zero forbidden components.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-001",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "title": "SqlRepository є infrastructure god object",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Кожен модуль має одну responsibility; security invariants tested across UoW.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-004",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "title": "Branch coverage значно нижча за statement coverage",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Auth/policy/ingestion/audit branches ≥90% or justified exclusions.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-005",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "title": "Mutation score 100% стосується лише 14 hand-selected mutants",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Mutation score reported over declared operator space, survivors triaged.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-006",
+      "domain": "Code Architecture",
+      "severity": "P1",
+      "title": "Немає parser/API fuzzing",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "No crash/hang/leak in defined CPU-hour budget; all findings regression-tested.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-007",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "title": "mypy і Ruff policies слабкі для critical system",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Zero unexplained Any at trust boundaries; complexity budgets enforced.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-008",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "title": "Web lint/typecheck є лише asset-existence validator",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "OIDC/error/accessibility flows covered; real typecheck compiles.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "COD-009",
+      "domain": "Code Architecture",
+      "severity": "P2",
+      "title": "Критичні модулі мають низьке покриття",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Per-risk module gates pass and no aggregate masking.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "WEB-001",
+      "domain": "Product Surface",
+      "severity": "P1",
+      "title": "UI покриває лише запит-відповідь",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "All critical workflows executable without raw DB/API manipulation.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "WEB-002",
+      "domain": "Product Surface",
+      "severity": "P2",
+      "title": "Немає accessibility/usability evidence",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Zero critical a11y defects; operational tasks pass usability tests.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "AUD-001",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "title": "Audit HMAC key доступний application process",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Application cannot mint valid historical witness alone.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "AUD-002",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "title": "Remote anchor protocol custom HTTP/HMAC",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Offline verifier detects fork/truncation with independently trusted keys.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "AUD-003",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "title": "Key rotation/recovery ceremony не доведена",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Rotation and compromised-key drill preserve verifiability and availability.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "AUD-004",
+      "domain": "Audit & Cryptography",
+      "severity": "P1",
+      "title": "Немає SIEM export/correlation/retention",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Defined attack simulations trigger alerts with complete timeline.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "DATA-001",
+      "domain": "Data Lifecycle",
+      "severity": "P0",
+      "title": "Немає enforceable retention/deletion/legal-hold policy",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Automated tests prove retain/delete/hold/declassify behavior.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "DATA-002",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "title": "Немає field-level privacy/minimization assessment",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Known sensitive fixtures never appear in unauthorized retrieval/output/logs.",
+      "evidence": "INFERENCE_SECURITY_GATE.json leakage/cross-scope + REDTEAM_INTERNAL.json tenant/data-exfiltration families",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "DATA-003",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "title": "Немає immutable corpus release manifest підписаного data owner",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Every answer resolves to signed corpus release accepted by data owner.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "DATA-004",
+      "domain": "Data Lifecycle",
+      "severity": "P1",
+      "title": "Немає continuous inventory/reconciliation object store↔DB↔index",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Zero unexplained divergence; injected drift detected within SLA.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "OPS-001",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "title": "Немає доказу reproducible container build",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Two independent builds yield identical digest or explained signed variance.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "OPS-003",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "title": "Немає release evidence retention policy",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Every production release evidence retrievable and verified years later.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    },
+    {
+      "id": "OPS-004",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "title": "Немає environment drift detection",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Unauthorized drift detected and reverted/blocked.",
+      "evidence": "ENVIRONMENT_DRIFT.json IN_SYNC + full regression negative drift/blocking tests",
+      "note": "full predicate evidenced locally"
+    },
+    {
+      "id": "OPS-005",
+      "domain": "Delivery Process",
+      "severity": "P2",
+      "title": "Немає cost/capacity governance",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Cost per ingest/query measured; budget breach triggers safe throttling.",
+      "evidence": "",
+      "note": "not promoted closed without direct evidence satisfying the entire predicate"
+    }
+  ]
+}

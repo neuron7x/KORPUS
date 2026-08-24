@@ -1,0 +1,16 @@
+{
+  "schema": "korpus.stage-checkpoint.v2",
+  "release": "v0.9.6",
+  "status": "PASS_WITH_CAVEATS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "source_manifest_root_sha256": "b8cada51fb96ea38ffdc7ee90fabe3c97a723437dc3775468b1ccfb4e31e6f21",
+  "mutation_gate": "PASS",
+  "mutation_killed": 337,
+  "mutation_total": null,
+  "regression_gate": "PASS",
+  "regression_tests": 2294,
+  "regression_failures": 0,
+  "regression_errors": 0,
+  "production_pec_scientific_admission": "UNKNOWN",
+  "production_authorized": false
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 15,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M15_TOKEN_PRIVILEGE_TRUST",
+      "file": "apps/api/src/korpus/security/entitlements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_entitlement_projection_ignores_privileged_token_claims __________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-833/test_entitlement_projection_ig0')\n\n    def test_entitlement_projection_ignores_privileged_token_claims(tmp_path: Path):\n        profile = EntitlementProfile(\n            profile_id=\"projection-v1\",\n            issuer=\"https://id.example\",\n            audience=\"korpus-api\",\n            default=EntitlementGrant(roles=frozenset({\"user\"}), corpora=frozenset({\"public\"})),\n        )\n        claims = {\n            \"sub\": \"unprivileged-user\",\n            \"iss\": \"https://id.example\",\n            \"aud\": \"korpus-api\",\n            \"roles\": [\"admin\"],\n            \"clearance\": \"restricted\",\n            \"corpora\": [\"restricted-demo\"],\n            \"compartments\": [\"operations\"],\n        }\n        identity = profile.resolve(claims)\n>       assert identity.roles == frozenset({\"user\"})\nE       AssertionError: assert frozenset({'admin'}) == frozenset({'user'})\nE         \nE         Extra items in the left set:\nE         'admin'\nE         Extra items in the right set:\nE         'user'\nE         \nE         Full diff:\nE           frozenset({\nE         -     'user',\nE         +     'admin',\nE           })\n\napps/api/tests/test_v5_security_kernel.py:48: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_entitlement_projection_ignores_privileged_token_claims - AssertionError: assert frozenset({'admin'}) == frozenset({'user'})\n  \n  Extra items in the left set:\n  'admin'\n  Extra items in the right set:\n  'user'\n  \n  Full diff:\n    frozenset({\n  -     'user',\n  +     'admin',\n    })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M62_DIGEST_DROPS_LENGTH_FRAMING",
+      "file": "apps/api/src/korpus/application/provenance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_digest_separates_path_from_content ____________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-831/test_digest_separates_path_fro0')\n\n    def test_digest_separates_path_from_content(tmp_path: Path) -> None:\n        \"\"\"Moving a byte from the file name into the file body must not collide.\n    \n        Without length framing both trees hash the concatenation \"scripts/abc\",\n        so a foreign tree could be renamed into a matching digest.\n        \"\"\"\n    \n        left = tmp_path / \"left\"\n        right = tmp_path / \"right\"\n        (left / \"scripts\").mkdir(parents=True)\n        (right / \"scripts\").mkdir(parents=True)\n        (left / \"scripts/ab\").write_text(\"c\", encoding=\"utf-8\")\n        (right / \"scripts/a\").write_text(\"bc\", encoding=\"utf-8\")\n>       assert compute_source_digest(left) != compute_source_digest(right)\nE       AssertionError: assert '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' != '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213'\nE        +  where '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' = compute_source_digest(PosixPath('/tmp/pytest-of-root/pytest-831/test_digest_separates_path_fro0/left'))\nE        +  and   '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' = compute_source_digest(PosixPath('/tmp/pytest-of-root/pytest-831/test_digest_separates_path_fro0/right'))\n\napps/api/tests/test_evidence_provenance.py:155: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content - AssertionError: assert '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' != '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213'\n +  where '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' = compute_source_digest(PosixPath('/tmp/pytest-of-root/pytest-831/test_digest_separates_path_fro0/left'))\n +  and   '37e74802b7be860ce261e0413240f4aa571caf6e661554c0f5b0e9fa1bbd3213' = compute_source_digest(PosixPath('/tmp/pytest-of-root/pytest-831/test_digest_separates_path_fro0/right'))\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M106_SUPERSEDED_CHECKPOINTS_LEFT_PENDING",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_anchor_delivery_backlog.py::test_delivery_reports_how_many_checkpoints_it_closed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_delivery_reports_how_many_checkpoints_it_closed _____________\n\nclient = <starlette.testclient.TestClient object at 0x7f4e482542f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_delivery_reports_how_many_checkpoints_it_closed(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        \"\"\"The count feeds the backlog metric, so it must mean rows, not passes.\"\"\"\n        repository = client.app.state.repository\n        _make_backlog(client, repository, admin_identity, 10)\n    \n        closed = repository.reconcile_audit_anchor()\n    \n>       assert closed == 10\nE       assert 1 == 10\n\napps/api/tests/test_anchor_delivery_backlog.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_anchor_delivery_backlog.py::test_delivery_reports_how_many_checkpoints_it_closed - assert 1 == 10\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M123_UNGOVERNED_CORPUS_TREATED_AS_GOVERNED",
+      "file": "apps/api/src/korpus/application/retention.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_retention_planning.py::test_a_corpus_with_no_policy_is_ungoverned_rather_than_assumed_safe"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_a_corpus_with_no_policy_is_ungoverned_rather_than_assumed_safe ______\n\n    def test_a_corpus_with_no_policy_is_ungoverned_rather_than_assumed_safe() -> None:\n        \"\"\"An empty policy would read as \"keep forever, nobody objected\".\"\"\"\n>       plan = plan_retention(\n            [(\"doc-x\", \"unknown-corpus\", NOW - timedelta(days=1))], {\"public\": _policy()}, now=NOW\n        )\n\napps/api/tests/test_retention_planning.py:118: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\ndocuments = [('doc-x', 'unknown-corpus', datetime.datetime(2026, 8, 4, 12, 0, tzinfo=datetime.timezone.utc))]\npolicies = {'public': CorpusPolicy(data_owner='Corpus Owner', security_owner='Security Owner', rights_reference='Rights memo 1', ...on.INDEX: 'index'>, <CorpusOperation.CITE: 'cite'>}), retention_days=30, legal_hold=False, declassification_rule=None)}\n\n    def plan_retention(\n        documents: Iterable[tuple[str, str, datetime]],\n        policies: Mapping[str, CorpusPolicy],\n        *,\n        now: datetime | None = None,\n    ) -> RetentionPlan:\n        \"\"\"Classify each (document id, corpus, creation time) against its corpus policy.\"\"\"\n    \n        evaluated_at = now or datetime.now(UTC)\n        items: list[RetentionItem] = []\n        for document_id, corpus_id, created_at in documents:\n            policy = policies.get(corpus_id)\n            if False:\n                # An ungoverned corpus is not an empty policy: nothing states who owns the\n                # material or how long it may be kept, so no disposition can be computed.\n                items.append(\n                    RetentionItem(\n                        document_id=document_id,\n                        corpus_id=corpus_id,\n                        created_at=_aware(created_at),\n                        disposition=UNGOVERNED,\n                        reason=\"corpus has no approved governance policy\",\n                        retention_expires_at=None,\n                    )\n                )\n                continue\n            created = _aware(created_at)\n>           expires_at = created + timedelta(days=policy.retention_days)\n                                                  ^^^^^^^^^^^^^^^^^^^^^\nE           AttributeError: 'NoneType' object has no attribute 'retention_days'\n\n/tmp/korpus-m123_ungoverned_corpus_treated_as_governed-o4n6si7z/api-src/korpus/application/retention.py:130: AttributeError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_retention_planning.py::test_a_corpus_with_no_policy_is_ungoverned_rather_than_assumed_safe - AttributeError: 'NoneType' object has no attribute 'retention_days'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M130_ENTITLEMENT_UNIONS_INSTEAD_OF_INTERSECTS",
+      "file": "apps/api/src/korpus/application/paid_access.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_an_active_subscription_permits_only_what_it_pays_for"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_an_active_subscription_permits_only_what_it_pays_for ___________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-834/test_an_active_subscription_pe0')\n\n    def test_an_active_subscription_permits_only_what_it_pays_for(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|paid\", frozenset({\"public\", \"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            subscription = tenancy.subscription_service.start_subscription(\n                identity.subject, account.id, \"standard\"\n            )\n            _activate(tenancy, subscription.id)\n    \n            gate = tenancy.entitlements(required=True)\n            assert gate.authorize_corpora(identity, account, [\"training\"]) == frozenset({\"training\"})\n    \n            # The identity holds `public`; the plan does not pay for it. Narrower, not wider.\n>           assert gate.authorize_corpora(identity, account, []) == frozenset({\"training\"})\nE           AssertionError: assert frozenset({'p..., 'training'}) == frozenset({'training'})\nE             \nE             Extra items in the left set:\nE             'public'\nE             \nE             Full diff:\nE               frozenset({\nE             +     'public',\nE                   'training',\nE               })\n\napps/api/tests/test_entitlement_gate.py:77: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_an_active_subscription_permits_only_what_it_pays_for - AssertionError: assert frozenset({'p..., 'training'}) == frozenset({'training'})\n  \n  Extra items in the left set:\n  'public'\n  \n  Full diff:\n    frozenset({\n  +     'public',\n        'training',\n    })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M219_LOCAL_LOAD_PROMOTED_TO_PRODUCTION",
+      "file": "apps/api/src/korpus/application/production_reliability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed _\n\n    def test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed() -> None:\n        internal, chaos, load, recovery = _evidence(); load[\"environment_class\"] = \"LOCAL_DEV\"; recovery[\"environment_class\"] = \"CI_FIXTURE\"\n        checks = evaluate_reliability_evidence(internal, chaos, load, recovery, source=\"s\", release=\"v\")\n>       assert checks[\"load_environment\"] is False and checks[\"recovery_environment\"] is False\nE       assert (True is False)\n\napps/api/tests/test_production_reliability.py:65: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_local_load_and_fixture_recovery_cannot_promote_production_even_if_signed - assert (True is False)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M267_MISSION_CONFIDENCE_BOUND_BYPASSED",
+      "file": "apps/api/src/korpus/application/mission_assurance_v2.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_mission_assurance_v2.py::test_confidence_bound_alone_blocks_small_zero_failure_sample"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_confidence_bound_alone_blocks_small_zero_failure_sample _________\n\n    def test_confidence_bound_alone_blocks_small_zero_failure_sample():\n        verdict = evaluate_mission_assurance(_rows(30), minimum_cases=30, maximum_hard_failure_rate_upper_95=0.01,\n                                             independent=True, real_domain=True, operational_environment=True)\n>       assert not verdict.admissible\nE       assert not True\nE        +  where True = MissionAssuranceVerdict(admissible=True, observations=30, hard_failure_count=0, hard_failure_interval=Interval(lower=0...upper=0.9999999999999999, confidence=0.95), p50_latency_ms=7.0, p95_latency_ms=17.55, p99_latency_ms=18.71, reasons=()).admissible\n\napps/api/tests/test_mission_assurance_v2.py:43: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_mission_assurance_v2.py::test_confidence_bound_alone_blocks_small_zero_failure_sample - assert not True\n +  where True = MissionAssuranceVerdict(admissible=True, observations=30, hard_failure_count=0, hard_failure_interval=Interval(lower=0...upper=0.9999999999999999, confidence=0.95), p50_latency_ms=7.0, p95_latency_ms=17.55, p99_latency_ms=18.71, reasons=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:33:58+00:00"
+  }
+}

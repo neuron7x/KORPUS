@@ -1,0 +1,169 @@
+{
+  "schema": "korpus.theoretical-evidence-debt-reconciliation.v1",
+  "release": "v0.8.2",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "baseline_items": 14,
+  "closed_local_anchored": 2,
+  "residual": 12,
+  "closed_ids": [
+    "GOV-002",
+    "RAG-010"
+  ],
+  "residual_ids": [
+    "ING-009",
+    "RAG-001",
+    "RAG-003",
+    "RAG-005",
+    "RAG-007",
+    "RAG-009",
+    "RAG-011",
+    "RAG-012",
+    "RAG-013",
+    "RAG-014",
+    "RAG-017",
+    "RAG-020"
+  ],
+  "interpretation": "Residual items require real-domain/human/production empirical evidence or a fuller benchmark. They are not silently converted into code debt.",
+  "items": [
+    {
+      "id": "GOV-002",
+      "domain": "Governance",
+      "severity": "P0",
+      "title": "Немає use-case-specific AI risk profile",
+      "state_v082": "CLOSED_ANCHORED",
+      "acceptance_predicate": "Кожен risk має owner, metric, control, evidence і review cadence.",
+      "evidence": "config/governance/ai-risk-profile-v1.json + apps/api/tests/test_ai_risk_profile.py",
+      "note": "acceptance predicate directly satisfied by current local executable evidence"
+    },
+    {
+      "id": "ING-009",
+      "domain": "Ingestion & Parsers",
+      "severity": "P1",
+      "title": "Немає OCR/layout quality model",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "CER/WER/table extraction виміряні по stratified corpus; low confidence не auto-approve.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-001",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "title": "Evaluation dataset є synthetic fixture, не production evidence",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Blind holdout, human adjudication, versioned dataset, confidence intervals.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-003",
+      "domain": "Retrieval & Evidence",
+      "severity": "P0",
+      "title": "Немає human gold standard та inter-annotator agreement",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "IAA threshold predefined; ambiguous cases excluded/separately scored.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-005",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає contradiction resolution між джерелами",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Known conflict cases повертають conflict status і всі релевантні sources.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-007",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Authority priors є неперевіреними константами",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Ablation і domain validation доводять користь; priors versioned and approved.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-009",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Risk classifier є regex heuristic",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Per-class precision/recall + worst-group metrics на blind set.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-010",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Prompt/control injection detector має лише пʼять regex patterns",
+      "state_v082": "CLOSED_LOCAL_ANCHORED",
+      "acceptance_predicate": "Adversarial corpus suite із direct/indirect/obfuscated injection має defined outcomes.",
+      "evidence": "reports/release/v0.8.2/INFERENCE_SECURITY_GATE.json + MUTATION_DELTA_REPORT I01",
+      "note": "acceptance predicate directly satisfied by current local executable evidence"
+    },
+    {
+      "id": "RAG-011",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Sentence segmentation непридатна для складних нормативних документів",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Gold structural extraction benchmark PASS per document class.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-012",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Lexical retrieval не має української морфології та domain analysis",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Recall@20 та nDCG measured by query family, including morphology/acronyms.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-013",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає тестів таблиць, чисел, одиниць і формул",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Numeric/table benchmark має zero critical unit/sign errors.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-014",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Scale evidence не репрезентує production",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "SLO envelope with p50/p95/p99, throughput, recall, resource/cost curves.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-017",
+      "domain": "Retrieval & Evidence",
+      "severity": "P1",
+      "title": "Немає drift/online quality monitoring",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Defined drift thresholds cause automatic freeze/rollback.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    },
+    {
+      "id": "RAG-020",
+      "domain": "Retrieval & Evidence",
+      "severity": "P2",
+      "title": "Малі мінімальні вибірки не гарантують domain coverage",
+      "state_v082": "RESIDUAL_ACCEPTANCE_REQUIRED",
+      "acceptance_predicate": "Each critical stratum meets minimum N and upper error bound.",
+      "evidence": "",
+      "note": "not promoted closed without direct current evidence satisfying the full acceptance predicate"
+    }
+  ]
+}

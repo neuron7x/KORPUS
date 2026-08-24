@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: korpus-worker
+  namespace: korpus
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app.kubernetes.io/name: korpus-worker}
+  template:
+    metadata:
+      labels: {app.kubernetes.io/name: korpus-worker, app.kubernetes.io/part-of: korpus}
+    spec:
+      serviceAccountName: korpus-worker
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      terminationGracePeriodSeconds: 90
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: worker
+          image: registry.invalid/korpus/api@sha256:REPLACE_WITH_VERIFIED_DIGEST
+          imagePullPolicy: IfNotPresent
+          args: [python, -m, korpus.cli, worker-loop, --idle-seconds, "1"]
+          envFrom:
+            - configMapRef: {name: korpus-config}
+            - secretRef: {name: korpus-runtime-secrets}
+          resources:
+            requests: {cpu: 750m, memory: 1Gi, ephemeral-storage: 1Gi}
+            limits: {cpu: "2", memory: 3Gi, ephemeral-storage: 4Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: tmp, mountPath: /tmp}
+            - {name: governance, mountPath: /etc/korpus/governance, readOnly: true}
+      volumes:
+        - name: governance
+          secret:
+            secretName: korpus-governance-bundle
+            defaultMode: 0400
+        - name: tmp
+          emptyDir: {sizeLimit: 2Gi}

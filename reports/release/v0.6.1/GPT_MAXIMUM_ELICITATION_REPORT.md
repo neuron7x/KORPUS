@@ -1,0 +1,7 @@
+# GPT-5.6 Sol — KORPUS maximum-elicitation report
+
+This artifact records an **observed harness-bound capability elicitation**, not a universal intelligence ceiling. The tested system is GPT-5.6 Sol operating through ChatGPT with filesystem execution, test runners and web research.
+
+Observed current-tree evidence: 824 source-manifest files; 1,675 backend tests collected with 1,673 pass, 0 fail, 0 errors and 2 environment/artifact-dependent skips; the mutation-dependent skip was subsequently re-executed PASS, leaving live PostgreSQL as the only full-suite environment skip. Statement coverage is 96.263881%; branch coverage 91.910112%; the missing-branch ratchet is 216 <= 220. Fresh first-order mutation executed 302/302 killed, 0 survivors, 0 invalid. Web functional/destruction/build campaign is 142/142 PASS. Determinism is 4 seeded runs x 66 tests. Stress is 3 cycles x 55 tests. Plasticity exhaustively checks 6,912 policy states.
+
+The upper-bound interpretation is deliberately narrow: this run demonstrates multi-layer software recovery, causal debugging, falsification, evidence governance, security/reliability gating, standards synthesis and deterministic packaging under this exact harness. It does **not** establish AGI, model-only capability, or production authorization. External independent red-team, production-like PostgreSQL, vulnerability/container scanners, exact production environment and trusted-builder/signing attestations remain fail-closed.

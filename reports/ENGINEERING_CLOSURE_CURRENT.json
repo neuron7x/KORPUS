@@ -1,0 +1,443 @@
+{
+  "schema": "korpus.engineering-closure.v1",
+  "date": "2026-08-23",
+  "release": "v0.9.7",
+  "release_role": "ENGINEERING_CLOSURE_CANDIDATE",
+  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
+  "verdicts": {
+    "local_engineering_closure": "PASS_WITH_EXTERNAL_BOUNDARY",
+    "staging_readiness": "PASS_WITH_CAVEATS",
+    "production_authorization": "FAIL"
+  },
+  "verification": {
+    "regression": {
+      "status": "PASS",
+      "tests": 2345,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1,
+      "shards": 64,
+      "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e"
+    },
+    "mutation": {
+      "status": "PASS",
+      "catalogue": 349,
+      "valid_mutants": 349,
+      "killed": 349,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "score": 1.0
+    },
+    "web": {
+      "schema": "korpus.web-assurance-summary.v1",
+      "release": "v0.9.7",
+      "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+      "tests": 146,
+      "passed": 146,
+      "failed": 0,
+      "skipped": 0,
+      "duration_ms": 176096.102471,
+      "command": "npm test",
+      "log_sha256": "8922df6ea89075e7a1abb6a70145fb908615998d16238b6c02ee98408763930f",
+      "evidence_class": "ANCHORED_LOCAL_EXECUTION",
+      "status": "PASS"
+    },
+    "browser_e2e": {
+      "schema_version": 1,
+      "gate": "browser_e2e",
+      "environment_class": "LOCAL_BROWSER_POLICY_COMPATIBLE",
+      "transport_fixture": "browser_fetch_stub",
+      "navigation_policy": "system URLBlocklist prevents local HTTP navigation",
+      "network_navigation_executed": false,
+      "same_origin_network_executed": false,
+      "oidc_session_executed": false,
+      "release_version": "0.9.7",
+      "release_tag": "v0.9.7",
+      "git_head": "3c45e5f335e239a704129ae19cad7618b4d17648",
+      "git_context": "repository",
+      "browser": "Chromium 144.0.7559.96 built on Debian GNU/Linux 13 (trixie)",
+      "browser_binary": "/usr/bin/chromium",
+      "tests": [
+        {
+          "name": "consumer_authenticated_boot",
+          "status": "PASS",
+          "duration_ms": 540.41
+        },
+        {
+          "name": "evidence_render_escapes_xss",
+          "status": "PASS",
+          "duration_ms": 85.486
+        },
+        {
+          "name": "typed_429_is_not_rendered_as_outage",
+          "status": "PASS",
+          "duration_ms": 4.048
+        },
+        {
+          "name": "mobile_viewport_has_no_horizontal_overflow",
+          "status": "PASS",
+          "duration_ms": 223.73
+        },
+        {
+          "name": "operator_console_roles_and_preview_gate",
+          "status": "PASS",
+          "duration_ms": 130.744
+        }
+      ],
+      "totals": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0
+      },
+      "status": "PASS",
+      "browser_stderr_tail": [
+        "[138211:138239:0823/170459.106468:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+        "[138211:138211:0823/170459.118886:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+        "[138211:138239:0823/170459.119412:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+        "[138211:138211:0823/170459.122978:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+        "[138211:138239:0823/170459.124505:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+        "[138211:138211:0823/170459.125423:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+        "[138211:138239:0823/170459.125488:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+        "[138211:138211:0823/170459.125556:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:"
+      ]
+    },
+    "determinism": {
+      "status": "PASS",
+      "seeds": [
+        0,
+        1,
+        42,
+        31337
+      ],
+      "tests_per_seed": [
+        66,
+        66,
+        66,
+        66
+      ],
+      "failures": [],
+      "outcome_digests": [
+        "dbbc6c476f1c276e0a5d3a186342587dcbe13215362db7a05f291f40d38aa7fa"
+      ],
+      "semantic_replay_digests": [
+        "2f269628fa6fb2edd3f5d02b379affebbfc86ee44a380b6c23b8316d77d8c311"
+      ]
+    },
+    "release_core_targeted": {
+      "tests": 47,
+      "passed": 47,
+      "failed": 0,
+      "evidence": "handoff/evidence/current/release/release-core-tests.log"
+    },
+    "release_identity": {
+      "checks": 11,
+      "passed": 11,
+      "valid": true
+    },
+    "repository_validation": {
+      "paths": 3187,
+      "requirements": 112,
+      "audit_findings_classified": "99/99"
+    }
+  },
+  "architecture": {
+    "openapi_paths": 31,
+    "module_budget_entries": 456,
+    "github_workflows": 10,
+    "docker_compose_services": [
+      "api",
+      "clamav",
+      "migrate",
+      "minio",
+      "minio-init",
+      "otel-collector",
+      "postgres",
+      "web",
+      "worker"
+    ],
+    "infrastructure_requirements_checked": 135,
+    "kubernetes_base_resources": 19,
+    "kubernetes_production_resources": 19
+  },
+  "local_assurance": {
+    "operational_gate_status": "PASS",
+    "operational_production_authorized": false,
+    "eval": {
+      "passed": 30,
+      "total": 30,
+      "pass_rate": 1.0,
+      "tevv_admissible": false,
+      "interval": {
+        "lower": 0.886487,
+        "upper": 1.0,
+        "width": 0.113513,
+        "confidence": 0.95
+      }
+    },
+    "migration": {
+      "table_set_match": true,
+      "tables": 27,
+      "audit_head_seeded": true,
+      "sqlite_fts5_present": true
+    },
+    "scale": {
+      "status": "PASS",
+      "metric_status": "ANCHORED_LOCAL_MEASUREMENT",
+      "procedure": {
+        "database": "SQLite FTS5",
+        "spans": 5000,
+        "iterations": 80,
+        "warmup_queries": 1,
+        "candidate_budget": 256,
+        "query": "ALPHA-OMEGA deterministic target"
+      },
+      "results": {
+        "ingest_seconds": 0.15903139199872385,
+        "query_latency_ms_p50": 3.5206695000000003,
+        "query_latency_ms_p95": 4.545702,
+        "query_latency_ms_max": 6.041303,
+        "candidate_count": 1,
+        "top1_recall": 1.0
+      },
+      "limitations": [
+        "Synthetic local probe; not a production SLA.",
+        "PostgreSQL network, concurrency and disk behavior are not represented."
+      ]
+    }
+  },
+  "production_predicates": {
+    "total": 14,
+    "software_ready": 14,
+    "externally_satisfied": 0,
+    "production_satisfied": 0,
+    "external_blockers": [
+      {
+        "id": "external_independent_redteam",
+        "gate": "redteam",
+        "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "report_present",
+          "attestation_present",
+          "attestation_verified",
+          "trusted_signer",
+          "source_bound",
+          "release_bound",
+          "independent_class",
+          "preregistered",
+          "test_cases_structured",
+          "required_attack_families_covered",
+          "findings_structured",
+          "blocking_findings_closed",
+          "declared_status_consistent",
+          "metadata:status"
+        ]
+      },
+      {
+        "id": "live_vulnerability_scanners",
+        "gate": "supply_chain",
+        "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "security_scanners_executed_clean",
+          "security_scanners_current_commit",
+          "container_scanners_executed_clean",
+          "container_scanners_current_commit",
+          "container_sboms_valid",
+          "evidence_manifest_bound",
+          "evidence_attestation_verified",
+          "evidence_trusted_signer"
+        ]
+      },
+      {
+        "id": "live_postgres_rls",
+        "gate": "postgres_security",
+        "required_proof_class": "REAL_POSTGRESQL",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "target_files_present",
+          "grant_contract_static",
+          "postgres_runtime_available",
+          "postgres_adversarial_suite",
+          "metadata:backend"
+        ]
+      },
+      {
+        "id": "real_domain_corpus_tevv",
+        "gate": "tevv",
+        "required_proof_class": "REAL_DOMAIN_CORPUS",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "evidence_schema",
+          "preregistered",
+          "source_bound",
+          "release_bound",
+          "observation_ledger_structured",
+          "null_control_ledger_structured",
+          "required_attack_families_covered",
+          "tevv_admissible",
+          "pass_rate",
+          "citation_integrity",
+          "leakage",
+          "determinism",
+          "null_controls",
+          "null_false_accepts",
+          "attack_families"
+        ]
+      },
+      {
+        "id": "independent_tevv",
+        "gate": "tevv",
+        "required_proof_class": "INDEPENDENT_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "independent_class",
+          "assessor_structured",
+          "assessor_attestation_verified",
+          "assessor_trusted_signer"
+        ]
+      },
+      {
+        "id": "production_like_tevv_environment",
+        "gate": "tevv",
+        "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "environment_class",
+          "assessor_attestation_verified",
+          "assessor_trusted_signer"
+        ]
+      },
+      {
+        "id": "production_like_load",
+        "gate": "reliability",
+        "required_proof_class": "PRODUCTION_LIKE_LOAD",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "live_load_soak_executed",
+          "load_source_bound",
+          "load_environment",
+          "load_slo_steady_p95",
+          "load_slo_cold_start"
+        ]
+      },
+      {
+        "id": "trusted_load_attestation",
+        "gate": "reliability",
+        "required_proof_class": "TRUSTED_LOAD_ATTESTATION",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "load_attestation_verified",
+          "load_trusted_signer"
+        ]
+      },
+      {
+        "id": "trusted_recovery_attestation",
+        "gate": "reliability",
+        "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "recovery_drill_executed",
+          "recovery_source_bound",
+          "recovery_environment",
+          "recovery_attestation_verified",
+          "recovery_trusted_signer"
+        ]
+      },
+      {
+        "id": "trusted_hosted_builder",
+        "gate": "final_release",
+        "required_proof_class": "HOSTED_BUILDER_PROVENANCE",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "builder_provenance_verified",
+          "builder_trusted",
+          "builder_attestation_verified",
+          "builder_trusted_signer"
+        ]
+      },
+      {
+        "id": "trusted_release_signing",
+        "gate": "final_release",
+        "required_proof_class": "PRETRUSTED_RELEASE_SIGNER",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "release_manifest_bound",
+          "release_attestation_verified",
+          "release_trusted_signer"
+        ]
+      },
+      {
+        "id": "exact_python_3_12_13_environment",
+        "gate": "exact_environment",
+        "required_proof_class": "EXACT_LOCKED_ENVIRONMENT",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "all_locked_components_installed",
+          "all_versions_exact",
+          "no_unmanaged_distributions",
+          "production_python_exact",
+          "lock_hashes_present",
+          "metadata:status"
+        ]
+      },
+      {
+        "id": "pec_human_production_authority",
+        "gate": "pec_authority",
+        "required_proof_class": "HOSTED_HUMAN_EXACT_COHORT_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "evidence_schema",
+          "source_bound",
+          "binding_valid",
+          "audit_trace_nonempty",
+          "training_lineage",
+          "human_judgments",
+          "hosted_evidence",
+          "attestation_verified",
+          "trusted_signer",
+          "metadata:environment_class"
+        ]
+      },
+      {
+        "id": "pec_canary_revision_admission",
+        "gate": "pec_canary",
+        "required_proof_class": "EXACT_CLOUD_RUN_REVISION_CANARY_ATTESTED",
+        "software_ready": true,
+        "externally_satisfied": false,
+        "failed_external_checks": [
+          "authority_pass",
+          "source_bound",
+          "release_bound",
+          "exact_cloud_run_revision",
+          "minimum_samples",
+          "server_error_rate",
+          "human_judgment_admissible",
+          "metadata:environment_class"
+        ]
+      }
+    ]
+  },
+  "portable_evidence_manifest": "handoff/evidence/current/MANIFEST.json",
+  "invariants": [
+    "No behavioral-source changes after source-bound full regression/mutation evidence.",
+    "UNKNOWN external evidence never converts to PASS.",
+    "Production authorization requires all hard predicates production_satisfied.",
+    "Human documentation is package-integrity-bound but deliberately outside behavioral source digest."
+  ]
+}

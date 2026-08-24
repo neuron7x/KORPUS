@@ -1,0 +1,555 @@
+{
+  "schema": "korpus.static-security-triage.v1",
+  "generated_at": "2026-08-16T18:15:29.669118+00:00",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "detector_report": "reports/release/v0.6.1/closeout/INTERNAL_STATIC_SECURITY_AUDIT.json",
+  "status": "PASS",
+  "findings_total": 54,
+  "classified_false_positive_by_indirection": 3,
+  "classified_static_ddl": 51,
+  "unresolved": 0,
+  "findings": [
+    {
+      "line": 7,
+      "message": "base image is not digest-pinned",
+      "path": "apps/web/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${NODE_IMAGE}",
+      "disposition": "FALSE_POSITIVE_BY_INDIRECTION",
+      "rationale": "Dockerfile FROM uses an ARG whose default value on the immediately preceding ARG declaration is digest-pinned; exact-environment tests bind the declared default."
+    },
+    {
+      "line": 14,
+      "message": "base image is not digest-pinned",
+      "path": "apps/web/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${NGINX_IMAGE}",
+      "disposition": "FALSE_POSITIVE_BY_INDIRECTION",
+      "rationale": "Dockerfile FROM uses an ARG whose default value on the immediately preceding ARG declaration is digest-pinned; exact-environment tests bind the declared default."
+    },
+    {
+      "line": 2,
+      "message": "base image is not digest-pinned",
+      "path": "apps/api/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${PYTHON_IMAGE}",
+      "disposition": "FALSE_POSITIVE_BY_INDIRECTION",
+      "rationale": "Dockerfile FROM uses an ARG whose default value on the immediately preceding ARG declaration is digest-pinned; exact-environment tests bind the declared default."
+    },
+    {
+      "line": 50,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 64,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 69,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 76,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 99,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 102,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 106,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 111,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 119,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 122,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 126,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 131,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 143,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 146,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 150,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 155,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 168,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 171,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 175,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 180,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 88,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 89,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 97,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 221,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 236,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 241,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 248,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 216,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 218,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 84,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 87,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 91,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 96,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 104,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 108,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 112,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 117,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 82,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 142,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 145,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 149,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 154,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 131,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 135,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 76,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 77,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 81,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 86,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 100,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 50,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0016_learning_course_graph.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    },
+    {
+      "line": 294,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0016_learning_course_graph.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": "",
+      "disposition": "ACCEPTED_STATIC_DDL",
+      "rationale": "Alembic migration-time DDL assembled only from closed module literals, fixed policy SQL fragments, or SQLAlchemy Table.name values defined in source; not reachable from request/user-controlled input."
+    }
+  ],
+  "limitation": "This triage does not replace Ruff, Mypy, Gitleaks, pip-audit, Trivy, a live PostgreSQL adversarial run, or an independent red team."
+}

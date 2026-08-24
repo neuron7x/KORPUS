@@ -1,0 +1,43 @@
+/* Generated from design/tokens.json. Do not edit manually. */
+:root {
+  color-scheme: dark;
+  --accent: #c75550;
+  --accent-ink: #ffffff;
+  --bg: #010101;
+  --content-answer: 920px;
+  --danger: #d88984;
+  --danger-bg: #241310;
+  --danger-line: #7e3f34;
+  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --line: #1b1a18;
+  --line-strong: #2b2926;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --muted: #a7a39c;
+  --muted-2: #8d8982;
+  --ok: #d9d6d0;
+  --radius: undefinedundefined;
+  --radius-lg: undefinedundefined;
+  --radius-sm: undefinedundefined;
+  --radius-xl: undefinedundefined;
+  --shadow: 0 28px 90px rgba(0, 0, 0, .34);
+  --shadow-soft: 0 16px 48px rgba(0, 0, 0, .22);
+  --shell-left: 272px;
+  --shell-right: 260px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --surface: #050505;
+  --surface-2: #090908;
+  --surface-3: #12110f;
+  --surface-raised: #080807;
+  --target-min: 44px;
+  --text: #f5f3ee;
+  --topbar-height: 64px;
+  --topbar-mobile-height: 58px;
+  --warn: #d6c7a5;
+}

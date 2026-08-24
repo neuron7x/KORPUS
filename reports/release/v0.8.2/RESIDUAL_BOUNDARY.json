@@ -1,0 +1,33 @@
+{
+  "schema": "korpus.v082-residual-boundary.v1",
+  "release": "v0.8.2",
+  "source_tree_sha256": "d2d46b5121c187fe300ca3a330d95abc7ab4e14058aba4af8c8b6f8708950fe8",
+  "internal_backend_status": "PASS",
+  "internal_security_status": "PASS",
+  "production_authorized": false,
+  "external_hard_predicates": [
+    "external_independent_redteam",
+    "live_vulnerability_scanners",
+    "live_postgres_rls",
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "production_like_load",
+    "trusted_load_attestation",
+    "trusted_recovery_attestation",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "exact_python_3_12_13_environment"
+  ],
+  "quality_tool_availability": {
+    "ruff": "UNAVAILABLE_IN_EXECUTION_ENVIRONMENT",
+    "mypy": "UNAVAILABLE_IN_EXECUTION_ENVIRONMENT"
+  },
+  "vulnerability_scan_status": "UNKNOWN_UNTIL_NETWORKED/INSTALLED_SCANNERS_EXECUTE",
+  "exact_python_runtime": {
+    "required": "3.12.13",
+    "observed": "3.13.5",
+    "status": "EXTERNAL_ENVIRONMENT_MISMATCH"
+  },
+  "formal_boundary": "usable engineering candidate; production authorization remains fail-closed until external predicates are satisfied"
+}

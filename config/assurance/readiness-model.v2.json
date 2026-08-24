@@ -1,0 +1,34 @@
+{
+  "schema": "korpus.readiness-model.v2",
+  "kind": "normative_engineering_policy_not_probability_model",
+  "weights": {
+    "product_core": 0.12,
+    "architecture_invariants": 0.13,
+    "security_trust_boundaries": 0.18,
+    "tests_tevv": 0.17,
+    "release_package_integrity": 0.15,
+    "reliability_operations": 0.12,
+    "ui_ux": 0.05,
+    "maintainability_reproducibility": 0.08
+  },
+  "evidence_ceilings": {
+    "declarative_or_static_only": 70,
+    "executed_without_negative_control": 90,
+    "executed_with_negative_control_but_not_independently_attested": 97,
+    "independent_attested": 100
+  },
+  "hard_rule": "weighted readiness never authorizes production; all mandatory production gates are conjunctive",
+  "score_precision_decimals": 4,
+  "minimum_engineering_release_candidate": 92.0,
+  "target_engineering_release_candidate": 94.0,
+  "production_authorization_requires": [
+    "exact source binding",
+    "exact release binding",
+    "mandatory gate PASS",
+    "external red-team independence and attestation where required",
+    "real PostgreSQL backend evidence",
+    "complete supply-chain evidence",
+    "full mutation catalogue evidence",
+    "production-like TEVV evidence"
+  ]
+}

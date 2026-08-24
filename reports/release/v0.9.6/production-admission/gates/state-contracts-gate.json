@@ -1,0 +1,92 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "state_contracts",
+  "status": "PASS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "review_total": true,
+    "subscription_total": true,
+    "rejected_terminal": true,
+    "canceled_terminal": true,
+    "expired_terminal": true,
+    "review_no_self_loops": true,
+    "terminal_subscriptions_never_reactivate": true
+  },
+  "failures": [],
+  "review_matrix": {
+    "quarantined": {
+      "quarantined": false,
+      "metadata_reviewed": true,
+      "content_reviewed": false,
+      "approved": false,
+      "rejected": true
+    },
+    "metadata_reviewed": {
+      "quarantined": false,
+      "metadata_reviewed": false,
+      "content_reviewed": true,
+      "approved": false,
+      "rejected": true
+    },
+    "content_reviewed": {
+      "quarantined": false,
+      "metadata_reviewed": false,
+      "content_reviewed": false,
+      "approved": true,
+      "rejected": true
+    },
+    "approved": {
+      "quarantined": false,
+      "metadata_reviewed": false,
+      "content_reviewed": false,
+      "approved": false,
+      "rejected": true
+    },
+    "rejected": {
+      "quarantined": false,
+      "metadata_reviewed": false,
+      "content_reviewed": false,
+      "approved": false,
+      "rejected": false
+    }
+  },
+  "subscription_matrix": {
+    "incomplete": {
+      "incomplete": false,
+      "active": true,
+      "past_due": false,
+      "canceled": true,
+      "expired": true
+    },
+    "active": {
+      "incomplete": false,
+      "active": true,
+      "past_due": true,
+      "canceled": true,
+      "expired": true
+    },
+    "past_due": {
+      "incomplete": false,
+      "active": true,
+      "past_due": false,
+      "canceled": true,
+      "expired": true
+    },
+    "canceled": {
+      "incomplete": false,
+      "active": false,
+      "past_due": false,
+      "canceled": false,
+      "expired": false
+    },
+    "expired": {
+      "incomplete": false,
+      "active": false,
+      "past_due": false,
+      "canceled": false,
+      "expired": false
+    }
+  },
+  "evidence_class": "EXHAUSTIVE_ENUM_MATRIX"
+}

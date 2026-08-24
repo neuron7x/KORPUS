@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 38,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M37_PARTIAL_REFERENCE_EARNS_CREDIT",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_partially_valid_references_earn_nothing_for_that_claim __________\n\n    def test_partially_valid_references_earn_nothing_for_that_claim() -> None:\n        \"\"\"One good span id plus one bad one is not half a proof.\"\"\"\n        carried = uuid4()\n    \n        verdict = verify_claim_support([(0, [carried, uuid4()])], [carried])\n    \n>       assert verdict.coverage == 0.0\nE       assert 1.0 == 0.0\nE        +  where 1.0 = SupportVerdict(coverage=1.0, unsupported_claim_indexes=(), reasons=()).coverage\n\napps/api/tests/test_citation_alignment.py:68: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_citation_alignment.py::test_partially_valid_references_earn_nothing_for_that_claim - assert 1.0 == 0.0\n +  where 1.0 = SupportVerdict(coverage=1.0, unsupported_claim_indexes=(), reasons=()).coverage\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M81_NEW_DOCUMENT_MAY_SUPERSEDE_A_FOREIGN_VERSION",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_foreign_supersession.py::test_a_new_document_cannot_declare_itself_successor_of_another"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "until\":null,\"rescinded_at\":null,\"authority\":\"official_ua\",\"source_key_id\":null,\"source_signature_b64\":null,\"content_fingerprint\":\"327ea96abb887b42\",\"near_duplicate_of_version_id\":null,\"near_duplicate_similarity\":null,\"near_duplicate_acknowledged_by\":null,\"extraction_text_chars\":22,\"extraction_alnum_ratio\":0.863636,\"extraction_replacement_ratio\":0.0,\"extraction_quality_flags\":[],\"extraction_quality_acknowledged_by\":null,\"review_state\":\"quarantined\",\"supersedes_version_id\":\"5b3e3033-2543-4d64-85e0-1cafb2bec200\",\"state_version\":0,\"metadata_reviewed_by\":null,\"metadata_reviewer_credential_id\":null,\"content_reviewed_by\":null,\"content_reviewer_credential_id\":null,\"approved_at\":null,\"approved_by\":null,\"approver_credential_id\":null,\"is_current\":false,\"created_at\":\"2026-08-22T16:41:44.251253Z\"},\"span_count\":1,\"extraction_method\":\"plain_text\",\"duplicate\":false}\nE       assert 201 in {400, 409, 422}\nE        +  where 201 = <Response [201 Created]>.status_code\n\napps/api/tests/test_foreign_supersession.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_foreign_supersession.py::test_a_new_document_cannot_declare_itself_successor_of_another - AssertionError: {\"document\":{\"id\":\"5bbccff6-f916-4808-b0b8-656d1c796f7a\",\"canonical_title\":\"Сторонній документ\",\"corpus_id\":\"public\",\"issuer\":\"Authorized Test Authority\",\"jurisdiction\":\"UA\",\"document_type\":\"order\",\"access_tier\":0,\"classification\":\"public\",\"compartments\":[],\"created_at\":\"2026-08-22T16:41:44.248324Z\"},\"version\":{\"id\":\"2c52c8a9-d15e-4e32-861f-2d10a18b27b9\",\"document_id\":\"5bbccff6-f916-4808-b0b8-656d1c796f7a\",\"revision\":\"1.0\",\"publication_identifier\":\"FOREIGN-1.0\",\"source_uri\":null,\"source_hash\":\"8c28c80e0426ed97cf8b7f437c326250053488e27bdd2cc05c56735f1312b67b\",\"object_key\":\"8c/28/8c28c80e0426ed97cf8b7f437c326250053488e27bdd2cc05c56735f1312b67b\",\"mime_type\":\"text/plain\",\"publication_date\":null,\"effective_from\":null,\"effective_until\":null,\"rescinded_at\":null,\"authority\":\"official_ua\",\"source_key_id\":null,\"source_signature_b64\":null,\"content_fingerprint\":\"327ea96abb887b42\",\"near_duplicate_of_version_id\":null,\"near_duplicate_similarity\":null,\"near_duplicate_acknowledged_by\":null,\"extraction_text_chars\":22,\"extraction_alnum_ratio\":0.863636,\"extraction_replacement_ratio\":0.0,\"extraction_quality_flags\":[],\"extraction_quality_acknowledged_by\":null,\"review_state\":\"quarantined\",\"supersedes_version_id\":\"5b3e3033-2543-4d64-85e0-1cafb2bec200\",\"state_version\":0,\"metadata_reviewed_by\":null,\"metadata_reviewer_credential_id\":null,\"content_reviewed_by\":null,\"content_reviewer_credential_id\":null,\"approved_at\":null,\"approved_by\":null,\"approver_credential_id\":null,\"is_current\":false,\"created_at\":\"2026-08-22T16:41:44.251253Z\"},\"span_count\":1,\"extraction_method\":\"plain_text\",\"duplicate\":false}\nassert 201 in {400, 409, 422}\n +  where 201 = <Response [201 Created]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M148_UNRESOLVED_PLACEHOLDER_UNDETECTED",
+      "file": "apps/api/src/korpus/repository_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_register.py::test_an_unresolved_placeholder_is_detected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_an_unresolved_placeholder_is_detected __________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-939/test_an_unresolved_placeholder0')\n\n    def test_an_unresolved_placeholder_is_detected(tmp_path: Path) -> None:\n        \"\"\"NotImplementedError in a delivered path is a promise the runtime cannot keep.\"\"\"\n        root = _tree(tmp_path)\n        # Assembled rather than written literally: the detector scans every .py in the\n        # tree, so spelling the pattern here would make this test file trip the check it\n        # is testing — which it did on the first run.\n        placeholder = \"raise \" + \"NotImplementedError\"\n        (root / \"apps/api/src/korpus/half_done.py\").write_text(\n            f\"def answer():\\n    {placeholder}\\n\", encoding=\"utf-8\"\n        )\n    \n>       assert load_context(root).placeholders == [\"apps/api/src/korpus/half_done.py\"]\nE       AssertionError: assert [] == ['apps/api/sr...half_done.py']\nE         \nE         Right contains one more item: 'apps/api/src/korpus/half_done.py'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'apps/api/src/korpus/half_done.py',\nE         - ]\n\napps/api/tests/test_repository_register.py:79: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_register.py::test_an_unresolved_placeholder_is_detected - AssertionError: assert [] == ['apps/api/sr...half_done.py']\n  \n  Right contains one more item: 'apps/api/src/korpus/half_done.py'\n  \n  Full diff:\n  + []\n  - [\n  -     'apps/api/src/korpus/half_done.py',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M206_COMPOSED_OPENING_MAY_NEGATE",
+      "file": "apps/api/src/korpus/application/composition.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answer_composition.py::test_an_opening_that_introduces_a_negation_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_an_opening_that_introduces_a_negation_is_refused[\\u043d\\u0435] ______\n\nnegation = 'не'\n\n    @pytest.mark.parametrize(\"negation\", [\"не\", \"без\", \"заборонено\"])\n    def test_an_opening_that_introduces_a_negation_is_refused(negation: str) -> None:\n        \"\"\"One word flips a norm without changing its vocabulary.\"\"\"\n        composition, reason = _compose(f\"Джгут {negation} накладається вище рани\")\n    \n>       assert composition is None\nE       assert Composition(opening='Джгут не накладається вище рани', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n\napps/api/tests/test_answer_composition.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answer_composition.py::test_an_opening_that_introduces_a_negation_is_refused[\\u043d\\u0435] - assert Composition(opening='Джгут не накладається вище рани', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M153_ANY_ROLE_MAY_SWITCH_A_PERSON_OFF",
+      "file": "apps/api/src/korpus/api/routes_admin.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_account_administration.py::test_only_an_administrator_may_switch_a_person_off"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_only_an_administrator_may_switch_a_person_off ______________\n\nclient = <starlette.testclient.TestClient object at 0x7f5d8d034590>\n\n    def test_only_an_administrator_may_switch_a_person_off(client: Any) -> None:\n        \"\"\"A reviewer can approve a document. That is not the same authority.\"\"\"\n        soldier = _account_of(client, SOLDIER)\n    \n        for identity in (REVIEWER, SOLDIER):\n            _as(client, identity)\n            response = client.post(\n                f\"/v1/admin/accounts/{soldier}/status\",\n                json={\"status\": \"disabled\", \"reason\": \"спроба без повноважень\"},\n            )\n>           assert response.status_code == 403, f\"{sorted(identity.roles)} disabled an account\"\nE           AssertionError: ['reviewer'] disabled an account\nE           assert 200 == 403\nE            +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_account_administration.py:126: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_account_administration.py::test_only_an_administrator_may_switch_a_person_off - AssertionError: ['reviewer'] disabled an account\nassert 200 == 403\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M242_SUBJECT_THROTTLE_MISLABELED_503",
+      "file": "apps/api/src/korpus/api/overload_http.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_overload_http.py::test_subject_share_exhaustion_is_http_429_with_retry_after"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_subject_share_exhaustion_is_http_429_with_retry_after __________\n\n    def test_subject_share_exhaustion_is_http_429_with_retry_after() -> None:\n        response = overload_http_exception(OverloadedError(OverloadReason.SUBJECT_SHARE))\n>       assert response.status_code == 429\nE       AssertionError: assert 503 == 429\nE        +  where 503 = HTTPException(status_code=503, detail={'reason': 'subject_share_exhausted', 'retry_after_seconds': 1}).status_code\n\napps/api/tests/test_overload_http.py:9: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_overload_http.py::test_subject_share_exhaustion_is_http_429_with_retry_after - AssertionError: assert 503 == 429\n +  where 503 = HTTPException(status_code=503, detail={'reason': 'subject_share_exhausted', 'retry_after_seconds': 1}).status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M290_PEC_CONTEXTUAL_CANDIDATE_RECOVERY_DISABLED",
+      "file": "apps/api/src/korpus/infrastructure/repository_search.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_search_index.py::test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence _\n\nclient = <starlette.testclient.TestClient object at 0x7fbdb29f42f0>\n\n    def test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence(client):\n        title = \"КВАНТ-РЕЗЕРВ спеціальний протокол\"\n        body = \"Кожен запис має містити дату та відповідальну особу.\"\n        result = ingest_text(client, title=title, text=body)\n        approve(client, result[\"version\"][\"id\"])\n        repository = client.app.state.repository\n        query = \"КВАНТ-РЕЗЕРВ протокол\"\n    \n        baseline = HybridLexicalRetriever(repository, candidate_budget=8).search(\n            client.identity_provider.current,\n            query,\n            frozenset({\"public\"}),\n            date.today(),\n        )\n        contextual = HybridLexicalRetriever(\n            repository,\n            candidate_budget=8,\n            contextual_projection_enabled=True,\n        ).search(\n            client.identity_provider.current,\n            query,\n            frozenset({\"public\"}),\n            date.today(),\n        )\n    \n        assert baseline == []\n>       assert contextual\nE       assert []\n\napps/api/tests/test_search_index.py:76: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_search_index.py::test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence - assert []\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:41:49+00:00"
+  }
+}

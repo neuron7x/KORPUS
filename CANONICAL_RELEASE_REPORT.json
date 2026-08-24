@@ -1,0 +1,92 @@
+{
+  "schema": "korpus.canonical-release-report.v5",
+  "release": "v0.9.7",
+  "artifact": "KORPUS_v0.9.7_CURRENT_REPOSITORY_MILESTONE_FULL_SSOT_CANONICAL_2026-08-23.zip",
+  "status": "PASS_WITH_CAVEATS",
+  "engineering_release_candidate": false,
+  "staging_ready": false,
+  "package_role": "FULL_SSOT_CANONICAL",
+  "source_tree_sha256": "e7ce416b28bc2880810b4b1b3da67336de8a945f892ad5e2130df22811934916",
+  "source_manifest_root_sha256": "1a2687ea9fc6e54d7f94e8cbf88c67b3f1f2ab45c838c6aeed9916e7271e2c20",
+  "regression": {
+    "status": "PASS",
+    "collection_count": 2345,
+    "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
+    "shards": 64,
+    "tests": 2345,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "skip_boundary": "real PostgreSQL integration requires KORPUS_POSTGRES_TEST_URL",
+    "evidence_source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+    "current_source_match": false,
+    "status_for_current_source": "STALE_REVALIDATION_REQUIRED"
+  },
+  "mutation": {
+    "status": "PASS",
+    "catalogue": 349,
+    "valid_mutants": 349,
+    "killed": 349,
+    "survived": 0,
+    "invalid": 0,
+    "errors": 0,
+    "mutation_score_over_catalogue": 1.0,
+    "evidence_source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+    "current_source_match": false,
+    "status_for_current_source": "STALE_REVALIDATION_REQUIRED"
+  },
+  "web": {
+    "status": "PASS",
+    "node_tests": 146,
+    "node_passed": 146,
+    "browser_e2e_tests": 5,
+    "browser_e2e_passed": 5,
+    "consumer_gzip_bytes": 31977,
+    "consumer_budget_bytes": 32768,
+    "evidence_source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+    "current_source_match": false,
+    "status_for_current_source": "STALE_REVALIDATION_REQUIRED"
+  },
+  "determinism": {
+    "status": "PASS",
+    "seeds": [
+      0,
+      1,
+      42,
+      31337
+    ],
+    "tests_per_seed": [
+      66,
+      66,
+      66,
+      66
+    ],
+    "unique_outcome_digests": 1,
+    "unique_semantic_replay_digests": 1,
+    "evidence_source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+    "current_source_match": false,
+    "status_for_current_source": "STALE_REVALIDATION_REQUIRED"
+  },
+  "ratchets": {
+    "modules": 456,
+    "module_violations": 0,
+    "workflows": 10,
+    "workflow_policy_findings": 0
+  },
+  "production_hard_predicates": {
+    "total": 14,
+    "software_ready": 14,
+    "externally_satisfied": 0,
+    "production_satisfied": 0,
+    "source_tree_sha256": "e7ce416b28bc2880810b4b1b3da67336de8a945f892ad5e2130df22811934916"
+  },
+  "portable_evidence": {
+    "path": "handoff/evidence/current/MANIFEST.json",
+    "files": 224
+  },
+  "production_pec_scientific_admission": "UNKNOWN",
+  "production_pec_reason": "No admissible production HUMAN judgments exist for this exact release/revision cohort.",
+  "production_authorized": false,
+  "external_boundary": "Current repository milestone only. Historical full verification is retained but is bound to a different source digest; current source requires fresh regression/mutation/web verification before staging promotion.",
+  "verification_state": "REVALIDATION_REQUIRED"
+}

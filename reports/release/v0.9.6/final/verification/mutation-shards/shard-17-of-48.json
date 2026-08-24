@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 17,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M17_SOURCE_SIGNATURE_BYPASS",
+      "file": "apps/api/src/korpus/security/source_authenticity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "sionCreate\n        from korpus.infrastructure.object_store import LocalObjectStore\n        from korpus.infrastructure.repository import SqlRepository\n        from korpus.security.source_authenticity import SourceTrustKey, SourceTrustProfile\n    \n        private = Ed25519PrivateKey.generate()\n        public = private.public_key().public_bytes(\n            serialization.Encoding.Raw, serialization.PublicFormat.Raw\n        )\n        trust = SourceTrustProfile(\n            profile_id=\"source-test\",\n            keys={\n                \"issuer-key\": SourceTrustKey(\n                    key_id=\"issuer-key\",\n                    issuer=\"Official Issuer\",\n                    public_key_b64=base64.b64encode(public).decode(),\n                    authorities=frozenset({AuthorityClass.OFFICIAL_UA}),\n                )\n            },\n        )\n        policy = PolicyEngine()\n        repository = SqlRepository(\n            f\"sqlite:///{tmp_path / 'signed.db'}\", \"signed-audit-key\", policy, tmp_path / \"anchor.json\"\n        )\n        repository.initialize()\n        service = build_ingestion_service(\n            repository,\n            LocalObjectStore(tmp_path / \"objects\"),\n            policy,\n            ExtractionSettings(False, \"ukr+eng\"),\n            source_trust_profile=trust,\n            require_source_signature=True,\n        )\n        actor = Identity(\n            subject=\"signing-curator\",\n            roles=frozenset({\"admin\", \"curator\", \"reviewer\", \"user\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"public\"}),\n        )\n        content = b\"Signed authoritative document content.\"\n        digest = hashlib.sha256(content).hexdigest()\n        unsigned = VersionCreate(revision=\"1\", authority=AuthorityClass.OFFICIAL_UA)\n        signature = private.sign(\n            trust.signed_payload(issuer=\"Official Issuer\", version=unsigned, source_hash=digest)\n        )\n        signed = unsigned.model_copy(\n            update={\n                \"source_key_id\": \"issuer-key\",\n                \"source_signature_b64\": base64.b64encode(signature).decode(),\n            }\n        )\n        result = service.ingest(\n            actor,\n            DocumentCreate(canonical_title=\"Signed source\", issuer=\"Official Issuer\"),\n            signed,\n            \"source.txt\",\n            \"text/plain\",\n            content,\n        )\n        assert result.version.source_key_id == \"issuer-key\"\n    \n>       with pytest.raises(ValueError, match=\"signature verification failed\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_v5_security_kernel.py:377: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_detached_source_signature_binds_content_and_metadata - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M64_SKIPPED_SUITE_COUNTS_AS_EXECUTED",
+      "file": "apps/api/src/korpus/application/assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_aggregation.py::test_a_suite_that_skipped_almost_everything_is_not_a_run"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_a_suite_that_skipped_almost_everything_is_not_a_run ___________\n\n    def test_a_suite_that_skipped_almost_everything_is_not_a_run() -> None:\n        result = evaluate(junit=junit(tests=273, skipped=272))\n>       assert result.passed is False\nE       AssertionError: assert True is False\nE        +  where True = AssuranceResult(status='PASS', checks={'tests_executed': True, 'tests_not_mostly_skipped': True, 'tests_outcome': True...overy_drill_executed': True, 'recovery_provenance_complete': True, 'recovery_scale_not_overstated': True}, failures=()).passed\n\napps/api/tests/test_assurance_aggregation.py:109: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_aggregation.py::test_a_suite_that_skipped_almost_everything_is_not_a_run - AssertionError: assert True is False\n +  where True = AssuranceResult(status='PASS', checks={'tests_executed': True, 'tests_not_mostly_skipped': True, 'tests_outcome': True...overy_drill_executed': True, 'recovery_provenance_complete': True, 'recovery_scale_not_overstated': True}, failures=()).passed\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M108_GATE_INVENTORY_MISSES_ASSURANCE_PREDICATES",
+      "file": "apps/api/src/korpus/application/gate_inventory.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_gate_negative_controls.py::test_every_assurance_predicate_has_a_negative_control"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "covery_provenance_complete', 'recovery_scale_not_overstated', 'reports_present', 'scale', 'tests_executed', 'tests_not_mostly_skipped', 'tests_outcome']\nE       assert {'coverage_br...utation', ...} == set()\nE         \nE         Extra items in the left set:\nE         'coverage_line'\nE         'quality_tooling_executed'\nE         'recovery_provenance_complete'\nE         'recovery_scale_not_overstated'\nE         'eval'\nE         'tests_outcome'\nE         'recovery_drill_executed'\nE         'tests_executed'\nE         'coverage_branch'\nE         'scale'\nE         'evidence_provenance'\nE         'operational'\nE         'mutation'\nE         'migration'\nE         'reports_present'\nE         'tests_not_mostly_skipped'\nE         \nE         Full diff:\nE         - set()\nE         + {\nE         +     'coverage_branch',\nE         +     'coverage_line',\nE         +     'eval',\nE         +     'evidence_provenance',\nE         +     'migration',\nE         +     'mutation',\nE         +     'operational',\nE         +     'quality_tooling_executed',\nE         +     'recovery_drill_executed',\nE         +     'recovery_provenance_complete',\nE         +     'recovery_scale_not_overstated',\nE         +     'reports_present',\nE         +     'scale',\nE         +     'tests_executed',\nE         +     'tests_not_mostly_skipped',\nE         +     'tests_outcome',\nE         + }\n\napps/api/tests/test_gate_negative_controls.py:247: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_gate_negative_controls.py::test_every_assurance_predicate_has_a_negative_control - AssertionError: negative controls for predicates that no longer exist: ['coverage_branch', 'coverage_line', 'eval', 'evidence_provenance', 'migration', 'mutation', 'operational', 'quality_tooling_executed', 'recovery_drill_executed', 'recovery_provenance_complete', 'recovery_scale_not_overstated', 'reports_present', 'scale', 'tests_executed', 'tests_not_mostly_skipped', 'tests_outcome']\nassert {'coverage_br...utation', ...} == set()\n  \n  Extra items in the left set:\n  'coverage_line'\n  'quality_tooling_executed'\n  'recovery_provenance_complete'\n  'recovery_scale_not_overstated'\n  'eval'\n  'tests_outcome'\n  'recovery_drill_executed'\n  'tests_executed'\n  'coverage_branch'\n  'scale'\n  'evidence_provenance'\n  'operational'\n  'mutation'\n  'migration'\n  'reports_present'\n  'tests_not_mostly_skipped'\n  \n  Full diff:\n  - set()\n  + {\n  +     'coverage_branch',\n  +     'coverage_line',\n  +     'eval',\n  +     'evidence_provenance',\n  +     'migration',\n  +     'mutation',\n  +     'operational',\n  +     'quality_tooling_executed',\n  +     'recovery_drill_executed',\n  +     'recovery_provenance_complete',\n  +     'recovery_scale_not_overstated',\n  +     'reports_present',\n  +     'scale',\n  +     'tests_executed',\n  +     'tests_not_mostly_skipped',\n  +     'tests_outcome',\n  + }\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M120_QUEUED_VERSION_SKIPS_ENTITLEMENT",
+      "file": "apps/api/src/korpus/application/ingestion_jobs.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_access_refusals.py::test_a_version_cannot_be_queued_against_a_document_in_another_corpus"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_a_version_cannot_be_queued_against_a_document_in_another_corpus _____\n\nrepository = <korpus.infrastructure.repository.SqlRepository object at 0x7f0d566102f0>\ningested = IngestResult(document=DocumentRecord(id=UUID('cd1a9cc4-e464-4db9-bd93-1b0deec0d94a'), canonical_title='Order 7', corpu... 22, 16, 34, 24, 795860, tzinfo=datetime.timezone.utc)), span_count=1, extraction_method='plain_text', duplicate=False)\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-841/test_a_version_cannot_be_queue0')\n\n    def test_a_version_cannot_be_queued_against_a_document_in_another_corpus(\n        repository: SqlRepository, ingested, tmp_path: Path\n    ) -> None:\n        \"\"\"The same defect in the durable-ingestion path, found by the same predicate.\"\"\"\n        from korpus.application.ingestion_jobs import DurableIngestionCoordinator\n        from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue\n    \n        curator_elsewhere = Identity(\n            subject=\"curator-training\",\n            roles=frozenset({\"user\", \"curator\", \"admin\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"training\"}),\n        )\n        staged = tmp_path / \"staged.txt\"\n        staged.write_bytes(CONTENT)\n        service = DurableIngestionCoordinator(\n            SqlIngestionJobQueue(repository.engine),\n            LocalObjectStore(tmp_path / \"quarantine\"),\n            repository,\n            PolicyEngine(),\n            max_attempts=3,\n        )\n    \n>       with pytest.raises(PermissionError, match=\"cannot access target document\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'PermissionError'>\n\napps/api/tests/test_repository_access_refusals.py:266: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_access_refusals.py::test_a_version_cannot_be_queued_against_a_document_in_another_corpus - Failed: DID NOT RAISE <class 'PermissionError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M132_CANCELLED_SUBSCRIPTION_CAN_BE_RESURRECTED",
+      "file": "apps/api/src/korpus/domain/tenancy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_billing_events.py::test_a_canceled_subscription_cannot_be_reactivated"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_canceled_subscription_cannot_be_reactivated ______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-842/test_a_canceled_subscription_c0')\n\n    def test_a_canceled_subscription_cannot_be_reactivated(tmp_path: Path) -> None:\n        \"\"\"The resurrection. `CANCELED` is terminal, and a renewal is a new subscription.\"\"\"\n        tenancy = build_tenancy(tmp_path)\n        try:\n            _account, subscription = _account_with_subscription(tenancy)\n            activate, activate_signature = _event(\n                tenancy, \"evt-a\", \"subscription.activated\", reference=str(subscription.id)\n            )\n            tenancy.subscription_service.handle_event(activate, activate_signature)\n    \n            cancel, cancel_signature = _event(\n                tenancy,\n                \"evt-c\",\n                \"subscription.canceled\",\n                reference=str(subscription.id),\n                occurred_at=now() + timedelta(minutes=1),\n            )\n            tenancy.subscription_service.handle_event(cancel, cancel_signature)\n            assert tenancy.subscriptions.get_subscription(subscription.id).status is (\n                SubscriptionStatus.CANCELED\n            )\n    \n            revive, revive_signature = _event(\n                tenancy,\n                \"evt-r\",\n                \"subscription.activated\",\n                reference=str(subscription.id),\n                occurred_at=now() + timedelta(minutes=2),\n            )\n>           with pytest.raises(InvalidSubscriptionTransition):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.InvalidSubscriptionTransition'>\n\napps/api/tests/test_billing_events.py:325: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_billing_events.py::test_a_canceled_subscription_cannot_be_reactivated - Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.InvalidSubscriptionTransition'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M221_STALE_RELIABILITY_LOAD_ACCEPTED",
+      "file": "apps/api/src/korpus/application/production_reliability.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_reliability_evidence_from_another_tree_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_reliability_evidence_from_another_tree_is_rejected ____________\n\n    def test_reliability_evidence_from_another_tree_is_rejected() -> None:\n        internal, chaos, load, recovery = _evidence(); load[\"source_tree_sha256\"] = \"old\"; recovery[\"source_tree_sha256\"] = \"old\"\n        checks = evaluate_reliability_evidence(internal, chaos, load, recovery, source=\"s\", release=\"v\")\n>       assert checks[\"load_source_bound\"] is False and checks[\"recovery_source_bound\"] is False\nE       assert (True is False)\n\napps/api/tests/test_production_reliability.py:71: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_reliability_evidence_from_another_tree_is_rejected - assert (True is False)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M269_BROWSER_SESSION_COOKIE_PREFIX_BYPASSED",
+      "file": "apps/api/src/korpus/security/browser_cookie_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "..................................F\n=================================== FAILURES ===================================\n_ test_a_controlled_deployment_refuses_each_weakening[session cookie without host prefix] _\n\nrequirement = 'session cookie without host prefix'\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-843/test_a_controlled_deployment_r34')\n\n    @pytest.mark.parametrize(\"requirement\", sorted(WEAKENINGS))\n    def test_a_controlled_deployment_refuses_each_weakening(requirement: str, tmp_path: Path) -> None:\n        overrides, message = WEAKENINGS[requirement]\n        role = \"worker\" if requirement in {\"malware scanning disabled\", \"parser sandbox disabled\"} else \"api\"\n        settings = _base(tmp_path) | {\"runtime_role\": role} | overrides\n    \n>       with pytest.raises(ValueError, match=message):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_controlled_configuration_refusals.py:228: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[session cookie without host prefix] - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:34:30+00:00"
+  }
+}

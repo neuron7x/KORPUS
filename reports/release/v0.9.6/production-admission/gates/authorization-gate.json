@@ -1,0 +1,96 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "authorization",
+  "status": "PASS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "matrix_matches_role_contract": true,
+    "unknown_permissions_fail_closed": true,
+    "admin_is_not_vocabulary_bypass": true
+  },
+  "failures": [],
+  "matrix": {
+    "admin": {
+      "account:manage": true,
+      "answer:read": true,
+      "audit:read": true,
+      "audit:verify": true,
+      "document:approve": true,
+      "document:ingest": true,
+      "document:list": true,
+      "document:review": true,
+      "document:review_metadata": true,
+      "training:manage": true
+    },
+    "auditor": {
+      "account:manage": false,
+      "answer:read": false,
+      "audit:read": true,
+      "audit:verify": true,
+      "document:approve": false,
+      "document:ingest": false,
+      "document:list": true,
+      "document:review": false,
+      "document:review_metadata": false,
+      "training:manage": false
+    },
+    "curator": {
+      "account:manage": false,
+      "answer:read": true,
+      "audit:read": false,
+      "audit:verify": false,
+      "document:approve": false,
+      "document:ingest": true,
+      "document:list": true,
+      "document:review": false,
+      "document:review_metadata": true,
+      "training:manage": false
+    },
+    "instructor": {
+      "account:manage": false,
+      "answer:read": true,
+      "audit:read": false,
+      "audit:verify": false,
+      "document:approve": false,
+      "document:ingest": false,
+      "document:list": true,
+      "document:review": false,
+      "document:review_metadata": false,
+      "training:manage": true
+    },
+    "reviewer": {
+      "account:manage": false,
+      "answer:read": true,
+      "audit:read": false,
+      "audit:verify": false,
+      "document:approve": true,
+      "document:ingest": false,
+      "document:list": true,
+      "document:review": true,
+      "document:review_metadata": false,
+      "training:manage": false
+    },
+    "user": {
+      "account:manage": false,
+      "answer:read": true,
+      "audit:read": false,
+      "audit:verify": false,
+      "document:approve": false,
+      "document:ingest": false,
+      "document:list": true,
+      "document:review": false,
+      "document:review_metadata": false,
+      "training:manage": false
+    }
+  },
+  "unknown_permission_denied": {
+    "admin": true,
+    "auditor": true,
+    "curator": true,
+    "instructor": true,
+    "reviewer": true,
+    "user": true
+  },
+  "evidence_class": "EXECUTABLE_MATRIX"
+}

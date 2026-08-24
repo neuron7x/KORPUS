@@ -1,83 +1,47 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://korpus.local/contracts/answer.schema.json",
-  "title": "EvidenceBoundAnswer",
-  "description": "Wire shape of POST /v1/answers. Enforced against live responses by tests/test_contract_conformance.py, so drift between this file and the API is a red test, not a discovery in production.",
+  "$id": "https://korpus.local/contracts/answer.v1.schema.json",
+  "title": "KORPUS Answer v1",
   "type": "object",
-  "additionalProperties": false,
-  "required": [
-    "id",
-    "trace_id",
-    "status",
-    "text",
-    "claims",
-    "citations",
-    "confidence",
-    "citation_coverage",
-    "limitations",
-    "created_at"
-  ],
+  "required": ["id", "status", "text", "claims", "citations", "retrieval_score", "evidence_coverage", "corpus_release", "created_at"],
   "properties": {
     "id": {"type": "string", "format": "uuid"},
-    "trace_id": {"type": "string", "format": "uuid"},
     "status": {"enum": ["answered", "insufficient_evidence", "access_denied", "requires_human_review"]},
     "text": {"type": "string"},
-    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
-    "citation_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+    "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+    "citations": {"type": "array", "items": {"$ref": "#/$defs/citation"}},
+    "retrieval_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence_coverage": {"type": "number", "minimum": 0, "maximum": 1},
     "limitations": {"type": "array", "items": {"type": "string"}},
-    "created_at": {"type": "string", "format": "date-time"},
-    "claims": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["text", "citation_indexes"],
-        "properties": {
-          "text": {"type": "string", "minLength": 1, "maxLength": 2000},
-          "citation_indexes": {
-            "type": "array",
-            "items": {"type": "integer", "minimum": 0}
-          }
-        }
-      }
-    },
-    "citations": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["document_id", "chunk_id", "title", "quote"],
-        "properties": {
-          "document_id": {"type": "string", "format": "uuid"},
-          "chunk_id": {"type": "string", "format": "uuid"},
-          "title": {"type": "string", "minLength": 1},
-          "revision": {"type": ["string", "null"]},
-          "page": {"type": ["integer", "null"], "minimum": 1},
-          "section": {"type": ["string", "null"]},
-          "quote": {"type": "string", "minLength": 1, "maxLength": 1200},
-          "source_uri": {"type": ["string", "null"]}
-        }
-      }
-    }
+    "corpus_release": {"type": "string", "minLength": 16, "maxLength": 16},
+    "created_at": {"type": "string", "format": "date-time"}
   },
-  "allOf": [
-    {
-      "$comment": "An answered response must carry at least one citation. Abstention and denial must carry none: a refusal that ships evidence has already disclosed it.",
-      "if": {"properties": {"status": {"const": "answered"}}, "required": ["status"]},
-      "then": {"properties": {"citations": {"minItems": 1}, "citation_coverage": {"const": 1}}}
+  "$defs": {
+    "claim": {
+      "type": "object",
+      "required": ["text", "evidence_span_ids", "support_state", "support_score"],
+      "properties": {
+        "text": {"type": "string"},
+        "evidence_span_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "format": "uuid"}},
+        "support_state": {"enum": ["extractive", "unsupported"]},
+        "support_score": {"type": "number", "minimum": 0, "maximum": 1}
+      }
     },
-    {
-      "if": {"properties": {"status": {"const": "insufficient_evidence"}}, "required": ["status"]},
-      "then": {"properties": {"citations": {"maxItems": 0}, "confidence": {"const": 0}}}
-    },
-    {
-      "if": {"properties": {"status": {"const": "access_denied"}}, "required": ["status"]},
-      "then": {"properties": {"citations": {"maxItems": 0}, "claims": {"maxItems": 0}, "confidence": {"const": 0}}}
-    },
-    {
-      "$comment": "A held answer discloses nothing: the reviewer reads the evidence from the audit trail, not from the refused response.",
-      "if": {"properties": {"status": {"const": "requires_human_review"}}, "required": ["status"]},
-      "then": {"properties": {"confidence": {"const": 0}, "citations": {"maxItems": 0}, "claims": {"maxItems": 0}}}
+    "citation": {
+      "type": "object",
+      "required": ["document_id", "version_id", "span_id", "title", "revision", "quote", "source_hash"],
+      "properties": {
+        "document_id": {"type": "string", "format": "uuid"},
+        "version_id": {"type": "string", "format": "uuid"},
+        "span_id": {"type": "string", "format": "uuid"},
+        "title": {"type": "string"},
+        "revision": {"type": "string"},
+        "page": {"type": ["integer", "null"], "minimum": 1},
+        "section": {"type": ["string", "null"]},
+        "quote": {"type": "string"},
+        "source_uri": {"type": ["string", "null"]},
+        "source_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
     }
-  ]
+  }
 }

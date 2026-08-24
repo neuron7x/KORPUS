@@ -1,0 +1,93 @@
+{
+  "schema": "korpus.production-blocker-closeout.v1",
+  "generated_at": "2026-08-16T15:13:26.025386+00:00",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "status": "PASS_WITH_EXTERNAL_BLOCKERS",
+  "production_authorized": false,
+  "blockers": [
+    {
+      "blocker": "independent_external_redteam",
+      "state": "EXTERNAL_REQUIRED",
+      "local_delta": "Internal adversarial campaign already PASS over all 9 required families; external report template is source/release/preregistration-bound.",
+      "proof": "REDTEAM_INTERNAL_CURRENT.json + EXTERNAL_REDTEAM_HANDOFF_TEMPLATE.json",
+      "remaining": "Independent execution + completed structured report + Ed25519 attestation + pre-admitted signer."
+    },
+    {
+      "blocker": "live_production_like_postgresql",
+      "state": "EXTERNAL_REQUIRED",
+      "local_delta": "Static grant contract PASS and production-like harness/test targets are fixed.",
+      "proof": "POSTGRES_SECURITY_FRESH.json + POSTGRES_PRODUCTION_LIKE_HANDOFF.json",
+      "remaining": "Real PostgreSQL runtime and adversarial suite."
+    },
+    {
+      "blocker": "ruff_mypy_current_runtime",
+      "state": "RUNTIME_UNAVAILABLE",
+      "local_delta": "Canonical versions pinned; gate executed and recorded non-start instead of false PASS; compileall separately PASS.",
+      "proof": "QUALITY_GATE_FRESH.json",
+      "remaining": "Ruff 0.15.22 and Mypy 2.3.0 must execute in the locked Python 3.12.13 environment."
+    },
+    {
+      "blocker": "vulnerability_secret_container_scanners",
+      "state": "RUNTIME_UNAVAILABLE",
+      "local_delta": "Security scan command executed; absences recorded as exit 127; 68/68 locked records hash-covered; source SBOM lock complete.",
+      "proof": "SECURITY_SCANNER_EXECUTION_BOUNDARY.json + SUPPLY_CHAIN_FRESH.json",
+      "remaining": "Pinned Gitleaks, pip-audit, Trivy, container SBOM/scan and trusted attestation."
+    },
+    {
+      "blocker": "exact_deployment_environment",
+      "state": "DECLARED_NOT_ATTESTED",
+      "local_delta": "Target images and lock hashes are exact; desired-state artifact observation IN_SYNC for 25 declared artifacts.",
+      "proof": "EXACT_DEPLOYMENT_ENVIRONMENT_CONTRACT.json + EXACT_ENVIRONMENT_FRESH.json",
+      "remaining": "Execute inside target Python 3.12.13/image graph; current harness is Python 3.13.5 and mismatched."
+    },
+    {
+      "blocker": "trusted_hosted_builder_signing",
+      "state": "CONFIGURED_NOT_TRUSTED",
+      "local_delta": "Release workflow SHA-pinned, OIDC/attestation permissions declared, static workflow validator PASS; local Ed25519 signing mechanism tested separately.",
+      "proof": "HOSTED_BUILDER_ATTESTATION_CONTRACT.json + LOCAL_SIGNING_MECHANISM.json",
+      "remaining": "Hosted execution + independently admitted trust root."
+    },
+    {
+      "blocker": "live_load_soak_attestation",
+      "state": "LOCAL_EXECUTION_CLOSED_EXTERNAL_ATTESTATION_PENDING",
+      "local_delta": "Fresh live local load/spike/soak executed: 420 requests total; source-bound; reliability execution/SLO predicates pass locally.",
+      "proof": "LOCAL_LIVE_LOAD_SOAK.json + RELIABILITY_GATE_AFTER_LOCAL_LIVE_LOAD.json",
+      "remaining": "PRODUCTION_LIKE/PRODUCTION environment + trusted load/recovery attestations."
+    },
+    {
+      "blocker": "production_tevv",
+      "state": "EXTERNAL_REQUIRED",
+      "local_delta": "Production TEVV schema/profile is executable and source-bound template generated.",
+      "proof": "TEVV_EXTERNAL_BOUNDARY_FRESH.json + TEVV_PRODUCTION_LIKE_HANDOFF_TEMPLATE.json",
+      "remaining": "At least 200 real observations, interval width <=0.1, 20+ null controls, required attack families, production-like environment, trusted attestation."
+    },
+    {
+      "blocker": "distribution_wrapper_integrity",
+      "state": "CLOSED_IN_FINAL_WRAPPER",
+      "local_delta": "Canonical predecessor wrapper failed its own verifier: 914 failures (1 nested-manifest path-set mismatch + 913 digest-record schema mismatches). Final wrapper uses the canonical 'bytes' field and the verifier's DISTRIBUTION_MANIFEST basename exclusion.",
+      "proof": "PACKAGE_VERIFIER_REPAIR.json + final scripts/verify_package.py result + inner distribution-manifest regeneration",
+      "remaining": "None after final archive verifier PASS."
+    }
+  ],
+  "fresh_metrics": {
+    "internal_redteam_attack_families": 9,
+    "internal_redteam_pytest_dots_observed": 115,
+    "local_live_requests_total": 420,
+    "local_load_p95_seconds": 0.043,
+    "local_spike_p95_seconds": 0.117,
+    "local_soak_p95_seconds": 0.073,
+    "local_soak_p99_seconds": 0.214,
+    "local_5xx_observed": 0,
+    "locked_components": 68,
+    "scanner_tools_absent": 3,
+    "required_external_redteam_families": 9,
+    "tevv_min_observations": 200,
+    "tevv_min_null_controls": 20,
+    "desired_state_artifacts_observed": 25,
+    "predecessor_package_verifier_failures": 914,
+    "predecessor_package_digest_record_failures": 913,
+    "predecessor_package_path_parity_failures": 1
+  },
+  "fail_closed_reason": "The remaining predicates require a different execution authority/environment or tools unavailable in the current harness. No local surrogate is promoted to external evidence."
+}

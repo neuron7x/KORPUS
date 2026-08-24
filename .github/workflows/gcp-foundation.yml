@@ -1,0 +1,87 @@
+name: gcp-foundation
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: gcp-foundation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PYTHON_VERSION: "3.12.13"
+  GCLOUD_VERSION: "578.0.0"
+  TERRAFORM_VERSION: "1.15.8"
+  GCP_REGION: ${{ vars.GCP_REGION || 'europe-central2' }}
+
+jobs:
+  apply-foundation:
+    if: github.ref == 'refs/heads/main' && vars.GCP_FOUNDATION_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: production-foundation
+    steps:
+      - name: Checkout canonical main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          check-latest: false
+      - name: Authenticate foundation plane with WIF
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_FOUNDATION_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_FOUNDATION_DEPLOYER_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Install exact Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+        with:
+          version: ${{ env.GCLOUD_VERSION }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+      - name: Install signature-verified Terraform
+        run: scripts/gcp/install_terraform_verified.sh "${TERRAFORM_VERSION}"
+      - name: Validate foundation before mutation
+        shell: bash
+        run: |
+          terraform fmt -check -recursive infra/gcp
+          terraform -chdir=infra/gcp/foundation init -backend=false -input=false
+          terraform -chdir=infra/gcp/foundation validate
+      - name: Apply reviewed foundation plan
+        shell: bash
+        env:
+          TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_region: ${{ env.GCP_REGION }}
+          TF_VAR_database_disk_autoresize_limit_gb: ${{ vars.KORPUS_DATABASE_DISK_AUTOSIZE_LIMIT_GB }}
+          TF_VAR_github_runtime_deployer_service_account: ${{ vars.GCP_RUNTIME_DEPLOYER_SERVICE_ACCOUNT }}
+          TF_VAR_github_drill_deployer_service_account: ${{ vars.GCP_DRILL_DEPLOYER_SERVICE_ACCOUNT }}
+        run: |
+          terraform -chdir=infra/gcp/foundation init -input=false -reconfigure \
+            -backend-config="bucket=${{ vars.GCP_TERRAFORM_STATE_BUCKET }}" \
+            -backend-config="prefix=korpus/foundation"
+          terraform -chdir=infra/gcp/foundation plan -input=false -lock-timeout=5m -out=/tmp/foundation.tfplan
+          terraform -chdir=infra/gcp/foundation apply -input=false -lock-timeout=5m /tmp/foundation.tfplan
+      - name: Seed or reconcile non-Terraform secret values
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          KORPUS_OIDC_CLIENT_SECRET: ${{ secrets.KORPUS_OIDC_CLIENT_SECRET }}
+        run: |
+          export CLOUD_SQL_INSTANCE="$(terraform -chdir=infra/gcp/foundation output -raw cloud_sql_instance_name)"
+          scripts/gcp/seed_runtime_secrets.sh
+      - name: Preserve foundation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gcp-foundation-evidence-${{ github.sha }}
+          path: reports/production
+          if-no-files-found: warn
+          retention-days: 90

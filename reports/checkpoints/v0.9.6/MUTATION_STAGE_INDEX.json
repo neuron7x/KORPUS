@@ -1,0 +1,150 @@
+{
+  "schema": "korpus.stage-mutation-receipt-index.v1",
+  "release": "v0.9.6",
+  "receipts": [
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-0-of-48.json",
+      "shard_index": 0,
+      "shard_count": 48,
+      "mutants": 8,
+      "killed": 8,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "53fb0b1f5729330c540848ff8fb696937222c6e20d96fbaccca10dbe611041c2"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-1-of-48.json",
+      "shard_index": 1,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "82d5038fa5e0902964a2c49468c9ae6b7b9c132e99d4b0460af6f631000fa0c7"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-10-of-48.json",
+      "shard_index": 10,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "a48492bd7307e619de1892fe650e71af06149ca8495ee1a0efbcb709fc9c4d10"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-11-of-48.json",
+      "shard_index": 11,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "953eca8e7359424fb18189a9fab1448805cde21e85e9e26dc8662db9d69bcf5b"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-2-of-48.json",
+      "shard_index": 2,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "eb88de84afb0b4c99f28129363f8a3e3badbea6ab69f19834373104fdd89d35a"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-3-of-48.json",
+      "shard_index": 3,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "b6299c439a8796ae384b14cfcb3fbb378c4ecd4082a0403ea005d8be8c42c010"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-4-of-48.json",
+      "shard_index": 4,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "d1af6647082a99fd49f114b4a9652fd959f9e8752e9d0096f48bcb08edbcf251"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-5-of-48.json",
+      "shard_index": 5,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "741d5ae89d4baac8d3d70a09ad2e15c01e39d2bf9b46fd90ce517b64f20f42cd"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-6-of-48.json",
+      "shard_index": 6,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "13417cad0d157f23b53466fbd1d4d099e2528b66ad5b6f952f44c467958bb77e"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-7-of-48.json",
+      "shard_index": 7,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "ab083bc053acdc003b1c005edf1d88f80477e669ed2dd23d74cbfc49c53d1e1d"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-8-of-48.json",
+      "shard_index": 8,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "57a91afac63411dc3153f8da74f311f4d8e1ac9e5a98d1fab40d9bc56f6c7dba"
+    },
+    {
+      "file": "reports/checkpoints/v0.9.6/mutation-shards/shard-9-of-48.json",
+      "shard_index": 9,
+      "shard_count": 48,
+      "mutants": 7,
+      "killed": 7,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+      "sha256": "2ec0a7d25a513e894b054aa91ac1601c038fff18fa86347544ad648d6c802b1c"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "inference_security",
+  "status": "PASS",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "profile_gate_id": true,
+    "evidence_class_internal_adversarial": true,
+    "attack_families_nonempty": true,
+    "attack_families_unique": true,
+    "pytest_targets_nonempty": true,
+    "pytest_targets_unique": true,
+    "pytest_targets_exist": true,
+    "family_target_mapping_complete": true,
+    "every_family_has_executable_target": true,
+    "family_targets_declared_in_suite": true,
+    "family_targets_exist": true,
+    "pytest_exit_zero": true,
+    "tests_executed": true,
+    "no_test_failures": true,
+    "no_test_errors": true,
+    "no_test_skips": true
+  },
+  "failures": [],
+  "evidence_class": "INTERNAL_ADVERSARIAL",
+  "profile": "config/assurance/inference-security-v1.json",
+  "profile_sha256": "3167fa8fd4d2fef47dfc15b8169a117af7b4697f51d9f827f6dda10ea29a74a1",
+  "attack_families": [
+    "direct_prompt_injection",
+    "indirect_prompt_injection",
+    "retrieval_poisoning",
+    "egress_leakage",
+    "planner_control_injection",
+    "evidence_boundary",
+    "cross_scope_retrieval"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_query_planner_boundary.py",
+    "apps/api/tests/test_model_egress.py",
+    "apps/api/tests/test_noninterference_measurement.py",
+    "apps/api/tests/test_leakage_measurement.py",
+    "apps/api/tests/test_answer_composition.py",
+    "apps/api/tests/test_retriever_scope.py",
+    "apps/api/tests/test_egress_material_ceiling.py",
+    "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+  ],
+  "pytest_exit_code": 0,
+  "pytest": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "junit_sha256": "8f5658f38532bded7d6b96ded236d374f05577954701b0b6bd254a08d8ec2fc9",
+  "output_tail": "............................................................             [100%]\n"
+}

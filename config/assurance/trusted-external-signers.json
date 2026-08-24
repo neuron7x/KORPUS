@@ -1,0 +1,5 @@
+{
+  "schema": "korpus.trusted-external-signers.v1",
+  "ed25519_public_key_sha256": [],
+  "interpretation": "Empty by default. Production red-team evidence cannot pass until an independently controlled signer fingerprint is explicitly admitted."
+}

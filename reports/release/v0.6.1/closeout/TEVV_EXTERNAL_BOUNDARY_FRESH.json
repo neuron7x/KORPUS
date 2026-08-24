@@ -1,0 +1,78 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "tevv",
+  "status": "FAIL",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "evidence_schema": false,
+    "preregistered": false,
+    "source_bound": false,
+    "release_bound": false,
+    "environment_class": false,
+    "environment_attestation_verified": false,
+    "environment_trusted_signer": false,
+    "observation_ledger_structured": false,
+    "observation_ids_unique": true,
+    "null_control_ledger_structured": false,
+    "null_control_ids_unique": true,
+    "required_attack_families_covered": false,
+    "declared_aggregates_consistent": true,
+    "tevv_admissible": false,
+    "pass_rate": false,
+    "citation_integrity": true,
+    "leakage": true,
+    "determinism": true,
+    "null_controls": false,
+    "null_false_accepts": true,
+    "attack_families": false
+  },
+  "failures": [
+    "evidence_schema",
+    "preregistered",
+    "source_bound",
+    "release_bound",
+    "environment_class",
+    "environment_attestation_verified",
+    "environment_trusted_signer",
+    "observation_ledger_structured",
+    "null_control_ledger_structured",
+    "required_attack_families_covered",
+    "tevv_admissible",
+    "pass_rate",
+    "null_controls",
+    "attack_families",
+    "tevv:dataset declares no corpus: the run is a fixture run",
+    "tevv:0 observations is below the floor of 200: a point estimate from too few queries is not a measurement",
+    "tevv:95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough"
+  ],
+  "environment_class": null,
+  "environment_signer_fingerprint": "",
+  "tevv": {
+    "schema_version": 1,
+    "admissible_as_tevv": false,
+    "calibration_status": "UNVALIDATED_TEST_FIXTURE",
+    "pass_rate_interval": {
+      "lower": 0.0,
+      "upper": 1.0,
+      "width": 1.0,
+      "confidence": 0.95
+    },
+    "reasons": [
+      "dataset declares no corpus: the run is a fixture run",
+      "0 observations is below the floor of 200: a point estimate from too few queries is not a measurement",
+      "95% interval is 1.000 wide, above the maximum 0.100: the run does not constrain the answer enough"
+    ]
+  },
+  "observations": 0,
+  "ledger_metrics": {
+    "observations": 0,
+    "passed": 0,
+    "citation_failures": 0,
+    "leakage_failures": 0,
+    "determinism_failures": 0,
+    "null_controls": 0,
+    "null_control_false_accepts": 0,
+    "attack_families": []
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "status": "IN_SYNC",
+  "artefacts_declared": 25,
+  "counts": {},
+  "findings": [],
+  "interpretation": "Compares an observed environment against the approved desired state. UNOBSERVED is a finding, not a silence: a reconciler that receives a partial observation and reports no drift is reporting on whatever subset it happened to see, and an artefact deleted from the cluster produces exactly that. Obtaining the observation from a live cluster and acting on this verdict is the operator's half.",
+  "blocked": false,
+  "reason": "the environment matches the approved desired state",
+  "freshness": "the observation is 1s old"
+}

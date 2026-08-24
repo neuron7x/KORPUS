@@ -1,0 +1,18 @@
+{
+  "dataset": "evals/datasets/pec/pec_eval.jsonl",
+  "dataset_sha256": "e48bb48871f9a96f15d9ced0fca016e6144ebc1bd3d5abe7da9b0e79735e020f",
+  "generated_at": "2026-08-21T19:00:47.806704+00:00",
+  "groups": 113,
+  "kind": "pec_dataset_build",
+  "partitions": {
+    "calibration": 38,
+    "locked_eval": 27,
+    "train": 86
+  },
+  "receipt_sha256": "5db45d23e0d322a7e57aa17426a25abe83e55b1736a1965b23a1f647761511db",
+  "rows": 151,
+  "schema": "korpus.pec-receipt.v1",
+  "source": "evals/datasets/reference.jsonl",
+  "source_sha256": "fdc0b66b1bccf816a63476a2525f46fe7adec71dcaf426cb612c8938b09c2063",
+  "status": "PASS"
+}

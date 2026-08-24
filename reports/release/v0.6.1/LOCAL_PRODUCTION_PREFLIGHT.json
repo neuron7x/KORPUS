@@ -1,0 +1,115 @@
+{
+  "schema": "korpus.local-production-preflight.v2",
+  "status": "PASS_WITH_EXTERNAL_BLOCKERS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "local_checks": {
+    "backend": true,
+    "coverage": true,
+    "coverage_ratchet": true,
+    "determinism": true,
+    "stress": true,
+    "plasticity": true,
+    "dependency_locks": true,
+    "builtin_security": true,
+    "inference_security": true,
+    "standards_map": true,
+    "mutation_delta": true
+  },
+  "reports": {
+    "backend": {
+      "path": "reports/release/v0.6.1/FULL_BACKEND_REPORT.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "coverage": {
+      "path": "reports/release/v0.6.1/COVERAGE_REPORT.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "coverage_ratchet": {
+      "path": "reports/release/v0.6.1/COVERAGE_GAP_PLAN.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "determinism": {
+      "path": "reports/release/v0.6.1/DETERMINISM_GATE.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "stress": {
+      "path": "reports/release/v0.6.1/STRESS_GATE.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "plasticity": {
+      "path": "reports/release/v0.6.1/PLASTICITY_GATE.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "dependency_locks": {
+      "path": "reports/release/v0.6.1/DEPENDENCY_LOCK_REPORT.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "builtin_security": {
+      "path": "reports/release/v0.6.1/BUILTIN_SECURITY_GATE.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "inference_security": {
+      "path": "reports/release/v0.6.1/INFERENCE_SECURITY_GATE.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "standards_map": {
+      "path": "reports/release/v0.6.1/STANDARDS_CONTROL_MAP_VERIFICATION.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    },
+    "mutation_delta": {
+      "path": "reports/release/v0.6.1/MUTATION_DELTA_REPORT.json",
+      "status": "PASS",
+      "release": "v0.6.1",
+      "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+      "source_bound": true
+    }
+  },
+  "external_blockers": [
+    "CONTAINER_OS_SCANNER_UNAVAILABLE",
+    "EXACT_DEPLOYMENT_ENVIRONMENT_ATTESTATION_REQUIRED",
+    "EXTERNAL_INDEPENDENT_REDTEAM_REQUIRED",
+    "OSV_SCANNER_UNAVAILABLE",
+    "POSTGRES_CLIENT_UNAVAILABLE",
+    "PYTHON_VULNERABILITY_SCANNER_UNAVAILABLE",
+    "QUALITY_MYPY_UNAVAILABLE",
+    "QUALITY_RUFF_UNAVAILABLE",
+    "REAL_POSTGRES_CONTAINER_RUNTIME_UNAVAILABLE",
+    "REAL_POSTGRES_PRODUCTION_LIKE_EVIDENCE_REQUIRED",
+    "SECRET_SCANNER_UNAVAILABLE",
+    "TRUSTED_ARTIFACT_SIGNING_TOOL_UNAVAILABLE",
+    "TRUSTED_HOSTED_BUILDER_ATTESTATION_REQUIRED"
+  ],
+  "production_authorized": false,
+  "authorization_reason": "formal production authorization requires independent, production-like and trusted-builder evidence that cannot be self-attested by this local build"
+}

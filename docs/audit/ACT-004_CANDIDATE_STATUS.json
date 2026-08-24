@@ -1,0 +1,36 @@
+{
+  "schema": "korpus.candidate-status.v1",
+  "release": "v6.5.0",
+  "act": "ACT-004",
+  "status": "PASS_WITH_CAVEATS",
+  "production_authorized": false,
+  "web": {
+    "tests": 119,
+    "failures": 0,
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS",
+    "static_accessibility": "PASS",
+    "contrast": "PASS",
+    "consumer_gzip_bytes": 28195,
+    "consumer_gzip_budget_bytes": 32768
+  },
+  "backend_targeted": {
+    "tests": 149,
+    "failures": 0,
+    "groups": [30, 71, 48]
+  },
+  "structure": {
+    "import_cycles": 0,
+    "module_budget_modules": 177,
+    "module_budget_violations": 0,
+    "repository_requirements": 103
+  },
+  "blocked": [
+    "exact hashed Python lock cannot be installed from the available package mirror",
+    "fresh full backend suite/coverage/mutation/reference-eval assurance not reproduced",
+    "live production identity-provider self-registration not exercised",
+    "live LiqPay merchant checkout/callback not exercised",
+    "production authorization remains external"
+  ]
+}

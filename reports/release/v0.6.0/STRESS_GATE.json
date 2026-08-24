@@ -1,0 +1,34 @@
+{
+  "schema": "korpus.stress-gate.v2",
+  "status": "PASS",
+  "release": "v0.6.0",
+  "source_tree_sha256": "12fe9049b7170670160d8b1741b4840caa29fc717e6c594a4fe4fca7be782b98",
+  "runs": [
+    {
+      "cycle": 1,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "cycle": 2,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "cycle": 3,
+      "exit_code": 0,
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "failures": [],
+  "execution_note": "Equivalent policy execution split into three bounded invocations to avoid orchestration wall-time truncation; test set and PYTHONHASHSEED=0 match scripts/run_stress_gate.py."
+}

@@ -1,0 +1,52 @@
+{
+  "gate_id": "inference_security",
+  "evidence_class": "INTERNAL_ADVERSARIAL",
+  "timeout_seconds": 300,
+  "attack_families": [
+    "direct_prompt_injection",
+    "indirect_prompt_injection",
+    "retrieval_poisoning",
+    "egress_leakage",
+    "planner_control_injection",
+    "evidence_boundary",
+    "cross_scope_retrieval"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_query_planner_boundary.py",
+    "apps/api/tests/test_model_egress.py",
+    "apps/api/tests/test_noninterference_measurement.py",
+    "apps/api/tests/test_leakage_measurement.py",
+    "apps/api/tests/test_answer_composition.py",
+    "apps/api/tests/test_retriever_scope.py",
+    "apps/api/tests/test_egress_material_ceiling.py",
+    "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+  ],
+  "family_targets": {
+    "direct_prompt_injection": [
+      "apps/api/tests/test_query_planner_boundary.py",
+      "apps/api/tests/test_answer_composition.py"
+    ],
+    "indirect_prompt_injection": [
+      "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+    ],
+    "retrieval_poisoning": [
+      "apps/api/tests/test_retriever_scope.py",
+      "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+    ],
+    "egress_leakage": [
+      "apps/api/tests/test_model_egress.py",
+      "apps/api/tests/test_egress_material_ceiling.py"
+    ],
+    "planner_control_injection": [
+      "apps/api/tests/test_query_planner_boundary.py"
+    ],
+    "evidence_boundary": [
+      "apps/api/tests/test_answer_composition.py",
+      "apps/api/tests/test_leakage_measurement.py"
+    ],
+    "cross_scope_retrieval": [
+      "apps/api/tests/test_noninterference_measurement.py",
+      "apps/api/tests/test_retriever_scope.py"
+    ]
+  }
+}

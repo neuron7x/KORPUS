@@ -1,0 +1,19 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "engineering",
+  "status": "FAIL",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "report_present": false,
+    "research_assurance_pass": false,
+    "source_bound": false
+  },
+  "failures": [
+    "report_present",
+    "research_assurance_pass",
+    "source_bound"
+  ],
+  "evidence_class": "FRESH_LOCAL_ENGINEERING",
+  "report": "reports/RESEARCH_ASSURANCE_REPORT.json"
+}

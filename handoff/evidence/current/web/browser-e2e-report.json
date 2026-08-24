@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "gate": "browser_e2e",
+  "environment_class": "LOCAL_BROWSER_POLICY_COMPATIBLE",
+  "transport_fixture": "browser_fetch_stub",
+  "navigation_policy": "system URLBlocklist prevents local HTTP navigation",
+  "network_navigation_executed": false,
+  "same_origin_network_executed": false,
+  "oidc_session_executed": false,
+  "release_version": "0.9.7",
+  "release_tag": "v0.9.7",
+  "git_head": "3c45e5f335e239a704129ae19cad7618b4d17648",
+  "git_context": "repository",
+  "browser": "Chromium 144.0.7559.96 built on Debian GNU/Linux 13 (trixie)",
+  "browser_binary": "/usr/bin/chromium",
+  "tests": [
+    {
+      "name": "consumer_authenticated_boot",
+      "status": "PASS",
+      "duration_ms": 540.41
+    },
+    {
+      "name": "evidence_render_escapes_xss",
+      "status": "PASS",
+      "duration_ms": 85.486
+    },
+    {
+      "name": "typed_429_is_not_rendered_as_outage",
+      "status": "PASS",
+      "duration_ms": 4.048
+    },
+    {
+      "name": "mobile_viewport_has_no_horizontal_overflow",
+      "status": "PASS",
+      "duration_ms": 223.73
+    },
+    {
+      "name": "operator_console_roles_and_preview_gate",
+      "status": "PASS",
+      "duration_ms": 130.744
+    }
+  ],
+  "totals": {
+    "tests": 5,
+    "passed": 5,
+    "failed": 0
+  },
+  "status": "PASS",
+  "browser_stderr_tail": [
+    "[138211:138239:0823/170459.106468:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+    "[138211:138211:0823/170459.118886:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+    "[138211:138239:0823/170459.119412:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+    "[138211:138211:0823/170459.122978:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+    "[138211:138239:0823/170459.124505:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+    "[138211:138211:0823/170459.125423:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: ",
+    "[138211:138239:0823/170459.125488:ERROR:dbus/bus.cc:406] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")",
+    "[138211:138211:0823/170459.125556:ERROR:dbus/object_proxy.cc:573] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:"
+  ]
+}

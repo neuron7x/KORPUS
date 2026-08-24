@@ -1,0 +1,6 @@
+{
+  "schema": "korpus.package-build-verification.v1",
+  "status": "PASS",
+  "release": "v0.8.1",
+  "failures": []
+}

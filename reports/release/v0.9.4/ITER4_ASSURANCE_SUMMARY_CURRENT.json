@@ -1,0 +1,65 @@
+{
+  "schema": "korpus.iteration-assurance-summary.v1",
+  "release": "v0.9.4",
+  "iteration": "MILITARY_KNOWLEDGE_ITER4_ASSURANCE_CLOSURE",
+  "source_tree_sha256": "9d2aef1751b81317b4d6c33c90b2fa4076ca4140d7cde855db677c804354f4c2",
+  "source_manifest_root_sha256": "89373245f7a2058f85b54009edf1baf509ca43600feb9e01072188995be99613",
+  "source_manifest_files": 1039,
+  "executed": {
+    "focused_regression": {
+      "status": "PASS",
+      "tests": 180,
+      "failures": 0,
+      "errors": 0
+    },
+    "inference_security": {
+      "status": "PASS",
+      "tests": 62,
+      "failures": 0,
+      "skipped": 0
+    },
+    "formal_assurance": {
+      "status": "PASS",
+      "states_checked": 12779
+    },
+    "plasticity_model": {
+      "status": "PASS",
+      "states_checked": 6912
+    },
+    "module_ratchet": {
+      "status": "PASS",
+      "modules": 367,
+      "violations": 0
+    },
+    "mutation_probe": {
+      "status": "PASS",
+      "mutants": 13,
+      "killed": 13,
+      "probe_only": true
+    },
+    "current_truth": {
+      "status": "PASS",
+      "failures": []
+    }
+  },
+  "not_closed": {
+    "full_backend_regression": {
+      "status": "UNKNOWN",
+      "reason": "current environment execution window expired at approximately 19% of the full 2188-test campaign; no final verdict is inferred"
+    },
+    "full_mutation_catalogue": {
+      "status": "UNKNOWN",
+      "catalogue_mutants": 305,
+      "reason": "full catalogue run exceeded the execution window; 13 changed/high-risk anchors were independently probed and killed"
+    },
+    "production_external_evidence": {
+      "status": "FAIL_CLOSED",
+      "predicates_total": 12,
+      "software_ready": 12,
+      "externally_satisfied": 0,
+      "production_satisfied": 0
+    }
+  },
+  "production_authorized": false,
+  "interpretation": "This package is the current source-of-truth engineering candidate. Internal source/evidence identity is closed; production authorization remains fail-closed until external/runtime predicates and complete long-running campaigns are executed."
+}

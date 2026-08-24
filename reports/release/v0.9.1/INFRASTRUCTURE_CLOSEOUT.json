@@ -1,0 +1,76 @@
+{
+  "schema": "korpus.production-infrastructure-closeout.v1",
+  "release": "v0.9.1",
+  "artifact": "KORPUS_v0.9.1_PRODUCTION_INFRASTRUCTURE_HARDENED_CANDIDATE_CANONICAL_2026-08-18.zip",
+  "status": "PASS_WITH_CAVEATS",
+  "engineering_release_candidate": true,
+  "production_authorized": false,
+  "source_manifest": {
+    "files": 964,
+    "root_sha256": "17d573040c6d4f200a34700fbb9055f0f37a07ac3b1103a7526708b99b90b22a"
+  },
+  "current_truth_source_tree_sha256": "5a85de448a976e1b11f07944cdd161efbb8faddd2edbe5d6a9ee191e504db089",
+  "verification": {
+    "infrastructure_regression": {
+      "tests": 122,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "gcp_production_predicates": {
+      "passed": 65,
+      "total": 65,
+      "verdict": "PASS"
+    },
+    "slo_predicates": {
+      "passed": 11,
+      "total": 11,
+      "status": "PASS"
+    },
+    "terraform_structural_files": {
+      "files": 21,
+      "findings": 0,
+      "status": "PASS"
+    },
+    "infrastructure_requirements": {
+      "checked": 135,
+      "failures": 0,
+      "status": "PASS"
+    },
+    "github_actions": {
+      "workflows": 7,
+      "findings": 0,
+      "status": "PASS"
+    },
+    "module_budget": {
+      "modules": 320,
+      "violations": 0,
+      "status": "PASS"
+    },
+    "repository": {
+      "paths": 1632,
+      "requirements": 112,
+      "audit_findings_classified": "99/99",
+      "status": "PASS"
+    },
+    "hard_predicates": {
+      "software_ready": 12,
+      "total": 12,
+      "externally_satisfied": 0,
+      "production_satisfied": 0
+    }
+  },
+  "material_changes": [
+    "Terraform 1.15.8 and Google provider 7.42.0 pinned with signed-installer contract",
+    "offline structural HCL admission before hosted provider-schema validation",
+    "bounded Cloud SQL auto-growth and finite Cloud Run/Worker Pool capacity",
+    "Cloud Armor WAF plus calibration-only rate-limit rule",
+    "explicit MODERN/TLS_1_2 load-balancer TLS policy",
+    "deep readiness, missing-telemetry, TLS-expiry, database and worker-capacity monitoring",
+    "immutable migration baseline plus expand-only future migration admission",
+    "OCI provenance verification before runtime apply",
+    "revision-exact traffic snapshot and best-effort dual-service automatic rollback",
+    "three isolated GitHub WIF trust planes for foundation/runtime/drill"
+  ],
+  "external_boundary_file": "reports/release/v0.9.1/EXTERNAL_EXECUTION_BOUNDARY.json"
+}

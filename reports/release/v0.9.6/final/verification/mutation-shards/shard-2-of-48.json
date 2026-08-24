@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 2,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M03_EXACT_SUPPORT_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_approved_document_produces_exact_claim_bound_citation __________\n\nclient = <starlette.testclient.TestClient object at 0x7f0219394440>\n\n    def test_approved_document_produces_exact_claim_bound_citation(client):\n        result = ingest_text(client)\n        approve(client, result[\"version\"][\"id\"])\n        response = client.post(\"/v1/answers\", json={\"text\": \"Що має містити кожен запис?\"})\n        body = response.json()\n>       assert body[\"status\"] == \"answered\"\nE       AssertionError: assert 'insufficient_evidence' == 'answered'\nE         \nE         - answered\nE         + insufficient_evidence\n\napps/api/tests/test_answers.py:23: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answers.py::test_approved_document_produces_exact_claim_bound_citation - AssertionError: assert 'insufficient_evidence' == 'answered'\n  \n  - answered\n  + insufficient_evidence\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M49_PER_SUBJECT_SHARE_REMOVED",
+      "file": "apps/api/src/korpus/application/resilience.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_one_subject_cannot_take_the_whole_service ________________\n\n    def test_one_subject_cannot_take_the_whole_service() -> None:\n        controller = AdmissionController(capacity=4, per_subject_limit=2)\n    \n        with controller.acquire(\"loud\"), controller.acquire(\"loud\"):\n>           with pytest.raises(OverloadedError, match=\"per-subject\") as refused:\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.overload.OverloadedError'>\n\napps/api/tests/test_resilience_and_audit_scope.py:37: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service - Failed: DID NOT RAISE <class 'korpus.application.overload.OverloadedError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M93_SQL_IGNORES_THE_LOWER_BOUND",
+      "file": "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_the_candidate_sql_excludes_an_unbounded_version _____________\n\nclient = <starlette.testclient.TestClient object at 0x7f32366f82f0>\n\n    def test_the_candidate_sql_excludes_an_unbounded_version(client: TestClient) -> None:\n        \"\"\"Stated against the SQL layer, which the domain check would otherwise mask.\n    \n        `list_retrievable_spans` filters twice: once in the candidate query and once in\n        `is_valid_on` while materialising. Weakening either one alone changes nothing\n        observable, so a mutation of the SQL bound survives every behavioural test. The\n        candidate query is therefore asked directly.\n        \"\"\"\n        from datetime import date as date_type\n    \n        from sqlalchemy import text as sql\n    \n        result = ingest_text(client, text=BODY, effective_from=date(2026, 6, 1))\n        version_id = result[\"version\"][\"id\"]\n        approve(client, version_id)\n        repository = client.app.state.repository\n        with privileged_connection(client) as connection:\n            connection.execute(\n                sql(\n                    \"UPDATE document_versions SET effective_from = NULL, publication_date = NULL \"\n                    \"WHERE id = :id\"\n                ),\n                {\"id\": version_id},\n            )\n    \n        candidates = repository._candidate_span_ids(\n            client.identity_provider.current,  # type: ignore[attr-defined]\n            frozenset({\"public\"}),\n            date_type(1900, 1, 1),\n            MARKER,\n            50,\n        )\n    \n>       assert candidates == [], (\n            \"the candidate query must exclude a version with no lower bound, independently \"\n            \"of the domain check that runs after it\"\n        )\nE       AssertionError: the candidate query must exclude a version with no lower bound, independently of the domain check that runs after it\nE       assert ['b778f776-79...c1149f391961'] == []\nE         \nE         Left contains one more item: 'b778f776-7966-4695-bf78-c1149f391961'\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     'b778f776-7966-4695-bf78-c1149f391961',\nE         + ]\n\napps/api/tests/test_currency_lower_bound.py:150: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version - AssertionError: the candidate query must exclude a version with no lower bound, independently of the domain check that runs after it\nassert ['b778f776-79...c1149f391961'] == []\n  \n  Left contains one more item: 'b778f776-7966-4695-bf78-c1149f391961'\n  \n  Full diff:\n  - []\n  + [\n  +     'b778f776-7966-4695-bf78-c1149f391961',\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M132_RAGGED_TABLE_READS_AS_INTACT",
+      "file": "apps/api/src/korpus/application/table_integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_table_integrity.py::test_a_row_that_lost_a_column_is_flagged"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_a_row_that_lost_a_column_is_flagged ___________________\n\n    def test_a_row_that_lost_a_column_is_flagged() -> None:\n        \"\"\"\"Друга 1,8\" — the unit is gone, and nothing downstream can tell which one.\"\"\"\n        result = assess_table_integrity(RAGGED)\n    \n>       assert TABLE_STRUCTURE_LOST in result.flags\nE       AssertionError: assert 'table_structure_lost' in frozenset()\nE        +  where frozenset() = TableIntegrity(candidate_rows=3, blocks=1, ragged_blocks=0, flags=frozenset(), samples=()).flags\n\napps/api/tests/test_table_integrity.py:51: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_table_integrity.py::test_a_row_that_lost_a_column_is_flagged - AssertionError: assert 'table_structure_lost' in frozenset()\n +  where frozenset() = TableIntegrity(candidate_rows=3, blocks=1, ragged_blocks=0, flags=frozenset(), samples=()).flags\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M177_RETRIEVAL_DEADLINE_ANSWERS_FROM_A_PARTIAL_SEARCH",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answers.py::test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search _\n\nclient = <starlette.testclient.TestClient object at 0x7f96831e42f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search(\n        client, admin_identity\n    ):\n        \"\"\"The sibling of the outage path, and it was the one nobody tested.\n    \n        `RetrievalDeadlineExceeded` has two raise sites — the candidate query and the\n        rerank — and one handler, and no test named the exception (found 2026-08-06 by\n        comparing raised exception classes against the ones the suite mentions). It matters\n        separately from an outage: a timeout means part of the corpus *was* searched, so the\n        tempting behaviour is to answer from whatever came back. That answer would be drawn\n        from a candidate set the calibrated profile never described, and nothing in the\n        response would say the search was cut short.\n        \"\"\"\n        from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService\n        from korpus.application.retrieval import RetrievalDeadlineExceeded\n        from korpus.domain.models import QueryRequest\n    \n        class SlowRetriever:\n            def search(self, identity, text, corpus_ids, as_of, limit=8):\n                raise RetrievalDeadlineExceeded(\"candidate retrieval exceeded deadline\")\n    \n        service = ExtractiveAnswerService(\n            client.app.state.repository,\n            SlowRetriever(),\n            client.app.state.policy,\n            AnswerPolicy(0.1, 0.1, 0.1, \"deadline-test\"),\n        )\n    \n        answer = service.execute(admin_identity, QueryRequest(text=\"Який порядок евакуації?\"))\n    \n        assert answer.status.value == \"insufficient_evidence\"\n>       assert answer.decision_reason == \"retrieval_deadline_exceeded\"\nE       AssertionError: assert 'retrieval_de...y_unavailable' == 'retrieval_deadline_exceeded'\nE         \nE         - retrieval_deadline_exceeded\nE         + retrieval_dependency_unavailable\n\napps/api/tests/test_answers.py:138: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answers.py::test_a_retrieval_deadline_abstains_rather_than_answering_from_a_partial_search - AssertionError: assert 'retrieval_de...y_unavailable' == 'retrieval_deadline_exceeded'\n  \n  - retrieval_deadline_exceeded\n  + retrieval_dependency_unavailable\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M165_EGRESS_UNKNOWN_SPAN_DEFAULT_LEAK",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_egress_material_ceiling.py::test_a_claim_backed_by_an_unknown_span_is_treated_as_the_most_restrictive"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_a_claim_backed_by_an_unknown_span_is_treated_as_the_most_restrictive ___\n\nclient = <starlette.testclient.TestClient object at 0x7fb61fbdc2f0>\n\n    def test_a_claim_backed_by_an_unknown_span_is_treated_as_the_most_restrictive(\n        client: TestClient,\n    ) -> None:\n        \"\"\"The one place a guess is a leak. A span whose tier the eligible set does not carry\n        is assumed RESTRICTED, so a composer cannot be reached by a claim whose provenance the\n        service cannot see — the opposite default would send unknown material to a vendor.\"\"\"\n        from uuid import uuid4\n    \n        from korpus.domain.models import Claim\n    \n        service = ExtractiveAnswerService(\n            client.app.state.repository,\n            _StubRetriever(),\n            client.app.state.policy,\n            AnswerPolicy(0.05, 0.1, 0.05, \"unknown-span-test\"),\n            egress_policy=ModelEgressPolicy(\n                EgressPosture.EXTERNAL_ALLOWED, max_external_tier=AccessTier.PUBLIC\n            ),\n        )\n        orphan = Claim(\n            text=SENTENCE,\n            evidence_span_ids=(uuid4(),),\n            support_score=1.0,\n            query_coverage=1.0,\n        )\n>       assert service._composition_egress_permitted([orphan], []) is False\nE       AssertionError: assert True is False\nE        +  where True = _composition_egress_permitted([Claim(text='Кожен запис журналу має містити дату та відповідальну особу.', evidence_span_ids=(UUID('d39bd8c8-46d2-49f4-a413-6c1ac7b2e5d5'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0)], [])\nE        +    where _composition_egress_permitted = <korpus.application.answer_query.ExtractiveAnswerService object at 0x7fb61f132f90>._composition_egress_permitted\n\napps/api/tests/test_egress_material_ceiling.py:209: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_egress_material_ceiling.py::test_a_claim_backed_by_an_unknown_span_is_treated_as_the_most_restrictive - AssertionError: assert True is False\n +  where True = _composition_egress_permitted([Claim(text='Кожен запис журналу має містити дату та відповідальну особу.', evidence_span_ids=(UUID('d39bd8c8-46d2-49f4-a413-6c1ac7b2e5d5'),), support_state=<SupportState.EXTRACTIVE: 'extractive'>, support_score=1.0, query_coverage=1.0)], [])\n +    where _composition_egress_permitted = <korpus.application.answer_query.ExtractiveAnswerService object at 0x7fb61f132f90>._composition_egress_permitted\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M254_EXTERNAL_REDTEAM_TRUST_BYPASSED",
+      "file": "scripts/validate_external_redteam_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_external_redteam_admissibility.py::test_valid_signature_without_preadmitted_trust_root_is_rejected"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_valid_signature_without_preadmitted_trust_root_is_rejected ________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-784/test_valid_signature_without_p0')\n\n    def test_valid_signature_without_preadmitted_trust_root_is_rejected(tmp_path: Path) -> None:\n        result = _signed_gate(tmp_path, _report(), trust=False)\n>       assert result.returncode != 0\nE       assert 0 != 0\nE        +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m254_external_redteam_trust_bypassed-9rsuieki/repo/scri...hook_forgery_replay\"\\n    ],\\n    \"test_cases\": 9,\\n    \"findings\": 0,\\n    \"blocking_open\": []\\n  }\\n}\\n', stderr=b'').returncode\n\napps/api/tests/test_external_redteam_admissibility.py:91: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_external_redteam_admissibility.py::test_valid_signature_without_preadmitted_trust_root_is_rejected - assert 0 != 0\n +  where 0 = CompletedProcess(args=['/opt/pyvenv/bin/python3', '/tmp/korpus-m254_external_redteam_trust_bypassed-9rsuieki/repo/scri...hook_forgery_replay\"\\n    ],\\n    \"test_cases\": 9,\\n    \"findings\": 0,\\n    \"blocking_open\": []\\n  }\\n}\\n', stderr=b'').returncode\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:28:27+00:00"
+  }
+}

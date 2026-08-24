@@ -1,0 +1,848 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import csv
+import json
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.evidence_registry import (  # noqa: E402  (path set above)
+    verify_closure_registry,
+)
+
+SOURCE = ROOT / "docs/audit/source/KORPUS_v4_FINDINGS_REGISTER_2026-08-01.json"
+OUT_DIR = ROOT / "docs/audit/closure"
+
+# Reclassified 2026-08-05. Each move carries a test that fails without the fix and a
+# mutant that removes it and dies; a status changed without both is a claim.
+CLOSED_LOCAL = {
+    "IAM-001", "IAM-003", "IAM-004",
+    "ING-001", "ING-002", "ING-003", "ING-004", "ING-005",
+    "ING-006", "ING-007", "ING-010", "ING-011",
+    "RAG-002", "RAG-004", "RAG-006", "RAG-008", "RAG-019",
+    "SUP-004", "COD-010", "OPS-002",
+    # 2026-08-05: lock files carry sha256 for all 68 artefacts and every install site
+    # passes --require-hashes; the validator's complexity is 5 and 57 where it was 102
+    # and 103; every broad handler must re-raise, degrade or record; every image in the
+    # pipeline, the compose file and both Dockerfiles is pinned by digest.
+    "SUP-002", "COD-002", "COD-003", "SUP-001",
+}
+
+MITIGATED_LOCAL = {
+    "GOV-002", "GOV-003", "GOV-005",
+    "IAM-002", "IAM-005", "IAM-006", "IAM-007",
+    "ING-008", "ING-009",
+    "RAG-005", "RAG-007", "RAG-010", "RAG-011", "RAG-012", "RAG-015", "RAG-018", "RAG-020",
+    "INF-002", "INF-007", "INF-010",
+    "SRE-003", "SRE-006",
+    "SUP-006",
+    "COD-005", "COD-006", "COD-007", "COD-008", "COD-009",
+    "AUD-001", "AUD-002",
+    "DATA-001", "DATA-002", "DATA-004",
+    # 2026-08-05: a material local control now exists; the residue is external or
+    # partial, and named as such in TECHNICAL_DEBT_V5.md rather than counted as closed.
+    "RAG-009",   # rules carry examples and the unknown class fails closed; a trained
+                 # classifier on a blind set with per-class metrics remains
+    "RAG-013",   # numbers, units and tables detected; formula structure remains
+    "RAG-016",   # blue-green plan, resumable batches, switch/retire/rollback rules;
+                 # executing it against a real index stays external
+    "RAG-017",   # embedding drift has four states; online answer-quality does not
+    "INF-009",   # telemetry reports REQUESTED_NOT_ACTIVE; a durable backend is external
+    "SUP-009",   # 68/68 licenses read from metadata; legal review is external
+    "COD-004",   # branch coverage 0.7726 against policy, checked where it is produced
+    "AUD-004",   # export is resumable and gap-evident; the SIEM itself is external
+    # 2026-08-05, second pass.
+    # 2026-08-06. Nine findings the register called EXTERNAL because nothing in this
+    # tree could close them. That was true against a system with a fixture for a corpus
+    # and no deployment; there is a deployment now, and a corpus of 1648 documents, so
+    # these are questions this machine can answer. Each carries an executed report in
+    # var/ and the residue that is still somebody else's.
+    "INF-001",   # the compose topology was executed for the first time on 2026-08-06
+                 # and had never started: ten defects, every one of them the same shape
+                 # or adjacent to it — files COPY'd into an image keep the tree's 0660
+                 # umask, every container runs unprivileged with DAC_OVERRIDE dropped,
+                 # and so no service could read its own configuration. All seven
+                 # services are healthy, migrations ran, api and web survive a restart.
+                 # A clean-host deployment with upgrade and downgrade stays external.
+    "INF-011",   # alembic upgraded through ten revisions against a real PostgreSQL and
+                 # prepared the least-privilege role. Canary and automated rollback stay
+                 # external.
+    "IAM-008",   # break-glass that needs a second named approver, expires, refuses a
+                 # clearance above the approver's own, and never carries approval
+                 # authority — an emergency is a reason to read, and a document approved
+                 # under duress is the failure the reviewer registry exists to prevent.
+                 # The JIT/PAM vault that holds the credential, and the recording of what
+                 # the operator did at the terminal, stay external.
+    "INF-012",   # a second copy outside the working tree, the newest one mode 0444, and a
+                 # restore executed with the date recorded — the cadence is the property,
+                 # not the copy. `copies.offsite` is reported as an external clause rather
+                 # than as a failure: object lock with a credential the writer does not
+                 # hold is what survives an operator, and 0444 does not survive root.
+    "OPS-003",   # gate reports copied under their digest and sealed, retained for the
+                 # system's life rather than the pipeline's. The report says what a seal
+                 # is not: it catches a careless edit and not a deliberate one.
+    "OPS-005",   # per-visitor and aggregate limits at the edge, an admission budget at the
+                 # API, both checked against the files that carry them. Cost attribution
+                 # needs a billing account and stays external.
+    "SUP-008",   # deadlines by severity, immediate for anything on KEV, and a scan older
+                 # than a week is not a pass — the usual way a dependency policy fails is
+                 # that the scan stopped and the last green report kept being the answer.
+                 # With no KEV catalogue loaded every finding is `kev_unknown` rather than
+                 # not-exploited. Fetching the catalogue on a schedule stays external.
+    "AUD-003",   # an audit event records the id of the key that signed it, and the
+                 # verifier uses the key the *event* names. Rotating used to invalidate
+                 # every event ever written, so the key was never rotated — which was the
+                 # finding. The set of still-honoured keys is the dual-validation window.
+                 # Revocation is not deletion: a revoked key's events still verify and are
+                 # reported as signed by something no longer trusted, because "cannot be
+                 # verified" is a different and weaker fact. A ceremony with two custodians
+                 # and a key held in an HSM stays external.
+    "SUP-003",   # the SBOM is bound to the image it describes inside a signed
+                 # statement — subject, builder, materials, invocation — and verifying
+                 # against a different image fails on the digest. The predicate name says
+                 # what it is not: a signature made where the build ran proves integrity,
+                 # not honesty. A hosted runner and a key in a KMS stay external, and no
+                 # SLSA level is claimed, because a level is a claim about a platform.
+    "RAG-001",   # a reference set drawn from the deployed corpus rather than a fixture:
+                 # 151 cases over 54 strata, digest-sealed, 151 passed. Two findings came
+                 # out of running it — a sentence is not unique to one document in a
+                 # library of the same manual under different names, and a table of
+                 # contents is not a proposition. Whether an answer is *good* is not
+                 # judged here and stays with RAG-003.
+    "WEB-002",   # WCAG 2.2 AA measured in the rendered page rather than asserted in a
+                 # comment: target size, focus visibility, keyboard focusability,
+                 # contrast, the skip link and a live region. Six contrast failures found
+                 # and fixed; the palette now passes and a gate computes it. Screen-reader
+                 # behaviour and cognitive-load testing stay external.
+    "SRE-001",   # four objectives declared with the conditions they were set under and
+                 # judged against the load report, so a change that makes the system
+                 # slower fails a gate. An error budget is a decision about how much
+                 # failure is acceptable to whom, and stays external.
+    "INF-008",   # the rated concurrency is the one at which the measured p95 still fits
+                 # the objective — eight, p95 3.269s — rather than the one at which the
+                 # process survives. Autoscaling and admission budgets against a real
+                 # capacity plan stay external.
+    "ING-012",   # three SIGKILLs at random points, resumed, reconciled by content
+                 # against an uninterrupted run of the same manifest — document titles,
+                 # source hashes, review states, every span's text hash. A full-scale
+                 # replay against production infrastructure stays external.
+    "SRE-004",   # eight dependencies broken in turn: database gone answers 5xx and not
+                 # "no basis", object store gone changes nothing, a hostile planner
+                 # contributes no word. Infrastructure-level injection — network
+                 # partitions, a full disk on a real host — stays external.
+    "SRE-005",   # load, spike and soak with the conditions recorded beside the numbers;
+                 # the run found the deadline defect and the rate-limit defect. A
+                 # production-representative workload on production hardware stays
+                 # external.
+    "RAG-014",   # benchmarked on the real corpus rather than a fixture: 1648 documents,
+                 # 118 622 spans, cold and warm, eight and thirty-two concurrent.
+    "SUP-005",   # gitleaks over 121 commits, pip-audit over both locks, trivy over the
+                 # tree: four scanners, four zero exit codes, reports archived. An
+                 # isolated runner and signed reports stay external.
+    "OPS-001",   # executed and the claim is false: 6 of 15 layers agree across two
+                 # builds of one tree. The required action was to measure and record the
+                 # nondeterminism, and both sources are named. Making it reproducible is
+                 # a project, not a fix.
+    "DATA-003",  # the corpus is frozen and signed — every approved version, its source
+                 # hash and what decides when it governs — and a manifest with one
+                 # authority class raised does not verify. The data owner's signature is
+                 # a person taking responsibility and stays external.
+    "SRE-007",   # a restored backup is identified as a different release by content:
+                 # rollback detection works. Canary cohorts and shadow evaluation stay
+                 # external.
+    "INF-005",   # backup and restore executed end to end for the deployment that is
+                 # actually serving: 1.96 GB encrypted, restored, integrity checked, and
+                 # the restored copy answered a question. A live PostgreSQL drill with a
+                 # timed RTO/RPO stays external.
+    "COD-001",   # 1855 -> 1047 across four extractions, held by a ratchet and seam
+                 # tests; the transactional core still carries CRUD, review, audit
+                 # append and readiness, so "one responsibility per module" is not met
+    "WEB-001",   # role-specific consoles cover critical workflows with preview gates;
+                 # Chromium/CDP covers DOM/XSS/429/mobile/reviewer behavior locally,
+                 # while networked same-origin OIDC/session E2E stays external
+    "OPS-004",   # desired state versus an observed environment, with UNOBSERVED kept
+                 # apart from IN_SYNC; taking the observation from a live cluster and
+                 # reverting on the verdict is the operator's half
+}
+
+def _code_half(finding_id: str) -> dict[str, dict[str, object]]:
+    """The code half of an external debt, or nothing — kept out of the main loop so the
+    generator's complexity stays capped, since it is a register, not a branchy program."""
+    entry = CODE_HALF.get(finding_id)
+    return {"code_half": entry} if entry is not None else {}
+
+
+EXTERNAL_DEBT = {
+    "GOV-001", "GOV-004", "GOV-006",
+    "RAG-003",
+    "INF-003", "INF-004", "INF-006",
+    "SRE-002",
+    "SUP-007",
+}
+
+# An external debt can have a code half — a fail-closed enforcement the tree can carry —
+# while its acceptance stays external. Recording it here, on the generator rather than the
+# generated file, so it survives regeneration and a commander reading the register sees
+# that the enforcement exists and only the human decision remains. The status is
+# unchanged: a delivered code half does not clear a debt whose acceptance is a signature.
+CODE_HALF = {
+    "GOV-006": {
+        "status": "DELIVERED",
+        "on": "2026-08-08",
+        "what": (
+            "Egress classification ceiling: corpus material above model_egress_max_tier "
+            "(default public) is never sent to a model outside the deployment. Under "
+            "external_allowed the composer does not receive restricted spans; the answer "
+            "falls back to the untouched extract and the audit records egress_tier_exceeded."
+        ),
+        "evidence": [
+            "apps/api/src/korpus/application/egress.py",
+            "apps/api/src/korpus/application/answer_query.py",
+            "apps/api/tests/test_egress_material_ceiling.py",
+            "scripts/run_mutation_tests.py::M163_EGRESS_CEILING_OFF_BY_ONE",
+            "scripts/run_mutation_tests.py::M166_EGRESS_GATE_BYPASSED",
+        ],
+        "remaining_external": (
+            "Rights clearance — which sources permit which operations — is a legal/owner "
+            "decision, not code. The ceiling makes the prohibition enforceable and "
+            "fail-closed by default."
+        ),
+    },
+}
+
+# Empty as of 2026-08-05. Emptiness is not the same as closure: everything that moved
+# out of here went to MITIGATED_LOCAL or EXTERNAL_DEBT with its residue named in
+# TECHNICAL_DEBT_V5.md, and thirty-one findings remain EXTERNAL_DEBT because no code in
+# this tree can close them.
+OPEN_TECH_DEBT: set[str] = set()
+
+EVIDENCE: dict[str, list[str]] = {
+    # 2026-08-06: executed rather than described. Each path is either the drill that
+    # produced a report or the test that keeps the drill honest.
+    "ING-012": [
+        "scripts/ingestion_recovery_drill.py",
+        "scripts/import_corpus.py",
+    ],
+    "INF-001": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "scripts/init_local_secrets.sh",
+    ],
+    "INF-011": [
+        "apps/api/migrations",
+        "scripts/prepare_postgres_role.py",
+        "apps/api/docker-entrypoint.sh",
+    ],
+    "IAM-008": [
+        "apps/api/src/korpus/application/break_glass.py",
+        "apps/api/tests/test_break_glass.py",
+    ],
+    "INF-012": [
+        "scripts/retention_policy.py",
+        "scripts/backup_sqlite.sh",
+        "apps/api/tests/test_operational_policies.py",
+    ],
+    "OPS-003": [
+        "scripts/evidence_registry.py",
+        "scripts/retention_policy.py",
+    ],
+    "OPS-005": [
+        "deploy/public/nginx.conf",
+        "scripts/retention_policy.py",
+    ],
+    "SUP-008": [
+        "scripts/patch_policy.py",
+        "apps/api/tests/test_operational_policies.py",
+    ],
+    "AUD-003": [
+        "apps/api/src/korpus/application/keyring.py",
+        "apps/api/migrations/versions/0011_audit_key_id.py",
+        "apps/api/tests/test_audit_key_rotation.py",
+    ],
+    "SUP-003": [
+        "scripts/build_provenance.py",
+        "apps/api/tests/test_build_provenance.py",
+    ],
+    "RAG-001": [
+        "scripts/build_reference_set.py",
+        "scripts/run_reference_eval.py",
+        "apps/api/tests/test_reference_set.py",
+        "evals/datasets/reference.jsonl",
+    ],
+    "WEB-002": [
+        "apps/web/scripts/a11y_runtime.js",
+        "apps/web/scripts/validate.mjs",
+        "apps/web/tests/validate_gate.test.mjs",
+    ],
+    "SRE-001": [
+        "scripts/service_objectives.py",
+        "apps/api/tests/test_service_objectives.py",
+    ],
+    "INF-008": [
+        "scripts/service_objectives.py",
+        "scripts/load_probe.py",
+    ],
+    "SRE-004": [
+        "scripts/chaos_matrix.py",
+        "var/chaos-matrix.json",
+        "apps/api/tests/test_query_planner_boundary.py",
+    ],
+    "SRE-005": [
+        "scripts/load_probe.py",
+        "apps/api/tests/test_retrieval_budget_semantics.py",
+    ],
+    "RAG-014": [
+        "scripts/load_probe.py",
+        "scripts/fetch_drive_public.py",
+    ],
+    "SUP-005": [
+        "scripts/security_scan.sh",
+        "var/security/summary.json",
+        ".trivyignore.yaml",
+    ],
+    "OPS-001": [
+        "scripts/reproducible_build_probe.sh",
+        "apps/api/Dockerfile",
+    ],
+    "DATA-003": [
+        "scripts/corpus_release.py",
+        "apps/api/tests/test_corpus_release_manifest.py",
+    ],
+    "SRE-007": [
+        "scripts/corpus_release.py",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_release_manifest.py",
+    ],
+    "INF-005": [
+        "scripts/backup_sqlite.sh",
+        "scripts/restore_sqlite.sh",
+        "apps/api/tests/test_corpus_backup_drill.py",
+    ],
+    "GOV-002": [
+        "docs/governance/AI_SYSTEM_CARD_V5.md",
+        "docs/governance/RISK_REGISTER.md",
+        "docs/operations/TEVV_PLAN_V5.md",
+    ],
+    "GOV-003": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/tests/test_corpus_governance.py",
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md",
+    ],
+    "GOV-005": [
+        "apps/api/src/korpus/security/reviewers.py",
+        "apps/api/migrations/versions/0009_reviewer_credentials.py",
+        "apps/api/tests/test_reviewer_registry.py",
+    ],
+    "IAM-001": ["apps/api/src/korpus/config.py", "apps/api/tests/test_auth.py"],
+    "IAM-002": [
+        "apps/api/src/korpus/security/browser_oidc.py",
+        "apps/api/tests/test_browser_oidc.py",
+        "apps/web/public/app.js",
+    ],
+    "IAM-003": [
+        "apps/api/src/korpus/security/entitlements.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_entitlement_projection_ignores_privileged_token_claims",
+    ],
+    "IAM-004": [
+        "apps/api/src/korpus/domain/models.py",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_compartment_noninterference_is_enforced_before_retrieval",
+    ],
+    "IAM-005": [
+        "apps/api/src/korpus/security/oidc.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_oidc_assurance_requires_acr_mfa_and_recent_authentication",
+    ],
+    "IAM-006": [
+        "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+        "apps/api/tests/test_postgres_integration.py",
+        ".gitlab-ci.yml::api:postgres-and-restore",
+    ],
+    "IAM-007": [
+        "apps/api/src/korpus/security/entitlements.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_entitlement_profile_digest_and_deny_list_are_fail_closed",
+    ],
+    "ING-001": [
+        "apps/api/src/korpus/api/routes.py",
+        "apps/api/tests/test_infrastructure_hardening.py",
+    ],
+    "ING-002": [
+        "apps/api/src/korpus/application/ingestion_jobs.py",
+        "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py",
+    ],
+    "ING-003": [
+        "apps/api/src/korpus/security/scanning.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_ingestion_stops_before_parser_when_malware_scanner_rejects",
+    ],
+    "ING-004": [
+        "apps/api/src/korpus/infrastructure/parser_worker.py",
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_parser_sandbox_setting_selects_isolated_parser",
+    ],
+    "ING-005": [
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "apps/api/tests/test_structured_evidence_and_fuzz.py",
+    ],
+    "ING-006": [
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "apps/api/tests/test_extraction.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_type_verification_rejects_pdf_extension_with_non_pdf_content",
+    ],
+    "ING-007": [
+        "apps/api/src/korpus/infrastructure/extraction.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_html_extraction_drops_script_style_and_preserves_text",
+    ],
+    "ING-008": [
+        "apps/api/src/korpus/application/ingestion_jobs.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py"
+        "::test_object_inventory_reconciliation_detects_missing_and_orphaned_files",
+    ],
+    "ING-009": [
+        "apps/api/src/korpus/application/extraction_quality.py",
+        "apps/api/migrations/versions/0008_extraction_quality_governance.py",
+        "apps/api/tests/test_extraction_quality_governance.py",
+    ],
+    "ING-010": [
+        "apps/api/src/korpus/security/source_authenticity.py",
+        "apps/api/migrations/versions/0006_source_authenticity.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_detached_source_signature_binds_content_and_metadata",
+    ],
+    "ING-011": [
+        "apps/api/src/korpus/application/fingerprints.py",
+        "apps/api/migrations/versions/0007_near_duplicate_governance.py",
+        "apps/api/tests/test_near_duplicate_governance.py",
+    ],
+    "RAG-002": [
+        "apps/api/src/korpus/application/calibration.py",
+        "apps/api/tests/test_calibration.py"
+        "::test_calibration_profile_and_bound_artifacts_reject_tampering",
+    ],
+    "RAG-004": [
+        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/tests/test_answers.py"
+        "::test_approved_document_produces_exact_claim_bound_citation",
+    ],
+    "RAG-005": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_contradiction_gate_detects_negation_and_numeric_conflicts",
+    ],
+    "RAG-006": [
+        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/tests/test_structured_evidence_and_fuzz.py",
+    ],
+    "RAG-007": [
+        "apps/api/src/korpus/application/calibration.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_authority_priors_are_profile_inputs_not_hidden_constants",
+    ],
+    "RAG-008": [
+        "apps/api/src/korpus/application/retrieval.py",
+        "apps/api/tests/test_versioning.py",
+    ],
+    "RAG-010": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_injection_detector_handles_zero_width_homoglyphs_and_role_markers",
+    ],
+    "RAG-011": [
+        "apps/api/src/korpus/application/evidence.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_sentence_segmenter_preserves_offsets_for_decimals_abbreviations_and_lists",
+    ],
+    "RAG-012": [
+        "apps/api/src/korpus/application/retrieval.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_ukrainian_morphology_and_temporal_relevance_are_explicit",
+    ],
+    "RAG-015": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/src/korpus/infrastructure/semantic.py",
+        "apps/api/tests/test_corpus_governance.py",
+    ],
+    "RAG-018": [
+        "apps/api/src/korpus/security/source_authenticity.py",
+        "apps/api/src/korpus/security/reviewers.py",
+        "apps/api/src/korpus/application/fingerprints.py",
+    ],
+    "RAG-019": [
+        "apps/web/public/index.html",
+        "apps/web/public/app.js",
+        "apps/web/scripts/validate.mjs",
+        "apps/api/tests/test_web_score_presentation.py"
+        "::test_the_ui_states_that_the_score_is_not_a_probability",
+        ".gitlab-ci.yml::web:test",
+    ],
+    "RAG-020": ["apps/api/src/korpus/application/calibration.py", "evals/EVALUATION_PROTOCOL.md"],
+    "INF-002": ["deploy/kubernetes", "scripts/validate_kubernetes.py"],
+    "INF-007": ["deploy/kubernetes/base/networkpolicies.yaml", "docker-compose.yml"],
+    "INF-010": [
+        "apps/api/src/korpus/infrastructure/audit_anchor.py",
+        "apps/api/tests/test_http_audit_anchor.py",
+    ],
+    "SRE-003": ["apps/api/src/korpus/infrastructure/observability.py", "infra/otel-collector.yaml"],
+    "SRE-006": ["apps/api/src/korpus/main.py", "docs/operations/SLO_AND_RELEASE_POLICY_V5.md"],
+    "SUP-004": [".gitlab-ci.yml::container:build"],
+    "SUP-006": [
+        ".gitlab-ci.yml",
+        "scripts/run_mutation_tests.py",
+        "scripts/validate_infrastructure.py",
+    ],
+    "COD-005": ["scripts/run_mutation_tests.py", "var/mutation-report.json"],
+    "SUP-001": [
+        "docker-compose.yml",
+        "apps/api/Dockerfile",
+        "apps/web/Dockerfile",
+        "apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",
+        "apps/api/tests/test_gate_parity.py::test_every_ci_image_pins_an_exact_tag",
+    ],
+    "SUP-002": [
+        "apps/api/requirements.runtime.lock",
+        "apps/api/requirements.dev.lock",
+        "apps/api/tests/test_gate_parity.py::test_every_pinned_dependency_carries_a_hash",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_install_of_a_lock_file_requires_those_hashes",
+    ],
+    "COD-002": [
+        "apps/api/src/korpus/controlled_requirements.py",
+        "apps/api/src/korpus/infrastructure_requirements.py",
+        "apps/api/tests/test_controlled_configuration_refusals.py",
+        "apps/api/tests/test_requirement_registry.py",
+        "config/operations/module-budget.json",
+    ],
+    "COD-003": [
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_broad_handler_turns_a_fault_into_evidence_of_health",
+        "apps/api/tests/test_exception_handling_discipline.py"
+        "::test_no_bare_except_hides_which_failure_occurred",
+    ],
+    "COD-001": [
+        "apps/api/src/korpus/infrastructure/schema.py",
+        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/row_mapping.py",
+        "apps/api/src/korpus/infrastructure/audit_reader.py",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_query_builders_never_open_a_connection",
+        "apps/api/tests/test_repository_seams.py"
+        "::test_the_projection_carries_every_access_predicate_it_is_supposed_to",
+        "apps/api/tests/test_repository_access_refusals.py"
+        "::test_listing_hides_a_document_above_the_readers_clearance",
+        "config/operations/module-budget.json",
+    ],
+    "WEB-001": ["apps/web/public/console.html",
+        "apps/web/public/console_rules.js",
+        "apps/web/scripts/browser_e2e.mjs", "apps/web/package.json",
+        "scripts/generate_web_contract.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_every_writing_console_previews_before_it_acts",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_browsers_copy_of_the_request_contract_cannot_go_stale",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_web_gate_runs_its_own_negative_controls",
+    ],
+    "OPS-004": [
+        "apps/api/src/korpus/application/environment_drift.py",
+        "scripts/check_environment_drift.py",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_absent_from_observation_is_unobserved_not_in_sync",
+        "apps/api/tests/test_environment_drift.py"
+        "::test_script_exits_nonzero_when_a_declared_artefact_changed",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_environment_drift_check_runs_in_the_pipeline",
+    ],
+    "COD-004": [
+        "scripts/check_coverage_thresholds.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_the_coverage_thresholds_are_checked_where_coverage_is_produced",
+    ],
+    "RAG-009": [
+        "apps/api/src/korpus/application/risk_rules.py",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_an_unrecognised_query_is_unclassified_not_standard",
+        "apps/api/tests/test_risk_rules.py"
+        "::test_a_rephrased_operational_question_is_still_operational",
+        "apps/api/tests/test_risk_rules.py::test_unclassified_costs_more_than_standard",
+    ],
+    "RAG-013": [
+        "apps/api/src/korpus/application/numeric_integrity.py",
+        "apps/api/src/korpus/application/table_integrity.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_table_integrity.py",
+    ],
+    "RAG-016": [
+        "apps/api/src/korpus/application/embedding_migration.py",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_the_switch_requires_complete_coverage",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_retiring_before_the_switch_is_refused",
+        "apps/api/tests/test_embedding_migration.py"
+        "::test_rollback_is_checked_before_it_is_needed",
+    ],
+    "RAG-017": [
+        "apps/api/src/korpus/application/embedding_coverage.py",
+        "apps/api/tests/test_embedding_coverage.py",
+    ],
+    "INF-009": [
+        "apps/api/src/korpus/infrastructure/observability.py",
+        "apps/api/tests/test_telemetry_status.py",
+    ],
+    "SUP-009": [
+        "scripts/generate_supply_chain_inventory.py",
+        "apps/api/tests/test_gate_parity.py"
+        "::test_scripts_reading_installed_metadata_run_under_the_locked_interpreter",
+    ],
+    "AUD-004": [
+        "apps/api/src/korpus/application/audit_export.py",
+        "scripts/export_audit.py",
+        "apps/api/tests/test_audit_export.py",
+        "apps/api/src/korpus/application/retention.py",
+    ],
+    "COD-006": [
+        "apps/api/tests/test_structured_evidence_and_fuzz.py",
+        "apps/api/tests/test_v5_security_kernel.py"
+        "::test_parser_sandbox_setting_selects_isolated_parser",
+    ],
+    "COD-007": ["apps/api/pyproject.toml", ".gitlab-ci.yml::api:quality"],
+    "COD-008": [
+        "apps/web/scripts/validate.mjs",
+        "apps/web/package.json",
+        "apps/api/tests/test_browser_oidc.py",
+    ],
+    "COD-009": ["pytest.ini", ".gitlab-ci.yml::api:test"],
+    "COD-010": [
+        "contracts/openapi.json",
+        "scripts/openapi_contract.py",
+        "apps/api/tests/test_api_contract.py",
+    ],
+    "AUD-001": [
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "docs/security/KEY_AND_BREAK_GLASS_V5.md",
+    ],
+    "AUD-002": [
+        "apps/api/src/korpus/infrastructure/audit_anchor.py",
+        "apps/api/tests/test_http_audit_anchor.py",
+    ],
+    "DATA-001": [
+        "apps/api/src/korpus/security/corpus_governance.py",
+        "apps/api/tests/test_corpus_governance.py",
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md",
+    ],
+    "DATA-002": [
+        "docs/governance/DATA_HANDLING_STANDARD_V5.md",
+        "apps/api/src/korpus/security/corpus_governance.py",
+    ],
+    "DATA-004": [
+        "apps/api/src/korpus/cli.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py"
+        "::test_object_inventory_reconciliation_detects_missing_and_orphaned_files",
+    ],
+    "OPS-002": [
+        ".gitlab-ci.yml",
+        "apps/api/tests/test_gate_parity.py::test_ci_does_not_retry_failing_jobs",
+    ],
+}
+
+
+def status_for(finding_id: str) -> str:
+    memberships = [
+        name
+        for name, values in (
+            ("CLOSED_LOCAL", CLOSED_LOCAL),
+            ("MITIGATED_LOCAL", MITIGATED_LOCAL),
+            ("EXTERNAL_DEBT", EXTERNAL_DEBT),
+            ("OPEN_TECH_DEBT", OPEN_TECH_DEBT),
+        )
+        if finding_id in values
+    ]
+    if len(memberships) != 1:
+        raise RuntimeError(
+            f"finding {finding_id} has invalid closure classification: {memberships}"
+        )
+    return memberships[0]
+
+
+def main() -> None:
+    source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    findings = source["findings"]
+    source_ids = {item["id"] for item in findings}
+    classified = CLOSED_LOCAL | MITIGATED_LOCAL | EXTERNAL_DEBT | OPEN_TECH_DEBT
+    if source_ids != classified:
+        raise RuntimeError(
+            f"closure map mismatch missing={sorted(source_ids-classified)} "
+            f"extra={sorted(classified-source_ids)}"
+        )
+
+    # Counting evidence entries proved nothing: the registry named files without
+    # anyone opening them (destruction stage 2026-08-03). Every citation is now
+    # resolved, and a CLOSED finding must cite a test that exists.
+    statuses = {item["id"]: status_for(item["id"]) for item in findings}
+    unresolved = verify_closure_registry(ROOT, EVIDENCE, statuses)
+    if unresolved:
+        raise RuntimeError(
+            "the closure registry cites evidence that does not resolve:\n  "
+            + "\n  ".join(unresolved)
+        )
+
+    output = []
+    for item in findings:
+        status = statuses[item["id"]]
+        evidence = EVIDENCE.get(item["id"], [])
+        if status in {"CLOSED_LOCAL", "MITIGATED_LOCAL"} and not evidence:
+            raise RuntimeError(f"local status lacks evidence: {item['id']}")
+        output.append(
+            {
+                **item,
+                "v5_status": status,
+                "v5_evidence": evidence,
+                "v5_remaining_acceptance": (
+                    "None inside the frozen local scope; external acceptance may still apply."
+                    if status == "CLOSED_LOCAL"
+                    else item["acceptance_predicate"]
+                ),
+                **_code_half(item["id"]),
+            }
+        )
+
+    counts = Counter(item["v5_status"] for item in output)
+    severity = Counter(item["severity"] for item in output if item["v5_status"] != "CLOSED_LOCAL")
+    report = {
+        "schema": "korpus-audit-closure-v5",
+        "source_release": source["release"],
+        "target_release": "v5.0.0",
+        "scope_claim": (
+            "Complete classification of all 99 v4 findings. CLOSED_LOCAL means the encoded "
+            "local predicate has executable evidence; it is not production authorization."
+        ),
+        "counts": dict(sorted(counts.items())),
+        "remaining_by_severity": dict(sorted(severity.items())),
+        "findings": output,
+    }
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    json_path = OUT_DIR / "KORPUS_v5_FINDINGS_CLOSURE.json"
+    csv_path = OUT_DIR / "KORPUS_v5_FINDINGS_CLOSURE.csv"
+    md_path = OUT_DIR / "KORPUS_v5_CLOSURE_SUMMARY.md"
+    json_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    columns = [
+        "id", "domain", "severity", "state", "title", "v5_status", "v5_evidence",
+        "impact", "required_action", "tools_methods", "acceptance_predicate",
+        "v5_remaining_acceptance",
+    ]
+    with csv_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
+        writer.writeheader()
+        for item in output:
+            row = {key: item.get(key, "") for key in columns}
+            row["v5_evidence"] = " | ".join(item["v5_evidence"])
+            writer.writerow(row)
+    lines = [
+        "# KORPUS v5 audit closure summary",
+        "",
+        "This register classifies all 99 v4 findings without converting missing external "
+        "evidence into PASS.",
+        "",
+        "| Status | Count | Meaning |",
+        "|---|---:|---|",
+    ]
+    meanings = {
+        "CLOSED_LOCAL": "Executable local acceptance predicate passed.",
+        "MITIGATED_LOCAL": (
+            "Material control exists; live, corpus, or independent acceptance remains."
+        ),
+        "EXTERNAL_DEBT": "Cannot be closed inside this repository/session.",
+        "OPEN_TECH_DEBT": "Engineering implementation remains open.",
+    }
+    for key in ("CLOSED_LOCAL", "MITIGATED_LOCAL", "EXTERNAL_DEBT", "OPEN_TECH_DEBT"):
+        lines.append(f"| {key} | {counts[key]} | {meanings[key]} |")
+    lines += ["", "## Remaining blockers", ""]
+    for item in output:
+        if item["v5_status"] != "CLOSED_LOCAL":
+            lines.append(
+                f"- **{item['id']} · {item['severity']} · {item['v5_status']}** — {item['title']}"
+            )
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # The remaining-debt register was written once, by hand, and regenerated by nothing.
+    # It still said OPEN_TECH_DEBT 15 / MITIGATED_LOCAL 33 / 79 remaining on 2026-08-06,
+    # while the closure register beside it said 0 / 44 / 75 — and
+    # `repository_requirements.py` asserted only that the files *exist*. A register
+    # nothing regenerates is a snapshot of whenever somebody last edited it, presented
+    # as the current state.
+    remaining = [item for item in output if item["v5_status"] != "CLOSED_LOCAL"]
+    remaining_json = OUT_DIR / "KORPUS_v5_REMAINING_DEBT.json"
+    remaining_csv = OUT_DIR / "KORPUS_v5_REMAINING_DEBT.csv"
+    remaining_json.write_text(
+        json.dumps(
+            {
+                "schema": "korpus.remaining-debt.v2",
+                "release": "v5.1.0",
+                "scope": (
+                    "Every v4 finding not CLOSED_LOCAL. Generated from the closure "
+                    "register by scripts/build_audit_closure.py; do not edit."
+                ),
+                "total_remaining": len(remaining),
+                "counts": {
+                    status: count for status, count in counts.items() if status != "CLOSED_LOCAL"
+                },
+                "remaining_by_severity": dict(severity),
+                "items": remaining,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    with remaining_csv.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=columns, lineterminator="\n")
+        writer.writeheader()
+        for item in remaining:
+            row = {key: item.get(key, "") for key in columns}
+            row["v5_evidence"] = " | ".join(item["v5_evidence"])
+            writer.writerow(row)
+
+    # The machine-readable handoff state, from the same source. It carried its own copy
+    # of these counts and drifted; `verify_handoff_contract.py` compared that copy only
+    # against another stale copy, so the gate was green on both.
+    state_path = ROOT / "handoff/machine/current_state.json"
+    if state_path.is_file():
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        audit = state.setdefault("audit", {})
+        audit["findings_total"] = len(output)
+        audit["status_counts"] = dict(sorted(counts.items()))
+        audit["remaining_total"] = len(remaining)
+        audit["remaining_by_severity"] = dict(sorted(severity.items()))
+        # `base_source_tree_sha256` is deliberately *not* written here. This file is
+        # inside the digest — it has to be, or somebody could change
+        # "production_authorized: false" without moving it — so writing the tree's own
+        # digest into it is a fixed point that does not exist: the value changes the
+        # digest it just recorded. The handoff contract compares the promoted assurance
+        # snapshot against the digest computed now, which is the question it was asking.
+        state.pop("base_source_tree_sha256", None)
+        state_path.write_text(
+            json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    summary = {
+        "findings": len(output),
+        "counts": dict(counts),
+        "remaining_total": len(remaining),
+        "remaining_by_severity": dict(severity),
+    }
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

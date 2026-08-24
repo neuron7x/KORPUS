@@ -1,0 +1,6 @@
+
+> @korpus/web@0.8.0 build
+> node scripts/build_styles.mjs && node scripts/build.mjs
+
+consumer styles generated
+web build completed

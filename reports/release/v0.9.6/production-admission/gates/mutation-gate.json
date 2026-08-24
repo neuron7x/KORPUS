@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "mutation",
+  "status": "PASS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "report_present": true,
+    "source_bound": true,
+    "counts_well_formed": true,
+    "catalogue_nonempty": true,
+    "all_mutants_valid": true,
+    "all_valid_mutants_killed": true,
+    "catalogue_score_one": true
+  },
+  "failures": [],
+  "scope": "FULL_CATALOGUE",
+  "evidence_class": "EXECUTED_FIRST_ORDER_MUTATION",
+  "mutants": 337,
+  "valid_mutants": 337,
+  "killed": 337
+}

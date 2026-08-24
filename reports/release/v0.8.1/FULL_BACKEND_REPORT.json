@@ -1,0 +1,56 @@
+{
+  "schema": "korpus.full-backend-report.v3",
+  "release": "v0.8.1",
+  "status": "PASS",
+  "source_tree_sha256": "968944ce15ce93cb512ec95bb2bfd830b3ba2309ee8e03916b06819a148d326d",
+  "collected": 1746,
+  "passed": 1745,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 1,
+  "shards": [
+    {
+      "path": "reports/release/v0.8.1/FULL_BACKEND_SHARD_CANONICAL_01.xml",
+      "counts": {
+        "tests": 413,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.1/FULL_BACKEND_SHARD_CANONICAL_02.xml",
+      "counts": {
+        "tests": 472,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.1/FULL_BACKEND_SHARD_CANONICAL_03.xml",
+      "counts": {
+        "tests": 423,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "reports/release/v0.8.1/FULL_BACKEND_SHARD_CANONICAL_04.xml",
+      "counts": {
+        "tests": 438,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1
+      }
+    }
+  ],
+  "skip_contract": [
+    {
+      "test": "tests.test_postgres_integration::test_postgres_migrated_search_rls_access_and_audit",
+      "reason": "KORPUS_POSTGRES_TEST_URL is not configured",
+      "classification": "EXTERNAL_RUNTIME_BLOCKER"
+    }
+  ]
+}

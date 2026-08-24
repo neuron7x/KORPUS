@@ -1,84 +1,51 @@
+#!/usr/bin/env python3
+"""Fail-closed repository contract validation.
+The checks live in `korpus/repository_requirements.py` as a register: each has an id,
+states its property positively, and carries the reason it exists. This file loads the
+tree and applies them.
+Behaviour is unchanged; identity is added. "missing required file: SECURITY.md" was a
+sentence with no id, so it could not be cited in an audit, marked accepted-with-risk by
+an owner, matched to a mutant, or counted.
+"""
 from __future__ import annotations
-
+import argparse
 import json
+import sys
 from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[1]
-REQUIRED = [
-    "README.md",
-    "docs/product/SPECIFICATION.md",
-    "docs/architecture/SYSTEM.md",
-    "docs/architecture/SECURITY.md",
-    "docs/protocols/INGESTION.md",
-    "docs/governance/RISK_REGISTER.md",
-    "packages/contracts/answer.schema.json",
-    "packages/contracts/search.schema.json",
-    "agents/prompts/researcher.md",
-    # The instruments are artifacts too: if the eval runner or the mutation catalogue
-    # disappears, the pipeline stays green while measuring nothing.
-    "scripts/run_evals.py",
-    "evals/datasets/seed.jsonl",
-    "evals/datasets/manifest.json",
-    "tools/mutation.py",
-    "tools/mutants.json",
-    "tools/mutation_baseline.json",
-    "scripts/ingest.py",
-    "scripts/calibrate.py",
-    "scripts/acceptance.py",
-    "docs/runbooks/OPERATING.md",
-    "config/calibration.json",
-]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+from korpus.application.requirements import (  # noqa: E402
+    duplicate_ids,
+    evaluate_requirements,
+)
+from korpus.repository_requirements import (  # noqa: E402
+    REPOSITORY_REQUIREMENTS,
+    load_context,
+)
 
 
-def check_schemas() -> None:
-    for schema in (ROOT / "packages/contracts").glob("*.json"):
-        json.loads(schema.read_text(encoding="utf-8"))
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--context", choices=("SOURCE_CHECKOUT", "FULL_SSOT_DISTRIBUTION"), default="SOURCE_CHECKOUT")
+    args = parser.parse_args()
+    duplicates = duplicate_ids(REPOSITORY_REQUIREMENTS)
+    if duplicates:
+        print(json.dumps({"valid": False, "duplicate_requirement_ids": duplicates}, indent=2))
+        return 1
 
-
-def check_eval_dataset() -> None:
-    """A dataset that parses but holds nothing is the quiet failure mode."""
-    dataset = ROOT / "evals/datasets/seed.jsonl"
-    manifest = json.loads((ROOT / "evals/datasets/manifest.json").read_text(encoding="utf-8"))
-    cases = [line for line in dataset.read_text(encoding="utf-8").splitlines() if line.strip()]
-    if not cases:
-        raise SystemExit("eval dataset is empty — a run over zero cases cannot pass")
-    parsed = [json.loads(line) for line in cases]
-    for number, case in enumerate(parsed, 1):
-        for field in ("id", "query", "expected_status", "rationale"):
-            if field not in case:
-                raise SystemExit(f"evals/datasets/seed.jsonl:{number}: missing '{field}'")
-    floor = manifest.get("seed.jsonl", {})
-    if len(parsed) < int(floor.get("cases", 0)):
-        raise SystemExit(
-            f"eval dataset shrank to {len(parsed)} cases, manifest records {floor['cases']}"
-        )
-    covered = {case["expected_status"] for case in parsed}
-    missing = set(floor.get("statuses", [])) - covered
-    if missing:
-        raise SystemExit(f"eval dataset no longer covers: {sorted(missing)}")
-
-
-def check_mutation_catalogue() -> None:
-    catalogue = json.loads((ROOT / "tools/mutants.json").read_text(encoding="utf-8"))
-    baseline = json.loads((ROOT / "tools/mutation_baseline.json").read_text(encoding="utf-8"))
-    size = len(catalogue["mutants"])
-    recorded = int(baseline.get("catalogue_size", 0))
-    if size < recorded:
-        raise SystemExit(f"mutation catalogue shrank: {size} < recorded {recorded}")
-    ids = [mutant["id"] for mutant in catalogue["mutants"]]
-    if len(set(ids)) != len(ids):
-        raise SystemExit("duplicate mutant ids in tools/mutants.json")
-
-
-def main() -> None:
-    missing = [path for path in REQUIRED if not (ROOT / path).is_file()]
-    if missing:
-        raise SystemExit(f"Missing required repository artifacts: {missing}")
-    check_schemas()
-    check_eval_dataset()
-    check_mutation_catalogue()
-    print(f"repository validation passed: {len(REQUIRED)} required artifacts")
+    context = load_context(ROOT, args.context)
+    report = evaluate_requirements(REPOSITORY_REQUIREMENTS, context)
+    if not report.satisfied:
+        for failure in report.unmet:
+            print(f"{failure.id}: {failure.statement}")
+        return 1
+    print(
+        f"repository validation passed: {context.path_count} paths, "
+        f"{report.total} requirements, 99/99 audit findings classified"
+    )
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

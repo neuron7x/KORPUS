@@ -1,0 +1,18 @@
+{
+  "valid": true,
+  "version": "0.8.0",
+  "tag": "v0.8.0",
+  "checks": {
+    "api_pyproject": true,
+    "web_package": true,
+    "web_lock_root": true,
+    "web_lock_package": true,
+    "desired_state": true,
+    "readme": true,
+    "package_index": true,
+    "distribution_contract": true,
+    "package_description": true,
+    "gitlab_import": true,
+    "handoff_release": true
+  }
+}

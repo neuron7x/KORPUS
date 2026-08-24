@@ -1,0 +1,6 @@
+{
+  "schema": "korpus.exact-environment.v1",
+  "python_source": "apps/api/Dockerfile:ARG PYTHON_IMAGE",
+  "allowed_unmanaged_distributions": ["pip", "setuptools", "wheel", "korpus-api"],
+  "interpretation": "Only packaging bootstrap tools and the local KORPUS project distribution may exist outside the hashed runtime+dev locks."
+}

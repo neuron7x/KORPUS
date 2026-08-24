@@ -1,0 +1,6 @@
+* @korpus-maintainers
+/apps/api/src/korpus/security/ @korpus-security
+/apps/api/src/korpus/application/policy.py @korpus-security @korpus-domain-reviewers
+/packages/contracts/ @korpus-api-reviewers
+/docs/governance/ @korpus-domain-reviewers
+/.gitlab-ci.yml @korpus-devsecops

@@ -1,0 +1,89 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "reliability",
+  "status": "FAIL",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "checks": {
+    "internal_fault_injection": true,
+    "chaos_matrix": true,
+    "live_load_soak_executed": true,
+    "load_source_bound": true,
+    "load_environment": false,
+    "recovery_drill_executed": true,
+    "recovery_source_bound": true,
+    "recovery_environment": false,
+    "load_slo_steady_p95": true,
+    "load_slo_cold_start": true,
+    "load_slo_no_5xx_rated": true,
+    "load_slo_no_subject_throttle_rated": true,
+    "load_slo_no_retrieval_deadline": true,
+    "load_attestation_verified": false,
+    "load_trusted_signer": false,
+    "recovery_attestation_verified": false,
+    "recovery_trusted_signer": false
+  },
+  "failures": [
+    "load_environment",
+    "recovery_environment",
+    "load_attestation_verified",
+    "load_trusted_signer",
+    "recovery_attestation_verified",
+    "recovery_trusted_signer"
+  ],
+  "evidence_class": "ATTESTED_LIVE_PLUS_FAULT_INJECTION_REQUIRED",
+  "load_metrics": {
+    "load": {
+      "concurrency": 2,
+      "requests": 111,
+      "p50_seconds": 0.035,
+      "p95_seconds": 0.043,
+      "p99_seconds": 0.049,
+      "max_seconds": 0.059,
+      "mean_seconds": 0.036,
+      "statuses": {
+        "200": 111
+      },
+      "decisions": {
+        "retrieval_gate_failed": 111
+      },
+      "refusal_reasons": {}
+    },
+    "spike": {
+      "concurrency": 4,
+      "requests": 97,
+      "p50_seconds": 0.077,
+      "p95_seconds": 0.117,
+      "p99_seconds": 0.152,
+      "max_seconds": 0.152,
+      "mean_seconds": 0.084,
+      "statuses": {
+        "200": 97
+      },
+      "decisions": {
+        "retrieval_gate_failed": 97
+      },
+      "refusal_reasons": {}
+    },
+    "soak": {
+      "concurrency": 2,
+      "requests": 212,
+      "p50_seconds": 0.038,
+      "p95_seconds": 0.073,
+      "p99_seconds": 0.214,
+      "max_seconds": 0.602,
+      "mean_seconds": 0.048,
+      "statuses": {
+        "200": 212
+      },
+      "decisions": {
+        "retrieval_gate_failed": 212
+      },
+      "refusal_reasons": {}
+    }
+  },
+  "chaos_cases": 8,
+  "recovery_status": "PASS",
+  "load_signer_fingerprint": "",
+  "recovery_signer_fingerprint": ""
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 19,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M19_NEAR_DUPLICATE_ACK_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/review_transitions.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_near_duplicate_requires_explicit_metadata_acknowledgement ________\n\nclient = <starlette.testclient.TestClient object at 0x7f55b037c2f0>\n\n    def test_near_duplicate_requires_explicit_metadata_acknowledgement(client):\n        first = ingest_text(\n            client,\n            title=\"Baseline procedure\",\n            text=(\n                \"Підрозділ веде журнал перевірок щодня. \"\n                \"Кожен запис містить дату, номер та відповідальну особу.\"\n            ),\n        )\n        second = ingest_text(\n            client,\n            title=\"Copied procedure\",\n            text=(\n                \"Підрозділ веде журнал перевірок щодня. \"\n                \"Кожен запис містить дату, номер і відповідальну особу.\"\n            ),\n        )\n        version = second[\"version\"]\n        assert version[\"near_duplicate_of_version_id\"] == first[\"version\"][\"id\"]\n        assert version[\"near_duplicate_similarity\"] >= 0.90\n    \n        blocked = client.post(\n            f\"/v1/document-versions/{version['id']}/review\",\n            json={\"target\": \"metadata_reviewed\", \"note\": \"metadata review completed\"},\n        )\n>       assert blocked.status_code == 409\nE       assert 200 == 409\nE        +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_near_duplicate_governance.py:31: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement - assert 200 == 409\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M66_QUALITY_TOOL_EXIT_CODE_IGNORED",
+      "file": "apps/api/src/korpus/application/assurance.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_assurance_aggregation.py::test_a_tool_reporting_pass_with_a_nonzero_exit_code_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_a_tool_reporting_pass_with_a_nonzero_exit_code_is_rejected ________\n\n    def test_a_tool_reporting_pass_with_a_nonzero_exit_code_is_rejected() -> None:\n        broken = quality()\n        broken[\"tools\"][\"ruff\"][\"exit_code\"] = 2\n        result = evaluate(quality=broken)\n>       assert result.checks[\"quality_tooling_executed\"] is False\nE       assert True is False\n\napps/api/tests/test_assurance_aggregation.py:169: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_assurance_aggregation.py::test_a_tool_reporting_pass_with_a_nonzero_exit_code_is_rejected - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M110_OPEN_GROUNDS_DO_NOT_WITHHOLD",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_register.py::test_the_shipped_register_withholds_and_says_why"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_the_shipped_register_withholds_and_says_why _______________\n\n    def test_the_shipped_register_withholds_and_says_why() -> None:\n        verdict = evaluate_admission(ROOT, load_register(REGISTER))\n    \n>       assert verdict.production_authorized is False\nE       AssertionError: assert True is False\nE        +  where True = AdmissionVerdict(production_authorized=True, open_grounds=('2.5', '2.6', '2.7', '2.9', 'superseded-never-current'), cleared_grounds=('2.8',), problems=()).production_authorized\n\napps/api/tests/test_admission_register.py:50: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_register.py::test_the_shipped_register_withholds_and_says_why - AssertionError: assert True is False\n +  where True = AdmissionVerdict(production_authorized=True, open_grounds=('2.5', '2.6', '2.7', '2.9', 'superseded-never-current'), cleared_grounds=('2.8',), problems=()).production_authorized\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M178_ANSWER_EDITABLE_AFTER_THE_POLICY_DECIDED_IT",
+      "file": "apps/api/src/korpus/domain/models.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_architecture.py::test_the_answer_cannot_be_edited_after_the_policy_decided_it"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_the_answer_cannot_be_edited_after_the_policy_decided_it _________\n\n    def test_the_answer_cannot_be_edited_after_the_policy_decided_it() -> None:\n        \"\"\"The binding between the text and its citations is the system's whole claim.\n    \n        It is decided once, by the answer policy. A mutable `Answer` lets anything\n        downstream — a route, a middleware, a serializer — change `text` after `citations`\n        were computed, and the response would still carry the citations that justified a\n        different sentence. Nothing did that; the point is that nothing can, and that the\n        model says so rather than a convention nobody can check.\n        \"\"\"\n        import pytest\n        from korpus.domain.models import Answer, AnswerStatus\n    \n        answer = Answer(\n            status=AnswerStatus.INSUFFICIENT_EVIDENCE,\n            text=\"Недостатньо підстав.\",\n            retrieval_score=0.0,\n            evidence_coverage=0.0,\n            decision_reason=\"retrieval_gate_failed\",\n            calibration_id=\"test\",\n            corpus_release=\"test\",\n        )\n    \n>       with pytest.raises(ValidationError):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>\n\napps/api/tests/test_architecture.py:301: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_architecture.py::test_the_answer_cannot_be_edited_after_the_policy_decided_it - Failed: DID NOT RAISE <class 'pydantic_core._pydantic_core.ValidationError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M134_DISABLED_ACCOUNT_STILL_ENTITLED",
+      "file": "apps/api/src/korpus/application/paid_access.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_a_disabled_account_entitles_nothing_however_much_it_paid"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_a_disabled_account_entitles_nothing_however_much_it_paid _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-854/test_a_disabled_account_entitl0')\n\n    def test_a_disabled_account_entitles_nothing_however_much_it_paid(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|paid-then-disabled\", frozenset({\"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            subscription = tenancy.subscription_service.start_subscription(\n                identity.subject, account.id, \"standard\"\n            )\n            _activate(tenancy, subscription.id)\n    \n            gate = tenancy.entitlements(required=True)\n            assert gate.project(account).grants_paid_access\n    \n            disabled = tenancy.account_service.disable(\n                reader(\"operator\"), account.id, reason=\"revoked\"\n            )\n            projection = gate.project(disabled)\n>           assert projection.entitled_corpora == frozenset()\nE           AssertionError: assert frozenset({'training'}) == frozenset()\nE             \nE             Extra items in the left set:\nE             'training'\nE             \nE             Full diff:\nE             - frozenset()\nE             ?           ^\nE             + frozenset({\nE             ?           ^\nE             +     'training',\nE             + })\n\napps/api/tests/test_entitlement_gate.py:124: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_a_disabled_account_entitles_nothing_however_much_it_paid - AssertionError: assert frozenset({'training'}) == frozenset()\n  \n  Extra items in the left set:\n  'training'\n  \n  Full diff:\n  - frozenset()\n  ?           ^\n  + frozenset({\n  ?           ^\n  +     'training',\n  + })\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M223_PACKAGE_MODE_INTEGRITY_BYPASSED",
+      "file": "scripts/manifest_lib/integrity.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_package_mode_integrity.py::test_package_verifier_refuses_lost_executable_mode"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_package_verifier_refuses_lost_executable_mode ______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-855/test_package_verifier_refuses_0')\n\n    def test_package_verifier_refuses_lost_executable_mode(tmp_path: Path) -> None:\n        root = Path(__file__).resolve().parents[3]\n        module = _module(root)\n        archive = tmp_path / \"bad.zip\"\n        _write_zip(archive, stored_mode=0o644)\n        failures, _ = module.verify(archive)\n>       assert any(\"mode mismatch: scripts/run.sh\" in failure for failure in failures)\nE       assert False\nE        +  where False = any(<generator object test_package_verifier_refuses_lost_executable_mode.<locals>.<genexpr> at 0x7fe6ebf8e0c0>)\n\napps/api/tests/test_package_mode_integrity.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_package_mode_integrity.py::test_package_verifier_refuses_lost_executable_mode - assert False\n +  where False = any(<generator object test_package_verifier_refuses_lost_executable_mode.<locals>.<genexpr> at 0x7fe6ebf8e0c0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M271_ZIP_ENTRY_BUDGET_BYPASSED",
+      "file": "scripts/zip_resource_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_package_zip_safety.py::test_entry_count_budget_refuses_before_structural_processing"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_entry_count_budget_refuses_before_structural_processing _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-856/test_entry_count_budget_refuse0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ffab638dcd0>\n\n    def test_entry_count_budget_refuses_before_structural_processing(tmp_path: Path, monkeypatch) -> None:\n        archive = tmp_path / \"too-many.zip\"\n        with zipfile.ZipFile(archive, \"w\") as zf:\n            zf.writestr(_info(\"a.txt\"), b\"a\")\n            zf.writestr(_info(\"b.txt\"), b\"b\")\n        module = _safety_module()\n        policy = sys.modules[module.resource_failures.__module__]\n        monkeypatch.setattr(policy, \"MAX_ARCHIVE_ENTRIES\", 1)\n        monkeypatch.setattr(module, \"_record_entry\", lambda *args, **kwargs: (_ for _ in ()).throw(\n            AssertionError(\"structural parser ran\")\n        ))\n        with zipfile.ZipFile(archive) as zf:\n>           failures = module.safety_failures(zf)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_package_zip_safety.py:148: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nscripts/zip_safety.py:116: in safety_failures\n    for failure in _record_entry(info, exact, folded, file_paths, dir_paths)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\napps/api/tests/test_package_zip_safety.py:144: in <lambda>\n    monkeypatch.setattr(module, \"_record_entry\", lambda *args, **kwargs: (_ for _ in ()).throw(\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\n.0 = <tuple_iterator object at 0x7ffab626e230>\n\n>   monkeypatch.setattr(module, \"_record_entry\", lambda *args, **kwargs: (_ for _ in ()).throw(\n        AssertionError(\"structural parser ran\")\n    ))\nE   AssertionError: structural parser ran\n\napps/api/tests/test_package_zip_safety.py:144: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_package_zip_safety.py::test_entry_count_budget_refuses_before_structural_processing - AssertionError: structural parser ran\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:35:37+00:00"
+  }
+}

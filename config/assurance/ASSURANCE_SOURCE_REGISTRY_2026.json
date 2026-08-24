@@ -1,0 +1,13 @@
+{
+  "schema": "korpus.assurance-source-registry.v1",
+  "as_of": "2026-08-20",
+  "sources": [
+    {"authority":"OpenAI","date":"2026-05-29","title":"A shared playbook for trustworthy third party evaluations","url":"https://openai.com/index/trustworthy-third-party-evaluations-foundations/","used_for":["tested-system identity","harness disclosure","resource budget","validity checks","independent evaluation"]},
+    {"authority":"OpenAI","date":"2026-07-15","title":"GPT-Red: Unlocking Self-Improvement for Robustness","url":"https://openai.com/index/unlocking-self-improvement-gpt-red/","used_for":["automated adversarial pressure","regression discovery"]},
+    {"authority":"Anthropic","date":"2026-01-09","title":"Demystifying evals for AI agents","url":"https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents","used_for":["lifecycle evals","multi-step system evaluation","failure taxonomy"]},
+    {"authority":"Google DeepMind","date":"2026-04-17","title":"Frontier Safety Framework 3.1","url":"https://deepmind.google/frontier-safety/","used_for":["capability levels","early-warning evaluation","proportional mitigations"]},
+    {"authority":"US DoD CDAO","date":"2024-05-20","title":"CDAO Test and Evaluation Strategy Frameworks","url":"https://www.ai.mil/Latest/Blog/Article-Display/Article/3940283/cdao-test-and-evaluation-strategy-frameworks/","used_for":["model T&E","human-systems integration","systems integration","operational T&E"]},
+    {"authority":"NATO","date":"2026-01-13","title":"Alliance Digital Strategy","url":"https://www.nato.int/en/about-us/official-texts-and-resources/official-texts/2026/01/13/alliance-digital-strategy","used_for":["tactical-edge resilience","federated access control","role-tailored digital proficiency","continuous learning"]},
+    {"authority":"NIST","date":"2024","title":"AI RMF Generative AI Profile","url":"https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence","used_for":["risk management lifecycle","measurement and governance"]}
+  ]
+}

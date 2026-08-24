@@ -1,0 +1,21 @@
+{
+  "schema": "korpus.current-truth-verification.v1",
+  "status": "PASS",
+  "release": "v0.8.0",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "checks": {
+    "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound": true,
+    "reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.release_bound": true,
+    "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json.source_bound": true,
+    "reports/STANDARDS_CONTROL_MAP_VERIFICATION.json.release_bound": true,
+    "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json.source_bound": true,
+    "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json.release_bound": true,
+    "BLOCKER_REGISTRY.json.present": true,
+    "BLOCKER_REGISTRY.json.source_bound": true,
+    "BLOCKER_REGISTRY.json.release_bound": true,
+    "CLAIM_LEDGER.json.present": true,
+    "CLAIM_LEDGER.json.source_bound": true,
+    "CLAIM_LEDGER.json.release_bound": true
+  },
+  "failures": []
+}

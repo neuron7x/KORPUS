@@ -1,0 +1,29 @@
+{
+  "schema": "korpus.ai-risk-profile.v1",
+  "system_id": "KORPUS",
+  "release_scope": "v0.8.2",
+  "decision_boundary": "Evidence retrieval, controlled publication, and abstention. No autonomous command, targeting, medical, legal, disciplinary, personnel, or operational decision authority.",
+  "review_cadence": "every_release_and_after_incident_or_material_change",
+  "risk_acceptance": {
+    "P0": "external_accountable_owner_required; runtime and release gates remain fail-closed",
+    "P1": "named owner plus acceptance evidence required before production authorization",
+    "P2": "tracked with explicit predicate; may not be silently dropped"
+  },
+  "risks": [
+    {"id":"R-001","severity":"P0","owner_role":"security","metric":"unauthorized_materialization_events","kill_predicate":"any inaccessible marker enters candidate memory, response, citation, log, metric, or release hash","controls":["database_RLS","server_entitlements","leakage_gate"],"evidence_required":["live_postgres_rls","inference_security","external_redteam"]},
+    {"id":"R-002","severity":"P0","owner_role":"corpus_governance","metric":"invalid_temporal_citations","kill_predicate":"superseded or rescinded version cited outside its valid as_of interval","controls":["temporal_validity","version_graph","abstention"],"evidence_required":["real_domain_corpus_tevv"]},
+    {"id":"R-003","severity":"P0","owner_role":"retrieval","metric":"unsupported_emitted_claims","kill_predicate":"any emitted claim lacks exact evidence offsets and a valid quote hash","controls":["extractive_claim_boundary","quote_hash","support_gate"],"evidence_required":["citation_integrity_tevv"]},
+    {"id":"R-004","severity":"P0","owner_role":"security","metric":"instruction_boundary_violations","kill_predicate":"source or query instruction changes policy or is emitted as evidence","controls":["instruction_isolation","injection_detection","egress_ceiling"],"evidence_required":["inference_security","external_redteam"]},
+    {"id":"R-005","severity":"P0","owner_role":"operations","metric":"audit_reconciliation_failures","kill_predicate":"sequence, predecessor, HMAC, database head, or external anchor disagree","controls":["hash_chain","CAS_head","durable_outbox","remote_anchor"],"evidence_required":["trusted_recovery_attestation"]},
+    {"id":"R-006","severity":"P1","owner_role":"operations","metric":"unrecoverable_anchor_backlog","kill_predicate":"committed audit event lacks a recoverable outbox checkpoint","controls":["transactional_outbox","anchor_backlog_gate"],"evidence_required":["reliability_fault_injection","trusted_recovery_attestation"]},
+    {"id":"R-007","severity":"P0","owner_role":"domain_owner","metric":"unqualified_authority_approvals","kill_predicate":"source is approved without issuer evidence and an appointed reviewer","controls":["authority_class","reviewer_registry","review_separation"],"evidence_required":["human_domain_review","real_domain_corpus_tevv"]},
+    {"id":"R-008","severity":"P0","owner_role":"devsecops","metric":"untrusted_release_changes","kill_predicate":"unreviewed or unprovenanced change reaches the protected release","controls":["locked_dependencies","provenance","trusted_builder","release_signing"],"evidence_required":["trusted_hosted_builder","trusted_release_signing","live_vulnerability_scanners"]},
+    {"id":"R-009","severity":"P0","owner_role":"legal_owner","metric":"rights_policy_violations","kill_predicate":"ingestion, processing, citation, or distribution lacks recorded authority","controls":["corpus_governance_profile","operation_specific_rights"],"evidence_required":["external_legal_governance_review"]},
+    {"id":"R-010","severity":"P0","owner_role":"corpus_qa","metric":"critical_ocr_semantic_errors","kill_predicate":"critical extracted field differs from reviewed gold transcription","controls":["extraction_quality_flags","numeric_integrity","table_integrity","review_gate"],"evidence_required":["stratified_ocr_layout_benchmark"]},
+    {"id":"R-011","severity":"P1","owner_role":"assurance","metric":"blind_holdout_regression","kill_predicate":"frozen internal cases pass while blind production-domain cases fail the preregistered gate","controls":["frozen_reference_set","adversarial_holdout","provenance_binding"],"evidence_required":["independent_tevv","real_domain_corpus_tevv"]},
+    {"id":"R-012","severity":"P1","owner_role":"platform","metric":"unbounded_candidate_materialization","kill_predicate":"query path scans the complete accessible corpus in application memory","controls":["candidate_bound","query_budget","database_filtering"],"evidence_required":["production_like_load"]},
+    {"id":"R-013","severity":"P1","owner_role":"retrieval","metric":"required_evidence_recall_loss","kill_predicate":"candidate index excludes required evidence under target workload","controls":["embedding_coverage","required_semantic_refusal","reference_set"],"evidence_required":["real_domain_corpus_tevv"]},
+    {"id":"R-014","severity":"P0","owner_role":"platform","metric":"schema_parity_failures","kill_predicate":"runtime metadata and migrated production schema differ","controls":["migration_gate","table_set_parity","revision_pin"],"evidence_required":["live_postgres_rls"]},
+    {"id":"R-015","severity":"P0","owner_role":"accountable_owner","metric":"authorization_overclaim_events","kill_predicate":"engineering test evidence is represented as state authorization or accreditation","controls":["status_ontology","production_authorized_false_by_default","external_admission_register"],"evidence_required":["external_accountable_authorization"]}
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "schema": "korpus.production-admission-checkpoint.v1",
+  "release": "v0.9.6",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "engineering_release": {
+    "mutation": {
+      "status": "PASS",
+      "catalogue": 337,
+      "valid_mutants": 337,
+      "killed": 337,
+      "survived": 0,
+      "invalid": 0,
+      "errors": 0,
+      "mutation_score": 1.0
+    },
+    "regression": {
+      "status": "PASS",
+      "tests": 2294,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 3,
+      "collection_digest": "1728270df29a89167b870fc8bc9811e58cfbe4c6a2a455eec81b929af4be8d49",
+      "shards": 64
+    },
+    "canonical_release_status": "PASS_WITH_CAVEATS"
+  },
+  "internal_production_evidence": {
+    "redteam_internal-gate.json": "PASS",
+    "inference_security-gate.json": "PASS",
+    "reliability_internal-gate.json": "PASS",
+    "observability-gate.json": "PASS",
+    "state-contracts-gate.json": "PASS",
+    "authorization-gate.json": "PASS",
+    "mutation-gate.json": "PASS"
+  },
+  "external_production_gates": {
+    "engineering-gate.json": "FAIL",
+    "redteam-gate.json": "FAIL",
+    "tevv-gate.json": "FAIL",
+    "reliability-gate.json": "FAIL",
+    "postgres_security-gate.json": "FAIL",
+    "supply_chain-gate.json": "FAIL",
+    "exact_environment-gate.json": "FAIL"
+  },
+  "hard_predicates": {
+    "predicates_total": 12,
+    "software_ready": 12,
+    "externally_satisfied": 0,
+    "production_satisfied": 0,
+    "software_readiness_percent": 100.0,
+    "external_completion_percent": 0.0,
+    "production_completion_percent": 0.0
+  },
+  "production_assurance": {
+    "status": "FAIL",
+    "production_authorized": false,
+    "failures": [
+      "engineering.pass",
+      "tevv.pass",
+      "redteam.pass",
+      "reliability.pass",
+      "postgres_security.pass",
+      "supply_chain.pass",
+      "exact_environment.pass",
+      "redteam.attestation_verified",
+      "redteam.trusted_signer",
+      "tevv.environment",
+      "tevv.independent",
+      "tevv.trusted_assessor",
+      "postgres.real_backend",
+      "supply_chain.complete"
+    ]
+  },
+  "recovery_ci_fixture": {
+    "status": "PASS",
+    "environment_class": "CI_FIXTURE",
+    "rto_seconds": 15.905,
+    "rpo_seconds": 16.502,
+    "lost_events": 0,
+    "lost_documents": 5
+  },
+  "chaos": {
+    "status": "PASS",
+    "cases": 8
+  },
+  "scientific_admission": {
+    "status": "UNKNOWN",
+    "reason": "No production-judged PEC observations are present; synthetic/reference fixtures are not promoted as production evidence."
+  },
+  "coverage_remeasurement": {
+    "status": "UNKNOWN",
+    "reason": "A fresh branch-coverage remeasurement in the clean extraction did not reach a terminal complete result in this execution environment; canonical regression/mutation authorities remain unchanged."
+  },
+  "authorization_rule": "production authorization remains false until every externally required proof class passes current source/release binding and trust checks.",
+  "evidence_sha256": {
+    "reports/release/v0.9.6/production-admission/gates/authorization-gate.json": "a4140c168dde293456cb50fc2af298d2f39f3187d1cbe057cecf7aa1610fce96",
+    "reports/release/v0.9.6/production-admission/gates/engineering-gate.json": "a75c869a8d4977592592101a72a4251570404aee753b13652c49f2d3e6719de3",
+    "reports/release/v0.9.6/production-admission/gates/exact_environment-gate.json": "2f553ee82fc685d48bafcfe6a1c97705311159e5ad47012261a0a9fabdc6fe1f",
+    "reports/release/v0.9.6/production-admission/gates/inference_security-gate.json": "16ac24d051452da321c7676d6d538069796ba04b1be7275518b562830b62b4cc",
+    "reports/release/v0.9.6/production-admission/gates/mutation-gate.json": "f465d722e4f6f3eddfa675074db7b9421d8ad6a34882972d8642cf62ff25f5b0",
+    "reports/release/v0.9.6/production-admission/gates/observability-gate.json": "1981e431ea82fc6717f110f12a08613e588d7fb8d3cb0220e41dade74770318d",
+    "reports/release/v0.9.6/production-admission/gates/postgres_security-gate.json": "1ac0e812c3f164ff0a6f82ec4b810071974202cf7a988b693fc844e4f0f6019b",
+    "reports/release/v0.9.6/production-admission/gates/redteam-gate.json": "7a29909a589472588da4881e3b179b72f4816525019b6e6b5866475074ac9c64",
+    "reports/release/v0.9.6/production-admission/gates/redteam_internal-gate.json": "e0ebd976d939a598c6a442976f9ea6c52e2937edfdecd53bbb0bfeea7209622f",
+    "reports/release/v0.9.6/production-admission/gates/reliability-gate.json": "3b39ce7544a98cce061cda3b9cb7e90644c0dcefe983435477b1559d9a87ed18",
+    "reports/release/v0.9.6/production-admission/gates/reliability_internal-gate.json": "8ce9f39b65fbf0ce8f600490a649289bd44136aa7812dc43a6f91bcb9790d7ae",
+    "reports/release/v0.9.6/production-admission/gates/state-contracts-gate.json": "571b5538ab3cb6804d6a42fa8877bcfc2a29766e6573851eb3c851afd34aa27f",
+    "reports/release/v0.9.6/production-admission/gates/supply_chain-gate.json": "a88fb34a278ac332f4f57f1bc2aca26fb1e9e4bca8e2156c74b1cdf93a0de99d",
+    "reports/release/v0.9.6/production-admission/gates/tevv-gate.json": "731dbe25f10a222131d98959f19697ca55755e4d8bd1b3bcec88b00c7b25fac9",
+    "reports/release/v0.9.6/production-admission/measurements/builtin-security-gate.json": "5dcf0a1f523f1af8a68045e4f3da64a00f576c0f269a898c4d6cc2e60596c863",
+    "reports/release/v0.9.6/production-admission/measurements/chaos-matrix.json": "56c1746e49560f2612c5af3acd444341164713224f76003566be97ac9fb46442",
+    "reports/release/v0.9.6/production-admission/measurements/recovery-report.json": "15b57cdb872c84765616404a8c9efbeb5fd6cb118e257f4c48e90223c49f5132"
+  }
+}

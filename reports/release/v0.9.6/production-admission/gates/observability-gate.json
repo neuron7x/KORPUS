@@ -1,0 +1,46 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "observability",
+  "status": "PASS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "no_identity_or_user_text_labels": true,
+    "security_labels_bounded": true,
+    "request_id_not_metric_label": true,
+    "telemetry_state_explicit": true
+  },
+  "failures": [],
+  "metric_labels": {
+    "http_requests": [
+      "method",
+      "route",
+      "status_class"
+    ],
+    "http_latency": [
+      "method",
+      "route"
+    ],
+    "answers": [
+      "status",
+      "reason",
+      "risk"
+    ],
+    "retrieval_latency": [],
+    "retrieval_candidates": [],
+    "admission_active": [],
+    "answer_admission_active": [],
+    "ingestion_admission_active": [],
+    "audit_anchor_pending": [],
+    "audit_anchor_oldest_seconds": [],
+    "audit_anchor_reconcile_failures": [
+      "error_class"
+    ],
+    "security_events": [
+      "event",
+      "outcome"
+    ]
+  },
+  "forbidden_label_hits": {},
+  "evidence_class": "STATIC_PLUS_RUNTIME_METRIC_CONTRACT"
+}

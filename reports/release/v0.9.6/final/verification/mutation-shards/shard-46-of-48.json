@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 46,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M45_APPROVER_TIER_DISCARDED",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_governance_boundaries.py::test_the_approver_sets_the_access_tier"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_the_approver_sets_the_access_tier ____________________\n\nclient = <starlette.testclient.TestClient object at 0x7f7ff6be0440>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_the_approver_sets_the_access_tier(client: TestClient, admin_identity: Identity) -> None:\n        result = ingest_text(client, title=\"Наказ для підняття тиру\", access_tier=0)\n        version_id = result[\"version\"][\"id\"]\n        transition(client, version_id, \"metadata_reviewed\")\n        transition(client, version_id, \"content_reviewed\")\n    \n        response = client.post(\n            f\"/v1/document-versions/{version_id}/review\",\n            json={\n                \"target\": \"approved\",\n                \"note\": \"approved and restricted by the approving officer\",\n                \"access_tier\": int(AccessTier.REVIEWED),\n            },\n        )\n    \n        assert response.status_code == 200, response.text\n        documents = client.get(\"/v1/documents\").json()\n        stored = next(item for item in documents if item[\"id\"] == result[\"document\"][\"id\"])\n>       assert stored[\"access_tier\"] == int(AccessTier.REVIEWED), (\n            \"the tier the approver decided on must be the tier the document carries\"\n        )\nE       AssertionError: the tier the approver decided on must be the tier the document carries\nE       assert 0 == 2\nE        +  where 2 = int(<AccessTier.REVIEWED: 2>)\nE        +    where <AccessTier.REVIEWED: 2> = AccessTier.REVIEWED\n\napps/api/tests/test_governance_boundaries.py:93: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_governance_boundaries.py::test_the_approver_sets_the_access_tier - AssertionError: the tier the approver decided on must be the tier the document carries\nassert 0 == 2\n +  where 2 = int(<AccessTier.REVIEWED: 2>)\n +    where <AccessTier.REVIEWED: 2> = AccessTier.REVIEWED\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M89_AUDIT_DROPS_THE_DATE_ANSWERED_FOR",
+      "file": "apps/api/src/korpus/application/answer_audit.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_the_event_records_the_date_the_answer_was_given_for ___________\n\nclient = <starlette.testclient.TestClient object at 0x7f4ead5b42f0>\n\n    def test_the_event_records_the_date_the_answer_was_given_for(client: TestClient) -> None:\n        \"\"\"`as_of` decides which edition is current; an audit without it is undecidable.\"\"\"\n        result = ingest_text(client, text=f\"Журнал {MARKER} ведеться у підрозділі щодоби.\")\n        approve(client, result[\"version\"][\"id\"])\n    \n        _answer, trace_id = _ask(client, f\"як ведеться журнал {MARKER}\", as_of=\"2026-08-04\")\n    \n>       assert _completed_event(client, trace_id)[\"as_of\"] == \"2026-08-04\"\nE       AssertionError: assert '' == '2026-08-04'\nE         \nE         - 2026-08-04\n\napps/api/tests/test_audit_names_governing_version.py:70: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit_names_governing_version.py::test_the_event_records_the_date_the_answer_was_given_for - AssertionError: assert '' == '2026-08-04'\n  \n  - 2026-08-04\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M135_ATTESTED_DOCUMENT_NEED_NOT_EXIST",
+      "file": "apps/api/src/korpus/application/admission.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_attestation_naming_a_document_that_does_not_exist_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "===\n_____ test_an_attestation_naming_a_document_that_does_not_exist_is_refused _____\n\n    def test_an_attestation_naming_a_document_that_does_not_exist_is_refused() -> None:\n        \"\"\"The original hole: four fields had to be present, none had to refer to anything.\"\"\"\n        forged = _cleared(\n            _register(),\n            \"2.5\",\n            {\n                \"document\": \"docs/operations/NO_SUCH_ASSESSMENT.pdf\",\n                \"sha256\": \"f\" * 64,\n                \"signed_by\": \"anybody\",\n                \"signed_at\": \"2026-08-01\",\n            },\n        )\n    \n>       verdict = evaluate_admission(ROOT, forged)\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_admission_cannot_be_self_granted.py:159: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/tmp/korpus-m135_attested_document_need_not_exist-u2_007z1/api-src/korpus/application/admission.py:233: in evaluate_admission\n    problems.extend(_attestation_problems(root, ground, registry))\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n/tmp/korpus-m135_attested_document_need_not_exist-u2_007z1/api-src/korpus/application/admission.py:123: in _attestation_problems\n    elif hashlib.sha256(resolved.read_bytes()).hexdigest() != digest:\n                        ^^^^^^^^^^^^^^^^^^^^^\n/usr/lib/python3.13/pathlib/_abc.py:625: in read_bytes\n    with self.open(mode='rb') as f:\n         ^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = PosixPath('/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22/docs/operations/NO_SUCH_ASSESSMENT.pdf')\nmode = 'rb', buffering = -1, encoding = None, errors = None, newline = None\n\n    def open(self, mode='r', buffering=-1, encoding=None,\n             errors=None, newline=None):\n        \"\"\"\n        Open the file pointed to by this path and return a file object, as\n        the built-in open() function does.\n        \"\"\"\n        if \"b\" not in mode:\n            encoding = io.text_encoding(encoding)\n>       return io.open(self, mode, buffering, encoding, errors, newline)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22/docs/operations/NO_SUCH_ASSESSMENT.pdf'\n\n/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_admission_cannot_be_self_granted.py::test_an_attestation_naming_a_document_that_does_not_exist_is_refused - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/korpus_work/KORPUS_v0.9.6_PEC_RESEARCH_GENERALIZATION_HARDENED_FULL_SSOT_CANONICAL_2026-08-22/docs/operations/NO_SUCH_ASSESSMENT.pdf'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M181_MALWARE_SCAN_BYPASS_ON_VERSION_INGEST",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_a_new_version_of_an_existing_document_is_scanned_too"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "ier*\n        surface to reach: the document already exists and already passed review.\n        \"\"\"\n        from korpus.application.ingestion import ExtractionSettings\n        from korpus.application.policy import PolicyEngine\n        from korpus.composition import build_ingestion_service\n        from korpus.domain.models import AuthorityClass, VersionCreate\n        from korpus.infrastructure.object_store import LocalObjectStore\n        from korpus.infrastructure.repository import SqlRepository\n    \n        class ScannerRejectingTheSecondFile:\n            \"\"\"Clean once, then hostile: the first call admits the document so the second\n            call is reached at all.\"\"\"\n    \n            def __init__(self) -> None:\n                self.calls = 0\n    \n            def scan(self, path: Path) -> None:\n                self.calls += 1\n                if self.calls > 1:\n                    raise MalwareDetectedError(\"malware detected: version-signature\")\n    \n        repository = SqlRepository(\n            f\"sqlite:///{tmp_path / 'version-malware.db'}\",\n            audit_hmac_key=\"version-malware-key\",\n            policy=PolicyEngine(),\n            audit_anchor_path=tmp_path / \"version-malware-anchor.json\",\n        )\n        repository.initialize(create_schema=True)\n        scanner = ScannerRejectingTheSecondFile()\n        service = build_ingestion_service(\n            repository,\n            LocalObjectStore(tmp_path / \"version-malware-objects\"),\n            PolicyEngine(),\n            ExtractionSettings(False, \"ukr+eng\"),\n            malware_scanner=scanner,\n        )\n        actor = Identity(\n            subject=\"version-scanner-test\",\n            roles=frozenset({\"admin\", \"curator\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"public\"}),\n        )\n        try:\n            first = service.ingest(\n                actor,\n                DocumentCreate(\n                    canonical_title=\"Accepted document\",\n                    corpus_id=\"public\",\n                    issuer=\"Authority\",\n                    access_tier=AccessTier.PUBLIC,\n                ),\n                VersionCreate(revision=\"1\", authority=AuthorityClass.OFFICIAL_UA),\n                \"clean.txt\",\n                \"text/plain\",\n                b\"first file passes the scanner and is admitted\",\n            )\n    \n>           with pytest.raises(MalwareDetectedError, match=\"version-signature\"):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.security.scanning.MalwareDetectedError'>\n\napps/api/tests/test_v5_security_kernel.py:505: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_a_new_version_of_an_existing_document_is_scanned_too - Failed: DID NOT RAISE <class 'korpus.security.scanning.MalwareDetectedError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M161_INTEGRITY_ERROR_SWALLOWED_AS_DUPLICATE",
+      "file": "apps/api/src/korpus/infrastructure/billing_repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_billing_events.py::test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____ test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate ____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-977/test_a_non_idempotency_integri0')\n\n    def test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate(\n        tmp_path: Path,\n    ) -> None:\n        \"\"\"`except IntegrityError → DUPLICATE` once hid a real constraint violation — a bug —\n        as a harmless redelivery, with no error and no trace. Only the idempotency key means\n        duplicate; anything else must surface.\n        \"\"\"\n        from datetime import UTC, datetime\n    \n        from korpus.domain.tenancy import BillingEventRecord, BillingEventResult\n        from sqlalchemy.exc import IntegrityError\n    \n        tenancy = build_tenancy(tmp_path)\n        try:\n            _account, subscription = _account_with_subscription(tenancy)\n            store = tenancy.subscriptions\n            original = store._repository.audited_transaction\n    \n            def fake_fk_violation(_operation):\n                raise IntegrityError(\n                    \"INSERT\", {}, Exception(\"FOREIGN KEY constraint failed\")\n                )\n    \n            store._repository.audited_transaction = fake_fk_violation  # type: ignore[method-assign]\n            try:\n>               with pytest.raises(IntegrityError):\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE               Failed: DID NOT RAISE <class 'sqlalchemy.exc.IntegrityError'>\n\napps/api/tests/test_billing_events.py:569: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_billing_events.py::test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate - Failed: DID NOT RAISE <class 'sqlalchemy.exc.IntegrityError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M250_EXTERNAL_REDTEAM_COVERAGE_BYPASSED",
+      "file": "apps/api/src/korpus/application/external_redteam.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_external_redteam_admissibility.py::test_declared_pass_cannot_hide_missing_attack_family"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_declared_pass_cannot_hide_missing_attack_family _____________\n\n    def test_declared_pass_cannot_hide_missing_attack_family() -> None:\n        verdict = evaluate_external_redteam(_report(cases=_cases()[:-1]), PROFILE)\n>       assert verdict[\"pass\"] is False\nE       assert True is False\n\napps/api/tests/test_external_redteam_admissibility.py:32: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_external_redteam_admissibility.py::test_declared_pass_cannot_hide_missing_attack_family - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M298_PEC_INFORMATION_GAIN_SCALAR_UTILITY_INTRODUCED",
+      "file": "apps/api/src/korpus/application/pec_research.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_information_gain_is_vector_not_weighted_scalar"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_information_gain_is_vector_not_weighted_scalar ______________\n\n    def test_information_gain_is_vector_not_weighted_scalar() -> None:\n        rows = [\n            {\"query_id\":\"q\",\"action\":\"STOP_USE_CURRENT_EVIDENCE\",\"gold_hit\":False,\"quality_ok\":False,\"retrieval_quality\":{\"ndcg\":0.1},\"search_count\":1,\"planner_calls\":0,\"semantic_calls\":0},\n            {\"query_id\":\"q\",\"action\":\"PLAN_QUERY_VARIANTS\",\"gold_hit\":True,\"quality_ok\":True,\"retrieval_quality\":{\"ndcg\":0.7},\"search_count\":3,\"planner_calls\":1,\"semantic_calls\":0},\n        ]\n        report = observed_information_gain(rows)\n        item = report[\"comparisons\"][0]\n        assert item[\"gold_hit_delta\"] == 1\n        assert item[\"retrieval_quality_deltas\"][\"ndcg\"] == 0.6\n>       assert \"utility\" not in item\nE       AssertionError: assert 'utility' not in {'action': 'PLAN_QUERY_VARIANTS', 'extra_planner_calls': 1, 'extra_searches': 2, 'extra_semantic_calls': 0, ...}\n\napps/api/tests/test_pec_research.py:41: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_information_gain_is_vector_not_weighted_scalar - AssertionError: assert 'utility' not in {'action': 'PLAN_QUERY_VARIANTS', 'extra_planner_calls': 1, 'extra_searches': 2, 'extra_semantic_calls': 0, ...}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:44:14+00:00"
+  }
+}

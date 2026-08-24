@@ -1,42 +1,32 @@
-# Threat model and security architecture
+# Security architecture
 
-## Protected assets
+## Threats explicitly covered by executable tests
 
-Source documents, access labels, user identity and role, queries, drafts, learning
-history, model credentials, audit evidence, and infrastructure control planes.
+- client attempts to select a higher access tier;
+- request for an unassigned corpus;
+- retrieval of an inaccessible restricted document;
+- use of quarantined or unapproved content;
+- prompt-injection text in a query;
+- modification of an audit event;
+- duplicate upload ambiguity;
+- approval of a source with unknown authority.
 
-## Primary threats
+## Controls
 
-| Threat | Control |
-|---|---|
-| Indirect prompt injection in a document | Treat text as data; fixed tool policy; no document-triggered tools |
-| Cross-corpus leakage | Pre-retrieval ABAC, separate stores/buckets, post-generation DLP test |
-| Poisoned or forged source | Provenance, hash, quarantine, reviewer approval, authority class |
-| Stale normative answer | Validity/supersession graph and scheduled review |
-| Hallucinated citation | Citation IDs supplied by retriever; claim-level verifier |
-| Malicious uploads | MIME sniffing, AV/CDR, sandboxed extraction, macro/executable quarantine |
-| Account takeover | OIDC, phishing-resistant MFA for reviewers/admins, session rotation |
-| Insider bulk extraction | least privilege, rate/volume anomalies, watermarking, immutable audit |
-| Provider data exposure | per-corpus provider policy, minimization, regional/ZDR controls |
-| Supply-chain compromise | lockfiles, SBOM, signed images, dependency scanning, provenance attestations |
+- Production startup rejects development authentication.
+- Identity roles, clearance, and corpus assignments come from verified claims.
+- Query bodies can narrow corpus scope but cannot widen it.
+- Retrieval receives only pre-authorized, approved, temporally active candidates.
+- Retrieved content is never concatenated into an executable system prompt.
+- Source bytes are content-addressed by SHA-256.
+- Document states follow an explicit transition graph.
+- Audit events use canonical serialization and HMAC-SHA256 chaining.
+- GitLab uses protected branches, CODEOWNERS, independent verification, secret scan, SBOM and dependency audit.
 
-## Authorization
+## Known limitations
 
-Use RBAC for organizational roles and ABAC for document decisions:
+The local implementation is not a certification claim. HMAC audit chaining detects database changes only while the key and trusted checkpoint remain uncompromised. Production requires external checkpoint anchoring or append-only/WORM storage. Antivirus, content-disarm-and-reconstruction, formal security profile, penetration test, authorization, SOC monitoring, HSM-backed keys, and incident ownership are deployment obligations.
 
-```text
-allow = role permits action
-    AND user.clearance >= document.access_tier
-    AND corpus.policy permits purpose
-    AND document.review_state == approved
-    AND document is currently valid
-```
+## Agent egress policy
 
-Authorization runs before vector search so forbidden chunks never enter model context.
-
-## Secure delivery gates
-
-Threat-model review, SAST, dependency scan, secret scan, container scan, contract tests,
-access-control tests, prompt-injection suite, backup restore test, and incident-response
-tabletop are required before production.
-
+Codex and Claude Code receive synthetic fixtures only. Restricted source documents, production database dumps, JWT signing keys, audit keys, cloud credentials and personal data are forbidden in agent worktrees or prompts.

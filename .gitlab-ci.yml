@@ -1,172 +1,583 @@
-stages:
-  - validate
-  - test
-  - build
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
 
 default:
   interruptible: true
-  retry:
-    max: 1
-    when:
-      - runner_system_failure
-      - stuck_or_timeout_failure
+  timeout: 30m
+  retry: 0
 
-repository:validate:
-  stage: validate
-  image: python:3.12-slim
-  script:
-    - python scripts/validate_repository.py
+stages:
+  - validate
+  - test
+  - assurance
+  - security
+  - build
+  - verify-image
+  - package
+  - release
 
-api:quality:
-  stage: test
-  image: python:3.12-slim
-  cache:
-    key:
-      files:
-        - apps/api/pyproject.toml
-    paths:
-      - .cache/pip/
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: "$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src"
+  KORPUS_ENVIRONMENT: "test"
+  KORPUS_SCHEMA_MODE: "auto"
+  KORPUS_DATABASE_URL: "sqlite:///$CI_PROJECT_DIR/var/ci.db"
+  KORPUS_OBJECT_ROOT: "$CI_PROJECT_DIR/var/objects"
+  KORPUS_AUTH_MODE: "dev"
+  KORPUS_DEV_MODE_ACKNOWLEDGEMENT: "I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE"
+  KORPUS_BIND_HOST: "127.0.0.1"
+  KORPUS_AUDIT_HMAC_KEY: "ci-only-audit-key"
+  KORPUS_JWT_SECRET: "ci-only-jwt-key"
+
+.python-job:
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
   before_script:
-    - python -m pip install --upgrade pip
-    - pip install -e 'apps/api[dev]'
+    # python:*-slim ships without git. test_manifest_generation asserts that the
+    # release manifest lists only git-tracked files — it shells out to git, and on the
+    # first pipeline where api:test actually ran it died with
+    # FileNotFoundError: 'git'. Skipping that test instead would be worse: it is the
+    # check that keeps build artefacts out of the manifest, and a skipped test reads
+    # green in every report.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+    - python -m pip check
+
+# This job installed PyYAML alone, but four of its eight steps import korpus.* —
+# which imports pydantic. On the first real pipeline run it died at step one with
+# ModuleNotFoundError: No module named 'pydantic'. Because every later job sits in a
+# later stage with no `needs`, all thirteen of them were skipped: the pipeline
+# reported failure without executing a single test, lint, eval or scan. It now shares
+# the same locked environment as every other Python job.
+repository:validate:
+  extends: .python-job
+  stage: validate
   script:
-    - ruff check apps/api/src apps/api/tests scripts tools
-    - MYPYPATH=apps/api/src mypy --config-file apps/api/pyproject.toml apps/api/src scripts tools
-    - pytest apps/api/tests --junitxml=api-junit.xml --cov=korpus --cov-branch
-      --cov-report=xml --cov-fail-under=99
+    - python scripts/openapi_contract.py
+    - python scripts/generate_desired_state.py --check
+    # The browser's copy of the request constraints and the role table. Stale means the
+    # operator consoles validate against rules the API no longer has — and that failure
+    # is invisible from the API side, because a form refusing something the server would
+    # accept is never reported by anyone.
+    - python scripts/generate_web_contract.py --check
+    # OPS-004 on the only environment this job can observe: its own checkout. It proves
+    # the comparator runs and that the manifest describes this tree. It is NOT evidence
+    # about a cluster — that observation has to be taken on the running host, and it
+    # stays external.
+    - python scripts/check_environment_drift.py --observe . --out var/environment-observation.json
+    # The observation carries the instant it was taken and is refused past an hour: an
+    # observation taken before a change and compared after it produces a verdict
+    # indistinguishable from a current one.
+    - python scripts/check_environment_drift.py --observation var/environment-observation.json
+    - python scripts/generate_supply_chain_inventory.py
+    # A ratchet on module size and function complexity: growth fails, shrinking is free.
+    - python scripts/check_module_budget.py
+    - python scripts/validate_github_actions.py
+    - python scripts/validate_repository.py --context SOURCE_CHECKOUT
+    - python scripts/validate_infrastructure.py
+    - python scripts/validate_kubernetes.py
+    - python -m compileall -q apps/api/src apps/api/migrations scripts
   artifacts:
     when: always
-    expire_in: 14 days
+    paths:
+      - var/infrastructure-validation.json
+      - var/kubernetes-validation.json
+      - contracts/openapi.json
+      - var/supply-chain-inventory.json
+      - var/environment-observation.json
+
+api:test:
+  extends: .python-job
+  stage: test
+  script:
+    - mkdir -p var/objects
+    # snapshot_assurance.py requires var/coverage.json alongside the XML. Only the XML
+    # was ever produced, so that script — and the release packaging that calls it —
+    # could not complete; nobody saw it because the pipeline never reached the package
+    # stage until 2026-08-03.
+    - pytest apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82 --junitxml=var/pytest.xml
+    # Both policy minimums, checked where the numbers are produced rather than in
+    # source:package four stages later.
+    - python scripts/check_coverage_thresholds.py
+  artifacts:
+    when: always
     reports:
-      junit: api-junit.xml
+      junit: var/pytest.xml
       coverage_report:
         coverage_format: cobertura
-        path: coverage.xml
-
-# Fixtures are replayed against the real pipeline. A dataset that fails to load, or
-# loads zero cases, exits non-zero: an eval job that measures nothing must not be green.
-api:evals:
-  stage: test
-  image: python:3.12-slim
-  cache:
-    key:
-      files:
-        - apps/api/pyproject.toml
+        path: var/coverage.xml
     paths:
-      - .cache/pip/
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install -e 'apps/api[dev]'
+      - var/pytest.xml
+      - var/coverage.xml
+      - var/coverage.json
+
+api:quality:
+  extends: .python-job
+  stage: test
   script:
+    # Both tools run inside run_quality_gate.py, which records command, exit code and
+    # violation count in var/quality-report.json. The assurance aggregator requires
+    # that recording: before 2026-08-04 it printed "ruff": "NOT_EXECUTED …" beside
+    # "status": "PASS", so a job that never ran and a job that passed were the same
+    # evidence downstream.
+    #
+    # `mypy apps/api/src` never applied [tool.mypy] from apps/api/pyproject.toml —
+    # mypy only reads a pyproject.toml in the current directory — and passing a path
+    # overrode packages = ["korpus"], so the run could not resolve the project's own
+    # imports. See docs/adr/0008-executable-gates.md.
+    - python scripts/run_quality_gate.py
+  artifacts:
+    when: always
+    paths:
+      - var/quality-report.json
+
+web:test:
+  stage: test
+  image: node:22.16.0-alpine@sha256:41e4389f3d988d2ed55392df4db1420ad048ae53324a8e2b7c6d19508288107e
+  script:
+    - npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+    - npm --prefix apps/web run lint
+    # `run test` is the negative-control suite: it mutates a copy of the tree and
+    # asserts each check in validate.mjs still refuses. Without it a lint that has
+    # stopped checking anything keeps printing "passed" — which is what the two
+    # `node --check` invocations that used to stand here were doing.
+    - npm --prefix apps/web run test
+    - npm --prefix apps/web run build
+
+api:assurance:
+  extends: .python-job
+  stage: assurance
+  timeout: 45m
+  script:
+    - mkdir -p var/objects
+    - python scripts/build_system_manifest.py --output var/system-manifest.json
     - python scripts/run_evals.py
-    - python scripts/run_evals.py --json > eval-report.json
+    - KORPUS_MUTATION_SHARDS=6 PYTHON=python scripts/run_mutation_shards.sh
+    - python scripts/run_migration_gate.py
+    - python scripts/run_scale_probe.py
+    - python scripts/run_operational_gate.py
   artifacts:
     when: always
-    expire_in: 14 days
     paths:
-      - eval-report.json
+      - var/eval-report.json
+      - var/mutation-report.json
+      - var/migration-report.json
+      - var/scale-report.json
+      - var/operational-gate.json
 
-# The operator path, executed. A green unit suite over a system nobody can actually
-# run is the failure mode this job exists to catch.
-api:acceptance:
-  stage: test
-  image: python:3.12-slim
-  cache:
-    key:
-      files:
-        - apps/api/pyproject.toml
-    paths:
-      - .cache/pip/
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install -e 'apps/api[dev]'
+# The drills. Each one breaks something on purpose, or loads the system until it refuses,
+# and leaves a report. They are separate from api:assurance because they take a running
+# deployment or a docker daemon, and because a drill that fails should say which drill —
+# not "assurance failed".
+#
+# The closure registry cites these artefacts. `_cited_runtime_artefacts` in
+# test_gate_parity.py reads that citation and fails if no job here publishes the file:
+# evidence that exists only on the machine where it was produced is not evidence a
+# reviewer can check.
+api:drills:
+  extends: .python-job
+  stage: assurance
+  timeout: 45m
   script:
-    - python scripts/acceptance.py
-
-# The threshold that decides when the system speaks is recomputed from the eval set
-# and compared against the frozen file. Drift is a red pipeline, not a surprise.
-api:calibration:
-  stage: test
-  image: python:3.12-slim
-  cache:
-    key:
-      files:
-        - apps/api/pyproject.toml
-    paths:
-      - .cache/pip/
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install -e 'apps/api[dev]'
-  script:
-    - python scripts/calibrate.py --verify
-
-# The gate that makes coverage mean something. Fails on: kill rate under the recorded
-# floor, a catalogue entry whose pattern no longer exists, or a shrinking catalogue.
-api:mutation:
-  stage: test
-  image: python:3.12-slim
-  timeout: 30m
-  cache:
-    key:
-      files:
-        - apps/api/pyproject.toml
-    paths:
-      - .cache/pip/
-  variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  before_script:
-    - python -m pip install --upgrade pip
-    - pip install -e 'apps/api[dev]'
-  script:
-    - python tools/mutation.py --json > mutation-report.json || (cat mutation-report.json; exit 1)
-    - cat mutation-report.json
+    - mkdir -p var/objects
+    - PYTHONPATH=.:apps/api/src python scripts/chaos_matrix.py
   artifacts:
     when: always
-    expire_in: 30 days
     paths:
-      - mutation-report.json
+      - var/chaos-matrix.json
 
-web:quality:
-  stage: test
-  image: node:22-bookworm-slim
-  cache:
-    key:
-      files:
-        - apps/web/pnpm-lock.yaml
-    paths:
-      - .pnpm-store/
-  before_script:
-    - corepack enable
-    - corepack prepare pnpm@10.32.1 --activate
-    - pnpm config set store-dir "$CI_PROJECT_DIR/.pnpm-store"
-    - pnpm --dir apps/web install --frozen-lockfile
+# The closure registry cites `var/mutation-report.json` for COD-005. That file is
+# produced by api:assurance, and this check used to run in `repository:validate` —
+# the first stage, before any producer had executed. It could not pass in a pipeline
+# and never had: every push from d894a89 (2026-08-04) to 2458942 (2026-08-05) failed
+# here, which skipped all thirteen remaining jobs. Locally it passed only because a
+# report from an earlier run was still lying in var/ (`make clean` reproduces the
+# failure). A check that consumes a produced artefact belongs after its producer, and
+# `needs: artifacts: true` is what makes the file present rather than incidental.
+audit:closure:
+  extends: .python-job
+  stage: security
+  needs:
+    - job: api:assurance
+      artifacts: true
+    # Stage order is not artefact delivery. Without this the closure check runs on a
+    # runner that has never seen var/chaos-matrix.json and resolves a citation against a
+    # file that is not there — which is the same shape as the evidence being absent.
+    - job: api:drills
+      artifacts: true
+    - job: security:summary
+      artifacts: true
   script:
-    - pnpm --dir apps/web lint
-    - pnpm --dir apps/web typecheck
+    - python scripts/build_audit_closure.py
+  artifacts:
+    when: always
+    paths:
+      - docs/audit/closure/
 
-web:build:
+# Ran on the image's own python3 until 2026-08-05, which on trixie is 3.13 — so the
+# only job that exercised PostgreSQL tested a different interpreter from the one the
+# production image ships (3.12.13) and from every other job here. Nothing said so; the
+# hashed lock did, by refusing a cp313 wheel against cp312 hashes. The client tools
+# have to be pg17 to dump a pg17 server, so they come from pgdg rather than the job
+# moving to the database's image.
+api:postgres-and-restore:
+  stage: assurance
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
+  services:
+    - name: pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f
+      alias: postgres
+  variables:
+    POSTGRES_DB: korpus_test
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres-test-password
+    KORPUS_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
+    KORPUS_POSTGRES_APP_ROLE: korpus_app
+    KORPUS_POSTGRES_APP_PASSWORD: korpus-app-test-password
+    KORPUS_POSTGRES_TEST_URL: postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test
+    KORPUS_DATABASE_URL: postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_test
+    KORPUS_BACKUP_DATABASE_URL: postgresql://postgres:postgres-test-password@postgres:5432/korpus_test
+    KORPUS_BACKUP_DIR: "$CI_PROJECT_DIR/var/backups"
+    KORPUS_BACKUP_ENCRYPTION_KEY_FILE: "$CI_PROJECT_DIR/var/backup-encryption.key"
+    KORPUS_BACKUP_KEY_ID: "ci-ephemeral-v4"
+  before_script:
+    # git: test_manifest_generation shells out to it to assert the release manifest
+    # lists only tracked files, and slim images ship without it.
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git curl ca-certificates gnupg && rm -rf /var/lib/apt/lists/*
+    - install -d /usr/share/postgresql-common/pgdg
+    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+    - echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends postgresql-client-17 && rm -rf /var/lib/apt/lists/*
+    - python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+    - python -m pip check
+    - python scripts/wait_for_database.py
+  script:
+    - cd apps/api && python -m alembic -c alembic.ini upgrade head && python -m alembic -c alembic.ini downgrade 0002_db_defense_and_vectors && python -m alembic -c alembic.ini upgrade head && cd ../..
+    - python scripts/prepare_postgres_role.py
+    # The whole suite against the migrated database, not only the postgres-marked test.
+    # Every closure in this tree was proved on SQLite; the first run of this line found
+    # a schema revision pin the code had outgrown, an audit verdict that called a
+    # delayed anchor a broken chain, and forty concurrent appends exhausting the retry
+    # budget — none of which SQLite can show.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
+    # Materialize the PostgreSQL/RLS production gate while the real pg17 service is alive.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
+    - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
+    - chmod 600 var/backup-encryption.key
+    # The drill seeds its own corpus. It used to back up whatever the pytest run above
+    # had left behind, which was two rows until the suite started cleaning up after
+    # itself — then a correct backup and a correct restore failed verification.
+    - KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - backup_path="$(scripts/backup_postgres.sh)"
+    - psql 'postgresql://postgres:postgres-test-password@postgres:5432/postgres' -v ON_ERROR_STOP=1 -c 'DROP DATABASE IF EXISTS korpus_restore' -c 'CREATE DATABASE korpus_restore'
+    - export KORPUS_RESTORE_DATABASE_URL='postgresql://postgres:postgres-test-password@postgres:5432/korpus_restore'
+    # Writes after the backup are what makes the loss figure a measurement: without
+    # them a restore loses nothing however broken it is. These rows are expected to be
+    # absent from the restored copy, and the drill fails if it cannot write them —
+    # a silently skipped seed would report the same zero as a perfect restore.
+    - KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$KORPUS_DATABASE_URL" python scripts/seed_recovery_fixture.py
+    - restore_started=$(date +%s.%N)
+    - scripts/restore_postgres.sh "$backup_path"
+    - export KORPUS_RECOVERY_RESTORE_SECONDS="$(python3 -c "import sys;print(float(sys.argv[2])-float(sys.argv[1]))" "$restore_started" "$(date +%s.%N)")"
+    - export KORPUS_DATABASE_URL='postgresql+psycopg://postgres:postgres-test-password@postgres:5432/korpus_restore'
+    - python scripts/prepare_postgres_role.py
+    - export KORPUS_POSTGRES_TEST_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore'
+    - python scripts/verify_postgres_restore.py
+    # The runbook has asked for restore duration against the declared RTO since v5 and
+    # nothing recorded it: a restore that took six hours passed every check here. The
+    # drill now emits duration, lost writes and the provenance that makes them mean
+    # something, and source:package refuses to assemble a release without it.
+    # Source is the database the backup came from, not the restored copy: comparing a
+    # copy with itself would report zero loss no matter what was lost.
+    # Counted through korpus_app, the least-privilege role the service runs as, not
+    # through postgres: RLS does not apply to a superuser, so a superuser count is a
+    # number about the table rather than about what the application can recover.
+    - KORPUS_RECOVERY_SOURCE_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_test' KORPUS_RECOVERY_RESTORED_URL='postgresql+psycopg://korpus_app:korpus-app-test-password@postgres:5432/korpus_restore' KORPUS_RECOVERY_BACKUP_PATH="$backup_path" python scripts/measure_recovery.py
+    # Produce a real network load report against the restored PostgreSQL-backed API.
+    # It is deliberately CI_FIXTURE evidence: it proves the producer/artifact/SLO path
+    # works, but cannot satisfy the production-like environment predicate by itself.
+    - export KORPUS_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_SCHEMA_MODE=migrations KORPUS_OBJECT_ROOT="$CI_PROJECT_DIR/var/load-objects"
+    - python -m uvicorn korpus.main:app --host 127.0.0.1 --port 8081 > var/load-api.log 2>&1 & echo $! > var/load-api.pid
+    - for attempt in $(seq 1 30); do if curl -fsS http://127.0.0.1:8081/health >/dev/null; then break; fi; sleep 1; done
+    - curl -fsS http://127.0.0.1:8081/health >/dev/null
+    - python scripts/load_probe.py --base http://127.0.0.1:8081 --environment-class CI_FIXTURE --seconds 5 --soak-seconds 10 --spike 16 --out var/load-probe.json
+    - kill "$(cat var/load-api.pid)" || true
+  artifacts:
+    when: always
+    paths:
+      - var/backups/*.json
+      - var/recovery-report.json
+      - var/load-probe.json
+      - var/load-api.log
+      - var/production/postgres_security-gate.json
+
+secret:scan:
+  stage: security
+  # GitLab clones 20 commits deep by default. gitleaks fingerprints are
+  # commit:file:rule:line, so under a shallow clone the CSV findings are attributed to
+  # whichever commit happens to be the boundary — the baseline stops matching and six
+  # accepted false positives come back as failures. The scan is a claim about the
+  # whole history; it needs the whole history.
+  variables:
+    GIT_DEPTH: "0"
+  image:
+    name: zricethezav/gitleaks:v8.30.1@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f
+    entrypoint: [""]
+  script:
+    # --baseline-path accepts six findings already in history and nothing else:
+    # each is pinned to commit, file, rule and line, so a new secret — or the same
+    # text in a new commit — still fails. They are prose in the audit CSVs that the
+    # generic-api-key heuristic reads as high-entropy tokens; verified by reading
+    # the lines. Excluding the paths instead would have silenced those files for
+    # good, including a real credential added to them later.
+    - gitleaks detect --source . --no-banner --redact --exit-code 1
+        --baseline-path .gitleaks-baseline.json
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"gitleaks","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-gitleaks.json
+  artifacts:
+    paths: [var/security/ci-gitleaks.json]
+
+python:audit:
+  stage: security
+  image: python:3.12.13-slim-bookworm@sha256:4766d8b510c428e595d74b9cc5bbb2fae8e26316fffb4adc89908d79aacd58a2
+  before_script:
+    - python -m pip install 'pip-audit==2.10.1'
+  script:
+    # --disable-pip requires either hashes in the requirements file or --no-deps;
+    # without one of them pip-audit refuses to start, which is how this job spent
+    # its whole existence: it had never run, so nothing had ever been audited.
+    # The lock is fully resolved, so --no-deps audits exactly what ships.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.runtime.lock
+    # The dev lock had never been audited by anything. It is what CI installs, on a
+    # runner with a checkout of this repository, so a compromised test dependency
+    # reads the tree and holds the pipeline's credentials — a strictly larger blast
+    # radius than a runtime package inside a read-only container. Running it here for
+    # the first time on 2026-08-06 found PYSEC-2026-1845 in pytest 9.0.2.
+    - pip-audit --strict --disable-pip --no-deps -r apps/api/requirements.dev.lock
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"pip-audit:runtime","exit_code":0},{"scanner":"pip-audit:dev","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-pip-audit.json
+  artifacts:
+    paths: [var/security/ci-pip-audit.json]
+
+infrastructure:scan:
+  stage: security
+  image:
+    name: aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
+    entrypoint: [""]
+  script:
+    # .trivyignore.yaml carries the one exception with a path scope and an expiry,
+    # which the flat .trivyignore format cannot express — it can only switch a rule
+    # off everywhere.
+    - trivy config --exit-code 1 --severity HIGH,CRITICAL --ignorefile .trivyignore.yaml .
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"trivy","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-trivy.json
+  artifacts:
+    paths: [var/security/ci-trivy.json]
+
+security:summary:
+  extends: .python-job
+  stage: security
+  needs:
+    - job: secret:scan
+      artifacts: true
+    - job: python:audit
+      artifacts: true
+    - job: infrastructure:scan
+      artifacts: true
+  script:
+    - python scripts/aggregate_ci_security_summary.py var/security/ci-gitleaks.json var/security/ci-pip-audit.json var/security/ci-trivy.json
+  artifacts:
+    paths:
+      - var/security/summary.json
+
+source:sbom:
+  stage: security
+  image:
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff
+    entrypoint: [""]
+  script:
+    # /syft, not syft: the image's PATH is
+    # /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/busybox and the
+    # binary sits at the root — read from the image config in the registry, after a
+    # bare `syft` exited 127 and a `command -v || find` fallback exited 1 under set -e.
+    - /syft dir:. -o cyclonedx-json=source-sbom.cdx.json
+  artifacts:
+    paths: [source-sbom.cdx.json]
+
+container:build:
   stage: build
-  image: node:22-bookworm-slim
-  needs: ["web:quality"]
-  before_script:
-    - corepack enable
-    - corepack prepare pnpm@10.32.1 --activate
-    - pnpm config set store-dir "$CI_PROJECT_DIR/.pnpm-store"
-    - pnpm --dir apps/web install --frozen-lockfile
+  # kaniko, not rootless buildkit. Buildkit needs a nested mount namespace, and on a
+  # plain docker executor that fails twice over: first the seccomp profile blocks
+  # `fork/exec /proc/self/exe`, then `mount src=proc` is refused outright. Both are
+  # fixable with SYS_ADMIN, which is privileged escape in everything but the flag name
+  # — taking that route would have satisfied the letter of the ban on `privileged:
+  # true` while removing exactly the isolation the ban exists for.
+  #
+  # kaniko builds in userspace with no daemon and no capabilities beyond an ordinary
+  # container's, which is what it was written for. The gate keeps its meaning: the
+  # image is built by an unprivileged job.
+  image:
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug@sha256:2562c4fe551399514277ffff7dcca9a3b1628c4ea38cb017d7286dc6ea52f4cd
+    entrypoint: [""]
   script:
-    - pnpm --dir apps/web build
+    # --no-push --tarPath: the pipeline scans and signs a local tarball; nothing is
+    # published from here. type=docker layout, because trivy's --input reads a
+    # docker-save tarball or an OCI *directory* and rejected the OCI archive with
+    # "file manifest.json not found in tar". syft reads either; trivy does not.
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/api/Dockerfile" --destination korpus-api --no-push --tarPath api-image.tar --single-snapshot --custom-platform linux/amd64
+    - /kaniko/executor --context "$CI_PROJECT_DIR" --dockerfile "$CI_PROJECT_DIR/apps/web/Dockerfile" --destination korpus-web --no-push --tarPath web-image.tar --single-snapshot --custom-platform linux/amd64
   artifacts:
-    expire_in: 7 days
     paths:
-      - apps/web/.next/standalone/
-      - apps/web/.next/static/
-      - apps/web/public/
+      - api-image.tar
+      - web-image.tar
+    expire_in: 1 day
 
+container:scan:
+  stage: verify-image
+  image:
+    name: aquasec/trivy:0.70.0@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e
+    entrypoint: [""]
+  needs:
+    - job: container:build
+      artifacts: true
+  script:
+    - trivy image --input api-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
+    - trivy image --input web-image.tar --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed
+    # --ignore-unfixed is the right gate — refusing to ship over a CVE with no patch
+    # blocks forever on somebody else's release schedule — but it makes the exposure
+    # invisible, and "no findings" then means two different things. Measured 2026-08-06:
+    # 0 fixable and 24 unfixed HIGH/CRITICAL in python:3.12.13-slim-bookworm, 0 and 0 in
+    # nginx:1.31.3-alpine. Recorded, not enforced: a number nobody writes down is a
+    # number nobody notices becoming fixable.
+    - trivy image --input api-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output api-unfixed.json
+    - trivy image --input web-image.tar --exit-code 0 --severity HIGH,CRITICAL --format json --output web-unfixed.json
+    - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","status":"PASS","worst_exit_code":0,"scanners":[{"scanner":"trivy:api-image","exit_code":0},{"scanner":"trivy:web-image","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-container-scan.json
+  artifacts:
+    when: always
+    paths:
+      - api-unfixed.json
+      - web-unfixed.json
+      - var/security/ci-container-scan.json
+    expire_in: 30 days
+
+container:sbom:
+  stage: verify-image
+  image:
+    # -debug carries a busybox shell. The plain tag is distroless, and GitLab
+    # needs `sh` to run a job script: both syft jobs died with
+    # `exec: "sh": executable file not found in $PATH` as a system failure,
+    # which reads as infrastructure flake rather than a config error.
+    name: anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b799e7cadaff6be2ec6d555757c4eeec0c0e48162f20b042ffa1ff
+    entrypoint: [""]
+  needs:
+    - job: container:build
+      artifacts: true
+  script:
+    - /syft docker-archive:api-image.tar -o cyclonedx-json=api-sbom.cdx.json
+    - /syft docker-archive:web-image.tar -o cyclonedx-json=web-sbom.cdx.json
+  artifacts:
+    paths:
+      - api-sbom.cdx.json
+      - web-sbom.cdx.json
+
+source:package:
+  # The aggregator now evaluates its predicates through korpus.application.assurance
+  # (so they are unit-testable and mutable), which means this job imports korpus.* and
+  # needs the locked environment — the same defect class as repository:validate in
+  # ADR-0008, caught here by test_gate_parity before it reached a pipeline.
+  extends: .python-job
+  stage: package
+  needs:
+    - job: repository:validate
+      artifacts: true
+    - job: audit:closure
+      artifacts: true
+    - job: api:test
+      artifacts: true
+    - job: api:assurance
+      artifacts: true
+    - job: api:quality
+      artifacts: true
+    - job: api:postgres-and-restore
+      artifacts: true
+    - job: api:drills
+      artifacts: true
+    - job: web:test
+    - job: secret:scan
+    - job: python:audit
+    - job: infrastructure:scan
+    - job: security:summary
+      artifacts: true
+    - job: source:sbom
+      artifacts: true
+    - job: container:scan
+      artifacts: true
+    - job: container:sbom
+      artifacts: true
+  script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
+    - PYTHONPATH=scripts python scripts/assemble_assurance.py
+    - python scripts/snapshot_assurance.py
+    # Bind all locally reproducible production gates to this exact source tree.
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_engineering_production_gate.py --report var/research-assurance-report.json
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_exact_environment_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_inference_security_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_observability_contract.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/export_state_contracts.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/export_authorization_matrix.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_mutation_production_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/build_supply_chain_evidence_manifest.py
+    - rm -f var/production/supply-chain-evidence.attestation.json
+    - if [ -n "${KORPUS_SUPPLY_CHAIN_SIGNING_KEY_FILE:-}" ]; then PYTHONPATH=apps/api/src:scripts python scripts/release_attestation.py sign --manifest var/production/supply-chain-evidence-manifest.json --key "$KORPUS_SUPPLY_CHAIN_SIGNING_KEY_FILE" --out var/production/supply-chain-evidence.attestation.json; fi
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/supply_chain-gate.json -- python scripts/run_supply_chain_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/run_pytest_campaign.py config/assurance/reliability-internal-v1.json
+    # Protected GitLab File variables may replace fixture evidence with externally
+    # measured, already-signed evidence. Every group is all-or-none and every downstream
+    # gate still verifies source/release, class, quality, signature and admitted trust root.
+    - PYTHONPATH=apps/api/src:scripts python scripts/stage_external_production_evidence.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/reliability-gate.json -- python scripts/run_reliability_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/tevv-gate.json -- python scripts/run_tevv_production_gate.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_gate.py --out var/production/redteam-gate.json -- python scripts/validate_external_redteam_evidence.py
+    # This is a state snapshot, not promotion: external TEVV/red-team/reliability/
+    # trusted supply-chain evidence is allowed to keep the report red.
+    - PYTHONPATH=apps/api/src:scripts python scripts/snapshot_production_assurance.py
+    - bash scripts/package_repository.sh
+  artifacts:
+    paths:
+      - dist/
+      - reports/
+      - SOURCE_MANIFEST.json
+      - var/production/*.json
+      - reports/PRODUCTION_ASSURANCE_REPORT.json
+      - '*-sbom.cdx.json'
+    expire_in: 30 days
+
+production:release:
+  extends: .python-job
+  stage: release
+  needs:
+    - job: source:package
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG && $CI_COMMIT_REF_PROTECTED == "true"'
+    - when: never
+  script:
+    - test -n "${KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE:-}"
+    - test -n "${KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256:-}"
+    - test -n "${KORPUS_RELEASE_SIGNING_KEY_FILE:-}"
+    - test -n "${KORPUS_TRUSTED_RELEASE_SIGNER_SHA256:-}"
+    - test "$KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256" != "$KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
+    - PYTHONPATH=apps/api/src:scripts python scripts/release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json --key "$KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY_FILE" --out reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_assurance.py
+    - KORPUS_RELEASE_SIGNING_KEY="$KORPUS_RELEASE_SIGNING_KEY_FILE" scripts/package_production_release.sh
+  artifacts:
+    paths:
+      - dist/*.zip
+      - dist/*.release-manifest.json
+      - dist/*.release-attestation.json
+      - dist/*.production.sha256
+    expire_in: 90 days

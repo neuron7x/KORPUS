@@ -1,0 +1,89 @@
+name: production-load-evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Exact HTTPS API revision URL"
+        required: true
+        type: string
+      concurrency:
+        description: "Steady-state concurrency"
+        required: true
+        default: "16"
+        type: string
+      soak_seconds:
+        description: "Soak duration in seconds"
+        required: true
+        default: "900"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-load-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/apps/api/src
+
+jobs:
+  load-soak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Python 3.12.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: 3.12.13
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Resolve immutable source identity
+        id: identity
+        run: |
+          echo "source=$(PYTHONPATH=apps/api/src:scripts python - <<'PY'
+          from pathlib import Path
+          from korpus.application.provenance import compute_source_digest
+          print(compute_source_digest(Path('.').resolve()))
+          PY
+          )" >> "$GITHUB_OUTPUT"
+          echo "release=$(PYTHONPATH=apps/api/src:scripts python - <<'PY'
+          from scripts.release_identity import release_tag
+          print(release_tag())
+          PY
+          )" >> "$GITHUB_OUTPUT"
+      - name: Execute hosted load and soak probe
+        env:
+          KORPUS_PROBE_TOKEN: ${{ secrets.KORPUS_PRODUCTION_PROBE_TOKEN }}
+        run: |
+          case "${{ inputs.base_url }}" in https://*) ;; *) echo "base_url must be https" >&2; exit 2;; esac
+          python scripts/load_probe.py \
+            --base "${{ inputs.base_url }}" \
+            --concurrency "${{ inputs.concurrency }}" \
+            --spike 32 \
+            --seconds 60 \
+            --soak-seconds "${{ inputs.soak_seconds }}" \
+            --timeout 10 \
+            --environment-class PRODUCTION \
+            --source-tree-sha256 "${{ steps.identity.outputs.source }}" \
+            --release "${{ steps.identity.outputs.release }}" \
+            --token "$KORPUS_PROBE_TOKEN" \
+            --out var/load-probe.json
+      - name: Publish raw immutable load evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-load-evidence-${{ github.run_id }}
+          path: var/load-probe.json
+          if-no-files-found: error
+          retention-days: 90

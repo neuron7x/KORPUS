@@ -1,0 +1,90 @@
+{
+  "schema": "korpus.engineering-readiness-result.v1",
+  "profile_id": "engineering-technical-academic-readiness-94.7",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "release": "v0.8.0",
+  "engineering_readiness_percent": 95.24,
+  "target_percent": 94.7,
+  "target_met": true,
+  "production_authorized_by_score": false,
+  "dimensions": {
+    "product_core": {
+      "passed": 13,
+      "total": 13,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 12.61
+    },
+    "architecture_invariants": {
+      "passed": 15,
+      "total": 15,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 14.55
+    },
+    "security_internal": {
+      "passed": 17,
+      "total": 17,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 16.49
+    },
+    "tests_tevv": {
+      "passed": 17,
+      "total": 17,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 16.49
+    },
+    "release_package_integrity": {
+      "passed": 15,
+      "total": 15,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 14.55
+    },
+    "reliability_internal": {
+      "passed": 10,
+      "total": 10,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 9.7
+    },
+    "ui_ux": {
+      "passed": 5,
+      "total": 5,
+      "raw_percent": 100.0,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "calibrated_percent": 97.0,
+      "weighted_points": 4.85
+    },
+    "maintainability_reproducibility": {
+      "passed": 6,
+      "total": 8,
+      "raw_percent": 75.0,
+      "evidence_class": "EXECUTED",
+      "calibrated_percent": 75.0,
+      "weighted_points": 6.0
+    }
+  },
+  "external_or_tooling_gaps": [
+    "external_independent_redteam",
+    "live_vulnerability_scanners",
+    "live_postgres_rls",
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "production_like_load",
+    "trusted_load_attestation",
+    "trusted_recovery_attestation",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "exact_python_3_12_13_environment"
+  ]
+}

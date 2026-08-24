@@ -1,117 +1,497 @@
-"""Document intake.
-
-Ingestion decides three things that the answer path can no longer question: what a
-chunk is, who says it, and whether anyone has reviewed it. All three are recorded
-with the content, so a citation can be traced back to a file and a hash rather than
-to a filename that may since have been replaced.
-
-Identity is derived from content, not from position: the same file ingested twice
-produces the same chunk ids and the store rejects the duplicate. That is what makes
-re-running an import safe on a bad connection, which is the normal case here.
-"""
-
 from __future__ import annotations
 
 import hashlib
-import re
+import tempfile
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from uuid import UUID, uuid5
+from uuid import UUID
 
+from korpus.application.extraction_quality import ExtractionQuality, assess_extraction_quality
+from korpus.application.fingerprints import simhash64
+from korpus.application.policy import PolicyEngine
+from korpus.application.ports import Extractor, ObjectStore, Repository
 from korpus.domain.models import (
-    AccessTier,
-    AuthorityClass,
-    Citation,
-    EvidenceSpan,
+    DocumentCreate,
+    DocumentRecord,
+    DocumentVersionRecord,
+    EvidenceSpanRecord,
+    Identity,
+    IngestResult,
     ReviewState,
+    ReviewTransition,
+    VersionCreate,
 )
+from korpus.security.corpus_governance import CorpusGovernanceProfile
+from korpus.security.reviewers import ReviewerRegistry
+from korpus.security.scanning import DisabledMalwareScanner, MalwareScanner
+from korpus.security.source_authenticity import SourceTrustProfile
 
-# Fixed namespace: chunk ids must be reproducible across machines and runs.
-NAMESPACE = UUID("1b5e9a2c-0f4a-4c8f-9a1e-5f0d3c7b6a20")
-PARAGRAPH = re.compile(r"\n\s*\n")
-MAX_QUOTE = 1200
+ALLOWED_TRANSITIONS: dict[ReviewState, frozenset[ReviewState]] = {
+    ReviewState.QUARANTINED: frozenset({ReviewState.METADATA_REVIEWED, ReviewState.REJECTED}),
+    ReviewState.METADATA_REVIEWED: frozenset({ReviewState.CONTENT_REVIEWED, ReviewState.REJECTED}),
+    ReviewState.CONTENT_REVIEWED: frozenset({ReviewState.APPROVED, ReviewState.REJECTED}),
+    ReviewState.APPROVED: frozenset({ReviewState.REJECTED}),
+    ReviewState.REJECTED: frozenset(),
+}
 
 
 @dataclass(frozen=True)
-class SourceDescriptor:
-    """Everything a reviewer must state before a document may be cited."""
-
-    corpus_id: UUID
-    title: str
-    authority: AuthorityClass
-    access_tier: AccessTier = AccessTier.PUBLIC
-    review_state: ReviewState = ReviewState.QUARANTINED
-    revision: str | None = None
-    source_uri: str | None = None
-    valid_until: datetime | None = None
-
-
-def content_hash(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+class ExtractionSettings:
+    ocr_enabled: bool
+    ocr_languages: str
+    max_pdf_pages: int = 500
+    max_spans_per_document: int = 20_000
+    max_chunk_chars: int = 1400
+    chunk_overlap_chars: int = 180
+    ocr_total_timeout_seconds: int = 300
+    parser_sandbox_enabled: bool = False
+    parser_timeout_seconds: int = 120
+    parser_memory_limit_mb: int = 768
+    parser_output_limit_bytes: int = 64 * 1024 * 1024
 
 
-def split_paragraphs(text: str) -> list[str]:
-    """Paragraph chunking.
+class IngestionService:
+    def __init__(
+        self,
+        repository: Repository,
+        object_store: ObjectStore,
+        policy: PolicyEngine,
+        extraction: ExtractionSettings,
+        # Positional, and deliberately not defaulted. A default would have to name an
+        # implementation, and every way of naming one — a module-level import, a
+        # deferred import inside the constructor — puts a path from this layer to
+        # infrastructure back into the graph that test_architecture.py reads.
+        # `korpus.composition` builds the service; that module is the composition root
+        # and is allowed to know both sides.
+        extractor: Extractor,
+        review_separation_required: bool = False,
+        malware_scanner: MalwareScanner | None = None,
+        source_trust_profile: SourceTrustProfile | None = None,
+        require_source_signature: bool = False,
+        reviewer_registry: ReviewerRegistry | None = None,
+        require_reviewer_credentials: bool = False,
+        corpus_governance: CorpusGovernanceProfile | None = None,
+        require_corpus_governance: bool = False,
+    ) -> None:
+        self.repository = repository
+        self.object_store = object_store
+        self.policy = policy
+        self.extraction = extraction
+        self.extractor = extractor
+        self.review_separation_required = review_separation_required
+        self.malware_scanner = malware_scanner or DisabledMalwareScanner()
+        self.source_trust_profile = source_trust_profile
+        self.require_source_signature = require_source_signature
+        self.reviewer_registry = reviewer_registry
+        self.require_reviewer_credentials = require_reviewer_credentials
+        self.corpus_governance = corpus_governance
+        self.require_corpus_governance = require_corpus_governance
+        if require_corpus_governance and corpus_governance is None:
+            raise ValueError("controlled ingestion requires a corpus governance profile")
+        if require_reviewer_credentials and reviewer_registry is None:
+            raise ValueError("reviewer credential enforcement requires a registry")
+        if require_source_signature and source_trust_profile is None:
+            raise ValueError("source signature enforcement requires a trust profile")
 
-    Deliberately not token-window chunking: a citation must point at something a
-    human can find on the page. A paragraph is that unit in every document this
-    system ingests, and a split that no reader recognises makes a citation unusable
-    even when it is technically correct.
-    """
-    return [block.strip() for block in PARAGRAPH.split(text) if block.strip()]
-
-
-def chunk_document(
-    text: str,
-    descriptor: SourceDescriptor,
-    *,
-    page_of: dict[int, int] | None = None,
-) -> list[EvidenceSpan]:
-    """Turn raw text into evidence spans. Pure: no clock, no store, no io."""
-    document_hash = content_hash(text)
-    document_id = uuid5(NAMESPACE, f"document:{descriptor.title}:{document_hash}")
-    version_id = uuid5(NAMESPACE, f"version:{document_id}:{descriptor.revision or '-'}")
-    spans: list[EvidenceSpan] = []
-    for index, block in enumerate(split_paragraphs(text)):
-        chunk_id = uuid5(NAMESPACE, f"chunk:{version_id}:{content_hash(block)}:{index}")
-        quote = block if len(block) <= MAX_QUOTE else block[: MAX_QUOTE - 1].rstrip() + "…"
-        spans.append(
-            EvidenceSpan(
-                citation=Citation(
-                    document_id=document_id,
-                    chunk_id=chunk_id,
-                    title=descriptor.title,
-                    revision=descriptor.revision,
-                    page=(page_of or {}).get(index),
-                    section=None,
-                    quote=quote,
-                    source_uri=descriptor.source_uri,
-                ),
-                chunk_id=chunk_id,
-                document_id=document_id,
-                document_version_id=version_id,
-                corpus_id=descriptor.corpus_id,
-                text=block,
-                retrieval_score=0.0,
-                access_tier=descriptor.access_tier,
-                review_state=descriptor.review_state,
-                authority=descriptor.authority,
-                valid_until=descriptor.valid_until,
+    def ingest(
+        self,
+        actor: Identity,
+        document_data: DocumentCreate,
+        version_data: VersionCreate,
+        filename: str,
+        mime_type: str,
+        content: bytes,
+    ) -> IngestResult:
+        with tempfile.NamedTemporaryFile(
+            prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False
+        ) as handle:
+            handle.write(content)
+            path = Path(handle.name)
+        try:
+            return self.ingest_path(
+                actor,
+                document_data,
+                version_data,
+                filename,
+                mime_type,
+                path,
+                hashlib.sha256(content).hexdigest(),
             )
+        finally:
+            path.unlink(missing_ok=True)
+
+    def ingest_path(
+        self,
+        actor: Identity,
+        document_data: DocumentCreate,
+        version_data: VersionCreate,
+        filename: str,
+        mime_type: str,
+        path: Path,
+        source_hash: str | None = None,
+    ) -> IngestResult:
+        self.policy.require(actor, "document:ingest")
+        if self.corpus_governance is not None:
+            self.corpus_governance.authorize_ingestion(
+                document_data, version_data, ocr_requested=self.extraction.ocr_enabled
+            )
+        elif self.require_corpus_governance:
+            raise PermissionError("corpus governance profile is unavailable")
+        if document_data.corpus_id not in actor.corpora and not actor.has_role("admin"):
+            raise PermissionError("actor cannot ingest into unassigned corpus")
+        if version_data.supersedes_version_id is not None:
+            # Supersession is an edge inside one canonical document. On this path the
+            # document is being created now, so it has no predecessors and the edge can
+            # only point at somebody else's — which is how a foreign upload took an
+            # approved order out of retrieval while it stayed is_current in the database
+            # (destruction stage B3). The sibling path, which adds a version to an
+            # existing document, checks ownership; this one accepted anything.
+            raise ValueError(
+                "a newly created document cannot supersede a version of another document"
+            )
+        if not document_data.compartments.issubset(actor.compartments) and not actor.has_role(
+            "admin"
+        ):
+            raise PermissionError("actor cannot assign unowned compartments")
+        digest = self._validate_path_and_hash(path, source_hash)
+        self._verify_source(document_data.issuer, version_data, digest)
+        duplicate = self.repository.find_version_by_hash(
+            actor, digest, corpus_id=document_data.corpus_id, revision=version_data.revision
         )
-    return spans
-
-
-def read_source(path: Path) -> str:
-    """Read a plain-text or markdown source.
-
-    Binary formats are refused rather than half-extracted: a PDF read as bytes
-    produces chunks that look like text, cite like text, and mean nothing.
-    """
-    if path.suffix.lower() not in {".txt", ".md"}:
-        raise ValueError(
-            f"{path.name}: only .txt and .md are ingested today; "
-            "PDF and DOCX need an extraction step that does not exist yet"
+        if duplicate is not None:
+            duplicate_document = self.repository.get_document(actor, duplicate.document_id)
+            if (
+                duplicate_document is None
+                or not self.policy.can_access_document(actor, duplicate_document).allowed
+            ):
+                # Deliberately indistinguishable from an ordinary ingestion. Until
+                # 2026-08-06 this raised "duplicate source content already exists",
+                # which is a confirmation oracle: a curator who cannot list the document
+                # learns that these exact bytes are already held, one guess at a time.
+                # The code was already careful not to return the *record* — and said so
+                # by raising a message that reveals the same fact in prose.
+                #
+                # Treated as new instead: the bytes are stored under the caller's own
+                # document, the corpus gains a duplicate it cannot see, and nothing is
+                # disclosed. `find_version_by_hash` is scoped by entitlement, so this
+                # branch is only ever reached by a caller who may not see the match.
+                duplicate = None
+            else:
+                return IngestResult(
+                    document=duplicate_document,
+                    version=duplicate,
+                    span_count=0,
+                    extraction_method="deduplicated",
+                    duplicate=True,
+                )
+        self.malware_scanner.scan(path)
+        page_spans, method = self._extract_path(path, filename, mime_type)
+        extracted_text = "\n".join(str(span["text"]) for span in page_spans)
+        fingerprint = simhash64(extracted_text)
+        quality = assess_extraction_quality(extracted_text)
+        near_duplicate = self.repository.find_near_duplicate(
+            actor, fingerprint, corpus_id=document_data.corpus_id
         )
-    return path.read_text(encoding="utf-8")
+        document = DocumentRecord(**document_data.model_dump())
+        version, spans = self._build_version_and_spans_path(
+            document.id, version_data, path, filename, mime_type, digest, page_spans,
+            content_fingerprint=fingerprint,
+            near_duplicate=near_duplicate,
+            extraction_quality=quality,
+        )
+        audit_payload = self._ingest_audit_payload(document, version, len(spans), method)
+        self.repository.create_document_bundle(actor, document, version, spans, audit_payload)
+        return IngestResult(
+            document=document,
+            version=version,
+            span_count=len(spans),
+            extraction_method=method,
+        )
+
+    def ingest_version(
+        self,
+        actor: Identity,
+        document_id: UUID,
+        version_data: VersionCreate,
+        filename: str,
+        mime_type: str,
+        content: bytes,
+    ) -> IngestResult:
+        with tempfile.NamedTemporaryFile(
+            prefix="korpus-ingest-", suffix=Path(filename).suffix, delete=False
+        ) as handle:
+            handle.write(content)
+            path = Path(handle.name)
+        try:
+            return self.ingest_version_path(
+                actor,
+                document_id,
+                version_data,
+                filename,
+                mime_type,
+                path,
+                hashlib.sha256(content).hexdigest(),
+            )
+        finally:
+            path.unlink(missing_ok=True)
+
+    def ingest_version_path(
+        self,
+        actor: Identity,
+        document_id: UUID,
+        version_data: VersionCreate,
+        filename: str,
+        mime_type: str,
+        path: Path,
+        source_hash: str | None = None,
+    ) -> IngestResult:
+        self.policy.require(actor, "document:ingest")
+        document = self.repository.get_document(actor, document_id)
+        if document is None:
+            raise LookupError("document not found")
+        if not self.policy.can_access_document(actor, document).allowed:
+            raise PermissionError("actor cannot access target document")
+        if self.corpus_governance is not None:
+            self.corpus_governance.authorize_ingestion(
+                DocumentCreate(**document.model_dump(exclude={"id", "created_at"})),
+                version_data,
+                ocr_requested=self.extraction.ocr_enabled,
+            )
+        elif self.require_corpus_governance:
+            raise PermissionError("corpus governance profile is unavailable")
+        digest = self._validate_path_and_hash(path, source_hash)
+        self._verify_source(document.issuer, version_data, digest)
+        duplicate = self.repository.find_version_by_hash(
+            actor, digest, document_id=document.id, revision=version_data.revision
+        )
+        if duplicate is not None:
+            return IngestResult(
+                document=document,
+                version=duplicate,
+                span_count=0,
+                extraction_method="deduplicated",
+                duplicate=True,
+            )
+        if version_data.supersedes_version_id is not None:
+            superseded = self.repository.get_version(actor, version_data.supersedes_version_id)
+            if superseded is None or superseded.document_id != document.id:
+                raise ValueError("supersedes_version_id must reference the same canonical document")
+        self.malware_scanner.scan(path)
+        page_spans, method = self._extract_path(path, filename, mime_type)
+        extracted_text = "\n".join(str(span["text"]) for span in page_spans)
+        fingerprint = simhash64(extracted_text)
+        quality = assess_extraction_quality(extracted_text)
+        near_duplicate = self.repository.find_near_duplicate(
+            actor, fingerprint, document_id=document.id
+        )
+        version, spans = self._build_version_and_spans_path(
+            document.id, version_data, path, filename, mime_type, digest, page_spans,
+            content_fingerprint=fingerprint,
+            near_duplicate=near_duplicate,
+            extraction_quality=quality,
+        )
+        audit_payload = self._ingest_audit_payload(document, version, len(spans), method)
+        self.repository.create_version_bundle(actor, version, spans, audit_payload)
+        return IngestResult(
+            document=document,
+            version=version,
+            span_count=len(spans),
+            extraction_method=method,
+        )
+
+    def transition(
+        self,
+        actor: Identity,
+        version_id: UUID,
+        transition: ReviewTransition,
+    ) -> DocumentVersionRecord:
+        version = self.repository.get_version(actor, version_id)
+        if version is None:
+            raise LookupError("version not found")
+        # Holding a review role is not the same as being entitled to this corpus.
+        # Neither get_version nor get_document filters by corpus — on PostgreSQL
+        # row-level security refuses first, on SQLite nothing does — so a reviewer for
+        # one corpus could drive another corpus's version through its review states,
+        # including approval, given only the version id. The document is fetched here
+        # rather than inside the reviewer-credential branch below, because the access
+        # decision applies to every transition, not only the three that need a
+        # credential.
+        document = self.repository.get_document(actor, version.document_id)
+        if document is None:
+            raise LookupError("document not found")
+        if not self.policy.can_access_document(actor, document).allowed:
+            raise PermissionError("actor cannot access target document")
+        permission = (
+            "document:review_metadata"
+            if transition.target is ReviewState.METADATA_REVIEWED
+            else "document:review"
+        )
+        if transition.target is ReviewState.APPROVED:
+            permission = "document:approve"
+        self.policy.require(actor, permission)
+        if transition.target not in ALLOWED_TRANSITIONS[version.review_state]:
+            raise ValueError(
+                f"invalid review transition {version.review_state.value}"
+                f" -> {transition.target.value}"
+            )
+        if transition.target is ReviewState.APPROVED and not version.authority.is_normative:
+            raise ValueError(f"{version.authority.value} authority cannot be approved")
+        if transition.target is ReviewState.APPROVED and version.in_force_from is None:
+            # Approving a version makes it answer "which rules applied on date X". With
+            # neither effective_from nor publication_date it answered for every past
+            # date, including dates before it existed. The date is a fact about the
+            # order that the curator has in front of them; refusing here is cheaper than
+            # a citation that is wrong in a way the reader cannot see.
+            raise ValueError(
+                "an approved version must state effective_from or publication_date: "
+                "without one it would govern every past date"
+            )
+        if self.review_separation_required:
+            if (
+                transition.target is ReviewState.CONTENT_REVIEWED
+                and version.metadata_reviewed_by == actor.subject
+            ):
+                raise ValueError("content reviewer must differ from metadata reviewer")
+            if transition.target is ReviewState.APPROVED and actor.subject in {
+                version.metadata_reviewed_by,
+                version.content_reviewed_by,
+            }:
+                raise ValueError("approver must differ from prior reviewers")
+        reviewer_credential_id: str | None = None
+        if transition.target in {
+            ReviewState.METADATA_REVIEWED,
+            ReviewState.CONTENT_REVIEWED,
+            ReviewState.APPROVED,
+        }:
+            if self.reviewer_registry is not None:
+                reviewer_credential_id = self.reviewer_registry.authorize(
+                    subject=actor.subject,
+                    target=transition.target,
+                    document=document,
+                    version=version,
+                )
+            elif self.require_reviewer_credentials:
+                raise PermissionError("reviewer credential registry is unavailable")
+        return self.repository.transition_version(
+            actor,
+            version_id,
+            expected_state=version.review_state,
+            target_state=transition.target,
+            note=transition.note,
+            acknowledge_near_duplicate=transition.acknowledge_near_duplicate,
+            acknowledge_extraction_quality=transition.acknowledge_extraction_quality,
+            reviewer_credential_id=reviewer_credential_id,
+            access_tier=transition.access_tier,
+        )
+
+
+    def _verify_source(self, issuer: str, version: VersionCreate, source_hash: str) -> None:
+        supplied = bool(version.source_key_id or version.source_signature_b64)
+        if not self.require_source_signature and not supplied:
+            return
+        if self.source_trust_profile is None:
+            raise ValueError("source trust profile is unavailable")
+        self.source_trust_profile.verify(issuer=issuer, version=version, source_hash=source_hash)
+
+    @staticmethod
+    def _validate_path_and_hash(path: Path, expected: str | None) -> str:
+        if not path.is_file() or path.stat().st_size == 0:
+            raise ValueError("empty document")
+        hasher = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                hasher.update(chunk)
+        digest = hasher.hexdigest()
+        if expected is not None and digest != expected:
+            raise ValueError("upload digest mismatch")
+        return digest
+
+    def _extract_path(
+        self, path: Path, filename: str, mime_type: str
+    ) -> tuple[list[dict[str, object]], str]:
+        # Whether untrusted bytes may be parsed in this process is an application
+        # decision; carrying it out is the adapter's.
+        pages, method = self.extractor.extract_pages(
+            path=path,
+            filename=filename,
+            mime_type=mime_type,
+            sandboxed=self.extraction.parser_sandbox_enabled,
+            ocr_enabled=self.extraction.ocr_enabled,
+            ocr_languages=self.extraction.ocr_languages,
+            max_pdf_pages=self.extraction.max_pdf_pages,
+            ocr_total_timeout_seconds=self.extraction.ocr_total_timeout_seconds,
+            timeout_seconds=self.extraction.parser_timeout_seconds,
+            memory_limit_mb=self.extraction.parser_memory_limit_mb,
+            output_limit_bytes=self.extraction.parser_output_limit_bytes,
+        )
+        return (
+            self.extractor.make_spans(
+                pages,
+                max_chars=self.extraction.max_chunk_chars,
+                overlap_chars=self.extraction.chunk_overlap_chars,
+                max_spans=self.extraction.max_spans_per_document,
+            ),
+            method,
+        )
+
+    def _build_version_and_spans_path(
+        self,
+        document_id: UUID,
+        version_data: VersionCreate,
+        path: Path,
+        filename: str,
+        mime_type: str,
+        digest: str,
+        page_spans: list[dict[str, object]],
+        *,
+        content_fingerprint: str,
+        near_duplicate: tuple[DocumentVersionRecord, float] | None,
+        extraction_quality: ExtractionQuality,
+    ) -> tuple[DocumentVersionRecord, list[EvidenceSpanRecord]]:
+        object_key = self.object_store.put_path(path, digest, Path(filename).name)
+        version = DocumentVersionRecord(
+            document_id=document_id,
+            source_hash=digest,
+            object_key=object_key,
+            mime_type=mime_type,
+            content_fingerprint=content_fingerprint,
+            near_duplicate_of_version_id=near_duplicate[0].id if near_duplicate else None,
+            near_duplicate_similarity=near_duplicate[1] if near_duplicate else None,
+            extraction_text_chars=extraction_quality.text_chars,
+            extraction_alnum_ratio=extraction_quality.alnum_ratio,
+            extraction_replacement_ratio=extraction_quality.replacement_ratio,
+            extraction_quality_flags=extraction_quality.flags,
+            **version_data.model_dump(),
+        )
+        spans = [EvidenceSpanRecord(version_id=version.id, **span) for span in page_spans]
+        return version, spans
+
+    @staticmethod
+    def _ingest_audit_payload(
+        document: DocumentRecord,
+        version: DocumentVersionRecord,
+        span_count: int,
+        method: str,
+    ) -> dict[str, object]:
+        return {
+            "document_id": str(document.id),
+            "source_hash": version.source_hash,
+            "span_count": span_count,
+            "extraction_method": method,
+            "review_state": version.review_state.value,
+            "compartments": sorted(document.compartments),
+            "supersedes_version_id": (
+                str(version.supersedes_version_id) if version.supersedes_version_id else None
+            ),
+            "content_fingerprint": version.content_fingerprint,
+            "near_duplicate_of_version_id": (
+                str(version.near_duplicate_of_version_id)
+                if version.near_duplicate_of_version_id
+                else None
+            ),
+            "near_duplicate_similarity": version.near_duplicate_similarity,
+            "extraction_text_chars": version.extraction_text_chars,
+            "extraction_alnum_ratio": version.extraction_alnum_ratio,
+            "extraction_replacement_ratio": version.extraction_replacement_ratio,
+            "extraction_quality_flags": sorted(version.extraction_quality_flags),
+        }

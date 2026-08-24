@@ -1,0 +1,40 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "redteam_internal",
+  "status": "PASS",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "campaign_executed": true,
+    "pytest_passed": true,
+    "attack_families_declared": true
+  },
+  "failures": [],
+  "evidence_class": "INTERNAL_ADVERSARIAL",
+  "attack_families": [
+    "auth_bypass",
+    "idor",
+    "tenant_escape",
+    "privilege_escalation",
+    "ssrf_egress",
+    "injection_parser",
+    "webhook_forgery_replay",
+    "host_header",
+    "data_exfiltration"
+  ],
+  "pytest_targets": [
+    "apps/api/tests/test_tenancy_threats.py",
+    "apps/api/tests/test_access_oracles.py",
+    "apps/api/tests/test_repository_access_refusals.py",
+    "apps/api/tests/test_routes_permissions.py",
+    "apps/api/tests/test_browser_session_refusals.py",
+    "apps/api/tests/test_oidc.py",
+    "apps/api/tests/test_model_egress.py",
+    "apps/api/tests/test_malformed_pdf_containment.py",
+    "apps/api/tests/test_liqpay_billing.py",
+    "apps/api/tests/test_billing_events.py"
+  ],
+  "pytest_exit_code": 0,
+  "stdout_tail": "........................................................................ [ 59%]\n..................................................                       [100%]\n",
+  "stderr_tail": ""
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "korpus.candidate-status.v1",
+  "release": "v6.6.0",
+  "act": "ACT-005",
+  "status": "PASS_WITH_CAVEATS",
+  "production_authorized": false,
+  "passes": [
+    "design_tokens_ssot",
+    "component_state_registry",
+    "viewport_contract",
+    "web_121_tests",
+    "web_lint",
+    "web_typecheck",
+    "web_build",
+    "import_cycles_zero",
+    "module_budget"
+  ],
+  "caveats": [
+    "no_pixel_visual_regression_browser_evidence",
+    "fresh_exact_lock_assurance_not_promoted",
+    "live_oidc_and_liqpay_not_verified"
+  ]
+}

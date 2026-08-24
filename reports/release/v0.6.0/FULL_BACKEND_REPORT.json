@@ -1,0 +1,20 @@
+{
+  "schema": "korpus.backend-test-summary.v2",
+  "status": "PASS",
+  "release": "v0.6.0",
+  "source_tree_sha256": "12fe9049b7170670160d8b1741b4840caa29fc717e6c594a4fe4fca7be782b98",
+  "collected": 1628,
+  "passed": 1627,
+  "failed": 0,
+  "errors": 0,
+  "skipped": 1,
+  "executed_pass_rate": 1.0,
+  "procedure": {
+    "suite": "apps/api/tests",
+    "execution": "complete deterministic sharded regression on exact source tree",
+    "collection_recheck": "pytest --collect-only: 1628",
+    "skip_verification": "only KORPUS_POSTGRES_TEST_URL integration is skipped in this environment; dynamic TEVV/evidence skip paths were separately probed green",
+    "monolithic_recheck": "attempted but exceeded the bounded orchestration wall time; no partial monolithic result is credited"
+  },
+  "evidence_status": "MEASURED_PLUS_DERIVED_CARDINALITY"
+}

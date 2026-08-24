@@ -1,0 +1,822 @@
+{
+  "schema": "korpus.military-readiness-campaign.v2",
+  "scope": "full",
+  "status": "PASS",
+  "results": [
+    {
+      "name": "current_truth",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 0.865,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "scripts/verify_current_truth.py"
+      ],
+      "stdout_tail": "{\n  \"schema\": \"korpus.current-truth-verification.v2\",\n  \"status\": \"PASS\",\n  \"release\": \"v0.9.4\",\n  \"source_tree_sha256\": \"5ef17f99c01d1339fc3954998e8cd21fbe764b31cdafebfd7d67fb4d56914c22\",\n  \"checks\": {\n    \"reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.present\": true,\n    \"reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.source_bound\": true,\n    \"reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json.release_bound\": true,\n    \"reports/STANDARDS_CONTROL_MAP_VERIFICATION.json.present\": true,\n    \"reports/STANDARDS_CONTROL_MAP_VERIFICATION.json.source_bound\": true,\n    \"reports/STANDARDS_CONTROL_MAP_VERIFICATION.json.release_bound\": true,\n    \"reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json.present\": true,\n    \"reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json.source_bound\": true,\n    \"reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json.release_bound\": true,\n    \"BLOCKER_REGISTRY.json.present\": true,\n    \"BLOCKER_REGISTRY.json.source_bound\": true,\n    \"BLOCKER_REGISTRY.json.release_bound\": true,\n    \"CLAIM_LEDGER.json.present\": true,\n    \"CLAIM_LEDGER.json.source_bound\": true,\n    \"CLAIM_LEDGER.json.release_bound\": true,\n    \"CLAIM_LEDGER.supported_evidence_resolves\": true,\n    \"CLAIM_LEDGER.supported_unresolved_zero\": true,\n    \"BLOCKER_REGISTRY.current_state_present\": true,\n    \"BLOCKER_REGISTRY.hard_predicate_report_current\": true,\n    \"BLOCKER_REGISTRY.internal_executable_unresolved_zero\": true,\n    \"BLOCKER_REGISTRY.source_bound_current\": true,\n    \"BLOCKER_REGISTRY.release_bound_current\": true,\n    \"RELEASE_ENVELOPE.present\": true,\n    \"CANONICAL_RELEASE_REPORT.root_present\": true,\n    \"CANONICAL_RELEASE_REPORT.alias_present\": true,\n    \"FULL_SSOT_PACKAGE_RECEIPT.present\": true,\n    \"RELEASE_ENVELOPE.release_bound\": true,\n    \"CANONICAL_RELEASE_REPORT.root_release_bound\": true,\n    \"CANONICAL_RELEASE_REPORT.alias_release_bound\": true,\n    \"CANONICAL_RELEASE_REPORT.alias_exact\": true,\n    \"FULL_SSOT_PACKAGE_RECEIPT.release_bound\": true,\n    \"FULL_SSOT_PACKAGE_RECEIPT.role\": true,\n    \"GITHUB_IMPORT.md.present\": true,\n    \"GITHUB_IMPORT.md.release_bound\": true,\n    \"GITHUB_IMPORT.md.artifact_bound\": true,\n    \"GITLAB_IMPORT.md.present\": true,\n    \"GITLAB_IMPORT.md.release_bound\": true,\n    \"GITLAB_IMPORT.md.artifact_bound\": true,\n    \"PACKAGE_BUILD.present\": true,\n    \"PACKAGE_BUILD.release_bound\": true\n  },\n  \"failures\": []\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "package_identity",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 0.617,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "scripts/verify_package_build_identity.py"
+      ],
+      "stdout_tail": "{\n  \"schema\": \"korpus.package-build-verification.v1\",\n  \"status\": \"PASS\",\n  \"release\": \"v0.9.4\",\n  \"failures\": []\n}\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "module_ratchet",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.172,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_branch_cycle2_ratchet_v050.py"
+      ],
+      "stdout_tail": "......                                                                   [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "evaluation_validity",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.073,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_evaluation_validity.py"
+      ],
+      "stdout_tail": ".........                                                                [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "military_assurance",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.258,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_military_assurance.py",
+        "apps/api/tests/test_military_knowledge.py"
+      ],
+      "stdout_tail": "...........                                                              [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "tevv_boundaries",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.215,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_tevv_admissibility.py",
+        "apps/api/tests/test_tevv_attestation_boundary.py",
+        "apps/api/tests/test_tevv_ledger_boundary.py"
+      ],
+      "stdout_tail": ".........s...............................................                [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_000",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 16.814,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_access_control.py",
+        "apps/api/tests/test_access_oracles.py",
+        "apps/api/tests/test_account_administration.py",
+        "apps/api/tests/test_account_domain.py",
+        "apps/api/tests/test_adaptation_cli_v060.py",
+        "apps/api/tests/test_admission_cannot_be_self_granted.py",
+        "apps/api/tests/test_admission_register.py",
+        "apps/api/tests/test_ai_risk_profile.py"
+      ],
+      "stdout_tail": "..................................................................       [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_001",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 13.098,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_anchor_delivery_backlog.py",
+        "apps/api/tests/test_answer_composition.py",
+        "apps/api/tests/test_answer_paths_are_bounded.py",
+        "apps/api/tests/test_answers.py",
+        "apps/api/tests/test_anthropic_adapter_contract_v060.py",
+        "apps/api/tests/test_api_contract.py",
+        "apps/api/tests/test_architecture.py",
+        "apps/api/tests/test_assurance_aggregation.py"
+      ],
+      "stdout_tail": ".....................................................................    [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_002",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 7.938,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_assurance_calculus.py",
+        "apps/api/tests/test_assurance_model_check.py",
+        "apps/api/tests/test_assurance_trust.py",
+        "apps/api/tests/test_attestation_signatures.py",
+        "apps/api/tests/test_attested_evidence.py",
+        "apps/api/tests/test_audit.py",
+        "apps/api/tests/test_audit_anchor_semantics.py",
+        "apps/api/tests/test_audit_export.py"
+      ],
+      "stdout_tail": "...............................................................          [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_003",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 10.983,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_audit_key_rotation.py",
+        "apps/api/tests/test_audit_names_governing_version.py",
+        "apps/api/tests/test_audit_reader_seam.py",
+        "apps/api/tests/test_auth.py",
+        "apps/api/tests/test_authority_ranking.py",
+        "apps/api/tests/test_billing_events.py",
+        "apps/api/tests/test_boundary_coverage_v5.py",
+        "apps/api/tests/test_branch_cycle2_extraction_v050.py"
+      ],
+      "stdout_tail": "........................................................................ [ 93%]\n.....                                                                    [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_004",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.739,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_branch_cycle2_policy_control_v050.py",
+        "apps/api/tests/test_branch_cycle2_ratchet_v050.py",
+        "apps/api/tests/test_branch_cycle2_resilience_v050.py",
+        "apps/api/tests/test_branch_cycle2_storage_pdf_v050.py",
+        "apps/api/tests/test_break_glass.py",
+        "apps/api/tests/test_browser_oidc.py",
+        "apps/api/tests/test_browser_session_refusals.py",
+        "apps/api/tests/test_build_provenance.py"
+      ],
+      "stdout_tail": "......................................................................   [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_005",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.859,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_builtin_security_gate.py",
+        "apps/api/tests/test_calibration.py",
+        "apps/api/tests/test_ci_production_evidence_plumbing.py",
+        "apps/api/tests/test_ci_security_summary.py",
+        "apps/api/tests/test_citation_alignment.py",
+        "apps/api/tests/test_clean_source_release_boundary.py",
+        "apps/api/tests/test_configuration_typos.py",
+        "apps/api/tests/test_contracts.py"
+      ],
+      "stdout_tail": "......................................                                   [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_006",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 27.18,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_controlled_configuration_refusals.py",
+        "apps/api/tests/test_conversation_retention.py",
+        "apps/api/tests/test_conversations.py",
+        "apps/api/tests/test_corpus_backup_drill.py",
+        "apps/api/tests/test_corpus_governance.py",
+        "apps/api/tests/test_corpus_release_identity.py",
+        "apps/api/tests/test_corpus_release_manifest.py",
+        "apps/api/tests/test_coverage_risk_closeout_v080.py"
+      ],
+      "stdout_tail": "........................................................................ [ 63%]\n..........................................                               [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_007",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.664,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_coverage_risk_weights_v060.py",
+        "apps/api/tests/test_currency_lower_bound.py",
+        "apps/api/tests/test_current_truth_hardening_v094.py",
+        "apps/api/tests/test_current_truth_portability.py",
+        "apps/api/tests/test_data_model_documents_every_table.py",
+        "apps/api/tests/test_dependency_lock_gate.py",
+        "apps/api/tests/test_deployment_overlays.py",
+        "apps/api/tests/test_deployment_rendering_refusals.py"
+      ],
+      "stdout_tail": "..................................................                       [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_008",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.46,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_deterministic_branch_matrix_v050.py",
+        "apps/api/tests/test_deterministic_plasticity_v060.py",
+        "apps/api/tests/test_doctrine_catalog.py",
+        "apps/api/tests/test_doctrine_impact.py",
+        "apps/api/tests/test_document_intake_refusals.py",
+        "apps/api/tests/test_durable_ingestion_jobs.py",
+        "apps/api/tests/test_egress_material_ceiling.py",
+        "apps/api/tests/test_embedding_coverage.py"
+      ],
+      "stdout_tail": "........................................................................ [ 81%]\n................                                                         [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_009",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 14.522,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_embedding_migration.py",
+        "apps/api/tests/test_engineering_readiness.py",
+        "apps/api/tests/test_entitlement_gate.py",
+        "apps/api/tests/test_entitlement_projection_refusals.py",
+        "apps/api/tests/test_entitlement_revocation.py",
+        "apps/api/tests/test_environment_drift.py",
+        "apps/api/tests/test_evaluation_harness_contract.py",
+        "apps/api/tests/test_evaluation_validity.py"
+      ],
+      "stdout_tail": "........................................................................ [ 75%]\n........................                                                 [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_010",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.045,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_evidence_fusion.py",
+        "apps/api/tests/test_evidence_provenance.py",
+        "apps/api/tests/test_evidence_registry.py",
+        "apps/api/tests/test_exact_environment_evidence.py",
+        "apps/api/tests/test_exact_optimization_equivalence_v094.py",
+        "apps/api/tests/test_exception_handling_discipline.py",
+        "apps/api/tests/test_external_gate_campaign.py",
+        "apps/api/tests/test_external_production_evidence_staging.py"
+      ],
+      "stdout_tail": ".......................s.................................                [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_011",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 15.567,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_external_redteam_admissibility.py",
+        "apps/api/tests/test_extraction.py",
+        "apps/api/tests/test_extraction_quality_governance.py",
+        "apps/api/tests/test_final_release_authorization.py",
+        "apps/api/tests/test_foreign_supersession.py",
+        "apps/api/tests/test_full_ssot_packager.py",
+        "apps/api/tests/test_gate_negative_controls.py",
+        "apps/api/tests/test_gate_parity.py"
+      ],
+      "stdout_tail": "........................................................................ [ 59%]\n.................................................                        [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_012",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.542,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_gcp_canary_metrics.py",
+        "apps/api/tests/test_gcp_candidate_probe.py",
+        "apps/api/tests/test_gcp_container_vulnerability_gate.py",
+        "apps/api/tests/test_gcp_governance_bundle.py",
+        "apps/api/tests/test_gcp_identity.py",
+        "apps/api/tests/test_gcp_live_postgres_gate.py",
+        "apps/api/tests/test_gcp_migration_compatibility.py",
+        "apps/api/tests/test_gcp_production_contract.py"
+      ],
+      "stdout_tail": "........................................................................ [ 72%]\n...........................                                              [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_013",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.209,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_gcp_production_inputs.py",
+        "apps/api/tests/test_gcp_slo_contract.py",
+        "apps/api/tests/test_gcp_terraform_structure.py",
+        "apps/api/tests/test_gcp_traffic_rollback.py",
+        "apps/api/tests/test_gcp_traffic_snapshot.py",
+        "apps/api/tests/test_gcs_audit_anchor.py",
+        "apps/api/tests/test_gcs_http_contract.py",
+        "apps/api/tests/test_gcs_object_store.py"
+      ],
+      "stdout_tail": "...............................................                          [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_014",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 7.332,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_github_actions_policy.py",
+        "apps/api/tests/test_governance_boundaries.py",
+        "apps/api/tests/test_handoff_contract.py",
+        "apps/api/tests/test_health.py",
+        "apps/api/tests/test_http_audit_anchor.py",
+        "apps/api/tests/test_image_pinning.py",
+        "apps/api/tests/test_import_graph.py",
+        "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+      ],
+      "stdout_tail": "....................................                                     [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_015",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 20.519,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_inference_budget.py",
+        "apps/api/tests/test_inference_security_gate.py",
+        "apps/api/tests/test_inference_status.py",
+        "apps/api/tests/test_infrastructure_hardening.py",
+        "apps/api/tests/test_ingestion.py",
+        "apps/api/tests/test_intra_span_contradiction.py",
+        "apps/api/tests/test_leakage_measurement.py",
+        "apps/api/tests/test_learning_assessment.py"
+      ],
+      "stdout_tail": "...................................................                      [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_016",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 11.261,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_learning_course_domain.py",
+        "apps/api/tests/test_learning_repository.py",
+        "apps/api/tests/test_liqpay_billing.py",
+        "apps/api/tests/test_load_probe_contract.py",
+        "apps/api/tests/test_local_production_preflight.py",
+        "apps/api/tests/test_malformed_pdf_containment.py",
+        "apps/api/tests/test_manifest_generation.py",
+        "apps/api/tests/test_mathematical_integrity_hardening.py"
+      ],
+      "stdout_tail": "........................................................................ [ 30%]\n........................................................................ [ 61%]\n........................................................................ [ 91%]\n...................                                                      [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_017",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 3.803,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_metamorphic_security_v060.py",
+        "apps/api/tests/test_military_assurance.py",
+        "apps/api/tests/test_military_knowledge.py",
+        "apps/api/tests/test_military_readiness_runner.py",
+        "apps/api/tests/test_mission_assurance_v2.py",
+        "apps/api/tests/test_model_egress.py",
+        "apps/api/tests/test_more_edges.py",
+        "apps/api/tests/test_near_duplicate_governance.py"
+      ],
+      "stdout_tail": "............................................                             [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_018",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 7.624,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_no_pseudo_runtime_v060.py",
+        "apps/api/tests/test_noninterference_measurement.py",
+        "apps/api/tests/test_numeric_integrity.py",
+        "apps/api/tests/test_object_store_integrity.py",
+        "apps/api/tests/test_observability.py",
+        "apps/api/tests/test_offline_pack.py",
+        "apps/api/tests/test_offline_trust.py",
+        "apps/api/tests/test_oidc.py"
+      ],
+      "stdout_tail": "....................................................................     [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_019",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.654,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_oidc_assurance_refusals.py",
+        "apps/api/tests/test_openai_model_adapter.py",
+        "apps/api/tests/test_operational_policies.py",
+        "apps/api/tests/test_operations.py",
+        "apps/api/tests/test_overload_http.py",
+        "apps/api/tests/test_owner_restricted_pdf.py",
+        "apps/api/tests/test_package_build_identity.py",
+        "apps/api/tests/test_package_mode_integrity.py"
+      ],
+      "stdout_tail": "........................................................                 [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_020",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.603,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_package_zip_safety.py",
+        "apps/api/tests/test_parser_sandbox_path.py",
+        "apps/api/tests/test_permission_contract.py",
+        "apps/api/tests/test_plasticity_gate_policy_binding_v060.py",
+        "apps/api/tests/test_plasticity_soak_v060.py",
+        "apps/api/tests/test_policy.py",
+        "apps/api/tests/test_postgres_integration.py",
+        "apps/api/tests/test_postgres_role_grants.py"
+      ],
+      "stdout_tail": ".......................s...                                              [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.13/zipfile/__init__.py:1642: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_021",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 10.518,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_production_assurance.py",
+        "apps/api/tests/test_production_assurance_cli.py",
+        "apps/api/tests/test_production_hard_predicates.py",
+        "apps/api/tests/test_production_promotion_plumbing.py",
+        "apps/api/tests/test_production_reliability.py",
+        "apps/api/tests/test_production_report_verification.py",
+        "apps/api/tests/test_query_cache.py",
+        "apps/api/tests/test_query_planner_boundary.py"
+      ],
+      "stdout_tail": ".............................................                            [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_022",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.049,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_quote_provenance.py",
+        "apps/api/tests/test_readiness_evidence_builder.py",
+        "apps/api/tests/test_readiness_policy_v2.py",
+        "apps/api/tests/test_recovery_measurement.py",
+        "apps/api/tests/test_reference_set.py",
+        "apps/api/tests/test_regression_carry_forward.py",
+        "apps/api/tests/test_release_adaptation_automation_v050.py",
+        "apps/api/tests/test_release_attestation_trust.py"
+      ],
+      "stdout_tail": ".................................................                        [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_023",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 11.049,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_release_eval_corpus_v2.py",
+        "apps/api/tests/test_release_identity.py",
+        "apps/api/tests/test_release_ledger.py",
+        "apps/api/tests/test_release_ledger_cli.py",
+        "apps/api/tests/test_release_state_machine.py",
+        "apps/api/tests/test_release_truth_hard_predicates.py",
+        "apps/api/tests/test_reliability_degradation.py",
+        "apps/api/tests/test_repository_access_refusals.py"
+      ],
+      "stdout_tail": ".......................................................                  [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_024",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 7.518,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_repository_noninterference.py",
+        "apps/api/tests/test_repository_register.py",
+        "apps/api/tests/test_repository_seams.py",
+        "apps/api/tests/test_reproducibility.py",
+        "apps/api/tests/test_request_audit_context.py",
+        "apps/api/tests/test_requirement_registry.py",
+        "apps/api/tests/test_rescission_and_clock.py",
+        "apps/api/tests/test_resilience.py"
+      ],
+      "stdout_tail": "............................................................             [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_025",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 6.324,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_resilience_and_audit_scope.py",
+        "apps/api/tests/test_retention_planning.py",
+        "apps/api/tests/test_retrieval_budget_semantics.py",
+        "apps/api/tests/test_retrieval_metamorphic.py",
+        "apps/api/tests/test_retrieval_properties.py",
+        "apps/api/tests/test_retrieval_supersession_cost.py",
+        "apps/api/tests/test_retriever_scope.py",
+        "apps/api/tests/test_reviewer_registry.py"
+      ],
+      "stdout_tail": "................................................                         [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_026",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.74,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_risk_policy.py",
+        "apps/api/tests/test_risk_rules.py",
+        "apps/api/tests/test_routes_permissions.py",
+        "apps/api/tests/test_row_mapping.py",
+        "apps/api/tests/test_runtime_factory.py",
+        "apps/api/tests/test_s3_object_store.py",
+        "apps/api/tests/test_schema_revision_pin.py",
+        "apps/api/tests/test_search_index.py"
+      ],
+      "stdout_tail": "..........................................................               [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_027",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 13.636,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_security_auth_api.py",
+        "apps/api/tests/test_semantic_integration.py",
+        "apps/api/tests/test_service_objectives.py",
+        "apps/api/tests/test_slsa_provenance.py",
+        "apps/api/tests/test_snapshot_refuses_stale_evidence.py",
+        "apps/api/tests/test_source_signature_refusals.py",
+        "apps/api/tests/test_span_lookup.py",
+        "apps/api/tests/test_sqlite_recovery_contract.py"
+      ],
+      "stdout_tail": "................................................                         [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_028",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 5.09,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_standards_control_map.py",
+        "apps/api/tests/test_state_machine.py",
+        "apps/api/tests/test_status_document_matches_the_registers.py",
+        "apps/api/tests/test_structured_evidence_and_fuzz.py",
+        "apps/api/tests/test_supply_chain_evidence_boundary.py",
+        "apps/api/tests/test_supply_chain_inventory_metadata.py",
+        "apps/api/tests/test_support_gate.py",
+        "apps/api/tests/test_system_manifest_exclusions.py"
+      ],
+      "stdout_tail": "..................................                                       [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_029",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 30.017,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_table_integrity.py",
+        "apps/api/tests/test_telemetry_status.py",
+        "apps/api/tests/test_temporal_differential.py",
+        "apps/api/tests/test_tenancy_api.py",
+        "apps/api/tests/test_tenancy_audit_events.py",
+        "apps/api/tests/test_tenancy_migration.py",
+        "apps/api/tests/test_tenancy_threats.py",
+        "apps/api/tests/test_tevv_admissibility.py"
+      ],
+      "stdout_tail": ".....................................................................s.. [ 80%]\n..................                                                       [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_030",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 11.698,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_tevv_attestation_boundary.py",
+        "apps/api/tests/test_tevv_ledger_boundary.py",
+        "apps/api/tests/test_token_issuance_refusals.py",
+        "apps/api/tests/test_training_progress_repository.py",
+        "apps/api/tests/test_training_progression.py",
+        "apps/api/tests/test_tuning.py",
+        "apps/api/tests/test_undated_source_limitation.py",
+        "apps/api/tests/test_undecodable_text_refusal.py"
+      ],
+      "stdout_tail": "..................................................                       [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_031",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 12.978,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_url_policy.py",
+        "apps/api/tests/test_v060_branch_closure2.py",
+        "apps/api/tests/test_v060_plasticity_contract_closure.py",
+        "apps/api/tests/test_v060_risk_weighted_branch_closure.py",
+        "apps/api/tests/test_v5_security_kernel.py",
+        "apps/api/tests/test_validity_boundaries.py",
+        "apps/api/tests/test_versioning.py",
+        "apps/api/tests/test_web_score_presentation.py"
+      ],
+      "stdout_tail": "........................................................................ [ 72%]\n............................                                             [100%]\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "backend_regression_032",
+      "status": "PASS",
+      "returncode": 0,
+      "elapsed_seconds": 2.928,
+      "command": [
+        "/opt/pyvenv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "apps/api/tests/test_worker_service.py"
+      ],
+      "stdout_tail": "....                                                                     [100%]\n",
+      "stderr_tail": ""
+    }
+  ],
+  "regression": {
+    "test_modules": 257,
+    "batches": 33,
+    "batch_size": 8,
+    "workers": 2,
+    "status": "PASS"
+  },
+  "production_authorized": false,
+  "production_authorization_note": "Software execution cannot substitute for real-domain, independent, human-system, live-RLS, load/DR or trusted-signing evidence."
+}
