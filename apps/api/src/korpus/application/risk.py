@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from korpus.application.numeric_contracts import require_rate
+
 from korpus.application.risk_rules import RISK_RULES, QueryRisk, classify
 
 __all__ = [
@@ -34,6 +36,13 @@ class RiskThresholds:
     minimum_support_score: float
     minimum_authority: float
 
+    def __post_init__(self) -> None:
+        for name in (
+            "minimum_score", "minimum_query_coverage",
+            "minimum_support_score", "minimum_authority",
+        ):
+            require_rate(getattr(self, name), label=name)
+
 
 def classify_query_risk(text: str) -> QueryRisk:
     """The class alone, for callers that do not record which rule decided it."""
@@ -47,6 +56,9 @@ def risk_adjusted_thresholds(
     minimum_query_coverage: float,
     minimum_support_score: float,
 ) -> RiskThresholds:
+    minimum_score = require_rate(minimum_score, label="minimum_score")
+    minimum_query_coverage = require_rate(minimum_query_coverage, label="minimum_query_coverage")
+    minimum_support_score = require_rate(minimum_support_score, label="minimum_support_score")
     if risk is QueryRisk.OPERATIONAL:
         return RiskThresholds(
             minimum_score=min(1.0, minimum_score + 0.12),

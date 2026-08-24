@@ -12,10 +12,7 @@ state in which most evidence is actually generated. The digest below is
 recomputed by the verifier from the files on disk, so a stale or foreign report
 cannot match unless the tree matches.
 
-Only the surfaces that can change what a report says are digested. Documentation
-and deployment manifests are excluded on purpose: a typo fix in a Markdown file
-must not force a mutation rerun, or the gate becomes noise and gets routed
-around. Deployment manifests are gated separately (validate_kubernetes.py).
+Executable behavior, public contracts, deployment behavior and release-control decisions are digested. Human documentation remains outside the boundary; frontend source, API contracts, IaC/deployment manifests and CI/release orchestration are inside it so stale evidence cannot survive a shipped-system or gate-graph change.
 """
 
 from __future__ import annotations
@@ -30,30 +27,11 @@ from typing import Any
 PROVENANCE_KEY = "provenance"
 PROVENANCE_SCHEMA_VERSION = 1
 
-#: Paths (relative to the repository root) whose content can change what an
-#: assurance report asserts. A file outside this set cannot alter eval results,
-#: mutation outcomes, migration parity or scale measurements.
-EVIDENCE_SOURCE_PATHS: tuple[str, ...] = (
-    "apps/api/src",
-    "apps/api/tests",
-    "apps/api/migrations",
-    "apps/api/alembic.ini",
-    "apps/api/pyproject.toml",
-    # `apps/api/requirements.lock` was listed here and removed on 2026-08-06. Being in
-    # this set made it look governed — its digest stamped every assurance artefact —
-    # while no gate audited it and no install site read it.
-    "apps/api/requirements.dev.lock",
-    "apps/api/requirements.runtime.lock",
-    "packages",
-    "scripts",
-    "config",
-    "evals",
+from korpus.application.provenance_surface import (
+    EVIDENCE_SOURCE_PATHS,
+    EXCLUDED_DIRECTORY_NAMES as _EXCLUDED_DIRECTORY_NAMES,
+    EXCLUDED_SUFFIXES as _EXCLUDED_SUFFIXES,
 )
-
-_EXCLUDED_DIRECTORY_NAMES = frozenset(
-    {"__pycache__", ".venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "var", "node_modules"}
-)
-_EXCLUDED_SUFFIXES = (".pyc", ".pyo")
 
 
 class ProvenanceError(ValueError):
@@ -94,14 +72,20 @@ def compute_source_digest(
     """
 
     hasher = hashlib.sha256()
-    hasher.update(b"korpus-source-digest-v1\0")
+    hasher.update(b"korpus-source-digest-v2\0")
     for path in _digest_candidates(root, sources):
         relative = path.relative_to(root).as_posix().encode("utf-8")
-        content = path.read_bytes()
         hasher.update(len(relative).to_bytes(4, "big"))
         hasher.update(relative)
-        hasher.update(len(content).to_bytes(8, "big"))
-        hasher.update(content)
+        with path.open("rb") as handle:
+            expected_size = path.stat().st_size
+            hasher.update(expected_size.to_bytes(8, "big"))
+            observed_size = 0
+            while chunk := handle.read(1024 * 1024):
+                observed_size += len(chunk)
+                hasher.update(chunk)
+        if observed_size != expected_size:
+            raise ProvenanceError(f"source changed while hashing: {path}")
     return hasher.hexdigest()
 
 
@@ -141,7 +125,7 @@ def read_provenance(report: Mapping[str, Any]) -> SourceProvenance:
     block = report.get(PROVENANCE_KEY)
     if not isinstance(block, Mapping):
         raise ProvenanceError("report carries no provenance block")
-    if int(block.get("schema_version", 0)) != PROVENANCE_SCHEMA_VERSION:
+    if (type(block.get("schema_version")), block.get("schema_version")) != (int, PROVENANCE_SCHEMA_VERSION):
         raise ProvenanceError("unsupported provenance schema")
     digest = block.get("source_digest")
     if not isinstance(digest, str) or len(digest) != 64:

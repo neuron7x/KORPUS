@@ -1,0 +1,236 @@
+{
+  "schema": "korpus.engineering-readiness-evidence.v1",
+  "profile_id": "engineering-technical-academic-readiness-94.7",
+  "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+  "release": "v0.8.0",
+  "dimensions": {
+    "product_core": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "release_identity": true,
+        "repository_validation": true,
+        "openapi_contract": true,
+        "import_cycles": true,
+        "module_budget": true,
+        "dependency_lock_structure": true,
+        "state_contracts": true,
+        "authorization_matrix": true,
+        "learning_graph": true,
+        "startup_failure_semantics": true,
+        "web_contract": true,
+        "source_digest_stable": true,
+        "version_coherence": true
+      }
+    },
+    "architecture_invariants": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "identity_before_query": true,
+        "authorization_before_retrieval": true,
+        "retrieval_scope_noninterference": true,
+        "claim_evidence_binding": true,
+        "conflict_surface": true,
+        "abstention": true,
+        "provenance_binding": true,
+        "privileged_action_boundary": true,
+        "offline_integrity": true,
+        "tamper_evident_audit": true,
+        "learning_graph_immutability": true,
+        "release_state_machine": true,
+        "bounded_model_check": true,
+        "evidence_conflict_preservation": true,
+        "inference_fixpoint_budget": true
+      }
+    },
+    "security_internal": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "indirect_prompt_injection": true,
+        "egress_classification": true,
+        "idor_refusal": true,
+        "ssrf_egress": true,
+        "webhook_replay": true,
+        "host_header": true,
+        "csrf_session": true,
+        "upload_quarantine": true,
+        "parser_bounds": true,
+        "audit_integrity": true,
+        "tenant_scope_application": true,
+        "internal_redteam": true,
+        "builtin_security_gate": true,
+        "authorization_matrix": true,
+        "secrets_static_heuristic": true,
+        "dangerous_primitive_scan": true,
+        "unknown_permission_fail_closed": true
+      }
+    },
+    "tests_tevv": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "backend_regression_carry_forward": true,
+        "targeted_current_source": true,
+        "statement_coverage": true,
+        "branch_coverage": true,
+        "mutation_catalogue": true,
+        "determinism": true,
+        "stress": true,
+        "plasticity": true,
+        "web_suite_current": true,
+        "evaluation_harness_contract": true,
+        "synthetic_adversarial_eval": true,
+        "null_controls": true,
+        "attack_family_coverage": true,
+        "migration_gate": true,
+        "assurance_model_check": true,
+        "evidence_fusion_tests": true,
+        "inference_budget_tests": true
+      }
+    },
+    "release_package_integrity": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "clean_source": true,
+        "source_manifest": true,
+        "distribution_manifest": true,
+        "package_verifier": true,
+        "reproducible_archive": true,
+        "release_identity": true,
+        "package_root_contract": true,
+        "file_mode_normalization": true,
+        "duplicate_path_rejection": true,
+        "zip_traversal_rejection": true,
+        "checksum": true,
+        "claim_ledger": true,
+        "blocker_registry": true,
+        "portable_evidence_index": true,
+        "stale_current_rejection": true
+      }
+    },
+    "reliability_internal": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "internal_fault_injection": true,
+        "chaos_matrix": true,
+        "local_load": true,
+        "local_spike": true,
+        "local_soak": true,
+        "local_recovery": true,
+        "observability_contract": true,
+        "slo_policy": true,
+        "retry_idempotency": true,
+        "bounded_audit_backlog": true
+      }
+    },
+    "ui_ux": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": {
+        "web_lint": true,
+        "web_tests": true,
+        "web_build": true,
+        "contract_sync": true,
+        "destruction_validation": true
+      }
+    },
+    "maintainability_reproducibility": {
+      "status": "PASS",
+      "source_tree_sha256": "40cad99bd8232a8300c9af4be1dd2d2fe7d1bbd0be92761104d570ecda9d5e95",
+      "release": "v0.8.0",
+      "evidence_class": "EXECUTED",
+      "criteria": {
+        "module_budget": true,
+        "dependency_locks": true,
+        "standards_map": true,
+        "documentation_truth": true,
+        "source_inventory": true,
+        "deterministic_packaging": true,
+        "ruff_exact": false,
+        "mypy_exact": false
+      }
+    }
+  },
+  "raw_evidence": {
+    "targeted_junit": {
+      "tests": 153,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "carry_forward": {
+      "baseline_manifest_identity": true,
+      "baseline_backend_pass": true,
+      "baseline_backend_identity": true,
+      "baseline_mutation_pass": true,
+      "baseline_mutation_identity": true,
+      "no_unexpected_added_or_modified_paths": true,
+      "no_unexpected_removed_paths": true,
+      "no_forbidden_runtime_changes": true,
+      "targeted_junit_present": true,
+      "targeted_tests_minimum": true,
+      "targeted_tests_clean": true,
+      "target_release": true
+    },
+    "baseline_backend": {
+      "collected": 1675,
+      "passed": 1673,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "coverage": {
+      "statement_coverage_percent": 96.26388104648974,
+      "branch_coverage_percent": 91.91011235955057,
+      "missing_branches": 216
+    },
+    "mutation": {
+      "mutants": 302,
+      "valid_mutants": 302,
+      "killed": 302
+    },
+    "synthetic_null_controls": 15,
+    "package_checks": {
+      "distribution_manifest": true,
+      "package_verifier": true,
+      "reproducible_archive": true,
+      "package_root_contract": true,
+      "file_mode_normalization": true,
+      "duplicate_path_rejection": true,
+      "zip_traversal_rejection": true,
+      "checksum": true
+    }
+  },
+  "external_noncompensable": [
+    "external_independent_redteam",
+    "live_vulnerability_scanners",
+    "live_postgres_rls",
+    "real_domain_corpus_tevv",
+    "independent_tevv",
+    "production_like_tevv_environment",
+    "production_like_load",
+    "trusted_load_attestation",
+    "trusted_recovery_attestation",
+    "trusted_hosted_builder",
+    "trusted_release_signing",
+    "exact_python_3_12_13_environment"
+  ]
+}

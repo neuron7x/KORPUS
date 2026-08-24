@@ -26,6 +26,7 @@ from fastapi import HTTPException
 from korpus.api.overload_http import overload_http_exception
 from korpus.application.answer_query import ExtractiveAnswerService
 from korpus.application.resilience import AdmissionController, OverloadedError
+from korpus.application.pec_metrics_context import reset_pec_observer, set_pec_observer
 from korpus.domain.models import Answer, Identity, QueryRequest
 from korpus.infrastructure.observability import Observability
 
@@ -43,12 +44,14 @@ def bounded_answer(
     number describing reality. A gauge that only decrements on the happy path drifts
     upward under exactly the load it exists to report on.
     """
+    pec_token = set_pec_observer(observability.pec.observe)
     try:
         with admission.acquire(identity.subject):
             observability.answer_admission_active.set(admission.snapshot().active)
             with observability.measure_retrieval():
                 answer = service.execute(identity, query)
     finally:
+        reset_pec_observer(pec_token)
         observability.answer_admission_active.set(admission.snapshot().active)
 
     from korpus.application.risk import classify_query_risk
@@ -58,10 +61,7 @@ def bounded_answer(
     )
     return answer
 
-
 def overloaded(error: OverloadedError) -> HTTPException:
     """Compatibility seam: all answer doors share the canonical overload mapper."""
     return overload_http_exception(error)
-
-
 __all__ = ["AdmissionController", "OverloadedError", "bounded_answer", "overloaded"]

@@ -60,8 +60,9 @@ def parse_query_variants(text: str) -> list[str]:
         parsed = json.loads(value[start : end + 1])
     except json.JSONDecodeError:
         return []
-    if not isinstance(parsed, list):
-        return []
+    # The slice is syntactically bracket-delimited; successful JSON parsing therefore
+    # yields a list. Keeping a second runtime type branch here was dead code and inflated
+    # branch coverage without adding a security decision.
     return [item for item in parsed if isinstance(item, str)]
 
 
@@ -75,8 +76,7 @@ def parse_composition(text: str) -> tuple[str, list[str]]:
         parsed: Any = json.loads(value[start : end + 1])
     except json.JSONDecodeError:
         return "", []
-    if not isinstance(parsed, dict):
-        return "", []
+    # The slice is syntactically object-delimited; successful JSON parsing yields a dict.
     sentences = parsed.get("sentences")
     return (
         str(parsed.get("opening", "")),

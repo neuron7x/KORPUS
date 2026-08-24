@@ -8,8 +8,8 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def archive_root(tmp: Path) -> Path:
-    roots = [path for path in tmp.iterdir() if path.is_dir()]
-    return roots[0] if len(roots) == 1 else tmp
+    entries = list(tmp.iterdir())
+    return entries[0] if len(entries) == 1 and entries[0].is_dir() else tmp
 
 
 def mode_string(path: Path, *, source: bool = False) -> str:

@@ -14,6 +14,7 @@ _RELEASE = json.loads(_RELEASE_PATH.read_text(encoding="utf-8"))
 RELEASE_VERSION: Final[str] = str(_RELEASE["version"])
 RELEASE_TAG: Final[str] = str(_RELEASE["tag"])
 ARTIFACT_STEM: Final[str] = str(_RELEASE["artifact_stem"])
+DISTRIBUTION_ARTIFACT: Final[str] = str(_RELEASE["distribution_artifact"])
 
 def release_identity() -> dict[str, str]:
     return {str(k): str(v) for k, v in _RELEASE.items()}

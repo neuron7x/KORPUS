@@ -1,0 +1,27 @@
+{
+  "schema": "korpus.quality-execution-boundary.v2",
+  "status": "NOT_EXECUTABLE_IN_CURRENT_RUNTIME",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "canonical_tools": {
+    "ruff": "0.15.22",
+    "mypy": "2.3.0"
+  },
+  "available": {
+    "ruff": false,
+    "mypy": false
+  },
+  "compileall": {
+    "status": "PASS",
+    "scope": [
+      "apps/api/src",
+      "scripts",
+      "apps/api/tests"
+    ]
+  },
+  "interpretation": "Python compileall is syntax/import-bytecode evidence only and is not credited as Ruff or Mypy execution.",
+  "blockers": [
+    "QUALITY_RUFF_UNAVAILABLE",
+    "QUALITY_MYPY_UNAVAILABLE"
+  ]
+}

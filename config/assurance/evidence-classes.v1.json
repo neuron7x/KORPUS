@@ -1,0 +1,17 @@
+{
+  "schema": "korpus.evidence-classes.v1",
+  "classes": [
+    {"rank": 0, "id": "NONE", "meaning": "no usable evidence"},
+    {"rank": 1, "id": "DECLARATIVE", "meaning": "design or claim exists but has not been mechanically checked"},
+    {"rank": 2, "id": "STATIC", "meaning": "machine-readable structure or static check exists"},
+    {"rank": 3, "id": "EXECUTED", "meaning": "the exact substrate was executed and outcome recorded"},
+    {"rank": 4, "id": "EXECUTED_WITH_NEGATIVE_CONTROL", "meaning": "execution includes a witness that would fail if the defended invariant were absent"},
+    {"rank": 5, "id": "INDEPENDENT_ATTESTED", "meaning": "independent execution/assessment with verified attestation"}
+  ],
+  "aggregation": {
+    "cross_source_join": "forbidden",
+    "cross_release_join": "forbidden",
+    "conflicting_outcomes": "FAIL",
+    "missing_mandatory_evidence": "FAIL"
+  }
+}

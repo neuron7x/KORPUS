@@ -1,20 +1,5 @@
-# KORPUS v0.1.1 — canonical package index
+# KORPUS v0.9.7 — Final Package Contents
 
-## Primary surfaces
+Required roots: `apps/`, `packages/`, `contracts/`, `config/`, `evals/`, `deploy/`, `infra/`, `scripts/`, `.github/`, `.gitlab/`, `docs/`, `handoff/`, `reports/`, `LINEAGE/`, plus manifests and release files.
 
-- `apps/api/` — evidence-bound API, domain/application/infrastructure layers, migrations and tests;
-- `apps/web/` — responsive web client and generated API/authorization contract;
-- `config/`, `contracts/`, `deploy/`, `infra/` — runtime policy and deployment definitions;
-- `evals/`, `scripts/`, `reports/` — TEVV, mutation, security, reliability and release assurance;
-- `SOURCE_MANIFEST.json` / `DISTRIBUTION_MANIFEST.json` — byte-level source/distribution inventory;
-- Git bundle produced during packaging — complete repository history available in the distribution.
-
-Production authorization is not inferred from repository completeness. `reports/PRODUCTION_ASSURANCE_REPORT.json` is the machine gate.
-
-## GitHub primary transport
-
-- `.github/workflows/` — SHA-pinned CI, assurance, dependency-review and tag-attestation workflows;
-- `.github/dependabot.yml` — bounded dependency-update intake;
-- `GITHUB_IMPORT.md` — history-preserving import procedure;
-- `docs/operations/GITHUB_REPOSITORY_POLICY.md` — external branch/security settings that cannot be proven from source alone;
-- `scripts/validate_github_actions.py` — executable workflow hardening predicate with negative controls.
+`handoff/evidence/current/` contains portable regression/JUnit receipts, mutation shards, determinism evidence, web/browser evidence, local eval/migration/scale evidence, infrastructure validation and governance/supply-chain summaries.

@@ -10,6 +10,8 @@ from typing import Any
 
 from korpus.application.admission import evaluate_admission, load_register
 from korpus.application.provenance import verify_reports
+from korpus.application.numeric_contracts import finite_number
+from korpus.application.operational_math import evaluate_operational_checks
 
 
 def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> float:
@@ -17,7 +19,7 @@ def jensen_shannon_divergence(left: Sequence[float], right: Sequence[float]) -> 
 
     if len(left) != len(right) or not left:
         raise ValueError("drift distributions must be non-empty and equal length")
-    if any(value < 0 or not math.isfinite(value) for value in (*left, *right)):
+    if any(not finite_number(value) or float(value) < 0 for value in (*left, *right)):
         raise ValueError("drift distributions must contain finite non-negative values")
     left_total = sum(left)
     right_total = sum(right)
@@ -83,7 +85,7 @@ class OperationalReleaseGate:
         admission_register: Mapping[str, Any] | None = None,
         root: Path | None = None,
     ) -> None:
-        if int(policy.get("schema_version", 0)) != 1:
+        if policy.get("schema_version") != 1:
             raise ValueError("unsupported operational policy schema")
         self.policy = policy
         # `production_authorized` used to be the literal False in the result. The answer
@@ -132,8 +134,6 @@ class OperationalReleaseGate:
         mutation_policy = self.policy["mutation"]
         migration_policy = self.policy["migration"]
         scale_policy = self.policy["scale_probe"]
-        required_tables = set(migration_policy["required_tables"])
-        actual_tables = set(migration.get("tables_actual", []))
 
         # A report is evidence about a tree, not about the world: unless it was
         # produced by the tree being gated, its numbers describe something else.
@@ -148,43 +148,10 @@ class OperationalReleaseGate:
         checks = {
             "reports_present": True,
             "evidence_provenance": provenance_ok,
-            "eval_pass_rate": float(evaluation.get("pass_rate", -1))
-            >= float(eval_policy["minimum_pass_rate"]),
-            "citation_integrity": int(evaluation.get("citation_failures", -1))
-            <= int(eval_policy["maximum_citation_failures"]),
-            "access_noninterference": int(evaluation.get("leakage_failures", -1))
-            <= int(eval_policy["maximum_leakage_failures"]),
-            # The failure count is only evidence if something was withheld from the
-            # subject in the first place. Injecting a real training → PUBLIC disclosure
-            # once produced leakage_failures=0 over a denominator of 2 of 30 rows, and
-            # every gate above stayed green (destruction stage, 2026-08-03).
-            "access_noninterference_measured": int(evaluation.get("leakage_checks", -1))
-            >= int(eval_policy["minimum_leakage_checks"]),
-            "determinism": int(evaluation.get("determinism_failures", -1))
-            <= int(eval_policy["maximum_determinism_failures"]),
-            "audit_chain": bool(evaluation.get("audit_valid"))
-            is bool(eval_policy["require_audit_valid"]),
-            "critical_mutation_score": float(mutation.get("mutation_score", -1))
-            >= float(mutation_policy["minimum_critical_mutation_score"]),
-            "critical_mutation_survivors": len(mutation.get("survived", ["UNKNOWN"]))
-            <= int(mutation_policy["maximum_survivors"]),
-            "migration_table_parity": bool(migration.get("table_set_match"))
-            is bool(migration_policy["require_table_set_match"]),
-            "migration_required_tables": required_tables.issubset(actual_tables),
-            "migration_audit_head": bool(migration.get("audit_head_seeded"))
-            is bool(migration_policy["require_audit_head"]),
-            "migration_fts5": bool(migration.get("sqlite_fts5_present"))
-            is bool(migration_policy["require_sqlite_fts5"]),
-            "scale_status": scale.get("status") == "PASS",
-            "scale_metric_provenance": scale.get("metric_status") == scale_policy["metric_status"],
-            "scale_top1": float(scale.get("results", {}).get("top1_recall", -1))
-            >= float(scale_policy["minimum_top1_recall"]),
-            "scale_candidate_bound": int(scale.get("results", {}).get("candidate_count", 10**9))
-            <= int(scale_policy["maximum_candidate_count"]),
-            "scale_local_p95": float(
-                scale.get("results", {}).get("query_latency_ms_p95", math.inf)
-            )
-            <= float(scale_policy["maximum_local_p95_ms"]),
+            **evaluate_operational_checks(
+                evaluation, mutation, migration, scale,
+                eval_policy, mutation_policy, migration_policy, scale_policy,
+            ),
         }
         failures = tuple(name for name, passed in checks.items() if not passed) + provenance_reasons
         evidence_hashes = {

@@ -1,0 +1,34 @@
+{
+  "schema": "korpus.production-gate.v1",
+  "gate_id": "supply_chain",
+  "status": "FAIL",
+  "source_tree_sha256": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+  "release": "v0.9.6",
+  "checks": {
+    "exact_pins_have_hashes": true,
+    "source_sbom_lock_complete": true,
+    "security_scanners_executed_clean": false,
+    "security_scanners_current_commit": false,
+    "container_scanners_executed_clean": false,
+    "container_scanners_current_commit": false,
+    "container_sboms_valid": false,
+    "evidence_manifest_bound": false,
+    "evidence_attestation_verified": false,
+    "evidence_trusted_signer": false
+  },
+  "failures": [
+    "security_scanners_executed_clean",
+    "security_scanners_current_commit",
+    "container_scanners_executed_clean",
+    "container_scanners_current_commit",
+    "container_sboms_valid",
+    "evidence_manifest_bound",
+    "evidence_attestation_verified",
+    "evidence_trusted_signer"
+  ],
+  "evidence_class": "ATTESTED_CI_SCANNERS_PLUS_CONTAINER_SBOM",
+  "completeness": "PARTIAL",
+  "pinned_records": 68,
+  "hashed_records": 68,
+  "signer_fingerprint": ""
+}

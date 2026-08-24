@@ -5,9 +5,9 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, ConfigDict
 
 from korpus.api.answering import bounded_answer, overloaded
+from korpus.api.source_disclosure import DisclosedSpan
 from korpus.api.dependencies import (
     get_admission_controller,
     get_answer_service,
@@ -22,14 +22,7 @@ from korpus.application.policy import (
     UnauthorizedCorporaError,
 )
 from korpus.application.resilience import AdmissionController, OverloadedError
-from korpus.domain.models import (
-    Answer,
-    DocumentRecord,
-    DocumentVersionRecord,
-    EvidenceSpanRecord,
-    Identity,
-    QueryRequest,
-)
+from korpus.domain.models import Answer, Identity, QueryRequest
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
 from korpus.security.auth import get_identity
@@ -69,51 +62,6 @@ def create_answer(
         ) from exc
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
-
-class DisclosedSpan(BaseModel):
-    """One passage, addressed the way a reader can check it against the source.
-
-    `text_hash` is over the span's own text, which is what makes the citation chain
-    non-tautological: `quote_hash` proves the quote matches itself, and only the span
-    ties the quote to the document that `source_hash` covers.
-    """
-
-    model_config = ConfigDict(frozen=True)
-
-    id: UUID
-    version_id: UUID
-    document_id: UUID
-    document_title: str
-    revision: str
-    ordinal: int
-    page: int | None
-    section: str | None
-    text: str
-    text_hash: str
-    source_hash: str
-    source_uri: str | None
-
-    @classmethod
-    def build(
-        cls,
-        span: EvidenceSpanRecord,
-        document: DocumentRecord,
-        version: DocumentVersionRecord,
-    ) -> DisclosedSpan:
-        return cls(
-            id=span.id,
-            version_id=version.id,
-            document_id=document.id,
-            document_title=document.canonical_title,
-            revision=version.revision,
-            ordinal=span.ordinal,
-            page=span.page,
-            section=span.section,
-            text=span.text,
-            text_hash=span.text_hash,
-            source_hash=version.source_hash,
-            source_uri=version.source_uri,
-        )
 
 
 @router.get("/v1/document-versions/{version_id}/spans", response_model=list[DisclosedSpan])

@@ -3,12 +3,14 @@ from __future__ import annotations
 import base64
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from fastapi.testclient import TestClient
 from korpus.config import Settings
 from korpus.main import create_app
+from korpus.security.browser_csrf import browser_csrf_denial
 from korpus.security.browser_oidc import (
     BrowserOIDCClient,
     BrowserOIDCTokens,
@@ -44,11 +46,20 @@ class FakeBrowserClient:
 
 
 class FakeVerifier:
-    def verify(self, token, *, audience=None, expected_nonce=None, require_auth_time=True):
+    def verify(
+        self,
+        token,
+        *,
+        audience=None,
+        expected_nonce=None,
+        authorized_party=None,
+        require_auth_time=True,
+    ):
         now = int(datetime.now(UTC).timestamp())
         if token == "id-token":
             assert audience == "korpus-browser"
             assert expected_nonce == "nonce-0123456789abcdefghijklmnop"
+            assert authorized_party == "korpus-browser"
             return {
                 "sub": "browser-user",
                 "iss": "https://id.example",
@@ -61,6 +72,8 @@ class FakeVerifier:
                 "nonce": expected_nonce,
             }
         assert token == "access-token"
+        if authorized_party is not None:
+            assert authorized_party == "korpus-browser"
         return {
             "sub": "browser-user",
             "iss": "https://id.example",
@@ -201,6 +214,7 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
         assert login.status_code == 302
         assert login.headers["location"].startswith("https://id.example/authorize?")
         assert "HttpOnly" in login.headers["set-cookie"]
+        assert "__Secure-korpus_flow=" in login.headers["set-cookie"]
 
         callback = client.get(
             "/v1/auth/callback",
@@ -227,3 +241,101 @@ def test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf(tmp_path
         csrf = client.cookies.get("__Host-korpus_csrf")
         logout = client.post("/v1/auth/logout", headers={"X-CSRF-Token": csrf})
         assert logout.status_code == 204
+
+
+def test_oidc_authorization_endpoint_preserves_provider_query_without_shadowing_flow():
+    client = BrowserOIDCClient(
+        authorization_endpoint=(
+            "https://id.example/authorize?tenant=alpha&state=provider-fixed"
+        ),
+        token_endpoint="https://id.example/token",
+        client_id="browser",
+        redirect_uri="https://app.example/callback",
+        scopes=["profile"],
+    )
+    flow = client.new_flow()
+    query = parse_qs(urlparse(client.authorization_url(flow)).query)
+    assert query["tenant"] == ["alpha"]
+    assert query["state"] == [flow["state"]]
+    assert query["state"] != ["provider-fixed"]
+    client.close()
+
+
+def test_browser_oidc_rejects_credential_bearing_fragmented_or_malformed_endpoints():
+    invalid = (
+        "https://user:secret@id.example/authorize",
+        "https://id.example/authorize#fragment",
+        "https://id.example:bad/authorize",
+        "http://id.example/authorize",
+    )
+    for endpoint in invalid:
+        with pytest.raises(ValueError):
+            BrowserOIDCClient(
+                authorization_endpoint=endpoint,
+                token_endpoint="https://id.example/token",
+                client_id="browser",
+                redirect_uri="https://app.example/callback",
+                scopes=[],
+            )
+
+
+def test_global_browser_csrf_gate_refuses_missing_double_submit_material(tmp_path: Path):
+    settings = _settings(tmp_path)
+    codec = BrowserSessionCodec(settings.browser_session_key)
+    session_cookie = codec.seal("session", {"access_token": "a", "csrf": "expected-csrf"}, ttl_seconds=60)
+    app = SimpleNamespace(state=SimpleNamespace(browser_session_codec=codec))
+    request = SimpleNamespace(
+        method="POST",
+        headers={},
+        cookies={settings.browser_csrf_cookie: "expected-csrf"},
+    )
+    assert browser_csrf_denial(app, request, settings, session_cookie) == (
+        403,
+        "CSRF validation failed",
+    )
+
+    request.headers["X-CSRF-Token"] = "expected-csrf"
+    assert browser_csrf_denial(app, request, settings, session_cookie) is None
+
+
+def test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie(tmp_path: Path):
+    app = create_app(_settings(tmp_path))
+    with TestClient(app, follow_redirects=False) as client:
+        client.cookies.clear()
+        response = client.post("/v1/auth/logout")
+        assert response.status_code == 403
+        assert response.json()["detail"] == "CSRF validation failed"
+        assert response.headers.get_list("set-cookie") == []
+
+
+def test_logout_cookie_deletions_preserve_secure_prefix_requirements(tmp_path: Path):
+    settings = _settings(tmp_path).model_copy(update={"browser_cookie_secure": True})
+    app = create_app(settings)
+    with TestClient(app, base_url="https://testserver", follow_redirects=False) as client:
+        app.state.browser_oidc_client = FakeBrowserClient()
+        app.state.oidc_verifier = FakeVerifier()
+        client.get("/v1/auth/login")
+        callback = client.get(
+            "/v1/auth/callback",
+            params={
+                "code": "authorization-code",
+                "state": "state-0123456789abcdefghijklmnop",
+            },
+        )
+        assert callback.status_code == 303
+        csrf = client.cookies.get("__Host-korpus_csrf")
+        response = client.post("/v1/auth/logout", headers={"X-CSRF-Token": csrf})
+        assert response.status_code == 204
+        deletions = response.headers.get_list("set-cookie")
+        assert any(
+            "__Host-korpus_session=" in value and "Secure" in value and "Path=/" in value
+            for value in deletions
+        )
+        assert any(
+            "__Host-korpus_csrf=" in value and "Secure" in value and "Path=/" in value
+            for value in deletions
+        )
+        assert any(
+            "__Secure-korpus_flow=" in value and "Secure" in value and "Path=/v1/auth" in value
+            for value in deletions
+        )

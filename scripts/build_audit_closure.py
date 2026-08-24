@@ -820,10 +820,11 @@ def main() -> None:
     state_path = ROOT / "handoff/machine/current_state.json"
     if state_path.is_file():
         state = json.loads(state_path.read_text(encoding="utf-8"))
-        state["audit"]["findings_total"] = len(output)
-        state["audit"]["status_counts"] = dict(sorted(counts.items()))
-        state["audit"]["remaining_total"] = len(remaining)
-        state["audit"]["remaining_by_severity"] = dict(sorted(severity.items()))
+        audit = state.setdefault("audit", {})
+        audit["findings_total"] = len(output)
+        audit["status_counts"] = dict(sorted(counts.items()))
+        audit["remaining_total"] = len(remaining)
+        audit["remaining_by_severity"] = dict(sorted(severity.items()))
         # `base_source_tree_sha256` is deliberately *not* written here. This file is
         # inside the digest — it has to be, or somebody could change
         # "production_authorized: false" without moving it — so writing the tree's own
@@ -834,7 +835,6 @@ def main() -> None:
         state_path.write_text(
             json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
-
     summary = {
         "findings": len(output),
         "counts": dict(counts),

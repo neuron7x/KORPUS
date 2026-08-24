@@ -1,0 +1,13 @@
+{
+  "schema": "korpus.trust-boundary-map.v2",
+  "boundaries": [
+    {"id":"B01","name":"public HTTP -> API","untrusted":["headers","cookies","request body","query params"],"required_controls":["size bounds","authn","csrf where browser session applies","schema validation","rate/admission control"]},
+    {"id":"B02","name":"identity -> authorization","untrusted":["client-supplied roles","client-supplied corpus scope"],"required_controls":["server-derived identity","policy evaluation","compartment enforcement","deny by default"]},
+    {"id":"B03","name":"corpus -> retrieval","untrusted":["document text","metadata","embedded instructions"],"required_controls":["authorization before retrieval","bounded candidates","source/version identity","instruction/data separation"]},
+    {"id":"B04","name":"retrieval -> answer","untrusted":["unsupported model claims","citation drift"],"required_controls":["support gate","citation alignment","abstention","evidence audit"]},
+    {"id":"B05","name":"upload -> extraction","untrusted":["file type","parser behavior","malware","OCR output"],"required_controls":["magic/type validation","parser sandbox","size/page/time bounds","malware policy","quarantine"]},
+    {"id":"B06","name":"application -> database","untrusted":["concurrent state","forged session identity"],"required_controls":["transactions","RLS or explicit policy","timeouts","migration contract","audit anchor"]},
+    {"id":"B07","name":"repository -> artifact","untrusted":["stale reports","mode loss","path ambiguity","history leakage"],"required_controls":["source manifest","distribution manifest","canonical paths","mode integrity","no git history"]},
+    {"id":"B08","name":"artifact -> production","untrusted":["self-attestation","environment drift","supply-chain gaps"],"required_controls":["exact release binding","independent evidence","environment attestation","complete dependency evidence","fail-closed promotion"]}
+  ]
+}

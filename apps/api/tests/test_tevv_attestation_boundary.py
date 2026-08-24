@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
@@ -33,6 +35,8 @@ def _evidence() -> tuple[dict, bytes]:
         "source_tree_sha256": compute_source_digest(ROOT),
         "release": release_tag(),
         "environment_class": "PRODUCTION_LIKE",
+        "evidence_class": "EXTERNAL_INDEPENDENT",
+        "assessor": {"organization": "independent-test-lab", "assessor_id": "assessor-1", "independent_of_system_owner": True},
         "preregistration_sha256": hashlib.sha256(tevv_gate.PROFILE.read_bytes()).hexdigest(),
         "corpus": {"corpus_id": "declared", "owner": "test", "document_set_sha256": "a" * 64, "synthetic": False},
         "observation_ledger": observations,
@@ -59,8 +63,8 @@ def test_production_like_string_without_trusted_attestation_does_not_pass_tevv_g
     attestation, _ = _attest(data)
     result = tevv_gate.evaluate(evidence, profile, attestation, set(), data, "tevv-evidence.json")
     assert result["checks"]["environment_class"] is True
-    assert result["checks"]["environment_attestation_verified"] is True
-    assert result["checks"]["environment_trusted_signer"] is False
+    assert result["checks"]["assessor_attestation_verified"] is True
+    assert result["checks"]["assessor_trusted_signer"] is False
     assert result["status"] == "FAIL"
 
 
@@ -140,3 +144,32 @@ def test_trusted_tevv_wrong_evidence_schema_fails_closed() -> None:
     result = _trusted_result(evidence)
     assert result["status"] == "FAIL"
     assert result["checks"]["evidence_schema"] is False
+
+
+def test_trusted_tevv_without_independent_class_fails_closed() -> None:
+    evidence, _ = _evidence()
+    evidence["evidence_class"] = "INTERNAL"
+    result = _trusted_result(evidence)
+    assert result["status"] == "FAIL"
+    assert result["checks"]["independent_class"] is False
+
+
+def test_trusted_tevv_without_independent_assessor_identity_fails_closed() -> None:
+    evidence, _ = _evidence()
+    evidence["assessor"] = {"organization": "owner", "assessor_id": "same-party", "independent_of_system_owner": False}
+    result = _trusted_result(evidence)
+    assert result["status"] == "FAIL"
+    assert result["checks"]["assessor_structured"] is False
+
+
+@pytest.mark.parametrize(("field", "bad"), [
+    ("minimum_observations", True), ("minimum_observations", 1.5), ("minimum_observations", "1"),
+    ("minimum_null_controls", True), ("minimum_null_controls", 1.5), ("minimum_null_controls", "1"),
+    ("minimum_pass_rate", False), ("minimum_pass_rate", "1.0"),
+    ("maximum_interval_width", "0.1"), ("maximum_citation_failures", False),
+])
+def test_tevv_policy_does_not_coerce_malformed_numeric_thresholds(field: str, bad: object) -> None:
+    profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8")); profile[field] = bad
+    evidence, data = _evidence(); attestation, fingerprint = _attest(data)
+    with pytest.raises(ValueError):
+        tevv_gate.evaluate(evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json")

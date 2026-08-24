@@ -26,6 +26,7 @@ from korpus.application.provenance import (  # noqa: E402  (path set above)
     read_provenance,
     stamp,
 )
+from bounded_process import run_bounded  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -35,6 +36,7 @@ class Mutant:
     old: str
     new: str
     tests: tuple[str, ...]
+    full_copy: bool = False
 
 
 MUTANTS = (
@@ -173,16 +175,16 @@ MUTANTS = (
     ),
     Mutant(
         "M13_OPERATIONAL_LEAKAGE_GATE_INVERTED",
-        "apps/api/src/korpus/application/operations.py",
-        '<= int(eval_policy["maximum_leakage_failures"]),',
-        '>= int(eval_policy["maximum_leakage_failures"]),',
+        "apps/api/src/korpus/application/operational_math.py",
+        '_count_at_most(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
+        '_count_at_least(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
         ("apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression",),
     ),
     Mutant(
         "M14_SEMANTIC_OUTAGE_FALLBACK",
-        "apps/api/src/korpus/application/retrieval.py",
-        'raise RetrievalUnavailable("required semantic retrieval is unavailable") from exc',
-        'semantic_hits = []',
+        "apps/api/src/korpus/application/retrieval_execution.py",
+        '        raise ExecutionUnavailable("required semantic retrieval is unavailable") from exc',
+        '        hits = []',
         ("apps/api/tests/test_semantic_integration.py::test_required_semantic_failure_never_silently_falls_back_to_lexical",),
     ),
     Mutant(
@@ -246,16 +248,10 @@ MUTANTS = (
     ),
     Mutant(
         "M21_CSRF_GATE_BYPASS",
-        "apps/api/src/korpus/main.py",
-        """if (
-                    not isinstance(expected_csrf, str)
-                    or not supplied_csrf
-                    or not csrf_cookie
-                    or not secrets.compare_digest(supplied_csrf, expected_csrf)
-                    or not secrets.compare_digest(csrf_cookie, expected_csrf)
-                ):""",
-        "if False:",
-        ("apps/api/tests/test_browser_oidc.py::test_browser_oidc_callback_keeps_tokens_http_only_and_enforces_csrf",),
+        "apps/api/src/korpus/security/browser_csrf.py",
+        'return None if valid else (403, "CSRF validation failed")',
+        "return None",
+        ("apps/api/tests/test_browser_oidc.py::test_global_browser_csrf_gate_refuses_missing_double_submit_material",),
     ),
     Mutant(
         # The decision moved behind the Extractor port on 2026-08-06. It is now a value
@@ -317,9 +313,9 @@ MUTANTS = (
         # stated which side of the boundary the last day belonged to, so an expired
         # order could still govern an answer and no test objected.
         "M27_VALIDITY_END_BOUNDARY_SHIFT",
-        "apps/api/src/korpus/domain/models.py",
-        "if self.effective_until is not None and as_of > self.effective_until:",
-        "if self.effective_until is not None and as_of >= self.effective_until:",
+        "apps/api/src/korpus/domain/temporal.py",
+        "    if effective_until is not None and effective_until < as_of:",
+        "    if effective_until is not None and effective_until <= as_of:",
         ("apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names",),
     ),
     Mutant(
@@ -327,9 +323,9 @@ MUTANTS = (
         # on the day it happens. Flipping it would keep a rescinded order in force for
         # one more day.
         "M28_RESCISSION_BOUNDARY_SHIFT",
-        "apps/api/src/korpus/domain/models.py",
-        "return self.rescinded_at is None or as_of < self.rescinded_at.date()",
-        "return self.rescinded_at is None or as_of <= self.rescinded_at.date()",
+        "apps/api/src/korpus/domain/temporal.py",
+        "    if rescinded_at is not None and rescinded_at.date() <= as_of:",
+        "    if rescinded_at is not None and rescinded_at.date() < as_of:",
         ("apps/api/tests/test_validity_boundaries.py::test_a_rescinded_version_stops_governing_on_the_day_of_rescission",),
     ),
     Mutant(
@@ -338,23 +334,29 @@ MUTANTS = (
         # can never be restored by `_materialize_current`, so this shift expires an
         # order a day early and the domain never gets to disagree.
         "M29_SQL_VALIDITY_END_SHIFT",
-        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
-        "AND (v.effective_until IS NULL OR v.effective_until >= :as_of)",
-        "AND (v.effective_until IS NULL OR v.effective_until > :as_of)",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "              AND (v.effective_until IS NULL OR v.effective_until >= :as_of)\n"
+        "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
+        "              AND (v.effective_until IS NULL OR v.effective_until > :as_of)\n"
+        "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
         ("apps/api/tests/test_validity_boundaries.py::test_the_search_path_keeps_a_document_on_the_last_day_it_names",),
     ),
     Mutant(
         "M30_SQL_VALIDITY_START_SHIFT",
-        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
-        "AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
-        "AND COALESCE(v.effective_from, v.publication_date) < :as_of",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "              AND d.classification IN ({class_placeholders})\n"
+        "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "              AND d.classification IN ({class_placeholders})\n"
+        "              AND COALESCE(v.effective_from, v.publication_date) < :as_of",
         ("apps/api/tests/test_validity_boundaries.py::test_sql_and_domain_agree_on_every_day_around_both_bounds",),
     ),
     Mutant(
         "M31_SQL_RESCISSION_SHIFT",
-        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
-        "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)",
-        "AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) > :as_of)\n"
+        "              AND v.id NOT IN (SELECT id FROM superseded)",
+        "              AND (v.rescinded_at IS NULL OR date(v.rescinded_at) >= :as_of)\n"
+        "              AND v.id NOT IN (SELECT id FROM superseded)",
         # Behaviourally this one is equivalent — `_materialize_current` re-checks the
         # domain and the answer is unchanged — so only the test that asserts the SQL
         # layer on its own can kill it.
@@ -378,19 +380,19 @@ MUTANTS = (
         # Turns the breach into a silent filter — the failure mode the check exists to
         # prevent: the answer looks normal and the defective adapter stays in service.
         "M34_SCOPE_BREACH_DOWNGRADED_TO_FILTER",
-        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/src/korpus/application/answer_retrieval_gate.py",
         (
-            "        breaches = self._scope_breaches(identity, corpora, retrieved)\n"
-            "        if breaches:"
+            "    breaches = service._scope_breaches(identity, corpora, retrieved)\n"
+            "    if breaches:"
         ),
         (
-            "        breaches = self._scope_breaches(identity, corpora, retrieved)\n"
-            "        retrieved = [\n"
-            "            item\n"
-            "            for item in retrieved\n"
-            "            if str(item.version.id) not in {b.version_id for b in breaches}\n"
-            "        ]\n"
-            "        if False:"
+            "    breaches = service._scope_breaches(identity, corpora, retrieved)\n"
+            "    retrieved = [\n"
+            "        item\n"
+            "        for item in retrieved\n"
+            "        if str(item.version.id) not in {b.version_id for b in breaches}\n"
+            "    ]\n"
+            "    if False:"
         ),
         ("apps/api/tests/test_retriever_scope.py::test_one_out_of_scope_row_stops_an_otherwise_valid_batch",),
     ),
@@ -635,9 +637,12 @@ MUTANTS = (
         "apps/api/src/korpus/application/provenance.py",
         '        hasher.update(len(relative).to_bytes(4, "big"))\n'
         "        hasher.update(relative)\n"
-        '        hasher.update(len(content).to_bytes(8, "big"))\n'
-        "        hasher.update(content)",
-        "        hasher.update(relative)\n        hasher.update(content)",
+        '        with path.open("rb") as handle:\n'
+        "            expected_size = path.stat().st_size\n"
+        '            hasher.update(expected_size.to_bytes(8, "big"))',
+        "        hasher.update(relative)\n"
+        '        with path.open("rb") as handle:\n'
+        "            expected_size = path.stat().st_size",
         (
             "apps/api/tests/test_evidence_provenance.py::test_digest_separates_path_from_content",
         ),
@@ -844,8 +849,8 @@ MUTANTS = (
         "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
         "apps/api/src/korpus/application/evidence.py",
         "    content = {token for token in tokens.difference(_NEGATIONS) "
-        "if not _NUMERAL.fullmatch(token)}",
-        "    content = set(tokens.difference(_NEGATIONS))",
+        "if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS}",
+        "    content = {token for token in tokens.difference(_NEGATIONS) if token not in _UNIT_TOKENS}",
         (
             "apps/api/tests/test_intra_span_contradiction.py::test_a_numeric_reversal_inside_one_span_stops_the_answer",
         ),
@@ -881,10 +886,9 @@ MUTANTS = (
     ),
     Mutant(
         "M84_LEAKAGE_DENOMINATOR_NOT_REQUIRED_BY_GATE",
-        "apps/api/src/korpus/application/operations.py",
-        '            "access_noninterference_measured": int(evaluation.get("leakage_checks", -1))\n'
-        '            >= int(eval_policy["minimum_leakage_checks"]),',
-        '            "access_noninterference_measured": True,',
+        "apps/api/src/korpus/application/operational_math.py",
+        '"access_noninterference_measured": _count_at_least(evaluation.get("leakage_checks"), eval_policy.get("minimum_leakage_checks")),',
+        '"access_noninterference_measured": True,',
         (
             "apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure",
         ),
@@ -932,9 +936,9 @@ MUTANTS = (
     ),
     Mutant(
         "M90_CURRENCY_HAS_NO_LOWER_BOUND",
-        "apps/api/src/korpus/domain/models.py",
-        "        if lower_bound is None or as_of < lower_bound:",
-        "        if lower_bound is not None and as_of < lower_bound:",
+        "apps/api/src/korpus/domain/temporal.py",
+        "    if start is None or start > as_of:",
+        "    if start is not None and start > as_of:",
         (
             "apps/api/tests/test_currency_lower_bound.py::test_the_projection_ignores_an_unbounded_version_already_in_the_database",
         ),
@@ -959,8 +963,10 @@ MUTANTS = (
     ),
     Mutant(
         "M93_SQL_IGNORES_THE_LOWER_BOUND",
-        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
+        "              AND d.classification IN ({class_placeholders})\n"
         "              AND COALESCE(v.effective_from, v.publication_date) <= :as_of",
+        "              AND d.classification IN ({class_placeholders})\n"
         "              AND COALESCE(v.effective_from, v.publication_date, :as_of) <= :as_of",
         (
             "apps/api/tests/test_currency_lower_bound.py::test_the_candidate_sql_excludes_an_unbounded_version",
@@ -969,8 +975,8 @@ MUTANTS = (
     Mutant(
         "M94_SCHEMA_REVISION_PIN_UNCHECKED",
         "apps/api/src/korpus/infrastructure/schema.py",
-        'SCHEMA_REVISION = "0015_plan_pricing"',
-        'SCHEMA_REVISION = "0014_subscription_last_event"',
+        'SCHEMA_REVISION = "0017_learning_mastery"',
+        'SCHEMA_REVISION = "0016_learning_course_graph"',
         (
             "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph",
         ),
@@ -1095,8 +1101,8 @@ MUTANTS = (
     Mutant(
         "M107_GATE_INVENTORY_REPORTS_NOTHING",
         "apps/api/src/korpus/application/gate_inventory.py",
-        "    return _dictionary_keys(OperationalReleaseGate.evaluate, \"checks\")",
-        "    return ()",
+        '    outer = _dictionary_keys(OperationalReleaseGate.evaluate, "checks")',
+        "    outer = ()",
         (
             "apps/api/tests/test_gate_negative_controls.py::"
             "test_every_gate_predicate_has_a_negative_control",
@@ -1313,7 +1319,7 @@ MUTANTS = (
     Mutant(
         "M147_OVERSIZED_FILE_UNDETECTED",
         "apps/api/src/korpus/repository_requirements.py",
-        "        if path.stat().st_size > MAX_FILE_BYTES:",
+        "        if _is_oversized_file(context, path, relative):",
         "        if False:",
         (
             "apps/api/tests/test_repository_register.py::"
@@ -1737,7 +1743,7 @@ MUTANTS = (
         # corpus — 2.5 s against a 1200 ms budget — and the deadline breach reached the
         # reader as "the corpus holds nothing".
         "M195_SUPERSESSION_TEST_CORRELATED_AGAIN",
-        "apps/api/src/korpus/infrastructure/retrieval_queries.py",
+        "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py",
         "              AND v.id NOT IN (SELECT id FROM superseded)\n"
         "            ORDER BY bm25(evidence_fts), s.id",
         "              AND NOT EXISTS (\n"
@@ -2371,6 +2377,7 @@ MUTANTS = (
             "apps/api/tests/test_answer_paths_are_bounded.py::"
             "test_every_answer_path_goes_through_the_shared_bound",
         ),
+        full_copy=True,
     ),
     Mutant(
         "M149_UNDECLARED_RETENTION_READS_AS_COMPLIANT",
@@ -2580,9 +2587,9 @@ MUTANTS = (
     ),
     Mutant(
         'M211_INTERNAL_REDTEAM_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["redteam.independent"] = redteam.get("evidence_class") == external.get("redteam_evidence_class")',
-        '    checks["redteam.independent"] = redteam.get("evidence_class") != external.get("redteam_evidence_class")',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "redteam.independent": redteam.get("evidence_class") == external.get("redteam_evidence_class"),',
+        '        "redteam.independent": redteam.get("evidence_class") != external.get("redteam_evidence_class"),',
         ('apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production',),
     ),
     Mutant(
@@ -2594,23 +2601,23 @@ MUTANTS = (
     ),
     Mutant(
         'M213_NON_POSTGRES_BACKEND_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["postgres.real_backend"] = postgres.get("backend") == external.get("postgres_backend")',
-        '    checks["postgres.real_backend"] = True',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "postgres.real_backend": postgres.get("backend") == external.get("postgres_backend"),',
+        '        "postgres.real_backend": True,',
         ('apps/api/tests/test_production_assurance.py::test_non_postgres_backend_cannot_promote_production',),
     ),
     Mutant(
         'M214_PARTIAL_SUPPLY_CHAIN_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["supply_chain.complete"] = supply.get("completeness") == external.get("supply_chain_completeness")',
-        '    checks["supply_chain.complete"] = True',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "supply_chain.complete": supply.get("completeness") == external.get("supply_chain_completeness"),',
+        '        "supply_chain.complete": True,',
         ('apps/api/tests/test_production_assurance.py::test_partial_supply_chain_evidence_cannot_promote_production',),
     ),
     Mutant(
         'M215_PARTIAL_MUTATION_SCOPE_PROMOTED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["mutation.full_catalogue"] = mutation.get("scope") == external.get("mutation_scope")',
-        '    checks["mutation.full_catalogue"] = True',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "mutation.full_catalogue": mutation.get("scope") == external.get("mutation_scope"),',
+        '        "mutation.full_catalogue": True,',
         ('apps/api/tests/test_production_assurance.py::test_partial_mutation_scope_cannot_promote_production',),
     ),
     Mutant(
@@ -2622,16 +2629,16 @@ MUTANTS = (
     ),
     Mutant(
         'M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["redteam.attestation_verified"] = redteam.get("attestation_verified") is external.get("redteam_attestation_verified")',
-        '    checks["redteam.attestation_verified"] = True',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "redteam.attestation_verified": redteam.get("attestation_verified") is external.get("redteam_attestation_verified"),',
+        '        "redteam.attestation_verified": True,',
         ('apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected',),
     ),
     Mutant(
         'M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED',
-        'apps/api/src/korpus/application/production_assurance.py',
-        '    checks["redteam.trusted_signer"] = redteam.get("trusted_signer") is external.get("redteam_trusted_signer_required")',
-        '    checks["redteam.trusted_signer"] = True',
+        'apps/api/src/korpus/application/production_assurance_external.py',
+        '        "redteam.trusted_signer": redteam.get("trusted_signer") is external.get("redteam_trusted_signer_required"),',
+        '        "redteam.trusted_signer": True,',
         ('apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected',),
     ),
     Mutant(
@@ -2962,8 +2969,8 @@ MUTANTS = (
     Mutant(
         "M258_TEVV_LEAKAGE_LEDGER_IGNORED",
         "scripts/run_tevv_production_gate.py",
-        '        "leakage": int(metrics["leakage_failures"]) <= int(profile["maximum_leakage_failures"]),',
-        '        "leakage": int(evidence.get("leakage_failures", 0)) <= int(profile["maximum_leakage_failures"]),',
+        '        "leakage": metrics["leakage_failures"] <= policy["maximum_leakage_failures"],',
+        '        "leakage": evidence.get("leakage_failures", 0) <= policy["maximum_leakage_failures"],',
         (
             "apps/api/tests/test_tevv_attestation_boundary.py::"
             "test_trusted_tevv_summary_cannot_hide_ledger_leakage_failure",
@@ -2972,8 +2979,8 @@ MUTANTS = (
     Mutant(
         "M259_TEVV_NULL_LEDGER_IGNORED",
         "scripts/run_tevv_production_gate.py",
-        '        "null_false_accepts": int(metrics["null_control_false_accepts"]) <= int(profile["maximum_null_control_false_accepts"]),',
-        '        "null_false_accepts": int(evidence.get("null_control_false_accepts", 0)) <= int(profile["maximum_null_control_false_accepts"]),',
+        '        "null_false_accepts": metrics["null_control_false_accepts"] <= policy["maximum_null_control_false_accepts"],',
+        '        "null_false_accepts": evidence.get("null_control_false_accepts", 0) <= policy["maximum_null_control_false_accepts"],',
         (
             "apps/api/tests/test_tevv_attestation_boundary.py::"
             "test_trusted_tevv_summary_cannot_hide_null_false_accept",
@@ -3032,6 +3039,336 @@ MUTANTS = (
         ("apps/api/tests/test_supply_chain_evidence_boundary.py::test_scanner_marker_commit_must_match_current_pipeline_commit",),
     ),
 
+    Mutant(
+        "M266_MISSION_HARD_FAILURE_COMPENSATED",
+        "apps/api/src/korpus/application/mission_assurance_v2.py",
+        "    if failures: reasons.append(f\"{failures} cases contain hard mission-assurance failures\")",
+        "    if False: reasons.append(f\"{failures} cases contain hard mission-assurance failures\")",
+        ("apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy",),
+    ),
+    Mutant(
+        "M267_MISSION_CONFIDENCE_BOUND_BYPASSED",
+        "apps/api/src/korpus/application/mission_assurance_v2.py",
+        "    if hard_interval.upper > maximum_hard_failure_rate_upper_95:",
+        "    if False:",
+        ("apps/api/tests/test_mission_assurance_v2.py::test_confidence_bound_alone_blocks_small_zero_failure_sample",),
+    ),
+    Mutant(
+        "M268_MISSION_INDEPENDENCE_BYPASSED",
+        "apps/api/src/korpus/application/mission_assurance_v2.py",
+        "    if not independent: reasons.append(\"evaluation is not independent\")",
+        "    if False: reasons.append(\"evaluation is not independent\")",
+        ("apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission",),
+    ),
+
+    Mutant(
+        'M269_BROWSER_SESSION_COOKIE_PREFIX_BYPASSED',
+        'apps/api/src/korpus/security/browser_cookie_policy.py',
+        '    if not settings.browser_session_cookie.startswith("__Host-"):',
+        '    if False:',
+        ('apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening',),
+    ),
+    Mutant(
+        'M270_LOGOUT_CSRF_PAIR_BYPASSED',
+        'apps/api/src/korpus/security/browser_cookie_policy.py',
+        '    return bool(supplied and cookie and secrets.compare_digest(supplied, cookie))',
+        '    return True',
+        ('apps/api/tests/test_browser_oidc.py::test_logout_without_browser_csrf_pair_is_refused_even_without_session_cookie',),
+    ),
+    Mutant(
+        'M271_ZIP_ENTRY_BUDGET_BYPASSED',
+        'scripts/zip_resource_policy.py',
+        '    if len(infos) > MAX_ARCHIVE_ENTRIES:',
+        '    if False:',
+        ('apps/api/tests/test_package_zip_safety.py::test_entry_count_budget_refuses_before_structural_processing',),
+    ),
+    Mutant(
+        'M272_ZIP_COMPRESSION_RATIO_BYPASSED',
+        'scripts/zip_resource_policy.py',
+        '        elif info.compress_size and info.file_size / info.compress_size > MAX_COMPRESSION_RATIO:',
+        '        elif False:',
+        ('apps/api/tests/test_package_zip_safety.py::test_compression_ratio_budget_is_enforced',),
+    ),
+    Mutant(
+        'M273_SAFE_EXTRACTION_ADMISSION_BYPASSED',
+        'scripts/safe_archive_extract.py',
+        '        if failures:',
+        '        if False:',
+        ('apps/api/tests/test_full_ssot_packager.py::test_safe_extractor_refuses_unsafe_archive_before_write',),
+    ),
+    Mutant(
+        'M274_NGINX_HSTS_INHERITANCE_BROKEN',
+        'apps/web/nginx.cloudrun.conf',
+        '    location = /api {\n      default_type application/json;\n      add_header X-Content-Type-Options nosniff always;\n      add_header X-Frame-Options DENY always;\n      add_header Referrer-Policy no-referrer always;\n      add_header Strict-Transport-Security "max-age=31536000" always;',
+        '    location = /api {\n      default_type application/json;\n      add_header X-Content-Type-Options nosniff always;\n      add_header X-Frame-Options DENY always;\n      add_header Referrer-Policy no-referrer always;',
+        ('apps/api/tests/test_nginx_security_headers.py::test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance',),
+    ),
+    Mutant(
+        'M275_AUDIT_ANCHOR_EXTERNAL_HTTPS_BYPASSED',
+        'apps/api/src/korpus/controlled_requirements.py',
+        '        lambda s: (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))',
+        '        lambda s: (s.audit_anchor_mode == "http" and bool(s.audit_anchor_url))',
+        ('apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening',),
+    ),
+    Mutant(
+        'M276_PEC_ADMISSION_THRESHOLD_BYPASSED',
+        'apps/api/src/korpus/application/evidence_admission.py',
+        '    return margins.minimum >= 0.0',
+        '    return True',
+        ('apps/api/tests/test_decision_sensitivity.py::test_boundary_margin_is_signed_distance_to_actual_retrieval_gate',),
+    ),
+    Mutant(
+        'M277_PEC_STRUCTURAL_ADMISSION_BYPASSED',
+        'apps/api/src/korpus/application/evidence_admission.py',
+        '    return item.version.review_state.value == "approved" and item.version.authority.is_normative',
+        '    return True',
+        ('apps/api/tests/test_decision_sensitivity.py::test_nonnormative_candidate_is_a_structural_block_not_fake_near_boundary',),
+    ),
+    Mutant(
+        'M278_PEC_BOUNDARY_DIVERGENCE_TOLERATED',
+        'apps/api/src/korpus/application/pec_evidence_features.py',
+        '    if boundary.retrieval_gate_passed != (eligible_count > 0):',
+        '    if False:',
+        ('apps/api/tests/test_decision_sensitivity.py::test_boundary_state_fails_closed_if_gate_and_feature_logic_diverge',),
+    ),
+    Mutant(
+        'M279_DGC_ADMISSIBLE_BASELINE_ESCALATED',
+        'apps/api/src/korpus/application/pec_oracle_policy.py',
+        '    if baseline.admissible():',
+        '    if False:',
+        ('apps/api/tests/test_pec_replay.py::test_oracle_never_buys_compute_when_baseline_is_already_admissible_even_if_noisy_latency_is_lower',),
+    ),
+    Mutant(
+        'M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL',
+        'apps/api/src/korpus/application/pec_oracle_policy.py',
+        '        return _decision(query_id, RetrievalAction.BASELINE, "UNKNOWN", "missing_original_query_stop_baseline", [])',
+        '        return _decision(query_id, RetrievalAction.PLAN_QUERY_VARIANTS, "PASS", "mutated", [])',
+        ('apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline',),
+    ),
+    Mutant(
+        'M281_PEC_ABLATION_QUALITY_REGRESSION_IGNORED',
+        'apps/api/src/korpus/application/pec_ablation.py',
+        '        "FAIL" if safety_regressions or quality_regressions',
+        '        "FAIL" if safety_regressions',
+        ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_fails_before_efficiency_when_quality_regresses',),
+    ),
+    Mutant(
+        'M282_PEC_ABLATION_EFFICIENCY_EVIDENCE_BYPASSED',
+        'apps/api/src/korpus/application/pec_ablation.py',
+        '        else "PASS" if supported_improvement',
+        '        else "PASS" if True',
+        ('apps/api/tests/test_pec_protocol_gates.py::test_ablation_without_supported_efficiency_gain_remains_unknown',),
+    ),
+    Mutant(
+        'M283_PEC_METAMORPHIC_RISK_WEAKENING_IGNORED',
+        'apps/api/src/korpus/application/pec_metamorphic_rules.py',
+        '    elif transformed_risk < base_risk:',
+        '    elif False:',
+        ('apps/api/tests/test_pec_protocol_gates.py::test_metamorphic_invariant_kills_risk_weakening_and_source_unbinding',),
+    ),
+    Mutant(
+        'M284_PEC_PROMOTION_NONPASS_RECEIPT_IGNORED',
+        'apps/api/src/korpus/application/pec_promotion.py',
+        '    if nonpass:',
+        '    if False:',
+        ('apps/api/tests/test_pec_protocol_gates.py::test_promotion_refuses_any_nonpass_required_receipt',),
+    ),
+    Mutant(
+        'M285_DGC_DECISION_BOUNDARY_AUDIT_DROPPED',
+        'apps/api/src/korpus/application/pec_trace_projection.py',
+        '        "decision_boundary_distance": trace.decision_boundary_distance,',
+        '        "decision_boundary_distance_mutated": trace.decision_boundary_distance,',
+        ('apps/api/tests/test_pec_integration.py::test_controller_trace_reaches_completed_answer_audit',),
+    ),
+    Mutant(
+        'M286_PEC_CONTEXTUAL_EVIDENCE_MUTATION_IGNORED',
+        'apps/api/src/korpus/application/pec_contextual_benchmark.py',
+        '        if not evidence_unchanged:',
+        '        if False:',
+        ('apps/api/tests/test_pec_contextual_benchmark.py::test_contextual_benchmark_refuses_evidence_mutation',),
+    ),
+    Mutant(
+        'M287_PEC_TERMINAL_ABSTAIN_BYPASSED',
+        'apps/api/src/korpus/application/answer_retrieval_gate.py',
+        '    if early_abstain:',
+        '    if False:',
+        ('apps/api/tests/test_pec_integration.py::test_controller_abstain_is_terminal_even_when_first_pass_has_eligible_evidence',),
+    ),
+    Mutant(
+        'M288_PEC_ORIGINAL_QUERY_REPEATED_ON_ESCALATION',
+        'apps/api/src/korpus/application/pec_retrieval.py',
+        '    searches = plan.searches if include_asked else plan.variants',
+        '    searches = plan.searches',
+        ('apps/api/tests/test_pec_integration.py::test_planner_escalation_does_not_repeat_original_lexical_search',),
+    ),
+    Mutant(
+        'M289_PEC_PROMOTION_CROSS_RUN_REPLAY_ACCEPTED',
+        'apps/api/src/korpus/application/pec_promotion_bindings.py',
+        '        ("oracle", "replay_sha256", receipt_file_sha256.get("counterfactual_replay", "")),',
+        '        ("oracle", "replay_sha256", str(receipts.get("oracle", {}).get("replay_sha256", ""))),',
+        ('apps/api/tests/test_pec_protocol_gates.py::test_promotion_rejects_green_but_cross_run_evidence_chain',),
+    ),
+    Mutant(
+        'M290_PEC_CONTEXTUAL_CANDIDATE_RECOVERY_DISABLED',
+        'apps/api/src/korpus/infrastructure/repository_search.py',
+        '    if len(baseline) >= candidate_limit or not corpora or not terms:',
+        '    if True:',
+        ('apps/api/tests/test_search_index.py::test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence',),
+    ),
+    Mutant(
+        'M291_PEC_CONTROLLED_CONTEXTUAL_GOVERNANCE_BYPASSED',
+        'apps/api/src/korpus/pec_config_policy.py',
+        '        if settings.contextual_retrieval_enabled and controlled:',
+        '        if False:',
+        ('apps/api/tests/test_pec_act_hardening.py::test_controlled_contextual_retrieval_cannot_run_outside_pec_governance',),
+    ),
+    Mutant(
+        'M292_PEC_REPLAY_STRING_BOOLEAN_ACCEPTED',
+        'scripts/pec_replay_validation.py',
+        '        if field in observation and not isinstance(observation.get(field), bool):',
+        '        if False:',
+        ('apps/api/tests/test_pec_act_hardening.py::test_replay_rejects_string_booleans_in_observed_outcomes',),
+    ),
+    Mutant(
+        'M293_PEC_EXPORT_CROSS_RUN_TRAINING_ACCEPTED',
+        'scripts/pec_controller_export_impl.py',
+        '        ("training.dataset_sha256", training.get("dataset_sha256"), dataset_sha256),',
+        '        ("training.dataset_sha256", dataset_sha256, dataset_sha256),',
+        ('apps/api/tests/test_pec_cli_paths.py::test_controller_export_refuses_cross_run_training_binding',),
+    ),
+    Mutant(
+        'M294_PEC_GROUPED_VALIDATION_SPLITS_SOURCE_LINEAGE',
+        'apps/api/src/korpus/application/pec_training_validation.py',
+        '        ([row for row in data if buckets[row.group_id] != index], [row for row in data if buckets[row.group_id] == index])',
+        '        ([row for row in data if _bucket(row.query_id, folds) != index], [row for row in data if _bucket(row.query_id, folds) == index])',
+        ('apps/api/tests/test_pec_research.py::test_nested_group_validation_is_outer_group_disjoint',),
+    ),
+    Mutant(
+        'M295_PEC_CONDITIONAL_RISK_UNDERPOWERED_ADMITTED',
+        'apps/api/src/korpus/application/pec_research.py',
+        '        is_admitted = len(values) >= minimum_samples and upper <= risk_limit',
+        '        is_admitted = len(values) >= minimum_samples or upper <= risk_limit',
+        ('apps/api/tests/test_pec_research.py::test_conditional_risk_underpowered_stratum_falls_back',),
+    ),
+    Mutant(
+        'M296_PEC_REPLAY_PRIORITY_INVERTS_ACCEPTED_ERROR',
+        'apps/api/src/korpus/application/pec_replay.py',
+        '        0 if flags[1] else 1,',
+        '        1 if flags[1] else 0,',
+        ('apps/api/tests/test_pec_research.py::test_replay_priority_enriches_explicit_failures',),
+    ),
+    Mutant(
+        'M297_PEC_PRODUCTION_JUDGMENT_PROVENANCE_BYPASSED',
+        'apps/api/src/korpus/application/pec_research.py',
+        '        if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):',
+        '        if False:',
+        ('apps/api/tests/test_pec_research.py::test_production_judgment_requires_bound_provenance',),
+    ),
+    Mutant(
+        'M298_PEC_INFORMATION_GAIN_SCALAR_UTILITY_INTRODUCED',
+        'apps/api/src/korpus/application/pec_research.py',
+        '                "retrieval_quality_deltas": deltas,',
+        '                "retrieval_quality_deltas": deltas, "utility": 0.0,',
+        ('apps/api/tests/test_pec_research.py::test_information_gain_is_vector_not_weighted_scalar',),
+    ),
+    Mutant(
+        'M299_PEC_SYNTHETIC_RESEARCH_GRANTED_PRODUCTION_AUTHORITY',
+        'apps/api/src/korpus/application/pec_research.py',
+        '    authority = validity.get("status") == "PASS"',
+        '    authority = True',
+        ('apps/api/tests/test_pec_research.py::test_research_status_refuses_non_production_authority',),
+    ),
+    Mutant(
+        'M300_PEC_NESTED_SELECTION_SEES_OUTER_VALIDATION',
+        'apps/api/src/korpus/application/pec_training_validation.py',
+        '            depth, min_leaf, inner = select_hyperparameters(outer_train)',
+        '            depth, min_leaf, inner = select_hyperparameters(data)',
+        ('apps/api/tests/test_pec_research.py::test_nested_selection_never_sees_outer_validation',),
+    ),
+    Mutant(
+        'M301_PEC_PRODUCTION_ENVIRONMENT_BYPASSED',
+        'apps/api/src/korpus/application/pec_revision_binding.py',
+        '        if environment != "PRODUCTION":',
+        '        if False:',
+        ('apps/api/tests/test_pec_revision_binding_v097.py::test_revision_binding_rejects_nonproduction_environment',),
+    ),
+    Mutant(
+        'M302_PEC_AUDIT_REVISION_BINDING_BYPASSED',
+        'apps/api/src/korpus/application/pec_audit_trace.py',
+        '        if str(row.get("revision", "")) != binding.revision:',
+        '        if False:',
+        ('apps/api/tests/test_pec_audit_trace_v097.py::test_audit_trace_rejects_revision_drift',),
+    ),
+    Mutant(
+        'M303_PEC_COHORT_MISSING_CASE_ACCEPTED',
+        'apps/api/src/korpus/application/pec_cohort.py',
+        '    complete = not missing and not unexpected and not duplicates and len(observed) == len(expected)',
+        '    complete = not unexpected and not duplicates and len(observed) <= len(expected)',
+        ('apps/api/tests/test_pec_cohort_v097.py::test_cohort_rejects_cherry_picked_missing_case',),
+    ),
+    Mutant(
+        'M304_PEC_MODEL_SELF_JUDGMENT_ACCEPTED',
+        'apps/api/src/korpus/application/pec_human_judgment.py',
+        '        elif model_self_judgment:',
+        '        elif False:',
+        ('apps/api/tests/test_pec_human_judgment_v097.py::test_model_self_judgment_is_never_authoritative',),
+    ),
+    Mutant(
+        'M305_PEC_HUMAN_JUDGMENT_REVISION_DRIFT_ACCEPTED',
+        'apps/api/src/korpus/application/pec_human_judgment.py',
+        '        if str(row.get("revision", "")) != binding.revision:',
+        '        if False:',
+        ('apps/api/tests/test_pec_human_judgment_v097.py::test_human_judgment_rejects_revision_drift',),
+    ),
+    Mutant(
+        'M306_PEC_CANARY_REVISION_DRIFT_ACCEPTED',
+        'apps/api/src/korpus/application/pec_canary_admission.py',
+        '    if str(receipt.get("cloud_run_revision", "")) != cloud_run_revision:',
+        '    if False:',
+        ('apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_revision_mismatch',),
+    ),
+    Mutant(
+        'M307_PEC_CANARY_UNDERPOWERED_SAMPLE_ACCEPTED',
+        'apps/api/src/korpus/application/pec_canary_admission.py',
+        '    if isinstance(samples, bool) or not isinstance(samples, int) or samples < minimum_samples:',
+        '    if False:',
+        ('apps/api/tests/test_pec_canary_admission_v097.py::test_canary_rejects_underpowered_sample',),
+    ),
+    Mutant(
+        'M308_PEC_TRAINING_DATASET_DRIFT_ACCEPTED',
+        'apps/api/src/korpus/application/pec_training_lineage.py',
+        '        "dataset_sha256": str(receipt.get("dataset_sha256", "")) == dataset_sha256,',
+        '        "dataset_sha256": True,',
+        ('apps/api/tests/test_pec_training_lineage_v097.py::test_training_lineage_rejects_dataset_drift',),
+    ),
+    Mutant(
+        'M309_PEC_EVIDENCE_RECEIPT_RELEASE_DRIFT_ACCEPTED',
+        'apps/api/src/korpus/application/pec_evidence_receipt.py',
+        '    if str(payload.get("release", "")) != release:',
+        '    if False:',
+        ('apps/api/tests/test_pec_evidence_receipt_v097.py::test_evidence_receipt_rejects_release_drift',),
+    ),
+    Mutant(
+        'M310_PEC_LOCAL_SELF_ATTESTATION_ACCEPTED',
+        'apps/api/src/korpus/application/pec_hosted_evidence.py',
+        '        "not_local_self_attested": receipt.get("local_self_attested") is not True,',
+        '        "not_local_self_attested": True,',
+        ('apps/api/tests/test_pec_hosted_evidence_v097.py::test_hosted_evidence_rejects_local_self_attestation',),
+    ),
+    Mutant(
+        'M311_PEC_UNTRUSTED_EXTERNAL_SIGNER_ACCEPTED',
+        'apps/api/src/korpus/application/pec_external_assurance.py',
+        '        "trusted_signer": str(receipt.get("signer_fingerprint", "")) in trusted,',
+        '        "trusted_signer": True,',
+        ('apps/api/tests/test_pec_external_assurance_v097.py::test_external_assurance_rejects_untrusted_signer',),
+    ),
+    Mutant(
+        'M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED',
+        'apps/api/src/korpus/application/supply_chain_attestation.py',
+        '    return item.get("name") == artifact_name and isinstance(digest, Mapping) and digest.get("sha256") == hashlib.sha256(artifact_bytes).hexdigest()',
+        '    return item.get("name") == artifact_name and isinstance(digest, Mapping)',
+        ('apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation',),
+    ),
 )
 
 
@@ -3045,6 +3382,7 @@ def copy_repository(destination: Path) -> None:
         "dist",
         "node_modules",
         ".venv",
+        "LINEAGE",
     )
     shutil.copytree(ROOT, destination, ignore=ignored, dirs_exist_ok=True)
 
@@ -3068,11 +3406,31 @@ def mutation_test_environment(*, pythonpath: Path) -> dict[str, str]:
     return environment
 
 
+def _prepare_mutant_sandbox(temp: str, mutant: Mutant) -> tuple[Path, Path, Path, bool]:
+    sandbox = Path(temp) / "repo"
+    api_overlay = mutant.file.startswith("apps/api/src/") and not mutant.full_copy
+    if api_overlay:
+        source_root = Path(temp) / "api-src"
+        shutil.copytree(ROOT / "apps/api/src", source_root)
+        target = source_root / Path(mutant.file).relative_to("apps/api/src")
+        return target, source_root, ROOT, True
+    copy_repository(sandbox)
+    source_root = sandbox / "apps/api/src"
+    return sandbox / mutant.file, source_root, sandbox, False
+
+
+def _mutation_status_from_pytest_exit(returncode: int) -> str:
+    """Map pytest exit codes without crediting collection/bootstrap errors as kills."""
+    if returncode == 0:
+        return "SURVIVED"
+    if returncode == 1:
+        return "KILLED"
+    return "ERROR"
+
+
 def run_mutant(mutant: Mutant) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix=f"korpus-{mutant.id.lower()}-") as temp:
-        sandbox = Path(temp) / "repo"
-        copy_repository(sandbox)
-        target = sandbox / mutant.file
+        target, source_root, cwd, api_overlay = _prepare_mutant_sandbox(temp, mutant)
         original = target.read_text(encoding="utf-8")
         count = original.count(mutant.old)
         if count != 1:
@@ -3083,49 +3441,42 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
                 "target_occurrences": count,
                 "reason": "mutation target must occur exactly once",
                 "tests": list(mutant.tests),
+                "sandbox_mode": "api_source_overlay" if api_overlay else "full_copy",
             }
         target.write_text(original.replace(mutant.old, mutant.new), encoding="utf-8")
-        environment = mutation_test_environment(pythonpath=sandbox / "apps/api/src")
-        command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1", *mutant.tests]
-        try:
-            completed = subprocess.run(
-                command,
-                cwd=sandbox,
-                env=environment,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                timeout=45,
-                check=False,
-            )
-        except subprocess.TimeoutExpired as exc:
-            output = exc.stdout or ""
-            if isinstance(output, bytes):
-                output = output.decode(errors="replace")
+        environment = mutation_test_environment(pythonpath=source_root)
+        command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1"]
+        if api_overlay:
+            command += ["-o", f"pythonpath={source_root}"]
+        command += list(mutant.tests)
+        returncode, stdout, stderr, timed_out, termination = run_bounded(
+            command, cwd=cwd, env=environment, timeout_seconds=45
+        )
+        output = stdout + ("\n" + stderr if stderr else "")
+        mode = "api_source_overlay" if api_overlay else "full_copy"
+        if timed_out:
             return {
                 "id": mutant.id,
                 "file": mutant.file,
                 "status": "ERROR",
                 "reason": "pytest_timeout",
+                "termination": termination,
                 "target_occurrences": count,
                 "tests": list(mutant.tests),
+                "sandbox_mode": mode,
                 "output_tail": output[-3000:],
             }
-        if completed.returncode == 0:
-            status = "SURVIVED"
-        elif completed.returncode == 1:
-            status = "KILLED"
-        else:
-            status = "ERROR"
+        status = _mutation_status_from_pytest_exit(returncode)
         return {
             "id": mutant.id,
             "file": mutant.file,
             "status": status,
-            "returncode": completed.returncode,
+            "returncode": returncode,
             "target_occurrences": count,
             "tests": list(mutant.tests),
-            "output_tail": completed.stdout[-3000:],
-            **({"reason": f"pytest_exit_{completed.returncode}"} if status == "ERROR" else {}),
+            "sandbox_mode": mode,
+            "output_tail": output[-3000:],
+            **({"reason": f"pytest_exit_{returncode}"} if status == "ERROR" else {}),
         }
 
 
@@ -3230,20 +3581,22 @@ def verify_mutation_baseline(mutants: list[Mutant]) -> None:
     if not tests:
         return
     command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1", *tests]
-    completed = subprocess.run(
+    returncode, stdout, stderr, timed_out, termination = run_bounded(
         command,
         cwd=ROOT,
         env=mutation_test_environment(pythonpath=ROOT / "apps/api/src"),
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        timeout=300,
-        check=False,
+        timeout_seconds=300,
     )
-    if completed.returncode != 0:
+    output = stdout + ("\n" + stderr if stderr else "")
+    if timed_out:
+        raise RuntimeError(
+            "mutation baseline timed out; refusing to execute mutants "
+            f"({termination})\n" + output[-6000:]
+        )
+    if returncode != 0:
         raise RuntimeError(
             "mutation baseline is not green; refusing to credit non-zero mutant exits\n"
-            + completed.stdout[-6000:]
+            + output[-6000:]
         )
 
 
@@ -3262,6 +3615,54 @@ def run_selected(mutants: list[Mutant], jobs: int) -> list[dict[str, object]]:
         return list(pool.map(run_mutant, mutants))
 
 
+def _write_report(report: dict[str, object], output: Path, *, portable: bool = False) -> None:
+    output.parent.mkdir(parents=True, exist_ok=True)
+    serialized = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    output.write_text(serialized, encoding="utf-8")
+    if portable:
+        portable_output = ROOT / "reports/MUTATION_FULL_CATALOGUE_CURRENT.json"
+        portable_output.parent.mkdir(parents=True, exist_ok=True)
+        portable_output.write_text(serialized, encoding="utf-8")
+
+
+def _print_summary(report: dict[str, object]) -> None:
+    summary = {key: value for key, value in report.items() if key != "results"}
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+def _run_probe(only: str, jobs: int) -> int:
+    requested = [name.strip() for name in only.split(",") if name.strip()]
+    by_id = {mutant.id: mutant for mutant in MUTANTS}
+    unknown = [name for name in requested if name not in by_id]
+    if unknown:
+        raise SystemExit(f"unknown mutant ids: {unknown}")
+    results = run_selected([by_id[name] for name in requested], jobs)
+    report = summarize(results, shard_index=None, shard_count=1)
+    report["probe"] = True
+    _write_report(report, ROOT / "var/mutation-probe.json")
+    _print_summary(report)
+    return 0 if report["mutation_score"] == 1.0 else 1
+
+
+def _run_catalogue(args: argparse.Namespace) -> tuple[dict[str, object], Path]:
+    if args.merge:
+        return merge_shards(args.shard_count), ROOT / "var/mutation-report.json"
+    shard_index = 0 if args.shard_index is None else args.shard_index
+    if not 0 <= shard_index < args.shard_count:
+        raise SystemExit("--shard-index must satisfy 0 <= index < shard-count")
+    selected = list(MUTANTS[shard_index::args.shard_count])
+    results = run_selected(selected, args.jobs)
+    report = summarize(
+        results,
+        shard_index=shard_index if args.shard_count > 1 else None,
+        shard_count=args.shard_count,
+    )
+    if args.shard_count > 1:
+        shard_name = f"shard-{shard_index}-of-{args.shard_count}.json"
+        return report, ROOT / "var/mutation-shards" / shard_name
+    return report, ROOT / "var/mutation-report.json"
+
+
 def main() -> int:
     args = parse_args()
     if args.shard_count < 1:
@@ -3269,48 +3670,11 @@ def main() -> int:
     if args.jobs < 1:
         raise SystemExit("--jobs must be >= 1")
     if args.only:
-        requested = [name.strip() for name in args.only.split(",") if name.strip()]
-        by_id = {mutant.id: mutant for mutant in MUTANTS}
-        unknown = [name for name in requested if name not in by_id]
-        if unknown:
-            raise SystemExit(f"unknown mutant ids: {unknown}")
-        results = run_selected([by_id[name] for name in requested], args.jobs)
-        report = summarize(results, shard_index=None, shard_count=1)
-        report["probe"] = True
-        output = ROOT / "var/mutation-probe.json"
-        output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(
-            json.dumps(
-                {key: value for key, value in report.items() if key != "results"},
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
-        return 0 if report["mutation_score"] == 1.0 else 1
-    if args.merge:
-        report = merge_shards(args.shard_count)
-        output = ROOT / "var/mutation-report.json"
-    else:
-        shard_index = 0 if args.shard_index is None else args.shard_index
-        if not 0 <= shard_index < args.shard_count:
-            raise SystemExit("--shard-index must satisfy 0 <= index < shard-count")
-        selected = list(MUTANTS[shard_index::args.shard_count])
-        results = run_selected(selected, args.jobs)
-        report = summarize(
-            results,
-            shard_index=shard_index if args.shard_count > 1 else None,
-            shard_count=args.shard_count,
-        )
-        if args.shard_count > 1:
-            shard_name = f"shard-{shard_index}-of-{args.shard_count}.json"
-            output = ROOT / "var/mutation-shards" / shard_name
-        else:
-            output = ROOT / "var/mutation-report.json"
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    summary = {key: value for key, value in report.items() if key != "results"}
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return _run_probe(args.only, args.jobs)
+
+    report, output = _run_catalogue(args)
+    _write_report(report, output, portable=args.merge)
+    _print_summary(report)
     expected = len(MUTANTS) if args.merge or args.shard_count == 1 else len(report["results"])
     return 0 if report["mutation_score"] == 1.0 and report["valid_mutants"] == expected else 1
 

@@ -1,25 +1,10 @@
-# Act 04 — code and architecture
+# ACT 04 — Code Architecture — KORPUS v0.9.7
 
-## Architectural style
+**PASS_WITH_EXTERNAL_BOUNDARY.** API, web, contracts, deployment/IaC and evidence-governance surfaces are synchronized under `v0.9.7` / `15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa`.
 
-- Modular monolith with explicit application, domain, security and infrastructure layers.
-- Ports/adapters boundaries for retrieval, storage, identity, embeddings, audit anchoring and observability.
-- Relational source of truth; indexes and generated artifacts are rebuildable derivatives.
-- Fail-closed controlled mode.
+- Module budget entries: **456**, ratchet suite PASS.
+- OpenAPI paths: **31**.
+- GitHub workflows: **10**.
+- Docker Compose services: **9**.
 
-## Core invariants
-
-1. Inaccessible text cannot enter ranking, answers, citations, telemetry or cache identity.
-2. Only approved and temporally valid versions may answer.
-3. Every claim equals a cited source substring and verifies through offsets and hashes.
-4. Retrieved text is data, never an instruction channel.
-5. Insufficient or contradictory evidence produces abstention.
-6. Metadata, spans and audit events preserve transaction semantics.
-7. Audit chain, head, outbox and external checkpoint must reconcile.
-8. Candidate work is bounded before application reranking.
-9. Same source/config/query produces deterministic semantic output.
-10. Agents cannot approve their own work or bypass protected merge gates.
-
-## Known code debt
-
-The remaining code debt is authoritative in `docs/operations/TECHNICAL_DEBT_V5.md` and `docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json`. Principal items: `SqlRepository` decomposition, configuration complexity, broad exception narrowing, structured-document evaluation, embedding lifecycle, retention scheduler, SIEM and UI administration.
+See `handoff/architecture/ARCHITECTURE_REFERENCE_v0.9.7.md` and `INTERFACE_AND_COMPONENT_MAP_v0.9.7.md`.

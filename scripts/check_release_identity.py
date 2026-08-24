@@ -4,7 +4,7 @@ import argparse, json, subprocess, sys, tomllib
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
-from korpus.release import RELEASE_TAG, RELEASE_VERSION  # noqa: E402
+from korpus.release import DISTRIBUTION_ARTIFACT, RELEASE_TAG, RELEASE_VERSION  # noqa: E402
 
 def _read_json(relative: str) -> dict[str, object]:
     value = json.loads((ROOT / relative).read_text(encoding="utf-8"))
@@ -28,7 +28,11 @@ def _handoff_matches() -> bool:
 
 def _gitlab_import_matches() -> bool:
     text = (ROOT / "GITLAB_IMPORT.md").read_text(encoding="utf-8")
-    return RELEASE_TAG in text and f"KORPUS_SYSTEM_v{RELEASE_VERSION}.bundle" in text
+    return (
+        RELEASE_TAG in text
+        and DISTRIBUTION_ARTIFACT in text
+        and ".bundle" not in text
+    )
 
 def main() -> int:
     parser = argparse.ArgumentParser()

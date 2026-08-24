@@ -26,9 +26,8 @@ def _git_paths(ref: str) -> list[Path] | None:
         names = [item.decode() for item in listing if item]
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
-    return sorted(
-        (Path(name) for name in names if _included(name)), key=lambda value: value.as_posix()
-    )
+    included = sorted((Path(name) for name in names if _included(name)), key=lambda value: value.as_posix())
+    return included or None
 
 
 def _archive_paths() -> list[Path]:

@@ -18,6 +18,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from korpus.application.numeric_contracts import exact_one, rate_at_least
 from korpus.application.provenance import verify_reports
 from korpus.application.recovery import classify_recovery
 
@@ -38,13 +39,6 @@ class AssuranceResult:
 def _as_int(value: Any, default: int = -1) -> int:
     try:
         return int(str(value))
-    except (TypeError, ValueError):
-        return default
-
-
-def _as_float(value: Any, default: float = -1.0) -> float:
-    try:
-        return float(value)
     except (TypeError, ValueError):
         return default
 
@@ -105,19 +99,16 @@ def evaluate_assurance(
         "tests_not_mostly_skipped": executed_without_skips
         >= _as_int(settings["minimum_executed_tests"]),
         "tests_outcome": failures == 0 and errors == 0,
-        "coverage_line": _as_float(coverage.get("line-rate"))
-        >= _as_float(settings["minimum_line_rate"]),
-        "coverage_branch": _as_float(coverage.get("branch-rate"))
-        >= _as_float(settings["minimum_branch_rate"]),
+        "coverage_line": rate_at_least(coverage.get("line-rate"), settings["minimum_line_rate"]),
+        "coverage_branch": rate_at_least(coverage.get("branch-rate"), settings["minimum_branch_rate"]),
         "quality_tooling_executed": tools_passed,
         "reports_present": not missing_reports,
         "evidence_provenance": provenance_ok,
-        "eval": _as_float(reports.get("eval", {}).get("pass_rate")) == 1.0,
+        "eval": exact_one(reports.get("eval", {}).get("pass_rate")),
         # Over the whole catalogue, not over the mutants that still apply: an
         # unapplied mutant leaves mutation_score's denominator and the score reads
         # 1.000 for a catalogue that shrank (observed 2026-08-03, ADR-0008).
-        "mutation": _as_float(reports.get("mutation", {}).get("mutation_score_over_catalogue"))
-        == 1.0,
+        "mutation": exact_one(reports.get("mutation", {}).get("mutation_score_over_catalogue")),
         "migration": reports.get("migration", {}).get("table_set_match") is True,
         "scale": reports.get("scale", {}).get("status") == "PASS",
         "operational": reports.get("operational", {}).get("status") == "PASS",

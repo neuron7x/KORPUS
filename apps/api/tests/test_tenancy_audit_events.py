@@ -119,13 +119,27 @@ def test_no_audit_payload_carries_a_secret_or_a_customer_detail(tmp_path: Path) 
     tenancy = build_tenancy(tmp_path)
     try:
         _exercise(tenancy)
-        forbidden = (WEBHOOK_SECRET, "soldier@example.org", "4242", "card_last4")
         for event in _events(tenancy):
-            serialised = json.dumps(event["payload"], ensure_ascii=False)
-            for needle in forbidden:
+            payload = event["payload"]
+            serialised = json.dumps(payload, ensure_ascii=False)
+            # Long customer/secret tokens must not occur anywhere in the payload.
+            for needle in (WEBHOOK_SECRET, "soldier@example.org", "card_last4"):
                 assert needle not in serialised, (
                     f"{event['action']} put {needle!r} into the audit chain"
                 )
+            # A four-digit suffix is too short for substring matching: UUIDs may contain
+            # 4242 by chance. Reject it only as an actual scalar payload value.
+            pending = [payload]
+            while pending:
+                value = pending.pop()
+                if isinstance(value, dict):
+                    pending.extend(value.values())
+                elif isinstance(value, list):
+                    pending.extend(value)
+                elif isinstance(value, str):
+                    assert value != "4242", (
+                        f"{event['action']} put card suffix '4242' into the audit chain"
+                    )
     finally:
         tenancy.close()
 

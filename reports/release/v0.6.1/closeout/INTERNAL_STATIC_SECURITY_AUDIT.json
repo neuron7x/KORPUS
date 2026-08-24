@@ -1,0 +1,458 @@
+{
+  "finding_counts": {
+    "MEDIUM": 54
+  },
+  "findings": [
+    {
+      "line": 7,
+      "message": "base image is not digest-pinned",
+      "path": "apps/web/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${NODE_IMAGE}"
+    },
+    {
+      "line": 14,
+      "message": "base image is not digest-pinned",
+      "path": "apps/web/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${NGINX_IMAGE}"
+    },
+    {
+      "line": 2,
+      "message": "base image is not digest-pinned",
+      "path": "apps/api/Dockerfile",
+      "rule": "DOCKER-UNPINNED-FROM",
+      "severity": "MEDIUM",
+      "snippet": "${PYTHON_IMAGE}"
+    },
+    {
+      "line": 50,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 64,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 69,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 76,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0002_database_defense_and_vectors.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 99,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 102,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 106,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 111,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 119,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 122,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 126,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 131,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 143,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 146,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 150,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 155,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 168,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 171,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 175,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 180,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 88,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 89,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 97,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 221,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 236,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 241,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 248,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 216,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 218,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0003_infrastructure_hardening.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 84,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 87,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 91,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 96,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 104,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 108,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 112,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 117,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 82,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 142,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 145,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 149,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 154,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 131,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 135,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0004_compartmented_authorization.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 76,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 77,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 81,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 86,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 100,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0005_durable_ingestion_jobs.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 50,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0016_learning_course_graph.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    },
+    {
+      "line": 294,
+      "message": "f-string passed directly to SQL execution",
+      "path": "apps/api/migrations/versions/0016_learning_course_graph.py",
+      "rule": "SQL-FSTRING-EXEC",
+      "severity": "MEDIUM",
+      "snippet": ""
+    }
+  ],
+  "method": "AST plus high-signal lexical analysis; independent of Ruff/Mypy/Gitleaks/Trivy and not a replacement for them",
+  "parse_errors": [],
+  "release": "v0.6.1",
+  "schema": "korpus.internal-static-security-audit.v1",
+  "scope": [
+    "apps/api/src/**/*.py",
+    "apps/api/migrations/**/*.py",
+    "scripts/**/*.py",
+    "Dockerfile*",
+    ".github/workflows/*",
+    "selected textual secret signatures"
+  ],
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "stats": {
+    "docker_from": 3,
+    "github_actions": 19,
+    "python_files": 282
+  },
+  "status": "PASS"
+}

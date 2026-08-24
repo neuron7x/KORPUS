@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest, read_provenance  # noqa: E402
+from korpus.application.release_numeric import mutation_checks  # noqa: E402
+from korpus.application.numeric_contracts import exact_one as _score_is_exact_one, nonnegative_count as _nonnegative_count  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 
@@ -29,17 +31,7 @@ def main() -> int:
         provenance_current = provenance is not None and provenance.source_digest == source
     except (TypeError, ValueError):
         provenance_current = False
-    total = int(report.get("mutants", 0) or 0)
-    valid = int(report.get("valid_mutants", 0) or 0)
-    killed = int(report.get("killed", 0) or 0)
-    checks = {
-        "report_present": bool(report),
-        "source_bound": provenance_current,
-        "catalogue_nonempty": total > 0,
-        "all_mutants_valid": valid == total and not report.get("invalid"),
-        "all_valid_mutants_killed": killed == valid and not report.get("survived"),
-        "catalogue_score_one": report.get("mutation_score_over_catalogue") == 1.0,
-    }
+    checks, total, valid, killed = mutation_checks(report, provenance_current)
     failures = [name for name, passed in checks.items() if not passed]
     payload = gate_payload(
         "mutation", status="PASS" if not failures else "FAIL", source_digest=source,

@@ -1,0 +1,477 @@
+{
+  "schema": "korpus.coverage-gap-plan.v2",
+  "status": "PASS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "statement_rate": 0.96263881,
+  "branch_rate": 0.91910112,
+  "minimum_statement_rate": 0.95,
+  "minimum_branch_rate": 0.9,
+  "remaining_missing_branches": 216,
+  "missing_branch_ceiling": 220,
+  "missing_branch_regression": -4,
+  "priority_queue": [
+    {
+      "path": "infrastructure/repository.py",
+      "missing_branches": 34,
+      "branch_rate": 0.685185,
+      "risk_weight": 4.0,
+      "priority": 136.0
+    },
+    {
+      "path": "application/ingestion.py",
+      "missing_branches": 9,
+      "branch_rate": 0.871429,
+      "risk_weight": 4.0,
+      "priority": 36.0
+    },
+    {
+      "path": "infrastructure/ingestion_jobs.py",
+      "missing_branches": 8,
+      "branch_rate": 0.666667,
+      "risk_weight": 3.0,
+      "priority": 24.0
+    },
+    {
+      "path": "api/routes_auth.py",
+      "missing_branches": 7,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 21.0
+    },
+    {
+      "path": "infrastructure/extraction.py",
+      "missing_branches": 7,
+      "branch_rate": 0.946154,
+      "risk_weight": 3.0,
+      "priority": 21.0
+    },
+    {
+      "path": "infrastructure/openai_planner.py",
+      "missing_branches": 7,
+      "branch_rate": 0.611111,
+      "risk_weight": 3.0,
+      "priority": 21.0
+    },
+    {
+      "path": "infrastructure/review_transitions.py",
+      "missing_branches": 7,
+      "branch_rate": 0.805556,
+      "risk_weight": 3.0,
+      "priority": 21.0
+    },
+    {
+      "path": "api/routes_corpus.py",
+      "missing_branches": 5,
+      "branch_rate": 0.6875,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "infrastructure/audit_reader.py",
+      "missing_branches": 5,
+      "branch_rate": 0.807692,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "infrastructure/billing_repository.py",
+      "missing_branches": 5,
+      "branch_rate": 0.75,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "infrastructure/semantic.py",
+      "missing_branches": 5,
+      "branch_rate": 0.852941,
+      "risk_weight": 3.0,
+      "priority": 15.0
+    },
+    {
+      "path": "application/billing_adjudication.py",
+      "missing_branches": 6,
+      "branch_rate": 0.8,
+      "risk_weight": 2.0,
+      "priority": 12.0
+    },
+    {
+      "path": "application/ingestion_jobs.py",
+      "missing_branches": 6,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 12.0
+    },
+    {
+      "path": "api/routes_offline.py",
+      "missing_branches": 4,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 12.0
+    },
+    {
+      "path": "application/answer_analysis.py",
+      "missing_branches": 5,
+      "branch_rate": 0.861111,
+      "risk_weight": 2.0,
+      "priority": 10.0
+    },
+    {
+      "path": "application/evidence.py",
+      "missing_branches": 5,
+      "branch_rate": 0.907407,
+      "risk_weight": 2.0,
+      "priority": 10.0
+    },
+    {
+      "path": "api/dependencies.py",
+      "missing_branches": 3,
+      "branch_rate": 0.7,
+      "risk_weight": 3.0,
+      "priority": 9.0
+    },
+    {
+      "path": "application/tevv_evidence.py",
+      "missing_branches": 4,
+      "branch_rate": 0.777778,
+      "risk_weight": 2.0,
+      "priority": 8.0
+    },
+    {
+      "path": "cli.py",
+      "missing_branches": 6,
+      "branch_rate": 0.727273,
+      "risk_weight": 1.0,
+      "priority": 6.0
+    },
+    {
+      "path": "application/answer_query.py",
+      "missing_branches": 3,
+      "branch_rate": 0.90625,
+      "risk_weight": 2.0,
+      "priority": 6.0
+    },
+    {
+      "path": "application/retrieval.py",
+      "missing_branches": 3,
+      "branch_rate": 0.9625,
+      "risk_weight": 2.0,
+      "priority": 6.0
+    },
+    {
+      "path": "application/subscriptions.py",
+      "missing_branches": 3,
+      "branch_rate": 0.75,
+      "risk_weight": 2.0,
+      "priority": 6.0
+    },
+    {
+      "path": "api/routes_billing_callbacks.py",
+      "missing_branches": 2,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 6.0
+    },
+    {
+      "path": "infrastructure/learning_repository.py",
+      "missing_branches": 2,
+      "branch_rate": 0.95,
+      "risk_weight": 3.0,
+      "priority": 6.0
+    },
+    {
+      "path": "infrastructure/offline_pack_signer.py",
+      "missing_branches": 2,
+      "branch_rate": 0.0,
+      "risk_weight": 3.0,
+      "priority": 6.0
+    },
+    {
+      "path": "infrastructure/runtime.py",
+      "missing_branches": 2,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 6.0
+    },
+    {
+      "path": "billing_config_policy.py",
+      "missing_branches": 5,
+      "branch_rate": 0.722222,
+      "risk_weight": 1.0,
+      "priority": 5.0
+    },
+    {
+      "path": "security/auth.py",
+      "missing_branches": 1,
+      "branch_rate": 0.964286,
+      "risk_weight": 5.0,
+      "priority": 5.0
+    },
+    {
+      "path": "security/source_authenticity.py",
+      "missing_branches": 1,
+      "branch_rate": 0.958333,
+      "risk_weight": 5.0,
+      "priority": 5.0
+    },
+    {
+      "path": "config_policy.py",
+      "missing_branches": 4,
+      "branch_rate": 0.95,
+      "risk_weight": 1.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/assurance_evidence.py",
+      "missing_branches": 2,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/cache.py",
+      "missing_branches": 2,
+      "branch_rate": 0.8,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/coverage_policy.py",
+      "missing_branches": 2,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/fingerprints.py",
+      "missing_branches": 2,
+      "branch_rate": 0.75,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/gate_inventory.py",
+      "missing_branches": 2,
+      "branch_rate": 0.666667,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/keyring.py",
+      "missing_branches": 2,
+      "branch_rate": 0.857143,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/operations.py",
+      "missing_branches": 2,
+      "branch_rate": 0.833333,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "application/tevv.py",
+      "missing_branches": 2,
+      "branch_rate": 0.857143,
+      "risk_weight": 2.0,
+      "priority": 4.0
+    },
+    {
+      "path": "infrastructure/audit_anchor.py",
+      "missing_branches": 1,
+      "branch_rate": 0.970588,
+      "risk_weight": 4.0,
+      "priority": 4.0
+    },
+    {
+      "path": "model_settings.py",
+      "missing_branches": 3,
+      "branch_rate": 0.7,
+      "risk_weight": 1.0,
+      "priority": 3.0
+    },
+    {
+      "path": "offline_pack_composition.py",
+      "missing_branches": 3,
+      "branch_rate": 0.25,
+      "risk_weight": 1.0,
+      "priority": 3.0
+    },
+    {
+      "path": "offline_pack_config_policy.py",
+      "missing_branches": 3,
+      "branch_rate": 0.25,
+      "risk_weight": 1.0,
+      "priority": 3.0
+    },
+    {
+      "path": "api/billing_dependencies.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "api/routes_health.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "api/routes_review.py",
+      "missing_branches": 1,
+      "branch_rate": 0.75,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "api/routes_tenancy.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/audit_event_view.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/deterministic_billing.py",
+      "missing_branches": 1,
+      "branch_rate": 0.9375,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/liqpay.py",
+      "missing_branches": 1,
+      "branch_rate": 0.972222,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/parser_worker.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "infrastructure/tenancy_repository.py",
+      "missing_branches": 1,
+      "branch_rate": 0.875,
+      "risk_weight": 3.0,
+      "priority": 3.0
+    },
+    {
+      "path": "application/accounts.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/assurance_trust.py",
+      "missing_branches": 1,
+      "branch_rate": 0.833333,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/attested_evidence.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/composition.py",
+      "missing_branches": 1,
+      "branch_rate": 0.95,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/egress.py",
+      "missing_branches": 1,
+      "branch_rate": 0.944444,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/extraction_quality.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/plasticity_model_check.py",
+      "missing_branches": 1,
+      "branch_rate": 0.75,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/provenance.py",
+      "missing_branches": 1,
+      "branch_rate": 0.970588,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/recovery.py",
+      "missing_branches": 1,
+      "branch_rate": 0.9375,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/supply_chain_scanners.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "application/trace.py",
+      "missing_branches": 1,
+      "branch_rate": 0.5,
+      "risk_weight": 2.0,
+      "priority": 2.0
+    },
+    {
+      "path": "config.py",
+      "missing_branches": 1,
+      "branch_rate": 0.964286,
+      "risk_weight": 1.0,
+      "priority": 1.0
+    },
+    {
+      "path": "domain/models.py",
+      "missing_branches": 1,
+      "branch_rate": 0.979167,
+      "risk_weight": 1.0,
+      "priority": 1.0
+    },
+    {
+      "path": "domain/tenancy.py",
+      "missing_branches": 1,
+      "branch_rate": 0.875,
+      "risk_weight": 1.0,
+      "priority": 1.0
+    },
+    {
+      "path": "main.py",
+      "missing_branches": 1,
+      "branch_rate": 0.916667,
+      "risk_weight": 1.0,
+      "priority": 1.0
+    }
+  ]
+}

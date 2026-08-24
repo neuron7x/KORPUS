@@ -9,13 +9,13 @@ const read = (file) => readFile(asset(file), "utf8");
 
 const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_system.mjs", "scripts/generate_design_tokens.mjs", "scripts/build_styles.mjs"];
 const SCRIPTS = [
-  "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
+  "public/transport_contract.js", "public/api.js", "public/app.js", "public/chat_fsm.js", "public/routes.js", "public/offline_pack.js", "public/offline_store.js", "public/offline_controller.js", "public/workspace_routes.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];
 const PAGES = ["public/index.html", "public/console.html"];
-const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
+const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/workspace.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
   "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css"];
 
 for (const file of REQUIRED) {
@@ -28,8 +28,8 @@ for (const file of REQUIRED) {
 // matching how the production edge can serve them. The budget prevents a "premium"
 // redesign from quietly becoming a framework-sized payload.
 const CONSUMER_ENTRY = [
-  "public/index.html", "public/tokens.css", "public/styles.css", "public/config.js", "public/api.js",
-  "public/app.js", "public/billing.js", "public/conversations.js",
+  "public/index.html", "public/tokens.css", "public/styles.css", "public/config.js", "public/transport_contract.js", "public/api.js",
+  "public/app.js", "public/chat_fsm.js", "public/conversations.js",
   "public/reader_conversations.js", "public/reader_corpus.js",
   "public/reader_declaration.js", "public/reader_verdicts.js",
 ];
@@ -46,6 +46,12 @@ if (cssGzipBytes + tokenCssGzipBytes > 9 * 1024) {
   throw new Error(`consumer CSS exceeds 9 KiB gzip budget: ${cssGzipBytes + tokenCssGzipBytes} bytes`);
 }
 console.log(`consumer transfer budget passed: ${consumerGzipBytes} gzip bytes`);
+const appSourceForBudget = await read("public/app.js");
+for (const lazy of ["./billing.js", "./workspace_routes.js"]) {
+  if (!appSourceForBudget.includes(`import("${lazy}")`)) {
+    throw new Error(`${lazy} must remain lazy-loaded; eager loading breaks the initial-shell budget`);
+  }
+}
 const designSystem = await validateDesignSystem();
 console.log(`design system passed: ${designSystem.tokenCount} tokens / ${designSystem.componentCount} component contracts`);
 
@@ -81,6 +87,16 @@ if (/id="conversations"[^>]*\sopen(?:\s|>)/.test(html)) {
 // without its CSRF header. So the contract moved: api.js is the only module allowed to
 // touch credentials or the network, and every other script is checked for *absence*.
 const api = await read("public/api.js");
+const transportContract = await read("public/transport_contract.js");
+const routesSource = await read("public/routes.js");
+const runtimeConfig = await read("public/config.js");
+if (!transportContract.includes('"/v1/client/bootstrap"')) throw new Error("transport contract lacks client bootstrap");
+if (!api.includes('from "./transport_contract.js"')) throw new Error("api.js must consume generated transport contract");
+if (!api.includes('assertTransportRoute(path, method)')) throw new Error("network calls must be checked against the transport contract");
+if (runtimeConfig.includes("clientVersion")) throw new Error("client release identity must not be duplicated in config.js");
+for (const marker of ["effective_permissions", "offline_pack_enabled", "audit:read", "document:list", "answer:read"]) {
+  if (!routesSource.includes(marker)) throw new Error(`server-projected route policy missing: ${marker}`);
+}
 for (const marker of ['Authorization', 'X-CSRF-Token', 'credentials: "same-origin"', 'bearerToken', 'escapeHtml']) {
   if (!api.includes(marker)) throw new Error(`web security contract failed: ${marker}`);
 }
@@ -105,11 +121,13 @@ const readerCorpus = await read("public/reader_corpus.js");
 const readerDeclaration = await read("public/reader_declaration.js");
 const readerVerdicts = await read("public/reader_verdicts.js");
 const billingJs = await read("public/billing.js");
+const workspaceRoutes = await read("public/workspace_routes.js");
+const offlineController = await read("public/offline_controller.js");
 const browserLogic = [app, conversationsJs, readerConversations, readerCorpus, readerDeclaration, readerVerdicts, billingJs].join("\n");
 const networkModules = [
   ["app.js", app], ["console.js", consoleJs], ["console_accounts.js", consoleAccounts],
   ["console_mutations.js", consoleMutations], ["console_readonly.js", consoleReadonly],
-  ["conversations.js", conversationsJs], ["reader_conversations.js", readerConversations],
+  ["conversations.js", conversationsJs], ["workspace_routes.js", workspaceRoutes], ["offline_controller.js", offlineController], ["reader_conversations.js", readerConversations],
   ["reader_corpus.js", readerCorpus], ["billing.js", billingJs],
 ];
 for (const [name, source] of networkModules) {
@@ -138,7 +156,7 @@ for (const [name, source] of [
 // not mention, so a comment naming the hazard does not trip its own guard.
 const PERSISTENT_STORAGE = /localStorage\s*[.[;)=,]/;
 for (const file of [
-  "public/api.js", "public/app.js", "public/conversations.js", "public/reader_conversations.js",
+  "public/transport_contract.js", "public/api.js", "public/app.js", "public/chat_fsm.js", "public/routes.js", "public/offline_pack.js", "public/offline_store.js", "public/offline_controller.js", "public/workspace_routes.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js",
@@ -173,6 +191,9 @@ if (!assetsMatch) throw new Error("the service worker no longer declares an ASSE
 const cached = new Set(
   [...assetsMatch[1].matchAll(/"([^"]+)"/g)].map(m => m[1]),
 );
+if (!cached.has("/workspace.css")) {
+  throw new Error("lazy workspace stylesheet is not cached for offline deep links");
+}
 const moduleQueue = ["public/app.js", "public/api.js"];
 const visitedModules = new Set();
 while (moduleQueue.length) {
@@ -204,6 +225,9 @@ if (!/НЕМАЄ ЗВ'ЯЗКУ/.test(app)) {
 const nginx = await read("nginx.conf");
 const cspHeaders = [...nginx.matchAll(/Content-Security-Policy "([^"]+)"/g)].map((match) => match[1]);
 if (cspHeaders.length === 0) throw new Error("nginx declares no Content-Security-Policy");
+if (!/add_header Strict-Transport-Security "max-age=31536000" always;/.test(nginx)) {
+  throw new Error("nginx declares no HSTS policy");
+}
 for (const csp of cspHeaders) {
   if (!csp.includes("form-action 'self' https://www.liqpay.ua;")) {
     throw new Error("checkout CSP must allow only self and the exact LiqPay form endpoint origin");
@@ -466,7 +490,7 @@ if (!/location \/api\/ \{/.test(nginx)) {
           "nginx replaces the inherited set, so that location serves no CSP at all",
       );
     }
-    for (const header of ["X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy"]) {
+    for (const header of ["X-Frame-Options", "X-Content-Type-Options", "Referrer-Policy", "Strict-Transport-Security"]) {
       if (!new RegExp(`add_header ${header}`).test(body)) {
         throw new Error(`a location that sets headers does not repeat ${header}`);
       }

@@ -98,3 +98,37 @@ reviews, and the account layer arrived as six of them at once.
 | `billing_events` | one provider notification, recorded by hash before it is believed |
 | `conversations` | a reader's own thread |
 | `messages` | one turn, with the role that says who said it |
+
+## Evidence-bound learning graph (ACT-LRN-002)
+
+Learning is a projection over canonical corpus evidence, not another corpus. A course version
+stores structure and exact references to `document_versions` and `evidence_spans`; it never
+copies authoritative source text. Publication is a lifecycle record separate from immutable
+course-version content. Every serving read revalidates source approval/effectivity, so passive
+expiry fails closed even when no source row was updated at the expiry boundary.
+
+Required learning invariants:
+
+- each published lesson block has at least one source binding;
+- every binding names one exact document version and one or more evidence spans from that version;
+- source versions must be approved, effective on the serving date, and not rescinded;
+- prerequisite references are internal to the course version and the graph is acyclic;
+- published, invalidated, and retired course-version history cannot be rewritten or deleted;
+- a retired publication cannot be resurrected; reviewer provenance is immutable after draft;
+- source deapproval/rescission/effectivity changes invalidate dependent published versions;
+- time-only source expiry is caught by the fail-closed serving lane and persists invalidation.
+
+| table | what it holds |
+|---|---|
+| `learning_courses` | stable course identity and specialty binding |
+| `learning_course_versions` | immutable structural revision of one course |
+| `learning_modules` | ordered modules inside one course version |
+| `learning_lessons` | ordered lessons inside a module |
+| `learning_objectives` | explicit learning objectives bound to a lesson |
+| `learning_source_bindings` | exact document/version identities used by a lesson |
+| `learning_source_binding_spans` | exact evidence spans proving a source binding |
+| `learning_lesson_blocks` | ordered typed content blocks without copied source truth |
+| `learning_block_sources` | block-to-source-binding edges |
+| `learning_prerequisites` | directed lesson prerequisite edges |
+| `learning_publications` | draft/published/invalidated/retired lifecycle and reviewer provenance |
+| `learning_mastery` | per-learner objective mastery projection bound to the source-binding set that justified the latest state |

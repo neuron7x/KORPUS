@@ -55,6 +55,7 @@ SCANNED_SUFFIXES = frozenset({".py", ".ts", ".tsx", ".js", ".md", ".yml", ".yaml
 SKIP_PARTS = frozenset(
     {
         ".git",
+        ".terraform",
         ".venv",
         "__pycache__",
         ".pytest_cache",
@@ -121,7 +122,9 @@ REQUIRED_FILES = (
     "docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.pdf",
     "docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.docx",
     "docs/audit/source/KORPUS_v4_EXTENDED_ASSURANCE_ACT_2026-08-01.md",
-    "docs/audit/source/KORPUS_v4_EXTENDED_AUDIT_PACKAGE_2026-08-01.zip",
+    "docs/audit/source/KORPUS_v4_AUDIT_PACKAGE_README_2026-08-01.md",
+    "docs/audit/source/KORPUS_v4_AUDIT_ARTIFACTS_2026-08-01.sha256",
+    "docs/audit/source/KORPUS_v4_REMEDIATION_BACKLOG_2026-08-01.csv",
     "docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.json",
     "docs/audit/closure/KORPUS_v5_FINDINGS_CLOSURE.csv",
     "docs/audit/closure/KORPUS_v5_CLOSURE_SUMMARY.md",
@@ -193,13 +196,16 @@ class RepositoryContext:
     init_text: str = ""
     readme: str = ""
     path_count: int = 0
+    validation_context: str = "SOURCE_CHECKOUT"
 
     def exists(self, relative: str) -> bool:
         return (self.root / relative).is_file()
 
 
-def load_context(root: Path) -> RepositoryContext:
-    context = RepositoryContext(root=root)
+def load_context(root: Path, validation_context: str = "SOURCE_CHECKOUT") -> RepositoryContext:
+    if validation_context not in {"SOURCE_CHECKOUT", "FULL_SSOT_DISTRIBUTION"}:
+        raise ValueError(f"unknown repository validation context: {validation_context}")
+    context = RepositoryContext(root=root, validation_context=validation_context)
     tracked = _git_tracked_secrets(root)
     # None means git could not answer — a packaged distribution, no repository. Falling
     # back to "every secret file present is tracked" is the conservative direction: a
@@ -237,13 +243,18 @@ def load_context(root: Path) -> RepositoryContext:
     return context
 
 
+def _is_oversized_file(context: RepositoryContext, path: Path, relative: str) -> bool:
+    archival = context.validation_context == "FULL_SSOT_DISTRIBUTION" and relative.startswith("LINEAGE/")
+    return path.stat().st_size > MAX_FILE_BYTES and not archival
+
+
 def _scan_tree(context: RepositoryContext, root: Path, git_tracked: object) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
         if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
             continue
         relative = path.relative_to(root).as_posix()
-        if path.stat().st_size > MAX_FILE_BYTES:
+        if _is_oversized_file(context, path, relative):
             context.oversized.append(relative)
         if path.suffix in SCANNED_SUFFIXES:
             text = path.read_text(errors="ignore")

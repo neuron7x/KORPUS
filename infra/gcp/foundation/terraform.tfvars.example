@@ -1,0 +1,10 @@
+project_id              = "replace-korpus-prod-project"
+region                  = "europe-central2"
+name_prefix             = "korpus-prod"
+database_tier           = "db-custom-2-7680"
+database_disk_size_gb   = 50
+object_retention_seconds = 2592000
+audit_retention_seconds  = 31536000
+governance_retention_seconds = 31536000
+# Irreversible. Keep false until retention policy has explicit operational/legal approval.
+lock_retention_policies = false

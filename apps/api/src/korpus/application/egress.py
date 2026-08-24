@@ -14,20 +14,17 @@ Three postures, and the middle one is why this is an enum rather than a boolean:
                     An on-premise endpoint on a private address.
   MODEL_DISABLED    no model at all. Retrieval and extraction only.
 
-The check is on the *URL*, before the client is constructed, because a policy consulted
-after a request is a policy that has already leaked the question. `LOCAL_ONLY` accepts only
-loopback/private IP literals plus the exact local host name `localhost`. Arbitrary DNS names
-are refused: resolving a name here and resolving it again inside the HTTP client is a
-time-of-check/time-of-use boundary that DNS rebinding can cross.
+The URL is checked before a client exists. `LOCAL_ONLY` accepts loopback/private IP
+literals plus `localhost`; arbitrary DNS names are refused to avoid DNS-rebinding TOCTOU.
 """
 
 from __future__ import annotations
 
 import ipaddress
 from enum import StrEnum
-from urllib.parse import urlparse
 
 from korpus.domain.models import AccessTier
+from korpus.security.model_endpoint_policy import local_model_endpoint_host, validate_external_model_endpoint
 
 
 class EgressPosture(StrEnum):
@@ -88,20 +85,19 @@ class ModelEgressPolicy:
         """Raise `EgressDenied` unless this URL may be called under the current posture."""
         if self.posture is EgressPosture.MODEL_DISABLED:
             raise EgressDenied(self.posture, "no model may be called in this deployment")
+        target = base_url or ""
         if self.posture is EgressPosture.EXTERNAL_ALLOWED:
+            try:
+                validate_external_model_endpoint(target)
+            except ValueError as exc:
+                raise EgressDenied(self.posture, str(exc)) from exc
             return
-
-        target = (base_url or "").strip()
         if not target:
-            # LOCAL_ONLY with no endpoint configured means the vendor default, which is
-            # the public internet. Refused rather than guessed at.
             raise EgressDenied(self.posture, "no local model endpoint is configured")
-        parsed = urlparse(target)
-        if parsed.scheme not in {"http", "https"}:
-            raise EgressDenied(self.posture, f"unsupported scheme: {parsed.scheme or 'none'}")
-        host = parsed.hostname
-        if not host:
-            raise EgressDenied(self.posture, "endpoint carries no host")
+        try:
+            host = local_model_endpoint_host(target)
+        except ValueError as exc:
+            raise EgressDenied(self.posture, str(exc)) from exc
         if not self._is_local(host):
             raise EgressDenied(self.posture, f"{host} is not inside this deployment")
 

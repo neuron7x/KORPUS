@@ -19,10 +19,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+from korpus.application.release_numeric import coverage_policy_rate, coverage_rates  # noqa: E402
 POLICY = ROOT / "config/operations/reference-v5.json"
 COVERAGE = ROOT / "var/coverage.json"
+
+
+def _unit_rate(value: object) -> float:
+    return coverage_policy_rate(value, "coverage policy rate")
 
 
 def main() -> int:
@@ -41,32 +48,12 @@ def main() -> int:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))["assurance"]
     totals = json.loads(COVERAGE.read_text(encoding="utf-8"))["totals"]
 
-    statements = int(totals["num_statements"])
-    branches = int(totals["num_branches"])
-    if statements == 0 or branches == 0:
-        # A report over nothing satisfies any ratio. This is the same defect the
-        # assurance aggregator had with tests="0" (ADR-0008): outcome without execution.
-        print(
-            json.dumps(
-                {
-                    "status": "FAIL",
-                    "reason": "coverage report measured no statements or no branches",
-                    "num_statements": statements,
-                    "num_branches": branches,
-                },
-                indent=2,
-            )
-        )
-        return 1
-
-    measured = {
-        "line": int(totals["covered_lines"]) / statements,
-        "branch": int(totals["covered_branches"]) / branches,
-    }
-    minimums = {
-        "line": float(policy["minimum_line_rate"]),
-        "branch": float(policy["minimum_branch_rate"]),
-    }
+    try:
+        line_rate, branch_rate = coverage_rates(totals)
+        measured = {"line": line_rate, "branch": branch_rate}
+        minimums = {"line": coverage_policy_rate(policy["minimum_line_rate"], "minimum_line_rate"), "branch": coverage_policy_rate(policy["minimum_branch_rate"], "minimum_branch_rate")}
+    except (KeyError, ValueError) as exc:
+        print(json.dumps({"status": "FAIL", "reason": str(exc)}, indent=2)); return 1
     failures = [
         f"{name} coverage {measured[name]:.4f} is below the policy minimum {minimums[name]}"
         for name in sorted(measured)

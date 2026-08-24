@@ -1,0 +1,21 @@
+{
+  "schema": "korpus.coverage-report.v2",
+  "status": "PASS",
+  "release": "v0.6.0",
+  "source_tree_sha256": "12fe9049b7170670160d8b1741b4840caa29fc717e6c594a4fe4fca7be782b98",
+  "statement_coverage_percent": 96.10300597277978,
+  "branch_coverage_percent": 91.54209284028325,
+  "covered_lines": 9815,
+  "statements": 10213,
+  "covered_branches": 2327,
+  "branches": 2542,
+  "missing_branches": 215,
+  "policy": {
+    "minimum_statement_percent": 95.0,
+    "minimum_branch_percent": 90.0,
+    "missing_branch_ceiling": 220
+  },
+  "raw_report": "var/v060-coverage.json",
+  "raw_report_sha256": "98a03afde8952b61378f49df3bb0948d5de65710d6fbe088744b6d21c2ba3864",
+  "evidence_status": "MEASURED"
+}

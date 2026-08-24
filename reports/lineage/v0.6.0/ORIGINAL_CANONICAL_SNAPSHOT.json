@@ -1,0 +1,7 @@
+{
+  "schema": "korpus.predecessor-snapshot.v1",
+  "release": "v0.6.0",
+  "sha256": "03e9089b386023a125b97c124f67e67e46e9fe36f60c9e36ed9488478784a7f6",
+  "bytes": 7410044,
+  "preservation": "bitwise predecessor archive embedded to make the v0.6.1 delta losslessly reversible"
+}

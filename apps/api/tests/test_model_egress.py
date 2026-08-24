@@ -185,3 +185,51 @@ def test_local_only_refuses_the_cloud_metadata_endpoint() -> None:
     for target in ("http://169.254.169.254/", "http://[fe80::1]/"):
         with pytest.raises(EgressDenied):
             policy.check(target)
+
+
+def test_external_model_egress_refuses_non_https_or_ambiguous_base_urls() -> None:
+    policy = ModelEgressPolicy(EgressPosture.EXTERNAL_ALLOWED)
+    for target in (
+        "http://api.example.com/v1",
+        "https://user@api.example.com/v1",
+        "https://api.example.com/v1#fragment",
+        "https://api.example.com/v1?fixed=query",
+        "file:///etc/passwd",
+    ):
+        with pytest.raises(EgressDenied):
+            policy.check(target)
+
+
+def test_external_model_egress_refuses_internal_and_non_global_destinations() -> None:
+    policy = ModelEgressPolicy(EgressPosture.EXTERNAL_ALLOWED)
+    for target in (
+        "https://127.0.0.1/v1",
+        "https://localhost/v1",
+        "https://service.localhost/v1",
+        "https://10.0.0.5/v1",
+        "https://172.16.1.2/v1",
+        "https://192.168.1.9/v1",
+        "https://169.254.169.254/latest/meta-data",
+        "https://[::1]/v1",
+        "https://[fd00::5]/v1",
+        "https://[fe80::1]/v1",
+        "https://0.0.0.0/v1",
+    ):
+        with pytest.raises(EgressDenied):
+            policy.check(target)
+
+
+def test_external_model_egress_allows_global_ip_literal() -> None:
+    policy = ModelEgressPolicy(EgressPosture.EXTERNAL_ALLOWED)
+    policy.check("https://93.184.216.34/v1")
+
+
+def test_local_model_egress_refuses_credentials_fragments_and_fixed_query() -> None:
+    policy = ModelEgressPolicy(EgressPosture.LOCAL_ONLY)
+    for target in (
+        "http://user@127.0.0.1:11434/v1",
+        "http://localhost:11434/v1#fragment",
+        "http://localhost:11434/v1?fixed=query",
+    ):
+        with pytest.raises(EgressDenied):
+            policy.check(target)

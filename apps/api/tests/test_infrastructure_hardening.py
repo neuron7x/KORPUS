@@ -447,3 +447,34 @@ def test_malformed_host_header_is_rejected_before_routing(client) -> None:
     )
     assert response.status_code == 400
 
+
+
+def test_ready_hides_internal_snapshot_without_metrics_token_on_public_deployment(tmp_path: Path):
+    settings = Settings(
+        environment="test",
+        database_url=f"sqlite:///{tmp_path / 'ready-success.db'}",
+        schema_mode="auto",
+        object_root=tmp_path / "objects",
+        audit_anchor_path=tmp_path / "anchor.json",
+        audit_hmac_key="ready-success-audit-key",
+        auth_mode="dev",
+        dev_mode_acknowledgement="I_ACKNOWLEDGE_DEV_AUTH_IS_INSECURE",
+        bind_host="127.0.0.1",
+        metrics_token="ready-secret",
+    )
+    app = create_app(settings)
+    app.dependency_overrides[get_identity] = admin
+    with TestClient(app) as client:
+        anonymous = client.get("/ready")
+        assert anonymous.status_code == 200
+        assert anonymous.json() == {"status": "ready"}
+
+        wrong = client.get("/ready", headers={"Authorization": "Bearer nope"})
+        assert wrong.status_code == 200
+        assert wrong.json() == {"status": "ready"}
+
+        authorized = client.get("/ready", headers={"Authorization": "Bearer ready-secret"})
+        assert authorized.status_code == 200
+        assert authorized.json()["status"] == "ready"
+        assert "audit_head" in authorized.json()
+        assert "telemetry" in authorized.json()

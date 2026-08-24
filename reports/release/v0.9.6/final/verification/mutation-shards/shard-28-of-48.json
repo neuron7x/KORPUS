@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 28,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M27_VALIDITY_END_BOUNDARY_SHIFT",
+      "file": "apps/api/src/korpus/domain/temporal.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_version_still_governs_on_the_last_day_it_names _____________\n\n    def test_a_version_still_governs_on_the_last_day_it_names() -> None:\n        \"\"\"effective_until is inclusive: «чинний до 31 грудня» includes the 31st.\"\"\"\n        version = _version(effective_until=DAY)\n    \n>       assert version.is_valid_on(DAY) is True, (\n            \"a document valid until D must still govern an answer asked on D\"\n        )\nE       AssertionError: a document valid until D must still govern an answer asked on D\nE       assert False is True\nE        +  where False = is_valid_on(datetime.date(2026, 6, 15))\nE        +    where is_valid_on = DocumentVersionRecord(id=UUID('ea90ca63-aefb-4679-bce5-1d6aafd9547e'), document_id=UUID('27908bb2-6acc-4d05-9d18-0748b...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 38, 21, 243030, tzinfo=datetime.timezone.utc)).is_valid_on\n\napps/api/tests/test_validity_boundaries.py:70: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_validity_boundaries.py::test_a_version_still_governs_on_the_last_day_it_names - AssertionError: a document valid until D must still govern an answer asked on D\nassert False is True\n +  where False = is_valid_on(datetime.date(2026, 6, 15))\n +    where is_valid_on = DocumentVersionRecord(id=UUID('ea90ca63-aefb-4679-bce5-1d6aafd9547e'), document_id=UUID('27908bb2-6acc-4d05-9d18-0748b...id=None, is_current=False, created_at=datetime.datetime(2026, 8, 22, 16, 38, 21, 243030, tzinfo=datetime.timezone.utc)).is_valid_on\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M137_PRODUCTION_CONFIG_NOT_REQUIRED",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_requirement_registry.py::test_a_deployed_configuration_that_drifts_from_policy_is_reported"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______ test_a_deployed_configuration_that_drifts_from_policy_is_reported _______\n\n    def test_a_deployed_configuration_that_drifts_from_policy_is_reported() -> None:\n        \"\"\"A register that lists the config keys is not the same as one that checks them.\n    \n        The first version of this test counted the requirements and asserted the base\n        deployment passes. Mutant M137 replaced the config predicate with `True` and\n        survived: a register can name every key and still assert nothing about their values.\n        \"\"\"\n        from korpus.application.deployment import REQUIRED_PRODUCTION_CONFIG\n        from korpus.kubernetes_requirements import manifest_violations\n    \n        key, value = next(iter(REQUIRED_PRODUCTION_CONFIG.items()))\n        configmap = {\n            \"kind\": \"ConfigMap\",\n            \"metadata\": {\"name\": \"korpus-config\"},\n            \"data\": {**REQUIRED_PRODUCTION_CONFIG, key: \"wrong\"},\n        }\n    \n        violations = manifest_violations([configmap])\n    \n>       assert f\"secure production config missing: {key}={value}\" in violations\nE       assert 'secure production config missing: KORPUS_ENVIRONMENT=production' in [\"missing Kubernetes resource kinds: ['Deployment', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'P...']\", \"required workloads missing: ['korpus-api', 'korpus-web', 'korpus-worker']\", 'default-deny NetworkPolicy missing']\n\napps/api/tests/test_requirement_registry.py:328: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_requirement_registry.py::test_a_deployed_configuration_that_drifts_from_policy_is_reported - assert 'secure production config missing: KORPUS_ENVIRONMENT=production' in [\"missing Kubernetes resource kinds: ['Deployment', 'HorizontalPodAutoscaler', 'Job', 'Namespace', 'NetworkPolicy', 'P...']\", \"required workloads missing: ['korpus-api', 'korpus-web', 'korpus-worker']\", 'default-deny NetworkPolicy missing']\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M154_RETIRE_ALLOWED_BEFORE_SWITCH",
+      "file": "apps/api/src/korpus/application/embedding_migration.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_retiring_before_the_switch_is_refused __________________\n\n    def test_retiring_before_the_switch_is_refused() -> None:\n        \"\"\"The old population is the only thing that can answer while the new one is\n        incomplete; deleting it first destroys the rollback path.\"\"\"\n        allowed, reason = retire_admissible(\n            switched=False, spans_embedded_target=1200, spans_total=1200\n        )\n    \n>       assert allowed is False\nE       assert True is False\n\napps/api/tests/test_embedding_migration.py:124: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_embedding_migration.py::test_retiring_before_the_switch_is_refused - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M196_RELEASE_ID_IGNORES_CURRENCY",
+      "file": "apps/api/src/korpus/infrastructure/repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_corpus_release_identity.py::test_a_version_not_yet_in_force_is_not_in_the_release"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_a_version_not_yet_in_force_is_not_in_the_release _____________\n\nclient = <starlette.testclient.TestClient object at 0x7fe8a360c2f0>\n\n    def test_a_version_not_yet_in_force_is_not_in_the_release(client: TestClient) -> None:\n        \"\"\"The release names what could be cited *on the date asked*, not what exists.\n    \n        The currency rule used to come free: the old path built a version model for every\n        span and called `is_valid_on`. Computing the digest from a projection means asking\n        the same question explicitly, and forgetting to would put tomorrow's order into\n        today's fingerprint.\n        \"\"\"\n        repository = _repository(client)\n        as_of = date.today()\n        before = repository.corpus_release_id(  # type: ignore[attr-defined]\n            READER, frozenset({\"public\"}), as_of\n        )\n    \n        result = ingest_text(\n            client,\n            title=\"Наказ, що набирає сили пізніше\",\n            text=\"Порядок, який починає діяти наступного місяця.\",\n            publication_date=None,\n            effective_from=as_of + timedelta(days=30),\n        )\n        approve(client, result[\"version\"][\"id\"])\n    \n        after = repository.corpus_release_id(  # type: ignore[attr-defined]\n            READER, frozenset({\"public\"}), as_of\n        )\n>       assert after == before, \"a version that governs nothing today entered today's release\"\nE       AssertionError: a version that governs nothing today entered today's release\nE       assert '0439e0f7d3963e71' == 'e3b0c44298fc1c14'\nE         \nE         - e3b0c44298fc1c14\nE         + 0439e0f7d3963e71\n\napps/api/tests/test_corpus_release_identity.py:159: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_corpus_release_identity.py::test_a_version_not_yet_in_force_is_not_in_the_release - AssertionError: a version that governs nothing today entered today's release\nassert '0439e0f7d3963e71' == 'e3b0c44298fc1c14'\n  \n  - e3b0c44298fc1c14\n  + 0439e0f7d3963e71\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M143_ENTITLEMENT_CHECK_SKIPPED_WHEN_EMPTY",
+      "file": "apps/api/src/korpus/application/paid_access.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_entitlement_gate.py::test_without_an_active_subscription_the_paid_corpus_is_denied"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_without_an_active_subscription_the_paid_corpus_is_denied _________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-891/test_without_an_active_subscri0')\n\n    def test_without_an_active_subscription_the_paid_corpus_is_denied(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            identity = reader(\"oidc|unpaid\", frozenset({\"public\", \"training\"}))\n            account = tenancy.account_service.require_active_account(identity)\n            tenancy.plan(\"standard\", frozenset({\"training\"}))\n            tenancy.subscription_service.start_subscription(identity.subject, account.id, \"standard\")\n    \n            gate = tenancy.entitlements(required=True)\n>           with pytest.raises(EntitlementDenied):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.paid_access.EntitlementDenied'>\n\napps/api/tests/test_entitlement_gate.py:56: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_entitlement_gate.py::test_without_an_active_subscription_the_paid_corpus_is_denied - Failed: DID NOT RAISE <class 'korpus.application.paid_access.EntitlementDenied'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M232_STALE_SUPPLY_CHAIN_MANIFEST_ACCEPTED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_supply_chain_manifest_from_another_source_tree_is_rejected ________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-892/test_supply_chain_manifest_fro0')\n\n    def test_supply_chain_manifest_from_another_source_tree_is_rejected(tmp_path: Path) -> None:\n        artifact = tmp_path / \"a\"; artifact.write_bytes(b\"x\")\n        digest = __import__(\"hashlib\").sha256(b\"x\").hexdigest()\n        manifest = {\"schema\": \"korpus.supply-chain-evidence.v1\", \"source_tree_sha256\": \"old\", \"release\": \"v\",\n                    \"artifacts\": {\"a\": {\"sha256\": digest, \"bytes\": 1}}}\n>       assert artifact_manifest_bound(manifest, {\"a\": (b\"x\", 1)}, source=\"current\", release=\"v\") is False\nE       AssertionError: assert True is False\nE        +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 'old'}, {'a': (b'x', 1)}, source='current', release='v')\n\napps/api/tests/test_supply_chain_evidence_boundary.py:52: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_supply_chain_evidence_boundary.py::test_supply_chain_manifest_from_another_source_tree_is_rejected - AssertionError: assert True is False\n +  where True = artifact_manifest_bound({'artifacts': {'a': {'bytes': 1, 'sha256': '2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881'}}, 'release': 'v', 'schema': 'korpus.supply-chain-evidence.v1', 'source_tree_sha256': 'old'}, {'a': (b'x', 1)}, source='current', release='v')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL",
+      "file": "apps/api/src/korpus/application/pec_oracle_policy.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_oracle_requires_original_query_stop_baseline _______________\n\n    def test_oracle_requires_original_query_stop_baseline():\n        plan = _row(RetrievalAction.PLAN_QUERY_VARIANTS, latency=5, searches=2)\n        decision = solve_oracle([plan])\n>       assert decision.action is RetrievalAction.BASELINE\nE       AssertionError: assert <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> is <RetrievalAction.BASELINE: 'BASELINE'>\nE        +  where <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> = OracleDecision(query_id='q1', action=<RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'>, status='PASS', reason='mutated', admissible_actions=()).action\nE        +  and   <RetrievalAction.BASELINE: 'BASELINE'> = RetrievalAction.BASELINE\n\napps/api/tests/test_pec_replay.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline - AssertionError: assert <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> is <RetrievalAction.BASELINE: 'BASELINE'>\n +  where <RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'> = OracleDecision(query_id='q1', action=<RetrievalAction.PLAN_QUERY_VARIANTS: 'PLAN_QUERY_VARIANTS'>, status='PASS', reason='mutated', admissible_actions=()).action\n +  and   <RetrievalAction.BASELINE: 'BASELINE'> = RetrievalAction.BASELINE\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:38:30+00:00"
+  }
+}

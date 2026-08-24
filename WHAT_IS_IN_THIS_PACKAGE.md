@@ -1,9 +1,5 @@
-# KORPUS v0.1.1 canonical recovery repository
+# KORPUS v0.9.7 — What Is In This Package
 
-This is one canonical source repository, not a concatenation of multiple snapshots. It contains the application, web client, infrastructure/deployment definitions, migrations, tests, evaluation and mutation catalogues, assurance tooling, documentation, manifests and Git history.
+FULL SSOT engineering handoff: executable source, tests, web client, contracts, configuration, deployment/IaC, evaluation protocols, release tooling, documentation, current reports, lineage, and portable raw current evidence under `handoff/evidence/current/`.
 
-## Assurance boundary
-
-Local engineering evidence and production authorization are separate predicates. Missing production-like TEVV/load/recovery, real PostgreSQL evidence, complete scanner/container-SBOM evidence, exact-environment reproduction, or independently trusted red-team evidence remains FAIL. No local code change may convert unavailable external evidence into PASS.
-
-The package also contains the GitHub primary-transport workflows, policy verifier, import contract and first-principles engineering rules introduced in `v0.1.1`.
+Excluded by policy: `.git`, virtual environments, `node_modules`, developer caches, top-level runtime `var/`, and production secrets. Evidence needed from `var/` has been copied and SHA-256-manifested into the portable handoff surface before packaging.

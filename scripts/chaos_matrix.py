@@ -200,6 +200,24 @@ def _planner_hostile(client: Any) -> dict[str, Any]:
     return result
 
 
+
+def _case_ok(case: str, outcome: dict[str, Any], verdict: str) -> bool:
+    verdict_expectations = {
+        "baseline": "extractive_claims_passed_calibrated_gates",
+        "object_store_unreadable": "extractive_claims_passed_calibrated_gates",
+        "clock_skew_future": "extractive_claims_passed_calibrated_gates",
+        "planner_hangs": "extractive_claims_passed_calibrated_gates",
+        "corpus_emptied": "retrieval_gate_failed",
+        "clock_skew_past": "retrieval_gate_failed",
+    }
+    if case in verdict_expectations:
+        citation_expected = case not in {"corpus_emptied", "clock_skew_past"}
+        return verdict == verdict_expectations[case] and bool(outcome.get("citations")) == citation_expected
+    if case == "database_removed":
+        return verdict.startswith("http_5") and not outcome.get("citations")
+    return case == "planner_hostile" and verdict == "extractive_claims_passed_calibrated_gates" and outcome.get("planner_text_leaked") is False
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=Path("var/chaos-matrix.json"))
@@ -302,12 +320,14 @@ def main() -> int:
 
         for case in cases:
             outcome = case.run(client)
+            verdict = _verdict(outcome)
             results.append(
                 {
                     "case": case.name,
                     "breaks": case.breaks,
                     "expectation": case.expectation,
-                    "verdict": _verdict(outcome),
+                    "verdict": verdict,
+                    "ok": _case_ok(case.name, outcome, verdict),
                     "citations": len(outcome.get("citations") or []),
                     **{
                         key: outcome[key]
@@ -318,9 +338,16 @@ def main() -> int:
             )
 
     shutil.rmtree(workdir, ignore_errors=True)
+    from korpus.application.provenance import compute_source_digest
+    from korpus.release import RELEASE_TAG
+    failures = [item["case"] for item in results if not item.get("ok")]
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "status": "PASS" if not failures else "FAIL",
+        "release": RELEASE_TAG,
+        "source_tree_sha256": compute_source_digest(ROOT),
         "ran_at": datetime.now(UTC).isoformat(),
+        "failures": failures,
         "cases": results,
         "interpretation": (
             "A failure must never render as an answer about the corpus. 'Немає підстави' "
@@ -333,7 +360,7 @@ def main() -> int:
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
     arguments.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", "utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    return 0
+    return 0 if not failures else 1
 
 
 def _seed(client: Any) -> None:

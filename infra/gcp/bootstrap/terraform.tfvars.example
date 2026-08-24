@@ -1,0 +1,6 @@
+project_id           = "replace-korpus-prod-project"
+region               = "europe-central2"
+github_repository    = "replace-owner/replace-repository"
+github_repository_id = "000000000"
+github_owner_id      = "000000000"
+github_deploy_branch = "main"

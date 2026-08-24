@@ -1,0 +1,63 @@
+{
+  "schema_version": 2,
+  "measured_at": "2026-08-16T15:07:19.111113+00:00",
+  "base": "http://127.0.0.1:8084",
+  "environment_class": "LOCAL_DEV",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "cold_first_request": {
+    "seconds": 0.041,
+    "status": "200",
+    "refusal_reason": ""
+  },
+  "load": {
+    "concurrency": 2,
+    "requests": 111,
+    "p50_seconds": 0.035,
+    "p95_seconds": 0.043,
+    "p99_seconds": 0.049,
+    "max_seconds": 0.059,
+    "mean_seconds": 0.036,
+    "statuses": {
+      "200": 111
+    },
+    "decisions": {
+      "retrieval_gate_failed": 111
+    },
+    "refusal_reasons": {}
+  },
+  "spike": {
+    "concurrency": 4,
+    "requests": 97,
+    "p50_seconds": 0.077,
+    "p95_seconds": 0.117,
+    "p99_seconds": 0.152,
+    "max_seconds": 0.152,
+    "mean_seconds": 0.084,
+    "statuses": {
+      "200": 97
+    },
+    "decisions": {
+      "retrieval_gate_failed": 97
+    },
+    "refusal_reasons": {}
+  },
+  "soak": {
+    "concurrency": 2,
+    "requests": 212,
+    "p50_seconds": 0.038,
+    "p95_seconds": 0.073,
+    "p99_seconds": 0.214,
+    "max_seconds": 0.602,
+    "mean_seconds": 0.048,
+    "statuses": {
+      "200": 212
+    },
+    "decisions": {
+      "retrieval_gate_failed": 212
+    },
+    "refusal_reasons": {}
+  },
+  "drift_p50_seconds": 0.003,
+  "interpretation": "One machine, one day, with the conditions attached. Non-200 statuses are results, not failures: 429 is the edge refusing work it was configured to refuse, and a run where none appear under a spike has not found the saturation point. Typed refusal_reasons distinguish admission saturation from unrelated 503s. Latency drift between the load and soak phases is the number that says whether the steady state is steady."
+}

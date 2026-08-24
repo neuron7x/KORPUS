@@ -1,0 +1,49 @@
+{
+  "schema": "korpus.web-assurance.v2",
+  "status": "PASS",
+  "release": "v0.6.0",
+  "source_tree_sha256": "12fe9049b7170670160d8b1741b4840caa29fc717e6c594a4fe4fca7be782b98",
+  "source_manifest_root_sha256": "509ec147d7ef53c490efcb35e40a6af55e186a3d64df29a9c14d563e7436fb4c",
+  "unit_functional": {
+    "tests": 81,
+    "passed": 81,
+    "failed": 0,
+    "evidence": "reports/release/v0.6.0/WEB_FUNCTIONAL_CURRENT.tap"
+  },
+  "destruction": {
+    "tests": 61,
+    "passed": 61,
+    "failed": 0,
+    "execution": "55 tests in bounded full run plus exact remaining 6 by name-pattern after orchestration timeout",
+    "evidence": [
+      "reports/release/v0.6.0/WEB_DESTRUCTION_CURRENT.tap",
+      "reports/release/v0.6.0/WEB_DESTRUCTION_TAIL_CURRENT.tap"
+    ]
+  },
+  "browser": {
+    "status": "PASS",
+    "tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "browser": "Chromium 144.0.7559.96 built on Debian GNU/Linux 13 (trixie)",
+    "environment_class": "LOCAL_BROWSER_POLICY_COMPATIBLE",
+    "network_navigation_executed": false,
+    "same_origin_network_executed": false,
+    "oidc_session_executed": false,
+    "evidence": "reports/release/v0.6.0/BROWSER_E2E_CURRENT.json"
+  },
+  "static": {
+    "lint_pass": true,
+    "build_pass": true,
+    "initial_transfer_gzip_bytes": 32321,
+    "budget_bytes": 32768,
+    "design_tokens": 39,
+    "component_contracts": 13,
+    "syntax_modules": 26,
+    "contrast_surfaces": 3,
+    "accessibility_pages": 2
+  },
+  "limitations": [
+    "Chromium E2E is policy-compatible local browser execution with fetch stubs; real same-origin HTTP navigation and OIDC session were not executed because system URLBlocklist prevented local HTTP navigation."
+  ]
+}

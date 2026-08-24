@@ -1,0 +1,27 @@
+{
+  "schema": "korpus.postgres-production-like-handoff.v1",
+  "status": "READY_FOR_EXTERNAL_EXECUTION",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "release": "v0.6.1",
+  "local_static_grant_contract_passed": true,
+  "local_runtime_available": false,
+  "required_backend": "postgresql",
+  "required_test_targets": [
+    "apps/api/tests/test_postgres_role_grants.py",
+    "apps/api/tests/test_repository_access_refusals.py",
+    "apps/api/tests/test_tenancy_threats.py",
+    "apps/api/tests/test_concurrent_audit.py"
+  ],
+  "canonical_execution_assets": [
+    "scripts/run_postgres_suite.sh",
+    "scripts/run_learning_postgres_gate.sh",
+    "scripts/prepare_postgres_role.py",
+    "docker-compose.yml"
+  ],
+  "result_contract": {
+    "postgres_runtime_available": true,
+    "postgres_adversarial_suite": true,
+    "source_bound": true
+  },
+  "interpretation": "The code-side PostgreSQL adversarial harness is present and static grants pass. A real PostgreSQL service remains an external execution dependency."
+}

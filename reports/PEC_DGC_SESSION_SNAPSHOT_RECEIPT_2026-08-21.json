@@ -1,0 +1,18 @@
+{
+  "artifact_kind": "END_OF_SESSION_INTEGRATED_FULL_SSOT_SNAPSHOT",
+  "date": "2026-08-21",
+  "root_name": "KORPUS_v0.9.4_FULL_SSOT_CANONICAL_2026-08-21",
+  "included_file_count": 1559,
+  "included_uncompressed_bytes": 139046251,
+  "snapshot_tree_sha256": "9366766914fb8f399ac68b821bc37ad9b473462ef33ba0bdc356741e38862935",
+  "pec_dgc_targeted_tests": "PASS",
+  "module_budget": {
+    "status": "PASS",
+    "modules": 415,
+    "unbudgeted": 0,
+    "violations": 0
+  },
+  "full_regression_after_latest_pec_v2": "NOT_RUN_IN_FINAL_PACKAGING_TURN",
+  "full_mutation_after_latest_pec_v2": "NOT_RUN_IN_FINAL_PACKAGING_TURN",
+  "production_authorization": "NOT_ASSERTED"
+}

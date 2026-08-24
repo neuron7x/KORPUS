@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 21,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M21_CSRF_GATE_BYPASS",
+      "file": "apps/api/src/korpus/security/browser_csrf.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_browser_oidc.py::test_global_browser_csrf_gate_refuses_missing_double_submit_material"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_global_browser_csrf_gate_refuses_missing_double_submit_material _____\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-864/test_global_browser_csrf_gate_0')\n\n    def test_global_browser_csrf_gate_refuses_missing_double_submit_material(tmp_path: Path):\n        settings = _settings(tmp_path)\n        codec = BrowserSessionCodec(settings.browser_session_key)\n        session_cookie = codec.seal(\"session\", {\"access_token\": \"a\", \"csrf\": \"expected-csrf\"}, ttl_seconds=60)\n        app = SimpleNamespace(state=SimpleNamespace(browser_session_codec=codec))\n        request = SimpleNamespace(\n            method=\"POST\",\n            headers={},\n            cookies={settings.browser_csrf_cookie: \"expected-csrf\"},\n        )\n>       assert browser_csrf_denial(app, request, settings, session_cookie) == (\n            403,\n            \"CSRF validation failed\",\n        )\nE       AssertionError: assert None == (403, 'CSRF validation failed')\nE        +  where None = browser_csrf_denial(namespace(state=namespace(browser_session_codec=<korpus.security.browser_oidc.BrowserSessionCodec object at 0x7f0243cc4590>)), namespace(method='POST', headers={}, cookies={'__Host-korpus_csrf': 'expected-csrf'}), Settings(environment='test', runtime_role='api', database_url='sqlite:////tmp/pytest-of-root/pytest-864/test_global_br...='ukr+eng', cors_origins='http://127.0.0.1:3000,http://localhost:3000', trusted_hosts='localhost,127.0.0.1,testserver'), 'G_bE-X4LFyD5C6a-p6IDenVHaPDoAmo_4W1TvnyoHbYrp-4LOE4iWNOaXnOhQYRJyQQXvH-Gv-NEeWlcsUw_IW7-5FBOTgKpI2Czc4042IUZ0PiJZ2bQ_MDbuzsaZeEtmFi6ftDg1l8Rvj6m0Jvwt4mKcqN7fMKdI14M8q_sv3Zl7L9_J0Gc2IicF78')\n\napps/api/tests/test_browser_oidc.py:292: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_browser_oidc.py::test_global_browser_csrf_gate_refuses_missing_double_submit_material - AssertionError: assert None == (403, 'CSRF validation failed')\n +  where None = browser_csrf_denial(namespace(state=namespace(browser_session_codec=<korpus.security.browser_oidc.BrowserSessionCodec object at 0x7f0243cc4590>)), namespace(method='POST', headers={}, cookies={'__Host-korpus_csrf': 'expected-csrf'}), Settings(environment='test', runtime_role='api', database_url='sqlite:////tmp/pytest-of-root/pytest-864/test_global_br...='ukr+eng', cors_origins='http://127.0.0.1:3000,http://localhost:3000', trusted_hosts='localhost,127.0.0.1,testserver'), 'G_bE-X4LFyD5C6a-p6IDenVHaPDoAmo_4W1TvnyoHbYrp-4LOE4iWNOaXnOhQYRJyQQXvH-Gv-NEeWlcsUw_IW7-5FBOTgKpI2Czc4042IUZ0PiJZ2bQ_MDbuzsaZeEtmFi6ftDg1l8Rvj6m0Jvwt4mKcqN7fMKdI14M8q_sv3Zl7L9_J0Gc2IicF78')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M68_OVERLAY_PATCHES_SILENTLY_DROPPED",
+      "file": "apps/api/src/korpus/application/deployment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_overlays.py::test_a_patch_matching_nothing_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_a_patch_matching_nothing_is_refused ___________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-863/test_a_patch_matching_nothing_0')\n\n    def test_a_patch_matching_nothing_is_refused(tmp_path: Path) -> None:\n        \"\"\"Silently dropping a patch makes the rendered set differ from the cluster.\"\"\"\n    \n        (tmp_path / \"kustomization.yaml\").write_text(\n            \"apiVersion: kustomize.config.k8s.io/v1beta1\\n\"\n            \"kind: Kustomization\\n\"\n            \"resources: []\\n\"\n            \"patches:\\n\"\n            \"  - target: {kind: Deployment, name: does-not-exist}\\n\"\n            \"    patch: |-\\n\"\n            \"      - op: replace\\n\"\n            \"        path: /spec/replicas\\n\"\n            \"        value: 9\\n\",\n            encoding=\"utf-8\",\n        )\n>       with pytest.raises(RenderError, match=\"matches no resource\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'korpus.application.deployment.RenderError'>\n\napps/api/tests/test_deployment_overlays.py:123: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_overlays.py::test_a_patch_matching_nothing_is_refused - Failed: DID NOT RAISE <class 'korpus.application.deployment.RenderError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M112_GATE_AUTHORIZES_WITHOUT_A_REGISTER",
+      "file": "apps/api/src/korpus/application/operations.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_operations.py::test_operational_gate_passes_encoded_engineering_predicates_only"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_operational_gate_passes_encoded_engineering_predicates_only _______\n\n    def test_operational_gate_passes_encoded_engineering_predicates_only():\n        result = evaluate(passing_reports())\n        assert result.passed is True\n>       assert result.production_authorized is False\nE       AssertionError: assert True is False\nE        +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...te_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=True, admission=None).production_authorized\n\napps/api/tests/test_operations.py:95: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_operations.py::test_operational_gate_passes_encoded_engineering_predicates_only - AssertionError: assert True is False\n +  where True = GateResult(status='PASS', checks={'reports_present': True, 'evidence_provenance': True, 'eval_pass_rate': True, 'citat...te_bound': True, 'scale_local_p95': True}, failures=(), evidence_sha256={}, production_authorized=True, admission=None).production_authorized\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M189_RENAMED_ARCHIVE_REACHES_THE_DOCX_PARSER",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_extraction.py::test_a_zip_renamed_to_docx_is_refused_before_the_parser"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "rror(f\"unsupported file extension: {suffix or '<none>'}\")\n        if mime_type not in SUPPORTED_MIME_TYPES and mime_type != \"application/octet-stream\":\n            raise ValueError(f\"unsupported MIME type: {mime_type}\")\n        with path.open(\"rb\") as handle:\n            prefix = handle.read(16)\n        detected = _detected_mime(path)\n        if suffix == \".pdf\":\n            if not prefix.startswith(b\"%PDF-\"):\n                raise ValueError(\"PDF extension does not match file signature\")\n            if mime_type not in {\"application/pdf\", \"application/octet-stream\"}:\n                raise ValueError(\"PDF extension does not match MIME type\")\n            if detected is not None and detected != \"application/pdf\":\n                raise ValueError(f\"PDF content detected as {detected}\")\n        elif suffix == \".docx\":\n            # PK\\x03\\x04. Extension, declared MIME and the first four bytes have to agree\n            # before a ZIP parser sees the file: the whole point of the check is that a\n            # renamed archive does not get to choose its own reader.\n            if False:\n                raise ValueError(\"DOCX extension does not match file signature\")\n            if mime_type not in {DOCX_MIME_TYPE, \"application/octet-stream\"}:\n                raise ValueError(\"DOCX extension does not match MIME type\")\n            if detected is not None and detected not in {DOCX_MIME_TYPE, \"application/zip\"}:\n>               raise ValueError(f\"DOCX content detected as {detected}\")\nE               ValueError: DOCX content detected as text/plain\n\n/tmp/korpus-m189_renamed_archive_reaches_the_docx_parser-qzq1lnap/api-src/korpus/infrastructure/extraction.py:156: ValueError\n\nDuring handling of the above exception, another exception occurred:\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-865/test_a_zip_renamed_to_docx_is_0')\n\n    def test_a_zip_renamed_to_docx_is_refused_before_the_parser(tmp_path) -> None:\n        \"\"\"A DOCX is a ZIP, so the signature check has to be the extension's, not the\n        format's: otherwise a renamed archive chooses its own reader.\"\"\"\n        import pytest\n        from korpus.infrastructure.extraction import extract_pages_from_path\n    \n        path = tmp_path / \"order.docx\"\n        path.write_bytes(b\"not a zip at all\")\n    \n>       with pytest.raises(ValueError, match=\"signature\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'signature'\nE         Actual message: 'DOCX content detected as text/plain'\n\napps/api/tests/test_extraction.py:154: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_extraction.py::test_a_zip_renamed_to_docx_is_refused_before_the_parser - AssertionError: Regex pattern did not match.\n  Expected regex: 'signature'\n  Actual message: 'DOCX content detected as text/plain'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M136_CONVERSATION_OWNERSHIP_DROPPED",
+      "file": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_conversations.py::test_a_conversation_is_visible_only_to_its_owner"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_a_conversation_is_visible_only_to_its_owner _______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-866/test_a_conversation_is_visible0')\n\n    def test_a_conversation_is_visible_only_to_its_owner(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            owner, stranger = _two_accounts(tenancy)\n            service: ConversationService = tenancy.conversation_service\n            conversation = service.create(owner, \"накладання турнікету\")\n    \n            assert service.get(owner, conversation.id).id == conversation.id\n>           with pytest.raises(ConversationNotFound):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.ConversationNotFound'>\n\napps/api/tests/test_conversations.py:47: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_conversations.py::test_a_conversation_is_visible_only_to_its_owner - Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.ConversationNotFound'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M225_UNTRUSTED_ASSURANCE_SIGNER_ACCEPTED",
+      "file": "apps/api/src/korpus/application/attested_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attested_evidence.py::test_valid_but_untrusted_self_signature_is_not_trust_evidence"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_valid_but_untrusted_self_signature_is_not_trust_evidence _________\n\n    def test_valid_but_untrusted_self_signature_is_not_trust_evidence() -> None:\n        data = b\"evidence\"\n        attestation, _ = _signed(data)\n        verdict = verify_ed25519_attestation(\n            data, manifest_name=\"evidence.json\", release=\"v1\", attestation=attestation,\n            trusted_fingerprints=set(),\n        )\n        assert verdict.cryptographically_valid is True\n>       assert verdict.trusted_signer is False\nE       AssertionError: assert True is False\nE        +  where True = AttestationVerdict(checks={'algorithm': True, 'release': True, 'manifest_name': True, 'manifest_sha256': True, 'public...nature': True, 'trusted_signer': True}, fingerprint='32c61a7ca37adf34b0b2aeaa4b053e2c9fa5cbc1ef4dc4720fa18ac8209ecec6').trusted_signer\n\napps/api/tests/test_attested_evidence.py:49: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attested_evidence.py::test_valid_but_untrusted_self_signature_is_not_trust_evidence - AssertionError: assert True is False\n +  where True = AttestationVerdict(checks={'algorithm': True, 'release': True, 'manifest_name': True, 'manifest_sha256': True, 'public...nature': True, 'trusted_signer': True}, fingerprint='32c61a7ca37adf34b0b2aeaa4b053e2c9fa5cbc1ef4dc4720fa18ac8209ecec6').trusted_signer\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M273_SAFE_EXTRACTION_ADMISSION_BYPASSED",
+      "file": "scripts/safe_archive_extract.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_full_ssot_packager.py::test_safe_extractor_refuses_unsafe_archive_before_write"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_safe_extractor_refuses_unsafe_archive_before_write ____________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-867/test_safe_extractor_refuses_un0')\n\n    def test_safe_extractor_refuses_unsafe_archive_before_write(tmp_path: Path) -> None:\n        import zipfile\n        import pytest\n        from scripts.safe_archive_extract import extract_safe_archive\n    \n        archive = tmp_path / \"unsafe.zip\"\n        with zipfile.ZipFile(archive, \"w\") as zf:\n            zf.writestr(\"../escape.txt\", b\"blocked\")\n        destination = tmp_path / \"unpacked\"\n        with pytest.raises(RuntimeError, match=\"unsafe release ZIP\"):\n>           extract_safe_archive(archive, destination)\n\napps/api/tests/test_full_ssot_packager.py:47: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\narchive = PosixPath('/tmp/pytest-of-root/pytest-867/test_safe_extractor_refuses_un0/unsafe.zip')\ndestination = PosixPath('/tmp/pytest-of-root/pytest-867/test_safe_extractor_refuses_un0/unpacked')\n\n    def extract_safe_archive(archive: Path, destination: Path) -> Path:\n        with zipfile.ZipFile(archive) as zf:\n            failures = safety_failures(zf)\n            if False:\n                raise RuntimeError(\"unsafe release ZIP: \" + \"; \".join(failures))\n            zf.extractall(destination)\n            for info in zf.infolist():\n                if not info.is_dir():\n                    mode = (info.external_attr >> 16) & 0o777\n                    if mode:\n>                       os.chmod(destination / info.filename, mode)\nE                       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-867/test_safe_extractor_refuses_un0/unpacked/../escape.txt'\n\nscripts/safe_archive_extract.py:21: FileNotFoundError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_full_ssot_packager.py::test_safe_extractor_refuses_unsafe_archive_before_write - FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-root/pytest-867/test_safe_extractor_refuses_un0/unpacked/../escape.txt'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:36:29+00:00"
+  }
+}

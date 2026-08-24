@@ -22,6 +22,7 @@ from fastapi.testclient import TestClient
 from korpus.application.resilience import AdmissionController, OverloadedError
 from korpus.domain.models import Identity
 from korpus.infrastructure.repository import SqlRepository
+from korpus.release import RELEASE_VERSION
 
 from apps.api.tests.conftest import set_identity
 from apps.api.tests.helpers import approve, ingest_text
@@ -119,7 +120,11 @@ def test_an_auditor_reads_the_events_of_one_request(client: TestClient) -> None:
     answered = client.post(
         "/v1/answers",
         json={"text": f"де згадано {MARKER}"},
-        headers={"X-Request-ID": "trace-under-test"},
+        headers={
+            "X-Request-ID": "trace-under-test",
+            "X-KORPUS-Client-Version": "v0.6.0-test",
+            "Authorization": "Bearer test-credential",
+        },
     )
     assert answered.status_code == 200
 
@@ -130,7 +135,16 @@ def test_an_auditor_reads_the_events_of_one_request(client: TestClient) -> None:
     assert [event["sequence"] for event in events] == sorted(
         event["sequence"] for event in events
     )
-    assert any(event["action"] == "answer.completed" for event in events)
+    completed = next(event for event in events if event["action"] == "answer.completed")
+    payload = completed["payload"]
+    assert payload["client_version"] == "v0.6.0-test"
+    assert payload["service_version"] == RELEASE_VERSION
+    assert payload["offline_mode"] is False
+    assert payload["policy_decision_id"].startswith("pd1:")
+    assert payload["session_binding"] is not None
+    assert completed["event_hash"] and len(completed["event_hash"]) == 64
+    assert completed["previous_hash"] and len(completed["previous_hash"]) == 64
+    assert completed["audit_key_id"]
 
 
 def test_the_trace_scope_excludes_other_requests(client: TestClient) -> None:

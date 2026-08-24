@@ -16,8 +16,10 @@ from korpus.application.answer_analysis import (
     unsourced_quotes,
 )
 from korpus.application.answer_audit import append_answer_audit
+from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.egress import ModelEgressPolicy
+from korpus.application.evidence_admission import eligible_evidence
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
@@ -25,10 +27,14 @@ from korpus.application.evidence import (
     verify_claim_support,
 )
 from korpus.application.policy import PolicyEngine
+from korpus.application.pec_retrieval import adaptive_retrieval
+from korpus.application.predictive_evidence_control import (
+    ControllerTrace,
+    PredictiveEvidenceController,
+)
 from korpus.application.ports import Repository, Retriever
-from korpus.application.query_plan import QueryPlan, QueryPlanner, build_plan
+from korpus.application.query_plan import QueryPlan, QueryPlanner
 from korpus.application.retrieval import (
-    AUTHORITY_PRIOR,
     RetrievalDeadlineExceeded,
     RetrievalUnavailable,
     tokenize,
@@ -69,15 +75,7 @@ class AnswerPolicy:
             minimum_query_coverage=self.minimum_query_coverage,
             minimum_support_score=self.minimum_support_score,
         )
-        return [
-            item
-            for item in evidence
-            if item.score >= thresholds.minimum_score
-            and item.query_coverage >= thresholds.minimum_query_coverage
-            and AUTHORITY_PRIOR[item.version.authority] >= thresholds.minimum_authority
-            and item.version.review_state.value == "approved"
-            and item.version.authority.is_normative
-        ]
+        return eligible_evidence(evidence, thresholds)
 
 
 class ExtractiveAnswerService:
@@ -90,6 +88,7 @@ class ExtractiveAnswerService:
         query_planner: QueryPlanner | None = None,
         answer_composer: AnswerComposer | None = None,
         egress_policy: ModelEgressPolicy | None = None,
+        predictive_controller: PredictiveEvidenceController | None = None,
     ) -> None:
         self.repository = repository
         self.retriever = retriever
@@ -107,6 +106,7 @@ class ExtractiveAnswerService:
         #: behaviour of every service that never had one. The composition root always
         #: supplies it.
         self.egress_policy = egress_policy
+        self.predictive_controller = predictive_controller
 
     def execute(self, identity: Identity, query: QueryRequest) -> Answer:
         corpora = self.policy_engine.resolve_corpora(identity, query.corpus_ids)
@@ -123,20 +123,39 @@ class ExtractiveAnswerService:
             return answer
 
         risk = classify_query_risk(query.text)
-        # The question is searched first and always. A reformulation widens what was
-        # looked for; it cannot replace what was asked, because a planner that quietly
-        # substituted its own phrasing could steer a reader away from the passage they
-        # came for and nothing downstream would see it happen.
-        plan = build_plan(query.text, self.query_planner)
+        retrieval_thresholds = risk_adjusted_thresholds(
+            risk,
+            minimum_score=self.answer_policy.minimum_score,
+            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
+            minimum_support_score=self.answer_policy.minimum_support_score,
+        )
+        pec_trace: ControllerTrace | None = None
+        plan = QueryPlan(asked=query.text)
         try:
-            retrieved = self._search_plan(identity, plan, corpora, query.as_of)
+            retrieval_outcome = adaptive_retrieval(
+                identity=identity,
+                query_text=query.text,
+                corpora=corpora,
+                as_of=query.as_of,
+                risk=risk,
+                admission_thresholds=retrieval_thresholds,
+                retriever=self.retriever,
+                planner=self.query_planner,
+                controller=self.predictive_controller,
+                answer_calibration_id=self.answer_policy.calibration_id,
+                corpus_release_id=release_id,
+                eligible_count=lambda items: len(self.answer_policy.eligible(items, risk)),
+            )
+            retrieved = retrieval_outcome.retrieved
+            plan = retrieval_outcome.plan
+            pec_trace = retrieval_outcome.trace
         except RetrievalDeadlineExceeded:
             answer = self._abstain(
                 release_id,
                 "retrieval_deadline_exceeded",
                 "Пошук не завершився у межах операційного бюджету; відповідь зупинено.",
             )
-            self._audit(identity, query, answer, [], [], risk, plan=plan)
+            self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
             return answer
         except RetrievalUnavailable:
             answer = self._abstain(
@@ -145,34 +164,20 @@ class ExtractiveAnswerService:
                 "Обов’язковий пошуковий контур недоступний;"
                 " відповідь зупинено без слабшого fallback.",
             )
-            self._audit(identity, query, answer, [], [], risk, plan=plan)
+            self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
             return answer
 
-        breaches = self._scope_breaches(identity, corpora, retrieved)
-        if breaches:
-            answer = self._breach(release_id, breaches)
-            self._audit(
-                identity, query, answer, retrieved, [], risk, breaches=breaches, plan=plan
-            )
-            return answer
 
-        eligible = self.answer_policy.eligible(retrieved, risk)
-        if not eligible:
-            answer = self._abstain(
-                release_id,
-                "retrieval_gate_failed",
-                "У чинному перевіреному корпусі недостатньо доказів для надійної відповіді.",
-                max((item.score for item in retrieved), default=0.0),
-            )
-            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
-            return answer
-
-        thresholds = risk_adjusted_thresholds(
-            risk,
-            minimum_score=self.answer_policy.minimum_score,
-            minimum_query_coverage=self.answer_policy.minimum_query_coverage,
-            minimum_support_score=self.answer_policy.minimum_support_score,
+        gated, eligible = apply_retrieval_gate(
+            self, identity=identity, query=query, release_id=release_id, corpora=corpora,
+            retrieved=retrieved, risk=risk, plan=plan, pec_trace=pec_trace,
+            early_abstain=retrieval_outcome.early_abstain,
         )
+        if gated is not None:
+            return gated
+        assert eligible is not None
+
+        thresholds = retrieval_thresholds
         eligible, outranked = self._confine_to_top_authority(eligible)
         query_tokens = frozenset(tokenize(query.text))
         claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
@@ -180,7 +185,7 @@ class ExtractiveAnswerService:
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
             answer = self._unsourced_answer(release_id, unsourced)
-            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan)
+            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace)
             return answer
 
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
@@ -192,7 +197,7 @@ class ExtractiveAnswerService:
         if claims and not support.aligned:
             answer = self._misaligned(release_id, support)
             self._audit(
-                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan
+                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan, pec_trace=pec_trace
             )
             return answer
         # Before every branch, not inside one: three of them reach the same audit call,
@@ -273,6 +278,7 @@ class ExtractiveAnswerService:
         self._audit(
             identity, query, answer, retrieved, eligible, risk, plan=plan,
             composition=composition_reason,
+            pec_trace=pec_trace,
         )
         return answer
 
@@ -315,33 +321,6 @@ class ExtractiveAnswerService:
             default=AccessTier.PUBLIC,
         )
         return self.egress_policy.permits_material(material_tier)
-
-    def _search_plan(
-        self,
-        identity: Identity,
-        plan: QueryPlan,
-        corpora: frozenset[str],
-        as_of: date,
-    ) -> list[RetrievedEvidence]:
-        """Every search in the plan, fused by span, ranked as one set.
-
-        Scores from different queries are comparable because they are produced by the
-        same scorer against the same corpus; the highest is kept when a span is found
-        twice, which is the score of the phrasing that matched it best. What is not
-        done is boosting a span for appearing under several phrasings: that would let
-        the number of reformulations a model happened to emit decide relevance.
-        """
-        best: dict[str, RetrievedEvidence] = {}
-        for text in plan.searches:
-            for item in self.retriever.search(identity, text, corpora, as_of):
-                key = str(item.span.id)
-                previous = best.get(key)
-                if previous is None or item.score > previous.score:
-                    best[key] = item
-        return sorted(
-            best.values(),
-            key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal),
-        )
 
     def _extract(
         self,
@@ -561,6 +540,7 @@ class ExtractiveAnswerService:
         support: SupportVerdict | None = None,
         plan: QueryPlan | None = None,
         composition: str | None = None,
+        pec_trace: ControllerTrace | None = None,
     ) -> None:
         append_answer_audit(
             self.repository,
@@ -577,4 +557,5 @@ class ExtractiveAnswerService:
             support=support,
             plan=plan,
             composition=composition,
+            pec_trace=pec_trace.as_audit_record() if pec_trace is not None else None,
         )

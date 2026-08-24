@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 3,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M04_AUDIT_PREDECESSOR_BYPASS",
+      "file": "apps/api/src/korpus/infrastructure/audit_reader.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_audit_chain_rejects_re_signed_broken_predecessor_link __________\n\nclient = <starlette.testclient.TestClient object at 0x7f0bb56ac1a0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_audit_chain_rejects_re_signed_broken_predecessor_link(client, admin_identity):\n        import hashlib\n        import hmac\n    \n        from sqlalchemy import update\n    \n        repository = client.app.state.repository\n        for index in range(3):\n            repository.append_audit(\n                admin_identity,\n                \"insider.probe\",\n                \"test\",\n                str(index),\n                {\"index\": index},\n            )\n        with privileged_connection(client) as connection:\n            row = connection.execute(select(audits).where(audits.c.sequence == 2)).mappings().one()\n            forged_previous = \"f\" * 64\n            canonical = repository._audit_canonical(\n                sequence=row[\"sequence\"],\n                event_id=row[\"event_id\"],\n                occurred_at=repository._iso(row[\"occurred_at\"]),\n                actor_subject=row[\"actor_subject\"],\n                action=row[\"action\"],\n                resource_type=row[\"resource_type\"],\n                resource_id=row[\"resource_id\"],\n                payload_json=row[\"payload_json\"],\n                previous_hash=forged_previous,\n            )\n            forged_hash = hmac.new(repository.audit_key, canonical, hashlib.sha256).hexdigest()\n            connection.execute(\n                update(audits)\n                .where(audits.c.sequence == 2)\n                .values(previous_hash=forged_previous, event_hash=forged_hash)\n            )\n        verification = repository.verify_audit()\n>       assert verification.valid is False\nE       assert True is False\nE        +  where True = AuditVerification(valid=True, event_count=3, head_sequence=3, anchor_valid=True, anchor_pending=0, first_invalid_sequence=None, reason=None).valid\n\napps/api/tests/test_audit.py:111: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_audit.py::test_audit_chain_rejects_re_signed_broken_predecessor_link - assert True is False\n +  where True = AuditVerification(valid=True, event_count=3, head_sequence=3, anchor_valid=True, anchor_pending=0, first_invalid_sequence=None, reason=None).valid\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M50_SUBJECT_SLOT_LEAKED",
+      "file": "apps/api/src/korpus/application/resilience.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_the_per_subject_share_is_returned_when_the_work_finishes"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________ test_the_per_subject_share_is_returned_when_the_work_finishes _________\n\n    def test_the_per_subject_share_is_returned_when_the_work_finishes() -> None:\n        \"\"\"A leaked slot is a slow denial of service; the count must come back down.\"\"\"\n        controller = AdmissionController(capacity=4, per_subject_limit=1)\n    \n        for _ in range(5):\n>           with controller.acquire(\"repeat\"):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\napps/api/tests/test_resilience_and_audit_scope.py:52: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/usr/lib/python3.13/contextlib.py:141: in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <korpus.application.resilience.AdmissionController object at 0x7f415fac81a0>\nsubject = 'repeat'\n\n    @contextmanager\n    def acquire(self, subject: str | None = None) -> Generator[None, None, None]:\n        if subject is not None:\n            with self._lock:\n                held = self._by_subject.get(subject, 0)\n                if held >= self.per_subject_limit:\n                    self._subject_rejected += 1\n                    self._rejected += 1\n>                   raise OverloadedError(OverloadReason.SUBJECT_SHARE)\nE                   korpus.application.overload.OverloadedError: per-subject capacity exhausted\n\n/tmp/korpus-m50_subject_slot_leaked-1cr4hh_r/api-src/korpus/application/resilience.py:74: OverloadedError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_the_per_subject_share_is_returned_when_the_work_finishes - korpus.application.overload.OverloadedError: per-subject capacity exhausted\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M94_SCHEMA_REVISION_PIN_UNCHECKED",
+      "file": "apps/api/src/korpus/infrastructure/schema.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_the_code_pins_the_head_of_the_migration_graph ______________\n\n    def test_the_code_pins_the_head_of_the_migration_graph() -> None:\n        graph, parents = _revision_graph()\n        head = next(iter(set(graph) - parents))\n    \n>       assert head == SCHEMA_REVISION, (\n            f\"SCHEMA_REVISION is {SCHEMA_REVISION!r} but the migrations end at {head!r}: \"\n            \"a migrated database would refuse to start\"\n        )\nE       AssertionError: SCHEMA_REVISION is '0016_learning_course_graph' but the migrations end at '0017_learning_mastery': a migrated database would refuse to start\nE       assert '0017_learning_mastery' == '0016_learning_course_graph'\nE         \nE         - 0016_learning_course_graph\nE         + 0017_learning_mastery\n\napps/api/tests/test_schema_revision_pin.py:67: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_schema_revision_pin.py::test_the_code_pins_the_head_of_the_migration_graph - AssertionError: SCHEMA_REVISION is '0016_learning_course_graph' but the migrations end at '0017_learning_mastery': a migrated database would refuse to start\nassert '0017_learning_mastery' == '0016_learning_course_graph'\n  \n  - 0016_learning_course_graph\n  + 0017_learning_mastery\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M133_TABLE_DAMAGE_NEVER_REACHES_REVIEW",
+      "file": "apps/api/src/korpus/application/extraction_quality.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_table_integrity.py::test_table_damage_reaches_the_reviewer_through_the_extraction_quality_gate"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__ test_table_damage_reaches_the_reviewer_through_the_extraction_quality_gate __\n\n    def test_table_damage_reaches_the_reviewer_through_the_extraction_quality_gate() -> None:\n        \"\"\"Same contract as the numeric flags: it blocks approval until acknowledged.\"\"\"\n        from korpus.application.extraction_quality import assess_extraction_quality\n    \n>       assert TABLE_STRUCTURE_LOST in assess_extraction_quality(RAGGED).flags\nE       AssertionError: assert 'table_structure_lost' in frozenset()\nE        +  where frozenset() = ExtractionQuality(text_chars=131, alnum_ratio=0.480916, replacement_ratio=0.0, flags=frozenset()).flags\nE        +    where ExtractionQuality(text_chars=131, alnum_ratio=0.480916, replacement_ratio=0.0, flags=frozenset()) = <function assess_extraction_quality at 0x7f01838fb420>('Норма витрат\\nКатегорія    Добова норма    Одиниця\\nПерша        2,5             кг\\nДруга        1,8\\nТретя        1,2             кг\\n')\n\napps/api/tests/test_table_integrity.py:128: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_table_integrity.py::test_table_damage_reaches_the_reviewer_through_the_extraction_quality_gate - AssertionError: assert 'table_structure_lost' in frozenset()\n +  where frozenset() = ExtractionQuality(text_chars=131, alnum_ratio=0.480916, replacement_ratio=0.0, flags=frozenset()).flags\n +    where ExtractionQuality(text_chars=131, alnum_ratio=0.480916, replacement_ratio=0.0, flags=frozenset()) = <function assess_extraction_quality at 0x7f01838fb420>('Норма витрат\\nКатегорія    Добова норма    Одиниця\\nПерша        2,5             кг\\nДруга        1,8\\nТретя        1,2             кг\\n')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M173_UNKNOWN_ENVIRONMENT_VARIABLE_IGNORED",
+      "file": "apps/api/src/korpus/main.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_configuration_typos.py::test_the_app_refuses_to_start_on_an_unrecognised_variable"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_app_refuses_to_start_on_an_unrecognised_variable ___________\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ff00e607360>\n\n    def test_the_app_refuses_to_start_on_an_unrecognised_variable(monkeypatch) -> None:\n        \"\"\"Refused, not warned. A control an operator believes is on and is not is worse\n        than a process that does not start.\"\"\"\n        from korpus.main import create_app\n    \n        monkeypatch.setenv(\"KORPUS_REQUIRE_SOURCE_SIGNATURE\", \"true\")\n    \n>       with pytest.raises(ValueError, match=\"unrecognised KORPUS_\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_configuration_typos.py:64: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_configuration_typos.py::test_the_app_refuses_to_start_on_an_unrecognised_variable - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M166_EGRESS_GATE_BYPASSED",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_egress_material_ceiling.py::test_restricted_material_never_reaches_an_external_composer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_restricted_material_never_reaches_an_external_composer __________\n\nclient = <starlette.testclient.TestClient object at 0x7fbe9f80c2f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_restricted_material_never_reaches_an_external_composer(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        spy, answer = _run(\n            client,\n            admin_identity,\n            tier=int(AccessTier.RESTRICTED),\n            posture=EgressPosture.EXTERNAL_ALLOWED,\n            ceiling=AccessTier.PUBLIC,\n        )\n>       assert spy.calls == [], \"restricted spans were sent to a model outside the deployment\"\nE       AssertionError: restricted spans were sent to a model outside the deployment\nE       assert [['Кожен запи...льну особу.']] == []\nE         \nE         Left contains one more item: ['Кожен запис журналу має містити дату та відповідальну особу.']\nE         \nE         Full diff:\nE         - []\nE         + [\nE         +     [\nE         +         'Кожен запис журналу має містити дату та відповідальну особу.',\nE         +     ],\nE         + ]\n\napps/api/tests/test_egress_material_ceiling.py:114: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_egress_material_ceiling.py::test_restricted_material_never_reaches_an_external_composer - AssertionError: restricted spans were sent to a model outside the deployment\nassert [['Кожен запи...льну особу.']] == []\n  \n  Left contains one more item: ['Кожен запис журналу має містити дату та відповідальну особу.']\n  \n  Full diff:\n  - []\n  + [\n  +     [\n  +         'Кожен запис журналу має містити дату та відповідальну особу.',\n  +     ],\n  + ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M255_TEVV_OBSERVATION_LEDGER_BYPASSED",
+      "file": "apps/api/src/korpus/application/tevv_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____ test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger ______\n\n    def test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger() -> None:\n        evidence, _ = _evidence()\n        evidence.pop(\"observation_ledger\")\n        evidence.pop(\"null_control_ledger\")\n        evidence.update({\n            \"observations\": 1000, \"passed\": 1000,\n            \"citation_failures\": 0, \"leakage_failures\": 0, \"determinism_failures\": 0,\n            \"null_controls\": 100, \"null_control_false_accepts\": 0,\n            \"attack_families\": json.loads(tevv_gate.PROFILE.read_text())[\"required_attack_families\"],\n        })\n        result = _trusted_result(evidence)\n        assert result[\"status\"] == \"FAIL\"\n>       assert result[\"checks\"][\"observation_ledger_structured\"] is False\nE       assert True is False\n\napps/api/tests/test_tevv_attestation_boundary.py:98: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_attestation_boundary.py::test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "8d7e4858612238635e1b776971cd2e2f896b2cde75077ee068adec60ee81a596",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T14:54:00+00:00"
+  }
+}

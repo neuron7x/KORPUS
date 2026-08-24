@@ -1,0 +1,492 @@
+name: gcp-production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: gcp-production
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.12.13"
+  GCLOUD_VERSION: "578.0.0"
+  TERRAFORM_VERSION: "1.15.8"
+  GCP_REGION: ${{ vars.GCP_REGION || 'europe-central2' }}
+  AR_REPOSITORY: korpus
+
+jobs:
+  verify-production-contract:
+    name: verify-production-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout immutable source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          check-latest: false
+      - name: Install locked verification environment
+        run: |
+          python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
+          python -m pip check
+      - name: Verify GCP production predicates
+        run: |
+          python scripts/verify_gcp_production.py --output reports/GCP_PRODUCTION_CONTRACT.json
+          python scripts/verify_gcp_slo.py --output reports/GCP_SLO_CONTRACT.json
+          PYTHONPATH=apps/api/src:. python -m pytest \
+            apps/api/tests/test_gcp_production_contract.py \
+            apps/api/tests/test_gcp_container_vulnerability_gate.py \
+            apps/api/tests/test_gcp_governance_bundle.py \
+            apps/api/tests/test_gcp_live_postgres_gate.py \
+            apps/api/tests/test_gcp_identity.py \
+            apps/api/tests/test_gcs_object_store.py \
+            apps/api/tests/test_gcs_audit_anchor.py \
+            apps/api/tests/test_worker_service.py -q
+      - name: Validate shell and Python deployment tools
+        shell: bash
+        run: |
+          bash -n scripts/gcp/install_terraform_verified.sh
+          bash -n scripts/gcp/seed_runtime_secrets.sh
+          bash -n scripts/gcp/publish_governance_bundle.sh
+          bash -n scripts/gcp/bootstrap_production.sh
+          python -m py_compile \
+            scripts/gcp/verify_container_vulnerabilities.py \
+            scripts/gcp/verify_governance_bundle.py \
+            scripts/gcp/live_smoke.py \
+            scripts/gcp/verify_live_postgres.py
+      - name: Validate Terraform structural invariants offline
+        run: python scripts/gcp/validate_terraform_structure.py --output reports/TERRAFORM_STRUCTURE.json
+      - name: Install signature-verified Terraform
+        run: scripts/gcp/install_terraform_verified.sh "${TERRAFORM_VERSION}"
+      - name: Validate Terraform syntax and provider schemas
+        shell: bash
+        run: |
+          terraform fmt -check -recursive infra/gcp
+          for stack in bootstrap foundation runtime; do
+            terraform -chdir="infra/gcp/${stack}" init -backend=false -input=false
+            terraform -chdir="infra/gcp/${stack}" validate
+          done
+
+  deploy-production:
+    name: deploy-production
+    needs: verify-production-contract
+    if: github.ref == 'refs/heads/main' && vars.GCP_PRODUCTION_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout canonical main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          check-latest: false
+      - name: Authenticate to Google Cloud with WIF
+        id: gcp-auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_RUNTIME_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_RUNTIME_DEPLOYER_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Install exact Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+        with:
+          version: ${{ env.GCLOUD_VERSION }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+      - name: Install signature-verified Terraform
+        run: scripts/gcp/install_terraform_verified.sh "${TERRAFORM_VERSION}"
+      - name: Assert external production inputs and OIDC discovery
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          TF_STATE_BUCKET: ${{ vars.GCP_TERRAFORM_STATE_BUCKET }}
+          DOMAIN: ${{ vars.KORPUS_DOMAIN }}
+          WIF_PROVIDER: ${{ vars.GCP_RUNTIME_WIF_PROVIDER }}
+          DEPLOYER_SA: ${{ vars.GCP_RUNTIME_DEPLOYER_SERVICE_ACCOUNT }}
+          OIDC_ISSUER: ${{ vars.KORPUS_OIDC_ISSUER }}
+          OIDC_JWKS_URL: ${{ vars.KORPUS_OIDC_JWKS_URL }}
+          OIDC_AUTH_ENDPOINT: ${{ vars.KORPUS_OIDC_AUTHORIZATION_ENDPOINT }}
+          OIDC_TOKEN_ENDPOINT: ${{ vars.KORPUS_OIDC_TOKEN_ENDPOINT }}
+          OIDC_END_SESSION_ENDPOINT: ${{ vars.KORPUS_OIDC_END_SESSION_ENDPOINT }}
+          OIDC_CLIENT_ID: ${{ vars.KORPUS_OIDC_CLIENT_ID }}
+          OIDC_AUDIENCE: ${{ vars.KORPUS_OIDC_AUDIENCE }}
+          CLAMAV_SOURCE_IMAGE: ${{ vars.KORPUS_CLAMAV_SOURCE_IMAGE }}
+          MONITORING_CHANNELS: ${{ vars.KORPUS_MONITORING_CHANNEL_IDS_JSON }}
+          OTLP_ENDPOINT: ${{ vars.KORPUS_OTLP_ENDPOINT }}
+        run: |
+          python scripts/gcp/production_inputs.py --probe-oidc --output reports/production/external-inputs.json
+          test -d config/production/governance || { echo "config/production/governance is required" >&2; exit 4; }
+      - name: Initialize foundation state read-only
+        shell: bash
+        run: |
+          terraform -chdir=infra/gcp/foundation init -input=false -reconfigure \
+            -backend-config="bucket=${{ vars.GCP_TERRAFORM_STATE_BUCKET }}" \
+            -backend-config="prefix=korpus/foundation"
+      - name: Publish immutable governance bundle
+        id: governance
+        shell: bash
+        env:
+          GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          KORPUS_OIDC_ISSUER: ${{ vars.KORPUS_OIDC_ISSUER }}
+          KORPUS_OIDC_AUDIENCE: ${{ vars.KORPUS_OIDC_AUDIENCE }}
+        run: |
+          export GOVERNANCE_BUCKET="$(terraform -chdir=infra/gcp/foundation output -json buckets | python -c 'import json,sys; print(json.load(sys.stdin)["governance"])')"
+          release_id="$(scripts/gcp/publish_governance_bundle.sh config/production/governance /tmp/governance.json)"
+          echo "release_id=$release_id" >> "$GITHUB_OUTPUT"
+          python - <<'PY'
+          import json, os
+          x=json.load(open('/tmp/governance.json'))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+              mapping={
+                  'entitlement_sha':'entitlements.json',
+                  'source_trust_sha':'source-trust.json',
+                  'reviewers_sha':'reviewers.json',
+                  'corpus_governance_sha':'corpus-governance.json',
+                  'calibration_sha':'calibration.json',
+              }
+              for out,name in mapping.items():
+                  print(f"{out}={x['files'][name]}", file=f)
+          PY
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+      - name: Build, mirror, and push immutable candidates
+        id: images
+        shell: bash
+        env:
+          PROJECT: ${{ vars.GCP_PROJECT_ID }}
+          CLAMAV_SOURCE_IMAGE: ${{ vars.KORPUS_CLAMAV_SOURCE_IMAGE }}
+        run: |
+          registry="${GCP_REGION}-docker.pkg.dev/${PROJECT}/${AR_REPOSITORY}"
+          api_tag="${registry}/api:${GITHUB_SHA}"
+          web_tag="${registry}/web:${GITHUB_SHA}"
+          clamav_tag="${registry}/clamav:${GITHUB_SHA}"
+          docker build --pull=false -f apps/api/Dockerfile -t "$api_tag" .
+          docker build --pull=false -f apps/web/Dockerfile.cloudrun -t "$web_tag" .
+          docker pull "$CLAMAV_SOURCE_IMAGE"
+          docker tag "$CLAMAV_SOURCE_IMAGE" "$clamav_tag"
+          docker push "$api_tag"
+          docker push "$web_tag"
+          docker push "$clamav_tag"
+          resolve() {
+            local tag="$1" digest
+            digest="$(gcloud artifacts docker images describe "$tag" --project="$PROJECT" --format='value(image_summary.digest)')"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || { echo "invalid digest for $tag: $digest" >&2; exit 5; }
+            printf '%s@%s' "${tag%:*}" "$digest"
+          }
+          api_ref="$(resolve "$api_tag")"
+          web_ref="$(resolve "$web_tag")"
+          clamav_ref="$(resolve "$clamav_tag")"
+          printf 'api_ref=%s\nweb_ref=%s\nclamav_ref=%s\n' "$api_ref" "$web_ref" "$clamav_ref" >> "$GITHUB_OUTPUT"
+          printf 'api_digest=%s\nweb_digest=%s\n' "${api_ref##*@}" "${web_ref##*@}" >> "$GITHUB_OUTPUT"
+      - name: Gate Artifact Analysis vulnerabilities
+        shell: bash
+        env:
+          PROJECT: ${{ vars.GCP_PROJECT_ID }}
+          API_REF: ${{ steps.images.outputs.api_ref }}
+          WEB_REF: ${{ steps.images.outputs.web_ref }}
+          CLAMAV_REF: ${{ steps.images.outputs.clamav_ref }}
+        run: |
+          mkdir -p reports/production
+          python scripts/gcp/verify_container_vulnerabilities.py --project "$PROJECT" --image "$API_REF" --output reports/production/api-vulnerabilities.json
+          python scripts/gcp/verify_container_vulnerabilities.py --project "$PROJECT" --image "$WEB_REF" --output reports/production/web-vulnerabilities.json
+          python scripts/gcp/verify_container_vulnerabilities.py --project "$PROJECT" --image "$CLAMAV_REF" --output reports/production/clamav-vulnerabilities.json
+      - name: Attest built application image provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-name: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/api
+          subject-digest: ${{ steps.images.outputs.api_digest }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Attest built web image provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
+        with:
+          subject-name: ${{ env.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/web
+          subject-digest: ${{ steps.images.outputs.web_digest }}
+          push-to-registry: true
+          create-storage-record: false
+      - name: Enforce build provenance admission
+        shell: bash
+        env:
+          API_REF: ${{ steps.images.outputs.api_ref }}
+          WEB_REF: ${{ steps.images.outputs.web_ref }}
+        run: |
+          set -euo pipefail
+          signer_workflow="${GITHUB_REPOSITORY}/.github/workflows/gcp-production.yml"
+          verify_attestation() {
+            local ref="$1" output="$2"
+            gh attestation verify "oci://${ref}" \
+              --bundle-from-oci \
+              --repo "${GITHUB_REPOSITORY}" \
+              --signer-workflow "${signer_workflow}" \
+              --source-ref "refs/heads/main" \
+              --source-digest "${GITHUB_SHA}" \
+              --deny-self-hosted-runners \
+              --format json > "${output}"
+            test -s "${output}"
+          }
+          verify_attestation "${API_REF}" reports/production/api-provenance-verification.json
+          verify_attestation "${WEB_REF}" reports/production/web-provenance-verification.json
+      - name: Initialize runtime state
+        shell: bash
+        run: |
+          terraform -chdir=infra/gcp/runtime init -input=false -reconfigure \
+            -backend-config="bucket=${{ vars.GCP_TERRAFORM_STATE_BUCKET }}" \
+            -backend-config="prefix=korpus/runtime"
+      - name: Validate migration expand-contract compatibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/gcp/validate_migration_compatibility.py | tee reports/production/migration-compatibility.json
+      - name: Materialize migration job before application services
+        shell: bash
+        env:
+          TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_region: ${{ env.GCP_REGION }}
+          TF_VAR_state_bucket: ${{ vars.GCP_TERRAFORM_STATE_BUCKET }}
+          TF_VAR_domain: ${{ vars.KORPUS_DOMAIN }}
+          TF_VAR_api_image: ${{ steps.images.outputs.api_ref }}
+          TF_VAR_web_image: ${{ steps.images.outputs.web_ref }}
+          TF_VAR_clamav_image: ${{ steps.images.outputs.clamav_ref }}
+          TF_VAR_oidc_issuer: ${{ vars.KORPUS_OIDC_ISSUER }}
+          TF_VAR_oidc_jwks_url: ${{ vars.KORPUS_OIDC_JWKS_URL }}
+          TF_VAR_oidc_authorization_endpoint: ${{ vars.KORPUS_OIDC_AUTHORIZATION_ENDPOINT }}
+          TF_VAR_oidc_token_endpoint: ${{ vars.KORPUS_OIDC_TOKEN_ENDPOINT }}
+          TF_VAR_oidc_end_session_endpoint: ${{ vars.KORPUS_OIDC_END_SESSION_ENDPOINT }}
+          TF_VAR_oidc_client_id: ${{ vars.KORPUS_OIDC_CLIENT_ID }}
+          TF_VAR_oidc_audience: ${{ vars.KORPUS_OIDC_AUDIENCE }}
+          TF_VAR_governance_release_id: ${{ steps.governance.outputs.release_id }}
+          TF_VAR_entitlement_profile_sha256: ${{ steps.governance.outputs.entitlement_sha }}
+          TF_VAR_source_trust_profile_sha256: ${{ steps.governance.outputs.source_trust_sha }}
+          TF_VAR_reviewer_registry_sha256: ${{ steps.governance.outputs.reviewers_sha }}
+          TF_VAR_corpus_governance_profile_sha256: ${{ steps.governance.outputs.corpus_governance_sha }}
+          TF_VAR_calibration_profile_sha256: ${{ steps.governance.outputs.calibration_sha }}
+          TF_VAR_notification_channel_ids: ${{ vars.KORPUS_MONITORING_CHANNEL_IDS_JSON }}
+          TF_VAR_otlp_endpoint: ${{ vars.KORPUS_OTLP_ENDPOINT }}
+        run: |
+          terraform -chdir=infra/gcp/runtime apply -input=false -auto-approve \
+            -target=google_cloud_run_v2_job.migrate \
+            -target=google_cloud_run_v2_job.postgres_verify
+          gcloud run jobs execute korpus-migrate \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --wait
+      - name: Verify live PostgreSQL and FORCE RLS boundary
+        shell: bash
+        run: |
+          mkdir -p reports/production
+          gcloud run jobs execute korpus-postgres-verify \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --wait --format=json \
+            > reports/production/postgres-verification-execution.json
+          gcloud run jobs executions describe-latest \
+            --job=korpus-postgres-verify \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --format=json \
+            > reports/production/postgres-verification-latest.json
+      - name: Capture serving revisions for rollback
+        id: rollback-base
+        shell: bash
+        run: |
+          set -euo pipefail
+          capture() {
+            local service="$1" output="$2" snapshot="/tmp/${service}-traffic.json"
+            if gcloud run services describe "${service}" \
+              --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --format=json > "${snapshot}" 2>/dev/null; then
+              printf '%s=%s\n' "${output}" "$(python scripts/gcp/traffic_snapshot.py "${snapshot}")" >> "${GITHUB_OUTPUT}"
+              printf '%s_tf=%s\n' "${output}" "$(python scripts/gcp/traffic_snapshot.py "${snapshot}" --format terraform-json)" >> "${GITHUB_OUTPUT}"
+            else
+              printf '%s=\n' "${output}" >> "${GITHUB_OUTPUT}"
+              printf '%s_tf={}\n' "${output}" >> "${GITHUB_OUTPUT}"
+            fi
+          }
+          capture korpus-api api
+          capture korpus-web web
+      - name: Plan runtime from immutable evidence
+        id: runtime-plan
+        shell: bash
+        env:
+          TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_region: ${{ env.GCP_REGION }}
+          TF_VAR_state_bucket: ${{ vars.GCP_TERRAFORM_STATE_BUCKET }}
+          TF_VAR_domain: ${{ vars.KORPUS_DOMAIN }}
+          TF_VAR_api_image: ${{ steps.images.outputs.api_ref }}
+          TF_VAR_web_image: ${{ steps.images.outputs.web_ref }}
+          TF_VAR_clamav_image: ${{ steps.images.outputs.clamav_ref }}
+          TF_VAR_oidc_issuer: ${{ vars.KORPUS_OIDC_ISSUER }}
+          TF_VAR_oidc_jwks_url: ${{ vars.KORPUS_OIDC_JWKS_URL }}
+          TF_VAR_oidc_authorization_endpoint: ${{ vars.KORPUS_OIDC_AUTHORIZATION_ENDPOINT }}
+          TF_VAR_oidc_token_endpoint: ${{ vars.KORPUS_OIDC_TOKEN_ENDPOINT }}
+          TF_VAR_oidc_end_session_endpoint: ${{ vars.KORPUS_OIDC_END_SESSION_ENDPOINT }}
+          TF_VAR_oidc_client_id: ${{ vars.KORPUS_OIDC_CLIENT_ID }}
+          TF_VAR_oidc_audience: ${{ vars.KORPUS_OIDC_AUDIENCE }}
+          TF_VAR_governance_release_id: ${{ steps.governance.outputs.release_id }}
+          TF_VAR_entitlement_profile_sha256: ${{ steps.governance.outputs.entitlement_sha }}
+          TF_VAR_source_trust_profile_sha256: ${{ steps.governance.outputs.source_trust_sha }}
+          TF_VAR_reviewer_registry_sha256: ${{ steps.governance.outputs.reviewers_sha }}
+          TF_VAR_corpus_governance_profile_sha256: ${{ steps.governance.outputs.corpus_governance_sha }}
+          TF_VAR_calibration_profile_sha256: ${{ steps.governance.outputs.calibration_sha }}
+          TF_VAR_notification_channel_ids: ${{ vars.KORPUS_MONITORING_CHANNEL_IDS_JSON }}
+          TF_VAR_otlp_endpoint: ${{ vars.KORPUS_OTLP_ENDPOINT }}
+          TF_VAR_api_stable_traffic: ${{ steps.rollback-base.outputs.api_tf }}
+          TF_VAR_web_stable_traffic: ${{ steps.rollback-base.outputs.web_tf }}
+        run: |
+          terraform -chdir=infra/gcp/runtime plan -input=false -out=/tmp/runtime.tfplan
+      - name: Apply reviewed runtime plan
+        shell: bash
+        env:
+          TF_VAR_project_id: ${{ vars.GCP_PROJECT_ID }}
+          TF_VAR_region: ${{ env.GCP_REGION }}
+          TF_VAR_state_bucket: ${{ vars.GCP_TERRAFORM_STATE_BUCKET }}
+          TF_VAR_domain: ${{ vars.KORPUS_DOMAIN }}
+          TF_VAR_api_image: ${{ steps.images.outputs.api_ref }}
+          TF_VAR_web_image: ${{ steps.images.outputs.web_ref }}
+          TF_VAR_clamav_image: ${{ steps.images.outputs.clamav_ref }}
+          TF_VAR_oidc_issuer: ${{ vars.KORPUS_OIDC_ISSUER }}
+          TF_VAR_oidc_jwks_url: ${{ vars.KORPUS_OIDC_JWKS_URL }}
+          TF_VAR_oidc_authorization_endpoint: ${{ vars.KORPUS_OIDC_AUTHORIZATION_ENDPOINT }}
+          TF_VAR_oidc_token_endpoint: ${{ vars.KORPUS_OIDC_TOKEN_ENDPOINT }}
+          TF_VAR_oidc_end_session_endpoint: ${{ vars.KORPUS_OIDC_END_SESSION_ENDPOINT }}
+          TF_VAR_oidc_client_id: ${{ vars.KORPUS_OIDC_CLIENT_ID }}
+          TF_VAR_oidc_audience: ${{ vars.KORPUS_OIDC_AUDIENCE }}
+          TF_VAR_governance_release_id: ${{ steps.governance.outputs.release_id }}
+          TF_VAR_entitlement_profile_sha256: ${{ steps.governance.outputs.entitlement_sha }}
+          TF_VAR_source_trust_profile_sha256: ${{ steps.governance.outputs.source_trust_sha }}
+          TF_VAR_reviewer_registry_sha256: ${{ steps.governance.outputs.reviewers_sha }}
+          TF_VAR_corpus_governance_profile_sha256: ${{ steps.governance.outputs.corpus_governance_sha }}
+          TF_VAR_calibration_profile_sha256: ${{ steps.governance.outputs.calibration_sha }}
+          TF_VAR_notification_channel_ids: ${{ vars.KORPUS_MONITORING_CHANNEL_IDS_JSON }}
+          TF_VAR_otlp_endpoint: ${{ vars.KORPUS_OTLP_ENDPOINT }}
+        run: terraform -chdir=infra/gcp/runtime apply -input=false -auto-approve /tmp/runtime.tfplan
+      - name: Resolve exact tagged candidate revisions
+        id: candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/production
+          gcloud run services describe korpus-api \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --format=json \
+            > reports/production/api-candidate-service.json
+          gcloud run services describe korpus-web \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --format=json \
+            > reports/production/web-candidate-service.json
+          python scripts/gcp/candidate_target.py reports/production/api-candidate-service.json \
+            > reports/production/api-candidate.json
+          python scripts/gcp/candidate_target.py reports/production/web-candidate-service.json \
+            > reports/production/web-candidate.json
+          printf 'api_revision=%s\n' "$(python scripts/gcp/candidate_target.py reports/production/api-candidate-service.json --field revision)" >> "${GITHUB_OUTPUT}"
+          printf 'api_url=%s\n' "$(python scripts/gcp/candidate_target.py reports/production/api-candidate-service.json --field url)" >> "${GITHUB_OUTPUT}"
+          printf 'web_revision=%s\n' "$(python scripts/gcp/candidate_target.py reports/production/web-candidate-service.json --field revision)" >> "${GITHUB_OUTPUT}"
+          printf 'web_url=%s\n' "$(python scripts/gcp/candidate_target.py reports/production/web-candidate-service.json --field url)" >> "${GITHUB_OUTPUT}"
+      - name: Execute exact private candidate probe
+        shell: bash
+        env:
+          API_CANDIDATE_URL: ${{ steps.candidate.outputs.api_url }}
+          WEB_CANDIDATE_URL: ${{ steps.candidate.outputs.web_url }}
+        run: |
+          set -euo pipefail
+          gcloud run jobs execute korpus-candidate-probe \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" --wait --format=json \
+            --args="--api-url=${API_CANDIDATE_URL},--web-url=${WEB_CANDIDATE_URL},--attempts=20,--timeout=8" \
+            > reports/production/candidate-probe-execution.json
+      - name: Promote candidate to bounded canary traffic
+        shell: bash
+        env:
+          PREVIOUS_API_TRAFFIC: ${{ steps.rollback-base.outputs.api }}
+          PREVIOUS_WEB_TRAFFIC: ${{ steps.rollback-base.outputs.web }}
+          CANARY_PERCENT: ${{ vars.KORPUS_CANARY_PERCENT || '5' }}
+        run: |
+          set -euo pipefail
+          if ! [[ "${CANARY_PERCENT}" =~ ^[0-9]+$ ]] || (( CANARY_PERCENT < 1 || CANARY_PERCENT > 25 )); then
+            echo "KORPUS_CANARY_PERCENT must be an integer in [1,25]" >&2
+            exit 64
+          fi
+          if [[ -z "${PREVIOUS_API_TRAFFIC}" && -z "${PREVIOUS_WEB_TRAFFIC}" ]]; then
+            printf '{"mode":"initial-deploy","candidate_percent":100}\n' \
+              > reports/production/canary-promotion.json
+          elif [[ -z "${PREVIOUS_API_TRAFFIC}" || -z "${PREVIOUS_WEB_TRAFFIC}" ]]; then
+            echo "API/web predecessor state is asymmetric; refusing partial canary" >&2
+            exit 65
+          else
+            gcloud run services update-traffic korpus-api \
+              --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" \
+              --to-tags "candidate=${CANARY_PERCENT}" --format=json \
+              > reports/production/api-canary-traffic.json
+            gcloud run services update-traffic korpus-web \
+              --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" \
+              --to-tags "candidate=${CANARY_PERCENT}" --format=json \
+              > reports/production/web-canary-traffic.json
+            edge_ip="$(terraform -chdir=infra/gcp/runtime output -raw edge_ip)"
+            python scripts/gcp/live_smoke.py \
+              --domain "${{ vars.KORPUS_DOMAIN }}" \
+              --expected-ip "$edge_ip" \
+              --output reports/production/canary-edge-smoke.json
+          fi
+      - name: Admit candidate by revision metrics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/gcp/canary_metrics.py \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --api-revision "${{ steps.candidate.outputs.api_revision }}" \
+            --web-revision "${{ steps.candidate.outputs.web_revision }}" \
+            --minimum-samples 20 --maximum-error-rate 0.01 \
+            --wait-seconds 240 --output reports/production/canary-metrics.json
+      - name: Promote verified candidate to 100 percent
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud run services update-traffic korpus-api \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" \
+            --to-tags candidate=100 --format=json \
+            > reports/production/api-full-promotion.json
+          gcloud run services update-traffic korpus-web \
+            --project="${{ vars.GCP_PROJECT_ID }}" --region="${GCP_REGION}" \
+            --to-tags candidate=100 --format=json \
+            > reports/production/web-full-promotion.json
+      - name: Verify public production edge
+        shell: bash
+        run: |
+          edge_ip="$(terraform -chdir=infra/gcp/runtime output -raw edge_ip)"
+          python scripts/gcp/live_smoke.py \
+            --domain "${{ vars.KORPUS_DOMAIN }}" \
+            --expected-ip "$edge_ip" \
+            --output reports/production/live-smoke.json
+      - name: Roll back Cloud Run traffic on failed promotion
+        if: failure()
+        shell: bash
+        env:
+          PREVIOUS_API_TRAFFIC: ${{ steps.rollback-base.outputs.api }}
+          PREVIOUS_WEB_TRAFFIC: ${{ steps.rollback-base.outputs.web }}
+        run: |
+          set -euo pipefail
+          python scripts/gcp/rollback_traffic.py \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${GCP_REGION}" \
+            --api-spec "${PREVIOUS_API_TRAFFIC}" \
+            --web-spec "${PREVIOUS_WEB_TRAFFIC}" \
+            --output-dir reports/production
+      - name: Preserve production evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gcp-production-evidence-${{ github.sha }}
+          path: reports/production
+          if-no-files-found: error
+          retention-days: 30

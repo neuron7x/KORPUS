@@ -1,5 +1,11 @@
-# KORPUS v0.1.1 distribution contract
+# KORPUS v0.9.7 distribution contract
 
-The distribution is generated from one canonical Git tree. Source wins every path collision; historical Git objects travel as a bundle, not as a second nested repository. Generated assurance evidence is copied explicitly and the final ZIP receives a deterministic distribution manifest. A production release may be produced only after the production-assurance gate is PASS and release attestation is available.
+This release is constructed from one **gitless canonical source snapshot** inside the ChatGPT
+execution environment. The source boundary is byte-inventoried by `SOURCE_MANIFEST.json`; no Git
+commit or historical branch identity is invented. The final recovery envelope contains the clean
+source tree plus the byte-preserved uploaded predecessor under `LINEAGE/`, so provenance recovery
+does not require contaminating the source tree with a nested archive.
 
-GitHub Actions is the primary CI/release transport for this patch line; repository-side settings remain external state and are enumerated in `docs/operations/GITHUB_REPOSITORY_POLICY.md`.
+Generated local assurance evidence is explicitly identified as local and cannot satisfy predicates
+that require independent assessment, production-like PostgreSQL, a trusted hosted builder or exact
+deployment attestation. `reports/PRODUCTION_ASSURANCE_REPORT.json` remains the production authority.

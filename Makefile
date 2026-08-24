@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release
+.PHONY: deterministic-replay provenance provenance-verify reference-set reference-eval service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity coverage-ratchet determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -19,6 +19,38 @@ api-run:
 api-test:
 	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
 	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
+
+coverage-ratchet: api-test
+	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage.json --out var/coverage-gap-plan.json
+
+deterministic-replay:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/deterministic_replay_probe.py
+
+determinism-gate:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_determinism_gate.py --out var/determinism-gate.json
+
+stress-gate:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_stress_gate.py --out var/stress-gate.json
+
+plasticity-gate:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_plasticity_gate.py --out var/plasticity-gate.json
+
+# One serial fail-closed release cycle. The explicit recursive makes keep this order
+# even when the parent make is invoked with -j; no later gate can hide an earlier FAIL.
+canonical-release-cycle:
+	$(MAKE) api-lint PY=$(PY)
+	$(MAKE) coverage-ratchet PY=$(PY)
+	$(MAKE) determinism-gate PY=$(PY)
+	$(MAKE) stress-gate PY=$(PY)
+	$(MAKE) plasticity-gate PY=$(PY)
+	$(MAKE) release-mutation-delta PY=$(PY)
+	$(MAKE) eval PY=$(PY)
+	$(MAKE) migration-gate PY=$(PY)
+	$(MAKE) scale PY=$(PY)
+	$(MAKE) operational-gate PY=$(PY)
+	$(MAKE) validate PY=$(PY)
+	$(MAKE) web-build
+	$(MAKE) mutation PY=$(PY)
 
 # `mypy apps/api/src` from the repository root did not type-check this project.
 # The [tool.mypy] section lives in apps/api/pyproject.toml, and mypy only reads a
@@ -48,14 +80,15 @@ web-build: web-contract-check
 	npm --prefix apps/web run test
 	npm --prefix apps/web run build
 
-# The browser's copy of the request constraints and the role table, generated from
-# contracts/openapi.json and policy.py. Hand-editing apps/web/public/contract.js creates
-# a second copy of the domain rules; the copy is the one that drifts.
+# Generated browser contracts: operator request constraints and the consumer transport
+# surface. Both derive from canonical OpenAPI/release identity; neither is hand-maintained.
 web-contract:
 	PYTHONPATH=apps/api/src $(PY) scripts/generate_web_contract.py
+	PYTHONPATH=apps/api/src $(PY) scripts/generate_transport_contract.py
 
 web-contract-check:
 	PYTHONPATH=apps/api/src $(PY) scripts/generate_web_contract.py --check
+	PYTHONPATH=apps/api/src $(PY) scripts/generate_transport_contract.py --check
 
 # OPS-004. Two commands, because the observation has to be taken on the machine that is
 # running and the comparison made against the manifest as committed. Doing both here
@@ -93,6 +126,12 @@ scale:
 operational-gate:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_operational_gate.py
 
+military-readiness:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_military_readiness_campaign.py
+
+military-readiness-full:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_military_readiness_campaign.py --full --full-timeout 180 --regression-batch-size 8 --regression-workers 2
+
 assemble-assurance:
 	PYTHONPATH=apps/api/src $(PY) scripts/assemble_assurance.py
 
@@ -120,6 +159,39 @@ release-identity:
 
 source-manifest-verify:
 	PYTHONPATH=scripts python3 scripts/verify_source_manifest.py
+
+
+package-build-identity:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_package_build_identity.py
+
+release-mutation-delta:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_release_mutation_microcampaign.py
+
+dependency-locks:
+	mkdir -p var
+	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_dependency_locks.py --out var/dependency-lock-report.json --osv-out var/osv-query-batch.json
+
+assurance-model-check:
+	mkdir -p var
+	PYTHONPATH=apps/api/src:. $(PY) scripts/model_check_assurance.py > var/assurance-model-check.json
+
+standards-control-map:
+	mkdir -p var
+	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_standards_control_map.py --out var/standards-control-map-verification.json
+
+# Artifact provenance is intentionally emitted beside the ZIP rather than embedded in it:
+# the statement binds the completed artifact digest, and embedding it would create a
+# circular digest. Local provenance is structurally verifiable but does not self-assert
+# a SLSA level or trusted builder identity.
+slsa-provenance:
+	test -n "$(ARTIFACT)"
+	test -n "$(OUT)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/slsa_provenance.py generate --artifact "$(ARTIFACT)" --out "$(OUT)" $(if $(BUILDER_ID),--builder-id "$(BUILDER_ID)") $(if $(INVOCATION_ID),--invocation-id "$(INVOCATION_ID)")
+
+slsa-provenance-verify:
+	test -n "$(ARTIFACT)"
+	test -n "$(STATEMENT)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/slsa_provenance.py verify --artifact "$(ARTIFACT)" --statement "$(STATEMENT)" --trusted-builders config/assurance/trusted-builders.v1.json $(if $(REQUIRE_TRUSTED_BUILDER),--require-trusted-builder)
 
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
@@ -237,8 +309,8 @@ github-actions-validate:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory import-cycles release-identity module-budget requirements-register doctrine-catalog github-actions-validate
-	python3 scripts/validate_repository.py
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget requirements-register doctrine-catalog github-actions-validate production-hard-predicates
+	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
 
@@ -415,10 +487,13 @@ production-postgres-security:
 production-exact-environment:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_exact_environment_gate.py
 
+production-hard-predicates:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_hard_predicates.py
+
 production-sbom:
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/generate_lock_sbom.py
 
-production-supply-chain:
+production-supply-chain: dependency-locks
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/build_supply_chain_evidence_manifest.py
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_supply_chain_gate.py
 
@@ -439,3 +514,128 @@ production-release: production-assurance
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/release_attestation.py sign --manifest reports/PRODUCTION_ASSURANCE_REPORT.json --key "$(KORPUS_PRODUCTION_ASSURANCE_SIGNING_KEY)" --out reports/PRODUCTION_ASSURANCE_REPORT.attestation.json
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_production_assurance.py
 	KORPUS_RELEASE_SIGNING_KEY="$(KORPUS_RELEASE_SIGNING_KEY)" scripts/package_production_release.sh
+
+# Zero-install security floor. This deliberately supplements rather than replaces
+# networked secret/dependency/container scanners.
+builtin-security:
+	mkdir -p var
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_builtin_security_gate.py --out var/builtin-security-gate.json
+
+# Aggregate what this checkout can prove while preserving external production blockers.
+local-production-preflight:
+	mkdir -p var
+	PYTHONPATH=apps/api/src:. $(PY) scripts/run_local_production_preflight.py --out var/local-production-preflight.json
+
+# Canonical v0.8 assurance/release tooling entry points.
+readiness-evaluate:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/evaluate_engineering_readiness.py --evidence "$(EVIDENCE)" $(if $(OUT),--out "$(OUT)")
+
+release-truth: production-hard-predicates
+	PYTHONPATH=apps/api/src:. $(PY) scripts/generate_release_truth.py
+
+current-truth-verify:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_current_truth.py $(if $(OUT),--out "$(OUT)")
+
+regression-carry-forward-verify:
+	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_regression_carry_forward.py $(if $(POLICY),--policy "$(POLICY)") $(if $(OUT),--out "$(OUT)")
+
+zip-safety-verify:
+	@test -n "$(ARCHIVE)" || (echo "ARCHIVE is required" >&2; exit 2)
+	PYTHONPATH=apps/api/src:. $(PY) scripts/zip_safety.py "$(ARCHIVE)"
+
+# Release graph entrypoints: support modules are imported by these executable runners.
+full-ssot-package:
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/package_full_ssot.py $(if $(OUT),--out "$(OUT)")
+
+external-gate-campaign:
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_external_gate_campaign.py
+
+gcp-production-contract:
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/verify_gcp_production.py --output reports/GCP_PRODUCTION_CONTRACT.json
+
+gcp-slo-contract:
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/verify_gcp_slo.py --output reports/GCP_SLO_CONTRACT.json
+
+# Predictive Evidence Control (PEC / DGC-v2).
+# These targets intentionally do not supply production thresholds, corpus identities,
+# or evaluator decisions. Missing evidence is a failed/unknown admission, not a default.
+.PHONY: pec-dataset-build pec-dataset-audit pec-replay pec-oracle pec-decision-sensitivity pec-train pec-export pec-verify pec-ablation pec-metamorphic pec-research pec-promote pec-protocol-check
+
+PEC_DATASET ?= evals/datasets/pec/pec_eval.jsonl
+PEC_REPLAY ?= reports/PEC_COUNTERFACTUAL_REPLAY_CURRENT.json
+PEC_ORACLE ?= reports/PEC_ORACLE_CURRENT.json
+PEC_PROFILE ?= config/pec/controller-candidate.json
+
+pec-dataset-build:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/build_pec_eval_dataset.py --source evals/datasets/reference.jsonl --out $(PEC_DATASET) --receipt reports/PEC_DATASET_BUILD_CURRENT.json
+
+pec-dataset-audit:
+	test -n "$(VERSION_INVENTORY)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/audit_pec_eval_dataset.py --dataset $(PEC_DATASET) --version-inventory "$(VERSION_INVENTORY)" $(if $(PRODUCTION_JUDGED),--production-judged) --release-gate --out reports/PEC_DATASET_AUDIT_CURRENT.json
+
+pec-replay:
+	test -n "$(PEC_RUNNER)$(PEC_OBSERVATIONS)"
+	test -n "$(CORPUS_RELEASE_ID)"
+	test -n "$(ANSWER_CALIBRATION_ID)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_counterfactual_replay.py --dataset $(PEC_DATASET) $(if $(PEC_RUNNER),--runner "$(PEC_RUNNER)",--observations "$(PEC_OBSERVATIONS)") --corpus-release-id "$(CORPUS_RELEASE_ID)" --answer-calibration-id "$(ANSWER_CALIBRATION_ID)" --evaluation-protocol evals/EVALUATION_PROTOCOL.md --release-gate --out $(PEC_REPLAY)
+
+pec-oracle:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/solve_pec_oracle.py --replay $(PEC_REPLAY) --release-gate --out $(PEC_ORACLE)
+
+pec-decision-sensitivity:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_decision_sensitivity_campaign.py --oracle $(PEC_ORACLE) --release-gate --out reports/PEC_DECISION_SENSITIVITY_CURRENT.json
+
+pec-train:
+	test -n "$(PEC_RISK_LIMIT)"
+	test -n "$(PEC_MIN_LEAF_SAMPLES)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/train_pec_controller.py --dataset $(PEC_DATASET) --oracle $(PEC_ORACLE) --risk-limit "$(PEC_RISK_LIMIT)" --minimum-leaf-samples "$(PEC_MIN_LEAF_SAMPLES)" --release-gate --out reports/PEC_TRAINING_CURRENT.json
+
+pec-export:
+	test -n "$(CORPUS_RELEASE_ID)"
+	test -n "$(ANSWER_CALIBRATION_ID)"
+	test -n "$(PEC_PROFILE_ID)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/export_pec_controller.py --training reports/PEC_TRAINING_CURRENT.json --oracle $(PEC_ORACLE) --dataset $(PEC_DATASET) --system-manifest SOURCE_MANIFEST.json --evaluation-protocol evals/EVALUATION_PROTOCOL.md --replay-receipt $(PEC_REPLAY) --corpus-release-id "$(CORPUS_RELEASE_ID)" --answer-calibration-id "$(ANSWER_CALIBRATION_ID)" --profile-id "$(PEC_PROFILE_ID)" --out $(PEC_PROFILE) --receipt reports/PEC_EXPORT_CURRENT.json --release-gate
+
+pec-verify:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/verify_pec_controller.py --profile $(PEC_PROFILE) --dataset $(PEC_DATASET) --system-manifest SOURCE_MANIFEST.json --evaluation-protocol evals/EVALUATION_PROTOCOL.md --replay-receipt $(PEC_REPLAY) --training-receipt reports/PEC_TRAINING_CURRENT.json --oracle $(PEC_ORACLE) --release-gate --out reports/PEC_CONTROLLER_VERIFY_CURRENT.json
+
+pec-ablation:
+	test -n "$(PEC_BASELINE_OBSERVATIONS)"
+	test -n "$(PEC_CANDIDATE_OBSERVATIONS)"
+	test -n "$(PEC_MIN_INFORMATIVE_PAIRS)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_ablation_campaign.py --baseline baseline="$(PEC_BASELINE_OBSERVATIONS)" --candidate pec="$(PEC_CANDIDATE_OBSERVATIONS)" --required-candidate pec --minimum-informative-pairs "$(PEC_MIN_INFORMATIVE_PAIRS)" --release-gate --out reports/PEC_ABLATION_CURRENT.json
+
+pec-metamorphic:
+	test -n "$(PEC_METAMORPHIC_OBSERVATIONS)"
+	test -n "$(PEC_MIN_METAMORPHIC_PAIRS)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_metamorphic_campaign.py --observations "$(PEC_METAMORPHIC_OBSERVATIONS)" --minimum-pairs "$(PEC_MIN_METAMORPHIC_PAIRS)" --release-gate --out reports/PEC_METAMORPHIC_CURRENT.json
+
+pec-research:
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_research_program.py --dataset $(PEC_DATASET) $(if $(wildcard $(PEC_REPLAY)),--replay $(PEC_REPLAY)) $(if $(wildcard $(PEC_ORACLE)),--oracle $(PEC_ORACLE)) --out reports/PEC_RESEARCH_PROGRAM_CURRENT.json
+
+pec-promote:
+	test -n "$(PEC_APPROVED_BY)"
+	test -n "$(PEC_CHANGE_ID)"
+	test -n "$(PEC_EVIDENCE_ARGS)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/promote_pec_profile.py --profile $(PEC_PROFILE) $(PEC_EVIDENCE_ARGS) --approved-by "$(PEC_APPROVED_BY)" --change-id "$(PEC_CHANGE_ID)" --out config/pec/promoted-controller.json --receipt reports/PEC_PROMOTION_CURRENT.json
+
+pec-protocol-check:
+	PYTHONPATH=apps/api/src:scripts $(PY) -m pytest -q apps/api/tests/test_decision_sensitivity.py apps/api/tests/test_pec_protocol_gates.py apps/api/tests/test_pec_replay.py apps/api/tests/test_pec_training.py apps/api/tests/test_pec_integration.py apps/api/tests/test_pec_observability.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_module_budget.py
+
+.PHONY: pec-contextual-benchmark
+pec-contextual-benchmark:
+	test -n "$(PEC_CONTEXTUAL_OBSERVATIONS)"
+	test -n "$(PEC_MIN_CONTEXTUAL_PAIRS)"
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_contextual_benchmark.py --observations "$(PEC_CONTEXTUAL_OBSERVATIONS)" --minimum-informative-pairs "$(PEC_MIN_CONTEXTUAL_PAIRS)" --release-gate --out reports/PEC_CONTEXTUAL_BENCHMARK_CURRENT.json
+
+.PHONY: regression-shard regression-shard-merge
+REGRESSION_SHARDS ?= 24
+REGRESSION_TIMEOUT ?= 240
+regression-shard:
+	test -n "$(SHARD_INDEX)"
+	mkdir -p reports/regression/shards
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py run --shard-index "$(SHARD_INDEX)" --shard-count "$(REGRESSION_SHARDS)" --timeout-seconds "$(REGRESSION_TIMEOUT)" --out "reports/regression/shards/shard-$(SHARD_INDEX).json"
+
+regression-shard-merge:
+	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json reports/regression/shards/shard-*.json

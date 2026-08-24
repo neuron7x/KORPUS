@@ -106,3 +106,18 @@ def test_manifest_root_changes_when_only_mode_changes(tmp_path: Path) -> None:
     script.chmod(0o755)
     after = module.build_manifest(repo)["root_sha256"]
     assert before != after
+
+
+def test_distribution_manifest_excludes_only_its_root_self(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    module = _module(root)
+    package = tmp_path / "package"
+    nested = package / "KORPUS_SOURCE"
+    nested.mkdir(parents=True)
+    (package / "DISTRIBUTION_MANIFEST.json").write_text("outer-self", encoding="utf-8")
+    (nested / "DISTRIBUTION_MANIFEST.json").write_text("inner-bound", encoding="utf-8")
+
+    manifest = module.build_manifest(package, kind="distribution")
+    paths = [record["path"] for record in manifest["files"]]
+
+    assert paths == ["KORPUS_SOURCE/DISTRIBUTION_MANIFEST.json"]

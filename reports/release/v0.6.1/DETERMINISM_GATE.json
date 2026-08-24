@@ -1,0 +1,53 @@
+{
+  "schema": "korpus.determinism-gate.v2",
+  "status": "PASS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "runs": [
+    {
+      "seed": 0,
+      "exit_code": 0,
+      "replay_exit_code": 0,
+      "semantic_replay_sha256": "2f269628fa6fb2edd3f5d02b379affebbfc86ee44a380b6c23b8316d77d8c311",
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "outcome_sha256": "dbbc6c476f1c276e0a5d3a186342587dcbe13215362db7a05f291f40d38aa7fa"
+    },
+    {
+      "seed": 1,
+      "exit_code": 0,
+      "replay_exit_code": 0,
+      "semantic_replay_sha256": "2f269628fa6fb2edd3f5d02b379affebbfc86ee44a380b6c23b8316d77d8c311",
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "outcome_sha256": "dbbc6c476f1c276e0a5d3a186342587dcbe13215362db7a05f291f40d38aa7fa"
+    },
+    {
+      "seed": 42,
+      "exit_code": 0,
+      "replay_exit_code": 0,
+      "semantic_replay_sha256": "2f269628fa6fb2edd3f5d02b379affebbfc86ee44a380b6c23b8316d77d8c311",
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "outcome_sha256": "dbbc6c476f1c276e0a5d3a186342587dcbe13215362db7a05f291f40d38aa7fa"
+    },
+    {
+      "seed": 31337,
+      "exit_code": 0,
+      "replay_exit_code": 0,
+      "semantic_replay_sha256": "2f269628fa6fb2edd3f5d02b379affebbfc86ee44a380b6c23b8316d77d8c311",
+      "tests": 66,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "outcome_sha256": "dbbc6c476f1c276e0a5d3a186342587dcbe13215362db7a05f291f40d38aa7fa"
+    }
+  ],
+  "failures": []
+}

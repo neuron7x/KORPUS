@@ -3,10 +3,10 @@ from __future__ import annotations
 import argparse
 import os
 import socket
-import time
 from datetime import UTC, datetime
 
 from korpus.application.ingestion import ExtractionSettings, IngestionService
+from korpus.worker_lifecycle import install_stop_event
 from korpus.application.ingestion_jobs import IngestionWorker
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore, Repository
@@ -24,7 +24,6 @@ from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
-
 
 def _ingestion_service(
     settings: Settings,
@@ -178,7 +177,8 @@ def main() -> None:
             return
         if args.idle_seconds <= 0 or args.idle_seconds > 60:
             raise SystemExit("--idle-seconds must be in (0, 60]")
-        while True:
+        stop_event = install_stop_event()
+        while not stop_event.is_set():
             try:
                 result = worker.run_once()
             except Exception as exc:  # noqa: BLE001 — a worker must outlive one bad job
@@ -190,7 +190,7 @@ def main() -> None:
                     f"worker iteration failed, continuing: {type(exc).__name__}: {exc}",
                     flush=True,
                 )
-                time.sleep(args.idle_seconds)
+                stop_event.wait(args.idle_seconds)
                 continue
             if not result.claimed:
                 # Nothing to do this tick — a good moment to bury jobs a crashed worker
@@ -213,7 +213,7 @@ def main() -> None:
                             ),
                         },
                     )
-                time.sleep(args.idle_seconds)
+                stop_event.wait(args.idle_seconds)
     finally:
         quarantine_store.close()
         object_store.close()

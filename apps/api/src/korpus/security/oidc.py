@@ -1,11 +1,19 @@
 from __future__ import annotations
 
-import secrets
 from datetime import UTC, datetime
 from typing import Any
 
 import jwt
 
+from korpus.security.oidc_claims import (
+    validate_algorithms,
+    validate_audience_and_authorized_party,
+    validate_header,
+    validate_nonce,
+)
+from korpus.security.external_destination import parse_external_https_url
+from korpus.security.url_policy import parse_https_url
+from korpus.security.oidc_numeric import numeric_date, validate_oidc_timing
 
 class OIDCVerifier:
     """Long-lived OIDC verifier with bounded JWKS caching and assurance checks."""
@@ -25,35 +33,13 @@ class OIDCVerifier:
         max_auth_age_seconds: int = 3600,
         client: Any | None = None,
     ) -> None:
-        if not jwks_url.startswith("https://"):
-            raise ValueError("OIDC JWKS URL must use HTTPS")
-        if not issuer.startswith("https://"):
-            raise ValueError("OIDC issuer must use HTTPS")
-        allowed_algorithms = {
-            "RS256",
-            "RS384",
-            "RS512",
-            "PS256",
-            "PS384",
-            "PS512",
-            "ES256",
-            "ES384",
-            "ES512",
-            "EdDSA",
-        }
-        if (
-            not algorithms
-            or len(set(algorithms)) != len(algorithms)
-            or any(algorithm not in allowed_algorithms for algorithm in algorithms)
-        ):
-            raise ValueError(
-                "OIDC algorithms must be asymmetric, supported, unique, and explicitly pinned"
-            )
-        if max_auth_age_seconds < 60:
-            raise ValueError("max_auth_age_seconds is too small")
+        parse_external_https_url(jwks_url, name="OIDC JWKS URL")
+        parse_https_url(issuer, name="OIDC issuer", allow_query=False)
+        pinned_algorithms = validate_algorithms(algorithms)
+        jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds = validate_oidc_timing(jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds)
         self.issuer = issuer
         self.audience = audience
-        self.algorithms = tuple(algorithms)
+        self.algorithms = pinned_algorithms
         self.clock_skew_seconds = clock_skew_seconds
         self.required_acr = required_acr
         self.require_mfa = require_mfa
@@ -73,15 +59,10 @@ class OIDCVerifier:
         *,
         audience: str | None = None,
         expected_nonce: str | None = None,
+        authorized_party: str | None = None,
         require_auth_time: bool = True,
     ) -> dict[str, Any]:
-        header = jwt.get_unverified_header(token)
-        algorithm = str(header.get("alg", ""))
-        key_id = str(header.get("kid", ""))
-        if algorithm not in self.algorithms:
-            raise jwt.InvalidAlgorithmError("token algorithm is not allowed")
-        if not key_id:
-            raise jwt.InvalidTokenError("token kid is required for rotation-safe verification")
+        validate_header(token, self.algorithms)
         signing_key = self.client.get_signing_key_from_jwt(token)
         claims = jwt.decode(
             token,
@@ -97,20 +78,16 @@ class OIDCVerifier:
                 ]
             },
         )
-        if not isinstance(claims.get("aud"), (str, list)):
-            raise jwt.InvalidAudienceError("aud claim has invalid type")
-        if expected_nonce is not None:
-            nonce = claims.get("nonce")
-            if not isinstance(nonce, str) or not secrets.compare_digest(nonce, expected_nonce):
-                raise jwt.InvalidTokenError("OIDC nonce mismatch")
+        validate_audience_and_authorized_party(claims, authorized_party)
+        validate_nonce(claims, expected_nonce)
         if require_auth_time:
             self._validate_assurance(claims)
         return claims
 
     def _validate_assurance(self, claims: dict[str, Any]) -> None:
         try:
-            auth_time = datetime.fromtimestamp(float(claims["auth_time"]), tz=UTC)
-        except (KeyError, TypeError, ValueError, OSError) as exc:
+            auth_time = numeric_date(claims["auth_time"], claim="auth_time")
+        except (KeyError, TypeError, ValueError, OSError, OverflowError) as exc:
             raise jwt.InvalidTokenError("auth_time claim is invalid") from exc
         age = (datetime.now(UTC) - auth_time).total_seconds()
         if (

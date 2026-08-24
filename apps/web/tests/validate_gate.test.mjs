@@ -552,3 +552,14 @@ test("removing server-derived inference status is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /inference assistance status/);
 });
+
+
+test("dropping HSTS from a header-carrying location is caught", async () => {
+  const {status, output} = await runWith(edit =>
+    edit("nginx.conf", source => source.replace(
+      '      add_header Strict-Transport-Security "max-age=31536000" always;\n      add_header Permissions-Policy',
+      '      add_header Permissions-Policy',
+    )));
+  assert.notEqual(status, 0);
+  assert.match(output, /does not repeat Strict-Transport-Security|no HSTS policy/);
+});

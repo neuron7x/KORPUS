@@ -76,7 +76,10 @@ def test_s3_store_rejects_unsafe_prefix_and_bounded_reads():
     store = S3ObjectStore(bucket="bucket", prefix="objects", max_object_bytes=4, client=client)
     content = b"12345"
     digest = hashlib.sha256(content).hexdigest()
-    key = store.put(content, digest, "x")
+    with pytest.raises(ValueError, match="size limit"):
+        store.put(content, digest, "x")
+    key = store._key(digest)
+    client.objects[("bucket", key)] = {"Body": content, "Metadata": {"sha256": digest}}
     with pytest.raises(RuntimeError, match="read limit"):
         store.get(key)
 

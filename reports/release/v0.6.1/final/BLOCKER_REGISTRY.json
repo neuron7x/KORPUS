@@ -1,0 +1,106 @@
+{
+  "schema": "korpus.blocker-registry.v1",
+  "generated_at": "2026-08-16T18:15:29.669118+00:00",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "items": [
+    {
+      "id": "clean_source_package",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "Final packager removes all __pycache__ and *.pyc and verifies count zero before manifest construction."
+    },
+    {
+      "id": "stale_dependency_report",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "Top-level dependency lock verification regenerated against source digest 4183..."
+    },
+    {
+      "id": "stale_standards_report",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "Top-level standards verification regenerated against source digest 4183..."
+    },
+    {
+      "id": "current_evidence_index",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "Generated release overlay: 160 source modules, 215 test modules, 1435 static test functions."
+    },
+    {
+      "id": "repository_static_validation",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "Fresh make validate exit 0 in current harness."
+    },
+    {
+      "id": "internal_static_security",
+      "state": "CLOSED_ANCHORED",
+      "evidence": "No HIGH/CRITICAL findings; all 54 MEDIUM detector findings triaged as digest-pinned ARG indirection or closed migration DDL."
+    },
+    {
+      "id": "backend_full_suite",
+      "state": "CARRY_FORWARD_SOURCE_BOUND",
+      "evidence": "Canonical report 1675 collected / 1673 pass / 0 fail / 0 error / 2 skip; executable source manifest is byte-identical."
+    },
+    {
+      "id": "coverage",
+      "state": "CARRY_FORWARD_SOURCE_BOUND",
+      "evidence": "96.263881% statements / 91.910112% branches / 216 missing branches; source-bound report retained."
+    },
+    {
+      "id": "mutation",
+      "state": "CARRY_FORWARD_SOURCE_BOUND",
+      "evidence": "302/302 killed over declared curated catalogue; scope is explicitly bounded to the catalogue."
+    },
+    {
+      "id": "web_full_suite",
+      "state": "CARRY_FORWARD_SOURCE_BOUND",
+      "evidence": "142/142 prior full report; current harness reproduced lint/build, 139 monolithic tests, and last 3 individually."
+    },
+    {
+      "id": "ruff_mypy_exact_environment",
+      "state": "RUNTIME_UNAVAILABLE",
+      "evidence": "Ruff 0.15.22 and Mypy 2.3.0 are not installed; current Python is 3.13.5, not locked 3.12.13."
+    },
+    {
+      "id": "live_postgresql_rls_migrations",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "No PostgreSQL server/client/runtime is available in this harness."
+    },
+    {
+      "id": "secret_dependency_container_scanners",
+      "state": "RUNTIME_UNAVAILABLE",
+      "evidence": "Gitleaks, pip-audit and Trivy are absent. Built-in static scan is supplemental only."
+    },
+    {
+      "id": "exact_deployment_environment",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "Requires execution inside the pinned Python/image graph and environment attestation."
+    },
+    {
+      "id": "independent_external_redteam",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "Independence cannot be self-produced by the system under test."
+    },
+    {
+      "id": "production_tevv_real_corpus",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "Requires >=200 real observations, >=20 null controls, production-like environment and trusted attestation."
+    },
+    {
+      "id": "trusted_hosted_builder_signing",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "Requires hosted execution and pre-admitted trust roots separate from the local operator."
+    },
+    {
+      "id": "production_like_load_soak_recovery_attestation",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "Local load evidence exists; trusted production-like environment/recovery attestation does not."
+    }
+  ],
+  "counts": {
+    "CARRY_FORWARD_SOURCE_BOUND": 4,
+    "CLOSED_ANCHORED": 6,
+    "EXTERNAL_REQUIRED": 6,
+    "RUNTIME_UNAVAILABLE": 2
+  },
+  "internal_executable_unresolved": 0,
+  "production_external_or_runtime_unresolved": 8
+}

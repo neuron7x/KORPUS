@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 22,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M22_PARSER_SANDBOX_BYPASS",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_____________ test_parser_sandbox_setting_selects_isolated_parser ______________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-869/test_parser_sandbox_setting_se0')\n\n    def test_parser_sandbox_setting_selects_isolated_parser(tmp_path: Path):\n        \"\"\"The application's half: the setting reaches the port as `sandboxed`.\n    \n        Untrusted bytes parsed in-process is the hazard; `parser_sandbox_enabled` is the\n        decision, and it is the application's. Since 2026-08-06 the mechanism is behind the\n        `Extractor` port, so this asserts the decision without needing a parser, an OCR\n        binary or a fork — and a fake extractor cannot accidentally satisfy it by parsing\n        correctly.\n        \"\"\"\n        from korpus.application.ingestion import ExtractionSettings, IngestionService\n    \n        seen: dict[str, object] = {}\n    \n        class RecordingExtractor:\n            def extract_pages(self, **kwargs):\n                seen.update(kwargs)\n                return [{\"page\": 1, \"text\": \"isolated parser result\"}], \"sandbox-test\"\n    \n            def make_spans(self, pages, **kwargs):\n                return list(pages)\n    \n        path = tmp_path / \"document.txt\"\n        path.write_text(\"input\", encoding=\"utf-8\")\n        service = IngestionService(\n            None, None, None,\n            ExtractionSettings(False, \"ukr+eng\", parser_sandbox_enabled=True),\n            RecordingExtractor(),\n        )\n    \n        spans, method = service._extract_path(path, path.name, \"text/plain\")\n    \n>       assert seen[\"sandboxed\"] is True\nE       assert False is True\n\napps/api/tests/test_v5_security_kernel.py:555: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_parser_sandbox_setting_selects_isolated_parser - assert False is True\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M69_ONLY_BASE_IS_DISCOVERED",
+      "file": "apps/api/src/korpus/application/deployment.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_overlays.py::test_the_repository_ships_a_production_overlay_that_is_validated"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_the_repository_ships_a_production_overlay_that_is_validated _______\n\n    def test_the_repository_ships_a_production_overlay_that_is_validated() -> None:\n        variants = discover_kustomizations(DEPLOY_ROOT)\n        names = {path.relative_to(DEPLOY_ROOT).as_posix() for path in variants}\n>       assert \"base\" in names\nE       AssertionError: assert 'base' in set()\n\napps/api/tests/test_deployment_overlays.py:44: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_overlays.py::test_the_repository_ships_a_production_overlay_that_is_validated - AssertionError: assert 'base' in set()\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M113_FIXTURE_RUN_PRESENTS_ITSELF_AS_MEASURED",
+      "file": "apps/api/src/korpus/application/tevv.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_admissibility.py::test_the_shipped_fixture_run_is_not_admissible"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_the_shipped_fixture_run_is_not_admissible ________________\n\n    def test_the_shipped_fixture_run_is_not_admissible() -> None:\n        \"\"\"The current state, stated as a test so it cannot drift silently.\"\"\"\n        verdict = evaluate_tevv(\n            passed=30,\n            total=30,\n            corpus_declaration=None,\n            maximum_interval_width=0.10,\n            minimum_observations=200,\n        )\n    \n        assert verdict.admissible is False\n        assert verdict.calibration_status == FIXTURE_STATUS\n>       assert any(\"fixture run\" in reason for reason in verdict.reasons)\nE       assert False\nE        +  where False = any(<generator object test_the_shipped_fixture_run_is_not_admissible.<locals>.<genexpr> at 0x7f14301686c0>)\n\napps/api/tests/test_tevv_admissibility.py:60: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_admissibility.py::test_the_shipped_fixture_run_is_not_admissible - assert False\n +  where False = any(<generator object test_the_shipped_fixture_run_is_not_admissible.<locals>.<genexpr> at 0x7f14301686c0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M190_DOCX_ENTITY_DECLARATION_ACCEPTED",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_extraction.py::test_a_docx_declaring_an_entity_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________________ test_a_docx_declaring_an_entity_is_refused __________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-870/test_a_docx_declaring_an_entit0')\n\n    def test_a_docx_declaring_an_entity_is_refused(tmp_path) -> None:\n        \"\"\"Billion laughs. `xml.etree` expands internal entities, so the declaration is\n        refused outright rather than the expansion bounded — a limit can be miscounted, a\n        refusal cannot.\"\"\"\n        import pytest\n        from korpus.infrastructure.extraction import extract_pages_from_path\n    \n        path = _docx(tmp_path, [\"текст\"], doctype=True)\n    \n>       with pytest.raises(ValueError, match=\"DTD or entity\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_extraction.py:138: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_extraction.py::test_a_docx_declaring_an_entity_is_refused - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M137_DUPLICATE_BILLING_EVENT_REAPPLIED",
+      "file": "apps/api/src/korpus/application/subscriptions.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_billing_events.py::test_a_redelivered_event_changes_nothing"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________________ test_a_redelivered_event_changes_nothing ___________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-871/test_a_redelivered_event_chang0')\n\n    def test_a_redelivered_event_changes_nothing(tmp_path: Path) -> None:\n        \"\"\"The ordinary case, not the exotic one: every provider redelivers.\"\"\"\n        tenancy = build_tenancy(tmp_path)\n        try:\n            _account, subscription = _account_with_subscription(tenancy)\n            payload, signature = _event(\n                tenancy, \"evt-dup\", \"subscription.activated\", reference=str(subscription.id)\n            )\n            first = tenancy.subscription_service.handle_event(payload, signature)\n    \n            # The redelivery must be recognised by the in-memory pre-check and never reach the\n            # write path: the unique constraint would also stop a double-apply, but relying on\n            # a rolled-back INSERT to enforce idempotency turns every retry into an exception.\n            calls = {\"record\": 0}\n            original = tenancy.subscriptions.record_billing_event\n    \n            def counting(*args, **kwargs):\n                calls[\"record\"] += 1\n                return original(*args, **kwargs)\n    \n            tenancy.subscriptions.record_billing_event = counting  # type: ignore[method-assign]\n            try:\n                second = tenancy.subscription_service.handle_event(payload, signature)\n            finally:\n                tenancy.subscriptions.record_billing_event = original  # type: ignore[method-assign]\n    \n            assert first is BillingEventResult.APPLIED\n            assert second is BillingEventResult.DUPLICATE\n>           assert calls[\"record\"] == 0, \"a known duplicate reached the write path\"\nE           AssertionError: a known duplicate reached the write path\nE           assert 1 == 0\n\napps/api/tests/test_billing_events.py:137: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_billing_events.py::test_a_redelivered_event_changes_nothing - AssertionError: a known duplicate reached the write path\nassert 1 == 0\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M226_TAMPERED_ASSURANCE_SIGNATURE_ACCEPTED",
+      "file": "apps/api/src/korpus/application/attested_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attested_evidence.py::test_tampered_evidence_breaks_signature_and_digest_binding"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_tampered_evidence_breaks_signature_and_digest_binding __________\n\n    def test_tampered_evidence_breaks_signature_and_digest_binding() -> None:\n        original = b\"original\"\n        attestation, fingerprint = _signed(original)\n        verdict = verify_ed25519_attestation(\n            b\"tampered\", manifest_name=\"evidence.json\", release=\"v1\", attestation=attestation,\n            trusted_fingerprints={fingerprint},\n        )\n        assert verdict.checks[\"manifest_sha256\"] is False\n>       assert verdict.checks[\"signature\"] is False\nE       assert True is False\n\napps/api/tests/test_attested_evidence.py:61: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attested_evidence.py::test_tampered_evidence_breaks_signature_and_digest_binding - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M274_NGINX_HSTS_INHERITANCE_BROKEN",
+      "file": "apps/web/nginx.cloudrun.conf",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_nginx_security_headers.py::test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance _\n\n    def test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance() -> None:\n        for path in CONFIGS:\n            source = path.read_text(encoding=\"utf-8\")\n            assert 'add_header Strict-Transport-Security \"max-age=31536000\" always;' in source, path\n            carrying = [body for body in _location_bodies(source) if \"add_header \" in body]\n            assert carrying, path\n            for body in carrying:\n                missing = REQUIRED - _headers(body)\n>               assert not missing, f\"{path}: location overrides add_header but drops {sorted(missing)}\"\nE               AssertionError: /tmp/korpus-m274_nginx_hsts_inheritance_broken-baa3rlae/repo/apps/web/nginx.cloudrun.conf: location overrides add_header but drops ['Strict-Transport-Security']\nE               assert not {'Strict-Transport-Security'}\n\napps/api/tests/test_nginx_security_headers.py:75: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_nginx_security_headers.py::test_all_deployed_edges_persist_https_and_do_not_lose_headers_by_inheritance - AssertionError: /tmp/korpus-m274_nginx_hsts_inheritance_broken-baa3rlae/repo/apps/web/nginx.cloudrun.conf: location overrides add_header but drops ['Strict-Transport-Security']\nassert not {'Strict-Transport-Security'}\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:36:42+00:00"
+  }
+}

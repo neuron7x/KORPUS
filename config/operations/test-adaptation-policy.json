@@ -1,0 +1,36 @@
+{
+  "schema": "korpus.test-adaptation-policy.v1",
+  "coverage": {
+    "minimum_statement_rate": 0.95,
+    "minimum_branch_rate": 0.9,
+    "maximum_missing_branch_regression": 0,
+    "baseline_missing_branches": 220
+  },
+  "determinism": {
+    "python_hash_seeds": [
+      0,
+      1,
+      42,
+      31337
+    ],
+    "require_identical_test_cardinality": true,
+    "require_zero_failures": true
+  },
+  "stress": {
+    "cycles": 3,
+    "require_identical_test_cardinality": true,
+    "require_zero_failures": true
+  },
+  "risk_weights": {
+    "security/": 5.0,
+    "application/admission.py": 5.0,
+    "application/release_state_machine.py": 5.0,
+    "application/ingestion.py": 4.0,
+    "infrastructure/repository.py": 4.0,
+    "infrastructure/object_store.py": 4.0,
+    "infrastructure/audit_anchor.py": 4.0,
+    "infrastructure/": 3.0,
+    "api/": 3.0,
+    "application/": 2.0
+  }
+}

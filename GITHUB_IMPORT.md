@@ -1,20 +1,13 @@
-# GitHub import — KORPUS v0.1.1
+# GitHub import — KORPUS v0.9.7
 
-Authoritative release identity: `v0.1.1`.
-The canonical package contains `KORPUS_SYSTEM_v0.1.1.bundle`, which carries full Git
-history and tags. Import the bundle rather than reconstructing history from ZIP files.
+Authoritative release identity: `v0.9.7`.
+Canonical distribution artifact: `KORPUS_v0.9.7_PRODUCTION_ASSURANCE_HARDENED_FULL_SSOT_CANONICAL_2026-08-23.zip`.
 
-```bash
-git clone KORPUS_SYSTEM_v0.1.1.bundle korpus
-cd korpus
-git checkout v0.1.1
-test "$(git rev-parse HEAD)" = "$(git rev-parse v0.1.1^{commit})"
-```
+The distribution is a gitless recovery envelope. Its single versioned root contains the clean source
+tree and release evidence; `LINEAGE/`, if present, is provenance-only. `.git`, credentials, private
+production secret values and unavailable external attestations are not fabricated.
 
-Create the GitHub repository, add it as `origin`, then publish the existing history.
-For a new empty remote, `git push --mirror origin` preserves branches and tags. Review
-refs before using `--mirror`; it intentionally synchronizes every local ref.
-
-After import, create/protect `main` according to
-`docs/operations/GITHUB_REPOSITORY_POLICY.md`. Repository-side settings are external
-state and are not claimed as configured merely because this document exists.
+Before import, verify the outer SHA-256, `DISTRIBUTION_MANIFEST.json`, `SOURCE_MANIFEST.json` and
+`PACKAGE_BUILD.json`. Importing verified source bytes creates a new Git commit identity; it does not
+claim to preserve unavailable historical refs. Repository branch protection, environments, WIF and
+hosted CI state remain live external predicates until configured and executed.

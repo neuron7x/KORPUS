@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.plasticity-policy.v1",
+  "min_candidate_budget": 32,
+  "max_candidate_budget": 1024,
+  "candidate_step": 32,
+  "min_timeout_ms": 300,
+  "max_timeout_ms": 5000,
+  "timeout_step_ms": 100,
+  "safety_step": 0.02,
+  "max_safety_threshold": 0.99,
+  "min_samples": 200,
+  "high_error_rate": 0.02,
+  "high_contradiction_rate": 0.005,
+  "high_overload_rate": 0.02,
+  "high_latency_ms": 900.0,
+  "low_recall": 0.90,
+  "healthy_error_rate": 0.005,
+  "healthy_overload_rate": 0.005,
+  "healthy_latency_ms": 650.0,
+  "healthy_windows_for_recall_expansion": 3,
+  "cooldown_windows": 2
+}

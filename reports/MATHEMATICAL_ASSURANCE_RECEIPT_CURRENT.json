@@ -1,0 +1,148 @@
+{
+  "schema": "korpus.mathematical-assurance-receipt.v1",
+  "release": "v0.9.7",
+  "generated_at": "2026-08-24T07:05:40Z",
+  "scope": "mathematical_and_numeric_authority_surface",
+  "scope_status": "PASS",
+  "repository_production_status": "NOT_PROMOTED",
+  "production_authority": false,
+  "runtime": {
+    "python": "3.13.5",
+    "exact_release_python_3_12_13_executed": false
+  },
+  "source_delta": {
+    "modified_source_files": 26,
+    "added_source_files": 3,
+    "removed_source_files": 0,
+    "modified": [
+      "apps/api/src/korpus/application/calibration.py",
+      "apps/api/src/korpus/application/controller_profile.py",
+      "apps/api/src/korpus/application/decision_sensitivity.py",
+      "apps/api/src/korpus/application/evaluation_validity.py",
+      "apps/api/src/korpus/application/evidence_state.py",
+      "apps/api/src/korpus/application/numeric_contracts.py",
+      "apps/api/src/korpus/application/pec_ablation.py",
+      "apps/api/src/korpus/application/pec_audit_trace.py",
+      "apps/api/src/korpus/application/pec_canary_admission.py",
+      "apps/api/src/korpus/application/pec_contextual_benchmark.py",
+      "apps/api/src/korpus/application/pec_hosted_evidence.py",
+      "apps/api/src/korpus/application/pec_human_judgment.py",
+      "apps/api/src/korpus/application/pec_metamorphic_rules.py",
+      "apps/api/src/korpus/application/pec_oracle_policy.py",
+      "apps/api/src/korpus/application/pec_replay.py",
+      "apps/api/src/korpus/application/pec_research.py",
+      "apps/api/src/korpus/application/pec_statistics.py",
+      "apps/api/src/korpus/application/pec_training_model.py",
+      "apps/api/src/korpus/application/pec_training_validation.py",
+      "apps/api/src/korpus/application/predictive_evidence_control.py",
+      "apps/api/src/korpus/application/risk.py",
+      "apps/api/src/korpus/application/tevv_math.py",
+      "scripts/pec_controller_export_impl.py",
+      "scripts/pec_controller_training_impl.py",
+      "scripts/pec_oracle_impl.py",
+      "scripts/pec_replay_validation.py"
+    ],
+    "added": [
+      "apps/api/src/korpus/application/statistical_bounds.py",
+      "apps/api/tests/test_math_kernel_v097.py",
+      "docs/formal/MATHEMATICAL_ASSURANCE_SPEC_v0.9.7.md"
+    ]
+  },
+  "tests": {
+    "dedicated_math_negative_controls": {
+      "collected": 37,
+      "status": "PASS",
+      "failures": 0,
+      "errors": 0
+    },
+    "targeted_math_pec_regression": {
+      "collected": 418,
+      "passed": 417,
+      "skipped": 1,
+      "failures": 0,
+      "errors": 0,
+      "duration_seconds": 9.238,
+      "status": "PASS"
+    },
+    "full_backend": {
+      "collected": 2420,
+      "execution_status": "UNKNOWN_NOT_COMPLETED_AFTER_FINAL_HARDENING"
+    },
+    "compileall": {
+      "surface": "apps/api/src + scripts",
+      "status": "PASS"
+    },
+    "ruff_mypy": {
+      "status": "UNKNOWN_OFFLINE_DEPENDENCY_RESOLUTION"
+    }
+  },
+  "integrity": {
+    "source_manifest": {
+      "status": "PASS",
+      "file_count": 1181,
+      "root_sha256": "7ec82e6eebca4471e46c33edfd90285ce30117af84c247685db60b35275cd721"
+    },
+    "package_build_identity": "PASS",
+    "current_truth": {
+      "status": "PASS",
+      "source_tree_sha256": "21300455373197b9fac1c03660aa970b71ac62aadfde9c0e71449b811f1fbe97",
+      "failures": []
+    }
+  },
+  "hard_predicates": {
+    "predicates_total": 14,
+    "software_ready": 14,
+    "externally_satisfied": 0,
+    "production_satisfied": 0
+  },
+  "closed_failure_modes": [
+    "overflowing_integer_numeric_predicate_crash",
+    "nan_to_max_score_canonicalization",
+    "nan_inf_replay_measurement_acceptance",
+    "fractional_rank_integer_coercion",
+    "string_boolean_semantic_coercion",
+    "negative_or_nonfinite_pareto_resources",
+    "nonfinite_support_bounds",
+    "nonfinite_risk_thresholds",
+    "zero_sample_false_confidence",
+    "nonfinite_calibration_feature_poisoning",
+    "controller_export_numeric_and_boolean_coercion",
+    "contextual_benchmark_fractional_rank_or_string_flag_acceptance",
+    "human_judgment_implicit_model_self_judgment_flag"
+  ],
+  "formal_methods": [
+    "strict_numeric_domains",
+    "Wilson_score_interval",
+    "Hoeffding_one_sided_bound_with_union_correction",
+    "Hoeffding_two_sided_interval",
+    "BM25_lexical_scoring",
+    "convex_hybrid_retrieval_score",
+    "Pareto_partial_order_resource_oracle",
+    "fail_closed_zero_sample_semantics"
+  ],
+  "references": [
+    {
+      "title": "Probability Inequalities for Sums of Bounded Random Variables",
+      "doi": "10.1080/01621459.1963.10500830"
+    },
+    {
+      "title": "The Probabilistic Relevance Framework: BM25 and Beyond",
+      "doi": "10.1561/1500000019"
+    },
+    {
+      "title": "NIST binomial confidence-limit documentation",
+      "role": "Wilson-derived score interval formula/reference"
+    }
+  ],
+  "unresolved": [
+    "full backend regression execution after final hardening",
+    "ruff/mypy execution in a resolved offline environment",
+    "empirical justification of independence/effective-sample-size assumptions for production calibration/replay cohorts",
+    "separate empirical calibration of hybrid retrieval score if interpreted probabilistically",
+    "external independent TEVV",
+    "live PostgreSQL/RLS execution",
+    "production-like load/soak and trusted attestation",
+    "exact Python 3.12.13 external execution",
+    "hosted builder/signing provenance"
+  ]
+}

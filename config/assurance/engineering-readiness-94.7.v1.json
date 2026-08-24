@@ -1,0 +1,93 @@
+{
+  "schema": "korpus.engineering-readiness-profile.v1",
+  "profile_id": "engineering-technical-academic-readiness-94.7",
+  "target_percent": 94.7,
+  "preregistered_before_final_campaign": true,
+  "interpretation": "Weighted engineering/technical/academic/theoretical maturity over repository-verifiable evidence. External trust predicates are deliberately non-compensable and excluded from the maturity numerator; production authorization remains conjunctive under config/assurance/production-v1.json.",
+  "dimensions": {
+    "product_core": {
+      "weight": 0.13,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "release_identity", "repository_validation", "openapi_contract", "import_cycles",
+        "module_budget", "dependency_lock_structure", "state_contracts", "authorization_matrix",
+        "learning_graph", "startup_failure_semantics", "web_contract", "source_digest_stable",
+        "version_coherence"
+      ]
+    },
+    "architecture_invariants": {
+      "weight": 0.15,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "identity_before_query", "authorization_before_retrieval", "retrieval_scope_noninterference",
+        "claim_evidence_binding", "conflict_surface", "abstention", "provenance_binding",
+        "privileged_action_boundary", "offline_integrity", "tamper_evident_audit",
+        "learning_graph_immutability", "release_state_machine", "bounded_model_check",
+        "evidence_conflict_preservation", "inference_fixpoint_budget"
+      ]
+    },
+    "security_internal": {
+      "weight": 0.17,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "builtin_security_gate", "authorization_matrix", "indirect_prompt_injection",
+        "egress_classification", "idor_refusal", "ssrf_egress", "webhook_replay",
+        "host_header", "csrf_session", "upload_quarantine", "parser_bounds", "audit_integrity",
+        "tenant_scope_application", "secrets_static_heuristic", "internal_redteam",
+        "dangerous_primitive_scan", "unknown_permission_fail_closed"
+      ]
+    },
+    "tests_tevv": {
+      "weight": 0.17,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "backend_regression_carry_forward", "targeted_current_source", "statement_coverage",
+        "branch_coverage", "mutation_catalogue", "determinism", "stress", "plasticity",
+        "web_suite_current", "evaluation_harness_contract", "synthetic_adversarial_eval",
+        "null_controls", "attack_family_coverage", "migration_gate", "assurance_model_check",
+        "evidence_fusion_tests", "inference_budget_tests"
+      ]
+    },
+    "release_package_integrity": {
+      "weight": 0.15,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "clean_source", "source_manifest", "distribution_manifest", "package_verifier",
+        "reproducible_archive", "release_identity", "package_root_contract",
+        "file_mode_normalization", "duplicate_path_rejection", "zip_traversal_rejection",
+        "checksum", "claim_ledger", "blocker_registry", "portable_evidence_index",
+        "stale_current_rejection"
+      ]
+    },
+    "reliability_internal": {
+      "weight": 0.10,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "internal_fault_injection", "chaos_matrix", "local_load", "local_spike", "local_soak",
+        "local_recovery", "observability_contract", "slo_policy", "retry_idempotency",
+        "bounded_audit_backlog"
+      ]
+    },
+    "ui_ux": {
+      "weight": 0.05,
+      "evidence_class": "EXECUTED_WITH_NEGATIVE_CONTROL",
+      "criteria": [
+        "web_lint", "web_tests", "web_build", "contract_sync", "destruction_validation"
+      ]
+    },
+    "maintainability_reproducibility": {
+      "weight": 0.08,
+      "evidence_class": "EXECUTED",
+      "criteria": [
+        "module_budget", "dependency_locks", "standards_map", "documentation_truth",
+        "source_inventory", "deterministic_packaging", "ruff_exact", "mypy_exact"
+      ]
+    }
+  },
+  "hard_external_predicates": [
+    "external_independent_redteam", "live_vulnerability_scanners", "live_postgres_rls",
+    "real_domain_corpus_tevv", "independent_tevv", "production_like_tevv_environment",
+    "production_like_load", "trusted_load_attestation", "trusted_recovery_attestation",
+    "trusted_hosted_builder", "trusted_release_signing", "exact_python_3_12_13_environment"
+  ]
+}

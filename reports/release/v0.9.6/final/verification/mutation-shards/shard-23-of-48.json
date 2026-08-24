@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 23,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M172_EXTRACTION_ADAPTER_IGNORES_THE_SANDBOX_FLAG",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_v5_security_kernel.py::test_the_extraction_adapter_runs_the_isolated_parser_when_told_to"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "==================\n______ test_the_extraction_adapter_runs_the_isolated_parser_when_told_to _______\n\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc49394f950>\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-873/test_the_extraction_adapter_ru0')\n\n    def test_the_extraction_adapter_runs_the_isolated_parser_when_told_to(monkeypatch, tmp_path: Path):\n        \"\"\"The adapter's half: `sandboxed=True` must reach the isolated parser and nothing else.\n    \n        Split from the test above when the port landed. Keeping them together would have\n        left one test standing for two independent failures — the setting not travelling,\n        and the adapter ignoring it — and a single test cannot report which one broke.\n        \"\"\"\n        from korpus.infrastructure.extraction import DocumentExtractor, ExtractedPage\n    \n        calls = {\"sandbox\": 0}\n    \n        def sandboxed(**kwargs):\n            calls[\"sandbox\"] += 1\n            return [ExtractedPage(page=1, text=\"isolated parser result\")], \"sandbox-test\"\n    \n        def in_process(**kwargs):\n            raise AssertionError(\"in-process parser must not run when sandbox is enabled\")\n    \n        monkeypatch.setattr(\"korpus.infrastructure.extraction.extract_pages_sandboxed\", sandboxed)\n        monkeypatch.setattr(\"korpus.infrastructure.extraction.extract_pages_from_path\", in_process)\n        path = tmp_path / \"document.txt\"\n        path.write_text(\"input\", encoding=\"utf-8\")\n    \n>       pages, method = DocumentExtractor().extract_pages(\n            path=path,\n            filename=path.name,\n            mime_type=\"text/plain\",\n            sandboxed=True,\n            ocr_enabled=False,\n            ocr_languages=\"ukr+eng\",\n            max_pdf_pages=10,\n            ocr_total_timeout_seconds=1.0,\n            timeout_seconds=1.0,\n            memory_limit_mb=64,\n            output_limit_bytes=1024,\n        )\n\napps/api/tests/test_v5_security_kernel.py:609: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n/tmp/korpus-m172_extraction_adapter_ignores_the_sandbox_flag-588x6tum/api-src/korpus/infrastructure/extraction.py:569: in extract_pages\n    return extract_pages_from_path(\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nkwargs = {'filename': 'document.txt', 'max_pdf_pages': 10, 'mime_type': 'text/plain', 'ocr_enabled': False, ...}\n\n    def in_process(**kwargs):\n>       raise AssertionError(\"in-process parser must not run when sandbox is enabled\")\nE       AssertionError: in-process parser must not run when sandbox is enabled\n\napps/api/tests/test_v5_security_kernel.py:602: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_v5_security_kernel.py::test_the_extraction_adapter_runs_the_isolated_parser_when_told_to - AssertionError: in-process parser must not run when sandbox is enabled\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M70_MUTABLE_ROOT_FILESYSTEM_ACCEPTED",
+      "file": "apps/api/src/korpus/kubernetes_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________________ test_a_hostile_overlay_patch_is_caught ____________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-874/test_a_hostile_overlay_patch_i0')\n\n    def test_a_hostile_overlay_patch_is_caught(tmp_path: Path) -> None:\n        \"\"\"The reproduction: :latest plus a writable root filesystem, via the overlay.\"\"\"\n    \n        overlay = tmp_path / \"kustomization.yaml\"\n        text = (PRODUCTION / \"kustomization.yaml\").read_text(encoding=\"utf-8\")\n        resources_path = (PRODUCTION / \"../../base\").resolve()\n        text = text.replace(\"  - ../../base\", f\"  - {resources_path}\")\n        overlay.write_text(text + HOSTILE_PATCH, encoding=\"utf-8\")\n    \n        documents = render_kustomization(tmp_path, ROOT)\n        violations = manifest_violations(documents)\n        assert any(\"digest-addressed\" in violation for violation in violations), violations\n>       assert any(\"read-only\" in violation for violation in violations), violations\nE       AssertionError: [\"korpus-api: image must be digest-addressed, got 'registry.example.com/korpus/api:latest'\"]\nE       assert False\nE        +  where False = any(<generator object test_a_hostile_overlay_patch_is_caught.<locals>.<genexpr> at 0x7f5a755857d0>)\n\napps/api/tests/test_deployment_overlays.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_deployment_overlays.py::test_a_hostile_overlay_patch_is_caught - AssertionError: [\"korpus-api: image must be digest-addressed, got 'registry.example.com/korpus/api:latest'\"]\nassert False\n +  where False = any(<generator object test_a_hostile_overlay_patch_is_caught.<locals>.<genexpr> at 0x7f5a755857d0>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M114_SYNTHETIC_CORPUS_ACCEPTED_AS_REAL",
+      "file": "apps/api/src/korpus/application/tevv.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_tevv_admissibility.py::test_a_corpus_that_declares_itself_synthetic_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_a_corpus_that_declares_itself_synthetic_is_refused ____________\n\n    def test_a_corpus_that_declares_itself_synthetic_is_refused() -> None:\n        verdict = evaluate_tevv(\n            passed=980,\n            total=1000,\n            corpus_declaration=REAL_CORPUS | {\"synthetic\": True},\n            maximum_interval_width=0.10,\n            minimum_observations=200,\n        )\n    \n>       assert verdict.admissible is False\nE       AssertionError: assert True is False\nE        +  where True = TevvVerdict(admissible=True, calibration_status='MEASURED_ON_DECLARED_CORPUS', interval=Interval(lower=0.9693099947672646, upper=0.9870163170848848, confidence=0.95), reasons=()).admissible\n\napps/api/tests/test_tevv_admissibility.py:105: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_tevv_admissibility.py::test_a_corpus_that_declares_itself_synthetic_is_refused - AssertionError: assert True is False\n +  where True = TevvVerdict(admissible=True, calibration_status='MEASURED_ON_DECLARED_CORPUS', interval=Interval(lower=0.9693099947672646, upper=0.9870163170848848, confidence=0.95), reasons=()).admissible\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M191_NORMALISATION_ERASES_THE_COLUMN_GAP",
+      "file": "apps/api/src/korpus/infrastructure/extraction.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_extraction.py::test_normalisation_keeps_the_column_gap_a_flattened_table_leaves"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______ test_normalisation_keeps_the_column_gap_a_flattened_table_leaves _______\n\n    def test_normalisation_keeps_the_column_gap_a_flattened_table_leaves() -> None:\n        \"\"\"The whole reason `table_integrity` exists, and it could never fire.\n    \n        `_normalize` collapsed every run of spaces and every tab to one space *before*\n        `assess_extraction_quality` saw the text, so the gap `COLUMN_GAP` looks for had\n        already been erased. Measured 2026-08-06: `table_structure_lost` on the raw text,\n        nothing after normalisation. A row that loses a cell shifts its figures left and a\n        number is quoted under another column's heading — the passage stays grammatical and\n        states a norm that does not exist.\n        \"\"\"\n        from korpus.application.extraction_quality import assess_extraction_quality\n        from korpus.infrastructure.extraction import _normalize\n    \n        ragged = _normalize(\"Пункт\\tЗначення\\tОдиниця\\n1\\t300\\tм\\n2\\t15\\n3\\t90\\tкм/год\\n\")\n        prose = _normalize(\n            \"Дистанція між укриттями має бути не менше 300 метрів.  \"\n            \"Норматив розгортання становить 15 хвилин.\"\n        )\n    \n>       assert \"table_structure_lost\" in assess_extraction_quality(ragged).flags\nE       AssertionError: assert 'table_structure_lost' in frozenset({'split_number'})\nE        +  where frozenset({'split_number'}) = ExtractionQuality(text_chars=47, alnum_ratio=0.765957, replacement_ratio=0.0, flags=frozenset({'split_number'})).flags\nE        +    where ExtractionQuality(text_chars=47, alnum_ratio=0.765957, replacement_ratio=0.0, flags=frozenset({'split_number'})) = <function assess_extraction_quality at 0x7f5838b46fc0>('Пункт Значення Одиниця\\n1 300 м\\n2 15\\n3 90 км/год')\n\napps/api/tests/test_extraction.py:197: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_extraction.py::test_normalisation_keeps_the_column_gap_a_flattened_table_leaves - AssertionError: assert 'table_structure_lost' in frozenset({'split_number'})\n +  where frozenset({'split_number'}) = ExtractionQuality(text_chars=47, alnum_ratio=0.765957, replacement_ratio=0.0, flags=frozenset({'split_number'})).flags\n +    where ExtractionQuality(text_chars=47, alnum_ratio=0.765957, replacement_ratio=0.0, flags=frozenset({'split_number'})) = <function assess_extraction_quality at 0x7f5838b46fc0>('Пункт Значення Одиниця\\n1 300 м\\n2 15\\n3 90 км/год')\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M138_UNSIGNED_BILLING_EVENT_ACCEPTED",
+      "file": "apps/api/src/korpus/infrastructure/deterministic_billing.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_billing_events.py::test_an_unsigned_event_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_an_unsigned_event_is_refused _______________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-875/test_an_unsigned_event_is_refu0')\n\n    def test_an_unsigned_event_is_refused(tmp_path: Path) -> None:\n        tenancy = build_tenancy(tmp_path)\n        try:\n            _account, subscription = _account_with_subscription(tenancy)\n            payload, _signature = _event(\n                tenancy, \"evt-unsigned\", \"subscription.activated\", reference=str(subscription.id)\n            )\n>           with pytest.raises(BillingEventRejected):\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE           Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.BillingEventRejected'>\n\napps/api/tests/test_billing_events.py:205: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_billing_events.py::test_an_unsigned_event_is_refused - Failed: DID NOT RAISE <class 'korpus.application.tenancy_ports.BillingEventRejected'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M227_ENVIRONMENT_ATTESTATION_VERIFICATION_BYPASSED",
+      "file": "apps/api/src/korpus/application/assurance_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_production_like_strings_without_attestations_cannot_promote_reliability _\n\n    def test_production_like_strings_without_attestations_cannot_promote_reliability() -> None:\n        internal, chaos, load, recovery = _evidence()\n        load_bytes = (json.dumps(load, sort_keys=True) + \"\\n\").encode(); recovery_bytes = (json.dumps(recovery, sort_keys=True) + \"\\n\").encode()\n        checks, _, _ = evaluate_attested_reliability(\n            internal, chaos, load, recovery, source=\"s\", release=\"v\", load_bytes=load_bytes,\n            recovery_bytes=recovery_bytes, load_attestation={}, recovery_attestation={}, trusted=set())\n        assert checks[\"load_environment\"] and checks[\"recovery_environment\"]\n>       assert not checks[\"load_attestation_verified\"] and not checks[\"recovery_attestation_verified\"]\nE       assert (not True)\n\napps/api/tests/test_production_reliability.py:47: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_production_reliability.py::test_production_like_strings_without_attestations_cannot_promote_reliability - assert (not True)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M275_AUDIT_ANCHOR_EXTERNAL_HTTPS_BYPASSED",
+      "file": "apps/api/src/korpus/controlled_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "...........F\n=================================== FAILURES ===================================\n__ test_a_controlled_deployment_refuses_each_weakening[loopback audit anchor] __\n\nrequirement = 'loopback audit anchor'\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-876/test_a_controlled_deployment_r11')\n\n    @pytest.mark.parametrize(\"requirement\", sorted(WEAKENINGS))\n    def test_a_controlled_deployment_refuses_each_weakening(requirement: str, tmp_path: Path) -> None:\n        overrides, message = WEAKENINGS[requirement]\n        role = \"worker\" if requirement in {\"malware scanning disabled\", \"parser sandbox disabled\"} else \"api\"\n        settings = _base(tmp_path) | {\"runtime_role\": role} | overrides\n    \n>       with pytest.raises(ValueError, match=message):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       Failed: DID NOT RAISE <class 'ValueError'>\n\napps/api/tests/test_controlled_configuration_refusals.py:228: Failed\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening[loopback audit anchor] - Failed: DID NOT RAISE <class 'ValueError'>\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:37:05+00:00"
+  }
+}

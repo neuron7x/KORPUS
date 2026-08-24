@@ -77,7 +77,7 @@ repository:validate:
     # A ratchet on module size and function complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
     - python scripts/validate_github_actions.py
-    - python scripts/validate_repository.py
+    - python scripts/validate_repository.py --context SOURCE_CHECKOUT
     - python scripts/validate_infrastructure.py
     - python scripts/validate_kubernetes.py
     - python -m compileall -q apps/api/src apps/api/migrations scripts

@@ -4,7 +4,15 @@ import subprocess
 from pathlib import Path
 
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
-SOURCE_GENERATED_PREFIXES = {("reports",), ("handoff", "evidence")}
+SOURCE_GENERATED_PREFIXES = {
+    ("reports",),
+    ("handoff", "evidence"),
+    ("evidence",),
+    ("PACKAGE_BOUNDARY.md",),
+    ("PACKAGE_BUILD.json",), ("FULL_SSOT_PACKAGE_RECEIPT.json",),
+    ("CANONICAL_RELEASE_REPORT.json",),
+    ("CANONICAL_RELEASE_REPORT.md",),
+}
 LOCAL_EXCLUDED_FILES, MANIFEST_NAMES = {".coverage"}, {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 
 
@@ -15,7 +23,6 @@ def source_included(relative: Path) -> bool:
         relative.name not in LOCAL_EXCLUDED_FILES,
         not relative.name.startswith(".coverage."),
         relative.name not in MANIFEST_NAMES,
-        # Git bundle(s) are distribution/history artifacts created by packaging, not source.
         relative.suffix != ".bundle",
         not (relative.parts[:2] == ("infra", "secrets") and relative.suffix == ".txt"),
     )
@@ -53,7 +60,10 @@ def source_paths(root: Path) -> list[Path]:
 
 
 def distribution_paths(root: Path) -> list[Path]:
-    """Exact deliverable paths, excluding only local/runtime debris and the manifest itself."""
+    """Exact deliverable paths, excluding local/runtime debris and the manifest itself."""
     excluded = {".git", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
-    return _walk_files(root, lambda relative: not any(part in excluded for part in relative.parts)
-                       and relative.name != "DISTRIBUTION_MANIFEST.json")
+    return _walk_files(
+        root,
+        lambda relative: not any(part in excluded for part in relative.parts)
+        and relative.as_posix() != "DISTRIBUTION_MANIFEST.json",
+    )

@@ -1,0 +1,50 @@
+{
+  "schema": "korpus.evaluation-harness-contract.v1",
+  "as_of": "2026-08-16",
+  "claim_class": "safeguard_performance",
+  "claim": "On the frozen synthetic assurance fixture, the KORPUS extractive answer path enforces the tested authorization, evidence-binding, abstention, temporal-selection, prompt-injection and deterministic-replay properties under the declared local harness.",
+  "tested_system": {
+    "component": "KORPUS extractive answer path",
+    "retrieval": "HybridLexicalRetriever over a temporary SQLite FTS-backed repository",
+    "external_model_calls": false,
+    "query_planner": "disabled",
+    "composer": "extractive-only",
+    "storage_backend": "sqlite-temporary",
+    "identity_source": "frozen synthetic identities"
+  },
+  "budget": {
+    "executions_per_case": 2,
+    "external_model_tokens": 0,
+    "external_model_calls": 0,
+    "retry_budget": 0
+  },
+  "validity_checks": {
+    "deterministic_replay": "AUTOMATED",
+    "citation_span_integrity": "AUTOMATED",
+    "unauthorized_material_leakage": "AUTOMATED",
+    "temporal_source_selection": "AUTOMATED_FIXTURE_CASES",
+    "indirect_prompt_injection": "AUTOMATED_FIXTURE_CASES",
+    "refusals_or_abstentions": "EXPLICIT_OUTCOME_ACCOUNTING",
+    "reward_hacking": "NOT_APPLICABLE_NON_AGENTIC_EXTRACTIVE_HARNESS",
+    "contamination": "NOT_A_FRONTIER_CAPABILITY_BENCHMARK_SYNTHETIC_FIXTURE",
+    "sandbagging": "NOT_APPLICABLE_NO_EXTERNAL_MODEL",
+    "broken_problem_risk": "FROZEN_DATASET_AND_PROTOCOL_HASHED"
+  },
+  "independence": {
+    "evaluator": "LOCAL_SELF_EVALUATION",
+    "third_party": false,
+    "production_authorization_sufficient": false
+  },
+  "limitations": [
+    "Synthetic assurance fixtures are not production-domain TEVV.",
+    "SQLite execution does not establish PostgreSQL production-like behavior.",
+    "The harness tests KORPUS safeguards and extractive behavior, not a frontier-model capability ceiling.",
+    "Independent third-party assessment remains external evidence."
+  ],
+  "methodology_references": [
+    "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+    "https://openai.com/index/trustworthy-third-party-evaluations-foundations/",
+    "https://openai.com/index/separating-signal-from-noise-coding-evaluations/",
+    "https://crfm.stanford.edu/helm/capabilities/latest/"
+  ]
+}

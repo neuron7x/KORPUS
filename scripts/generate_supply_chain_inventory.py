@@ -7,68 +7,32 @@ import re
 from pathlib import Path
 
 from release_identity import release_tag
+from supply_chain_metadata import (
+    DECLARED,
+    NOT_INSTALLED,
+    PUBLISHER_DECLARED,
+    PUBLISHER_METADATA,
+    component_license,
+    installed_licenses,
+    normalize,
+    publisher_licenses,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 LOCKS = [ROOT / "apps/api/requirements.runtime.lock", ROOT / "apps/api/requirements.dev.lock"]
 PIN = re.compile(r"^([A-Za-z0-9_.-]+)==([^\s;]+)")
 UNRESOLVED = "UNKNOWN_REQUIRES_EXTERNAL_METADATA_AND_LEGAL_REVIEW"
-# Read from the running interpreter's installed distributions, so the answer depends on
-# where this is invoked: under the locked venv all 68 resolve, under a bare python3 five
-# do not. Silently emitting UNKNOWN for the difference would have made "we could not
-# determine the license" and "you ran this in the wrong environment" the same record.
-NOT_INSTALLED = "UNRESOLVED_PACKAGE_NOT_INSTALLED_IN_THIS_ENVIRONMENT"
-DECLARED = "DECLARED_BY_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE"
-
-
-def _installed_licenses() -> dict[str, str]:
-    """License expressions as the installed distributions declare them.
-
-    Every component read UNKNOWN, which conflated two different states: a license this
-    inventory has not looked up, and a license nobody can determine. The metadata is
-    right there in the installed distribution, so the first state was self-inflicted.
-
-    What this is not is legal clearance. A declared SPDX expression is the publisher's
-    statement about their own package; whether the combination is usable under the
-    terms KORPUS is delivered on is a question for a lawyer, and the status string says
-    so rather than letting a populated field read as an answer.
-    """
-    from importlib.metadata import distributions
-
-    found: dict[str, str] = {}
-    for distribution in distributions():
-        metadata = distribution.metadata
-        name = metadata["Name"]
-        if not name:
-            continue
-        expression = metadata.get("License-Expression") or ""
-        if not expression:
-            classifiers = [
-                value.split("::")[-1].strip()
-                for value in metadata.get_all("Classifier") or []
-                if value.startswith("License ::")
-            ]
-            expression = " OR ".join(sorted(set(classifiers)))
-        if not expression:
-            declared = (metadata.get("License") or "").strip()
-            # Some packages put their whole license text in the field. A paragraph is
-            # not an identifier, and storing it would make the inventory unreadable.
-            expression = declared if 0 < len(declared) <= 64 and "\n" not in declared else ""
-        if expression:
-            found[re.sub(r"[-_.]+", "-", name).casefold()] = expression
-    return found
 
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def main() -> int:
-    licenses = _installed_licenses()
+def _python_components() -> dict[tuple[str, str], dict[str, object]]:
+    installed = installed_licenses()
+    publisher = publisher_licenses()
     components: dict[tuple[str, str], dict[str, object]] = {}
     for lock in LOCKS:
-        # A hashed requirement spans several physical lines joined by a backslash.
-        # Parsing them separately made every `--hash=` line look like a dependency
-        # whose name was "--hash=sha256:..." and killed the inventory outright, which
-        # is how this file found out that hashes had arrived.
         joined = lock.read_text(encoding="utf-8").replace("\\\n", " ")
         for raw in joined.splitlines():
             line = " ".join(raw.split())
@@ -76,85 +40,80 @@ def main() -> int:
                 continue
             match = PIN.match(line)
             if not match:
-                raise SystemExit(f"non-exact dependency in {lock.relative_to(ROOT)}: {line}")
-            name, version = match.groups()
-            key = (name.casefold().replace("_", "-"), version)
+                raise ValueError(f"non-exact dependency in {lock.relative_to(ROOT)}: {line}")
+            raw_name, version = match.groups()
+            name = normalize(raw_name)
+            license_expression, status, declaration = component_license(
+                name, version, installed, publisher
+            )
+            key = (name, version)
             component = components.setdefault(
                 key,
                 {
-                    "type": "library",
-                    "name": key[0],
-                    "version": version,
-                    "purl": f"pkg:pypi/{key[0]}@{version}",
-                    "license": licenses.get(key[0]),
-                    "license_status": DECLARED if key[0] in licenses else NOT_INSTALLED,
-                    "artifact_hashes_present": "--hash=" in line,
-                    "sources": [],
+                    "type": "library", "name": name, "version": version,
+                    "purl": f"pkg:pypi/{name}@{version}", "license": license_expression,
+                    "license_status": status, "license_evidence": declaration,
+                    "installed_in_inventory_environment": name in installed,
+                    "artifact_hashes_present": "--hash=" in line, "sources": [],
                 },
             )
             component["sources"].append(lock.relative_to(ROOT).as_posix())
+    return components
+
+
+def build_inventory() -> dict[str, object]:
+    components = _python_components()
     package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
     for section in ("dependencies", "devDependencies"):
         for name, version in sorted(package.get(section, {}).items()):
             normalized = str(version).removeprefix("=")
             components[(name, normalized)] = {
-                "type": "library",
-                "name": name,
-                "version": normalized,
-                "purl": f"pkg:npm/{name}@{normalized}",
-                # npm metadata is not installed in this environment; the container SBOM
-                # gate reads it. Reporting it as unresolved here is the honest state.
-                "license": None,
-                "license_status": UNRESOLVED,
-                "artifact_hashes_present": False,
-                "sources": ["apps/web/package.json"],
+                "type": "library", "name": name, "version": normalized,
+                "purl": f"pkg:npm/{name}@{normalized}", "license": None,
+                "license_status": UNRESOLVED, "license_evidence": None,
+                "installed_in_inventory_environment": False,
+                "artifact_hashes_present": False, "sources": ["apps/web/package.json"],
             }
-    output = {
-        "schema": "korpus.supply-chain-inventory.v1",
-        "release": release_tag(),
-        "status": "PARTIAL_LOCAL_INVENTORY_NOT_LICENSE_CLEARANCE",
-        "lockfiles": [
-            {"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS
-        ],
-        "components": sorted(
-            components.values(),
-            key=lambda item: (str(item["type"]), str(item["name"]), str(item["version"])),
-        ),
+    ordered = sorted(components.values(), key=lambda item: (str(item["name"]), str(item["version"])))
+    unresolved = [str(item["name"]) for item in ordered if item["license_status"] in {NOT_INSTALLED, UNRESOLVED}]
+    missing_env = [str(item["name"]) for item in ordered if not item["installed_in_inventory_environment"]]
+    return {
+        "schema": "korpus.supply-chain-inventory.v2", "release": release_tag(),
+        "status": "COMPLETE_LICENSE_METADATA_NOT_LEGAL_CLEARANCE" if not unresolved else "PARTIAL_LICENSE_METADATA_NOT_LEGAL_CLEARANCE",
+        "environment_status": "LOCKED_PACKAGES_PRESENT" if not missing_env else "PARTIAL_LOCAL_ENVIRONMENT",
+        "lockfiles": [{"path": path.relative_to(ROOT).as_posix(), "sha256": sha256(path)} for path in LOCKS],
+        "publisher_metadata": {"path": PUBLISHER_METADATA.relative_to(ROOT).as_posix(), "sha256": sha256(PUBLISHER_METADATA)},
+        "components": ordered,
         "limitations": [
-            (
-                "Python licenses are read from installed distribution metadata: they are "
-                "the publisher's declaration, not legal clearance for this delivery."
-            ),
-            "npm licenses remain unresolved here; the container SBOM gate reads them.",
-            "Python lock files are exact-version pins but may not contain artifact hashes.",
-            (
-                "Container operating-system packages are produced by the CI SBOM gate, "
-                "not this source inventory."
-            ),
+            "License fields are publisher/upstream declarations, not legal clearance.",
+            "Publisher metadata fallback does not prove that a locked package is installed.",
+            "Vulnerability status remains UNKNOWN until OSV or an equivalent live database scanner executes.",
+            "Container operating-system packages are covered by the separate CI/container SBOM gate.",
         ],
+        "unresolved_license_metadata": unresolved,
+        "packages_not_installed_in_inventory_environment": sorted(set(missing_env)),
     }
+
+
+def main() -> int:
+    output = build_inventory()
     target = ROOT / "var/supply-chain-inventory.json"
     target.parent.mkdir(exist_ok=True)
-    target.parent.mkdir(exist_ok=True)
     target.write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    unresolved = [
-        str(item["name"])
-        for item in output["components"]
-        if item["license_status"] == NOT_INSTALLED
-    ]
+    components = output["components"]
+    assert isinstance(components, list)
     summary = {
-        "status": output["status"],
-        "components": len(output["components"]),
-        "licenses_declared": sum(
-            1 for item in output["components"] if item["license_status"] == DECLARED
-        ),
-        "unresolved_because_not_installed": unresolved,
+        "status": output["status"], "environment_status": output["environment_status"],
+        "components": len(components),
+        "licenses_from_installed_metadata": sum(1 for item in components if item["license_status"] == DECLARED),
+        "licenses_from_publisher_metadata": sum(1 for item in components if item["license_status"] == PUBLISHER_DECLARED),
+        "unresolved_license_metadata": output["unresolved_license_metadata"],
+        "packages_not_installed_in_inventory_environment": output["packages_not_installed_in_inventory_environment"],
         "path": str(target.relative_to(ROOT)),
     }
     print(json.dumps(summary, ensure_ascii=False, indent=2))
-    # A locked environment resolves every pinned distribution. Anything left is a
-    # difference between the lock and the environment, which is a finding.
-    return 1 if unresolved else 0
+    return 1 if output["unresolved_license_metadata"] else 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

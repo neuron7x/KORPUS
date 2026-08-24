@@ -1,7 +1,8 @@
 """Cross-field validation for payment-provider and sellable-plan configuration."""
 from __future__ import annotations
-
 from typing import Any
+
+from korpus.security.url_policy import is_https_or_loopback_origin
 
 
 def validate_billing_settings(settings: Any) -> None:
@@ -18,8 +19,7 @@ def _validate_liqpay(settings: Any) -> None:
     if settings.liqpay_signature_algorithm not in {"sha3_256", "sha1"}:
         raise ValueError("LiqPay signature algorithm must be sha3_256 or sha1")
     base = settings.billing_public_base_url.rstrip("/")
-    local_prefixes = ("http://127.0.0.1", "http://localhost", "http://testserver")
-    if not base or not (base.startswith("https://") or base.startswith(local_prefixes)):
+    if not base or not is_https_or_loopback_origin(base):
         raise ValueError(
             "LiqPay checkout requires an HTTPS billing_public_base_url "
             "or an explicit loopback test origin"

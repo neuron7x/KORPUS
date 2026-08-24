@@ -44,7 +44,7 @@ def verify_ed25519_attestation(
         public_bytes = str(payload.get("public_key_pem", "")).encode("ascii")
         signature = base64.b64decode(str(payload.get("signature_base64", "")), validate=True)
     except (UnicodeEncodeError, ValueError):
-        pass
+        public_bytes, signature = b"", b""
     fingerprint = hashlib.sha256(public_bytes).hexdigest() if public_bytes else ""
     signature_ok = False
     try:

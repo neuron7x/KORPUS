@@ -3,9 +3,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 from korpus.application.service_levels import evaluate_load_slos
+from korpus.application.numeric_contracts import nonnegative_count
 
-ALLOWED_ENVIRONMENTS = frozenset({"PRODUCTION_LIKE", "PRODUCTION"})
-LATENCY_KEYS = frozenset({"p50_seconds", "p95_seconds", "p99_seconds"})
+ALLOWED_ENVIRONMENTS = frozenset({"PRODUCTION_LIKE", "PRODUCTION"}); LATENCY_KEYS = frozenset({"p50_seconds", "p95_seconds", "p99_seconds"})
 
 def _bound(report: Mapping[str, Any], source: str, release: str) -> bool:
     return report.get("source_tree_sha256") == source and report.get("release") == release
@@ -14,7 +14,7 @@ def _bound(report: Mapping[str, Any], source: str, release: str) -> bool:
 def _load_complete(load: Mapping[str, Any]) -> bool:
     return all(
         isinstance(load.get(name), Mapping)
-        and int(load[name].get("requests", 0)) > 0
+        and (nonnegative_count(load[name].get("requests")) or 0) > 0
         and LATENCY_KEYS.issubset(load[name])
         for name in ("load", "spike", "soak")
     )

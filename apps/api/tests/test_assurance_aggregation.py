@@ -37,7 +37,7 @@ def junit(tests: int = 273, failures: int = 0, errors: int = 0, skipped: int = 1
     }
 
 
-def coverage(line: float = 0.83, branch: float = 0.76) -> dict:
+def coverage(line: float = 0.96, branch: float = 0.91) -> dict:
     return {"line-rate": str(line), "branch-rate": str(branch)}
 
 
@@ -128,7 +128,7 @@ def test_unparsable_test_count_is_not_treated_as_success() -> None:
     assert result.checks["tests_executed"] is False
 
 
-@pytest.mark.parametrize("line,branch", [(0.5, 0.76), (0.83, 0.10)])
+@pytest.mark.parametrize("line,branch", [(0.5, 0.91), (0.96, 0.10)])
 def test_coverage_below_policy_fails(line: float, branch: float) -> None:
     result = evaluate(coverage=coverage(line=line, branch=branch))
     assert result.passed is False
@@ -193,3 +193,18 @@ def test_mutation_score_over_catalogue_is_the_measured_quantity() -> None:
     result = evaluate(reports=shrunk)
     assert result.passed is False
     assert result.checks["mutation"] is False
+
+
+@pytest.mark.parametrize("impossible", [float("nan"), float("inf"), -0.01, 1.01])
+def test_non_probability_coverage_cannot_satisfy_release_threshold(impossible: float) -> None:
+    result = evaluate(coverage={"line-rate": impossible, "branch-rate": 0.91})
+    assert result.passed is False
+    assert result.checks["coverage_line"] is False
+
+
+def test_invalid_coverage_policy_threshold_cannot_make_the_gate_easier() -> None:
+    broken = json.loads(json.dumps(POLICY))
+    broken["assurance"]["minimum_line_rate"] = float("nan")
+    result = evaluate(policy=broken)
+    assert result.passed is False
+    assert result.checks["coverage_line"] is False

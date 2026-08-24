@@ -1,0 +1,59 @@
+{
+  "schema": "korpus.current-runtime-validation.v1",
+  "generated_at": "2026-08-16T18:15:29.669118+00:00",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "runtime": {
+    "python": "3.13.5"
+  },
+  "checks": {
+    "source_manifest": {
+      "status": "PASS",
+      "files": 824,
+      "root_sha256": "f490d25bd824adf6c9e7c3fa79630b5d4f3345a2668026acd038824179c27acf"
+    },
+    "make_validate": {
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "reports/release/v0.6.1/evidence/raw/make-validate-current-runtime.log"
+    },
+    "local_preflight": {
+      "status": "PASS_WITH_EXTERNAL_BLOCKERS",
+      "exit_code": 0,
+      "log": "reports/release/v0.6.1/evidence/raw/local-preflight-current-runtime.log"
+    },
+    "web_lint": {
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "reports/release/v0.6.1/evidence/raw/web-lint.log"
+    },
+    "web_build": {
+      "status": "PASS",
+      "exit_code": 0,
+      "log": "reports/release/v0.6.1/evidence/raw/web-build.log"
+    },
+    "web_test_reexecution": {
+      "status": "PARTIAL_REEXECUTION",
+      "observed_monolithic_passes_before_harness_timeout": 139,
+      "supplemental_individual_passes": 3,
+      "source_bound_prior_full_report": "reports/release/v0.6.1/WEB_ASSURANCE_CURRENT.json",
+      "prior_full_tests": 142,
+      "interpretation": "No web source files changed; current run reproduced 139 sequential passes and separately reproduced the final three tests. The previous full source-bound 142/142 report remains the canonical monolithic evidence."
+    },
+    "backend_reexecution": {
+      "status": "INCOMPLETE_HARNESS_TIMEOUT",
+      "progress_observed_percent": 8,
+      "log": "reports/release/v0.6.1/evidence/raw/pytest-current-runtime.log",
+      "canonical_source_bound_report": "reports/release/v0.6.1/FULL_BACKEND_REPORT.json",
+      "interpretation": "Current constrained harness did not complete the monolithic suite; no new PASS is asserted. The source-manifest-protected executable tree is byte-identical to the tree named by the existing report."
+    },
+    "static_security": {
+      "status": "PASS",
+      "high_or_critical_findings": 0,
+      "triaged_medium_findings": 54,
+      "report": "reports/release/v0.6.1/final/STATIC_SECURITY_TRIAGE.json"
+    }
+  },
+  "exact_environment_match": false,
+  "exact_environment_reason": "Current interpreter is not CPython 3.12.13 and the locked Ruff/Mypy/PostgreSQL/scanner toolchain is unavailable in this harness."
+}

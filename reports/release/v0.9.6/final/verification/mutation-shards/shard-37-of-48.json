@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 37,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M36_MISALIGNMENT_GATE_REMOVED",
+      "file": "apps/api/src/korpus/application/answer_query.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________ test_a_misaligned_answer_stops_instead_of_raising _______________\n\nclient = <starlette.testclient.TestClient object at 0x7f32941a82f0>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\n\n    def test_a_misaligned_answer_stops_instead_of_raising(\n        client: TestClient, admin_identity: Identity\n    ) -> None:\n        \"\"\"The failure mode this replaces was a 500, not an abstention.\"\"\"\n        result = ingest_text(client, text=BODY)\n        approve(client, result[\"version\"][\"id\"])\n        real = get_answer_service(\n            client.app.state.repository,\n            PolicyEngine(),\n            client.app.dependency_overrides[get_settings](),\n            client.app.state.query_cache,\n            client.app.state.semantic_source,\n        )\n        service = MisalignedService(\n            client.app.state.repository,\n            real.retriever,\n            PolicyEngine(),\n            real.answer_policy,\n        )\n        client.app.dependency_overrides[get_answer_service] = lambda: service\n    \n        response = client.post(\"/v1/answers\", json={\"text\": f\"де згадано {MARKER}\"})\n    \n        assert response.status_code == 200, \"misalignment must abstain, not crash the request\"\n        answer = response.json()\n>       assert answer[\"status\"] == \"requires_human_review\"\nE       AssertionError: assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_citation_alignment.py:128: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_citation_alignment.py::test_a_misaligned_answer_stops_instead_of_raising - AssertionError: assert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
+      "file": "apps/api/src/korpus/application/evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_intra_span_contradiction.py::test_a_numeric_reversal_inside_one_span_stops_the_answer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n___________ test_a_numeric_reversal_inside_one_span_stops_the_answer ___________\n\nclient = <starlette.testclient.TestClient object at 0x7efe3a1c41a0>\n\n    def test_a_numeric_reversal_inside_one_span_stops_the_answer(client: TestClient) -> None:\n        \"\"\"Not only negation: two incompatible quantities for the same subject.\"\"\"\n        body = (\n            f\"Строк подання донесення {MARKER} становить 24 год з моменту події. \"\n            f\"Строк подання донесення {MARKER} становить 72 год для підрозділів забезпечення.\"\n        )\n        result = ingest_text(client, text=body)\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = client.post(\n            \"/v1/answers\", json={\"text\": f\"який строк подання донесення {MARKER}\"}\n        ).json()\n    \n>       assert answer[\"status\"] == \"requires_human_review\", answer[\"decision_reason\"]\nE       AssertionError: extractive_claims_passed_calibrated_gates\nE       assert 'answered' == 'requires_human_review'\nE         \nE         - requires_human_review\nE         + answered\n\napps/api/tests/test_intra_span_contradiction.py:96: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_intra_span_contradiction.py::test_a_numeric_reversal_inside_one_span_stops_the_answer - AssertionError: extractive_claims_passed_calibrated_gates\nassert 'answered' == 'requires_human_review'\n  \n  - requires_human_review\n  + answered\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M147_OVERSIZED_FILE_UNDETECTED",
+      "file": "apps/api/src/korpus/repository_requirements.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_repository_register.py::test_an_oversized_file_is_detected"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n______________________ test_an_oversized_file_is_detected ______________________\n\ntmp_path = PosixPath('/tmp/pytest-of-root/pytest-936/test_an_oversized_file_is_dete0')\n\n    def test_an_oversized_file_is_detected(tmp_path: Path) -> None:\n        root = _tree(tmp_path)\n        (root / \"corpus-dump.bin\").write_bytes(b\"x\" * 5_000_001)\n    \n>       assert load_context(root).oversized == [\"corpus-dump.bin\"]\nE       AssertionError: assert [] == ['corpus-dump.bin']\nE         \nE         Right contains one more item: 'corpus-dump.bin'\nE         \nE         Full diff:\nE         + []\nE         - [\nE         -     'corpus-dump.bin',\nE         - ]\n\napps/api/tests/test_repository_register.py:57: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_repository_register.py::test_an_oversized_file_is_detected - AssertionError: assert [] == ['corpus-dump.bin']\n  \n  Right contains one more item: 'corpus-dump.bin'\n  \n  Full diff:\n  + []\n  - [\n  -     'corpus-dump.bin',\n  - ]\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M205_COMPOSED_OPENING_MAY_STATE_A_NUMBER",
+      "file": "apps/api/src/korpus/application/composition.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_answer_composition.py::test_an_opening_that_states_a_number_is_refused"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_an_opening_that_states_a_number_is_refused ________________\n\n    def test_an_opening_that_states_a_number_is_refused() -> None:\n        \"\"\"Every figure a reader acts on must come from a sentence carrying a hash.\"\"\"\n        composition, reason = _compose(\"Джгут накладається вище рани на 50 сантиметрів\")\n    \n>       assert composition is None\nE       assert Composition(opening='Джгут накладається вище рани на 50 сантиметрів', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n\napps/api/tests/test_answer_composition.py:66: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_answer_composition.py::test_an_opening_that_states_a_number_is_refused - assert Composition(opening='Джгут накладається вище рани на 50 сантиметрів', sentences=(\"Джгут накладається вище рани на п'ять сантиметрів.\", \"Час накладання записується на пов'язці пораненого.\")) is None\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M152_A_DISABLED_ADMIN_MAY_STILL_ADMINISTER",
+      "file": "apps/api/src/korpus/api/routes_admin.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_account_administration.py::test_a_disabled_administrator_cannot_administer"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_______________ test_a_disabled_administrator_cannot_administer ________________\n\nclient = <starlette.testclient.TestClient object at 0x7f05544a8590>\n\n    def test_a_disabled_administrator_cannot_administer(client: Any) -> None:\n        \"\"\"The attack this guards: an account is switched off because it is compromised.\n    \n        Checking only the role let a disabled administrator keep administering — including\n        re-enabling themselves, which makes disabling a suggestion. Found by writing the\n        listing test and noticing the operator had no account row at all.\n        \"\"\"\n        first = _account_of(client, ADMIN)\n        second_admin = Identity(\n            subject=\"oidc|second-admin\",\n            roles=frozenset({\"admin\"}),\n            clearance=AccessTier.RESTRICTED,\n            corpora=frozenset({\"public\"}),\n        )\n        _account_of(client, second_admin)\n    \n        # Another administrator switches the first one off — the path that exists precisely\n        # because you cannot disable yourself.\n        _as(client, second_admin)\n        disabled = client.post(\n            f\"/v1/admin/accounts/{first}/status\",\n            json={\"status\": \"disabled\", \"reason\": \"обліковий запис скомпрометовано\"},\n        )\n        assert disabled.status_code == 200, disabled.text\n    \n        _as(client, ADMIN)\n        for method, path, body in (\n            (\"get\", \"/v1/admin/accounts\", None),\n            (\"get\", f\"/v1/admin/accounts/{second_admin.subject}\", None),\n            (\"post\", f\"/v1/admin/accounts/{first}/status\",\n             {\"status\": \"active\", \"reason\": \"спроба самостійно повернути доступ\"}),\n        ):\n            response = (\n                client.get(path) if method == \"get\" else client.post(path, json=body)\n            )\n>           assert response.status_code == 403, f\"a disabled administrator reached {path}\"\nE           AssertionError: a disabled administrator reached /v1/admin/accounts\nE           assert 200 == 403\nE            +  where 200 = <Response [200 OK]>.status_code\n\napps/api/tests/test_account_administration.py:287: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_account_administration.py::test_a_disabled_administrator_cannot_administer - AssertionError: a disabled administrator reached /v1/admin/accounts\nassert 200 == 403\n +  where 200 = <Response [200 OK]>.status_code\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M241_SUBJECT_OVERLOAD_REASON_COLLAPSED",
+      "file": "apps/api/src/korpus/application/overload.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n________________ test_one_subject_cannot_take_the_whole_service ________________\n\n    def test_one_subject_cannot_take_the_whole_service() -> None:\n        controller = AdmissionController(capacity=4, per_subject_limit=2)\n    \n        with controller.acquire(\"loud\"), controller.acquire(\"loud\"):\n            with pytest.raises(OverloadedError, match=\"per-subject\") as refused:\n                with controller.acquire(\"loud\"):\n                    pass\n>           assert refused.value.reason.value == \"subject_share_exhausted\"\nE           AssertionError: assert 'global_capacity_exhausted' == 'subject_share_exhausted'\nE             \nE             - subject_share_exhausted\nE             + global_capacity_exhausted\n\napps/api/tests/test_resilience_and_audit_scope.py:40: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_resilience_and_audit_scope.py::test_one_subject_cannot_take_the_whole_service - AssertionError: assert 'global_capacity_exhausted' == 'subject_share_exhausted'\n  \n  - subject_share_exhausted\n  + global_capacity_exhausted\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M289_PEC_PROMOTION_CROSS_RUN_REPLAY_ACCEPTED",
+      "file": "apps/api/src/korpus/application/pec_promotion_bindings.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_protocol_gates.py::test_promotion_rejects_green_but_cross_run_evidence_chain"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_promotion_rejects_green_but_cross_run_evidence_chain ___________\n\n    def test_promotion_rejects_green_but_cross_run_evidence_chain() -> None:\n        from korpus.application.pec_promotion import promotion_binding_errors\n    \n        profile = _admitted_profile()\n        digests = {\n            \"counterfactual_replay\": profile.replay_receipt_sha256,\n            \"oracle\": \"6\" * 64,\n            \"training\": profile.training_receipt_sha256,\n        }\n        receipts = {\n            \"dataset_audit\": {\"dataset_sha256\": profile.dataset_sha256},\n            \"counterfactual_replay\": {\n                \"dataset_sha256\": profile.dataset_sha256,\n                \"corpus_release_id\": profile.corpus_release_id,\n                \"evaluation_protocol_sha256\": profile.evaluation_protocol_sha256,\n                \"answer_calibration_id\": profile.answer_calibration_id,\n            },\n            \"oracle\": {\"replay_sha256\": \"f\" * 64},\n            \"training\": {\n                \"dataset_sha256\": profile.dataset_sha256,\n                \"oracle_sha256\": digests[\"oracle\"],\n            },\n            \"controller_verify\": {\"profile_sha256\": \"7\" * 64},\n            \"ablation\": {\"binding\": {\n                \"dataset_sha256\": profile.dataset_sha256,\n                \"corpus_release_id\": profile.corpus_release_id,\n                \"evaluation_protocol_sha256\": profile.evaluation_protocol_sha256,\n                \"answer_calibration_id\": profile.answer_calibration_id,\n            }},\n            \"metamorphic\": {\"binding\": {\n                \"source_digest\": \"8\" * 64,\n                \"corpus_release_id\": profile.corpus_release_id,\n                \"evaluation_protocol_sha256\": profile.evaluation_protocol_sha256,\n                \"answer_calibration_id\": profile.answer_calibration_id,\n            }},\n        }\n        errors = promotion_binding_errors(\n            profile, receipts, digests, profile_file_sha256=\"9\" * 64\n        )\n>       assert \"binding_mismatch:oracle:replay_sha256\" in errors\nE       AssertionError: assert 'binding_mismatch:oracle:replay_sha256' in ['binding_mismatch:controller_verify:profile_sha256']\n\napps/api/tests/test_pec_protocol_gates.py:183: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_protocol_gates.py::test_promotion_rejects_green_but_cross_run_evidence_chain - AssertionError: assert 'binding_mismatch:oracle:replay_sha256' in ['binding_mismatch:controller_verify:profile_sha256']\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:41:36+00:00"
+  }
+}

@@ -1,0 +1,3033 @@
+{
+  "line_exempt": {
+    "apps/api/src/korpus/infrastructure_requirements.py": "A register of requirements is data. It grows by one entry every time the system states another property about itself, which is the behaviour the ratchet exists to encourage. Complexity stays capped.",
+    "apps/api/src/korpus/repository_requirements.py": "A register of requirements is data; it grows by one entry per property the system states about itself. Complexity stays capped.",
+    "scripts/run_mutation_tests.py": "The mutant catalogue is data. It grows by roughly ten lines every time a predicate gains a mutant, which is exactly the behaviour this ratchet exists to encourage. Complexity stays capped: a registry that grew a branch is no longer a registry."
+  },
+  "lowered": [
+    {
+      "new_modules": [
+        "apps/api/src/korpus/application/answer_retrieval_gate.py",
+        "apps/api/src/korpus/application/pec_adaptive_retrieval.py",
+        "apps/api/src/korpus/application/pec_metamorphic_eval.py",
+        "apps/api/src/korpus/application/pec_metamorphic_rules.py",
+        "apps/api/src/korpus/application/pec_promotion_bindings.py",
+        "apps/api/src/korpus/application/pec_training_validation.py",
+        "apps/api/src/korpus/application/retrieval_hybrid.py",
+        "apps/api/src/korpus/infrastructure/repository_search.py",
+        "scripts/pec_ablation_cli.py",
+        "scripts/pec_controller_export_impl.py",
+        "scripts/pec_controller_training_impl.py",
+        "scripts/pec_controller_verify_impl.py",
+        "scripts/pec_controller_verify_logic.py",
+        "scripts/pec_dataset_audit.py",
+        "scripts/pec_oracle_impl.py",
+        "scripts/pec_promotion_cli.py",
+        "scripts/pec_replay_cli.py",
+        "scripts/pec_replay_run.py",
+        "scripts/pec_replay_validation.py"
+      ],
+      "on": "2026-08-22",
+      "paths": [
+        "apps/api/src/korpus/application/answer_query.py",
+        "apps/api/src/korpus/application/pec_metamorphic.py",
+        "apps/api/src/korpus/application/pec_promotion.py",
+        "apps/api/src/korpus/application/pec_replay.py",
+        "apps/api/src/korpus/application/pec_retrieval.py",
+        "apps/api/src/korpus/application/pec_training.py",
+        "apps/api/src/korpus/application/retrieval_execution.py",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "scripts/audit_pec_eval_dataset.py",
+        "scripts/pec_controller_export_cli.py",
+        "scripts/pec_controller_training_cli.py",
+        "scripts/pec_controller_verify_cli.py",
+        "scripts/pec_oracle_report.py",
+        "scripts/promote_pec_profile.py",
+        "scripts/run_counterfactual_replay.py",
+        "scripts/run_pec_ablation_campaign.py"
+      ],
+      "reason": "PEC/retrieval decomposition reduced inherited v0.9.5 module debt without raising any existing ceiling.",
+      "release": "v0.9.6"
+    },
+    {
+      "new_modules": [
+        "scripts/process_group_control.py"
+      ],
+      "on": "2026-08-22",
+      "paths": [
+        "scripts/bounded_process.py"
+      ],
+      "reason": "Process-group quiescence and forced-kill semantics extracted without raising the existing bounded runner ceiling.",
+      "release": "v0.9.6"
+    }
+  ],
+  "modules": {
+    "apps/api/src/korpus/__init__.py": {
+      "lines": 1,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/answering.py": {
+      "lines": 67,
+      "max_complexity": 3,
+      "reason": "the one place an answer is produced under the concurrency bound"
+    },
+    "apps/api/src/korpus/api/billing_dependencies.py": {
+      "lines": 78,
+      "max_complexity": 2
+    },
+    "apps/api/src/korpus/api/dependencies.py": {
+      "lines": 277,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/api/overload_http.py": {
+      "lines": 24,
+      "max_complexity": 2,
+      "reason": "ACT-009: typed HTTP mapping separates subject throttling (429) from global service saturation (503)."
+    },
+    "apps/api/src/korpus/api/readiness_projection.py": {
+      "lines": 15,
+      "max_complexity": 2,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/request_limits.py": {
+      "lines": 30,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/api/routes.py": {
+      "lines": 17,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/api/routes_admin.py": {
+      "lines": 177,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/api/routes_answers.py": {
+      "lines": 120,
+      "max_complexity": 4,
+      "reason": "v0.6.0: source-disclosure schema extracted; route module ratchet lowered"
+    },
+    "apps/api/src/korpus/api/routes_audit.py": {
+      "lines": 53,
+      "max_complexity": 3,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_auth.py": {
+      "lines": 131,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/api/routes_billing.py": {
+      "lines": 165,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/api/routes_billing_callbacks.py": {
+      "lines": 67,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/api/routes_client.py": {
+      "lines": 24,
+      "max_complexity": 1,
+      "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
+    },
+    "apps/api/src/korpus/api/routes_corpus.py": {
+      "lines": 343,
+      "max_complexity": 9,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_health.py": {
+      "lines": 124,
+      "max_complexity": 9,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_inference.py": {
+      "lines": 60,
+      "max_complexity": 9,
+      "reason": "authenticated inference posture/status surface; exposes no secrets and no factual authority"
+    },
+    "apps/api/src/korpus/api/routes_offline.py": {
+      "lines": 63,
+      "max_complexity": 5,
+      "reason": "v0.6.0: authenticated signed offline-pack export/key HTTP boundary; exact initial ceiling"
+    },
+    "apps/api/src/korpus/api/routes_review.py": {
+      "lines": 73,
+      "max_complexity": 7,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/api/routes_tenancy.py": {
+      "lines": 403,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/api/source_disclosure.py": {
+      "lines": 69,
+      "max_complexity": 1,
+      "reason": "v0.6.0: exact source/version validity disclosure projection"
+    },
+    "apps/api/src/korpus/application/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/application/accounts.py": {
+      "lines": 125,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/adaptive_contracts.py": {
+      "lines": 66,
+      "max_complexity": 12,
+      "reason": "adaptive runtime finite/discrete validation kernel"
+    },
+    "apps/api/src/korpus/application/admission.py": {
+      "lines": 242,
+      "max_complexity": 15
+    },
+    "apps/api/src/korpus/application/answer_analysis.py": {
+      "lines": 171,
+      "max_complexity": 10,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/answer_audit.py": {
+      "lines": 121,
+      "max_complexity": 8,
+      "reason": "v0.6.0: request envelope extracted; audit orchestration ratchet lowered"
+    },
+    "apps/api/src/korpus/application/answer_audit_envelope.py": {
+      "lines": 21,
+      "max_complexity": 1,
+      "reason": "v0.6.0: pure source-bound query audit envelope"
+    },
+    "apps/api/src/korpus/application/answer_query.py": {
+      "lines": 561,
+      "max_complexity": 21
+    },
+    "apps/api/src/korpus/application/answer_retrieval_gate.py": {
+      "lines": 44,
+      "max_complexity": 6,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/assurance.py": {
+      "lines": 126,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/assurance_calculus.py": {
+      "lines": 315,
+      "max_complexity": 14,
+      "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
+    },
+    "apps/api/src/korpus/application/assurance_evidence.py": {
+      "lines": 120,
+      "max_complexity": 6,
+      "reason": "ACT-015: container scan evidence extraction tightened shared assurance evaluator line ceiling"
+    },
+    "apps/api/src/korpus/application/assurance_trust.py": {
+      "lines": 31,
+      "max_complexity": 8,
+      "reason": "ACT-010: external protected trust-root injection without source mutation; measured ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/attested_evidence.py": {
+      "lines": 66,
+      "max_complexity": 8,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for detached Ed25519 evidence verification"
+    },
+    "apps/api/src/korpus/application/audit_export.py": {
+      "lines": 166,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/authority_policy.py": {
+      "lines": 31,
+      "max_complexity": 7,
+      "reason": "normative authority-order validation kernel"
+    },
+    "apps/api/src/korpus/application/billing_adjudication.py": {
+      "lines": 217,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/break_glass.py": {
+      "lines": 155,
+      "max_complexity": 10,
+      "reason": "emergency elevation that needs two people, expires, and never carries approval authority"
+    },
+    "apps/api/src/korpus/application/cache.py": {
+      "lines": 138,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/calibration.py": {
+      "lines": 184,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/checkout.py": {
+      "lines": 84,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/client_bootstrap.py": {
+      "lines": 59,
+      "max_complexity": 2,
+      "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
+    },
+    "apps/api/src/korpus/application/composition.py": {
+      "lines": 168,
+      "max_complexity": 9,
+      "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
+    },
+    "apps/api/src/korpus/application/contextual_projection.py": {
+      "lines": 64,
+      "max_complexity": 7,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/controller_profile.py": {
+      "lines": 146,
+      "max_complexity": 11,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/conversation_retention.py": {
+      "lines": 163,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/conversations.py": {
+      "lines": 190,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/application/coverage_policy.py": {
+      "lines": 17,
+      "max_complexity": 3,
+      "reason": "pure canonical path normalization and deterministic risk weighting for coverage adaptation"
+    },
+    "apps/api/src/korpus/application/decision_sensitivity.py": {
+      "lines": 122,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/deployment.py": {
+      "lines": 197,
+      "max_complexity": 21
+    },
+    "apps/api/src/korpus/application/deployment_contract.py": {
+      "lines": 37,
+      "max_complexity": 0,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/determinism.py": {
+      "lines": 73,
+      "max_complexity": 11,
+      "reason": "exact JUnit outcome and semantic replay comparison helpers for deterministic release evidence"
+    },
+    "apps/api/src/korpus/application/doctrine_impact.py": {
+      "lines": 52,
+      "max_complexity": 9,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/egress.py": {
+      "lines": 141,
+      "max_complexity": 8,
+      "reason": "v0.8.2 endpoint-shape validation extracted; external egress now HTTPS-only without raising complexity"
+    },
+    "apps/api/src/korpus/application/embedding_contracts.py": {
+      "lines": 17,
+      "max_complexity": 5,
+      "reason": "embedding discrete-domain validation kernel"
+    },
+    "apps/api/src/korpus/application/embedding_coverage.py": {
+      "lines": 150,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/embedding_migration.py": {
+      "lines": 223,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/engineering_readiness.py": {
+      "lines": 174,
+      "max_complexity": 9,
+      "reason": "v0.8.0 evidence-bounded weighted engineering readiness evaluator"
+    },
+    "apps/api/src/korpus/application/environment_drift.py": {
+      "lines": 193,
+      "max_complexity": 6,
+      "reason": "OPS-004: desired state against an observed environment, with UNOBSERVED kept apart from IN_SYNC and the observation's own age checked before it is compared"
+    },
+    "apps/api/src/korpus/application/evaluation_validity.py": {
+      "lines": 217,
+      "max_complexity": 8,
+      "reason": "ITER5 TEVV admissibility split into pure check/metric projections; exact post-decomposition ratchet ceiling."
+    },
+    "apps/api/src/korpus/application/evidence.py": {
+      "lines": 277,
+      "max_complexity": 11,
+      "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion"
+    },
+    "apps/api/src/korpus/application/evidence_admission.py": {
+      "lines": 107,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/evidence_fusion.py": {
+      "lines": 136,
+      "max_complexity": 6,
+      "reason": "v0.8.0 conflict-preserving evidence fusion"
+    },
+    "apps/api/src/korpus/application/evidence_registry.py": {
+      "lines": 160,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/evidence_state.py": {
+      "lines": 151,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/exact_environment.py": {
+      "lines": 24,
+      "max_complexity": 4,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for exact-environment state predicates"
+    },
+    "apps/api/src/korpus/application/external_redteam.py": {
+      "lines": 75,
+      "max_complexity": 11,
+      "reason": "ACT-012 structured external red-team evidence evaluator; initial measured ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/extraction_quality.py": {
+      "lines": 57,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/final_release_authorization.py": {
+      "lines": 137,
+      "max_complexity": 7,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/fingerprints.py": {
+      "lines": 28,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/gate_inventory.py": {
+      "lines": 63,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/inference_budget.py": {
+      "lines": 100,
+      "max_complexity": 12,
+      "reason": "v0.8.0 bounded inference fixpoint controller"
+    },
+    "apps/api/src/korpus/application/ingestion.py": {
+      "lines": 497,
+      "max_complexity": 19
+    },
+    "apps/api/src/korpus/application/ingestion_jobs.py": {
+      "lines": 220,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/junit_contracts.py": {
+      "lines": 28,
+      "max_complexity": 5,
+      "reason": "Strict JUnit cardinality arithmetic kernel"
+    },
+    "apps/api/src/korpus/application/keyring.py": {
+      "lines": 123,
+      "max_complexity": 7,
+      "reason": "which key signed which audit event, so a key can be replaced without losing the chain"
+    },
+    "apps/api/src/korpus/application/learning_assessment.py": {
+      "lines": 105,
+      "max_complexity": 6,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/load_math.py": {
+      "lines": 26,
+      "max_complexity": 6,
+      "reason": "load SLO numeric evidence kernel"
+    },
+    "apps/api/src/korpus/application/military_assurance.py": {
+      "lines": 194,
+      "max_complexity": 13,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/military_knowledge.py": {
+      "lines": 322,
+      "max_complexity": 15,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/mission_assurance_v2.py": {
+      "lines": 110,
+      "max_complexity": 15,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/noninterference.py": {
+      "lines": 99,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/numeric_contracts.py": {
+      "lines": 74,
+      "max_complexity": 5,
+      "reason": "shared fail-closed numeric-domain predicates"
+    },
+    "apps/api/src/korpus/application/numeric_integrity.py": {
+      "lines": 124,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/application/offline_pack.py": {
+      "lines": 124,
+      "max_complexity": 5,
+      "reason": "v0.6.0: policy-fresh bounded signed evidence-pack application service; exact initial ceiling"
+    },
+    "apps/api/src/korpus/application/offline_trust.py": {
+      "lines": 55,
+      "max_complexity": 5,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/operational_math.py": {
+      "lines": 75,
+      "max_complexity": 6,
+      "reason": "v0.9.5 math hardening: isolated fail-closed operational evidence arithmetic; initial bounded kernel ceiling"
+    },
+    "apps/api/src/korpus/application/operations.py": {
+      "lines": 178,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/application/overload.py": {
+      "lines": 18,
+      "max_complexity": 2,
+      "reason": "ACT-008: typed overload reasons isolated from concurrency mechanics; first measured ceiling."
+    },
+    "apps/api/src/korpus/application/paid_access.py": {
+      "lines": 163,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/pec_ablation.py": {
+      "lines": 78,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/pec_adaptive_retrieval.py": {
+      "lines": 72,
+      "max_complexity": 11,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_audit.py": {
+      "lines": 15,
+      "max_complexity": 3,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/pec_audit_trace.py": {
+      "lines": 39,
+      "max_complexity": 9,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_cache.py": {
+      "lines": 56,
+      "max_complexity": 3,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/pec_canary_admission.py": {
+      "lines": 31,
+      "max_complexity": 9,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_cohort.py": {
+      "lines": 27,
+      "max_complexity": 10,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_contextual_benchmark.py": {
+      "lines": 61,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/application/pec_evidence_features.py": {
+      "lines": 63,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/application/pec_evidence_receipt.py": {
+      "lines": 23,
+      "max_complexity": 11,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_external_assurance.py": {
+      "lines": 23,
+      "max_complexity": 2,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_hosted_evidence.py": {
+      "lines": 226,
+      "max_complexity": 12,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_human_judgment.py": {
+      "lines": 36,
+      "max_complexity": 12,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_metamorphic.py": {
+      "lines": 5,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/application/pec_metamorphic_eval.py": {
+      "lines": 52,
+      "max_complexity": 13,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_metamorphic_rules.py": {
+      "lines": 26,
+      "max_complexity": 11,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_metrics_context.py": {
+      "lines": 23,
+      "max_complexity": 3,
+      "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/pec_oracle_policy.py": {
+      "lines": 69,
+      "max_complexity": 15
+    },
+    "apps/api/src/korpus/application/pec_promotion.py": {
+      "lines": 19,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/pec_promotion_bindings.py": {
+      "lines": 82,
+      "max_complexity": 4,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_replay.py": {
+      "lines": 70,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/pec_research.py": {
+      "lines": 195,
+      "max_complexity": 12,
+      "reason": "v0.9.6 executable research/generalization gates; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_retrieval.py": {
+      "lines": 127,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/pec_revision_binding.py": {
+      "lines": 47,
+      "max_complexity": 5,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_statistics.py": {
+      "lines": 43,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/pec_trace_projection.py": {
+      "lines": 44,
+      "max_complexity": 1
+    },
+    "apps/api/src/korpus/application/pec_training.py": {
+      "lines": 12,
+      "max_complexity": 0,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/pec_training_lineage.py": {
+      "lines": 22,
+      "max_complexity": 4,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/pec_training_model.py": {
+      "lines": 119,
+      "max_complexity": 15,
+      "reason": "v0.9.6 acyclic PEC training model extraction; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/pec_training_validation.py": {
+      "lines": 96,
+      "max_complexity": 14,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/plasticity.py": {
+      "lines": 320,
+      "max_complexity": 12,
+      "reason": "bounded deterministic adaptation state machine; safety thresholds can only tighten automatically"
+    },
+    "apps/api/src/korpus/application/plasticity_config.py": {
+      "lines": 19,
+      "max_complexity": 3,
+      "reason": "single parser and semantic hash for the deployed bounded-plasticity policy artifact"
+    },
+    "apps/api/src/korpus/application/plasticity_model_check.py": {
+      "lines": 78,
+      "max_complexity": 8,
+      "reason": "finite-state executable reference model for the exact bounded-plasticity policy"
+    },
+    "apps/api/src/korpus/application/policy.py": {
+      "lines": 95,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/application/policy_evidence.py": {
+      "lines": 31,
+      "max_complexity": 2,
+      "reason": "v0.6.0: deterministic policy decision identity for audit correlation"
+    },
+    "apps/api/src/korpus/application/ports.py": {
+      "lines": 269,
+      "max_complexity": 1,
+      "reason": "the ports the application depends on: Repository, Extractor, IngestionJobQueue, ObjectStore, Retriever — the layer's whole outward surface, so it grows with it"
+    },
+    "apps/api/src/korpus/application/predictive_evidence_control.py": {
+      "lines": 163,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/application/printed_numbers.py": {
+      "lines": 45,
+      "max_complexity": 6,
+      "reason": "exact locale-aware printed-decimal parser"
+    },
+    "apps/api/src/korpus/application/production_assurance.py": {
+      "lines": 62,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/production_assurance_external.py": {
+      "lines": 33,
+      "max_complexity": 4,
+      "reason": "isolates external production trust predicates from gate aggregation"
+    },
+    "apps/api/src/korpus/application/production_hard_predicates.py": {
+      "lines": 195,
+      "max_complexity": 9,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/production_reliability.py": {
+      "lines": 41,
+      "max_complexity": 5,
+      "reason": "v6.7.1 production reliability evidence evaluator: initial bounded module ceiling"
+    },
+    "apps/api/src/korpus/application/production_report_verification.py": {
+      "lines": 29,
+      "max_complexity": 3,
+      "reason": "v6.8.2 assurance-boundary hardening: initial ceiling for recomputed production-report verification"
+    },
+    "apps/api/src/korpus/application/provenance.py": {
+      "lines": 171,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/provenance_surface.py": {
+      "lines": 15,
+      "max_complexity": 0,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/quantity_math.py": {
+      "lines": 28,
+      "max_complexity": 3,
+      "reason": "exact canonical quantity conversion kernel"
+    },
+    "apps/api/src/korpus/application/query_plan.py": {
+      "lines": 227,
+      "max_complexity": 10,
+      "reason": "v0.6.0: planner output shape/control-injection contract plus hostile iterable deadline boundary; complexity reduced"
+    },
+    "apps/api/src/korpus/application/readiness_contracts.py": {
+      "lines": 21,
+      "max_complexity": 4,
+      "reason": "readiness criterion and finite-target validation kernel"
+    },
+    "apps/api/src/korpus/application/recovery.py": {
+      "lines": 135,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/application/recovery_contracts.py": {
+      "lines": 26,
+      "max_complexity": 7,
+      "reason": "recovery evidence numeric admissibility kernel"
+    },
+    "apps/api/src/korpus/application/regression_receipt_identity.py": {
+      "lines": 33,
+      "max_complexity": 11,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/release_claims.py": {
+      "lines": 46,
+      "max_complexity": 10,
+      "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/release_ledger.py": {
+      "lines": 292,
+      "max_complexity": 14,
+      "reason": "v0.4.0: tamper-evident reason-bearing release transition ledger; initial measured ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/release_numeric.py": {
+      "lines": 47,
+      "max_complexity": 8,
+      "reason": "shared fail-closed release evidence arithmetic"
+    },
+    "apps/api/src/korpus/application/release_state_machine.py": {
+      "lines": 182,
+      "max_complexity": 9,
+      "reason": "formal fail-closed assurance/release model introduced for v0.3.0; ceiling recorded at introduction"
+    },
+    "apps/api/src/korpus/application/release_truth.py": {
+      "lines": 80,
+      "max_complexity": 9,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/request_audit_context.py": {
+      "lines": 63,
+      "max_complexity": 3,
+      "reason": "v0.6.0: request metadata context with credential hashing and bounded client version"
+    },
+    "apps/api/src/korpus/application/requirements.py": {
+      "lines": 133,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/application/resilience.py": {
+      "lines": 174,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/application/retention.py": {
+      "lines": 172,
+      "max_complexity": 7
+    },
+    "apps/api/src/korpus/application/retrieval.py": {
+      "lines": 211,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/application/retrieval_execution.py": {
+      "lines": 103,
+      "max_complexity": 6,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/application/retrieval_hybrid.py": {
+      "lines": 55,
+      "max_complexity": 10,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/retrieval_math.py": {
+      "lines": 209,
+      "max_complexity": 13,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/risk.py": {
+      "lines": 87,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/risk_rules.py": {
+      "lines": 163,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/application/runtime_contracts.py": {
+      "lines": 28,
+      "max_complexity": 8,
+      "reason": "runtime control-loop numeric contracts"
+    },
+    "apps/api/src/korpus/application/service_levels.py": {
+      "lines": 15,
+      "max_complexity": 1,
+      "reason": "ACT-009: shared SLO evaluator separates measured quality from evidence provenance."
+    },
+    "apps/api/src/korpus/application/subscriptions.py": {
+      "lines": 143,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/supply_chain_attestation.py": {
+      "lines": 32,
+      "max_complexity": 6,
+      "reason": "v0.9.7 initial measured ceiling: production evidence authority/provenance hardening"
+    },
+    "apps/api/src/korpus/application/supply_chain_scanners.py": {
+      "lines": 36,
+      "max_complexity": 5,
+      "reason": "ACT-015: bounded scanner-marker evaluator separates source/config and container-image scan evidence"
+    },
+    "apps/api/src/korpus/application/table_integrity.py": {
+      "lines": 122,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/application/tenancy_ports.py": {
+      "lines": 263,
+      "max_complexity": 1
+    },
+    "apps/api/src/korpus/application/tevv.py": {
+      "lines": 133,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/application/tevv_assessor.py": {
+      "lines": 13,
+      "max_complexity": 3,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/tevv_evidence.py": {
+      "lines": 100,
+      "max_complexity": 9,
+      "reason": "Initial ceiling for structured TEVV observation/null ledger recomputation; reductions ratchet downward."
+    },
+    "apps/api/src/korpus/application/tevv_math.py": {
+      "lines": 29,
+      "max_complexity": 9,
+      "reason": "TEVV finite-sample arithmetic kernel"
+    },
+    "apps/api/src/korpus/application/tevv_profile_contracts.py": {
+      "lines": 34,
+      "max_complexity": 5,
+      "reason": "Strict production TEVV policy numeric contract"
+    },
+    "apps/api/src/korpus/application/trace.py": {
+      "lines": 32,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/application/training_progression.py": {
+      "lines": 121,
+      "max_complexity": 10,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/application/tuning.py": {
+      "lines": 168,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/billing_composition.py": {
+      "lines": 80,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/billing_config_policy.py": {
+      "lines": 37,
+      "max_complexity": 6,
+      "reason": "v0.8.2 canonical URL-origin predicate lowers branch complexity"
+    },
+    "apps/api/src/korpus/cli.py": {
+      "lines": 224,
+      "max_complexity": 19
+    },
+    "apps/api/src/korpus/composition.py": {
+      "lines": 68,
+      "max_complexity": 2,
+      "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
+    },
+    "apps/api/src/korpus/config.py": {
+      "lines": 419,
+      "max_complexity": 4,
+      "reason": "ratchet ceiling lowered after production-plane decomposition"
+    },
+    "apps/api/src/korpus/config_namespace.py": {
+      "lines": 29,
+      "max_complexity": 0,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/config_policy.py": {
+      "lines": 201,
+      "max_complexity": 13,
+      "reason": "v0.8.2 shared URL predicates remove duplicated browser/embedding parsing while preserving failure order"
+    },
+    "apps/api/src/korpus/controlled_requirement_core.py": {
+      "lines": 49,
+      "max_complexity": 4,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/controlled_requirements.py": {
+      "lines": 244,
+      "max_complexity": 3,
+      "reason": "v0.8.2 controlled URL requirements use canonical parser predicates"
+    },
+    "apps/api/src/korpus/domain/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/domain/learning.py": {
+      "lines": 292,
+      "max_complexity": 12,
+      "reason": "v0.6.1 ACT-LRN-002: immutable evidence-bound learning graph; publication validation decomposed below the default complexity ceiling"
+    },
+    "apps/api/src/korpus/domain/models.py": {
+      "lines": 563,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/domain/temporal.py": {
+      "lines": 16,
+      "max_complexity": 8,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/domain/tenancy.py": {
+      "lines": 278,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/infrastructure/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
+      "lines": 182,
+      "max_complexity": 7,
+      "reason": "Messages API adapter behind provider-neutral model contract; model output is admitted, never trusted"
+    },
+    "apps/api/src/korpus/infrastructure/audit_anchor.py": {
+      "lines": 229,
+      "max_complexity": 7,
+      "reason": "v0.8.2 audit-anchor endpoint uses canonical URL policy without module growth"
+    },
+    "apps/api/src/korpus/infrastructure/audit_canonical.py": {
+      "lines": 14,
+      "max_complexity": 1,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/audit_event_view.py": {
+      "lines": 31,
+      "max_complexity": 4,
+      "reason": "v0.6.0: stable integrity-chain audit read projection"
+    },
+    "apps/api/src/korpus/infrastructure/audit_reader.py": {
+      "lines": 301,
+      "max_complexity": 16,
+      "reason": "v0.6.0: audit event projection extracted; ratchet lowered"
+    },
+    "apps/api/src/korpus/infrastructure/billing_repository.py": {
+      "lines": 391,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/infrastructure/conversation_repository.py": {
+      "lines": 269,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/infrastructure/deterministic_billing.py": {
+      "lines": 104,
+      "max_complexity": 5
+    },
+    "apps/api/src/korpus/infrastructure/extraction.py": {
+      "lines": 589,
+      "max_complexity": 25
+    },
+    "apps/api/src/korpus/infrastructure/gcp_identity.py": {
+      "lines": 119,
+      "max_complexity": 8,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/gcs.py": {
+      "lines": 313,
+      "max_complexity": 13,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/gcs_audit_anchor.py": {
+      "lines": 99,
+      "max_complexity": 11,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/identity_contracts.py": {
+      "lines": 28,
+      "max_complexity": 5,
+      "reason": "v0.9.5 math hardening: strict metadata credential timing/token contracts; initial bounded kernel ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/ingestion_jobs.py": {
+      "lines": 330,
+      "max_complexity": 9
+    },
+    "apps/api/src/korpus/infrastructure/ingestion_schema.py": {
+      "lines": 40,
+      "max_complexity": 0,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/learning_progress_schema.py": {
+      "lines": 16,
+      "max_complexity": 0,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/learning_repository.py": {
+      "lines": 273,
+      "max_complexity": 8,
+      "reason": "v0.6.1 ACT-LRN-002: lifecycle transaction boundary after writer/reader/source-state decomposition"
+    },
+    "apps/api/src/korpus/infrastructure/learning_schema.py": {
+      "lines": 139,
+      "max_complexity": 0,
+      "reason": "v0.6.1 ACT-LRN-002: normalized learning schema initial ratchet"
+    },
+    "apps/api/src/korpus/infrastructure/learning_source_state.py": {
+      "lines": 54,
+      "max_complexity": 7,
+      "reason": "v0.6.1 ACT-LRN-002: canonical source-state projection extracted from repository"
+    },
+    "apps/api/src/korpus/infrastructure/learning_version_reader.py": {
+      "lines": 181,
+      "max_complexity": 10,
+      "reason": "v0.6.1 ACT-LRN-002: deterministic graph reconstruction extracted from repository"
+    },
+    "apps/api/src/korpus/infrastructure/learning_version_writer.py": {
+      "lines": 136,
+      "max_complexity": 11,
+      "reason": "v0.6.1 ACT-LRN-002: immutable graph insertion extracted from repository"
+    },
+    "apps/api/src/korpus/infrastructure/liqpay.py": {
+      "lines": 203,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/infrastructure/liqpay_math.py": {
+      "lines": 38,
+      "max_complexity": 9,
+      "reason": "LiqPay bounded exact callback arithmetic"
+    },
+    "apps/api/src/korpus/infrastructure/model_contract.py": {
+      "lines": 85,
+      "max_complexity": 6,
+      "reason": "v0.6.0: dead parser branches removed; exact lower complexity ratchet"
+    },
+    "apps/api/src/korpus/infrastructure/object_store.py": {
+      "lines": 503,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/infrastructure/observability.py": {
+      "lines": 166,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/offline_pack_signer.py": {
+      "lines": 29,
+      "max_complexity": 2,
+      "reason": "v0.6.0: operator-provided Ed25519 signing adapter; exact initial ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/openai_planner.py": {
+      "lines": 160,
+      "max_complexity": 11,
+      "reason": "OpenAI Responses API adapter with strict Structured Outputs, store=false and egress gating"
+    },
+    "apps/api/src/korpus/infrastructure/parser_contracts.py": {
+      "lines": 26,
+      "max_complexity": 6,
+      "reason": "v0.9.5 math hardening: strict parser subprocess IPC resource schema; initial bounded kernel ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/parser_worker.py": {
+      "lines": 34,
+      "max_complexity": 3
+    },
+    "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
+      "lines": 119,
+      "max_complexity": 9,
+      "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics"
+    },
+    "apps/api/src/korpus/infrastructure/pec_observability.py": {
+      "lines": 52,
+      "max_complexity": 4,
+      "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/infrastructure/repository.py": {
+      "lines": 1031,
+      "max_complexity": 13,
+      "reason": "ACT-LRN-002: register normalized learning metadata on the canonical repository metadata object; behavior delegated, complexity unchanged"
+    },
+    "apps/api/src/korpus/infrastructure/repository_search.py": {
+      "lines": 106,
+      "max_complexity": 8,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/resource_contracts.py": {
+      "lines": 24,
+      "max_complexity": 5,
+      "reason": "Strict infrastructure resource-bound arithmetic"
+    },
+    "apps/api/src/korpus/infrastructure/retrieval_candidate_query.py": {
+      "lines": 127,
+      "max_complexity": 13,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/retrieval_queries.py": {
+      "lines": 246,
+      "max_complexity": 7,
+      "reason": "builds retrieval statements without opening a connection; carries the release projection so the corpus fingerprint costs one query rather than 232 458 models"
+    },
+    "apps/api/src/korpus/infrastructure/review_transitions.py": {
+      "lines": 259,
+      "max_complexity": 9,
+      "reason": "ACT-008: explicit review-state writer split into validation, supersession, access-tier, optimistic-update and audit steps; ceiling records first measured implementation."
+    },
+    "apps/api/src/korpus/infrastructure/row_mapping.py": {
+      "lines": 268,
+      "max_complexity": 8
+    },
+    "apps/api/src/korpus/infrastructure/runtime.py": {
+      "lines": 67,
+      "max_complexity": 3,
+      "reason": "ratchet ceiling lowered after production-plane decomposition"
+    },
+    "apps/api/src/korpus/infrastructure/runtime_cloud.py": {
+      "lines": 38,
+      "max_complexity": 5,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure/schema.py": {
+      "lines": 238,
+      "max_complexity": 0,
+      "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
+    },
+    "apps/api/src/korpus/infrastructure/semantic.py": {
+      "lines": 274,
+      "max_complexity": 13,
+      "reason": "v0.8.2 embedding endpoint uses canonical URL policy without module growth"
+    },
+    "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
+      "lines": 246,
+      "max_complexity": 4
+    },
+    "apps/api/src/korpus/infrastructure/tenancy_schema.py": {
+      "lines": 207,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/infrastructure/training_progress_repository.py": {
+      "lines": 86,
+      "max_complexity": 5,
+      "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
+    },
+    "apps/api/src/korpus/infrastructure_requirements.py": {
+      "lines": null,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/kubernetes_requirements.py": {
+      "lines": null,
+      "max_complexity": 6,
+      "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
+    },
+    "apps/api/src/korpus/main.py": {
+      "lines": 296,
+      "max_complexity": 25,
+      "reason": "v0.6.0: CSRF decision extracted and request-context cleanup made unconditional; ratchet lowered"
+    },
+    "apps/api/src/korpus/model_settings.py": {
+      "lines": 32,
+      "max_complexity": 4,
+      "reason": "provider selection, canonical endpoint and secret-file resolution outside Settings"
+    },
+    "apps/api/src/korpus/offline_pack_composition.py": {
+      "lines": 25,
+      "max_complexity": 3,
+      "reason": "v0.6.0: offline signer/service composition root; exact initial ceiling"
+    },
+    "apps/api/src/korpus/offline_pack_config_policy.py": {
+      "lines": 11,
+      "max_complexity": 4,
+      "reason": "v0.6.0: fail-closed offline key configuration validation; exact initial ceiling"
+    },
+    "apps/api/src/korpus/pec_composition.py": {
+      "lines": 17,
+      "max_complexity": 4,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/pec_config_policy.py": {
+      "lines": 40,
+      "max_complexity": 13,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "apps/api/src/korpus/release.py": {
+      "lines": 20,
+      "max_complexity": 2,
+      "reason": "v0.6.1: canonical distribution artifact identity is now single-sourced with release version/tag"
+    },
+    "apps/api/src/korpus/repository_requirements.py": {
+      "lines": null,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/runtime_config_policy.py": {
+      "lines": 17,
+      "max_complexity": 11,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/security/__init__.py": {
+      "lines": 0,
+      "max_complexity": 0
+    },
+    "apps/api/src/korpus/security/attestors.py": {
+      "lines": 176,
+      "max_complexity": 17
+    },
+    "apps/api/src/korpus/security/auth.py": {
+      "lines": 200,
+      "max_complexity": 16
+    },
+    "apps/api/src/korpus/security/browser_cookie_policy.py": {
+      "lines": 74,
+      "max_complexity": 8,
+      "reason": "v0.9.4 browser-auth hardening: isolated cookie prefix/emission/CSRF transition policy; exact initial ceiling"
+    },
+    "apps/api/src/korpus/security/browser_csrf.py": {
+      "lines": 35,
+      "max_complexity": 7,
+      "reason": "v0.6.0: isolated fail-closed browser CSRF decision"
+    },
+    "apps/api/src/korpus/security/browser_oidc.py": {
+      "lines": 194,
+      "max_complexity": 10,
+      "reason": "v0.8.2 browser URL construction extracted; provider query cannot shadow flow parameters"
+    },
+    "apps/api/src/korpus/security/browser_oidc_urls.py": {
+      "lines": 41,
+      "max_complexity": 3,
+      "reason": "v0.8.2 bounded OIDC URL canonicalization and authorization-query construction"
+    },
+    "apps/api/src/korpus/security/corpus_governance.py": {
+      "lines": 89,
+      "max_complexity": 6
+    },
+    "apps/api/src/korpus/security/destination_predicates.py": {
+      "lines": 12,
+      "max_complexity": 2,
+      "reason": "v0.9.4 outbound hardening: isolated external-HTTPS predicate wrapper; exact initial ceiling"
+    },
+    "apps/api/src/korpus/security/entitlements.py": {
+      "lines": 111,
+      "max_complexity": 12
+    },
+    "apps/api/src/korpus/security/external_destination.py": {
+      "lines": 24,
+      "max_complexity": 6,
+      "reason": "central fail-closed external HTTPS destination invariant"
+    },
+    "apps/api/src/korpus/security/model_endpoint_policy.py": {
+      "lines": 20,
+      "max_complexity": 4,
+      "reason": "v0.8.2 transport-shape boundary for external/local model endpoints"
+    },
+    "apps/api/src/korpus/security/oidc.py": {
+      "lines": 109,
+      "max_complexity": 10,
+      "reason": "v0.8.2 OIDC header/audience/azp/nonce predicates extracted into independently testable claims module"
+    },
+    "apps/api/src/korpus/security/oidc_claims.py": {
+      "lines": 58,
+      "max_complexity": 12,
+      "reason": "v0.8.2 explicit OIDC algorithm, media-type, audience, azp and nonce predicates"
+    },
+    "apps/api/src/korpus/security/oidc_numeric.py": {
+      "lines": 30,
+      "max_complexity": 3,
+      "reason": "v0.9.5 math hardening: finite/discrete OIDC freshness and cache timing contracts; initial bounded kernel ceiling"
+    },
+    "apps/api/src/korpus/security/reviewers.py": {
+      "lines": 77,
+      "max_complexity": 11
+    },
+    "apps/api/src/korpus/security/scanning.py": {
+      "lines": 90,
+      "max_complexity": 10
+    },
+    "apps/api/src/korpus/security/source_authenticity.py": {
+      "lines": 103,
+      "max_complexity": 14
+    },
+    "apps/api/src/korpus/security/url_policy.py": {
+      "lines": 107,
+      "max_complexity": 8,
+      "reason": "v0.8.2 single conservative parser boundary for security-sensitive HTTP(S) configuration"
+    },
+    "apps/api/src/korpus/tenancy_composition.py": {
+      "lines": 55,
+      "max_complexity": 2
+    },
+    "apps/api/src/korpus/worker_lifecycle.py": {
+      "lines": 18,
+      "max_complexity": 1,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/worker_service.py": {
+      "lines": 97,
+      "max_complexity": 4,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/aggregate_ci_security_summary.py": {
+      "lines": 67,
+      "max_complexity": 14,
+      "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling"
+    },
+    "scripts/assemble_assurance.py": {
+      "lines": 120,
+      "max_complexity": 12
+    },
+    "scripts/assemble_production_assurance.py": {
+      "lines": 77,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/audit_pec_eval_dataset.py": {
+      "lines": 51,
+      "max_complexity": 8,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "scripts/backup_crypto.py": {
+      "lines": 163,
+      "max_complexity": 10
+    },
+    "scripts/backup_manifest.py": {
+      "lines": 120,
+      "max_complexity": 12
+    },
+    "scripts/bootstrap_local.py": {
+      "lines": 98,
+      "max_complexity": 3,
+      "reason": "the local bootstrap: approval refuses a version stating neither effective_from nor publication_date, so this script had to state one"
+    },
+    "scripts/bounded_process.py": {
+      "lines": 39,
+      "max_complexity": 5,
+      "reason": "v0.9.6 bounded execution decomposed; lower ratchet after process-group hardening"
+    },
+    "scripts/build_audit_closure.py": {
+      "lines": 848,
+      "max_complexity": 23,
+      "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
+    },
+    "scripts/build_import_manifest.py": {
+      "lines": 238,
+      "max_complexity": 11,
+      "reason": "drafts a manifest and refuses to invent what it cannot read; snapshot mode carries Drive's own fields through"
+    },
+    "scripts/build_pec_eval_dataset.py": {
+      "lines": 31,
+      "max_complexity": 7,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "scripts/build_provenance.py": {
+      "lines": 219,
+      "max_complexity": 11,
+      "reason": "binds an SBOM and a material list to the image they describe, signed, and refuses a mismatch"
+    },
+    "scripts/build_readiness_947_evidence.py": {
+      "lines": 343,
+      "max_complexity": 7,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/build_reference_set.py": {
+      "lines": 342,
+      "max_complexity": 9,
+      "reason": "freezes a reference set from the deployed corpus; objective on retrieval, citation and refusal, silent on quality"
+    },
+    "scripts/build_supply_chain_evidence_manifest.py": {
+      "lines": 51,
+      "max_complexity": 3,
+      "reason": "v6.8.2 supply-chain evidence binding: initial bounded manifest builder ceiling"
+    },
+    "scripts/build_system_manifest.py": {
+      "lines": 102,
+      "max_complexity": 11
+    },
+    "scripts/chaos_matrix.py": {
+      "lines": 383,
+      "max_complexity": 8,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/check_coverage_thresholds.py": {
+      "lines": 74,
+      "max_complexity": 7
+    },
+    "scripts/check_environment_drift.py": {
+      "lines": 132,
+      "max_complexity": 8,
+      "reason": "OPS-004: observe on the running host, compare against the committed manifest, refuse an observation too old to describe the environment, and own the output path"
+    },
+    "scripts/check_import_cycles.py": {
+      "lines": 92,
+      "max_complexity": 10,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/check_module_budget.py": {
+      "lines": 141,
+      "max_complexity": 13
+    },
+    "scripts/check_release_identity.py": {
+      "lines": 66,
+      "max_complexity": 4,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/conversation_retention.py": {
+      "lines": 142,
+      "max_complexity": 12
+    },
+    "scripts/corpus_release.py": {
+      "lines": 207,
+      "max_complexity": 5,
+      "reason": "freezes and signs what the corpus contained, so a citation can be traced to its release"
+    },
+    "scripts/coverage_gap_plan.py": {
+      "lines": 91,
+      "max_complexity": 6,
+      "reason": "v0.5.0: deterministic risk-weighted coverage ratchet with absolute uncovered-edge ceiling"
+    },
+    "scripts/current_truth_admission.py": {
+      "lines": 43,
+      "max_complexity": 10,
+      "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
+    },
+    "scripts/current_truth_aliases.py": {
+      "lines": 18,
+      "max_complexity": 6,
+      "reason": "v0.9.4 assurance-kernel hardening; initial exact measurement is the ratchet ceiling"
+    },
+    "scripts/current_truth_contract.py": {
+      "lines": 71,
+      "max_complexity": 7,
+      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+    },
+    "scripts/deterministic_replay_probe.py": {
+      "lines": 112,
+      "max_complexity": 4,
+      "reason": "canonical semantic replay digest used by the hash-seed determinism gate"
+    },
+    "scripts/evaluate_engineering_readiness.py": {
+      "lines": 45,
+      "max_complexity": 2
+    },
+    "scripts/evidence_registry.py": {
+      "lines": 134,
+      "max_complexity": 4,
+      "reason": "gate reports kept under their digest for the system's life, sealed and honest about what a seal is"
+    },
+    "scripts/export_audit.py": {
+      "lines": 124,
+      "max_complexity": 7
+    },
+    "scripts/export_authorization_matrix.py": {
+      "lines": 76,
+      "max_complexity": 12,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/export_pec_controller.py": {
+      "lines": 4,
+      "max_complexity": 0
+    },
+    "scripts/export_requirements.py": {
+      "lines": 110,
+      "max_complexity": 8
+    },
+    "scripts/export_state_contracts.py": {
+      "lines": 59,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/fetch_drive_public.py": {
+      "lines": 447,
+      "max_complexity": 20,
+      "reason": "anonymous snapshot of a public Drive folder with provenance; fetching is not ingestion"
+    },
+    "scripts/fetch_drive_snapshot.py": {
+      "lines": 209,
+      "max_complexity": 16,
+      "reason": "a snapshot of a Drive folder with provenance; fetching is not ingestion"
+    },
+    "scripts/full_ssot_packager.py": {
+      "lines": 110,
+      "max_complexity": 7
+    },
+    "scripts/gcp/canary_metrics.py": {
+      "lines": 200,
+      "max_complexity": 11,
+      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/canary_numeric.py": {
+      "lines": 31,
+      "max_complexity": 5,
+      "reason": "Strict canary admission numeric contract"
+    },
+    "scripts/gcp/candidate_target.py": {
+      "lines": 61,
+      "max_complexity": 8,
+      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/live_smoke.py": {
+      "lines": 116,
+      "max_complexity": 12,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/probe_candidate.py": {
+      "lines": 86,
+      "max_complexity": 8,
+      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract.py": {
+      "lines": 152,
+      "max_complexity": 12,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_canary.py": {
+      "lines": 37,
+      "max_complexity": 4,
+      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_capacity.py": {
+      "lines": 17,
+      "max_complexity": 2,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_database.py": {
+      "lines": 37,
+      "max_complexity": 3,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_delivery.py": {
+      "lines": 12,
+      "max_complexity": 2,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_edge.py": {
+      "lines": 59,
+      "max_complexity": 7,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_external.py": {
+      "lines": 17,
+      "max_complexity": 2,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_migration.py": {
+      "lines": 14,
+      "max_complexity": 2,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_network.py": {
+      "lines": 53,
+      "max_complexity": 5,
+      "reason": "v0.9.2 private Cloud SQL/Direct VPC production-network predicates; exact initial measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_observability.py": {
+      "lines": 87,
+      "max_complexity": 11,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_supply.py": {
+      "lines": 32,
+      "max_complexity": 3,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_terraform.py": {
+      "lines": 14,
+      "max_complexity": 2,
+      "reason": "Terraform structural admission predicate; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_contract_tls.py": {
+      "lines": 14,
+      "max_complexity": 2,
+      "reason": "explicit edge TLS policy predicate; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/production_inputs.py": {
+      "lines": 187,
+      "max_complexity": 13,
+      "reason": "external production activation contract; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/rollback_traffic.py": {
+      "lines": 90,
+      "max_complexity": 9,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/slo_contract.py": {
+      "lines": 67,
+      "max_complexity": 7,
+      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+    },
+    "scripts/gcp/slo_contract_types.py": {
+      "lines": 15,
+      "max_complexity": 1,
+      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+    },
+    "scripts/gcp/slo_request_predicates.py": {
+      "lines": 29,
+      "max_complexity": 3,
+      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+    },
+    "scripts/gcp/traffic_snapshot.py": {
+      "lines": 44,
+      "max_complexity": 14,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/validate_migration_compatibility.py": {
+      "lines": 149,
+      "max_complexity": 13,
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/validate_terraform_structure.py": {
+      "lines": 114,
+      "max_complexity": 7,
+      "reason": "offline Terraform structural admission; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/verify_container_vulnerabilities.py": {
+      "lines": 224,
+      "max_complexity": 15,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/verify_governance_bundle.py": {
+      "lines": 130,
+      "max_complexity": 14,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/gcp/verify_live_postgres.py": {
+      "lines": 317,
+      "max_complexity": 12,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/generate_desired_state.py": {
+      "lines": 94,
+      "max_complexity": 14
+    },
+    "scripts/generate_lock_sbom.py": {
+      "lines": 41,
+      "max_complexity": 7,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/generate_manifest.py": {
+      "lines": 59,
+      "max_complexity": 4
+    },
+    "scripts/generate_release_truth.py": {
+      "lines": 44,
+      "max_complexity": 1,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/generate_status.py": {
+      "lines": 117,
+      "max_complexity": 7
+    },
+    "scripts/generate_supply_chain_inventory.py": {
+      "lines": 119,
+      "max_complexity": 8
+    },
+    "scripts/generate_transport_contract.py": {
+      "lines": 68,
+      "max_complexity": 5,
+      "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
+    },
+    "scripts/generate_web_contract.py": {
+      "lines": 157,
+      "max_complexity": 5,
+      "reason": "WEB-001: the browser's constraints generated from the OpenAPI contract and policy.py"
+    },
+    "scripts/import_corpus.py": {
+      "lines": 350,
+      "max_complexity": 31,
+      "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file"
+    },
+    "scripts/inference_smoke.py": {
+      "lines": 66,
+      "max_complexity": 3,
+      "reason": "corpus-free operator smoke for configured external model inference"
+    },
+    "scripts/ingestion_recovery_drill.py": {
+      "lines": 188,
+      "max_complexity": 5,
+      "reason": "a drill: it breaks something on purpose and records what the system says"
+    },
+    "scripts/load_probe.py": {
+      "lines": 180,
+      "max_complexity": 6,
+      "reason": "mixed-workload load/spike/soak against a running deployment; numbers carry their conditions"
+    },
+    "scripts/load_probe_lib/metrics.py": {
+      "lines": 57,
+      "max_complexity": 5,
+      "reason": "ACT-008: load measurement aggregation and refusal-body parsing separated from HTTP workload generation."
+    },
+    "scripts/manifest_lib/integrity.py": {
+      "lines": 60,
+      "max_complexity": 7,
+      "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings"
+    },
+    "scripts/manifest_paths.py": {
+      "lines": 69,
+      "max_complexity": 5,
+      "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling"
+    },
+    "scripts/measure_recovery.py": {
+      "lines": 176,
+      "max_complexity": 5
+    },
+    "scripts/mint_review_token.py": {
+      "lines": 82,
+      "max_complexity": 6,
+      "reason": "a short-lived bearer token for a review session; not a production path"
+    },
+    "scripts/model_check_assurance.py": {
+      "lines": 255,
+      "max_complexity": 11,
+      "reason": "v0.6.0: assurance model-check report is now exact source/release-bound"
+    },
+    "scripts/openapi_contract.py": {
+      "lines": 42,
+      "max_complexity": 5
+    },
+    "scripts/openapi_normalization.py": {
+      "lines": 22,
+      "max_complexity": 6,
+      "reason": "canonicalizes equivalent OpenAPI generator encodings so contract gates track HTTP semantics"
+    },
+    "scripts/package_full_ssot.py": {
+      "lines": 30,
+      "max_complexity": 3,
+      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+    },
+    "scripts/patch_policy.py": {
+      "lines": 197,
+      "max_complexity": 8,
+      "reason": "how long a known vulnerability may stay, and whether the scan that would find it ran"
+    },
+    "scripts/pec_ablation_cli.py": {
+      "lines": 110,
+      "max_complexity": 14,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_common.py": {
+      "lines": 22,
+      "max_complexity": 2,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "scripts/pec_controller_export_cli.py": {
+      "lines": 5,
+      "max_complexity": 0
+    },
+    "scripts/pec_controller_export_impl.py": {
+      "lines": 178,
+      "max_complexity": 13,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_controller_training_cli.py": {
+      "lines": 5,
+      "max_complexity": 0
+    },
+    "scripts/pec_controller_training_impl.py": {
+      "lines": 131,
+      "max_complexity": 10,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_controller_verify_cli.py": {
+      "lines": 5,
+      "max_complexity": 0
+    },
+    "scripts/pec_controller_verify_impl.py": {
+      "lines": 115,
+      "max_complexity": 8,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_controller_verify_logic.py": {
+      "lines": 58,
+      "max_complexity": 8,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_dataset_audit.py": {
+      "lines": 38,
+      "max_complexity": 12,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_oracle_impl.py": {
+      "lines": 156,
+      "max_complexity": 15,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_oracle_report.py": {
+      "lines": 5,
+      "max_complexity": 0
+    },
+    "scripts/pec_promotion_cli.py": {
+      "lines": 90,
+      "max_complexity": 7,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_replay_cli.py": {
+      "lines": 114,
+      "max_complexity": 15,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_replay_run.py": {
+      "lines": 66,
+      "max_complexity": 6,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_replay_validation.py": {
+      "lines": 105,
+      "max_complexity": 12,
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+    },
+    "scripts/pec_research_cli_logic.py": {
+      "lines": 13,
+      "max_complexity": 2,
+      "reason": "v0.9.6 executable research/generalization gates; exact initial verified ratchet ceiling"
+    },
+    "scripts/plan_retention.py": {
+      "lines": 98,
+      "max_complexity": 7
+    },
+    "scripts/prepare_postgres_role.py": {
+      "lines": 123,
+      "max_complexity": 4,
+      "reason": "ACT-LRN-002/ITER5: explicit least-privilege grant surface includes learning_mastery; no blanket/default privilege expansion."
+    },
+    "scripts/process_group_control.py": {
+      "lines": 49,
+      "max_complexity": 10,
+      "reason": "v0.9.6 POSIX process-group termination primitive; exact initial verified ceiling"
+    },
+    "scripts/promote_pec_profile.py": {
+      "lines": 8,
+      "max_complexity": 0
+    },
+    "scripts/propose_runtime_adaptation.py": {
+      "lines": 80,
+      "max_complexity": 5,
+      "reason": "operator CLI that emits validated content-addressed adaptation proposals"
+    },
+    "scripts/release_attestation.py": {
+      "lines": 51,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/release_identity.py": {
+      "lines": 25,
+      "max_complexity": 4,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/release_ledger_cli.py": {
+      "lines": 80,
+      "max_complexity": 7,
+      "reason": "v0.4.0: offline JSONL ledger verification/head-anchor surface; initial measured ratchet ceiling"
+    },
+    "scripts/retention_policy.py": {
+      "lines": 249,
+      "max_complexity": 25,
+      "reason": "backup copies, evidence retention and quotas checked against the disk rather than declared"
+    },
+    "scripts/run_builtin_security_gate.py": {
+      "lines": 171,
+      "max_complexity": 12,
+      "reason": "zero-install security floor: high-confidence dangerous primitive and hardcoded-secret checks; external scanners remain mandatory"
+    },
+    "scripts/run_counterfactual_replay.py": {
+      "lines": 8,
+      "max_complexity": 0,
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
+    },
+    "scripts/run_determinism_gate.py": {
+      "lines": 50,
+      "max_complexity": 4,
+      "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
+    },
+    "scripts/run_engineering_production_gate.py": {
+      "lines": 45,
+      "max_complexity": 5,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_evals.py": {
+      "lines": 414,
+      "max_complexity": 22,
+      "reason": "v0.6.1: evaluation harness now binds explicit claim, tested system, budget, independence and validity-hazard contract; local fixture cannot self-authorize production"
+    },
+    "scripts/run_exact_environment_gate.py": {
+      "lines": 41,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_external_gate_campaign.py": {
+      "lines": 141,
+      "max_complexity": 15,
+      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+    },
+    "scripts/run_inference_security_gate.py": {
+      "lines": 131,
+      "max_complexity": 8,
+      "reason": "ACT-007: deterministic inference-security evidence generator; initial ratchet ceiling"
+    },
+    "scripts/run_local_production_preflight.py": {
+      "lines": 132,
+      "max_complexity": 7,
+      "reason": "v0.6.0: plasticity evidence joins fail-closed local preflight"
+    },
+    "scripts/run_migration_gate.py": {
+      "lines": 99,
+      "max_complexity": 10
+    },
+    "scripts/run_military_readiness_campaign.py": {
+      "lines": 154,
+      "max_complexity": 9,
+      "reason": "ITER5 integrated readiness orchestrator: deterministic disjoint regression batches with fail-closed timeout/failure aggregation; exact ratchet ceiling."
+    },
+    "scripts/run_mutation_production_gate.py": {
+      "lines": 48,
+      "max_complexity": 8,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_mutation_tests.py": {
+      "lines": null,
+      "max_complexity": 11,
+      "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet."
+    },
+    "scripts/run_operational_gate.py": {
+      "lines": 43,
+      "max_complexity": 5
+    },
+    "scripts/run_pec_ablation_campaign.py": {
+      "lines": 8,
+      "max_complexity": 0
+    },
+    "scripts/run_pec_contextual_benchmark.py": {
+      "lines": 34,
+      "max_complexity": 4
+    },
+    "scripts/run_pec_decision_sensitivity_campaign.py": {
+      "lines": 62,
+      "max_complexity": 13
+    },
+    "scripts/run_pec_metamorphic_campaign.py": {
+      "lines": 33,
+      "max_complexity": 5
+    },
+    "scripts/run_pec_research_program.py": {
+      "lines": 81,
+      "max_complexity": 11,
+      "reason": "v0.9.6 executable research/generalization gates; exact initial verified ratchet ceiling"
+    },
+    "scripts/run_plasticity_gate.py": {
+      "lines": 53,
+      "max_complexity": 4,
+      "reason": "exhaustive bounded-plasticity model check and invariant evidence"
+    },
+    "scripts/run_postgres_security_gate.py": {
+      "lines": 57,
+      "max_complexity": 6,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/run_pytest_campaign.py": {
+      "lines": 55,
+      "max_complexity": 6,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/run_quality_gate.py": {
+      "lines": 115,
+      "max_complexity": 6
+    },
+    "scripts/run_reference_eval.py": {
+      "lines": 170,
+      "max_complexity": 24,
+      "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest"
+    },
+    "scripts/run_regression_shards.py": {
+      "lines": 220,
+      "max_complexity": 11,
+      "reason": "v0.9.6 deterministic source-bound full regression sharding gate; exact initial verified ratchet ceiling"
+    },
+    "scripts/run_release_mutation_microcampaign.py": {
+      "lines": 158,
+      "max_complexity": 8,
+      "reason": "v0.5.0: sandboxed release-critical mutation destruction campaign; exact baseline ceiling"
+    },
+    "scripts/run_reliability_gate.py": {
+      "lines": 42,
+      "max_complexity": 3,
+      "reason": "ACT-010: external environment trust injection while preserving the prior line ceiling; complexity ratchet tightened"
+    },
+    "scripts/run_research_assurance.py": {
+      "lines": 185,
+      "max_complexity": 19
+    },
+    "scripts/run_scale_probe.py": {
+      "lines": 163,
+      "max_complexity": 10
+    },
+    "scripts/run_stress_gate.py": {
+      "lines": 70,
+      "max_complexity": 13,
+      "reason": "v0.6.0: plasticity soak joins bounded stress campaign"
+    },
+    "scripts/run_supply_chain_gate.py": {
+      "lines": 48,
+      "max_complexity": 12,
+      "reason": "ACT-010: external supply-chain trust injection; measured line ceiling tightened"
+    },
+    "scripts/run_tevv_production_gate.py": {
+      "lines": 53,
+      "max_complexity": 5,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/safe_archive_extract.py": {
+      "lines": 22,
+      "max_complexity": 6,
+      "reason": "v0.9.4 package hardening: bounded safe-extraction primitive; exact initial ceiling"
+    },
+    "scripts/seed_recovery_fixture.py": {
+      "lines": 103,
+      "max_complexity": 8
+    },
+    "scripts/service_objectives.py": {
+      "lines": 89,
+      "max_complexity": 5,
+      "reason": "what the deployment promises, judged against what it was measured doing"
+    },
+    "scripts/slsa_provenance.py": {
+      "lines": 330,
+      "max_complexity": 9,
+      "reason": "v0.4.0: artifact/material-bound SLSA v1.2 provenance with explicit untrusted local builder; initial measured ratchet ceiling"
+    },
+    "scripts/snapshot_assurance.py": {
+      "lines": 190,
+      "max_complexity": 8
+    },
+    "scripts/snapshot_gate.py": {
+      "lines": 32,
+      "max_complexity": 9,
+      "reason": "ACT-007: retain coherent red production-gate evidence without promotion; initial ratchet ceiling"
+    },
+    "scripts/snapshot_production_assurance.py": {
+      "lines": 35,
+      "max_complexity": 9,
+      "reason": "ACT-007: non-promotion production-verdict snapshot wrapper; initial ratchet ceiling"
+    },
+    "scripts/solve_pec_oracle.py": {
+      "lines": 8,
+      "max_complexity": 0
+    },
+    "scripts/source_digest.py": {
+      "lines": 81,
+      "max_complexity": 10
+    },
+    "scripts/stage_external_production_evidence.py": {
+      "lines": 54,
+      "max_complexity": 7,
+      "reason": "ACT-010: all-or-none staging for externally signed reliability, TEVV and independent red-team evidence; initial measured ratchet ceiling"
+    },
+    "scripts/supply_chain_metadata.py": {
+      "lines": 98,
+      "max_complexity": 12
+    },
+    "scripts/train_pec_controller.py": {
+      "lines": 4,
+      "max_complexity": 0
+    },
+    "scripts/validate_doctrine_catalog.py": {
+      "lines": 211,
+      "max_complexity": 19,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py"
+    },
+    "scripts/validate_external_redteam_evidence.py": {
+      "lines": 40,
+      "max_complexity": 6,
+      "reason": "ACT-010: external independent red-team validator with protected runtime trust-root injection; prior line ceiling preserved"
+    },
+    "scripts/validate_github_actions.py": {
+      "lines": 119,
+      "max_complexity": 9,
+      "reason": "v0.6.1: GitHub import release check now consumes the canonical distribution artifact from release.json instead of a hard-coded date"
+    },
+    "scripts/validate_infrastructure.py": {
+      "lines": 62,
+      "max_complexity": 5
+    },
+    "scripts/validate_kubernetes.py": {
+      "lines": 71,
+      "max_complexity": 10
+    },
+    "scripts/validate_repository.py": {
+      "lines": 51,
+      "max_complexity": 4
+    },
+    "scripts/verify_audit.py": {
+      "lines": 9,
+      "max_complexity": 0
+    },
+    "scripts/verify_current_truth.py": {
+      "lines": 58,
+      "max_complexity": 4,
+      "reason": "v0.8.0 stale-current fail-closed verifier"
+    },
+    "scripts/verify_dependency_locks.py": {
+      "lines": 274,
+      "max_complexity": 13,
+      "reason": "v0.5.0: dependency closure now source/release-bound; exact expanded ceiling"
+    },
+    "scripts/verify_final_release_authorization.py": {
+      "lines": 84,
+      "max_complexity": 5,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/verify_gcp_production.py": {
+      "lines": 37,
+      "max_complexity": 7,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "scripts/verify_gcp_slo.py": {
+      "lines": 31,
+      "max_complexity": 7,
+      "reason": "v0.8.2 production request-SLI decomposition; exact measured value becomes the ratchet ceiling"
+    },
+    "scripts/verify_handoff_contract.py": {
+      "lines": 219,
+      "max_complexity": 41,
+      "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused"
+    },
+    "scripts/verify_observability_contract.py": {
+      "lines": 58,
+      "max_complexity": 7,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/verify_package.py": {
+      "lines": 89,
+      "max_complexity": 5,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/verify_package_build_identity.py": {
+      "lines": 75,
+      "max_complexity": 15
+    },
+    "scripts/verify_pec_controller.py": {
+      "lines": 4,
+      "max_complexity": 0
+    },
+    "scripts/verify_postgres_restore.py": {
+      "lines": 82,
+      "max_complexity": 13
+    },
+    "scripts/verify_production_assurance.py": {
+      "lines": 32,
+      "max_complexity": 4,
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
+    },
+    "scripts/verify_production_hard_predicates.py": {
+      "lines": 79,
+      "max_complexity": 6,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/verify_regression_carry_forward.py": {
+      "lines": 123,
+      "max_complexity": 11,
+      "reason": "bounded regression evidence carry-forward verifier; production gates do not consume it"
+    },
+    "scripts/verify_release_evidence.py": {
+      "lines": 53,
+      "max_complexity": 11
+    },
+    "scripts/verify_source_manifest.py": {
+      "lines": 49,
+      "max_complexity": 12,
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
+    },
+    "scripts/verify_standards_control_map.py": {
+      "lines": 149,
+      "max_complexity": 7,
+      "reason": "v0.5.0: standards evidence now source/release-bound; exact expanded ceiling"
+    },
+    "scripts/wait_for_database.py": {
+      "lines": 27,
+      "max_complexity": 0
+    },
+    "scripts/zip_resource_policy.py": {
+      "lines": 40,
+      "max_complexity": 9,
+      "reason": "v0.9.4 package hardening: pre-extraction ZIP resource admission; exact initial ceiling"
+    },
+    "scripts/zip_safety.py": {
+      "lines": 140,
+      "max_complexity": 8,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/regression_collection.py": {
+      "lines": 106,
+      "max_complexity": 10,
+      "reason": "v0.9.7 deterministic regression collection manifest; initial measured ratchet ceiling"
+    }
+  },
+  "note": "Module-size and structural-complexity ratchet. Ceilings only move down; v0.9.6 records extracted bounded PEC/retrieval modules at exact measured introduction values.",
+  "raised": [
+    {
+      "on": "2026-08-05",
+      "path": "apps/api/src/korpus/application/extraction_quality.py",
+      "reason": "numeric and table integrity predicates joined the flag set; the growth is two imports and the comment explaining what the other predicates cannot see",
+      "to": {
+        "lines": 57,
+        "max_complexity": 9,
+        "worst_function": "assess_extraction_quality"
+      }
+    },
+    {
+      "on": "2026-08-05",
+      "path": "scripts/check_module_budget.py",
+      "reason": "the ratchet grew the null-ceiling branch that lets a registry file expand; recorded here because raising a ceiling is always an edit somebody makes on purpose, including when the file being raised is the ratchet itself",
+      "to": {
+        "lines": 138,
+        "max_complexity": 13,
+        "worst_function": "main"
+      }
+    },
+    {
+      "on": "2026-08-05",
+      "path": "apps/api/src/korpus/application/admission.py",
+      "reason": "the attestation contract gained four checks after a probe showed every blocking ground could be cleared by editing one JSON file: document existence, digest match, a past ISO date, and refusal of a self-signed independent assessment",
+      "to": {
+        "lines": 195,
+        "max_complexity": 14,
+        "worst_function": "_attestation_problems"
+      }
+    },
+    {
+      "on": "2026-08-05",
+      "path": "scripts/validate_infrastructure.py",
+      "reason": "the forbidden-construct check now reads directives instead of raw text, after the comment documenting the privileged-mode ban tripped that ban",
+      "to": {
+        "lines": 268,
+        "max_complexity": 102,
+        "worst_function": "main"
+      }
+    },
+    {
+      "on": "2026-08-05",
+      "path": "scripts/export_requirements.py",
+      "reason": "the export gained the repository register as a third source",
+      "to": {
+        "lines": 91,
+        "max_complexity": 8,
+        "worst_function": "main"
+      }
+    },
+    {
+      "from": {
+        "lines": 414,
+        "max_complexity": 17
+      },
+      "on": "2026-08-05",
+      "path": "scripts/build_audit_closure.py",
+      "reason": "evidence lists for nine findings reclassified after the day's closures; the file is a register and grows with the register",
+      "to": {
+        "lines": 477,
+        "max_complexity": 17,
+        "worst_function": "main"
+      }
+    },
+    {
+      "from": {
+        "lines": null,
+        "max_complexity": 11
+      },
+      "on": "2026-08-05",
+      "path": "apps/api/src/korpus/infrastructure_requirements.py",
+      "reason": "the per-service register gained the digest-pinning requirement (SUP-001); one more generated entry per service is one more comprehension",
+      "to": {
+        "lines": 634,
+        "max_complexity": 12,
+        "worst_function": "_service_requirements"
+      }
+    },
+    {
+      "on": "2026-08-05",
+      "path": "scripts/build_audit_closure.py",
+      "reason": "SUP-001 evidence list",
+      "to": {
+        "lines": 484,
+        "max_complexity": 17,
+        "worst_function": "main"
+      }
+    },
+    {
+      "entries": [
+        {
+          "from": 484,
+          "metric": "lines",
+          "path": "scripts/build_audit_closure.py",
+          "to": 494
+        }
+      ],
+      "on": "2026-08-05",
+      "reason": "RAG-009: the risk classifier became a register of rules with examples"
+    },
+    {
+      "entries": [
+        {
+          "from": 67,
+          "metric": "lines",
+          "path": "apps/api/src/korpus/application/risk.py",
+          "to": 72
+        }
+      ],
+      "on": "2026-08-05",
+      "reason": "RAG-009 closure: risk.py gained the docstring stating what UNCLASSIFIED costs"
+    },
+    {
+      "entries": [
+        {
+          "from": 72,
+          "metric": "lines",
+          "path": "apps/api/src/korpus/application/risk.py",
+          "to": 87
+        },
+        {
+          "from": 3,
+          "metric": "max_complexity",
+          "path": "apps/api/src/korpus/application/risk.py",
+          "to": 4
+        }
+      ],
+      "on": "2026-08-05",
+      "reason": "UNCLASSIFIED gained its own threshold branch and the argument for why coverage does not move with it"
+    },
+    {
+      "entries": [
+        {
+          "from": 325,
+          "metric": "lines",
+          "path": "apps/api/src/korpus/infrastructure/audit_reader.py",
+          "to": 331
+        }
+      ],
+      "on": "2026-08-05",
+      "reason": "COD-001: the audit read side moved out of the repository"
+    },
+    {
+      "entries": [
+        {
+          "from": 494,
+          "metric": "lines",
+          "path": "scripts/build_audit_closure.py",
+          "to": 504
+        }
+      ],
+      "on": "2026-08-05",
+      "reason": "RAG-016: the migration plan and its evidence list"
+    },
+    {
+      "from": {
+        "lines": 536,
+        "max_complexity": 67
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "ACT-001: model egress posture, the subscription gate, free corpora and the billing webhook secret, with the resolver and validator each of them needs",
+      "to": {
+        "lines": 561,
+        "max_complexity": 67,
+        "worst_function": "validate_security_and_calibration"
+      }
+    },
+    {
+      "from": {
+        "lines": 243,
+        "max_complexity": 12
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/infrastructure/anthropic_planner.py",
+      "reason": "ACT-001: the egress check and the refusal that turns it into the failure the application already handles",
+      "to": {
+        "lines": 248,
+        "max_complexity": 12,
+        "worst_function": "_parse"
+      }
+    },
+    {
+      "from": {
+        "lines": 1100,
+        "max_complexity": 23
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "ACT-001: two public seams so a sibling adapter writes its state change and its audit event in one commit, plus the tenancy table registration",
+      "to": {
+        "lines": 1152,
+        "max_complexity": 23,
+        "worst_function": "transition_version"
+      }
+    },
+    {
+      "from": {
+        "lines": 259,
+        "max_complexity": 31
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "ACT-001: two routers and the tenancy installation",
+      "to": {
+        "lines": 269,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      }
+    },
+    {
+      "from": {
+        "lines": 100,
+        "max_complexity": 4
+      },
+      "on": "2026-08-07",
+      "path": "scripts/prepare_postgres_role.py",
+      "reason": "ACT-001: six tenancy tables in the read-write grant list",
+      "to": {
+        "lines": 109,
+        "max_complexity": 4,
+        "worst_function": "read_secret"
+      }
+    },
+    {
+      "from": {
+        "lines": 390,
+        "max_complexity": 8
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored",
+      "to": {
+        "lines": 396,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 140,
+        "max_complexity": 3
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/application/conversations.py",
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored",
+      "to": {
+        "lines": 148,
+        "max_complexity": 3,
+        "worst_function": "record_question"
+      }
+    },
+    {
+      "from": {
+        "lines": 271,
+        "max_complexity": 5
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/domain/tenancy.py",
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored",
+      "to": {
+        "lines": 275,
+        "max_complexity": 5,
+        "worst_function": "active_at"
+      }
+    },
+    {
+      "from": {
+        "lines": 194,
+        "max_complexity": 5
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored",
+      "to": {
+        "lines": 196,
+        "max_complexity": 5,
+        "worst_function": "archive_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 199,
+        "max_complexity": 0
+      },
+      "on": "2026-08-07",
+      "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
+      "reason": "0013: a stored answer remembers whether it was one. Found by reading a transcript in a browser — a refusal came back as a paragraph shaped exactly like an answer, because the verdict was never stored",
+      "to": {
+        "lines": 203,
+        "max_complexity": 0,
+        "worst_function": "-"
+      }
+    },
+    {
+      "from": {
+        "lines": 396,
+        "max_complexity": 8
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns",
+      "to": {
+        "lines": 432,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 148,
+        "max_complexity": 3
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/conversations.py",
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns",
+      "to": {
+        "lines": 190,
+        "max_complexity": 3,
+        "worst_function": "record_question"
+      }
+    },
+    {
+      "from": {
+        "lines": 246,
+        "max_complexity": 1
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns",
+      "to": {
+        "lines": 258,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      }
+    },
+    {
+      "from": {
+        "lines": 196,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "reason": "a list that stops and says nothing reports a truncation as a fact about the account: pagination with has_more, over-fetching one row instead of counting every row the account owns",
+      "to": {
+        "lines": 228,
+        "max_complexity": 5,
+        "worst_function": "archive_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 432,
+        "max_complexity": 8
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "reason": "the concurrency bound was on one of two answer doors; both now go through korpus.api.answering, and the route carries the controller dependency",
+      "to": {
+        "lines": 444,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 228,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/conversation_repository.py",
+      "reason": "conversations grew without bound and appeared in no disposition plan; the window is computed and applied only when an operator asks",
+      "to": {
+        "lines": 269,
+        "max_complexity": 5,
+        "worst_function": "delete_conversations"
+      }
+    },
+    {
+      "from": {
+        "lines": 444,
+        "max_complexity": 8
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/routes_tenancy.py",
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes",
+      "to": {
+        "lines": 450,
+        "max_complexity": 8,
+        "worst_function": "ask_within_conversation"
+      }
+    },
+    {
+      "from": {
+        "lines": 258,
+        "max_complexity": 1
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes",
+      "to": {
+        "lines": 264,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      }
+    },
+    {
+      "from": {
+        "lines": 223,
+        "max_complexity": 4
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/tenancy_repository.py",
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes",
+      "to": {
+        "lines": 246,
+        "max_complexity": 4,
+        "worst_function": "set_account_status"
+      }
+    },
+    {
+      "from": {
+        "lines": 269,
+        "max_complexity": 31
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "disabling an account was reachable only from a Python REPL; it now has routes",
+      "to": {
+        "lines": 271,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      }
+    },
+    {
+      "from": {
+        "lines": 77,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/policy.py",
+      "reason": "a permission checked by a route and named in no table is invisible to anything that reads the table; the set is now enumerable and exported to the browser",
+      "to": {
+        "lines": 100,
+        "max_complexity": 5,
+        "worst_function": "can_access_document"
+      }
+    },
+    {
+      "from": {
+        "lines": 146,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "scripts/generate_web_contract.py",
+      "reason": "a permission checked by a route and named in no table is invisible to anything that reads the table; the set is now enumerable and exported to the browser",
+      "to": {
+        "lines": 157,
+        "max_complexity": 5,
+        "worst_function": "main"
+      }
+    },
+    {
+      "from": {
+        "lines": 823,
+        "max_complexity": 8
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/routes.py",
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests",
+      "to": {
+        "lines": 854,
+        "max_complexity": 9,
+        "worst_function": "ready"
+      }
+    },
+    {
+      "from": {
+        "lines": 116,
+        "max_complexity": 9
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/egress.py",
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests",
+      "to": {
+        "lines": 126,
+        "max_complexity": 9,
+        "worst_function": "check"
+      }
+    },
+    {
+      "from": {
+        "lines": 149,
+        "max_complexity": 8
+      },
+      "on": "2026-08-08",
+      "path": "scripts/snapshot_assurance.py",
+      "reason": "launch audit blockers 1-5: web host-reachability rule, SSRF link-local refusal, /ready snapshot gated by metrics token, snapshot promotion cross-checks evidence digests",
+      "to": {
+        "lines": 190,
+        "max_complexity": 8,
+        "worst_function": "assemble_ci_report"
+      }
+    },
+    {
+      "from": {
+        "lines": 854,
+        "max_complexity": 9
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/routes.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 864,
+        "max_complexity": 9,
+        "worst_function": "ready"
+      }
+    },
+    {
+      "from": {
+        "lines": 258,
+        "max_complexity": 1
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/ports.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 269,
+        "max_complexity": 1,
+        "worst_function": "verify_audit"
+      }
+    },
+    {
+      "from": {
+        "lines": 286,
+        "max_complexity": 13
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/subscriptions.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 293,
+        "max_complexity": 14,
+        "worst_function": "_apply"
+      }
+    },
+    {
+      "from": {
+        "lines": 264,
+        "max_complexity": 1
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/tenancy_ports.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 265,
+        "max_complexity": 1,
+        "worst_function": "verify_event"
+      }
+    },
+    {
+      "from": {
+        "lines": 192,
+        "max_complexity": 17
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/cli.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 224,
+        "max_complexity": 19,
+        "worst_function": "main"
+      }
+    },
+    {
+      "from": {
+        "lines": 275,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/domain/tenancy.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 278,
+        "max_complexity": 5,
+        "worst_function": "active_at"
+      }
+    },
+    {
+      "from": {
+        "lines": 376,
+        "max_complexity": 10
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/billing_repository.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 392,
+        "max_complexity": 14,
+        "worst_function": "record_billing_event"
+      }
+    },
+    {
+      "from": {
+        "lines": 314,
+        "max_complexity": 9
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/ingestion_jobs.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 366,
+        "max_complexity": 9,
+        "worst_function": "claim"
+      }
+    },
+    {
+      "from": {
+        "lines": 468,
+        "max_complexity": 14
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/object_store.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 504,
+        "max_complexity": 14,
+        "worst_function": "get_to_path"
+      }
+    },
+    {
+      "from": {
+        "lines": 203,
+        "max_complexity": 0
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/infrastructure/tenancy_schema.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 207,
+        "max_complexity": 0,
+        "worst_function": "-"
+      }
+    },
+    {
+      "from": {
+        "lines": 271,
+        "max_complexity": 31
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "launch audit reliability batch 10-13: object-store errors typed as retryable, worker crash-loop guard + orphan reaper, DB/store 503 handlers, upload ENOSPC 503, billing out-of-order guard against last applied event, non-idempotency IntegrityError no longer swallowed",
+      "to": {
+        "lines": 297,
+        "max_complexity": 31,
+        "worst_function": "create_app"
+      }
+    },
+    {
+      "from": {
+        "lines": 126,
+        "max_complexity": 9
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/egress.py",
+      "reason": "GOV-006: the egress policy gained a classification ceiling (max_external_tier) and permits_material, deciding what corpus material may be sent to a model outside the deployment — distinct from the URL check, which decides only whether an endpoint may be reached",
+      "to": {
+        "lines": 156,
+        "max_complexity": 9,
+        "worst_function": "_is_local"
+      }
+    },
+    {
+      "from": {
+        "lines": 561,
+        "max_complexity": 67
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "GOV-006: model_egress_max_tier setting and its validator against AccessTier",
+      "to": {
+        "lines": 583,
+        "max_complexity": 67
+      }
+    },
+    {
+      "from": {
+        "lines": 777,
+        "max_complexity": 23
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "reason": "GOV-006: material-tier egress gate before composition, in a helper so execute's complexity did not rise",
+      "to": {
+        "lines": 830,
+        "max_complexity": 23,
+        "worst_function": "execute"
+      }
+    },
+    {
+      "from": {
+        "lines": 91,
+        "max_complexity": 3
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/tenancy_composition.py",
+      "reason": "GOV-006: build_egress_policy now passes the tier ceiling from settings",
+      "to": {
+        "lines": 95,
+        "max_complexity": 3,
+        "worst_function": "build_egress_policy"
+      }
+    },
+    {
+      "from": {
+        "lines": 276,
+        "max_complexity": 5
+      },
+      "on": "2026-08-08",
+      "path": "apps/api/src/korpus/api/dependencies.py",
+      "reason": "GOV-006: the answer service is now built with the egress policy",
+      "to": {
+        "lines": 277,
+        "max_complexity": 5
+      }
+    },
+    {
+      "from": {
+        "lines": 810,
+        "max_complexity": 23
+      },
+      "on": "2026-08-08",
+      "path": "scripts/build_audit_closure.py",
+      "reason": "GOV-006: CODE_HALF register records that an external debt's enforcement code is delivered while its acceptance stays external; merged via _code_half helper so main's complexity did not rise",
+      "to": {
+        "lines": 848,
+        "max_complexity": 23,
+        "worst_function": "main"
+      }
+    },
+    {
+      "from": {
+        "lines": 16,
+        "max_complexity": 0
+      },
+      "on": "2026-08-16",
+      "path": "apps/api/src/korpus/api/routes.py",
+      "reason": "v0.6.0: one bounded offline router joined the API aggregate",
+      "to": {
+        "lines": 17,
+        "max_complexity": 0,
+        "worst_function": "-"
+      }
+    },
+    {
+      "from": {
+        "lines": 421,
+        "max_complexity": 4
+      },
+      "on": "2026-08-16",
+      "path": "apps/api/src/korpus/config.py",
+      "reason": "v0.6.0: five bounded offline-pack settings joined Settings; validators remain decomposed",
+      "to": {
+        "lines": 427,
+        "max_complexity": 4,
+        "worst_function": "unknown_settings_variables"
+      }
+    },
+    {
+      "from": {
+        "lines": 206,
+        "max_complexity": 13
+      },
+      "on": "2026-08-16",
+      "path": "apps/api/src/korpus/config_policy.py",
+      "reason": "v0.6.0: offline-pack configuration policy joined the production settings validation chain",
+      "to": {
+        "lines": 208,
+        "max_complexity": 13,
+        "worst_function": "_validate_browser_oidc"
+      }
+    },
+    {
+      "from": {
+        "lines": 294,
+        "max_complexity": 25
+      },
+      "on": "2026-08-16",
+      "path": "apps/api/src/korpus/main.py",
+      "reason": "v0.6.0: unconditional audit/trace cleanup and offline service composition add two orchestration lines; complexity unchanged",
+      "to": {
+        "lines": 296,
+        "max_complexity": 25,
+        "worst_function": "create_app"
+      }
+    },
+    {
+      "from": {
+        "lines": 1038,
+        "max_complexity": 13
+      },
+      "on": "2026-08-16",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "ACT-LRN-002: three-line metadata registration makes learning tables visible to shared migration/grant/schema gates; repository behavior is unchanged and complexity does not rise",
+      "to": {
+        "lines": 1041,
+        "max_complexity": 13,
+        "worst_function": "initialize"
+      }
+    },
+    {
+      "from": {
+        "lines": 109,
+        "max_complexity": 4
+      },
+      "on": "2026-08-16",
+      "path": "scripts/prepare_postgres_role.py",
+      "reason": "ACT-LRN-002: grant list expanded explicitly for 11 new schema tables so PostgreSQL application-role access is reviewed table-by-table; no blanket/default privilege added",
+      "to": {
+        "lines": 122,
+        "max_complexity": 4,
+        "worst_function": "read_secret"
+      }
+    }
+  ],
+  "recorded_at": "2026-08-22",
+  "schema_version": 1
+}

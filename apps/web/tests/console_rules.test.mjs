@@ -17,7 +17,16 @@ import {
   validateAgainst, visibleConsoles,
 } from "../public/console_rules.js";
 
-const identity = (...roles) => ({subject: "s", roles, clearance: 3});
+const identity = (...roles) => {
+  const granted = new Set();
+  for (const role of roles) {
+    for (const permission of CONTRACT.roles[role] ?? []) {
+      if (permission === "*") for (const known of CONTRACT.permissions) granted.add(known);
+      else granted.add(permission);
+    }
+  }
+  return {identity: {subject: "s", roles, clearance: 3}, effective_permissions: [...granted].sort()};
+};
 
 const validDocument = {
   canonical_title: "Настанова з ведення журналу",
@@ -74,10 +83,10 @@ test("no identity means no console, not every console", () => {
   assert.equal(permits(null, "document:ingest"), false);
 });
 
-test("the role table is the generated one, not a second copy", () => {
-  // If this drifts from policy.py, `make web-contract` regenerates it and the pipeline's
-  // --check fails first. The assertion here is that the module reads that table at all.
-  assert.deepEqual([...permissionsOf(identity("curator"))].sort(), CONTRACT.roles.curator);
+test("the console consumes server-projected permissions, not roles", () => {
+  const projected = identity("curator");
+  projected.identity.roles = ["commander"];
+  assert.deepEqual([...permissionsOf(projected)].sort(), CONTRACT.roles.curator);
 });
 
 // ------------------------------------------------------------ validation

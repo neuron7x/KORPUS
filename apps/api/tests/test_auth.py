@@ -134,7 +134,7 @@ def test_controlled_environment_requires_migration_managed_schema():
 
 def test_controlled_environment_requires_remote_audit_anchor(tmp_path: Path):
     calibration = write_calibration_bundle(tmp_path)
-    with pytest.raises(ValueError, match="remote HTTP audit anchor"):
+    with pytest.raises(ValueError, match="remote HTTPS audit anchor"):
         Settings(
             environment="production",
             database_url="postgresql+psycopg://u:p@db/korpus?sslmode=verify-full",

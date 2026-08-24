@@ -1,0 +1,33 @@
+{
+  "schema": "korpus.migration-compatibility-policy.v1",
+  "baseline_revision": "0017_learning_mastery",
+  "baseline_files": {
+    "apps/api/migrations/versions/0001_initial.py": "20931a3bfcdf87d7eaf811683b8cd28e108cdcccc171bb510416d810208d329e",
+    "apps/api/migrations/versions/0002_database_defense_and_vectors.py": "12d4c81da92bbef0f2e0116df85ca2d6d46a2b56c7db8bd1063463970b7bdb9b",
+    "apps/api/migrations/versions/0003_infrastructure_hardening.py": "ba867e9306e10af2c5f9060fb922e743bcab56afbce2733df5d3348c59b052ff",
+    "apps/api/migrations/versions/0004_compartmented_authorization.py": "4d196c5f494b1df25d70648c98438cc4e0c9bc5b8f966adc2b26347179603c34",
+    "apps/api/migrations/versions/0005_durable_ingestion_jobs.py": "9100fb381de21df6bfd5a4b22edb57110eeda0f91b96940e9b8fc7d12b996ceb",
+    "apps/api/migrations/versions/0006_source_authenticity.py": "c57124bdfc48854aa1c666a4338ee4cbe614a13b7cb274ffd769eb308ac75f7e",
+    "apps/api/migrations/versions/0007_near_duplicate_governance.py": "39af5de5166f8e8d93beaadca70ec5310a0ddfae69572beae28e73b01a7289a8",
+    "apps/api/migrations/versions/0008_extraction_quality_governance.py": "7251140c524417328d69fc4d66fc5c1215dd04b5c7595f4151e53648276d32b7",
+    "apps/api/migrations/versions/0009_reviewer_credentials.py": "6bac46e55f6bc2ac1add9740d35fb126d3d3103bf351832253fa8d8eb17ef21e",
+    "apps/api/migrations/versions/0010_revision_identity.py": "17f72f4eca983267e3e4b37aff07b3f0146c4c9fc2dc6d330b1fe10abb7be8b6",
+    "apps/api/migrations/versions/0011_audit_key_id.py": "92deff71628a76c3bcdf5d8ee3d6462f89b771f4aa2bc3a987aad68734bf9b56",
+    "apps/api/migrations/versions/0012_tenancy.py": "01ce5dadebfb10518aaf2c06c607e2cab1018182ca0e2f0b1b480e2ee76818e2",
+    "apps/api/migrations/versions/0013_message_verdict.py": "3336fc39fd133130103f609c065a7413f08091732552b1c0b64ce1b2d49e54f7",
+    "apps/api/migrations/versions/0014_subscription_last_event.py": "264b213e0c51fd6dd7d437865efb5ed3ec4781a868fed09e1af82f33ab0b175d",
+    "apps/api/migrations/versions/0015_plan_pricing.py": "7182482c4669909edfb17aca4f65fe621ae5fc5a5e3d7d1b245a730148c5ef61",
+    "apps/api/migrations/versions/0016_learning_course_graph.py": "7eee4d2d66928056fb506af2dad71d841e96a733d461c69f31d36c8b770be203",
+    "apps/api/migrations/versions/0017_learning_mastery.py": "1f2a0dff3dd8a290e97fcab3a12992c82a95425259621e1a32339432aac9e144"
+  },
+  "future_upgrade_forbidden_calls": [
+    "drop_table",
+    "drop_column",
+    "drop_constraint",
+    "drop_index",
+    "rename_table",
+    "alter_column",
+    "execute"
+  ],
+  "rationale": "Production migrates before application traffic promotion. Existing migration history is immutable; post-baseline upgrades must be expand-only so the currently serving N-1 revision remains schema-compatible. Destructive contract changes require a later release after old revisions are retired."
+}

@@ -208,6 +208,9 @@ class DocumentRecord(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
+from korpus.domain.temporal import version_is_valid_on_fields
+
+
 class DocumentVersionRecord(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -264,16 +267,13 @@ class DocumentVersionRecord(BaseModel):
         return self.effective_from or self.publication_date
 
     def is_valid_on(self, as_of: date) -> bool:
-        lower_bound = self.in_force_from
-        if lower_bound is None or as_of < lower_bound:
-            return False
-        if self.effective_until is not None and as_of > self.effective_until:
-            return False
-        # De Morgan of the guard `rescinded_at is not None and as_of >= rescinded_at.date()`:
-        # the boundary stays exclusive on the rescission day itself (a document is not
-        # valid on the date it was rescinded), and `rescinded_at.date()` is still only
-        # evaluated when `rescinded_at` is set.
-        return self.rescinded_at is None or as_of < self.rescinded_at.date()
+        return version_is_valid_on_fields(
+            as_of,
+            publication_date=self.publication_date,
+            effective_from=self.effective_from,
+            effective_until=self.effective_until,
+            rescinded_at=self.rescinded_at,
+        )
 
 
 class EvidenceSpanRecord(BaseModel):
@@ -307,6 +307,7 @@ class RetrievedEvidence(BaseModel):
     score: float = Field(ge=0, le=1)
     query_coverage: float = Field(ge=0, le=1)
     lexical_score: float = Field(default=0.0, ge=0)
+    semantic_score: float = Field(default=0.0, ge=0, le=1)
     character_score: float = Field(default=0.0, ge=0, le=1)
     authority_bonus: float = Field(default=0.0, ge=0, le=1)
     rank: int = Field(default=0, ge=0)
@@ -550,7 +551,6 @@ class IngestionJobRecord(BaseModel):
     error_detail: str | None = Field(default=None, max_length=2000)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-
     @model_validator(mode="after")
     def validate_target(self) -> IngestionJobRecord:
         if self.kind is IngestionJobKind.DOCUMENT:

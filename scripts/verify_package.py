@@ -13,6 +13,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from manifest_lib.integrity import archive_modes, archive_root, file_sha256, record_failures
+from zip_safety import safety_failures
 
 
 def _load_records(root: Path, failures: list[str]) -> dict[str, dict[str, object]]:
@@ -38,7 +39,7 @@ def _verify_tree(
     actual = sorted(
         p.relative_to(root).as_posix()
         for p in root.rglob("*")
-        if p.is_file() and p.name != "DISTRIBUTION_MANIFEST.json"
+        if p.is_file() and p.relative_to(root).as_posix() != "DISTRIBUTION_MANIFEST.json"
     )
     if sorted(records) != actual:
         failures.append(
@@ -56,6 +57,9 @@ def verify(archive: Path) -> tuple[list[str], int]:
     with tempfile.TemporaryDirectory(prefix="korpus-package-verify-") as tmp_name:
         tmp = Path(tmp_name)
         with zipfile.ZipFile(archive) as zf:
+            safety = safety_failures(zf)
+            if safety:
+                return safety, 0
             zf.extractall(tmp)
             root = archive_root(tmp)
             modes = archive_modes(zf, root.name if root != tmp else "")

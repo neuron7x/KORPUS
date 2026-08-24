@@ -69,7 +69,10 @@ jobs:
           python -m pip install --no-deps --require-hashes --requirement apps/api/requirements.dev.lock
           python -m pip check
       - name: Run API test and coverage gates
-        run: make api-test PY=python
+        run: |
+          make coverage-ratchet PY=python
+          make determinism-gate PY=python
+          make stress-gate PY=python
 
   api-quality:
     name: api-quality

@@ -45,3 +45,36 @@ def test_database_candidate_budget_is_a_hard_upper_bound(client):
     )
     assert 1 <= len(candidates) <= 8
     assert all("BUDGET-MARKER" in span.text for span, _, _ in candidates)
+
+
+def test_contextual_candidate_fill_recovers_title_vocabulary_without_mutating_evidence(client):
+    title = "КВАНТ-РЕЗЕРВ спеціальний протокол"
+    body = "Кожен запис має містити дату та відповідальну особу."
+    result = ingest_text(client, title=title, text=body)
+    approve(client, result["version"]["id"])
+    repository = client.app.state.repository
+    query = "КВАНТ-РЕЗЕРВ протокол"
+
+    baseline = HybridLexicalRetriever(repository, candidate_budget=8).search(
+        client.identity_provider.current,
+        query,
+        frozenset({"public"}),
+        date.today(),
+    )
+    contextual = HybridLexicalRetriever(
+        repository,
+        candidate_budget=8,
+        contextual_projection_enabled=True,
+    ).search(
+        client.identity_provider.current,
+        query,
+        frozenset({"public"}),
+        date.today(),
+    )
+
+    assert baseline == []
+    assert contextual
+    assert len(contextual) <= 8
+    assert contextual[0].document.canonical_title == title
+    assert contextual[0].span.text == body
+    assert "КВАНТ-РЕЗЕРВ" not in contextual[0].span.text

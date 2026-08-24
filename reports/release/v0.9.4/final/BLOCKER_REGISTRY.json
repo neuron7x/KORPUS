@@ -1,0 +1,123 @@
+{
+  "schema": "korpus.blocker-registry.v2",
+  "generated_at": "2026-08-21T16:50:26.853920+00:00",
+  "release": "v0.9.4",
+  "source_tree_sha256": "a7637ee25bb70e45aa94febeab601803e6a7111a1420dc177191f0c1fe34f584",
+  "items": [
+    {
+      "id": "external_independent_redteam",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "EXTERNAL_INDEPENDENT_ATTESTED"
+    },
+    {
+      "id": "live_vulnerability_scanners",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "CURRENT_SCANNERS_PLUS_SBOM_ATTESTED"
+    },
+    {
+      "id": "live_postgres_rls",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "REAL_POSTGRESQL"
+    },
+    {
+      "id": "real_domain_corpus_tevv",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "REAL_DOMAIN_CORPUS"
+    },
+    {
+      "id": "independent_tevv",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "INDEPENDENT_ATTESTED"
+    },
+    {
+      "id": "production_like_tevv_environment",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "PRODUCTION_LIKE_OR_PRODUCTION_ATTESTED"
+    },
+    {
+      "id": "production_like_load",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "PRODUCTION_LIKE_LOAD"
+    },
+    {
+      "id": "trusted_load_attestation",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "TRUSTED_LOAD_ATTESTATION"
+    },
+    {
+      "id": "trusted_recovery_attestation",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "TRUSTED_RECOVERY_ATTESTATION"
+    },
+    {
+      "id": "trusted_hosted_builder",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "HOSTED_BUILDER_PROVENANCE"
+    },
+    {
+      "id": "trusted_release_signing",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "PRETRUSTED_RELEASE_SIGNER"
+    },
+    {
+      "id": "exact_python_3_12_13_environment",
+      "state": "EXTERNAL_REQUIRED",
+      "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
+      "evidence_current": true,
+      "software_ready": true,
+      "externally_satisfied": false,
+      "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
+    }
+  ],
+  "counts": {
+    "EXTERNAL_REQUIRED": 12
+  },
+  "internal_executable_unresolved": 0,
+  "production_external_or_runtime_unresolved": 12,
+  "hard_predicates_total": 12,
+  "hard_predicate_report_current": true
+}

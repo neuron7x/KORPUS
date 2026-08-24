@@ -19,6 +19,8 @@ def _profile() -> dict[str, object]:
             "redteam_attestation_verified": True,
             "redteam_trusted_signer_required": True,
             "tevv_environment_classes": ["PRODUCTION_LIKE", "PRODUCTION"],
+            "tevv_independent_class": "EXTERNAL_INDEPENDENT",
+            "tevv_trusted_assessor_required": True,
             "postgres_backend": "postgresql",
             "supply_chain_completeness": "COMPLETE",
             "mutation_scope": "FULL_CATALOGUE",
@@ -40,6 +42,7 @@ def _sound_gates(source: str, release: str) -> dict[str, dict[str, object]]:
         }
     gates["redteam"].update({"evidence_class": "EXTERNAL_INDEPENDENT", "attestation_verified": True, "trusted_signer": True})
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"

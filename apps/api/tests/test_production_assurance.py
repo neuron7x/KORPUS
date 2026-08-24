@@ -19,6 +19,7 @@ def test_production_assurance_requires_every_gate_and_external_evidence_class() 
     gates["redteam"]["attestation_verified"] = True
     gates["redteam"]["trusted_signer"] = True
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -30,6 +31,7 @@ def test_internal_redteam_cannot_promote_production() -> None:
     gates = {gate: _gate(gate) for gate in PROFILE["required_gates"]}
     gates["redteam"]["evidence_class"] = "INTERNAL"
     gates["tevv"]["environment_class"] = "PRODUCTION"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -44,6 +46,7 @@ def test_stale_gate_digest_is_rejected_even_if_it_says_pass() -> None:
     gates["redteam"]["attestation_verified"] = True
     gates["redteam"]["trusted_signer"] = True
     gates["tevv"]["environment_class"] = "PRODUCTION"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -58,6 +61,7 @@ def _sound_gates() -> dict[str, dict[str, object]]:
     gates["redteam"]["attestation_verified"] = True
     gates["redteam"]["trusted_signer"] = True
     gates["tevv"]["environment_class"] = "PRODUCTION"
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
     gates["supply_chain"]["completeness"] = "COMPLETE"
     gates["mutation"]["scope"] = "FULL_CATALOGUE"
@@ -92,6 +96,13 @@ def test_self_declared_external_redteam_without_trusted_attestation_is_rejected(
     verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
     assert "redteam.attestation_verified" in verdict.failures
     assert "redteam.trusted_signer" in verdict.failures
+
+
+def test_self_declared_tevv_without_trusted_independent_assessor_is_rejected() -> None:
+    gates = _sound_gates()
+    gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": False}
+    verdict = evaluate_production_assurance(PROFILE, gates, source_digest="s", release="v")
+    assert "tevv.trusted_assessor" in verdict.failures
 
 
 

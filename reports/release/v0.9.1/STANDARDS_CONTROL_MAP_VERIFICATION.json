@@ -1,0 +1,11 @@
+{
+  "schema": "korpus.standards-control-map-verification.v2",
+  "status": "PASS",
+  "release": "v0.9.1",
+  "source_tree_sha256": "5a85de448a976e1b11f07944cdd161efbb8faddd2edbe5d6a9ee191e504db089",
+  "references": 15,
+  "controls": 12,
+  "executable_controls": 10,
+  "external_required_controls": 2,
+  "failures": []
+}

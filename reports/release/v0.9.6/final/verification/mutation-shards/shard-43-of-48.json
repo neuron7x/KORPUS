@@ -1,0 +1,105 @@
+{
+  "schema_version": 3,
+  "shard_index": 43,
+  "shard_count": 48,
+  "mutants": 7,
+  "valid_mutants": 7,
+  "killed": 7,
+  "survived": [],
+  "invalid": [],
+  "errors": [],
+  "mutation_score": 1.0,
+  "mutation_score_over_catalogue": 1.0,
+  "results": [
+    {
+      "id": "M43_WIRED_PER_VERSION_CAP_WIDENED",
+      "file": "apps/api/src/korpus/api/dependencies.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_the_running_configuration_cites_one_span_per_version ___________\n\nclient = <starlette.testclient.TestClient object at 0x7ff7e73f8590>\n\n    def test_the_running_configuration_cites_one_span_per_version(client: TestClient) -> None:\n        \"\"\"The wired-up default, not just the function default.\n    \n        `diversify_evidence` defends its own signature above; this asserts what the\n        application actually runs with, which is a separate value in `dependencies` and\n        drifted from it before.\n        \"\"\"\n        filler = \"Технічні положення інструкції не стосуються обліку записів. \" * 30\n        result = ingest_text(\n            client,\n            title=\"Наказ про журнал\",\n            text=\"\\n\\n\".join(\n                [\n                    OFFICIAL,\n                    filler,\n                    \"Кожен запис журналу перевірок за добу підписує відповідальний підрозділу.\",\n                ]\n            ),\n        )\n        approve(client, result[\"version\"][\"id\"])\n    \n        answer = _ask(client)\n    \n        assert answer[\"status\"] == \"answered\", answer[\"decision_reason\"]\n        version_ids = [citation[\"version_id\"] for citation in answer[\"citations\"]]  # type: ignore[union-attr]\n>       assert len(version_ids) == len(set(version_ids)), (\n            \"two spans of one version were cited as two sources\"\n        )\nE       AssertionError: two spans of one version were cited as two sources\nE       assert 2 == 1\nE        +  where 2 = len(['cbd552ba-fdf7-49f8-8f51-28761a0d2e0e', 'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'])\nE        +  and   1 = len({'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'})\nE        +    where {'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'} = set(['cbd552ba-fdf7-49f8-8f51-28761a0d2e0e', 'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'])\n\napps/api/tests/test_authority_ranking.py:141: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_authority_ranking.py::test_the_running_configuration_cites_one_span_per_version - AssertionError: two spans of one version were cited as two sources\nassert 2 == 1\n +  where 2 = len(['cbd552ba-fdf7-49f8-8f51-28761a0d2e0e', 'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'])\n +  and   1 = len({'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'})\n +    where {'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'} = set(['cbd552ba-fdf7-49f8-8f51-28761a0d2e0e', 'cbd552ba-fdf7-49f8-8f51-28761a0d2e0e'])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M86_QUOTED_WITHHELD_TEXT_NOT_A_LEAK",
+      "file": "apps/api/src/korpus/application/noninterference.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_noninterference_measurement.py::test_an_answer_quoting_withheld_text_is_recognised_as_a_leak"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_________ test_an_answer_quoting_withheld_text_is_recognised_as_a_leak _________\n\nclient = <starlette.testclient.TestClient object at 0x7f7d802d8590>\nadmin_identity = Identity(subject='admin-test', roles=frozenset({'curator', 'user', 'auditor', 'reviewer', 'admin'}), clearance=<AccessTier.RESTRICTED: 3>, corpora=frozenset({'restricted-demo', 'public', 'training'}), compartments=frozenset())\npublic_identity = Identity(subject='public-test', roles=frozenset({'user'}), clearance=<AccessTier.PUBLIC: 0>, corpora=frozenset({'public'}), compartments=frozenset())\n\n    def test_an_answer_quoting_withheld_text_is_recognised_as_a_leak(\n        client: TestClient, admin_identity: Identity, public_identity: Identity\n    ) -> None:\n        _seed(client)\n        repository = client.app.state.repository\n        withheld = withheld_material(repository, admin_identity, public_identity, AS_OF)\n        target = next(item for item in withheld if RESTRICTED_MARKER in item.text)\n        citation = Citation(\n            document_id=target.document_id,\n            version_id=target.version_id,\n            span_id=target.span_id,\n            title=\"Обмежений наказ\",\n            revision=\"1.0\",\n            quote=target.text,\n            quote_start=0,\n            quote_end=len(target.text),\n            quote_hash=hashlib.sha256(target.text.encode(\"utf-8\")).hexdigest(),\n            source_hash=\"0\" * 64,\n        )\n    \n        reasons = leaked_material(\"{}\", [citation], withheld)\n    \n>       assert any(reason.startswith(\"withheld_span_quoted:\") for reason in reasons), reasons\nE       AssertionError: []\nE       assert False\nE        +  where False = any(<generator object test_an_answer_quoting_withheld_text_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f7d800a3030>)\n\napps/api/tests/test_noninterference_measurement.py:90: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_noninterference_measurement.py::test_an_answer_quoting_withheld_text_is_recognised_as_a_leak - AssertionError: []\nassert False\n +  where False = any(<generator object test_an_answer_quoting_withheld_text_is_recognised_as_a_leak.<locals>.<genexpr> at 0x7f7d800a3030>)\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M140_ANY_ENROLLED_KEY_MAY_ATTEST_ANY_GROUND",
+      "file": "apps/api/src/korpus/security/attestors.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_attestation_signatures.py::test_a_corpus_owner_cannot_sign_the_independent_assessment"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n__________ test_a_corpus_owner_cannot_sign_the_independent_assessment __________\n\n    def test_a_corpus_owner_cannot_sign_the_independent_assessment() -> None:\n        \"\"\"§2.5 raised against the assessed party attesting to itself, one level up.\"\"\"\n        registry, private = _registry(role=\"corpus_owner\")\n        attestation = _attestation(private, ground_id=\"2.5\", document_sha256=_document_digest())\n    \n        problems = _verify(registry, attestation, \"external_assessment\")\n    \n>       assert problems and \"may not attest\" in problems[0]\nE       assert ([])\n\napps/api/tests/test_attestation_signatures.py:158: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_attestation_signatures.py::test_a_corpus_owner_cannot_sign_the_independent_assessment - assert ([])\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M186_EXACT_DUPLICATE_CONFIRMS_UNREADABLE_CONTENT",
+      "file": "apps/api/src/korpus/application/ingestion.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_access_oracles.py::test_the_exact_duplicate_check_does_not_confirm_unreadable_content"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "not ingest into unassigned corpus\")\n        if version_data.supersedes_version_id is not None:\n            # Supersession is an edge inside one canonical document. On this path the\n            # document is being created now, so it has no predecessors and the edge can\n            # only point at somebody else's — which is how a foreign upload took an\n            # approved order out of retrieval while it stayed is_current in the database\n            # (destruction stage B3). The sibling path, which adds a version to an\n            # existing document, checks ownership; this one accepted anything.\n            raise ValueError(\n                \"a newly created document cannot supersede a version of another document\"\n            )\n        if not document_data.compartments.issubset(actor.compartments) and not actor.has_role(\n            \"admin\"\n        ):\n            raise PermissionError(\"actor cannot assign unowned compartments\")\n        digest = self._validate_path_and_hash(path, source_hash)\n        self._verify_source(document_data.issuer, version_data, digest)\n        duplicate = self.repository.find_version_by_hash(\n            actor, digest, corpus_id=document_data.corpus_id, revision=version_data.revision\n        )\n        if duplicate is not None:\n            duplicate_document = self.repository.get_document(actor, duplicate.document_id)\n            if (\n                duplicate_document is None\n                or not self.policy.can_access_document(actor, duplicate_document).allowed\n            ):\n                # Deliberately indistinguishable from an ordinary ingestion. Until\n                # 2026-08-06 this raised \"duplicate source content already exists\",\n                # which is a confirmation oracle: a curator who cannot list the document\n                # learns that these exact bytes are already held, one guess at a time.\n                # The code was already careful not to return the *record* — and said so\n                # by raising a message that reveals the same fact in prose.\n                #\n                # Treated as new instead: the bytes are stored under the caller's own\n                # document, the corpus gains a duplicate it cannot see, and nothing is\n                # disclosed. `find_version_by_hash` is scoped by entitlement, so this\n                # branch is only ever reached by a caller who may not see the match.\n>               raise ValueError(\"duplicate source content already exists\")\nE               ValueError: duplicate source content already exists\n\n/tmp/korpus-m186_exact_duplicate_confirms_unreadable_content-qd4mfe2c/api-src/korpus/application/ingestion.py:178: ValueError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_access_oracles.py::test_the_exact_duplicate_check_does_not_confirm_unreadable_content - ValueError: duplicate source content already exists\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M158_READINESS_LEAKS_SNAPSHOT_WITHOUT_TOKEN",
+      "file": "apps/api/src/korpus/api/routes_health.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_infrastructure_hardening.py::test_not_ready_hides_the_internal_snapshot_without_the_metrics_token"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "nauthenticated caller\nE           assert {'anchor_gap_...ad_hash', ...} == {'ready', 'reason'}\nE             \nE             Extra items in the left set:\nE             'anchor_gap_recoverable'\nE             'outbox_within_budget'\nE             'oldest_pending_seconds'\nE             'telemetry'\nE             'schema_current'\nE             'expected_schema_revision'\nE             'anchor_gap_events'\nE             'object_store'\nE             'audit_head_hash'\nE             'database'\nE             'audit_head_sequence'\nE             'pending_anchor_events'\nE             'anchor_matches_history'\nE             'anchor_not_ahead'\nE             'schema_revision'\nE             'anchor_sequence'\nE             Extra items in the right set:\nE             'reason'\nE             \nE             Full diff:\nE               {\nE             +     'anchor_gap_events',\nE             +     'anchor_gap_recoverable',\nE             +     'anchor_matches_history',\nE             +     'anchor_not_ahead',\nE             +     'anchor_sequence',\nE             +     'audit_head_hash',\nE             +     'audit_head_sequence',\nE             +     'database',\nE             +     'expected_schema_revision',\nE             +     'object_store',\nE             +     'oldest_pending_seconds',\nE             +     'outbox_within_budget',\nE             +     'pending_anchor_events',\nE                   'ready',\nE             -     'reason',\nE             +     'schema_current',\nE             +     'schema_revision',\nE             +     'telemetry',\nE               }\n\napps/api/tests/test_infrastructure_hardening.py:421: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_infrastructure_hardening.py::test_not_ready_hides_the_internal_snapshot_without_the_metrics_token - AssertionError: the internal snapshot leaked to an unauthenticated caller\nassert {'anchor_gap_...ad_hash', ...} == {'ready', 'reason'}\n  \n  Extra items in the left set:\n  'anchor_gap_recoverable'\n  'outbox_within_budget'\n  'oldest_pending_seconds'\n  'telemetry'\n  'schema_current'\n  'expected_schema_revision'\n  'anchor_gap_events'\n  'object_store'\n  'audit_head_hash'\n  'database'\n  'audit_head_sequence'\n  'pending_anchor_events'\n  'anchor_matches_history'\n  'anchor_not_ahead'\n  'schema_revision'\n  'anchor_sequence'\n  Extra items in the right set:\n  'reason'\n  \n  Full diff:\n    {\n  +     'anchor_gap_events',\n  +     'anchor_gap_recoverable',\n  +     'anchor_matches_history',\n  +     'anchor_not_ahead',\n  +     'anchor_sequence',\n  +     'audit_head_hash',\n  +     'audit_head_sequence',\n  +     'database',\n  +     'expected_schema_revision',\n  +     'object_store',\n  +     'oldest_pending_seconds',\n  +     'outbox_within_budget',\n  +     'pending_anchor_events',\n        'ready',\n  -     'reason',\n  +     'schema_current',\n  +     'schema_revision',\n  +     'telemetry',\n    }\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M247_EXTERNAL_REDTEAM_RUNTIME_TRUST_DISCONNECTED",
+      "file": "scripts/validate_external_redteam_evidence.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_ci_production_evidence_plumbing.py::test_redteam_validator_uses_protected_runtime_trust_without_source_mutation"
+      ],
+      "sandbox_mode": "full_copy",
+      "output_tail": "F\n=================================== FAILURES ===================================\n_ test_redteam_validator_uses_protected_runtime_trust_without_source_mutation __\n\n    def test_redteam_validator_uses_protected_runtime_trust_without_source_mutation() -> None:\n        source = (ROOT / \"scripts/validate_external_redteam_evidence.py\").read_text(encoding=\"utf-8\")\n>       assert 'trusted_fingerprints(TRUST, \"ed25519_public_key_sha256\", \"KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256\")' in source\nE       assert 'trusted_fingerprints(TRUST, \"ed25519_public_key_sha256\", \"KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256\")' in '#!/usr/bin/env python3\\n\"\"\"Verify independently signed, structured red-team evidence for this source/release.\"\"\"\\nfro...oad, ensure_ascii=False, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n\napps/api/tests/test_ci_production_evidence_plumbing.py:59: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_ci_production_evidence_plumbing.py::test_redteam_validator_uses_protected_runtime_trust_without_source_mutation - assert 'trusted_fingerprints(TRUST, \"ed25519_public_key_sha256\", \"KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256\")' in '#!/usr/bin/env python3\\n\"\"\"Verify independently signed, structured red-team evidence for this source/release.\"\"\"\\nfro...oad, ensure_ascii=False, indent=2)); return int(bool(failures))\\nif __name__ == \"__main__\": raise SystemExit(main())\\n'\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    },
+    {
+      "id": "M295_PEC_CONDITIONAL_RISK_UNDERPOWERED_ADMITTED",
+      "file": "apps/api/src/korpus/application/pec_research.py",
+      "status": "KILLED",
+      "returncode": 1,
+      "target_occurrences": 1,
+      "tests": [
+        "apps/api/tests/test_pec_research.py::test_conditional_risk_underpowered_stratum_falls_back"
+      ],
+      "sandbox_mode": "api_source_overlay",
+      "output_tail": "F\n=================================== FAILURES ===================================\n____________ test_conditional_risk_underpowered_stratum_falls_back _____________\n\n    def test_conditional_risk_underpowered_stratum_falls_back() -> None:\n        rows = (\n            [{\"risk\": \"underpowered\", \"error\": False} for _ in range(3)]\n            + [{\"risk\": \"sufficient_but_unsafe\", \"error\": True} for _ in range(30)]\n        )\n        report = conditional_risk_report(rows, stratum_key=\"risk\", error_key=\"error\", risk_limit=0.2, delta=0.05, minimum_samples=30)\n        assert report[\"status\"] == \"PASS\"\n        assert report[\"strata\"][\"underpowered\"][\"admitted\"] is False\n        assert report[\"strata\"][\"underpowered\"][\"fallback_required\"] is True\n>       assert report[\"strata\"][\"sufficient_but_unsafe\"][\"admitted\"] is False\nE       assert True is False\n\napps/api/tests/test_pec_research.py:20: AssertionError\n=========================== short test summary info ============================\nFAILED apps/api/tests/test_pec_research.py::test_conditional_risk_underpowered_stratum_falls_back - assert True is False\n!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    }
+  ],
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "7c861f879ba1ab8e809bf4bd39f66120a7867f91e3c6fd4bc81c764ba27033ca",
+    "generator": "scripts/run_mutation_tests.py",
+    "generated_at": "2026-08-22T16:43:19+00:00"
+  }
+}

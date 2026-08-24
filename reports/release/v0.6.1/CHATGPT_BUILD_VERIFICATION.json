@@ -1,0 +1,53 @@
+{
+  "schema": "korpus.chatgpt-build-verification.v3",
+  "status": "PASS_WITH_EXTERNAL_BLOCKERS",
+  "release": "v0.6.1",
+  "source_tree_sha256": "4183b5e2a3b1c69ec88eafc62c901ed972c5615e0c7dc25383577e0f785f2900",
+  "source_manifest_files": 824,
+  "source_manifest_root_sha256": "f490d25bd824adf6c9e7c3fa79630b5d4f3345a2668026acd038824179c27acf",
+  "complete_source_tree_sha256": "a9d583786c060ae986156d75d860057503c3aa6b7ef9d582b67a9c1f8d196267",
+  "backend": {
+    "collected": 1675,
+    "passed": 1673,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "coverage": {
+    "statement_coverage_percent": 96.26388104648974,
+    "branch_coverage_percent": 91.91011235955057,
+    "missing_branches": 216
+  },
+  "mutation": {
+    "catalogue_mutants": 302,
+    "valid_mutants": 302,
+    "killed": 302,
+    "survived": [],
+    "invalid": []
+  },
+  "web": {
+    "tests": 142,
+    "passed": 142,
+    "failed": 0,
+    "skipped": 0,
+    "build": "PASS",
+    "lint": "PASS"
+  },
+  "local_preflight": "PASS_WITH_EXTERNAL_BLOCKERS",
+  "production_authorized": false,
+  "external_blockers": [
+    "CONTAINER_OS_SCANNER_UNAVAILABLE",
+    "EXACT_DEPLOYMENT_ENVIRONMENT_ATTESTATION_REQUIRED",
+    "EXTERNAL_INDEPENDENT_REDTEAM_REQUIRED",
+    "OSV_SCANNER_UNAVAILABLE",
+    "POSTGRES_CLIENT_UNAVAILABLE",
+    "PYTHON_VULNERABILITY_SCANNER_UNAVAILABLE",
+    "QUALITY_MYPY_UNAVAILABLE",
+    "QUALITY_RUFF_UNAVAILABLE",
+    "REAL_POSTGRES_CONTAINER_RUNTIME_UNAVAILABLE",
+    "REAL_POSTGRES_PRODUCTION_LIKE_EVIDENCE_REQUIRED",
+    "SECRET_SCANNER_UNAVAILABLE",
+    "TRUSTED_ARTIFACT_SIGNING_TOOL_UNAVAILABLE",
+    "TRUSTED_HOSTED_BUILDER_ATTESTATION_REQUIRED"
+  ]
+}

@@ -18,8 +18,7 @@ against a shape the writer never produced.
 
 from __future__ import annotations
 
-import hmac
-import json
+import hmac, json
 from datetime import UTC, datetime
 from typing import Any
 
@@ -27,44 +26,12 @@ from sqlalchemy import Engine, func, select
 
 from korpus.application.keyring import LEGACY_KEY_ID, AuditKeyRing
 from korpus.application.trace import TRACE_ID_PATTERN
+from korpus.infrastructure.audit_event_view import audit_event_view
 from korpus.domain.models import AuditVerification, Identity
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore
 
 
-def audit_canonical(
-    *,
-    sequence: int,
-    event_id: str,
-    occurred_at: str,
-    actor_subject: str,
-    action: str,
-    resource_type: str,
-    resource_id: str | None,
-    payload_json: str,
-    previous_hash: str,
-) -> bytes:
-    """The bytes an audit event is hashed over.
-
-    Module-level rather than a method on either side: the writer and the verifier must
-    agree exactly, and two copies of a canonical form is a chain that fails to verify
-    against events it produced itself.
-    """
-    return json.dumps(
-        {
-            "schema": 1,
-            "sequence": sequence,
-            "event_id": event_id,
-            "occurred_at": occurred_at,
-            "actor_subject": actor_subject,
-            "action": action,
-            "resource_type": resource_type,
-            "resource_id": resource_id,
-            "payload_json": payload_json,
-            "previous_hash": previous_hash,
-        },
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
+from korpus.infrastructure.audit_canonical import audit_canonical
 
 
 def iso(value: datetime) -> str:
@@ -238,6 +205,9 @@ class AuditReader:
                 self._audits.c.resource_type,
                 self._audits.c.resource_id,
                 self._audits.c.payload_json,
+                self._audits.c.previous_hash,
+                self._audits.c.event_hash,
+                self._audits.c.audit_key_id,
             )
             .where(self._audits.c.payload_json.contains(needle))
             .order_by(self._audits.c.sequence)
@@ -246,21 +216,8 @@ class AuditReader:
         with self.engine.begin() as connection:
             self._apply_identity(connection, identity)
             rows = connection.execute(statement).mappings().all()
-        return [
-            {
-                "sequence": int(row["sequence"]),
-                "event_id": str(row["event_id"]),
-                "occurred_at": iso(row["occurred_at"])
-                if isinstance(row["occurred_at"], datetime)
-                else str(row["occurred_at"]),
-                "actor_subject": str(row["actor_subject"]),
-                "action": str(row["action"]),
-                "resource_type": str(row["resource_type"]),
-                "resource_id": None if row["resource_id"] is None else str(row["resource_id"]),
-                "payload": json.loads(row["payload_json"]),
-            }
-            for row in rows
-        ]
+        return [audit_event_view(row) for row in rows]
+
 
     def readiness_snapshot(
         self, *, max_pending_events: int, max_pending_age_seconds: float
@@ -285,28 +242,35 @@ class AuditReader:
             oldest_age = max(0.0, (now - oldest_pending).total_seconds())
         anchor = self.anchor_store.read()
         anchor_not_ahead = anchor.sequence <= head_sequence
-        if anchor.sequence == 0:
-            anchor_matches_history = anchor.head_hash == "0" * 64
-        elif anchor_not_ahead:
-            with self.engine.connect() as connection:
+        anchor_gap = max(0, int(head_sequence) - int(anchor.sequence))
+
+        # Both checks depend on the same anchor snapshot. Use one database checkout
+        # instead of opening one connection for history and another for the outbox.
+        # The remote anchor read remains outside the connection so network latency never
+        # occupies a DB slot.
+        historical_hash: str | None = None
+        with self.engine.connect() as connection:
+            if anchor.sequence >= 1 and anchor_not_ahead:
                 historical_hash = connection.execute(
                     select(self._audits.c.event_hash).where(
                         self._audits.c.sequence == anchor.sequence
                     )
                 ).scalar_one_or_none()
-            anchor_matches_history = historical_hash is not None and hmac.compare_digest(
-                historical_hash, anchor.head_hash
-            )
-        else:
-            anchor_matches_history = False
-        anchor_gap = max(0, int(head_sequence) - int(anchor.sequence))
-        with self.engine.connect() as connection:
             recoverable_gap = connection.execute(
                 select(func.count()).select_from(self._outbox).where(
                     self._outbox.c.sequence > anchor.sequence,
                     self._outbox.c.delivered_at.is_(None),
                 )
             ).scalar_one()
+
+        if anchor.sequence == 0:
+            anchor_matches_history = anchor.head_hash == "0" * 64
+        elif anchor_not_ahead:
+            anchor_matches_history = historical_hash is not None and hmac.compare_digest(
+                historical_hash, anchor.head_hash
+            )
+        else:
+            anchor_matches_history = False
         anchor_recoverable = int(recoverable_gap) == anchor_gap
         pending_ok = (
             int(pending_count) <= max_pending_events and oldest_age <= max_pending_age_seconds

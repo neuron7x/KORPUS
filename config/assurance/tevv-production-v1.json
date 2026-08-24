@@ -21,5 +21,6 @@
     "PRODUCTION_LIKE",
     "PRODUCTION"
   ],
-  "evidence_schema": "korpus.tevv-evidence.v2"
+  "evidence_schema": "korpus.tevv-evidence.v2",
+  "required_evidence_class": "EXTERNAL_INDEPENDENT"
 }
