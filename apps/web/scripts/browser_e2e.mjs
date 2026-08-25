@@ -283,6 +283,15 @@ async function main() {
       assert(!state.injected && state.pwned === 0, "untrusted answer/citation became executable DOM");
     }, results);
 
+    await runCase("decision_field_maps_only_server_evidence", async () => {
+      await waitFor(cdp, 'document.querySelector("#result .turn:last-child .decision-field")', "decision field");
+      const state = await cdp.evaluate(`(() => { const field=document.querySelector("#result .turn:last-child .decision-field"); const source=field.querySelector(".field-source"); source.click(); return {label:field.querySelector(".field-core strong").textContent,coverage:field.querySelector(".field-core small").textContent,sources:field.querySelectorAll(".field-source").length,release:field.querySelector(".field-invariants div:last-child dd").textContent,counterfactual:field.querySelector(".field-counterfactual p").textContent,style:document.getElementById("decision-field-styles")?.getAttribute("href"),focused:document.querySelector("#result .turn:last-child .citation")?.dataset.commandFocus}; })()`);
+      assert(state.label === "ДОПУЩЕНО" && state.coverage.includes("100%"), `decision field invented or lost verdict metrics: ${JSON.stringify(state)}`);
+      assert(state.sources === 1 && state.release === "browser-fixture-r1", "decision field provenance does not match server answer");
+      assert(state.counterfactual.includes("суперечний доказ"), "decision field omitted the verdict-changing condition");
+      assert(state.style === "/decision_field.css" && state.focused === "true", "decision field did not lazy-load or navigate to its source");
+    }, results);
+
     await runCase("typed_429_is_not_rendered_as_outage", async () => {
       await cdp.evaluate(`(() => { const q=document.getElementById("query"); q.value="throttle перевірка"; q.dispatchEvent(new Event("input",{bubbles:true})); document.getElementById("query-form").requestSubmit(); })()`);
       await waitFor(cdp, 'document.querySelectorAll("#result .turn").length >= 2 && !document.getElementById("result").hasAttribute("aria-busy")', "429 refusal");

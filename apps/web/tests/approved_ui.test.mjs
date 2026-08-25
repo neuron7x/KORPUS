@@ -43,6 +43,14 @@ test("KORPUS TRACE projects the canonical chat state machine", async()=>{
   assert.match(app,/renderTraceState\(machine\.state\)/);
   assert.match(trace,/FAIL_CLOSED: \[3,/);
 });
+test("Decision Field is lazy, source-bound, and counterfactual", async()=>{
+  const app=await read("public/app.js"); const field=await read("public/decision_field.js"); const css=await read("design/decision_field.css");
+  assert.match(app,/import\("\.\/decision_field\.js"\)/);
+  assert.match(field,/evidence_coverage/); assert.match(field,/answer\.citations/); assert.match(field,/answer\.limitations/);
+  assert.match(field,/Що змінить цей вердикт/); assert.match(field,/НЕ ЙМОВІРНІСТЬ/);
+  assert.doesNotMatch(field,/Math\.random|confidence|probability/i);
+  assert.match(css,/\.decision-field/); assert.match(css,/@media\(max-width:700px\)/);
+});
 test("delivery CSS is generated from the readable approved source", async()=>{
   assert.equal(await read("public/styles.css"),minifyCss(await read("design/consumer.css")));
 });

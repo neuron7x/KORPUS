@@ -11,13 +11,13 @@ const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_s
 const SCRIPTS = [
   "public/transport_contract.js", "public/api.js", "public/app.js", "public/chat_fsm.js", "public/routes.js", "public/offline_pack.js", "public/offline_store.js", "public/offline_controller.js", "public/workspace_routes.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
-  "public/combat_scene.js", "public/trace.js",
+  "public/combat_scene.js", "public/trace.js", "public/decision_field.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];
 const PAGES = ["public/index.html", "public/console.html"];
 const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/workspace.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
-  "public/combat.css", "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css", "design/combat.css"];
+  "public/combat.css", "public/decision_field.css", "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css", "design/combat.css", "design/decision_field.css"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));

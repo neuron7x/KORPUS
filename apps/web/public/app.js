@@ -346,6 +346,10 @@ function render(answer, question) {
     ${citations}
     ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
   result.append(block);
+  import("./decision_field.js").then(({createDecisionField}) => {
+    const anchor = block.querySelector(".answer-meta");
+    anchor?.insertAdjacentElement("afterend", createDecisionField(answer));
+  });
   result.classList.remove("hidden", "error");
   emptyChat.hidden = true;
   block.scrollIntoView({block: "nearest", behavior: "smooth"});
