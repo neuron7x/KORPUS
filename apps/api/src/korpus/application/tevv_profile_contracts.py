@@ -30,12 +30,25 @@ def _rate(profile: dict[str, Any], field: str, *, positive: bool = False) -> flo
     return float(value)
 
 
-def validate_tevv_profile(profile: dict[str, Any]) -> dict[str, int | float]:
-    result: dict[str, int | float] = {
+def _flag(profile: dict[str, Any], field: str) -> bool:
+    value = profile.get(field)
+    if not isinstance(value, bool):
+        raise ValueError(f"{field} must be boolean")
+    return value
+
+
+def validate_tevv_profile(profile: dict[str, Any]) -> dict[str, int | float | bool]:
+    result: dict[str, int | float | bool] = {
         "minimum_observations": _count(profile, "minimum_observations", positive=True),
         "minimum_null_controls": _count(profile, "minimum_null_controls", positive=True),
         "maximum_interval_width": _rate(profile, "maximum_interval_width", positive=True),
         "minimum_pass_rate": _rate(profile, "minimum_pass_rate"),
     }
     result.update({field: _count(profile, field, positive=False) for field in _MAX_COUNTS})
+    for field in (
+        "deployment_simulation_required",
+        "evaluation_cue_blinding_required",
+        "dependency_failure_simulation_required",
+    ):
+        result[field] = _flag(profile, field)
     return result

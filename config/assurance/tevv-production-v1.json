@@ -22,5 +22,13 @@
     "PRODUCTION"
   ],
   "evidence_schema": "korpus.tevv-evidence.v2",
-  "required_evidence_class": "EXTERNAL_INDEPENDENT"
+  "required_evidence_class": "EXTERNAL_INDEPENDENT",
+  "deployment_simulation_required": true,
+  "evaluation_cue_blinding_required": true,
+  "dependency_failure_simulation_required": true,
+  "required_simulated_dependency_failures": [
+    "database_unavailable",
+    "embedding_provider_timeout",
+    "object_store_unavailable"
+  ]
 }

@@ -81,6 +81,9 @@ class AdmissionPolicy(BaseModel):
     independent_evaluation_required: bool = True
     real_domain_required: bool = True
     operational_environment_required: bool = True
+    deployment_simulation_required: bool = True
+    evaluation_cue_blinding_required: bool = True
+    dependency_failure_simulation_required: bool = True
 
 
 class CampaignContext(BaseModel):
@@ -89,6 +92,9 @@ class CampaignContext(BaseModel):
     independent_evaluation: bool
     real_domain: bool
     operational_environment: bool
+    deployment_simulation: bool = False
+    evaluation_cues_blinded: bool = False
+    dependency_failures_simulated: bool = False
 
 
 def wilson_interval(
@@ -141,6 +147,12 @@ def _campaign_checks(
         "real_domain": context.real_domain or not policy.real_domain_required,
         "operational_environment": context.operational_environment
         or not policy.operational_environment_required,
+        "deployment_simulation": context.deployment_simulation
+        or not policy.deployment_simulation_required,
+        "evaluation_cues_blinded": context.evaluation_cues_blinded
+        or not policy.evaluation_cue_blinding_required,
+        "dependency_failures_simulated": context.dependency_failures_simulated
+        or not policy.dependency_failure_simulation_required,
     }
 
 

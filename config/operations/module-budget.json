@@ -790,9 +790,9 @@
       "reason": "OPS-004: desired state against an observed environment, with UNOBSERVED kept apart from IN_SYNC and the observation's own age checked before it is compared"
     },
     "apps/api/src/korpus/application/evaluation_validity.py": {
-      "lines": 215,
+      "lines": 227,
       "max_complexity": 9,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+      "reason": "Exact rebaseline adds deployment simulation, evaluation-cue blinding and dependency-failure TEVV predicates"
     },
     "apps/api/src/korpus/application/evidence.py": {
       "lines": 277,
@@ -1306,9 +1306,9 @@
       "reason": "TEVV finite-sample arithmetic kernel"
     },
     "apps/api/src/korpus/application/tevv_profile_contracts.py": {
-      "lines": 41,
+      "lines": 54,
       "max_complexity": 5,
-      "reason": "Strict production TEVV policy numeric contract"
+      "reason": "Exact rebaseline adds strict non-coercing deployment-simulation policy flags"
     },
     "apps/api/src/korpus/application/trace.py": {
       "lines": 32,
@@ -2587,9 +2587,9 @@
       "reason": "ACT-010: external supply-chain trust injection; measured line ceiling tightened"
     },
     "scripts/run_tevv_production_gate.py": {
-      "lines": 53,
+      "lines": 140,
       "max_complexity": 5,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "Exact readable rebaseline of formerly minified gate plus deployment-context, cue-blinding and dependency-simulation predicates; complexity unchanged"
     },
     "scripts/safe_archive_extract.py": {
       "lines": 26,

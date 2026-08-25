@@ -50,6 +50,9 @@ def _evidence() -> tuple[dict, bytes]:
             "document_set_sha256": "a" * 64,
             "synthetic": False,
         },
+        "deployment_context_sha256": "b" * 64,
+        "evaluation_cues_blinded": True,
+        "simulated_dependency_failures": profile["required_simulated_dependency_failures"],
         "observation_ledger": observations,
         "null_control_ledger": [
             {"id": f"null-{index}", "false_accept": False} for index in range(49)
@@ -95,6 +98,19 @@ def test_pretrusted_signed_production_like_tevv_evidence_can_clear_environment_b
         evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json"
     )
     assert result["status"] == "PASS", result
+
+
+def test_trusted_static_benchmark_without_deployment_simulation_fails() -> None:
+    evidence, _ = _evidence()
+    evidence.pop("deployment_context_sha256")
+    evidence["evaluation_cues_blinded"] = False
+    evidence["simulated_dependency_failures"] = []
+
+    result = _trusted_result(evidence)
+
+    assert result["checks"]["deployment_context_bound"] is False
+    assert result["checks"]["evaluation_cues_blinded"] is False
+    assert result["checks"]["dependency_failures_simulated"] is False
 
 
 def _trusted_result(evidence: dict) -> dict:

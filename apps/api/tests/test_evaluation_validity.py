@@ -42,6 +42,9 @@ def ctx(**changes) -> CampaignContext:
         independent_evaluation=True,
         real_domain=True,
         operational_environment=True,
+        deployment_simulation=True,
+        evaluation_cues_blinded=True,
+        dependency_failures_simulated=True,
     )
     values.update(changes)
     return CampaignContext(**values)
@@ -76,6 +79,23 @@ def test_100_percent_accuracy_is_not_enough_on_synthetic_domain():
         [obs(i) for i in range(400)], context=ctx(real_domain=False), policy=policy()
     )
     assert result["checks"]["real_domain"] is False
+    assert result["admitted"] is False
+
+
+def test_static_eval_is_not_enough_without_deployment_simulation_controls():
+    result = evaluate_campaign(
+        [obs(i) for i in range(400)],
+        context=ctx(
+            deployment_simulation=False,
+            evaluation_cues_blinded=False,
+            dependency_failures_simulated=False,
+        ),
+        policy=policy(),
+    )
+
+    assert result["checks"]["deployment_simulation"] is False
+    assert result["checks"]["evaluation_cues_blinded"] is False
+    assert result["checks"]["dependency_failures_simulated"] is False
     assert result["admitted"] is False
 
 
