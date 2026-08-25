@@ -1169,6 +1169,16 @@ def test_the_bootstrap_produces_a_corpus_that_can_actually_answer() -> None:
     assert "date.today()" not in source.split("def main")[1].split("VersionCreate")[1][:400]
 
 
+def test_ci_secret_scan_is_bound_to_the_pipeline_revision() -> None:
+    ci = CI.read_text(encoding="utf-8")
+
+    command = (
+        'gitleaks detect --source . --no-banner --redact --exit-code 1 '
+        '--log-opts "$CI_COMMIT_SHA"'
+    )
+    assert command in ci
+
+
 def test_every_script_is_reachable_from_a_runner() -> None:
     """A script nobody runs is a script nobody maintains — and one that is cited.
 
