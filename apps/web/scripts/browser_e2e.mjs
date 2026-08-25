@@ -300,7 +300,7 @@ async function main() {
       assert(state.reason.includes("Ліміт одночасних запитів"), "typed refusal reason was lost");
     }, results);
 
-    await runCase("mobile_viewport_matrix_is_touch_safe_without_overflow", async () => {
+    await runCase("mobile_viewport_has_no_horizontal_overflow", async () => {
       await cdp.send("Emulation.setTouchEmulationEnabled", {enabled:true, maxTouchPoints:5});
       for (const viewport of [{width:320,height:568}, {width:390,height:844}, {width:844,height:390}]) {
         await cdp.send("Emulation.setDeviceMetricsOverride", {...viewport, deviceScaleFactor:2, mobile:true});

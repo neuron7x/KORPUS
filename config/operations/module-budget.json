@@ -1777,6 +1777,11 @@
       "max_complexity": 8,
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
+    "scripts/audit_runtime_corpus.py": {
+      "lines": 191,
+      "max_complexity": 10,
+      "reason": "Initial measured ceiling for fail-closed runtime corpus, reference-version and object-integrity admission"
+    },
     "scripts/backup_crypto.py": {
       "lines": 164,
       "max_complexity": 10
@@ -1890,6 +1895,11 @@
       "lines": 79,
       "max_complexity": 7,
       "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+    },
+    "scripts/deploy_public_web.py": {
+      "lines": 193,
+      "max_complexity": 12,
+      "reason": "Initial measured ceiling for content-addressed public web promotion and verified rollback"
     },
     "scripts/deterministic_replay_probe.py": {
       "lines": 120,
@@ -2137,6 +2147,11 @@
       "max_complexity": 5,
       "reason": "a drill: it breaks something on purpose and records what the system says"
     },
+    "scripts/install_public_watchdog.py": {
+      "lines": 35,
+      "max_complexity": 2,
+      "reason": "Initial measured ceiling for idempotent user-systemd watchdog installation"
+    },
     "scripts/load_probe.py": {
       "lines": 182,
       "max_complexity": 6,
@@ -2293,6 +2308,11 @@
       "lines": 82,
       "max_complexity": 5,
       "reason": "operator CLI that emits validated content-addressed adaptation proposals"
+    },
+    "scripts/public_health_controller.py": {
+      "lines": 122,
+      "max_complexity": 11,
+      "reason": "Initial measured ceiling for bounded public-service health recovery transitions"
     },
     "scripts/release_attestation.py": {
       "lines": 51,
