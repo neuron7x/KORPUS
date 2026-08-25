@@ -761,6 +761,11 @@
       "max_complexity": 3,
       "reason": "Exact rebaseline adds canonical SHA-256 binding over reconciliation, coverage and immutable runtime metadata"
     },
+    "apps/api/src/korpus/application/gold_annotation.py": {
+      "lines": 172,
+      "max_complexity": 11,
+      "reason": "Initial exact ceiling for independent annotation, adjudication, agreement and blinded-holdout admission"
+    },
     "apps/api/src/korpus/application/embedding_contracts.py": {
       "lines": 24,
       "max_complexity": 5,
@@ -1880,6 +1885,11 @@
       "lines": 167,
       "max_complexity": 12,
       "reason": "Initial exact ceiling for fail-closed corpus governance, byte-binding and filesystem reconciliation"
+    },
+    "scripts/audit_gold_annotations.py": {
+      "lines": 56,
+      "max_complexity": 5,
+      "reason": "Initial exact ceiling for atomic gold-ledger admission receipt generation"
     },
     "scripts/build_pec_eval_dataset.py": {
       "lines": 74,
