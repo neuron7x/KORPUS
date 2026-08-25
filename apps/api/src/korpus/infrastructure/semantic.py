@@ -2,135 +2,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 import re
-from collections.abc import Mapping
-from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any, Protocol
 from uuid import UUID
 
-import httpx
 from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
 
-from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
-from korpus.infrastructure.embedding_envelope import embedding_vector
-from korpus.infrastructure.resource_contracts import embedding_limits
+from korpus.infrastructure.embedding_provider import EmbeddingProvider
+from korpus.infrastructure.embedding_provider import HttpEmbeddingProvider as HttpEmbeddingProvider
 from korpus.security.corpus_governance import CorpusGovernanceProfile
-from korpus.security.url_policy import is_https_or_loopback_url
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
-
-
-class EmbeddingHttpResponse(Protocol):
-    """Minimal response surface consumed from the embedding transport."""
-
-    @property
-    def status_code(self) -> int: ...
-
-    @property
-    def content(self) -> bytes: ...
-
-    def raise_for_status(self) -> object: ...
-    def json(self) -> Any: ...
-
-
-class EmbeddingHttpClient(Protocol):
-    """Minimal transport surface satisfied by ``httpx.Client`` and test doubles."""
-
-    def post(self, url: str, *, json: Any) -> EmbeddingHttpResponse: ...
-    def get(self, url: str, *, headers: Mapping[str, str]) -> EmbeddingHttpResponse: ...
-
-
-class EmbeddingProvider(Protocol):
-    model_id: str
-    dimensions: int
-
-    def embed(self, text: str) -> list[float]: ...
-    def healthcheck(self) -> bool: ...
-    def close(self) -> None: ...
-
-
-@dataclass
-class HttpEmbeddingProvider:
-    """Bounded vendor-neutral embedding integration.
-
-    The service is non-authoritative; failures open a circuit and fall back to lexical retrieval.
-    """
-
-    endpoint: str
-    model_id: str
-    dimensions: int
-    token: str | None = None
-    timeout_seconds: float = 5.0
-    max_attempts: int = 3
-    max_response_bytes: int = 2 * 1024 * 1024
-    client: EmbeddingHttpClient | None = None
-
-    def __post_init__(self) -> None:
-        if not is_https_or_loopback_url(self.endpoint):
-            raise ValueError("embedding endpoint must use HTTPS or loopback HTTP")
-        if not MODEL_PATTERN.fullmatch(self.model_id):
-            raise ValueError("invalid embedding model configuration")
-        try:
-            self.dimensions, self.max_attempts, self.max_response_bytes, self.timeout_seconds = (
-                embedding_limits(
-                    self.dimensions,
-                    self.max_attempts,
-                    self.max_response_bytes,
-                    self.timeout_seconds,
-                )
-            )
-        except ValueError as exc:
-            raise ValueError(f"invalid embedding resilience configuration: {exc}") from exc
-        if self.client is None:
-            headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
-            self.client = httpx.Client(
-                timeout=httpx.Timeout(self.timeout_seconds),
-                headers=headers,
-                limits=httpx.Limits(max_connections=16, max_keepalive_connections=8),
-                transport=httpx.HTTPTransport(retries=self.max_attempts - 1),
-            )
-        self._client: EmbeddingHttpClient = self.client
-        self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
-
-    def embed(self, text: str) -> list[float]:
-        if not text or len(text) > 12_000:
-            raise ValueError("embedding input length is invalid")
-
-        def operation() -> list[float]:
-            response = self._client.post(
-                self.endpoint, json={"model": self.model_id, "input": text}
-            )
-            response.raise_for_status()
-            if len(response.content) > self.max_response_bytes:
-                raise RuntimeError("embedding response exceeds configured limit")
-            vector = embedding_vector(response.json())
-            if not isinstance(vector, list) or len(vector) != self.dimensions:
-                raise RuntimeError("embedding service returned invalid dimensions")
-            values = [float(value) for value in vector]
-            if any(not math.isfinite(value) or abs(value) >= 1e6 for value in values):
-                raise RuntimeError("embedding service returned invalid vector")
-            norm = sum(value * value for value in values) ** 0.5
-            if norm == 0:
-                raise RuntimeError("embedding service returned zero vector")
-            return [value / norm for value in values]
-
-        return self._circuit.call(operation)
-
-    def healthcheck(self) -> bool:
-        try:
-            response = self._client.get(self.endpoint, headers={"Accept": "application/json"})
-            return response.status_code < 500
-        except Exception:
-            return False
-
-    def close(self) -> None:
-        close = getattr(self._client, "close", None)
-        if callable(close):
-            close()
 
 
 class PgVectorSemanticIndex:

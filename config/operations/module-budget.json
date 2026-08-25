@@ -1588,13 +1588,23 @@
     },
     "apps/api/src/korpus/infrastructure/embedding_envelope.py": {
       "lines": 18,
+      "max_complexity": 8,
+      "reason": "Exact measured ceiling after extending strict provider-envelope admission from one vector to bounded ordered batches"
+    },
+    "apps/api/src/korpus/infrastructure/embedding_provider.py": {
+      "lines": 122,
       "max_complexity": 7,
-      "reason": "Initial measured ceiling for single-vector custom, Ollama and OpenAI response admission"
+      "reason": "Initial measured ceiling after extracting bounded transport, batching and circuit breaking from semantic index storage"
+    },
+    "apps/api/src/korpus/infrastructure/embedding_validation.py": {
+      "lines": 18,
+      "max_complexity": 11,
+      "reason": "Initial measured ceiling for finite, dimensional and unit-norm vector admission"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
-      "lines": 286,
-      "max_complexity": 13,
-      "reason": "v0.8.2 embedding endpoint uses canonical URL policy without module growth"
+      "lines": 170,
+      "max_complexity": 7,
+      "reason": "Reduced exact ceiling after embedding transport and validation were extracted from pgvector storage"
     },
     "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
       "lines": 242,
@@ -2370,9 +2380,9 @@
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
     },
     "scripts/run_embedding_candidate_screen.py": {
-      "lines": 73,
-      "max_complexity": 8,
-      "reason": "Initial measured ceiling for non-promoting frozen dense retrieval screening"
+      "lines": 79,
+      "max_complexity": 9,
+      "reason": "Exact measured ceiling after replacing serial requests with bounded provider batches"
     },
     "scripts/run_engineering_production_gate.py": {
       "lines": 53,

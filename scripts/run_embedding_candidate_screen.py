@@ -39,11 +39,17 @@ def main() -> int:
         args.endpoint, args.model, args.dimensions, timeout_seconds=30, max_attempts=2
     )
     started = time.perf_counter()
+    inputs = sentences + [str(case["query"]) for case in cases]
     try:
-        candidates = [provider.embed(sentence) for sentence in sentences]
-        queries = [provider.embed(str(case["query"])) for case in cases]
+        vectors = [
+            vector
+            for start in range(0, len(inputs), provider.max_batch_size)
+            for vector in provider.embed_many(inputs[start : start + provider.max_batch_size])
+        ]
     finally:
         provider.close()
+    candidates = vectors[: len(sentences)]
+    queries = vectors[len(sentences) :]
     duration = time.perf_counter() - started
     metrics = retrieval_metrics(queries, candidates, relevant)
     report = {

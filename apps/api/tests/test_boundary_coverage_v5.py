@@ -178,8 +178,48 @@ def test_embedding_provider_rejects_ambiguous_or_untyped_envelopes(payload) -> N
         client=FakeEmbeddingClient(FakeResponse(payload)),
     )
 
-    with pytest.raises(RuntimeError, match="invalid dimensions"):
+    with pytest.raises(RuntimeError, match="invalid batch cardinality"):
         provider.embed("query")
+
+
+def test_embedding_batch_preserves_cardinality_order_and_normalizes() -> None:
+    client = FakeEmbeddingClient(
+        FakeResponse({"embeddings": [[3.0, 4.0] + [0.0] * 6, [0.0, 5.0] + [0.0] * 6]})
+    )
+    provider = HttpEmbeddingProvider(
+        "http://127.0.0.1:11434/api/embed", "model-v1", 8, client=client
+    )
+
+    vectors = provider.embed_many(["first", "second"])
+
+    assert vectors[0][:2] == [0.6, 0.8]
+    assert vectors[1][:2] == [0.0, 1.0]
+    assert client.posts == [
+        (
+            "http://127.0.0.1:11434/api/embed",
+            {"model": "model-v1", "input": ["first", "second"]},
+        )
+    ]
+
+
+def test_embedding_batch_fails_closed_on_count_and_configuration() -> None:
+    provider = HttpEmbeddingProvider(
+        "https://embed.example/v1",
+        "model-v1",
+        8,
+        max_batch_size=2,
+        client=FakeEmbeddingClient(FakeResponse({"embeddings": [[1.0] * 8]})),
+    )
+    with pytest.raises(ValueError, match="cardinality"):
+        provider.embed_many([])
+    with pytest.raises(ValueError, match="cardinality"):
+        provider.embed_many(["a", "b", "c"])
+    with pytest.raises(RuntimeError, match="batch cardinality"):
+        provider.embed_many(["a", "b"])
+    with pytest.raises(ValueError, match="must not exceed"):
+        HttpEmbeddingProvider(
+            "https://embed.example/v1", "model-v1", 8, max_batch_size=65, client=provider.client
+        )
 
 
 class FakeResult:
