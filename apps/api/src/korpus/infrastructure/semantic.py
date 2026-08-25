@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import hashlib
 import json
-import re
 from datetime import UTC, date, datetime
 from uuid import UUID
 
@@ -13,9 +11,8 @@ from korpus.domain.models import Identity
 from korpus.infrastructure.embedding_provider import EmbeddingProvider
 from korpus.infrastructure.embedding_provider import HttpEmbeddingProvider as HttpEmbeddingProvider
 from korpus.infrastructure.semantic_coverage import SemanticCoverageReader
+from korpus.infrastructure.semantic_index_schema import semantic_index_ddl, semantic_index_name
 from korpus.security.corpus_governance import CorpusGovernanceProfile
-
-MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
 
 
 class PgVectorSemanticIndex(SemanticCoverageReader):
@@ -155,17 +152,23 @@ text_hash, created_at
         self.provider.close()
 
     @staticmethod
-    def index_ddl(model_id: str, dimensions: int, *, m: int = 16, ef_construction: int = 64) -> str:
-        if not MODEL_PATTERN.fullmatch(model_id) or not 8 <= dimensions <= 4000:
-            raise ValueError("invalid model index parameters")
-        if not 4 <= m <= 64 or not 16 <= ef_construction <= 1000:
-            raise ValueError("invalid HNSW parameters")
-        suffix = hashlib.sha256(f"{model_id}:{dimensions}".encode()).hexdigest()[:12]
-        escaped_model = model_id.replace("'", "''")
-        return (
-            f"CREATE INDEX IF NOT EXISTS ix_span_embedding_hnsw_{suffix} "
-            f"ON span_embeddings USING hnsw "
-            f"((embedding_vector::vector({dimensions})) vector_cosine_ops) "
-            f"WITH (m = {m}, ef_construction = {ef_construction}) "
-            f"WHERE model_id = '{escaped_model}' AND dimensions = {dimensions};"
+    def index_name(model_id: str, dimensions: int) -> str:
+        return semantic_index_name(model_id, dimensions)
+
+    def ensure_index(self, *, m: int = 16, ef_construction: int = 64) -> str:
+        ddl = self.index_ddl(
+            self.provider.model_id, self.provider.dimensions, m=m, ef_construction=ef_construction
         )
+        with self.engine.begin() as connection:
+            connection.exec_driver_sql(ddl)
+        return self.index_name(self.provider.model_id, self.provider.dimensions)
+
+    @staticmethod
+    def index_ddl(
+        model_id: str,
+        dimensions: int,
+        *,
+        m: int = 16,
+        ef_construction: int = 64,
+    ) -> str:
+        return semantic_index_ddl(model_id, dimensions, m=m, ef_construction=ef_construction)

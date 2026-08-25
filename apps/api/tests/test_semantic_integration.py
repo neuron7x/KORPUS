@@ -1,4 +1,5 @@
 from datetime import date
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -32,6 +33,28 @@ def test_pgvector_index_ddl_is_deterministic_partial_and_bounded():
     assert "WHERE model_id = 'ua-evidence-v1'" in first
     with pytest.raises(ValueError):
         PgVectorSemanticIndex.index_ddl("x", 9000)
+
+
+def test_pgvector_index_creation_executes_the_exact_deterministic_ddl():
+    statements: list[str] = []
+
+    class Transaction:
+        def __enter__(self):
+            return SimpleNamespace(exec_driver_sql=statements.append)
+
+        def __exit__(self, *args: object) -> None:
+            return None
+
+    engine = SimpleNamespace(begin=Transaction, dialect=SimpleNamespace(name="postgresql"))
+    provider = SimpleNamespace(model_id="ua-evidence-v1", dimensions=768)
+    index = PgVectorSemanticIndex(engine, provider)
+
+    name = index.ensure_index(m=16, ef_construction=96)
+
+    assert name == PgVectorSemanticIndex.index_name("ua-evidence-v1", 768)
+    assert statements == [
+        PgVectorSemanticIndex.index_ddl("ua-evidence-v1", 768, ef_construction=96)
+    ]
 
 
 def test_repository_protocol_can_materialize_authorized_semantic_ids(client):

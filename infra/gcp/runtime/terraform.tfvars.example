@@ -24,3 +24,12 @@ calibration_profile_sha256       = "REPLACE_64_HEX"
 
 # Pre-create and verify delivery for at least one Cloud Monitoring notification channel.
 notification_channel_ids = ["projects/PROJECT_ID/notificationChannels/1234567890123456789"]
+
+# Provisioning does not execute this job or authorize semantic serving.
+embedding_backfill_enabled     = false
+embedding_endpoint             = "https://embedding.example.invalid/v1/embeddings"
+embedding_model_id             = "REPLACE_WITH_CALIBRATED_MODEL_ID"
+embedding_dimensions           = 768
+embedding_token_secret_id      = "korpus-embedding-token"
+embedding_backfill_batch_size  = 32
+embedding_backfill_max_batches = 100

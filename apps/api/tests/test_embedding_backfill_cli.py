@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import importlib.util
 import json
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -84,6 +86,7 @@ def test_component_boundary_binds_governance_and_closes_resources(
     engine = Engine()
     monkeypatch.setattr(cli, "HttpEmbeddingProvider", Provider)
     monkeypatch.setattr(cli, "create_engine", lambda *args, **kwargs: engine)
+    monkeypatch.setattr(cli, "exclusive_backfill_run", lambda *args: nullcontext())
     monkeypatch.setattr(cli, "PgVectorEmbeddingBackfill", lambda *args, **kwargs: object())
     coverage = assess_embedding_coverage(
         active_model_id="model-v1",
@@ -96,7 +99,10 @@ def test_component_boundary_binds_governance_and_closes_resources(
     monkeypatch.setattr(
         cli,
         "PgVectorSemanticIndex",
-        lambda *args, **kwargs: SimpleNamespace(coverage=lambda *args: coverage),
+        lambda *args, **kwargs: SimpleNamespace(
+            coverage=lambda *args: coverage,
+            ensure_index=lambda: "ix_span_embedding_hnsw_verified",
+        ),
     )
     monkeypatch.setattr(
         cli,
@@ -122,9 +128,67 @@ def test_component_boundary_binds_governance_and_closes_resources(
     assert receipt["governance_profile_id"] == "governed-v1"
     assert receipt["governance_profile_sha256"] == "a" * 64
     assert receipt["embedding_dimensions"] == 8
+    assert receipt["hnsw_index"] == "ix_span_embedding_hnsw_verified"
+    digest = receipt.pop("receipt_sha256")
+    canonical = json.dumps(receipt, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    assert digest == hashlib.sha256(canonical.encode()).hexdigest()
     assert receipt["coverage"]["coverage_ratio"] == 1.0
     assert receipt["promotion_authorized"] is False
     assert events == ["provider-open", "engine-close", "provider-close"]
+
+
+def test_incomplete_coverage_never_builds_index(tmp_path: Path, monkeypatch) -> None:
+    profile = SimpleNamespace(profile_id="governed-v1", corpora={"doctrine"})
+    monkeypatch.setattr(cli.CorpusGovernanceProfile, "load", lambda *args: profile)
+    provider = SimpleNamespace(model_id="model-v1", dimensions=8, close=lambda: None)
+    engine = SimpleNamespace(dispose=lambda: None)
+    monkeypatch.setattr(cli, "HttpEmbeddingProvider", lambda *args, **kwargs: provider)
+    monkeypatch.setattr(cli, "create_engine", lambda *args, **kwargs: engine)
+    monkeypatch.setattr(cli, "exclusive_backfill_run", lambda *args: nullcontext())
+    monkeypatch.setattr(cli, "PgVectorEmbeddingBackfill", lambda *args, **kwargs: object())
+    coverage = assess_embedding_coverage(
+        active_model_id="model-v1",
+        active_dimensions=8,
+        spans_total=8,
+        spans_embedded_active=7,
+        spans_embedded_other_model=0,
+        spans_stale_text=0,
+    )
+    index_created = False
+
+    def fail_index() -> str:
+        nonlocal index_created
+        index_created = True
+        return "forbidden"
+
+    monkeypatch.setattr(
+        cli,
+        "PgVectorSemanticIndex",
+        lambda *args, **kwargs: SimpleNamespace(
+            coverage=lambda *args: coverage, ensure_index=fail_index
+        ),
+    )
+    monkeypatch.setattr(
+        cli,
+        "run_backfill",
+        lambda *args, **kwargs: BackfillRunReceipt(
+            model_id="model-v1",
+            batches_executed=1,
+            spans_selected=7,
+            vectors_written=7,
+            stale_during_write=0,
+            complete=False,
+            batch_budget_exhausted=True,
+            duration_seconds=0.1,
+        ),
+    )
+    out = tmp_path / "receipt.json"
+
+    status = cli._execute(argparse.Namespace(out=out, batch_size=8, max_batches=1), _settings())
+
+    assert status == 3
+    assert index_created is False
+    assert json.loads(out.read_text())["hnsw_index"] is None
 
 
 def test_atomic_receipt_replaces_previous_document(tmp_path: Path) -> None:

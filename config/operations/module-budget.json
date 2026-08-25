@@ -757,9 +757,9 @@
       "reason": "Initial exact ceiling for bounded backfill orchestration and fail-honest progress receipts"
     },
     "apps/api/src/korpus/application/embedding_backfill_promotion.py": {
-      "lines": 23,
+      "lines": 28,
       "max_complexity": 3,
-      "reason": "Initial exact ceiling for fail-closed reconciliation plus measured-coverage promotion"
+      "reason": "Exact rebaseline adds canonical SHA-256 binding over reconciliation, coverage and immutable runtime metadata"
     },
     "apps/api/src/korpus/application/embedding_contracts.py": {
       "lines": 24,
@@ -1622,20 +1622,30 @@
       "max_complexity": 7,
       "reason": "Initial measured ceiling after extracting bounded transport, batching and circuit breaking from semantic index storage"
     },
+    "apps/api/src/korpus/infrastructure/embedding_backfill_lock.py": {
+      "lines": 38,
+      "max_complexity": 3,
+      "reason": "Initial exact ceiling for a session-scoped PostgreSQL singleton reconciliation lease"
+    },
     "apps/api/src/korpus/infrastructure/embedding_validation.py": {
       "lines": 18,
       "max_complexity": 11,
       "reason": "Initial measured ceiling for finite, dimensional and unit-norm vector admission"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
-      "lines": 171,
+      "lines": 174,
       "max_complexity": 7,
-      "reason": "Exact rebaseline adds only the typed coverage-reader seam; measurement SQL remains extracted"
+      "reason": "Exact rebaseline adds only the deterministic index lifecycle seam; DDL generation remains extracted"
     },
     "apps/api/src/korpus/infrastructure/semantic_coverage.py": {
       "lines": 69,
       "max_complexity": 3,
       "reason": "Initial exact ceiling for RLS-scoped model/hash/dimension coverage measurement"
+    },
+    "apps/api/src/korpus/infrastructure/semantic_index_schema.py": {
+      "lines": 30,
+      "max_complexity": 3,
+      "reason": "Initial exact ceiling for deterministic bounded partial-HNSW schema generation"
     },
     "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
       "lines": 242,
@@ -2421,9 +2431,9 @@
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
     },
     "scripts/run_embedding_backfill.py": {
-      "lines": 171,
+      "lines": 190,
       "max_complexity": 5,
-      "reason": "Exact rebaseline binds completion to independently queried model/hash/dimension coverage"
+      "reason": "Exact rebaseline adds singleton orchestration and post-coverage deterministic index promotion without increasing complexity"
     },
     "scripts/run_embedding_candidate_screen.py": {
       "lines": 79,

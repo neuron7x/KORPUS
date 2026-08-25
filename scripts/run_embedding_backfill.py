@@ -21,6 +21,7 @@ from korpus.application.embedding_backfill_run import run_backfill  # noqa: E402
 from korpus.config import Settings  # noqa: E402
 from korpus.domain.models import AccessTier, Identity  # noqa: E402
 from korpus.infrastructure.embedding_backfill import PgVectorEmbeddingBackfill  # noqa: E402
+from korpus.infrastructure.embedding_backfill_lock import exclusive_backfill_run  # noqa: E402
 from korpus.infrastructure.embedding_provider import HttpEmbeddingProvider  # noqa: E402
 from korpus.infrastructure.semantic import PgVectorSemanticIndex  # noqa: E402
 from korpus.security.corpus_governance import CorpusGovernanceProfile  # noqa: E402
@@ -112,11 +113,9 @@ def _execute(args: argparse.Namespace, settings: Settings) -> int:
         worker = PgVectorEmbeddingBackfill(
             engine, provider, batch_size=args.batch_size, corpus_governance=profile
         )
-        receipt = run_backfill(
-            worker, identity, model_id=provider.model_id, max_batches=args.max_batches
-        )
-        coverage = PgVectorSemanticIndex(engine, provider, corpus_governance=profile).coverage(
-            identity, frozenset(profile.corpora)
+        semantic_index = PgVectorSemanticIndex(engine, provider, corpus_governance=profile)
+        receipt, coverage, index_name = _run_locked(
+            engine, provider, worker, semantic_index, identity, profile, args.max_batches
         )
         complete, report = finalize_backfill_report(
             receipt,
@@ -124,13 +123,33 @@ def _execute(args: argparse.Namespace, settings: Settings) -> int:
             {
                 "governance_profile_id": profile.profile_id,
                 "governance_profile_sha256": profile_sha256,
+                "runtime_image_ref": os.environ.get("KORPUS_RUNTIME_IMAGE_REF"),
                 "embedding_dimensions": provider.dimensions,
+                "hnsw_index": index_name,
                 "batch_size": args.batch_size,
                 "max_batches": args.max_batches,
             },
         )
         _report(args.out, report)
         return 0 if complete else 3
+
+
+def _run_locked(
+    engine: object,
+    provider: HttpEmbeddingProvider,
+    worker: PgVectorEmbeddingBackfill,
+    semantic_index: PgVectorSemanticIndex,
+    identity: Identity,
+    profile: CorpusGovernanceProfile,
+    max_batches: int,
+) -> tuple[object, object, str | None]:
+    with exclusive_backfill_run(engine, provider.model_id, provider.dimensions):
+        receipt = run_backfill(
+            worker, identity, model_id=provider.model_id, max_batches=max_batches
+        )
+        coverage = semantic_index.coverage(identity, frozenset(profile.corpora))
+        index_name = semantic_index.ensure_index() if coverage.complete else None
+    return receipt, coverage, index_name
 
 
 def _positive_bounded(value: str, *, maximum: int, label: str) -> int:
