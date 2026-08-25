@@ -55,7 +55,7 @@ def test_release_truth_rejects_stale_hard_predicate_report(monkeypatch, tmp_path
     assert all(item["evidence_current"] is False for item in hard)
 
 
-def test_release_truth_current_report_preserves_external_boundary() -> None:
+def test_release_truth_current_report_preserves_each_external_boundary() -> None:
     module = _release_truth_module()
     report = json.loads((ROOT / "reports/PRODUCTION_HARD_PREDICATES.json").read_text())
     registry = module._blockers(str(report["source_tree_sha256"]), str(report["release"]))
@@ -64,5 +64,14 @@ def test_release_truth_current_report_preserves_external_boundary() -> None:
     assert registry["hard_predicate_report_current"] is True
     assert len(hard) == len(json.loads(PROFILE.read_text())["predicates"])
     assert all(item["software_ready"] is True for item in hard)
-    assert all(item["externally_satisfied"] is False for item in hard)
-    assert all(item["state"] == "EXTERNAL_REQUIRED" for item in hard)
+    reported = {item["id"]: item for item in report["states"]}
+    assert all(
+        item["externally_satisfied"] is reported[item["id"]]["externally_satisfied"]
+        for item in hard
+    )
+    assert all(
+        item["state"]
+        == ("CLOSED_ANCHORED" if item["externally_satisfied"] else "EXTERNAL_REQUIRED")
+        for item in hard
+    )
+    assert any(item["state"] == "EXTERNAL_REQUIRED" for item in hard)

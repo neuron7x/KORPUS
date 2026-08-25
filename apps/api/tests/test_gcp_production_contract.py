@@ -384,6 +384,16 @@ def test_cloudsql_public_ipv4_mutation_is_killed(tmp_path: Path) -> None:
     assert _status(root)["CLOUDSQL_PRIVATE_ONLY"] is False
 
 
+def test_cloudsql_tls_downgrade_mutation_is_killed(tmp_path: Path) -> None:
+    root = _mutated_repo(
+        tmp_path,
+        "infra/gcp/foundation/main.tf",
+        '      ssl_mode        = "ENCRYPTED_ONLY"',
+        '      ssl_mode        = "ALLOW_UNENCRYPTED_AND_ENCRYPTED"',
+    )
+    assert _status(root)["CLOUDSQL_TLS_ENFORCED"] is False
+
+
 def test_private_services_access_mutation_is_killed(tmp_path: Path) -> None:
     root = _mutated_repo(
         tmp_path,

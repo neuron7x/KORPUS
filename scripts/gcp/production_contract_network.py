@@ -34,6 +34,11 @@ def evaluate(s: object) -> list[tuple[str, bool, str]]:
             "Cloud SQL public IPv4 is disabled and the instance is bound to the dedicated VPC after PSA establishment",
         ),
         (
+            "CLOUDSQL_TLS_ENFORCED",
+            'ssl_mode        = "ENCRYPTED_ONLY"' in s.foundation,
+            "Cloud SQL refuses unencrypted database connections independently of network placement",
+        ),
+        (
             "RUNTIME_DIRECT_VPC_DB_PLANE",
             _direct_vpc(s.services)
             and _direct_vpc(s.worker)

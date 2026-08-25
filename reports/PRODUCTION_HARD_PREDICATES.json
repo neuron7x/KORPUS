@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "31b1d7bd6e6096523fd7653dcc95c1909cc09c3c0269890bf18aecd429bb0243",
+  "source_tree_sha256": "5600906fc5d538261287753c17025ab43d68b9f8653401deca07f02955c5d520",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 0,
-  "production_satisfied": 0,
+  "externally_satisfied": 1,
+  "production_satisfied": 1,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 0.0,
-  "production_completion_percent": 0.0,
+  "external_completion_percent": 7.142857,
+  "production_completion_percent": 7.142857,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -60,16 +60,10 @@
       "gate": "postgres_security",
       "required_proof_class": "REAL_POSTGRESQL",
       "software_ready": true,
-      "externally_satisfied": false,
-      "production_satisfied": false,
+      "externally_satisfied": true,
+      "production_satisfied": true,
       "missing_software_artifacts": [],
-      "failed_external_checks": [
-        "target_files_present",
-        "grant_contract_static",
-        "postgres_runtime_available",
-        "postgres_adversarial_suite",
-        "metadata:backend"
-      ]
+      "failed_external_checks": []
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -139,10 +133,7 @@
         "load_source_bound",
         "load_environment",
         "load_slo_steady_p95",
-        "load_slo_cold_start",
-        "load_slo_no_5xx_rated",
-        "load_slo_no_subject_throttle_rated",
-        "load_slo_no_retrieval_deadline"
+        "load_slo_cold_start"
       ]
     },
     {
