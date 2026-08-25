@@ -24,6 +24,12 @@ test("quick actions only prefill the canonical query composer", async()=>{
 test("conversation navigation starts collapsed", async()=>{
   const app=await read("public/app.js"); assert.match(app,/conversationsPanel\.open = false/);
 });
+test("visual noise is progressively disclosed without removing function", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const css=await read("design/consumer.css");
+  assert.match(html,/id="mobile-nav"[^>]*hidden/); assert.match(app,/\$\("mobile-nav"\)\.hidden = false/);
+  assert.match(css,/\.right-rail\{display:none\}/); assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
+  assert.match(css,/@media\(max-width:600px\)\{\.entry-lockup\{display:none\}/);
+});
 test("canonical and combat themes share one functional surface", async()=>{
   const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
   assert.match(html,/id="theme-toggle"[^>]*aria-pressed="false"/);

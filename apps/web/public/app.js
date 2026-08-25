@@ -107,6 +107,7 @@ function renderIdentity(loaded) {
     entry.hidden = false;
     product.hidden = true;
     pricing.hidden = true;
+    $("mobile-nav").hidden = true;
     return;
   }
   if (identityState) {
@@ -116,6 +117,7 @@ function renderIdentity(loaded) {
   }
   if ($("login")) $("login").hidden = true;
   if ($("logout")) $("logout").hidden = false;
+  $("mobile-nav").hidden = false;
 }
 
 async function loadIdentity() {
