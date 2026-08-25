@@ -8,6 +8,12 @@ The evaluator must not be the implementer or the model that generated the implem
 
 1. blind real-corpus retrieval with stratified slices by document type, age, authority, classification, scan quality and language;
 2. human annotation with adjudication and inter-annotator agreement;
+
+Before annotation or ingestion, run `make corpus-admission MANIFEST=<manifest.json>
+ROOT=<fetched-directory>`. A passing receipt proves that every ingestible file is listed,
+byte-bound by SHA-256 and carries explicit owner, rights, classification, releasability,
+retention and access-policy references. It does not establish that those human/legal
+decisions are true; the accountable owners must still sign the resulting inventory.
 3. exact citation correctness/completeness and temporal-version correctness;
 4. abstention precision/recall under missing, ambiguous, contradictory and unauthorized evidence;
 5. tables, numbers, units, formulas, footnotes, annexes and OCR corruption;

@@ -1872,9 +1872,14 @@
       "reason": "a register of findings and their citations, like infrastructure_requirements.py and the mutant catalogue: it grows every time a finding gains evidence, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register; the GOV-006 code_half note is data, merged via a helper so main did not gain a branch"
     },
     "scripts/build_import_manifest.py": {
-      "lines": 236,
+      "lines": 252,
       "max_complexity": 11,
-      "reason": "drafts a manifest and refuses to invent what it cannot read; snapshot mode carries Drive's own fields through"
+      "reason": "Exact rebaseline adds byte digests and explicit per-object governance sentinels to the draft"
+    },
+    "scripts/audit_corpus_admission.py": {
+      "lines": 167,
+      "max_complexity": 12,
+      "reason": "Initial exact ceiling for fail-closed corpus governance, byte-binding and filesystem reconciliation"
     },
     "scripts/build_pec_eval_dataset.py": {
       "lines": 74,

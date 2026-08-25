@@ -45,6 +45,7 @@ documents are.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -81,6 +82,14 @@ def _document_type_from(relative: Path) -> str:
     return slug or "reference"
 
 
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while chunk := source.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _snapshot_records(root: Path) -> dict[str, dict[str, Any]]:
     """What the fetcher recorded, keyed by path. Absent is fine; invented is not."""
     path = root / "snapshot.json"
@@ -102,6 +111,7 @@ def _entry_for(
     """One manifest entry: derived where derivation is a fact, sentinel everywhere else."""
     entry: dict[str, Any] = {
         "file": relative.as_posix(),
+        "source_sha256": _sha256_file(path),
         "canonical_title": _title_from(path),
         "issuer": arguments.issuer or REVIEW_REQUIRED,
         # Not derived from the filename: "v2_final_FINAL" is not a revision, and a wrong
@@ -112,6 +122,12 @@ def _entry_for(
         "access_tier": arguments.access_tier,
         "classification": arguments.classification,
         "compartments": [],
+        "data_owner_id": REVIEW_REQUIRED,
+        "rights_reference": REVIEW_REQUIRED,
+        "rights_status": REVIEW_REQUIRED,
+        "releasability": REVIEW_REQUIRED,
+        "retention_policy_id": REVIEW_REQUIRED,
+        "access_policy_id": REVIEW_REQUIRED,
         # Left absent rather than guessed. A version with neither `publication_date` nor
         # `effective_from` cannot be approved — the domain refuses it, because it would
         # govern every past date.
