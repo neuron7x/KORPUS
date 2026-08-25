@@ -11,7 +11,8 @@ from korpus.pec_config_policy import validate_pec_settings
 from korpus.runtime_config_policy import validate_storage_integrations
 from korpus.security.browser_cookie_policy import validate_browser_cookie_policy
 from korpus.security.external_destination import parse_external_https_url
-from korpus.security.url_policy import is_browser_redirect_url, is_https_url
+from korpus.security.url_policy import is_browser_redirect_url
+from korpus.semantic_config_policy import validate_semantic_retrieval
 
 
 def validate_runtime_settings(settings: Any) -> None:
@@ -108,19 +109,7 @@ def _validate_model_integrations(settings: Any) -> None:
 
 
 def _validate_semantic_retrieval(settings: Any, *, controlled: bool) -> None:
-    if settings.semantic_retrieval_enabled:
-        if not settings.database_url.startswith("postgresql"):
-            raise ValueError("semantic retrieval requires PostgreSQL/pgvector")
-        if not settings.embedding_endpoint or not settings.embedding_model_id:
-            raise ValueError("semantic retrieval requires embedding endpoint and model id")
-        if settings.semantic_weight <= 0 and settings.answer_policy_mode == "development":
-            raise ValueError("semantic retrieval requires a positive semantic weight")
-        if controlled and not is_https_url(settings.embedding_endpoint):
-            raise ValueError("controlled embedding endpoints must use HTTPS")
-        if controlled and not settings.resolved_embedding_token:
-            raise ValueError("controlled embedding integration requires authentication")
-    elif settings.semantic_weight != 0:
-        raise ValueError("semantic weight must be zero when semantic retrieval is disabled")
+    validate_semantic_retrieval(settings, controlled=controlled)
 
 
 def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:

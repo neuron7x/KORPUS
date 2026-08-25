@@ -21,6 +21,10 @@ probe is single-flight; success closes the circuit and resets the failure count.
 circuit never grants evidence authority and never converts malformed model output into
 an answer.
 
+Semantic retrieval is admitted only with a digest-bound corpus-governance profile.
+Readiness remains `503 semantic_index` until every approved span in that governed scope
+has a vector for the configured model and dimensions with the current text hash.
+
 ## OpenAI Responses API
 
 Set the provider explicitly and provide an explicit API model name:

@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from korpus.application.embedding_backfill_run import BackfillRunReceipt
+from korpus.application.embedding_coverage import assess_embedding_coverage
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
@@ -84,6 +85,19 @@ def test_component_boundary_binds_governance_and_closes_resources(
     monkeypatch.setattr(cli, "HttpEmbeddingProvider", Provider)
     monkeypatch.setattr(cli, "create_engine", lambda *args, **kwargs: engine)
     monkeypatch.setattr(cli, "PgVectorEmbeddingBackfill", lambda *args, **kwargs: object())
+    coverage = assess_embedding_coverage(
+        active_model_id="model-v1",
+        active_dimensions=8,
+        spans_total=8,
+        spans_embedded_active=8,
+        spans_embedded_other_model=0,
+        spans_stale_text=0,
+    )
+    monkeypatch.setattr(
+        cli,
+        "PgVectorSemanticIndex",
+        lambda *args, **kwargs: SimpleNamespace(coverage=lambda *args: coverage),
+    )
     monkeypatch.setattr(
         cli,
         "run_backfill",
@@ -108,6 +122,7 @@ def test_component_boundary_binds_governance_and_closes_resources(
     assert receipt["governance_profile_id"] == "governed-v1"
     assert receipt["governance_profile_sha256"] == "a" * 64
     assert receipt["embedding_dimensions"] == 8
+    assert receipt["coverage"]["coverage_ratio"] == 1.0
     assert receipt["promotion_authorized"] is False
     assert events == ["provider-open", "engine-close", "provider-close"]
 

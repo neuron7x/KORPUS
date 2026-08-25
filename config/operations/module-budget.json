@@ -756,6 +756,11 @@
       "max_complexity": 7,
       "reason": "Initial exact ceiling for bounded backfill orchestration and fail-honest progress receipts"
     },
+    "apps/api/src/korpus/application/embedding_backfill_promotion.py": {
+      "lines": 23,
+      "max_complexity": 3,
+      "reason": "Initial exact ceiling for fail-closed reconciliation plus measured-coverage promotion"
+    },
     "apps/api/src/korpus/application/embedding_contracts.py": {
       "lines": 24,
       "max_complexity": 5,
@@ -1249,6 +1254,11 @@
       "max_complexity": 1,
       "reason": "ACT-009: shared SLO evaluator separates measured quality from evidence provenance."
     },
+    "apps/api/src/korpus/application/semantic_readiness.py": {
+      "lines": 33,
+      "max_complexity": 4,
+      "reason": "Initial exact ceiling for governed semantic coverage deployment admission"
+    },
     "apps/api/src/korpus/application/subscriptions.py": {
       "lines": 143,
       "max_complexity": 6
@@ -1337,9 +1347,9 @@
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
     },
     "apps/api/src/korpus/config_policy.py": {
-      "lines": 212,
+      "lines": 201,
       "max_complexity": 13,
-      "reason": "v0.8.2 shared URL predicates remove duplicated browser/embedding parsing while preserving failure order"
+      "reason": "Semantic cross-field policy extracted while preserving contractual failure order"
     },
     "apps/api/src/korpus/controlled_requirement_core.py": {
       "lines": 52,
@@ -1618,9 +1628,14 @@
       "reason": "Initial measured ceiling for finite, dimensional and unit-norm vector admission"
     },
     "apps/api/src/korpus/infrastructure/semantic.py": {
-      "lines": 170,
+      "lines": 171,
       "max_complexity": 7,
-      "reason": "Reduced exact ceiling after embedding transport and validation were extracted from pgvector storage"
+      "reason": "Exact rebaseline adds only the typed coverage-reader seam; measurement SQL remains extracted"
+    },
+    "apps/api/src/korpus/infrastructure/semantic_coverage.py": {
+      "lines": 69,
+      "max_complexity": 3,
+      "reason": "Initial exact ceiling for RLS-scoped model/hash/dimension coverage measurement"
     },
     "apps/api/src/korpus/infrastructure/tenancy_repository.py": {
       "lines": 242,
@@ -1692,6 +1707,11 @@
       "lines": 18,
       "max_complexity": 11,
       "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling"
+    },
+    "apps/api/src/korpus/semantic_config_policy.py": {
+      "lines": 26,
+      "max_complexity": 14,
+      "reason": "Initial exact ceiling for fail-closed semantic transport and governance configuration"
     },
     "apps/api/src/korpus/security/__init__.py": {
       "lines": 0,
@@ -2401,9 +2421,9 @@
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
     },
     "scripts/run_embedding_backfill.py": {
-      "lines": 163,
+      "lines": 171,
       "max_complexity": 5,
-      "reason": "Initial exact ceiling for the fail-closed governed PostgreSQL embedding reconciliation boundary"
+      "reason": "Exact rebaseline binds completion to independently queried model/hash/dimension coverage"
     },
     "scripts/run_embedding_candidate_screen.py": {
       "lines": 79,

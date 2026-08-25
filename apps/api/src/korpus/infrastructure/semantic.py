@@ -12,12 +12,13 @@ from sqlalchemy import text as sql_text
 from korpus.domain.models import Identity
 from korpus.infrastructure.embedding_provider import EmbeddingProvider
 from korpus.infrastructure.embedding_provider import HttpEmbeddingProvider as HttpEmbeddingProvider
+from korpus.infrastructure.semantic_coverage import SemanticCoverageReader
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,200}$")
 
 
-class PgVectorSemanticIndex:
+class PgVectorSemanticIndex(SemanticCoverageReader):
     """Authorized pgvector candidate source with RLS as an independent barrier."""
 
     def __init__(

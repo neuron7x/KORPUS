@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import hmac
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
 
-from korpus.api.dependencies import get_object_store, get_observability, get_repository
+from korpus.api.dependencies import (
+    get_object_store,
+    get_observability,
+    get_repository,
+    get_semantic_source,
+)
 from korpus.api.readiness_projection import success_payload
 from korpus.application.ports import ObjectStore
+from korpus.application.semantic_readiness import failure_reason, semantic_status
 from korpus.config import Settings, get_settings
 from korpus.domain.models import Identity
 from korpus.infrastructure.observability import Observability
@@ -44,6 +50,7 @@ def ready(
     repository: Annotated[SqlRepository, Depends(get_repository)],
     object_store: Annotated[ObjectStore, Depends(get_object_store)],
     settings: Annotated[Settings, Depends(get_settings)],
+    semantic_source: Annotated[Any | None, Depends(get_semantic_source)] = None,
     observability: Annotated[Observability | None, Depends(get_observability)] = None,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, object]:
@@ -54,6 +61,9 @@ def ready(
             max_pending_age_seconds=settings.audit_max_pending_age_seconds,
         )
         object_store_ok = object_store.healthcheck()
+        semantic_ok, semantic_coverage = semantic_status(
+            settings.semantic_retrieval_enabled, semantic_source
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -64,15 +74,8 @@ def ready(
         if settings.schema_mode == "migrations"
         else True
     )
-    is_ready = bool(snapshot["ready"] and object_store_ok and schema_ok)
-    # Reported, not gated. Telemetry display may degrade under the release policy as
-    # long as the underlying event stays durably available, and it does — the audit
-    # chain is not the tracer. What must not happen is an operator reading
-    # `otlp_endpoint` in the config and believing traces exist when the exporter was
-    # never attached.
-    # The status word only. /ready is unauthenticated, and the OTLP endpoint is an
-    # internal address: test_health_and_readiness_are_operational_not_information_side
-    # _channels exists precisely to keep infrastructure detail out of this response.
+    is_ready = bool(snapshot["ready"] and object_store_ok and schema_ok and semantic_ok)
+    # Telemetry is reported but not gated; only its status word is exposed publicly.
     telemetry = (
         str(observability.telemetry_status()["traces"]) if observability is not None else "UNKNOWN"
     )
@@ -81,19 +84,16 @@ def ready(
         "object_store": object_store_ok,
         "schema_current": schema_ok,
         "telemetry": telemetry,
+        "semantic_index": semantic_coverage.as_dict() if semantic_coverage is not None else None,
         "ready": is_ready,
     }
     if not is_ready:
-        # The full snapshot is a reconnaissance surface, so an unauthenticated caller gets
-        # only the reason word. `not_ready` is the fallback rather than a leak: the three
-        # named conditions are the ones an operator with the token can then read in full.
+        # The full snapshot is a reconnaissance surface; public callers get one reason.
         if not detail_permitted:
-            reason = (
-                "object_store"
-                if not object_store_ok
-                else "schema"
-                if not schema_ok
-                else "audit_backlog"
+            reason = failure_reason(
+                object_store=object_store_ok,
+                schema=schema_ok,
+                semantic=semantic_ok,
             )
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

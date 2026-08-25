@@ -11,7 +11,11 @@ from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import get_identity
 
-from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
+from apps.api.tests.security_fixtures import (
+    controlled_security_kwargs,
+    write_calibration_bundle,
+    write_corpus_governance_profile,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -147,6 +151,7 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
     import pytest
 
     calibration = write_calibration_bundle(tmp_path, weight_semantic=0.0)
+    governance_path, governance_sha256 = write_corpus_governance_profile(tmp_path)
     with pytest.raises(ValueError, match="calibration assigns zero semantic weight"):
         Settings(
             environment="test",
@@ -155,6 +160,8 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
             semantic_weight=0.1,
             embedding_endpoint="http://127.0.0.1:9009/embed",
             embedding_model_id="test-model",
+            corpus_governance_profile_path=governance_path,
+            corpus_governance_profile_sha256=governance_sha256,
             answer_policy_mode="calibrated",
             **calibration,
         )

@@ -203,6 +203,18 @@ def test_config_policy_browser_model_semantic_and_runtime_matrix(
             ),
             controlled=True,
         )
+    with pytest.raises(ValueError, match="digest-bound corpus governance"):
+        config_policy._validate_semantic_retrieval(
+            _cfg(
+                semantic_retrieval_enabled=True,
+                database_url="postgresql://db",
+                embedding_endpoint="https://e",
+                embedding_model_id="m",
+                semantic_weight=0.1,
+                resolved_embedding_token="t",
+            ),
+            controlled=True,
+        )
     config_policy._validate_semantic_retrieval(
         _cfg(
             semantic_retrieval_enabled=True,
@@ -211,6 +223,8 @@ def test_config_policy_browser_model_semantic_and_runtime_matrix(
             embedding_model_id="m",
             semantic_weight=0.1,
             resolved_embedding_token="t",
+            corpus_governance_profile_path="governance.json",
+            corpus_governance_profile_sha256="a" * 64,
         ),
         controlled=True,
     )
