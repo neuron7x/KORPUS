@@ -14,12 +14,14 @@ import httpx
 
 from korpus.application.egress import EgressDenied, ModelEgressPolicy
 from korpus.application.query_plan import PlannerUnavailable
+from korpus.application.resilience import CircuitBreaker
 from korpus.infrastructure.model_contract import (
     COMPOSE_INSTRUCTIONS,
     QUERY_REWRITE_INSTRUCTIONS,
     parse_composition,
     parse_query_variants,
 )
+from korpus.infrastructure.model_transport import guarded_json_post
 
 _MAX_QUERY_OUTPUT_TOKENS = 300
 _MAX_COMPOSE_OUTPUT_TOKENS = 1200
@@ -106,6 +108,7 @@ class OpenAIQueryPlanner:
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
         self._egress = egress or ModelEgressPolicy()
+        self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
     def variants(self, question: str, subjects: list[str]) -> list[str]:
         _refuse_if_egress_denied(self._egress, self._base_url)
@@ -134,20 +137,17 @@ class OpenAIQueryPlanner:
             "store": False,
             "text": {"format": text_format},
         }
-        try:
-            response = httpx.post(
-                f"{self._base_url}/v1/responses",
-                headers={
-                    "Authorization": f"Bearer {self._api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=payload,
-                timeout=self._timeout,
-            )
-            response.raise_for_status()
-            return response.json()
-        except (httpx.HTTPError, ValueError) as error:
-            raise PlannerUnavailable(f"{type(error).__name__}: {error}") from error
+        return guarded_json_post(
+            self._circuit,
+            httpx.post,
+            url=f"{self._base_url}/v1/responses",
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+            },
+            payload=payload,
+            timeout=self._timeout,
+        )
 
 
 class OpenAIAnswerComposer(OpenAIQueryPlanner):

@@ -59,6 +59,27 @@ def test_http_failures_are_normalized_to_planner_unavailable(monkeypatch) -> Non
         AnthropicAnswerComposer("key", model="m").compose("питання", ["A"])
 
 
+def test_repeated_anthropic_failure_opens_circuit(monkeypatch) -> None:
+    calls = 0
+
+    def fail(*_args, **_kwargs):
+        nonlocal calls
+        calls += 1
+        raise httpx.ConnectError("offline")
+
+    monkeypatch.setattr(anthropic_planner.httpx, "post", fail)
+    planner = AnthropicQueryPlanner("key", model="m")
+
+    failures = []
+    for _ in range(4):
+        with pytest.raises(PlannerUnavailable) as caught:
+            planner.variants("питання", [])
+        failures.append(str(caught.value))
+
+    assert calls == 3
+    assert "CircuitOpenError" in failures[-1]
+
+
 def test_text_extraction_refuses_wrong_shapes_and_normalizes_fences() -> None:
     assert _text_of(None) == ""
     assert _text_of({"content": "not-a-list"}) == ""

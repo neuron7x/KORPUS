@@ -507,8 +507,9 @@
       "max_complexity": 2
     },
     "apps/api/src/korpus/api/dependencies.py": {
-      "lines": 308,
-      "max_complexity": 5
+      "lines": 253,
+      "max_complexity": 5,
+      "reason": "Model-provider composition extracted; request dependencies retain only application wiring"
     },
     "apps/api/src/korpus/api/overload_http.py": {
       "lines": 26,
@@ -1505,6 +1506,11 @@
       "max_complexity": 6,
       "reason": "v0.6.0: dead parser branches removed; exact lower complexity ratchet"
     },
+    "apps/api/src/korpus/infrastructure/model_transport.py": {
+      "lines": 33,
+      "max_complexity": 2,
+      "reason": "Initial exact ceiling for shared fail-fast model transport and circuit normalization"
+    },
     "apps/api/src/korpus/infrastructure/object_store.py": {
       "lines": 514,
       "max_complexity": 14
@@ -1639,9 +1645,14 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 305,
+      "lines": 303,
       "max_complexity": 25,
-      "reason": "v0.6.0: CSRF decision extracted and request-context cleanup made unconditional; ratchet lowered"
+      "reason": "Process-scoped model executor lifecycle extracted while lowering the composition-root ratchet"
+    },
+    "apps/api/src/korpus/model_composition.py": {
+      "lines": 65,
+      "max_complexity": 5,
+      "reason": "Initial exact ceiling for provider selection and process-scoped model executor installation"
     },
     "apps/api/src/korpus/model_settings.py": {
       "lines": 45,

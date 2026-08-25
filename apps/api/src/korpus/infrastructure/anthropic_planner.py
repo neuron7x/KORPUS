@@ -23,12 +23,14 @@ import httpx
 
 from korpus.application.egress import EgressDenied, ModelEgressPolicy
 from korpus.application.query_plan import PlannerUnavailable
+from korpus.application.resilience import CircuitBreaker
 from korpus.infrastructure.model_contract import (
     COMPOSE_INSTRUCTIONS,
     QUERY_REWRITE_INSTRUCTIONS,
     parse_composition,
     parse_query_variants,
 )
+from korpus.infrastructure.model_transport import guarded_json_post
 
 
 def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
@@ -67,9 +69,9 @@ class AnthropicQueryPlanner:
         self._model = model
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
-        #: Consulted before the request is built, never after. A policy checked once the
-        #: response is back has already sent the soldier's question somewhere.
+        #: Consulted before request construction; checking after response is already egress.
         self._egress = egress or ModelEgressPolicy()
+        self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
     def variants(self, question: str, subjects: list[str]) -> list[str]:
         _refuse_if_egress_denied(self._egress, self._base_url)
@@ -80,24 +82,22 @@ class AnthropicQueryPlanner:
             "system": _SYSTEM,
             "messages": [{"role": "user", "content": f"Питання: {question}{hint}"}],
         }
-        try:
-            response = httpx.post(
-                f"{self._base_url}/v1/messages",
-                headers={
-                    "x-api-key": self._api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json=payload,
-                timeout=self._timeout,
-            )
-            response.raise_for_status()
-            body = response.json()
-        except httpx.HTTPError as error:
-            # Wrapped here because this is the only layer that knows what an HTTP client
-            # can do. The application is told the suggestion did not arrive, and by whom.
-            raise PlannerUnavailable(f"{type(error).__name__}: {error}") from error
+        body = self._post(payload)
         return _parse(body)
+
+    def _post(self, payload: dict[str, Any]) -> Any:
+        return guarded_json_post(
+            self._circuit,
+            httpx.post,
+            url=f"{self._base_url}/v1/messages",
+            headers={
+                "x-api-key": self._api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            payload=payload,
+            timeout=self._timeout,
+        )
 
 
 def _parse(body: Any) -> list[str]:
@@ -111,9 +111,8 @@ _COMPOSE_SYSTEM = COMPOSE_INSTRUCTIONS
 class AnthropicAnswerComposer:
     """Arranges retrieved sentences and proposes one opening line.
 
-    Shares the transport with the planner because the failure modes are the same: a third
-    party that may be slow, absent or hostile, whose output is admitted rather than
-    trusted.
+    Shares the planner's transport failure boundary. Third-party output is admitted,
+    never trusted.
     """
 
     def __init__(
@@ -130,6 +129,7 @@ class AnthropicAnswerComposer:
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
         self._egress = egress or ModelEgressPolicy()
+        self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
     def compose(self, question: str, sentences: list[str]) -> tuple[str, list[str]]:
         _refuse_if_egress_denied(self._egress, self._base_url)
@@ -142,22 +142,22 @@ class AnthropicAnswerComposer:
                 {"role": "user", "content": f"Питання: {question}\n\nРечення:\n{numbered}"}
             ],
         }
-        try:
-            response = httpx.post(
-                f"{self._base_url}/v1/messages",
-                headers={
-                    "x-api-key": self._api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json=payload,
-                timeout=self._timeout,
-            )
-            response.raise_for_status()
-            body = response.json()
-        except httpx.HTTPError as error:
-            raise PlannerUnavailable(f"{type(error).__name__}: {error}") from error
+        body = self._post(payload)
         return _parse_composition(body)
+
+    def _post(self, payload: dict[str, Any]) -> Any:
+        return guarded_json_post(
+            self._circuit,
+            httpx.post,
+            url=f"{self._base_url}/v1/messages",
+            headers={
+                "x-api-key": self._api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            payload=payload,
+            timeout=self._timeout,
+        )
 
 
 def _parse_composition(body: Any) -> tuple[str, list[str]]:

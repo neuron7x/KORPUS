@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pytest
 from korpus.api.dependencies import build_answer_composer, build_query_planner
 from korpus.application.egress import EgressPosture, ModelEgressPolicy
@@ -100,6 +101,29 @@ def test_openai_malformed_output_contributes_nothing(monkeypatch: pytest.MonkeyP
 
     assert planner.variants("питання", []) == []
     assert composer.compose("питання", ["готове речення"])[0:2] == ("", [])
+
+
+def test_repeated_provider_failure_opens_process_scoped_circuit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def unavailable(*args: Any, **kwargs: Any) -> None:
+        nonlocal calls
+        calls += 1
+        raise httpx.ConnectError("provider unavailable")
+
+    monkeypatch.setattr("korpus.infrastructure.openai_planner.httpx.post", unavailable)
+    planner = OpenAIQueryPlanner("secret", model="model-under-test")
+
+    failures: list[str] = []
+    for _ in range(4):
+        with pytest.raises(PlannerUnavailable) as caught:
+            planner.variants("питання", [])
+        failures.append(str(caught.value))
+
+    assert calls == 3
+    assert "CircuitOpenError" in failures[-1]
 
 
 def test_model_disabled_refuses_before_openai_transport(monkeypatch: pytest.MonkeyPatch) -> None:

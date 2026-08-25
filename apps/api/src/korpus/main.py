@@ -36,6 +36,7 @@ from korpus.infrastructure.runtime import (
     create_repository,
 )
 from korpus.infrastructure.semantic import HttpEmbeddingProvider, PgVectorSemanticIndex
+from korpus.model_composition import install_model_executors
 from korpus.offline_pack_composition import build_offline_pack_service
 from korpus.security.browser_csrf import browser_csrf_denial
 from korpus.security.browser_oidc import BrowserOIDCClient, BrowserSessionCodec
@@ -49,12 +50,8 @@ REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 def create_app(settings: Settings | None = None) -> FastAPI:
     selected = settings or get_settings()
 
-    # A misspelled KORPUS_* variable is dropped in silence by pydantic-settings, so
-    # `KORPUS_REQUIRE_SOURCE_SIGNATURE=true` — singular, where the field is
-    # `require_source_signatures` — starts a process with the control off and nothing
-    # reported. The deployment reads correct in review. Refused at startup rather than
-    # warned about: a control an operator believes is on and is not is worse than a
-    # process that does not start.
+    # Pydantic silently drops misspelled KORPUS_* variables. Refuse them: a control an
+    # operator believes is enabled when it is not is worse than a process that will not start.
     unknown = unknown_settings_variables(os.environ)
     if unknown:
         raise ValueError(
@@ -135,6 +132,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.corpus_governance = corpus_governance
         app.state.repository = repository
         app.state.semantic_source = semantic_source
+        install_model_executors(app.state, selected)
         app.state.object_store = object_store
         app.state.quarantine_store = quarantine_store
         app.state.ingestion_jobs = ingestion_jobs
