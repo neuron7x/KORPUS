@@ -2389,6 +2389,11 @@
       "max_complexity": 4,
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
     },
+    "scripts/run_embedding_backfill.py": {
+      "lines": 163,
+      "max_complexity": 5,
+      "reason": "Initial exact ceiling for the fail-closed governed PostgreSQL embedding reconciliation boundary"
+    },
     "scripts/run_embedding_candidate_screen.py": {
       "lines": 79,
       "max_complexity": 9,
