@@ -55,6 +55,7 @@ ignore = ["RUF001", "RUF002", "RUF003", "E501"]
 # be publishing methods written for exactly one caller — and publishing the RLS
 # identity switch widens the surface that can set a Postgres session identity.
 "apps/api/src/korpus/infrastructure/semantic.py" = ["BLE001", "SLF001"]
+"apps/api/src/korpus/infrastructure/embedding_backfill.py" = ["SLF001"]
 
 # The GCS health probe is a degradation boundary over an injected transport. Any
 # transport/parser/client failure means "unhealthy"; leaking an unexpected exception

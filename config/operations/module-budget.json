@@ -1591,6 +1591,11 @@
       "max_complexity": 8,
       "reason": "Exact measured ceiling after extending strict provider-envelope admission from one vector to bounded ordered batches"
     },
+    "apps/api/src/korpus/infrastructure/embedding_backfill.py": {
+      "lines": 116,
+      "max_complexity": 9,
+      "reason": "Exact ceiling after explicit PostgreSQL hash typing in atomic stale-write rejection"
+    },
     "apps/api/src/korpus/infrastructure/embedding_provider.py": {
       "lines": 122,
       "max_complexity": 7,
