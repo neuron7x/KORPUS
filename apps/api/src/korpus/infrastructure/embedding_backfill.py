@@ -3,24 +3,16 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import Engine
 from sqlalchemy import text as sql_text
 
+from korpus.application.embedding_backfill_run import BackfillResult
 from korpus.domain.models import Identity
 from korpus.infrastructure.embedding_provider import EmbeddingProvider
 from korpus.infrastructure.resource_contracts import count
 from korpus.security.corpus_governance import CorpusGovernanceProfile
-
-
-@dataclass(frozen=True)
-class BackfillResult:
-    selected: int
-    written: int
-    stale_during_write: int
-    complete: bool
 
 
 class PgVectorEmbeddingBackfill:
