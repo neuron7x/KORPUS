@@ -16,6 +16,7 @@ from sqlalchemy import text as sql_text
 
 from korpus.application.resilience import CircuitBreaker
 from korpus.domain.models import Identity
+from korpus.infrastructure.embedding_envelope import embedding_vector
 from korpus.infrastructure.resource_contracts import embedding_limits
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.url_policy import is_https_or_loopback_url
@@ -106,8 +107,7 @@ class HttpEmbeddingProvider:
             response.raise_for_status()
             if len(response.content) > self.max_response_bytes:
                 raise RuntimeError("embedding response exceeds configured limit")
-            payload = response.json()
-            vector = payload.get("embedding")
+            vector = embedding_vector(response.json())
             if not isinstance(vector, list) or len(vector) != self.dimensions:
                 raise RuntimeError("embedding service returned invalid dimensions")
             values = [float(value) for value in vector]

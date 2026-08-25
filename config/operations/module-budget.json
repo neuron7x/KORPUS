@@ -1586,6 +1586,11 @@
       "max_complexity": 0,
       "reason": "COD-001: the physical schema, apart from everything that reads or writes it"
     },
+    "apps/api/src/korpus/infrastructure/embedding_envelope.py": {
+      "lines": 18,
+      "max_complexity": 7,
+      "reason": "Initial measured ceiling for single-vector custom, Ollama and OpenAI response admission"
+    },
     "apps/api/src/korpus/infrastructure/semantic.py": {
       "lines": 286,
       "max_complexity": 13,

@@ -143,6 +143,45 @@ def test_embedding_provider_normalization_validation_health_and_close() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"embeddings": [[3.0, 4.0, 0, 0, 0, 0, 0, 0]]},
+        {"data": [{"embedding": [3.0, 4.0, 0, 0, 0, 0, 0, 0]}]},
+    ],
+)
+def test_embedding_provider_accepts_bounded_ollama_and_openai_envelopes(payload) -> None:
+    provider = HttpEmbeddingProvider(
+        "http://127.0.0.1:11434/api/embed",
+        "model-v1",
+        8,
+        client=FakeEmbeddingClient(FakeResponse(payload)),
+    )
+
+    assert provider.embed("query")[:2] == [0.6, 0.8]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"embeddings": []},
+        {"embeddings": [[1.0] * 8, [1.0] * 8]},
+        {"data": [{"embedding": [1.0] * 8}, {"embedding": [1.0] * 8}]},
+        [1.0] * 8,
+    ],
+)
+def test_embedding_provider_rejects_ambiguous_or_untyped_envelopes(payload) -> None:
+    provider = HttpEmbeddingProvider(
+        "https://embed.example/v1",
+        "model-v1",
+        8,
+        client=FakeEmbeddingClient(FakeResponse(payload)),
+    )
+
+    with pytest.raises(RuntimeError, match="invalid dimensions"):
+        provider.embed("query")
+
+
 class FakeResult:
     def __init__(self, *, rows: list[object] | None = None, first: object | None = None) -> None:
         self._rows = rows or []
