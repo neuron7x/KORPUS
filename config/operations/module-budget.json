@@ -1906,6 +1906,11 @@
       "max_complexity": 12,
       "reason": "Initial measured ceiling for content-addressed public web promotion and verified rollback"
     },
+    "scripts/embedding_candidate_metrics.py": {
+      "lines": 30,
+      "max_complexity": 13,
+      "reason": "Initial measured ceiling for deterministic dense candidate ranking metrics"
+    },
     "scripts/deterministic_replay_probe.py": {
       "lines": 120,
       "max_complexity": 4,
@@ -2363,6 +2368,11 @@
       "lines": 57,
       "max_complexity": 4,
       "reason": "v0.6.0: exact test outcome + semantic replay equivalence across hash seeds; decomposed complexity"
+    },
+    "scripts/run_embedding_candidate_screen.py": {
+      "lines": 73,
+      "max_complexity": 8,
+      "reason": "Initial measured ceiling for non-promoting frozen dense retrieval screening"
     },
     "scripts/run_engineering_production_gate.py": {
       "lines": 53,
