@@ -19,7 +19,13 @@ set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
-python_bin="${PYTHON:-$root/apps/api/.venv/bin/python}"
+if [[ -n "${PYTHON:-}" ]]; then
+  python_bin="$PYTHON"
+elif [[ -x "$root/apps/api/.venv/bin/python" ]]; then
+  python_bin="$root/apps/api/.venv/bin/python"
+else
+  python_bin="$(command -v python3 || command -v python)"
+fi
 
 if [[ -n "${KORPUS_TEST_DATABASE_URL:-}" ]]; then
   exec env PYTHONPATH="$root/apps/api/src" "$python_bin" -m pytest apps/api/tests --no-cov "$@"

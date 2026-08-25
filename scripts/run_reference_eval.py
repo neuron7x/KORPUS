@@ -27,11 +27,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from reference_eval_metrics import ABSTAINED, retrieval_effectiveness
+
 ROOT = Path(__file__).resolve().parents[1]
 DECLARATION = {"given_name": "Еталон", "family_name": "Тестенко", "specialty": "перевірка"}
-
-ABSTAINED = {"insufficient_evidence", "requires_human_review"}
-
 
 def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[str, Any]:
     payload: dict[str, Any] = {"text": case["query"], "declaration": DECLARATION}
@@ -151,6 +150,7 @@ def main() -> int:
         "cases": len(results),
         "passed": sum(1 for result in results if result["passed"]),
         "by_kind": {key: value for key, value in sorted(per_kind.items())},
+        "retrieval_effectiveness": retrieval_effectiveness(results),
         "by_stratum": {key: value for key, value in sorted(per_stratum.items())},
         "failures": failures[:40],
         "status": "PASS" if not failures else "FAIL",

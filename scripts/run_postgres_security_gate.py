@@ -2,9 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -12,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 from korpus.application.production_assurance import gate_payload  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from postgres_gate_process import run as process_run  # noqa: E402
+from postgres_gate_process import runtime as process_runtime  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 TARGETS = [
@@ -22,30 +21,12 @@ TARGETS = [
 ]
 
 
-def _run(command: list[str], timeout: int) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        cwd=ROOT,
-        env={**os.environ, "PYTHONPATH": str(ROOT / "apps/api/src")},
-        capture_output=True,
-        text=True,
-        check=False,
-        timeout=timeout,
-    )
-
-
-def _runtime(targets_present: bool) -> tuple[bool, int | None, str]:
-    available = bool(os.getenv("KORPUS_TEST_DATABASE_URL")) or shutil.which("docker") is not None
-    if not targets_present or not available:
-        return available, None, ""
-    completed = _run(["bash", "scripts/run_postgres_suite.sh", *TARGETS], 600)
-    return available, completed.returncode, (completed.stdout + completed.stderr)[-8000:]
-
-
 def main() -> int:
     targets_present = all((ROOT / target).is_file() for target in TARGETS)
-    static = _run([sys.executable, "-m", "pytest", "-q", "--disable-warnings", TARGETS[0]], 120)
-    available, runtime_exit, runtime_tail = _runtime(targets_present)
+    static = process_run(
+        ROOT, [sys.executable, "-m", "pytest", "-q", "--disable-warnings", TARGETS[0]], 120
+    )
+    available, runtime_exit, runtime_tail = process_runtime(ROOT, TARGETS, targets_present)
     checks = {
         "target_files_present": targets_present,
         "grant_contract_static": static.returncode == 0,

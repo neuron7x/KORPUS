@@ -2290,6 +2290,11 @@
       "lines": 102,
       "max_complexity": 7
     },
+    "scripts/postgres_gate_process.py": {
+      "lines": 41,
+      "max_complexity": 4,
+      "reason": "Initial measured ceiling for interpreter-bound PostgreSQL gate execution"
+    },
     "scripts/prepare_postgres_role.py": {
       "lines": 131,
       "max_complexity": 4,
@@ -2313,6 +2318,11 @@
       "lines": 122,
       "max_complexity": 11,
       "reason": "Initial measured ceiling for bounded public-service health recovery transitions"
+    },
+    "scripts/reference_eval_metrics.py": {
+      "lines": 46,
+      "max_complexity": 7,
+      "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting"
     },
     "scripts/release_attestation.py": {
       "lines": 51,
@@ -2429,9 +2439,9 @@
       "reason": "exhaustive bounded-plasticity model check and invariant evidence"
     },
     "scripts/run_postgres_security_gate.py": {
-      "lines": 78,
+      "lines": 59,
       "max_complexity": 6,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "Reduced after interpreter-bound process execution was extracted; exact measured ratchet ceiling"
     },
     "scripts/run_pytest_campaign.py": {
       "lines": 66,
