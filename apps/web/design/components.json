@@ -261,25 +261,6 @@
         "only pre-fills the canonical query composer",
         "cannot bypass identity, authorization, retrieval, evidence admission, or API transport"
       ]
-    },
-    {
-      "id": "premium-trust",
-      "selectors": [
-        ".premium-trust",
-        ".premium-grid"
-      ],
-      "variants": [
-        "entry",
-        "workspace"
-      ],
-      "states": [
-        "collapsed",
-        "expanded"
-      ],
-      "contract": [
-        "describes implemented trust architecture, not external certification",
-        "native disclosure remains keyboard-operable"
-      ]
     }
   ]
 }

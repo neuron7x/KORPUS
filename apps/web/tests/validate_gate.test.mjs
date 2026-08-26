@@ -361,7 +361,9 @@ test("a colour token below AA contrast is caught", async () => {
 test("introducing a second palette root is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source =>
-      `${source}\n:root { --muted-2: #6d7365; }\n`));
+      source.replace(
+        /html\{scroll-behavior:smooth;background:var\(--bg\);\}/,
+        ":root{--muted-2:#6d7365}")));
   assert.notEqual(status, 0);
   assert.match(output, /shadows canonical design tokens with :root/);
 });

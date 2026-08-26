@@ -145,16 +145,16 @@ async function loadInferenceStatus() {
   try {
     const state = await call("/v1/inference/status");
     if (!state.enabled) {
-      node.textContent = "MODEL ASSIST · OFF";
+      node.textContent = "МОДЕЛЬ · ВИМКНЕНО";
       node.dataset.tone = "off";
       node.title = "Відповідь працює лише через детермінований evidence path.";
       return;
     }
-    node.textContent = `MODEL ASSIST · ${String(state.provider).toUpperCase()}`;
+    node.textContent = `МОДЕЛЬ · ${String(state.provider).toUpperCase()}`;
     node.dataset.tone = "on";
     node.title = `${state.model}. Модель допомагає пошуку/композиції; authority = ${state.answer_authority}.`;
   } catch {
-    node.textContent = "MODEL ASSIST · UNKNOWN";
+    node.textContent = "МОДЕЛЬ · СТАН НЕВІДОМИЙ";
     node.dataset.tone = "unknown";
   }
 }

@@ -7,7 +7,7 @@ const asset=(file)=>fileURLToPath(new URL(`../${file}`,import.meta.url));
 const read=(file)=>readFile(asset(file),"utf8");
 test("approved truth surface is integrated into the real consumer shell", async()=>{
   const html=await read("public/index.html");
-  for(const marker of ["pixel-wordmark","PREMIUM TRUST ARCHITECTURE","APPROVED SOURCES","FAIL CLOSED","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
+  for(const marker of ["pixel-wordmark","МАРШРУТ ВІДПОВІДІ","СХВАЛЕНІ ДЖЕРЕЛА","БЕЗ ВИГАДОК","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
   assert.doesNotMatch(html,/OFFLINE INTERFACE PROTOTYPE|mock evidence/i);
   assert.doesNotMatch(html,/<script(?![^>]*src=)/i);
 });
@@ -27,7 +27,8 @@ test("conversation navigation starts collapsed", async()=>{
 test("visual noise is progressively disclosed without removing function", async()=>{
   const html=await read("public/index.html"); const app=await read("public/app.js"); const css=await read("design/consumer.css");
   assert.match(html,/id="mobile-nav"[^>]*hidden/); assert.match(app,/\$\("mobile-nav"\)\.hidden = false/);
-  assert.match(css,/\.right-rail\{display:none\}/); assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
+  assert.doesNotMatch(html,/class="right-rail"/); assert.doesNotMatch(css,/\.right-rail/);
+  assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
   assert.match(css,/@media\(max-width:600px\)\{\.entry-lockup\{display:none\}/);
 });
 test("canonical and combat themes share one functional surface", async()=>{
