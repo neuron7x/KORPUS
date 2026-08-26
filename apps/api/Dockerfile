@@ -8,7 +8,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/apps/api/src \
     TMPDIR=/tmp/korpus
 
-RUN apt-get update \
+RUN mkdir -p "$TMPDIR" \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
        ca-certificates \
        poppler-utils \
