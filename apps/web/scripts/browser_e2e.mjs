@@ -1,3 +1,4 @@
+import {existsSync} from "node:fs";
 import {mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
 import {spawn} from "node:child_process";
 import {dirname, join, resolve} from "node:path";
@@ -10,7 +11,10 @@ const WEB_ROOT = resolve(SCRIPT_DIR, "..");
 const ROOT = resolve(WEB_ROOT, "../..");
 const PUBLIC = join(WEB_ROOT, "public");
 const REPORT = process.env.KORPUS_BROWSER_E2E_REPORT ?? join(ROOT, "var/browser-e2e-report.json");
-const BROWSER = process.env.KORPUS_BROWSER_BIN ?? "/usr/bin/chromium";
+const BROWSER = process.env.KORPUS_BROWSER_BIN ?? [
+  "/usr/bin/chromium", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable",
+  "/snap/chromium/current/usr/lib/chromium-browser/chrome", "/usr/bin/chromium-browser",
+].find(existsSync) ?? "/usr/bin/chromium";
 const TIMEOUT_MS = 15_000;
 const ANSWER_XSS = '<img id="pwn" src=x onerror="window.__KORPUS_PWNED=1">';
 const CITATION_XSS = '<svg id="citation-pwn" onload="window.__KORPUS_PWNED=2"></svg>';
@@ -259,6 +263,12 @@ async function main() {
       assert(text.includes("допуск") && text.includes("до початку пошуку"), "TRACE did not explain access-before-retrieval");
     }, results);
 
+    await runCase("model_status_has_touch_accessible_explanation", async () => {
+      const state = await cdp.evaluate(`(() => { const disclosure=document.querySelector(".status-disclosure"); disclosure.querySelector("summary").click(); return {open:disclosure.open,copy:disclosure.querySelector("p").textContent,status:disclosure.querySelector("summary").textContent}; })()`);
+      assert(state.open && state.copy.includes("не створює факти"), "model authority explanation is not available without hover");
+      assert(state.status.includes("МОДЕЛЬ"), "server-derived model status is not visible");
+    }, results);
+
     await runCase("combat_theme_is_reversible_and_accessible", async () => {
       await cdp.evaluate(`document.getElementById("theme-toggle").click()`);
       await waitFor(cdp, 'document.getElementById("combat-signal-field")', "combat signal field");
@@ -296,7 +306,7 @@ async function main() {
       await cdp.evaluate(`(() => { const q=document.getElementById("query"); q.value="throttle перевірка"; q.dispatchEvent(new Event("input",{bubbles:true})); document.getElementById("query-form").requestSubmit(); })()`);
       await waitFor(cdp, 'document.querySelectorAll("#result .turn").length >= 2 && !document.getElementById("result").hasAttribute("aria-busy")', "429 refusal");
       const state = await cdp.evaluate(`({heading:document.querySelector("#result .turn:last-child .verdict h2")?.textContent, reason:document.querySelector("#result .turn:last-child .answer-text")?.textContent})`);
-      assert(state.heading === "ВІДМОВА 429", `subject throttle rendered as ${JSON.stringify(state)}`);
+      assert(state.heading === "ЛІМІТ ЗАПИТІВ", `subject throttle rendered as ${JSON.stringify(state)}`);
       assert(state.reason.includes("Ліміт одночасних запитів"), "typed refusal reason was lost");
     }, results);
 
@@ -306,10 +316,13 @@ async function main() {
         await cdp.send("Emulation.setDeviceMetricsOverride", {...viewport, deviceScaleFactor:2, mobile:true});
         await loadPage(cdp, "index.html", "app.js");
         await waitFor(cdp, '!document.getElementById("product").hidden', "mobile authenticated product surface");
-        const state = await cdp.evaluate(`(() => { const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,height:r.height};}; return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,composer:box(".composer"),query:box("#query"),theme:box("#theme-toggle"),nav:[...document.querySelectorAll(".mobile-nav a")].map(node=>node.getBoundingClientRect().height)}; })()`);
+        const state = await cdp.evaluate(`(() => { const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};}; const more=document.querySelector(".mobile-more"); more.open=true; const secondary=[...more.querySelectorAll("a")].filter(node=>getComputedStyle(node).display!=="none").length; more.open=false; return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,composer:box(".composer"),query:box("#query"),theme:box("#theme-toggle"),dock:box(".mobile-nav"),primaryVisible:getComputedStyle(document.querySelector(".primary-nav")).display!=="none",secondary,nav:[...document.querySelectorAll(".mobile-nav>a")].filter(node=>getComputedStyle(node).display!=="none").map(node=>node.getBoundingClientRect().height)}; })()`);
         assert(state.scroll <= state.viewport + 1, `${viewport.width}x${viewport.height}: horizontal overflow ${state.scroll}px > ${state.viewport}px`);
         assert(state.composer.left >= -1 && state.composer.right <= state.viewport + 1, `${viewport.width}x${viewport.height}: composer escapes viewport`);
         assert(state.query.height > 0, `${viewport.width}x${viewport.height}: query field is not visible`);
+        assert(!state.primaryVisible && state.dock.height > 0, `${viewport.width}x${viewport.height}: desktop and mobile navigation compete`);
+        assert(state.composer.bottom <= state.dock.top + 1, `${viewport.width}x${viewport.height}: sticky composer is obscured by navigation ${JSON.stringify({composer:state.composer,dock:state.dock})}`);
+        assert(state.secondary >= 1, `${viewport.width}x${viewport.height}: authorized secondary routes are unreachable`);
         assert(state.theme.width >= 44 && state.theme.height >= 44, `${viewport.width}x${viewport.height}: theme control is not touch safe`);
         assert(state.nav.every(height => height >= 44), `${viewport.width}x${viewport.height}: mobile navigation is not touch safe`);
       }

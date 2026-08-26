@@ -14,7 +14,7 @@ function sourceNode(citation, index) {
   button.dataset.sourceIndex = String(index);
   button.innerHTML = `<span>0${index + 1}</span><strong></strong><small></small><i aria-hidden="true"></i>`;
   button.querySelector("strong").textContent = citation.title || "Джерело без назви";
-  button.querySelector("small").textContent = `ред. ${citation.revision || "—"} · ${String(citation.source_hash || "no-hash").slice(0, 8)}`;
+  button.querySelector("small").textContent = `ред. ${citation.revision || "—"} · ${String(citation.source_hash || "без-суми").slice(0, 8)}`;
   button.addEventListener("click", () => {
     const target = document.querySelector(`[data-open-span="${CSS.escape(String(citation.span_id))}"]`)?.closest(".citation");
     if (!target) return;
@@ -41,27 +41,27 @@ export function createDecisionField(answer) {
   const field = document.createElement("section");
   field.className = "decision-field";
   field.dataset.tone = tone;
-  field.setAttribute("aria-label", "Decision Field — карта підстави рішення");
+  field.setAttribute("aria-label", "Карта підстави рішення");
   field.innerHTML = `
-    <header class="field-head"><div><span>DECISION FIELD / PROVENANCE TOPOLOGY</span><h3>Карта підстави рішення</h3></div><b>НЕ ЙМОВІРНІСТЬ</b></header>
+    <header class="field-head"><div><span>ПІДСТАВА / ПОХОДЖЕННЯ ДОКАЗУ</span><h3>Карта підстави рішення</h3></div><b>НЕ ЙМОВІРНІСТЬ</b></header>
     <div class="field-grid">
       <div class="field-core">
         <svg viewBox="0 0 120 120" role="img" aria-label="Покриття доказом ${Math.round(coverage * 100)} відсотків">
           <circle class="field-track" cx="60" cy="60" r="51"></circle><circle class="field-value" cx="60" cy="60" r="51"></circle>
         </svg>
-        <div><span>SERVER VERDICT</span><strong>${label}</strong><small>${Math.round(coverage * 100)}% evidence coverage</small></div>
+        <div><span>СЕРВЕРНИЙ ВЕРДИКТ</span><strong>${label}</strong><small>${Math.round(coverage * 100)}% покриття доказом</small></div>
       </div>
       <div class="field-sources" aria-label="Допущені джерела"></div>
       <dl class="field-invariants">
-        <div><dt>AUTHORITY</dt><dd>${citations.length ? "SOURCE-BOUND" : "NONE"}</dd></div>
-        <div><dt>PROVENANCE</dt><dd>${citations.length}/${citations.length} HASHED</dd></div>
-        <div><dt>LIMITS</dt><dd>${limitations.length || "NONE"}</dd></div>
-        <div><dt>RELEASE</dt><dd></dd></div>
+        <div><dt>ПІДСТАВА</dt><dd>${citations.length ? "ПРИВ’ЯЗАНО ДО ДЖЕРЕЛА" : "НЕМАЄ"}</dd></div>
+        <div><dt>ПОХОДЖЕННЯ</dt><dd>${citations.length}/${citations.length} ПЕРЕВІРЕНО</dd></div>
+        <div><dt>ОБМЕЖЕННЯ</dt><dd>${limitations.length || "НЕМАЄ"}</dd></div>
+        <div><dt>ВЕРСІЯ</dt><dd></dd></div>
       </dl>
     </div>
-    <details class="field-counterfactual"><summary><span>COUNTERFACTUAL</span> Що змінить цей вердикт?</summary><p></p></details>`;
+    <details class="field-counterfactual"><summary><span>УМОВА ЗМІНИ</span> Що змінить цей вердикт?</summary><p></p></details>`;
   field.querySelector(".field-value").setAttribute("stroke-dasharray", `${coverage * 320.5} 320.5`);
-  field.querySelector(".field-invariants div:last-child dd").textContent = answer.corpus_release || "UNBOUND";
+  field.querySelector(".field-invariants div:last-child dd").textContent = answer.corpus_release || "НЕ ПРИВ’ЯЗАНО";
   field.querySelector(".field-counterfactual p").textContent = counterfactual;
   const sourceList = field.querySelector(".field-sources");
   citations.slice(0, 6).forEach((citation, index) => sourceList.append(sourceNode(citation, index)));

@@ -30,6 +30,7 @@ test("visual noise is progressively disclosed without removing function", async(
   assert.doesNotMatch(html,/class="right-rail"/); assert.doesNotMatch(css,/\.right-rail/);
   assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
   assert.match(css,/@media\(max-width:600px\)\{\.entry-lockup\{display:none\}/);
+  assert.match(html,/class="mobile-more"/); assert.match(css,/\.ask-section\{position:sticky/);
 });
 test("canonical and combat themes share one functional surface", async()=>{
   const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
@@ -60,4 +61,7 @@ test("Decision Field is lazy, source-bound, and counterfactual", async()=>{
 });
 test("delivery CSS is generated from the readable approved source", async()=>{
   assert.equal(await read("public/styles.css"),minifyCss(await read("design/consumer.css")));
+});
+test("CSS minification preserves required calc addition whitespace",()=>{
+  assert.equal(minifyCss(".x { bottom: calc(64px + env(safe-area-inset-bottom)); }"),".x{bottom:calc(64px + env(safe-area-inset-bottom));}\n");
 });

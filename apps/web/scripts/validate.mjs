@@ -215,7 +215,7 @@ while (moduleQueue.length) {
 if (!/class NetworkError/.test(api) || !/AbortSignal\.timeout/.test(api)) {
   throw new Error("requests have no timeout or no offline signal — a dead uplink hangs the button");
 }
-if (!/НЕМАЄ ЗВ'ЯЗКУ/.test(app)) {
+if (!/НЕМАЄ ЗВ’ЯЗКУ/.test(api)) {
   throw new Error("a lost link is rendered as a generic error, not as a lost link");
 }
 
@@ -362,8 +362,8 @@ if (!/ПІДСТАВИ НЕМАЄ/.test(readerVerdicts)) {
 
 // RAG-019: retrieval_score is a ranking utility, not a calibrated probability. The UI
 // renders it as a number, so the sentence that says what it is not must travel with it.
-if (!app.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
-if (app.includes("retrieval_score") && !app.includes("Ranking utility")) throw new Error("score rendered without its non-probability label");
+if (!app.includes("Якість ранжування не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
+if (app.includes("retrieval_score") && !app.includes("Якість ранжування")) throw new Error("score rendered without its non-probability label");
 
 const manifest = JSON.parse(await read("public/manifest.webmanifest"));
 if (!manifest.name || !manifest.start_url || manifest.display !== "standalone") throw new Error("PWA manifest contract failed");

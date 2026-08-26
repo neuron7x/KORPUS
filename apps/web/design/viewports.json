@@ -33,9 +33,9 @@
     "focusOutlinePx": 2
   },
   "contracts": [
-    "At <=600px the primary action and composer remain usable without horizontal scrolling.",
-    "At <=900px the right evidence rail is absent and navigation becomes a compact top strip.",
-    "At <=1240px the right evidence rail is removed before central answer width is compressed.",
+    "At <=600px the sticky composer and primary action remain usable without horizontal scrolling.",
+    "At <=900px one bottom navigation dock replaces the desktop navigation without duplicating routes.",
+    "Secondary mobile routes are grouped under one keyboard-operable More disclosure.",
     "No critical interaction depends on hover or dragging."
   ]
 }

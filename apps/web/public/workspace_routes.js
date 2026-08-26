@@ -1,4 +1,4 @@
-import {ApiRefusal, NetworkError, call} from "./api.js";
+import {call, describeError} from "./api.js";
 import {PACK_STATE} from "./offline_pack.js";
 import {createOfflineController} from "./offline_controller.js";
 import {resolveRoute, routeAccess} from "./routes.js";
@@ -39,6 +39,15 @@ function renderState(view, title, state, detail = "") {
   view.append(status);
 }
 
+function renderRouteError(view, title, error, retry) {
+  const copy = describeError(error, "Розділ не вдалося завантажити.");
+  renderState(view, title, "error", copy.message);
+  const button = node("button", "Повторити", "secondary route-action");
+  button.type = "button";
+  button.addEventListener("click", () => void retry());
+  view.append(button);
+}
+
 function renderDocuments(view, documents) {
   renderState(view, "Документи", documents.length ? "success" : "empty", documents.length ? `${documents.length} доступних документів` : "Доступних документів немає.");
   if (!documents.length) return;
@@ -46,7 +55,7 @@ function renderDocuments(view, documents) {
   for (const item of documents) {
     const row = node("li", "", "route-card");
     row.append(node("strong", String(item.canonical_title ?? "Без назви")));
-    row.append(node("span", `${item.issuer ?? "—"} · ${item.corpus_id ?? "—"} · tier ${item.access_tier ?? "—"}`));
+    row.append(node("span", `${item.issuer ?? "—"} · ${item.corpus_id ?? "—"} · рівень ${item.access_tier ?? "—"}`));
     list.append(row);
   }
   view.append(list);
@@ -65,13 +74,13 @@ function renderKnowledge(view, documents) {
 }
 
 function renderSources(view, sources) {
-  renderState(view, "Джерела цієї сесії", sources.length ? "success" : "empty", sources.length ? `${sources.length} цитованих джерел` : "Ще немає цитованих джерел. Джерело з’являється тут лише після evidence-bound відповіді.");
+  renderState(view, "Джерела цієї сесії", sources.length ? "success" : "empty", sources.length ? `${sources.length} цитованих джерел` : "Ще немає цитованих джерел. Джерело з’явиться тут після відповіді, підтвердженої доказом.");
   if (!sources.length) return;
   const list = node("ul", "", "route-list");
   for (const source of sources) {
     const row = node("li", "", "route-card");
     row.append(node("strong", `${source.title} · ред. ${source.revision}`));
-    row.append(node("span", `span ${String(source.span_id).slice(0, 12)}… · sha ${String(source.source_hash).slice(0, 12)}…`));
+    row.append(node("span", `фрагмент ${String(source.span_id).slice(0, 12)}… · SHA ${String(source.source_hash).slice(0, 12)}…`));
     const open = node("button", "Відкрити точний фрагмент", "secondary route-action");
     open.type = "button";
     open.dataset.openSpan = String(source.span_id);
@@ -85,19 +94,19 @@ function renderSources(view, sources) {
 function renderProfile(view, bootstrap) {
   const identity = bootstrap?.identity ?? {};
   const capabilities = bootstrap?.capabilities ?? {};
-  renderState(view, "Профіль", "success", "Серверно підтверджена ідентичність та runtime policy");
+  renderState(view, "Профіль", "success", "Підтверджена сервером ідентичність і чинні правила доступу");
   const list = node("dl", "", "route-metrics");
   const values = [
-    ["Subject", identity.subject],
-    ["Clearance", identity.clearance],
-    ["Roles", (identity.roles ?? []).join(", ") || "—"],
-    ["Corpora", (identity.corpora ?? []).join(", ") || "—"],
-    ["Permissions", (bootstrap?.effective_permissions ?? []).join(", ") || "—"],
-    ["Release", bootstrap?.release],
-    ["API", bootstrap?.api_version],
-    ["Ingestion", capabilities.ingestion_mode],
-    ["Offline", capabilities.offline_pack_enabled ? "enabled" : "disabled"],
-    ["Subscription", capabilities.subscription_required ? "required" : "not required"],
+    ["Обліковий ідентифікатор", identity.subject],
+    ["Рівень допуску", identity.clearance],
+    ["Ролі", (identity.roles ?? []).join(", ") || "—"],
+    ["Корпуси", (identity.corpora ?? []).join(", ") || "—"],
+    ["Дозволи", (bootstrap?.effective_permissions ?? []).join(", ") || "—"],
+    ["Версія системи", bootstrap?.release],
+    ["Версія API", bootstrap?.api_version],
+    ["Режим завантаження", capabilities.ingestion_mode],
+    ["Офлайн-доступ", capabilities.offline_pack_enabled ? "увімкнено" : "вимкнено"],
+    ["Підписка", capabilities.subscription_required ? "обов’язкова" : "не обов’язкова"],
   ];
   for (const [key, value] of values) list.append(node("dt", key), node("dd", String(value ?? "—")));
   view.append(list);
@@ -123,9 +132,9 @@ function renderOffline(view, validation, actions) {
 }
 
 function renderAuditForm(view, onSubmit) {
-  renderState(view, "Аудит запиту", "empty", "Введіть X-Request-ID / trace ID. Читання аудиту вимагає серверного audit:read.");
+  renderState(view, "Аудит запиту", "empty", "Введіть ідентифікатор запиту. Читання аудиту потребує підтвердженого дозволу.");
   const form = node("form", "", "route-form");
-  const label = node("label", "Trace ID");
+  const label = node("label", "Ідентифікатор запиту");
   label.htmlFor = "audit-trace-id";
   const input = node("input");
   input.id = "audit-trace-id";
@@ -146,7 +155,7 @@ function renderAuditForm(view, onSubmit) {
 }
 
 function renderAuditEvents(view, trace, events) {
-  renderState(view, "Аудит запиту", events.length ? "success" : "empty", events.length ? `${events.length} подій · trace ${trace}` : `Подій для trace ${trace} не знайдено.`);
+  renderState(view, "Аудит запиту", events.length ? "success" : "empty", events.length ? `${events.length} подій · запит ${trace}` : `Подій для запиту ${trace} не знайдено.`);
   if (!events.length) return;
   const list = node("ol", "", "route-list");
   for (const event of events) {
@@ -193,7 +202,7 @@ export function createWorkspaceRouter({view, nav, chatNodes, isAuthenticated, ge
     try {
       switch (route?.id) {
         case "login":
-          renderState(view, "Вхід", "empty", isAuthenticated?.() ? "Сесію вже підтверджено сервером." : "Продовжте через серверний OIDC/session login. Локальна роль не надає доступ.");
+          renderState(view, "Вхід", "empty", isAuthenticated?.() ? "Сесію вже підтверджено сервером." : "Продовжте через захищений вхід. Локально вказана роль не надає доступу.");
           break;
         case "documents": {
           renderState(view, "Документи", "loading", "Завантаження…");
@@ -218,12 +227,12 @@ export function createWorkspaceRouter({view, nav, chatNodes, isAuthenticated, ge
           break;
         case "audit":
           renderAuditForm(view, async trace => {
-            renderState(view, "Аудит запиту", "loading", "Читання server-side audit chain…");
+            renderState(view, "Аудит запиту", "loading", "Перевіряю серверний ланцюг аудиту…");
             try {
               const events = await call(`/v1/audit/events?trace_id=${encodeURIComponent(trace)}&limit=100`);
               renderAuditEvents(view, trace, Array.isArray(events) ? events : []);
             } catch (error) {
-              renderState(view, "Аудит запиту", "error", error instanceof ApiRefusal ? error.reason : "Аудит недоступний");
+              renderRouteError(view, "Аудит запиту", error, () => render("/audit"));
             }
           });
           break;
@@ -239,10 +248,7 @@ export function createWorkspaceRouter({view, nav, chatNodes, isAuthenticated, ge
       }
     } catch (error) {
       if (epoch !== renderEpoch) return route;
-      const reason = error instanceof NetworkError
-        ? (error.offline ? "Немає мережі; серверний маршрут не підміняється кешованою відповіддю." : "Мережевий запит не завершено.")
-        : error instanceof ApiRefusal ? error.reason : "Маршрут не вдалося завантажити.";
-      renderState(view, route?.id ?? "Маршрут", "error", reason);
+      renderRouteError(view, route?.id ?? "Маршрут", error, () => render(pathname));
     }
     return route;
   }
@@ -259,6 +265,8 @@ export function createWorkspaceRouter({view, nav, chatNodes, isAuthenticated, ge
     const link = event.target.closest?.("a[data-route-link]");
     if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
+    const disclosure = link.closest(".mobile-more");
+    if (disclosure) disclosure.open = false;
     void navigate(link.getAttribute("href") ?? "/access-denied");
   });
   window.addEventListener("popstate", () => { void render(); });

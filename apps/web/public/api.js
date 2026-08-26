@@ -54,6 +54,30 @@ export class NetworkError extends Error {
   }
 }
 
+const REFUSAL_TITLE = Object.freeze({
+  401: "ПОТРІБЕН ВХІД", 403: "ДОСТУП ЗАБОРОНЕНО", 404: "НЕ ЗНАЙДЕНО",
+  409: "КОНФЛІКТ СТАНУ", 422: "ДАНІ НЕ ПРИЙНЯТО", 429: "ЛІМІТ ЗАПИТІВ",
+  503: "СЕРВІС НЕДОСТУПНИЙ",
+});
+
+export function describeError(error, fallback = "Дію не завершено.") {
+  if (error instanceof NetworkError) return Object.freeze({
+    title: error.offline ? "НЕМАЄ ЗВ’ЯЗКУ" : "ЗВ’ЯЗОК ПЕРЕРВАВСЯ",
+    message: "Запит не втрачено. Перевірте з’єднання та повторіть спробу.",
+  });
+  if (!(error instanceof ApiRefusal)) return Object.freeze({title: "НЕПЕРЕДБАЧЕНА ПОМИЛКА", message: fallback});
+  const detail = error.payload?.detail;
+  const serverDetail = typeof detail === "object" && detail !== null
+    ? String(detail.detail ?? "").trim()
+    : "";
+  return Object.freeze({
+    title: REFUSAL_TITLE[error.status] ?? "ДІЮ ВІДХИЛЕНО",
+    message: serverDetail || (error.status === 401
+      ? "Підтвердьте сесію та повторіть дію."
+      : "Перевірте доступ і повторіть дію з актуального стану."),
+  });
+}
+
 const REQUEST_TIMEOUT_MS = 30000;
 
 function transportPath(path) {

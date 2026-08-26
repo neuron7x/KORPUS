@@ -40,6 +40,7 @@
     {
       "id": "composer",
       "selectors": [
+        ".ask-section",
         ".composer",
         "#query",
         "#submit"
@@ -61,7 +62,8 @@
         "Shift+Enter inserts newline",
         "IME composition never submits",
         "textarea auto-grows",
-        "submit exposes aria-busy"
+        "submit exposes aria-busy",
+        "composer remains reachable while evidence scrolls"
       ]
     },
     {
@@ -145,6 +147,29 @@
       ]
     },
     {
+      "id": "workspace-navigation",
+      "selectors": [
+        ".primary-nav",
+        ".mobile-nav",
+        ".mobile-more"
+      ],
+      "variants": [
+        "desktop-rail",
+        "mobile-dock",
+        "secondary-disclosure"
+      ],
+      "states": [
+        "current",
+        "hidden-by-policy",
+        "expanded"
+      ],
+      "contract": [
+        "desktop and mobile navigation never compete in the same viewport",
+        "every authorized route remains reachable on compact screens",
+        "current route is exposed with aria-current"
+      ]
+    },
+    {
       "id": "plan-card",
       "selectors": [
         ".plan-card",
@@ -203,7 +228,8 @@
     {
       "id": "inference-status",
       "selectors": [
-        "#inference-state"
+        "#inference-state",
+        ".status-disclosure"
       ],
       "variants": [
         "off",

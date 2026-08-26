@@ -1,5 +1,5 @@
 import {
-  ApiRefusal, NetworkError, call, clearBearerToken, escapeHtml, loginUrl, setBearerToken,
+  ApiRefusal, NetworkError, call, clearBearerToken, describeError, escapeHtml, loginUrl, setBearerToken,
 } from "./api.js";
 import {CHAT_STATE, createChatMachine, replayServerOutcome} from "./chat_fsm.js";
 import {askIn} from "./conversations.js";
@@ -194,7 +194,7 @@ $("check-auth")?.addEventListener("click", async () => {
     await loadInferenceStatus();
     if (!publicMode) await refreshBilling();
   } catch (error) {
-    forgetIdentity(`відмова: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`);
+    forgetIdentity(describeError(error, "Не вдалося підтвердити обліковий запис.").message);
   }
 });
 
@@ -208,8 +208,7 @@ $("logout")?.addEventListener("click", async () => {
     forgetIdentity("не автентифіковано");
   } catch (error) {
     if (identityState) {
-      identityState.textContent =
-        `logout відхилено: ${error instanceof ApiRefusal ? error.reason : "невідома помилка"}`;
+      identityState.textContent = describeError(error, "Не вдалося завершити сеанс.").message;
     }
   }
 });
@@ -339,11 +338,11 @@ function render(answer, question) {
     ${withheld}
     <details class="answer-meta"><summary>Деталі перевірки</summary>
       <dl class="metrics">
-        <div><dt>Ranking utility</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
-        <div><dt>Evidence coverage</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
+        <div><dt>Якість ранжування</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
+        <div><dt>Покриття доказом</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
         <div><dt>Цитат</dt><dd>${(answer.citations ?? []).length}</dd></div>
-        <div><dt>Corpus release</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
-      </dl><p class="note">Ranking utility не є ймовірністю правильності.</p>
+        <div><dt>Версія корпусу</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
+      </dl><p class="note">Якість ранжування не є ймовірністю правильності.</p>
     </details>
     ${citations}
     ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
@@ -396,31 +395,32 @@ async function ask() {
       chatEvent("FAIL");
     }
     if (error instanceof NetworkError) {
+      const copy = describeError(error);
       const block = document.createElement("article");
       block.className = "turn";
       block.innerHTML =
         `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${escapeHtml(question)}</p>` +
         `<div class="verdict denied"><span class="verdict-mark" aria-hidden="true"></span>` +
-        `<h2>${escapeHtml(error.offline ? "НЕМАЄ ЗВ'ЯЗКУ" : "ЗВ'ЯЗОК ПЕРЕРВАВСЯ")}</h2></div>` +
-        `<p class="answer-text">Питання не надіслано. Воно залишилось у полі для повторної спроби.</p>`;
+        `<h2>${escapeHtml(copy.title)}</h2></div>` +
+        `<p class="answer-text">${escapeHtml(copy.message)}</p>` +
+        `<button type="button" class="secondary retry-query" data-retry-query>Повторити запит</button>`;
       result.append(block);
       block.scrollIntoView({block: "nearest", behavior: "smooth"});
       return;
     }
     const refusal = error instanceof ApiRefusal ? error : null;
     const paywalled = refusal?.status === 402;
-    const heading = paywalled ? "ПОТРІБНА ПІДПИСКА" : refusal ? `ВІДМОВА ${refusal.status}` : "ПОМИЛКА";
-    const detail = refusal?.payload?.detail;
-    const reason = typeof detail === "object" && detail !== null
-      ? String(detail.detail ?? detail.reason ?? refusal.reason)
-      : refusal?.reason ?? "Невідома помилка";
+    const copy = describeError(error, "Запит не вдалося завершити.");
+    const heading = paywalled ? "ПОТРІБНА ПІДПИСКА" : copy.title;
+    const reason = copy.message;
     const block = document.createElement("article");
     block.className = "turn";
     block.innerHTML =
       `<p class="turn-question"><span class="turn-mark" aria-hidden="true"></span>${escapeHtml(question)}</p>` +
       `<div class="verdict ${paywalled ? "withheld" : "denied"}"><span class="verdict-mark" aria-hidden="true"></span>` +
       `<h2>${escapeHtml(heading)}</h2></div><p class="answer-text">${escapeHtml(reason)}</p>` +
-      (paywalled ? `<p class="note">Це комерційна відмова, а не висновок про базу знань.</p>` : "");
+      (paywalled ? `<p class="note">Це комерційна відмова, а не висновок про базу знань.</p>` : "") +
+      (!paywalled && (!refusal || refusal.status >= 429) ? `<button type="button" class="secondary retry-query" data-retry-query>Повторити запит</button>` : "");
     result.append(block);
     if (paywalled && !publicMode) {
       await refreshBilling();
@@ -502,13 +502,13 @@ async function openEvidence(spanId, expectedVersion, opener) {
     const until = span.rescinded_at ? `відкликано ${span.rescinded_at}` : span.effective_until ? `до ${span.effective_until}` : "кінцеву дату не задано";
     evidenceValidity.textContent = `ред. ${span.revision} · чинність від ${span.effective_from ?? span.publication_date ?? "невідомо"} · ${until}`;
     evidenceField("Документ", span.document_title);
-    evidenceField("Version ID", span.version_id);
-    evidenceField("Span ID", span.id);
-    evidenceField("Locator", [span.page ? `с. ${span.page}` : "", span.section ?? "", `ordinal ${span.ordinal}`].filter(Boolean).join(" · "));
-    evidenceField("Authority", span.authority);
-    evidenceField("Source SHA-256", span.source_hash);
-    evidenceField("Span SHA-256", span.text_hash);
-    evidenceField("Source URI", span.source_uri);
+    evidenceField("Ідентифікатор версії", span.version_id);
+    evidenceField("Ідентифікатор фрагмента", span.id);
+    evidenceField("Місце", [span.page ? `с. ${span.page}` : "", span.section ?? "", `порядок ${span.ordinal}`].filter(Boolean).join(" · "));
+    evidenceField("Клас джерела", span.authority);
+    evidenceField("SHA-256 джерела", span.source_hash);
+    evidenceField("SHA-256 фрагмента", span.text_hash);
+    evidenceField("Адреса джерела", span.source_uri);
     evidenceText.focus({preventScroll:true});
   } catch (error) {
     evidenceValidity.textContent = "Джерело не розкрито. 404 не відрізняє відсутність від відсутності права.";
@@ -517,6 +517,10 @@ async function openEvidence(spanId, expectedVersion, opener) {
 }
 
 document.addEventListener("click", event => {
+  if (event.target.closest?.("[data-retry-query]")) {
+    queryForm.requestSubmit();
+    return;
+  }
   const open = event.target.closest?.("[data-open-span]");
   if (open) void openEvidence(open.dataset.openSpan, open.dataset.versionId, open);
 });

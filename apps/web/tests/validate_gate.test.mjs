@@ -181,7 +181,7 @@ test("removing the statement that hiding is not access control is caught", async
 test("removing the uncalibrated-score disclaimer is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/app.js", source =>
-      source.replace("Ranking utility не є ймовірністю правильності", "Оцінка")));
+      source.replace("Якість ранжування не є ймовірністю правильності", "Оцінка")));
   assert.notEqual(status, 0);
   assert.match(output, /uncalibrated score disclaimer missing/);
 });
@@ -511,7 +511,7 @@ test("removing the request timeout is caught", async () => {
 
 test("rendering a lost link as a generic error is caught", async () => {
   const {status, output} = await runWith(edit =>
-    edit("public/app.js", source => source.replaceAll("НЕМАЄ ЗВ'ЯЗКУ", "ПОМИЛКА")));
+    edit("public/api.js", source => source.replaceAll("НЕМАЄ ЗВ’ЯЗКУ", "ПОМИЛКА")));
   assert.notEqual(status, 0);
   assert.match(output, /lost link is rendered as a generic error/);
 });

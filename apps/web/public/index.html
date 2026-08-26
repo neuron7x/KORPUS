@@ -8,7 +8,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/tokens.css">
   <link rel="stylesheet" href="/styles.css">
-  <title>KORPUS — evidence-bound knowledge interface</title>
+  <title>KORPUS — перевірені знання з точними джерелами</title>
 </head>
 <body>
   <a class="skip-link" href="#query">Перейти до поля запиту</a>
@@ -90,11 +90,6 @@
         </details>
       </div>
 
-      <section class="principles" aria-label="Гарантії системи">
-        <article><b>01</b><div><h2>Не знає — мовчить</h2><p>Недостатній доказ → явна відмова.</p></div></article>
-        <article><b>02</b><div><h2>Джерело видно</h2><p>Цитата · редакція · locator · hash.</p></div></article>
-        <article><b>03</b><div><h2>Доступ до пошуку</h2><p>Політика доступу спрацьовує до retrieval.</p></div></article>
-      </section>
     </section>
 
     <section id="product" class="product-shell" hidden aria-label="Робочий простір KORPUS">
@@ -170,8 +165,8 @@
         </details>
 
         <div class="rail-policy">
-          <span>POLICY</span>
-          <strong>Evidence-bound</strong>
+          <span>ПРАВИЛО</span>
+          <strong>Тільки з доказом</strong>
           <p>Немає підтримки — немає твердження.</p>
         </div>
       </aside>
@@ -185,8 +180,10 @@
           <section id="standing" class="standing" aria-label="Поточна ідентичність">
             <span class="chip verified" id="standing-verified">ДОПУСК</span>
             <span class="chip declared" id="standing-declared">КОНТЕКСТ НЕ ЗАДАНО</span>
-            <span class="chip" id="inference-state" role="status" aria-live="polite"
-                  title="Модель може допомагати шукати й компонувати, але не створює факти.">МОДЕЛЬ · ПЕРЕВІРКА</span>
+            <details class="status-disclosure">
+              <summary class="chip" id="inference-state" role="status" aria-live="polite">МОДЕЛЬ · ПЕРЕВІРКА</summary>
+              <p>Модель може допомагати шукати й компонувати, але не створює факти. Факти допускає лише перевірене джерело.</p>
+            </details>
             <button id="standing-edit" type="button" class="link">Контекст</button>
           </section>
         </div>
@@ -237,7 +234,7 @@
     <section id="pricing" class="pricing" hidden aria-labelledby="pricing-heading" tabindex="-1">
       <div class="pricing-inner">
         <div class="pricing-head">
-          <p class="eyebrow">ACCESS / SUBSCRIPTION</p>
+          <p class="eyebrow">ДОСТУП / ПІДПИСКА</p>
           <h2 id="pricing-heading">Відкрийте доступ до KORPUS</h2>
           <p>Підписка відкриває комерційний доступ, але ніколи не обходить політику корпусів або рівень допуску.</p>
         </div>
@@ -253,7 +250,7 @@
 
   <dialog id="evidence-dialog" class="evidence-dialog" aria-labelledby="evidence-dialog-title">
     <div class="evidence-dialog-head">
-      <div><span class="rail-kicker">EVIDENCE / EXACT FRAGMENT</span><h2 id="evidence-dialog-title">Джерело</h2></div>
+      <div><span class="rail-kicker">ДОКАЗ / ТОЧНИЙ ФРАГМЕНТ</span><h2 id="evidence-dialog-title">Джерело</h2></div>
       <button id="evidence-close" type="button" class="secondary" aria-label="Закрити джерело">Закрити</button>
     </div>
     <p id="evidence-validity" class="route-note"></p>
@@ -262,8 +259,18 @@
   </dialog>
 
   <nav id="mobile-nav" class="mobile-nav" aria-label="Мобільна навігація" hidden>
-    <a href="/chat" data-route-link>Чат</a><a href="/documents" data-route-link>Документи</a>
-    <a href="/sources" data-route-link>Джерела</a><a href="/offline" data-route-link>Офлайн</a><a href="/profile" data-route-link>Профіль</a>
+    <a href="/chat" data-route-link>Чат</a>
+    <a href="/knowledge" data-route-link>Знання</a>
+    <a href="/documents" data-route-link>Документи</a>
+    <a href="/profile" data-route-link>Профіль</a>
+    <details class="mobile-more">
+      <summary>Ще</summary>
+      <div class="mobile-more-menu">
+        <a href="/sources" data-route-link>Джерела</a>
+        <a href="/offline" data-route-link>Офлайн</a>
+        <a href="/audit" data-route-link>Аудит</a>
+      </div>
+    </details>
   </nav>
 
   <script src="/config.js"></script>
