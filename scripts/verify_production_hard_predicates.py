@@ -44,14 +44,18 @@ def build() -> dict[str, Any]:
     profile = load_hard_predicate_profile(PROFILE)
     gate_dir = ROOT / "var/production"
     gates = {gate: _json(gate_dir / filename) for gate, filename in GATE_FILES.items()}
-    states = evaluate_hard_predicates(ROOT, profile, gates)
+    source_digest = compute_source_digest(ROOT)
+    release = release_tag()
+    states = evaluate_hard_predicates(
+        ROOT, profile, gates, current_source_sha256=source_digest, current_release=release
+    )
     software_ready = sum(state.software_ready for state in states)
     externally_satisfied = sum(state.externally_satisfied for state in states)
     production_satisfied = sum(state.production_satisfied for state in states)
     return {
         "schema": "korpus.production-hard-predicate-report.v1",
-        "release": release_tag(),
-        "source_tree_sha256": compute_source_digest(ROOT),
+        "release": release,
+        "source_tree_sha256": source_digest,
         "profile": str(PROFILE.relative_to(ROOT)),
         "predicates_total": len(states),
         "software_ready": software_ready,

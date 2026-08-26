@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "af791a77c6d8fad2168ff72e85760da531b69ee12c348abd6fbf4c72e485bfa3",
+  "source_tree_sha256": "d84878a1ab68c95fb08e7fc69bf6f1a874316406819861c0b6f2a388810babb5",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 1,
-  "production_satisfied": 1,
+  "externally_satisfied": 0,
+  "production_satisfied": 0,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 7.142857,
-  "production_completion_percent": 7.142857,
+  "external_completion_percent": 0.0,
+  "production_completion_percent": 0.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -33,7 +33,9 @@
         "findings_structured",
         "blocking_findings_closed",
         "declared_status_consistent",
-        "metadata:status"
+        "metadata:status",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -52,7 +54,8 @@
         "container_sboms_valid",
         "evidence_manifest_bound",
         "evidence_attestation_verified",
-        "evidence_trusted_signer"
+        "evidence_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -60,10 +63,12 @@
       "gate": "postgres_security",
       "required_proof_class": "REAL_POSTGRESQL",
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": []
+      "failed_external_checks": [
+        "gate_source_bound"
+      ]
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -88,7 +93,9 @@
         "determinism",
         "null_controls",
         "null_false_accepts",
-        "attack_families"
+        "attack_families",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -103,7 +110,9 @@
         "independent_class",
         "assessor_structured",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -117,7 +126,9 @@
       "failed_external_checks": [
         "environment_class",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -133,7 +144,8 @@
         "load_source_bound",
         "load_environment",
         "load_slo_steady_p95",
-        "load_slo_cold_start"
+        "load_slo_cold_start",
+        "gate_source_bound"
       ]
     },
     {
@@ -146,7 +158,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "load_attestation_verified",
-        "load_trusted_signer"
+        "load_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -162,7 +175,8 @@
         "recovery_source_bound",
         "recovery_environment",
         "recovery_attestation_verified",
-        "recovery_trusted_signer"
+        "recovery_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -177,7 +191,9 @@
         "builder_provenance_verified",
         "builder_trusted",
         "builder_attestation_verified",
-        "builder_trusted_signer"
+        "builder_trusted_signer",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -191,7 +207,9 @@
       "failed_external_checks": [
         "release_manifest_bound",
         "release_attestation_verified",
-        "release_trusted_signer"
+        "release_trusted_signer",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -208,7 +226,9 @@
         "no_unmanaged_distributions",
         "production_python_exact",
         "lock_hashes_present",
-        "metadata:status"
+        "metadata:status",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -229,7 +249,9 @@
         "hosted_evidence",
         "attestation_verified",
         "trusted_signer",
-        "metadata:environment_class"
+        "metadata:environment_class",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     },
     {
@@ -248,7 +270,9 @@
         "minimum_samples",
         "server_error_rate",
         "human_judgment_admissible",
-        "metadata:environment_class"
+        "metadata:environment_class",
+        "gate_source_bound",
+        "gate_release_bound"
       ]
     }
   ],

@@ -73,6 +73,19 @@ def test_holdout_leakage_and_non_independent_annotation_are_blocking() -> None:
     assert "requires_exactly_two_independent_annotations:q1" in report["issues"]
 
 
+def test_split_disagreement_is_rejected_before_pairing() -> None:
+    rows = [
+        _row("q1", "a", GoldLabel.ANSWERABLE, split=DatasetSplit.HOLDOUT),
+        _row("q1", "b", GoldLabel.ANSWERABLE, split=DatasetSplit.DEVELOPMENT),
+    ]
+    policy = GoldAdmissionPolicy(minimum_queries=1, minimum_holdout_queries=1, minimum_kappa=-1)
+
+    report = evaluate_gold_annotations(rows, [], tuning_query_ids=frozenset(), policy=policy)
+
+    assert report["status"] == "FAIL"
+    assert "split_disagreement:q1" in report["issues"]
+
+
 def test_gold_bindings_reject_placeholder_or_malformed_identity() -> None:
     fields = {
         "source_tree_sha256": "a" * 64,

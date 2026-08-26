@@ -1127,9 +1127,9 @@
       "reason": "isolates external production trust predicates from gate aggregation"
     },
     "apps/api/src/korpus/application/production_hard_predicates.py": {
-      "lines": 277,
+      "lines": 290,
       "max_complexity": 9,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "v0.9.7: every external predicate now requires exact source/release gate binding; measured implementation is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/production_reliability.py": {
       "lines": 57,
@@ -2476,9 +2476,9 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_external_gate_campaign.py": {
-      "lines": 197,
+      "lines": 201,
       "max_complexity": 15,
-      "reason": "v0.9.3: new bounded module; exact initial measurement becomes the ratchet ceiling"
+      "reason": "v0.9.7: campaign supplies exact source/release identity to every hard predicate; measured implementation is the ratchet ceiling"
     },
     "scripts/run_inference_security_gate.py": {
       "lines": 171,
@@ -2740,9 +2740,9 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/verify_production_hard_predicates.py": {
-      "lines": 81,
+      "lines": 85,
       "max_complexity": 6,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+      "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling"
     },
     "scripts/verify_regression_carry_forward.py": {
       "lines": 157,

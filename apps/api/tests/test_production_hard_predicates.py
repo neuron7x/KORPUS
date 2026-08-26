@@ -106,6 +106,30 @@ def test_postgres_gate_targets_all_exist() -> None:
     assert all((ROOT / path).is_file() for path in module.TARGETS), module.TARGETS
 
 
+def test_stale_postgres_gate_cannot_satisfy_a_current_hard_predicate() -> None:
+    gate = {
+        "backend": "postgresql",
+        "release": "v0.9.7",
+        "source_tree_sha256": "a" * 64,
+        "checks": {
+            "target_files_present": True,
+            "grant_contract_static": True,
+            "postgres_runtime_available": True,
+            "postgres_adversarial_suite": True,
+        },
+    }
+
+    ok, failed = external_predicate_state(
+        "live_postgres_rls",
+        {"postgres_security": gate},
+        current_source_sha256="b" * 64,
+        current_release="v0.9.7",
+    )
+
+    assert ok is False
+    assert failed == ("gate_source_bound",)
+
+
 def test_hosted_release_node_matches_pinned_web_build_runtime() -> None:
     import re
 

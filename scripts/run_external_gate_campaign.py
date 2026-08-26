@@ -138,7 +138,11 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
     gate_dir = root / "var/production"
     gates = {name: _object(gate_dir / filename) for name, filename in GATE_FILES.items()}
     profile = load_hard_predicate_profile(root / PROFILE)
-    states = evaluate_hard_predicates(root, profile, gates)
+    source_digest = compute_source_digest(root)
+    release = release_tag(root)
+    states = evaluate_hard_predicates(
+        root, profile, gates, current_source_sha256=source_digest, current_release=release
+    )
     capabilities = _capabilities()
     external = []
     for state in states:
@@ -158,8 +162,8 @@ def build(root: Path, *, execute: bool) -> dict[str, Any]:
     completed, total = software_pass + external_pass, len(states) * 2
     return {
         "schema": "korpus.production-24-gate-campaign.v1",
-        "release": release_tag(root),
-        "source_tree_sha256": compute_source_digest(root),
+        "release": release,
+        "source_tree_sha256": source_digest,
         "status": "PASS" if completed == total else "FAIL_CLOSED",
         "software_gates": {"passed": software_pass, "total": len(states)},
         "external_gates": {"passed": external_pass, "total": len(states)},

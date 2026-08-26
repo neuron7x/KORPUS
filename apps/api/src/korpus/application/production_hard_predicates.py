@@ -221,8 +221,10 @@ def _all_checks(gate: Mapping[str, Any], names: Sequence[str]) -> tuple[bool, tu
 
 
 def external_predicate_state(
-    predicate_id: str,
-    gates: Mapping[str, Mapping[str, Any]],
+    predicate_id: str, gates: Mapping[str, Mapping[str, Any]],
+    *,
+    current_source_sha256: str | None = None,
+    current_release: str | None = None,
 ) -> tuple[bool, tuple[str, ...]]:
     requirement = _REQUIREMENTS.get(predicate_id)
     if requirement is None:
@@ -234,11 +236,17 @@ def external_predicate_state(
         for name, expected in requirement.metadata_equals
         if gate.get(name) != expected
     )
-    return checks_ok and not metadata_failed, (*failed, *metadata_failed)
+    binding_failed: tuple[str, ...] = ()
+    if current_source_sha256 is not None and gate.get("source_tree_sha256") != current_source_sha256:
+        binding_failed += ("gate_source_bound",)
+    if current_release is not None and gate.get("release") != current_release:
+        binding_failed += ("gate_release_bound",)
+    return checks_ok and not metadata_failed and not binding_failed, (*failed, *metadata_failed, *binding_failed)
 
 
 def _state(
-    root: Path, raw: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]]
+    root: Path, raw: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]],
+    current_source_sha256: str | None, current_release: str | None,
 ) -> HardPredicateState:
     predicate_id = str(raw.get("id", ""))
     gate = str(raw.get("gate", ""))
@@ -252,7 +260,10 @@ def _state(
             f"hard-predicate gate drift for {predicate_id}: {gate} != {requirement.gate}"
         )
     missing = tuple(str(item) for item in artifacts if not (root / str(item)).is_file())
-    external_ok, external_failed = external_predicate_state(predicate_id, gates)
+    external_ok, external_failed = external_predicate_state(
+        predicate_id, gates, current_source_sha256=current_source_sha256,
+        current_release=current_release,
+    )
     return HardPredicateState(
         predicate_id=predicate_id,
         gate=gate,
@@ -265,13 +276,15 @@ def _state(
 
 
 def evaluate_hard_predicates(
-    root: Path,
-    profile: Mapping[str, Any],
-    gates: Mapping[str, Mapping[str, Any]],
+    root: Path, profile: Mapping[str, Any], gates: Mapping[str, Mapping[str, Any]],
+    *,
+    current_source_sha256: str | None = None,
+    current_release: str | None = None,
 ) -> tuple[HardPredicateState, ...]:
     raw_predicates = profile.get("predicates", ())
     if not isinstance(raw_predicates, list):
         raise ValueError("hard-predicate profile has no predicates list")
     if any(not isinstance(raw, Mapping) for raw in raw_predicates):
         raise ValueError("hard-predicate record must be an object")
-    return tuple(_state(root, raw, gates) for raw in raw_predicates)
+    return tuple(_state(root, raw, gates, current_source_sha256, current_release)
+                 for raw in raw_predicates)
