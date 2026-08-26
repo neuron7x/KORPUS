@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 APP_JS = ROOT / "apps/web/public/app.js"
 WEB_VALIDATOR = ROOT / "apps/web/scripts/validate.mjs"
-DISCLAIMER = "Ranking utility не є ймовірністю правильності"
+DISCLAIMER = "Якість ранжування не є ймовірністю правильності"
 
 
 def test_the_ui_states_that_the_score_is_not_a_probability() -> None:
@@ -25,7 +25,7 @@ def test_the_ui_states_that_the_score_is_not_a_probability() -> None:
 
 def test_the_score_is_labelled_as_a_ranking_utility_not_a_confidence() -> None:
     source = APP_JS.read_text(encoding="utf-8")
-    assert "Ranking utility" in source
+    assert "Якість ранжування" in source
     for forbidden in ("Впевненість", "Ймовірність правильності", "Confidence"):
         assert forbidden not in source, (
             f"{forbidden!r} presents an uncalibrated ranking score as a probability"

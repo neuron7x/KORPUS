@@ -880,7 +880,7 @@ MUTANTS = (
     Mutant(
         "M76_UNCALIBRATED_SCORE_DISCLAIMER_UNGUARDED",
         "apps/web/scripts/validate.mjs",
-        'if (!app.includes("Ranking utility не є ймовірністю правильності")) '
+        'if (!app.includes("Якість ранжування не є ймовірністю правильності")) '
         'throw new Error("uncalibrated score disclaimer missing");',
         "",
         (
