@@ -11,6 +11,13 @@ umask 077
 root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$root"
 python_bin="${PYTHON:-$(command -v python3)}"
+if [[ "$python_bin" != /* ]]; then
+  python_bin="$root/$python_bin"
+fi
+[[ -x "$python_bin" ]] || {
+  echo "Python interpreter is not executable: $python_bin" >&2
+  exit 69
+}
 work="${KORPUS_SQLITE_DRILL_WORKDIR:-$root/var/sqlite-recovery-drill}"
 source_db="$work/source.db"
 objects="$work/objects"
@@ -63,11 +70,11 @@ KORPUS_RECOVERY_PHASE=after-backup KORPUS_RECOVERY_SEED_URL="$source_url" \
   "$python_bin" scripts/seed_recovery_fixture.py >/dev/null
 
 echo "== restore and verify =="
-started="$($python_bin -c 'import time; print(time.perf_counter())')"
+started="$("$python_bin" -c 'import time; print(time.perf_counter())')"
 KORPUS_BACKUP_ENCRYPTION_KEY_FILE="$key_file" \
   bash scripts/restore_sqlite.sh "$backup" "$restore_dir" >/dev/null
-ended="$($python_bin -c 'import time; print(time.perf_counter())')"
-restore_seconds="$($python_bin -c 'import sys; print(float(sys.argv[2])-float(sys.argv[1]))' "$started" "$ended")"
+ended="$("$python_bin" -c 'import time; print(time.perf_counter())')"
+restore_seconds="$("$python_bin" -c 'import sys; print(float(sys.argv[2])-float(sys.argv[1]))' "$started" "$ended")"
 
 echo "== measure =="
 KORPUS_RECOVERY_SOURCE_URL="$source_url" \
