@@ -112,6 +112,16 @@ def test_operational_gate_fails_closed_on_trust_regression(section, key, value, 
     assert failed_check in result.failures
 
 
+def test_operational_gate_rejects_blank_required_table_identity():
+    reports = passing_reports()
+    reports["migration"]["tables_actual"].append("")
+
+    result = evaluate(reports)
+
+    assert result.passed is False
+    assert "migration_required_tables" in result.failures
+
+
 def test_operational_policy_is_valid_json_and_explicitly_not_authorization():
     policy = json.loads(POLICY.read_text())
     assert policy["status"] == "ENGINEERING_GATE_ONLY_NOT_PRODUCTION_AUTHORIZATION"
