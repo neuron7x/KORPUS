@@ -97,9 +97,6 @@ def main() -> int:
     now = int(time.time())
     health = {
         "api": probe("http://127.0.0.1:8000/health", b'"status":"ok"'),
-        # Healthz proves nginx exists; bootstrap proves its injected short-lived token
-        # is still valid. Without this, the watchdog stayed green while every real
-        # request became 401 exactly 24 hours after deployment.
         "edge": probe("http://127.0.0.1:8081/api/v1/client/bootstrap", b'"subject":"public"'),
         "public": probe(args.public_url.rstrip("/") + "/healthz", b'"status":"ok"'),
     }
