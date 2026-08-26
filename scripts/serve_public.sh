@@ -21,6 +21,8 @@ EDGE="$STATE/edge"
 PORT_API="${KORPUS_PUBLIC_API_PORT:-8000}"
 PORT_EDGE="${KORPUS_PUBLIC_EDGE_PORT:-8081}"
 PY="apps/api/.venv/bin/python"
+RUNTIME_RELEASE="${KORPUS_RUNTIME_RELEASE:-corpus-v6-20260807}"
+RUNTIME_ROOT="${KORPUS_PUBLIC_RUNTIME_ROOT:-$ROOT/var/runtime/$RUNTIME_RELEASE}"
 
 # Secrets live OUTSIDE the repository tree by default. The JWT secret used to be written
 # to var/public/ inside the checkout, so a naive `zip -r korpus .` or an rsync of the
@@ -57,15 +59,15 @@ export KORPUS_ENVIRONMENT=local
 # The imported Drive corpus, not the bootstrap fixture. SQLite is in WAL mode here, so
 # the reader serves while `import_corpus.py` is still writing: the base grows under a
 # running site instead of the site waiting hours for the last document.
-export KORPUS_DATABASE_URL="${KORPUS_DATABASE_URL:-sqlite:///$ROOT/var/korpus-ml.db}"
-export KORPUS_OBJECT_ROOT="${KORPUS_OBJECT_ROOT:-$ROOT/var/objects-ml}"
+export KORPUS_DATABASE_URL="${KORPUS_DATABASE_URL:-sqlite:///$RUNTIME_ROOT/korpus.db}"
+export KORPUS_OBJECT_ROOT="${KORPUS_OBJECT_ROOT:-$RUNTIME_ROOT/objects}"
 export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
 # Beside the database it belongs to. The anchor is an external record of where a chain
 # has got to; two databases sharing one file leaves both unverifiable — "the anchor is
 # ahead of the database head" is what a verifier says about a chain that never moved
 # while somebody else's did. Found 2026-08-07: the demo corpus and the imported one had
 # been pointing at the same var/audit-anchor.json since the first deployment.
-export KORPUS_AUDIT_ANCHOR_PATH="${KORPUS_AUDIT_ANCHOR_PATH:-$ROOT/var/audit-anchor-ml.json}"
+export KORPUS_AUDIT_ANCHOR_PATH="${KORPUS_AUDIT_ANCHOR_PATH:-$RUNTIME_ROOT/audit.anchor}"
 export KORPUS_AUTH_MODE=jwt
 export KORPUS_JWT_SECRET="$(cat "$SECRET_DIR/jwt-secret.txt")"
 export KORPUS_JWT_ISSUER=korpus-public
@@ -99,6 +101,15 @@ TOKEN="$("$PY" scripts/mint_review_token.py \
 ) >> "$STATE/api.log" 2>&1 || {
   echo "migrations failed; see $STATE/api.log" >&2; exit 1; }
 
+# Refuse to publish a demo, partial or corrupted corpus by accident. This verifies the
+# complete reference set and every referenced source object before the network edge is
+# opened; a previous deployment silently selected the empty var/korpus-ml.db instead.
+"$PY" scripts/audit_runtime_corpus.py \
+  --database "${KORPUS_DATABASE_URL#sqlite:///}" \
+  --object-root "$KORPUS_OBJECT_ROOT" \
+  --out "$STATE/runtime-corpus-audit.json" >/dev/null || {
+  echo "runtime corpus admission failed; see $STATE/runtime-corpus-audit.json" >&2; exit 1; }
+
 pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
 sleep 1
 # More than one worker because an answer is CPU-bound Python. Uvicorn serves a sync
@@ -113,6 +124,7 @@ WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"
 # one through the environment it retained Bash's export attribute and leaked into each
 # Uvicorn worker, where strict KORPUS_* validation correctly rejected it as unknown.
 unset KORPUS_PUBLIC_WORKERS
+unset KORPUS_RUNTIME_RELEASE KORPUS_PUBLIC_RUNTIME_ROOT
 nohup "$PY" -m uvicorn korpus.main:app \
   --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
   > "$STATE/api.log" 2>&1 &
