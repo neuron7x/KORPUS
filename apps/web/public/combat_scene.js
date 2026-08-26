@@ -48,7 +48,7 @@ export function mountCombatScene() {
         const y = band * 54 - 80 + ridge + detail + focus + pointer.y * 38;
         if (x < 0) context.moveTo(x, y); else context.lineTo(x, y);
       }
-      context.strokeStyle = band % 4 === 0 ? "rgba(255,104,43,.18)" : "rgba(154,143,82,.095)";
+      context.strokeStyle = band % 4 === 0 ? "rgba(67,240,139,.17)" : "rgba(79,145,104,.085)";
       context.stroke();
     }
     context.restore();
@@ -60,15 +60,15 @@ export function mountCombatScene() {
     const radius = Math.min(width, height) * .43;
     const angle = time * .00034;
     const gradient = context.createConicGradient(angle, x, y);
-    gradient.addColorStop(0, "rgba(255,86,26,.20)");
-    gradient.addColorStop(.035, "rgba(255,112,48,.02)");
+    gradient.addColorStop(0, "rgba(67,240,139,.19)");
+    gradient.addColorStop(.035, "rgba(98,244,155,.018)");
     gradient.addColorStop(.28, "transparent");
     gradient.addColorStop(1, "transparent");
     context.fillStyle = gradient;
     context.beginPath();
     context.arc(x, y, radius, 0, TAU);
     context.fill();
-    context.strokeStyle = "rgba(255,105,43,.065)";
+    context.strokeStyle = "rgba(67,240,139,.075)";
     context.setLineDash([2, 11]);
     for (const scale of [.34, .67, 1]) {
       context.beginPath();
@@ -87,7 +87,7 @@ export function mountCombatScene() {
       const x = (ember.x + Math.sin(time * .00035 + ember.phase) * .018 + time * ember.drift) % 1 * width;
       const alpha = .12 + .36 * Math.pow(Math.sin((life + ember.phase) * Math.PI), 2);
       const glow = context.createRadialGradient(x, y, 0, x, y, ember.size * 5);
-      glow.addColorStop(0, `rgba(255,142,67,${alpha})`);
+      glow.addColorStop(0, `rgba(98,244,155,${alpha})`);
       glow.addColorStop(1, "transparent");
       context.fillStyle = glow;
       context.fillRect(x - ember.size * 5, y - ember.size * 5, ember.size * 10, ember.size * 10);
