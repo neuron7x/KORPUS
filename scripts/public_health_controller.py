@@ -19,6 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "var/public/health-state.json"
 RECEIPT_PATH = ROOT / "var/public/HEALTH_RECEIPT.json"
 COMPONENTS = ("api", "edge", "public")
+ACTION_COMMANDS = {
+    "restart_api": ["systemctl", "--user", "restart", "korpus-public-api.service"],
+    "refresh_edge": ["env", "KORPUS_PUBLIC_EDGE_ONLY=true", "bash", "scripts/serve_public.sh"],
+    "restore_funnel": ["tailscale", "funnel", "--bg", "8081"],
+}
 
 
 def canonical_bytes(value: object) -> bytes:
@@ -52,10 +57,10 @@ def transition(state: dict[str, Any], health: dict[str, bool], now: int, *, thre
     if not health["api"]:
         candidates.append("restart_api")
     if health["api"] and not health["edge"]:
-        candidates.append("restart_edge")
+        candidates.append("refresh_edge")
     if health["api"] and health["edge"] and not health["public"]:
         candidates.append("restore_funnel")
-    component_for = {"restart_api": "api", "restart_edge": "edge", "restore_funnel": "public"}
+    component_for = {"restart_api": "api", "refresh_edge": "edge", "restore_funnel": "public"}
     for action in candidates:
         component = component_for[action]
         last = int(recovered.get(component, 0))
@@ -74,12 +79,7 @@ def probe(url: str, marker: bytes) -> bool:
 
 
 def execute(action: str) -> bool:
-    commands = {
-        "restart_api": ["systemctl", "--user", "restart", "korpus-public-api.service"],
-        "restart_edge": ["docker", "restart", "korpus-public-edge"],
-        "restore_funnel": ["tailscale", "funnel", "--bg", "8081"],
-    }
-    return subprocess.run(commands[action], cwd=ROOT, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    return subprocess.run(ACTION_COMMANDS[action], cwd=ROOT, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 
 def atomic_json(path: Path, value: object) -> None:
@@ -97,7 +97,10 @@ def main() -> int:
     now = int(time.time())
     health = {
         "api": probe("http://127.0.0.1:8000/health", b'"status":"ok"'),
-        "edge": probe("http://127.0.0.1:8081/healthz", b'"status":"ok"'),
+        # Healthz proves nginx exists; bootstrap proves its injected short-lived token
+        # is still valid. Without this, the watchdog stayed green while every real
+        # request became 401 exactly 24 hours after deployment.
+        "edge": probe("http://127.0.0.1:8081/api/v1/client/bootstrap", b'"subject":"public"'),
         "public": probe(args.public_url.rstrip("/") + "/healthz", b'"status":"ok"'),
     }
     state, requested = transition(load_state(STATE_PATH), health, now)

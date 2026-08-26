@@ -20,6 +20,7 @@ STATE="var/public"
 EDGE="$STATE/edge"
 PORT_API="${KORPUS_PUBLIC_API_PORT:-8000}"
 PORT_EDGE="${KORPUS_PUBLIC_EDGE_PORT:-8081}"
+EDGE_ONLY="${KORPUS_PUBLIC_EDGE_ONLY:-false}"
 PY="apps/api/.venv/bin/python"
 RUNTIME_RELEASE="${KORPUS_RUNTIME_RELEASE:-corpus-v6-20260807}"
 RUNTIME_ROOT="${KORPUS_PUBLIC_RUNTIME_ROOT:-$ROOT/var/runtime/$RUNTIME_RELEASE}"
@@ -94,24 +95,25 @@ TOKEN="$("$PY" scripts/mint_review_token.py \
 # cleanly and fails on the first write that needs it — found on 2026-08-07 by restoring
 # the shipped bundle: the corpus answered questions and could not append to the audit
 # chain, because the backup predated migration 0011.
-(
-  cd "$ROOT/apps/api"
-  KORPUS_DATABASE_URL="$KORPUS_DATABASE_URL" PYTHONPATH="$ROOT/apps/api/src" \
-    "$ROOT/$PY" -m alembic -c alembic.ini upgrade head
-) >> "$STATE/api.log" 2>&1 || {
-  echo "migrations failed; see $STATE/api.log" >&2; exit 1; }
+if [[ "$EDGE_ONLY" != "true" ]]; then
+  (
+    cd "$ROOT/apps/api"
+    KORPUS_DATABASE_URL="$KORPUS_DATABASE_URL" PYTHONPATH="$ROOT/apps/api/src" \
+      "$ROOT/$PY" -m alembic -c alembic.ini upgrade head
+  ) >> "$STATE/api.log" 2>&1 || {
+    echo "migrations failed; see $STATE/api.log" >&2; exit 1; }
 
 # Refuse to publish a demo, partial or corrupted corpus by accident. This verifies the
 # complete reference set and every referenced source object before the network edge is
 # opened; a previous deployment silently selected the empty var/korpus-ml.db instead.
-"$PY" scripts/audit_runtime_corpus.py \
-  --database "${KORPUS_DATABASE_URL#sqlite:///}" \
-  --object-root "$KORPUS_OBJECT_ROOT" \
-  --out "$STATE/runtime-corpus-audit.json" >/dev/null || {
-  echo "runtime corpus admission failed; see $STATE/runtime-corpus-audit.json" >&2; exit 1; }
+  "$PY" scripts/audit_runtime_corpus.py \
+    --database "${KORPUS_DATABASE_URL#sqlite:///}" \
+    --object-root "$KORPUS_OBJECT_ROOT" \
+    --out "$STATE/runtime-corpus-audit.json" >/dev/null || {
+    echo "runtime corpus admission failed; see $STATE/runtime-corpus-audit.json" >&2; exit 1; }
 
-pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
-sleep 1
+  pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
+  sleep 1
 # More than one worker because an answer is CPU-bound Python. Uvicorn serves a sync
 # endpoint on a thread pool, and threads share one GIL, so four concurrent questions did
 # not run concurrently — they queued behind each other and each paid the others' cost.
@@ -123,11 +125,12 @@ WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"
 # Deployment-only controls are not application settings. If the caller supplied this
 # one through the environment it retained Bash's export attribute and leaked into each
 # Uvicorn worker, where strict KORPUS_* validation correctly rejected it as unknown.
-unset KORPUS_PUBLIC_WORKERS
-unset KORPUS_RUNTIME_RELEASE KORPUS_PUBLIC_RUNTIME_ROOT
-nohup "$PY" -m uvicorn korpus.main:app \
-  --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
-  > "$STATE/api.log" 2>&1 &
+  unset KORPUS_PUBLIC_WORKERS
+  unset KORPUS_RUNTIME_RELEASE KORPUS_PUBLIC_RUNTIME_ROOT KORPUS_PUBLIC_EDGE_ONLY
+  nohup "$PY" -m uvicorn korpus.main:app \
+    --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
+    > "$STATE/api.log" 2>&1 &
+fi
 
 for _ in $(seq 1 30); do
   curl -sf "http://127.0.0.1:$PORT_API/health" >/dev/null 2>&1 && break

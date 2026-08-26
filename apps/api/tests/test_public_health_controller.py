@@ -40,8 +40,18 @@ def test_success_resets_only_the_recovered_component_counter() -> None:
     state = health.initial_state()
     state["failures"] = {"api": 3, "edge": 4, "public": 5}
     state, actions = health.transition(state, {"api": True, "edge": False, "public": False}, 2_000)
-    assert actions == ["restart_edge"]
+    assert actions == ["refresh_edge"]
     assert state["failures"] == {"api": 0, "edge": 5, "public": 6}
+
+
+def test_edge_recovery_rotates_the_expiring_identity_not_only_the_container() -> None:
+    command = health.ACTION_COMMANDS["refresh_edge"]
+    assert command == [
+        "env",
+        "KORPUS_PUBLIC_EDGE_ONLY=true",
+        "bash",
+        "scripts/serve_public.sh",
+    ]
 
 
 def test_installed_service_is_bound_to_canonical_root() -> None:
