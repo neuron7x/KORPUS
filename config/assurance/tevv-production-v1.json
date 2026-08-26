@@ -26,6 +26,7 @@
   "deployment_simulation_required": true,
   "evaluation_cue_blinding_required": true,
   "dependency_failure_simulation_required": true,
+  "gold_annotation_receipt_required": true,
   "required_simulated_dependency_failures": [
     "database_unavailable",
     "embedding_provider_timeout",

@@ -17,6 +17,7 @@ from korpus.application.gold_annotation import (  # noqa: E402
     Adjudication,
     Annotation,
     GoldAdmissionPolicy,
+    GoldBindings,
     evaluate_gold_annotations,
 )
 
@@ -46,7 +47,9 @@ def main() -> int:
         tuning_query_ids=frozenset(map(str, payload.get("tuning_query_ids", []))),
         policy=GoldAdmissionPolicy.model_validate(payload.get("policy", {})),
     )
-    report["bindings"] = payload.get("bindings", {})
+    report["bindings"] = GoldBindings.model_validate(payload.get("bindings", {})).model_dump(
+        mode="json"
+    )
     _write(args.out, report)
     print(json.dumps(report, ensure_ascii=False, sort_keys=True))
     return 0 if report["status"] == "PASS" else 1

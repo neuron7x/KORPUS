@@ -49,6 +49,18 @@ class GoldAdmissionPolicy(BaseModel):
     require_evidence_agreement: bool = True
 
 
+class GoldBindings(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    source_tree_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    release: str = Field(min_length=1, max_length=128)
+    corpus_release_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    query_set_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    annotation_protocol_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    annotator_registry_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+    model_id: str = Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$")
+    configuration_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
 @dataclass(frozen=True)
 class _Pairing:
     pairs: list[tuple[GoldLabel, GoldLabel]]

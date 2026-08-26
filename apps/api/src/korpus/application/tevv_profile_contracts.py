@@ -49,6 +49,7 @@ def validate_tevv_profile(profile: dict[str, Any]) -> dict[str, int | float | bo
         "deployment_simulation_required",
         "evaluation_cue_blinding_required",
         "dependency_failure_simulation_required",
+        "gold_annotation_receipt_required",
     ):
         result[field] = _flag(profile, field)
     return result

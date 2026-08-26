@@ -28,6 +28,10 @@ GROUPS = {
             "KORPUS_EXTERNAL_TEVV_ATTESTATION_FILE",
             ROOT / "var/production/tevv-evidence.attestation.json",
         ),
+        (
+            "KORPUS_EXTERNAL_GOLD_ANNOTATION_RECEIPT_FILE",
+            ROOT / "var/production/gold-annotation-receipt.json",
+        ),
     ),
     "redteam": (
         (

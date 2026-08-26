@@ -762,7 +762,7 @@
       "reason": "Exact rebaseline adds canonical SHA-256 binding over reconciliation, coverage and immutable runtime metadata"
     },
     "apps/api/src/korpus/application/gold_annotation.py": {
-      "lines": 172,
+      "lines": 184,
       "max_complexity": 11,
       "reason": "Initial exact ceiling for independent annotation, adjudication, agreement and blinded-holdout admission"
     },
@@ -1306,9 +1306,14 @@
       "reason": "TEVV finite-sample arithmetic kernel"
     },
     "apps/api/src/korpus/application/tevv_profile_contracts.py": {
-      "lines": 54,
+      "lines": 55,
       "max_complexity": 5,
       "reason": "Exact rebaseline adds strict non-coercing deployment-simulation policy flags"
+    },
+    "apps/api/src/korpus/application/tevv_gold_binding.py": {
+      "lines": 38,
+      "max_complexity": 8,
+      "reason": "Initial exact ceiling for cryptographic gold-receipt and tested-system identity binding"
     },
     "apps/api/src/korpus/application/trace.py": {
       "lines": 32,
@@ -1887,7 +1892,7 @@
       "reason": "Initial exact ceiling for fail-closed corpus governance, byte-binding and filesystem reconciliation"
     },
     "scripts/audit_gold_annotations.py": {
-      "lines": 56,
+      "lines": 59,
       "max_complexity": 5,
       "reason": "Initial exact ceiling for atomic gold-ledger admission receipt generation"
     },
@@ -2587,7 +2592,7 @@
       "reason": "ACT-010: external supply-chain trust injection; measured line ceiling tightened"
     },
     "scripts/run_tevv_production_gate.py": {
-      "lines": 140,
+      "lines": 166,
       "max_complexity": 5,
       "reason": "Exact readable rebaseline of formerly minified gate plus deployment-context, cue-blinding and dependency-simulation predicates; complexity unchanged"
     },
@@ -2634,7 +2639,7 @@
       "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest"
     },
     "scripts/stage_external_production_evidence.py": {
-      "lines": 76,
+      "lines": 80,
       "max_complexity": 7,
       "reason": "ACT-010: all-or-none staging for externally signed reliability, TEVV and independent red-team evidence; initial measured ratchet ceiling"
     },

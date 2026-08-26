@@ -18,6 +18,21 @@ from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
 
+def _gold_bytes(evidence: dict) -> bytes:
+    receipt = {
+        "schema": "korpus.gold-annotation-admission.v1",
+        "status": "PASS",
+        "bindings": {
+            "source_tree_sha256": compute_source_digest(ROOT),
+            "release": release_tag(),
+            "corpus_release_sha256": evidence["corpus"]["document_set_sha256"],
+            "model_id": evidence["model_id"],
+            "configuration_sha256": evidence["configuration_sha256"],
+        },
+    }
+    return (json.dumps(receipt, ensure_ascii=False, indent=2) + "\n").encode()
+
+
 def _evidence() -> tuple[dict, bytes]:
     profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
     required = profile["required_attack_families"]
@@ -38,6 +53,8 @@ def _evidence() -> tuple[dict, bytes]:
         "release": release_tag(),
         "environment_class": "PRODUCTION_LIKE",
         "evidence_class": "EXTERNAL_INDEPENDENT",
+        "model_id": "embedding-model-v1",
+        "configuration_sha256": "c" * 64,
         "assessor": {
             "organization": "independent-test-lab",
             "assessor_id": "assessor-1",
@@ -58,6 +75,7 @@ def _evidence() -> tuple[dict, bytes]:
             {"id": f"null-{index}", "false_accept": False} for index in range(49)
         ],
     }
+    evidence["gold_annotation_receipt_sha256"] = hashlib.sha256(_gold_bytes(evidence)).hexdigest()
     data = (json.dumps(evidence, ensure_ascii=False, indent=2) + "\n").encode()
     return evidence, data
 
@@ -83,7 +101,10 @@ def test_production_like_string_without_trusted_attestation_does_not_pass_tevv_g
     profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
     evidence, data = _evidence()
     attestation, _ = _attest(data)
-    result = tevv_gate.evaluate(evidence, profile, attestation, set(), data, "tevv-evidence.json")
+    gold = _gold_bytes(evidence)
+    result = tevv_gate.evaluate(
+        evidence, profile, attestation, set(), data, "tevv-evidence.json", json.loads(gold), gold
+    )
     assert result["checks"]["environment_class"] is True
     assert result["checks"]["assessor_attestation_verified"] is True
     assert result["checks"]["assessor_trusted_signer"] is False
@@ -94,8 +115,16 @@ def test_pretrusted_signed_production_like_tevv_evidence_can_clear_environment_b
     profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
     evidence, data = _evidence()
     attestation, fingerprint = _attest(data)
+    gold = _gold_bytes(evidence)
     result = tevv_gate.evaluate(
-        evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json"
+        evidence,
+        profile,
+        attestation,
+        {fingerprint},
+        data,
+        "tevv-evidence.json",
+        json.loads(gold),
+        gold,
     )
     assert result["status"] == "PASS", result
 
@@ -117,9 +146,44 @@ def _trusted_result(evidence: dict) -> dict:
     profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
     data = (json.dumps(evidence, ensure_ascii=False, indent=2) + "\n").encode()
     attestation, fingerprint = _attest(data)
+    gold = _gold_bytes(evidence)
     return tevv_gate.evaluate(
-        evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json"
+        evidence,
+        profile,
+        attestation,
+        {fingerprint},
+        data,
+        "tevv-evidence.json",
+        json.loads(gold),
+        gold,
     )
+
+
+def test_gold_receipt_bytes_and_exact_system_bindings_are_mandatory() -> None:
+    evidence, _ = _evidence()
+    profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
+    data = (json.dumps(evidence, ensure_ascii=False, indent=2) + "\n").encode()
+    attestation, fingerprint = _attest(data)
+
+    missing = tevv_gate.evaluate(
+        evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json", {}, b""
+    )
+    gold = _gold_bytes(evidence)
+    receipt = json.loads(gold)
+    receipt["bindings"]["model_id"] = "different-model"
+    wrong_model = tevv_gate.evaluate(
+        evidence,
+        profile,
+        attestation,
+        {fingerprint},
+        data,
+        "tevv-evidence.json",
+        receipt,
+        gold,
+    )
+
+    assert missing["checks"]["gold_receipt_present"] is False
+    assert wrong_model["checks"]["gold_receipt_system_bound"] is False
 
 
 def test_trusted_aggregate_only_tevv_summary_cannot_replace_case_ledger() -> None:
@@ -235,5 +299,5 @@ def test_tevv_policy_does_not_coerce_malformed_numeric_thresholds(field: str, ba
     attestation, fingerprint = _attest(data)
     with pytest.raises(ValueError):
         tevv_gate.evaluate(
-            evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json"
+            evidence, profile, attestation, {fingerprint}, data, "tevv-evidence.json", {}, b""
         )

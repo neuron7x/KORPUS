@@ -3066,8 +3066,8 @@ MUTANTS = (
     Mutant(
         "M259_TEVV_NULL_LEDGER_IGNORED",
         "scripts/run_tevv_production_gate.py",
-        '        "null_false_accepts": metrics["null_control_false_accepts"] <= policy["maximum_null_control_false_accepts"],',
-        '        "null_false_accepts": evidence.get("null_control_false_accepts", 0) <= policy["maximum_null_control_false_accepts"],',
+        '        "null_false_accepts": metrics["null_control_false_accepts"]\n        <= policy["maximum_null_control_false_accepts"],',
+        '        "null_false_accepts": evidence.get("null_control_false_accepts", 0)\n        <= policy["maximum_null_control_false_accepts"],',
         (
             "apps/api/tests/test_tevv_attestation_boundary.py::"
             "test_trusted_tevv_summary_cannot_hide_null_false_accept",

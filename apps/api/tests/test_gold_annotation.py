@@ -3,6 +3,7 @@ from korpus.application.gold_annotation import (
     Annotation,
     DatasetSplit,
     GoldAdmissionPolicy,
+    GoldBindings,
     GoldLabel,
     evaluate_gold_annotations,
 )
@@ -70,3 +71,25 @@ def test_holdout_leakage_and_non_independent_annotation_are_blocking() -> None:
 
     assert report["status"] == "FAIL"
     assert "requires_exactly_two_independent_annotations:q1" in report["issues"]
+
+
+def test_gold_bindings_reject_placeholder_or_malformed_identity() -> None:
+    fields = {
+        "source_tree_sha256": "a" * 64,
+        "release": "v1",
+        "corpus_release_sha256": "b" * 64,
+        "query_set_sha256": "c" * 64,
+        "annotation_protocol_sha256": "d" * 64,
+        "annotator_registry_sha256": "e" * 64,
+        "model_id": "model-v1",
+        "configuration_sha256": "f" * 64,
+    }
+    assert GoldBindings.model_validate(fields).model_id == "model-v1"
+
+    fields["source_tree_sha256"] = "REPLACE_64_HEX"
+    try:
+        GoldBindings.model_validate(fields)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("placeholder source identity was accepted")

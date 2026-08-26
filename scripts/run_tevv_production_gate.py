@@ -13,11 +13,17 @@ from korpus.application.provenance import compute_source_digest
 from korpus.application.tevv import evaluate_tevv
 from korpus.application.tevv_assessor import assessor_identity_valid
 from korpus.application.tevv_evidence import evaluate_tevv_ledger
+from korpus.application.tevv_gold_binding import evaluate_gold_receipt_binding
 from korpus.application.tevv_profile_contracts import validate_tevv_profile
 from release_identity import release_tag
 
 PROFILE = ROOT / "config/assurance/tevv-production-v1.json"
 TRUST = ROOT / "config/assurance/trusted-assurance-signers.json"
+
+
+def _read_json(path: Path) -> tuple[dict[str, Any], bytes]:
+    raw = path.read_bytes() if path.is_file() else b""
+    return (json.loads(raw.decode("utf-8")) if raw else {}), raw
 
 
 def _sha256(value: object) -> bool:
@@ -51,6 +57,8 @@ def evaluate(
     trusted: set[str],
     evidence_bytes: bytes,
     manifest_name: str,
+    gold_receipt: dict[str, Any],
+    gold_receipt_bytes: bytes,
 ) -> dict[str, Any]:
     source, release = compute_source_digest(ROOT), release_tag()
     policy = validate_tevv_profile(profile)
@@ -91,6 +99,14 @@ def evaluate(
             set(metrics["attack_families"])
         ),
         **_deployment_checks(evidence, profile, policy),
+        **evaluate_gold_receipt_binding(
+            evidence,
+            gold_receipt,
+            gold_receipt_bytes,
+            required=bool(policy["gold_annotation_receipt_required"]),
+            source=source,
+            release=release,
+        ),
     }
     failures = [name for name, ok in checks.items() if not ok] + [
         f"tevv:{reason}" for reason in tevv.reasons
@@ -117,19 +133,29 @@ def main() -> int:
     parser.add_argument(
         "--attestation", type=Path, default=ROOT / "var/production/tevv-evidence.attestation.json"
     )
+    parser.add_argument(
+        "--gold-annotation-receipt",
+        type=Path,
+        default=ROOT / "var/production/gold-annotation-receipt.json",
+    )
     args = parser.parse_args()
     profile = json.loads(PROFILE.read_text(encoding="utf-8"))
-    evidence_bytes = args.evidence.read_bytes() if args.evidence.is_file() else b""
-    evidence = json.loads(evidence_bytes.decode("utf-8")) if evidence_bytes else {}
-    attestation = (
-        json.loads(args.attestation.read_text(encoding="utf-8"))
-        if args.attestation.is_file()
-        else {}
-    )
+    evidence, evidence_bytes = _read_json(args.evidence)
+    attestation, _ = _read_json(args.attestation)
+    gold_receipt, gold_bytes = _read_json(args.gold_annotation_receipt)
     trusted = trusted_fingerprints(
         TRUST, "tevv_ed25519_public_key_sha256", "KORPUS_TRUSTED_TEVV_SIGNER_SHA256"
     )
-    result = evaluate(evidence, profile, attestation, trusted, evidence_bytes, args.evidence.name)
+    result = evaluate(
+        evidence,
+        profile,
+        attestation,
+        trusted,
+        evidence_bytes,
+        args.evidence.name,
+        gold_receipt,
+        gold_bytes,
+    )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, ensure_ascii=False, indent=2))
