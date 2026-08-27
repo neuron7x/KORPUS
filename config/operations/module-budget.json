@@ -1532,9 +1532,9 @@
       "reason": "Initial exact ceiling for the pre-egress model input byte bound"
     },
     "apps/api/src/korpus/infrastructure/model_transport.py": {
-      "lines": 33,
-      "max_complexity": 2,
-      "reason": "Initial exact ceiling for shared fail-fast model transport and circuit normalization"
+      "lines": 45,
+      "max_complexity": 6,
+      "reason": "Exact ceiling after fail-closed model response byte admission"
     },
     "apps/api/src/korpus/infrastructure/object_store.py": {
       "lines": 514,
