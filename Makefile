@@ -79,6 +79,7 @@ web-build: web-contract-check
 	npm --prefix apps/web run lint
 	npm --prefix apps/web run test
 	npm --prefix apps/web run build
+	npm --prefix apps/web run test:browser
 
 # Generated browser contracts: operator request constraints and the consumer transport
 # surface. Both derive from canonical OpenAPI/release identity; neither is hand-maintained.

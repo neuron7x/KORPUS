@@ -138,6 +138,8 @@ api:quality:
 web:test:
   stage: test
   image: node:22.16.0-alpine@sha256:41e4389f3d988d2ed55392df4db1420ad048ae53324a8e2b7c6d19508288107e
+  before_script:
+    - apk add --no-cache chromium
   script:
     - npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
     - npm --prefix apps/web run lint
@@ -147,6 +149,9 @@ web:test:
     # `node --check` invocations that used to stand here were doing.
     - npm --prefix apps/web run test
     - npm --prefix apps/web run build
+    # Exercise the built surface: source-only tests cannot observe CSS geometry,
+    # timing, mobile overflow or browser lifecycle defects.
+    - KORPUS_BROWSER_BIN=/usr/bin/chromium npm --prefix apps/web run test:browser
 
 api:assurance:
   extends: .python-job

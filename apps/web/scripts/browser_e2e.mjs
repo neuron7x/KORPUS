@@ -10,6 +10,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const WEB_ROOT = resolve(SCRIPT_DIR, "..");
 const ROOT = resolve(WEB_ROOT, "../..");
 const PUBLIC = join(WEB_ROOT, "public");
+const DYNAMIC_STYLES = ["combat.css", "decision_field.css", "workspace.css"];
 const REPORT = process.env.KORPUS_BROWSER_E2E_REPORT ?? join(ROOT, "var/browser-e2e-report.json");
 const BROWSER = process.env.KORPUS_BROWSER_BIN ?? [
   "/usr/bin/chromium", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable",
@@ -169,6 +170,7 @@ async function inlinePage(file) {
     const path = match[1].replace(/^\//, "");
     styles.push(await readFile(join(PUBLIC, path), "utf8"));
   }
+  for (const path of DYNAMIC_STYLES) styles.push(await readFile(join(PUBLIC, path), "utf8"));
   html = html
     .replace(/<link[^>]+rel=["']stylesheet["'][^>]*>/g, "")
     .replace(/<link[^>]+rel=["']manifest["'][^>]*>/g, "")
@@ -181,7 +183,8 @@ async function loadPage(cdp, htmlFile, moduleEntry) {
   const frameTree = await cdp.send("Page.getFrameTree");
   await cdp.send("Page.setDocumentContent", {frameId:frameTree.frameTree.frame.id, html:await inlinePage(htmlFile)});
   await waitFor(cdp, 'document.readyState === "complete"', `${htmlFile} document content`);
-  await cdp.evaluate(`globalThis.KORPUS_CONFIG = Object.freeze({apiUrl:"/api", publicMode:false}); globalThis.__KORPUS_PWNED=0;
+  await cdp.evaluate(`history.replaceState({}, "", "/chat");
+    globalThis.KORPUS_CONFIG = Object.freeze({apiUrl:"/api", publicMode:false}); globalThis.__KORPUS_PWNED=0;
     try { void document.cookie; } catch { Object.defineProperty(Document.prototype, "cookie", {configurable:true, get(){return "";}, set(){}}); }
     ${mockFetchSource()}`);
   const modules = await collectModules(moduleEntry);
@@ -251,10 +254,10 @@ async function main() {
       await loadPage(cdp, "index.html", "app.js");
       await waitFor(cdp, '!document.getElementById("product").hidden', "authenticated product surface");
       await waitFor(cdp, 'document.getElementById("trace-status")?.textContent', "KORPUS TRACE boot state");
-      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0, trace:document.getElementById("trace-status").textContent})`);
+      const state = await cdp.evaluate(`(() => { const query=document.getElementById("query"),ask=document.getElementById("ask-section"); return {identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryAvailable:!query.disabled && !ask.hidden && getComputedStyle(ask).display!=="none", trace:document.getElementById("trace-status").textContent}; })()`);
       assert(state.identity.includes("browser-e2e"), "server identity was not rendered");
       assert(state.entryHidden && !state.productHidden, "authenticated workspace state is inconsistent");
-      assert(state.queryVisible, "authenticated query surface is not visible");
+      assert(state.queryAvailable, "authenticated query surface is not available");
       assert(state.trace.includes("Готовий"), "TRACE did not project the READY state");
     }, results);
 
@@ -275,7 +278,7 @@ async function main() {
       const combat = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); const display=s=>getComputedStyle(document.querySelector(s)).display; const box=s=>document.querySelector(s).getBoundingClientRect(); const canvasNode=document.getElementById("combat-signal-field"),canvas=box("#combat-signal-field"),prompt=box(".empty-chat h2"); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed"), label:button.getAttribute("aria-label"), stylesheet:document.getElementById("combat-theme")?.getAttribute("href"), canvas:canvasNode?.tagName,topline:display(".chat-topline"),trace:display(".evidence-trace"),empty:display(".empty-chat"),emptyCopy:document.querySelector(".empty-chat h2")?.textContent,centerDelta:Math.abs((canvas.left+Number(canvasNode.dataset.centerX))-(prompt.left+prompt.width/2))}; })()`);
       assert(combat.theme === "combat" && combat.pressed === "true", "combat theme state was not exposed accessibly");
       assert(combat.label.includes("основну") && combat.stylesheet === "/combat.css" && combat.canvas === "CANVAS", "combat theme did not load its optional visual layer");
-      assert(combat.topline === "none" && combat.trace === "none" && combat.empty !== "none" && combat.emptyCopy.includes("Що потрібно перевірити"), "combat radar field contains forbidden copy or lost its single retained prompt");
+      assert(combat.topline === "none" && combat.trace === "none" && combat.empty !== "none" && combat.emptyCopy.includes("Що потрібно перевірити"), `combat radar field contains forbidden copy or lost its single retained prompt: ${JSON.stringify(combat)}`);
       assert(combat.centerDelta < 1, `radar and prompt axes diverge by ${combat.centerDelta}px`);
       const radar = await cdp.evaluate(`(() => { dispatchEvent(new CustomEvent("korpus:radar",{detail:{state:"answered",stage:3,coverage:.86,sources:[{source_hash:"${"a".repeat(64)}"},{source_hash:"${"b".repeat(64)}"}]}})); const canvas=document.getElementById("combat-signal-field"); return {hud:document.getElementById("combat-radar-status"),contacts:canvas?.dataset.contacts,stage:canvas?.dataset.stage,coverage:canvas?.dataset.coverage}; })()`);
       assert(radar.hud === null && radar.contacts === "2" && radar.stage === "3" && radar.coverage === "86", "combat radar state is not evidence-bound or its removed HUD returned");

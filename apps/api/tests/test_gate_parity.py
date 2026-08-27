@@ -1017,6 +1017,22 @@ def test_the_web_gate_runs_its_own_negative_controls() -> None:
     )
 
 
+def test_web_release_gates_execute_the_built_surface_in_a_real_browser() -> None:
+    ci = _ci_script("web:test")
+    browser_indexes = [index for index, line in enumerate(ci) if "test:browser" in line]
+    build_indexes = [index for index, line in enumerate(ci) if "run build" in line]
+    assert browser_indexes and build_indexes and min(browser_indexes) > max(build_indexes), (
+        "web:test must execute browser E2E after the production build"
+    )
+    recipe = _makefile_recipe("web-build")
+    browser_indexes = [index for index, line in enumerate(recipe) if "test:browser" in line]
+    build_indexes = [index for index, line in enumerate(recipe) if "run build" in line]
+    assert browser_indexes, "make web-build no longer exercises the browser surface"
+    assert min(browser_indexes) > max(build_indexes), (
+        "make web-build must build before it executes browser E2E"
+    )
+
+
 def test_audit_closure_csv_generator_uses_canonical_lf_lines() -> None:
     """Generated closure CSV must not reintroduce CRLF as diff-check whitespace."""
     source = (ROOT / "scripts/build_audit_closure.py").read_text(encoding="utf-8")
