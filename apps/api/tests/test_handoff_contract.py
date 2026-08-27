@@ -67,3 +67,24 @@ def test_partial_release_evidence_is_refused(tmp_path: Path) -> None:
     (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text("{}", encoding="utf-8")
     with pytest.raises(AssertionError, match="release evidence is partial"):
         module._release_evidence_state()
+
+
+def test_complete_release_evidence_from_another_digest_is_stale(tmp_path: Path) -> None:
+    script = ROOT / "scripts" / "verify_handoff_contract.py"
+    spec = importlib.util.spec_from_file_location("verify_handoff_contract_stale", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    module.source_tree_digest = lambda: "b" * 64
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text(
+        json.dumps({"status": "PASS", "source_tree_sha256": "a" * 64}),
+        encoding="utf-8",
+    )
+    (reports / "OPERATIONAL_GATE.json").write_text(
+        json.dumps({"production_authorized": False}), encoding="utf-8"
+    )
+
+    assert module._release_evidence_state() == "STALE"

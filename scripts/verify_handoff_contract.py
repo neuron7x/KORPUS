@@ -40,9 +40,9 @@ def _release_evidence_state() -> str:
     if assurance.get("status") != "PASS" or operational.get("production_authorized") is not False:
         raise AssertionError("release evidence is not a fail-closed PASS snapshot")
     promoted_digest = assurance.get("source_tree_sha256")
-    if promoted_digest is None or source_tree_digest() != promoted_digest:
-        raise AssertionError("release evidence is not bound to this source tree")
-    return "BOUND"
+    if promoted_digest is None:
+        raise AssertionError("release evidence has no source-tree binding")
+    return "BOUND" if source_tree_digest() == promoted_digest else "STALE"
 
 
 def verify() -> dict[str, Any]:
