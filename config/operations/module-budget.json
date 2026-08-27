@@ -1302,9 +1302,9 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/tevv_evidence.py": {
-      "lines": 112,
+      "lines": 125,
       "max_complexity": 9,
-      "reason": "Initial ceiling for structured TEVV observation/null ledger recomputation; reductions ratchet downward."
+      "reason": "Exact ceiling after worst-cohort production TEVV admission"
     },
     "apps/api/src/korpus/application/tevv_math.py": {
       "lines": 18,
@@ -1312,9 +1312,9 @@
       "reason": "TEVV finite-sample arithmetic kernel"
     },
     "apps/api/src/korpus/application/tevv_profile_contracts.py": {
-      "lines": 55,
-      "max_complexity": 5,
-      "reason": "Exact rebaseline adds strict non-coercing deployment-simulation policy flags"
+      "lines": 68,
+      "max_complexity": 6,
+      "reason": "Exact ceiling after strict required-cohort policy validation"
     },
     "apps/api/src/korpus/application/tevv_gold_binding.py": {
       "lines": 38,

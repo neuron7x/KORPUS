@@ -36,6 +36,7 @@ def _gold_bytes(evidence: dict) -> bytes:
 def _evidence() -> tuple[dict, bytes]:
     profile = json.loads(tevv_gate.PROFILE.read_text(encoding="utf-8"))
     required = profile["required_attack_families"]
+    cohorts = profile["required_cohorts"]
     observations = [
         {
             "id": f"obs-{index}",
@@ -44,6 +45,7 @@ def _evidence() -> tuple[dict, bytes]:
             "leakage_failures": 0,
             "determinism_failures": 0,
             "attack_families": [required[index % len(required)]],
+            "cohorts": [cohorts[index % len(cohorts)]],
         }
         for index in range(260)
     ]

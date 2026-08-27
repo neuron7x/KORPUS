@@ -37,14 +37,27 @@ def _flag(profile: dict[str, Any], field: str) -> bool:
     return value
 
 
-def validate_tevv_profile(profile: dict[str, Any]) -> dict[str, int | float | bool]:
-    result: dict[str, int | float | bool] = {
+def _labels(profile: dict[str, Any], field: str) -> list[str]:
+    value = profile.get(field)
+    if not isinstance(value, list) or not value or any(not isinstance(v, str) or not v for v in value):
+        raise ValueError(f"{field} must be a non-empty string list")
+    if len(value) != len(set(value)):
+        raise ValueError(f"{field} must contain unique values")
+    return value
+
+
+def validate_tevv_profile(profile: dict[str, Any]) -> dict[str, Any]:
+    result: dict[str, Any] = {
         "minimum_observations": _count(profile, "minimum_observations", positive=True),
+        "minimum_observations_per_required_cohort": _count(
+            profile, "minimum_observations_per_required_cohort", positive=True
+        ),
         "minimum_null_controls": _count(profile, "minimum_null_controls", positive=True),
         "maximum_interval_width": _rate(profile, "maximum_interval_width", positive=True),
         "minimum_pass_rate": _rate(profile, "minimum_pass_rate"),
     }
     result.update({field: _count(profile, field, positive=False) for field in _MAX_COUNTS})
+    result["required_cohorts"] = _labels(profile, "required_cohorts")
     for field in (
         "deployment_simulation_required",
         "evaluation_cue_blinding_required",

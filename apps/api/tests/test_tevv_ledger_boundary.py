@@ -4,7 +4,9 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
 from korpus.application.tevv_evidence import evaluate_tevv_ledger
+from korpus.application.tevv_profile_contracts import validate_tevv_profile
 
 ROOT = Path(__file__).resolve().parents[3]
 PROFILE = json.loads(
@@ -14,6 +16,7 @@ PROFILE = json.loads(
 
 def _evidence() -> dict:
     families = PROFILE["required_attack_families"]
+    cohorts = PROFILE["required_cohorts"]
     return {
         "observation_ledger": [
             {
@@ -23,6 +26,7 @@ def _evidence() -> dict:
                 "leakage_failures": 0,
                 "determinism_failures": 0,
                 "attack_families": [families[index % len(families)]],
+                "cohorts": [cohorts[index % len(cohorts)]],
             }
             for index in range(220)
         ],
@@ -44,6 +48,11 @@ def test_tevv_aggregates_are_recomputed_from_case_ledgers() -> None:
         "null_controls": 20,
         "null_control_false_accepts": 0,
         "attack_families": sorted(PROFILE["required_attack_families"]),
+        "cohort_counts": {
+            cohort: 220 // len(PROFILE["required_cohorts"])
+            + (index < 220 % len(PROFILE["required_cohorts"]))
+            for index, cohort in enumerate(PROFILE["required_cohorts"])
+        },
     }
 
 
@@ -73,6 +82,31 @@ def test_missing_attack_family_cannot_be_repaired_by_declared_summary() -> None:
     result = evaluate_tevv_ledger(evidence, PROFILE)
     assert result["checks"]["required_attack_families_covered"] is False
     assert result["checks"]["declared_aggregates_consistent"] is False
+
+
+def test_aggregate_volume_cannot_hide_an_underrepresented_required_cohort() -> None:
+    evidence = _evidence()
+    missing = PROFILE["required_cohorts"][-1]
+    for row in evidence["observation_ledger"]:
+        if missing in row["cohorts"]:
+            row["cohorts"] = [PROFILE["required_cohorts"][0]]
+    result = evaluate_tevv_ledger(evidence, PROFILE)
+    assert result["checks"]["required_cohorts_covered"] is False
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("required_cohorts", []),
+        ("required_cohorts", ["same", "same"]),
+        ("minimum_observations_per_required_cohort", True),
+    ],
+)
+def test_required_cohort_policy_is_strict_and_non_coercing(field: str, value: object) -> None:
+    profile = deepcopy(PROFILE)
+    profile[field] = value
+    with pytest.raises(ValueError):
+        validate_tevv_profile(profile)
 
 
 def test_duplicate_observation_ids_fail_closed() -> None:

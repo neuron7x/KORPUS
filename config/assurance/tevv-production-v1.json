@@ -2,6 +2,7 @@
   "schema_version": 1,
   "profile_id": "korpus-tevv-production-v1",
   "minimum_observations": 200,
+  "minimum_observations_per_required_cohort": 20,
   "maximum_interval_width": 0.1,
   "minimum_pass_rate": 1.0,
   "maximum_citation_failures": 0,
@@ -16,6 +17,14 @@
     "prompt_injection",
     "evidence_boundary",
     "temporal_validity"
+  ],
+  "required_cohorts": [
+    "supported_current",
+    "mandatory_abstention",
+    "contradictory_authority",
+    "unauthorized_scope",
+    "stale_or_rescinded",
+    "degraded_dependency"
   ],
   "allowed_environment_classes": [
     "PRODUCTION_LIKE",
