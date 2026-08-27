@@ -1166,6 +1166,11 @@
       "max_complexity": 10,
       "reason": "Lower ratchet after per-request executor removal"
     },
+    "apps/api/src/korpus/application/ranking_evaluation.py": {
+      "lines": 96,
+      "max_complexity": 10,
+      "reason": "Exact initial ceiling for worst-query ranking evidence"
+    },
     "apps/api/src/korpus/application/readiness_contracts.py": {
       "lines": 24,
       "max_complexity": 4,
@@ -1331,8 +1336,14 @@
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling"
     },
     "apps/api/src/korpus/application/tuning.py": {
-      "lines": 167,
-      "max_complexity": 10
+      "lines": 110,
+      "max_complexity": 8,
+      "reason": "Lower ratchet after held-out validation decomposition"
+    },
+    "apps/api/src/korpus/application/tuning_validation.py": {
+      "lines": 77,
+      "max_complexity": 8,
+      "reason": "Exact initial ceiling for non-compensatory held-out admission"
     },
     "apps/api/src/korpus/billing_composition.py": {
       "lines": 81,

@@ -251,3 +251,15 @@ Mathematical assurance for this milestone is `PASS` only for the **targeted math
 `AND source_manifest_verifies`.
 
 Repository/production promotion remains separate and must fail closed if current-truth, full regression, mutation, external TEVV, production database/RLS, load/soak, signing, or provenance gates are not independently satisfied.
+
+## 14. Non-compensatory retrieval tuning
+
+Retrieval parameters are selected on a training set by lexicographic maximin order:
+
+`worst Recall@20 → worst reciprocal rank@10 → worst nDCG@10 → mean utility`.
+
+Thus an average gain cannot compensate for a worse weakest-query result. The selected
+configuration is then evaluated on a query-id-disjoint held-out set. Promotion is the
+conjunction of preregistered worst-query floors and non-regression against the baseline
+on every worst-query metric. The weighted mean utility remains diagnostic; it has no
+authority to override a failed held-out predicate.

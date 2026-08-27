@@ -30,7 +30,10 @@ def test_tuning_validation_ratchet() -> None:
     with pytest.raises(ValueError, match="evenly divide"):
         list(tuning._simplex_weight_candidates(0.3))
     with pytest.raises(ValueError, match="at least two"):
-        tuning.tune_ranking([tuning.JudgedQuery("q1", "query", (good,))])
+        tuning.tune_ranking(
+            [tuning.JudgedQuery("q1", "query", (good,))],
+            [tuning.JudgedQuery("v1", "query", (good,))],
+        )
 
 
 def test_service_level_shape_fail_closed_matrix() -> None:
