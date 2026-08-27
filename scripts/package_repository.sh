@@ -14,7 +14,7 @@ source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"
 
 mkdir -p dist
 rm -f "dist/${name}.zip" "dist/${name}.zip.sha256"
-python3 "$root/scripts/check_release_identity.py" --require-git-tag
+python3 "$root/scripts/check_release_identity.py"
 python3 "$root/scripts/verify_source_manifest.py"
 
 # Research evidence is mandatory for a formal research release. A canonical engineering

@@ -15,6 +15,13 @@ def test_package_producer_excludes_git_history_by_construction() -> None:
     assert "git rev-parse HEAD" in producer
 
 
+def test_only_formal_production_promotion_requires_the_release_tag() -> None:
+    producer = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    promotion = (ROOT / "scripts/package_production_release.sh").read_text(encoding="utf-8")
+    assert "check_release_identity.py --require-git-tag" not in producer
+    assert "check_release_identity.py --require-git-tag" in promotion
+
+
 def test_package_only_metadata_cannot_expand_source_authority() -> None:
     for path in (
         "PACKAGE_BUILD.json",
