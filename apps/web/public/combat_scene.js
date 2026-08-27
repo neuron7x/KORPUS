@@ -1,4 +1,7 @@
 const TAU = Math.PI * 2;
+const HOSTILE_BLIPS = [
+  [.18, .42, .1], [.63, .58, .34], [1.17, .76, .61], [1.72, .49, .83], [2.41, .68, .22],
+];
 function sourceContact(source, index) {
   const identity = String(source.source_hash ?? source.span_id ?? index);
   let hash = 2166136261;
@@ -111,6 +114,38 @@ export function mountCombatScene() {
     context.restore();
   }
 
+  function hostileBlips(x, y, radius, time) {
+    if (reduced.matches) {
+      canvas.dataset.hostiles = "0";
+      return;
+    }
+    const cycle = (time % 9200) / 9200;
+    if (cycle > .64) {
+      canvas.dataset.hostiles = "0";
+      return;
+    }
+    const edgeFade = Math.min(1, cycle / .08, (.64 - cycle) / .1);
+    const count = 3 + Math.floor((time / 1450) % 3);
+    canvas.dataset.hostiles = String(count);
+    context.save();
+    context.globalCompositeOperation = "lighter";
+    HOSTILE_BLIPS.slice(0, count).forEach(([turn, distance, phase]) => {
+      const angle = turn * Math.PI + phase * .08;
+      const bx = x + Math.cos(angle) * radius * distance;
+      const by = y + Math.sin(angle) * radius * distance;
+      const pulse = 3.2 + Math.sin(time * .006 + phase * TAU) * 1.4;
+      context.globalAlpha = edgeFade * (.72 + Math.sin(time * .004 + phase * 9) * .18);
+      context.fillStyle = "#ff3b30";
+      context.fillRect(Math.round(bx) - 2, Math.round(by) - 2, 4, 4);
+      context.strokeStyle = "rgba(255,72,58,.72)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.arc(bx, by, pulse, 0, TAU);
+      context.stroke();
+    });
+    context.restore();
+  }
+
   function draw(time) {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
@@ -120,6 +155,7 @@ export function mountCombatScene() {
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
     stages(x, y, radius);
     contacts(x, y, radius, time);
+    hostileBlips(x, y, radius, time);
     if (!reduced.matches && !document.hidden) raf = requestAnimationFrame(draw);
   }
 
