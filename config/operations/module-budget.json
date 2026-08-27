@@ -1403,9 +1403,9 @@
       "max_complexity": 0
     },
     "apps/api/src/korpus/infrastructure/anthropic_planner.py": {
-      "lines": 180,
+      "lines": 176,
       "max_complexity": 7,
-      "reason": "Messages API adapter behind provider-neutral model contract; model output is admitted, never trusted"
+      "reason": "Exact lower ratchet after shared pre-egress input bound integration"
     },
     "apps/api/src/korpus/infrastructure/audit_anchor.py": {
       "lines": 229,
@@ -1525,6 +1525,11 @@
       "lines": 86,
       "max_complexity": 6,
       "reason": "v0.6.0: dead parser branches removed; exact lower complexity ratchet"
+    },
+    "apps/api/src/korpus/infrastructure/model_input.py": {
+      "lines": 9,
+      "max_complexity": 2,
+      "reason": "Initial exact ceiling for the pre-egress model input byte bound"
     },
     "apps/api/src/korpus/infrastructure/model_transport.py": {
       "lines": 33,

@@ -135,6 +135,22 @@ def test_openai_completed_response_with_error_contributes_nothing(
     assert OpenAIQueryPlanner("secret", model="model-under-test").variants("питання", []) == []
 
 
+def test_openai_oversized_input_is_refused_before_transport(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "korpus.infrastructure.openai_planner.httpx.post",
+        lambda *args, **kwargs: pytest.fail("oversized material reached the provider"),
+    )
+
+    with pytest.raises(ValueError, match="model input exceeds"):
+        OpenAIQueryPlanner("secret", model="model-under-test").variants("я" * 70_000, [])
+    with pytest.raises(ValueError, match="model input exceeds"):
+        OpenAIAnswerComposer("secret", model="model-under-test").compose(
+            "питання", ["д" * 70_000]
+        )
+
+
 def test_repeated_provider_failure_opens_process_scoped_circuit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

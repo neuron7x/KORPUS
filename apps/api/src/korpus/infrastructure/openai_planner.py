@@ -2,8 +2,7 @@
 
 The adapter is intentionally thin. It can suggest retrieval phrases and arrange already
 admitted extractive sentences; it cannot create evidence or bypass any downstream gate.
-Every request sets ``store=false`` so the adapter does not opt into the Responses API's
-default application-state retention. Egress policy is checked before a request is built.
+Requests set ``store=false`` and pass egress policy before they are built.
 """
 
 from __future__ import annotations
@@ -21,6 +20,7 @@ from korpus.infrastructure.model_contract import (
     parse_composition,
     parse_query_variants,
 )
+from korpus.infrastructure.model_input import bounded_model_input
 from korpus.infrastructure.model_transport import guarded_json_post
 from korpus.infrastructure.openai_response import completed_response_text
 
@@ -102,7 +102,7 @@ class OpenAIQueryPlanner:
         payload = {
             "model": self._model,
             "instructions": instructions,
-            "input": input_text,
+            "input": bounded_model_input(input_text),
             "max_output_tokens": max_output_tokens,
             "store": False,
             "tools": [],

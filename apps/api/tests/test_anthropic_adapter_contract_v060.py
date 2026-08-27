@@ -59,6 +59,18 @@ def test_http_failures_are_normalized_to_planner_unavailable(monkeypatch) -> Non
         AnthropicAnswerComposer("key", model="m").compose("питання", ["A"])
 
 
+def test_oversized_material_is_refused_before_anthropic_transport(monkeypatch) -> None:
+    monkeypatch.setattr(
+        anthropic_planner.httpx,
+        "post",
+        lambda *args, **kwargs: pytest.fail("oversized material reached the provider"),
+    )
+    with pytest.raises(ValueError, match="model input exceeds"):
+        AnthropicQueryPlanner("key", model="m").variants("я" * 70_000, [])
+    with pytest.raises(ValueError, match="model input exceeds"):
+        AnthropicAnswerComposer("key", model="m").compose("питання", ["д" * 70_000])
+
+
 def test_repeated_anthropic_failure_opens_circuit(monkeypatch) -> None:
     calls = 0
 

@@ -30,6 +30,7 @@ from korpus.infrastructure.model_contract import (
     parse_composition,
     parse_query_variants,
 )
+from korpus.infrastructure.model_input import bounded_model_input
 from korpus.infrastructure.model_transport import guarded_json_post
 
 
@@ -47,8 +48,6 @@ def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
     except EgressDenied as denial:
         raise PlannerUnavailable(f"model egress denied: {denial}") from denial
 
-
-_SYSTEM = QUERY_REWRITE_INSTRUCTIONS
 
 _MAX_OUTPUT_TOKENS = 300
 
@@ -69,7 +68,6 @@ class AnthropicQueryPlanner:
         self._model = model
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout_seconds
-        #: Consulted before request construction; checking after response is already egress.
         self._egress = egress or ModelEgressPolicy()
         self._circuit = CircuitBreaker(failure_threshold=3, recovery_timeout_seconds=15.0)
 
@@ -79,8 +77,10 @@ class AnthropicQueryPlanner:
         payload: dict[str, Any] = {
             "model": self._model,
             "max_tokens": _MAX_OUTPUT_TOKENS,
-            "system": _SYSTEM,
-            "messages": [{"role": "user", "content": f"Питання: {question}{hint}"}],
+            "system": QUERY_REWRITE_INSTRUCTIONS,
+            "messages": [
+                {"role": "user", "content": bounded_model_input(f"Питання: {question}{hint}")}
+            ],
         }
         body = self._post(payload)
         return _parse(body)
@@ -105,15 +105,8 @@ def _parse(body: Any) -> list[str]:
     return parse_query_variants(_text_of(body))
 
 
-_COMPOSE_SYSTEM = COMPOSE_INSTRUCTIONS
-
-
 class AnthropicAnswerComposer:
-    """Arranges retrieved sentences and proposes one opening line.
-
-    Shares the planner's transport failure boundary. Third-party output is admitted,
-    never trusted.
-    """
+    """Arrange retrieved sentences; third-party output is admitted, never trusted."""
 
     def __init__(
         self,
@@ -137,9 +130,12 @@ class AnthropicAnswerComposer:
         payload: dict[str, Any] = {
             "model": self._model,
             "max_tokens": 1200,
-            "system": _COMPOSE_SYSTEM,
+            "system": COMPOSE_INSTRUCTIONS,
             "messages": [
-                {"role": "user", "content": f"Питання: {question}\n\nРечення:\n{numbered}"}
+                {
+                    "role": "user",
+                    "content": bounded_model_input(f"Питання: {question}\n\nРечення:\n{numbered}"),
+                }
             ],
         }
         body = self._post(payload)
