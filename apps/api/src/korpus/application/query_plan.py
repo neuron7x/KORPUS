@@ -29,12 +29,11 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass, field
 from typing import Protocol
 
 from korpus.application.evidence import assess_control_injection
+from korpus.application.model_bulkhead import ModelDeadline, result_before
 
 #: A reformulation is a query. Anything long enough to be a sentence of prose is not one,
 #: and is the shape an attempt to smuggle text into the answer would take.
@@ -172,26 +171,23 @@ def build_plan(
     """
     if planner is None:
         return QueryPlan(asked=question)
-    # A thread rather than a signal: the answer path runs on a worker thread and only the
-    # main thread can take an alarm. Not a `with` block — the executor's context manager
-    # joins its workers on exit, so a planner that blocks for five seconds held the
-    # reader for five seconds *after* the deadline fired. Shut down without waiting: the
-    # call keeps running until its own transport gives up, which costs a thread and
-    # saves the reader the wait.
-    pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="query-planner")
+    # A bounded process bulkhead rather than a signal: answer work already runs outside
+    # the main thread. Timed-out provider calls may finish in their worker, but cannot
+    # create an unbounded thread per request or consume the composer's separate pool.
     try:
-        suggested = pool.submit(planner.variants, question, list(subjects or [])).result(
-            timeout=deadline_seconds
+        suggested = result_before(
+            "planner",
+            planner.variants,
+            question,
+            list(subjects or []),
+            timeout_seconds=deadline_seconds,
         )
-        pool.shutdown(wait=False)
-    except FutureTimeout as error:
-        pool.shutdown(wait=False, cancel_futures=True)
+    except ModelDeadline as error:
         return QueryPlan(
             asked=question,
-            refused=(f"planner exceeded {deadline_seconds:g}s deadline: {error!s}"[:200],),
+            refused=(str(error)[:200],),
         )
     except (PlannerUnavailable, TimeoutError, OSError, ValueError, TypeError) as error:
-        pool.shutdown(wait=False, cancel_futures=True)
         # Named rather than blanket. Everything a provider can do to us arrives as one
         # of these — the adapter wraps its transport failures in `PlannerUnavailable` —
         # and anything else is a defect in this tree, which must surface rather than be

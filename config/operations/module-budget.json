@@ -166,6 +166,7 @@
         "apps/api/src/korpus/application/military_assurance.py",
         "apps/api/src/korpus/application/military_knowledge.py",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
+        "apps/api/src/korpus/application/model_bulkhead.py",
         "apps/api/src/korpus/application/numeric_integrity.py",
         "apps/api/src/korpus/application/offline_trust.py",
         "apps/api/src/korpus/application/operational_math.py",
@@ -696,9 +697,9 @@
       "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 241,
+      "lines": 229,
       "max_complexity": 9,
-      "reason": "Exact ceiling after application-owned answer-composer deadline"
+      "reason": "Lower ratchet after model deadline execution moved to a bounded bulkhead"
     },
     "apps/api/src/korpus/application/contextual_projection.py": {
       "lines": 67,
@@ -900,6 +901,11 @@
       "lines": 87,
       "max_complexity": 5,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
+    },
+    "apps/api/src/korpus/application/model_bulkhead.py": {
+      "lines": 34,
+      "max_complexity": 3,
+      "reason": "Initial exact ceiling for role-isolated process-scoped model bulkheads"
     },
     "apps/api/src/korpus/application/numeric_integrity.py": {
       "lines": 125,
@@ -1156,9 +1162,9 @@
       "reason": "exact canonical quantity conversion kernel"
     },
     "apps/api/src/korpus/application/query_plan.py": {
-      "lines": 227,
+      "lines": 223,
       "max_complexity": 10,
-      "reason": "v0.6.0: planner output shape/control-injection contract plus hostile iterable deadline boundary; complexity reduced"
+      "reason": "Lower ratchet after per-request executor removal"
     },
     "apps/api/src/korpus/application/readiness_contracts.py": {
       "lines": 24,

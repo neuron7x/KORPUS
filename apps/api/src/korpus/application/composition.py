@@ -28,11 +28,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
 from typing import Protocol
 
+from korpus.application.model_bulkhead import result_before
 from korpus.application.query_plan import PlannerUnavailable
 
 #: A framing line, not a paragraph. Long enough to say what the passages are about,
@@ -124,10 +123,6 @@ class CompositionRefused(ValueError):
     """Raised with the rule that was broken, never with a generic message."""
 
 
-class ComposerDeadline(PlannerUnavailable):
-    """The application deadline elapsed, independently of provider transport."""
-
-
 @dataclass(frozen=True)
 class Composition:
     opening: str
@@ -182,16 +177,9 @@ def admissible_opening(opening: str, evidence: str) -> str:
 def _compose_with_deadline(
     composer: AnswerComposer, question: str, sentences: list[str], deadline_seconds: float
 ) -> tuple[str, list[str]]:
-    pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="answer-composer")
-    future = pool.submit(composer.compose, question, sentences)
-    try:
-        return future.result(timeout=deadline_seconds)
-    except FutureTimeout as error:
-        if future.done():
-            raise PlannerUnavailable(f"TimeoutError: {error}") from error
-        raise ComposerDeadline(f"composer exceeded {deadline_seconds:g}s deadline") from error
-    finally:
-        pool.shutdown(wait=False, cancel_futures=True)
+    return result_before(
+        "composer", composer.compose, question, sentences, timeout_seconds=deadline_seconds
+    )
 
 
 def compose_answer(
