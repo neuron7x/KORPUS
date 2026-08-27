@@ -111,8 +111,8 @@ export function mountCombatScene() {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
     const x = width * .5;
-    const y = Math.min(height * .4, 340);
-    const radius = Math.max(90, Math.min(width * .34, height * .42, 320));
+    const y = Math.min(height * .32, 300);
+    const radius = Math.max(90, Math.min(width * .34, height * .31, 280));
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
     stages(x, y, radius);
     contacts(x, y, radius, time);
