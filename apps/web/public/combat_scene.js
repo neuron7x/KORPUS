@@ -110,9 +110,9 @@ export function mountCombatScene() {
   function draw(time) {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
-    const x = width * .5;
-    const y = Math.min(height * .32, 300);
-    const radius = Math.max(90, Math.min(width * .34, height * .31, 280));
+    const x = width / 2;
+    const radius = Math.max(90, Math.min(width * .32, height * .25, 250));
+    const y = Math.max(radius + 18, Math.min(height * .27, 270));
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
     stages(x, y, radius);
     contacts(x, y, radius, time);
