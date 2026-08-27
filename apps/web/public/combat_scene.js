@@ -1,6 +1,4 @@
 const TAU = Math.PI * 2;
-const STAGES = ["ЗАПИТ", "ДОПУСК", "ДОКАЗ", "ВЕРДИКТ"];
-
 function sourceContact(source, index) {
   const identity = String(source.source_hash ?? source.span_id ?? index);
   let hash = 2166136261;
@@ -19,21 +17,16 @@ export function mountCombatScene() {
   const canvas = document.createElement("canvas");
   canvas.id = "combat-signal-field";
   canvas.setAttribute("aria-hidden", "true");
-  const hud = document.createElement("div");
-  hud.id = "combat-radar-status";
-  hud.setAttribute("role", "status");
-  hud.setAttribute("aria-live", "polite");
-  host.prepend(canvas, hud);
+  host.prepend(canvas);
   const context = canvas.getContext("2d", {alpha: true});
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const signal = {stage: -1, state: "READY", coverage: 0, contacts: []};
   let width = 0, height = 0, raf = 0, active = true;
 
-  function updateHud() {
-    const coverage = Math.round(signal.coverage * 100);
-    hud.textContent = `RADAR · ${signal.state} · ${signal.contacts.length} ДЖ. · ${coverage}%`;
+  function updateState() {
     canvas.dataset.contacts = String(signal.contacts.length);
     canvas.dataset.stage = String(signal.stage);
+    canvas.dataset.coverage = String(Math.round(signal.coverage * 100));
   }
 
   function onSignal(event) {
@@ -42,7 +35,7 @@ export function mountCombatScene() {
     if (typeof detail.state === "string") signal.state = detail.state.slice(0, 32).toUpperCase();
     if (Number.isFinite(detail.coverage)) signal.coverage = Math.max(0, Math.min(1, detail.coverage));
     if (Array.isArray(detail.sources)) signal.contacts = detail.sources.slice(0, 12).map(sourceContact);
-    updateHud();
+    updateState();
     draw(performance.now());
   }
 
@@ -88,16 +81,13 @@ export function mountCombatScene() {
   }
 
   function stages(x, y, radius) {
-    STAGES.forEach((label, index) => {
+    for (let index = 0; index < 4; index += 1) {
       const theta = -Math.PI / 2 + index * Math.PI / 2;
       const sx = x + Math.cos(theta) * radius * .72;
       const sy = y + Math.sin(theta) * radius * .72;
       context.fillStyle = index <= signal.stage ? "#62f49b" : "rgba(120,170,139,.38)";
       context.fillRect(sx - 2, sy - 2, 4, 4);
-      context.fillStyle = "rgba(171,194,179,.64)";
-      context.font = "8px monospace";
-      context.fillText(label, sx + 7, sy + 3);
-    });
+    }
   }
 
   function contacts(x, y, radius, time) {
@@ -120,9 +110,9 @@ export function mountCombatScene() {
   function draw(time) {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
-    const x = width * .72;
-    const y = Math.min(height * .38, 330);
-    const radius = Math.max(90, Math.min(width * .28, height * .42, 310));
+    const x = width * .5;
+    const y = Math.min(height * .4, 340);
+    const radius = Math.max(90, Math.min(width * .34, height * .42, 320));
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
     stages(x, y, radius);
     contacts(x, y, radius, time);
@@ -137,7 +127,7 @@ export function mountCombatScene() {
   addEventListener("resize", resize, {passive: true});
   addEventListener("korpus:radar", onSignal);
   document.addEventListener("visibilitychange", visibility);
-  updateHud();
+  updateState();
   resize();
   if (!reduced.matches) raf = requestAnimationFrame(draw);
 
@@ -148,6 +138,5 @@ export function mountCombatScene() {
     removeEventListener("korpus:radar", onSignal);
     document.removeEventListener("visibilitychange", visibility);
     canvas.remove();
-    hud.remove();
   };
 }
