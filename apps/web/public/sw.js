@@ -1,4 +1,4 @@
-const CACHE = "korpus-shell-v76";
+const CACHE = "korpus-shell-v77";
 // Every module app.js imports must be cached: a module whose import is not cached fails to
 // execute offline, and one missing file turns a degraded page into a blank one. /api.js
 // joined when app.js stopped carrying its own fetch handling; /conversations.js joined

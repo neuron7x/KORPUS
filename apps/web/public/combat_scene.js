@@ -24,7 +24,14 @@ export function mountCombatScene() {
   const context = canvas.getContext("2d", {alpha: true});
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const signal = {stage: -1, state: "READY", coverage: 0, contacts: []};
+  const hostile = {visible: true, count: 3, changedAt: performance.now()};
   let width = 0, height = 0, centerX = 0, raf = 0, active = true;
+  const heartbeat = setInterval(() => {
+    hostile.visible = !hostile.visible;
+    if (hostile.visible) hostile.count = hostile.count === 5 ? 3 : hostile.count + 1;
+    hostile.changedAt = performance.now();
+    draw(hostile.changedAt);
+  }, 1400);
 
   function updateState() {
     canvas.dataset.contacts = String(signal.contacts.length);
@@ -115,17 +122,12 @@ export function mountCombatScene() {
   }
 
   function hostileBlips(x, y, radius, time) {
-    if (reduced.matches) {
+    if (!hostile.visible) {
       canvas.dataset.hostiles = "0";
       return;
     }
-    const cycle = (time % 9200) / 9200;
-    if (cycle > .64) {
-      canvas.dataset.hostiles = "0";
-      return;
-    }
-    const edgeFade = Math.min(1, cycle / .08, (.64 - cycle) / .1);
-    const count = 3 + Math.floor((time / 1450) % 3);
+    const edgeFade = reduced.matches ? .82 : Math.min(1, (time - hostile.changedAt) / 180);
+    const count = hostile.count;
     canvas.dataset.hostiles = String(count);
     context.save();
     context.globalCompositeOperation = "lighter";
@@ -133,11 +135,14 @@ export function mountCombatScene() {
       const angle = turn * Math.PI + phase * .08;
       const bx = x + Math.cos(angle) * radius * distance;
       const by = y + Math.sin(angle) * radius * distance;
-      const pulse = 3.2 + Math.sin(time * .006 + phase * TAU) * 1.4;
-      context.globalAlpha = edgeFade * (.72 + Math.sin(time * .004 + phase * 9) * .18);
-      context.fillStyle = "#ff3b30";
-      context.fillRect(Math.round(bx) - 2, Math.round(by) - 2, 4, 4);
-      context.strokeStyle = "rgba(255,72,58,.72)";
+      const pulse = reduced.matches ? 5 : 5 + Math.sin(time * .008 + phase * TAU) * 1.8;
+      context.globalAlpha = edgeFade * (reduced.matches ? 1 : .82 + Math.sin(time * .005 + phase * 9) * .16);
+      context.shadowColor = "rgba(255,45,32,.92)";
+      context.shadowBlur = 9;
+      context.fillStyle = "#ff2d20";
+      context.fillRect(Math.round(bx) - 2.5, Math.round(by) - 2.5, 5, 5);
+      context.shadowBlur = 3;
+      context.strokeStyle = "rgba(255,88,72,.88)";
       context.lineWidth = 1;
       context.beginPath();
       context.arc(bx, by, pulse, 0, TAU);
@@ -156,12 +161,18 @@ export function mountCombatScene() {
     stages(x, y, radius);
     contacts(x, y, radius, time);
     hostileBlips(x, y, radius, time);
-    if (!reduced.matches && !document.hidden) raf = requestAnimationFrame(draw);
+    if (!reduced.matches && !document.hidden && !raf) raf = requestAnimationFrame(frame);
+  }
+
+  function frame(time) {
+    raf = 0;
+    draw(time);
   }
 
   function visibility() {
     cancelAnimationFrame(raf);
-    if (!document.hidden && active) raf = requestAnimationFrame(draw);
+    raf = 0;
+    if (!document.hidden && active) raf = requestAnimationFrame(frame);
   }
 
   addEventListener("resize", resize, {passive: true});
@@ -169,10 +180,11 @@ export function mountCombatScene() {
   document.addEventListener("visibilitychange", visibility);
   updateState();
   resize();
-  if (!reduced.matches) raf = requestAnimationFrame(draw);
+  if (!reduced.matches) raf = requestAnimationFrame(frame);
 
   return () => {
     active = false;
+    clearInterval(heartbeat);
     cancelAnimationFrame(raf);
     removeEventListener("resize", resize);
     removeEventListener("korpus:radar", onSignal);

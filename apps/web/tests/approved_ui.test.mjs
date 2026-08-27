@@ -47,7 +47,7 @@ test("canonical and combat themes share one functional surface", async()=>{
   assert.match(source,/@keyframes combat-ignite/);
   assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(radar,/korpus:radar/); assert.match(radar,/source_hash/); assert.doesNotMatch(radar,/combat-radar-status|fillText/);
-  assert.match(radar,/HOSTILE_BLIPS/); assert.match(radar,/cycle > \.64/); assert.match(radar,/3 \+ Math\.floor/);
+  assert.match(radar,/HOSTILE_BLIPS/); assert.match(radar,/}, 1400\)/); assert.match(radar,/hostile\.visible = !hostile\.visible/); assert.match(radar,/hostile\.count === 5 \? 3/);
   assert.match(source,/repeating-linear-gradient\(117deg/); assert.match(source,/background-clip:text/); assert.match(source,/image-rendering:pixelated/);
   assert.doesNotMatch(radar,/Math\.random/);
   assert.doesNotMatch(html,/combat[^>]+href=/i);

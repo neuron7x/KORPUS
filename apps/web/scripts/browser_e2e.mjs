@@ -279,6 +279,12 @@ async function main() {
       assert(combat.centerDelta < 1, `radar and prompt axes diverge by ${combat.centerDelta}px`);
       const radar = await cdp.evaluate(`(() => { dispatchEvent(new CustomEvent("korpus:radar",{detail:{state:"answered",stage:3,coverage:.86,sources:[{source_hash:"${"a".repeat(64)}"},{source_hash:"${"b".repeat(64)}"}]}})); const canvas=document.getElementById("combat-signal-field"); return {hud:document.getElementById("combat-radar-status"),contacts:canvas?.dataset.contacts,stage:canvas?.dataset.stage,coverage:canvas?.dataset.coverage}; })()`);
       assert(radar.hud === null && radar.contacts === "2" && radar.stage === "3" && radar.coverage === "86", "combat radar state is not evidence-bound or its removed HUD returned");
+      const hostileStates = new Set();
+      for (let sample = 0; sample < 20 && !(hostileStates.has("0") && [...hostileStates].some(value => Number(value) >= 3)); sample += 1) {
+        hostileStates.add(await cdp.evaluate(`document.getElementById("combat-signal-field")?.dataset.hostiles ?? "missing"`));
+        await new Promise(resolve => setTimeout(resolve, 180));
+      }
+      assert(hostileStates.has("0") && [...hostileStates].some(value => Number(value) >= 3 && Number(value) <= 5), `hostile blips did not appear and disappear within 3.6s: ${[...hostileStates]}`);
       const core = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed")}; })()`);
       assert(core.theme === "core" && core.pressed === "false", "canonical theme was not restored by the same control");
       assert(!(await cdp.evaluate(`document.getElementById("combat-signal-field")`)), "combat canvas survived after returning to core");
