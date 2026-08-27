@@ -356,6 +356,12 @@ function render(answer, question) {
     ${additionalCitations ? `<details class="additional-evidence"><summary>Ще доказів: ${citationCards.length - 1}</summary>${additionalCitations}</details>` : ""}
     ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
   result.append(block);
+  dispatchEvent(new CustomEvent("korpus:radar", {detail: {
+    state: answer.status,
+    stage: 3,
+    coverage: Number(answer.evidence_coverage),
+    sources: answer.citations ?? [],
+  }}));
   import("./decision_field.js").then(({createDecisionField}) => {
     const anchor = block.querySelector(".answer-meta");
     anchor?.insertAdjacentElement("afterend", createDecisionField(answer));

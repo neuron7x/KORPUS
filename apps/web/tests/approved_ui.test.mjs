@@ -38,7 +38,7 @@ test("visual noise is progressively disclosed without removing function", async(
   assert.match(app,/class="additional-evidence"/);
 });
 test("canonical and combat themes share one functional surface", async()=>{
-  const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css"); const radar=await read("public/combat_scene.js");
   assert.match(html,/id="theme-toggle"[^>]*aria-pressed="false"/);
   assert.match(app,/document\.documentElement\.dataset\.theme/);
   assert.match(app,/sessionStorage\.setItem\("korpus-theme", combat/);
@@ -46,6 +46,8 @@ test("canonical and combat themes share one functional surface", async()=>{
   assert.match(source,/html\[data-theme="combat"\]/);
   assert.match(source,/@keyframes combat-ignite/);
   assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(radar,/korpus:radar/); assert.match(radar,/source_hash/); assert.match(radar,/combat-radar-status/);
+  assert.doesNotMatch(radar,/Math\.random/);
   assert.doesNotMatch(html,/combat[^>]+href=/i);
 });
 test("KORPUS TRACE projects the canonical chat state machine", async()=>{

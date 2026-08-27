@@ -1,4 +1,16 @@
 const TAU = Math.PI * 2;
+const STAGES = ["ЗАПИТ", "ДОПУСК", "ДОКАЗ", "ВЕРДИКТ"];
+
+function sourceContact(source, index) {
+  const identity = String(source.source_hash ?? source.span_id ?? index);
+  let hash = 2166136261;
+  for (const code of identity) hash = Math.imul(hash ^ code.charCodeAt(0), 16777619) >>> 0;
+  return {
+    angle: ((hash % 3600) / 3600) * TAU,
+    radius: .24 + (((hash >>> 12) % 650) / 1000),
+    phase: ((hash >>> 22) % 100) / 100,
+  };
+}
 
 export function mountCombatScene() {
   const host = document.querySelector(".chat-stage") ?? document.querySelector(".welcome");
@@ -7,20 +19,32 @@ export function mountCombatScene() {
   const canvas = document.createElement("canvas");
   canvas.id = "combat-signal-field";
   canvas.setAttribute("aria-hidden", "true");
-  host.prepend(canvas);
+  const hud = document.createElement("div");
+  hud.id = "combat-radar-status";
+  hud.setAttribute("role", "status");
+  hud.setAttribute("aria-live", "polite");
+  host.prepend(canvas, hud);
   const context = canvas.getContext("2d", {alpha: true});
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-  const pointer = {x: .57, y: .38, targetX: .57, targetY: .38};
-  let width = 0, height = 0, frame = 0, raf = 0, active = true;
+  const signal = {stage: -1, state: "READY", coverage: 0, contacts: []};
+  let width = 0, height = 0, raf = 0, active = true;
 
-  const embers = Array.from({length: 38}, (_, index) => ({
-    x: ((index * 47) % 101) / 101,
-    y: ((index * 71) % 103) / 103,
-    speed: .00009 + (index % 7) * .000018,
-    drift: ((index % 5) - 2) * .000016,
-    size: .5 + (index % 4) * .42,
-    phase: index * .73,
-  }));
+  function updateHud() {
+    const coverage = Math.round(signal.coverage * 100);
+    hud.textContent = `RADAR · ${signal.state} · ${signal.contacts.length} ДЖ. · ${coverage}%`;
+    canvas.dataset.contacts = String(signal.contacts.length);
+    canvas.dataset.stage = String(signal.stage);
+  }
+
+  function onSignal(event) {
+    const detail = event.detail ?? {};
+    if (Number.isInteger(detail.stage)) signal.stage = Math.max(-1, Math.min(3, detail.stage));
+    if (typeof detail.state === "string") signal.state = detail.state.slice(0, 32).toUpperCase();
+    if (Number.isFinite(detail.coverage)) signal.coverage = Math.max(0, Math.min(1, detail.coverage));
+    if (Array.isArray(detail.sources)) signal.contacts = detail.sources.slice(0, 12).map(sourceContact);
+    updateHud();
+    draw(performance.now());
+  }
 
   function resize() {
     const rect = host.getBoundingClientRect();
@@ -35,91 +59,85 @@ export function mountCombatScene() {
     draw(performance.now());
   }
 
-  function contours(time) {
+  function grid(x, y, radius, angle) {
     context.save();
+    context.strokeStyle = "rgba(67,240,139,.12)";
     context.lineWidth = .7;
-    for (let band = -3; band < 17; band += 1) {
-      context.beginPath();
-      for (let x = -20; x <= width + 20; x += 12) {
-        const nx = x / Math.max(width, 1);
-        const ridge = Math.sin(nx * 8.4 + band * .71 + time * .00005) * 16;
-        const detail = Math.sin(nx * 21 - band * .37) * 5;
-        const focus = Math.exp(-Math.pow(nx - pointer.x, 2) * 5) * Math.sin(nx * 13 + band) * 18;
-        const y = band * 54 - 80 + ridge + detail + focus + pointer.y * 38;
-        if (x < 0) context.moveTo(x, y); else context.lineTo(x, y);
-      }
-      context.strokeStyle = band % 4 === 0 ? "rgba(67,240,139,.17)" : "rgba(79,145,104,.085)";
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  function radar(time) {
-    const x = width * pointer.x;
-    const y = height * pointer.y;
-    const radius = Math.min(width, height) * .43;
-    const angle = time * .00034;
-    const gradient = context.createConicGradient(angle, x, y);
-    gradient.addColorStop(0, "rgba(67,240,139,.19)");
-    gradient.addColorStop(.035, "rgba(98,244,155,.018)");
-    gradient.addColorStop(.28, "transparent");
-    gradient.addColorStop(1, "transparent");
-    context.fillStyle = gradient;
-    context.beginPath();
-    context.arc(x, y, radius, 0, TAU);
-    context.fill();
-    context.strokeStyle = "rgba(67,240,139,.075)";
-    context.setLineDash([2, 11]);
-    for (const scale of [.34, .67, 1]) {
+    for (const scale of [.25, .5, .75, 1]) {
       context.beginPath();
       context.arc(x, y, radius * scale, 0, TAU);
       context.stroke();
     }
-    context.setLineDash([]);
+    for (let axis = 0; axis < 4; axis += 1) {
+      const theta = axis * Math.PI / 2;
+      context.beginPath();
+      context.moveTo(x, y);
+      context.lineTo(x + Math.cos(theta) * radius, y + Math.sin(theta) * radius);
+      context.stroke();
+    }
+    const sweep = context.createConicGradient(angle, x, y);
+    sweep.addColorStop(0, "rgba(67,240,139,.28)");
+    sweep.addColorStop(.045, "rgba(67,240,139,.025)");
+    sweep.addColorStop(.24, "transparent");
+    sweep.addColorStop(1, "transparent");
+    context.fillStyle = sweep;
+    context.beginPath();
+    context.arc(x, y, radius, 0, TAU);
+    context.fill();
+    context.restore();
   }
 
-  function particles(time) {
+  function stages(x, y, radius) {
+    STAGES.forEach((label, index) => {
+      const theta = -Math.PI / 2 + index * Math.PI / 2;
+      const sx = x + Math.cos(theta) * radius * .72;
+      const sy = y + Math.sin(theta) * radius * .72;
+      context.fillStyle = index <= signal.stage ? "#62f49b" : "rgba(120,170,139,.38)";
+      context.fillRect(sx - 2, sy - 2, 4, 4);
+      context.fillStyle = "rgba(171,194,179,.64)";
+      context.font = "8px monospace";
+      context.fillText(label, sx + 7, sy + 3);
+    });
+  }
+
+  function contacts(x, y, radius, time) {
     context.save();
     context.globalCompositeOperation = "lighter";
-    for (const ember of embers) {
-      const life = (ember.y - time * ember.speed) % 1;
-      const y = (life < 0 ? life + 1 : life) * height;
-      const x = (ember.x + Math.sin(time * .00035 + ember.phase) * .018 + time * ember.drift) % 1 * width;
-      const alpha = .12 + .36 * Math.pow(Math.sin((life + ember.phase) * Math.PI), 2);
-      const glow = context.createRadialGradient(x, y, 0, x, y, ember.size * 5);
-      glow.addColorStop(0, `rgba(98,244,155,${alpha})`);
-      glow.addColorStop(1, "transparent");
-      context.fillStyle = glow;
-      context.fillRect(x - ember.size * 5, y - ember.size * 5, ember.size * 10, ember.size * 10);
-    }
+    signal.contacts.forEach(contact => {
+      const cx = x + Math.cos(contact.angle) * radius * contact.radius;
+      const cy = y + Math.sin(contact.angle) * radius * contact.radius;
+      const pulse = reduced.matches ? 5 : 5 + Math.sin(time * .004 + contact.phase * TAU) * 2;
+      context.strokeStyle = "rgba(98,244,155,.72)";
+      context.beginPath();
+      context.arc(cx, cy, pulse, 0, TAU);
+      context.stroke();
+      context.fillStyle = "#9df7bd";
+      context.fillRect(cx - 1.5, cy - 1.5, 3, 3);
+    });
     context.restore();
   }
 
   function draw(time) {
     if (!active || !context) return;
-    pointer.x += (pointer.targetX - pointer.x) * .035;
-    pointer.y += (pointer.targetY - pointer.y) * .035;
     context.clearRect(0, 0, width, height);
-    contours(time);
-    radar(time);
-    particles(time);
-    frame += 1;
+    const x = width * .72;
+    const y = Math.min(height * .38, 330);
+    const radius = Math.max(90, Math.min(width * .28, height * .42, 310));
+    grid(x, y, radius, reduced.matches ? 0 : time * .00042);
+    stages(x, y, radius);
+    contacts(x, y, radius, time);
     if (!reduced.matches && !document.hidden) raf = requestAnimationFrame(draw);
   }
 
-  function move(event) {
-    const rect = host.getBoundingClientRect();
-    pointer.targetX = Math.max(.12, Math.min(.88, (event.clientX - rect.left) / rect.width));
-    pointer.targetY = Math.max(.16, Math.min(.72, (event.clientY - rect.top) / rect.height));
-  }
   function visibility() {
     cancelAnimationFrame(raf);
     if (!document.hidden && active) raf = requestAnimationFrame(draw);
   }
 
   addEventListener("resize", resize, {passive: true});
-  host.addEventListener("pointermove", move, {passive: true});
+  addEventListener("korpus:radar", onSignal);
   document.addEventListener("visibilitychange", visibility);
+  updateHud();
   resize();
   if (!reduced.matches) raf = requestAnimationFrame(draw);
 
@@ -127,8 +145,9 @@ export function mountCombatScene() {
     active = false;
     cancelAnimationFrame(raf);
     removeEventListener("resize", resize);
-    host.removeEventListener("pointermove", move);
+    removeEventListener("korpus:radar", onSignal);
     document.removeEventListener("visibilitychange", visibility);
     canvas.remove();
+    hud.remove();
   };
 }

@@ -30,6 +30,7 @@ export function createTraceController(root = document) {
       const progress = PROGRESS[state] ?? [-1, "Стан контуру не визначено."];
       status.textContent = progress[1];
       if (!["READY", "COMPLETE"].includes(state)) surface.open = true;
+      dispatchEvent(new CustomEvent("korpus:radar", {detail: {state, stage: progress[0]}}));
       stages.forEach((button, index) => {
         button.dataset.state = index < progress[0] ? "done" : index === progress[0] ? "active" : "idle";
         if (index === progress[0]) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");
