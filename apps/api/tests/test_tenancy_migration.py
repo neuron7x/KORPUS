@@ -213,24 +213,21 @@ def test_sellable_plan_price_pair_is_enforced_by_the_migrated_schema(tmp_path: P
         with pytest.raises(Exception, match=r"CHECK|constraint"), engine.begin() as connection:
             connection.execute(
                 text(
-                    common
-                    + "VALUES ('p1', 'bad-price', 'Bad', 'active', 'monthly', '[]', "
+                    common + "VALUES ('p1', 'bad-price', 'Bad', 'active', 'monthly', '[]', "
                     "'2026-01-01', '2026-01-01', 19900, NULL)"
                 )
             )
         with pytest.raises(Exception, match=r"CHECK|constraint"), engine.begin() as connection:
             connection.execute(
                 text(
-                    common
-                    + "VALUES ('p2', 'bad-zero', 'Bad', 'active', 'monthly', '[]', "
+                    common + "VALUES ('p2', 'bad-zero', 'Bad', 'active', 'monthly', '[]', "
                     "'2026-01-01', '2026-01-01', 0, 'UAH')"
                 )
             )
         with engine.begin() as connection:
             connection.execute(
                 text(
-                    common
-                    + "VALUES ('p3', 'sellable', 'Sellable', 'active', 'monthly', '[]', "
+                    common + "VALUES ('p3', 'sellable', 'Sellable', 'active', 'monthly', '[]', "
                     "'2026-01-01', '2026-01-01', 19900, 'UAH')"
                 )
             )

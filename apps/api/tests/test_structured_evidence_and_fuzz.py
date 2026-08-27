@@ -43,8 +43,7 @@ def test_numeric_unit_conflicts_are_detected_across_exactly_convertible_units():
         == "numeric_conflict:pressure_pa"
     )
     assert (
-        contradiction_reason("Відстань 120 м.", "Відстань 120 км.")
-        == "numeric_conflict:length_m"
+        contradiction_reason("Відстань 120 м.", "Відстань 120 км.") == "numeric_conflict:length_m"
     )
     assert contradiction_reason("Відстань 1 км.", "Відстань 1000 м.") is None
 
@@ -54,13 +53,17 @@ def test_text_html_json_parser_seeded_fuzz_is_bounded(tmp_path: Path, monkeypatc
     source = random.Random(20260801)
     started = time.monotonic()
     for index in range(120):
-        suffix, mime = source.choice([
-            (".txt", "text/plain"), (".md", "text/markdown"), (".json", "application/json"),
-            (".html", "text/html"),
-        ])
+        suffix, mime = source.choice(
+            [
+                (".txt", "text/plain"),
+                (".md", "text/markdown"),
+                (".json", "application/json"),
+                (".html", "text/html"),
+            ]
+        )
         path = tmp_path / f"fuzz-{index}{suffix}"
         if suffix == ".json":
-            payload = ("{\"value\":\"" + "x" * source.randint(0, 200) + "\"}").encode()
+            payload = ('{"value":"' + "x" * source.randint(0, 200) + '"}').encode()
         elif suffix == ".html":
             payload = (
                 "<div>visible<script>secret()</script>" + "<b>" * source.randint(0, 20) + "tail"

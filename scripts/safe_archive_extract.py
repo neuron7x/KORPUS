@@ -1,11 +1,15 @@
 """Extraction primitive that refuses unsafe ZIPs before writing any member."""
+
 from __future__ import annotations
+
 import os
 import zipfile
+from importlib import import_module
 from pathlib import Path
 
-from importlib import import_module
-safety_failures = import_module(f"{__package__ + chr(46) if __package__ else chr(39)*0}zip_safety").safety_failures
+safety_failures = import_module(
+    f"{__package__ + chr(46) if __package__ else chr(39) * 0}zip_safety"
+).safety_failures
 
 
 def extract_safe_archive(archive: Path, destination: Path) -> Path:

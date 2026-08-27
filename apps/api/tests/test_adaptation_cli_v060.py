@@ -16,10 +16,21 @@ def _write(path: Path, value: object) -> Path:
 
 def _run(tmp_path: Path, state: object, window: object, policy: Path | None = None):
     out = tmp_path / "proposal.json"
-    command = [sys.executable, str(SCRIPT), "--state", str(_write(tmp_path / "state.json", state)), "--window", str(_write(tmp_path / "window.json", window)), "--out", str(out)]
+    command = [
+        sys.executable,
+        str(SCRIPT),
+        "--state",
+        str(_write(tmp_path / "state.json", state)),
+        "--window",
+        str(_write(tmp_path / "window.json", window)),
+        "--out",
+        str(out),
+    ]
     if policy is not None:
         command.extend(["--policy", str(policy)])
-    proc = subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False)
+    proc = subprocess.run(
+        command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=False
+    )
     return proc, out
 
 
@@ -30,10 +41,10 @@ def _state() -> dict:
             "retrieval_timeout_ms": 1200,
             "minimum_score": 0.55,
             "minimum_query_coverage": 0.60,
-            "minimum_support_score": 0.65
+            "minimum_support_score": 0.65,
         },
         "last_change_sequence": -1,
-        "consecutive_healthy_windows": 0
+        "consecutive_healthy_windows": 0,
     }
 
 
@@ -45,7 +56,7 @@ def _window() -> dict:
         "error_rate": 0.001,
         "contradiction_rate": 0.0,
         "overload_rate": 0.001,
-        "recall_at_20": 0.95
+        "recall_at_20": 0.95,
     }
 
 

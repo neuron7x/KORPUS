@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import date
+from typing import cast
 
 from korpus.application.answer_analysis import (
     ScopeBreach,
@@ -19,20 +19,20 @@ from korpus.application.answer_audit import append_answer_audit
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.egress import ModelEgressPolicy
-from korpus.application.evidence_admission import eligible_evidence
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
     extractive_support,
     verify_claim_support,
 )
-from korpus.application.policy import PolicyEngine
+from korpus.application.evidence_admission import eligible_evidence
 from korpus.application.pec_retrieval import adaptive_retrieval
+from korpus.application.policy import PolicyEngine
+from korpus.application.ports import Repository, Retriever
 from korpus.application.predictive_evidence_control import (
     ControllerTrace,
     PredictiveEvidenceController,
 )
-from korpus.application.ports import Repository, Retriever
 from korpus.application.query_plan import QueryPlan, QueryPlanner
 from korpus.application.retrieval import (
     RetrievalDeadlineExceeded,
@@ -167,14 +167,20 @@ class ExtractiveAnswerService:
             self._audit(identity, query, answer, [], [], risk, plan=plan, pec_trace=pec_trace)
             return answer
 
-
         gated, eligible = apply_retrieval_gate(
-            self, identity=identity, query=query, release_id=release_id, corpora=corpora,
-            retrieved=retrieved, risk=risk, plan=plan, pec_trace=pec_trace,
+            self,
+            identity=identity,
+            query=query,
+            release_id=release_id,
+            corpora=corpora,
+            retrieved=retrieved,
+            risk=risk,
+            plan=plan,
+            pec_trace=pec_trace,
             early_abstain=retrieval_outcome.early_abstain,
         )
         if gated is not None:
-            return gated
+            return cast(Answer, gated)
         assert eligible is not None
 
         thresholds = retrieval_thresholds
@@ -185,7 +191,9 @@ class ExtractiveAnswerService:
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
             answer = self._unsourced_answer(release_id, unsourced)
-            self._audit(identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace)
+            self._audit(
+                identity, query, answer, retrieved, eligible, risk, plan=plan, pec_trace=pec_trace
+            )
             return answer
 
         query_coverage = len(covered_tokens) / max(len(query_tokens), 1)
@@ -197,7 +205,15 @@ class ExtractiveAnswerService:
         if claims and not support.aligned:
             answer = self._misaligned(release_id, support)
             self._audit(
-                identity, query, answer, retrieved, eligible, risk, support=support, plan=plan, pec_trace=pec_trace
+                identity,
+                query,
+                answer,
+                retrieved,
+                eligible,
+                risk,
+                support=support,
+                plan=plan,
+                pec_trace=pec_trace,
             )
             return answer
         # Before every branch, not inside one: three of them reach the same audit call,
@@ -276,7 +292,13 @@ class ExtractiveAnswerService:
                     corpus_release=release_id,
                 )
         self._audit(
-            identity, query, answer, retrieved, eligible, risk, plan=plan,
+            identity,
+            query,
+            answer,
+            retrieved,
+            eligible,
+            risk,
+            plan=plan,
             composition=composition_reason,
             pec_trace=pec_trace,
         )
@@ -293,9 +315,7 @@ class ExtractiveAnswerService:
         """
         if not self._composition_egress_permitted(claims, eligible):
             return None, "egress_tier_exceeded"
-        return compose_answer(
-            query.text, [claim.text for claim in claims], self.answer_composer
-        )
+        return compose_answer(query.text, [claim.text for claim in claims], self.answer_composer)
 
     def _composition_egress_permitted(
         self, claims: list[Claim], eligible: list[RetrievedEvidence]

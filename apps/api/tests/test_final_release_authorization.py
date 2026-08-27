@@ -7,7 +7,6 @@ from typing import Any
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-
 from korpus.application.final_release_authorization import evaluate_final_release
 
 RELEASE = "v-test"
@@ -21,7 +20,9 @@ def _json_bytes(value: dict[str, Any]) -> bytes:
 
 
 def _attestation(data: bytes, name: str, key: Ed25519PrivateKey) -> tuple[dict[str, Any], str]:
-    public = key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo)
+    public = key.public_key().public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    )
     fingerprint = hashlib.sha256(public).hexdigest()
     return {
         "algorithm": "Ed25519",
@@ -50,16 +51,25 @@ def _fixture() -> dict[str, Any]:
     builder_statement = {
         "_type": "https://in-toto.io/Statement/v1",
         "predicateType": "https://slsa.dev/provenance/v1",
-        "subject": [{"name": ARTIFACT_NAME, "digest": {"sha256": hashlib.sha256(artifact).hexdigest()}}],
+        "subject": [
+            {"name": ARTIFACT_NAME, "digest": {"sha256": hashlib.sha256(artifact).hexdigest()}}
+        ],
         "predicate": {
-            "buildDefinition": {"externalParameters": {"release": RELEASE, "sourceManifestSha256": hashlib.sha256(source_manifest).hexdigest()}},
+            "buildDefinition": {
+                "externalParameters": {
+                    "release": RELEASE,
+                    "sourceManifestSha256": hashlib.sha256(source_manifest).hexdigest(),
+                }
+            },
             "runDetails": {"builder": {"id": "builder://trusted"}},
         },
     }
     builder_bytes = _json_bytes(builder_statement)
     builder_key, release_key = Ed25519PrivateKey.generate(), Ed25519PrivateKey.generate()
     builder_att, builder_fp = _attestation(builder_bytes, BUILDER_STATEMENT_NAME, builder_key)
-    release_att, release_fp = _attestation(release_manifest_bytes, RELEASE_MANIFEST_NAME, release_key)
+    release_att, release_fp = _attestation(
+        release_manifest_bytes, RELEASE_MANIFEST_NAME, release_key
+    )
     return locals()
 
 
@@ -87,7 +97,9 @@ def _evaluate(data: dict[str, Any], **overrides: Any):
     return evaluate_final_release(**kwargs)
 
 
-def test_final_release_requires_bound_artifact_trusted_builder_and_distinct_release_signer() -> None:
+def test_final_release_requires_bound_artifact_trusted_builder_and_distinct_release_signer() -> (
+    None
+):
     verdict = _evaluate(_fixture())
     assert verdict.authorized is True
     assert verdict.as_dict()["failures"] == []
@@ -119,6 +131,8 @@ def test_final_release_requires_upstream_production_authorization() -> None:
     data = _fixture()
     assurance = {"status": "PASS", "production_authorized": False}
     assurance_bytes = _json_bytes(assurance)
-    verdict = _evaluate(data, production_assurance=assurance, production_assurance_bytes=assurance_bytes)
+    verdict = _evaluate(
+        data, production_assurance=assurance, production_assurance_bytes=assurance_bytes
+    )
     assert verdict.authorized is False
     assert verdict.checks["production_assurance_authorized"] is False

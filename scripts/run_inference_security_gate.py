@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Execute the source-bound internal inference-security adversarial suite."""
+
 from __future__ import annotations
 
 import argparse
@@ -64,7 +65,8 @@ def _profile_checks(profile: dict[str, Any]) -> tuple[dict[str, bool], list[str]
     mapped = {target for values in mapping.values() for target in values}
     checks = {
         "profile_gate_id": profile.get("gate_id") == "inference_security",
-        "evidence_class_internal_adversarial": profile.get("evidence_class") == "INTERNAL_ADVERSARIAL",
+        "evidence_class_internal_adversarial": profile.get("evidence_class")
+        == "INTERNAL_ADVERSARIAL",
         "attack_families_nonempty": bool(families),
         "attack_families_unique": len(families) == len(set(families)),
         "pytest_targets_nonempty": bool(targets),
@@ -79,16 +81,37 @@ def _profile_checks(profile: dict[str, Any]) -> tuple[dict[str, bool], list[str]
 
 
 def _execute(targets: list[str], junit: Path, timeout: int) -> tuple[int, str]:
-    command = [sys.executable, "-m", "pytest", "-q", "--disable-warnings", f"--junitxml={junit}", *targets]
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-q",
+        "--disable-warnings",
+        f"--junitxml={junit}",
+        *targets,
+    ]
     try:
         run = subprocess.run(
-            command, cwd=ROOT, env={**os.environ, "PYTHONPATH": str(ROOT / "apps/api/src")},
-            capture_output=True, text=True, check=False, timeout=timeout,
+            command,
+            cwd=ROOT,
+            env={**os.environ, "PYTHONPATH": str(ROOT / "apps/api/src")},
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
         )
         return run.returncode, (run.stdout + run.stderr)[-8000:]
     except subprocess.TimeoutExpired as exc:
-        stdout = exc.stdout.decode(errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
-        stderr = exc.stderr.decode(errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+        stdout = (
+            exc.stdout.decode(errors="replace")
+            if isinstance(exc.stdout, bytes)
+            else (exc.stdout or "")
+        )
+        stderr = (
+            exc.stderr.decode(errors="replace")
+            if isinstance(exc.stderr, bytes)
+            else (exc.stderr or "")
+        )
         return 124, (stdout + stderr)[-8000:]
 
 
@@ -103,22 +126,39 @@ def main() -> int:
     args.junit.parent.mkdir(parents=True, exist_ok=True)
     exit_code, output_tail = (None, "")
     if all(checks.values()):
-        exit_code, output_tail = _execute(targets, args.junit, int(profile.get("timeout_seconds", 300) or 300))
+        exit_code, output_tail = _execute(
+            targets, args.junit, int(profile.get("timeout_seconds", 300) or 300)
+        )
     counts = _suite_counts(args.junit)
-    checks.update({
-        "pytest_exit_zero": exit_code == 0, "tests_executed": counts["tests"] > 0,
-        "no_test_failures": counts["failures"] == 0, "no_test_errors": counts["errors"] == 0,
-        "no_test_skips": counts["skipped"] == 0,
-    })
+    checks.update(
+        {
+            "pytest_exit_zero": exit_code == 0,
+            "tests_executed": counts["tests"] > 0,
+            "no_test_failures": counts["failures"] == 0,
+            "no_test_errors": counts["errors"] == 0,
+            "no_test_skips": counts["skipped"] == 0,
+        }
+    )
     failures = [name for name, passed in checks.items() if not passed]
     result = gate_payload(
-        "inference_security", status="PASS" if not failures else "FAIL",
-        source_digest=compute_source_digest(ROOT), release=release_tag(), checks=checks,
-        failures=failures, evidence_class="INTERNAL_ADVERSARIAL",
+        "inference_security",
+        status="PASS" if not failures else "FAIL",
+        source_digest=compute_source_digest(ROOT),
+        release=release_tag(),
+        checks=checks,
+        failures=failures,
+        evidence_class="INTERNAL_ADVERSARIAL",
         profile=str(args.profile.relative_to(ROOT)),
-        profile_sha256=hashlib.sha256(args.profile.read_bytes()).hexdigest() if args.profile.is_file() else None,
-        attack_families=families, pytest_targets=targets, pytest_exit_code=exit_code,
-        pytest=counts, junit_sha256=hashlib.sha256(args.junit.read_bytes()).hexdigest() if args.junit.is_file() else None,
+        profile_sha256=hashlib.sha256(args.profile.read_bytes()).hexdigest()
+        if args.profile.is_file()
+        else None,
+        attack_families=families,
+        pytest_targets=targets,
+        pytest_exit_code=exit_code,
+        pytest=counts,
+        junit_sha256=hashlib.sha256(args.junit.read_bytes()).hexdigest()
+        if args.junit.is_file()
+        else None,
         output_tail=output_tail,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)

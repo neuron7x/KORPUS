@@ -151,8 +151,9 @@ def test_script_and_style_content_never_becomes_indexable_text() -> None:
 
 
 def test_html_entities_are_decoded_into_the_text_that_is_quoted() -> None:
-    pages, _ = _extract(b"<p>&#1053;&#1072;&#1082;&#1072;&#1079; &amp; &lt;5&gt;</p>",
-                        "order.html", "text/html")
+    pages, _ = _extract(
+        b"<p>&#1053;&#1072;&#1082;&#1072;&#1079; &amp; &lt;5&gt;</p>", "order.html", "text/html"
+    )
 
     assert "Наказ & <5>" in pages[0].text
 
@@ -176,6 +177,4 @@ def test_a_pdf_exceeding_the_page_limit_is_refused(tmp_path: Path) -> None:
     path.write_bytes(MINIMAL_PDF)
 
     with pytest.raises(ValueError, match=r"page count exceeds|malformed PDF|insufficient"):
-        extract_pages_from_path(
-            path, "many.pdf", "application/pdf", False, "ukr", max_pdf_pages=0
-        )
+        extract_pages_from_path(path, "many.pdf", "application/pdf", False, "ukr", max_pdf_pages=0)

@@ -7,6 +7,7 @@ no VCS/direct/local references, closure of declared direct dependencies, and web
 parity. Known-vulnerability status is a different claim and remains delegated to an OSV
 scanner; this script emits the exact OSV query batch so the external scan is reproducible.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,9 +16,9 @@ import json
 import re
 import sys
 import tomllib
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
@@ -27,7 +28,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+
 from scripts.release_identity import release_tag  # noqa: E402
+
 _LOCK_LINE = re.compile(r"^([A-Za-z0-9_.-]+)==([^\\\s]+)\s*\\?$")
 _HASH = re.compile(r"--hash=sha256:([0-9a-f]{64})$")
 _UNSAFE_PREFIXES = ("-e ", "--editable ", "git+", "hg+", "svn+", "bzr+", "file:", "http:", "https:")
@@ -126,7 +129,9 @@ def _parse_lock(path: Path, seen: set[Path] | None = None) -> LockParseResult:
     return LockParseResult(tuple(requirements), tuple(files), tuple(failures))
 
 
-def _index(requirements: Iterable[LockedRequirement]) -> tuple[dict[str, LockedRequirement], list[str]]:
+def _index(
+    requirements: Iterable[LockedRequirement],
+) -> tuple[dict[str, LockedRequirement], list[str]]:
     index: dict[str, LockedRequirement] = {}
     failures: list[str] = []
     for item in requirements:
@@ -160,7 +165,9 @@ def _check_declared(
         key = canonicalize_name(requirement.name)
         item = locked.get(key)
         if item is None:
-            failures.append(f"{label}: direct dependency {requirement.name} is absent from lock closure")
+            failures.append(
+                f"{label}: direct dependency {requirement.name} is absent from lock closure"
+            )
             continue
         if requirement.specifier and Version(item.version) not in requirement.specifier:
             failures.append(
@@ -191,7 +198,10 @@ def _check_web(package_json: Path, package_lock: Path) -> tuple[list[str], dict[
             failures.append(f"web: non-hermetic package source {path}: {resolved}")
         if not integrity.startswith("sha512-"):
             failures.append(f"web: package {path} lacks sha512 integrity")
-    return failures, {"lockfile_version": lock.get("lockfileVersion"), "packages": max(len(packages) - 1, 0)}
+    return failures, {
+        "lockfile_version": lock.get("lockfileVersion"),
+        "packages": max(len(packages) - 1, 0),
+    }
 
 
 def verify(root: Path = ROOT) -> dict[str, object]:

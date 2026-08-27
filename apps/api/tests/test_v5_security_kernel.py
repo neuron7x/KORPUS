@@ -82,16 +82,18 @@ def test_compartment_noninterference_is_enforced_before_retrieval(client, admin_
     response = client.post(
         "/v1/documents/ingest",
         data={
-            "document_json": json.dumps({
-                "canonical_title": "Compartmented directive",
-                "corpus_id": "public",
-                "issuer": "Authorized Test Authority",
-                "jurisdiction": "UA",
-                "document_type": "order",
-                "access_tier": 0,
-                "classification": "public",
-                "compartments": ["operations"],
-            }),
+            "document_json": json.dumps(
+                {
+                    "canonical_title": "Compartmented directive",
+                    "corpus_id": "public",
+                    "issuer": "Authorized Test Authority",
+                    "jurisdiction": "UA",
+                    "document_type": "order",
+                    "access_tier": 0,
+                    "classification": "public",
+                    "compartments": ["operations"],
+                }
+            ),
             "version_json": json.dumps(
                 {
                     "revision": "1",
@@ -145,18 +147,27 @@ def test_sentence_segmenter_preserves_offsets_for_decimals_abbreviations_and_lis
 
 
 def test_contradiction_gate_detects_negation_and_numeric_conflicts():
-    assert contradiction_reason(
-        "Евакуація дозволена після перевірки.",
-        "Евакуація не дозволена після перевірки.",
-    ) == "opposed_negation"
-    assert contradiction_reason(
-        "Гранична відстань становить 5 км.",
-        "Гранична відстань становить 7 км.",
-    ) == "numeric_conflict:length_m"
-    assert contradiction_reason(
-        "Гранична відстань становить 5 км.",
-        "Граничний час становить 7 хв.",
-    ) is None
+    assert (
+        contradiction_reason(
+            "Евакуація дозволена після перевірки.",
+            "Евакуація не дозволена після перевірки.",
+        )
+        == "opposed_negation"
+    )
+    assert (
+        contradiction_reason(
+            "Гранична відстань становить 5 км.",
+            "Гранична відстань становить 7 км.",
+        )
+        == "numeric_conflict:length_m"
+    )
+    assert (
+        contradiction_reason(
+            "Гранична відстань становить 5 км.",
+            "Граничний час становить 7 хв.",
+        )
+        is None
+    )
 
 
 def test_html_extraction_drops_script_style_and_preserves_text(tmp_path: Path):
@@ -545,7 +556,9 @@ def test_parser_sandbox_setting_selects_isolated_parser(tmp_path: Path):
     path = tmp_path / "document.txt"
     path.write_text("input", encoding="utf-8")
     service = IngestionService(
-        None, None, None,
+        None,
+        None,
+        None,
         ExtractionSettings(False, "ukr+eng", parser_sandbox_enabled=True),
         RecordingExtractor(),
     )
@@ -574,7 +587,9 @@ def test_the_sandbox_setting_off_reaches_the_port_as_false(tmp_path: Path):
     path = tmp_path / "document.txt"
     path.write_text("input", encoding="utf-8")
     service = IngestionService(
-        None, None, None,
+        None,
+        None,
+        None,
         ExtractionSettings(False, "ukr+eng", parser_sandbox_enabled=False),
         RecordingExtractor(),
     )

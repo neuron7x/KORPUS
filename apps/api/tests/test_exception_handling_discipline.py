@@ -38,11 +38,7 @@ RECORDING = ("log", "warn", "error", "exception", "observe", "record", "write", 
 def _is_broad(handler: ast.ExceptHandler) -> bool:
     if handler.type is None:
         return True
-    names = {
-        node.id
-        for node in ast.walk(handler.type)
-        if isinstance(node, ast.Name)
-    }
+    names = {node.id for node in ast.walk(handler.type) if isinstance(node, ast.Name)}
     return bool(names & BROAD)
 
 
@@ -118,14 +114,8 @@ def test_no_broad_handler_turns_a_fault_into_evidence_of_health() -> None:
 
 def test_no_bare_except_hides_which_failure_occurred() -> None:
     """`except:` also catches KeyboardInterrupt and SystemExit."""
-    bare = [
-        f"{path}:{line}"
-        for path, line, handler in _handlers()
-        if handler.type is None
-    ]
-    assert not bare, (
-        f"bare `except:` swallows KeyboardInterrupt and SystemExit as well: {bare}"
-    )
+    bare = [f"{path}:{line}" for path, line, handler in _handlers() if handler.type is None]
+    assert not bare, f"bare `except:` swallows KeyboardInterrupt and SystemExit as well: {bare}"
 
 
 def test_no_broad_handler_is_an_empty_body() -> None:

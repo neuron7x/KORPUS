@@ -1,4 +1,5 @@
 """Single browser-cookie policy boundary for OIDC/BFF state transitions."""
+
 from __future__ import annotations
 
 import secrets
@@ -37,15 +38,23 @@ def browser_csrf_pair_valid(request: Request, settings: Any) -> bool:
 
 def set_flow_cookie(response: Response, settings: Any, value: str) -> None:
     response.set_cookie(
-        settings.browser_flow_cookie, value, max_age=settings.browser_flow_ttl_seconds,
-        httponly=True, secure=settings.browser_cookie_secure, samesite="lax", path="/v1/auth",
+        settings.browser_flow_cookie,
+        value,
+        max_age=settings.browser_flow_ttl_seconds,
+        httponly=True,
+        secure=settings.browser_cookie_secure,
+        samesite="lax",
+        path="/v1/auth",
     )
 
 
 def clear_flow_cookie(response: Response, settings: Any) -> None:
     response.delete_cookie(
-        settings.browser_flow_cookie, path="/v1/auth", secure=settings.browser_cookie_secure,
-        httponly=True, samesite="lax",
+        settings.browser_flow_cookie,
+        path="/v1/auth",
+        secure=settings.browser_cookie_secure,
+        httponly=True,
+        samesite="lax",
     )
 
 
@@ -53,22 +62,38 @@ def set_session_cookies(
     response: Response, settings: Any, session_cookie: str, csrf: str, ttl: int
 ) -> None:
     response.set_cookie(
-        settings.browser_session_cookie, session_cookie, max_age=ttl, httponly=True,
-        secure=settings.browser_cookie_secure, samesite="strict", path="/",
+        settings.browser_session_cookie,
+        session_cookie,
+        max_age=ttl,
+        httponly=True,
+        secure=settings.browser_cookie_secure,
+        samesite="strict",
+        path="/",
     )
     response.set_cookie(
-        settings.browser_csrf_cookie, csrf, max_age=ttl, httponly=False,
-        secure=settings.browser_cookie_secure, samesite="strict", path="/",
+        settings.browser_csrf_cookie,
+        csrf,
+        max_age=ttl,
+        httponly=False,
+        secure=settings.browser_cookie_secure,
+        samesite="strict",
+        path="/",
     )
 
 
 def clear_browser_cookies(response: Response, settings: Any) -> None:
     response.delete_cookie(
-        settings.browser_session_cookie, path="/", secure=settings.browser_cookie_secure,
-        httponly=True, samesite="strict",
+        settings.browser_session_cookie,
+        path="/",
+        secure=settings.browser_cookie_secure,
+        httponly=True,
+        samesite="strict",
     )
     response.delete_cookie(
-        settings.browser_csrf_cookie, path="/", secure=settings.browser_cookie_secure,
-        httponly=False, samesite="strict",
+        settings.browser_csrf_cookie,
+        path="/",
+        secure=settings.browser_cookie_secure,
+        httponly=False,
+        samesite="strict",
     )
     clear_flow_cookie(response, settings)

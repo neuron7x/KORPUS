@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Deterministic source/release-bound pytest regression sharding and exact merge gate."""
+
 from __future__ import annotations
 
 import argparse
@@ -7,7 +8,6 @@ import hashlib
 import json
 import os
 import platform
-import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -21,10 +21,14 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from bounded_process import run_bounded  # noqa: E402
 from korpus.application.provenance import compute_source_digest  # noqa: E402
+from regression_collection import build_manifest, load_verified_manifest, sha_lines  # noqa: E402
+from regression_collection import collect_nodeids as collect_manifest_nodeids  # noqa: E402
 from release_identity import release_tag  # noqa: E402
-from regression_collection import build_manifest, collect_nodeids as collect_manifest_nodeids, load_verified_manifest, sha_lines  # noqa: E402
+
+
 def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 def _env() -> dict[str, str]:
     env = os.environ.copy()
@@ -36,24 +40,39 @@ def _env() -> dict[str, str]:
     env.setdefault("PYTHONHASHSEED", "0")
     return env
 
+
 def collect_nodeids(pytest_args: list[str]) -> list[str]:
     return collect_manifest_nodeids(root=ROOT, env=_env(), pytest_args=pytest_args)
+
 
 def prepare_collection(args: argparse.Namespace) -> int:
     source = compute_source_digest(ROOT)
     release = release_tag(ROOT)
     nodeids = collect_nodeids(args.pytest_args)
     payload = build_manifest(
-        nodeids=nodeids, release_tag=release, source_digest=source,
-        pytest_args=args.pytest_args, python_version=platform.python_version(),
+        nodeids=nodeids,
+        release_tag=release,
+        source_digest=source,
+        pytest_args=args.pytest_args,
+        python_version=platform.python_version(),
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({k: payload[k] for k in ("release_tag", "source_digest", "collection_digest", "collection_count")}, indent=2))
+    print(
+        json.dumps(
+            {
+                k: payload[k]
+                for k in ("release_tag", "source_digest", "collection_digest", "collection_count")
+            },
+            indent=2,
+        )
+    )
     return 0
+
 
 def bucket(nodeid: str, shard_count: int) -> int:
     return int.from_bytes(hashlib.sha256(nodeid.encode("utf-8")).digest()[:8], "big") % shard_count
+
 
 def _junit_counts(path: Path) -> dict[str, int]:
     root = ET.parse(path).getroot()
@@ -62,28 +81,51 @@ def _junit_counts(path: Path) -> dict[str, int]:
     fields = ("tests", "failures", "errors", "skipped")
     return {field: sum(int(s.attrib.get(field, "0")) for s in suites) for field in fields}
 
+
 def run_shard(args: argparse.Namespace) -> int:
     source = compute_source_digest(ROOT)
     release = release_tag(ROOT)
     if args.collection_manifest:
         manifest = load_verified_manifest(
-            args.collection_manifest, release_tag=release, source_digest=source, pytest_args=args.pytest_args
+            args.collection_manifest,
+            release_tag=release,
+            source_digest=source,
+            pytest_args=args.pytest_args,
         )
         nodeids = [str(item) for item in manifest["nodeids"]]
     else:
         nodeids = collect_nodeids(args.pytest_args)
-    selected = [nodeid for nodeid in nodeids if bucket(nodeid, args.shard_count) == args.shard_index]
+    selected = [
+        nodeid for nodeid in nodeids if bucket(nodeid, args.shard_count) == args.shard_index
+    ]
     out = args.out.resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     junit = out.with_suffix(".junit.xml")
     cmd = [sys.executable, "-m", "pytest", "-q", f"--junitxml={junit}", *selected]
     started = time.monotonic()
-    exit_code, stdout, stderr, timed_out, termination = run_bounded(cmd, cwd=ROOT, env=_env(), timeout_seconds=args.timeout_seconds)
+    exit_code, stdout, stderr, timed_out, termination = run_bounded(
+        cmd, cwd=ROOT, env=_env(), timeout_seconds=args.timeout_seconds
+    )
     stdout_tail = "\n".join(stdout.splitlines()[-80:])
     stderr_tail = "\n".join(stderr.splitlines()[-80:])
     elapsed = time.monotonic() - started
-    counts = _junit_counts(junit) if junit.is_file() else {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
-    status = "UNKNOWN" if timed_out else ("PASS" if exit_code == 0 and counts["tests"] == len(selected) and counts["failures"] == 0 and counts["errors"] == 0 else "FAIL")
+    counts = (
+        _junit_counts(junit)
+        if junit.is_file()
+        else {"tests": 0, "failures": 0, "errors": 0, "skipped": 0}
+    )
+    status = (
+        "UNKNOWN"
+        if timed_out
+        else (
+            "PASS"
+            if exit_code == 0
+            and counts["tests"] == len(selected)
+            and counts["failures"] == 0
+            and counts["errors"] == 0
+            else "FAIL"
+        )
+    )
     payload: dict[str, Any] = {
         "schema": "korpus.regression-shard.v1",
         "status": status,
@@ -108,15 +150,41 @@ def run_shard(args: argparse.Namespace) -> int:
         "stderr_tail": stderr_tail,
     }
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({k: payload[k] for k in ("status", "source_digest", "collection_count", "shard_index", "shard_count", "selected_count", "junit", "timed_out", "elapsed_seconds")}, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                k: payload[k]
+                for k in (
+                    "status",
+                    "source_digest",
+                    "collection_count",
+                    "shard_index",
+                    "shard_count",
+                    "selected_count",
+                    "junit",
+                    "timed_out",
+                    "elapsed_seconds",
+                )
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0 if status == "PASS" else 1
+
 
 def _single(values: set[Any]) -> Any | None:
     return next(iter(values)) if len(values) == 1 else None
 
+
 def _receipt_identity(receipts: list[dict[str, Any]]) -> tuple[dict[str, Any], list[str]]:
     if not receipts:
-        return {"release_tag": None, "source_digest": None, "collection_digest": None, "shard_count": 0}, ["no_receipts"]
+        return {
+            "release_tag": None,
+            "source_digest": None,
+            "collection_digest": None,
+            "shard_count": 0,
+        }, ["no_receipts"]
     fields = {
         "release_tag": {r.get("release_tag") for r in receipts},
         "source_digest": {r.get("source_digest") for r in receipts},
@@ -133,7 +201,10 @@ def _receipt_identity(receipts: list[dict[str, Any]]) -> tuple[dict[str, Any], l
         "shard_count": int(shard_count) if shard_count is not None else 0,
     }, failures
 
-def _coverage_failures(receipts: list[dict[str, Any]], expected_shards: int) -> tuple[list[str], list[str], int]:
+
+def _coverage_failures(
+    receipts: list[dict[str, Any]], expected_shards: int
+) -> tuple[list[str], list[str], int]:
     failures: list[str] = []
     indices = [int(r.get("shard_index", -1)) for r in receipts]
     if sorted(indices) != list(range(expected_shards)):
@@ -148,6 +219,7 @@ def _coverage_failures(receipts: list[dict[str, Any]], expected_shards: int) -> 
         failures.append("coverage_count_mismatch")
     return nodeids, failures, expected_count
 
+
 def _live_collection_failures(receipts: list[dict[str, Any]], nodeids: list[str]) -> list[str]:
     if not receipts:
         return []
@@ -159,16 +231,20 @@ def _live_collection_failures(receipts: list[dict[str, Any]], nodeids: list[str]
         failures.append("exact_nodeid_coverage_mismatch")
     return failures
 
+
 def _aggregate_junit(receipts: list[dict[str, Any]]) -> dict[str, int]:
     return {
         field: sum(int(r.get("junit", {}).get(field, 0)) for r in receipts)
         for field in ("tests", "failures", "errors", "skipped")
     }
 
+
 def merge(args: argparse.Namespace) -> int:
     receipts = [json.loads(path.read_text(encoding="utf-8")) for path in args.receipts]
     identity, failures = _receipt_identity(receipts)
-    nodeids, coverage_failures, expected_count = _coverage_failures(receipts, int(identity["shard_count"]))
+    nodeids, coverage_failures, expected_count = _coverage_failures(
+        receipts, int(identity["shard_count"])
+    )
     failures.extend(coverage_failures)
     failures.extend(_live_collection_failures(receipts, nodeids))
     counts = _aggregate_junit(receipts)
@@ -190,6 +266,7 @@ def merge(args: argparse.Namespace) -> int:
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0 if payload["status"] == "PASS" else 1
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -215,6 +292,7 @@ def main() -> int:
             parser.error("invalid shard index/count")
         return run_shard(args)
     return merge(args)
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

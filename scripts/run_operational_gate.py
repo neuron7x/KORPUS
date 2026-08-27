@@ -24,8 +24,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "missing": missing}, indent=2))
         return 1
     reports = {
-        name: json.loads(path.read_text(encoding="utf-8"))
-        for name, path in REPORT_PATHS.items()
+        name: json.loads(path.read_text(encoding="utf-8")) for name, path in REPORT_PATHS.items()
     }
     # Recomputed here, never read from the artifacts: a digest the reports supply
     # would only prove they agree with themselves.

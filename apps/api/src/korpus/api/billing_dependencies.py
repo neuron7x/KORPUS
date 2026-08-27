@@ -1,7 +1,8 @@
 """Commercial API dependencies and response contracts, separate from conversation routes."""
+
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, status
@@ -23,19 +24,19 @@ def _state(request: Request, name: str) -> Any:
 
 
 def get_subscription_store(request: Request) -> SubscriptionStore:
-    return _state(request, "subscription_store")
+    return cast(SubscriptionStore, _state(request, "subscription_store"))
 
 
 def get_subscription_service(request: Request) -> SubscriptionService:
-    return _state(request, "subscription_service")
+    return cast(SubscriptionService, _state(request, "subscription_service"))
 
 
 def get_checkout_service(request: Request) -> CheckoutService:
-    return _state(request, "checkout_service")
+    return cast(CheckoutService, _state(request, "checkout_service"))
 
 
 def get_billing_provider(request: Request) -> BillingProvider:
-    return _state(request, "billing_provider")
+    return cast(BillingProvider, _state(request, "billing_provider"))
 
 
 SubscriptionStoreDependency = Annotated[SubscriptionStore, Depends(get_subscription_store)]

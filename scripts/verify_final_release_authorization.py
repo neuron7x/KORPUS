@@ -28,7 +28,11 @@ def _json(path: Path) -> dict[str, Any]:
 
 def _builder_ids() -> set[str]:
     payload = _json(BUILDERS)
-    result = {str(item) for item in payload.get("trusted_builder_ids", ()) if isinstance(item, str) and item}
+    result = {
+        str(item)
+        for item in payload.get("trusted_builder_ids", ())
+        if isinstance(item, str) and item
+    }
     if os.getenv("KORPUS_TRUSTED_BUILDER_ID"):
         result.add(str(os.environ["KORPUS_TRUSTED_BUILDER_ID"]))
     return result
@@ -41,16 +45,32 @@ def main() -> int:
     parser.add_argument("--release-attestation", type=Path, required=True)
     parser.add_argument("--builder-provenance", type=Path, required=True)
     parser.add_argument("--builder-attestation", type=Path, required=True)
-    parser.add_argument("--production-assurance", type=Path, default=ROOT / "reports/PRODUCTION_ASSURANCE_REPORT.json")
+    parser.add_argument(
+        "--production-assurance",
+        type=Path,
+        default=ROOT / "reports/PRODUCTION_ASSURANCE_REPORT.json",
+    )
     parser.add_argument("--source-manifest", type=Path, default=ROOT / "SOURCE_MANIFEST.json")
     parser.add_argument("--out", type=Path, default=ROOT / "var/production/final_release-gate.json")
     args = parser.parse_args()
-    files = (args.artifact, args.release_manifest, args.release_attestation, args.builder_provenance,
-             args.builder_attestation, args.production_assurance, args.source_manifest)
+    files = (
+        args.artifact,
+        args.release_manifest,
+        args.release_attestation,
+        args.builder_provenance,
+        args.builder_attestation,
+        args.production_assurance,
+        args.source_manifest,
+    )
     missing = [str(path) for path in files if not path.is_file()]
     if missing:
-        payload = {"schema": "korpus.final-production-authorization.v1", "status": "FAIL",
-                   "production_authorized": False, "checks": {}, "failures": [f"missing:{item}" for item in missing]}
+        payload = {
+            "schema": "korpus.final-production-authorization.v1",
+            "status": "FAIL",
+            "production_authorized": False,
+            "checks": {},
+            "failures": [f"missing:{item}" for item in missing],
+        }
     else:
         release = release_tag()
         verdict = evaluate_final_release(
@@ -68,8 +88,14 @@ def main() -> int:
             builder_statement=_json(args.builder_provenance),
             builder_attestation=_json(args.builder_attestation),
             release=release,
-            trusted_release_signers=trusted_fingerprints(TRUST, "release_ed25519_public_key_sha256", "KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"),
-            trusted_builder_signers=trusted_fingerprints(TRUST, "hosted_builder_ed25519_public_key_sha256", "KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256"),
+            trusted_release_signers=trusted_fingerprints(
+                TRUST, "release_ed25519_public_key_sha256", "KORPUS_TRUSTED_RELEASE_SIGNER_SHA256"
+            ),
+            trusted_builder_signers=trusted_fingerprints(
+                TRUST,
+                "hosted_builder_ed25519_public_key_sha256",
+                "KORPUS_TRUSTED_HOSTED_BUILDER_SIGNER_SHA256",
+            ),
             trusted_builder_ids=_builder_ids(),
         )
         payload = verdict.as_dict()

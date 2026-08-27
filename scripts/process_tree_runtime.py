@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Process-tree liveness and file-backed capture for bounded harness execution."""
+
 from __future__ import annotations
 
 import os
 import subprocess
 import tempfile
 import time
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Mapping, Sequence
 
 from process_group_control import process_group_alive, terminate_process_tree
 
@@ -23,8 +24,10 @@ def execute_bounded_process(
 ) -> tuple[int | None, str, str, bool, str]:
     if timeout_seconds <= 0:
         raise ValueError("timeout_seconds must be positive")
-    with tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stdout_file, \
-         tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stderr_file:
+    with (
+        tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stdout_file,
+        tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stderr_file,
+    ):
         kwargs: dict[str, object] = {
             "cwd": cwd,
             "env": dict(env),

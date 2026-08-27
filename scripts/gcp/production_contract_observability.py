@@ -1,4 +1,5 @@
 """Observability, audit, and autonomous-operations production predicates."""
+
 from __future__ import annotations
 
 
@@ -25,7 +26,7 @@ def evaluate(s: object) -> list[tuple[str, bool, str]]:
             "TLS_EXPIRY_ALERT",
             'resource "google_monitoring_alert_policy" "tls_certificate_expiry"' in s.monitoring
             and "monitoring.googleapis.com/uptime_check/time_until_ssl_cert_expires" in s.monitoring
-            and 'threshold_value = 15' in s.monitoring
+            and "threshold_value = 15" in s.monitoring
             and 'duration        = "600s"' in s.monitoring
             and "google_monitoring_uptime_check_config.edge.uptime_check_id" in s.monitoring,
             "production HTTPS certificate expiry is monitored against the exact edge uptime-check ID",
@@ -81,7 +82,8 @@ def evaluate(s: object) -> list[tuple[str, bool, str]]:
         (
             "DRILL_WORKFLOW_ACTION_PINS",
             "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" in s.drill_workflow
-            and "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093" in s.drill_workflow,
+            and "google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093"
+            in s.drill_workflow,
             "DR workflow uses the same SHA-pinned checkout/auth trust set as production",
         ),
     ]

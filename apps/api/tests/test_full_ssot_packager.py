@@ -20,6 +20,7 @@ def test_full_ssot_excludes_only_runtime_or_secret_surfaces() -> None:
 
 def test_deterministic_zip_roundtrip_preserves_executable_mode(tmp_path: Path) -> None:
     import stat
+
     from scripts.full_ssot_packager import _zip_tree
     from scripts.safe_archive_extract import extract_safe_archive
 
@@ -36,7 +37,9 @@ def test_deterministic_zip_roundtrip_preserves_executable_mode(tmp_path: Path) -
 
 def test_safe_extractor_refuses_unsafe_archive_before_write(tmp_path: Path) -> None:
     import zipfile
+
     import pytest
+
     from scripts.safe_archive_extract import extract_safe_archive
 
     archive = tmp_path / "unsafe.zip"

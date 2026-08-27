@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Canonical semantic replay probe for hash-seed/process determinism."""
+
 from __future__ import annotations
 
 import hashlib
@@ -100,11 +101,18 @@ def replay_payload() -> dict[str, object]:
 def main() -> int:
     payload = replay_payload()
     canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    print(json.dumps({
-        "schema": "korpus.semantic-replay.v1",
-        "sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
-        "payload": payload,
-    }, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    print(
+        json.dumps(
+            {
+                "schema": "korpus.semantic-replay.v1",
+                "sha256": hashlib.sha256(canonical.encode("utf-8")).hexdigest(),
+                "payload": payload,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+    )
     return 0
 
 

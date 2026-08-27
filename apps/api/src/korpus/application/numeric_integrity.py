@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+
 from korpus.application.printed_numbers import parse_printed_decimal as _to_decimal
 
 # A quantity: digits, optional decimal separator, optional unit. Units are listed

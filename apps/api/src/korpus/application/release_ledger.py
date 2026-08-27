@@ -11,13 +11,14 @@ detect deletion of the final suffix; production therefore has to anchor the head
 the build environment (for example an independently controlled transparency log or CI
 attestation). That external anchor is represented explicitly rather than implied.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import dataclass
+from collections.abc import Iterable, Mapping
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
-from typing import Iterable, Mapping
 
 from korpus.application.assurance_calculus import EvidencePoint
 from korpus.application.release_state_machine import (
@@ -99,7 +100,10 @@ class ReleaseLedgerEvent:
         _timestamp(self.timestamp)
         ReleaseStage[self.from_stage]
         ReleaseStage[self.to_stage]
-        if self.to_stage == ReleaseStage.WITHDRAWN.name and not (self.withdrawal_reason or "").strip():
+        if (
+            self.to_stage == ReleaseStage.WITHDRAWN.name
+            and not (self.withdrawal_reason or "").strip()
+        ):
             raise ValueError("withdrawal ledger event requires a reason")
 
     def unsigned_record(self) -> dict[str, object]:
@@ -119,13 +123,13 @@ class ReleaseLedgerEvent:
 
     @property
     def computed_sha256(self) -> str:
-        payload = json.dumps(
-            self.unsigned_record(), sort_keys=True, separators=(",", ":")
-        ).encode("utf-8")
+        payload = json.dumps(self.unsigned_record(), sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
         return hashlib.sha256(_LEDGER_DOMAIN + payload).hexdigest()
 
-    def with_hash(self) -> "ReleaseLedgerEvent":
-        return ReleaseLedgerEvent(**self.unsigned_record(), event_sha256=self.computed_sha256)
+    def with_hash(self) -> ReleaseLedgerEvent:
+        return replace(self, event_sha256=self.computed_sha256)
 
     def as_dict(self) -> dict[str, object]:
         return {**self.unsigned_record(), "event_sha256": self.event_sha256 or self.computed_sha256}
@@ -269,9 +273,7 @@ def verify_ledger(
     release: str | None = None
 
     for index, event in enumerate(sequence, 1):
-        failures.extend(
-            _identity_failures(index, event, identity=identity, release=release)
-        )
+        failures.extend(_identity_failures(index, event, identity=identity, release=release))
         event_failures, current_time = _event_integrity_failures(
             index,
             event,

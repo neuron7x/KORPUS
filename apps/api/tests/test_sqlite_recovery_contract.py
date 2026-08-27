@@ -28,6 +28,16 @@ def test_sqlite_recovery_drill_is_fail_honest_about_fixture_class() -> None:
     assert "KORPUS_RECOVERY_PHASE=after-backup" in text
 
 
+def test_sqlite_recovery_drill_resolves_relative_python_before_chdir() -> None:
+    text = (ROOT / "scripts/run_sqlite_recovery_drill.sh").read_text(encoding="utf-8")
+    resolution = 'python_bin="$root/$python_bin"'
+    assert resolution in text
+    assert text.index(resolution) < text.index("cd apps/api")
+    assert '[[ -x "$python_bin" ]]' in text
+    assert '$("$python_bin" -c' in text
+    assert "$($python_bin -c" not in text
+
+
 def test_recovery_measurement_uses_latest_protected_write_not_audit_only() -> None:
     text = (ROOT / "scripts/measure_recovery.py").read_text(encoding="utf-8")
     assert "def _latest_protected_write" in text

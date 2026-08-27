@@ -85,9 +85,7 @@ def test_the_answer_citation_resolves_to_a_span_that_contains_the_quote(
 
     assert span["text"][citation["quote_start"] : citation["quote_end"]] == citation["quote"]
     assert span["text_hash"] == citation["span_hash"]
-    assert (
-        hashlib.sha256(citation["quote"].encode("utf-8")).hexdigest() == citation["quote_hash"]
-    )
+    assert hashlib.sha256(citation["quote"].encode("utf-8")).hexdigest() == citation["quote_hash"]
 
 
 def test_a_reader_cannot_open_a_span_they_could_not_have_been_cited(
@@ -176,9 +174,7 @@ def test_listing_one_version_does_not_read_the_whole_corpus(
     )
 
     assert rows, "the target version must still be readable"
-    assert {str(version.id) for _span, _document, version in rows} == {
-        str(target["version"]["id"])
-    }
+    assert {str(version.id) for _span, _document, version in rows} == {str(target["version"]["id"])}
 
 
 def test_disclosed_span_exposes_source_version_validity_for_reader_verification(

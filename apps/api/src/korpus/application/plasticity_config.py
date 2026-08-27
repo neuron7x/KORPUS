@@ -1,4 +1,5 @@
 """Canonical loading and hashing for the bounded-plasticity policy artifact."""
+
 from __future__ import annotations
 
 import hashlib

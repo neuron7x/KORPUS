@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-
 from korpus.domain.models import ExtractedPage
 from korpus.infrastructure import extraction as ex
 
@@ -48,7 +46,9 @@ def test_type_detection_refusal_matrix(tmp_path: Path, monkeypatch: pytest.Monke
         ex._validate_type_path(txt, "x.txt", "text/plain")
 
 
-def test_docx_no_text_and_plain_text_empty_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_docx_no_text_and_plain_text_empty_paths(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     p = _write(tmp_path, "x.docx", b"PK\x03\x04")
     monkeypatch.setattr(ex, "_validate_type_path", lambda *a: ".docx")
     monkeypatch.setattr(ex, "_docx_body_xml", lambda p: b"<x/>")
@@ -62,15 +62,24 @@ def test_docx_no_text_and_plain_text_empty_paths(tmp_path: Path, monkeypatch: py
         ex.extract_pages_from_path(q, "x.txt", "text/plain", False, "eng")
 
 
-def test_sandbox_worker_return_output_and_response_edges(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_sandbox_worker_return_output_and_response_edges(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     p = _write(tmp_path, "x.txt", b"hello")
 
     def call(result):
         monkeypatch.setattr(ex.subprocess, "run", lambda *a, **k: result)
         return ex.extract_pages_sandboxed(
-            p, "x.txt", "text/plain", False, "eng",
-            max_pdf_pages=2, ocr_total_timeout_seconds=2, timeout_seconds=2,
-            memory_limit_mb=32, output_limit_bytes=64,
+            p,
+            "x.txt",
+            "text/plain",
+            False,
+            "eng",
+            max_pdf_pages=2,
+            ocr_total_timeout_seconds=2,
+            timeout_seconds=2,
+            memory_limit_mb=32,
+            output_limit_bytes=64,
         )
 
     with pytest.raises(ValueError, match="worker failed"):
@@ -84,56 +93,89 @@ def test_sandbox_worker_return_output_and_response_edges(tmp_path: Path, monkeyp
     assert pages[0].text == "ok" and method == "plain_text"
 
 
-def test_docx_archive_bounds_and_body_presence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_docx_archive_bounds_and_body_presence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     p = _write(tmp_path, "x.docx", b"zip")
 
     class Member:
-        def __init__(self, size): self.file_size = size
+        def __init__(self, size):
+            self.file_size = size
 
     class Archive:
         def __init__(self, members, names=None, body=b"<x/>"):
             self.members, self.names, self.body = members, names or [], body
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-        def infolist(self): return self.members
-        def namelist(self): return self.names
-        def read(self, name): assert name == ex._DOCX_BODY; return self.body
 
-    monkeypatch.setattr(ex.zipfile, "ZipFile", lambda p: Archive([Member(0)] * (ex._DOCX_MAX_MEMBERS + 1)))
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def infolist(self):
+            return self.members
+
+        def namelist(self):
+            return self.names
+
+        def read(self, name):
+            assert name == ex._DOCX_BODY
+            return self.body
+
+    monkeypatch.setattr(
+        ex.zipfile, "ZipFile", lambda p: Archive([Member(0)] * (ex._DOCX_MAX_MEMBERS + 1))
+    )
     with pytest.raises(ValueError, match="too many members"):
         ex._docx_body_xml(p)
-    monkeypatch.setattr(ex.zipfile, "ZipFile", lambda p: Archive([Member(ex._DOCX_MAX_MEMBER_BYTES + 1)]))
+    monkeypatch.setattr(
+        ex.zipfile, "ZipFile", lambda p: Archive([Member(ex._DOCX_MAX_MEMBER_BYTES + 1)])
+    )
     with pytest.raises(ValueError, match="member exceeds"):
         ex._docx_body_xml(p)
     monkeypatch.setattr(ex, "_DOCX_MAX_MEMBER_BYTES", ex._DOCX_MAX_TOTAL_BYTES + 1)
-    monkeypatch.setattr(ex.zipfile, "ZipFile", lambda p: Archive([Member(ex._DOCX_MAX_TOTAL_BYTES + 1)]))
+    monkeypatch.setattr(
+        ex.zipfile, "ZipFile", lambda p: Archive([Member(ex._DOCX_MAX_TOTAL_BYTES + 1)])
+    )
     with pytest.raises(ValueError, match="uncompressed size"):
         ex._docx_body_xml(p)
     monkeypatch.setattr(ex.zipfile, "ZipFile", lambda p: Archive([Member(1)], []))
-    with pytest.raises(ValueError, match="no word/document.xml"):
+    with pytest.raises(ValueError, match=r"no word/document\.xml"):
         ex._docx_body_xml(p)
 
 
-def test_docx_xml_control_tokens_and_entity_refusal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_docx_xml_control_tokens_and_entity_refusal(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     ns = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     xml = f'''<w:document xmlns:w="{ns}"><w:body><w:p><w:r><w:t>A</w:t><w:tab/><w:t>B</w:t><w:br/><w:t>C</w:t><w:cr/></w:r></w:p><w:p><w:r><w:t>   </w:t></w:r></w:p></w:body></w:document>'''.encode()
     assert ex._docx_paragraphs(xml) == ["A\tB\nC"]
 
     p = _write(tmp_path, "x.docx", b"zip")
+
     class A:
-        def __enter__(self): return self
-        def __exit__(self,*a): return False
-        def infolist(self): return [SimpleNamespace(file_size=30)]
-        def namelist(self): return [ex._DOCX_BODY]
-        def read(self, n): return b"<!DOCTYPE x><x/>"
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def infolist(self):
+            return [SimpleNamespace(file_size=30)]
+
+        def namelist(self):
+            return [ex._DOCX_BODY]
+
+        def read(self, n):
+            return b"<!DOCTYPE x><x/>"
+
     monkeypatch.setattr(ex.zipfile, "ZipFile", lambda p: A())
-    with pytest.raises(ValueError, match="DTD|entity"):
+    with pytest.raises(ValueError, match=r"DTD|entity"):
         ex._docx_body_xml(p)
 
 
 def test_hard_chunks_short_stride_whitespace_and_break() -> None:
     assert ex._hard_chunks("abc", 10, 1) == ["abc"]
-    with pytest.raises(ValueError, match="overlap_chars"):
+    with pytest.raises(ValueError, match=r"overlap_chars"):
         ex._hard_chunks("abcdefghijk", 5, 5)
     chunks = ex._hard_chunks("abcde     fghij", 6, 1)
     assert chunks and all(ch.strip() for ch in chunks)
@@ -147,10 +189,14 @@ def test_make_spans_bounds_empty_and_section_matrix(monkeypatch: pytest.MonkeyPa
     with pytest.raises(ValueError, match="no evidence"):
         ex.make_spans([ExtractedPage(page=1, text="   ")], max_chars=100, overlap_chars=10)
     text = "Стаття 12\n" + ("word " * 100)
-    spans = ex.make_spans([ExtractedPage(page=1, text=text)], max_chars=100, overlap_chars=10, max_spans=20)
+    spans = ex.make_spans(
+        [ExtractedPage(page=1, text=text)], max_chars=100, overlap_chars=10, max_spans=20
+    )
     assert len(spans) > 1 and spans[0]["section"] == "Стаття 12"
     with pytest.raises(ValueError, match="maximum span count"):
-        ex.make_spans([ExtractedPage(page=1, text=text)], max_chars=100, overlap_chars=10, max_spans=1)
+        ex.make_spans(
+            [ExtractedPage(page=1, text=text)], max_chars=100, overlap_chars=10, max_spans=1
+        )
 
 
 def test_sandbox_limits_with_and_without_nproc(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -28,7 +28,6 @@ def write_entitlement_profile(tmp_path: Path) -> tuple[Path, str]:
     return path, hashlib.sha256(raw).hexdigest()
 
 
-
 def write_source_trust_profile(tmp_path: Path) -> tuple[Path, str]:
     import base64
 
@@ -61,24 +60,27 @@ def write_source_trust_profile(tmp_path: Path) -> tuple[Path, str]:
     return path, hashlib.sha256(raw).hexdigest()
 
 
-
 def write_reviewer_registry(tmp_path: Path) -> tuple[Path, str]:
     from korpus.domain.models import AuthorityClass, ReviewState
     from korpus.security.reviewers import ReviewerGrant, ReviewerRegistry
 
     grant = ReviewerGrant(
         credential_id="test-reviewer-credential",
-        stages=frozenset({
-            ReviewState.METADATA_REVIEWED,
-            ReviewState.CONTENT_REVIEWED,
-            ReviewState.APPROVED,
-        }),
+        stages=frozenset(
+            {
+                ReviewState.METADATA_REVIEWED,
+                ReviewState.CONTENT_REVIEWED,
+                ReviewState.APPROVED,
+            }
+        ),
         corpora=frozenset({"public", "training", "restricted-demo"}),
-        authorities=frozenset({
-            AuthorityClass.OFFICIAL_UA,
-            AuthorityClass.OFFICIAL_ALLIED,
-            AuthorityClass.APPROVED_TRAINING,
-        }),
+        authorities=frozenset(
+            {
+                AuthorityClass.OFFICIAL_UA,
+                AuthorityClass.OFFICIAL_ALLIED,
+                AuthorityClass.APPROVED_TRAINING,
+            }
+        ),
     )
     profile = ReviewerRegistry(
         registry_id="test-reviewers-v1",
@@ -97,7 +99,6 @@ def write_reviewer_registry(tmp_path: Path) -> tuple[Path, str]:
     return path, hashlib.sha256(raw).hexdigest()
 
 
-
 def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
     from korpus.domain.models import AuthorityClass, Classification
     from korpus.security.corpus_governance import (
@@ -111,18 +112,26 @@ def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
         security_owner="Test Security Owner",
         rights_reference="TEST-RIGHTS-001",
         releasability="test-only",
-        allowed_classifications=frozenset({
-            Classification.PUBLIC, Classification.INTERNAL, Classification.RESTRICTED
-        }),
-        allowed_authorities=frozenset({
-            AuthorityClass.OFFICIAL_UA,
-            AuthorityClass.OFFICIAL_ALLIED,
-            AuthorityClass.APPROVED_TRAINING,
-        }),
-        allowed_operations=frozenset({
-            CorpusOperation.INDEX, CorpusOperation.OCR, CorpusOperation.CITE,
-            CorpusOperation.EXTERNAL_EMBEDDING, CorpusOperation.EXPORT, CorpusOperation.DELETE,
-        }),
+        allowed_classifications=frozenset(
+            {Classification.PUBLIC, Classification.INTERNAL, Classification.RESTRICTED}
+        ),
+        allowed_authorities=frozenset(
+            {
+                AuthorityClass.OFFICIAL_UA,
+                AuthorityClass.OFFICIAL_ALLIED,
+                AuthorityClass.APPROVED_TRAINING,
+            }
+        ),
+        allowed_operations=frozenset(
+            {
+                CorpusOperation.INDEX,
+                CorpusOperation.OCR,
+                CorpusOperation.CITE,
+                CorpusOperation.EXTERNAL_EMBEDDING,
+                CorpusOperation.EXPORT,
+                CorpusOperation.DELETE,
+            }
+        ),
         retention_days=365,
     )
     profile = CorpusGovernanceProfile(
@@ -132,9 +141,9 @@ def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
             "training": common,
             "restricted-demo": common.model_copy(
                 update={
-                    "allowed_operations": frozenset({
-                        CorpusOperation.INDEX, CorpusOperation.OCR, CorpusOperation.CITE
-                    })
+                    "allowed_operations": frozenset(
+                        {CorpusOperation.INDEX, CorpusOperation.OCR, CorpusOperation.CITE}
+                    )
                 }
             ),
         },
@@ -143,6 +152,7 @@ def write_corpus_governance_profile(tmp_path: Path) -> tuple[Path, str]:
     raw = profile.model_dump_json().encode("utf-8")
     path.write_bytes(raw)
     return path, hashlib.sha256(raw).hexdigest()
+
 
 def controlled_security_kwargs(tmp_path: Path) -> dict[str, object]:
     path, digest = write_entitlement_profile(tmp_path)

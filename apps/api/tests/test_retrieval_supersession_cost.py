@@ -97,7 +97,14 @@ def test_the_plan_is_read_from_a_statement_that_actually_parses() -> None:
     # The full-text table is aliased, so the plan names the alias; what identifies it is
     # that SQLite reached the fts5 virtual table at all.
     assert any("VIRTUAL TABLE" in line for line in plan), plan
-    assert any("MATERIALIZE superseded" in line for line in plan), plan
+    # SQLite is free to implement a non-correlated CTE as either a materialized
+    # temporary result or a co-routine. Both execute the CTE once; the invariant
+    # guarded above is the absence of a CORRELATED subquery per matching span.
+    assert any(
+        marker in line.upper()
+        for line in plan
+        for marker in ("MATERIALIZE SUPERSEDED", "CO-ROUTINE SUPERSEDED")
+    ), plan
 
 
 @pytest.mark.parametrize("dialect", ["sqlite", "postgresql"])
@@ -110,6 +117,4 @@ def test_both_dialects_gather_the_superseded_set_once(dialect: str) -> None:
     sql = str(built[0])
 
     assert "WITH superseded AS" in sql, sql
-    assert "NOT EXISTS" not in sql, (
-        f"the correlated form is back in the {dialect} statement: {sql}"
-    )
+    assert "NOT EXISTS" not in sql, f"the correlated form is back in the {dialect} statement: {sql}"

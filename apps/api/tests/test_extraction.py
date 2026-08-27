@@ -37,7 +37,7 @@ def test_empty_malformed_and_type_confused_documents_fail_closed():
 
 def test_html_active_content_is_removed():
     pages, method = extract_pages(
-        b'<html><script>exfiltrate()</script><iframe>bad</iframe><p>Allowed text</p></html>',
+        b"<html><script>exfiltrate()</script><iframe>bad</iframe><p>Allowed text</p></html>",
         "x.html",
         "text/html",
         False,
@@ -55,8 +55,7 @@ def test_chunking_invariants_hold_over_seeded_random_corpus():
     for _ in range(200):
         paragraphs = [
             "".join(
-                random_source.choice(alphabet)
-                for _ in range(random_source.randint(1, 900))
+                random_source.choice(alphabet) for _ in range(random_source.randint(1, 900))
             ).strip()
             or "x"
             for _ in range(random_source.randint(1, 8))
@@ -117,8 +116,11 @@ def test_a_docx_yields_its_paragraphs_in_order(tmp_path) -> None:
     path = _docx(tmp_path, ["Стаття 12. Дистанція.", "Пункт 3. Норматив."])
 
     pages, method = extract_pages_from_path(
-        path=path, filename="order.docx", mime_type=DOCX_MIME,
-        ocr_enabled=False, ocr_languages="ukr",
+        path=path,
+        filename="order.docx",
+        mime_type=DOCX_MIME,
+        ocr_enabled=False,
+        ocr_languages="ukr",
     )
 
     assert method == "docx_text"
@@ -137,8 +139,11 @@ def test_a_docx_declaring_an_entity_is_refused(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="DTD or entity"):
         extract_pages_from_path(
-            path=path, filename="order.docx", mime_type=DOCX_MIME,
-            ocr_enabled=False, ocr_languages="ukr",
+            path=path,
+            filename="order.docx",
+            mime_type=DOCX_MIME,
+            ocr_enabled=False,
+            ocr_languages="ukr",
         )
 
 
@@ -153,8 +158,11 @@ def test_a_zip_renamed_to_docx_is_refused_before_the_parser(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="signature"):
         extract_pages_from_path(
-            path=path, filename="order.docx", mime_type=DOCX_MIME,
-            ocr_enabled=False, ocr_languages="ukr",
+            path=path,
+            filename="order.docx",
+            mime_type=DOCX_MIME,
+            ocr_enabled=False,
+            ocr_languages="ukr",
         )
 
 
@@ -170,8 +178,11 @@ def test_a_docx_without_a_body_is_refused(tmp_path) -> None:
 
     with pytest.raises(ValueError, match=r"no word/document\.xml"):
         extract_pages_from_path(
-            path=path, filename="order.docx", mime_type=DOCX_MIME,
-            ocr_enabled=False, ocr_languages="ukr",
+            path=path,
+            filename="order.docx",
+            mime_type=DOCX_MIME,
+            ocr_enabled=False,
+            ocr_languages="ukr",
         )
 
 

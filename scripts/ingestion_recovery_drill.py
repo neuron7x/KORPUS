@@ -155,8 +155,12 @@ def main() -> int:
         moment = round(generator.uniform(3.0, 12.0), 1)
         ended = _import(sliced, arguments.root, drill_db, drill_objects, moment)
         attempts.append(
-            {"attempt": index + 1, "killed_after_seconds": moment, "ended": ended,
-             "state": _fingerprint(drill_db)}
+            {
+                "attempt": index + 1,
+                "killed_after_seconds": moment,
+                "ended": ended,
+                "state": _fingerprint(drill_db),
+            }
         )
 
     resumed = _import(sliced, arguments.root, drill_db, drill_objects, None)

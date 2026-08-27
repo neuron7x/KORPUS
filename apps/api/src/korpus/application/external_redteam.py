@@ -49,7 +49,9 @@ def _finding_state(
     return len(ids) == len(set(ids)), blocking_open
 
 
-def evaluate_external_redteam(report: Mapping[str, Any], profile: Mapping[str, Any]) -> dict[str, Any]:
+def evaluate_external_redteam(
+    report: Mapping[str, Any], profile: Mapping[str, Any]
+) -> dict[str, Any]:
     required = {str(item) for item in profile.get("required_attack_families", ())}
     cases, findings = _records(report.get("test_cases")), _records(report.get("findings"))
     cases_valid, covered = _case_state(cases, required)
@@ -67,9 +69,15 @@ def evaluate_external_redteam(report: Mapping[str, Any], profile: Mapping[str, A
         "blocking_findings_closed": findings_valid and not blocking_open,
     }
     recomputed = all(checks.values())
-    checks["declared_status_consistent"] = report.get("status") == ("PASS" if recomputed else "FAIL")
+    checks["declared_status_consistent"] = report.get("status") == (
+        "PASS" if recomputed else "FAIL"
+    )
     return {
-        "checks": checks, "pass": all(checks.values()),
-        "required_attack_families": sorted(required), "covered_attack_families": sorted(covered),
-        "test_cases": len(cases or ()), "findings": len(findings or ()), "blocking_open": blocking_open,
+        "checks": checks,
+        "pass": all(checks.values()),
+        "required_attack_families": sorted(required),
+        "covered_attack_families": sorted(covered),
+        "test_cases": len(cases or ()),
+        "findings": len(findings or ()),
+        "blocking_open": blocking_open,
     }

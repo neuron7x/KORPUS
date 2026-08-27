@@ -29,9 +29,7 @@ from apps.api.tests.helpers import approve, ingest_text
 VICTIM_MARKER = "ПОТЕРПІЛИЙ"
 
 
-def _ingest_new_document_claiming_supersession(
-    client: TestClient, victim_version_id: str
-) -> Any:
+def _ingest_new_document_claiming_supersession(client: TestClient, victim_version_id: str) -> Any:
     return client.post(
         "/v1/documents/ingest",
         data={

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -54,6 +54,7 @@ def test_valid_external_inputs_pass() -> None:
     ],
 )
 def test_unsafe_external_input_is_refused(name: str, bad: str) -> None:
-    values = good(); values[name] = bad
+    values = good()
+    values[name] = bad
     with pytest.raises(ValueError):
         validate(values)

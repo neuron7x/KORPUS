@@ -172,11 +172,7 @@ def verify(arguments: argparse.Namespace) -> int:
         result["database_release"] = current["corpus_release"]
         result["versions_now"] = current["versions"]
         result["versions_in_manifest"] = manifest.get("versions")
-    result["status"] = (
-        "PASS"
-        if intact and result.get("matches_database", True)
-        else "FAIL"
-    )
+    result["status"] = "PASS" if intact and result.get("matches_database", True) else "FAIL"
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["status"] == "PASS" else 1
 

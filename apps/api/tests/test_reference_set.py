@@ -80,7 +80,7 @@ def test_a_retrieval_case_names_every_version_that_holds_its_sentence() -> None:
 
 
 def test_refusal_cases_were_verified_absent_rather_than_assumed_absent() -> None:
-    """"квантова криптографія" feels absent from a military library until it is not."""
+    """ "квантова криптографія" feels absent from a military library until it is not."""
     refusals = [case for case in _cases() if case["kind"] == "refusal"]
     assert refusals, "no refusal cases"
 
@@ -100,11 +100,7 @@ def test_no_case_is_a_table_of_contents() -> None:
         # The same predicate the builder applies, stated once here as the property
         # rather than imported: a test that calls the code under test agrees with it by
         # construction.
-        numbered = sum(
-            1
-            for line in lines
-            if re.match(r"^\s*\S.*?\s\d{1,4}\s*$", line)
-        )
+        numbered = sum(1 for line in lines if re.match(r"^\s*\S.*?\s\d{1,4}\s*$", line))
         assert numbered / len(lines) < 0.5, f"{case['id']} is a contents page: {lines[:3]}"
 
 

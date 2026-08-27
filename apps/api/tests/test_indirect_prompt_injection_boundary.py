@@ -6,6 +6,7 @@ classified as a control instruction must never be handed to the optional model c
 That makes the model boundary observable and testable rather than relying on a prompt to
 ignore hostile retrieved text.
 """
+
 from __future__ import annotations
 
 from datetime import date

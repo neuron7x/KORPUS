@@ -48,9 +48,16 @@ fi
 # Dependencies, from the lock files rather than the environment: the environment is what
 # somebody happened to install, and the lock is what a deployment will get.
 PY="${PY:-apps/api/.venv/bin/python}"
-if "$PY" -m pip_audit --version >/dev/null 2>&1; then
+audit_python=""
+for candidate in "$PY" python3; do
+  if "$candidate" -m pip_audit --version 2>/dev/null | grep -qx 'pip-audit 2.10.1'; then
+    audit_python="$candidate"
+    break
+  fi
+done
+if [[ -n "$audit_python" ]]; then
   for lock in runtime dev; do
-    "$PY" -m pip_audit --strict --disable-pip --no-deps \
+    "$audit_python" -m pip_audit --strict --disable-pip --no-deps \
       -r "apps/api/requirements.$lock.lock" --format json \
       -o "$out/pip-audit-$lock.json" > "$out/pip-audit-$lock.log" 2>&1
     record "pip-audit:$lock" $?

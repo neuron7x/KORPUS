@@ -5,15 +5,15 @@ import hashlib
 from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
+from typing import ClassVar
 
 import pytest
-
 from korpus.infrastructure import object_store as osmod
 from korpus.infrastructure import pdf_extraction as pdf
 
 
 class Missing(Exception):
-    response = {"Error": {"Code": "404"}}
+    response: ClassVar[dict[str, dict[str, str]]] = {"Error": {"Code": "404"}}
 
 
 class Body:
@@ -96,7 +96,9 @@ def _digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def test_local_store_cleanup_collision_bounds_and_escape(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_local_store_cleanup_collision_bounds_and_escape(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     store = osmod.LocalObjectStore(tmp_path / "objects", max_object_bytes=8)
     data = b"abc"
     digest = _digest(data)
@@ -180,7 +182,9 @@ def test_s3_put_put_path_retention_existing_and_missing(tmp_path: Path) -> None:
     path.write_bytes(data)
     assert store.put_path(path, digest, "x") == key
     with pytest.raises(ValueError, match="size limit"):
-        osmod.S3ObjectStore(bucket="bucket", client=S3(), max_object_bytes=1).put_path(path, digest, "x")
+        osmod.S3ObjectStore(bucket="bucket", client=S3(), max_object_bytes=1).put_path(
+            path, digest, "x"
+        )
     with pytest.raises(ValueError, match="does not match file"):
         osmod.S3ObjectStore(bucket="bucket", client=S3()).put_path(path, "a" * 64, "x")
 
@@ -204,13 +208,23 @@ def test_s3_get_and_stream_refusal_matrix(tmp_path: Path) -> None:
     client = S3()
     client.objects[key] = {
         "data": data,
-        "head": {"Metadata": {"sha256": digest}, "ContentLength": len(data), "ChecksumSHA256": encoded},
+        "head": {
+            "Metadata": {"sha256": digest},
+            "ContentLength": len(data),
+            "ChecksumSHA256": encoded,
+        },
     }
-    store = osmod.S3ObjectStore(bucket="bucket", prefix="objects", client=client, max_object_bytes=64)
+    store = osmod.S3ObjectStore(
+        bucket="bucket", prefix="objects", client=client, max_object_bytes=64
+    )
     assert store.get(key) == data
 
     # declared oversize with a body whose close attribute is not callable
-    store.client.get_object = lambda **kw: {"Body": Body(data, close_callable=False), "Metadata": {"sha256": digest}, "ContentLength": 999}
+    store.client.get_object = lambda **kw: {
+        "Body": Body(data, close_callable=False),
+        "Metadata": {"sha256": digest},
+        "ContentLength": 999,
+    }
     with pytest.raises(RuntimeError, match="read limit"):
         store.get(key)
     with pytest.raises(RuntimeError, match="read limit"):
@@ -224,7 +238,11 @@ def test_s3_get_and_stream_refusal_matrix(tmp_path: Path) -> None:
         store.get_to_path(key, tmp_path / "overflow")
 
     # checksum/metadata/content refusal paths on bounded streams.
-    store.client.get_object = lambda **kw: {"Body": Body(data), "Metadata": {"sha256": digest}, "ChecksumSHA256": "bad"}
+    store.client.get_object = lambda **kw: {
+        "Body": Body(data),
+        "Metadata": {"sha256": digest},
+        "ChecksumSHA256": "bad",
+    }
     with pytest.raises(RuntimeError, match="response checksum"):
         store.get(key)
     with pytest.raises(RuntimeError, match="response checksum"):
@@ -243,9 +261,15 @@ def test_s3_inventory_health_and_close_edges() -> None:
     digest = "a" * 64
     valid = f"objects/aa/aa/{digest}"
     client = S3()
-    store = osmod.S3ObjectStore(bucket="bucket", prefix="objects", governance_retention_days=1, client=client)
+    store = osmod.S3ObjectStore(
+        bucket="bucket", prefix="objects", governance_retention_days=1, client=client
+    )
     client.pages = [
-        {"Contents": [{"Key": ""}, {"Key": valid}], "IsTruncated": True, "NextContinuationToken": "n"},
+        {
+            "Contents": [{"Key": ""}, {"Key": valid}],
+            "IsTruncated": True,
+            "NextContinuationToken": "n",
+        },
         {"Contents": [], "IsTruncated": False},
     ]
     assert store.list_keys() == {valid}
@@ -266,13 +290,16 @@ def test_s3_inventory_health_and_close_edges() -> None:
     osmod.S3ObjectStore(bucket="bucket", client=no_close).close()
 
 
-def test_pdf_open_embedded_ocr_branch_matrix(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_pdf_open_embedded_ocr_branch_matrix(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     path = tmp_path / "x.pdf"
     path.write_bytes(b"pdf")
 
     class Page:
         def __init__(self, text: str | None = None, exc: Exception | None = None):
             self.text, self.exc = text, exc
+
         def extract_text(self):
             if self.exc:
                 raise self.exc
@@ -284,6 +311,7 @@ def test_pdf_open_embedded_ocr_branch_matrix(tmp_path: Path, monkeypatch: pytest
             self.is_encrypted = encrypted
             self._decrypt_result = decrypt_result
             self._decrypt_exc = decrypt_exc
+
         def decrypt(self, value):
             del value
             if self._decrypt_exc:
@@ -293,7 +321,9 @@ def test_pdf_open_embedded_ocr_branch_matrix(tmp_path: Path, monkeypatch: pytest
     with pytest.raises(ValueError, match="malformed PDF"):
         pdf._open_pdf(path, 2, lambda *a, **k: (_ for _ in ()).throw(OSError("bad")))
     with pytest.raises(ValueError, match="unsupported algorithm"):
-        pdf._open_pdf(path, 2, lambda *a, **k: Reader([], encrypted=True, decrypt_exc=ValueError("x")))
+        pdf._open_pdf(
+            path, 2, lambda *a, **k: Reader([], encrypted=True, decrypt_exc=ValueError("x"))
+        )
     with pytest.raises(ValueError, match="requires a password"):
         pdf._open_pdf(path, 2, lambda *a, **k: Reader([], encrypted=True, decrypt_result=0))
     with pytest.raises(ValueError, match="page count"):
@@ -307,20 +337,68 @@ def test_pdf_open_embedded_ocr_branch_matrix(tmp_path: Path, monkeypatch: pytest
 
     # High embedded-text fast path, both owner-restricted and ordinary.
     rich = "x" * 100
-    pages, method = pdf.extract_pdf_pages(path, False, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page(rich)]))
+    pages, method = pdf.extract_pdf_pages(
+        path,
+        False,
+        "eng",
+        str,
+        max_pdf_pages=2,
+        ocr_total_timeout_seconds=5,
+        reader_factory=lambda *a, **k: Reader([Page(rich)]),
+    )
     assert pages and method == "pdf_text"
-    _, method = pdf.extract_pdf_pages(path, False, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page(rich)], encrypted=True))
+    _, method = pdf.extract_pdf_pages(
+        path,
+        False,
+        "eng",
+        str,
+        max_pdf_pages=2,
+        ocr_total_timeout_seconds=5,
+        reader_factory=lambda *a, **k: Reader([Page(rich)], encrypted=True),
+    )
     assert method == "pdf_text_owner_restricted"
 
     with pytest.raises(ValueError, match="OCR is disabled"):
-        pdf.extract_pdf_pages(path, False, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page("")]))
+        pdf.extract_pdf_pages(
+            path,
+            False,
+            "eng",
+            str,
+            max_pdf_pages=2,
+            ocr_total_timeout_seconds=5,
+            reader_factory=lambda *a, **k: Reader([Page("")]),
+        )
 
     monkeypatch.setattr(pdf, "_ocr_pages", lambda *a, **k: [])
     with pytest.raises(ValueError, match="no text"):
-        pdf.extract_pdf_pages(path, True, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page("")]))
+        pdf.extract_pdf_pages(
+            path,
+            True,
+            "eng",
+            str,
+            max_pdf_pages=2,
+            ocr_total_timeout_seconds=5,
+            reader_factory=lambda *a, **k: Reader([Page("")]),
+        )
     monkeypatch.setattr(pdf, "_ocr_pages", lambda *a, **k: [SimpleNamespace(page=1, text="ocr")])
-    _, method = pdf.extract_pdf_pages(path, True, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page("")], encrypted=True))
+    _, method = pdf.extract_pdf_pages(
+        path,
+        True,
+        "eng",
+        str,
+        max_pdf_pages=2,
+        ocr_total_timeout_seconds=5,
+        reader_factory=lambda *a, **k: Reader([Page("")], encrypted=True),
+    )
     assert method == "pdf_ocr_owner_restricted"
     monkeypatch.setattr(pdf, "_ocr_pages", lambda *a, **k: (_ for _ in ()).throw(OSError("ocr")))
     with pytest.raises(ValueError, match="OCR execution failed"):
-        pdf.extract_pdf_pages(path, True, "eng", str, max_pdf_pages=2, ocr_total_timeout_seconds=5, reader_factory=lambda *a, **k: Reader([Page("")]))
+        pdf.extract_pdf_pages(
+            path,
+            True,
+            "eng",
+            str,
+            max_pdf_pages=2,
+            ocr_total_timeout_seconds=5,
+            reader_factory=lambda *a, **k: Reader([Page("")]),
+        )

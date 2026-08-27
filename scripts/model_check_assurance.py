@@ -6,6 +6,7 @@ small finite state spaces that matter to the release policy and exits non-zero o
 counterexample. TLA+ specifications remain the human/formal model; this checker is the
 CI-portable destruction proof that runs with the product's Python toolchain.
 """
+
 from __future__ import annotations
 
 import itertools
@@ -74,10 +75,13 @@ def check_join_laws(failures: list[str], counts: dict[str, int]) -> None:
             return
         # UNKNOWN is an information bottom for outcome; it must not turn a known PASS
         # into FAIL merely by being observed.
-        if left.status == "PASS" and right.status == "UNKNOWN":
-            if join_evidence(left, right).status != "PASS":
-                failures.append("evidence_join.unknown_corrupts_pass")
-                return
+        if (
+            left.status == "PASS"
+            and right.status == "UNKNOWN"
+            and join_evidence(left, right).status != "PASS"
+        ):
+            failures.append("evidence_join.unknown_corrupts_pass")
+            return
     for a, b, c in itertools.product(values, repeat=3):
         counts["join_triples"] += 1
         if join_evidence(join_evidence(a, b), c) != join_evidence(a, join_evidence(b, c)):
@@ -139,7 +143,9 @@ def check_gate_fail_closed(failures: list[str], counts: dict[str, int]) -> None:
             failures.append("gate_fail_closed.false_accept")
             return
     good = point(EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL, "PASS")
-    passed, reasons = evaluate_gate(requirement, good, source_digest=MODEL_SOURCE, release=MODEL_RELEASE)
+    passed, reasons = evaluate_gate(
+        requirement, good, source_digest=MODEL_SOURCE, release=MODEL_RELEASE
+    )
     counts["gate_positive_cases"] += 1
     if not passed or reasons:
         failures.append("gate_fail_closed.false_reject")
@@ -157,9 +163,7 @@ def check_weight_bounds(failures: list[str], counts: dict[str, int]) -> None:
 
 def check_release_machine(failures: list[str], counts: dict[str, int]) -> None:
     unit = GateRequirement("unit", EvidenceClass.EXECUTED)
-    mutation = GateRequirement(
-        "mutation", EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL, True
-    )
+    mutation = GateRequirement("mutation", EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL, True)
     external = GateRequirement(
         "external",
         EvidenceClass.INDEPENDENT_ATTESTED,
@@ -181,7 +185,12 @@ def check_release_machine(failures: list[str], counts: dict[str, int]) -> None:
         ReleaseStage.RELEASE_CANDIDATE: ReleaseStage.PRODUCTION_AUTHORIZED,
     }
     for current, target in itertools.product(ReleaseStage, repeat=2):
-        record = ReleaseRecord(identity, current, "author", withdrawal_reason="done" if current == ReleaseStage.WITHDRAWN else None)
+        record = ReleaseRecord(
+            identity,
+            current,
+            "author",
+            withdrawal_reason="done" if current == ReleaseStage.WITHDRAWN else None,
+        )
         verdict = evaluate_promotion(
             record,
             target,
@@ -232,7 +241,8 @@ def main() -> int:
     payload = {
         "schema": "korpus.assurance-model-check.v2",
         "status": "PASS" if not failures else "FAIL",
-        "release": current_release(), "source_tree_sha256": compute_source_digest(ROOT),
+        "release": current_release(),
+        "source_tree_sha256": compute_source_digest(ROOT),
         "model_identity": {"source": MODEL_SOURCE, "release": MODEL_RELEASE},
         "counts": counts,
         "total_states_checked": sum(counts.values()),

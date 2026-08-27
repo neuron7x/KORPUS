@@ -143,6 +143,85 @@ def test_embedding_provider_normalization_validation_health_and_close() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"embeddings": [[3.0, 4.0, 0, 0, 0, 0, 0, 0]]},
+        {"data": [{"embedding": [3.0, 4.0, 0, 0, 0, 0, 0, 0]}]},
+    ],
+)
+def test_embedding_provider_accepts_bounded_ollama_and_openai_envelopes(payload) -> None:
+    provider = HttpEmbeddingProvider(
+        "http://127.0.0.1:11434/api/embed",
+        "model-v1",
+        8,
+        client=FakeEmbeddingClient(FakeResponse(payload)),
+    )
+
+    assert provider.embed("query")[:2] == [0.6, 0.8]
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"embeddings": []},
+        {"embeddings": [[1.0] * 8, [1.0] * 8]},
+        {"data": [{"embedding": [1.0] * 8}, {"embedding": [1.0] * 8}]},
+        [1.0] * 8,
+    ],
+)
+def test_embedding_provider_rejects_ambiguous_or_untyped_envelopes(payload) -> None:
+    provider = HttpEmbeddingProvider(
+        "https://embed.example/v1",
+        "model-v1",
+        8,
+        client=FakeEmbeddingClient(FakeResponse(payload)),
+    )
+
+    with pytest.raises(RuntimeError, match="invalid batch cardinality"):
+        provider.embed("query")
+
+
+def test_embedding_batch_preserves_cardinality_order_and_normalizes() -> None:
+    client = FakeEmbeddingClient(
+        FakeResponse({"embeddings": [[3.0, 4.0] + [0.0] * 6, [0.0, 5.0] + [0.0] * 6]})
+    )
+    provider = HttpEmbeddingProvider(
+        "http://127.0.0.1:11434/api/embed", "model-v1", 8, client=client
+    )
+
+    vectors = provider.embed_many(["first", "second"])
+
+    assert vectors[0][:2] == [0.6, 0.8]
+    assert vectors[1][:2] == [0.0, 1.0]
+    assert client.posts == [
+        (
+            "http://127.0.0.1:11434/api/embed",
+            {"model": "model-v1", "input": ["first", "second"]},
+        )
+    ]
+
+
+def test_embedding_batch_fails_closed_on_count_and_configuration() -> None:
+    provider = HttpEmbeddingProvider(
+        "https://embed.example/v1",
+        "model-v1",
+        8,
+        max_batch_size=2,
+        client=FakeEmbeddingClient(FakeResponse({"embeddings": [[1.0] * 8]})),
+    )
+    with pytest.raises(ValueError, match="cardinality"):
+        provider.embed_many([])
+    with pytest.raises(ValueError, match="cardinality"):
+        provider.embed_many(["a", "b", "c"])
+    with pytest.raises(RuntimeError, match="batch cardinality"):
+        provider.embed_many(["a", "b"])
+    with pytest.raises(ValueError, match="must not exceed"):
+        HttpEmbeddingProvider(
+            "https://embed.example/v1", "model-v1", 8, max_batch_size=65, client=provider.client
+        )
+
+
 class FakeResult:
     def __init__(self, *, rows: list[object] | None = None, first: object | None = None) -> None:
         self._rows = rows or []
@@ -275,6 +354,7 @@ def test_parser_worker_success_and_failure(monkeypatch: pytest.MonkeyPatch, tmp_
     monkeypatch.setattr(sys, "stderr", error)
     assert parser_worker.main() == 2
     assert "parser error" in error.getvalue()
+
 
 class DummyAuditVerification:
     def model_dump_json(self, indent: int = 2) -> str:
@@ -474,9 +554,7 @@ class PaginatedS3:
 
 def test_s3_path_download_inventory_and_cleanup(tmp_path: Path) -> None:
     client = PaginatedS3()
-    object_store = __import__(
-        "korpus.infrastructure.object_store", fromlist=["S3ObjectStore"]
-    )
+    object_store = __import__("korpus.infrastructure.object_store", fromlist=["S3ObjectStore"])
     store = object_store.S3ObjectStore(bucket="bucket", prefix="objects", client=client)
     content = b"downloaded"
     digest = hashlib.sha256(content).hexdigest()

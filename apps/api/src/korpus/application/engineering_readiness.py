@@ -6,12 +6,13 @@ source/release mismatch zeroes the whole dimension; evidence strength applies th
 ceilings as the canonical assurance calculus.  No score can turn a failed production
 predicate into a PASS.
 """
+
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
-from korpus.application.readiness_contracts import count_boolean_criteria, readiness_target
 from korpus.application.assurance_calculus import (
     DimensionObservation,
     DimensionPolicy,
@@ -20,6 +21,7 @@ from korpus.application.assurance_calculus import (
     ReadinessPolicy,
     evaluate_readiness,
 )
+from korpus.application.readiness_contracts import count_boolean_criteria, readiness_target
 
 _EVIDENCE_CLASS = {
     "NONE": EvidenceClass.NONE,
@@ -100,6 +102,7 @@ def _criterion_summary(
     )
     return criterion_ids, passed, total, raw_percent, evidence_class, point
 
+
 def _external_gaps(profile: Mapping[str, Any], evidence_dimensions: Mapping[str, Any]) -> list[str]:
     gaps: list[str] = []
     for criterion in profile.get("hard_external_predicates", ()):
@@ -142,8 +145,8 @@ def evaluate_engineering_profile(
         _, passed, total, raw_percent, evidence_class, point = _criterion_summary(
             str(dimension_id), raw_policy, raw_evidence
         )
-        policy = DimensionPolicy(str(dimension_id), float(raw_policy["weight"]))
-        policies.append(policy)
+        dimension_policy = DimensionPolicy(str(dimension_id), float(raw_policy["weight"]))
+        policies.append(dimension_policy)
         observations[str(dimension_id)] = DimensionObservation(raw_percent, point)
         details[str(dimension_id)] = {
             "passed": passed,
@@ -152,9 +155,11 @@ def evaluate_engineering_profile(
             "evidence_class": evidence_class,
         }
 
-    policy = ReadinessPolicy(tuple(policies), ())
-    verdict = evaluate_readiness(policy, observations, {}, source_digest=source_digest, release=release)
-    weight_by_id = {item.dimension_id: item.weight for item in policy.dimensions}
+    readiness_policy = ReadinessPolicy(tuple(policies), ())
+    verdict = evaluate_readiness(
+        readiness_policy, observations, {}, source_digest=source_digest, release=release
+    )
+    weight_by_id = {item.dimension_id: item.weight for item in readiness_policy.dimensions}
     for dimension_id, calibrated in verdict.dimension_scores.items():
         details[dimension_id]["calibrated_percent"] = calibrated
         details[dimension_id]["weighted_points"] = round(calibrated * weight_by_id[dimension_id], 6)

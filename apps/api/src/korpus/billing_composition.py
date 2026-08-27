@@ -1,4 +1,5 @@
 """Billing-only composition: provider selection, sellable-plan bootstrap and services."""
+
 from __future__ import annotations
 
 from typing import Any

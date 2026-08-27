@@ -11,8 +11,18 @@ from korpus.application.production_report_verification import verify_production_
 def _profile() -> dict[str, object]:
     return {
         "required_gates": [
-            "engineering", "tevv", "observability", "state_contracts", "authorization", "redteam",
-            "reliability", "inference_security", "postgres_security", "supply_chain", "exact_environment", "mutation",
+            "engineering",
+            "tevv",
+            "observability",
+            "state_contracts",
+            "authorization",
+            "redteam",
+            "reliability",
+            "inference_security",
+            "postgres_security",
+            "supply_chain",
+            "exact_environment",
+            "mutation",
         ],
         "external_requirements": {
             "redteam_evidence_class": "EXTERNAL_INDEPENDENT",
@@ -40,7 +50,13 @@ def _sound_gates(source: str, release: str) -> dict[str, dict[str, object]]:
             "checks": {},
             "failures": [],
         }
-    gates["redteam"].update({"evidence_class": "EXTERNAL_INDEPENDENT", "attestation_verified": True, "trusted_signer": True})
+    gates["redteam"].update(
+        {
+            "evidence_class": "EXTERNAL_INDEPENDENT",
+            "attestation_verified": True,
+            "trusted_signer": True,
+        }
+    )
     gates["tevv"]["environment_class"] = "PRODUCTION_LIKE"
     gates["tevv"]["checks"] = {"independent_class": True, "assessor_trusted_signer": True}
     gates["postgres_security"]["backend"] = "postgresql"
@@ -49,9 +65,14 @@ def _sound_gates(source: str, release: str) -> dict[str, dict[str, object]]:
     return gates
 
 
-def _report(profile: dict[str, object], gates: dict[str, dict[str, object]], source: str, release: str):
+def _report(
+    profile: dict[str, object], gates: dict[str, dict[str, object]], source: str, release: str
+):
     verdict = evaluate_production_assurance(profile, gates, source_digest=source, release=release)
-    gate_hashes = {name: hashlib.sha256(json.dumps(gate, sort_keys=True).encode()).hexdigest() for name, gate in gates.items()}
+    gate_hashes = {
+        name: hashlib.sha256(json.dumps(gate, sort_keys=True).encode()).hexdigest()
+        for name, gate in gates.items()
+    }
     report = {
         "schema": "korpus.production-assurance.v1",
         "status": verdict.status,
@@ -69,22 +90,35 @@ def _report(profile: dict[str, object], gates: dict[str, dict[str, object]], sou
 
 def _verify(report, profile, gates, source, release, gate_hashes, *, attested=True, trusted=True):
     return verify_production_report(
-        report, profile, gates, source=source, release=release, profile_sha256="profile-sha",
-        gate_sha256=gate_hashes, attestation_verified=attested, trusted_signer=trusted,
+        report,
+        profile,
+        gates,
+        source=source,
+        release=release,
+        profile_sha256="profile-sha",
+        gate_sha256=gate_hashes,
+        attestation_verified=attested,
+        trusted_signer=trusted,
     )
 
 
 def test_sound_recomputed_report_with_trusted_attestation_passes() -> None:
     source, release, profile = "a" * 64, "v9.9.9", _profile()
-    gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)
+    gates = _sound_gates(source, release)
+    report, hashes = _report(profile, gates, source, release)
     assert all(_verify(report, profile, gates, source, release, hashes).values())
 
 
 def test_forged_pass_report_cannot_override_failing_current_gate() -> None:
     source, release, profile = "b" * 64, "v9.9.9", _profile()
-    sound = _sound_gates(source, release); report, _ = _report(profile, sound, source, release)
-    current = deepcopy(sound); current["postgres_security"]["status"] = "FAIL"
-    current_hashes = {name: hashlib.sha256(json.dumps(gate, sort_keys=True).encode()).hexdigest() for name, gate in current.items()}
+    sound = _sound_gates(source, release)
+    report, _ = _report(profile, sound, source, release)
+    current = deepcopy(sound)
+    current["postgres_security"]["status"] = "FAIL"
+    current_hashes = {
+        name: hashlib.sha256(json.dumps(gate, sort_keys=True).encode()).hexdigest()
+        for name, gate in current.items()
+    }
     checks = _verify(report, profile, current, source, release, current_hashes)
     assert checks["recomputed_pass"] is False
     assert checks["production_authorized"] is False
@@ -93,14 +127,27 @@ def test_forged_pass_report_cannot_override_failing_current_gate() -> None:
 
 def test_stale_gate_hashes_are_rejected_even_when_gate_payloads_match() -> None:
     source, release, profile = "c" * 64, "v9.9.9", _profile()
-    gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)
-    hashes = dict(hashes); hashes["engineering"] = "0" * 64
+    gates = _sound_gates(source, release)
+    report, hashes = _report(profile, gates, source, release)
+    hashes = dict(hashes)
+    hashes["engineering"] = "0" * 64
     checks = _verify(report, profile, gates, source, release, hashes)
     assert checks["gate_hashes_current"] is False
 
 
 def test_unsigned_or_untrusted_production_assurance_report_is_rejected() -> None:
     source, release, profile = "d" * 64, "v9.9.9", _profile()
-    gates = _sound_gates(source, release); report, hashes = _report(profile, gates, source, release)
-    assert _verify(report, profile, gates, source, release, hashes, attested=False)["assurance_attestation_verified"] is False
-    assert _verify(report, profile, gates, source, release, hashes, trusted=False)["assurance_trusted_signer"] is False
+    gates = _sound_gates(source, release)
+    report, hashes = _report(profile, gates, source, release)
+    assert (
+        _verify(report, profile, gates, source, release, hashes, attested=False)[
+            "assurance_attestation_verified"
+        ]
+        is False
+    )
+    assert (
+        _verify(report, profile, gates, source, release, hashes, trusted=False)[
+            "assurance_trusted_signer"
+        ]
+        is False
+    )

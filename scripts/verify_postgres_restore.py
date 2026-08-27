@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify a restored database through the non-superuser application role."""
+
 from __future__ import annotations
 
 import ast

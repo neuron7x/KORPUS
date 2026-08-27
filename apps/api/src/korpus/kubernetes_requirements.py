@@ -158,8 +158,8 @@ def _cluster_requirements(context: KubernetesContext) -> tuple[Requirement, ...]
                 "a rendered set missing a workload deploys a system with a piece of "
                 "itself absent, and nothing at runtime reports the absence"
             ),
-            holds=lambda context: not (
-                REQUIRED_WORKLOADS - {_name(item) for item in context.workloads}
+            holds=lambda context: (
+                not (REQUIRED_WORKLOADS - {_name(item) for item in context.workloads})
             ),
         ),
         Requirement(
@@ -222,8 +222,7 @@ def _pod_requirements(resource: Mapping[str, Any]) -> tuple[Requirement, ...]:
                 "a mounted token is a cluster credential inside a process that parses "
                 "untrusted documents"
             ),
-            holds=lambda context: _pod_spec(resource).get("automountServiceAccountToken")
-            is False,
+            holds=lambda context: _pod_spec(resource).get("automountServiceAccountToken") is False,
         ),
         Requirement(
             id=f"k8s.workload.{name}.restricted_pod_security",
@@ -305,8 +304,7 @@ def _container_requirements(
                 "an unbounded container is the cheapest denial of service in the "
                 "cluster, available to whoever uploads the largest document"
             ),
-            holds=lambda context: bool(resources.get("requests"))
-            and bool(resources.get("limits")),
+            holds=lambda context: bool(resources.get("requests")) and bool(resources.get("limits")),
         ),
     )
 
@@ -327,10 +325,10 @@ def _governance_requirements(name: str, deployment: Mapping[str, Any]) -> tuple[
                 "the governance bundle carries the entitlement profile and its digest; "
                 "a workload without it falls back to whatever is on disk"
             ),
-            holds=lambda context: volumes.get("governance", {}).get("secret", {}).get(
-                "secretName"
-            )
-            == "korpus-governance-bundle",
+            holds=lambda context: (
+                volumes.get("governance", {}).get("secret", {}).get("secretName")
+                == "korpus-governance-bundle"
+            ),
         ),
         Requirement(
             id=f"k8s.workload.{name}.governance_read_only",

@@ -5,8 +5,6 @@ from pathlib import Path
 from uuid import UUID
 
 import pytest
-from sqlalchemy import insert, update
-
 from korpus.domain.learning import (
     Course,
     CourseModule,
@@ -28,10 +26,18 @@ from korpus.domain.models import (
     EvidenceSpanRecord,
     ReviewState,
 )
+from korpus.domain.operational_competency import (
+    Competency,
+    CompetencyFramework,
+    OperationalRole,
+    OperationalTask,
+)
 from korpus.infrastructure import row_mapping
+from korpus.infrastructure.competency_repository import SqlCompetencyRepository
 from korpus.infrastructure.learning_repository import LearningStateError, SqlLearningRepository
 from korpus.infrastructure.repository import SqlRepository
 from korpus.infrastructure.schema import documents, spans, versions
+from sqlalchemy import insert, update
 
 DOC_ID = UUID("11111111-1111-1111-1111-111111111111")
 VERSION_ID = UUID("22222222-2222-2222-2222-222222222222")
@@ -138,6 +144,89 @@ def test_learning_repository_round_trip_and_publish(stores) -> None:
     assert learning.get_publication(version.id) == publication
 
 
+def test_learning_repository_round_trips_framework_and_competency_edges(stores) -> None:
+    repository, learning = stores
+    SqlCompetencyRepository(repository.engine).create(
+        CompetencyFramework(
+            id="framework.medical",
+            revision="1",
+            roles=(OperationalRole(id="role.medic", title="Combat medic", task_ids={"task"}),),
+            tasks=(
+                OperationalTask(
+                    id="task",
+                    statement="Perform the task",
+                    conditions="Under training conditions",
+                    standard="Meet every stated criterion",
+                    competency_ids={"competency.safety"},
+                ),
+            ),
+            competencies=(
+                Competency(id="competency.safety", statement="Apply the safety check"),
+            ),
+        )
+    )
+    version = _version()
+    objective = version.modules[0].lessons[0].objectives[0].model_copy(
+        update={"competency_ids": frozenset({"competency.safety"})}
+    )
+    lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
+    module = version.modules[0].model_copy(update={"lessons": (lesson,)})
+    bound = version.model_copy(
+        update={
+            "competency_framework_id": "framework.medical",
+            "competency_framework_revision": "1",
+            "modules": (module,),
+        }
+    )
+    learning.create_version(bound)
+    assert learning.get_version(bound.id) == bound
+
+
+def test_learning_repository_refuses_unknown_framework_and_competency(stores) -> None:
+    repository, learning = stores
+    version = _version()
+    missing_framework = version.model_copy(
+        update={
+            "competency_framework_id": "missing",
+            "competency_framework_revision": "1",
+        }
+    )
+    with pytest.raises(LearningStateError, match="framework revision not found"):
+        learning.create_version(missing_framework)
+
+    SqlCompetencyRepository(repository.engine).create(
+        CompetencyFramework(
+            id="framework.empty",
+            revision="1",
+            roles=(OperationalRole(id="role", title="Defined role", task_ids={"task"}),),
+            tasks=(
+                OperationalTask(
+                    id="task",
+                    statement="Defined task",
+                    conditions="Defined conditions",
+                    standard="Defined standard",
+                    competency_ids={"known"},
+                ),
+            ),
+            competencies=(Competency(id="known", statement="Known competency"),),
+        )
+    )
+    objective = version.modules[0].lessons[0].objectives[0].model_copy(
+        update={"competency_ids": frozenset({"invented"})}
+    )
+    lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
+    module = version.modules[0].model_copy(update={"lessons": (lesson,)})
+    unknown_competency = version.model_copy(
+        update={
+            "competency_framework_id": "framework.empty",
+            "competency_framework_revision": "1",
+            "modules": (module,),
+        }
+    )
+    with pytest.raises(LearningStateError, match="unknown framework competencies: invented"):
+        learning.create_version(unknown_competency)
+
+
 def test_learning_repository_refuses_source_less_block(stores) -> None:
     _, learning = stores
     version = _version(bound=False)
@@ -199,7 +288,9 @@ def test_serving_lane_invalidates_content_after_source_expiry(stores) -> None:
 
 def test_learning_repository_course_lookup_is_explicit(stores) -> None:
     _, learning = stores
-    assert learning.get_course("course") == Course(id="course", specialty_id="public", title="Course")
+    assert learning.get_course("course") == Course(
+        id="course", specialty_id="public", title="Course"
+    )
     assert learning.get_course("missing") is None
 
 
@@ -268,7 +359,9 @@ def test_learning_repository_detects_publication_version_inconsistency(stores, m
         learning.get_serving_version(version.id, as_of=date(2026, 8, 16))
 
 
-def test_learning_repository_detects_draft_version_inconsistency_on_publish(stores, monkeypatch) -> None:
+def test_learning_repository_detects_draft_version_inconsistency_on_publish(
+    stores, monkeypatch
+) -> None:
     import korpus.infrastructure.learning_repository as learning_repository_module
 
     _, learning = stores
@@ -352,7 +445,11 @@ def test_learning_repository_round_trips_prerequisite_edges(stores) -> None:
         id="course-prereq-v1",
         course_id="course",
         revision="prereq-1",
-        modules=(CourseModule(id="module-prereq", ordinal=0, title="Module prereq", lessons=(first, second)),),
+        modules=(
+            CourseModule(
+                id="module-prereq", ordinal=0, title="Module prereq", lessons=(first, second)
+            ),
+        ),
     )
     learning.create_version(version)
     assert learning.get_version(version.id) == version

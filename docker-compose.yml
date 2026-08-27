@@ -330,6 +330,17 @@ services:
       KORPUS_CLAMD_HOST: clamav
       KORPUS_CLAMD_PORT: '3310'
       KORPUS_PARSER_SANDBOX_ENABLED: 'true'
+      # Optional, non-authoritative OpenAI Responses API assistance. Disabled unless
+      # the operator explicitly enables it; never expose this key to the web service.
+      KORPUS_QUERY_PLANNER_PROVIDER: ${KORPUS_QUERY_PLANNER_PROVIDER:-openai}
+      KORPUS_QUERY_PLANNER_API_KEY: ${KORPUS_QUERY_PLANNER_API_KEY:-}
+      KORPUS_QUERY_PLANNER_MODEL: ${KORPUS_QUERY_PLANNER_MODEL:-gpt-5.6-sol}
+      KORPUS_QUERY_PLANNER_BASE_URL: ${KORPUS_QUERY_PLANNER_BASE_URL:-}
+      KORPUS_QUERY_PLANNER_TIMEOUT_SECONDS: ${KORPUS_QUERY_PLANNER_TIMEOUT_SECONDS:-6}
+      KORPUS_QUERY_PLANNER_ENABLED: ${KORPUS_QUERY_PLANNER_ENABLED:-false}
+      KORPUS_ANSWER_COMPOSER_ENABLED: ${KORPUS_ANSWER_COMPOSER_ENABLED:-false}
+      KORPUS_MODEL_EGRESS_POSTURE: ${KORPUS_MODEL_EGRESS_POSTURE:-external_allowed}
+      KORPUS_MODEL_EGRESS_MAX_TIER: ${KORPUS_MODEL_EGRESS_MAX_TIER:-public}
     secrets:
     - source: postgres_app_password
       target: postgres_app_password

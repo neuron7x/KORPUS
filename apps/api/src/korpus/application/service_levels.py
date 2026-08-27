@@ -1,7 +1,14 @@
 from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import Any
-from korpus.application.load_math import _count_5xx, evaluate_load_numbers
+
+from korpus.application.load_math import (
+    _count_5xx as _count_5xx,
+)
+from korpus.application.load_math import (
+    evaluate_load_numbers as evaluate_load_numbers,
+)
 
 STEADY_P95_LIMIT_SECONDS = 5.0
 COLD_START_LIMIT_SECONDS = 5.0

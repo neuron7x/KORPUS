@@ -1,0 +1,22 @@
+{
+  "schema": "korpus.gold-annotation-ledger.v1",
+  "bindings": {
+    "source_tree_sha256": "REPLACE_64_HEX",
+    "release": "REPLACE_RELEASE",
+    "corpus_release_sha256": "REPLACE_64_HEX",
+    "query_set_sha256": "REPLACE_64_HEX",
+    "annotation_protocol_sha256": "REPLACE_64_HEX",
+    "annotator_registry_sha256": "REPLACE_64_HEX",
+    "model_id": "REPLACE_MODEL_ID",
+    "configuration_sha256": "REPLACE_64_HEX"
+  },
+  "policy": {
+    "minimum_queries": 200,
+    "minimum_holdout_queries": 40,
+    "minimum_kappa": 0.6,
+    "require_evidence_agreement": true
+  },
+  "tuning_query_ids": [],
+  "annotations": [],
+  "adjudications": []
+}

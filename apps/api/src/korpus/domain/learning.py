@@ -1,4 +1,5 @@
 """Immutable learning graph bound to exact canonical KORPUS evidence."""
+
 from __future__ import annotations
 
 from datetime import UTC, date, datetime
@@ -31,6 +32,7 @@ class LearningObjective(BaseModel):
     model_config = ConfigDict(frozen=True)
     id: str = Field(pattern=LEARNING_ID_PATTERN)
     statement: str = Field(min_length=3, max_length=1000)
+    competency_ids: frozenset[str] = Field(default_factory=frozenset, max_length=128)
 
 
 class SourceBinding(BaseModel):
@@ -121,10 +123,18 @@ class CourseVersion(BaseModel):
     id: str = Field(pattern=LEARNING_ID_PATTERN)
     course_id: str = Field(pattern=LEARNING_ID_PATTERN)
     revision: str = Field(min_length=1, max_length=120)
+    competency_framework_id: str | None = Field(default=None, pattern=LEARNING_ID_PATTERN)
+    competency_framework_revision: str | None = Field(default=None, min_length=1, max_length=120)
     modules: tuple[CourseModule, ...] = Field(min_length=1, max_length=256)
 
     @model_validator(mode="after")
     def validate_global_identity(self) -> Self:
+        framework_fields = (
+            self.competency_framework_id,
+            self.competency_framework_revision,
+        )
+        if (framework_fields[0] is None) != (framework_fields[1] is None):
+            raise ValueError("competency framework identity and revision must be set together")
         module_ids = [item.id for item in self.modules]
         if len(module_ids) != len(set(module_ids)):
             raise ValueError("course module ids must be unique")
@@ -141,6 +151,14 @@ class CourseVersion(BaseModel):
         ]
         if len(objective_ids) != len(set(objective_ids)):
             raise ValueError("objective ids must be unique across course version")
+        has_competency_edges = any(
+            objective.competency_ids
+            for module in self.modules
+            for lesson in module.lessons
+            for objective in lesson.objectives
+        )
+        if has_competency_edges and self.competency_framework_id is None:
+            raise ValueError("competency-bound objectives require a framework revision")
         return self
 
 
@@ -238,18 +256,15 @@ def _validate_source_bindings(
                 continue
             if state.document_id != binding.document_id:
                 violations.add(
-                    f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:"
-                    f"{lesson.id}:{binding.id}"
+                    f"{CourseGraphViolation.SOURCE_DOCUMENT_MISMATCH}:{lesson.id}:{binding.id}"
                 )
             if not state.is_effective(observed):
                 violations.add(
-                    f"{CourseGraphViolation.SOURCE_NOT_EFFECTIVE}:"
-                    f"{lesson.id}:{binding.version_id}"
+                    f"{CourseGraphViolation.SOURCE_NOT_EFFECTIVE}:{lesson.id}:{binding.version_id}"
                 )
             if not binding.evidence_span_ids <= state.evidence_span_ids:
                 violations.add(
-                    f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:"
-                    f"{lesson.id}:{binding.id}"
+                    f"{CourseGraphViolation.EVIDENCE_SPAN_MISMATCH}:{lesson.id}:{binding.id}"
                 )
     return violations
 

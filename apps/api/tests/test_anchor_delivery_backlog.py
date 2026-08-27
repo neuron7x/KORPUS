@@ -35,9 +35,7 @@ def _make_backlog(client: TestClient, repository, admin_identity: Identity, coun
     """
 
     for index in range(count):
-        repository.append_audit(
-            admin_identity, "backlog.probe", "test", str(index), {"i": index}
-        )
+        repository.append_audit(admin_identity, "backlog.probe", "test", str(index), {"i": index})
     with privileged_connection(client) as connection:
         connection.execute(text("UPDATE audit_anchor_outbox SET delivered_at = NULL"))
     repository.anchor_store.reset()
@@ -71,9 +69,7 @@ def test_delivery_reports_how_many_checkpoints_it_closed(
     assert closed == 10
 
 
-def test_an_empty_outbox_delivers_nothing(
-    client: TestClient, admin_identity: Identity
-) -> None:
+def test_an_empty_outbox_delivers_nothing(client: TestClient, admin_identity: Identity) -> None:
     """The negative control: no pending rows must not produce a write or a count."""
     repository = client.app.state.repository
     repository.append_audit(admin_identity, "backlog.probe", "test", "1", {"i": 1})

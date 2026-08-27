@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import pytest
-
-from korpus.application.inference_budget import InferenceBudget, InferenceCycle, StopReason, decide_next
-
+from korpus.application.inference_budget import (
+    InferenceBudget,
+    InferenceCycle,
+    StopReason,
+    decide_next,
+)
 
 BUDGET = InferenceBudget(max_cycles=4, max_evidence_items=5, max_conflicts=1)
 
 
-def cycle(number: int, decision: str, evidence: set[str], conflicts: set[str] | None = None) -> InferenceCycle:
+def cycle(
+    number: int, decision: str, evidence: set[str], conflicts: set[str] | None = None
+) -> InferenceCycle:
     return InferenceCycle(number, decision, frozenset(evidence), frozenset(conflicts or set()))
 
 

@@ -2,8 +2,9 @@ import {readFile, writeFile} from "node:fs/promises";
 import {fileURLToPath} from "node:url";
 const asset=(file)=>fileURLToPath(new URL(`../${file}`,import.meta.url));
 export function minifyCss(source){
-  let css=source.replace(/\/\*[\s\S]*?\*\//g,"").replace(/\s+/g," ").trim();
+  let css=source.replace(/\/\*[\s\S]*?\*\//g,"").replace(/\s+\+\s+/g,"__CSS_PLUS__").replace(/\s+/g," ").trim();
   css=css.replace(/\s*([{}:;,>+~])\s*/g,"$1");
+  css=css.replaceAll("__CSS_PLUS__"," + ");
   // Preserve exact mutation/validation anchors used by the repository assurance suite.
   css=css.replace(/\[hidden\]\{display:none\s*!important;\}/g,"[hidden] { display: none !important; }");
   css=css.replaceAll(".chip.declared{border-style:dashed;color:var(--muted-2);background:transparent;}",".chip.declared { border-style: dashed; color: var(--muted-2); background: transparent; }");
@@ -15,5 +16,9 @@ export function minifyCss(source){
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const source=await readFile(asset("design/consumer.css"),"utf8");
   await writeFile(asset("public/styles.css"),minifyCss(source),"utf8");
+  const combat=await readFile(asset("design/combat.css"),"utf8");
+  await writeFile(asset("public/combat.css"),minifyCss(combat),"utf8");
+  const decisionField=await readFile(asset("design/decision_field.css"),"utf8");
+  await writeFile(asset("public/decision_field.css"),minifyCss(decisionField),"utf8");
   console.log("consumer styles generated");
 }

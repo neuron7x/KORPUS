@@ -74,7 +74,8 @@ def main() -> int:
         "status": result.status,
         "failures": list(result.failures),
         "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
-        "source_tree_sha256": source_tree_digest(), "evidence_source_sha256": compute_source_digest(ROOT),
+        "source_tree_sha256": source_tree_digest(),
+        "evidence_source_sha256": compute_source_digest(ROOT),
         "checks": checks,
         "pytest": {
             key: suite.attrib.get(key, "0")

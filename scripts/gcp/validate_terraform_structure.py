@@ -4,6 +4,7 @@
 This is a fast offline pre-gate. GitHub-hosted `terraform validate` remains the
 provider-schema authority.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -13,7 +14,7 @@ from pathlib import Path
 
 _MASKABLE = re.compile(r'"(?:\\.|[^"\\])*"|/\*.*?\*/|//[^\n]*|#[^\n]*', re.DOTALL)
 _RESOURCE = re.compile(r'\bresource\s+"[^"]*"\s+"[^"]*"\s*\{')
-_LIFECYCLE = re.compile(r'\blifecycle\s*\{')
+_LIFECYCLE = re.compile(r"\blifecycle\s*\{")
 
 
 def _mask_token(match: re.Match[str]) -> str:
@@ -26,7 +27,7 @@ def _mask_token(match: re.Match[str]) -> str:
 
 def _masked(text: str) -> str:
     masked = _MASKABLE.sub(_mask_token, text)
-    if '/*' in masked:
+    if "/*" in masked:
         raise ValueError("unterminated block comment")
     if masked.count('"') % 2:
         raise ValueError("unterminated string")
@@ -51,7 +52,7 @@ def _brace_pairs(masked: str) -> tuple[dict[int, int], list[str]]:
 def _direct_lifecycle_count(masked: str, start: int, end: int) -> int:
     depth = 0
     count = 0
-    for match in re.finditer(r'[{}]|\blifecycle\s*\{', masked[start:end]):
+    for match in re.finditer(r"[{}]|\blifecycle\s*\{", masked[start:end]):
         token = match.group(0)
         if token.startswith("lifecycle") and depth == 0:
             count += 1

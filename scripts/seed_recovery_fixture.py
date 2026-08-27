@@ -13,6 +13,7 @@ RECOVERY_PREFIX — so the verification after the restore can assert *these* row
 back rather than counting whatever is there. Anything else in the database is somebody
 else's data and is not evidence about recovery.
 """
+
 from __future__ import annotations
 
 import hashlib

@@ -4,10 +4,9 @@ import json
 from typing import Any
 
 import pytest
-
 from korpus.infrastructure.audit_anchor import AnchorError
-from korpus.infrastructure.gcs_audit_anchor import GcsAuditAnchorStore
 from korpus.infrastructure.gcs import GcsPreconditionFailed
+from korpus.infrastructure.gcs_audit_anchor import GcsAuditAnchorStore
 
 
 class MemoryGcs:

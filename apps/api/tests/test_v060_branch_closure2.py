@@ -4,17 +4,20 @@ import hashlib
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
-
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.external_redteam import evaluate_external_redteam
-from korpus.infrastructure.model_contract import parse_composition, parse_query_variants, strip_code_fence
+from korpus.infrastructure.model_contract import (
+    parse_composition,
+    parse_query_variants,
+    strip_code_fence,
+)
 from korpus.security import scanning
+from pydantic import ValidationError
 
 
 def test_model_contract_fail_closed_parse_matrix() -> None:
     assert strip_code_fence(" plain ") == "plain"
-    assert strip_code_fence("```json\n[\"a\"]\n```") == '["a"]\n'
+    assert strip_code_fence('```json\n["a"]\n```') == '["a"]\n'
     assert strip_code_fence("```") == ""
 
     assert parse_query_variants("no array") == []
@@ -127,7 +130,10 @@ def test_calibration_zero_sample_invalid_count_and_artifact_binding_edges(tmp_pa
     path.write_text(profile.model_dump_json(), encoding="utf-8")
     with pytest.raises(ValueError, match="digest mismatch"):
         CalibrationProfile.load(path, "0" * 64)
-    assert CalibrationProfile.load(path, hashlib.sha256(path.read_bytes()).hexdigest()).profile_id == profile.profile_id
+    assert (
+        CalibrationProfile.load(path, hashlib.sha256(path.read_bytes()).hexdigest()).profile_id
+        == profile.profile_id
+    )
 
 
 class _FakeConnection:
@@ -159,7 +165,9 @@ class _FakeConnection:
         return self.response[:maximum]
 
 
-def test_clamd_scan_protocol_ok_malware_unexpected_and_unavailable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_clamd_scan_protocol_ok_malware_unexpected_and_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     sample = tmp_path / "sample.bin"
     sample.write_bytes(b"abcdef")
 
@@ -196,20 +204,29 @@ def test_clamd_response_reader_handles_eof_newline_and_maximum() -> None:
     class Conn:
         def __init__(self, chunks: list[bytes]):
             self.chunks = iter(chunks)
+
         def recv(self, maximum: int) -> bytes:
             return next(self.chunks, b"")[:maximum]
 
-    assert scanning.ClamdInstreamScanner._read_response(Conn([b"stream: OK\n", b"later"])) == "stream: OK"
-    assert scanning.ClamdInstreamScanner._read_response(Conn([b"abcd", b"efgh"]), maximum=4) == "abcd"
+    assert (
+        scanning.ClamdInstreamScanner._read_response(Conn([b"stream: OK\n", b"later"]))
+        == "stream: OK"
+    )
+    assert (
+        scanning.ClamdInstreamScanner._read_response(Conn([b"abcd", b"efgh"]), maximum=4) == "abcd"
+    )
 
 
-def test_clamd_detects_file_growth_after_stat_before_stream(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_clamd_detects_file_growth_after_stat_before_stream(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     import io
     from types import SimpleNamespace
 
     class GrowingPath:
         def stat(self):
             return SimpleNamespace(st_size=2)
+
         def open(self, mode: str):
             assert mode == "rb"
             return io.BytesIO(b"123456")

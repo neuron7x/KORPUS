@@ -79,9 +79,7 @@ class RetentionPlan:
                     "disposition": item.disposition,
                     "reason": item.reason,
                     "retention_expires_at": (
-                        item.retention_expires_at.isoformat()
-                        if item.retention_expires_at
-                        else None
+                        item.retention_expires_at.isoformat() if item.retention_expires_at else None
                     ),
                 }
                 for item in self.items

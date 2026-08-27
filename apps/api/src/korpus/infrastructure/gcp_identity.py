@@ -8,7 +8,10 @@ from typing import Any
 
 import httpx
 
-from korpus.infrastructure.identity_contracts import parse_access_token_payload, validate_identity_config
+from korpus.infrastructure.identity_contracts import (
+    parse_access_token_payload,
+    validate_identity_config,
+)
 
 _METADATA_ROOT = "http://metadata.google.internal/computeMetadata/v1"
 _ACCESS_TOKEN_URL = f"{_METADATA_ROOT}/instance/service-accounts/default/token"
@@ -83,7 +86,7 @@ class MetadataIdentityProvider:
                 _ID_TOKEN_URL,
                 params={"audience": audience, "format": "full"},
             )
-            token = response.text.strip()
+            token = str(response.text).strip()
             if token.count(".") != 2 or len(token) < 32:
                 raise MetadataIdentityError("metadata ID-token response is invalid")
             # Metadata identity tokens are currently issued with an approximately one-hour

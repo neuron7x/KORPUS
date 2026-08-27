@@ -7,7 +7,7 @@ const asset=(file)=>fileURLToPath(new URL(`../${file}`,import.meta.url));
 const read=(file)=>readFile(asset(file),"utf8");
 test("approved truth surface is integrated into the real consumer shell", async()=>{
   const html=await read("public/index.html");
-  for(const marker of ["pixel-wordmark","PREMIUM TRUST ARCHITECTURE","APPROVED SOURCES","FAIL CLOSED","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
+  for(const marker of ["pixel-wordmark","МАРШРУТ ВІДПОВІДІ","СХВАЛЕНІ ДЖЕРЕЛА","БЕЗ ВИГАДОК","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
   assert.doesNotMatch(html,/OFFLINE INTERFACE PROTOTYPE|mock evidence/i);
   assert.doesNotMatch(html,/<script(?![^>]*src=)/i);
 });
@@ -24,6 +24,44 @@ test("quick actions only prefill the canonical query composer", async()=>{
 test("conversation navigation starts collapsed", async()=>{
   const app=await read("public/app.js"); assert.match(app,/conversationsPanel\.open = false/);
 });
+test("visual noise is progressively disclosed without removing function", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const css=await read("design/consumer.css");
+  assert.match(html,/id="mobile-nav"[^>]*hidden/); assert.match(app,/\$\("mobile-nav"\)\.hidden = false/);
+  assert.doesNotMatch(html,/class="right-rail"/); assert.doesNotMatch(css,/\.right-rail/);
+  assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
+  assert.match(css,/@media\(max-width:600px\)\{\.entry-lockup\{display:none\}/);
+  assert.match(html,/class="mobile-more"/); assert.match(css,/\.ask-section\{position:sticky/);
+});
+test("canonical and combat themes share one functional surface", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
+  assert.match(html,/id="theme-toggle"[^>]*aria-pressed="false"/);
+  assert.match(app,/document\.documentElement\.dataset\.theme/);
+  assert.match(app,/sessionStorage\.setItem\("korpus-theme", combat/);
+  assert.match(app,/import\("\.\/combat_scene\.js"\)/);
+  assert.match(source,/html\[data-theme="combat"\]/);
+  assert.match(source,/@keyframes combat-ignite/);
+  assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.doesNotMatch(html,/combat[^>]+href=/i);
+});
+test("KORPUS TRACE projects the canonical chat state machine", async()=>{
+  const html=await read("public/index.html"); const app=await read("public/app.js"); const trace=await read("public/trace.js");
+  assert.match(html,/id="evidence-trace"[^>]+KORPUS TRACE/);
+  assert.match(trace,/KORPUS TRACE/); assert.match(trace,/data-trace-stage="\$\{key\}"/); assert.match(trace,/aria-live="polite"/);
+  assert.match(app,/import\("\.\/trace\.js"\)/);
+  assert.match(app,/renderTraceState\(machine\.state\)/);
+  assert.match(trace,/FAIL_CLOSED: \[3,/);
+});
+test("Decision Field is lazy, source-bound, and counterfactual", async()=>{
+  const app=await read("public/app.js"); const field=await read("public/decision_field.js"); const css=await read("design/decision_field.css");
+  assert.match(app,/import\("\.\/decision_field\.js"\)/);
+  assert.match(field,/evidence_coverage/); assert.match(field,/answer\.citations/); assert.match(field,/answer\.limitations/);
+  assert.match(field,/Що змінить цей вердикт/); assert.match(field,/НЕ ЙМОВІРНІСТЬ/);
+  assert.doesNotMatch(field,/Math\.random|confidence|probability/i);
+  assert.match(css,/\.decision-field/); assert.match(css,/@media\(max-width:700px\)/);
+});
 test("delivery CSS is generated from the readable approved source", async()=>{
   assert.equal(await read("public/styles.css"),minifyCss(await read("design/consumer.css")));
+});
+test("CSS minification preserves required calc addition whitespace",()=>{
+  assert.equal(minifyCss(".x { bottom: calc(64px + env(safe-area-inset-bottom)); }"),".x{bottom:calc(64px + env(safe-area-inset-bottom));}\n");
 });

@@ -207,7 +207,9 @@ PostgreSQL debt below.
   review transitions, audit append, readiness and the RLS session context still share
   one class, because splitting them splits a transaction;
 - formula evaluation, and table structure recovered from PDF layout rather than flagged;
-- embedding backfill and model-migration execution against a real index;
+- deployment execution of the governed embedding backfill against the operational
+  index remains external evidence; the repository now provides resumable batches,
+  atomic receipts and an independent RLS-scoped model/dimension/text-hash coverage gate;
 - corpus and entitlement administration in the web consoles; networked same-origin
   browser E2E through real OIDC/session cookies; broader contrast and focus-order
   validation against the rendered critical workflows;

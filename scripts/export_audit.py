@@ -14,6 +14,7 @@ digest travels instead, so a payload can be matched later without having left.
 
 Exit codes: 0 wrote a batch (possibly empty), 1 the batch was not continuous.
 """
+
 from __future__ import annotations
 
 import argparse

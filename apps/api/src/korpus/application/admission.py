@@ -72,7 +72,10 @@ class AdmissionVerdict:
 
 def load_register(path: Path) -> Mapping[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict) or (type(value.get("schema_version")), value.get("schema_version")) != (int, 1):
+    if not isinstance(value, dict) or (
+        type(value.get("schema_version")),
+        value.get("schema_version"),
+    ) != (int, 1):
         raise ValueError("unsupported admission register schema")
     if not isinstance(value.get("grounds"), list) or not value["grounds"]:
         raise ValueError("admission register lists no grounds")

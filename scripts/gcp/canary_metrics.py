@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Fail-closed Cloud Run revision metric admission for staged production promotion."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,9 +11,10 @@ import time
 import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
 from scripts.gcp.canary_numeric import request_count, validate_summary_policy, validate_timing
 
 PROJECT_ID = re.compile(r"^[a-z][a-z0-9-]{4,28}[a-z0-9]$")
@@ -73,12 +75,14 @@ def _request_count_payload(
     )
     url = f"https://monitoring.googleapis.com/v3/projects/{urllib.parse.quote(project, safe='')}/timeSeries?{query}"
     request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310 - fixed Google endpoint
+    with urllib.request.urlopen(request, timeout=timeout) as response:
         payload = json.load(response)
     if not isinstance(payload, dict):
         raise RuntimeError("Cloud Monitoring returned a non-object payload")
     if payload.get("nextPageToken"):
-        raise RuntimeError("request_count query exceeded one page; refusing incomplete admission evidence")
+        raise RuntimeError(
+            "request_count query exceeded one page; refusing incomplete admission evidence"
+        )
     return payload
 
 
@@ -105,24 +109,48 @@ def _request_counts(payload: dict[str, Any]) -> tuple[int, int, int]:
     return total, successes, errors
 
 
-def summarize(payload: dict[str, Any], service: str, revision: str, minimum_samples: int, maximum_error_rate: float) -> RevisionMetrics:
-    validate_summary_policy(minimum_samples, maximum_error_rate); total, successes, errors = _request_counts(payload)
+def summarize(
+    payload: dict[str, Any],
+    service: str,
+    revision: str,
+    minimum_samples: int,
+    maximum_error_rate: float,
+) -> RevisionMetrics:
+    validate_summary_policy(minimum_samples, maximum_error_rate)
+    total, successes, errors = _request_counts(payload)
     rate = errors / total if total else 0.0
     if successes < minimum_samples:
-        return RevisionMetrics(service, revision, total, successes, errors, rate, False, "INSUFFICIENT_SUCCESS_SAMPLES")
+        return RevisionMetrics(
+            service, revision, total, successes, errors, rate, False, "INSUFFICIENT_SUCCESS_SAMPLES"
+        )
     if rate > maximum_error_rate:
-        return RevisionMetrics(service, revision, total, successes, errors, rate, False, "SERVER_ERROR_RATE_EXCEEDED")
+        return RevisionMetrics(
+            service, revision, total, successes, errors, rate, False, "SERVER_ERROR_RATE_EXCEEDED"
+        )
     return RevisionMetrics(service, revision, total, successes, errors, rate, True, "PASS")
 
 
 def _validate_policy(
-    project: str, api_revision: str, web_revision: str, minimum_samples: int,
-    maximum_error_rate: float, window_seconds: int, wait_seconds: int, poll_seconds: int,
+    project: str,
+    api_revision: str,
+    web_revision: str,
+    minimum_samples: int,
+    maximum_error_rate: float,
+    window_seconds: int,
+    wait_seconds: int,
+    poll_seconds: int,
 ) -> None:
-    names_valid = all((PROJECT_ID.fullmatch(project), REVISION.fullmatch(api_revision), REVISION.fullmatch(web_revision)))
+    names_valid = all(
+        (
+            PROJECT_ID.fullmatch(project),
+            REVISION.fullmatch(api_revision),
+            REVISION.fullmatch(web_revision),
+        )
+    )
     if not names_valid:
         raise ValueError("project/revision identifiers do not satisfy Cloud resource-name policy")
-    validate_summary_policy(minimum_samples, maximum_error_rate); validate_timing(window_seconds, wait_seconds, poll_seconds)
+    validate_summary_policy(minimum_samples, maximum_error_rate)
+    validate_timing(window_seconds, wait_seconds, poll_seconds)
 
 
 def evaluate(
@@ -136,16 +164,41 @@ def evaluate(
     wait_seconds: int,
     poll_seconds: int,
 ) -> dict[str, Any]:
-    _validate_policy(project, api_revision, web_revision, minimum_samples, maximum_error_rate, window_seconds, wait_seconds, poll_seconds)
+    _validate_policy(
+        project,
+        api_revision,
+        web_revision,
+        minimum_samples,
+        maximum_error_rate,
+        window_seconds,
+        wait_seconds,
+        poll_seconds,
+    )
     deadline = time.monotonic() + wait_seconds
     last: list[RevisionMetrics] = []
     while True:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         start = now - timedelta(seconds=window_seconds)
         token = _access_token()
         last = [
-            summarize(_request_count_payload(project, "korpus-api", api_revision, start=start, end=now, token=token), "korpus-api", api_revision, minimum_samples, maximum_error_rate),
-            summarize(_request_count_payload(project, "korpus-web", web_revision, start=start, end=now, token=token), "korpus-web", web_revision, minimum_samples, maximum_error_rate),
+            summarize(
+                _request_count_payload(
+                    project, "korpus-api", api_revision, start=start, end=now, token=token
+                ),
+                "korpus-api",
+                api_revision,
+                minimum_samples,
+                maximum_error_rate,
+            ),
+            summarize(
+                _request_count_payload(
+                    project, "korpus-web", web_revision, start=start, end=now, token=token
+                ),
+                "korpus-web",
+                web_revision,
+                minimum_samples,
+                maximum_error_rate,
+            ),
         ]
         if all(item.passed for item in last):
             break

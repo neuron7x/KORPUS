@@ -22,6 +22,10 @@ output "migration_job" {
   value = google_cloud_run_v2_job.migrate.name
 }
 
+output "embedding_backfill_job" {
+  value = try(google_cloud_run_v2_job.embedding_backfill[0].name, null)
+}
+
 output "worker_pool" {
   value = google_cloud_run_v2_worker_pool.ingestion.name
 }

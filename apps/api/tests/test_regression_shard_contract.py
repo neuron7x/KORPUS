@@ -99,11 +99,7 @@ def test_bounded_runner_sigkills_descendant_that_ignores_sigterm(tmp_path) -> No
     if os.name != "posix":
         return
     pid_file = tmp_path / "stubborn.pid"
-    child = (
-        "import signal,time; "
-        "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
-        "time.sleep(30)"
-    )
+    child = "import signal,time; signal.signal(signal.SIGTERM, signal.SIG_IGN); time.sleep(30)"
     code = (
         "import pathlib,subprocess,sys; "
         f"p=subprocess.Popen([sys.executable, '-c', {child!r}]); "
@@ -149,26 +145,31 @@ def _receipt(*, release_tag: str = "v0.9.7", shard_index: int = 0) -> dict[str, 
 
 def test_merge_identity_rejects_mixed_release_tags() -> None:
     module = _module()
-    _identity, failures = module._receipt_identity([
-        _receipt(release_tag="v0.9.7", shard_index=0),
-        _receipt(release_tag="v0.9.6", shard_index=1),
-    ])
+    _identity, failures = module._receipt_identity(
+        [
+            _receipt(release_tag="v0.9.7", shard_index=0),
+            _receipt(release_tag="v0.9.6", shard_index=1),
+        ]
+    )
     assert "release_tag_mismatch" in failures
 
 
 def test_merge_identity_carries_exact_release_tag() -> None:
     module = _module()
-    identity, failures = module._receipt_identity([
-        _receipt(shard_index=0),
-        _receipt(shard_index=1),
-    ])
+    identity, failures = module._receipt_identity(
+        [
+            _receipt(shard_index=0),
+            _receipt(shard_index=1),
+        ]
+    )
     assert failures == []
     assert identity["release_tag"] == "v0.9.7"
 
 
 def test_collection_manifest_rejects_source_drift(tmp_path) -> None:
-    module = _module()
+    _module()
     from regression_collection import build_manifest, load_verified_manifest
+
     payload = build_manifest(
         nodeids=["tests/test_x.py::test_a"],
         release_tag="v0.9.7",
@@ -178,8 +179,10 @@ def test_collection_manifest_rejects_source_drift(tmp_path) -> None:
     )
     path = tmp_path / "collection.json"
     import json
+
     path.write_text(json.dumps(payload), encoding="utf-8")
     import pytest
+
     with pytest.raises(RuntimeError, match="source_digest"):
         load_verified_manifest(path, release_tag="v0.9.7", source_digest="b" * 64, pytest_args=[])
 
@@ -187,6 +190,7 @@ def test_collection_manifest_rejects_source_drift(tmp_path) -> None:
 def test_collection_manifest_rejects_nodeid_tampering(tmp_path) -> None:
     _module()
     from regression_collection import build_manifest, load_verified_manifest
+
     payload = build_manifest(
         nodeids=["tests/test_x.py::test_a"],
         release_tag="v0.9.7",
@@ -197,7 +201,9 @@ def test_collection_manifest_rejects_nodeid_tampering(tmp_path) -> None:
     payload["nodeids"].append("tests/test_x.py::test_tampered")
     path = tmp_path / "collection.json"
     import json
+
     path.write_text(json.dumps(payload), encoding="utf-8")
     import pytest
-    with pytest.raises(RuntimeError, match="collection_count|collection_digest"):
+
+    with pytest.raises(RuntimeError, match=r"collection_count|collection_digest"):
         load_verified_manifest(path, release_tag="v0.9.7", source_digest="a" * 64, pytest_args=[])

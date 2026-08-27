@@ -1,4 +1,5 @@
 """Compute deterministic training impact from source-bound doctrine changes."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict

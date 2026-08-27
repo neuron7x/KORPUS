@@ -79,9 +79,7 @@ def _event(
 def _account_with_subscription(tenancy: Any, subject: str = "oidc|payer") -> Any:
     account, _ = tenancy.accounts.ensure_account(subject)
     tenancy.plan("standard", frozenset({"training"}))
-    return account, tenancy.subscription_service.start_subscription(
-        subject, account.id, "standard"
-    )
+    return account, tenancy.subscription_service.start_subscription(subject, account.id, "standard")
 
 
 def test_a_verified_event_activates_and_is_recorded(tmp_path: Path) -> None:
@@ -269,9 +267,7 @@ def test_an_event_naming_an_unknown_subscription_is_recorded_and_refused(
         from korpus.infrastructure.tenancy_schema import subscriptions
 
         with tenancy.repository.engine.connect() as connection:
-            total = connection.execute(
-                select(func.count()).select_from(subscriptions)
-            ).scalar_one()
+            total = connection.execute(select(func.count()).select_from(subscriptions)).scalar_one()
         assert total == 1, "a webhook created a subscription"
 
         recorded = tenancy.subscriptions.get_billing_event("deterministic", "evt-ghost")
@@ -488,7 +484,10 @@ def test_a_legitimate_in_order_event_is_not_rejected_as_a_replay(tmp_path: Path)
         # earlier than now. The mutant that swaps last_event_at for updated_at dies here.
         base = now() - timedelta(hours=1)
         activate, sig = _event(
-            tenancy, "ev-a", "subscription.activated", reference=str(subscription.id),
+            tenancy,
+            "ev-a",
+            "subscription.activated",
+            reference=str(subscription.id),
             occurred_at=base,
         )
         assert tenancy.subscription_service.handle_event(activate, sig) is (
@@ -500,7 +499,10 @@ def test_a_legitimate_in_order_event_is_not_rejected_as_a_replay(tmp_path: Path)
         # A renewal that occurred slightly after activation but is still well before our
         # wall clock: legitimate, in order, must apply.
         renew, sig2 = _event(
-            tenancy, "ev-b", "subscription.renewed", reference=str(subscription.id),
+            tenancy,
+            "ev-b",
+            "subscription.renewed",
+            reference=str(subscription.id),
             occurred_at=base + timedelta(seconds=1),
         )
         assert tenancy.subscription_service.handle_event(renew, sig2) is (
@@ -522,13 +524,19 @@ def test_a_genuinely_older_event_is_still_rejected(tmp_path: Path) -> None:
         _account, subscription = _account_with_subscription(tenancy)
         base = now()
         activate, sig = _event(
-            tenancy, "ev-now", "subscription.activated", reference=str(subscription.id),
+            tenancy,
+            "ev-now",
+            "subscription.activated",
+            reference=str(subscription.id),
             occurred_at=base,
         )
         tenancy.subscription_service.handle_event(activate, sig)
 
         stale, sig2 = _event(
-            tenancy, "ev-old", "subscription.payment_failed", reference=str(subscription.id),
+            tenancy,
+            "ev-old",
+            "subscription.payment_failed",
+            reference=str(subscription.id),
             occurred_at=base - timedelta(days=30),
         )
         assert tenancy.subscription_service.handle_event(stale, sig2) is (
@@ -560,21 +568,24 @@ def test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate(
         original = store._repository.audited_transaction
 
         def fake_fk_violation(_operation):
-            raise IntegrityError(
-                "INSERT", {}, Exception("FOREIGN KEY constraint failed")
-            )
+            raise IntegrityError("INSERT", {}, Exception("FOREIGN KEY constraint failed"))
 
         store._repository.audited_transaction = fake_fk_violation  # type: ignore[method-assign]
         try:
             with pytest.raises(IntegrityError):
                 store.record_billing_event(
                     BillingEventRecord(
-                        provider="deterministic", provider_event_id="fk", event_type="x",
-                        payload_hash="0" * 64, received_at=datetime.now(UTC),
+                        provider="deterministic",
+                        provider_event_id="fk",
+                        event_type="x",
+                        payload_hash="0" * 64,
+                        received_at=datetime.now(UTC),
                     ),
                     subscription_id=subscription.id,
                     result=BillingEventResult.APPLIED,
-                    applied_status=None, period_start=None, period_end=None,
+                    applied_status=None,
+                    period_start=None,
+                    period_end=None,
                     cancel_at_period_end=None,
                     audit_payload={"interpretation": "test"},
                 )

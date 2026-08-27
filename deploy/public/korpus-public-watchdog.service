@@ -1,0 +1,13 @@
+[Unit]
+Description=KORPUS public dependency-aware health controller
+After=network-online.target korpus-public-api.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@KORPUS_ROOT@
+ExecStart=/usr/bin/python3 scripts/public_health_controller.py
+TimeoutStartSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+

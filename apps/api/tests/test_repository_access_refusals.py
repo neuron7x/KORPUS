@@ -180,9 +180,7 @@ def test_a_hash_lookup_is_scoped_to_the_document_when_one_is_given(
     source_hash = hashlib.sha256(CONTENT).hexdigest()
 
     assert (
-        repository.find_version_by_hash(
-            curator, source_hash, document_id=ingested.document.id
-        )
+        repository.find_version_by_hash(curator, source_hash, document_id=ingested.document.id)
         is not None
     )
     assert repository.find_version_by_hash(curator, source_hash, document_id=uuid4()) is None
@@ -314,6 +312,4 @@ def test_listing_hides_a_document_above_the_readers_clearance(
     )
 
     assert repository.list_documents(reader) == []
-    assert [d.canonical_title for d in repository.list_documents(curator)] == [
-        "Restricted order"
-    ]
+    assert [d.canonical_title for d in repository.list_documents(curator)] == ["Restricted order"]

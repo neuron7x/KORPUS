@@ -244,11 +244,13 @@ def load_context(root: Path, validation_context: str = "SOURCE_CHECKOUT") -> Rep
 
 
 def _is_oversized_file(context: RepositoryContext, path: Path, relative: str) -> bool:
-    archival = context.validation_context == "FULL_SSOT_DISTRIBUTION" and relative.startswith("LINEAGE/")
+    archival = context.validation_context == "FULL_SSOT_DISTRIBUTION" and relative.startswith(
+        "LINEAGE/"
+    )
     return path.stat().st_size > MAX_FILE_BYTES and not archival
 
 
-def _scan_tree(context: RepositoryContext, root: Path, git_tracked: object) -> None:
+def _scan_tree(context: RepositoryContext, root: Path, git_tracked: frozenset[str]) -> None:
     for path in root.rglob("*"):
         context.path_count += 1
         if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
@@ -260,7 +262,11 @@ def _scan_tree(context: RepositoryContext, root: Path, git_tracked: object) -> N
             text = path.read_text(errors="ignore")
             if any(pattern.search(text) for pattern in PLACEHOLDER_PATTERNS):
                 context.placeholders.append(relative)
-        if relative.startswith("infra/secrets/") and path.suffix == ".txt" and relative in git_tracked:
+        if (
+            relative.startswith("infra/secrets/")
+            and path.suffix == ".txt"
+            and relative in git_tracked
+        ):
             context.tracked_secrets.append(relative)
 
 
@@ -291,15 +297,11 @@ def _git_tracked_secrets(root: Path) -> frozenset[str] | None:
     if completed.returncode != 0:
         return None
     return frozenset(
-        entry.decode("utf-8", "replace")
-        for entry in completed.stdout.split(b"\0")
-        if entry
+        entry.decode("utf-8", "replace") for entry in completed.stdout.split(b"\0") if entry
     )
 
 
-def _requirement(
-    identifier: str, statement: str, holds: Any, rationale: str = ""
-) -> Requirement:
+def _requirement(identifier: str, statement: str, holds: Any, rationale: str = "") -> Requirement:
     return Requirement(
         id=identifier,
         subject="repository",
@@ -345,15 +347,19 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
     _requirement(
         "repo.closure.classifies_every_finding",
         f"the audit closure classifies exactly {EXPECTED_FINDINGS} source findings",
-        lambda c: isinstance(c.closure.get("findings"), list)
-        and len(c.closure["findings"]) == EXPECTED_FINDINGS,
+        lambda c: (
+            isinstance(c.closure.get("findings"), list)
+            and len(c.closure["findings"]) == EXPECTED_FINDINGS
+        ),
         "a finding dropped from the register is a finding nobody has to answer for",
     ),
     _requirement(
         "repo.closure.counts_sum",
         f"the closure status counts sum to {EXPECTED_FINDINGS}",
-        lambda c: isinstance(c.closure.get("counts"), dict)
-        and sum(int(value) for value in c.closure["counts"].values()) == EXPECTED_FINDINGS,
+        lambda c: (
+            isinstance(c.closure.get("counts"), dict)
+            and sum(int(value) for value in c.closure["counts"].values()) == EXPECTED_FINDINGS
+        ),
         "counts that do not sum mean a finding is in two states or none",
     ),
     *[
@@ -367,8 +373,10 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
         for where, check in (
             (
                 "release_identity",
-                lambda c: c.release_identity.get("version") == RELEASE_VERSION
-                and c.release_identity.get("tag") == f"v{RELEASE_VERSION}",
+                lambda c: (
+                    c.release_identity.get("version") == RELEASE_VERSION
+                    and c.release_identity.get("tag") == f"v{RELEASE_VERSION}"
+                ),
             ),
             (
                 "api_pyproject",
@@ -377,8 +385,9 @@ REPOSITORY_REQUIREMENTS: tuple[Requirement, ...] = (
             ("web_package", lambda c: c.package.get("version") == RELEASE_VERSION),
             (
                 "runtime_dunder",
-                lambda c: "from korpus.release import RELEASE_VERSION as __version__"
-                in c.init_text,
+                lambda c: (
+                    "from korpus.release import RELEASE_VERSION as __version__" in c.init_text
+                ),
             ),
             ("readme_header", lambda c: c.readme.startswith(f"# KORPUS v{RELEASE_VERSION}")),
         )

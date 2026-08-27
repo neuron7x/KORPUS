@@ -6,6 +6,7 @@ The live mode queries the Artifact Analysis v1 occurrences API using the current
 FINISHED_SUCCESS/COMPLETE.  Vulnerability policy uses the highest package-level
 effective severity when available, as recommended by Artifact Analysis.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -15,9 +16,10 @@ import sys
 import time
 import urllib.parse
 import urllib.request
-from dataclasses import dataclass, asdict
+from collections.abc import Iterable, Mapping
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable, Mapping, Any
+from typing import Any
 
 SEVERITY_RANK = {
     "SEVERITY_UNSPECIFIED": 0,
@@ -50,7 +52,11 @@ def _effective_severity(vulnerability: Mapping[str, Any]) -> str:
         for issue in package_issues
         if isinstance(issue, Mapping)
     ]
-    severities.append(vulnerability.get("effectiveSeverity") or vulnerability.get("severity") or "SEVERITY_UNSPECIFIED")
+    severities.append(
+        vulnerability.get("effectiveSeverity")
+        or vulnerability.get("severity")
+        or "SEVERITY_UNSPECIFIED"
+    )
     unknown = [s for s in severities if s not in SEVERITY_RANK]
     if unknown:
         raise GateError(f"unknown vulnerability severity values: {unknown!r}")
@@ -81,7 +87,11 @@ def _finding(occ: Mapping[str, Any]) -> Finding:
     )
 
 
-def evaluate(discovery: Iterable[Mapping[str, Any]], vulnerabilities: Iterable[Mapping[str, Any]], denied: set[str]) -> dict[str, Any]:
+def evaluate(
+    discovery: Iterable[Mapping[str, Any]],
+    vulnerabilities: Iterable[Mapping[str, Any]],
+    denied: set[str],
+) -> dict[str, Any]:
     discovery = list(discovery)
     vulnerabilities = list(vulnerabilities)
     if not discovery:
@@ -119,8 +129,7 @@ def _access_token() -> str:
         ["gcloud", "auth", "print-access-token"],
         check=True,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
     token = cp.stdout.strip()
     if not token:
@@ -128,7 +137,9 @@ def _access_token() -> str:
     return token
 
 
-def _list_occurrences(project: str, resource_url: str, kind: str, token: str) -> list[dict[str, Any]]:
+def _list_occurrences(
+    project: str, resource_url: str, kind: str, token: str
+) -> list[dict[str, Any]]:
     parent = f"projects/{project}"
     filter_expr = f'kind="{kind}" AND resourceUrl="{resource_url}"'
     base = f"https://containeranalysis.googleapis.com/v1/{parent}/occurrences"
@@ -157,7 +168,9 @@ def _list_occurrences(project: str, resource_url: str, kind: str, token: str) ->
             return items
 
 
-def _live(project: str, image: str, timeout_s: int, poll_s: int, denied: set[str]) -> dict[str, Any]:
+def _live(
+    project: str, image: str, timeout_s: int, poll_s: int, denied: set[str]
+) -> dict[str, Any]:
     if "@sha256:" not in image or image.count("@sha256:") != 1:
         raise GateError("image must be immutable and digest-pinned")
     digest = image.split("@sha256:", 1)[1]
@@ -191,7 +204,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--project")
     ap.add_argument("--image")
-    ap.add_argument("--fixture", type=Path, help="offline JSON containing discovery[] and vulnerabilities[]")
+    ap.add_argument(
+        "--fixture", type=Path, help="offline JSON containing discovery[] and vulnerabilities[]"
+    )
     ap.add_argument("--deny-severity", action="append", default=["HIGH", "CRITICAL"])
     ap.add_argument("--timeout-seconds", type=int, default=600)
     ap.add_argument("--poll-seconds", type=int, default=10)
@@ -205,11 +220,15 @@ def main() -> int:
     try:
         if args.fixture:
             payload = json.loads(args.fixture.read_text(encoding="utf-8"))
-            result = evaluate(payload.get("discovery", []), payload.get("vulnerabilities", []), denied)
+            result = evaluate(
+                payload.get("discovery", []), payload.get("vulnerabilities", []), denied
+            )
         else:
             if not args.project or not args.image:
                 raise GateError("live mode requires --project and --image")
-            result = _live(args.project, args.image, args.timeout_seconds, args.poll_seconds, denied)
+            result = _live(
+                args.project, args.image, args.timeout_seconds, args.poll_seconds, denied
+            )
     except (GateError, json.JSONDecodeError, OSError, subprocess.CalledProcessError) as exc:
         result = {"schema_version": "1.0", "verdict": "FAIL", "error": str(exc)}
     rendered = json.dumps(result, indent=2, sort_keys=True) + "\n"

@@ -93,9 +93,7 @@ def assess_table_integrity(text: str) -> TableIntegrity:
         blocks.append(current)
 
     tables = [
-        block
-        for block in blocks
-        if max(len(_columns(line)) for line in block) >= TABLE_WIDTH
+        block for block in blocks if max(len(_columns(line)) for line in block) >= TABLE_WIDTH
     ]
     ragged: list[list[str]] = []
     for block in tables:

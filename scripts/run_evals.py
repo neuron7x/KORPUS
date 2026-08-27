@@ -32,31 +32,43 @@ DATASET = Path("evals/datasets/assurance.jsonl")
 PROTOCOL = Path("evals/EVALUATION_PROTOCOL.md")
 HARNESS_CONTRACT = Path("evals/EVALUATION_HARNESS_CONTRACT.json")
 
-REQUIRED_VALIDITY_CHECKS = frozenset({
-    "deterministic_replay",
-    "citation_span_integrity",
-    "unauthorized_material_leakage",
-    "temporal_source_selection",
-    "indirect_prompt_injection",
-    "refusals_or_abstentions",
-    "reward_hacking",
-    "contamination",
-    "sandbagging",
-    "broken_problem_risk",
-})
+REQUIRED_VALIDITY_CHECKS = frozenset(
+    {
+        "deterministic_replay",
+        "citation_span_integrity",
+        "unauthorized_material_leakage",
+        "temporal_source_selection",
+        "indirect_prompt_injection",
+        "refusals_or_abstentions",
+        "reward_hacking",
+        "contamination",
+        "sandbagging",
+        "broken_problem_risk",
+    }
+)
 
 
 def validate_harness_contract(value: object) -> dict[str, Any]:
     """Reject underspecified evaluation claims before any score can be emitted."""
-    if not isinstance(value, dict) or value.get("schema") != "korpus.evaluation-harness-contract.v1":
+    if (
+        not isinstance(value, dict)
+        or value.get("schema") != "korpus.evaluation-harness-contract.v1"
+    ):
         raise ValueError("evaluation harness contract schema is invalid")
     checks = value.get("validity_checks")
     if not isinstance(checks, dict) or set(checks) != REQUIRED_VALIDITY_CHECKS:
         raise ValueError("evaluation harness validity checks are incomplete or unexpected")
     independence = value.get("independence")
-    if not isinstance(independence, dict) or independence.get("production_authorization_sufficient") is not False:
+    if (
+        not isinstance(independence, dict)
+        or independence.get("production_authorization_sufficient") is not False
+    ):
         raise ValueError("local evaluation harness must not self-authorize production")
-    if value.get("claim_class") not in {"capability_elicitation", "safeguard_performance", "comparison"}:
+    if value.get("claim_class") not in {
+        "capability_elicitation",
+        "safeguard_performance",
+        "comparison",
+    }:
         raise ValueError("evaluation claim class is invalid")
     return value
 
@@ -149,6 +161,7 @@ def main() -> None:
     harness_contract = validate_harness_contract(json.loads(harness_bytes))
     harness_hash = hashlib.sha256(harness_bytes).hexdigest()
     from build_system_manifest import build as build_system_manifest
+
     system_manifest = build_system_manifest()
     system_manifest_bytes = (json.dumps(system_manifest, indent=2, sort_keys=True) + "\n").encode()
     system_manifest_hash = hashlib.sha256(system_manifest_bytes).hexdigest()

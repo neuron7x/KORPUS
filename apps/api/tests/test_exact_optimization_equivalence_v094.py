@@ -4,7 +4,12 @@ import random
 from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
-from korpus.domain.models import AuthorityClass, DocumentVersionRecord, ReviewState, version_is_valid_on_fields
+from korpus.domain.models import (
+    AuthorityClass,
+    DocumentVersionRecord,
+    ReviewState,
+    version_is_valid_on_fields,
+)
 
 
 def _version(*, publication_date, effective_from, effective_until, rescinded_at):

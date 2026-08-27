@@ -37,9 +37,7 @@ def point(gate_id: str, cls: EvidenceClass) -> tuple[str, EvidencePoint]:
 def policy() -> PromotionPolicy:
     unit = GateRequirement("unit", EvidenceClass.EXECUTED)
     mutation = GateRequirement("mutation", EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL, True)
-    external = GateRequirement(
-        "external", EvidenceClass.INDEPENDENT_ATTESTED, True, True, True
-    )
+    external = GateRequirement("external", EvidenceClass.INDEPENDENT_ATTESTED, True, True, True)
     return PromotionPolicy((unit,), (unit, mutation), (unit, mutation, external))
 
 
@@ -94,7 +92,12 @@ def test_ledger_detects_tampering_without_rehashing() -> None:
     identity = ReleaseIdentity(RELEASE, SOURCE, "e" * 64)
     record = ReleaseRecord(identity, ReleaseStage.DRAFT, "author")
     record, event = append_promotion_event(
-        [], record, ReleaseStage.INTEGRATED, policy(), {}, timestamp=datetime(2026, 8, 15, tzinfo=UTC)
+        [],
+        record,
+        ReleaseStage.INTEGRATED,
+        policy(),
+        {},
+        timestamp=datetime(2026, 8, 15, tzinfo=UTC),
     )
     tampered = ReleaseLedgerEvent(
         sequence=event.sequence,
@@ -119,7 +122,12 @@ def test_ledger_detects_head_anchor_mismatch() -> None:
     identity = ReleaseIdentity(RELEASE, SOURCE, "e" * 64)
     record = ReleaseRecord(identity, ReleaseStage.DRAFT, "author")
     _, event = append_promotion_event(
-        [], record, ReleaseStage.INTEGRATED, policy(), {}, timestamp=datetime(2026, 8, 15, tzinfo=UTC)
+        [],
+        record,
+        ReleaseStage.INTEGRATED,
+        policy(),
+        {},
+        timestamp=datetime(2026, 8, 15, tzinfo=UTC),
     )
     verdict = verify_ledger([event], expected_head_sha256="f" * 64)
     assert not verdict.valid
@@ -128,14 +136,27 @@ def test_ledger_detects_head_anchor_mismatch() -> None:
 
 def test_ledger_detects_rehashed_broken_chain_link() -> None:
     identity = ReleaseIdentity(RELEASE, SOURCE, "e" * 64)
-    gates = dict([point("unit", EvidenceClass.EXECUTED), point("mutation", EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL)])
+    gates = dict(
+        [
+            point("unit", EvidenceClass.EXECUTED),
+            point("mutation", EvidenceClass.EXECUTED_WITH_NEGATIVE_CONTROL),
+        ]
+    )
     record = ReleaseRecord(identity, ReleaseStage.DRAFT, "author")
     record, first = append_promotion_event(
-        [], record, ReleaseStage.INTEGRATED, policy(), gates,
+        [],
+        record,
+        ReleaseStage.INTEGRATED,
+        policy(),
+        gates,
         timestamp=datetime(2026, 8, 15, 12, 0, tzinfo=UTC),
     )
     record, second = append_promotion_event(
-        [first], record, ReleaseStage.VERIFIED, policy(), gates,
+        [first],
+        record,
+        ReleaseStage.VERIFIED,
+        policy(),
+        gates,
         verifier_subject="verifier",
         timestamp=datetime(2026, 8, 15, 12, 1, tzinfo=UTC),
     )

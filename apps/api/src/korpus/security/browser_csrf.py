@@ -1,5 +1,7 @@
 """Fail-closed browser CSRF decision isolated from HTTP orchestration."""
+
 from __future__ import annotations
+
 import secrets
 from typing import Any
 
@@ -32,4 +34,3 @@ def browser_csrf_denial(
         and secrets.compare_digest(cookie, expected)
     )
     return None if valid else (403, "CSRF validation failed")
-

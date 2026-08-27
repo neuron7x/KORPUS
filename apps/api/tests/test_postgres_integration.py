@@ -4,6 +4,7 @@ import json
 import os
 from datetime import UTC, date, datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from korpus.application.retrieval import HybridLexicalRetriever
@@ -17,6 +18,7 @@ from korpus.domain.models import (
     Identity,
     ReviewState,
 )
+from korpus.infrastructure.embedding_backfill import PgVectorEmbeddingBackfill
 from korpus.infrastructure.repository import (
     SqlRepository,
     documents,
@@ -117,6 +119,17 @@ def test_postgres_migrated_search_rls_access_and_audit(tmp_path: Path):
         Classification.RESTRICTED,
         "POSTGRES-RESTRICTED",
     )
+    provider = SimpleNamespace(
+        model_id="backfill-integration-v1",
+        dimensions=8,
+        embed_many=lambda texts: [[0.125] * 8 for _ in texts],
+    )
+    backfill = PgVectorEmbeddingBackfill(repository.engine, provider, batch_size=8)
+    first_batch = backfill.run_batch(actor)
+    assert first_batch.selected == 2
+    assert first_batch.written == 2
+    assert first_batch.stale_during_write == 0
+    assert backfill.run_batch(actor).complete is True
     public_identity = Identity(
         subject="postgres-public",
         roles=frozenset({"user"}),

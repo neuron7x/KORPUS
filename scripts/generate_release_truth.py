@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate current source-bound release truth views."""
+
 from __future__ import annotations
 
 import json
@@ -11,7 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT / "scripts")]
 
 from korpus.application.provenance import compute_source_digest  # noqa: E402
-from korpus.application.release_truth import blocker_registry, claim_ledger, inventory, status_ontology  # noqa: E402
+from korpus.application.release_truth import (  # noqa: E402
+    blocker_registry,
+    claim_ledger,
+    inventory,
+    status_ontology,
+)
 from release_identity import release_tag  # noqa: E402
 
 
@@ -27,11 +33,16 @@ def _blockers(source_digest: str, release: str) -> dict[str, Any]:
 def main() -> int:
     source_digest, release = compute_source_digest(ROOT), release_tag()
     counts = inventory(ROOT)
-    _write(ROOT / "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json", {
-        "schema": "korpus.executable-evidence-index.v2", **counts,
-        "source_tree_sha256": source_digest, "release": release,
-        "method": "AST enumeration over current source/test tree",
-    })
+    _write(
+        ROOT / "reports/EXECUTABLE_EVIDENCE_INDEX_CURRENT.json",
+        {
+            "schema": "korpus.executable-evidence-index.v2",
+            **counts,
+            "source_tree_sha256": source_digest,
+            "release": release,
+            "method": "AST enumeration over current source/test tree",
+        },
+    )
     final = ROOT / f"reports/release/{release}/final"
     _write(final / "BLOCKER_REGISTRY.json", blocker_registry(ROOT, source_digest, release))
     _write(final / "CLAIM_LEDGER.json", claim_ledger(ROOT, source_digest, release))

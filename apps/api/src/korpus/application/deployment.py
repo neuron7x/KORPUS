@@ -24,12 +24,17 @@ from typing import Any
 import yaml
 
 from korpus.application.deployment_contract import (
-    REQUIRED_KINDS,
-    REQUIRED_PRODUCTION_CONFIG,
-    REQUIRED_WORKLOADS,
+    REQUIRED_KINDS as REQUIRED_KINDS,
+)
+from korpus.application.deployment_contract import (
+    REQUIRED_PRODUCTION_CONFIG as REQUIRED_PRODUCTION_CONFIG,
+)
+from korpus.application.deployment_contract import (
+    REQUIRED_WORKLOADS as REQUIRED_WORKLOADS,
+)
+from korpus.application.deployment_contract import (
     SUPPORTED_KUSTOMIZATION_FIELDS,
 )
-
 
 
 class RenderError(ValueError):
@@ -104,8 +109,10 @@ def _strategic_merge(base: dict[str, Any], patch: Mapping[str, Any]) -> None:
         elif isinstance(value, list) and isinstance(base.get(key), list):
             merged = list(base[key])
             for index, item in enumerate(value):
-                if index < len(merged) and isinstance(item, Mapping) and isinstance(
-                    merged[index], dict
+                if (
+                    index < len(merged)
+                    and isinstance(item, Mapping)
+                    and isinstance(merged[index], dict)
                 ):
                     _strategic_merge(merged[index], item)
                 elif index < len(merged):

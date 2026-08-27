@@ -8,7 +8,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "apps/api/src")); sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "apps/api/src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 from korpus.application.provenance import compute_source_digest  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
@@ -16,7 +17,8 @@ ARTIFACTS = (
     "source-sbom.cdx.json",
     "api-sbom.cdx.json",
     "web-sbom.cdx.json",
-    "var/security/summary.json", "var/security/ci-container-scan.json",
+    "var/security/summary.json",
+    "var/security/ci-container-scan.json",
 )
 
 
@@ -26,7 +28,9 @@ def sha(path: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", type=Path, default=ROOT / "var/production/supply-chain-evidence-manifest.json")
+    parser.add_argument(
+        "--out", type=Path, default=ROOT / "var/production/supply-chain-evidence-manifest.json"
+    )
     args = parser.parse_args()
     artifacts = {}
     for relative in ARTIFACTS:

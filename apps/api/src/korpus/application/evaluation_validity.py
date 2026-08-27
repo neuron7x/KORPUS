@@ -5,14 +5,15 @@ A campaign can execute successfully and still be inadmissible evidence when its
 system identity, corpus, evaluator independence, operational environment or
 coverage contract is incomplete.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
 import math
 from collections import Counter
+from collections.abc import Iterable
 from enum import StrEnum
-from typing import Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -63,7 +64,7 @@ class EvaluationObservation(BaseModel):
     latency_ms: float = Field(ge=0, allow_inf_nan=False)
 
     @model_validator(mode="after")
-    def hard_failure_cannot_pass(self) -> "EvaluationObservation":
+    def hard_failure_cannot_pass(self) -> EvaluationObservation:
         if self.hard_failures and self.passed:
             raise ValueError("an observation with a hard failure cannot be marked passed")
         return self
@@ -75,13 +76,14 @@ class AdmissionPolicy(BaseModel):
     minimum_cases_per_required_cohort: int = Field(default=30, ge=1)
     maximum_hard_failure_rate_upper_95: float = Field(default=0.01, ge=0, le=1)
     hard_failures_observed_allowed: int = Field(default=0, ge=0)
-    required_dimensions: frozenset[TEVVDimension] = Field(
-        default=frozenset(TEVVDimension)
-    )
+    required_dimensions: frozenset[TEVVDimension] = Field(default=frozenset(TEVVDimension))
     required_cohorts: frozenset[str] = Field(default_factory=frozenset)
     independent_evaluation_required: bool = True
     real_domain_required: bool = True
     operational_environment_required: bool = True
+    deployment_simulation_required: bool = True
+    evaluation_cue_blinding_required: bool = True
+    dependency_failure_simulation_required: bool = True
 
 
 class CampaignContext(BaseModel):
@@ -90,9 +92,14 @@ class CampaignContext(BaseModel):
     independent_evaluation: bool
     real_domain: bool
     operational_environment: bool
+    deployment_simulation: bool = False
+    evaluation_cues_blinded: bool = False
+    dependency_failures_simulated: bool = False
 
 
-def wilson_interval(successes: int, total: int, *, z: float = 1.959963984540054) -> tuple[float, float]:
+def wilson_interval(
+    successes: int, total: int, *, z: float = 1.959963984540054
+) -> tuple[float, float]:
     """Two-sided Wilson score interval for a Bernoulli proportion."""
     return wilson_score_interval(successes, total, z=z)
 
@@ -133,10 +140,19 @@ def _campaign_checks(
         "required_dimensions_covered": policy.required_dimensions.issubset(dimensions),
         "required_cohorts_covered": all(cohort_checks.values()),
         "hard_failure_count_within_limit": total_hard <= policy.hard_failures_observed_allowed,
-        "hard_failure_upper_95_within_limit": hard_upper <= policy.maximum_hard_failure_rate_upper_95,
-        "independent_evaluation": context.independent_evaluation or not policy.independent_evaluation_required,
+        "hard_failure_upper_95_within_limit": hard_upper
+        <= policy.maximum_hard_failure_rate_upper_95,
+        "independent_evaluation": context.independent_evaluation
+        or not policy.independent_evaluation_required,
         "real_domain": context.real_domain or not policy.real_domain_required,
-        "operational_environment": context.operational_environment or not policy.operational_environment_required,
+        "operational_environment": context.operational_environment
+        or not policy.operational_environment_required,
+        "deployment_simulation": context.deployment_simulation
+        or not policy.deployment_simulation_required,
+        "evaluation_cues_blinded": context.evaluation_cues_blinded
+        or not policy.evaluation_cue_blinding_required,
+        "dependency_failures_simulated": context.dependency_failures_simulated
+        or not policy.dependency_failure_simulation_required,
     }
 
 

@@ -5,6 +5,7 @@ approved content pipeline defines a check, binds it to an existing lesson object
 source bindings, and the runtime performs exact grading.  This keeps training feedback
 inside the same evidence boundary as the lesson itself.
 """
+
 from __future__ import annotations
 
 from enum import StrEnum
@@ -38,7 +39,7 @@ class EvidenceBoundCheck(BaseModel):
     source_binding_ids: frozenset[str] = Field(min_length=1, max_length=32)
 
     @model_validator(mode="after")
-    def validate_options(self) -> "EvidenceBoundCheck":
+    def validate_options(self) -> EvidenceBoundCheck:
         option_ids = [item.id for item in self.options]
         if len(option_ids) != len(set(option_ids)):
             raise ValueError("knowledge-check option ids must be unique")

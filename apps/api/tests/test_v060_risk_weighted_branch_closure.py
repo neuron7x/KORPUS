@@ -5,9 +5,12 @@ from datetime import date
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
-
-from korpus.application.release_state_machine import ReleaseIdentity, ReleaseRecord, ReleaseStage, withdraw
+from korpus.application.release_state_machine import (
+    ReleaseIdentity,
+    ReleaseRecord,
+    ReleaseStage,
+    withdraw,
+)
 from korpus.application.resilience import AdmissionController, CircuitBreaker, CircuitOpenError
 from korpus.domain.models import (
     AccessTier,
@@ -22,6 +25,7 @@ from korpus.domain.models import (
 from korpus.security.attestors import AttestorKey, AttestorRegistry
 from korpus.security.corpus_governance import CorpusGovernanceProfile, CorpusOperation, CorpusPolicy
 from korpus.security.reviewers import ReviewerGrant, ReviewerRegistry
+from pydantic import ValidationError
 
 SOURCE = "a" * 64
 EVIDENCE = "e" * 64
@@ -77,7 +81,11 @@ def _document(classification: Classification = Classification.PUBLIC) -> Documen
         canonical_title="Governed release source",
         corpus_id="public",
         issuer="Authority",
-        access_tier=(AccessTier.RESTRICTED if classification == Classification.RESTRICTED else AccessTier.PUBLIC),
+        access_tier=(
+            AccessTier.RESTRICTED
+            if classification == Classification.RESTRICTED
+            else AccessTier.PUBLIC
+        ),
         classification=classification,
     )
 
@@ -122,7 +130,9 @@ def _attestor_key(**updates: object) -> AttestorKey:
     return AttestorKey(**data)
 
 
-def test_attestor_registry_refuses_inverted_window_map_mismatch_digest_and_postdate(tmp_path: Path) -> None:
+def test_attestor_registry_refuses_inverted_window_map_mismatch_digest_and_postdate(
+    tmp_path: Path,
+) -> None:
     with pytest.raises(ValidationError, match="validity interval"):
         _attestor_key(valid_from=date(2026, 2, 1), valid_until=date(2026, 1, 1))
 

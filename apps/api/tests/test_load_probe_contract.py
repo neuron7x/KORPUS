@@ -24,7 +24,9 @@ def test_outcome_keeps_typed_refusal_reasons_separate_from_http_status() -> None
     }
 
 
-def test_http_error_body_preserves_the_server_admission_reason(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_http_error_body_preserves_the_server_admission_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     body = json.dumps({"detail": {"reason": "subject_share_exhausted"}}).encode()
 
     def refuse(*_args: object, **_kwargs: object) -> object:
@@ -38,9 +40,7 @@ def test_http_error_body_preserves_the_server_admission_reason(monkeypatch: pyte
 
     monkeypatch.setattr(load_probe.urllib.request, "urlopen", refuse)
 
-    _latency, status, decision, reason = load_probe._ask(
-        "http://example.invalid", "question", 0.1
-    )
+    _latency, status, decision, reason = load_probe._ask("http://example.invalid", "question", 0.1)
 
     assert status == "429"
     assert decision == ""

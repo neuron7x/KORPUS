@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import shutil
 from pathlib import Path
 
@@ -10,7 +9,9 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _copy_surface(tmp_path: Path) -> Path:
-    shutil.copytree(ROOT / "apps/api/migrations/versions", tmp_path / "apps/api/migrations/versions")
+    shutil.copytree(
+        ROOT / "apps/api/migrations/versions", tmp_path / "apps/api/migrations/versions"
+    )
     policy = tmp_path / "config/production/migration-policy.json"
     policy.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / "config/production/migration-policy.json", policy)
@@ -30,12 +31,12 @@ def test_mutated_baseline_history_is_rejected(tmp_path: Path) -> None:
     assert evaluate(root)["status"] == "FAIL"
 
 
-def _future(root: Path, body: str, *, revision: str = "0018_test") -> Path:
+def _future(root: Path, body: str, *, revision: str = "0019_test") -> Path:
     path = root / f"apps/api/migrations/versions/{revision}.py"
     path.write_text(
         "from alembic import op\nimport sqlalchemy as sa\n"
         f"revision = {revision!r}\n"
-        "down_revision = '0017_learning_mastery'\n"
+        "down_revision = '0018_operational_competencies'\n"
         "def upgrade():\n"
         + "\n".join(f"    {line}" for line in body.splitlines())
         + "\ndef downgrade():\n    pass\n",

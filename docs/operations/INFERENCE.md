@@ -11,6 +11,20 @@ only two bounded capabilities:
 Claims, citations, authority ranking, temporal validity, contradiction handling,
 clearance and corpus access remain deterministic KORPUS controls.
 
+## Executor lifecycle and failure isolation
+
+Planner and composer adapters are constructed once per API-process lifespan, not once
+per request. Each adapter owns a thread-safe circuit breaker: three consecutive
+transport or response failures open the circuit for 15 seconds, so later requests use
+the deterministic extractive path without paying another provider timeout. A half-open
+probe is single-flight; success closes the circuit and resets the failure count. The
+circuit never grants evidence authority and never converts malformed model output into
+an answer.
+
+Semantic retrieval is admitted only with a digest-bound corpus-governance profile.
+Readiness remains `503 semantic_index` until every approved span in that governed scope
+has a vector for the configured model and dimensions with the current text hash.
+
 ## OpenAI Responses API
 
 Set the provider explicitly and provide an explicit API model name:

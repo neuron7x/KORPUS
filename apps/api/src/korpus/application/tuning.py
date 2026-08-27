@@ -5,10 +5,9 @@ import math
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from korpus.application.adaptive_contracts import validate_judged_candidate, validate_simplex_step
 from korpus.application.retrieval import BM25Parameters, RetrievalWeights, score_candidates
 
-
-from korpus.application.adaptive_contracts import validate_judged_candidate, validate_simplex_step
 
 @dataclass(frozen=True)
 class JudgedCandidate:

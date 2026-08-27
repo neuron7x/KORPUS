@@ -1,27 +1,37 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping, Collection
+from collections.abc import Collection, Mapping
 from typing import Any
 
 from korpus.application.attested_evidence import AttestationVerdict, verify_ed25519_attestation
 from korpus.application.production_reliability import evaluate_reliability_evidence
-from korpus.application.supply_chain_scanners import container_scan_marker_clean, scanner_marker_current, scanner_summary_clean
+from korpus.application.supply_chain_scanners import (
+    container_scan_marker_clean,
+    scanner_marker_current,
+    scanner_summary_clean,
+)
 
 
 def attestation_checks(
-    data: bytes, name: str, release: str, attestation: Mapping[str, Any],
-    trusted: Collection[str], prefix: str,
+    data: bytes,
+    name: str,
+    release: str,
+    attestation: Mapping[str, Any],
+    trusted: Collection[str],
+    prefix: str,
 ) -> tuple[dict[str, bool], AttestationVerdict]:
     verdict = verify_ed25519_attestation(
-        data, manifest_name=name, release=release, attestation=attestation,
+        data,
+        manifest_name=name,
+        release=release,
+        attestation=attestation,
         trusted_fingerprints=trusted,
     )
     return {
         f"{prefix}_attestation_verified": verdict.cryptographically_valid,
         f"{prefix}_trusted_signer": verdict.trusted_signer,
     }, verdict
-
 
 
 def valid_cyclonedx(data: Mapping[str, Any]) -> bool:
@@ -37,14 +47,18 @@ def source_sbom_covers_lock(data: Mapping[str, Any], locked: Mapping[str, str]) 
         return False
     components = {
         (str(item.get("name", "")).lower().replace("_", "-"), str(item.get("version", "")))
-        for item in data.get("components", ()) if isinstance(item, Mapping)
+        for item in data.get("components", ())
+        if isinstance(item, Mapping)
     }
     return all((name, version) in components for name, version in locked.items())
 
 
 def artifact_manifest_bound(
-    manifest: Mapping[str, Any], artifacts: Mapping[str, tuple[bytes, int]],
-    *, source: str, release: str,
+    manifest: Mapping[str, Any],
+    artifacts: Mapping[str, tuple[bytes, int]],
+    *,
+    source: str,
+    release: str,
 ) -> bool:
     declared = manifest.get("artifacts", {})
     if not isinstance(declared, Mapping):
@@ -64,10 +78,18 @@ def artifact_manifest_bound(
 
 
 def evaluate_attested_reliability(
-    internal: Mapping[str, Any], chaos: Mapping[str, Any], load: Mapping[str, Any],
-    recovery: Mapping[str, Any], *, source: str, release: str, load_bytes: bytes,
-    recovery_bytes: bytes, load_attestation: Mapping[str, Any],
-    recovery_attestation: Mapping[str, Any], trusted: Collection[str],
+    internal: Mapping[str, Any],
+    chaos: Mapping[str, Any],
+    load: Mapping[str, Any],
+    recovery: Mapping[str, Any],
+    *,
+    source: str,
+    release: str,
+    load_bytes: bytes,
+    recovery_bytes: bytes,
+    load_attestation: Mapping[str, Any],
+    recovery_attestation: Mapping[str, Any],
+    trusted: Collection[str],
 ) -> tuple[dict[str, bool], str, str]:
     checks = evaluate_reliability_evidence(
         internal, chaos, load, recovery, source=source, release=release
@@ -78,20 +100,38 @@ def evaluate_attested_reliability(
     recovery_checks, recovery_verdict = attestation_checks(
         recovery_bytes, "recovery-report.json", release, recovery_attestation, trusted, "recovery"
     )
-    checks.update(load_checks); checks.update(recovery_checks)
+    checks.update(load_checks)
+    checks.update(recovery_checks)
     return checks, load_verdict.fingerprint, recovery_verdict.fingerprint
 
 
 def evaluate_supply_chain_evidence(
-    *, pins: int, hashes: int, locked: Mapping[str, str], scan: Mapping[str, Any], container_scan: Mapping[str, Any],
-    source_sbom: Mapping[str, Any], api_sbom: Mapping[str, Any], web_sbom: Mapping[str, Any],
-    manifest: Mapping[str, Any], artifact_bytes: Mapping[str, bytes], source: str, release: str,
-    attestation: Mapping[str, Any], trusted: Collection[str], manifest_bytes: bytes, expected_commit: str,
+    *,
+    pins: int,
+    hashes: int,
+    locked: Mapping[str, str],
+    scan: Mapping[str, Any],
+    container_scan: Mapping[str, Any],
+    source_sbom: Mapping[str, Any],
+    api_sbom: Mapping[str, Any],
+    web_sbom: Mapping[str, Any],
+    manifest: Mapping[str, Any],
+    artifact_bytes: Mapping[str, bytes],
+    source: str,
+    release: str,
+    attestation: Mapping[str, Any],
+    trusted: Collection[str],
+    manifest_bytes: bytes,
+    expected_commit: str,
 ) -> tuple[dict[str, bool], str, str]:
     artifacts = {name: (data, len(data)) for name, data in artifact_bytes.items()}
     attested_checks, verdict = attestation_checks(
-        manifest_bytes, "supply-chain-evidence-manifest.json", release,
-        attestation, trusted, "evidence",
+        manifest_bytes,
+        "supply-chain-evidence-manifest.json",
+        release,
+        attestation,
+        trusted,
+        "evidence",
     )
     checks = {
         "exact_pins_have_hashes": pins > 0 and hashes == pins,
@@ -99,7 +139,9 @@ def evaluate_supply_chain_evidence(
         "security_scanners_executed_clean": scanner_summary_clean(scan),
         "security_scanners_current_commit": scanner_marker_current(scan, expected_commit),
         "container_scanners_executed_clean": container_scan_marker_clean(container_scan),
-        "container_scanners_current_commit": scanner_marker_current(container_scan, expected_commit),
+        "container_scanners_current_commit": scanner_marker_current(
+            container_scan, expected_commit
+        ),
         "container_sboms_valid": valid_cyclonedx(api_sbom) and valid_cyclonedx(web_sbom),
         "evidence_manifest_bound": artifact_manifest_bound(
             manifest, artifacts, source=source, release=release
@@ -111,8 +153,11 @@ def evaluate_supply_chain_evidence(
 
 
 def tevv_environment_attestation_checks(
-    evidence_bytes: bytes, evidence_name: str, release: str,
-    attestation: Mapping[str, Any], trusted: Collection[str],
+    evidence_bytes: bytes,
+    evidence_name: str,
+    release: str,
+    attestation: Mapping[str, Any],
+    trusted: Collection[str],
 ) -> tuple[dict[str, bool], str]:
     checks, verdict = attestation_checks(
         evidence_bytes, evidence_name, release, attestation, trusted, "environment"

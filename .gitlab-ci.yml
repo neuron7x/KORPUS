@@ -333,7 +333,10 @@ secret:scan:
     # generic-api-key heuristic reads as high-entropy tokens; verified by reading
     # the lines. Excluding the paths instead would have silenced those files for
     # good, including a real credential added to them later.
-    - gitleaks detect --source . --no-banner --redact --exit-code 1
+    # Reused shell/docker runners can retain refs in the reinitialized .git directory.
+    # Bind the scan to the exact pipeline revision so stale refs cannot create findings
+    # that are absent from this commit's reachable history.
+    - gitleaks detect --source . --no-banner --redact --exit-code 1 --log-opts "$CI_COMMIT_SHA"
         --baseline-path .gitleaks-baseline.json
     - mkdir -p var/security && printf '{"schema":"korpus.ci-scanner-result.v1","commit_sha":"%s","scanners":[{"scanner":"gitleaks","exit_code":0}]}\n' "$CI_COMMIT_SHA" > var/security/ci-gitleaks.json
   artifacts:

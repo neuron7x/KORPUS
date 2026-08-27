@@ -11,12 +11,13 @@ const DEV_SCRIPTS = ["scripts/serve.mjs", "scripts/build.mjs", "scripts/design_s
 const SCRIPTS = [
   "public/transport_contract.js", "public/api.js", "public/app.js", "public/chat_fsm.js", "public/routes.js", "public/offline_pack.js", "public/offline_store.js", "public/offline_controller.js", "public/workspace_routes.js", "public/conversations.js", "public/reader_conversations.js",
   "public/reader_corpus.js", "public/reader_declaration.js", "public/reader_verdicts.js", "public/billing.js",
+  "public/combat_scene.js", "public/trace.js", "public/decision_field.js",
   "public/console.js", "public/console_accounts.js", "public/console_mutations.js",
   "public/console_readonly.js", "public/console_rules.js", "public/contract.js", "public/sw.js",
 ];
 const PAGES = ["public/index.html", "public/console.html"];
 const REQUIRED = [...PAGES, ...SCRIPTS, ...DEV_SCRIPTS, "nginx.conf", "public/tokens.css", "public/styles.css", "public/workspace.css", "public/console.css", "public/manifest.webmanifest", "public/config.js",
-  "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css"];
+  "public/combat.css", "public/decision_field.css", "design/tokens.json", "design/components.json", "design/viewports.json", "design/consumer.css", "design/combat.css", "design/decision_field.css"];
 
 for (const file of REQUIRED) {
   const info = await stat(asset(file));
@@ -214,7 +215,7 @@ while (moduleQueue.length) {
 if (!/class NetworkError/.test(api) || !/AbortSignal\.timeout/.test(api)) {
   throw new Error("requests have no timeout or no offline signal — a dead uplink hangs the button");
 }
-if (!/НЕМАЄ ЗВ'ЯЗКУ/.test(app)) {
+if (!/НЕМАЄ ЗВ’ЯЗКУ/.test(api)) {
   throw new Error("a lost link is rendered as a generic error, not as a lost link");
 }
 
@@ -361,8 +362,8 @@ if (!/ПІДСТАВИ НЕМАЄ/.test(readerVerdicts)) {
 
 // RAG-019: retrieval_score is a ranking utility, not a calibrated probability. The UI
 // renders it as a number, so the sentence that says what it is not must travel with it.
-if (!app.includes("Ranking utility не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
-if (app.includes("retrieval_score") && !app.includes("Ranking utility")) throw new Error("score rendered without its non-probability label");
+if (!app.includes("Якість ранжування не є ймовірністю правильності")) throw new Error("uncalibrated score disclaimer missing");
+if (app.includes("retrieval_score") && !app.includes("Якість ранжування")) throw new Error("score rendered without its non-probability label");
 
 const manifest = JSON.parse(await read("public/manifest.webmanifest"));
 if (!manifest.name || !manifest.start_url || manifest.display !== "standalone") throw new Error("PWA manifest contract failed");

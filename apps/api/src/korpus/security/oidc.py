@@ -5,15 +5,16 @@ from typing import Any
 
 import jwt
 
+from korpus.security.external_destination import parse_external_https_url
 from korpus.security.oidc_claims import (
     validate_algorithms,
     validate_audience_and_authorized_party,
     validate_header,
     validate_nonce,
 )
-from korpus.security.external_destination import parse_external_https_url
-from korpus.security.url_policy import parse_https_url
 from korpus.security.oidc_numeric import numeric_date, validate_oidc_timing
+from korpus.security.url_policy import parse_https_url
+
 
 class OIDCVerifier:
     """Long-lived OIDC verifier with bounded JWKS caching and assurance checks."""
@@ -36,7 +37,11 @@ class OIDCVerifier:
         parse_external_https_url(jwks_url, name="OIDC JWKS URL")
         parse_https_url(issuer, name="OIDC issuer", allow_query=False)
         pinned_algorithms = validate_algorithms(algorithms)
-        jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds = validate_oidc_timing(jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds)
+        jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds = (
+            validate_oidc_timing(
+                jwks_cache_seconds, http_timeout_seconds, clock_skew_seconds, max_auth_age_seconds
+            )
+        )
         self.issuer = issuer
         self.audience = audience
         self.algorithms = pinned_algorithms
@@ -73,7 +78,13 @@ class OIDCVerifier:
             leeway=self.clock_skew_seconds,
             options={
                 "require": [
-                    "sub", "exp", "iat", "nbf", "iss", "aud", "jti",
+                    "sub",
+                    "exp",
+                    "iat",
+                    "nbf",
+                    "iss",
+                    "aud",
+                    "jti",
                     *(["auth_time"] if require_auth_time else []),
                 ]
             },

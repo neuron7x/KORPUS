@@ -6,11 +6,11 @@ from fastapi import Depends, Request
 
 from korpus.application.answer_query import AnswerPolicy, ExtractiveAnswerService
 from korpus.application.cache import EvidenceQueryCache
-from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.calibration import CalibrationProfile
 from korpus.application.composition import AnswerComposer
 from korpus.application.ingestion import ExtractionSettings, IngestionService
 from korpus.application.ingestion_jobs import DurableIngestionCoordinator
+from korpus.application.pec_cache import PECCachedRetriever
 from korpus.application.policy import PolicyEngine
 from korpus.application.ports import ObjectStore
 from korpus.application.query_plan import QueryPlanner
@@ -18,21 +18,16 @@ from korpus.application.resilience import AdmissionController
 from korpus.application.retrieval import HybridLexicalRetriever
 from korpus.composition import build_ingestion_service
 from korpus.config import Settings, get_settings
-from korpus.infrastructure.anthropic_planner import (
-    AnthropicAnswerComposer,
-    AnthropicQueryPlanner,
-)
 from korpus.infrastructure.ingestion_jobs import SqlIngestionJobQueue
-from korpus.infrastructure.openai_planner import OpenAIAnswerComposer, OpenAIQueryPlanner
 from korpus.infrastructure.observability import Observability
 from korpus.infrastructure.repository import SqlRepository
-from korpus.model_settings import resolved_model_api_key, resolved_model_base_url
+from korpus.model_composition import build_answer_composer, build_query_planner
+from korpus.pec_composition import build_predictive_controller
 from korpus.security.corpus_governance import CorpusGovernanceProfile
 from korpus.security.reviewers import ReviewerRegistry
 from korpus.security.scanning import ClamdInstreamScanner, DisabledMalwareScanner
 from korpus.security.source_authenticity import SourceTrustProfile
 from korpus.tenancy_composition import build_egress_policy
-from korpus.pec_composition import build_predictive_controller
 
 SettingsDependency = Annotated[Settings, Depends(get_settings)]
 
@@ -84,6 +79,16 @@ def get_observability(request: Request) -> Observability:
 
 def get_semantic_source(request: Request) -> Any | None:
     return request.app.state.semantic_source
+
+
+def get_query_planner(request: Request) -> QueryPlanner | None:
+    planner: QueryPlanner | None = request.app.state.query_planner
+    return planner
+
+
+def get_answer_composer(request: Request) -> AnswerComposer | None:
+    composer: AnswerComposer | None = request.app.state.answer_composer
+    return composer
 
 
 def get_ingestion_service(
@@ -171,6 +176,8 @@ def get_answer_service(
     settings: SettingsDependency,
     cache: Annotated[EvidenceQueryCache, Depends(get_query_cache)],
     semantic_source: Annotated[Any | None, Depends(get_semantic_source)],
+    query_planner: Annotated[QueryPlanner | None, Depends(get_query_planner)] = None,
+    answer_composer: Annotated[AnswerComposer | None, Depends(get_answer_composer)] = None,
 ) -> ExtractiveAnswerService:
     if settings.answer_policy_mode == "calibrated":
         profile = CalibrationProfile.load(
@@ -237,41 +244,10 @@ def get_answer_service(
         retriever,
         policy,
         answer_policy,
-        query_planner=build_query_planner(settings),
-        answer_composer=build_answer_composer(settings),
+        # FastAPI supplies process-scoped adapters from the composition root. The
+        # fallback preserves direct construction in deterministic unit tests only.
+        query_planner=query_planner or build_query_planner(settings),
+        answer_composer=answer_composer or build_answer_composer(settings),
         egress_policy=build_egress_policy(settings),
         predictive_controller=build_predictive_controller(settings),
     )
-
-
-def _model_adapter(settings: Settings, *, composer: bool) -> AnswerComposer | QueryPlanner:
-    """Build one provider adapter behind the application's existing model ports.
-
-    Provider selection lives only in the composition root. The answer/query application
-    layers remain unaware of OpenAI, Anthropic, HTTP, API keys, or response formats.
-    """
-    api_key = resolved_model_api_key(settings)
-    common = {
-        "model": settings.query_planner_model,
-        "base_url": resolved_model_base_url(settings),
-        "timeout_seconds": max(settings.query_planner_timeout_seconds, 8.0)
-        if composer else settings.query_planner_timeout_seconds,
-        "egress": build_egress_policy(settings),
-    }
-    if settings.query_planner_provider == "openai":
-        adapter = OpenAIAnswerComposer if composer else OpenAIQueryPlanner
-    else:
-        adapter = AnthropicAnswerComposer if composer else AnthropicQueryPlanner
-    return adapter(api_key, **common)
-def build_answer_composer(settings: Settings) -> AnswerComposer | None:
-    """The bounded arranger, when explicitly enabled and credentialled."""
-    if not settings.answer_composer_enabled or not resolved_model_api_key(settings):
-        return None
-    adapter = _model_adapter(settings, composer=True)
-    return adapter  # type: ignore[return-value]
-def build_query_planner(settings: Settings) -> QueryPlanner | None:
-    """The bounded reformulator, when explicitly enabled and credentialled."""
-    if not settings.query_planner_enabled or not resolved_model_api_key(settings):
-        return None
-    adapter = _model_adapter(settings, composer=False)
-    return adapter  # type: ignore[return-value]

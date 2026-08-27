@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "measured_at": "2026-08-25T14:58:32.353159+00:00",
+  "database": "/home/neuro7/Desktop/Ядро основний проект Корпус/var/runtime/corpus-v6-20260807/korpus.db",
+  "database_sha256": "dd661e8d250033965e52822fdb107e773d3c33669d330b6b3af89d288aa4a912",
+  "counts": {
+    "documents": 1648,
+    "versions": 1648,
+    "approved_versions": 1648,
+    "evidence_spans": 118622,
+    "span_embeddings": 0
+  },
+  "reference_coverage": {
+    "retrieval_cases": 135,
+    "covered_cases": 135,
+    "coverage_ratio": 1.0,
+    "missing_case_ids": []
+  },
+  "checks": {
+    "database_exists": true,
+    "sqlite_integrity": true,
+    "documents_present": true,
+    "approved_versions_present": true,
+    "evidence_present": true,
+    "reference_versions_complete": true,
+    "embeddings_present_if_required": true,
+    "referenced_objects_present": true,
+    "referenced_object_hashes_valid": true
+  },
+  "blockers": [],
+  "status": "PASS",
+  "object_store": {
+    "root": "/home/neuro7/Desktop/Ядро основний проект Корпус/var/runtime/corpus-v6-20260807/objects",
+    "referenced": 1494,
+    "missing": [],
+    "sha256_mismatches": []
+  }
+}

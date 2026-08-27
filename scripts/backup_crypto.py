@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Streaming AES-256-GCM encryption for PostgreSQL backup artifacts."""
+
 from __future__ import annotations
 
 import argparse
@@ -86,7 +87,7 @@ def decrypt(source: Path, destination: Path, key: bytes) -> tuple[str, int]:
         header = reader.read(header_size)
         if not header.startswith(MAGIC):
             raise SystemExit("encrypted backup magic/version mismatch")
-        nonce = header[len(MAGIC):]
+        nonce = header[len(MAGIC) :]
         reader.seek(-TAG_BYTES, os.SEEK_END)
         tag = reader.read(TAG_BYTES)
         ciphertext_bytes = size - header_size - TAG_BYTES

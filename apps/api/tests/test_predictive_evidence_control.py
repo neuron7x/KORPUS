@@ -4,7 +4,6 @@ import hashlib
 from datetime import date
 
 import pytest
-
 from korpus.application.contextual_projection import build_contextual_projection
 from korpus.application.controller_profile import (
     ControllerLeaf,
@@ -254,7 +253,7 @@ def test_profile_rejects_wrong_feature_schema_and_underpowered_admitted_leaf() -
             system_manifest_sha256="2" * 64,
             evaluation_protocol_sha256="3" * 64,
             replay_receipt_sha256="4" * 64,
-        training_receipt_sha256="5" * 64,
+            training_receipt_sha256="5" * 64,
             feature_schema_sha256=feature_schema_sha256(),
             corpus_release_id="b" * 16,
             answer_calibration_id="cal-v1",

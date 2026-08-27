@@ -11,7 +11,11 @@ from korpus.domain.models import AccessTier, Identity
 from korpus.main import create_app
 from korpus.security.auth import get_identity
 
-from apps.api.tests.security_fixtures import controlled_security_kwargs, write_calibration_bundle
+from apps.api.tests.security_fixtures import (
+    controlled_security_kwargs,
+    write_calibration_bundle,
+    write_corpus_governance_profile,
+)
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -145,7 +149,9 @@ def test_controlled_environment_rejects_sqlite_and_missing_anchor_auth(tmp_path:
 
 def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
     import pytest
+
     calibration = write_calibration_bundle(tmp_path, weight_semantic=0.0)
+    governance_path, governance_sha256 = write_corpus_governance_profile(tmp_path)
     with pytest.raises(ValueError, match="calibration assigns zero semantic weight"):
         Settings(
             environment="test",
@@ -154,6 +160,8 @@ def test_semantic_configuration_cannot_drift_from_calibration(tmp_path: Path):
             semantic_weight=0.1,
             embedding_endpoint="http://127.0.0.1:9009/embed",
             embedding_model_id="test-model",
+            corpus_governance_profile_path=governance_path,
+            corpus_governance_profile_sha256=governance_sha256,
             answer_policy_mode="calibrated",
             **calibration,
         )
@@ -413,6 +421,7 @@ def test_not_ready_hides_the_internal_snapshot_without_the_metrics_token(tmp_pat
 
         # Force a not-ready state the same way the existing backlog test does.
         import pytest as _pytest  # local, to keep the module import block untouched
+
         _pytest.MonkeyPatch().setattr(repository.anchor_store, "write", unavailable)
         repository.append_audit(admin(), "leak.probe", "test", "one", {"probe": True})
 
@@ -446,7 +455,6 @@ def test_malformed_host_header_is_rejected_before_routing(client) -> None:
         headers={"Host": "example.com/health?x=", "Authorization": "Bearer invalid"},
     )
     assert response.status_code == 400
-
 
 
 def test_ready_hides_internal_snapshot_without_metrics_token_on_public_deployment(tmp_path: Path):

@@ -1,3 +1,4 @@
+import {existsSync} from "node:fs";
 import {mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
 import {spawn} from "node:child_process";
 import {dirname, join, resolve} from "node:path";
@@ -10,7 +11,10 @@ const WEB_ROOT = resolve(SCRIPT_DIR, "..");
 const ROOT = resolve(WEB_ROOT, "../..");
 const PUBLIC = join(WEB_ROOT, "public");
 const REPORT = process.env.KORPUS_BROWSER_E2E_REPORT ?? join(ROOT, "var/browser-e2e-report.json");
-const BROWSER = process.env.KORPUS_BROWSER_BIN ?? "/usr/bin/chromium";
+const BROWSER = process.env.KORPUS_BROWSER_BIN ?? [
+  "/usr/bin/chromium", "/usr/bin/google-chrome", "/usr/bin/google-chrome-stable",
+  "/snap/chromium/current/usr/lib/chromium-browser/chrome", "/usr/bin/chromium-browser",
+].find(existsSync) ?? "/usr/bin/chromium";
 const TIMEOUT_MS = 15_000;
 const ANSWER_XSS = '<img id="pwn" src=x onerror="window.__KORPUS_PWNED=1">';
 const CITATION_XSS = '<svg id="citation-pwn" onload="window.__KORPUS_PWNED=2"></svg>';
@@ -246,10 +250,34 @@ async function main() {
     await runCase("consumer_authenticated_boot", async () => {
       await loadPage(cdp, "index.html", "app.js");
       await waitFor(cdp, '!document.getElementById("product").hidden', "authenticated product surface");
-      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0})`);
+      await waitFor(cdp, 'document.getElementById("trace-status")?.textContent', "KORPUS TRACE boot state");
+      const state = await cdp.evaluate(`({identity:document.getElementById("identity-state").textContent, entryHidden:document.getElementById("entry").hidden, productHidden:document.getElementById("product").hidden, queryVisible:document.getElementById("query").getBoundingClientRect().height > 0, trace:document.getElementById("trace-status").textContent})`);
       assert(state.identity.includes("browser-e2e"), "server identity was not rendered");
       assert(state.entryHidden && !state.productHidden, "authenticated workspace state is inconsistent");
       assert(state.queryVisible, "authenticated query surface is not visible");
+      assert(state.trace.includes("Готовий"), "TRACE did not project the READY state");
+    }, results);
+
+    await runCase("trace_explains_the_selected_gate", async () => {
+      const text = await cdp.evaluate(`(() => { document.querySelector('[data-trace-stage="access"]').click(); return document.getElementById("trace-explainer").textContent; })()`);
+      assert(text.includes("допуск") && text.includes("до початку пошуку"), "TRACE did not explain access-before-retrieval");
+    }, results);
+
+    await runCase("model_status_has_touch_accessible_explanation", async () => {
+      const state = await cdp.evaluate(`(() => { const disclosure=document.querySelector(".status-disclosure"); disclosure.querySelector("summary").click(); return {open:disclosure.open,copy:disclosure.querySelector("p").textContent,status:disclosure.querySelector("summary").textContent}; })()`);
+      assert(state.open && state.copy.includes("не створює факти"), "model authority explanation is not available without hover");
+      assert(state.status.includes("МОДЕЛЬ"), "server-derived model status is not visible");
+    }, results);
+
+    await runCase("combat_theme_is_reversible_and_accessible", async () => {
+      await cdp.evaluate(`document.getElementById("theme-toggle").click()`);
+      await waitFor(cdp, 'document.getElementById("combat-signal-field")', "combat signal field");
+      const combat = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed"), label:button.getAttribute("aria-label"), stylesheet:document.getElementById("combat-theme")?.getAttribute("href"), canvas:document.getElementById("combat-signal-field")?.tagName}; })()`);
+      assert(combat.theme === "combat" && combat.pressed === "true", "combat theme state was not exposed accessibly");
+      assert(combat.label.includes("основну") && combat.stylesheet === "/combat.css" && combat.canvas === "CANVAS", "combat theme did not load its optional visual layer");
+      const core = await cdp.evaluate(`(() => { const button=document.getElementById("theme-toggle"); button.click(); return {theme:document.documentElement.dataset.theme, pressed:button.getAttribute("aria-pressed")}; })()`);
+      assert(core.theme === "core" && core.pressed === "false", "canonical theme was not restored by the same control");
+      assert(!(await cdp.evaluate(`document.getElementById("combat-signal-field")`)), "combat canvas survived after returning to core");
     }, results);
 
     await runCase("evidence_render_escapes_xss", async () => {
@@ -257,30 +285,49 @@ async function main() {
       assert(probe.ok, `direct API fixture probe failed: ${JSON.stringify(probe)}`);
       await cdp.evaluate(`(() => { const q=document.getElementById("query"); q.value="перевір доказ"; q.dispatchEvent(new Event("input",{bubbles:true})); document.getElementById("query-form").requestSubmit(); })()`);
       await waitFor(cdp, 'document.querySelectorAll("#result .turn").length >= 1 && !document.getElementById("result").hasAttribute("aria-busy")', "evidence answer");
-      const state = await cdp.evaluate(`({text:document.querySelector("#result .turn:last-child .answer-text")?.textContent, citation:document.querySelector("#result .turn:last-child .citation blockquote")?.textContent, citationCount:document.querySelectorAll("#result .turn:last-child .citation").length, injected:Boolean(document.querySelector("#pwn, #citation-pwn")), pwned:globalThis.__KORPUS_PWNED ?? 0})`);
+      const state = await cdp.evaluate(`({text:document.querySelector("#result .turn:last-child .answer-text")?.textContent, citation:document.querySelector("#result .turn:last-child .citation blockquote")?.textContent, citationCount:document.querySelectorAll("#result .turn:last-child .citation").length, injected:Boolean(document.querySelector("#pwn, #citation-pwn")), pwned:globalThis.__KORPUS_PWNED ?? 0, trace:document.getElementById("trace-status").textContent, completed:document.querySelectorAll('[data-trace-stage][data-state="done"]').length})`);
       assert(state.text?.includes("<img id=\"pwn\""), `answer XSS payload was not preserved as text: ${JSON.stringify(state)}`);
       assert(state.citation.includes("<svg id=\"citation-pwn\""), "citation XSS payload was not preserved as text");
       assert(state.citationCount === 1, "citation card was not rendered");
+      assert(state.trace.includes("завершено") && state.completed === 4, "TRACE did not project the completed route");
       assert(!state.injected && state.pwned === 0, "untrusted answer/citation became executable DOM");
+    }, results);
+
+    await runCase("decision_field_maps_only_server_evidence", async () => {
+      await waitFor(cdp, 'document.querySelector("#result .turn:last-child .decision-field")', "decision field");
+      const state = await cdp.evaluate(`(() => { const field=document.querySelector("#result .turn:last-child .decision-field"); const source=field.querySelector(".field-source"); source.click(); return {label:field.querySelector(".field-core strong").textContent,coverage:field.querySelector(".field-core small").textContent,sources:field.querySelectorAll(".field-source").length,release:field.querySelector(".field-invariants div:last-child dd").textContent,counterfactual:field.querySelector(".field-counterfactual p").textContent,style:document.getElementById("decision-field-styles")?.getAttribute("href"),focused:document.querySelector("#result .turn:last-child .citation")?.dataset.commandFocus}; })()`);
+      assert(state.label === "ДОПУЩЕНО" && state.coverage.includes("100%"), `decision field invented or lost verdict metrics: ${JSON.stringify(state)}`);
+      assert(state.sources === 1 && state.release === "browser-fixture-r1", "decision field provenance does not match server answer");
+      assert(state.counterfactual.includes("суперечний доказ"), "decision field omitted the verdict-changing condition");
+      assert(state.style === "/decision_field.css" && state.focused === "true", "decision field did not lazy-load or navigate to its source");
     }, results);
 
     await runCase("typed_429_is_not_rendered_as_outage", async () => {
       await cdp.evaluate(`(() => { const q=document.getElementById("query"); q.value="throttle перевірка"; q.dispatchEvent(new Event("input",{bubbles:true})); document.getElementById("query-form").requestSubmit(); })()`);
       await waitFor(cdp, 'document.querySelectorAll("#result .turn").length >= 2 && !document.getElementById("result").hasAttribute("aria-busy")', "429 refusal");
       const state = await cdp.evaluate(`({heading:document.querySelector("#result .turn:last-child .verdict h2")?.textContent, reason:document.querySelector("#result .turn:last-child .answer-text")?.textContent})`);
-      assert(state.heading === "ВІДМОВА 429", `subject throttle rendered as ${JSON.stringify(state)}`);
+      assert(state.heading === "ЛІМІТ ЗАПИТІВ", `subject throttle rendered as ${JSON.stringify(state)}`);
       assert(state.reason.includes("Ліміт одночасних запитів"), "typed refusal reason was lost");
     }, results);
 
     await runCase("mobile_viewport_has_no_horizontal_overflow", async () => {
-      await cdp.send("Emulation.setDeviceMetricsOverride", {width:390, height:844, deviceScaleFactor:1, mobile:true});
-      await loadPage(cdp, "index.html", "app.js");
-      await waitFor(cdp, '!document.getElementById("product").hidden', "mobile authenticated product surface");
-      const state = await cdp.evaluate(`({viewport:innerWidth, scroll:document.documentElement.scrollWidth, composer:(()=>{const r=document.querySelector(".composer").getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};})(), queryVisible:document.getElementById("query").getBoundingClientRect().height>0})`);
-      assert(state.scroll <= state.viewport + 1, `horizontal overflow ${state.scroll}px > ${state.viewport}px`);
-      assert(state.composer.left >= -1 && state.composer.right <= state.viewport + 1, "composer escapes mobile viewport");
-      assert(state.queryVisible, "mobile query field is not visible");
+      await cdp.send("Emulation.setTouchEmulationEnabled", {enabled:true, maxTouchPoints:5});
+      for (const viewport of [{width:320,height:568}, {width:390,height:844}, {width:844,height:390}]) {
+        await cdp.send("Emulation.setDeviceMetricsOverride", {...viewport, deviceScaleFactor:2, mobile:true});
+        await loadPage(cdp, "index.html", "app.js");
+        await waitFor(cdp, '!document.getElementById("product").hidden', "mobile authenticated product surface");
+        const state = await cdp.evaluate(`(() => { const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};}; const more=document.querySelector(".mobile-more"); more.open=true; const secondary=[...more.querySelectorAll("a")].filter(node=>getComputedStyle(node).display!=="none").length; more.open=false; return {viewport:innerWidth,scroll:document.documentElement.scrollWidth,composer:box(".composer"),query:box("#query"),theme:box("#theme-toggle"),dock:box(".mobile-nav"),primaryVisible:getComputedStyle(document.querySelector(".primary-nav")).display!=="none",secondary,nav:[...document.querySelectorAll(".mobile-nav>a")].filter(node=>getComputedStyle(node).display!=="none").map(node=>node.getBoundingClientRect().height)}; })()`);
+        assert(state.scroll <= state.viewport + 1, `${viewport.width}x${viewport.height}: horizontal overflow ${state.scroll}px > ${state.viewport}px`);
+        assert(state.composer.left >= -1 && state.composer.right <= state.viewport + 1, `${viewport.width}x${viewport.height}: composer escapes viewport`);
+        assert(state.query.height > 0, `${viewport.width}x${viewport.height}: query field is not visible`);
+        assert(!state.primaryVisible && state.dock.height > 0, `${viewport.width}x${viewport.height}: desktop and mobile navigation compete`);
+        assert(state.composer.bottom <= state.dock.top + 1, `${viewport.width}x${viewport.height}: sticky composer is obscured by navigation ${JSON.stringify({composer:state.composer,dock:state.dock})}`);
+        assert(state.secondary >= 1, `${viewport.width}x${viewport.height}: authorized secondary routes are unreachable`);
+        assert(state.theme.width >= 44 && state.theme.height >= 44, `${viewport.width}x${viewport.height}: theme control is not touch safe`);
+        assert(state.nav.every(height => height >= 44), `${viewport.width}x${viewport.height}: mobile navigation is not touch safe`);
+      }
       await cdp.send("Emulation.clearDeviceMetricsOverride");
+      await cdp.send("Emulation.setTouchEmulationEnabled", {enabled:false});
     }, results);
 
     await runCase("operator_console_roles_and_preview_gate", async () => {

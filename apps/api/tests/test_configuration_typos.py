@@ -118,3 +118,20 @@ def test_no_deployed_environment_would_be_refused_by_the_check() -> None:
 def test_mutation_job_control_is_a_declared_operational_variable() -> None:
     assert "KORPUS_MUTATION_JOBS" in OPERATIONAL_VARIABLES
     assert unknown_settings_variables({"KORPUS_MUTATION_JOBS": "1"}) == []
+
+
+def test_compose_exposes_model_assistance_only_to_the_api_and_defaults_it_off() -> None:
+    import yaml
+
+    root = Path(__file__).resolve().parents[3]
+    services = yaml.safe_load((root / "docker-compose.yml").read_text(encoding="utf-8"))[
+        "services"
+    ]
+    api = services["api"]["environment"]
+
+    assert api["KORPUS_QUERY_PLANNER_ENABLED"].endswith(":-false}")
+    assert api["KORPUS_ANSWER_COMPOSER_ENABLED"].endswith(":-false}")
+    assert api["KORPUS_QUERY_PLANNER_API_KEY"].endswith(":-}")
+    for name, service in services.items():
+        if name != "api":
+            assert "KORPUS_QUERY_PLANNER_API_KEY" not in (service.get("environment") or {})

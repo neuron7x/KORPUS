@@ -10,7 +10,13 @@ PROFILE = json.loads((ROOT / "config/assurance/production-v1.json").read_text())
 
 
 def _gate(gate_id: str, **extra: object) -> dict[str, object]:
-    return {"gate_id": gate_id, "status": "PASS", "source_tree_sha256": "s", "release": "v", **extra}
+    return {
+        "gate_id": gate_id,
+        "status": "PASS",
+        "source_tree_sha256": "s",
+        "release": "v",
+        **extra,
+    }
 
 
 def test_production_assurance_requires_every_gate_and_external_evidence_class() -> None:
@@ -105,12 +111,12 @@ def test_self_declared_tevv_without_trusted_independent_assessor_is_rejected() -
     assert "tevv.trusted_assessor" in verdict.failures
 
 
-
 def test_engineering_gate_uses_evidence_digest_not_git_digest_domain() -> None:
     text = (ROOT / "scripts" / "run_engineering_production_gate.py").read_text(encoding="utf-8")
     assert 'report.get("evidence_source_sha256") == source' in text
     assert 'report.get("source_tree_sha256") == source' not in text
     assert "report_path = (ROOT / args.report).resolve()" in text
+
 
 def test_production_gate_generators_share_the_working_tree_digest_contract() -> None:
     scripts = (

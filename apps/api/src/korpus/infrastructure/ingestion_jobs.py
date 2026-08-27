@@ -7,7 +7,6 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
-    DateTime,
     and_,
     func,
     insert,
@@ -26,9 +25,7 @@ from korpus.domain.models import (
     IngestResult,
     VersionCreate,
 )
-
 from korpus.infrastructure.ingestion_schema import ingestion_jobs
-
 
 
 class IngestionJobConflict(RuntimeError):
@@ -69,9 +66,11 @@ class SqlIngestionJobQueue:
     def get(self, identity: Identity, job_id: UUID) -> IngestionJobRecord | None:
         with self.engine.begin() as connection:
             self._apply_identity(connection, identity)
-            row = connection.execute(
-                select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id))
-            ).mappings().first()
+            row = (
+                connection.execute(select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id)))
+                .mappings()
+                .first()
+            )
         if row is None:
             return None
         if row["actor_subject"] != identity.subject and not identity.has_role("admin", "auditor"):
@@ -134,9 +133,11 @@ class SqlIngestionJobQueue:
             )
             if result.rowcount != 1:
                 raise IngestionJobConflict("ingestion job claim changed concurrently")
-            updated = connection.execute(
-                select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
-            ).mappings().one()
+            updated = (
+                connection.execute(select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"]))
+                .mappings()
+                .one()
+            )
             return self._record(updated)
 
     def complete(
@@ -168,9 +169,11 @@ class SqlIngestionJobQueue:
             )
             if changed.rowcount != 1:
                 raise IngestionJobConflict("worker does not own active ingestion lease")
-            row = connection.execute(
-                select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id))
-            ).mappings().one()
+            row = (
+                connection.execute(select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id)))
+                .mappings()
+                .one()
+            )
         return self._record(row)
 
     def fail(
@@ -189,12 +192,16 @@ class SqlIngestionJobQueue:
                 subject=worker_id, roles=frozenset({"worker"}), corpora=frozenset({"public"})
             )
             self._apply_identity(connection, worker)
-            row = connection.execute(
-                select(ingestion_jobs)
-                .where(ingestion_jobs.c.id == str(job_id))
-                .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
-                .where(ingestion_jobs.c.lease_owner == worker_id)
-            ).mappings().first()
+            row = (
+                connection.execute(
+                    select(ingestion_jobs)
+                    .where(ingestion_jobs.c.id == str(job_id))
+                    .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
+                    .where(ingestion_jobs.c.lease_owner == worker_id)
+                )
+                .mappings()
+                .first()
+            )
             if row is None:
                 raise IngestionJobConflict("worker does not own active ingestion lease")
             target = (
@@ -215,9 +222,11 @@ class SqlIngestionJobQueue:
                     updated_at=current,
                 )
             )
-            updated = connection.execute(
-                select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id))
-            ).mappings().one()
+            updated = (
+                connection.execute(select(ingestion_jobs).where(ingestion_jobs.c.id == str(job_id)))
+                .mappings()
+                .one()
+            )
         return self._record(updated)
 
     def reap_orphaned_leases(self, *, now: datetime | None = None) -> list[IngestionJobRecord]:
@@ -240,13 +249,17 @@ class SqlIngestionJobQueue:
                 subject="reaper", roles=frozenset({"worker"}), corpora=frozenset({"public"})
             )
             self._apply_identity(connection, worker)
-            orphans = connection.execute(
-                select(ingestion_jobs)
-                .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
-                .where(ingestion_jobs.c.lease_expires_at.is_not(None))
-                .where(ingestion_jobs.c.lease_expires_at < current)
-                .where(ingestion_jobs.c.attempts >= ingestion_jobs.c.max_attempts)
-            ).mappings().all()
+            orphans = (
+                connection.execute(
+                    select(ingestion_jobs)
+                    .where(ingestion_jobs.c.state == IngestionJobState.RUNNING.value)
+                    .where(ingestion_jobs.c.lease_expires_at.is_not(None))
+                    .where(ingestion_jobs.c.lease_expires_at < current)
+                    .where(ingestion_jobs.c.attempts >= ingestion_jobs.c.max_attempts)
+                )
+                .mappings()
+                .all()
+            )
             for row in orphans:
                 changed = connection.execute(
                     update(ingestion_jobs)
@@ -266,9 +279,13 @@ class SqlIngestionJobQueue:
                     )
                 )
                 if changed.rowcount == 1:
-                    updated = connection.execute(
-                        select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
-                    ).mappings().one()
+                    updated = (
+                        connection.execute(
+                            select(ingestion_jobs).where(ingestion_jobs.c.id == row["id"])
+                        )
+                        .mappings()
+                        .one()
+                    )
                     reaped.append(self._record(updated))
         return reaped
 

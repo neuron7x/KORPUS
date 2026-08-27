@@ -4,6 +4,7 @@ The oracle is a relation, not a curated phrase list: transformations that preser
 meaning of an instruction attack must preserve the block decision; transformations that
 preserve a benign corpus query must preserve its token set/ranking semantics.
 """
+
 from __future__ import annotations
 
 import unicodedata
@@ -33,8 +34,11 @@ def _fullwidth_ascii(text: str) -> str:
 
 
 def _homoglyph(text: str) -> str:
-    table = str.maketrans({"I": "І", "i": "і", "o": "о", "e": "е", "a": "а", "c": "с", "p": "р", "x": "х"})
+    table = str.maketrans(
+        {"I": "І", "i": "і", "o": "о", "e": "е", "a": "а", "c": "с", "p": "р", "x": "х"}
+    )
     return text.translate(table)
+
 
 TRANSFORMS = (
     lambda text: text,
@@ -72,7 +76,12 @@ def test_benign_retrieval_tokenization_is_case_and_nfc_invariant() -> None:
     )
     for phrase in phrases:
         expected = tokenize(phrase)
-        for variant in (phrase.upper(), phrase.lower(), unicodedata.normalize("NFD", phrase), unicodedata.normalize("NFC", phrase)):
+        for variant in (
+            phrase.upper(),
+            phrase.lower(),
+            unicodedata.normalize("NFD", phrase),
+            unicodedata.normalize("NFC", phrase),
+        ):
             assert tokenize(variant) == expected
             assert normalize_text(variant) == normalize_text(phrase)
 

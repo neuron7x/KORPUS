@@ -6,10 +6,14 @@ from scripts.coverage_gap_plan import build_plan
 def _coverage() -> dict:
     def item(missing: int) -> dict:
         return {"summary": {"missing_branches": missing, "percent_branches_covered": 50.0}}
+
     return {
         "totals": {
-            "covered_lines": 96, "num_statements": 100,
-            "covered_branches": 92, "num_branches": 100, "missing_branches": 8,
+            "covered_lines": 96,
+            "num_statements": 100,
+            "covered_branches": 92,
+            "num_branches": 100,
+            "missing_branches": 8,
         },
         "files": {
             "apps/api/src/korpus/security/auth.py": item(2),
@@ -46,8 +50,10 @@ def test_absolute_source_paths_receive_the_same_risk_weight(tmp_path) -> None:
     }
     policy = {
         "coverage": {
-            "minimum_statement_rate": 0.95, "minimum_branch_rate": 0.90,
-            "baseline_missing_branches": 8, "maximum_missing_branch_regression": 0,
+            "minimum_statement_rate": 0.95,
+            "minimum_branch_rate": 0.90,
+            "baseline_missing_branches": 8,
+            "maximum_missing_branch_regression": 0,
         },
         "risk_weights": {"security/": 5.0},
     }

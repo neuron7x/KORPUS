@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import httpx
 import pytest
-
 from korpus.infrastructure.gcs import GcsJsonClient, GcsPreconditionFailed
 
 
