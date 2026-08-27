@@ -696,9 +696,9 @@
       "reason": "v0.9.7 architecture/UI contract synchronization; exact initial measured ceiling"
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 215,
+      "lines": 241,
       "max_complexity": 9,
-      "reason": "what an agent may add to an answer: an order and one line, bounded by a check not a prompt"
+      "reason": "Exact ceiling after application-owned answer-composer deadline"
     },
     "apps/api/src/korpus/application/contextual_projection.py": {
       "lines": 67,

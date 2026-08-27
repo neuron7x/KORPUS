@@ -17,6 +17,8 @@ document and "300" appears in plenty.
 
 from __future__ import annotations
 
+import time
+
 import pytest
 from korpus.application.composition import (
     MAX_OPENING_WORDS,
@@ -109,6 +111,20 @@ def test_a_composer_that_fails_leaves_the_extract_untouched() -> None:
 
     assert composition is None
     assert "composer unavailable" in reason
+
+
+def test_a_blocked_composer_cannot_hold_the_answer_path_past_its_deadline() -> None:
+    class _Blocked:
+        def compose(self, question: str, sentences: list[str]) -> tuple[str, list[str]]:
+            time.sleep(0.4)
+            return "late", sentences
+
+    started = time.monotonic()
+    composition, reason = compose_answer("питання", SPANS, _Blocked(), deadline_seconds=0.01)
+
+    assert time.monotonic() - started < 0.2
+    assert composition is None
+    assert "composer exceeded 0.01s deadline" in reason
 
 
 def test_no_composer_is_the_same_as_a_composer_that_says_nothing() -> None:

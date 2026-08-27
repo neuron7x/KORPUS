@@ -28,6 +28,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -36,6 +38,7 @@ from korpus.application.query_plan import PlannerUnavailable
 #: A framing line, not a paragraph. Long enough to say what the passages are about,
 #: short enough that it cannot smuggle a claim past a reader who is skimming.
 MAX_OPENING_WORDS = 15
+COMPOSER_DEADLINE_SECONDS = 10.0
 
 #: Anything that looks like a quantity. A composition states no numbers at all: every
 #: figure a reader acts on must come from a sentence that carries a hash.
@@ -121,6 +124,10 @@ class CompositionRefused(ValueError):
     """Raised with the rule that was broken, never with a generic message."""
 
 
+class ComposerDeadline(PlannerUnavailable):
+    """The application deadline elapsed, independently of provider transport."""
+
+
 @dataclass(frozen=True)
 class Composition:
     opening: str
@@ -172,10 +179,27 @@ def admissible_opening(opening: str, evidence: str) -> str:
     return text
 
 
+def _compose_with_deadline(
+    composer: AnswerComposer, question: str, sentences: list[str], deadline_seconds: float
+) -> tuple[str, list[str]]:
+    pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="answer-composer")
+    future = pool.submit(composer.compose, question, sentences)
+    try:
+        return future.result(timeout=deadline_seconds)
+    except FutureTimeout as error:
+        if future.done():
+            raise PlannerUnavailable(f"TimeoutError: {error}") from error
+        raise ComposerDeadline(f"composer exceeded {deadline_seconds:g}s deadline") from error
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+
+
 def compose_answer(
     question: str,
     sentences: list[str],
     composer: AnswerComposer | None,
+    *,
+    deadline_seconds: float = COMPOSER_DEADLINE_SECONDS,
 ) -> tuple[Composition | None, str]:
     """The arranged answer and why, or None and the reason it was refused.
 
@@ -186,7 +210,9 @@ def compose_answer(
     if composer is None or not sentences:
         return None, "no composer configured"
     try:
-        opening, ordered = composer.compose(question, list(sentences))
+        opening, ordered = _compose_with_deadline(
+            composer, question, list(sentences), deadline_seconds
+        )
     except (PlannerUnavailable, TimeoutError, OSError, ValueError, TypeError) as error:
         # Named rather than blanket, and for the same reason as `build_plan`: everything a
         # provider can do to us arrives as one of these, and anything else is a defect in
