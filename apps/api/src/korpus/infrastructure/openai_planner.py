@@ -22,6 +22,7 @@ from korpus.infrastructure.model_contract import (
     parse_query_variants,
 )
 from korpus.infrastructure.model_transport import guarded_json_post
+from korpus.infrastructure.openai_response import completed_response_text
 
 _MAX_QUERY_OUTPUT_TOKENS = 300
 _MAX_COMPOSE_OUTPUT_TOKENS = 1200
@@ -60,37 +61,6 @@ def _refuse_if_egress_denied(policy: ModelEgressPolicy, base_url: str) -> None:
         raise PlannerUnavailable(f"model egress denied: {denial}") from denial
 
 
-def _response_text(body: Any) -> str:
-    """Extract text from the raw Responses API object, or return an empty string.
-
-    ``output_text`` is accepted for compatibility with gateways that expose the SDK
-    convenience field. The canonical raw shape is traversed through output/content.
-    Unknown content types are ignored rather than guessed.
-    """
-    if not isinstance(body, dict):
-        return ""
-    direct = body.get("output_text")
-    if isinstance(direct, str):
-        return direct.strip()
-    output = body.get("output")
-    if not isinstance(output, list):
-        return ""
-    chunks: list[str] = []
-    for item in output:
-        if not isinstance(item, dict):
-            continue
-        content = item.get("content")
-        if not isinstance(content, list):
-            continue
-        for block in content:
-            if not isinstance(block, dict) or block.get("type") not in {"output_text", "text"}:
-                continue
-            text = block.get("text")
-            if isinstance(text, str):
-                chunks.append(text)
-    return "".join(chunks).strip()
-
-
 class OpenAIQueryPlanner:
     """Suggest retrieval variants through the Responses API."""
 
@@ -119,7 +89,7 @@ class OpenAIQueryPlanner:
             max_output_tokens=_MAX_QUERY_OUTPUT_TOKENS,
             text_format=_QUERY_FORMAT,
         )
-        return parse_query_variants(_response_text(body))
+        return parse_query_variants(completed_response_text(body))
 
     def _request(
         self,
@@ -135,6 +105,9 @@ class OpenAIQueryPlanner:
             "input": input_text,
             "max_output_tokens": max_output_tokens,
             "store": False,
+            "tools": [],
+            "parallel_tool_calls": False,
+            "truncation": "disabled",
             "text": {"format": text_format},
         }
         return guarded_json_post(
@@ -162,4 +135,4 @@ class OpenAIAnswerComposer(OpenAIQueryPlanner):
             max_output_tokens=_MAX_COMPOSE_OUTPUT_TOKENS,
             text_format=_COMPOSE_FORMAT,
         )
-        return parse_composition(_response_text(body))
+        return parse_composition(completed_response_text(body))

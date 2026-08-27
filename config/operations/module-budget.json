@@ -1545,9 +1545,14 @@
       "reason": "v0.6.0: operator-provided Ed25519 signing adapter; exact initial ceiling"
     },
     "apps/api/src/korpus/infrastructure/openai_planner.py": {
-      "lines": 165,
-      "max_complexity": 11,
-      "reason": "OpenAI Responses API adapter with strict Structured Outputs, store=false and egress gating"
+      "lines": 138,
+      "max_complexity": 2,
+      "reason": "Responses transport only; raw envelope admission moved behind a separate fail-closed ratchet"
+    },
+    "apps/api/src/korpus/infrastructure/openai_response.py": {
+      "lines": 33,
+      "max_complexity": 9,
+      "reason": "Initial exact ceiling for completed/error-free Responses envelope admission"
     },
     "apps/api/src/korpus/infrastructure/parser_contracts.py": {
       "lines": 28,

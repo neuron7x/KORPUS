@@ -29,6 +29,8 @@ class _Response:
 def _responses_body(text: str) -> dict[str, Any]:
     return {
         "id": "resp_test",
+        "status": "completed",
+        "error": None,
         "output": [
             {
                 "type": "message",
@@ -57,6 +59,9 @@ def test_openai_planner_uses_responses_api_store_false_and_bearer_auth(
     assert seen["url"] == "https://api.openai.com/v1/responses"
     assert seen["headers"]["Authorization"] == "Bearer secret"
     assert seen["json"]["store"] is False
+    assert seen["json"]["tools"] == []
+    assert seen["json"]["parallel_tool_calls"] is False
+    assert seen["json"]["truncation"] == "disabled"
     assert seen["json"]["model"] == "model-under-test"
     assert seen["json"]["text"]["format"]["type"] == "json_schema"
     assert seen["json"]["text"]["format"]["strict"] is True
@@ -101,6 +106,33 @@ def test_openai_malformed_output_contributes_nothing(monkeypatch: pytest.MonkeyP
 
     assert planner.variants("питання", []) == []
     assert composer.compose("питання", ["готове речення"])[0:2] == ("", [])
+
+
+@pytest.mark.parametrize("status", ["failed", "incomplete", "in_progress", "queued"])
+def test_openai_non_completed_response_contributes_nothing(
+    monkeypatch: pytest.MonkeyPatch, status: str
+) -> None:
+    body = _responses_body('{"variants":["неповний результат"]}')
+    body["status"] = status
+    monkeypatch.setattr(
+        "korpus.infrastructure.openai_planner.httpx.post",
+        lambda *args, **kwargs: _Response(body),
+    )
+
+    assert OpenAIQueryPlanner("secret", model="model-under-test").variants("питання", []) == []
+
+
+def test_openai_completed_response_with_error_contributes_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = _responses_body('{"variants":["помилковий результат"]}')
+    body["error"] = {"code": "provider_error", "message": "generation failed"}
+    monkeypatch.setattr(
+        "korpus.infrastructure.openai_planner.httpx.post",
+        lambda *args, **kwargs: _Response(body),
+    )
+
+    assert OpenAIQueryPlanner("secret", model="model-under-test").variants("питання", []) == []
 
 
 def test_repeated_provider_failure_opens_process_scoped_circuit(
