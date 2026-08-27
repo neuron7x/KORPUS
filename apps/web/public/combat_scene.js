@@ -21,7 +21,7 @@ export function mountCombatScene() {
   const context = canvas.getContext("2d", {alpha: true});
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const signal = {stage: -1, state: "READY", coverage: 0, contacts: []};
-  let width = 0, height = 0, raf = 0, active = true;
+  let width = 0, height = 0, centerX = 0, raf = 0, active = true;
 
   function updateState() {
     canvas.dataset.contacts = String(signal.contacts.length);
@@ -49,6 +49,10 @@ export function mountCombatScene() {
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const canvasRect = canvas.getBoundingClientRect();
+    const promptRect = host.querySelector(".empty-chat h2")?.getBoundingClientRect();
+    centerX = promptRect ? promptRect.left + promptRect.width / 2 - canvasRect.left : width / 2;
+    canvas.dataset.centerX = String(centerX);
     draw(performance.now());
   }
 
@@ -110,7 +114,7 @@ export function mountCombatScene() {
   function draw(time) {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
-    const x = width / 2;
+    const x = centerX;
     const radius = Math.max(90, Math.min(width * .32, height * .25, 250));
     const y = Math.max(radius + 18, Math.min(height * .27, 270));
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
