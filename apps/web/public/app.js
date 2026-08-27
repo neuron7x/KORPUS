@@ -141,21 +141,25 @@ function updateStanding() {
 
 async function loadInferenceStatus() {
   const node = $("inference-state");
+  const detail = $("inference-detail");
   if (!node) return;
   try {
     const state = await call("/v1/inference/status");
     if (!state.enabled) {
       node.textContent = "МОДЕЛЬ · ВИМКНЕНО";
       node.dataset.tone = "off";
-      node.title = "Відповідь працює лише через детермінований evidence path.";
+      if (detail) detail.textContent = "Model-egress вимкнено · лише цитати.";
+      node.title = detail?.textContent || "Model-egress вимкнено";
       return;
     }
     node.textContent = `МОДЕЛЬ · ${String(state.provider).toUpperCase()}`;
     node.dataset.tone = "on";
-    node.title = `${state.model}. Модель допомагає пошуку/композиції; authority = ${state.answer_authority}.`;
+    if (detail) detail.textContent = `${state.model} · ${state.max_query_variants} вар. · ${state.max_input_bytes / 1024}/${state.max_response_bytes / 1024} KiB · fallback: цитати`;
+    node.title = detail?.textContent || state.model;
   } catch {
     node.textContent = "МОДЕЛЬ · СТАН НЕВІДОМИЙ";
     node.dataset.tone = "unknown";
+    if (detail) detail.textContent = "Статус невідомий · лише цитати.";
   }
 }
 

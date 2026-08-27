@@ -11,6 +11,13 @@ from korpus.api.dependencies import get_policy
 from korpus.application.policy import AuthorizationError, PolicyEngine
 from korpus.config import Settings, get_settings
 from korpus.domain.models import Identity
+from korpus.infrastructure.model_contract import (
+    MAX_COMPOSITION_SENTENCES,
+    MAX_QUERY_VARIANT_CHARS,
+    MAX_QUERY_VARIANTS,
+)
+from korpus.infrastructure.model_input import MAX_MODEL_INPUT_BYTES
+from korpus.infrastructure.model_transport import MAX_MODEL_RESPONSE_BYTES
 from korpus.model_settings import resolved_model_api_key
 from korpus.security.auth import get_identity
 
@@ -29,6 +36,12 @@ class InferenceStatusView(BaseModel):
     egress_posture: str
     egress_max_tier: str
     answer_authority: Literal["extractive_evidence"] = "extractive_evidence"
+    failure_mode: Literal["extractive_fallback"] = "extractive_fallback"
+    max_input_bytes: int = MAX_MODEL_INPUT_BYTES
+    max_response_bytes: int = MAX_MODEL_RESPONSE_BYTES
+    max_query_variants: int = MAX_QUERY_VARIANTS
+    max_query_variant_chars: int = MAX_QUERY_VARIANT_CHARS
+    max_composition_sentences: int = MAX_COMPOSITION_SENTENCES
     openai_store: bool | None = None
 
 

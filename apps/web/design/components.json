@@ -244,6 +244,7 @@
       ],
       "contract": [
         "provider assistance is visible without implying factual authority",
+        "disclosure shows model resource ceilings and deterministic fallback",
         "status never exposes API keys or provider base URLs",
         "answer authority remains extractive evidence"
       ]

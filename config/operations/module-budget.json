@@ -571,9 +571,9 @@
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling"
     },
     "apps/api/src/korpus/api/routes_inference.py": {
-      "lines": 60,
+      "lines": 73,
       "max_complexity": 9,
-      "reason": "authenticated inference posture/status surface; exposes no secrets and no factual authority"
+      "reason": "Exact ceiling after authenticated inference limits and fallback disclosure"
     },
     "apps/api/src/korpus/api/routes_offline.py": {
       "lines": 79,

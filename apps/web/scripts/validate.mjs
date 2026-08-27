@@ -289,7 +289,9 @@ if (!/function resizeComposer\(\)/.test(app) || !/Math\.min\(query\.scrollHeight
 // The status comes from the server because provider configuration is an operator decision;
 // the browser may display it but must not infer it from client configuration.
 if (!/id="inference-state"[^>]*role="status"/.test(html) ||
-    !/call\("\/v1\/inference\/status"\)/.test(app)) {
+    !/id="inference-detail"/.test(html) ||
+    !/call\("\/v1\/inference\/status"\)/.test(app) ||
+    !/max_input_bytes/.test(app) || !/max_response_bytes/.test(app)) {
   throw new Error("inference assistance status is no longer server-derived and visible");
 }
 if (!/Модель може допомагати шукати й компонувати, але не створює факти/.test(html)) {
