@@ -10,6 +10,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
+MAX_QUERY_VARIANTS = 4
+MAX_QUERY_VARIANT_CHARS = 120
+MAX_COMPOSITION_SENTENCES = 4
+MAX_COMPOSITION_SENTENCE_CHARS = 2000
+MAX_COMPOSITION_OPENING_CHARS = 300
+
 QUERY_REWRITE_INSTRUCTIONS = """Ти — переформулювач запитів до закритого корпусу українських військових
 документів. Твоє єдине завдання: повернути короткі пошукові фрази, якими це саме питання
 сформульоване в статутах, настановах і бойових документах.
@@ -60,9 +66,10 @@ def parse_query_variants(text: str) -> list[str]:
         parsed = json.loads(value[start : end + 1])
     except json.JSONDecodeError:
         return []
-    # The slice is syntactically bracket-delimited; successful JSON parsing therefore
-    # yields a list. Keeping a second runtime type branch here was dead code and inflated
-    # branch coverage without adding a security decision.
+    if len(parsed) > MAX_QUERY_VARIANTS or any(
+        not isinstance(item, str) or len(item) > MAX_QUERY_VARIANT_CHARS for item in parsed
+    ):
+        return []
     return [item for item in parsed if isinstance(item, str)]
 
 
@@ -76,11 +83,18 @@ def parse_composition(text: str) -> tuple[str, list[str]]:
         parsed: Any = json.loads(value[start : end + 1])
     except json.JSONDecodeError:
         return "", []
-    # The slice is syntactically object-delimited; successful JSON parsing yields a dict.
+    # Braces make the successfully decoded slice an object; its fields remain untrusted.
+    opening = parsed.get("opening")
     sentences = parsed.get("sentences")
-    return (
-        str(parsed.get("opening", "")),
-        [item for item in sentences if isinstance(item, str)]
-        if isinstance(sentences, list)
-        else [],
+    items = sentences if isinstance(sentences, list) else []
+    invalid = (
+        not isinstance(opening, str)
+        or len(opening) > MAX_COMPOSITION_OPENING_CHARS
+        or not isinstance(sentences, list)
+        or len(sentences) > MAX_COMPOSITION_SENTENCES
+        or any(
+            not isinstance(item, str) or len(item) > MAX_COMPOSITION_SENTENCE_CHARS
+            for item in items
+        )
     )
+    return ("", []) if invalid else (opening, items)

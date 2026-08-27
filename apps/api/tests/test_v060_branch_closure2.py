@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -23,13 +24,25 @@ def test_model_contract_fail_closed_parse_matrix() -> None:
     assert parse_query_variants("no array") == []
     assert parse_query_variants("[broken]") == []
     assert parse_query_variants('{"x": 1}') == []
-    assert parse_query_variants('["ok", 1, null]') == ["ok"]
+    assert parse_query_variants('["ok", 1, null]') == []
+    assert parse_query_variants('["a","b","c","d","e"]') == []
+    assert parse_query_variants(f'["{"x" * 121}"]') == []
 
     assert parse_composition("no object") == ("", [])
     assert parse_composition("{broken}") == ("", [])
     assert parse_composition("[1,2]") == ("", [])
-    assert parse_composition('{"opening":"x","sentences":"not-list"}') == ("x", [])
-    assert parse_composition('{"opening":"x","sentences":["a",1]}') == ("x", ["a"])
+    assert parse_composition('{"opening":"x","sentences":"not-list"}') == ("", [])
+    assert parse_composition('{"opening":"x","sentences":["a",1]}') == ("", [])
+    assert parse_composition('{"opening":null,"sentences":[]}') == ("", [])
+    assert parse_composition('{"opening":"x","sentences":["a","b","c","d","e"]}') == (
+        "",
+        [],
+    )
+    assert parse_composition(json.dumps({"opening": "x" * 301, "sentences": []})) == ("", [])
+    assert parse_composition(json.dumps({"opening": "x", "sentences": ["a" * 2001]})) == (
+        "",
+        [],
+    )
 
 
 def _profile() -> dict[str, object]:

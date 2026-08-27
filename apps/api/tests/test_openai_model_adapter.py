@@ -66,6 +66,9 @@ def test_openai_planner_uses_responses_api_store_false_and_bearer_auth(
     assert seen["json"]["text"]["format"]["type"] == "json_schema"
     assert seen["json"]["text"]["format"]["strict"] is True
     assert seen["json"]["text"]["format"]["name"] == "korpus_query_variants"
+    variants = seen["json"]["text"]["format"]["schema"]["properties"]["variants"]
+    assert variants["maxItems"] == 4
+    assert variants["items"]["maxLength"] == 120
     assert "що робити при обстрілі" in seen["json"]["input"]
     assert "тактика" in seen["json"]["input"]
 
@@ -94,6 +97,10 @@ def test_openai_composer_uses_same_contract_and_store_false(
     assert seen["json"]["max_output_tokens"] == 1200
     assert seen["json"]["text"]["format"]["name"] == "korpus_answer_composition"
     assert seen["json"]["text"]["format"]["strict"] is True
+    properties = seen["json"]["text"]["format"]["schema"]["properties"]
+    assert properties["opening"]["maxLength"] == 300
+    assert properties["sentences"]["maxItems"] == 4
+    assert properties["sentences"]["items"]["maxLength"] == 2000
 
 
 def test_openai_malformed_output_contributes_nothing(monkeypatch: pytest.MonkeyPatch) -> None:

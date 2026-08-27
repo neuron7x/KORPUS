@@ -16,6 +16,11 @@ from korpus.application.query_plan import PlannerUnavailable
 from korpus.application.resilience import CircuitBreaker
 from korpus.infrastructure.model_contract import (
     COMPOSE_INSTRUCTIONS,
+    MAX_COMPOSITION_OPENING_CHARS,
+    MAX_COMPOSITION_SENTENCE_CHARS,
+    MAX_COMPOSITION_SENTENCES,
+    MAX_QUERY_VARIANT_CHARS,
+    MAX_QUERY_VARIANTS,
     QUERY_REWRITE_INSTRUCTIONS,
     parse_composition,
     parse_query_variants,
@@ -33,7 +38,13 @@ _QUERY_FORMAT = {
     "strict": True,
     "schema": {
         "type": "object",
-        "properties": {"variants": {"type": "array", "items": {"type": "string"}}},
+        "properties": {
+            "variants": {
+                "type": "array",
+                "maxItems": MAX_QUERY_VARIANTS,
+                "items": {"type": "string", "maxLength": MAX_QUERY_VARIANT_CHARS},
+            }
+        },
         "required": ["variants"],
         "additionalProperties": False,
     },
@@ -45,8 +56,12 @@ _COMPOSE_FORMAT = {
     "schema": {
         "type": "object",
         "properties": {
-            "opening": {"type": "string"},
-            "sentences": {"type": "array", "items": {"type": "string"}},
+            "opening": {"type": "string", "maxLength": MAX_COMPOSITION_OPENING_CHARS},
+            "sentences": {
+                "type": "array",
+                "maxItems": MAX_COMPOSITION_SENTENCES,
+                "items": {"type": "string", "maxLength": MAX_COMPOSITION_SENTENCE_CHARS},
+            },
         },
         "required": ["opening", "sentences"],
         "additionalProperties": False,

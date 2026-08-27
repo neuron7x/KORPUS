@@ -1522,9 +1522,9 @@
       "reason": "LiqPay bounded exact callback arithmetic"
     },
     "apps/api/src/korpus/infrastructure/model_contract.py": {
-      "lines": 86,
-      "max_complexity": 6,
-      "reason": "v0.6.0: dead parser branches removed; exact lower complexity ratchet"
+      "lines": 100,
+      "max_complexity": 9,
+      "reason": "Exact ceiling after all-or-nothing semantic bounds for model output"
     },
     "apps/api/src/korpus/infrastructure/model_input.py": {
       "lines": 9,
@@ -1550,9 +1550,9 @@
       "reason": "v0.6.0: operator-provided Ed25519 signing adapter; exact initial ceiling"
     },
     "apps/api/src/korpus/infrastructure/openai_planner.py": {
-      "lines": 138,
+      "lines": 153,
       "max_complexity": 2,
-      "reason": "Responses transport only; raw envelope admission moved behind a separate fail-closed ratchet"
+      "reason": "Exact ceiling after strict structured-output count and string bounds"
     },
     "apps/api/src/korpus/infrastructure/openai_response.py": {
       "lines": 33,
