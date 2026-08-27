@@ -7,7 +7,7 @@ const asset=(file)=>fileURLToPath(new URL(`../${file}`,import.meta.url));
 const read=(file)=>readFile(asset(file),"utf8");
 test("approved truth surface is integrated into the real consumer shell", async()=>{
   const html=await read("public/index.html");
-  for(const marker of ["pixel-wordmark","МАРШРУТ ВІДПОВІДІ","СХВАЛЕНІ ДЖЕРЕЛА","БЕЗ ВИГАДОК","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
+  for(const marker of ["pixel-wordmark","МАРШРУТ ВІДПОВІДІ","quick-action","id=\"query-form\""]) assert.match(html,new RegExp(marker));
   assert.doesNotMatch(html,/OFFLINE INTERFACE PROTOTYPE|mock evidence/i);
   assert.doesNotMatch(html,/<script(?![^>]*src=)/i);
 });
@@ -29,8 +29,13 @@ test("visual noise is progressively disclosed without removing function", async(
   assert.match(html,/id="mobile-nav"[^>]*hidden/); assert.match(app,/\$\("mobile-nav"\)\.hidden = false/);
   assert.doesNotMatch(html,/class="right-rail"/); assert.doesNotMatch(css,/\.right-rail/);
   assert.match(css,/#product\[data-chat-state="READY"\] \.trace-path/);
-  assert.match(css,/@media\(max-width:600px\)\{\.entry-lockup\{display:none\}/);
+  assert.doesNotMatch(html,/class="entry-lockup"|class="hero-proof"|class="empty-trust"/);
   assert.match(html,/class="mobile-more"/); assert.match(css,/\.ask-section\{position:sticky/);
+  assert.match(html,/<details id="standing"[^>]*status-disclosure/);
+  assert.match(html,/<details id="evidence-trace"/);
+  assert.equal((html.match(/class="quick-action"/g) ?? []).length,3);
+  assert.match(app,/class="primary-evidence"/);
+  assert.match(app,/class="additional-evidence"/);
 });
 test("canonical and combat themes share one functional surface", async()=>{
   const html=await read("public/index.html"); const app=await read("public/app.js"); const source=await read("design/combat.css");
@@ -56,6 +61,7 @@ test("Decision Field is lazy, source-bound, and counterfactual", async()=>{
   assert.match(app,/import\("\.\/decision_field\.js"\)/);
   assert.match(field,/evidence_coverage/); assert.match(field,/answer\.citations/); assert.match(field,/answer\.limitations/);
   assert.match(field,/Що змінить цей вердикт/); assert.match(field,/НЕ ЙМОВІРНІСТЬ/);
+  assert.match(field,/document\.createElement\("details"\)/);
   assert.doesNotMatch(field,/Math\.random|confidence|probability/i);
   assert.match(css,/\.decision-field/); assert.match(css,/@media\(max-width:700px\)/);
 });

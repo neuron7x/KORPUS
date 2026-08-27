@@ -38,12 +38,13 @@ export function createDecisionField(answer) {
   const limitations = Array.isArray(answer.limitations) ? answer.limitations : [];
   const coverage = clamp(answer.evidence_coverage);
   const [label, tone, counterfactual] = DECISION[answer.status] ?? ["ЗУПИНЕНО", "withheld", "Потрібен новий серверний вердикт із повним доказовим маршрутом."];
-  const field = document.createElement("section");
+  const field = document.createElement("details");
   field.className = "decision-field";
   field.dataset.tone = tone;
   field.setAttribute("aria-label", "Карта підстави рішення");
   field.innerHTML = `
-    <header class="field-head"><div><span>ПІДСТАВА / ПОХОДЖЕННЯ ДОКАЗУ</span><h3>Карта підстави рішення</h3></div><b>НЕ ЙМОВІРНІСТЬ</b></header>
+    <summary class="field-summary"><span>ПІДСТАВА РІШЕННЯ</span><strong>${label}</strong><b>${Math.round(coverage * 100)}% доказу</b></summary>
+    <div class="field-detail"><header class="field-head"><div><span>ПІДСТАВА / ПОХОДЖЕННЯ ДОКАЗУ</span><h3>Карта підстави рішення</h3></div><b>НЕ ЙМОВІРНІСТЬ</b></header>
     <div class="field-grid">
       <div class="field-core">
         <svg viewBox="0 0 120 120" role="img" aria-label="Покриття доказом ${Math.round(coverage * 100)} відсотків">
@@ -59,7 +60,7 @@ export function createDecisionField(answer) {
         <div><dt>ВЕРСІЯ</dt><dd></dd></div>
       </dl>
     </div>
-    <details class="field-counterfactual"><summary><span>УМОВА ЗМІНИ</span> Що змінить цей вердикт?</summary><p></p></details>`;
+    <details class="field-counterfactual"><summary><span>УМОВА ЗМІНИ</span> Що змінить цей вердикт?</summary><p></p></details></div>`;
   field.querySelector(".field-value").setAttribute("stroke-dasharray", `${coverage * 320.5} 320.5`);
   field.querySelector(".field-invariants div:last-child dd").textContent = answer.corpus_release || "НЕ ПРИВ’ЯЗАНО";
   field.querySelector(".field-counterfactual p").textContent = counterfactual;

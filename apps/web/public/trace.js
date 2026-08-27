@@ -17,7 +17,7 @@ const PROGRESS = Object.freeze({
 
 export function createTraceController(root = document) {
   const surface = root.getElementById("evidence-trace");
-  surface.innerHTML = `<div class="trace-copy"><span>KORPUS TRACE</span><strong>Як народжується відповідь</strong><p id="trace-status" role="status" aria-live="polite"></p></div><ol class="trace-path" aria-label="Маршрут доказової відповіді">${[["query","ЗАПИТ"],["access","ДОПУСК"],["evidence","ДОКАЗ"],["verdict","ВЕРДИКТ"]].map(([key,label],index)=>`<li><button type="button" data-trace-stage="${key}"><b>0${index+1}</b><span>${label}</span></button></li>`).join("")}</ol><p id="trace-explainer" class="trace-explainer">${COPY.query}</p>`;
+  surface.innerHTML = `<summary><span>KORPUS TRACE</span><strong id="trace-status" role="status" aria-live="polite">Готовий до перевірки</strong></summary><div class="trace-body"><ol class="trace-path" aria-label="Маршрут доказової відповіді">${[["query","ЗАПИТ"],["access","ДОПУСК"],["evidence","ДОКАЗ"],["verdict","ВЕРДИКТ"]].map(([key,label],index)=>`<li><button type="button" data-trace-stage="${key}"><b>0${index+1}</b><span>${label}</span></button></li>`).join("")}</ol><p id="trace-explainer" class="trace-explainer">${COPY.query}</p></div>`;
   const status = root.getElementById("trace-status");
   const explainer = root.getElementById("trace-explainer");
   const stages = [...root.querySelectorAll("[data-trace-stage]")];
@@ -29,6 +29,7 @@ export function createTraceController(root = document) {
     render(state) {
       const progress = PROGRESS[state] ?? [-1, "Стан контуру не визначено."];
       status.textContent = progress[1];
+      if (!["READY", "COMPLETE"].includes(state)) surface.open = true;
       stages.forEach((button, index) => {
         button.dataset.state = index < progress[0] ? "done" : index === progress[0] ? "active" : "idle";
         if (index === progress[0]) button.setAttribute("aria-current", "step"); else button.removeAttribute("aria-current");

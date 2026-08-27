@@ -147,19 +147,22 @@ async function loadInferenceStatus() {
     const state = await call("/v1/inference/status");
     if (!state.enabled) {
       node.textContent = "МОДЕЛЬ · ВИМКНЕНО";
+      $("trust-model-summary").textContent = node.textContent;
       node.dataset.tone = "off";
-      if (detail) detail.textContent = "Model-egress вимкнено · лише цитати.";
+      if (detail) detail.textContent = "Model-egress вимкнено · модель не створює факти · лише цитати.";
       node.title = detail?.textContent || "Model-egress вимкнено";
       return;
     }
     node.textContent = `МОДЕЛЬ · ${String(state.provider).toUpperCase()}`;
+    $("trust-model-summary").textContent = node.textContent;
     node.dataset.tone = "on";
-    if (detail) detail.textContent = `${state.model} · ${state.max_query_variants} вар. · ${state.max_input_bytes / 1024}/${state.max_response_bytes / 1024} KiB · fallback: цитати`;
-    node.title = detail?.textContent || state.model;
+    if (detail) detail.textContent = `${state.model} · модель не створює факти · fallback: цитати`;
+    node.title = `${state.model} · ${state.max_query_variants} вар. · ${state.max_input_bytes / 1024}/${state.max_response_bytes / 1024} KiB`;
   } catch {
     node.textContent = "МОДЕЛЬ · СТАН НЕВІДОМИЙ";
+    $("trust-model-summary").textContent = node.textContent;
     node.dataset.tone = "unknown";
-    if (detail) detail.textContent = "Статус невідомий · лише цитати.";
+    if (detail) detail.textContent = "Статус невідомий · модель не створює факти · лише цитати.";
   }
 }
 
@@ -315,7 +318,9 @@ function render(answer, question) {
   const [verdict, tone] = UNFINISHED.has(answer.decision_reason)
     ? ["ПОШУК НЕ ЗАВЕРШЕНО", "denied"]
     : VERDICT[answer.status] ?? ["ВІДМОВА", "withheld"];
-  const citations = (answer.citations ?? []).map(citationCard).join("");
+  const citationCards = (answer.citations ?? []).map(citationCard);
+  const primaryCitation = citationCards[0] ?? "";
+  const additionalCitations = citationCards.slice(1).join("");
   const limitations = (answer.limitations ?? [])
     .map(item => `<li>${escapeHtml(item)}</li>`).join("");
   for (const citation of answer.citations ?? []) {
@@ -336,8 +341,7 @@ function render(answer, question) {
       <h2>${escapeHtml(verdict)}</h2>
       <span class="verdict-code">${escapeHtml(answer.decision_reason)}</span>
     </div>
-    ${answer.opening ? `<p class="answer-opening">${escapeHtml(answer.opening)}
-      <span class="answer-opening-mark">система склала цей рядок лише з допущених цитат</span></p>` : ""}
+    ${answer.opening ? `<p class="answer-opening">${escapeHtml(answer.opening)}</p>` : ""}
     <p class="answer-text">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</p>
     ${withheld}
     <details class="answer-meta"><summary>Деталі перевірки</summary>
@@ -348,7 +352,8 @@ function render(answer, question) {
         <div><dt>Версія корпусу</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
       </dl><p class="note">Якість ранжування не є ймовірністю правильності.</p>
     </details>
-    ${citations}
+    ${primaryCitation ? `<section class="primary-evidence" aria-label="Головний доказ"><h3>Головний доказ</h3>${primaryCitation}</section>` : ""}
+    ${additionalCitations ? `<details class="additional-evidence"><summary>Ще доказів: ${citationCards.length - 1}</summary>${additionalCitations}</details>` : ""}
     ${limitations ? `<h3 class="limits-heading">Межі відповіді</h3><ul class="limits">${limitations}</ul>` : ""}`;
   result.append(block);
   import("./decision_field.js").then(({createDecisionField}) => {

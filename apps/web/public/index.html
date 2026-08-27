@@ -35,16 +35,12 @@
 
     <section id="entry" class="welcome" aria-labelledby="entry-heading">
       <div class="welcome-copy">
-        <div class="entry-lockup"><span class="pixel-wordmark hero-wordmark" aria-hidden="true"><span class="ltr">K</span><span class="ltr">O</span><span class="ltr">R</span><span class="ltr">P</span><span class="ltr">U</span><span class="ltr">S</span><i class="scan"></i></span><span>СИСТЕМА КОНТРОЛЬОВАНИХ ЗНАНЬ</span></div>
         <p class="eyebrow">ВІДПОВІДІ, ПРИВ’ЯЗАНІ ДО ДЖЕРЕЛ</p>
         <h1 id="entry-heading">Доказ є — відповідає.<br><em>Доказу немає — зупиняється.</em></h1>
         <p class="lead">Поставте питання. KORPUS знайде чинне джерело, перевірить доступ і покаже точний фрагмент. Якщо доказу недостатньо — система прямо скаже про це.</p>
         <div class="hero-actions" data-private-only>
           <button id="login" type="button" class="primary large">Увійти в KORPUS</button>
           <span class="hero-note">Акаунт · підписка · захищена оплата · перевірені джерела</span>
-        </div>
-        <div class="hero-proof" aria-label="Ключові властивості KORPUS">
-          <span><i aria-hidden="true"></i> СХВАЛЕНІ ДЖЕРЕЛА</span><span><i aria-hidden="true"></i> ЧИННА РЕДАКЦІЯ</span><span><i aria-hidden="true"></i> КОНТРОЛЬ ЦІЛІСНОСТІ</span><span><i aria-hidden="true"></i> БЕЗ ВИГАДОК</span>
         </div>
       </div>
 
@@ -177,19 +173,20 @@
             <p class="eyebrow">KORPUS / РОБОЧИЙ ПРОСТІР</p>
             <h2>Перевірка знань</h2>
           </div>
-          <section id="standing" class="standing" aria-label="Поточна ідентичність">
-            <span class="chip verified" id="standing-verified">ДОПУСК</span>
-            <span class="chip declared" id="standing-declared">КОНТЕКСТ НЕ ЗАДАНО</span>
-            <details class="status-disclosure">
-              <summary class="chip" id="inference-state" role="status" aria-live="polite">МОДЕЛЬ · ПЕРЕВІРКА</summary>
+          <details id="standing" class="standing status-disclosure">
+            <summary class="trust-summary"><span class="trust-summary-mark" aria-hidden="true"></span><span>Стан перевірки</span><small id="trust-model-summary">МОДЕЛЬ · ПЕРЕВІРКА</small></summary>
+            <section class="trust-panel" aria-label="Поточна ідентичність і стан системи">
+              <span class="chip verified" id="standing-verified">ДОПУСК</span>
+              <span class="chip declared" id="standing-declared">КОНТЕКСТ НЕ ЗАДАНО</span>
+              <span class="chip" id="inference-state" role="status" aria-live="polite">МОДЕЛЬ · ПЕРЕВІРКА</span>
               <p id="inference-detail">Модель може допомагати шукати й компонувати, але не створює факти.</p>
-            </details>
-            <button id="standing-edit" type="button" class="link">Контекст</button>
-          </section>
+              <button id="standing-edit" type="button" class="link">Змінити контекст</button>
+            </section>
+          </details>
         </div>
 
-        <section id="evidence-trace" class="evidence-trace" data-chat-only
-                 aria-label="KORPUS TRACE — маршрут доказової відповіді"></section>
+        <details id="evidence-trace" class="evidence-trace" data-chat-only
+                 aria-label="KORPUS TRACE — маршрут доказової відповіді"></details>
 
 
         <section id="route-view" class="route-view" hidden aria-live="polite" aria-label="Поточний розділ"></section>
@@ -201,9 +198,6 @@
           <div class="empty-symbol" aria-hidden="true">⊛</div>
           <h2>Що потрібно перевірити?</h2>
           <p>Поставте питання звичайною мовою. KORPUS відповість лише в межах доступних доказів.</p>
-          <div class="empty-trust" aria-hidden="true">
-            <span>ЗНАЙТИ</span><i></i><span>ПЕРЕВІРИТИ</span><i></i><span>ПОКАЗАТИ ДЖЕРЕЛО</span>
-          </div>
         </div>
 
         <section id="ask-section" data-chat-only class="ask-section" aria-labelledby="ask-heading">
@@ -212,7 +206,6 @@
             <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти норму</button>
             <button class="quick-action" type="button" data-template="Перевір твердження: "><b>02</b>Перевірити</button>
             <button class="quick-action" type="button" data-template="Порівняй редакції щодо "><b>03</b>Порівняти</button>
-            <button class="quick-action" type="button" data-template="Покажи точне джерело для "><b>04</b>Джерело</button>
           </div>
           <form id="query-form" novalidate>
             <label for="query" class="sr-only">Питання до контрольованого корпусу</label>

@@ -229,7 +229,7 @@
       "id": "inference-status",
       "selectors": [
         "#inference-state",
-        ".status-disclosure"
+        ".trust-summary"
       ],
       "variants": [
         "off",
