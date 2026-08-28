@@ -638,10 +638,11 @@ h1 {
   .conversations-body { max-height: 190px; }
   .new-chat > span:last-child { display: none; }
   .chat-stage { padding: .72rem; min-height: calc(100vh - 138px); }
-  .chat-topline { display: block; min-height: auto; padding: .2rem 0 .75rem; }
-  .standing { margin-top: .6rem; max-width: none; justify-content: flex-start; }
+  .chat-topline { padding: 0; margin-bottom: 0; }
+  .chat-topline > div { display: none; }
+  .standing { margin: 0; max-width: none; justify-content: flex-start; }
   .chip.declared { max-width: 68vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .empty-chat { padding: 3.2rem .3rem; }
+  .empty-chat { padding: 24px; }
   .empty-symbol { width: 50px; height: 50px; border-radius: 15px; }
   .empty-chat h2 { font-size: 1.8rem; }
   .turn-question { max-width: 88%; }
@@ -700,7 +701,7 @@ body{background:#010101;color:var(--text)}
 .answer-stream{width:min(880px,100%);margin:0 auto}.turn{border-color:var(--line)}.turn-question{font-size:19px;color:var(--text)}.turn-mark,.verdict-mark{background:var(--accent)}.verdict{color:#c7c3bc}.answer-opening{color:#d7d3cc}.answer-text{color:#c7c3bc;font-size:15px;line-height:1.72}.citation{background:#030303;border-color:var(--line);border-left:2px solid var(--accent);border-radius:0 10px 10px 0}.citation-index{color:var(--accent)}.citation blockquote{color:#b8b4ad}.citation .meta span{color:var(--muted)}.answer-meta{margin:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.answer-meta summary{min-height:var(--target-min);display:flex;align-items:center;color:#a7a39c;font:650 10px/1 var(--mono);cursor:pointer}.metrics{margin-top:0}.metrics>div{background:#030303;border-color:var(--line)}
 .skip-link{background:#c04f4a;color:#fff}
 @media(max-width:1240px){.product-shell{grid-template-columns:220px minmax(0,1fr)}}
-@media(max-width:900px){.welcome{grid-template-columns:1fr;width:min(760px,calc(100% - 32px))}.trust-demo{order:3}.product-shell{grid-template-columns:1fr}.left-rail{display:none}.composer{padding:10px}#query{min-height:44px}.composer-foot>span{display:none}}
+@media(max-width:900px){.welcome{grid-template-columns:1fr;width:min(760px,calc(100% - 32px))}.trust-demo{order:3}.product-shell{grid-template-columns:1fr}.left-rail{display:none}.composer{padding:10px}#query{min-height:44px}.composer-foot>span{display:none}#submit{margin-inline-start:auto}}
 @media(max-width:600px){.topbar{padding-inline:14px}.brand-sub,.system-signal{display:none}.pixel-wordmark{--mark-size:13px;padding-inline:15px}.welcome{padding-top:38px}.welcome-copy h1{font-size:clamp(34px,12vw,52px)}.chat-stage{padding:24px 14px 130px}.quick-actions{display:grid;grid-template-columns:repeat(3,1fr)}.quick-action{width:100%}.composer{border-radius:14px}}
 @media(prefers-reduced-motion:reduce){.pixel-wordmark .ltr,.pixel-wordmark .ltr::before,.pixel-wordmark .scan{animation:none!important}*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.001ms!important}}
 
@@ -720,7 +721,7 @@ body{background:#010101;color:var(--text)}
 
 /* Progressive disclosure: one primary decision surface, detail only when it matters. */
 #product[data-chat-state="READY"] .evidence-trace{grid-template-columns:1fr;margin-bottom:8px;padding:8px 0}#product[data-chat-state="READY"] .trace-copy{grid-row:auto;display:flex;align-items:center;gap:10px}#product[data-chat-state="READY"] .trace-copy>span{flex:none}#product[data-chat-state="READY"] .trace-copy strong{margin:0}#product[data-chat-state="READY"] .trace-copy p{margin:0 0 0 auto}#product[data-chat-state="READY"] .trace-path,#product[data-chat-state="READY"] .trace-explainer{display:none}
-@media(max-width:600px){#product[data-chat-state="READY"] .trace-copy p{display:none}}
+@media(max-width:600px){#product[data-chat-state="READY"] .evidence-trace{display:none}}
 
 html{font-size:16px}body{line-height:1.6}
 :where(.brand-sub,.system-signal,.eyebrow,.demo-head,.demo-foot,.demo-verdict,.rail-kicker,.chip,.verdict h2,.verdict-code,.answer-opening-mark,.metrics dt,.citation .meta span){font-size:.75rem;line-height:1.35}
