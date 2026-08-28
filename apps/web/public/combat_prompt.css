@@ -1,0 +1,58 @@
+/* Readability override for the combat-mode question prompt.
+   Deliberately solid: camouflage belongs to the scene, never inside critical copy. */
+html[data-theme="combat"] body .empty-chat h2 {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  margin: 0;
+  padding: 13px clamp(18px, 3vw, 30px) 12px;
+  border: 1px solid rgba(91, 211, 139, .48);
+  border-left-width: 3px;
+  border-right-width: 3px;
+  background: linear-gradient(180deg, rgba(10, 27, 18, .96), rgba(5, 16, 10, .98));
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: #d8eadc;
+  -webkit-text-fill-color: currentColor;
+  box-shadow: inset 0 1px 0 rgba(157, 247, 189, .08), 0 12px 34px rgba(0, 0, 0, .28);
+  filter: none;
+  font-family: var(--mono);
+  font-size: clamp(20px, 2.35vw, 30px);
+  font-weight: 760;
+  line-height: 1.2;
+  letter-spacing: .025em;
+  text-align: center;
+  text-shadow: none;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+html[data-theme="combat"] body .empty-chat h2::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  bottom: -1px;
+  left: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #43f08b 24%, #43f08b 76%, transparent);
+  opacity: .82;
+}
+
+@media (max-width: 600px) {
+  html[data-theme="combat"] body .empty-chat h2 {
+    width: min(100%, 430px);
+    min-height: 50px;
+    padding: 12px 14px 11px;
+    font-size: clamp(18px, 5.8vw, 24px);
+    letter-spacing: .015em;
+  }
+}
+
+@media (prefers-contrast: more) {
+  html[data-theme="combat"] body .empty-chat h2 {
+    border-color: #73f3a7;
+    color: #f0fff4;
+    background: #06130c;
+  }
+}
