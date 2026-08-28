@@ -86,9 +86,7 @@ def tune_ranking(
             metrics = evaluate_ranking(queries, weights, bm25)
             # This scalar is diagnostic only. Selection is maximin first: a strong
             # average cannot compensate for abandoning the weakest query.
-            utility = (
-                0.50 * metrics.ndcg_at_10 + 0.30 * metrics.recall_at_20 + 0.20 * metrics.mrr_at_10
-            )
+            utility = 0.50 * metrics.ndcg_at_10 + 0.30 * metrics.recall_at_20 + 0.20 * metrics.mrr_at_10
             candidate = (weights, bm25, metrics, utility)
             if best is None or (
                 metrics.worst_recall_at_20,
@@ -104,7 +102,8 @@ def tune_ranking(
                 best[0].as_tuple(),
             ):
                 best = candidate
-    assert best is not None
+    if best is None:
+        raise RuntimeError("ranking candidate search produced no result")
     weights, bm25, metrics, utility = best
     validation, checks = validate_held_out(validation_queries, weights, bm25, validation_policy)
     return TuningResult(weights, bm25, metrics, utility, validation, checks)

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 import pytest
+from korpus.security import external_destination, model_endpoint_policy
 from korpus.security.external_destination import parse_external_https_url
 from korpus.security.url_policy import (
     is_explicit_loopback_http_origin,
@@ -89,3 +92,14 @@ def test_external_https_policy_refuses_non_global_literal_destinations(value: st
 def test_external_https_policy_accepts_dns_and_global_literals() -> None:
     assert parse_external_https_url("https://api.example.com/v1").hostname == "api.example.com"
     assert parse_external_https_url("https://93.184.216.34/v1").hostname == "93.184.216.34"
+
+
+def test_destination_boundaries_fail_closed_if_a_parser_contract_regresses(monkeypatch) -> None:
+    hostless = urlsplit("https:///hostless")
+    monkeypatch.setattr(external_destination, "parse_https_url", lambda *args, **kwargs: hostless)
+    with pytest.raises(ValueError, match="must include a host"):
+        external_destination.parse_external_https_url("https://example.com")
+
+    monkeypatch.setattr(model_endpoint_policy, "parse_http_url", lambda *args, **kwargs: hostless)
+    with pytest.raises(ValueError, match="endpoint carries no host"):
+        model_endpoint_policy.local_model_endpoint_host("http://localhost")

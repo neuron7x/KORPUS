@@ -181,8 +181,8 @@ class ExtractiveAnswerService:
         )
         if gated is not None:
             return cast(Answer, gated)
-        assert eligible is not None
-
+        if eligible is None:
+            raise RuntimeError("retrieval gate returned neither a verdict nor eligible evidence")
         thresholds = retrieval_thresholds
         eligible, outranked = self._confine_to_top_authority(eligible)
         query_tokens = frozenset(tokenize(query.text))

@@ -14,9 +14,9 @@ def local_model_endpoint_host(target: str) -> str:
     try:
         parts = parse_http_url(target, name="local model endpoint", allow_query=False)
     except ValueError as exc:
-        detail = str(exc)
-        if "include a host" in detail:
-            detail = "endpoint carries no host"
+        detail = "endpoint carries no host" if "include a host" in str(exc) else str(exc)
         raise ValueError(detail) from exc
-    assert parts.hostname is not None
-    return parts.hostname
+    hostname = parts.hostname
+    if not hostname:
+        raise ValueError("endpoint carries no host")
+    return hostname
