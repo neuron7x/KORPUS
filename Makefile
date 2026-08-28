@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity coverage-ratchet determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -20,8 +20,25 @@ api-test:
 	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
 	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
 
-coverage-ratchet: api-test
-	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage.json --out var/coverage-gap-plan.json
+# The ratchet reads the union of both dialects, because both are what the suite runs.
+# Measuring SQLite alone reports every `dialect.name == "postgresql"` arm as untaken by a
+# run that cannot reach it — fourteen branches in `repository.py` alone — and the queue
+# then lists work that is already done. `coverage-union` fails closed when the PostgreSQL
+# report is absent rather than silently falling back to the SQLite one, so the number the
+# ratchet reads always says which runs produced it.
+coverage-ratchet: api-test coverage-union
+	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
+
+# The suite runs against both dialects; only one of them was ever measured. `api-test`
+# measures SQLite, `postgres-suite` runs PostgreSQL with --no-cov, and eight
+# `dialect.name` branches in the repository are therefore reported as untaken by a run
+# that cannot reach them. This unions the two so the ratchet's own queue stops listing
+# work that is already done — the ratchet itself keeps reading the SQLite report, which
+# is the stricter of the two, so nothing is relaxed by producing this.
+#   make coverage-union   (after api-test and a PostgreSQL run with coverage)
+coverage-union:
+	PYTHONPATH=apps/api/src $(PY) scripts/merge_dialect_coverage.py
+	PYTHONPATH=apps/api/src:. $(PY) scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan-union.json
 
 deterministic-replay:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/deterministic_replay_probe.py
@@ -37,6 +54,11 @@ plasticity-gate:
 
 # One serial fail-closed release cycle. The explicit recursive makes keep this order
 # even when the parent make is invoked with -j; no later gate can hide an earlier FAIL.
+# `mutation` moved ahead of `operational-gate` on 2026-08-28. The gate reads
+# MUTATION_REPORT.json and refuses a report generated from another source tree, so with
+# mutation last the gate always read the *previous* run's report: on any changed tree the
+# cycle failed with `mutation: generated from a different source tree`, and passed only
+# when it was run twice. Producers before the gate that consumes them.
 canonical-release-cycle:
 	$(MAKE) api-lint PY=$(PY)
 	$(MAKE) coverage-ratchet PY=$(PY)
@@ -45,12 +67,12 @@ canonical-release-cycle:
 	$(MAKE) plasticity-gate PY=$(PY)
 	$(MAKE) release-mutation-delta PY=$(PY)
 	$(MAKE) eval PY=$(PY)
+	$(MAKE) mutation PY=$(PY)
 	$(MAKE) migration-gate PY=$(PY)
 	$(MAKE) scale PY=$(PY)
 	$(MAKE) operational-gate PY=$(PY)
 	$(MAKE) validate PY=$(PY)
 	$(MAKE) web-build
-	$(MAKE) mutation PY=$(PY)
 
 # `mypy apps/api/src` from the repository root did not type-check this project.
 # The [tool.mypy] section lives in apps/api/pyproject.toml, and mypy only reads a
@@ -168,9 +190,15 @@ package-build-identity:
 release-mutation-delta:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/run_release_mutation_microcampaign.py
 
+# The report is written twice on purpose. `var/` is the run artefact; the copy under
+# `reports/` is what `current-truth-verify` reads to prove the evidence is bound to the
+# tree that produced it. Copying it here rather than by hand is why the two stopped
+# disagreeing: the checked-in copy had been four source digests behind for weeks, and
+# nothing in the pipeline updated it.
 dependency-locks:
 	mkdir -p var
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_dependency_locks.py --out var/dependency-lock-report.json --osv-out var/osv-query-batch.json
+	install -m 0644 var/dependency-lock-report.json reports/DEPENDENCY_LOCK_VERIFICATION_CURRENT.json
 
 assurance-model-check:
 	mkdir -p var
@@ -179,6 +207,7 @@ assurance-model-check:
 standards-control-map:
 	mkdir -p var
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_standards_control_map.py --out var/standards-control-map-verification.json
+	install -m 0644 var/standards-control-map-verification.json reports/STANDARDS_CONTROL_MAP_VERIFICATION.json
 
 # Artifact provenance is intentionally emitted beside the ZIP rather than embedded in it:
 # the statement binds the completed artifact digest, and embedding it would create a
@@ -196,6 +225,12 @@ slsa-provenance-verify:
 
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
+
+# Ruff states the same rule as EXE001/EXE002, but it reads only Python under four
+# directories: the shell scripts, Dockerfiles, Terraform and manifests had no mode check
+# at all. This reads `git ls-files`, which is the set the source manifest hashes.
+file-modes:
+	$(PY) scripts/check_file_modes.py
 
 # The doctrine catalog's provenance rules, executable: RESTRICTED never ingestible,
 # rights clearance stays a human decision, secondary analysis is never given a governing
@@ -330,7 +365,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget requirements-register doctrine-catalog github-actions-validate production-hard-predicates
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes requirements-register doctrine-catalog github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -564,6 +599,19 @@ readiness-evaluate:
 
 release-truth: production-hard-predicates
 	PYTHONPATH=apps/api/src:. $(PY) scripts/generate_release_truth.py
+
+# Order matters and used to be tribal knowledge. Every target that writes into `reports/`
+# changes the source digest, which invalidates the bindings written before it, so running
+# `release-truth` first and `dependency-locks` second leaves current-truth failing on two
+# reports that were correct when they were produced. This is the order that terminates:
+# the inputs first, the bindings over them last.
+evidence-refresh:
+	$(MAKE) dependency-locks PY=$(PY)
+	$(MAKE) standards-control-map PY=$(PY)
+	$(MAKE) release-truth PY=$(PY)
+	PYTHONPATH=scripts $(PY) scripts/generate_manifest.py --kind source
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/sync_package_build_identity.py
+	$(MAKE) current-truth-verify PY=$(PY)
 
 current-truth-verify:
 	PYTHONPATH=apps/api/src:. $(PY) scripts/verify_current_truth.py $(if $(OUT),--out "$(OUT)")
