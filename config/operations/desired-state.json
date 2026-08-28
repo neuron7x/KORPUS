@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "5eab9e88fef14ea81f0ef871fc2af57ace2fb9b8fd8ffc9819b78cc1a664ec77",
+  "root_sha256": "0885f3d3f8d8ff279f0e25add0af96c51e5b9130202cb86f73231ec9bd438d21",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -70,12 +70,12 @@
     },
     {
       "path": "apps/api/requirements.dev.lock",
-      "sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc",
-      "bytes": 2370
+      "sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
+      "bytes": 2677
     },
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "4f0b7f24034a898ce73ff1d464b0c9c17a1e52197753940b40380035b1e2a938",
+      "sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d",
       "bytes": 6006
     },
     {

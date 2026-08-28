@@ -28,6 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  "httpx2>=2.12,<3",
   "mypy>=2.3,<3",
   "pytest>=9,<10",
   "pytest-asyncio>=1.3,<2",
@@ -46,6 +47,9 @@ packages = ["src/korpus"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q --strict-markers --strict-config"
+filterwarnings = [
+  "error:Using httpx with starlette\\.testclient.*:starlette.exceptions.StarletteDeprecationWarning",
+]
 markers = [
   "integration: database/API integration test",
   "postgres: PostgreSQL service-container integration test",
