@@ -173,7 +173,7 @@ chmod -R a+rX "$EDGE"
 chmod a+rwX "$EDGE/tmp" "$EDGE/tmp/nginx"
 
 docker rm -f korpus-public-edge >/dev/null 2>&1 || true
-docker run -d --name korpus-public-edge \
+docker run -d --name korpus-public-edge --restart unless-stopped \
   --network host --add-host api:127.0.0.1 \
   -v "$ROOT/$EDGE/nginx.conf:/etc/nginx/nginx.conf:ro" \
   -v "$ROOT/$EDGE/html:/usr/share/nginx/html:ro" \

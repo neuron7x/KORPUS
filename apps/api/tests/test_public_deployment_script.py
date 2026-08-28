@@ -30,3 +30,11 @@ def test_public_edge_returns_typed_rate_limit_refusals() -> None:
     assert '"reason":"edge_rate_limited"' in config
     assert "add_header Retry-After 2 always;" in config
     assert "default_type application/json;" in config
+
+
+def test_public_edge_survives_daemon_and_host_restarts() -> None:
+    script = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
+    deployer = (ROOT / "scripts/deploy_public_web.py").read_text(encoding="utf-8")
+
+    assert "--restart unless-stopped" in script
+    assert '"--restart", "unless-stopped"' in deployer
