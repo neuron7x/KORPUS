@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1267,
-  "root_sha256": "11b5d2b0704f7c78a0410b9b1d8817c71f3304b6c7a9b6f6c1c1b28af8721826",
+  "file_count": 1290,
+  "root_sha256": "447b8af578b5013c0ebf4847eb1355c2c34134f1d8ab7faf3b38850c017d4d3e",
   "files": [
     {
       "path": ".dockerignore",
@@ -2496,6 +2496,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_answer_analysis_limits.py",
+      "bytes": 9334,
+      "sha256": "49824c3409642a51549eb1a327c67cfd0b461f9fc5d72330b50a0dc965b46afc",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_answer_composition.py",
       "bytes": 5971,
       "sha256": "7af11741c31bbe9450d0ca17518dd801f7770e8577250e6da30aa30de4be0dad",
@@ -2622,6 +2628,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_billing_plan_lifecycle.py",
+      "bytes": 3293,
+      "sha256": "628a50261187e847be4e68ef3a10811e213b9904607e7454403ea2aa5f784048",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_boundary_coverage_v5.py",
       "bytes": 20359,
       "sha256": "ed3ba63793dea585bfaba6fde1604ca57c4c06b9a2033ea7131b328b8cae1d3f",
@@ -2661,6 +2673,12 @@
       "path": "apps/api/tests/test_break_glass.py",
       "bytes": 5092,
       "sha256": "58859e365cd75d436cd76556c1159c0c8ad331aba62f87d8bf611b929785cd7d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_browser_auth_refusal_paths.py",
+      "bytes": 5460,
+      "sha256": "00bf050bc3fdc2d2d77147a871db3de801999abc25be265eec623f071490e574",
       "mode": "0644"
     },
     {
@@ -2886,6 +2904,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_durable_coordinator_refusals.py",
+      "bytes": 10726,
+      "sha256": "99bd6956ddee7e45bc482231cd86158e9e56f389c40c6a02ac92d4e21faafd3f",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_durable_ingestion_jobs.py",
       "bytes": 13204,
       "sha256": "dd7f04c44c2094447444e9bdac5c9565e7bc8b816fda5b1c244401ccb1e43101",
@@ -2943,6 +2967,12 @@
       "path": "apps/api/tests/test_embedding_migration.py",
       "bytes": 5805,
       "sha256": "a533ece228b7fe179873ae055d4a40407c6b7b6e043b4b8f5c738e56633e7286",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_embedding_provider_admission.py",
+      "bytes": 4957,
+      "sha256": "4878269b105233c3744dcf5a8952278c9622f101a7652b2659e34194dfbc489a",
       "mode": "0644"
     },
     {
@@ -3051,6 +3081,12 @@
       "path": "apps/api/tests/test_extraction_quality_governance.py",
       "bytes": 1382,
       "sha256": "5479046a023343690696bf07c01747aa47979c99b8c4a32cf4da163f1321ad31",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_extraction_type_confusion.py",
+      "bytes": 6466,
+      "sha256": "3a8bd6c7d29cf6a959bf60edcdf2d0d34103495f6f92ab5f2d5d08ddedaaa91c",
       "mode": "0644"
     },
     {
@@ -3264,6 +3300,24 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_ingestion_admission.py",
+      "bytes": 9153,
+      "sha256": "ae38f53d305bfdfd34e2036b914131849235484a84fe9b7f7189ad8984647242",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_ingestion_mode_exclusivity.py",
+      "bytes": 5511,
+      "sha256": "d87f2d26dc72823458197bbe9b55849fd2d6e18b18746354ca665917a508235b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_ingestion_queue_ownership.py",
+      "bytes": 10967,
+      "sha256": "9ce999d9644f7fbb4f68a8a02a29e61ad6a011fc044ecbef5e33d24bcccde233",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_intra_span_contradiction.py",
       "bytes": 8024,
       "sha256": "ede3902ac24e7d6f47f08f7f98287ea734ea7140270324b0d0c015c27088beba",
@@ -3333,6 +3387,12 @@
       "path": "apps/api/tests/test_mathematical_integrity_hardening.py",
       "bytes": 25851,
       "sha256": "60e6063ace62d124e4b1bf31873f2b4d7cf403d47cd8204b81add8600076687c",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_metamorphic_invariants.py",
+      "bytes": 6234,
+      "sha256": "64832f4c0a09b9b328ff89d3fd02f2e31abf521dfbe326f25b49b2525672d3bd",
       "mode": "0644"
     },
     {
@@ -3432,6 +3492,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_object_store_selection.py",
+      "bytes": 3622,
+      "sha256": "b0debd0d7332e56beb77a053cdf874ccccbba869d988cca40462070d14093f34",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_observability.py",
       "bytes": 1456,
       "sha256": "68ab805644daa5534c3edefcac9c5610568e35e1be951fe04b19740c7eade9f3",
@@ -3465,6 +3531,12 @@
       "path": "apps/api/tests/test_openai_model_adapter.py",
       "bytes": 9401,
       "sha256": "6dc3be27eb91d72c706168c4650d6f5d31aca7074bd6c1ac3561d6740596d732",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_openai_response_admission.py",
+      "bytes": 3767,
+      "sha256": "223b84fad5dd5464ee56f119033a28eaa4686e9e2feeddf0262985ddfa64679e",
       "mode": "0644"
     },
     {
@@ -3594,6 +3666,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_pec_oracle_boundaries.py",
+      "bytes": 7801,
+      "sha256": "e255b6e5739a6fe52b1dcbba5fa8884c33a929c2fdb5ee0722f41af56eeea2d0",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_pec_protocol_gates.py",
       "bytes": 7178,
       "sha256": "2f773eb368987e49fe5a93a09730c2c9ce0c9ae181f5ae68ed41c3b421262616",
@@ -3606,6 +3684,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_pec_replay_admission.py",
+      "bytes": 4810,
+      "sha256": "d193be061ff4b847b899d0294d0a378cad5f9acda8caf343be36f0c034101528",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_pec_research.py",
       "bytes": 4438,
       "sha256": "5596eb33f8437a860d892a011d87176d3380dfffe23eb4c8b7c228fd6c4074ee",
@@ -3615,6 +3699,12 @@
       "path": "apps/api/tests/test_pec_revision_binding_v097.py",
       "bytes": 1384,
       "sha256": "d351fc516d4899a645a30da7b6a4982534663057b56a880c49b12f2994ee3967",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_pec_state_and_telemetry_admission.py",
+      "bytes": 4644,
+      "sha256": "34a487b67fad9a41fc704534804970ef400a0fe1140184a88234140da52063e8",
       "mode": "0644"
     },
     {
@@ -3675,6 +3765,12 @@
       "path": "apps/api/tests/test_predictive_evidence_control.py",
       "bytes": 10185,
       "sha256": "97c01781aa8ada3482abb51ae8b9681a0c556bd23162a7de240bfd234b23b8aa",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_printed_decimal_parsing.py",
+      "bytes": 3609,
+      "sha256": "f49f4007857b729057c3594e7bcad65e56bd94af16057516ef6340838912671b",
       "mode": "0644"
     },
     {
@@ -3864,6 +3960,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_repository_integrity_and_contention.py",
+      "bytes": 13951,
+      "sha256": "db0e0d1e5a8b9e098742d089c27c0583d07150ca48bc6bd0af544eb5521dcafa",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_repository_noninterference.py",
       "bytes": 1456,
       "sha256": "44b7a13d8c41115ea5df9c3d4a26342f99472fcf7aa4cb155ce02c1d27c77fb9",
@@ -3903,6 +4005,12 @@
       "path": "apps/api/tests/test_rescission_and_clock.py",
       "bytes": 7017,
       "sha256": "8ec17f76af76577e7b06c969fbe1dd798a88e7d74d98edcedc4bceeb4a39b103",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_research_parameter_admission.py",
+      "bytes": 5846,
+      "sha256": "2c224330a27a4bf8080c8edcf6ffa384c2498cf8da23a44073c0ff4a21c4d0fd",
       "mode": "0644"
     },
     {
@@ -3951,6 +4059,12 @@
       "path": "apps/api/tests/test_retriever_scope.py",
       "bytes": 7440,
       "sha256": "95d6213d178fdd59190dd7e734edf4da4ba37560f097617b89e2289bc3a2f3b3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_review_transition_refusals.py",
+      "bytes": 13097,
+      "sha256": "69161182202cd2e15d1d7e2dec8d3ed61d1271f69cb5df0689d10aca53c41483",
       "mode": "0644"
     },
     {
@@ -4269,6 +4383,12 @@
       "path": "apps/api/tests/test_worker_service.py",
       "bytes": 2359,
       "sha256": "908b2733e2a95c09f48d7b335ed34caa512cb27ebb71adb5b2900c281e16a00b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_worker_supervisor_liveness.py",
+      "bytes": 5136,
+      "sha256": "7458c15c3bd715c4761019ccaecff38ea3cc5bfee2a19f79400bfc73d5f0fc5b",
       "mode": "0644"
     },
     {
@@ -6414,6 +6534,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_file_modes.py",
+      "bytes": 3380,
+      "sha256": "93625ba933c57b1207d3ea99e75e28c55e75a799d8d3f66efe43ef1fe955847f",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/check_import_cycles.py",
       "bytes": 2997,
       "sha256": "d1882ee18206347945e456c112af1be9a55040c07dc47ac8540020af45fccbf9",
@@ -6867,6 +6993,12 @@
       "path": "scripts/measure_recovery.py",
       "bytes": 7731,
       "sha256": "b56a8daa18ae13ad50b2003e522406fa3371e8a7d66b360ae8f2d4ea1391658c",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/merge_dialect_coverage.py",
+      "bytes": 5178,
+      "sha256": "6939f662137bdf13209ec1e7d5f67f7a4cc68ac4b8fc110c69ebe330713f4ce6",
       "mode": "0755"
     },
     {
@@ -7432,6 +7564,12 @@
       "bytes": 3841,
       "sha256": "9d3e0971fffdf30a187a60ebb32fe618818eeeddda91687bbf8c252758c28f8a",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/sync_package_build_identity.py",
+      "bytes": 2058,
+      "sha256": "d768c2645eeefba720c21c7c0cbd4732e02e3acf9742de38698080e3f6a735c6",
+      "mode": "0755"
     },
     {
       "path": "scripts/train_pec_controller.py",
