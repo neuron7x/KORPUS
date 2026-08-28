@@ -23,9 +23,10 @@ export function mountCombatScene() {
   host.prepend(canvas);
   const context = canvas.getContext("2d", {alpha: true});
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+  const viewport = globalThis.visualViewport;
   const signal = {stage: -1, state: "READY", coverage: 0, contacts: []};
   const hostile = {visible: true, count: 3, changedAt: performance.now()};
-  let width = 0, height = 0, centerX = 0, raf = 0, active = true;
+  let width = 0, height = 0, centerX = 0, centerY = 0, raf = 0, active = true;
   const heartbeat = setInterval(() => {
     hostile.visible = !hostile.visible;
     if (hostile.visible) hostile.count = hostile.count === 5 ? 3 : hostile.count + 1;
@@ -62,7 +63,12 @@ export function mountCombatScene() {
     const canvasRect = canvas.getBoundingClientRect();
     const promptRect = host.querySelector(".empty-chat h2")?.getBoundingClientRect();
     centerX = promptRect ? promptRect.left + promptRect.width / 2 - canvasRect.left : width / 2;
+    const radius = Math.max(72, Math.min(width * .32, height * .25, (viewport?.height ?? innerHeight) * .28, 250));
+    const promptTop = promptRect ? promptRect.top - canvasRect.top : height * .54;
+    centerY = Math.max(radius + 18, Math.min(promptTop - radius - 24, 270));
     canvas.dataset.centerX = String(centerX);
+    canvas.dataset.centerY = String(centerY);
+    canvas.dataset.radius = String(radius);
     draw(performance.now());
   }
 
@@ -155,8 +161,8 @@ export function mountCombatScene() {
     if (!active || !context) return;
     context.clearRect(0, 0, width, height);
     const x = centerX;
-    const radius = Math.max(90, Math.min(width * .32, height * .25, 250));
-    const y = Math.max(radius + 18, Math.min(height * .27, 270));
+    const radius = Number(canvas.dataset.radius);
+    const y = centerY;
     grid(x, y, radius, reduced.matches ? 0 : time * .00042);
     stages(x, y, radius);
     contacts(x, y, radius, time);
@@ -175,7 +181,10 @@ export function mountCombatScene() {
     if (!document.hidden && active) raf = requestAnimationFrame(frame);
   }
 
+  const observer = new ResizeObserver(resize);
+  observer.observe(host);
   addEventListener("resize", resize, {passive: true});
+  viewport?.addEventListener("resize", resize, {passive: true});
   addEventListener("korpus:radar", onSignal);
   document.addEventListener("visibilitychange", visibility);
   updateState();
@@ -186,7 +195,9 @@ export function mountCombatScene() {
     active = false;
     clearInterval(heartbeat);
     cancelAnimationFrame(raf);
+    observer.disconnect();
     removeEventListener("resize", resize);
+    viewport?.removeEventListener("resize", resize);
     removeEventListener("korpus:radar", onSignal);
     document.removeEventListener("visibilitychange", visibility);
     canvas.remove();
