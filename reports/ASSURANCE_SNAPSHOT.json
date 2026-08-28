@@ -1,0 +1,72 @@
+{
+  "schema": "korpus.assurance-snapshot.v1",
+  "release": "v0.9.7",
+  "status": "PASS",
+  "records": [
+    {
+      "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
+      "bytes": 929684,
+      "sha256": "98974553513a52dc426cf14ce11063ce767f3c3794cc929282b76047e68f7690"
+    },
+    {
+      "path": "reports/PYTEST_REPORT.xml",
+      "bytes": 342764,
+      "sha256": "147204f428bf655cea6b66d367ed7f70f4238816bcd70576f34584099a73aee7"
+    },
+    {
+      "path": "reports/COVERAGE_REPORT.xml",
+      "bytes": 697222,
+      "sha256": "e10967243b7cda19c4f054b63f45d1c9f5760326da4d5e1df6347230aed0afe1"
+    },
+    {
+      "path": "reports/COVERAGE_REPORT.json",
+      "bytes": 1942473,
+      "sha256": "6057079375a9446844a423e2738e6ff0911f7764cf307d4640cb00a5e0dda419"
+    },
+    {
+      "path": "reports/EVAL_REPORT.json",
+      "bytes": 19174,
+      "sha256": "a2c2edba690346a6c2465c4789522dc0b995c820c6c5499ab50acfb4e073d00c"
+    },
+    {
+      "path": "reports/MUTATION_REPORT.json",
+      "bytes": 892267,
+      "sha256": "41461613e240544251e40de02c7c31aa433b899932d2953eb7353d400837fa25"
+    },
+    {
+      "path": "reports/MIGRATION_REPORT.json",
+      "bytes": 2171,
+      "sha256": "de750518549ac747709d02b88b9a8fc301db63b82f61ff0a2ee8c5b07869b0eb"
+    },
+    {
+      "path": "reports/SCALE_REPORT.json",
+      "bytes": 1042,
+      "sha256": "0d7d8974ccaab2ef1578eaea37322a5708c25b750c82cbb99bc6f45f22d5a533"
+    },
+    {
+      "path": "reports/OPERATIONAL_GATE.json",
+      "bytes": 1499,
+      "sha256": "ac2b79323c6925177d321a7a5ffdc08195ed2c938db01ab3f4596f8de5bec30a"
+    },
+    {
+      "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
+      "bytes": 31692,
+      "sha256": "ec1d2b9e54ec36a571eeadcf6026ab20b4556b90e771289d002d08c882d1f494"
+    },
+    {
+      "path": "reports/INFRASTRUCTURE_VALIDATION.json",
+      "bytes": 246,
+      "sha256": "9d5b28b2850f8db35a848f77e681be40382c038ef1b8796824be479929bc0a38"
+    },
+    {
+      "path": "reports/KUBERNETES_VALIDATION.json",
+      "bytes": 566,
+      "sha256": "f1bcc2a6472f9fbed2b880ee9aac3887f8f3be2fd83e5c9c1c626a15d2f8223e"
+    }
+  ],
+  "limitations": [
+    "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; local fixture evidence cannot promote those claims.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
+  ]
+}

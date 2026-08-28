@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "variants": {
+    "base": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    },
+    "overlays/production": {
+      "status": "PASS",
+      "resources": 19,
+      "violations": []
+    }
+  },
+  "note": "static topology validation only; cluster execution remains external evidence",
+  "provenance": {
+    "schema_version": 1,
+    "source_digest": "baea6f778c824470652c1464cb146f84758d22518f1e4ccd7ae5278cc7fd7588",
+    "generator": "scripts/validate_kubernetes.py",
+    "generated_at": "2026-08-26T12:42:16+00:00"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "d84878a1ab68c95fb08e7fc69bf6f1a874316406819861c0b6f2a388810babb5",
+  "source_tree_sha256": "f316a6cfca6770c9177da02d8ad9182b47788aa4df7d02cb3e0885f8c1e836fa",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -88,14 +88,9 @@
         "required_attack_families_covered",
         "tevv_admissible",
         "pass_rate",
-        "citation_integrity",
-        "leakage",
-        "determinism",
         "null_controls",
-        "null_false_accepts",
         "attack_families",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -111,8 +106,7 @@
         "assessor_structured",
         "assessor_attestation_verified",
         "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -127,8 +121,7 @@
         "environment_class",
         "assessor_attestation_verified",
         "assessor_trusted_signer",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
@@ -221,14 +214,9 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "all_locked_components_installed",
-        "all_versions_exact",
-        "no_unmanaged_distributions",
         "production_python_exact",
-        "lock_hashes_present",
         "metadata:status",
-        "gate_source_bound",
-        "gate_release_bound"
+        "gate_source_bound"
       ]
     },
     {
