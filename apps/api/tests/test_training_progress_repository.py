@@ -141,3 +141,82 @@ def test_progress_round_trip_and_atomic_replace(tmp_path: Path):
     )
     repo.save(changed)
     assert repo.load("soldier-1", version.id).mastery[0].state is ObjectiveState.REVIEW_REQUIRED
+
+
+def test_progress_for_a_course_version_that_does_not_exist_is_refused(tmp_path: Path):
+    """Mastery rows are keyed by course version; an unknown one has no objectives.
+
+    Writing them anyway would leave progress nobody can read back through a course, and
+    the read side would report an empty record rather than the fault that produced it.
+    Both directions are checked, because a version can also be removed between a write
+    and a later read.
+    """
+    import pytest
+
+    base = SqlRepository(
+        f"sqlite:///{tmp_path / 'orphan.db'}",
+        "audit-key",
+        audit_anchor_path=tmp_path / "anchor.json",
+    )
+    base.initialize()
+    repo = SqlTrainingProgressRepository(base.engine)
+    progress = LearnerProgress(
+        subject="soldier-1",
+        course_version_id="course-v-missing",
+        mastery=(
+            ObjectiveMastery(
+                objective_id="objective",
+                state=ObjectiveState.MASTERED,
+                last_check_id="q1",
+                source_binding_ids=("binding",),
+                updated_at=datetime(2026, 8, 20, tzinfo=UTC),
+            ),
+        ),
+    )
+    with pytest.raises(LookupError, match="course version not found"):
+        repo.save(progress)
+    with pytest.raises(LookupError, match="course version not found"):
+        repo.load("soldier-1", "course-v-missing")
+
+
+def test_a_learner_with_no_recorded_mastery_reads_as_empty_rather_than_missing(tmp_path: Path):
+    """A course version that exists and a learner who has not started are not an error.
+
+    The empty write path matters too: saving progress with no mastery rows must still
+    clear whatever was there, or a reset would silently keep the previous state.
+    """
+    base = SqlRepository(
+        f"sqlite:///{tmp_path / 'empty.db'}",
+        "audit-key",
+        audit_anchor_path=tmp_path / "anchor.json",
+    )
+    base.initialize()
+    _source(base)
+    learning = SqlLearningRepository(base.engine)
+    learning.create_course(Course(id="course", specialty_id="public", title="Course"))
+    version = _version()
+    learning.create_version(version)
+    repo = SqlTrainingProgressRepository(base.engine)
+
+    assert repo.load("newcomer", version.id).mastery == ()
+
+    started = LearnerProgress(
+        subject="newcomer",
+        course_version_id=version.id,
+        mastery=(
+            ObjectiveMastery(
+                objective_id="objective",
+                state=ObjectiveState.MASTERED,
+                last_check_id="q1",
+                source_binding_ids=("binding",),
+                updated_at=datetime(2026, 8, 20, tzinfo=UTC),
+            ),
+        ),
+    )
+    repo.save(started)
+    assert repo.load("newcomer", version.id).mastery != ()
+
+    repo.save(started.model_copy(update={"mastery": ()}))
+    assert repo.load("newcomer", version.id).mastery == (), (
+        "an empty save must clear the previous rows, not leave them in place"
+    )

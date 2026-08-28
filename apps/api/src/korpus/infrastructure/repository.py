@@ -83,6 +83,7 @@ from korpus.infrastructure.tenancy_schema import (
 __all__ = [
     "SCHEMA_REVISION",
     "ConcurrentWriteError",
+    "NonRetryableWriteError",
     "SqlRepository",
     "accounts",
     "audit_anchor_outbox",
@@ -106,7 +107,43 @@ class ConcurrentWriteError(RuntimeError):
     pass
 
 
+class NonRetryableWriteError(ConcurrentWriteError):
+    """A conflict retrying cannot resolve, raised through the retry loop unchanged.
+
+    The loop exists for the audit head, where a losing writer reads a moved head and the
+    next attempt legitimately succeeds. A review transition that found the version in a
+    different state is the opposite case: the state will not change back, so the eight
+    attempts are wasted work and — worse — the caller ends up holding
+    `transaction retry budget exhausted` instead of `version state changed concurrently`.
+    That string reaches the operator through the 409 body, and it describes a load problem
+    where the real answer is "somebody else reviewed this first".
+
+    Subclassing keeps every existing `except ConcurrentWriteError` — the review routes,
+    the rescission route, the versioning tests — catching it exactly as before.
+    """
+
+
 T = TypeVar("T")
+
+
+# PostgreSQL never uses the word this used to look for. A serialization failure reads
+# "could not serialize access due to concurrent update" and a deadlock reads "deadlock
+# detected" — neither contains "serialization", so on the deployment dialect the retry
+# loop re-raised real contention instead of retrying it, and only SQLite's "database is
+# locked" was ever recognised. The class is carried in SQLSTATE (40001 serialization
+# failure, 40P01 deadlock detected), which is what the standard defines it by; the text
+# match stays as the fallback for drivers that expose no code, SQLite among them.
+CONTENTION_SQLSTATES = frozenset({"40001", "40P01"})
+CONTENTION_PHRASES = ("locked", "could not serialize", "deadlock detected")
+
+
+def _is_contention(exc: OperationalError) -> bool:
+    sqlstate = getattr(getattr(exc, "orig", None), "sqlstate", None)
+    if isinstance(sqlstate, str):
+        return sqlstate in CONTENTION_SQLSTATES
+    message = str(exc).lower()
+    return any(phrase in message for phrase in CONTENTION_PHRASES)
+
 
 
 class SqlRepository:
@@ -458,7 +495,7 @@ class SqlRepository:
                     append_audit=self._append_audit_in_connection,
                 )
             except review_transitions.ReviewTransitionConflict as exc:
-                raise ConcurrentWriteError(str(exc)) from exc
+                raise NonRetryableWriteError(str(exc)) from exc
 
         return self._transaction_with_anchor(operation)
 
@@ -925,10 +962,12 @@ class SqlRepository:
                     with suppress(AnchorError, OSError, TimeoutError):
                         self.reconcile_audit_anchor(limit=1)
                     return result
+                except NonRetryableWriteError:
+                    raise
                 except ConcurrentWriteError as exc:
                     last_error = exc
                 except OperationalError as exc:
-                    if "locked" not in str(exc).lower() and "serialization" not in str(exc).lower():
+                    if not _is_contention(exc):
                         raise
                     last_error = exc
                 time.sleep(0.002 * (2**attempt))

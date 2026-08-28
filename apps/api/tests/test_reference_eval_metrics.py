@@ -1,11 +1,18 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
+# `run_reference_eval` imports its sibling by bare name, so `scripts/` has to be on the
+# path before it is executed. Other modules happen to put it there, which made this file
+# pass in a full run and fail in isolation: the regression shards found it as a
+# collection error in shard 028, where none of those modules are collected first.
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
 SPEC = importlib.util.spec_from_file_location(
     "run_reference_eval", ROOT / "scripts/run_reference_eval.py"
 )

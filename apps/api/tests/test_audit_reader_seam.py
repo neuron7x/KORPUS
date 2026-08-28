@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 from korpus.application.policy import PolicyEngine
 from korpus.domain.models import AccessTier, Identity
 from korpus.infrastructure.audit_reader import audit_canonical
@@ -127,3 +128,72 @@ def test_the_reader_opens_its_own_connections(tmp_path: Path) -> None:
 
     assert "_transaction_with_anchor" not in source
     assert source.count("self.engine.connect()") >= 3
+
+
+def test_a_gap_in_the_sequence_is_reported_rather_than_verified_around(tmp_path: Path) -> None:
+    """The chain is contiguous by construction; a hole means an event was removed.
+
+    Hash linkage alone does not catch this: deleting event 3 leaves 1→2 and 4→5 both
+    internally consistent, and a verifier that only rehashed each row against its
+    predecessor's stored hash would walk the two fragments and report a valid chain with
+    one fewer event. The sequence check is what makes deletion visible.
+    """
+    from korpus.infrastructure.schema import audits
+    from sqlalchemy import delete
+
+    repository = _repository(tmp_path)
+    for index in range(5):
+        repository.append_audit(WHO, "document.ingested", "document_version", f"d{index}", {})
+    assert repository.verify_audit().valid is True
+
+    with repository.engine.begin() as connection:
+        connection.execute(delete(audits).where(audits.c.sequence == 3))
+
+    verification = repository.verify_audit()
+    assert verification.valid is False
+    assert verification.reason == "audit sequence gap"
+    assert verification.first_invalid_sequence == 3
+    assert verification.event_count == 4
+    assert verification.head_sequence == 5, (
+        "the head still records five appends; the gap is the discrepancy"
+    )
+
+
+def test_a_naive_timestamp_is_read_as_utc_rather_than_raising(tmp_path: Path) -> None:
+    """SQLite hands back naive datetimes; comparing one to an aware value raises.
+
+    The reader normalises instead, because an audit endpoint that raises on its own
+    storage format is an audit nobody can run on the deployment that needs it.
+    """
+    from datetime import UTC, datetime
+
+    from korpus.infrastructure.audit_reader import iso
+
+    naive = datetime(2026, 8, 28, 12, 0, 0)
+    aware = datetime(2026, 8, 28, 12, 0, 0, tzinfo=UTC)
+    assert iso(naive) == iso(aware)
+    assert iso(naive).endswith("+00:00")
+
+
+@pytest.mark.parametrize(
+    "trace_id",
+    ["", "not a trace", "../etc", "0" * 200, "trace id with spaces", "'; DROP TABLE audits;--"],
+)
+def test_a_trace_id_that_is_not_a_trace_id_is_refused(tmp_path: Path, trace_id: str) -> None:
+    """The value is interpolated into a JSON needle used for a LIKE scan.
+
+    Validating the shape first is what keeps that needle from being attacker-chosen.
+    """
+    repository = _repository(tmp_path)
+    with pytest.raises(ValueError, match="invalid trace id"):
+        repository.read_audit_events(WHO, trace_id)
+
+
+@pytest.mark.parametrize("limit", [0, -1, 1001, 10_000])
+def test_a_trace_query_limit_outside_the_supported_range_is_refused(
+    tmp_path: Path, limit: int
+) -> None:
+    """Zero returns nothing while looking like an answer; an unbounded limit is a scan."""
+    repository = _repository(tmp_path)
+    with pytest.raises(ValueError, match="limit out of range"):
+        repository.read_audit_events(WHO, "trace-0123456789abcdef", limit=limit)

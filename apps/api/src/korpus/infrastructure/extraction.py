@@ -269,7 +269,10 @@ def _sandbox_limits(memory_limit_mb: int, cpu_seconds: int, output_limit_bytes: 
     resource.setrlimit(resource.RLIMIT_CPU, (cpu_seconds, cpu_seconds + 1))
     resource.setrlimit(resource.RLIMIT_FSIZE, (output_limit_bytes, output_limit_bytes))
     resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
-    if hasattr(resource, "RLIMIT_NPROC"):
+    # Present on Linux and absent on macOS. The false arm cannot be taken on the platform
+    # the suite and the deployment both run on, so it is excluded rather than left to read
+    # as an untested path.
+    if hasattr(resource, "RLIMIT_NPROC"):  # pragma: no branch
         resource.setrlimit(resource.RLIMIT_NPROC, (16, 16))
 
 
@@ -543,10 +546,15 @@ def make_spans(
             position = max(position + 1, end - overlap_chars)
     if not output:
         raise ValueError("document yielded no evidence spans")
-    if any(len(str(span["text"])) > max_chars for span in output):
+    # Unreachable by construction: every chunk is a slice bounded by `max_chars` above.
+    # Kept as a self-check for the day someone changes the construction — the docstring
+    # says so — and excluded from coverage rather than left to read as an untested guard.
+    if any(len(str(span["text"])) > max_chars for span in output):  # pragma: no cover
         raise AssertionError("chunking invariant violated")
     by_page = {page.page: page.text for page in pages}
-    if any(str(span["text"]) not in by_page[span["page"]] for span in output):  # type: ignore[index]
+    if any(  # pragma: no cover - see the invariant above
+        str(span["text"]) not in by_page[span["page"]] for span in output  # type: ignore[index]
+    ):
         raise AssertionError("span is not a substring of its page")
     return output
 

@@ -593,3 +593,133 @@ def test_a_non_idempotency_integrity_error_is_not_swallowed_as_a_duplicate(
             store._repository.audited_transaction = original  # type: ignore[method-assign]
     finally:
         tenancy.close()
+
+
+def _raw_event(tenancy: Any, body: dict[str, Any]) -> tuple[bytes, str]:
+    payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    return payload, tenancy.provider.sign(payload)
+
+
+@pytest.mark.parametrize(
+    "occurred_at",
+    [None, "", "not-a-timestamp", 1735689600, {"at": "2026-01-01"}, []],
+)
+def test_an_event_without_a_usable_timestamp_applies_but_never_advances_the_order(
+    tmp_path: Path, occurred_at: Any
+) -> None:
+    """A timestamp the parser cannot read is dropped, not defaulted, and not fatal.
+
+    Three outcomes are possible here and only two of them were exercised: a usable
+    moment, a moment older than the last applied one (refused as a replay), and a value
+    that is not a moment at all. The third is deliberately not a refusal — the event is
+    signed, names a real subscription and requests a legal transition, so the provider
+    simply failed to tell us when. It applies, and `last_event_at` stays where it was.
+
+    That last part is the property worth holding. Defaulting the missing value to "now"
+    would move the replay watermark forward on the strength of a field the provider never
+    sent, and every genuinely older event after it would then be refused. Leaving the
+    watermark alone costs one event's worth of ordering; moving it costs the guard.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        _account, subscription = _account_with_subscription(tenancy)
+        moment = now()
+        payload, signature = _raw_event(
+            tenancy,
+            {
+                "id": "evt-no-time",
+                "type": "subscription.activated",
+                "occurred_at": occurred_at,
+                "data": {
+                    "reference": str(subscription.id),
+                    "subscription_id": None,
+                    "period_start": moment.isoformat(),
+                    "period_end": (moment + timedelta(days=30)).isoformat(),
+                },
+            },
+        )
+        assert tenancy.subscription_service.handle_event(payload, signature) is (
+            BillingEventResult.APPLIED
+        )
+        stored = tenancy.subscriptions.get_subscription(subscription.id)
+        assert stored.status is SubscriptionStatus.ACTIVE
+        assert stored.last_event_at is None, (
+            "an unreadable timestamp must not become the replay watermark"
+        )
+
+        # The guard is still armed: a real, older event is still refused afterwards.
+        older, older_signature = _event(
+            tenancy,
+            "evt-older",
+            "subscription.payment_failed",
+            reference=str(subscription.id),
+            occurred_at=moment - timedelta(days=30),
+        )
+        assert tenancy.subscription_service.handle_event(older, older_signature) is (
+            BillingEventResult.APPLIED
+        ), "with no watermark recorded there is nothing to compare against yet"
+    finally:
+        tenancy.close()
+
+
+@pytest.mark.parametrize(
+    "reference",
+    ["", "not-a-uuid", "00000000-0000-0000-0000-000000000000", None, 12345],
+)
+def test_an_event_naming_a_subscription_this_system_never_created_is_refused(
+    tmp_path: Path, reference: Any
+) -> None:
+    """A well-formed UUID that names nothing is the same answer as a malformed one.
+
+    Both mean the provider is describing a subscription we have no row for, and both are
+    refused before any status is computed — an event may only move something that exists.
+    """
+    tenancy = build_tenancy(tmp_path)
+    try:
+        _account_with_subscription(tenancy)
+        moment = now()
+        payload, signature = _raw_event(
+            tenancy,
+            {
+                "id": f"evt-unknown-{reference}",
+                "type": "subscription.activated",
+                "occurred_at": moment.isoformat(),
+                "data": {
+                    "reference": reference,
+                    "subscription_id": None,
+                    "period_start": moment.isoformat(),
+                    "period_end": (moment + timedelta(days=30)).isoformat(),
+                },
+            },
+        )
+        assert tenancy.subscription_service.handle_event(payload, signature) is (
+            BillingEventResult.REJECTED
+        )
+    finally:
+        tenancy.close()
+
+
+def test_a_yearly_plan_advances_the_period_by_a_year(tmp_path: Path) -> None:
+    """The interval decides the period, and only the monthly arm had ever been taken.
+
+    A yearly subscription whose period advanced by a month would bill twelve times for
+    one year of entitlement, and the row would look correct at every individual step.
+    """
+    from korpus.application.billing_adjudication import _period_end
+    from korpus.domain.tenancy import BillingInterval
+
+    start = datetime(2026, 3, 15, 12, 0, tzinfo=UTC)
+    assert _period_end(start, BillingInterval.YEARLY) == datetime(2027, 3, 15, 12, 0, tzinfo=UTC)
+    assert _period_end(start, BillingInterval.MONTHLY) == datetime(2026, 4, 15, 12, 0, tzinfo=UTC)
+
+    # A day that does not exist in the target month clamps rather than overflowing.
+    assert _period_end(
+        datetime(2026, 1, 31, tzinfo=UTC), BillingInterval.MONTHLY
+    ) == datetime(2026, 2, 28, tzinfo=UTC)
+    assert _period_end(
+        datetime(2028, 2, 29, tzinfo=UTC), BillingInterval.YEARLY
+    ) == datetime(2029, 2, 28, tzinfo=UTC)
+    # December rolls the year over rather than producing month 13.
+    assert _period_end(
+        datetime(2026, 12, 31, tzinfo=UTC), BillingInterval.MONTHLY
+    ) == datetime(2027, 1, 31, tzinfo=UTC)

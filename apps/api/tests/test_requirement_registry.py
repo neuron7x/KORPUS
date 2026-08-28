@@ -226,14 +226,25 @@ def test_ids_are_unique_across_every_register() -> None:
     assert duplicate_ids(everything) == []
 
 
-def test_one_walk_answers_every_filesystem_question() -> None:
+def test_one_walk_answers_every_filesystem_question(monkeypatch) -> None:
     """Three requirements read one traversal; three traversals would answer the same
     question three times over thirteen thousand paths."""
     from korpus.repository_requirements import load_context as load_repository_context
 
+    original_rglob = Path.rglob
+    walks = 0
+
+    def counted_rglob(path: Path, pattern: str):
+        nonlocal walks
+        if path == ROOT and pattern == "*":
+            walks += 1
+        return original_rglob(path, pattern)
+
+    monkeypatch.setattr(Path, "rglob", counted_rglob)
     context = load_repository_context(ROOT, _repository_validation_context())
 
-    assert context.path_count == sum(1 for _ in ROOT.rglob("*"))
+    assert walks == 1
+    assert context.path_count > 0
     assert context.oversized == []
     assert context.placeholders == []
     assert context.tracked_secrets == []

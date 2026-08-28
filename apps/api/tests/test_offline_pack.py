@@ -79,3 +79,60 @@ def test_route_is_fail_closed_when_offline_export_is_disabled(client: TestClient
     client.app.state.offline_pack_service = None
     response = client.post("/v1/offline-pack", json={"corpora": ["public"]})
     assert response.status_code == 503
+
+
+@pytest.mark.parametrize(
+    ("corpora", "message"),
+    [
+        (["public", "PUBLIC"], "duplicate corpus identifier"),
+        (["public", " public "], "duplicate corpus identifier"),
+        (["public", "public"], "duplicate corpus identifier"),
+        (["../etc"], "invalid corpus identifier"),
+        (["public;drop"], "invalid corpus identifier"),
+        (["корпус"], "invalid corpus identifier"),
+        ([""], "invalid corpus identifier"),
+    ],
+)
+def test_a_corpus_list_that_cannot_be_normalised_is_refused_at_the_boundary(
+    client: TestClient, corpora: list[str], message: str
+) -> None:
+    """Normalisation happens before authorization, so it has to be injective.
+
+    `public` and `PUBLIC` fold to one identifier; admitting both would let a request
+    name the same corpus twice and make the entitlement diff — requested against
+    denied — disagree with itself. The pattern check is the other half: the value is
+    interpolated into a query and a pack manifest.
+    """
+    response = client.post("/v1/offline-pack", json={"corpora": corpora})
+    assert response.status_code == 422, response.text
+    assert message in response.text
+
+
+def test_a_normalised_corpus_list_survives(client: TestClient) -> None:
+    """The dual: refusing everything would satisfy the assertions above."""
+    client.app.state.offline_pack_service = service(client)
+    response = client.post("/v1/offline-pack", json={"corpora": [" Public "]})
+    assert response.status_code != 422, response.text
+
+
+def test_the_key_route_is_fail_closed_when_offline_export_is_disabled(
+    client: TestClient,
+) -> None:
+    """A published verification key implies a pack to verify; without one it is noise."""
+    client.app.state.offline_pack_service = None
+    response = client.get("/v1/offline-pack/key")
+    assert response.status_code == 503
+    assert "disabled" in response.text
+
+
+def test_the_key_route_publishes_the_signer_identity_when_enabled(client: TestClient) -> None:
+    """The verifier needs the algorithm and key id, and never the private half."""
+    configured = service(client)
+    client.app.state.offline_pack_service = configured
+    response = client.get("/v1/offline-pack/key")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["algorithm"] == "Ed25519"
+    assert body["key_id"] == configured.signer.key_id
+    assert body["public_key_b64"] == configured.signer.public_key_b64
+    assert "private" not in response.text.lower()

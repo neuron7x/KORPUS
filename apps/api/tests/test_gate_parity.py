@@ -819,6 +819,35 @@ def test_the_module_budget_is_enforced_in_both_entry_points() -> None:
     )
 
 
+def test_file_modes_are_enforced_in_both_entry_points() -> None:
+    """A rule nothing runs is a comment. Ruff covers Python under four directories only."""
+    assert "file-modes" in _makefile_prerequisites("validate"), (
+        "make validate no longer enforces the file-mode rule"
+    )
+    assert any("check_file_modes.py" in line for line in _ci_script("repository:validate")), (
+        "repository:validate no longer enforces the file-mode rule"
+    )
+
+
+def test_every_tracked_file_carries_the_mode_its_shebang_implies() -> None:
+    """Eight different modes were in the tree before this rule; the drift is the defect.
+
+    The rule is ruff's own EXE001/EXE002 — shebang means executable — applied to the set
+    `git ls-files` returns rather than to Python in four directories.
+    """
+    result = subprocess.run(
+        [sys.executable, "scripts/check_file_modes.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PATH": "/usr/bin:/bin"},
+    )
+    report = json.loads(result.stdout)
+    assert report["status"] == "PASS", report["violations"]
+    assert report["files_checked"] > 1000, "the gate measured almost nothing"
+
+
 def test_every_module_is_in_the_budget() -> None:
     """ "Not yet budgeted" is how a file reaches two thousand lines unnoticed."""
     result = subprocess.run(

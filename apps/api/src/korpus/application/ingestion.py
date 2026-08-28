@@ -135,7 +135,12 @@ class IngestionService:
             self.corpus_governance.authorize_ingestion(
                 document_data, version_data, ocr_requested=self.extraction.ocr_enabled
             )
-        elif self.require_corpus_governance:
+        # Unreachable: the constructor refuses `require_corpus_governance` without a
+        # profile (test_controlled_ingestion_cannot_be_configured_without_a_governance_profile),
+        # so an instance in this state cannot be built. Kept as a second line for anyone
+        # who reassigns the attribute afterwards, excluded from coverage rather than left
+        # to read as an untested control.
+        elif self.require_corpus_governance:  # pragma: no cover
             raise PermissionError("corpus governance profile is unavailable")
         if document_data.corpus_id not in actor.corpora and not actor.has_role("admin"):
             raise PermissionError("actor cannot ingest into unassigned corpus")
@@ -263,7 +268,7 @@ class IngestionService:
                 version_data,
                 ocr_requested=self.extraction.ocr_enabled,
             )
-        elif self.require_corpus_governance:
+        elif self.require_corpus_governance:  # pragma: no cover - see the branch in `ingest`
             raise PermissionError("corpus governance profile is unavailable")
         digest = self._validate_path_and_hash(path, source_hash)
         self._verify_source(document.issuer, version_data, digest)

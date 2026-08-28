@@ -139,3 +139,68 @@ def test_hosted_release_node_matches_pinned_web_build_runtime() -> None:
     image_match = re.search(r"ARG NODE_IMAGE=node:([0-9.]+)-alpine", dockerfile)
     assert workflow_match is not None and image_match is not None
     assert workflow_match.group(1) == image_match.group(1)
+
+
+def _write(tmp_path: Path, payload: object) -> Path:
+    path = tmp_path / "profile.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def test_a_profile_that_is_not_an_object_is_refused(tmp_path: Path) -> None:
+    """The profile is the preregistered list; a bare list or string is not one."""
+    import pytest
+
+    for payload in ([], "predicates", 14, None):
+        with pytest.raises(ValueError, match="must be a JSON object"):
+            load_hard_predicate_profile(_write(tmp_path, payload))
+
+
+def test_a_profile_with_no_predicates_is_refused(tmp_path: Path) -> None:
+    """An empty list would report fourteen-of-fourteen satisfied over nothing."""
+    import pytest
+
+    for predicates in ([], None, {}, "all"):
+        with pytest.raises(ValueError, match="non-empty predicates list"):
+            load_hard_predicate_profile(_write(tmp_path, {"predicates": predicates}))
+
+
+def test_predicate_ids_must_be_present_and_unique(tmp_path: Path) -> None:
+    """The id is how a predicate is cited in the release report.
+
+    A duplicate makes two rows one citation; an empty one makes a predicate that cannot
+    be referred to at all, and both would be counted in the fourteen.
+    """
+    import pytest
+
+    for predicates in (
+        [{"id": "a"}, {"id": "a"}],
+        [{"id": ""}],
+        [{"id": "a"}, "not-a-mapping"],
+        [{}],
+    ):
+        with pytest.raises(ValueError, match="IDs must be non-empty and unique"):
+            load_hard_predicate_profile(_write(tmp_path, {"predicates": predicates}))
+
+
+def test_a_profile_naming_a_different_predicate_set_than_the_evaluator_is_refused(
+    tmp_path: Path,
+) -> None:
+    """Drift in either direction is refused, and that is the point.
+
+    A profile with a predicate the evaluator cannot check would report a gate nobody
+    runs; an evaluator requirement missing from the profile would silently drop a gate
+    from the count. Comparing the sets catches both.
+    """
+    import pytest
+
+    declared = json.loads(PROFILE.read_text(encoding="utf-8"))["predicates"]
+    fewer = declared[:-1]
+    with pytest.raises(ValueError, match="predicate sets differ"):
+        load_hard_predicate_profile(_write(tmp_path, {"predicates": fewer}))
+
+    extra = [*declared, {"id": "invented_later", "gate": "tevv"}]
+    with pytest.raises(ValueError, match="predicate sets differ"):
+        load_hard_predicate_profile(_write(tmp_path, {"predicates": extra}))
+
+    load_hard_predicate_profile(_write(tmp_path, {"predicates": declared}))

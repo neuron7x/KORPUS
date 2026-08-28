@@ -162,7 +162,13 @@ class IngestionWorker:
             try:
                 self.quarantine_store.get_to_path(job.staging_object_key, path)
                 if job.kind is IngestionJobKind.DOCUMENT:
-                    if job.document is None:
+                    # Unreachable: `IngestionJobRecord.validate_target` binds kind to
+                    # payload, and `claim` builds the record before the worker sees it —
+                    # nulling both columns directly in the database makes `claim` raise
+                    # instead (test_a_corrupted_job_row_is_refused_at_claim_not_at_execution).
+                    # Kept as type narrowing, excluded from coverage rather than left to
+                    # read as an untested defence.
+                    if job.document is None:  # pragma: no cover
                         raise ValueError("document ingestion job carries no document metadata")
                     result = self.ingestion.ingest_path(
                         job.actor,
@@ -174,7 +180,7 @@ class IngestionWorker:
                         job.source_hash,
                     )
                 else:
-                    if job.document_id is None:
+                    if job.document_id is None:  # pragma: no cover - see the branch above
                         raise ValueError("version ingestion job carries no document id")
                     result = self.ingestion.ingest_version_path(
                         job.actor,

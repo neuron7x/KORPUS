@@ -1,3 +1,4 @@
+import pytest
 from korpus.application.evaluation_validity import (
     AdmissionPolicy,
     CampaignContext,
@@ -5,6 +6,7 @@ from korpus.application.evaluation_validity import (
     HardFailureClass,
     TEVVDimension,
     evaluate_campaign,
+    percentile,
     wilson_interval,
 )
 from korpus.application.evaluation_validity import (
@@ -144,3 +146,65 @@ def test_wilson_interval_has_expected_zero_failure_upper_bound():
     low, high = wilson_interval(0, 400)
     assert low == 0.0
     assert 0.009 < high < 0.01
+
+
+def test_an_observation_that_failed_hard_cannot_be_recorded_as_passed() -> None:
+    """The two fields are not independent: one is a verdict, the other its evidence.
+
+    A row carrying `citation_fabrication` and `passed=True` would count toward the pass
+    rate and toward the hard-failure ledger at once, and the campaign's own consistency
+    check compares those two numbers. Refusing the row at construction is what keeps the
+    comparison meaningful.
+    """
+    for failure in HardFailureClass:
+        with pytest.raises(ValueError, match="hard failure cannot be marked passed"):
+            EvaluationObservation(
+                id="case-1",
+                cohort="operator",
+                dimensions=frozenset(TEVVDimension),
+                passed=True,
+                hard_failures=(failure,),
+                latency_ms=1.0,
+            )
+
+
+def test_an_observation_that_failed_hard_and_is_marked_failed_is_admitted() -> None:
+    """The dual: refusing every combination would satisfy the assertion above."""
+    observation = EvaluationObservation(
+        id="case-1",
+        cohort="operator",
+        dimensions=frozenset(TEVVDimension),
+        passed=False,
+        hard_failures=(next(iter(HardFailureClass)),),
+        latency_ms=1.0,
+    )
+    assert observation.hard_failures
+
+
+@pytest.mark.parametrize("q", [-0.001, 1.001, float("nan"), float("inf"), -float("inf")])
+def test_a_quantile_outside_the_unit_interval_is_refused(q: float) -> None:
+    """A p150 latency is not a slow number; it is a question with no answer."""
+    with pytest.raises(ValueError, match="q must be finite"):
+        percentile([1.0, 2.0], q)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), -float("inf")])
+def test_a_non_finite_measurement_is_refused_before_it_is_sorted(bad: float) -> None:
+    """NaN has no order, so a list containing one sorts differently on different runs.
+
+    The percentile would then depend on where the NaN happened to land, and two runs of
+    the same campaign would report two latencies from identical observations.
+    """
+    with pytest.raises(ValueError, match="percentile values must be finite"):
+        percentile([1.0, bad, 3.0], 0.95)
+
+
+def test_percentile_boundaries_are_defined_rather_than_interpolated_off_the_end() -> None:
+    """Zero, one and two measurements are the cases a campaign actually starts with."""
+    assert percentile([], 0.95) is None
+    assert percentile([7.0], 0.95) == 7.0
+    assert percentile([1.0, 3.0], 0.0) == 1.0
+    assert percentile([1.0, 3.0], 1.0) == 3.0
+    assert percentile([1.0, 3.0], 0.5) == 2.0
+    assert percentile([1.0, 2.0, 3.0, 4.0], 0.5) == 2.5
+    assert percentile([4.0, 1.0, 3.0, 2.0], 0.25) == 1.75
