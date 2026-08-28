@@ -138,13 +138,16 @@ export function createConversationController({publicMode, result, query}) {
       });
   });
 
-  document.getElementById("conversation-new")?.addEventListener("click", () => {
-    activeConversation = null;
-    result.innerHTML = "";
-    result.classList.add("hidden");
-    void refresh();
-    query.focus();
-  });
+  for (const control of document.querySelectorAll("[data-new-conversation]")) {
+    control.addEventListener("click", () => {
+      activeConversation = null;
+      result.innerHTML = "";
+      result.classList.add("hidden");
+      control.closest("details")?.removeAttribute("open");
+      void refresh();
+      query.focus();
+    });
+  }
 
   return {
     start,

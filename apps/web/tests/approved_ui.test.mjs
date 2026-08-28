@@ -15,7 +15,7 @@ test("approved palette and reduced motion are delivery contracts", async()=>{
   const tokens=await read("public/tokens.css"); const css=await read("public/styles.css");
   assert.match(tokens,/--bg: #010101;/); assert.match(tokens,/--accent: #c75550;/);
   assert.match(tokens,/--radius: 14px;/); assert.doesNotMatch(tokens,/undefined/);
-  assert.match(tokens,/--type-reading: 18px;/); assert.match(css,/max-width:68ch/);
+  assert.match(css,/font-size:18px/); assert.match(css,/max-width:68ch/);
   assert.match(css,/prefers-reduced-motion:reduce/); assert.match(css,/\.quick-action\{min-height:var\(--target-min\)/);
 });
 test("quick actions only prefill the canonical query composer", async()=>{

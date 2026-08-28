@@ -99,7 +99,7 @@
           </div>
         </div>
 
-        <button id="conversation-new" type="button" class="new-chat" aria-label="Нова розмова">
+        <button id="conversation-new" type="button" class="new-chat" data-new-conversation aria-label="Нова розмова">
           <span aria-hidden="true">＋</span><span>Нова розмова</span>
         </button>
 
@@ -203,7 +203,7 @@
         <section id="ask-section" data-chat-only class="ask-section" aria-labelledby="ask-heading">
           <h2 id="ask-heading" class="sr-only">Запит</h2>
           <div class="quick-actions" aria-label="Швидкі операції">
-            <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти норму</button>
+            <button class="quick-action" type="button" data-template="Знайди чинну норму щодо "><b>01</b>Знайти</button>
             <button class="quick-action" type="button" data-template="Перевір твердження: "><b>02</b>Перевірити</button>
             <button class="quick-action" type="button" data-template="Порівняй редакції щодо "><b>03</b>Порівняти</button>
           </div>
@@ -259,6 +259,7 @@
     <details class="mobile-more">
       <summary>Ще</summary>
       <div class="mobile-more-menu">
+        <a id="conversation-new-mobile" href="/chat" data-route-link data-new-conversation>Нова розмова</a>
         <a href="/sources" data-route-link>Джерела</a>
         <a href="/offline" data-route-link>Офлайн</a>
         <a href="/audit" data-route-link>Аудит</a>
