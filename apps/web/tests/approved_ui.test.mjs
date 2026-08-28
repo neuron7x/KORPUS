@@ -14,6 +14,8 @@ test("approved truth surface is integrated into the real consumer shell", async(
 test("approved palette and reduced motion are delivery contracts", async()=>{
   const tokens=await read("public/tokens.css"); const css=await read("public/styles.css");
   assert.match(tokens,/--bg: #010101;/); assert.match(tokens,/--accent: #c75550;/);
+  assert.match(tokens,/--radius: 14px;/); assert.doesNotMatch(tokens,/undefined/);
+  assert.match(tokens,/--type-reading: 18px;/); assert.match(css,/max-width:68ch/);
   assert.match(css,/prefers-reduced-motion:reduce/); assert.match(css,/\.quick-action\{min-height:var\(--target-min\)/);
 });
 test("quick actions only prefill the canonical query composer", async()=>{
@@ -48,9 +50,16 @@ test("canonical and combat themes share one functional surface", async()=>{
   assert.match(source,/@media\(prefers-reduced-motion:reduce\)/);
   assert.match(radar,/korpus:radar/); assert.match(radar,/source_hash/); assert.doesNotMatch(radar,/combat-radar-status|fillText/);
   assert.match(radar,/HOSTILE_BLIPS/); assert.match(radar,/}, 1400\)/); assert.match(radar,/hostile\.visible = !hostile\.visible/); assert.match(radar,/hostile\.count === 5 \? 3/);
-  assert.match(source,/repeating-linear-gradient\(117deg/); assert.match(source,/background-clip:text/); assert.match(source,/image-rendering:pixelated/);
+  assert.match(source,/-webkit-text-fill-color:currentColor/); assert.doesNotMatch(source,/background-clip:text|text-transform:uppercase/);
   assert.doesNotMatch(radar,/Math\.random/);
   assert.doesNotMatch(html,/combat[^>]+href=/i);
+});
+test("dynamic language surfaces support Ukrainian and Hebrew directionality", async()=>{
+  const html=await read("public/index.html"); const css=await read("design/consumer.css");
+  assert.match(html,/<html lang="uk">/);
+  assert.match(html,/id="query"[^>]*dir="auto"/);
+  assert.match(html,/id="result"[^>]*dir="auto"/);
+  assert.match(html,/id="evidence-text"[^>]*dir="auto"/);
 });
 test("KORPUS TRACE projects the canonical chat state machine", async()=>{
   const html=await read("public/index.html"); const app=await read("public/app.js"); const trace=await read("public/trace.js");

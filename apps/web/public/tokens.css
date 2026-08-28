@@ -15,10 +15,10 @@
   --muted: #a7a39c;
   --muted-2: #8d8982;
   --ok: #d9d6d0;
-  --radius: undefinedundefined;
-  --radius-lg: undefinedundefined;
-  --radius-sm: undefinedundefined;
-  --radius-xl: undefinedundefined;
+  --radius: 14px;
+  --radius-lg: 18px;
+  --radius-sm: 9px;
+  --radius-xl: 22px;
   --shadow: 0 28px 90px rgba(0, 0, 0, .34);
   --shadow-soft: 0 16px 48px rgba(0, 0, 0, .22);
   --shell-left: 272px;
@@ -39,5 +39,6 @@
   --text: #f5f3ee;
   --topbar-height: 64px;
   --topbar-mobile-height: 58px;
+  --type-reading: 18px;
   --warn: #d6c7a5;
 }

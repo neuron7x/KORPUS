@@ -272,6 +272,11 @@ async function main() {
       assert(state.status.includes("МОДЕЛЬ"), "server-derived model status is not visible");
     }, results);
 
+    await runCase("query_direction_follows_ukrainian_and_hebrew_input", async () => {
+      const directions = await cdp.evaluate(`(() => { const query=document.getElementById("query"); query.value="Що перевірити"; const uk=getComputedStyle(query).direction; query.value="מה לבדוק"; const he=getComputedStyle(query).direction; query.value=""; return {uk,he}; })()`);
+      assert(directions.uk === "ltr" && directions.he === "rtl", `query direction is not language-aware: ${JSON.stringify(directions)}`);
+    }, results);
+
     await runCase("combat_theme_is_reversible_and_accessible", async () => {
       await cdp.evaluate(`document.getElementById("theme-toggle").click()`);
       await waitFor(cdp, 'document.getElementById("combat-signal-field")', "combat signal field");

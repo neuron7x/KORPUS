@@ -725,7 +725,7 @@ body{background:#010101;color:var(--text)}
 html{font-size:16px}body{line-height:1.6}
 :where(.brand-sub,.system-signal,.eyebrow,.demo-head,.demo-foot,.demo-verdict,.rail-kicker,.chip,.verdict h2,.verdict-code,.answer-opening-mark,.metrics dt,.citation .meta span){font-size:.75rem;line-height:1.35}
 :where(label,.hint,.note,.rail-note,.hero-note,.account-card span,.rail-policy p,.quick-action,.composer-foot>span,.composer-hint,.plan-copy,.pricing-trust){font-size:.8125rem;line-height:1.55}
-.lead{max-width:62ch;font-size:clamp(1rem,1.15vw,1.125rem);line-height:1.68}.welcome-copy h1{max-width:16ch;font-weight:650}.empty-chat p{max-width:56ch;font-size:1rem;line-height:1.65}.answer-opening{font-size:.9375rem;line-height:1.65}.answer-text{max-width:72ch;font-size:clamp(1rem,1.2vw,1.125rem);line-height:1.75}.citation h3{font-size:.9375rem;line-height:1.4}.citation blockquote{max-width:76ch;font-size:.9375rem;line-height:1.68}#query{font-size:1.0625rem;line-height:1.55}
+.lead{max-width:62ch;font-size:clamp(1rem,1.15vw,1.125rem);line-height:1.68}.welcome-copy h1{max-width:16ch;font-weight:650}.empty-chat p{max-width:56ch;font-size:1rem;line-height:1.65}.answer-opening{font-size:.9375rem;line-height:1.65}.answer-text{max-width:68ch;font-size:var(--type-reading);line-height:1.65}.citation h3{font-size:.9375rem;line-height:1.4}.citation blockquote{max-width:68ch;font-size:1rem;line-height:1.65}#query{font-size:var(--type-reading);line-height:1.55}
 @media(max-width:600px){.welcome-copy h1{max-width:13ch;line-height:1.02;letter-spacing:-.045em}.turn-question{max-width:94%;font-size:.9375rem}}
 
 /* Operational hierarchy: the primary action remains reachable while evidence scrolls. */
