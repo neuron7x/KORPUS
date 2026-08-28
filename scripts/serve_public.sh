@@ -37,6 +37,7 @@ SECRET_DIR="${KORPUS_PUBLIC_SECRET_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/ko
 # surfaces as an obscure "no such file" from deep inside a subprocess.
 [[ -x "$PY" ]] || { echo "run 'make api-install' first: $PY is missing" >&2; exit 69; }
 command -v docker >/dev/null || { echo "docker is required for the edge; install it" >&2; exit 69; }
+EDGE_IMAGE="korpus-public-edge-runtime:nginx-1.31.3-alpine-r1"
 
 mkdir -p "$STATE" "$EDGE/html" "$EDGE/tmp/nginx" "$SECRET_DIR"
 chmod 700 "$SECRET_DIR"
@@ -172,6 +173,7 @@ printf 'window.KORPUS_CONFIG = Object.freeze({ apiUrl: "/api", publicMode: true 
 chmod -R a+rX "$EDGE"
 chmod a+rwX "$EDGE/tmp" "$EDGE/tmp/nginx"
 
+docker build --quiet --file deploy/public/Dockerfile.edge --tag "$EDGE_IMAGE" . >/dev/null
 docker rm -f korpus-public-edge >/dev/null 2>&1 || true
 docker run -d --name korpus-public-edge --restart unless-stopped \
   --network host --add-host api:127.0.0.1 \
@@ -180,7 +182,7 @@ docker run -d --name korpus-public-edge --restart unless-stopped \
   --read-only --tmpfs /tmp:size=64m,mode=1777 --tmpfs /var/cache/nginx:size=32m \
   --security-opt no-new-privileges:true \
   --entrypoint sh \
-  nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752 \
+  "$EDGE_IMAGE" \
   -c 'mkdir -p /tmp/nginx && exec nginx -g "daemon off;"' >/dev/null
 
 sleep 3

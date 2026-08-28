@@ -1,0 +1,8 @@
+ARG NGINX_IMAGE=nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752
+FROM ${NGINX_IMAGE}
+
+# The pinned upstream manifest is reproducible but may predate Alpine security rebuilds.
+# Resolve and install the signed security transaction at image-build time, then run the
+# public edge without root. Trivy gates the resulting image rather than the stale base.
+RUN apk upgrade --no-cache
+USER nginx:nginx

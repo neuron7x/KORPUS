@@ -18,12 +18,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IMAGE = "nginx:1.31.3-alpine@sha256:4a73073bd557c65b759505da037898b61f1be6cbcc3c2c3aeac22d2a470c1752"
+IMAGE = "korpus-public-edge-runtime:nginx-1.31.3-alpine-r1"
 CONTAINER = "korpus-public-edge"
 FORBIDDEN = {"console.html", "console.js", "console_rules.js"}
 GENERATED = {"PUBLIC_MANIFEST.json"}
 REQUIRED = {"index.html", "app.js", "styles.css", "tokens.css", "sw.js", "config.js"}
-
 
 def canonical_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
@@ -93,6 +92,7 @@ def run(command: list[str]) -> None:
 
 
 def start_edge(release: Path, nginx_config: Path) -> None:
+    run(["docker", "build", "--quiet", "-f", "deploy/public/Dockerfile.edge", "-t", IMAGE, "."])
     subprocess.run(["docker", "rm", "-f", CONTAINER], cwd=ROOT, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     run([
         "docker", "run", "-d", "--name", CONTAINER, "--restart", "unless-stopped",

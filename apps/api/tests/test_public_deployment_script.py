@@ -38,3 +38,16 @@ def test_public_edge_survives_daemon_and_host_restarts() -> None:
 
     assert "--restart unless-stopped" in script
     assert '"--restart", "unless-stopped"' in deployer
+
+
+def test_public_edge_runs_the_hardened_image_in_both_deployment_paths() -> None:
+    script = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
+    deployer = (ROOT / "scripts/deploy_public_web.py").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "deploy/public/Dockerfile.edge").read_text(encoding="utf-8")
+
+    image = "korpus-public-edge-runtime:nginx-1.31.3-alpine-r1"
+    assert image in script and image in deployer
+    assert "docker build --quiet --file deploy/public/Dockerfile.edge" in script
+    assert '"docker", "build"' in deployer
+    assert "RUN apk upgrade --no-cache" in dockerfile
+    assert "USER nginx:nginx" in dockerfile
