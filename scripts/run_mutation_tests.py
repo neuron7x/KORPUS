@@ -3679,9 +3679,11 @@ MUTANTS = (
     Mutant(
         "M327_CATALOG_TEXTUAL_CAPTURE_FLOOR_REMOVED",
         "scripts/validate_doctrine_catalog.py",
-        "MIN_TEXTUAL_BYTES = 512",
-        "MIN_TEXTUAL_BYTES = 0",
-        ("apps/api/tests/test_doctrine_catalog.py::test_a_tiny_html_capture_is_refused",),
+        "MIN_TEXTUAL_WORDS = 120",
+        "MIN_TEXTUAL_WORDS = 0",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::test_a_404_page_above_the_byte_floor_is_still_refused",
+        ),
     ),
     Mutant(
         "M328_CATALOG_FILE_SIGNATURE_COMPARISON_INVERTED",

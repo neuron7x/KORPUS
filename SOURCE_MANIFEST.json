@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1346,
-  "root_sha256": "1b8c96ef652ee2acf3410df0ee3d0ca7567f4eea2c0f604670719b6fd4a7494d",
+  "file_count": 1348,
+  "root_sha256": "5a8a730d14387b1d00a17ee8bd82b58e411733997d9a1b2322b02f95ce6b0afc",
   "files": [
     {
       "path": ".dockerignore",
@@ -147,6 +147,12 @@
       "path": ".trivyignore.yaml",
       "bytes": 1115,
       "sha256": "4e06e917612cb752eb0466caa54826c92a53c4a9a68805f09d01eb7531d01da8",
+      "mode": "0644"
+    },
+    {
+      "path": ".verdict-ledger.jsonl",
+      "bytes": 3483,
+      "sha256": "f40102190a111cfdce5986a2d592b4e30febc05fc723c82e7c1c97e7087c15e6",
       "mode": "0644"
     },
     {
@@ -2887,8 +2893,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 39403,
-      "sha256": "22b230539ac55bf0014f035fa1534768406f642e1a9885fce56fbba505e9a3f4",
+      "bytes": 42505,
+      "sha256": "d197f2a18d8e76d1df3b689ef07478961df19617058af0f9703314ec4a8eff29",
       "mode": "0644"
     },
     {
@@ -3115,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 95618,
-      "sha256": "4d440f607673e83e62d65bcdf9de08be25cfc75bc3ece1d8bcac420a408bdf18",
+      "bytes": 96419,
+      "sha256": "375c4e131233021b2368860ce0d8f449c852e6aede4babd3e68f4257a311520e",
       "mode": "0644"
     },
     {
@@ -5287,8 +5293,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 227675,
-      "sha256": "f7048f466079646b7e28b31d8130c26215c676ef32f20d01633576a108752a4b",
+      "bytes": 227677,
+      "sha256": "2136005c1853eb2f33285ea6e8cf996881a0a845ae8007a3b0badb00e1c6349f",
       "mode": "0644"
     },
     {
@@ -6691,8 +6697,8 @@
     },
     {
       "path": "scripts/assemble_assurance.py",
-      "bytes": 4390,
-      "sha256": "00d3538c5f4f01b3cf1726ca503b8488c3438b9835bbcd6da3e04d4080fd22c0",
+      "bytes": 4854,
+      "sha256": "567a21c9fd1021266c8f08a0a6d6b8e97cacf4c6e1b080add66b50aa4dbac16e",
       "mode": "0755"
     },
     {
@@ -7675,8 +7681,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 185335,
-      "sha256": "02625279fbe42ec1171aba7a275125abc21cba4c18f6b9654cdaa8e0c93b7389",
+      "bytes": 185375,
+      "sha256": "0f23aafc1b47c38ad269d2177a261b62b4f1d0d4c696b2d7e2f177aff33a7e61",
       "mode": "0755"
     },
     {
@@ -7915,8 +7921,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 43481,
-      "sha256": "1b9b592dfeaebe7fded62f95f1b208cbc609380a67379866484a0ab6aea2ead9",
+      "bytes": 45779,
+      "sha256": "21efb983130f9143ade05292a4d33348dc1ae06f81b1951e8482a7ab1b9209e5",
       "mode": "0755"
     },
     {
@@ -8055,6 +8061,12 @@
       "path": "scripts/verify_standards_control_map.py",
       "bytes": 7256,
       "sha256": "bc3fa70a091368ac32e550b3046a76bbd3829e051028dd384ae229b2ce10687c",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_verdict_ledger.py",
+      "bytes": 5161,
+      "sha256": "18ab989c5ba5f17f55fb196c9372a5ca17bc6e66dd4c3ba3970cdbd2940191c5",
       "mode": "0755"
     },
     {

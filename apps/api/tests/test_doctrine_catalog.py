@@ -928,3 +928,64 @@ def test_an_unverifiable_floor_says_so_instead_of_passing(
     problems = validator._floor_lowered_problems(catalog["evidence_floor"])
     assert any("cannot be checked against any previous value" in p for p in problems), problems
     assert any("origin=unverifiable" in p for p in problems)
+
+
+def test_one_capture_may_not_anchor_two_sources() -> None:
+    """CAPTURE_ROOT narrowed "any file in the repository" to "any file under config/corpus"
+    and stopped there. Pointing one source at another's capture passed: path inside the root,
+    digest matching, and a snapshot of a different page standing in as evidence for this one.
+    All twelve mod.gov.ua sources could have shared a single file."""
+    catalog = _catalog()
+    anchored = [e for e in catalog["sources"] if isinstance(e.get("integrity_anchor"), dict)]
+    assert len(anchored) >= 2, "the catalog has too few anchors for this test"
+    anchored[0]["integrity_anchor"] = copy.deepcopy(anchored[1]["integrity_anchor"])
+
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("is claimed by 2 sources" in p for p in result["problems"]), result["problems"]
+
+
+def test_a_404_page_above_the_byte_floor_is_still_refused() -> None:
+    """Bytes were the wrong unit. A real government 404 carries navigation, a footer and a
+    style block — 1.2 KB of HTML that cleared a 512-byte floor holding no document at all."""
+    fake = ROOT / "config/corpus/attachments/__wordy_404__.html"
+    fake.write_text(
+        "<html><head><style>" + "a{color:red}" * 60 + "</style></head><body>"
+        "<nav>Головна Про нас Контакти</nav><h1>404</h1><footer>© 2026</footer></body></html>",
+        encoding="utf-8",
+    )
+    try:
+        assert fake.stat().st_size > 512, "this fixture must clear the old byte floor"
+        entry = _attached_entry()
+        anchor = entry["attachment_anchors"][0]
+        anchor["path"] = "config/corpus/attachments/__wordy_404__.html"
+        anchor["sha256"] = _digest_of(anchor["path"])
+        anchor["extractor_supports_format"] = True
+        problems = _validator()._entry_problems(entry)
+        assert any("once tags are stripped" in p for p in problems), problems
+    finally:
+        fake.unlink()
+
+
+def test_a_suffix_this_gate_cannot_inspect_is_refused() -> None:
+    """A 16-byte file named .bin passed every rule: no signature list, no archive member and
+    no text check applied to it, so nothing looked at its contents at all."""
+    fake = ROOT / "config/corpus/attachments/__opaque__.bin"
+    fake.write_bytes(b"<html>404</html>")
+    try:
+        entry = _attached_entry()
+        anchor = entry["attachment_anchors"][0]
+        anchor["path"] = "config/corpus/attachments/__opaque__.bin"
+        anchor["sha256"] = _digest_of(anchor["path"])
+        anchor["extractor_supports_format"] = False
+        anchor["unreadable_content_survey"] = {
+            "words": 40,
+            "opening": "щось, що конвертер зміг прочитати з нечитаного формату",
+            "surveyed_with": "LibreOffice 24.2",
+            "surveyed_on": _today(),
+        }
+        entry["content_probe"]["required_attachments"] = [anchor["uri"]]
+        problems = _validator()._entry_problems(entry)
+        assert any("cannot inspect" in p for p in problems), problems
+    finally:
+        fake.unlink()

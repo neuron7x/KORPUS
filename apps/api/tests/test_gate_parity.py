@@ -2068,3 +2068,21 @@ def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
 
     monkeypatch.setattr(gate, "_floor", lambda: 1)
     assert gate.main() == 0, "a report sitting exactly on its floor must still pass"
+
+
+def test_the_assurance_producer_declares_which_ruler_it_used() -> None:
+    """DIGEST_SCOPE was inert: the checker read the field and no producer wrote it, so every
+    report in the tree was unlabelled and verify_handoff_contract could only guess or refuse.
+
+    A checker that reads a field nobody writes is a checker of nothing.
+    """
+    source = (ROOT / "scripts/assemble_assurance.py").read_text(encoding="utf-8")
+    assert '"digest_scope": DIGEST_SCOPE' in source, (
+        "the assurance report no longer names the digest scope it was measured with"
+    )
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from source_digest import DIGEST_SCOPE
+
+    assert DIGEST_SCOPE == "tracked_tree", (
+        "assemble_assurance uses source_tree_digest; the scope it declares must match it"
+    )

@@ -7,7 +7,7 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from source_digest import source_tree_digest
+from source_digest import DIGEST_SCOPE, source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -75,6 +75,12 @@ def main() -> int:
         "failures": list(result.failures),
         "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
         "source_tree_sha256": source_tree_digest(),
+        # Which ruler produced that number. Two digests in this repository write the same
+        # field name over different scopes, and a report signed by one and checked against
+        # the other reads as "the tree changed" when nothing changed. Without this field the
+        # reader has no way to know which was used, and verify_handoff_contract must return
+        # SCOPE_UNDECLARED rather than guess.
+        "digest_scope": DIGEST_SCOPE,
         "evidence_source_sha256": compute_source_digest(ROOT),
         "checks": checks,
         "pytest": {

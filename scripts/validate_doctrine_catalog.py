@@ -64,6 +64,7 @@ import argparse
 import ast
 import hashlib
 import json
+import re
 import subprocess
 import sys
 import zipfile
@@ -115,7 +116,10 @@ SUPPORTED_SUFFIXES = _supported_suffixes()
 ZIP_MEMBER = {".docx": "word/document.xml", ".xlsx": "xl/workbook.xml"}
 #: Suffixes with no signature to check. They still have to hold something.
 TEXTUAL_SUFFIXES = frozenset({".html", ".htm", ".txt", ".md", ".json"})
-MIN_TEXTUAL_BYTES = 512
+#: Words after tag-stripping. Bytes were the wrong unit: a real government 404 is 1.2 KB of
+#: navigation and styling, which cleared a 512-byte floor while holding no document.
+MIN_TEXTUAL_WORDS = 120
+TAG = re.compile(r"<[^>]+>")
 #: A survey has to distinguish this file from another one. `words: 1, opening: "."` did not.
 MIN_SURVEY_WORDS = 20
 MIN_SURVEY_OPENING = 24
@@ -393,6 +397,17 @@ def _content_problem(target: Path, suffix: str) -> str | None:
     that format, and a text-shaped capture has to contain something.
     """
     expected = FILE_SIGNATURES.get(suffix)
+    member = ZIP_MEMBER.get(suffix)
+    inspected = expected is not None or member is not None or suffix in TEXTUAL_SUFFIXES
+    if not inspected:
+        # No signature, no archive member, no text check: a 16-byte file named .bin passed
+        # every rule because nothing in this function applied to it. An unrecognised format
+        # cannot be inspected, so it is refused rather than assumed.
+        return (
+            f"{target.name} has suffix {suffix!r}, which this gate cannot inspect — no "
+            "signature, no archive member and no text check applies, so nothing here proves "
+            "it is a document"
+        )
     if expected is not None:
         with target.open("rb") as handle:
             prefix = handle.read(len(expected))
@@ -401,7 +416,6 @@ def _content_problem(target: Path, suffix: str) -> str | None:
                 f"{target.name} does not start with the {suffix} signature — "
                 "a captured error page hashes just as cleanly"
             )
-    member = ZIP_MEMBER.get(suffix)
     if member is not None:
         try:
             with zipfile.ZipFile(target) as archive:
@@ -414,11 +428,15 @@ def _content_problem(target: Path, suffix: str) -> str | None:
                 "PK\x03\x04, including a .jar, so the signature alone proves nothing"
             )
     if suffix in TEXTUAL_SUFFIXES:
-        body = target.read_bytes()
-        if len(body.strip()) < MIN_TEXTUAL_BYTES:
+        # Words, not bytes. A government 404 page carries navigation, a footer and a style
+        # block: 1.2 KB of HTML that cleared a 512-byte floor while containing no document
+        # at all. Stripping tags first measures what a reader would get.
+        body = target.read_text(encoding="utf-8", errors="replace")
+        words = len(TAG.sub(" ", body).split())
+        if words < MIN_TEXTUAL_WORDS:
             return (
-                f"{target.name} holds {len(body.strip())} bytes — a capture this small is "
-                "an error page or an empty file, not an annex"
+                f"{target.name} yields {words} words once tags are stripped — an error page "
+                f"or a stub, not an annex (floor {MIN_TEXTUAL_WORDS})"
             )
     return None
 
@@ -671,6 +689,28 @@ def _mandatory_evidence_problems(entry: dict[str, object]) -> list[str]:
     return problems
 
 
+def _anchor_sharing_problems(entries: list[dict[str, object]]) -> list[str]:
+    """One captured file may anchor exactly one source.
+
+    CAPTURE_ROOT narrowed "any file in the repository" to "any file under config/corpus",
+    and stopped there: nothing tied an anchor to the source it claims to snapshot. Pointing
+    ORG-MOD-WEB-SV at the capture of ORG-MOD-WEB-MED passed — path inside the root, digest
+    matching, and a snapshot of a different page standing in as evidence for this one. All
+    twelve could have shared a single file.
+    """
+    owners: dict[str, list[str]] = {}
+    for entry in entries:
+        anchor = entry.get("integrity_anchor")
+        if isinstance(anchor, dict) and isinstance(anchor.get("path"), str):
+            owners.setdefault(anchor["path"], []).append(str(entry.get("id", "<no id>")))
+    return [
+        f"integrity_anchor {path!r} is claimed by {len(ids)} sources ({', '.join(sorted(ids))}) "
+        "— a snapshot of one page cannot be evidence for another"
+        for path, ids in sorted(owners.items())
+        if len(ids) > 1
+    ]
+
+
 def _ceiling_problems(catalog: dict[str, object], summary: Summary) -> list[str]:
     """(14, per catalog) The count of sources carrying no evidence at all may not grow.
 
@@ -907,6 +947,7 @@ def evaluate(catalog: dict[str, object]) -> Result:
             if isinstance(e.get("attachment_anchors"), list)
         ),
     }
+    problems.extend(_anchor_sharing_problems(dicts))
     problems.extend(_floor_problems(catalog, summary))
     problems.extend(_ceiling_problems(catalog, summary))
     return {
