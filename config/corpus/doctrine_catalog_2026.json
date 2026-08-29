@@ -1,6 +1,6 @@
 {
   "schema": "korpus.doctrine-catalog.v1",
-  "compiled_on": "2026-08-08",
+  "compiled_on": "2026-08-29",
   "scope": "Curated source registry for the Ukrainian defence-tech doctrine corpus. Metadata only — no document bytes. Each entry carries the fields import_corpus.py needs (canonical_title, issuer, authority, access_tier, classification, source_uri) plus curation fields the validator enforces. A curator fetches the open documents (a rights decision, GOV-006), runs build_import_manifest.py against the fetched directory, copies these fields in, and ingests. Nothing here is authoritative until a human approves it through the review workflow.",
   "gating_rules": {
     "restricted_never_ingestible": "classification=restricted => ingestible=false. RESTRICTED material (AJP-3.6) is quarantined at the door; cite it only through the open documents that reference it.",
@@ -870,13 +870,48 @@
       "authority": "official_ua",
       "access_tier": 0,
       "classification": "public",
-      "source_uri": "https://zakon.cc/law/document/read/548-14",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
       "source_kind": "official_mirror",
-      "provenance_status": "unverified_mirror",
+      "provenance_status": "verified",
       "requires_second_source": true,
       "rights_status": "open",
       "ingestible": true,
-      "notes": "Primary legal source for duties. Canonical text is zakon.rada.gov.ua — cross-check the mirror (zakon.cc / protocol.ua) against rada before approval. Capture amendment history."
+      "notes": "Primary legal source for duties. Canonical text is zakon.rada.gov.ua — cross-check the mirror (zakon.cc / protocol.ua) against rada before approval. Capture amendment history. | Перевірено на офіційному порталі 2026-08-29: чинний, редакція 18.03.2026, підстава 4797-IX. Витягнуто 95 ребер REPORTS_TO і 44 DIRECT_SUPERIOR_OF.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/548-14",
+            "words": 725,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
+            "words": 66069,
+            "tables": 27,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2372.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2373.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2375.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3116.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc"
+            ]
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
+        "chosen_words": 66069,
+        "required_attachments": [
+          "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2372.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2373.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2375.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3116.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc"
+        ]
+      }
     },
     {
       "id": "ORG-MECH-STATUTE-P3",
@@ -985,6 +1020,481 @@
       "rights_status": "open",
       "ingestible": true,
       "notes": "Syrskyi NCO plan through 2027; Mission Command."
+    },
+    {
+      "id": "ORG-MOD-ORDER-317",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 07.09.2020 № 317 — переліки ВОС і штатних посад рядового, сержантського і старшинського складу",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Зареєстровано Мін'юстом 23.09.2020 № 927/35210. Чинна редакція 07.04.2026, підстава z0372-26. Перелік штатних посад НЕ в HTML — окремий DOCX laws/file/text/135/f499126n54.docx (1068 рядків). Витягнуто 999 ВОС і 927 посад, зріз 2026-08-29.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
+            "words": 736,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
+            "words": 4790,
+            "tables": 13,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
+            ]
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
+        "chosen_words": 4790,
+        "required_attachments": [
+          "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
+        ]
+      }
+    },
+    {
+      "id": "ORG-MOD-ORDER-444",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 01.08.2023 № 444 — перелік ВОС осіб офіцерського складу",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Зареєстровано Мін'юстом 05.09.2023 № 1562/40618. Чинна редакція 23.12.2025. 481 ВОС, 1567 ребер взаємозамінності, 500 пар заміни кодів. Внутрішня суперечність акта: код 030600 фігурує в колонці «без додаткової підготовки» п'яти ВОС, хоча додаток 2 оголосив його заміненим.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1562-23",
+            "words": 736,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
+            "words": 16881,
+            "tables": 13,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
+        "chosen_words": 16881,
+        "required_attachments": []
+      }
+    },
+    {
+      "id": "ORG-MOD-ORDER-444-RESERVE",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 01.08.2023 № 444 — перелік ВОС для звання молодшого лейтенанта запасу",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Зареєстровано Мін'юстом 05.09.2023 № 1563/40619. Чинна редакція 23.12.2025. 183 ВОС.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
+            "words": 714,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1563-23/print",
+            "words": 432,
+            "tables": 6,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
+        "chosen_words": 714,
+        "required_attachments": []
+      }
+    },
+    {
+      "id": "ORG-MOD-ORDER-124-2026",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 05.03.2026 № 124 — зміни до переліку штатних посад",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Зареєстровано Мін'юстом 20.03.2026 № 372/45766, чинний з 07.04.2026. Підстава чинної редакції наказу № 317. Додає авіаційних спеціалістів і операторів БпЛА.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
+            "words": 1194,
+            "tables": 11,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z0372-26/print",
+            "words": 470,
+            "tables": 12,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
+        "chosen_words": 1194,
+        "required_attachments": []
+      }
+    },
+    {
+      "id": "ORG-MOD-ORDER-825-2024",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 06.12.2024 № 825 — зміни до переліку посад",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Прямо видимі назви посад зв'язку і техзабезпечення (кабельник-спаювальник тощо). Зміни вже враховані в чинній редакції наказу № 317.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
+            "words": 6906,
+            "tables": 8,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1934-24/print",
+            "words": 6207,
+            "tables": 9,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
+        "chosen_words": 6906,
+        "required_attachments": []
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-SV",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сухопутні війська (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/suhoputni-vijska-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/sukhoputni.txt",
+        "sha256": "963c86a3ee63eaa81a4394f31b19d7b95e7640c62c7e9e69ca4508153e0ed973",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-PS",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Повітряні Сили (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/povitryani-sili",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/povitryani.txt",
+        "sha256": "9e4c76b592f3a4f11064682683f7295e829ed39282b9ba3fb9383739a50fb7ca",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-VMS",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Військово-Морські Сили (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/vijskovo-morski-sili-1",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/vms.txt",
+        "sha256": "706e2e7214fcce4af626b06da5e80be50ea2304d89f8fa793fa9030eca19f932",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-DSHV",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Десантно-штурмові війська (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/desantno-shturmovi-vijska",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/dshv.txt",
+        "sha256": "1296d8c63171af2cc1f914a2ad5ef496399ac2553ebc97b759de05420c3a4128",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-SSO",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сили спеціальних операцій (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/sili-speczialnih-operaczij",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/sso.txt",
+        "sha256": "87a438395abf63eadcc02d631c4a11eb6149ee96d7fcf4717ceb923edc89cc5a",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-TRO",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сили територіальної оборони (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/sili-teritorialnoyi-oboroni-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/tro.txt",
+        "sha256": "fa761d7984e918a22f7f0b60bcee336df7bba0e773fc2c7c6b3e6931f2c80dde",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-SBS",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сили безпілотних систем (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/sili-bezpilotnih-sistem",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/sbs.txt",
+        "sha256": "230a3175882946ffa437832160429b3e97028b3ae5f8a810ff5a469a05af539f",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-SUPPORT",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сили підтримки (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/sili-pidtrimki-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/pidtrymky.txt",
+        "sha256": "3f1f93169b5526ac70898037e3cfd27f4896863f7c2bfccc960a47033bfdd348",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-LOG",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Сили логістики (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/sili-logistiki-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/logistyky.txt",
+        "sha256": "47107c6080ca065cfe2a97d1ce42112692b0dce9a5af178c79015a7141889de8",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-MED",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Медичні сили (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/medichni-sili-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/medychni.txt",
+        "sha256": "9783fb515471d6392753ad426a656d20521de5d0a1f69b6c7f871de68b0f3bce",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-SIGNAL",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Війська зв'язку та кібербезпеки (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/vijska-zv-yazku-ta-kiberbezpeki",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/zvyazku.txt",
+        "sha256": "494bbfa05b7e7fc7a9ff1e7788e944f7e111c593282eca0b7406ca738b7b9f7a",
+        "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-MOD-WEB-GS",
+      "tier": "org_duties",
+      "canonical_title": "Міністерство оборони України — Генеральний штаб ЗСУ (офіційна сторінка складу)",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "government_release",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://mod.gov.ua/pro-nas/generalnij-shtab-zbrojnih-sil-ukrayini",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
+      "integrity_anchor": {
+        "path": "config/corpus/mod_snapshots/genshtab.txt",
+        "sha256": "2853e1ec5f474103e8ac6051fb3c0886373d109018b74cea5a0edeed53778337",
+        "captured_on": "2026-08-29"
+      }
     }
   ]
 }

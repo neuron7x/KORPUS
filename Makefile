@@ -250,6 +250,17 @@ file-modes:
 doctrine-catalog:
 	PYTHONPATH=apps/api/src $(PY) scripts/validate_doctrine_catalog.py
 
+# Not a gate: it needs the network, so it can never run in CI. It measures what each
+# zakon.rada URL actually returns — the card variant carries the act's title and none of
+# its text — and records the measurement as content_probe. doctrine-catalog then holds
+# offline that source_uri is the variant the measurement found richest. Re-run when a
+# source is added or an act is amended; the recorded probe date says when it last ran.
+source-probe:
+	PYTHONPATH=apps/api/src $(PY) scripts/probe_source_content.py
+
+source-probe-write:
+	PYTHONPATH=apps/api/src $(PY) scripts/probe_source_content.py --write
+
 retention-plan:
 	PYTHONPATH=apps/api/src $(PY) scripts/plan_retention.py
 

@@ -18,6 +18,21 @@ Fail-closed. Any violation is a non-zero exit and the entry is named. The rules:
   6. ingestible=true                      => source_uri present (nothing enters via a guess)
   7. authority/classification/access_tier are valid domain enum values
   8. ids are unique
+  9. integrity_anchor, where present, resolves inside the repository and its sha256 matches
+ 10. content_probe, where present, is self-consistent and source_uri is its richest variant
+
+Rule 9 exists because a source with no publication date and no revision trail (a ministry
+web page) can be silently rewritten. The anchor is a captured snapshot whose digest is
+recorded here; a changed page becomes a failed check rather than a quiet substitution.
+An anchor that points outside the repository is not an anchor — nothing in CI can read it.
+
+Rule 10 exists because HTTP 200 is not evidence of content. On zakon.rada.gov.ua the URL a
+human bookmarks is a card carrying the act's title and nothing else; the text and its DOCX
+annexes are reachable only at the /print variant (measured: 548-14 card 725 words vs /print
+66069). An ingester pointed at the card succeeds, extracts almost nothing, and reports no
+error. probe_source_content.py measures both variants over the network and records the
+result as content_probe; this rule holds offline that source_uri is the variant that
+measurement found richest, so a later edit cannot quietly point the catalog back at a card.
 
 Nothing here approves anything. Ingestible means "may be staged"; every source still
 passes through the human review workflow, and an unverified one may not be approved until
@@ -30,9 +45,11 @@ its index number or issuing order is confirmed against a second copy or the prim
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -40,6 +57,39 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 from korpus.domain.models import AccessTier, AuthorityClass, Classification  # noqa: E402
 
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
+
+
+class Summary(TypedDict):
+    total: int
+    ingestible: int
+    blocked: int
+    governing_authority: int
+    analytical_outranked_by_official: int
+    quarantine_on_ingest: int
+    restricted_quarantined: int
+    rights_blocked: int
+    integrity_anchored: int
+    content_probed: int
+
+
+class Result(TypedDict):
+    status: str
+    problems: list[str]
+    summary: Summary | None
+
+
+EMPTY_SUMMARY: Summary = {
+    "total": 0,
+    "ingestible": 0,
+    "blocked": 0,
+    "governing_authority": 0,
+    "analytical_outranked_by_official": 0,
+    "quarantine_on_ingest": 0,
+    "restricted_quarantined": 0,
+    "rights_blocked": 0,
+    "integrity_anchored": 0,
+    "content_probed": 0,
+}
 
 REQUIRED_FIELDS = (
     "id",
@@ -56,7 +106,7 @@ REQUIRED_FIELDS = (
 
 
 def _entry_problems(entry: dict[str, object]) -> list[str]:
-    identifier = entry.get("id", "<no id>")
+    identifier = str(entry.get("id", "<no id>"))
     problems: list[str] = []
 
     missing = [
@@ -78,7 +128,7 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
         problems.append(f"{identifier}: unknown classification {entry['classification']!r}")
         classification = None
     try:
-        AccessTier.parse(entry["access_tier"])  # type: ignore[arg-type]
+        AccessTier.parse(entry["access_tier"])
     except (KeyError, ValueError):
         problems.append(f"{identifier}: unparseable access_tier {entry['access_tier']!r}")
 
@@ -118,13 +168,101 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
     if ingestible and not str(entry.get("source_uri", "")).strip():
         problems.append(f"{identifier}: ingestible=true but no source_uri to fetch")
 
+    # (9) An undated source is pinned by a snapshot this repository can re-check.
+    problems.extend(_anchor_problems(identifier, entry.get("integrity_anchor")))
+
+    # (10) A measured source points at the variant that actually carries its text.
+    problems.extend(
+        _probe_problems(identifier, entry.get("content_probe"), str(entry.get("source_uri", "")))
+    )
+
     return problems
 
 
-def evaluate(catalog: dict[str, object]) -> dict[str, object]:
+def _probe_problems(identifier: str, probe: object, source_uri: str) -> list[str]:
+    if probe is None:
+        return []
+    if not isinstance(probe, dict):
+        return [f"{identifier}: content_probe is not an object"]
+
+    variants = probe.get("variants")
+    if not isinstance(variants, dict) or not variants:
+        return [f"{identifier}: content_probe records no variants"]
+
+    problems: list[str] = []
+    measured: dict[str, int] = {}
+    for name, data in variants.items():
+        if not isinstance(data, dict) or not isinstance(data.get("words"), int):
+            problems.append(f"{identifier}: content_probe variant {name!r} has no word count")
+            continue
+        measured[str(name)] = int(data["words"])
+    if problems:
+        return problems
+
+    richest = max(measured, key=lambda name: measured[name])
+    chosen = str(probe.get("chosen_variant", ""))
+    if chosen not in measured:
+        return [f"{identifier}: content_probe.chosen_variant {chosen!r} was never measured"]
+    if measured[chosen] < measured[richest]:
+        problems.append(
+            f"{identifier}: content_probe chose {chosen!r} at {measured[chosen]} words over "
+            f"{richest!r} at {measured[richest]} — the catalog points at the thinner variant"
+        )
+    if probe.get("chosen_words") != measured[chosen]:
+        problems.append(
+            f"{identifier}: content_probe.chosen_words {probe.get('chosen_words')!r} "
+            f"contradicts the {chosen!r} measurement of {measured[chosen]}"
+        )
+
+    chosen_uri = str(variants[chosen].get("uri", "")) if isinstance(variants[chosen], dict) else ""
+    if str(probe.get("chosen_uri", "")) != chosen_uri:
+        problems.append(f"{identifier}: content_probe.chosen_uri is not the {chosen!r} variant uri")
+    elif source_uri and source_uri != chosen_uri:
+        problems.append(
+            f"{identifier}: source_uri points at {source_uri} but the probe found the content "
+            f"at {chosen_uri} — an ingester would fetch 200 OK and almost no text"
+        )
+    return problems
+
+
+def _anchor_problems(identifier: str, anchor: object) -> list[str]:
+    if anchor is None:
+        return []
+    if not isinstance(anchor, dict):
+        return [f"{identifier}: integrity_anchor is not an object"]
+
+    declared = str(anchor.get("sha256", ""))
+    relative = str(anchor.get("path", ""))
+    if len(declared) != 64 or any(c not in "0123456789abcdef" for c in declared):
+        return [f"{identifier}: integrity_anchor.sha256 is not a sha256 digest"]
+    if not relative:
+        return [f"{identifier}: integrity_anchor has no path"]
+
+    target = (ROOT / relative).resolve()
+    try:
+        target.relative_to(ROOT)
+    except ValueError:
+        return [
+            f"{identifier}: integrity_anchor.path {relative!r} escapes the repository — "
+            "an anchor CI cannot read is not an anchor"
+        ]
+    if not target.is_file():
+        return [f"{identifier}: integrity_anchor.path {relative!r} is not a file in the tree"]
+
+    actual = hashlib.sha256(target.read_bytes()).hexdigest()
+    if actual != declared:
+        return [
+            f"{identifier}: integrity_anchor mismatch on {relative} — "
+            f"recorded {declared[:16]}…, tree holds {actual[:16]}… "
+            "(the source changed, or the snapshot was edited)"
+        ]
+    return []
+
+
+def evaluate(catalog: dict[str, object]) -> Result:
     sources = catalog.get("sources")
     if not isinstance(sources, list) or not sources:
-        return {"status": "FAIL", "problems": ["catalog lists no sources"], "summary": {}}
+        return {"status": "FAIL", "problems": ["catalog lists no sources"], "summary": None}
 
     problems: list[str] = []
     seen: set[str] = set()
@@ -149,7 +287,7 @@ def evaluate(catalog: dict[str, object]) -> dict[str, object]:
         for e in ingestible
         if str(e.get("authority")) != "analytical" and _is_normative(str(e.get("authority", "")))
     ]
-    summary = {
+    summary: Summary = {
         "total": len(dicts),
         "ingestible": len(ingestible),
         "blocked": len(dicts) - len(ingestible),
@@ -160,6 +298,8 @@ def evaluate(catalog: dict[str, object]) -> dict[str, object]:
             [e for e in dicts if str(e.get("classification")) == "restricted"]
         ),
         "rights_blocked": len([e for e in dicts if str(e.get("rights_status", "open")) != "open"]),
+        "integrity_anchored": len([e for e in dicts if e.get("integrity_anchor")]),
+        "content_probed": len([e for e in dicts if e.get("content_probe")]),
     }
     return {
         "status": "PASS" if not problems else "FAIL",
@@ -170,7 +310,7 @@ def evaluate(catalog: dict[str, object]) -> dict[str, object]:
 
 def _is_normative(authority: str) -> bool:
     try:
-        return AuthorityClass(authority).is_normative
+        return bool(AuthorityClass(authority).is_normative)
     except ValueError:
         return False
 
@@ -194,6 +334,10 @@ def main() -> int:
                 f"({summary['governing_authority']} governing, "
                 f"{summary['analytical_outranked_by_official']} analytical/outranked) · "
                 f"{summary['quarantine_on_ingest']} enter quarantine pending a second source"
+            )
+            print(
+                f"  {summary['integrity_anchored']} pinned by an in-tree snapshot digest, "
+                f"{summary['content_probed']} content-probed"
             )
             print(
                 f"  blocked: {summary['blocked']} "
