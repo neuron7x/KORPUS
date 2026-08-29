@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1346,
-  "root_sha256": "7f68bc36f4b0201e3c69342ea047adbcd60da1b53af70c0ebba1a6cc5611a29c",
+  "root_sha256": "1b8c96ef652ee2acf3410df0ee3d0ca7567f4eea2c0f604670719b6fd4a7494d",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36355,
-      "sha256": "691fbb58eb5f1587cbec7a2d2d5a4b3d8516652f3e370cce69081d086d08e6eb",
+      "bytes": 36401,
+      "sha256": "8bd1d2a74bdfc2fde40ca36adc8459e49a880bfc62868e6c86efaeea599ef7d5",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 42533,
-      "sha256": "45c28d1e732123af40a0b7f36023e62e0f4d9f2033d5f752b1fcd599e18b0c05",
+      "bytes": 42861,
+      "sha256": "bd846a7fd101361571c03cfdcf8bfc7519734e5ee145578fc5a1894d47cb035b",
       "mode": "0644"
     },
     {
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 39047,
-      "sha256": "e2db8d0a9b445642b258bd8458e31773d0fd6f1ad3ebe26e3b08e55a08072dc6",
+      "bytes": 39403,
+      "sha256": "22b230539ac55bf0014f035fa1534768406f642e1a9885fce56fbba505e9a3f4",
       "mode": "0644"
     },
     {
@@ -5282,13 +5282,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "469657e19a181f994e796384f139cf09d3f359fd5473b0f233527f2daf488f46",
+      "sha256": "b0eb20b14f2f6a5b84aa1d5fd2ef96957c88d49582bdf8165b58bfa000a63efb",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 227452,
-      "sha256": "824d095fcf869240d920439b3e6a3f58a9b701b5c546110c9f8d7d1f3f3e826f",
+      "bytes": 227675,
+      "sha256": "f7048f466079646b7e28b31d8130c26215c676ef32f20d01633576a108752a4b",
       "mode": "0644"
     },
     {
@@ -7915,8 +7915,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 43151,
-      "sha256": "f9c70a040703f7f78ec3ff651c84cbb5aab410323b492c15078952547c074dc5",
+      "bytes": 43481,
+      "sha256": "1b9b592dfeaebe7fded62f95f1b208cbc609380a67379866484a0ab6aea2ead9",
       "mode": "0755"
     },
     {

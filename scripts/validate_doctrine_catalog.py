@@ -642,10 +642,14 @@ def _host_matches(uri: str, hosts: tuple[str, ...]) -> bool:
     `zakon.rada.gov.ua.evil.com` — which cost an unnecessary demand for evidence rather than
     letting a source through unmeasured.
 
-    `hostname` is already lowercase and port-free; `endswith("." + h)` admits real
-    subdomains and rejects a domain that merely starts with the name.
+    `hostname` is already lowercase and port-free. The trailing dot has to go too: DNS
+    treats `zakon.rada.gov.ua.` as the same name — same server, 193.19.153.66 either way —
+    and it is a valid absolute FQDN, so a source written that way passed rule 14 with no
+    probe. Same class as the case bug: a spelling DNS calls identical and string comparison
+    does not. `endswith("." + h)` admits real subdomains and rejects a domain that merely
+    starts with the name.
     """
-    host = (urlsplit(uri).hostname or "").lower()
+    host = (urlsplit(uri).hostname or "").rstrip(".")
     return any(host == known or host.endswith("." + known) for known in hosts)
 
 

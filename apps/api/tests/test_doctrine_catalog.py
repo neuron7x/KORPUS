@@ -775,6 +775,11 @@ def test_deleting_half_the_catalog_is_refused() -> None:
         # The one that mattered: rule 14 was bypassed by changing the case of the URL.
         ("https://ZAKON.RADA.GOV.UA/laws/show/548-14", True),
         ("https://zakon.rada.gov.ua:443/laws/show/548-14", True),
+        # A valid absolute FQDN. DNS resolves it to the same 193.19.153.66, and rule 14
+        # did not fire on it — found by an independent session, eighth of the seven probes.
+        ("https://zakon.rada.gov.ua./laws/show/548-14", True),
+        # userinfo must not be mistaken for the host.
+        ("https://zakon.rada.gov.ua@evil.com/x", False),
         ("https://www.zakon.rada.gov.ua/laws/show/548-14", True),
         ("https://zakon.rada.gov.ua.evil.com/laws", False),
         ("https://evil.com/?u=zakon.rada.gov.ua", False),

@@ -105,6 +105,7 @@ repository:validate:
     # Added by a parallel session on 2026-08-29 and caught by the parity test the same hour:
     # a target in `make validate` that no CI job runs is a gate that never fires on push.
     - PYTHONPATH=apps/api/src python scripts/validate_content_signals.py
+    - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT

@@ -250,6 +250,12 @@ file-modes:
 doctrine-catalog:
 	PYTHONPATH=apps/api/src $(PY) scripts/validate_doctrine_catalog.py
 
+# Claims about this system's own gates, and who signed them. A verdict from the actor who
+# made the claim is refused: producer and acceptor being the same is the defect a full day
+# of cross-session work was spent finding, and it is the one that repeats.
+verdict-ledger:
+	$(PY) scripts/verify_verdict_ledger.py
+
 # HTTP 200 on a public domain is not permission. robots.txt carries two express
 # reservations the catalog never read: `Content-Signal: ai-train=no / ai-input=no /
 # use=reference`, which binds everyone, and `User-agent: ClaudeBot ... Disallow: /`,
@@ -411,7 +417,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify requirements-register doctrine-catalog content-signals github-actions-validate production-hard-predicates
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
