@@ -31,8 +31,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXECUTABLE = 0o755
-REGULAR = 0o644
+EXECUTABLE_BIT = 0o111
 
 
 def tracked_files() -> list[str]:
@@ -54,6 +53,19 @@ def has_shebang(path: Path) -> bool:
         return False
 
 
+def _violation(name: str, should_execute: bool) -> dict[str, str]:
+    return {
+        "path": name,
+        "actual": "not executable" if should_execute else "executable",
+        "expected": "executable" if should_execute else "not executable",
+        "reason": (
+            "a shebang declares the file is run directly"
+            if should_execute
+            else "no shebang, so nothing runs this file directly"
+        ),
+    }
+
+
 def main() -> int:
     violations: list[dict[str, str]] = []
     checked = 0
@@ -63,27 +75,15 @@ def main() -> int:
         if path.is_symlink() or not path.is_file():
             continue
         checked += 1
-        expected = EXECUTABLE if has_shebang(path) else REGULAR
-        executable += expected == EXECUTABLE
-        actual = path.stat().st_mode & 0o777
-        if actual != expected:
-            violations.append(
-                {
-                    "path": name,
-                    "actual": f"{actual:04o}",
-                    "expected": f"{expected:04o}",
-                    "reason": (
-                        "a shebang declares the file is run directly"
-                        if expected == EXECUTABLE
-                        else "no shebang, so nothing runs this file directly"
-                    ),
-                }
-            )
+        should_execute = has_shebang(path)
+        executable += should_execute
+        if bool(path.stat().st_mode & EXECUTABLE_BIT) != should_execute:
+            violations.append(_violation(name, should_execute))
 
     report = {
-        "schema": "korpus.file-mode-check.v1",
+        "schema": "korpus.file-mode-check.v2",
         "status": "FAIL" if violations else "PASS",
-        "rule": "shebang => 0755, otherwise => 0644",
+        "rule": "shebang <=> executable bit; read and write bits are the runner's umask",
         "files_checked": checked,
         "executable_expected": executable,
         "violations": violations[:50],
