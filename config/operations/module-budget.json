@@ -4069,10 +4069,10 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 437,
-      "max_complexity": 20,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls.",
-      "max_function_lines": 79,
+      "lines": 488,
+      "max_complexity": 22,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced.",
+      "max_function_lines": 82,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4372,9 +4372,9 @@
       "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree."
     },
     "scripts/probe_source_content.py": {
-      "lines": 251,
+      "lines": 276,
       "max_complexity": 8,
-      "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success.",
+      "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success. | 2026-08-29 records the portal's legal-status marker alongside the measurement.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -5603,6 +5603,16 @@
         "lines": 251,
         "max_complexity": 8,
         "max_function_lines": 42
+      }
+    },
+    {
+      "on": "2026-08-29",
+      "path": "scripts/validate_doctrine_catalog.py",
+      "reason": "rules 12 and the attachment signature agreement; both were found by probing 13 candidate laws before adding them, where a naive in-force check produced two false positives on acts that are in force.",
+      "to": {
+        "lines": 488,
+        "max_complexity": 22,
+        "max_function_lines": 82
       }
     }
   ],

@@ -29,6 +29,16 @@ config/corpus/attachments/ and rule 11 holds their digests, along with an honest
 whether this system's extractor can read each format (six of the seven are OLE2 .doc and it
 cannot).
 
+And it reads the portal's own legal-status marker. Substring-matching "втратив чинність"
+against the page text does not work: order 402 says it of its own clause 2, and resolution
+704 says it of the eleven resolutions it repeals — both are in force, and a naive check
+calls both dead. The portal states the act's own status structurally as
+`<span class="valid">чинний</span>` or `<span class="invalid">втратив чинність</span>`;
+confirmed against law 565-XII (repealed 2015), which is the only one of the sources probed
+so far that returns `invalid`. Rule 12 refuses to let a repealed act stay ingestible: a
+soldier asking what he is entitled to must not be answered out of a law that no longer
+applies.
+
     probe_source_content.py            # report only
     probe_source_content.py --write    # record, repoint source_uri, capture attachments
 """
@@ -56,6 +66,8 @@ ATTACHMENTS = ROOT / "config/corpus/attachments"
 PROBED_HOSTS = ("zakon.rada.gov.ua",)
 ATTACHMENT = re.compile(r'href="([^"]+\.(?:docx|doc|rtf|xlsx|xls|pdf))"', re.IGNORECASE)
 TAG = re.compile(r"<[^>]+>")
+# The act's own status, as the portal marks it — not a phrase found anywhere in the text.
+LEGAL_STATUS = re.compile(r'<span class="(valid|invalid)">\s*([^<]{1,60}?)\s*</span>')
 
 
 class Measurement(TypedDict):
@@ -83,6 +95,8 @@ class Probe(TypedDict):
     chosen_uri: str
     chosen_words: int
     required_attachments: list[str]
+    legal_status: str
+    legal_status_text: str
 
 
 def _capture_attachments(identifier: str, probe: Probe, timeout: int) -> list[Anchor]:
@@ -189,10 +203,10 @@ def probe(entry: dict[str, object], timeout: int) -> Probe | None:
         return None
 
     variants = _variants(uri)
-    measured = {
-        name: _measure(_fetch(variant, timeout), variant) for name, variant in variants.items()
-    }
+    pages = {name: _fetch(variant, timeout) for name, variant in variants.items()}
+    measured = {name: _measure(pages[name], variants[name]) for name in variants}
     richest = max(measured, key=lambda name: measured[name]["words"])
+    status, status_text = _legal_status(pages["card"])
     return {
         "probed_on": date.today().isoformat(),
         "variants": measured,
@@ -200,7 +214,17 @@ def probe(entry: dict[str, object], timeout: int) -> Probe | None:
         "chosen_uri": measured[richest]["uri"],
         "chosen_words": measured[richest]["words"],
         "required_attachments": measured[richest]["attachments"],
+        "legal_status": status,
+        "legal_status_text": status_text,
     }
+
+
+def _legal_status(card_html: str) -> tuple[str, str]:
+    """Read the act's status from the portal's marker, never from its prose."""
+    for marker, text in LEGAL_STATUS.findall(card_html):
+        if "чинн" in text.lower():
+            return marker, text
+    return "unknown", ""
 
 
 def main() -> int:
@@ -225,6 +249,7 @@ def main() -> int:
             f"{entry['id']:26} card={card:7} best={best:7} "
             f"variant={result['chosen_variant']:5} "
             f"attachments={len(result['required_attachments'])} "
+            f"status={result['legal_status']:7} "
             f"{'REPOINT' if moved else ''}"
         )
         if moved:

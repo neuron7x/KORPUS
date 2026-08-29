@@ -910,7 +910,9 @@
           "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3116.doc",
           "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
           "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc"
-        ]
+        ],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       },
       "attachment_anchors": [
         {
@@ -1111,7 +1113,9 @@
         "chosen_words": 4790,
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
-        ]
+        ],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       },
       "attachment_anchors": [
         {
@@ -1160,7 +1164,9 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
         "chosen_words": 16881,
-        "required_attachments": []
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       }
     },
     {
@@ -1199,7 +1205,9 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
         "chosen_words": 714,
-        "required_attachments": []
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       }
     },
     {
@@ -1238,7 +1246,9 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
         "chosen_words": 1194,
-        "required_attachments": []
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       }
     },
     {
@@ -1277,7 +1287,9 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
         "chosen_words": 6906,
-        "required_attachments": []
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       }
     },
     {
@@ -1554,6 +1566,793 @@
         "path": "config/corpus/mod_snapshots/genshtab.txt",
         "sha256": "2853e1ec5f474103e8ac6051fb3c0886373d109018b74cea5a0edeed53778337",
         "captured_on": "2026-08-29"
+      }
+    },
+    {
+      "id": "ORG-LAW-549-XIV",
+      "tier": "org_duties",
+      "canonical_title": "Стройовий статут Збройних Сил України",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/549-14/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Один із чотирьох статутів ЗСУ. Каталог мав лише Статут внутрішньої служби. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/549-14",
+            "words": 708,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/549-14/print",
+            "words": 23072,
+            "tables": 20,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/549-14/print",
+        "chosen_words": 23072,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-550-XIV",
+      "tier": "org_duties",
+      "canonical_title": "Статут гарнізонної та вартової служб Збройних Сил України",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Вартова служба, гарнізонні наряди, обов'язки чатового і розвідного. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/550-14",
+            "words": 724,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
+            "words": 43725,
+            "tables": 39,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1574.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1577.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1578.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1579.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1581.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1770.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1771.doc",
+              "https://zakon.rada.gov.ua/laws/file/text/89/f32720n1860.doc"
+            ]
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
+        "chosen_words": 43725,
+        "required_attachments": [
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1574.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1577.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1578.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1579.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1581.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1770.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1771.doc",
+          "https://zakon.rada.gov.ua/laws/file/text/89/f32720n1860.doc"
+        ],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      },
+      "attachment_anchors": [
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1574.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1574.doc",
+          "sha256": "25d4f48baba9af519ef1add0b7b4c18e8d13c5c20f0e9ead270cea74e3685fc9",
+          "bytes": 33280,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1577.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1577.doc",
+          "sha256": "5e954fb31046cb84de11aedef010de7af32262334fc5b8172af1034c45c8cb80",
+          "bytes": 32256,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1578.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1578.doc",
+          "sha256": "fb2f1ccf54d5f5fdc7de57b9ead51ea0ec0a79b3b12643a2d82adac4ed1aa96a",
+          "bytes": 36864,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1579.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1579.doc",
+          "sha256": "341968a7adfdb8a43a5454022e5dd51279e761a0422a4cbdcdd4cb2e0cd9481f",
+          "bytes": 31744,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1581.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1581.doc",
+          "sha256": "a20d9fc078a25c0767f94ece340da08b25aced1af7564c1a783a3498799ea528",
+          "bytes": 35328,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1770.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1770.doc",
+          "sha256": "1237c488fca15df1c6988258da6e966015fc05b3ade59948b6abe88ee31e32a1",
+          "bytes": 35328,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1771.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1771.doc",
+          "sha256": "b5a1984fa1ef85cdedbccf63112d37e8c74a655dd97c1be8162deebd566946f2",
+          "bytes": 42496,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/89/f32720n1860.doc",
+          "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1860.doc",
+          "sha256": "ee817000a5ba3a0e8905df7d9b8e351cde2222263aeaf896949c5958eab55a96",
+          "bytes": 34304,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        }
+      ]
+    },
+    {
+      "id": "ORG-LAW-551-XIV",
+      "tier": "org_duties",
+      "canonical_title": "Дисциплінарний статут Збройних Сил України",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Стягнення, заохочення, порядок оскарження. Пряма підстава для відповіді на «що мені за це буде». Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/551-14",
+            "words": 704,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
+            "words": 10844,
+            "tables": 10,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
+        "chosen_words": 10844,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-2232-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про військовий обов'язок і військову службу",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Види військової служби, строки, призов, контракт, звільнення. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2232-12",
+            "words": 698,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
+            "words": 39509,
+            "tables": 4,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
+        "chosen_words": 39509,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-1934-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про Збройні Сили України",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Склад, підпорядкування і функції ЗСУ. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/1934-12",
+            "words": 663,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
+            "words": 5216,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
+        "chosen_words": 5216,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-1932-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про оборону України",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Правові засади оборони, повноваження органів, режим воєнного стану. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/1932-12",
+            "words": 664,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
+            "words": 10002,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
+        "chosen_words": 10002,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-3543-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про мобілізаційну підготовку та мобілізацію",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Мобілізація, бронювання, обов'язки громадян і підприємств. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/3543-12",
+            "words": 674,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
+            "words": 15175,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
+        "chosen_words": 15175,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-2011-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про соціальний і правовий захист військовослужбовців та членів їх сімей",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Гарантії, пільги, забезпечення житлом, виплати при пораненні та загибелі. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2011-12",
+            "words": 718,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
+            "words": 23355,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
+        "chosen_words": 23355,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-3551-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про статус ветеранів війни, гарантії їх соціального захисту",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Статус УБД, особи з інвалідністю внаслідок війни, члени сімей загиблих. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/3551-12",
+            "words": 707,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
+            "words": 24537,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
+        "chosen_words": 24537,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-LAW-2262-XII",
+      "tier": "org_duties",
+      "canonical_title": "Про пенсійне забезпечення осіб, звільнених з військової служби, та деяких інших осіб",
+      "issuer": "Верховна Рада України",
+      "jurisdiction": "UA",
+      "document_type": "law",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/2262-12/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Пенсії за вислугу років, по інвалідності, у разі втрати годувальника. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
+            "words": 710,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/2262-12/print",
+            "words": 21198,
+            "tables": 3,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2262-12/print",
+        "chosen_words": 21198,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-MOD-ORDER-402-VLK",
+      "tier": "org_duties",
+      "canonical_title": "Наказ Міноборони від 14.08.2008 № 402 — Положення про військово-лікарську експертизу",
+      "issuer": "Міністерство оборони України",
+      "jurisdiction": "UA",
+      "document_type": "order",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Придатність до служби, ступені придатності, порядок ВЛК. Основа відповіді на питання про звільнення за станом здоров'я. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
+            "words": 94916,
+            "tables": 66,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7455.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7459.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7461.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7703.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7704.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7706.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7801.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7802.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7803.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7808.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7847.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7848.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7849.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7851.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7852.docx"
+            ]
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/z1109-08/print",
+            "words": 93567,
+            "tables": 67,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7455.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7459.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7461.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7703.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7704.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7706.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7801.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7802.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7803.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7808.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7847.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7848.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7849.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7851.docx",
+              "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7852.docx"
+            ]
+          }
+        },
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
+        "chosen_words": 94916,
+        "required_attachments": [
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7455.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7459.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7461.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7703.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7704.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7706.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7801.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7802.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7803.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7808.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7847.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7848.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7849.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7851.docx",
+          "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7852.docx"
+        ],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      },
+      "attachment_anchors": [
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7455.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7455.docx",
+          "sha256": "4d74c85d03eb5c01828e7c841c24c4fbbb9c6f1b38d143180a7ec316f165d413",
+          "bytes": 34477,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7459.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7459.docx",
+          "sha256": "2733e341c5ca8e25d6cd92198d316e5b7d2d481a07f8c4faeaddaa4d0616c0db",
+          "bytes": 14015,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7461.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7461.docx",
+          "sha256": "5a822654b9da71ec8588749235a258feb8fe262be045796228357c39a5c359e5",
+          "bytes": 13728,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7703.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7703.docx",
+          "sha256": "4837fe915040193556e340de3fa9e9f0269225da390664308f67f183340bf3dc",
+          "bytes": 14780,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7704.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7704.docx",
+          "sha256": "81650be6a0a45fdd396bdceb9b20c3661110f48bda006d5ecac8211df16f32f7",
+          "bytes": 14668,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7706.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7706.docx",
+          "sha256": "ba5c549dd9fdf3054ad69bee98b06853349a9a5aabb6c2754cfe37ce0cadfc9b",
+          "bytes": 18217,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7801.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7801.docx",
+          "sha256": "ea2e494b4b3153957feab5028cc342f397022639b6e004323261c157a2cd4e02",
+          "bytes": 14113,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7802.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7802.docx",
+          "sha256": "f40a6ffdebb4c09c310cc7e1ec1c13914af3a841ce297d02b728eb03faf71857",
+          "bytes": 15392,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/126/f277457n7803.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7803.docx",
+          "sha256": "5eb20da59773806138a332b2c20a060da6a6acb6f9e9966f90674c89768417ad",
+          "bytes": 19397,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7808.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7808.docx",
+          "sha256": "9d0f9b9a571b07eb740db671ac150a65a8942095f094a685f16802789c5aab29",
+          "bytes": 19675,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7847.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7847.docx",
+          "sha256": "ec2af88b552d92dbac78dce04fadc480cc5acf63372de94898e968ad64fd2ff6",
+          "bytes": 13509,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7848.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7848.docx",
+          "sha256": "96ff812119def1b6be0edddb289bd508b9b479368b0158411414ef6b66402ce3",
+          "bytes": 14383,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7849.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7849.docx",
+          "sha256": "9dd37c1a745454e705cf9ad6b913eac1b03abccec5ce1aee255ade213e2f9463",
+          "bytes": 12938,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7851.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7851.docx",
+          "sha256": "05a26e49ddbb79cf2b0852f4320f2c84b8753aed44aeb664e7171e5c86af4760",
+          "bytes": 16018,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/129/f277457n7852.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7852.docx",
+          "sha256": "37dc0025581d50e0a57a986b3ac3e3c8ee041bfaa7044d3e74016e5935ff8d45",
+          "bytes": 16947,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        }
+      ]
+    },
+    {
+      "id": "ORG-CMU-704-2017",
+      "tier": "org_duties",
+      "canonical_title": "Постанова КМУ від 30.08.2017 № 704 — грошове забезпечення військовослужбовців",
+      "issuer": "Кабінет Міністрів України",
+      "jurisdiction": "UA",
+      "document_type": "regulation",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Структура грошового забезпечення: оклади за посадою і званням, надбавки за вислугу. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п",
+            "words": 725,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
+            "words": 7170,
+            "tables": 41,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
+        "chosen_words": 7170,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
+      }
+    },
+    {
+      "id": "ORG-CMU-168-2022",
+      "tier": "org_duties",
+      "canonical_title": "Постанова КМУ від 28.02.2022 № 168 — додаткова винагорода військовослужбовцям",
+      "issuer": "Кабінет Міністрів України",
+      "jurisdiction": "UA",
+      "document_type": "regulation",
+      "authority": "official_ua",
+      "access_tier": 0,
+      "classification": "public",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
+      "source_kind": "primary",
+      "provenance_status": "verified",
+      "requires_second_source": false,
+      "rights_status": "open",
+      "ingestible": true,
+      "notes": "Додаткова винагорода за безпосередню участь у бойових діях. Чинність і повнота варіанта встановлюються полем content_probe.",
+      "content_probe": {
+        "probed_on": "2026-08-29",
+        "variants": {
+          "card": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п",
+            "words": 727,
+            "tables": 0,
+            "attachments": []
+          },
+          "print": {
+            "uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
+            "words": 5281,
+            "tables": 9,
+            "attachments": []
+          }
+        },
+        "chosen_variant": "print",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
+        "chosen_words": 5281,
+        "required_attachments": [],
+        "legal_status": "valid",
+        "legal_status_text": "чинний"
       }
     }
   ]

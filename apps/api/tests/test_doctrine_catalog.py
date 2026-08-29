@@ -365,3 +365,51 @@ def _digest_of(relative: str) -> str:
     import hashlib
 
     return hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
+
+
+def test_a_repealed_act_may_not_be_ingestible() -> None:
+    """Rule 12: a dead law still returns 200 and still reads like law."""
+    entry = _probed_entry()
+    entry["content_probe"]["legal_status"] = "invalid"
+    entry["content_probe"]["legal_status_text"] = "втратив чинність"
+    problems = _validator()._entry_problems(entry)
+    assert any("may not answer a question" in p for p in problems), problems
+
+
+def test_a_repealed_act_kept_for_reference_but_blocked_is_allowed() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["legal_status"] = "invalid"
+    entry["ingestible"] = False
+    entry["ingest_block_reason"] = "repealed; retained for amendment history only"
+    assert _validator()._entry_problems(entry) == []
+
+
+def test_an_act_in_force_is_not_blocked_by_rule_twelve() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["legal_status"] = "valid"
+    assert _validator()._entry_problems(entry) == []
+
+
+def test_a_captured_error_page_under_a_docx_name_is_refused(tmp_path: Path) -> None:
+    """The failure a digest check cannot see: curl saved a 404, not the annex."""
+    import hashlib
+
+    fake = ROOT / "config/corpus/attachments/__signature_probe__.docx"
+    fake.write_bytes(b"<html><body>404 Not Found</body></html>")
+    try:
+        entry = _attached_entry()
+        anchor = entry["attachment_anchors"][0]
+        anchor["path"] = "config/corpus/attachments/__signature_probe__.docx"
+        anchor["sha256"] = hashlib.sha256(fake.read_bytes()).hexdigest()
+        problems = _validator()._entry_problems(entry)
+        assert any("does not start with the .docx signature" in p for p in problems), problems
+    finally:
+        fake.unlink()
+
+
+def test_every_captured_attachment_carries_the_signature_its_extension_claims() -> None:
+    """The live check across all 30 captures, not a fixture."""
+    catalog = _catalog()
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "PASS", result["problems"]
+    assert result["summary"]["attachments_captured"] >= 30

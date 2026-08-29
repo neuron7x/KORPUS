@@ -21,7 +21,9 @@ Fail-closed. Any violation is a non-zero exit and the entry is named. The rules:
   9. integrity_anchor, where present, resolves inside the repository and its sha256 matches
  10. content_probe, where present, is self-consistent and source_uri is its richest variant
  11. every attachment content_probe declares required is captured in-tree, digest matching,
-     and is honestly marked as to whether this system's extractor can read its format
+     carrying the file signature its extension claims, and is honestly marked as to whether
+     this system's extractor can read its format
+ 12. a source the portal marks as repealed is not ingestible
 
 Rule 9 exists because a source with no publication date and no revision trail (a ministry
 web page) can be silently rewritten. The anchor is a captured snapshot whose digest is
@@ -70,6 +72,18 @@ from korpus.infrastructure.extraction import SUPPORTED_SUFFIXES  # noqa: E402
 
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 
+# What the first bytes must be for the extension to be honest. Same agreement
+# korpus.infrastructure.extraction requires before handing a file to a parser: a captured
+# 404 page is HTML under a .docx name, and a digest check alone would call it fine.
+FILE_SIGNATURES = {
+    ".docx": b"PK\x03\x04",
+    ".xlsx": b"PK\x03\x04",
+    ".doc": b"\xd0\xcf\x11\xe0",
+    ".xls": b"\xd0\xcf\x11\xe0",
+    ".pdf": b"%PDF-",
+    ".rtf": b"{\\rtf",
+}
+
 
 class Summary(TypedDict):
     total: int
@@ -84,6 +98,7 @@ class Summary(TypedDict):
     content_probed: int
     attachments_captured: int
     attachments_extractor_readable: int
+    repealed_and_blocked: int
 
 
 class Result(TypedDict):
@@ -105,6 +120,7 @@ EMPTY_SUMMARY: Summary = {
     "content_probed": 0,
     "attachments_captured": 0,
     "attachments_extractor_readable": 0,
+    "repealed_and_blocked": 0,
 }
 
 REQUIRED_FIELDS = (
@@ -199,7 +215,23 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
         )
     )
 
+    # (12) A repealed act does not get to answer a question.
+    problems.extend(_legal_status_problems(identifier, entry.get("content_probe"), ingestible))
+
     return problems
+
+
+def _legal_status_problems(identifier: str, probe: object, ingestible: bool) -> list[str]:
+    if not isinstance(probe, dict):
+        return []
+    status = str(probe.get("legal_status", ""))
+    if status == "invalid" and ingestible:
+        text = str(probe.get("legal_status_text", "")).strip() or "invalid"
+        return [
+            f"{identifier}: the portal marks this act {text!r} but ingestible=true — "
+            "a repealed act may not answer a question about what applies now"
+        ]
+    return []
 
 
 def _required_attachments(probe: object) -> list[str]:
@@ -232,7 +264,18 @@ def _attachment_problems(identifier: str, probe: object, anchors: object) -> lis
         problems.extend(digest_problems)
         if digest_problems:
             continue
-        readable = target.suffix.lower() in SUPPORTED_SUFFIXES
+        suffix = target.suffix.lower()
+        expected = FILE_SIGNATURES.get(suffix)
+        if expected is not None:
+            with target.open("rb") as handle:
+                prefix = handle.read(len(expected))
+            if prefix != expected:
+                problems.append(
+                    f"{identifier} [{uri}]: {target.name} does not start with the "
+                    f"{suffix} signature — a captured error page hashes just as cleanly"
+                )
+                continue
+        readable = suffix in SUPPORTED_SUFFIXES
         if bool(anchor.get("extractor_supports_format")) is not readable:
             problems.append(
                 f"{identifier} [{uri}]: extractor_supports_format claims "
@@ -374,6 +417,14 @@ def evaluate(catalog: dict[str, object]) -> Result:
             len(e["attachment_anchors"])
             for e in dicts
             if isinstance(e.get("attachment_anchors"), list)
+        ),
+        "repealed_and_blocked": len(
+            [
+                e
+                for e in dicts
+                if isinstance(e.get("content_probe"), dict)
+                and e["content_probe"].get("legal_status") == "invalid"
+            ]
         ),
         "attachments_extractor_readable": sum(
             len([a for a in e["attachment_anchors"] if a.get("extractor_supports_format")])
