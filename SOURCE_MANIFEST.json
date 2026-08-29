@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1340,
-  "root_sha256": "86c6b66577d11367336a693d1a0374d8e33cc2f4ad8815c3e62b69c2c8ca0ffc",
+  "file_count": 1342,
+  "root_sha256": "3b8d88e578cc14e95e1c0d7b35976bdc5b1d4b04f15bc607a2648318a95dad67",
   "files": [
     {
       "path": ".dockerignore",
@@ -4980,6 +4980,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/DOCTRINE_CATALOG_CANDIDATE2_2026-08-29.md",
+      "bytes": 5193,
+      "sha256": "23da4f5395a21e099f690a5acb9625eb7bbd6c68aac4694a0ac8a5f0058669c6",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc",
       "bytes": 30720,
       "sha256": "1a54e29a8632141effba3f0ef8746296ff7e3d625dec35fe3db4ee27b50cec12",
@@ -5157,6 +5163,12 @@
       "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7852.docx",
       "bytes": 16947,
       "sha256": "37dc0025581d50e0a57a986b3ac3e3c8ee041bfaa7044d3e74016e5935ff8d45",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/doctrine_catalog_2026.candidate2.json",
+      "bytes": 112738,
+      "sha256": "d77ed7e2c41da0a1083d09bc89d2886aa2501954e45c21da6e3002093e3917a0",
       "mode": "0644"
     },
     {
