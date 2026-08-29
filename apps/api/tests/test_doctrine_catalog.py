@@ -1053,3 +1053,43 @@ def test_the_floor_fallback_survives_a_history_of_mixed_shapes() -> None:
     recorded, origin = module._committed_floor()
     assert origin in {"git", "catalog_history"}, origin
     assert isinstance(recorded, dict) and recorded, recorded
+
+
+@pytest.mark.parametrize(
+    ("name", "change", "expected"),
+    [
+        ("ключ зник", "drop", "зник із підлоги"),
+        ("ключ знижено", 1, "was lowered from"),
+        ("ключ став рядком", "72", "перестав бути цілим"),
+        ("ключ став True", True, "перестав бути цілим"),
+    ],
+)
+def test_a_floor_key_cannot_be_removed_or_untyped_in_silence(
+    name: str, change: object, expected: str
+) -> None:
+    """Порівняння лише там, де ОБИДВА значення цілі, робило видалення ключа тихим способом
+    зняти з нього ратчет: `document_probed`, `page_probed`, `attachments_captured` можна
+    було прибрати без жодного слова. Правило про обов'язкові ключі рятувало лише два.
+
+    Знайдено 2026-08-30 паралельною сесією, і правило одразу спіймало реальне зникнення:
+    `ingestible_total` (166) справді випав із підлоги під час перенесення лічильників.
+    """
+    import importlib.util
+
+    script = ROOT / "scripts/validate_doctrine_catalog.py"
+    spec = importlib.util.spec_from_file_location("vdc_floor_probe", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    recorded, _origin = module._committed_floor()
+    assert isinstance(recorded, dict) and "document_probed" in recorded, recorded
+    declared = dict(recorded)
+    if change == "drop":
+        declared.pop("document_probed")
+    else:
+        declared["document_probed"] = change
+    problems = module._floor_lowered_problems(declared)
+    assert any(expected in problem for problem in problems), (name, problems)
+    # Дуальність: незмінена підлога не сміє давати жодної скарги.
+    assert module._floor_lowered_problems(dict(recorded)) == []

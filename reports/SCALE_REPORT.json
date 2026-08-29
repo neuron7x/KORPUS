@@ -11,10 +11,10 @@
     "query": "ALPHA-OMEGA deterministic target"
   },
   "results": {
-    "ingest_seconds": 0.06805656594224274,
-    "query_latency_ms_p50": 2.5745975,
-    "query_latency_ms_p95": 3.053578,
-    "query_latency_ms_max": 3.632542,
+    "ingest_seconds": 0.06998107896652073,
+    "query_latency_ms_p50": 2.4909749999999997,
+    "query_latency_ms_p95": 3.06945,
+    "query_latency_ms_max": 3.551935,
     "candidate_count": 1,
     "top1_recall": 1.0
   },
@@ -29,8 +29,8 @@
   ],
   "provenance": {
     "schema_version": 1,
-    "source_digest": "16b2ad8aefd00705179d211ccc247c8c7d2149e47f65f008588792c9a1c031aa",
+    "source_digest": "67b31e95321d6c4c63802a41a05265c2f700b2484bddbda45e2e7c771263c166",
     "generator": "scripts/run_scale_probe.py",
-    "generated_at": "2026-08-29T23:07:11+00:00"
+    "generated_at": "2026-08-29T23:43:22+00:00"
   }
 }

@@ -13,7 +13,6 @@
   },
   "evidence_floor": {
     "total": 215,
-    "ingestible_total": 166,
     "governing_authority": 139,
     "integrity_anchored": 12,
     "content_probed": 28,
@@ -21,7 +20,9 @@
     "attachments_captured": 82,
     "attachments_surveyed": 50,
     "attachments_extractor_readable": 32,
-    "repealed_and_blocked": 2
+    "repealed_and_blocked": 2,
+    "page_probed": 71,
+    "ingestible_total": 166
   },
   "evidence_floor_note": "Ratchet, recalculated 2026-08-29 for 168 sources. At the previous floor of 84 an adversarial pass deleted exactly half the catalog and the gate stayed PASS, taking 9 content probes and 52 captured attachments with it. attachments_extractor_readable and repealed_and_blocked were added because nothing held them: swapping a .docx for a .doc lowered readability without a verdict, and deleting both repealed records removed the only proof the legal-status probe can return 'invalid' at all. Deliberately NOT ratcheted: restricted_quarantined, rights_blocked, blocked, ingestible — a floor on those forbids a lawful declassification or a rights clearance.",
   "evidence_floor_history": [
@@ -91,15 +92,35 @@
         "attachments_extractor_readable": 32,
         "repealed_and_blocked": 2
       },
-      "reason": "ingestible_total 167 → 166: XC-PROMETHEUS-MED знято з інжесту за ДОВЕДЕНОЮ відсутністю — HTTP 404 на трьох послідовних запитах, 1722 байти, без редиректу, тоді як корінь pdp.nacs.gov.ua віддає 200. Сайт живий, курс зник. Це рівно той випадок, задля якого ingestible_total і додано вчора: підлога мусить розрізняти ТИХУ втрату джерела від його коректного зняття з причиною, яку можна перечитати й оскаржити. Мовчазне падіння тут було б дефектом; падіння із записаною підставою — робота ратчета, а не його обхід."
+      "reason": "Додано page_probed як ОКРЕМУ вісь: вимір веб-сторінки, що Є джерелом. Вимір КАРТКИ каталогу APD (10 таких) доказом про документ НЕ рахується — зарахувати його означало б сказати «ми прочитали ATP 3-09.30», прочитавши запис про неї. Прапорець ставить сам пробник за link_state, тож рішення видно в даних, а не лише в коді. ЗАСТЕРЕЖЕННЯ ПРО ВІДМОВУ ВІД ПОРОГУ: перша версія блокувала «каркаси» за щільністю тексту (слів/КБ); вимір по 40 сторінках показав, що цей поріг корпус НЕ розділяє — T1A-FOI-MEMO-8897 має 9341 слово при НУЛІ абзаців <p>, ORG-MOD-WEB-SV — 625 слів при 3.38 слів/КБ, обидва є справжнім вмістом. Щільність записується як вимір і вироку не виносить. Лишився поріг, який дані витримують: 200 слів, між 404-сторінкою (41) і найтоншим справжнім джерелом (372). ХИБНИЙ ВИМІР, ЗНАЙДЕНИЙ І ВИПРАВЛЕНИЙ: пробник не дивився на код відповіді й записав сторінку блокування Cloudflare (127 слів, HTTP 403) як вміст джерела разом із text_sha256. Тепер non-2xx і перепони (cloudflare/captcha/«you have been blocked» у заголовках при <400 словах) дають evidence_refusal, а не вимір."
+    },
+    {
+      "on": "2026-08-30",
+      "from": {
+        "ingestible_total": 166
+      },
+      "to": {
+        "total": 215,
+        "governing_authority": 139,
+        "integrity_anchored": 12,
+        "content_probed": 28,
+        "document_probed": 72,
+        "attachments_captured": 82,
+        "attachments_surveyed": 50,
+        "attachments_extractor_readable": 32,
+        "repealed_and_blocked": 2,
+        "page_probed": 71,
+        "ingestible_total": 166
+      },
+      "reason": "Ключ `ingestible_total` зник із підлоги під час перенесення лічильників і був повернений: правило про зникнення ключа (додане того ж дня) показало, що видалення нічим не відрізняється від зниження до нуля. Значення 166 — фактичне після зняття XC-PROMETHEUS-MED з інжесту за виміром 404 (3 запити, живий корінь)."
     }
   ],
   "evidence_ceiling": {
-    "sources_without_evidence": 50,
-    "ingestible_without_evidence": 5,
+    "sources_without_evidence": 47,
+    "ingestible_without_evidence": 3,
     "sources_without_uri": 3
   },
-  "evidence_ceiling_note": "Стеля, бо підлога — скаляр: вона рахує доказ, який є, і ніколи не помічає джерела, яке не має жодного. ОПУЩЕНО 2026-08-29 з 128/96 до 103/59 — не послабленням правила, а ремонтом, який попередня нотатка й називала: «додати ці хости й проміряти 57 джерел». Проміряно 72 документи (13 008 сторінок, 4,58 млн слів) новим класом document_probe: сторінки, слова, структура, індекс названих зразків техніки та text_sha256 витягнутого тексту — пізніше читання того самого URL або відтворює ці числа, або їм суперечить. Саме тому document_probe рахується доказом, а remote_digest — НІ: другий доводить, що артефакт існував і був цей, і не каже про вміст нічого. Зарахувати його означало б видати доказ кожному великому PDF, не прочитавши в ньому жодного рядка. Лишається 103 джерела без доказу (59 придатних) — це переважно HTML-сторінки, для яких потрібен content_probe. Ще одне невиміряне джерело — вирок сьогодні. ОПУЩЕНО 2026-08-30 до 50/5: 102 знімки в дереві від сесії 5cb14ff плюс 72 виміри вмісту document_probe. Стеля ходить униз слідом за виміром — інакше вона перестає щось означати.",
+  "evidence_ceiling_note": "Стеля, бо підлога — скаляр: вона рахує доказ, який є, і ніколи не помічає джерела, яке не має жодного. ОПУЩЕНО 2026-08-29 з 128/96 до 103/59 — не послабленням правила, а ремонтом, який попередня нотатка й називала: «додати ці хости й проміряти 57 джерел». Проміряно 72 документи (13 008 сторінок, 4,58 млн слів) новим класом document_probe: сторінки, слова, структура, індекс названих зразків техніки та text_sha256 витягнутого тексту — пізніше читання того самого URL або відтворює ці числа, або їм суперечить. Саме тому document_probe рахується доказом, а remote_digest — НІ: другий доводить, що артефакт існував і був цей, і не каже про вміст нічого. Зарахувати його означало б видати доказ кожному великому PDF, не прочитавши в ньому жодного рядка. Лишається 103 джерела без доказу (59 придатних) — це переважно HTML-сторінки, для яких потрібен content_probe. Ще одне невиміряне джерело — вирок сьогодні. ОПУЩЕНО 2026-08-30 до 50/5: 102 знімки в дереві від сесії 5cb14ff плюс 72 виміри вмісту doc ОПУЩЕНО 2026-08-30 до 47/3: 71 вимірів веб-сторінок класом page_probe. 13 джерел НЕ міряли НАВМИСНО — права або поіменне застереження проти нас: вимір теж є забором вмісту, і отримати доказ, порушивши те саме обмеження, яке цей доказ мав би поважати, гірше за відсутність доказу.",
   "sources": [
     {
       "id": "T1A-VP-7-0003-01",
@@ -429,6 +450,42 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armyinform.com.ua/en/2026/06/11/ukraines-unmanned-systems-forces-one-year-of-a-branch-the-world-had-never-seen/",
+        "html_bytes": 85237,
+        "words": 1711,
+        "words_per_kb": 20.56,
+        "longest_paragraph_words": 115,
+        "paragraphs_over_30_words": 22,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Latest news",
+          "Ukraine&#8217;s Unmanned Systems Forces: one year of a branch the world had never seen",
+          "From Decree to Doctrine: The Institutional Timeline",
+          "The Operational Record",
+          "The Strike Architecture: Front, Middle, Deep",
+          "A Doctrinal First: Real-Time Storm Shadow Correction",
+          "Air Defence Without Traditional Air Defence",
+          "The Strategic Impact: Russia&#8217;s Economy Under Pressure",
+          "The Institution Behind the Results",
+          "Assessment"
+        ],
+        "headings_count": 10,
+        "named_systems": {
+          "Shahed": 3
+        },
+        "named_systems_total": 1,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "9c9557e0c98324d1f3bc8e49a11bdb8cad7a8f2f57c4b5df740d3f7e5fd27b1e",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -481,6 +538,55 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.japcc.org/white-papers/strategic-concept-of-employment-for-unmanned-aircraft-systems-in-nato/",
+        "html_bytes": 351563,
+        "words": 1576,
+        "words_per_kb": 4.59,
+        "longest_paragraph_words": 97,
+        "paragraphs_over_30_words": 10,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Our Mission",
+          "Our Leadership",
+          "Our Organization",
+          "Combat Air",
+          "Air Operations Support",
+          "C5 ISR &amp; Space",
+          "Interdisciplinary",
+          "All Publications",
+          "Recent Publications",
+          "Joint Air and Space Power Conference",
+          "Other Events",
+          "Training",
+          "Strategic Concept of Employment for Unmanned Aircraft Systems in NATO",
+          "Aim",
+          "Purpose",
+          "Application",
+          "Acknowledgements",
+          "Overview",
+          "Related Publications",
+          "Contact Information",
+          "Quicklinks",
+          "Collaboration",
+          "Quick Search",
+          "Contact Us",
+          "Please leave us a message"
+        ],
+        "headings_count": 25,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "e4b7de0a64348525a66c8eb51aa2eeec2215f7da59bcf767a31c10e71ff6a44f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -682,6 +788,60 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.rusi.org/explore-our-research/publications/insights-papers/emergent-approaches-combined-arms-manoeuvre-ukraine",
+        "html_bytes": 692546,
+        "words": 9397,
+        "words_per_kb": 13.89,
+        "longest_paragraph_words": 267,
+        "paragraphs_over_30_words": 74,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Emergent Approaches to Combined Arms Manoeuvre in Ukraine",
+          "Introduction",
+          "Challenges to Combined Arms Manoeuvre",
+          "Emergent Concepts in Combined Arms Manoeuvre in Ukraine",
+          "Phase 1: Survey",
+          "Phase 2: Isolate",
+          "Phase 3: Degrade",
+          "Phase 4: Fix",
+          "Phase 5: Suppress",
+          "Phase 6: Close and Destroy",
+          "Phase 7: Consolidate",
+          "The Relative Merits of Ukraine’s Arms",
+          "ISR and Enablement UAVs",
+          "Howitzers and Mortars",
+          "Bomber UAVs",
+          "Powered Bombs (One-Way Effectors)",
+          "FPV UAVs",
+          "Armour and Protected Mobility",
+          "Infantry",
+          "Medical Support and Resupply",
+          "Air Defence and Counter Uncrewed Aerial Systems",
+          "Signals and Engineers",
+          "Conclusion",
+          "Recommendations for Ukraine",
+          "Recommendations for Ukraine’s International Partners",
+          "Recommendations for NATO Forces",
+          "WRITTEN BY",
+          "Dr Jack Watling",
+          "Footnotes",
+          "Explore our related content"
+        ],
+        "headings_count": 33,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "3556d68e85bf33a0e7053ade99741486f313b3447eb5f8d8df1f759e94f2d76e",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -803,6 +963,34 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.osw.waw.pl/en/publikacje/osw-commentary/2025-10-14/game-drones-production-and-use-ukrainian-battlefield-unmanned",
+        "html_bytes": 89177,
+        "words": 3827,
+        "words_per_kb": 43.94,
+        "longest_paragraph_words": 183,
+        "paragraphs_over_30_words": 33,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Main navigation",
+          "Game of drones: the production and use of Ukrainian battlefield unmanned aerial vehicles",
+          "Related to the topic",
+          "Do wysłuchania w serwisie Spotify"
+        ],
+        "headings_count": 4,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "99c4c7865e9261503f45bf9cc95817474de7b308362ca22fd873d2f7037b7d26",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -855,6 +1043,37 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.atlanticcouncil.org/blogs/ukrainealert/ukraines-drone-wall-is-europes-first-line-of-defense-against-russia/",
+        "html_bytes": 329455,
+        "words": 2630,
+        "words_per_kb": 8.17,
+        "longest_paragraph_words": 102,
+        "paragraphs_over_30_words": 18,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukraine’s drone wall is Europe&#8217;s first line of defense against Russia",
+          "Stay updated",
+          "Eurasia Center events",
+          "Further reading",
+          "Follow us on social media and support our work",
+          "Oops...",
+          "It looks like we're having a technical issue."
+        ],
+        "headings_count": 7,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "9bceb43bca31b9c2111f371ab9ff304d36b6224e5204d65058d0139c1f02cb54",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -911,6 +1130,56 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.csis.org/analysis/russia-ukraine-drone-war-innovation-frontlines-and-beyond",
+        "html_bytes": 163213,
+        "words": 9978,
+        "words_per_kb": 62.6,
+        "longest_paragraph_words": 183,
+        "paragraphs_over_30_words": 100,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Departments submenu",
+          "Regions submenu",
+          "Topics submenu",
+          "Primary Menu",
+          "About CSIS",
+          "About CSIS submenu",
+          "About Menu",
+          "Strengthening Australia&#039;s Weapons Sustainment Ecosystem",
+          "Takeaways from the 2026 International AIDS Conference",
+          "CANCELED: Strategic Landpower Dialogue: A Conversation with General Eirik Kristoffersen",
+          "The Implications of the Hormuz Energy Crisis in China",
+          "Executive Ed Navigation",
+          "The Russia-Ukraine Drone War: Innovation on the Frontlines and Beyond",
+          "Available Downloads",
+          "Programs & Projects",
+          "Footer",
+          "Media Inquiries",
+          "Footer Social",
+          "Follow",
+          "Footer secondary navigation"
+        ],
+        "headings_count": 20,
+        "named_systems": {
+          "Shahed": 4,
+          "Zala": 1,
+          "Eleron": 1,
+          "Supercam": 1,
+          "Lancet": 1
+        },
+        "named_systems_total": 5,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "e4ab991507ad3fd9fc9ee7dde2706b92840d7c1981d1509841c3a6792aee66f6",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1032,6 +1301,31 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.foi.se/rest-api/report/FOI%20Memo%208897",
+        "html_bytes": 447045,
+        "words": 9341,
+        "words_per_kb": 21.4,
+        "longest_paragraph_words": 0,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [],
+        "headings_count": 0,
+        "named_systems": {
+          "Osa": 1
+        },
+        "named_systems_total": 1,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "290a6f3578a431585073405d3b844e9de02d4a9a91b362393f279574fe884219",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1084,6 +1378,50 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://militarnyi.com/en/news/volunteers-to-provide-100-kropyva-command-and-control-systems-to-the-ukrainian-military/",
+        "html_bytes": 240062,
+        "words": 1055,
+        "words_per_kb": 4.5,
+        "longest_paragraph_words": 54,
+        "paragraphs_over_30_words": 2,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Volunteers to provide 100 Kropyva command and control systems to the Ukrainian military",
+          "U.S. Army Received First XM30 Wolf IFV, Developed to Replace the Bradley",
+          "Attempted Coup in Republic of Niger: Fighting Erupts in Capital Over Presidential Palace and Airport",
+          "Five Additional F-35 Fighter Jets Arrive in Poland",
+          "In Donetsk, Missiles Struck Russian Command Post in Two Places",
+          "Saab Takes Two-Seat Gripen F Fighter into Air for the First Time",
+          "SUPPORT MILITARNYI",
+          "Drone Swarms: Where Tactics End and Strategy Begins",
+          "Hormuz Traffic Surges Nearly 400% as Iran’s Control Weakens",
+          "“Do You Want to See the Ukrainian Flag Over Warsaw?”: Russians Use Fake Accounts to Discredit Ukrspecsystems",
+          "Global Changes to Roaming Availability for Starlink Users",
+          "Design Written in Blood",
+          "Russia May Have Lost Two Kalibr Missile Carriers — Admiral Makarov and Admiral Essen",
+          "NATO Aircraft Conduct Large-Scale Unannounced Exercises Near Kaliningrad",
+          "Russian Oligarchs Contribute About 400 Billion Rubles to Ukraine War at Kremlin’s Request",
+          "Kyiv Hosted First-Ever Drone Parade",
+          "Alexa Spatium Jet Interceptor Enters Ukrainian Defense Forces Service",
+          "Destinus to Develop Naval Air Defense System With Hornet Interceptors"
+        ],
+        "headings_count": 18,
+        "named_systems": {
+          "Kalibr": 1
+        },
+        "named_systems_total": 1,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "9fcca0251c5c0f8006eb6cc5978fe6ce68489231145b9f0520f4f314c9bf0211",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1136,6 +1474,50 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://en.defence-ua.com/news/how_the_kropyva_combat_control_system_helps_in_the_most_difficult_situations_fortified_positions_couldnt_save_russian_army-3646.html",
+        "html_bytes": 43207,
+        "words": 927,
+        "words_per_kb": 21.97,
+        "longest_paragraph_words": 68,
+        "paragraphs_over_30_words": 9,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "The Armed Forces of Ukraine use all available equipment to destroy the russian army",
+          "Recommended articles",
+          "​Ukraine Helps NATO Prepare for russian Drone Threat During Counter-UAV Exercises in Latvia",
+          "russia Has Up to 17 S-400 Launchers Adapted to Fire RM-48U Missiles at Ukraine",
+          "​Ukraine Strikes Slavneft-YANOS Oil Refinery More Than 700 km from Border (Video)",
+          "Journals",
+          "Social networks",
+          "Our publications",
+          "Greece Fires Patriot Missiles at Shaheds, Apparently Ignoring Both Common Sense and Global Missile Shortage",
+          "​Colombian Advices Future Volunteers to Come Prepared as russia-Ukraine War is Not Adventure",
+          "​Why Germany Delayed Purchase of 900-km JASSM-ER Missiles for F-35 Fighters Due to War Against Ukraine",
+          "​Sweden Develops a 1,000-km Cruise Missile Engine in Less Than a Year That Is ITAR-Free and 3D-Printed",
+          "New Details Emerge About Ukraine's Vyrivnyuvach Glide Bomb, Which Can Be Dropped From MiG-29, Su-24, Su-27 Fighter Jets",
+          "Why Was Massive C-17 Strategic Airlifter Capable of Carrying 77 Tons Used to Fly CIA Director to Moscow?",
+          "Реклама"
+        ],
+        "headings_count": 15,
+        "named_systems": {
+          "BMP-3": 3,
+          "BMP-1": 1,
+          "S-400": 1,
+          "Su-24": 1
+        },
+        "named_systems_total": 4,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "d44da02a4d77f5d7c4a0d9d2b8bc9e11112279755ffa5e53c1cfc1a79bdf58e7",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1188,6 +1570,43 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://chiz.nangu.edu.ua/article/view/295097",
+        "html_bytes": 44433,
+        "words": 1027,
+        "words_per_kb": 23.67,
+        "longest_paragraph_words": 83,
+        "paragraphs_over_30_words": 12,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Authors",
+          "DOI:",
+          "Keywords:",
+          "Abstract",
+          "References",
+          "Downloads",
+          "Published",
+          "How to Cite",
+          "Issue",
+          "Section",
+          "License",
+          "Language",
+          "Make a Submission"
+        ],
+        "headings_count": 13,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "291d01b8ff97fb96013199b1ccf69ccef3c8edd605cb98ed75d8ce0fd3a6667f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1244,6 +1663,52 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.csis.org/analysis/does-ukraine-already-have-functional-cjadc2-technology",
+        "html_bytes": 143891,
+        "words": 4738,
+        "words_per_kb": 33.72,
+        "longest_paragraph_words": 130,
+        "paragraphs_over_30_words": 29,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Departments submenu",
+          "Regions submenu",
+          "Topics submenu",
+          "Primary Menu",
+          "About CSIS",
+          "About CSIS submenu",
+          "About Menu",
+          "Strengthening Australia&#039;s Weapons Sustainment Ecosystem",
+          "Takeaways from the 2026 International AIDS Conference",
+          "CANCELED: Strategic Landpower Dialogue: A Conversation with General Eirik Kristoffersen",
+          "The Implications of the Hormuz Energy Crisis in China",
+          "Executive Ed Navigation",
+          "Does Ukraine Already Have Functional CJADC2 Technology?",
+          "Table of Contents",
+          "Available Downloads",
+          "Kateryna Bondar",
+          "Programs & Projects",
+          "Footer",
+          "Media Inquiries",
+          "Footer Social",
+          "Follow",
+          "Footer secondary navigation"
+        ],
+        "headings_count": 22,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "2e95060e5208b33f5654cf21946969172d283ab1eea216f3ad1aee6ae05bf8bd",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1352,6 +1817,46 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://thedefender.media/en/2025/08/delta-full-implementation/",
+        "html_bytes": 131868,
+        "words": 1146,
+        "words_per_kb": 8.9,
+        "longest_paragraph_words": 92,
+        "paragraphs_over_30_words": 6,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "My Bookmarks",
+          "Reading now",
+          "F-Drones launches FPV drone simulator, Ukrainians to get free access on August 24",
+          "Rise Technologies unveils Nakande digital communications system for drones",
+          "Ukraine’s Defence Ministry codifies first jet-powered Alexa Spatium interceptor drone",
+          "200+ new vacancies in defence innovation: Jobs at TAF Industries, Airlogix and other leading industry companies",
+          "Subscribe to Defender Pulse",
+          "Підпишіться на Defender Pulse",
+          "Latest news",
+          "100 new positions from Sine, DOT, NORDA Dynamics, Skyeton and other deftech companies",
+          "Ratel Drones unveils its first strike FPV drone, the K1",
+          "Tanchik Droid 12.7 reconnaissance-strike system becomes available via e-Points",
+          "Defender Media receives international Journalism Trust Initiative certificate",
+          "8 top defence tech events in September",
+          "Follow us on social media",
+          "More on this topic"
+        ],
+        "headings_count": 16,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "bb4388a9cff4e88c286b121c032c3feff180128517159e643eeb4706cd93e24c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1404,6 +1909,34 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://ukrainesarmsmonitor.substack.com/p/ukraines-military-marketplace-1",
+        "html_bytes": 164089,
+        "words": 391,
+        "words_per_kb": 2.44,
+        "longest_paragraph_words": 67,
+        "paragraphs_over_30_words": 2,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukraine's Arms Monitor",
+          "Ukraine's Military Marketplace: Robotic Complexes",
+          "Unmanned Ground Vehicle (ground drone) Murakha",
+          "This post is for paid subscribers"
+        ],
+        "headings_count": 4,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "0b267eeebd69dfba300d86a646e5e9e0171ec8e1428f37bd8fda2c6f13898b3c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1456,6 +1989,34 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mwi.westpoint.edu/networked-for-war-lessons-from-ukraines-ground-robots/",
+        "html_bytes": 105623,
+        "words": 3033,
+        "words_per_kb": 29.4,
+        "longest_paragraph_words": 233,
+        "paragraphs_over_30_words": 22,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Networked for War: Lessons from Ukraine’s Ground Robots",
+          "Facebook",
+          "Youtube",
+          "Twitter"
+        ],
+        "headings_count": 4,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "7df9c0759fc4f6b6b2a3c44b2fb2fbb6d0fa3d5c742076b15aad2638dd56ae28",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1594,6 +2155,37 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.defensenews.com/unmanned/2026/04/24/ukraine-to-field-25000-ground-robots-in-push-to-replace-soldiers-for-frontline-logistics/",
+        "html_bytes": 241087,
+        "words": 984,
+        "words_per_kb": 4.18,
+        "longest_paragraph_words": 48,
+        "paragraphs_over_30_words": 9,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukraine to field 25,000 ground robots in push to replace soldiers for frontline logistics",
+          "Terms of Use",
+          "Get Us",
+          "Contact Us",
+          "About Us"
+        ],
+        "headings_count": 5,
+        "named_systems": {
+          "RPG-7": 1
+        },
+        "named_systems_total": 1,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "c1ea2aeb03d458c2d3f1a3f50c16562815383edbfc7403dacc244ebfd00e0ac2",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -1646,6 +2238,35 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://english.nv.ua/nation/how-many-ground-robots-serve-in-ukraine-what-they-do-and-why-foreigners-want-them-50552773.html",
+        "html_bytes": 100755,
+        "words": 1996,
+        "words_per_kb": 20.29,
+        "longest_paragraph_words": 71,
+        "paragraphs_over_30_words": 22,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukraine fields robot crews for logistics, medevac and combat - NV exclusive",
+          "A technological boom",
+          "How robots fight",
+          "The future is already here",
+          "Войти"
+        ],
+        "headings_count": 5,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "c492b320844b7be7007d6e46e262f257142973cf1c1f946ee9bc8c462a2470cc",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2045,6 +2666,54 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://kyivindependent.com/the-invisible-war-inside-the-electronic-warfare-arms-race-that-could-shape-course-of-the-war/",
+        "html_bytes": 272630,
+        "words": 2958,
+        "words_per_kb": 11.11,
+        "longest_paragraph_words": 92,
+        "paragraphs_over_30_words": 35,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "The Invisible War: Inside the electronic warfare arms race that could shape course of war in Ukraine",
+          "Russia’s dominance in electronic warfare",
+          "read also",
+          "Chinks in the armor",
+          "Ukraine’s little-known, powerful EW system",
+          "From volunteer orders to state contracts",
+          "Most Popular",
+          "Ukraine reveals latest intelligence on Russia&#x27;s mobilization plans",
+          "Baltics assessment of Russia threat &#x27;unchanged&#x27; after CIA director&#x27;s Moscow visit",
+          "Editors&#x27; Picks",
+          "&#x27;The city is dying&#x27; — Ukrainians in Kramatorsk brace for worst as Russian forces inch closer",
+          "&#x27;He&#x27;s sort of like Hitler&#x27; — Trump&#x27;s ex-Ukraine envoy Kellogg warns Putin won&#x27;t stop at Donbas",
+          "‘Everything except nukes’: As the world watches Wildberries, Russia unleashes war on Ukraine’s economy",
+          "Drama, determination, and risk: Remembering how Ukraine&#x27;s independence unfolded"
+        ],
+        "headings_count": 14,
+        "named_systems": {
+          "Krasukha": 3,
+          "Shahed": 2,
+          "Lancet": 1,
+          "SU-34": 1,
+          "SU-35": 1,
+          "Mi-8": 1,
+          "Su-34": 1,
+          "Su-35": 1,
+          "Orlan-10": 1
+        },
+        "named_systems_total": 9,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "431c7116b0855cb925ff1f389df8669d9212ceb4d54e8d56ff7e4165ea831ddf",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2275,6 +2944,55 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://sprotyvg7.com.ua/",
+        "html_bytes": 94342,
+        "words": 737,
+        "words_per_kb": 8.0,
+        "longest_paragraph_words": 50,
+        "paragraphs_over_30_words": 4,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "СМЕРТЬ ОКУПАНТАМ! Всім на захист України!",
+          "#ТрО #ЗСУ #я",
+          "підвищення рівня обороноздатності держави",
+          "на захисті країни",
+          "посилення охорони та захисту державного кордону",
+          "Національний Спротив",
+          "боротьба з диверсійно-розвідувальними силами",
+          "запровадження та здійснення заходів правового режиму воєнного стану",
+          "оборона території та захист населення",
+          "участь у захисті населення, територій",
+          "#Підготовка населення до ТрО #тероборона #ТериторіальнаОборона #НаціональнийСпротив #ЗСУ #ТрОЗСУя",
+          "ПРО НАС",
+          "ПРИЄДНАТИСЯ",
+          "Новини",
+          "Типові завдання, які виконують механізовані (танкові, мотопіхотні, піхотні тощо) підрозділи в наступі та обороні",
+          "Фортифікація. Якість бойової позиції та її вплив на бойові спроможності",
+          "Бойові спроможності підрозділу. Вогнева міць.",
+          "Як підтримувати дисципліну у підрозділі?",
+          "Навчальні матеріали",
+          "Військові публікації",
+          "Законодавча база",
+          "Постанова КМУ від 29 грудня 2021 р. № 1442",
+          "Постанова КМУ від 8 липня 2020 р. № 573",
+          "Закон України від 03 березня 2022 року № 2114-IX",
+          "КОнтакти"
+        ],
+        "headings_count": 25,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "d3b03ec7757c8833b5df5add94852cbd7a6f15831b8a3416554cb16c06475faa",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2373,11 +3091,63 @@
         "against_us": [],
         "informational": []
       },
-      "evidence_refusal": {
-        "reason": "extractor refused: HTML content detected as application/javascript",
-        "class": "extractor_misclassified",
-        "observed_on": "2026-08-30",
-        "retryable": false
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://icds.ee/en/russias-war-in-ukraine-fortification-for-drone-warfare/",
+        "html_bytes": 248066,
+        "words": 2311,
+        "words_per_kb": 9.54,
+        "longest_paragraph_words": 182,
+        "paragraphs_over_30_words": 22,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Russia’s War in Ukraine: Fortification for Drone Warfare",
+          "From Trenches to Shadows",
+          "Lessons for Engineering",
+          "Conclusion",
+          "Endnotes",
+          "Other articles",
+          "Small States Series. Reorganising Dependence: Lithuania’s Response to the Erosion of the Rules-Based International Order",
+          "Small States Series. Estonia&#8217;s Balancing Act: Hard Security and High Principles",
+          "Small States Series. Denmark: From Super-Atlanticist to European Hawk",
+          "Join the ICDS Newsletter!"
+        ],
+        "headings_count": 10,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "e6575ada2076869420b5b86f21a55131ff4b88ec4faa0e705dc005e2f770e2f9",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/T3B-ICDS-FORTIFICATION.txt",
+        "sha256": "9f67f4c68f9cec410d47a8566742338ed871c740e3adaedeb9498275a458e722",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://icds.ee/en/russias-war-in-ukraine-fortification-for-drone-warfare/",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "526e81701be978735a5dd73eeec0deb99bcdcec355498a9bac71f597ffec6767",
+          "bytes": 248066,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "9285c9a8ec73d0bf04f5f30ec4f3889fbb463a20237f6cc94ff8413b1879c270",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 2311,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -2430,6 +3200,34 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.ukrinform.net/rubric-defense/4071742-ukraine-builds-2130-platoon-strongpoints-in-frontline-regions-dm-shmyhal.html",
+        "html_bytes": 52959,
+        "words": 740,
+        "words_per_kb": 14.31,
+        "longest_paragraph_words": 108,
+        "paragraphs_over_30_words": 3,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukrinform - Ukrainian National News Agency",
+          "Latest news",
+          "Ukraine builds 2,130 platoon strongpoints in frontline regions – DM Shmyhal",
+          "Top news"
+        ],
+        "headings_count": 4,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "64afb18d20675785c72365ffd5ab787f69ac1eb98bb6859ea6d79adb294b6abd",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2482,6 +3280,31 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://tccc.org.ua/en/guide/tccc-guidelines-2026",
+        "html_bytes": 174978,
+        "words": 621,
+        "words_per_kb": 3.63,
+        "longest_paragraph_words": 17,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "TCCC Guidelines 2026 (Ukr/Eng)"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "f5638b856265eb1d83fc1d7b8c7c97e73af641fbf69202047f27c42599fa96f0",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2534,6 +3357,38 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://jts.health.mil/index.cfm/committees/cotccc",
+        "html_bytes": 41609,
+        "words": 541,
+        "words_per_kb": 13.31,
+        "longest_paragraph_words": 26,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Joint Trauma System",
+          "The Department of Defense Center of Excellence for Trauma",
+          "Committee on Tactical Combat Casualty Care (CoTCCC)",
+          "TCCC Podcast",
+          "TCCC Education Materials at DeployedMedicine.com",
+          "TCCC goes MOBILE",
+          "CoTCCC Contacts",
+          "Follow CoTCCC on Social Media"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "36712f18bc7a5165e519a0cbc6a6312893096c50eaf5de8fbcc9e08cddedabba",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2808,6 +3663,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
+        "html_bytes": 1185753,
+        "words": 66051,
+        "words_per_kb": 57.04,
+        "longest_paragraph_words": 384,
+        "paragraphs_over_30_words": 666,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Документи та файли",
+          "Публікації документа"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "d35a38b38ca5ad1cfa6a95a639f8ed3e1c87f1c947012e612837d7c93a7fbbef",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -2998,6 +3879,31 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armyinform.com.ua/2021/03/17/golovnyj-serzhant-roty-yaka-osoblyvist-misiyi/",
+        "html_bytes": 133146,
+        "words": 1149,
+        "words_per_kb": 8.84,
+        "longest_paragraph_words": 67,
+        "paragraphs_over_30_words": 12,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Головний сержант роти: яка особливість місії?"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "6bf9a990d4d3f58899a50a5a4ecbe3ab74c7eafc2f34aec5f1b55e118df5dd57",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3050,6 +3956,38 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.ukrmilitary.com/2022/02/sergeant-concept.html",
+        "html_bytes": 100730,
+        "words": 1263,
+        "words_per_kb": 12.84,
+        "longest_paragraph_words": 43,
+        "paragraphs_over_30_words": 6,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Професійній армії &#8212; професійні сержанти",
+          "ПОПУЛЯРНЕ:",
+          "Електронна військова бібліотека:",
+          "Що варто подивитись:",
+          "СТРУКТУРА ЗС УКРАЇНИ:",
+          "Інші військові формування:",
+          "Озброєння і військова техніка:",
+          "Мітки:"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "3514ca40e5aaac8aabc974f8959a2059aaa2abe30b840c2de9bf8041776d7b3c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3102,6 +4040,51 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.kyivpost.com/post/9575",
+        "html_bytes": 107929,
+        "words": 1346,
+        "words_per_kb": 12.77,
+        "longest_paragraph_words": 64,
+        "paragraphs_over_30_words": 18,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "War",
+          "Ukraine",
+          "World",
+          "Economy",
+          "Videos",
+          "Podcasts",
+          "Analysis",
+          "Corruption Watch",
+          "Opinions",
+          "Culture",
+          "History",
+          "Sports",
+          "Classifieds",
+          "Spotlight",
+          "Cartoons",
+          "Rada approves new ranks, NATO-style amendments to military instructions",
+          "JOIN US ON TELEGRAM",
+          "US Senate Delivers Overwhelming 86-12 Bipartisan Backing for Russia Sanctions as Zelensky Watches",
+          "‘Ukrainians, Have You No Empathy?’: Russians Cry on Camera as Ukraine Strikes More Wildberries Warehouses",
+          "Zelensky Fires Back at Iran’s Threat: ‘You Already Attacked Ukraine’",
+          "‘This Is No Laughing Matter’: Lavrov Says Entire West Has United Against Russia, Warns of Its ‘Dismemberment’"
+        ],
+        "headings_count": 21,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "0a5b516002046c7af75bb73678d41f0b02d9bc9168f0e1060954ef84feeb16ca",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3154,6 +4137,33 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://english.nv.ua/amp/syrskyi-approves-plan-to-expand-and-strengthen-ukraine-s-nco-corps-50617300.html",
+        "html_bytes": 42811,
+        "words": 431,
+        "words_per_kb": 10.31,
+        "longest_paragraph_words": 39,
+        "paragraphs_over_30_words": 5,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ukraine launches major reform of sergeant corps under new military plan",
+          "Expanding NCO responsibilities",
+          "Preparing for modern warfare"
+        ],
+        "headings_count": 3,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "97d5ff11a2fbfd69071a508f2efd52ca33ebc5cfa2bcbddb148242f44b3cd3b5",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3234,6 +4244,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
+        "html_bytes": 36544,
+        "words": 504,
+        "words_per_kb": 14.12,
+        "longest_paragraph_words": 8,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "10f3707f849535b5b9fcf3d0854b5d7414a6978f905a024a7a3d6102f4d72ef5",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3298,6 +4333,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
+        "html_bytes": 604719,
+        "words": 16863,
+        "words_per_kb": 28.55,
+        "longest_paragraph_words": 66,
+        "paragraphs_over_30_words": 15,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "39eafd00945047a8c803bc4c000f79fc023328cf0c7aca7911998fe1b56e7bf0",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3362,6 +4422,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
+        "html_bytes": 35822,
+        "words": 482,
+        "words_per_kb": 13.78,
+        "longest_paragraph_words": 8,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "f79db87e0cae30ed850eba31891b83d59b32734a8b928567cc5c449866c5478a",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3426,6 +4511,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
+        "html_bytes": 57137,
+        "words": 940,
+        "words_per_kb": 16.85,
+        "longest_paragraph_words": 54,
+        "paragraphs_over_30_words": 2,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "d41f8e64b2819b6c33404b62fefa8979d854103c2732c26d8a75d44040917c59",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3490,6 +4600,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
+        "html_bytes": 402198,
+        "words": 6652,
+        "words_per_kb": 16.94,
+        "longest_paragraph_words": 165,
+        "paragraphs_over_30_words": 4,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про внесення змін до Переліку посад авіаційного персоналу Збройних Сил України"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "dd1dfa307e70708bdf1c3937a17989d8381c2f729a6126e008a2eba82b865799",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3523,6 +4659,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/suhoputni-vijska-zbrojnih-sil-ukrayini",
+        "html_bytes": 189194,
+        "words": 625,
+        "words_per_kb": 3.38,
+        "longest_paragraph_words": 77,
+        "paragraphs_over_30_words": 6,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сухопутні війська Збройних Сил України",
+          "Командування Сухопутних військ",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "58f3933dca8e2a4fbc97ed7c4325aefc867171b82dd836fc6144d6778972f9cb",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3556,6 +4724,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/povitryani-sili",
+        "html_bytes": 195112,
+        "words": 537,
+        "words_per_kb": 2.82,
+        "longest_paragraph_words": 60,
+        "paragraphs_over_30_words": 5,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Повітряні сили Збройних Сил України",
+          "Командування Повітряних Сил",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "b6dc09a6a7795c57168092fe36012f7f4471f109c70fdb6214e2949b99f16714",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3589,6 +4789,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/vijskovo-morski-sili-1",
+        "html_bytes": 194982,
+        "words": 621,
+        "words_per_kb": 3.26,
+        "longest_paragraph_words": 55,
+        "paragraphs_over_30_words": 9,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Військово-Морські Сили Збройних Сил України",
+          "Командування Військово-Морських Сил",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "40dcf9ae7611bac8c59b5474aef698909ed5fca8cf8e067f72def801fb59ef4c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3622,6 +4854,37 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/desantno-shturmovi-vijska",
+        "html_bytes": 192961,
+        "words": 634,
+        "words_per_kb": 3.36,
+        "longest_paragraph_words": 72,
+        "paragraphs_over_30_words": 8,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Десантно-штурмові війська Збройних Сил України",
+          "Командування Десантно-штурмових військ",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 7,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "3bcc92022eb7fd6f7c5667ac92ccf5aa719d0aab10eb369ceda69326d7db9b0c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3655,6 +4918,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/sili-speczialnih-operaczij",
+        "html_bytes": 186077,
+        "words": 529,
+        "words_per_kb": 2.91,
+        "longest_paragraph_words": 60,
+        "paragraphs_over_30_words": 5,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сили спеціальних операцій Збройних Сил України",
+          "Командування Сил спеціальних операцій",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "1aa2fd627965519524ac7405b09c320a5dd323063359f6f54ab9d7e0f2905df0",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3688,6 +4983,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/sili-teritorialnoyi-oboroni-zbrojnih-sil-ukrayini",
+        "html_bytes": 182970,
+        "words": 494,
+        "words_per_kb": 2.76,
+        "longest_paragraph_words": 67,
+        "paragraphs_over_30_words": 5,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сили територіальної оборони Збройних Сил України",
+          "Командування Сил Територіальної оборони",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "76a56e85eb56dfb336e5c5b840cd9201290e57b175f24a8912241eaa673f1227",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3721,6 +5048,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/sili-bezpilotnih-sistem",
+        "html_bytes": 184278,
+        "words": 372,
+        "words_per_kb": 2.07,
+        "longest_paragraph_words": 46,
+        "paragraphs_over_30_words": 2,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сили безпілотних систем Збройних Сил України",
+          "Командування Сил Безпілотних систем",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "12ed144f8e3aedbb9b899ea9226ffebeb5495a0e2a32e0f637668066188d7edf",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3754,6 +5113,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/sili-pidtrimki-zbrojnih-sil-ukrayini",
+        "html_bytes": 183151,
+        "words": 480,
+        "words_per_kb": 2.68,
+        "longest_paragraph_words": 50,
+        "paragraphs_over_30_words": 6,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сили підтримки Збройних Сил України",
+          "Командування Сил підтримки",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "77aac86ee3a6ad4b5cbb33efc6112650bab7b721824133059fa6255a3c373004",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3787,6 +5178,37 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/sili-logistiki-zbrojnih-sil-ukrayini",
+        "html_bytes": 183626,
+        "words": 534,
+        "words_per_kb": 2.98,
+        "longest_paragraph_words": 61,
+        "paragraphs_over_30_words": 7,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Сили логістики Збройних Сил України",
+          "Командування Сил логістики",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 7,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "630a5a05b6b48d3e603ab0bfe6702dd53b50820c4c4a8fab91011f995ea35950",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3820,6 +5242,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/medichni-sili-zbrojnih-sil-ukrayini",
+        "html_bytes": 180922,
+        "words": 555,
+        "words_per_kb": 3.14,
+        "longest_paragraph_words": 60,
+        "paragraphs_over_30_words": 7,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Медичні сили Збройних Сил України",
+          "Командування Медичних сил",
+          "Соціальні мережі",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "f61d9857a479bd872d90b65199c821a8667628759ac992cbf673008bfa3973c0",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3853,6 +5307,37 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/vijska-zv-yazku-ta-kiberbezpeki",
+        "html_bytes": 174977,
+        "words": 483,
+        "words_per_kb": 2.83,
+        "longest_paragraph_words": 70,
+        "paragraphs_over_30_words": 4,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Війська зв’язку та кібербезпеки",
+          "Командування Військ зв&#x27;язку та кібербезпеки",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 7,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "9a7d834c7527a3db5f6b00a5d12dc4cee20a8a0c703607419002f8cd8cf11119",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3886,6 +5371,38 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://mod.gov.ua/pro-nas/generalnij-shtab-zbrojnih-sil-ukrayini",
+        "html_bytes": 173135,
+        "words": 470,
+        "words_per_kb": 2.78,
+        "longest_paragraph_words": 59,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Генеральний штаб Збройних Сил України",
+          "Основні завдання",
+          "Начальник Генерального штабу",
+          "Про нас",
+          "Сервіси",
+          "Діяльність",
+          "Пресцентр",
+          "Контакти"
+        ],
+        "headings_count": 8,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "a0b75cb06eb20595389b06e8f584786b6e2f3356c84838756cce4487ef92ba6d",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -3950,6 +5467,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/549-14",
+        "html_bytes": 35300,
+        "words": 476,
+        "words_per_kb": 13.81,
+        "longest_paragraph_words": 8,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про Стройовий статут Збройних Сил України"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "acdbf53abfab7b9027962dceb8d4867deaa9c288cc1f94ee9fd701aa2c90888c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4154,6 +5697,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
+        "html_bytes": 1443866,
+        "words": 43707,
+        "words_per_kb": 31.0,
+        "longest_paragraph_words": 259,
+        "paragraphs_over_30_words": 458,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Документи та файли",
+          "Публікації документа"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "1f4c2e7ede3344e759d85492bc3a590148fe53aa842c0e9dffffc6f441d2d5d4",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4218,6 +5787,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
+        "html_bytes": 220723,
+        "words": 10826,
+        "words_per_kb": 50.23,
+        "longest_paragraph_words": 244,
+        "paragraphs_over_30_words": 101,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "a498c5cf9b080fde36e575119af34f7b4cdd24facb6bf6eca640640c71472dd1",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4282,6 +5876,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
+        "html_bytes": 739634,
+        "words": 39491,
+        "words_per_kb": 54.67,
+        "longest_paragraph_words": 1096,
+        "paragraphs_over_30_words": 442,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "f455a01e2252a22a22dabfe62c70834a9188f7672bdcc7d11da0bc4738872491",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4346,6 +5965,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
+        "html_bytes": 105521,
+        "words": 5198,
+        "words_per_kb": 50.44,
+        "longest_paragraph_words": 203,
+        "paragraphs_over_30_words": 50,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "1c4e929b5f4e0de803dd84d09e684c89c161503b78cee5aae280d65108bb8fe4",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4410,6 +6054,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
+        "html_bytes": 191241,
+        "words": 9984,
+        "words_per_kb": 53.46,
+        "longest_paragraph_words": 295,
+        "paragraphs_over_30_words": 108,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "69cb25af8e7c373ed916a7f06bbf4b7ec7a3859d4298cb94150f232553072f43",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4474,6 +6143,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
+        "html_bytes": 284016,
+        "words": 15157,
+        "words_per_kb": 54.65,
+        "longest_paragraph_words": 365,
+        "paragraphs_over_30_words": 171,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "43cf83350ea98ff6ba6d82040e21603072c109e757c0e19fd9ec5b1596b0abb2",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4538,6 +6232,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
+        "html_bytes": 413926,
+        "words": 23337,
+        "words_per_kb": 57.73,
+        "longest_paragraph_words": 530,
+        "paragraphs_over_30_words": 279,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "4061ad19dbdd53b026ae869bfa091c200bae06f6e8830e070ab78825340ac565",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4602,6 +6321,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
+        "html_bytes": 434663,
+        "words": 24519,
+        "words_per_kb": 57.76,
+        "longest_paragraph_words": 444,
+        "paragraphs_over_30_words": 267,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "ecb89c6791c5239ceba35e80d9908f5c4e5c86124d7504729fedb339073e3f1c",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4666,6 +6410,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
+        "html_bytes": 457628,
+        "words": 22406,
+        "words_per_kb": 50.14,
+        "longest_paragraph_words": 254,
+        "paragraphs_over_30_words": 239,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про пенсійне забезпечення осіб, звільнених з військової служби, та деяких інших осіб"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "3a4694f5ed38f9c91eacb2d77147054df8f5ba109d1b6278f1c9869d722a6143",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4900,6 +6670,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
+        "html_bytes": 35492,
+        "words": 477,
+        "words_per_kb": 13.76,
+        "longest_paragraph_words": 8,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про затвердження Положення про військово-лікарську експертизу в Збройних Силах України"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "6f2ad3c7538c2cbf048456bdf61af5268a88b3b5e9da7c87a14b212c41805497",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -4964,6 +6760,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
+        "html_bytes": 188687,
+        "words": 7152,
+        "words_per_kb": 38.81,
+        "longest_paragraph_words": 151,
+        "paragraphs_over_30_words": 73,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "bc0ddc291291f1948a0483a55f4f31a4c01049da32dc40ef2b0d809c45a6133b",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -5028,6 +6849,31 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
+        "html_bytes": 109578,
+        "words": 5263,
+        "words_per_kb": 49.18,
+        "longest_paragraph_words": 204,
+        "paragraphs_over_30_words": 56,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "d29154907552bfc231ee378995d837caba9a6dd88872b36c8924e0a4ff7111cc",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -8165,7 +10011,33 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0059-17/print",
+        "html_bytes": 757532,
+        "words": 33071,
+        "words_per_kb": 44.7,
+        "longest_paragraph_words": 118,
+        "paragraphs_over_30_words": 326,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Документи та файли",
+          "Публікації документа"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "b525a5f2a4600896553d8faf50c6c283e138dfa3ad3e84386ab15ef4054cbaa1",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "ARM-MOU-578-2018",
@@ -8232,7 +10104,32 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0277-19",
+        "html_bytes": 105584,
+        "words": 3694,
+        "words_per_kb": 35.83,
+        "longest_paragraph_words": 154,
+        "paragraphs_over_30_words": 23,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "67445c19683a3d0fb64289639b3b0deabb816b77955ccc515371e4ed52e791ab",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "CAM-TC-3-90-10-2026",
@@ -8418,7 +10315,33 @@
         "informational": []
       },
       "link_state": "record_only",
-      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає"
+      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details_Printer.aspx?PUB_ID=100559",
+        "html_bytes": 43491,
+        "words": 728,
+        "words_per_kb": 17.14,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "ARMY TACTICS, TECHNIQUES AND PROCEDURE",
+          "Record Details for ATTP 3-34.39"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "990bf74e9ea80cf18697c97e68369c42676339ae7ce2179cf3d90d461becde5b",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
+      }
     },
     {
       "id": "CAM-FM-20-3-1999",
@@ -8449,7 +10372,33 @@
         "informational": []
       },
       "link_state": "record_only",
-      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає"
+      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details_Printer.aspx?PUB_ID=45158",
+        "html_bytes": 43410,
+        "words": 723,
+        "words_per_kb": 17.05,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "FIELD MANUAL",
+          "Record Details for FM 20-3"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "a9e4baa2956cbe4847a2d5f85e7fa3150dac19a6de4cb40305c3a2186da9ab27",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
+      }
     },
     {
       "id": "CAM-FM-5-103-1985",
@@ -8480,7 +10429,33 @@
         "informational": []
       },
       "link_state": "record_only",
-      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає"
+      "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details_Printer.aspx?PUB_ID=54534",
+        "html_bytes": 43112,
+        "words": 708,
+        "words_per_kb": 16.82,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "FIELD MANUAL",
+          "Record Details for FM 5-103"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "17d36db6fa8ccb9a12cec7db2939d7e28fe686e9a772b4b5adde61323177e9e8",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
+      }
     },
     {
       "id": "CAM-FM-90-2-1988",
@@ -8512,7 +10487,33 @@
       },
       "link_state": "record_only",
       "link_detail": "сторінка запису відкрита (HTTP 200); документа за цією URL немає",
-      "link_recheck_note": "link_state перемірено 2026-08-29: було «dead», сервер каже «ok». Причина початкової помилки — запит під час падіння мережі (HTTP 000) без повтору."
+      "link_recheck_note": "link_state перемірено 2026-08-29: було «dead», сервер каже «ok». Причина початкової помилки — запит під час падіння мережі (HTTP 000) без повтору.",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details_Printer.aspx?PUB_ID=63840",
+        "html_bytes": 42858,
+        "words": 698,
+        "words_per_kb": 16.68,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "FIELD MANUAL",
+          "Record Details for FM 90-2"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "f4607b3bc7c33817f59af77deb0a48e1a634b0c24684b399ffeed7399d66909f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
+      }
     },
     {
       "id": "CAM-FM-3-13-4-2019",
@@ -9084,6 +11085,49 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.gov.uk/government/publications/allied-joint-doctrine-for-force-protection-ajp-314",
+        "html_bytes": 75204,
+        "words": 713,
+        "words_per_kb": 9.71,
+        "longest_paragraph_words": 51,
+        "paragraphs_over_30_words": 2,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Cookies on GOV.UK",
+          "Navigation menu",
+          "Services and information",
+          "Government activity",
+          "Search",
+          "Allied Joint Doctrine for Force Protection (AJP-3.14)",
+          "Documents",
+          "Allied Joint Publication-3.14, Allied Joint Doctrine for Force Protection (Edition B Version 1)",
+          "Details",
+          "Who should read this publication",
+          "Related information",
+          "Updates to this page",
+          "Sign up for emails or print this page",
+          "Related content",
+          "Collection",
+          "Explore the topic",
+          "Is this page useful?",
+          "Help us improve GOV.UK",
+          "Support links"
+        ],
+        "headings_count": 19,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "9971c2782a58ec8e1fde49c25a42ebe2e2ed7ec9b49746306526beafd238195f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -9115,7 +11159,48 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.gov.uk/government/publications/allied-joint-doctrine-for-operations-security-and-deception-ajp-3102a",
+        "html_bytes": 73857,
+        "words": 772,
+        "words_per_kb": 10.7,
+        "longest_paragraph_words": 61,
+        "paragraphs_over_30_words": 3,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Cookies on GOV.UK",
+          "Navigation menu",
+          "Services and information",
+          "Government activity",
+          "Search",
+          "Allied Joint Doctrine for Operations Security and Deception (AJP-3.10.2)",
+          "This publication was withdrawn on 1 April 2026",
+          "Documents",
+          "Details",
+          "Who should read this publication",
+          "Related information",
+          "Updates to this page",
+          "Sign up for emails or print this page",
+          "Explore the topic",
+          "Is this page useful?",
+          "Help us improve GOV.UK",
+          "Support links"
+        ],
+        "headings_count": 17,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "e062b4c313549e636816613aace53804c01785aa15a0fbfbe3d09a2bff12e429",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "CAM-VP-3-24-11-01-2021",
@@ -11096,7 +13181,33 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1089-20",
+        "html_bytes": 34559,
+        "words": 448,
+        "words_per_kb": 13.27,
+        "longest_paragraph_words": 8,
+        "paragraphs_over_30_words": 0,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про електронні комунікації"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "e6429debf3c45527edfa472d0f270033f487670e33fd32f19f9e3d55313c39db",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "SIG-KMU-1340-2023",
@@ -11186,7 +13297,33 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1340-2023-%D0%BF/print",
+        "html_bytes": 216791,
+        "words": 9916,
+        "words_per_kb": 46.84,
+        "longest_paragraph_words": 186,
+        "paragraphs_over_30_words": 96,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Документи та файли",
+          "Публікації документа"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "8b9b6f9925d843d3835e262c9b99d872ff958ed087aa95e0ed5dcd9651455b1f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "SIG-ZU-1770-III-2000",
@@ -11253,7 +13390,32 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1770-14/print",
+        "html_bytes": 350441,
+        "words": 18981,
+        "words_per_kb": 55.46,
+        "longest_paragraph_words": 253,
+        "paragraphs_over_30_words": 199,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "ec9cad54d28de8a7c8034a001e854627351b07d7089d578c710007b53c341855",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "SIG-KMU-1208-2005",
@@ -11320,7 +13482,32 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/1208-2005-%D0%BF/print",
+        "html_bytes": 536301,
+        "words": 20651,
+        "words_per_kb": 39.43,
+        "longest_paragraph_words": 182,
+        "paragraphs_over_30_words": 93,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "b3580ea3a98544f4841dac31e6eab177754577468739eb812644aa6db729b76f",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "MED-TCCC-GL-2026",
@@ -12071,7 +14258,33 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0356-22",
+        "html_bytes": 366800,
+        "words": 16456,
+        "words_per_kb": 45.94,
+        "longest_paragraph_words": 89,
+        "paragraphs_over_30_words": 136,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!",
+          "Про затвердження порядків надання домедичної допомоги особам при невідкладних станах"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "75dc967ad8801cac1005627596617edb80d41d708dc8efc6cd47e46ffe62a363",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "MED-MOU-436-2024",
@@ -12138,7 +14351,32 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0984-24/print",
+        "html_bytes": 119262,
+        "words": 2596,
+        "words_per_kb": 22.29,
+        "longest_paragraph_words": 80,
+        "paragraphs_over_30_words": 11,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Публікації документа"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "4c05aa4c0fbdc5b8817bcef3b3109d8571960651fe86b7d2e44f55d162d6ec21",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "MED-MOU-516-2025",
@@ -12364,7 +14602,32 @@
         "informational": []
       },
       "link_state": "ok",
-      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)"
+      "link_detail": "text/html; charset=utf-8 (сторінка з текстом)",
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1331-25",
+        "html_bytes": 118981,
+        "words": 4156,
+        "words_per_kb": 35.77,
+        "longest_paragraph_words": 88,
+        "paragraphs_over_30_words": 56,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Ваш броузер застарів!"
+        ],
+        "headings_count": 1,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "20a4e0e65ee75dbd385238f0667ed7c359cba8b98982452ba2d6ad60843b33a5",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      }
     },
     {
       "id": "MED-VKP-7-00-01-01-2020",
@@ -12858,6 +15121,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1031287",
+        "html_bytes": 42447,
+        "words": 698,
+        "words_per_kb": 16.84,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "GRAPHIC TRAINING AIDE",
+          "Record Details for GTA 20-10-005"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "bd9816c007aaca9b6958f55cbfa88e09c983537823d6271b50772ff4137462be",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     },
     {
@@ -12889,6 +15178,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1022575",
+        "html_bytes": 41553,
+        "words": 662,
+        "words_per_kb": 16.31,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "GRAPHIC TRAINING AIDE",
+          "Record Details for GTA 20-10-001"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "cab52232a18208dcc61380fa482b05d2c479eab67d341702e0bc41ab69e7e286",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     },
     {
@@ -12920,6 +15235,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1007539",
+        "html_bytes": 41602,
+        "words": 663,
+        "words_per_kb": 16.32,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "GRAPHIC TRAINING AIDE",
+          "Record Details for GTA 20-17-003"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "232db3e6427db0ff2c4934df13e47d8a154f747471fe22b929040aaa1229ff96",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     },
     {
@@ -12951,6 +15292,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1007540",
+        "html_bytes": 41639,
+        "words": 664,
+        "words_per_kb": 16.33,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "GRAPHIC TRAINING AIDE",
+          "Record Details for GTA 20-17-007"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "38971c087f87aa397d68f1c310dcb25c7aa2f66b15f972d70f8e9cf244515016",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     },
     {
@@ -13087,6 +15454,45 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.gov.uk/government/news/defence-intelligence-communicating-probability",
+        "html_bytes": 71584,
+        "words": 792,
+        "words_per_kb": 11.33,
+        "longest_paragraph_words": 57,
+        "paragraphs_over_30_words": 5,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Cookies on GOV.UK",
+          "Navigation menu",
+          "Services and information",
+          "Government activity",
+          "Search",
+          "Defence Intelligence – communicating probability",
+          "Share this page",
+          "Updates to this page",
+          "Invasion of Ukraine",
+          "Explore the topic",
+          "Topical events",
+          "World locations",
+          "Is this page useful?",
+          "Help us improve GOV.UK",
+          "Support links"
+        ],
+        "headings_count": 15,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "581f86e9fed6ed34b162e0615997fe28f046cef41ba5c9b159eb525961fe70fe",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -13119,11 +15525,83 @@
         "against_us": [],
         "informational": []
       },
-      "evidence_refusal": {
-        "reason": "extractor refused: HTML content detected as application/javascript",
-        "class": "extractor_misclassified",
-        "observed_on": "2026-08-30",
-        "retryable": false
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://www.nato.int/cps/en/natohq/topics_50090.htm",
+        "html_bytes": 421598,
+        "words": 13633,
+        "words_per_kb": 33.11,
+        "longest_paragraph_words": 156,
+        "paragraphs_over_30_words": 56,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "Download NATO’s broadcast-quality video content free of charge",
+          "Log in",
+          "Access NATO’s broadcast-quality video content free of charge",
+          "Create an account",
+          "Check your inbox and enter verification code",
+          "You have successfully created your account",
+          "Subscribe to our newsletter",
+          "Your password has been updated",
+          "Relations with Russia",
+          "Response to Russia’s war against Ukraine",
+          "NATO’s support to Ukraine",
+          "NATO’s enhanced deterrence and defence",
+          "Sanctions imposed on Russia",
+          "Countries enabling Russia’s war",
+          "Russia’s war of aggression against Ukraine since 2014",
+          "Wider concerns about Russia’s behaviour",
+          "Russia’s military build-up",
+          "Military integration with Belarus",
+          "Nuclear force modernisation",
+          "Intensified hybrid actions",
+          "Russia’s strategic partnership with the People’s Republic of China (PRC)",
+          "Violations and withdrawals from arms control treaties",
+          "Irresponsible behaviour in space",
+          "Russia’s aggressive posture",
+          "Evolution of NATO-Russia relations",
+          "Key areas of cooperation prior to April 2014",
+          "Related content",
+          "Topics",
+          "News",
+          "Official Texts"
+        ],
+        "headings_count": 40,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "ef63f1599bce2fe69a55cd0b3d2303d1cc7c6f981502ab6d0853bc45c227168a",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ADV-NATO-RUSSIA-RELATIONS.txt",
+        "sha256": "602b34c1674c0c266df2db8fd5f12ec80d441b8233ef7ffb5d2cdd2555158007",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://www.nato.int/cps/en/natohq/topics_50090.htm",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "63ed991e935ff7634a8cfe55ddefe06c9d5e6ff91225d78a423127c589ff4118",
+          "bytes": 421598,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "9fc1a4aeeea6cb0aea8f76453c9e3a41404922e305d353e418a841dae1a3b823",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 8209,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13179,6 +15657,53 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://cpd.gov.ua/reports/",
+        "html_bytes": 766774,
+        "words": 1181,
+        "words_per_kb": 1.58,
+        "longest_paragraph_words": 55,
+        "paragraphs_over_30_words": 12,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "ЦЕНТР ПРОТИДІЇ ДЕЗІНФОРМАЦІЇ",
+          "Звіти",
+          "Аналітичний звіт «TigerWeb»",
+          "Аналітичний звіт «Роль Threads в інформаційному просторі України»",
+          "Поза межами поля бою: інформаційна війна росії проти європейського майбутнього України",
+          "Аналітичний звіт «Кінопропаганда рф:як держава-агресор поширює антиукраїнські наративи через фільми та документалістику»",
+          "Аналітичний звіт «Поширення деструктивних наративів, пов’язаних з темою міграції в Україні»",
+          "Аналітичний звіт «Дискредитація України на тлі загострення подій на Близькому Сході»",
+          "Аналітичний звіт «Дослідження деструктивного впливу на дискурс довкола процесу мобілізації в Україні»",
+          "Аналітичний звіт Діяльність АНО «Інститут розвитку інтернету»",
+          "Аналітичний звіт «Мережа російських пропагандистських ресурсів ZOV»",
+          "Аналітичний звіт «Проєкт «Іноземні журналісти за росію»",
+          "Аналітичний звіт «Використання відео із застосуванням штучного інтелекту для дискредитації Сил оборони України»",
+          "Аналітичний звіт «Інформаційна кампанія «Покровська воронка»",
+          "Навігація за сторінками",
+          "Події",
+          "Дезінформаційні загрози",
+          "Аналітика",
+          "Продукти Центру",
+          "Про Центр",
+          "Центр протидії дезінформації",
+          "©2026 Весь контент доступний за ліцензією Creative Commons Attribution 4.0 International license",
+          "Pin It on Pinterest"
+        ],
+        "headings_count": 23,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "95213f812633776ca304c7aeba4d66c5c6f166d3867bd5bd33ff44dc90b9c6b5",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "document",
+        "counts_as_evidence": true
       }
     },
     {
@@ -13740,6 +16265,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1003069",
+        "html_bytes": 42148,
+        "words": 668,
+        "words_per_kb": 16.23,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "ARMY TECHNIQUES PUBLICATION",
+          "Record Details for ATP 3-09.30"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "14b31a96c854b470527da1c001ab56b544dcfc9b0abb050618ecbdf6115862fd",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     },
     {
@@ -15729,6 +18280,32 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "page_probe": {
+        "http_status": "200",
+        "class": "page_probe",
+        "uri": "https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=1026704",
+        "html_bytes": 42459,
+        "words": 683,
+        "words_per_kb": 16.47,
+        "longest_paragraph_words": 31,
+        "paragraphs_over_30_words": 1,
+        "usable_word_count": true,
+        "density_note": "Щільність записана як вимір, не як вирок: на цьому корпусі жоден поріг слів/КБ чи довжини абзацу не розділив каркаси від справжніх сторінок — 9341 слово при нулі абзаців <p> і 625 слів при 3.38 слів/КБ обидва є справжнім вмістом.",
+        "headings": [
+          "ARMY TECHNIQUES PUBLICATION",
+          "Record Details for ATP 3-01.15"
+        ],
+        "headings_count": 2,
+        "named_systems": {},
+        "named_systems_total": 0,
+        "index_scope": "adversary_equipment",
+        "text_sha256": "35755870ab4f03154f9db1f40799aeedb1c72e5a8a6be989f00f3c7fe5685835",
+        "probed_on": "2026-08-30",
+        "tool": "curl + зняття розмітки (script/style/noscript вирізано)",
+        "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
+        "subject": "catalog_record",
+        "counts_as_evidence": false
       }
     }
   ]

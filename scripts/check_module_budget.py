@@ -207,12 +207,39 @@ DEFAULT_CEILING = {
 }
 
 
+#: Мінімальна довжина причини звільнення. Порожній рядок і «-» — це не пояснення, а
+#: заповнювач; поріг низький навмисно, бо ловить він саме заповнювач, а не короткість.
+MIN_EXEMPTION_REASON = 20
+
+
+def _exemption_problems(path: str, ceiling: dict[str, object]) -> list[str]:
+    """Звільнення без записаної причини не є звільненням.
+
+    `"lines": null` знімає стелю рядків з файлу назавжди, і воно виглядає точно так само,
+    як звільнення, про яке хтось подумав, і як звільнення, що з'явилось під час
+    механічної синхронізації чисел. Різницю несе лише текст поруч. Виявлено 2026-08-30:
+    скрипт, що піднімав стелі за виміром, ледь не підставив число замість `null` —
+    свідоме рішення зникло б без сліду, і гейт лишався б зеленим. Тепер осиротіле
+    звільнення падає тут, а не тихо перетворюється на звичайну стелю.
+    """
+    exempt = [key for key in ("lines", "max_complexity") if key in ceiling and ceiling[key] is None]
+    if not exempt:
+        return []
+    reason = ceiling.get("reason")
+    if isinstance(reason, str) and len(reason.strip()) >= MIN_EXEMPTION_REASON:
+        return []
+    return [
+        f"{path}: {sorted(exempt)} звільнено від стелі без записаної причини — звільнення "
+        "без пояснення не відрізнити від такого, що з'явилось випадково"
+    ]
+
+
 def module_violations(path: str, measured: Shape, ceiling: dict[str, object]) -> list[str]:
     """Every ceiling one module is held to. Extracted when the ratchet caught its own
     growth: `main` went to 81 lines and complexity 14 under the proof-line separation.
     The recorded number is the thing the ratchet defends, so the fix is the extraction,
     never the number — that is what the ceiling is for."""
-    found: list[str] = []
+    found: list[str] = _exemption_problems(path, ceiling)
     # A registry — the mutant catalogue, a rule table — grows every time the system
     # gains a check, which is to say every time it gets better. A line ceiling there
     # penalises the behaviour the ratchet exists to encourage. The exemption is

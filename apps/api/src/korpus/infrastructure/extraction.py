@@ -131,6 +131,33 @@ def _strip_html(content: str) -> str:
     return parser.text()
 
 
+#: Скільки початкових байтів читати, шукаючи розмітку: досить, щоб обійти BOM і пробіли,
+#: замало, щоб зустріти вбудований скрипт як «початок документа».
+HTML_HEAD_BYTES = 1024
+HTML_OPENERS = (b"<!doctype html", b"<html")
+
+
+def _opens_with_html_markup(path: Path) -> bool:
+    """Чи файл ПОЧИНАЄТЬСЯ як HTML — структурно, а не за вироком нюхача.
+
+    `file --mime-type` класифікує за евристикою й помиляється на сторінках, де перший
+    рядок — довгий вбудований скрипт: обидві сторінки, виміряні 2026-08-30, віддають
+    HTTP 200, `text/html` і 13 633 та 2 321 слово справжнього тексту, а `file` каже про
+    них «JavaScript source, with very long lines». Одна з них — офіційна позиція НАТО
+    щодо РФ. Відхилити її через евристику означало б записати ваду нашого класифікатора
+    у провину джерелу.
+
+    Це НЕ послаблення перевірки типів. Три сигнали й далі мусять збігтися; додається
+    четвертий, суворіший за вирок нюхача: перейменований PDF починається з `%PDF-`,
+    перейменований ZIP — з `PK\x03\x04`, справжній JS — з чого завгодно, крім розмітки,
+    і жоден із них сюди не проходить. Відкривається лише те, що справді є HTML.
+    """
+    with path.open("rb") as handle:
+        head = handle.read(HTML_HEAD_BYTES)
+    opening = head.removeprefix(b"\xef\xbb\xbf").lstrip().lower()
+    return any(opening.startswith(marker) for marker in HTML_OPENERS)
+
+
 def _detected_mime(path: Path, timeout_seconds: float = 3.0) -> str | None:
     try:
         completed = subprocess.run(
@@ -179,7 +206,11 @@ def _validate_type_path(path: Path, filename: str, mime_type: str) -> str:
     elif detected is not None:
         if suffix == ".json" and detected not in {"application/json", "text/plain"}:
             raise ValueError(f"JSON content detected as {detected}")
-        if suffix in {".html", ".htm"} and detected not in {"text/html", "text/plain"}:
+        if (
+            suffix in {".html", ".htm"}
+            and detected not in {"text/html", "text/plain"}
+            and not _opens_with_html_markup(path)
+        ):
             raise ValueError(f"HTML content detected as {detected}")
         if suffix in {".txt", ".md"} and not detected.startswith("text/"):
             raise ValueError(f"text content detected as {detected}")

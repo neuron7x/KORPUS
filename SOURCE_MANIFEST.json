@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1502,
-  "root_sha256": "6ae0b5bbdb7bf9e414414152742aa79213f8be13d33964445e42a9666e292cc5",
+  "file_count": 1504,
+  "root_sha256": "7ba833d0dc314ee4c49a3bb5a33a62a59b4b4d041e1c3569fc214ad2d23445b6",
   "files": [
     {
       "path": ".dockerignore",
@@ -1945,8 +1945,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
-      "bytes": 25284,
-      "sha256": "d4427cb2d3bc9b4e93aa5d8e5692804ee5bd4e08e26e3ae27b47a1ed1d8624fe",
+      "bytes": 27404,
+      "sha256": "f4f03f097b9b7a7a41a401c9c3e7a023895805e6e46759e7d9827b37ff39487a",
       "mode": "0644"
     },
     {
@@ -2893,8 +2893,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 45747,
-      "sha256": "39950e891e1c6a45ef69db0b16a08c62e0026fc4199a45638e61051586362168",
+      "bytes": 47872,
+      "sha256": "502f47c81d9b19cb0e1287a592db1535d1f624038d664ab96f83042d649bb3f6",
       "mode": "0644"
     },
     {
@@ -3091,8 +3091,8 @@
     },
     {
       "path": "apps/api/tests/test_extraction_type_confusion.py",
-      "bytes": 6466,
-      "sha256": "3a8bd6c7d29cf6a959bf60edcdf2d0d34103495f6f92ab5f2d5d08ddedaaa91c",
+      "bytes": 10926,
+      "sha256": "dbe64f81ba73374865ab91f16d4924bddfb69b8ca6d5f60c4b88063366512268",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 105880,
-      "sha256": "12d2ba6af7fdc551d8c6ff83f5c76a5598e334bc40192ff99a8e78d3a0e1749d",
+      "bytes": 108010,
+      "sha256": "10788f63dcff2b5f7f462a43abc72b5f06edc4b2dfe181fdadb5c6f2b4854a25",
       "mode": "0644"
     },
     {
@@ -5502,6 +5502,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ADV-NATO-RUSSIA-RELATIONS.txt",
+      "bytes": 5640,
+      "sha256": "602b34c1674c0c266df2db8fd5f12ec80d441b8233ef7ffb5d2cdd2555158007",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/ADV-UKDI-PROBABILITY-2022.txt",
       "bytes": 5260,
       "sha256": "d6406b17440b52d96454c3186b8e6e5eec19c907dcd903e16272445f81628083",
@@ -6012,6 +6018,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/T3B-ICDS-FORTIFICATION.txt",
+      "bytes": 5378,
+      "sha256": "9f67f4c68f9cec410d47a8566742338ed871c740e3adaedeb9498275a458e722",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/T3B-UKRINFORM-STRONGPOINTS.txt",
       "bytes": 5156,
       "sha256": "44805c0e854399dd70fdebe453d54a5dbc8f5d42a12fab21166780bde1f13fea",
@@ -6049,8 +6061,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 906245,
-      "sha256": "c8d8828c205727229255aa3185cd0a8b66bf820e9735bdc7de1044c2c7ef2b86",
+      "bytes": 1068577,
+      "sha256": "e890d3d4919ff1ee5ae3ffc7313732ea88d6c95a5c24037a1b73660f65ac7b05",
       "mode": "0644"
     },
     {
@@ -6163,8 +6175,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 242657,
-      "sha256": "8fcaf990171866c06a25bad484d6601b87b14120ec5d792423e677e5a2222031",
+      "bytes": 245068,
+      "sha256": "189cd8ec8d6b9db962a0eeac55723e5b2c62376bb74174c855283988ce4c6861",
       "mode": "0644"
     },
     {
@@ -7729,8 +7741,8 @@
     },
     {
       "path": "scripts/check_module_budget.py",
-      "bytes": 13194,
-      "sha256": "8f39baabda2bf49968fed31bc57e1c7c0c4d5ff0afe9c81743e6857cf819e731",
+      "bytes": 15148,
+      "sha256": "951bf9eb647a3faad8281f71a3ca4d2d38b907054a5652b51f1be61e44b192c6",
       "mode": "0755"
     },
     {
@@ -8821,8 +8833,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 48654,
-      "sha256": "2d9881fd124b02ca00fba645c6d8369c18680faa4f34dbd16c4019ab4e387b6e",
+      "bytes": 51392,
+      "sha256": "6429d6483c50bec9e35359f49304ee2bef0bde622bb27a176c8fb35af76a43dc",
       "mode": "0755"
     },
     {

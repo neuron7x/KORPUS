@@ -2077,12 +2077,12 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 626,
+      "lines": 657,
       "max_complexity": 25,
       "max_function_lines": 72,
       "max_function_args": 12,
       "max_nesting": 6,
-      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
+      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями."
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
       "lines": 122,
@@ -2918,12 +2918,12 @@
       "max_nesting": 4
     },
     "scripts/check_module_budget.py": {
-      "lines": 292,
+      "lines": 319,
       "max_complexity": 13,
       "max_function_lines": 80,
       "max_function_args": 8,
       "max_nesting": 4,
-      "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа."
+      "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа. | 2026-08-30: +27 рядків — звільнення від стелі (`\"lines\": null`) без записаної причини тепер валить гейт. Воно виглядає однаково і коли хтось так вирішив, і коли з'явилось при механічній синхронізації чисел; різницю несе лише текст поруч."
     },
     "scripts/check_release_identity.py": {
       "lines": 104,
@@ -4074,9 +4074,9 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 1048,
-      "max_complexity": 30,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks | 2026-08-30: 1040→1048. Склад 1048 фізичних рядків: докстрінги 166, коментарі 74, порожні 122 ⇒ коду ~686; проби selftest 0 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число.",
+      "lines": 1086,
+      "max_complexity": 32,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks | 2026-08-30: 1040→1048. Склад 1048 фізичних рядків: докстрінги 166, коментарі 74, порожні 122 ⇒ коду ~686; проби selftest 0 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число. | | 2026-08-30: правило «зниклий ключ підлоги = зниження до нуля». Порівняння лише там, де обидва значення цілі, робило видалення ключа тихим способом зняти з нього ратчет; правило одразу спіймало реальне зникнення `ingestible_total` (166) під час перенесення лічильників.",
       "max_function_lines": 100,
       "max_function_args": 8,
       "max_nesting": 4
@@ -5756,6 +5756,15 @@
       "on": "2026-08-30",
       "path": "scripts/validate_evidence_refusal.py",
       "reason": "ruff format розгорнув декларативну таблицю PROBES; приріст механічний.",
+      "to": {
+        "grown": 1,
+        "new_modules": 0
+      }
+    },
+    {
+      "on": "2026-08-30",
+      "path": "scripts/validate_doctrine_catalog.py",
+      "reason": "2026-08-30: has_evidence враховує page_probe, але ЛИШЕ коли той виміряв саме це джерело: вимір КАРТКИ каталогу APD (~660 слів опису публікації) доказом про документ не є. Плюс лічильник page_probed окремою віссю. +4 рядки — це коментар, що пояснює межу; без нього правило читається як «будь-яка сторінка = доказ».",
       "to": {
         "grown": 1,
         "new_modules": 0

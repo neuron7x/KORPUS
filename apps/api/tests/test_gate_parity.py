@@ -2267,3 +2267,35 @@ def test_the_exemption_is_bounded_by_a_ceiling_of_its_own(
         f'if "--selftest" in sys.argv:\n    selftest()\n',
     )
     assert module.main() == 1  # type: ignore[attr-defined]
+
+
+def test_an_exemption_without_a_reason_is_refused(tmp_path: Path, monkeypatch) -> None:
+    """`"lines": null` знімає стелю назавжди і виглядає однаково — і коли хтось так
+    вирішив, і коли воно з'явилось під час механічної синхронізації чисел. Різницю несе
+    лише текст поруч, тож осиротіле звільнення мусить падати, а не тихо ставати стелею."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import check_module_budget
+
+    exempt: dict[str, object] = {"lines": None, "max_complexity": 5}
+    assert check_module_budget._exemption_problems("m.py", exempt), (
+        "звільнення без причини прийнято"
+    )
+    exempt["reason"] = "коротко"
+    assert check_module_budget._exemption_problems("m.py", exempt), "заповнювач прийнято"
+    exempt["reason"] = "реєстр вимог: росте з кожною перевіркою, стеля рядків тут карала б"
+    assert check_module_budget._exemption_problems("m.py", exempt) == []
+    # Дуальність: файл БЕЗ звільнення не має чого пояснювати.
+    assert check_module_budget._exemption_problems("m.py", {"lines": 100}) == []
+
+
+def test_every_exemption_in_the_budget_carries_its_reason() -> None:
+    """Правило над порожнім набором — правило, якого ніколи не застосовували."""
+    budget = json.loads((ROOT / "config/operations/module-budget.json").read_text("utf-8"))
+    exemptions = {
+        path: entry
+        for path, entry in budget["modules"].items()
+        if entry.get("lines") is None or entry.get("max_complexity") is None
+    }
+    assert exemptions, "у бюджеті немає жодного звільнення — це правило нічого не охороняє"
+    for path, entry in exemptions.items():
+        assert len(str(entry.get("reason", "")).strip()) >= 20, path

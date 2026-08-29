@@ -152,6 +152,8 @@ class Summary(TypedDict):
     #: Окрема вісь від content_probed (той про варіанти card/print веб-сторінки)
     #: і від remote_digest, який вмісту не міряє взагалі й доказом не рахується.
     document_probed: int
+    #: Вимір веб-сторінки, що Є джерелом. Вимір КАРТКИ каталогу сюди не входить.
+    page_probed: int
     #: Знаменник для governing_authority. Без нього ратчет карає за КОРЕКТНЕ звуження
     #: корпусу: зняв джерело за грифом — governing впав — підлога почервоніла.
     ingestible_total: int
@@ -182,6 +184,7 @@ EMPTY_SUMMARY: Summary = {
     "integrity_anchored": 0,
     "content_probed": 0,
     "document_probed": 0,
+    "page_probed": 0,
     "ingestible_total": 0,
     "sources_without_evidence": 0,
     "ingestible_without_evidence": 0,
@@ -713,11 +716,18 @@ def _has_evidence(entry: dict[str, object]) -> bool:
     it here would hand every large PDF an evidence object without anyone reading a line
     of it, which is precisely the substitution these counts exist to make visible.
     """
+    page = entry.get("page_probe")
+    #: `page_probe` рахується лише коли він виміряв САМЕ ЦЕ джерело. Сторінка-картка
+    #: каталогу APD віддає ~660 слів опису публікації; зарахувати це доказом означало б
+    #: сказати «ми прочитали ATP 3-09.30», прочитавши запис про неї. Прапорець ставить
+    #: сам пробник за `link_state`, і рішення видно в даних, а не лише в коді.
+    measured_page = isinstance(page, dict) and bool(page.get("counts_as_evidence"))
     return bool(
         entry.get("content_probe")
         or entry.get("integrity_anchor")
         or entry.get("attachment_anchors")
         or entry.get("document_probe")
+        or measured_page
     )
 
 
@@ -856,12 +866,32 @@ def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
         ]
     problems: list[str] = []
     for key, was in sorted(recorded.items()):
+        if not isinstance(was, int) or isinstance(was, bool):
+            continue
         now = declared.get(key)
-        if isinstance(was, int) and isinstance(now, int) and now < was:
+        # Зникнення ключа = зниження до нуля, не «немає що порівнювати». Порівняння лише
+        # там, де ОБИДВА значення цілі, робило видалення ключа тихим способом зняти з
+        # нього ратчет: `document_probed`, `page_probed`, `attachments_captured` можна було
+        # прибрати без жодного слова. Правило про обов'язкові ключі рятувало лише два з
+        # них. Названо паралельною сесією 2026-08-30 після власної спроби винести
+        # `governing_authority` і `total` в інший об'єкт.
+        if key not in declared:
+            problems.append(
+                f"evidence_floor.{key} зник із підлоги (був {was}, прочитано з {origin}) — "
+                "ключ, якого немає, не охороняє нічого, і його зникнення нічим не "
+                "відрізняється від зниження до нуля"
+            )
+            continue
+        if isinstance(now, int) and not isinstance(now, bool) and now < was:
             problems.append(
                 f"evidence_floor.{key} was lowered from {was} to {now} (previous floor read "
                 f"from {origin}) — a ratchet that only compares itself with the count can be "
                 "moved down in the same commit that removes what it counted"
+            )
+        elif not isinstance(now, int) or isinstance(now, bool):
+            problems.append(
+                f"evidence_floor.{key} перестав бути цілим числом ({now!r}, було {was}) — "
+                "підлога, яку не можна порівняти, не є підлогою"
             )
     return problems
 
@@ -947,6 +977,14 @@ def evaluate(catalog: dict[str, object]) -> Result:
         "integrity_anchored": len([e for e in dicts if e.get("integrity_anchor")]),
         "content_probed": len([e for e in dicts if e.get("content_probe")]),
         "document_probed": len([e for e in dicts if e.get("document_probe")]),
+        "page_probed": len(
+            [
+                e
+                for e in dicts
+                if isinstance(e.get("page_probe"), dict)
+                and e["page_probe"].get("counts_as_evidence")
+            ]
+        ),
         "ingestible_total": len(ingestible),
         "sources_without_evidence": len([e for e in dicts if not _has_evidence(e)]),
         "ingestible_without_evidence": len(

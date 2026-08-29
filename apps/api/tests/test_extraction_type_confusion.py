@@ -164,3 +164,83 @@ def test_whitespace_only_windows_are_dropped_rather_than_emitted() -> None:
     assert all(chunk.strip() for chunk in chunks)
     assert "alpha" in chunks[0]
     assert any("omega" in chunk for chunk in chunks)
+
+
+def test_html_that_the_detector_calls_javascript_is_admitted_when_it_opens_as_html(
+    tmp_path: Path,
+) -> None:
+    """Виміряно 2026-08-30: обидві сторінки, які екстрактор відхилив як «HTML content
+    detected as application/javascript», віддають HTTP 200, text/html і 13 633 та 2 321
+    слово справжнього тексту. `file` каже про них «JavaScript source, with very long
+    lines» — нюхача збиває довгий рядок вбудованого скрипту, а в одній із них цей скрипт
+    стоїть найпершим у `<head>`. Одна зі сторінок — офіційна позиція НАТО щодо РФ."""
+    page = (
+        b"<!DOCTYPE html>\n<html><head><script>"
+        + b"x=1;" * 400
+        + "</script></head><body>текст</body></html>".encode()
+    )
+    path = _write(tmp_path, "page.html", page)
+    with patch(
+        "korpus.infrastructure.extraction._detected_mime", return_value="application/javascript"
+    ):
+        assert _validate_type_path(path, "page.html", "text/html") == ".html"
+
+
+@pytest.mark.parametrize(
+    ("name", "content"),
+    [
+        ("renamed.html", b"%PDF-1.7\n" + b"0" * 200),
+        ("renamed.html", b"PK\x03\x04" + b"0" * 200),
+        ("script.html", b"(function(){var x=1;})();\n" * 40),
+        ("empty.html", b""),
+        # Розмітка, але не на початку: сторінка, що починається скриптом БЕЗ `<!doctype`,
+        # не доводить, що вона HTML — «схоже на HTML» не сміє скасовувати вирок.
+        ("late.html", b"var x = 1;\n" * 50 + b"<!DOCTYPE html><html></html>"),
+    ],
+)
+def test_the_markup_check_does_not_admit_anything_that_is_not_html(
+    tmp_path: Path, name: str, content: bytes
+) -> None:
+    """Негативний контроль на саме послаблення: структурна перевірка мусить пропускати
+    ЛИШЕ те, що справді відкривається як розмітка. Перейменований PDF, перейменований
+    ZIP, справжній скрипт і порожній файл і далі відхиляються."""
+    path = _write(tmp_path, name, content)
+    with (
+        patch(
+            "korpus.infrastructure.extraction._detected_mime",
+            return_value="application/javascript",
+        ),
+        pytest.raises(ValueError, match="HTML content detected as"),
+    ):
+        _validate_type_path(path, name, "text/html")
+
+
+def test_a_byte_order_mark_does_not_hide_the_markup(tmp_path: Path) -> None:
+    """`lstrip()` не бачить `\\xef\\xbb\\xbf`, тож той самий документ, збережений із BOM,
+    читався б як не-HTML — хибне відхилення всередині виправлення хибного відхилення."""
+    page = "\ufeff  <!DOCTYPE html>\n<html><body>текст</body></html>".encode()
+    path = _write(tmp_path, "bom.html", page)
+    with patch(
+        "korpus.infrastructure.extraction._detected_mime", return_value="application/javascript"
+    ):
+        assert _validate_type_path(path, "bom.html", "text/html") == ".html"
+
+
+def test_the_markup_must_appear_in_the_first_kilobyte(tmp_path: Path) -> None:
+    """Вікно — це частина правила, а не оптимізація.
+
+    Розмітка за двома кілобайтами пробілів не робить файл документом, що ВІДКРИВАЄТЬСЯ
+    як HTML: та сама конструкція дозволила б сховати перед нею що завгодно. Без цієї
+    проби константу можна було б підняти до розміру файлу й нічого б не впало — тобто
+    вікно не перевірялося б узагалі.
+    """
+    page = b" " * 2000 + b"<!DOCTYPE html><html><body>text</body></html>"
+    path = _write(tmp_path, "padded.html", page)
+    with (
+        patch(
+            "korpus.infrastructure.extraction._detected_mime",
+            return_value="application/javascript",
+        ),
+        pytest.raises(ValueError, match="HTML content detected as"),
+    ):
+        _validate_type_path(path, "padded.html", "text/html")
