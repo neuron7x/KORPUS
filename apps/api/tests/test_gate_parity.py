@@ -2172,3 +2172,70 @@ def test_bulk_approval_failure_does_not_end_the_run() -> None:
     approval = approval[: approval.index("    finally:")]
     assert "try:" in approval, "bulk approval runs without a failure boundary"
     assert "record_approval_refusal" in approval, "an approval refusal is not recorded"
+
+
+def _budget_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, source: str) -> object:
+    """Run the real ratchet over one synthetic module, in a tree of our own.
+
+    The ceilings are read from disk and the tree is walked from `ROOT`, so a test that
+    does not move both is testing the repository, not the rule.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import check_module_budget
+
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts/probe.py").write_text(source, encoding="utf-8")
+    monkeypatch.setattr(check_module_budget, "ROOT", tmp_path)
+    monkeypatch.setattr(check_module_budget, "SOURCES", ("scripts",))
+    monkeypatch.setattr(check_module_budget, "BUDGET", tmp_path / "budget.json")
+    return check_module_budget
+
+
+_PROOF_BODY = "\n".join(f"    x{n} = {n}" for n in range(300))
+
+
+def test_self_test_lines_do_not_count_against_the_module_ceiling(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A parallel session extended one selftest from 27 probes to 36, closing six mutants,
+    and this ratchet went red for it. The proof is not the program."""
+    module = _budget_module(
+        tmp_path,
+        monkeypatch,
+        f"import sys\n\n\ndef selftest() -> int:\n{_PROOF_BODY}\n    return 0\n\n\n"
+        f'if "--selftest" in sys.argv:\n    selftest()\n',
+    )
+    measured = module.measure()["scripts/probe.py"]  # type: ignore[attr-defined]
+    assert measured["proof_lines"] > 300
+    assert measured["lines"] < 10, "the program is five lines; the proof is three hundred"
+    assert measured["longest_function"] == "-", "a proof is not the module's longest function"
+
+
+def test_the_name_alone_does_not_buy_the_exemption(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Negative control on the exemption itself: without the `--selftest` dispatch the
+    module has no self-test, whatever it called the function, so every line is code."""
+    module = _budget_module(
+        tmp_path,
+        monkeypatch,
+        f"def selftest() -> int:\n{_PROOF_BODY}\n    return 0\n",
+    )
+    measured = module.measure()["scripts/probe.py"]  # type: ignore[attr-defined]
+    assert measured["proof_lines"] == 0
+    assert measured["lines"] > 300
+    assert measured["longest_function"] == "selftest"
+
+
+def test_the_exemption_is_bounded_by_a_ceiling_of_its_own(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Negative control on the escape hatch: an unbounded exempt region is a room to hide
+    a program in. Growth beyond the proof ceiling is still a violation."""
+    module = _budget_module(
+        tmp_path,
+        monkeypatch,
+        f"import sys\n\n\ndef selftest() -> int:\n{_PROOF_BODY}\n    return 0\n\n\n"
+        f'if "--selftest" in sys.argv:\n    selftest()\n',
+    )
+    assert module.main() == 1  # type: ignore[attr-defined]

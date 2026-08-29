@@ -44,6 +44,7 @@ DEFAULT_COMPLEXITY = 15
 DEFAULT_FUNCTION_LINES = 60
 DEFAULT_FUNCTION_ARGS = 8
 DEFAULT_NESTING = 4
+DEFAULT_PROOF_LINES = 220
 
 # Only statements that indent their body count toward depth. A nested function or class
 # starts its own frame and is measured separately, so a module of small closures does not
@@ -93,6 +94,7 @@ class Shape(TypedDict):
     """One module's measured shape. Typed so the ratchet cannot compare object to int."""
 
     lines: int
+    proof_lines: int
     max_complexity: int
     worst_function: str
     max_function_lines: int
@@ -103,6 +105,25 @@ class Shape(TypedDict):
     deepest_function: str
 
 
+#: A negative control is not code that grew — it is a proof that grew. Measured 2026-08-29:
+#: a parallel session extended one selftest from 27 probes to 36, closing six mutants, and
+#: this ratchet went red for it. A metric that pushes against adding negative controls is
+#: pushing against the only thing that shows a gate can fail: a gate run on correct data
+#: cannot prove it catches incorrect data, so the synthetic violations in a selftest are
+#: where it is checked at all. Their lines are counted separately and bounded separately.
+#: The separation is bounded, or it is a hole: a function called `selftest` would be an
+#: unmeasured room to hide real logic in. Two conditions, both required. The name is one.
+#: The other is that the module actually runs it — a module that never dispatches on
+#: `--selftest` has no self-test, whatever it named the function, and every line is
+#: ordinary code again. And what passes both is still bounded, by its own ceiling below.
+PROOF_FUNCTIONS = ("selftest", "_selftest", "self_test")
+PROOF_DISPATCH = "--selftest"
+
+
+def _is_proof(node: ast.FunctionDef | ast.AsyncFunctionDef, *, dispatches: bool) -> bool:
+    return dispatches and node.name in PROOF_FUNCTIONS
+
+
 def measure() -> dict[str, Shape]:
     measurements: dict[str, Shape] = {}
     for source in SOURCES:
@@ -111,17 +132,25 @@ def measure() -> dict[str, Shape]:
                 continue
             text = path.read_text(encoding="utf-8")
             tree = ast.parse(text)
-            functions = [
+            all_functions = [
                 node
                 for node in ast.walk(tree)
                 if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
             ]
+            dispatches = PROOF_DISPATCH in text
+            proofs = [n for n in all_functions if _is_proof(n, dispatches=dispatches)]
+            functions = [n for n in all_functions if not _is_proof(n, dispatches=dispatches)]
+            proof_lines = sum(function_lines(node) for node in proofs)
             worst = max(((complexity(f), f.name) for f in functions), default=(0, "-"))
             longest = max(((function_lines(f), f.name) for f in functions), default=(0, "-"))
             widest = max(((parameter_count(f), f.name) for f in functions), default=(0, "-"))
             deepest = max(((nesting_depth(f), f.name) for f in functions), default=(0, "-"))
             measurements[str(path.relative_to(ROOT))] = {
-                "lines": len(text.splitlines()),
+                # Proof lines are subtracted: the ceiling bounds the program, and a
+                # selftest that doubles is a gate that got harder to fool, not a module
+                # that got harder to read.
+                "lines": len(text.splitlines()) - proof_lines,
+                "proof_lines": proof_lines,
                 "max_complexity": worst[0],
                 "worst_function": worst[1],
                 "max_function_lines": longest[0],
@@ -169,46 +198,60 @@ def _as_int(value: object, fallback: int) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) else fallback
 
 
+DEFAULT_CEILING = {
+    "lines": DEFAULT_LINES,
+    "max_complexity": DEFAULT_COMPLEXITY,
+    "max_function_lines": DEFAULT_FUNCTION_LINES,
+    "max_function_args": DEFAULT_FUNCTION_ARGS,
+    "max_nesting": DEFAULT_NESTING,
+}
+
+
+def module_violations(path: str, measured: Shape, ceiling: dict[str, object]) -> list[str]:
+    """Every ceiling one module is held to. Extracted when the ratchet caught its own
+    growth: `main` went to 81 lines and complexity 14 under the proof-line separation.
+    The recorded number is the thing the ratchet defends, so the fix is the extraction,
+    never the number — that is what the ceiling is for."""
+    found: list[str] = []
+    # A registry — the mutant catalogue, a rule table — grows every time the system
+    # gains a check, which is to say every time it gets better. A line ceiling there
+    # penalises the behaviour the ratchet exists to encourage. The exemption is
+    # `"lines": null`, and it is per-file with a reason recorded beside it, because
+    # a blanket exemption is how a ratchet stops holding anything. Complexity is
+    # never exempt: a registry that grew a branch is no longer a registry.
+    # int() of a JSON value parses "999999" happily. `_as_int` was added for the three
+    # shape keys and these two were left on int(), so a string line ceiling lifted the
+    # ratchet entirely while a string shape ceiling fell back to the default. The guard
+    # belongs on every ceiling read, not on the ones that were already integers.
+    line_ceiling = ceiling["lines"]
+    if line_ceiling is not None:
+        limit = _as_int(line_ceiling, DEFAULT_LINES)
+        if int(measured["lines"]) > limit:
+            found.append(f"{path}: {measured['lines']} lines exceeds the recorded ceiling {limit}")
+    proof_limit = _as_int(ceiling.get("proof_lines", DEFAULT_PROOF_LINES), DEFAULT_PROOF_LINES)
+    if int(measured["proof_lines"]) > proof_limit:
+        found.append(
+            f"{path}: {measured['proof_lines']} self-test lines exceed the recorded "
+            f"ceiling {proof_limit} — proofs are exempt from the module ceiling, "
+            "not from every ceiling"
+        )
+    if int(measured["max_complexity"]) > _as_int(ceiling["max_complexity"], DEFAULT_COMPLEXITY):
+        found.append(
+            f"{path}: {measured['worst_function']} has complexity "
+            f"{measured['max_complexity']}, above the recorded ceiling "
+            f"{ceiling['max_complexity']}"
+        )
+    found.extend(shape_violations(path, measured, ceiling))
+    return found
+
+
 def main() -> int:
     measurements = measure()
     budget = json.loads(BUDGET.read_text(encoding="utf-8"))["modules"] if BUDGET.is_file() else {}
 
     violations: list[str] = []
     for path, measured in sorted(measurements.items()):
-        ceiling = budget.get(
-            path,
-            {
-                "lines": DEFAULT_LINES,
-                "max_complexity": DEFAULT_COMPLEXITY,
-                "max_function_lines": DEFAULT_FUNCTION_LINES,
-                "max_function_args": DEFAULT_FUNCTION_ARGS,
-                "max_nesting": DEFAULT_NESTING,
-            },
-        )
-        # A registry — the mutant catalogue, a rule table — grows every time the system
-        # gains a check, which is to say every time it gets better. A line ceiling there
-        # penalises the behaviour the ratchet exists to encourage. The exemption is
-        # `"lines": null`, and it is per-file with a reason recorded beside it, because
-        # a blanket exemption is how a ratchet stops holding anything. Complexity is
-        # never exempt: a registry that grew a branch is no longer a registry.
-        # int() of a JSON value parses "999999" happily. `_as_int` was added for the three
-        # shape keys and these two were left on int(), so a string line ceiling lifted the
-        # ratchet entirely while a string shape ceiling fell back to the default. The guard
-        # belongs on every ceiling read, not on the ones that were already integers.
-        line_ceiling = ceiling["lines"]
-        if line_ceiling is not None:
-            limit = _as_int(line_ceiling, DEFAULT_LINES)
-            if int(measured["lines"]) > limit:
-                violations.append(
-                    f"{path}: {measured['lines']} lines exceeds the recorded ceiling {limit}"
-                )
-        if int(measured["max_complexity"]) > _as_int(ceiling["max_complexity"], DEFAULT_COMPLEXITY):
-            violations.append(
-                f"{path}: {measured['worst_function']} has complexity "
-                f"{measured['max_complexity']}, above the recorded ceiling "
-                f"{ceiling['max_complexity']}"
-            )
-        violations.extend(shape_violations(path, measured, ceiling))
+        violations.extend(module_violations(path, measured, budget.get(path, DEFAULT_CEILING)))
 
     # A module that shrank is reported so the reduction can be written into the budget
     # deliberately. Lowering it automatically would let an accidental deletion freeze a

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1406,
-  "root_sha256": "2655870fb6bc1913a144292a316c790130767584f4fe5656dc9eed189d2ca966",
+  "root_sha256": "5558df050a77a4ce054b8dbf43a81c144aa16cd0c988eb63c03f5b545dde30c1",
   "files": [
     {
       "path": ".dockerignore",
@@ -151,8 +151,8 @@
     },
     {
       "path": ".verdict-ledger.jsonl",
-      "bytes": 6401,
-      "sha256": "d9ab842c4f389546e23d4e127288460ba0ef0d8a8f848abff1a927d86265c6d0",
+      "bytes": 9512,
+      "sha256": "e2dfc54fe90c02dfcdab948cf4c845928618d5d367a0aea97adb2bdffed54639",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 100964,
-      "sha256": "e6c0e5bdf6332301b3f894a39c39b37525db197388d0e01f64245dc3324080fc",
+      "bytes": 103821,
+      "sha256": "06602b28f8eba10c23fefc04109c049e064f05ddd5b87ce964042c21922c886e",
       "mode": "0644"
     },
     {
@@ -5611,8 +5611,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 229077,
-      "sha256": "fdc21fc65655dcfb0055d864f9214c696ed81b1bc7c5e864bf720b891fe5b00b",
+      "bytes": 233509,
+      "sha256": "3325be477eaffb93af2f66ec5b695160198ec499c48ac0c1ee0bfb7b20031b0d",
       "mode": "0644"
     },
     {
@@ -7165,8 +7165,8 @@
     },
     {
       "path": "scripts/check_module_budget.py",
-      "bytes": 10675,
-      "sha256": "08a2b88993edd09d2781e17e92b18ace6349918da971af4b8a03541caf66e59d",
+      "bytes": 13194,
+      "sha256": "8f39baabda2bf49968fed31bc57e1c7c0c4d5ff0afe9c81743e6857cf819e731",
       "mode": "0755"
     },
     {
@@ -8245,8 +8245,8 @@
     },
     {
       "path": "scripts/validate_content_signals.py",
-      "bytes": 15052,
-      "sha256": "9d38bb652155bda03269754406d574c0de31db67c478a4989b96d267d62ac92e",
+      "bytes": 19842,
+      "sha256": "1a7b8ae004d2e025d106b64a3ee2b25d2713109e31e1251c2d39dc04bfe01361",
       "mode": "0755"
     },
     {
@@ -8257,8 +8257,8 @@
     },
     {
       "path": "scripts/validate_document_probe.py",
-      "bytes": 9934,
-      "sha256": "8b6a67be9f08f59c9c1252ebb63d5a71fd0709d605f812a6ca3b0e83776c80fd",
+      "bytes": 13451,
+      "sha256": "2891cabb5ccb693f48020cff2db41ff45674f463c10ef8f2b530f6e98a923338",
       "mode": "0755"
     },
     {

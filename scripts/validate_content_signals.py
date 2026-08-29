@@ -25,7 +25,7 @@ from __future__ import annotations
 import copy
 import json
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -102,6 +102,9 @@ def problems(entries: list[dict]) -> list[str]:
         age = _age_days(str(signal.get("read_on", "")))
         if age is None:
             found.append(f"{identifier}: content_signal.read_on is not an ISO date")
+        # Межа названа явно: рівно SIGNAL_MAX_AGE_DAYS днів — ще чинний вимір.
+        # `>` проти `>=` тут не стиль: мутант із `>=` вижив, бо проби на межу не було,
+        # лише на давно прострочений сигнал.
         elif age > SIGNAL_MAX_AGE_DAYS:
             found.append(
                 f"{identifier}: content_signal read {age} days ago, over the "
@@ -121,8 +124,14 @@ def problems(entries: list[dict]) -> list[str]:
         bots = signal.get("ai_bots_disallowed")
         bots = [str(b) for b in bots] if isinstance(bots, list) else []
         named_us = sorted(b for b in bots if b.lower() in OURS)
+        #: `raw[k]` після фільтра через `.get` — крихко: умова гарантує наявність ключа
+        #: лише поки вона саме така. Мутація `== "no"` → `!= "no"` перетворила гейт на
+        #: KeyError замість відмови. Падіння теж убиває мутанта, але гейт, який може
+        #: впасти від власних даних, — гірший сигнал, ніж гейт, який каже «ні».
         binding = sorted(
-            f"{k}={raw[k]}" for k in ("ai-train", "ai-input") if str(raw.get(k, "")).lower() == "no"
+            f"{k}={raw.get(k)}"
+            for k in ("ai-train", "ai-input")
+            if str(raw.get(k, "")).lower() == "no"
         )
         if str(raw.get("use", "")).lower() in {"reference", "immediate"}:
             binding.append(f"use={raw['use']}")
@@ -165,141 +174,214 @@ def _load() -> list[dict[str, Any]]:
     return [row for row in sources if isinstance(row, dict)]
 
 
-def selftest() -> int:
-    """Every rule is shown failing on a mutation. A green gate that cannot go red is decor."""
-    base: dict[str, Any] = {
-        "id": "T",
-        "source_uri": "https://example.org/a",
-        "ingestible": True,
-        "content_signal": {
-            "host": "example.org",
-            "read_on": date.today().isoformat(),
-            "verdict": "no_restriction",
-            "against_us": [],
+#: Негативні контролі — ДАНІ, а не код. Кожен рядок: назва, зміни до еталонного запису
+#: (або готовий список записів), і чи МУСИТЬ гейт на цьому впасти.
+#:
+#: Чому таблицею, а не тілом функції: стеля рядків у module-budget рахує проби так само,
+#: як логіку, і дев'ять доданих негативних контролів зробили гейт якості червоним —
+#: тобто стеля тиснула проти самого покриття. Реєстр даних для цього має виняток
+#: (той самий, що в run_mutation_tests.py: «каталог мутантів — це дані»), і таблиця
+#: проб належить саме до цього класу. Плюс так її видно в diff як перелік, а не як текст.
+PROBE_BASE: dict[str, Any] = {
+    "id": "T",
+    "source_uri": "https://example.org/a",
+    "ingestible": True,
+    "content_signal": {
+        "host": "example.org",
+        "read_on": "",  # проставляється в _probe_entries: «сьогодні»
+        "verdict": "no_restriction",
+        "against_us": [],
+    },
+}
+
+#: Дні відносно сьогодні — щоб межа лишалась межею, а не датою, яка колись протухне.
+_AT_FLOOR = {"_read_on_days_ago": SIGNAL_MAX_AGE_DAYS}
+_OVER_FLOOR = {"_read_on_days_ago": SIGNAL_MAX_AGE_DAYS + 1}
+
+PROBES: tuple[tuple[str, object, bool], ...] = (
+    ("чиста база проходить", {}, False),
+    (
+        "немає сигналу на ingestible",
+        [{"id": "T", "source_uri": "https://example.org/a", "ingestible": True}],
+        True,
+    ),
+    (
+        "немає сигналу, але й не ingestible",
+        [{"id": "T", "source_uri": "https://example.org/a", "ingestible": False}],
+        False,
+    ),
+    (
+        "не-http джерело ігнорується",
+        [{"id": "T", "source_uri": "file:///x", "ingestible": True}],
+        False,
+    ),
+    # Вісь A — блокування: те, заради чого гейт існує.
+    (
+        "застережено проти нас, але ingestible",
+        {"verdict": "reserved_against_us", "against_us": ["ai-train=no"]},
+        True,
+    ),
+    (
+        "застережено проти нас без причини",
+        {"verdict": "reserved_against_us", "against_us": [], "ingestible": False},
+        True,
+    ),
+    ("проти інших краулерів — не блокує", {"verdict": "reserved_against_others"}, False),
+    ("невідомий вердикт", {"verdict": "fine"}, True),
+    ("сигнал не об'єкт", {"content_signal": "yes"}, True),
+    # Вісь C — предмет виміру: сигнал про ЦЕЙ сайт і не протухлий.
+    ("хост сигналу з іншого сайту", {"host": "other.example"}, True),
+    ("сигнал протух", {"read_on": "2019-01-01"}, True),
+    ("дата не ISO", {"read_on": "вчора"}, True),
+    ("рівно на межі віку — ще чинний", _AT_FLOOR, False),  # рядок 105: > проти >=
+    ("на день за межею — протух", _OVER_FLOOR, True),
+    # Обхід правила вибором написання хоста (знахідка 80352ff0 проти правила 14).
+    ("трейлінг-крапка в хості", {"source_uri": "https://example.org./a"}, False),
+    ("ВЕЛИКІ літери в хості", {"source_uri": "https://EXAMPLE.ORG/a"}, False),
+    ("явний порт :443", {"source_uri": "https://example.org:443/a"}, False),
+    ("userinfo перед хостом", {"source_uri": "https://u:p@example.org/a"}, False),
+    ("справді інший хост усе ще падає", {"source_uri": "https://evil.org/a"}, True),
+    (
+        "застережений хост із трейлінг-крапкою не тікає",
+        {
+            "source_uri": "https://example.org./a",
+            "verdict": "reserved_against_us",
+            "against_us": ["ai-train=no"],
         },
-    }
+        True,
+    ),
+    (
+        "IPv6-літерал із портом розбирається в той самий хост",  # рядок 56: [0]→[1]
+        {"source_uri": "https://[::1]:443/a", "host": "[::1]"},
+        False,
+    ),
+    (
+        "IPv6-літерал проти іншого хоста все одно падає",
+        {"source_uri": "https://[::1]:443/a", "host": "example.org"},
+        True,
+    ),
+    # Вісь D — вердикт проти ВЛАСНИХ даних об'єкта: ловить дефект пробника, не даних.
+    (
+        "ClaudeBot названий, а вердикт «проти інших»",
+        {"verdict": "reserved_against_others", "ai_bots_disallowed": ["ClaudeBot"]},
+        True,
+    ),
+    ("ai-train=no, а вердикт «без обмежень»", {"signals": {"ai-train": "no"}}, True),
+    ("use=reference, а вердикт «без обмежень»", {"signals": {"use": "reference"}}, True),
+    (
+        "Bytespider названий — це НЕ про нас, вердикт лишається чинним",
+        {"verdict": "reserved_against_others", "ai_bots_disallowed": ["Bytespider"]},
+        False,
+    ),
+    ("search=yes сам по собі нічого не забороняє", {"signals": {"search": "yes"}}, False),
+    (
+        "ai-train=yes не є підставою вважати вердикт заниженим",  # рядок 125: ==→!=
+        {"signals": {"ai-train": "yes"}},
+        False,
+    ),
+    ("ai-input=yes так само не є підставою", {"signals": {"ai-input": "yes"}}, False),
+    (
+        "ai-train=no ПРИ вердикті reserved_against_us — узгоджено, проходить",
+        {
+            "verdict": "reserved_against_us",
+            "signals": {"ai-train": "no"},
+            "against_us": ["ai-train=no"],
+            "ingestible": False,
+        },
+        False,
+    ),
+    ("against_us непорожній при no_restriction", {"against_us": ["ai-train=no"]}, True),
+    (
+        "against_us непорожній при reserved_against_others",
+        {"verdict": "reserved_against_others", "against_us": ["tdm-reservation"]},
+        True,
+    ),
+    (
+        "against_us непорожній при no_robots",
+        {"verdict": "no_robots", "against_us": ["ai-input=no"]},
+        True,
+    ),
+    ("against_us із самих пробілів не рахується підставою", {"against_us": ["   ", ""]}, False),
+)
 
-    def mutate(**changes: object) -> list[dict[str, Any]]:
-        entry: dict[str, Any] = copy.deepcopy(base)
-        signal = entry["content_signal"]
-        if not isinstance(signal, dict):  # pragma: no cover - built as a dict above
-            raise TypeError("content_signal must be an object")
-        for key, value in changes.items():
-            (entry if key in entry else signal)[key] = value
-        return [entry]
+#: Фікстура для перевірки самого звіту: 4 web, 3 виміряні, 1 проти нас, 1 проти інших.
+REPORT_FIXTURE = (
+    {"source_uri": "https://a.example/x", "content_signal": {"verdict": "reserved_against_us"}},
+    {"source_uri": "https://b.example/x", "content_signal": {"verdict": "reserved_against_others"}},
+    {"source_uri": "https://c.example/x", "content_signal": {"verdict": "no_restriction"}},
+    {"source_uri": "https://d.example/x"},
+    {"source_uri": "file:///local"},
+)
+REPORT_EXPECTED = {"web": 4, "probed": 3, "reserved_against_us": 1, "reserved_against_others": 1}
 
-    cases = [
-        ("чиста база проходить", [copy.deepcopy(base)], False),
-        (
-            "немає сигналу на ingestible",
-            [{"id": "T", "source_uri": "https://example.org/a", "ingestible": True}],
-            True,
-        ),
-        (
-            "немає сигналу, але й не ingestible",
-            [{"id": "T", "source_uri": "https://example.org/a", "ingestible": False}],
-            False,
-        ),
-        (
-            "застережено проти нас, але ingestible",
-            mutate(verdict="reserved_against_us", against_us=["ai-train=no"]),
-            True,
-        ),
-        (
-            "застережено проти нас без причини",
-            mutate(verdict="reserved_against_us", against_us=[], ingestible=False),
-            True,
-        ),
-        ("проти інших краулерів — не блокує", mutate(verdict="reserved_against_others"), False),
-        ("хост сигналу з іншого сайту", mutate(host="other.example"), True),
-        ("сигнал протух", mutate(read_on="2019-01-01"), True),
-        ("дата не ISO", mutate(read_on="вчора"), True),
-        ("невідомий вердикт", mutate(verdict="fine"), True),
-        ("сигнал не об'єкт", mutate(content_signal="yes"), True),
-        (
-            "не-http джерело ігнорується",
-            [{"id": "T", "source_uri": "file:///x", "ingestible": True}],
-            False,
-        ),
-        # Обхід правила вибором написання хоста — знахідка сесії 80352ff0 проти правила 14
-        # каталогу. Написання, які DNS вважає одним хостом, мусять і тут бути одним;
-        # інакше застережене джерело проходить під іншим рядком того самого сайту.
-        ("трейлінг-крапка в хості", mutate(source_uri="https://example.org./a"), False),
-        ("ВЕЛИКІ літери в хості", mutate(source_uri="https://EXAMPLE.ORG/a"), False),
-        ("явний порт :443", mutate(source_uri="https://example.org:443/a"), False),
-        ("userinfo перед хостом", mutate(source_uri="https://u:p@example.org/a"), False),
-        ("справді інший хост усе ще падає", mutate(source_uri="https://evil.org/a"), True),
-        (
-            "застережений хост із трейлінг-крапкою не тікає",
-            mutate(
-                source_uri="https://example.org./a",
-                verdict="reserved_against_us",
-                against_us=["ai-train=no"],
-            ),
-            True,
-        ),
-        # Вісь D: вердикт проти ВЛАСНИХ даних об'єкта. Ловить дефект пробника, не даних.
-        (
-            "ClaudeBot названий, а вердикт «проти інших»",
-            mutate(verdict="reserved_against_others", ai_bots_disallowed=["ClaudeBot"]),
-            True,
-        ),
-        (
-            "ai-train=no, а вердикт «без обмежень»",
-            mutate(signals={"ai-train": "no"}),
-            True,
-        ),
-        (
-            "use=reference, а вердикт «без обмежень»",
-            mutate(signals={"use": "reference"}),
-            True,
-        ),
-        (
-            "Bytespider названий — це НЕ про нас, вердикт лишається чинним",
-            mutate(verdict="reserved_against_others", ai_bots_disallowed=["Bytespider"]),
-            False,
-        ),
-        (
-            "search=yes сам по собі нічого не забороняє",
-            mutate(signals={"search": "yes"}),
-            False,
-        ),
-        # Мутація 1 сесії 80352ff0: непорожній `against_us` при будь-якому іншому
-        # вердикті. Три випадки, а не один — `no_robots` пропускав так само.
-        (
-            "against_us непорожній при no_restriction",
-            mutate(against_us=["ai-train=no"]),
-            True,
-        ),
-        (
-            "against_us непорожній при reserved_against_others",
-            mutate(verdict="reserved_against_others", against_us=["tdm-reservation"]),
-            True,
-        ),
-        (
-            "against_us непорожній при no_robots",
-            mutate(verdict="no_robots", against_us=["ai-input=no"]),
-            True,
-        ),
-        (
-            "against_us із самих пробілів не рахується підставою",
-            mutate(against_us=["   ", ""]),
-            False,
-        ),
-    ]
+
+def _probe_entries(changes: object) -> list[dict[str, Any]]:
+    """Записи для однієї проби: або готовий список, або еталон із застосованими змінами."""
+    if isinstance(changes, list):
+        return changes
+    if not isinstance(changes, dict):
+        raise TypeError(f"проба {changes!r} — ні список записів, ні набір змін")
+    entry: dict[str, Any] = copy.deepcopy(PROBE_BASE)
+    signal = entry["content_signal"]
+    signal["read_on"] = date.today().isoformat()
+    for key, value in changes.items():
+        if key == "_read_on_days_ago":
+            signal["read_on"] = (date.today() - timedelta(days=int(value))).isoformat()
+        elif key in entry:
+            entry[key] = value
+        else:
+            signal[key] = value
+    return [entry]
+
+
+def selftest() -> int:
+    """Кожне правило показане таким, що падає. Зелений гейт, якого не бачили червоним, — декор."""
     bad = 0
-    for name, entries, want_fail in cases:
-        got = bool(problems(entries))
+    for name, changes, want_fail in PROBES:
+        got = bool(problems(_probe_entries(changes)))
         if got != want_fail:
             bad += 1
-            print(
-                f"  ✗ {name}: очікували {'падіння' if want_fail else 'PASS'}, отримали "
-                f"{'падіння' if got else 'PASS'}"
-            )
+            print(f"  ✗ {name}: очікували {'падіння' if want_fail else 'PASS'}")
         else:
             print(f"  ✓ {name}")
-    print(f"негативний контроль: {len(cases) - bad}/{len(cases)}")
+
+    got_counts = summarise(list(REPORT_FIXTURE))
+    ok_counts = got_counts == REPORT_EXPECTED
+    bad += not ok_counts
+    print(
+        f"  {'✓' if ok_counts else '✗'} підрахунок звіту"
+        + ("" if ok_counts else f": {got_counts} != {REPORT_EXPECTED}")
+    )
+
+    ok_floor = SIGNAL_MAX_AGE_DAYS == 180
+    bad += not ok_floor
+    print(f"  {'✓' if ok_floor else '✗'} межа віку сигналу = 180 днів")
+
+    total = len(PROBES) + 2
+    print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
+
+
+def summarise(entries: list[dict]) -> dict[str, int]:
+    """The numbers the report prints, as a value that can be checked.
+
+    They lived inline in `main()`, where nothing tested them: flipping `==` to `!=` in the
+    two verdict counts changed every printed figure and no probe noticed, because the
+    selftest only ever called `problems()`. A report nobody can falsify is not a report —
+    it is the same defect as a gate nobody has seen go red, one level up.
+    """
+    web = [e for e in entries if str(e.get("source_uri", "")).startswith("http")]
+    probed = [e for e in web if isinstance(e.get("content_signal"), dict)]
+    return {
+        "web": len(web),
+        "probed": len(probed),
+        "reserved_against_us": len(
+            [e for e in probed if e["content_signal"].get("verdict") == "reserved_against_us"]
+        ),
+        "reserved_against_others": len(
+            [e for e in probed if e["content_signal"].get("verdict") == "reserved_against_others"]
+        ),
+    }
 
 
 def main() -> int:
@@ -307,20 +389,18 @@ def main() -> int:
         return selftest()
     entries = _load()
     found = problems(entries)
-    web = [e for e in entries if str(e.get("source_uri", "")).startswith("http")]
-    probed = [e for e in web if isinstance(e.get("content_signal"), dict)]
-    reserved = [e for e in probed if e["content_signal"].get("verdict") == "reserved_against_us"]
-    others = [e for e in probed if e["content_signal"].get("verdict") == "reserved_against_others"]
+    counts = summarise(entries)
     if found:
         print("content signals: FAIL")
         for item in found:
             print(f"  ✗ {item}")
         return 1
     print("content signals: PASS")
-    print(f"  {len(web)} web sources · {len(probed)} with a robots.txt reading")
+    print(f"  {counts['web']} web sources · {counts['probed']} with a robots.txt reading")
     print(
-        f"  {len(reserved)} expressly reserved against us and blocked · "
-        f"{len(others)} reserve against other crawlers only (not a restriction here)"
+        f"  {counts['reserved_against_us']} expressly reserved against us and blocked · "
+        f"{counts['reserved_against_others']} reserve against other crawlers only "
+        "(not a restriction here)"
     )
     return 0
 
