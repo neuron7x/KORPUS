@@ -2,13 +2,13 @@
   "schema": "korpus.full-backend-report.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
-  "collection_digest": "ee46be90d262721d5545e772f7fefdd40df80e0dd4d0206c3072af992087082e",
-  "collected": 2345,
-  "passed": 2344,
+  "source_tree_sha256": "4186878a548e953902cdaa926d671f873de304601a753f0ab6ce4d629faf057c",
+  "collection_digest": "30fad1ce7dbfa2674f81819e2322484e1091ce7f065e5064555026f60991d010",
+  "collected": 3023,
+  "passed": 3022,
   "failed": 0,
   "errors": 0,
   "skipped": 1,
-  "shards": 64,
-  "evidence_source": "var/regression-v097-current2/merge.json"
+  "shards": 24,
+  "evidence_source": "reports/regression/FULL_REGRESSION_CURRENT.json"
 }

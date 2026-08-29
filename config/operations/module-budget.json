@@ -4354,6 +4354,22 @@
       "max_function_args": 8,
       "max_nesting": 4,
       "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable."
+    },
+    "scripts/publish_backend_report.py": {
+      "lines": 95,
+      "max_complexity": 7,
+      "max_function_lines": 60,
+      "max_function_args": 8,
+      "max_nesting": 4,
+      "reason": "New 2026-08-29: projects the sharded regression merge into the preflight's backend report, which had no producer."
+    },
+    "scripts/publish_release_evidence.py": {
+      "lines": 140,
+      "max_complexity": 8,
+      "max_function_lines": 60,
+      "max_function_args": 8,
+      "max_nesting": 4,
+      "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

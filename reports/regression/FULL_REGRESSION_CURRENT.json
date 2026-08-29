@@ -1,0 +1,42 @@
+{
+  "schema": "korpus.regression-merge.v1",
+  "status": "PASS",
+  "release_tag": "v0.9.7",
+  "source_digest": "4186878a548e953902cdaa926d671f873de304601a753f0ab6ce4d629faf057c",
+  "collection_digest": "30fad1ce7dbfa2674f81819e2322484e1091ce7f065e5064555026f60991d010",
+  "collection_count": 3023,
+  "shards": 24,
+  "junit": {
+    "tests": 3023,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  "failures": [],
+  "receipt_paths": [
+    "reports/regression/shards/shard-0.json",
+    "reports/regression/shards/shard-10.json",
+    "reports/regression/shards/shard-11.json",
+    "reports/regression/shards/shard-12.json",
+    "reports/regression/shards/shard-13.json",
+    "reports/regression/shards/shard-14.json",
+    "reports/regression/shards/shard-15.json",
+    "reports/regression/shards/shard-16.json",
+    "reports/regression/shards/shard-17.json",
+    "reports/regression/shards/shard-18.json",
+    "reports/regression/shards/shard-19.json",
+    "reports/regression/shards/shard-1.json",
+    "reports/regression/shards/shard-20.json",
+    "reports/regression/shards/shard-21.json",
+    "reports/regression/shards/shard-22.json",
+    "reports/regression/shards/shard-23.json",
+    "reports/regression/shards/shard-2.json",
+    "reports/regression/shards/shard-3.json",
+    "reports/regression/shards/shard-4.json",
+    "reports/regression/shards/shard-5.json",
+    "reports/regression/shards/shard-6.json",
+    "reports/regression/shards/shard-7.json",
+    "reports/regression/shards/shard-8.json",
+    "reports/regression/shards/shard-9.json"
+  ]
+}

@@ -720,7 +720,7 @@ pec-contextual-benchmark:
 	test -n "$(PEC_MIN_CONTEXTUAL_PAIRS)"
 	PYTHONPATH=apps/api/src:scripts $(PY) scripts/run_pec_contextual_benchmark.py --observations "$(PEC_CONTEXTUAL_OBSERVATIONS)" --minimum-informative-pairs "$(PEC_MIN_CONTEXTUAL_PAIRS)" --release-gate --out reports/PEC_CONTEXTUAL_BENCHMARK_CURRENT.json
 
-.PHONY: regression-shard regression-shard-merge
+.PHONY: regression-shard regression-shard-merge backend-report release-evidence
 REGRESSION_SHARDS ?= 24
 REGRESSION_TIMEOUT ?= 240
 regression-shard:
@@ -730,3 +730,41 @@ regression-shard:
 
 regression-shard-merge:
 	PYTHONPATH=apps/api/src:scripts:. $(PY) scripts/run_regression_shards.py merge --out reports/regression/FULL_REGRESSION_CURRENT.json reports/regression/shards/shard-*.json
+
+# The whole sharded regression, merged, and projected into the report the preflight reads.
+# `FULL_BACKEND_REPORT.json` had no producer: the copy in the tree cites a path from an
+# ad-hoc run, so the preflight has been reading a stale artefact and failing all eleven of
+# its local checks on binding rather than on substance.
+# Every report the preflight reads, produced against this tree and then published.
+# `run_local_production_preflight.py` requires eleven reports under `reports/release/<tag>/`
+# and each of them is produced by a target here — but nothing carried them across, so the
+# copies in that directory were placed by hand and predated the tree they described. The
+# preflight's eleven local failures were entirely about staleness.
+#
+# Order is the whole content of this target: producers first, coverage before its gap
+# plan, and the publication last, after the digest has stopped moving. An artefact bound
+# to another tree is refused by the publisher rather than copied.
+release-evidence:
+	$(MAKE) api-test PY=$(PY)
+	$(MAKE) coverage-union PY=$(PY)
+	$(MAKE) coverage-ratchet PY=$(PY)
+	$(MAKE) determinism-gate PY=$(PY)
+	$(MAKE) stress-gate PY=$(PY)
+	$(MAKE) plasticity-gate PY=$(PY)
+	$(MAKE) dependency-locks PY=$(PY)
+	$(MAKE) standards-control-map PY=$(PY)
+	$(MAKE) builtin-security PY=$(PY)
+	$(MAKE) production-inference-security PY=$(PY)
+	$(MAKE) release-mutation-delta PY=$(PY)
+	$(MAKE) backend-report PY=$(PY)
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_release_evidence.py
+	$(MAKE) local-production-preflight PY=$(PY)
+
+backend-report:
+	rm -rf reports/regression/shards
+	mkdir -p reports/regression/shards
+	for index in $$(seq 0 $$(( $(REGRESSION_SHARDS) - 1 ))); do \
+	  $(MAKE) regression-shard SHARD_INDEX=$$index PY=$(PY) || exit 1; \
+	done
+	$(MAKE) regression-shard-merge PY=$(PY)
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/publish_backend_report.py

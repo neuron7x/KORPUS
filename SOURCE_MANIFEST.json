@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1290,
-  "root_sha256": "b6a99377703e2b11ec046ff92a235ee4775c5f00f938d9bb875c59de6818f984",
+  "file_count": 1292,
+  "root_sha256": "8a2686b6aaf1b8d8ed3f780e492f11b44e0c7b3047b598a7368b86758a1c3d4f",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 38322,
-      "sha256": "eabbab9bcd281ae8df0749d851c9ba871b339ac281784a9542b751b16a802838",
+      "bytes": 40252,
+      "sha256": "b33c852b2b64cf1cd344151696e7e95a0264bd94b9e895e772fec7a82c4ee475",
       "mode": "0644"
     },
     {
@@ -4999,8 +4999,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 204497,
-      "sha256": "022af3cd441a9f15a88049e7c20fcb74047b3b2daf6e0c148469a6dc54bc7034",
+      "bytes": 205136,
+      "sha256": "874733388e04aa22a53702b80dcafb3a18634d25d5d2dd99d6c27d0f43706cd9",
       "mode": "0644"
     },
     {
@@ -6558,6 +6558,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/compare_sbom_sources.py",
+      "bytes": 4301,
+      "sha256": "76ca0202020d468047f66b7788832369cec89a859c15a07b97384e53e9fe5965",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/conversation_retention.py",
       "bytes": 5673,
       "sha256": "b64cc7a00bac813c75b2367fafddb4d4528be1ae79e278ab985a9a9c47946e17",
@@ -7167,6 +7173,12 @@
       "path": "scripts/prepare_postgres_role.py",
       "bytes": 5542,
       "sha256": "4077b67dbcd141bf59c409ed30994eb419bf5fbad613625802d8a56d00ee3397",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "bytes": 11042,
+      "sha256": "c9b8fec7de317eb5298a1f5ad4bc43b4b36f28cd41257ca1e32c50ee101deba4",
       "mode": "0755"
     },
     {

@@ -2,14 +2,14 @@
   "schema": "korpus.dependency-lock-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "15f1630f4327babeba37802d64b195d43cae256b55042b7f44517a24784a78aa",
+  "source_tree_sha256": "4186878a548e953902cdaa926d671f873de304601a753f0ab6ce4d629faf057c",
   "python": {
     "runtime_packages": 55,
-    "dev_closure_packages": 68,
-    "runtime_lock_sha256": "5bf7c9e99af26e445e6d12c12a817fe6b838377240939f06127ec586a1f06f98",
-    "dev_lock_sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc",
+    "dev_closure_packages": 71,
+    "runtime_lock_sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d",
+    "dev_lock_sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134",
     "direct_runtime_dependencies": 16,
-    "direct_dev_dependencies": 5,
+    "direct_dev_dependencies": 6,
     "direct_postgres_dependencies": 1,
     "all_pins_exact": true,
     "all_artifacts_sha256_bound": true
@@ -151,7 +151,7 @@
           "ecosystem": "PyPI",
           "name": "idna"
         },
-        "version": "3.17"
+        "version": "3.18"
       },
       {
         "package": {
@@ -298,7 +298,7 @@
           "ecosystem": "PyPI",
           "name": "pypdf"
         },
-        "version": "6.14.2"
+        "version": "6.15.0"
       },
       {
         "package": {
