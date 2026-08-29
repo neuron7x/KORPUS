@@ -256,6 +256,13 @@ doctrine-catalog:
 verdict-ledger:
 	$(PY) scripts/verify_verdict_ledger.py
 
+# Does the commit stand on its own? Four defects this session passed in the working tree and
+# failed in a clone of HEAD: a digest over untracked files, a catalog citing captures the
+# commit did not carry, a manifest describing a file since rewritten, a budget already red.
+# Not in `validate` — it clones the repository, which a gate inside the repository must not.
+verify-clean-clone:
+	bash scripts/verify_clean_clone.sh
+
 # HTTP 200 on a public domain is not permission. robots.txt carries two express
 # reservations the catalog never read: `Content-Signal: ai-train=no / ai-input=no /
 # use=reference`, which binds everyone, and `User-agent: ClaudeBot ... Disallow: /`,

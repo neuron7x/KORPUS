@@ -108,6 +108,32 @@ def problems(entries: list[dict]) -> list[str]:
         elif age < 0:
             found.append(f"{identifier}: content_signal.read_on is in the future")
 
+        # The verdict has to agree with the data it was drawn from. Everything above
+        # checks the verdict against the source; nothing checked it against its own
+        # fields, so a defect in the *prober* — not the gate — passed straight through:
+        # `ai_bots_disallowed: ["ClaudeBot"]` under `verdict: reserved_against_others`
+        # reads as "someone else's refusal" while naming us in the same object.
+        OURS = {"claudebot", "anthropic-ai", "claude-web", "claude-searchbot"}
+        raw = signal.get("signals")
+        raw = raw if isinstance(raw, dict) else {}
+        bots = signal.get("ai_bots_disallowed")
+        bots = [str(b) for b in bots] if isinstance(bots, list) else []
+        named_us = sorted(b for b in bots if b.lower() in OURS)
+        binding = sorted(
+            f"{k}={raw[k]}"
+            for k in ("ai-train", "ai-input")
+            if str(raw.get(k, "")).lower() == "no"
+        )
+        if str(raw.get("use", "")).lower() in {"reference", "immediate"}:
+            binding.append(f"use={raw['use']}")
+        if (named_us or binding) and verdict != "reserved_against_us":
+            found.append(
+                f"{identifier}: verdict is {verdict!r} but the reading itself carries "
+                f"{', '.join(named_us + binding)} — a restriction aimed at us cannot be "
+                "recorded as someone else's; this is a defect in the prober, not the data"
+            )
+            continue
+
         if verdict == "reserved_against_us":
             reasons = signal.get("against_us")
             if not isinstance(reasons, list) or not reasons:
@@ -203,6 +229,32 @@ def selftest() -> int:
                 against_us=["ai-train=no"],
             ),
             True,
+        ),
+        # Вісь D: вердикт проти ВЛАСНИХ даних об'єкта. Ловить дефект пробника, не даних.
+        (
+            "ClaudeBot названий, а вердикт «проти інших»",
+            mutate(verdict="reserved_against_others", ai_bots_disallowed=["ClaudeBot"]),
+            True,
+        ),
+        (
+            "ai-train=no, а вердикт «без обмежень»",
+            mutate(signals={"ai-train": "no"}),
+            True,
+        ),
+        (
+            "use=reference, а вердикт «без обмежень»",
+            mutate(signals={"use": "reference"}),
+            True,
+        ),
+        (
+            "Bytespider названий — це НЕ про нас, вердикт лишається чинним",
+            mutate(verdict="reserved_against_others", ai_bots_disallowed=["Bytespider"]),
+            False,
+        ),
+        (
+            "search=yes сам по собі нічого не забороняє",
+            mutate(signals={"search": "yes"}),
+            False,
         ),
     ]
     bad = 0
