@@ -96,6 +96,12 @@ class Outcome:
     duplicates: list[str] = field(default_factory=list)
     refused: list[dict[str, str]] = field(default_factory=list)
     skipped: list[str] = field(default_factory=list)
+    #: Imported and permanently unapprovable. Not a refusal — the document is in the corpus
+    #: and a reviewer can read it — but it can never leave quarantine, because
+    #: ingestion.py:356 refuses an approval with neither effective_from nor
+    #: publication_date. Measured 2026-08-29: all 90 doctrine documents imported cleanly
+    #: and all 90 were in this state, which the report did not say.
+    undated: list[str] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -104,7 +110,9 @@ class Outcome:
             "duplicates": len(self.duplicates),
             "refused": len(self.refused),
             "skipped_files_not_in_manifest": len(self.skipped),
+            "undated_and_therefore_unapprovable": len(self.undated),
             "refusals": self.refused,
+            "undated": self.undated[:50],
             "skipped": self.skipped[:50],
             "interpretation": (
                 "Every version is quarantined. A quarantined version cannot be cited in "
@@ -306,6 +314,8 @@ def main() -> int:
                 outcome.duplicates.append(relative)
                 continue
             outcome.ingested.append(relative)
+            if not (entry.get("effective_from") or entry.get("publication_date")):
+                outcome.undated.append(relative)
             if arguments.approve_as:
                 approver = Identity(
                     subject=arguments.approve_as,
@@ -335,6 +345,16 @@ def main() -> int:
         repository.close()
 
     report = outcome.as_dict()
+    if outcome.undated:
+        report["undated_diagnosis"] = (
+            f"{len(outcome.undated)} of {len(outcome.ingested)} documents carry neither "
+            "effective_from nor publication_date. They are in the corpus and they can never "
+            "be approved: approving a version makes it answer 'which rules applied on date "
+            "X', and with no date it answers for every past date including ones before it "
+            "existed (ingestion.py:356). A human signature will not clear this — the date "
+            "will. stage_doctrine_corpus.py reads it off the source page where the source "
+            "prints one."
+        )
     absent = sum(1 for item in outcome.refused if item["reason"] == "file does not exist")
     if absent and absent == len(entries):
         # Not a corpus of missing files. A base that does not contain them.

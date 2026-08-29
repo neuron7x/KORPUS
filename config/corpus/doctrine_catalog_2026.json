@@ -22,6 +22,22 @@
     "repealed_and_blocked": 2
   },
   "evidence_floor_note": "Ratchet, recalculated 2026-08-29 for 168 sources. At the previous floor of 84 an adversarial pass deleted exactly half the catalog and the gate stayed PASS, taking 9 content probes and 52 captured attachments with it. attachments_extractor_readable and repealed_and_blocked were added because nothing held them: swapping a .docx for a .doc lowered readability without a verdict, and deleting both repealed records removed the only proof the legal-status probe can return 'invalid' at all. Deliberately NOT ratcheted: restricted_quarantined, rights_blocked, blocked, ingestible — a floor on those forbids a lawful declassification or a rights clearance.",
+  "evidence_floor_history": [
+    {
+      "on": "2026-08-29",
+      "floor": {
+        "total": 168,
+        "governing_authority": 104,
+        "integrity_anchored": 12,
+        "content_probed": 28,
+        "attachments_captured": 82,
+        "attachments_surveyed": 50,
+        "attachments_extractor_readable": 32,
+        "repealed_and_blocked": 2
+      },
+      "note": "Snapshot so the ratchet still holds where Git is absent — an unpacked release archive is exactly the artefact an auditor reads, and there the check was silently disabled."
+    }
+  ],
   "evidence_ceiling": {
     "sources_without_evidence": 128,
     "ingestible_without_evidence": 96,

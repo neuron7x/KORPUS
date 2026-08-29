@@ -875,3 +875,51 @@ def test_lowering_the_floor_is_refused_on_its_own_terms() -> None:
 
     unchanged = validator._floor_lowered_problems(_catalog()["evidence_floor"])
     assert unchanged == [], f"the committed floor flags itself: {unchanged}"
+
+
+def test_the_floor_ratchet_still_holds_without_git(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An unpacked release archive has no Git, and that is the artefact an auditor reads.
+
+    Verified 2026-08-29 by replacing `git` with `exit 127`: a floor lowered from 28 to 5
+    gave exit 1 with Git and exit 0 without — the ratchet was disabled in exactly the place
+    it mattered most. The catalog now carries its own history, which travels with the
+    archive.
+    """
+    validator = _validator()
+    monkeypatch.setattr(
+        validator.subprocess,
+        "run",
+        lambda *args, **kwargs: type("R", (), {"returncode": 127, "stdout": b""})(),
+    )
+    recorded, origin = validator._committed_floor()
+    assert origin == "catalog_history", "without Git the floor has no witness at all"
+    assert isinstance(recorded, dict) and recorded
+
+    lowered = dict(_catalog()["evidence_floor"])
+    lowered["content_probed"] = 1
+    problems = validator._floor_lowered_problems(lowered)
+    assert any("was lowered from" in p for p in problems), problems
+    assert any("catalog_history" in p for p in problems)
+
+
+def test_an_unverifiable_floor_says_so_instead_of_passing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """No Git and no history is a third state, not silence — the shape of SCOPE_UNDECLARED."""
+    validator = _validator()
+    monkeypatch.setattr(
+        validator.subprocess,
+        "run",
+        lambda *args, **kwargs: type("R", (), {"returncode": 127, "stdout": b""})(),
+    )
+    catalog = _catalog()
+    catalog.pop("evidence_floor_history", None)
+    # Inside ROOT: _committed_floor derives the Git path from CATALOG.relative_to(ROOT).
+    stripped = ROOT / "var" / "catalog-without-history.json"
+    stripped.parent.mkdir(exist_ok=True)
+    stripped.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(validator, "CATALOG", stripped)
+
+    problems = validator._floor_lowered_problems(catalog["evidence_floor"])
+    assert any("cannot be checked against any previous value" in p for p in problems), problems
+    assert any("origin=unverifiable" in p for p in problems)

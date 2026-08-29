@@ -3374,10 +3374,10 @@
       "max_nesting": 4
     },
     "scripts/import_corpus.py": {
-      "lines": 350,
-      "max_complexity": 31,
+      "lines": 370,
+      "max_complexity": 34,
       "reason": "bulk import: metadata from a manifest, every version quarantined, refusals named per file",
-      "max_function_lines": 176,
+      "max_function_lines": 188,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4074,7 +4074,7 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 941,
+      "lines": 967,
       "max_complexity": 30,
       "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 rule 13: an attachment the extractor cannot read carries a survey — word count, opening line and the tool that produced it. Fourteen of thirty captures are OLE2 .doc; the alternative was a new supply-chain dependency for 2716 words of blank forms.",
       "max_function_lines": 99,
@@ -4385,10 +4385,10 @@
       "max_nesting": 4
     },
     "scripts/stage_doctrine_corpus.py": {
-      "lines": 256,
-      "max_complexity": 14,
+      "lines": 299,
+      "max_complexity": 15,
       "reason": "registered 2026-08-29: catalog→corpus staging bridge and the gate hardening an adversarial pass required",
-      "max_function_lines": 76,
+      "max_function_lines": 89,
       "max_function_args": 8,
       "max_nesting": 4
     },

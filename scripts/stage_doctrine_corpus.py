@@ -20,10 +20,17 @@ in the audit chain.
 It does not stage a source the catalog blocks. `ingestible=false` means RESTRICTED
 classification or unclear rights, and both are decisions somebody made on purpose.
 
-It does not invent dates. `publication_date` and `effective_from` are absent from most
-catalog entries, and a guessed effective date decides whether an answer cites the version
-in force. Absent stays absent; the field is omitted rather than filled with the probe date,
-which would read as the act's date to everything downstream.
+It does not invent dates — it reads them. `effective_from` decides whether an answer cites
+the version in force, so a guess there is a citation wrong in a way the reader cannot see.
+But zakon.rada prints the revision date on the page being downloaded ("Редакція від
+18.03.2026"), and reading it off the bytes already fetched is a measurement, not a guess.
+Where the page does not say, the field stays absent.
+
+That matters more than it looks. `ingestion.py:356` refuses to approve a version with
+neither effective_from nor publication_date, and `import_corpus.py` does not ask for either:
+all 90 documents imported cleanly and every one of them was permanently unapprovable —
+quarantined by a rule the importer never mentioned. The two checks did not agree, and the
+one that accepts did not ask about what the one that approves requires.
 
 Every staged file is put through the system's own extractor before it is written into the
 manifest. A download that returns 200 is not a document: on the first full run one source
@@ -44,6 +51,7 @@ import json
 import re
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +60,8 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 TAG = re.compile(r"<[^>]+>")
+#: How zakon.rada prints the revision in force on the page it serves.
+REVISION_DATE = re.compile(r"Редакц[іi][яi]\s+в[іi]д\s+(\d{2})\.(\d{2})\.(\d{4})")
 MIME_BY_SUFFIX = {
     ".pdf": "application/pdf",
     ".html": "text/html",
@@ -125,6 +135,26 @@ def _extractable(path: Path, min_words: int) -> tuple[bool, str]:
     return True, f"{words} words"
 
 
+def _revision_date(payload: bytes, suffix: str) -> str | None:
+    """The revision date the source itself prints, or None.
+
+    Read from the bytes already downloaded, so it is a property of what was fetched rather
+    than of what the catalog remembers. Only HTML: a PDF states its date in a layout this
+    cannot read without guessing, and guessing is the thing being avoided.
+    """
+    if suffix not in {".html", ".htm"}:
+        return None
+    text = TAG.sub(" ", payload.decode("utf-8", "replace"))
+    match = REVISION_DATE.search(re.sub(r"\s+", " ", text))
+    if match is None:
+        return None
+    day, month, year = match.groups()
+    try:
+        return date(int(year), int(month), int(day)).isoformat()
+    except ValueError:  # pragma: no cover - a printed date that is not a date
+        return None
+
+
 def _entry_for(source: dict[str, Any], relative: str) -> dict[str, Any]:
     probe = source.get("content_probe")
     uri = str(probe["chosen_uri"]) if isinstance(probe, dict) else str(source["source_uri"])
@@ -163,7 +193,9 @@ def stage(out: Path, timeout: int, limit: int | None, min_words: int) -> dict[st
     out.mkdir(parents=True, exist_ok=True)
     documents: list[dict[str, Any]] = []
     refused: list[str] = []
+    undated: list[str] = []
     staged_bytes = 0
+    dated = 0
 
     for source in sources:
         probe = source.get("content_probe")
@@ -185,7 +217,14 @@ def stage(out: Path, timeout: int, limit: int | None, min_words: int) -> dict[st
             refused.append(f"{source['id']}: {reason} ({uri})")
             continue
         staged_bytes += len(payload)
-        documents.append(_entry_for(source, relative))
+        entry = _entry_for(source, relative)
+        in_force = _revision_date(payload, target.suffix.lower())
+        if in_force is not None:
+            entry["effective_from"] = in_force
+            dated += 1
+        else:
+            undated.append(str(source["id"]))
+        documents.append(entry)
 
     # Attachments the catalog captured are already in the tree with a verified digest; they
     # are staged from there rather than re-fetched, so the corpus and the catalog's own
@@ -225,6 +264,10 @@ def stage(out: Path, timeout: int, limit: int | None, min_words: int) -> dict[st
     )
     return {
         "staged": len(documents),
+        "dated": dated,
+        # Named, not hidden: every one of these will import cleanly and can never be
+        # approved, because ingestion.py refuses an approval with no date in force.
+        "undated_and_therefore_unapprovable": undated,
         "refused": refused,
         "bytes": staged_bytes,
         "manifest": _reportable(out / "manifest.json"),

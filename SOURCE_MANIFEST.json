@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1346,
-  "root_sha256": "5a2a3844b1d5b5e06297657925592fbe781cfeca706526886763592a04e6612b",
+  "root_sha256": "7f68bc36f4b0201e3c69342ea047adbcd60da1b53af70c0ebba1a6cc5611a29c",
   "files": [
     {
       "path": ".dockerignore",
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 36877,
-      "sha256": "dd909d2c035fe5998e70f1c8c6bf00bbb12e92d444baaf48f509c2b6b1415973",
+      "bytes": 39047,
+      "sha256": "e2db8d0a9b445642b258bd8458e31773d0fd6f1ad3ebe26e3b08e55a08072dc6",
       "mode": "0644"
     },
     {
@@ -5179,8 +5179,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 407150,
-      "sha256": "2849ca8b70ca262f3b295916a3bd96570f5a112ebdbff1e66d3d6be77c5e4379",
+      "bytes": 407712,
+      "sha256": "56fed3841af9c9d449c81316698f4a89511e83606194dee687dc02050230d911",
       "mode": "0644"
     },
     {
@@ -5288,7 +5288,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 227452,
-      "sha256": "8685361cb5dc51f9dc6e025e99f74617062d47dc73013d1171fe0b9b465bb39c",
+      "sha256": "824d095fcf869240d920439b3e6a3f58a9b701b5c546110c9f8d7d1f3f3e826f",
       "mode": "0644"
     },
     {
@@ -7237,8 +7237,8 @@
     },
     {
       "path": "scripts/import_corpus.py",
-      "bytes": 14856,
-      "sha256": "07a8cb70a23dfd581a6b11323aaa0fc0a962806974b07a62098212d8e560923f",
+      "bytes": 16215,
+      "sha256": "3edd6cb834e9364a7dbf5dd52fb72640c4687b3e42bf55ea03d2c5ec094f6aa1",
       "mode": "0755"
     },
     {
@@ -7879,8 +7879,8 @@
     },
     {
       "path": "scripts/stage_doctrine_corpus.py",
-      "bytes": 10245,
-      "sha256": "4150946a6807487629cbcfbdd02cc308989493fd852059e3ac6b021017419eeb",
+      "bytes": 12322,
+      "sha256": "1ed71b8488290e978690f4d3c64dd31bb02c6f298257cd0e9eabaf923d31d91f",
       "mode": "0755"
     },
     {
@@ -7915,8 +7915,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 41783,
-      "sha256": "6c6ac1c2e015c75acb2438189275b6411d8c1b6fedc64a710fca962b59fcfdbd",
+      "bytes": 43151,
+      "sha256": "f9c70a040703f7f78ec3ff651c84cbb5aab410323b492c15078952547c074dc5",
       "mode": "0755"
     },
     {

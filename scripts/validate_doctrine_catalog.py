@@ -710,39 +710,65 @@ def _ceiling_problems(catalog: dict[str, object], summary: Summary) -> list[str]
     return problems
 
 
-def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
-    """The floor against its own previous value, not only against the count.
+def _committed_floor() -> tuple[dict[str, object] | None, str]:
+    """The previous floor and where it came from: Git, the catalog's own history, or nowhere.
 
-    `if actual < minimum` compares the measurement with the floor and never compares the
-    floor with what it used to be, so one commit that lowers the floor and deletes the
-    evidence together passes silently. Today rule 14 catches that per entry — every anchor
-    happens to sit on a host rule 14 covers — but that is a property of the current catalog,
-    not of this rule. Add one probe on a host in neither host list and the protection is
-    gone. This reads the committed floor and refuses a lowering on its own terms.
+    Git first, because a commit nobody can edit in place is the stronger witness. But an
+    unpacked release archive has no Git, and returning [] there silently disabled the
+    ratchet in exactly the artefact an auditor reads: verified 2026-08-29 by replacing `git`
+    with `exit 127` — a floor lowered from 28 to 5 gave exit 1 with Git and exit 0 without.
+    So the catalog also carries its own history, which travels with the archive.
     """
     previous = subprocess.run(
         ["git", "-C", str(ROOT), "show", f"HEAD:{CATALOG.relative_to(ROOT).as_posix()}"],
         capture_output=True,
         check=False,
     )
-    if previous.returncode != 0:
-        # No HEAD version to compare against: a fresh repository or an unpacked archive.
-        return []
-    try:
-        committed = json.loads(previous.stdout.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError):  # pragma: no cover - corrupt HEAD blob
-        return []
-    recorded = committed.get("evidence_floor")
-    if not isinstance(recorded, dict):
-        return []
+    if previous.returncode == 0:
+        try:
+            committed = json.loads(previous.stdout.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):  # pragma: no cover - corrupt blob
+            committed = {}
+        recorded = committed.get("evidence_floor")
+        if isinstance(recorded, dict):
+            return recorded, "git"
+
+    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    history = catalog.get("evidence_floor_history")
+    if isinstance(history, list) and history:
+        last = history[-1]
+        if isinstance(last, dict) and isinstance(last.get("floor"), dict):
+            return last["floor"], "catalog_history"
+    return None, "unverifiable"
+
+
+def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
+    """The floor against its own previous value, not only against the count.
+
+    `if actual < minimum` compares the measurement with the floor and never compares the
+    floor with what it used to be, so one commit that lowers the floor and deletes the
+    evidence together passes silently. Rule 14 catches that today only because every anchor
+    happens to sit on a covered host — a property of this catalog, not of this rule.
+
+    Where no previous floor can be found at all the answer is a named third state, not
+    silence: the same shape as SCOPE_UNDECLARED in the handoff check. "I cannot verify this"
+    is a different sentence from "this is fine", and only one of them is true.
+    """
+    recorded, origin = _committed_floor()
+    if recorded is None:
+        return [
+            "evidence_floor cannot be checked against any previous value: neither Git nor "
+            "evidence_floor_history is available (origin=unverifiable). The ratchet is not "
+            "holding here — say so rather than reporting a pass it did not earn"
+        ]
     problems: list[str] = []
     for key, was in sorted(recorded.items()):
         now = declared.get(key)
         if isinstance(was, int) and isinstance(now, int) and now < was:
             problems.append(
-                f"evidence_floor.{key} was lowered from {was} to {now} — a ratchet that only "
-                "compares itself with the count can be moved down in the same commit that "
-                "removes what it counted"
+                f"evidence_floor.{key} was lowered from {was} to {now} (previous floor read "
+                f"from {origin}) — a ratchet that only compares itself with the count can be "
+                "moved down in the same commit that removes what it counted"
             )
     return problems
 
