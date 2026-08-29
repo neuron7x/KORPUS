@@ -79,6 +79,11 @@ repository:validate:
     # Permissions as a rule over every tracked file. Ruff states it for Python under four
     # directories; the shell scripts, Dockerfiles, Terraform and manifests had no check.
     - python scripts/check_file_modes.py
+    # SOURCE_MANIFEST.json is what every release report binds itself to. It was verified
+    # only inside full-ssot-package, at the end of the release graph — so a commit could
+    # leave it describing a tree that no longer exists and nothing failed until packaging
+    # time. It costs a second here and it is the anchor the evidence hangs from.
+    - python scripts/verify_source_manifest.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT
     - python scripts/validate_infrastructure.py

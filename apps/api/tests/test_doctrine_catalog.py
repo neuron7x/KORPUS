@@ -13,6 +13,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -413,3 +415,31 @@ def test_every_captured_attachment_carries_the_signature_its_extension_claims() 
     result = _validator().evaluate(catalog)
     assert result["status"] == "PASS", result["problems"]
     assert result["summary"]["attachments_captured"] >= 30
+
+
+def test_the_suffix_set_is_read_from_the_extractor_not_copied() -> None:
+    """Rule 11 must agree with what the ingester accepts, and agree without importing it."""
+    from korpus.infrastructure.extraction import SUPPORTED_SUFFIXES as imported
+
+    assert _validator()._supported_suffixes() == frozenset(imported)
+
+
+def test_the_validator_runs_without_the_extractor_s_dependencies(tmp_path: Path) -> None:
+    """It has to work inside an unpacked release archive, where no virtualenv exists.
+
+    Importing extraction.py pulls pypdf. A validator that needs a built environment cannot
+    check the archive it is shipped in, which is the one place the check matters most.
+    """
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-c", "import pypdf"], capture_output=True, check=False
+    )
+    if result.returncode != 0:  # pragma: no cover - only on an interpreter lacking pypdf
+        pytest.skip("pypdf is absent; the isolation this test asserts is already the default")
+
+    source = (ROOT / "scripts/validate_doctrine_catalog.py").read_text(encoding="utf-8")
+    assert "from korpus.infrastructure.extraction import" not in source, (
+        "the validator imports the extractor again; it will fail on a bare interpreter"
+    )

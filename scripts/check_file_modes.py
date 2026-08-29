@@ -35,14 +35,27 @@ EXECUTABLE_BIT = 0o111
 
 
 def tracked_files() -> list[str]:
+    """The set git tracks — or a refusal, never a traceback.
+
+    An unpacked release archive has no .git, and `git ls-files` there exits 128. The check
+    used to raise CalledProcessError, so the caller saw a Python traceback on stderr and no
+    JSON on stdout: a gate that cannot say what it found is indistinguishable from one that
+    crashed for an unrelated reason. It reports the condition and exits non-zero instead.
+    """
     listing = subprocess.run(
         ["git", "ls-files", "-z"],
         cwd=ROOT,
         capture_output=True,
         text=True,
-        check=True,
+        check=False,
     )
+    if listing.returncode != 0:
+        raise NotAGitCheckout(listing.stderr.strip() or "git ls-files failed")
     return [name for name in listing.stdout.split("\0") if name]
+
+
+class NotAGitCheckout(RuntimeError):
+    """This tree is not a Git checkout, so there is no tracked set to check."""
 
 
 def has_shebang(path: Path) -> bool:
@@ -70,7 +83,24 @@ def main() -> int:
     violations: list[dict[str, str]] = []
     checked = 0
     executable = 0
-    for name in tracked_files():
+    try:
+        names = tracked_files()
+    except NotAGitCheckout as exc:
+        print(
+            json.dumps(
+                {
+                    "status": "UNAVAILABLE",
+                    "reason": "not a Git checkout; the file-mode rule is defined over the "
+                    "tracked set and there is none here",
+                    "detail": str(exc),
+                    "files_checked": 0,
+                    "violations": [],
+                },
+                indent=2,
+            )
+        )
+        return 2
+    for name in names:
         path = ROOT / name
         if path.is_symlink() or not path.is_file():
             continue

@@ -829,6 +829,36 @@ def test_file_modes_are_enforced_in_both_entry_points() -> None:
     )
 
 
+def test_the_source_manifest_is_verified_in_both_entry_points() -> None:
+    """SOURCE_MANIFEST.json is the anchor every release report binds itself to.
+
+    It was verified only inside full-ssot-package, at the end of the release graph. A commit
+    could leave it describing a tree that no longer exists, `make validate` stayed green,
+    the pipeline stayed green, and the mismatch surfaced at packaging time — after the
+    evidence claiming that manifest had already been produced.
+    """
+    assert "source-manifest-verify" in _makefile_prerequisites("validate"), (
+        "make validate no longer verifies the source manifest"
+    )
+    assert any("verify_source_manifest.py" in line for line in _ci_script("repository:validate")), (
+        "repository:validate no longer verifies the source manifest"
+    )
+
+
+def test_the_source_manifest_describes_this_tree() -> None:
+    result = subprocess.run(
+        [sys.executable, "scripts/verify_source_manifest.py"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PATH": "/usr/bin:/bin", "PYTHONPATH": "scripts"},
+    )
+    report = json.loads(result.stdout)
+    assert report["valid"], report["failures"]
+    assert report["files"] > 1000, "the manifest describes almost nothing"
+
+
 def test_every_tracked_file_carries_the_mode_its_shebang_implies() -> None:
     """Eight different modes were in the tree before this rule; the drift is the defect.
 
@@ -1218,8 +1248,7 @@ def test_ci_secret_scan_is_bound_to_the_pipeline_revision() -> None:
     ci = CI.read_text(encoding="utf-8")
 
     command = (
-        'gitleaks detect --source . --no-banner --redact --exit-code 1 '
-        '--log-opts "$CI_COMMIT_SHA"'
+        'gitleaks detect --source . --no-banner --redact --exit-code 1 --log-opts "$CI_COMMIT_SHA"'
     )
     assert command in ci
 
@@ -1571,3 +1600,32 @@ def test_ci_pythonpath_contains_repository_root_for_scripts_package_imports() ->
     pythonpath = str(document.get("variables", {}).get("PYTHONPATH", ""))
     assert "$CI_PROJECT_DIR" in pythonpath.split(":"), pythonpath
     assert "$CI_PROJECT_DIR/apps/api/src" in pythonpath.split(":"), pythonpath
+
+
+def test_the_file_mode_gate_refuses_a_tree_it_cannot_read_instead_of_crashing(
+    tmp_path: Path,
+) -> None:
+    """An unpacked release archive has no .git, and `git ls-files` exits 128 there.
+
+    The gate used to raise CalledProcessError: a traceback on stderr, no JSON on stdout. A
+    gate that cannot say what it found looks the same as one that crashed for an unrelated
+    reason — and the archive is exactly where an auditor would run it.
+    """
+    staged = tmp_path / "scripts"
+    staged.mkdir()
+    (staged / "check_file_modes.py").write_bytes(
+        (ROOT / "scripts/check_file_modes.py").read_bytes()
+    )
+
+    result = subprocess.run(
+        [sys.executable, "scripts/check_file_modes.py"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)},
+    )
+    assert result.returncode != 0, "a tree it cannot read must not pass"
+    report = json.loads(result.stdout)
+    assert report["status"] == "UNAVAILABLE"
+    assert report["files_checked"] == 0

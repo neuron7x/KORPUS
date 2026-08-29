@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1292,
-  "root_sha256": "8a2686b6aaf1b8d8ed3f780e492f11b44e0c7b3047b598a7368b86758a1c3d4f",
+  "file_count": 1340,
+  "root_sha256": "86c6b66577d11367336a693d1a0374d8e33cc2f4ad8815c3e62b69c2c8ca0ffc",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 32706,
-      "sha256": "e7ea19482fd39b2caf201710abea0be25498dd59616909f55ae88bef64727326",
+      "bytes": 33104,
+      "sha256": "e0df2ef60b35582eeb4a21511ca5a345a97c242743d5778c2a53f8307307553c",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 40252,
-      "sha256": "b33c852b2b64cf1cd344151696e7e95a0264bd94b9e895e772fec7a82c4ee475",
+      "bytes": 40883,
+      "sha256": "43c22b61fa3b2b9e8530be83473a87c78db1398de9b326160d7cc0ffc2747ff5",
       "mode": "0644"
     },
     {
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 4576,
-      "sha256": "8b6c8328afd060ccc50e61e833e7a7291717827399c4b0a47dfc82df9d5d58af",
+      "bytes": 17671,
+      "sha256": "d04c55d1598642d3946ba3a8fec6689985099db5b062a8fd0703684b21632d48",
       "mode": "0644"
     },
     {
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 72328,
-      "sha256": "3e00add5796b1c66fe6b2632645073e66fc7ece8926c5e41dc6d70122a31bc0c",
+      "bytes": 74683,
+      "sha256": "2c0540ff6b8cb7f25781664d8412519e623d9a2fcff9fd089faa59ce79d6825a",
       "mode": "0644"
     },
     {
@@ -3864,6 +3864,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_reconciler_loop_timing.py",
+      "bytes": 3935,
+      "sha256": "f2b0908b87c4bc85e032683fc6d852cd649d901f9af79b164c952dce0820d8c9",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_recovery_measurement.py",
       "bytes": 5787,
       "sha256": "54ee727af19973b0d2b991e4f58c07f27f618023c3c1151345d2ceb9556a9660",
@@ -4161,6 +4167,12 @@
       "path": "apps/api/tests/test_snapshot_refuses_stale_evidence.py",
       "bytes": 3936,
       "sha256": "1bbd59cb4e2d308ca4007c7a032647facae19b2d804f09c1a5baef57126898a8",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_source_content_probe.py",
+      "bytes": 2558,
+      "sha256": "c0d261952df55fa48618c935fc72e6bd6d76eb2eb03c953d162f26e0b05ca008",
       "mode": "0644"
     },
     {
@@ -4962,9 +4974,267 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/CATALOG_EXPANSION_2026-08-29.md",
+      "bytes": 13528,
+      "sha256": "76dcbcd1dc4c28e4b09a7d96cef78ee5aa7624835056c9ea6a518d5cd6bfe8a8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc",
+      "bytes": 30720,
+      "sha256": "1a54e29a8632141effba3f0ef8746296ff7e3d625dec35fe3db4ee27b50cec12",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2373.doc",
+      "bytes": 30208,
+      "sha256": "aa722fccc6be1d1366751f352db3ec81668a8da1958bd9ed7cc8bd94e7d25af5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2375.doc",
+      "bytes": 29184,
+      "sha256": "fb20971126df15a7c70340e127e35d25e399917e383fb4c48144f8b99cfdc00a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3116.doc",
+      "bytes": 35840,
+      "sha256": "467da8ced71c7fd5ee04c8f3f49125a9ac3692c20dcdb8e4478efce67a5bea5e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3119.doc",
+      "bytes": 31232,
+      "sha256": "6c9aaed5b7043872b51d4a9df33edcdc4d498f060705a22ac43640fc95155c2e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3121.doc",
+      "bytes": 56320,
+      "sha256": "6aab76323d0123bd4a4ed7a05894af7588a496c4ee593de625d5731ac5fb3297",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1574.doc",
+      "bytes": 33280,
+      "sha256": "25d4f48baba9af519ef1add0b7b4c18e8d13c5c20f0e9ead270cea74e3685fc9",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1577.doc",
+      "bytes": 32256,
+      "sha256": "5e954fb31046cb84de11aedef010de7af32262334fc5b8172af1034c45c8cb80",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1578.doc",
+      "bytes": 36864,
+      "sha256": "fb2f1ccf54d5f5fdc7de57b9ead51ea0ec0a79b3b12643a2d82adac4ed1aa96a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1579.doc",
+      "bytes": 31744,
+      "sha256": "341968a7adfdb8a43a5454022e5dd51279e761a0422a4cbdcdd4cb2e0cd9481f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1581.doc",
+      "bytes": 35328,
+      "sha256": "a20d9fc078a25c0767f94ece340da08b25aced1af7564c1a783a3498799ea528",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1770.doc",
+      "bytes": 35328,
+      "sha256": "1237c488fca15df1c6988258da6e966015fc05b3ade59948b6abe88ee31e32a1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1771.doc",
+      "bytes": 42496,
+      "sha256": "b5a1984fa1ef85cdedbccf63112d37e8c74a655dd97c1be8162deebd566946f2",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-LAW-550-XIV__f32720n1860.doc",
+      "bytes": 34304,
+      "sha256": "ee817000a5ba3a0e8905df7d9b8e351cde2222263aeaf896949c5958eab55a96",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-317__f499126n54.docx",
+      "bytes": 98419,
+      "sha256": "0be50eaef9e67c5c68f1fcb91f71b772f457fb834a7e5a82b5f02dcb6e97b1ed",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7455.docx",
+      "bytes": 34477,
+      "sha256": "4d74c85d03eb5c01828e7c841c24c4fbbb9c6f1b38d143180a7ec316f165d413",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7459.docx",
+      "bytes": 14015,
+      "sha256": "2733e341c5ca8e25d6cd92198d316e5b7d2d481a07f8c4faeaddaa4d0616c0db",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7461.docx",
+      "bytes": 13728,
+      "sha256": "5a822654b9da71ec8588749235a258feb8fe262be045796228357c39a5c359e5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7703.docx",
+      "bytes": 14780,
+      "sha256": "4837fe915040193556e340de3fa9e9f0269225da390664308f67f183340bf3dc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7704.docx",
+      "bytes": 14668,
+      "sha256": "81650be6a0a45fdd396bdceb9b20c3661110f48bda006d5ecac8211df16f32f7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7706.docx",
+      "bytes": 18217,
+      "sha256": "ba5c549dd9fdf3054ad69bee98b06853349a9a5aabb6c2754cfe37ce0cadfc9b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7801.docx",
+      "bytes": 14113,
+      "sha256": "ea2e494b4b3153957feab5028cc342f397022639b6e004323261c157a2cd4e02",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7802.docx",
+      "bytes": 15392,
+      "sha256": "f40a6ffdebb4c09c310cc7e1ec1c13914af3a841ce297d02b728eb03faf71857",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7803.docx",
+      "bytes": 19397,
+      "sha256": "5eb20da59773806138a332b2c20a060da6a6acb6f9e9966f90674c89768417ad",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7808.docx",
+      "bytes": 19675,
+      "sha256": "9d0f9b9a571b07eb740db671ac150a65a8942095f094a685f16802789c5aab29",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7847.docx",
+      "bytes": 13509,
+      "sha256": "ec2af88b552d92dbac78dce04fadc480cc5acf63372de94898e968ad64fd2ff6",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7848.docx",
+      "bytes": 14383,
+      "sha256": "96ff812119def1b6be0edddb289bd508b9b479368b0158411414ef6b66402ce3",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7849.docx",
+      "bytes": 12938,
+      "sha256": "9dd37c1a745454e705cf9ad6b913eac1b03abccec5ce1aee255ade213e2f9463",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7851.docx",
+      "bytes": 16018,
+      "sha256": "05a26e49ddbb79cf2b0852f4320f2c84b8753aed44aeb664e7171e5c86af4760",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ORG-MOD-ORDER-402-VLK__f277457n7852.docx",
+      "bytes": 16947,
+      "sha256": "37dc0025581d50e0a57a986b3ac3e3c8ee041bfaa7044d3e74016e5935ff8d45",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 46238,
-      "sha256": "a249974da6275317defcb9d8f856ced5f1cd41ea205e32ab780985764a5d856d",
+      "bytes": 108987,
+      "sha256": "ec51ffb492b0d2e9acd8a3da5579b10bb89adc5e5aaf9f4bfebdb0f03244b1ce",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/dshv.txt",
+      "bytes": 6783,
+      "sha256": "1296d8c63171af2cc1f914a2ad5ef496399ac2553ebc97b759de05420c3a4128",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/genshtab.txt",
+      "bytes": 4519,
+      "sha256": "2853e1ec5f474103e8ac6051fb3c0886373d109018b74cea5a0edeed53778337",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/logistyky.txt",
+      "bytes": 5372,
+      "sha256": "47107c6080ca065cfe2a97d1ce42112692b0dce9a5af178c79015a7141889de8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/medychni.txt",
+      "bytes": 5602,
+      "sha256": "9783fb515471d6392753ad426a656d20521de5d0a1f69b6c7f871de68b0f3bce",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/pidtrymky.txt",
+      "bytes": 4754,
+      "sha256": "3f1f93169b5526ac70898037e3cfd27f4896863f7c2bfccc960a47033bfdd348",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/povitryani.txt",
+      "bytes": 5393,
+      "sha256": "9e4c76b592f3a4f11064682683f7295e829ed39282b9ba3fb9383739a50fb7ca",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/sbs.txt",
+      "bytes": 2888,
+      "sha256": "230a3175882946ffa437832160429b3e97028b3ae5f8a810ff5a469a05af539f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/sso.txt",
+      "bytes": 4878,
+      "sha256": "87a438395abf63eadcc02d631c4a11eb6149ee96d7fcf4717ceb923edc89cc5a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/sukhoputni.txt",
+      "bytes": 6557,
+      "sha256": "963c86a3ee63eaa81a4394f31b19d7b95e7640c62c7e9e69ca4508153e0ed973",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/tro.txt",
+      "bytes": 4435,
+      "sha256": "fa761d7984e918a22f7f0b60bcee336df7bba0e773fc2c7c6b3e6931f2c80dde",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/vms.txt",
+      "bytes": 6339,
+      "sha256": "706e2e7214fcce4af626b06da5e80be50ea2304d89f8fa793fa9030eca19f932",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/mod_snapshots/zvyazku.txt",
+      "bytes": 4778,
+      "sha256": "494bbfa05b7e7fc7a9ff1e7788e944f7e111c593282eca0b7406ca738b7b9f7a",
       "mode": "0644"
     },
     {
@@ -4994,13 +5264,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ae280fda066e9ebc6629b132cc3fff2bb2ecb040a55711c8867690ded0ace0e5",
+      "sha256": "f4fc25867283b85baa031e0a5211a15ae3357ee82284f4ca9cb8fdb287a6c605",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 205136,
-      "sha256": "874733388e04aa22a53702b80dcafb3a18634d25d5d2dd99d6c27d0f43706cd9",
+      "bytes": 209341,
+      "sha256": "5a70de7993d3b7e3ed6b7b27134c6cce84b5b6a39e0d3100db99b4ed2a1869f2",
       "mode": "0644"
     },
     {
@@ -6535,8 +6805,8 @@
     },
     {
       "path": "scripts/check_file_modes.py",
-      "bytes": 3411,
-      "sha256": "ddc09024e7d43d18afa3b66662c92ad27eefe61efc54e148667581b9779f1644",
+      "bytes": 4601,
+      "sha256": "fa48ea4c7bf4bc4b286c610a1e5521442f567a5ee43a5c359aa44c8ae874d841",
       "mode": "0755"
     },
     {
@@ -7176,6 +7446,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/probe_source_content.py",
+      "bytes": 10237,
+      "sha256": "a46059287db22a6a2d0f09171c8d5502c02721125127f3944b4fa9548ee9f954",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/probe_uncatalogued_mutation.py",
       "bytes": 11042,
       "sha256": "c9b8fec7de317eb5298a1f5ad4bc43b4b36f28cd41257ca1e32c50ee101deba4",
@@ -7215,6 +7491,18 @@
       "path": "scripts/public_tunnel.sh",
       "bytes": 1854,
       "sha256": "d26c79423b5bcbe5523bbbdeebc1f846ef900c43344775c05f38b5b87055232c",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/publish_backend_report.py",
+      "bytes": 3762,
+      "sha256": "9f6352916ac2216a87c905d08ea425c3924976b5f057217961eb26f94dacaf46",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/publish_release_evidence.py",
+      "bytes": 5623,
+      "sha256": "3f1dfe3e22fe09d9088eca0576de7b14ba1c815518a6545354fd89670fe8a450",
       "mode": "0755"
     },
     {
@@ -7591,8 +7879,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 8446,
-      "sha256": "33cd7f61569ec1dd49ef3ae9bba2223da08409e15019cf59af8cb63504d53b52",
+      "bytes": 21604,
+      "sha256": "880c5a57bda7808dabd1e04bb71e90c3cf3ff381f182715b51da9c7ef90b5fc2",
       "mode": "0755"
     },
     {

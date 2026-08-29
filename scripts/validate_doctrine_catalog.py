@@ -58,6 +58,7 @@ its index number or issuing order is confirmed against a second copy or the prim
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import sys
@@ -68,9 +69,35 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.domain.models import AccessTier, AuthorityClass, Classification  # noqa: E402
-from korpus.infrastructure.extraction import SUPPORTED_SUFFIXES  # noqa: E402
 
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
+EXTRACTION = ROOT / "apps/api/src/korpus/infrastructure/extraction.py"
+
+
+def _supported_suffixes() -> frozenset[str]:
+    """Read the extractor's own suffix set without importing it.
+
+    Rule 11 has to agree with what the ingester actually accepts, and a second copy of the
+    list would drift. Importing extraction.py would settle that, but it pulls pypdf — this
+    validator otherwise runs on a bare interpreter, which is exactly what it must do inside
+    an unpacked release archive where no virtualenv exists. So the assignment is read out of
+    the source with ast: one definition, no import, no runtime dependency.
+    """
+    module = ast.parse(EXTRACTION.read_text(encoding="utf-8"), filename=str(EXTRACTION))
+    for node in module.body:
+        if isinstance(node, ast.Assign):
+            targets: list[ast.expr] = list(node.targets)
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+        else:
+            continue
+        names = {t.id for t in targets if isinstance(t, ast.Name)}
+        if "SUPPORTED_SUFFIXES" in names and node.value is not None:
+            return frozenset(str(item) for item in ast.literal_eval(node.value))
+    raise RuntimeError(f"SUPPORTED_SUFFIXES is no longer defined in {EXTRACTION}")
+
+
+SUPPORTED_SUFFIXES = _supported_suffixes()
 
 # What the first bytes must be for the extension to be honest. Same agreement
 # korpus.infrastructure.extraction requires before handing a file to a parser: a captured
