@@ -1,0 +1,25 @@
+# KORPUS extract record — T1A-USF-ARMYINFORM-2026
+# Ukraine's Unmanned Systems Forces: one year of a branch the world had never seen (ArmyInform)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://armyinform.com.ua/en/2026/06/11/ukraines-unmanned-systems-forces-one-year-of-a-branch-the-world-had-never-seen/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 9582f74ac2cb01d90e36da8f34b0e78c8596330143a7fb6d474c8e9d2f5147f7
+bytes_as_served.bytes: 85237
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 500019313a74ac33d0b47a117620cebda6bf2fa0d4cf1ecfaa0093cc754d404b
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 1711
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Ukraine’s Unmanned Systems Forces: one year of a branch the world had never seen | ArmyInform Information agency UKR International War news Infographics Analytics Russian crimes Ukrainian heroes Exclusive war content World Latest news One Casualty, Four Robots: How the Most Difficult Medical Evacuations at the Front Are Carried Out 12:24 EEST, Aug 28 Ukraine’s Defence Industry Gains New Opportunities: Defence City Now Brings Together 51 Companies 11:53 EEST, Aug 28 The Enemy Is Hunting Evacuation Vehicles: A Medic on the New Realities of the Front 16:30 EEST, Aug 27 «Moscow Is Asking for New Missiles»: Russia Wants More Powerful KN-30s from North Korea 16:00 EEST, Aug 27 See all Home > Ukraine War Articles Ukraine’s Unmanned Systems Forces: one year of a branch the world had never seen 10:53 EEST, Jun 11, 2026 Follow on Google Three percent of Ukraine's military. Nearly $40 billion in Russian targets destroyed. Today, the Unmanned Systems Forces mark their first anniversary. On June 11, 2025, Ukraine did something no country had done before: it established an Unmanned Systems Forces as a fully independent branch of its military. One year later, that decision has produced results that are reshaping the arithmetic of the war — and rewriting assumptions about what drone warfare can accomplish at strategic scale. Today, the Armed Forces of Ukraine mark the first Day of the Unmanned Systems Forces. The occasion is more than ceremonial. In twelve months, the branch has grown from a newly formalised institution into an operational system with its own doctrine, eleven combat units, a deep strike coordination centre, and a confirmed damage record measured in billions of dollars. From Decree to Doctrine: The Institutional Timeline The path to June 11 began more than two years earlier. On February 6, 2024, President Volodymyr Zelensky signed Decree No. 51/2024, initiating the formal process of establishing a new branch of the Armed Forces. On June 25, 2024, Decree No. 382/2024 officially incorporated the Unmanned Systems Forces into the structure of the Armed Forces of Ukraine — the first such formation in the history of any military. On June 3, 2025, Major Robert “Magyar” Brovdi was appointed commander. On June 20, 2025, the UAS Forces Grouping was formed, consolidating units of the Drone Line and the Unmanned Systems Forces under unified command. On December 25, 2025, the Deep Strike Centre of the UAS Forces Grouping was established — a dedicated
+
+[…]
+
+anniversary having demonstrated something that no military doctrine had previously specified: that an independent branch organised around unmanned systems, operating across all range tiers simultaneously, can generate strategic-level effects against a peer adversary. The branch that did not exist in any army on June 25, 2024 has, in its first year of recognised existence, contributed to a measurable degradation of the Russian military-industrial complex, demonstrated the ability to correct long-range cruise missile strikes in real time, constructed an interceptor drone capability that operates outside the traditional air defence framework, and maintained a monthly attrition rate against Russian forces that exceeds Russia’s replacement capacity. The military establishments of every country engaged in serious defence planning are studying what Ukraine has built. The model is operational. The data is public. The doctrine is evolving in real time. Ukraine built it first. UAS Forces Share Facebook X / Twitter Copy Link © 2018 - 2026, INFORMATION AGENCY Ministry of Defense of Ukraine Ministry of Defence Defence Intelligence Security Service Ministry of Internal Affairs About Us Terms of Use Cookie Policy Content is available under the creative commons attribution 4.0 international license , unless otherwise stated. press@armyinform.com.ua Search ArmyInform × Press ESC to close

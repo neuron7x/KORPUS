@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -250,6 +250,28 @@ file-modes:
 doctrine-catalog:
 	PYTHONPATH=apps/api/src $(PY) scripts/validate_doctrine_catalog.py
 
+# Чи кожен гейт узагалі здатен почервоніти. Не в `validate`: кожна проба копіює дерево
+# і проганяє гейт заново, тож це хвилини, а не секунди. Запускати перед merge.
+gate-liveness:
+	PYTHONPATH=$(HOME)/neuron7x-verdict/src $(PY) -m neuron7x_verdict.cli gates \
+		--config config/operations/gate-liveness.yaml --root . \
+		$(if $(ONLY),--only "$(ONLY)") $(if $(OUT),--json "$(OUT)")
+
+# Прочитати кожне джерело каталогу один раз і записати, що саме прочитано. Потребує
+# мережі, тому не гейт. Ратчет усередині: прогін, який не опустив стелю, себе не пише.
+capture-evidence:
+	PYTHONPATH=apps/api/src $(PY) scripts/capture_source_evidence.py --write $(ARGS)
+
+# Переміряти відмови: причина без дати ніколи не пропонує себе перечитати.
+recheck-blocked:
+	PYTHONPATH=apps/api/src $(PY) scripts/recheck_blocked_sources.py $(ARGS)
+
+recheck-blocked-selftest:
+	PYTHONPATH=apps/api/src $(PY) scripts/recheck_blocked_sources.py --selftest
+
+capture-evidence-selftest:
+	PYTHONPATH=apps/api/src $(PY) scripts/capture_source_evidence.py --selftest
+
 # Claims about this system's own gates, and who signed them. A verdict from the actor who
 # made the claim is refused: producer and acceptor being the same is the defect a full day
 # of cross-session work was spent finding, and it is the one that repeats.
@@ -289,6 +311,17 @@ remote-digest:
 document-probe:
 	$(PY) scripts/validate_document_probe.py
 	$(PY) scripts/validate_document_probe.py --selftest
+
+# A source our own extractor refuses is not "available", and the three reasons need
+# three verdicts. `extractor_refused` is a limit of ours and contradicts ingestible.
+# `extractor_misclassified` means we misread content that is fine — blocking the source
+# for our own bug is the very thing this gate exists to prevent, so it does NOT go red;
+# it ages out instead, because a known bug nobody acts on is a debt recorded as a fact.
+# A retryable network failure from today is a stale reading, not a verdict: writing
+# `ingestible: false` from it is how four public Distribution A documents were lost.
+evidence-refusal:
+	$(PY) scripts/validate_evidence_refusal.py
+	$(PY) scripts/validate_evidence_refusal.py --selftest
 
 # Not a gate: it needs the network, so it can never run in CI. It measures what each
 # zakon.rada URL actually returns — the card variant carries the act's title and none of
@@ -442,7 +475,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe github-actions-validate production-hard-predicates
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

@@ -1,0 +1,25 @@
+# KORPUS extract record — T2A-MWI-GROUND-ROBOTS
+# Networked for War: Lessons from Ukraine's Ground Robots (Modern War Institute, West Point)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://mwi.westpoint.edu/networked-for-war-lessons-from-ukraines-ground-robots/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 13eab3e9a1d454319be8fe56e5b94d4100d9b8f9357b6691b999ee86567039ca
+bytes_as_served.bytes: 105623
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 4de18afe127853de30674602c585d7530de5864055e429f43c1c319b25a2ec50
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 3032
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Networked for War: Lessons from Ukraine’s Ground Robots - Modern War Institute About Mission Submission Guidelines Contact Us Media Inquiries Research Commentary & Analysis Events Special Series Urban Warfare Project War Books FICINT Book Reviews Videos The SIGAR Project Podcasts Class of 1974 MWI Podcast Class of 1984 – The Spear Urban Warfare Project Podcast Five Questions for a General Social Science of War Modern War Journal Select Page Networked for War: Lessons from Ukraine’s Ground Robots Jorge Rivero | 03.09.26 Share on Facebook Share Share on Twitter Tweet Share on LinkedIn Share Send email Mail Print Print Although footage of aerial drones skimming over Ukraine’s front lines dominate widespread depictions of the ongoing war in the country, the use of unmanned ground vehicles crawling through mud and snow has increased significantly. In the past two years, Kyiv has moved from one-off battlefield experiments to fielding thousands of these vehicles , which perform logistics, engineering, and infantry support tasks. Some even drive explosives into Russian positions as kamikaze robots. Ukraine’s front lines are no longer just a contest of soldiers, armor, artillery, and first-person-view drone pilots; they have become a test range for unmanned ground vehicles operating in challenging terrain under constant fire. In Ukraine’s emerging operational concept, the goal is not to replace soldiers but to keep them out of kill zones whenever possible . The Ukrainian General Staff reports that robotic platforms have reduced personnel casualties by up to 30 percent —a metric that, if sustained, translates directly into more infantry available for offensive operations and a slower rate of force degradation over time. Unmanned systems sit at the center of that approach, and for unmanned ground vehicles, or UGVs, in particular, the metrics that matter are critical: which platforms accomplish the mission and make it back to Ukrainian lines, how many soldiers each one requires for operation and maintenance, and whether they plug into the same drones, jammers, and supply lines that already keep infantry alive. Ukraine’s path from a handful of garage-built UGVs to industrial-scale fleets is replete with instructive examples for the US military. As Ukraine’s experience shows, operating them under constant aerial surveillance and electronic attack is far harder than viral clips suggest, and any force that seeks to integrate these vehicles into operations must overcome this challenge. Ultimately, what the US military needs is an integration plan—an operational robotic strike group concept. To
+
+[…]
+
+Print Print Share: Previous MWI Podcast: The Iran Conflict’s Strategic Dimension Next Podcast: The Spear – Ranger Missions in Iraq and Afghanistan Search Search for: Follow Us Facebook Youtube Twitter COMMON OPERATIONAL PICTURE Disclaimer The articles and other content which appear on the Modern War Institute website are unofficial expressions of opinion. The views expressed are those of the authors, and do not reflect the official position of the United States Military Academy, Department of the Army, or Department of Defense. The Modern War Institute does not screen articles to fit a particular editorial agenda, nor endorse or advocate material that is published. Rather, the Modern War Institute provides a forum for professionals to share opinions and cultivate ideas. Comments will be moderated before posting to ensure logical, professional, and courteous application to article content. Upcoming Events Five Years Later: Remembering the Lessons of Afghanistan 6-7 May, 2026 AUSA Conference Center Arlington, VA Announcements Five Years Later: Remembering the Lessons of Afghanistan Call for Submissions: Reflections on Security Force Assistance and The Afghan War Announcing the Modern War Institute’s 2026 Research Fellows Call for Submissions: Innovation and Autonomy in the Future Fight External Links Disclaimer © 2026 Modern War Institute

@@ -1,0 +1,25 @@
+# KORPUS extract record — T2B-KYIVINDEP-EW
+# The Invisible War: Inside the electronic warfare arms race (Kyiv Independent)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://kyivindependent.com/the-invisible-war-inside-the-electronic-warfare-arms-race-that-could-shape-course-of-the-war/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 4809b0b23edf614ebdf33c97dec31f35a2007ed86fb979389a621e57dd590863
+bytes_as_served.bytes: 272673
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 0751afca4968e2adc000f5feed8f73f094869e529997603055fefce71b7f0da1
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 2958
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+The Invisible War: Inside the electronic warfare arms race that could shape course of war in Ukraine The Invisible War: Inside the electronic warfare arms race that could shape course of war in Ukraine by Oleksandr Tartachnyi March 12, 2024 8:06 PM 12 min read Ukrainian military practice flying drones at night using thermal vision in Lviv Oblast on May 11, 2023. (Paula Bronstein /Getty Images) War analysis Prefer on Google by Oleksandr Tartachnyi When Ukraine received Excalibur artillery shells in March 2022 from the U.S. shortly after the start of Russia’s full-scale invasion, it was immediately the military’s weapon of choice. Thanks to their GPS navigation system, these expensive munitions had a high-precision flight trajectory and could be used in urban combat. Fast forward one year to March 2023 and the Excaliburs suddenly started missing their targets. Russian electronic jamming, which overloads a receiver with noise or false information, was blocking the artillery shells’ GPS, causing the ammunition to miss its mark. Similar issues began to occur in April 2023 almost immediately following the delivery of Joint Direct Attack Munitions (JDAM) guided aerial bombs and Guided Multiple Launch Rocket System GMLRS long-range missiles, which can be used with U.S-made High Mobility Artillery Rocket Systems (HIMARS) . To make matters even worse, Russian soldiers were also jamming communication with Ukrainian drones, causing both reconnaissance and strike drones to crash, land on the spot, or in the best case, return to base. In a war where both sides have relied heavily on the use of all types of drones — so much so that this war has been dubbed the “ War of Drones ” — Russia’s jamming capabilities have presented a major challenge on the front lines. Electronic jamming is just one example of electronic warfare (EW), an entire set of invisible weapons that use electronic means on air, sea, land, or space to obstruct and mislead enemy communications and electronically-guided weapons systems. Members of Ukraine's 72nd Brigade use binoculars to search for Russian drones near Marinka, Ukraine on Feb. 23, 2024. (Chris McGrath/Getty Images) A soldier from a FPV unit stationed near Kupiansk launches a kamikaze drone at the Russian troops on Jan. 26, 2024. (Kostiantyn Liberov/Libkos/Getty Images) EW systems vary in size and form, from pocket-sized devices to truck-mounted radar arrays and transceivers. They can be divided into several types, which differ in their purpose, including: Devices for
+
+[…]
+
+Yaroslavl, Tu-95 bomber at Engels base in overnight attack Italy to supply next-generation SAMP/T air defense systems, Aster 30 missiles to Ukraine in secret aid package, media reports Danish shipyard to receive another Russia-linked LNG tanker — before representing Denmark at state-backed trade fair pavilion Ukraine reveals latest intelligence on Russia's mobilization plans Baltics assessment of Russia threat 'unchanged' after CIA director's Moscow visit Editors' Picks 'The city is dying' — Ukrainians in Kramatorsk brace for worst as Russian forces inch closer 'He's sort of like Hitler' — Trump's ex-Ukraine envoy Kellogg warns Putin won't stop at Donbas ‘Everything except nukes’: As the world watches Wildberries, Russia unleashes war on Ukraine’s economy Drama, determination, and risk: Remembering how Ukraine's independence unfolded Support us on Gofund.me Support us on Patreon Buy Our Merch Follow us We are a member center of Sections News Feed Newsletters War Politics Business Russia Europe Opinion Video Culture Investigations War Crimes Explaining Ukraine Featured War Analysis Photos Field Report Interview Human Story Company News More About Contacts Team Jobs Join the team Advertising Submit an Opinion Content Licensing J-School Store Copyright © 2026 The Kyiv Independent Help Center Cookie Policy Privacy Policy Comments policy Community Policy

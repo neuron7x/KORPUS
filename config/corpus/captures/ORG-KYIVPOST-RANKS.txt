@@ -1,0 +1,25 @@
+# KORPUS extract record — ORG-KYIVPOST-RANKS
+# Rada approves new ranks, NATO-style amendments (Kyiv Post)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.kyivpost.com/post/9575
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 02abb548e9ba03b934cb3934a076088b732ddf801f0ffa275146fdc1e3c5eb7a
+bytes_as_served.bytes: 107929
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: fce52bfe849f42d629e676b8c7e185f2e6cb3dc94a685a258be8d97ab5505ce9
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 1312
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Rada approves new ranks, NATO-style amendments to military instructions War Ukraine World North America Latin America Europe Eastern Europe Middle East Africa Asia Economy Business Technology Finance Energy Agriculture Videos Podcasts Analysis Corruption Watch Opinions Culture Reviews History Sports Classifieds Spotlight Cartoons War Ukraine World Economy Videos Analysis Opinions Classifieds Spotlight EN UK EN UK War Ukraine World North America Europe Eastern Europe Middle East Asia Economy Business Technology Finance Energy Agriculture Videos Analysis Opinions Classifieds Spotlight Home Ukraine Rada approves new ranks, NATO-style amendments to military instructions EXCLUSIVE Rada approves new ranks, NATO-style amendments to military instructions In brief: After years of delays and setbacks, the Verkhovna Rada finally approved a long-suffering bill that includes amendments to Ukrainian military regulations on Oct. 17, bringing them into conformity with by Illia Ponomarenko | Oct. 17, 2019, 7:52 pm Flip Share Facebook X (Twitter) LinkedIn Bluesky Email Copy Copied Content Share Facebook X (Twitter) LinkedIn Bluesky Email Copy Copied Flip After years of delays and setbacks, the Verkhovna Rada finally approved a long-suffering bill that includes amendments to Ukrainian military regulations on Oct. 17, bringing them into conformity with NATO’s practices. Most importantly, the bill enshrines a new order of military rank for the country’s armed forces, creating a corps of non-commissioned officers (NCOs) in a fashion similar to that of the U.S. Army. could be interesting for you: Ukraine Breaking News Today – What You Need to Know JOIN US ON TELEGRAM Follow our coverage of the war on the @Kyivpost_official . As part of the country’s 2020 military reform aimed at reaching full compliance with NATO forces, the new regulations eliminate the old military rank of “praporshchik” (a rough equivalent of the U.S. Army’s rank of warrant officer for Soviet and post-Soviet militaries) and also synchronizes the new order of Ukrainian military ranks with its universal NATO equivalent under the Alliance’s STANAG 2116 standardization agreement. Advertisement The new list includes a whole range of ranks in the army NCO section, such as junior sergeant, sergeant, senior sergeant, first sergeant, staff sergeant, master sergeant, master sergeant, senior master sergeant, chief master sergeant, all put into compliance with their corresponding NATO ranks. Also, New corresponding ranks for navy NCOs were formalized. The new order of Ukrainian military ranks approved on Oct. 17, 2019. (Kyiv Post) Distinct from the list’s earlier versions, the law also introduces the rank of recruit (NATO code
+
+[…]
+
+People’s Front POPULAR US Senate Delivers Overwhelming 86-12 Bipartisan Backing for Russia Sanctions as Zelensky Watches Zelensky’s Capitol visit coincides with a decisive push to squeeze Moscow’s energy revenues and raise the cost to Russia of continuing the war. By Sevinj Osmanqizi July 29, 2026 ‘Ukrainians, Have You No Empathy?’: Russians Cry on Camera as Ukraine Strikes More Wildberries Warehouses By Kateryna Zakharchenko July 24, 2026 Zelensky Fires Back at Iran’s Threat: ‘You Already Attacked Ukraine’ By Kateryna Zakharchenko July 27, 2026 back to top Menu Ukraine World Business Economy Classifieds Spotlight PDF Archive Multimedia Video Podcasts Cartoons About About Us Contact Us Advertising Newsletter Policies Privacy Policy Cookie Policy Terms & Conditions Web links to Kyiv Post material are allowed provided that they contain a hyperlink to the stories and only a brief extract (not more than 10 percent) of the text. Online media registration number: R40-05383 © 1995-2026 BISNESGROUPP LLC All materials, including photographs, contained on this site are protected by copyright law and may not be reproduced without the prior written permission of BIZNESGRUPP TOV at [email protected] . All Interfax-Ukraine news agency stories cannot be reproduced or distributed in any form without written permission of Interfax-Ukraine.

@@ -1,0 +1,25 @@
+# KORPUS extract record — T2A-NV-GROUND-ROBOTS
+# How many ground robots serve in Ukraine (The New Voice of Ukraine)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://english.nv.ua/nation/how-many-ground-robots-serve-in-ukraine-what-they-do-and-why-foreigners-want-them-50552773.html
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 6548df7a2755282af479d1b0227909b78734b5a3acf63d858c2a029f4c882422
+bytes_as_served.bytes: 100755
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: f8cd82a73f3c9b89eede01cdde820d292ddce9bc3d5318a6c942828dd1aa7f2b
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 1996
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+How many ground robots serve in Ukraine, what they do and why foreigners want them? / The New Voice of Ukraine Exclusive Nation business life opinion Russian war Nation Ukraine fields robot crews for logistics, medevac and combat - NV exclusive 15 October 2025, 01:11 PM Exclusive 214th Assault Battalion soldiers train on the Ukrainian “Rys Pro” UGV with a remote machine-gun turret (Photo: Serhii Mykhalchuk / Global Images Ukraine via Getty Images) NV, with the help of military personnel and engineer-developers, assessed how battles on the front are turning into a “robot war,” and analyzed whether the Ukrainian Armed Forces are ready for it. The realization of how useful ground robotic complexes (GRCs) came to Serhii Volkov, now deputy commander of the 110th Brigade’s company of ground unmanned systems, in a tragic moment in February 2024. Ukrainian forces, after a prolonged defense, were withdrawing from Avdiivka, 13 km north of occupied Donetsk. Wounded soldiers were left at one position and could not be evacuated. Ad Read also: Third Army Corps forms assault robot company - video “The Russians basically shot them live on camera,” Volkov recalled. “That’s when I understood we needed machines to evacuate people under fire without risking lives.” “We have a ‘kill zone’ — the area adjacent to the front line under constant enemy fire — of 10–20 km where people cannot move,” he added. “But the forward edge must be supplied [with ammo and food], and wounded must be evacuated.” It appears that these tasks will soon be feasible for the Ukrainian military. Soon, ammunition to the front will be delivered not by pickup trucks and drivers but by unmanned ground vehicles controlled from the rear. The same platforms will evacuate the wounded and fire on the enemy. We are talking about mass use of GRCs — from logistics platforms to armed robots with machine guns. Units, operating GRCs in the Third Assault Brigade, for example, move more than 100 tonnes of cargo per month and evacuate dozens of wounded each week. As that brigade told NV, robotic platforms carry up to 500 kg per trip over distances of up to 20 km in conditions of electronic-warfare (EW) countermeasures. By military estimates shared with NV, roughly 60% of GRC missions are logistics, 25% are casualty evacuation, and only 15% are direct combat operations. That mix, however, is what preserves soldiers’ lives in places where losses
+
+[…]
+
+unique development frontline missions logistics evacuation Third Assault Brigade save lives robotic systems Реклама: loading... Реклама: Show more news X NV Преміум Передплатіть, щоб послухати аудіоверсію матеріалу Аудіоверсії матеріалів, доступ до закритих матеріалів та багато іншого в передплаті NV Преміум від 1 грн. Передплатити Вже є передплата? Авторизуватись Ваша подписка на NV Премиум закончилась! NV Премиум это: Доступ к закрытым материалам сайта Отключение коммерческой баннерной рекламы Возможность открывать статьи NV Премиум для друзей ПРОДОЛЖИТЬ ПОДПИСКУ or Продолжить читать материалы открытого доступа Вы вышли из системы Войти Email и/или пароль введены неверно Слишком много попыток, попробуйте позже Вы ввели неверный логин/пароль Войти Забыли пароль? Войти через соцсети Восстановление пароля Ссылка на смену пароля была отправлена на ваш email Вы ввели неверный логин/пароль восстановить пароль назад ко входу Письмо отправлено Мы отправили вам письмо с ссылкой на создание нового пароля Готово Если еще нет подписки Подписаться Отдел поддержки support@nv.ua Если письмо не пришло в течение нескольких минут, пожалуйста, проверьте папку Спам. В случае возникновения проблем, пожалуйста, напишите в службу поддержки support@nv.ua About using cookies By continuing to browse NV.ua, you confirm that you have read the Terms of Use of the site and agree to the use of cookies. About cookies Agree

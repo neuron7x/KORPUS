@@ -1,0 +1,21 @@
+# KORPUS extract record — T2A-BRAVE1-MARKET
+# Ukraine's military marketplace: Brave1 Market catalog (overview)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://ukrainesarmsmonitor.substack.com/p/ukraines-military-marketplace-1
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: e09f44a2c1a70dffe3700e84afabda09508cac7c3d5f3a92a5bf111570d409fe
+bytes_as_served.bytes: 164089
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: cbd908a66f6d0e39b1cf00c74f58fdb70d5d0145e9d90d82d40c19d893f072ef
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 391
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Ukraine's Military Marketplace: Robotic Complexes Ukraine's Arms Monitor Subscribe Sign in Defence Tech in Ukraine Ukraine's Military Marketplace: Robotic Complexes Unmanned Ground Vehicle (ground drone) Murakha Olena Kryzhanivska May 17, 2025 ∙ Paid 38 10 Share Photo: Ground robotic platforms Murakha (Ant) and Bogomol (Mantis) by Robotic Complexes Brave1 is the united coordinational platform created by the Government of Ukraine to promote collaboration between all stakeholders of the defense tech industry. In April 2025, Brave1 launched Brave1 Market , which is called an “Amazon for war”, where units can order the drones and equipment they need using either money or points earned in combat. Access to this marketplace is divided into two catalogs : A public catalog available via Diia authorization. A closed catalog accessible only to verified military personnel through the Delta system. After consulting with industry professionals, I’ve decided to create a dedicated information resource that highlights selected items available in the public catalog. All information included in this newsletter is sourced from publicly available resources or the Brave1 Market platform, with written permission from the producers. This publication is produced independently, without collaboration or financial contributions from military manufacturers, government officials, or any other actors. Subscribe UGV Murakha (Ant) The first item I chose to report on is the ground robotic complex Murakha (Ukrainian for “Ant”), produced by the Ukrainian company Robotic Complexes. Robotic Complexes is an engineering and design bureau that brings together over twenty specialists in engineering, mechanics, electronics, and software development. The company began operations in 2022, building on years of experience working with both aerial and ground-based drones in the agricultural sector. Its production capabilities allow it to manufacture up to 120 units per year. The UGV Muraha (Ant) is intended for logistics and evacuation purposes . It has the following characteristics: Payload Capacity: 300 kg Evacuation: 2+ people Body: Combination of steel and aluminum elements The product is equipped with an electro-hydraulic power unit. Weight: 580 kg Dimensions: 1730 x 1222 x 532 mm Ground Clearance: 200 mm Range: 40 km Speed: 9 km/h Operator: 1 Maneuverability: Roll angle 30°, obstacle crossing angle 45° This post is for paid subscribers Subscribe Already a paid subscriber? Sign in Previous Next © 2026 Olena Kryzhanivska · Privacy ∙ Terms ∙ Collection notice Start your Substack Get the app Substack is the home for great culture

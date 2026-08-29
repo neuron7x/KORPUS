@@ -3911,7 +3911,10 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
         )
         output = stdout + ("\n" + stderr if stderr else "")
         mode = "api_source_overlay" if api_overlay else "full_copy"
-        if timed_out:
+        # `returncode is None` приходить рівно з таймауту (process_tree_runtime:65), але
+        # інваріант жив у голові, а не в типі. Названий тут — і тоді «убитий аварією» не
+        # може тихо стати статусом, порахованим із None.
+        if timed_out or returncode is None:
             return {
                 "id": mutant.id,
                 "file": mutant.file,

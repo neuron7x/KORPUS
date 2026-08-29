@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1406,
-  "root_sha256": "5558df050a77a4ce054b8dbf43a81c144aa16cd0c988eb63c03f5b545dde30c1",
+  "file_count": 1502,
+  "root_sha256": "dec7fd91381301e05429aea17479b8707b95b0cb1a7c70ee712f39628fd5160f",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36544,
-      "sha256": "48787e2411953ba33d8f6ee200fd8f6f266d4b58a7835f087feb808dd972d09d",
+      "bytes": 36618,
+      "sha256": "404db017dfde5a78b34c5d45a5358b1c35812bfed62c43c169a7daa929659009",
       "mode": "0644"
     },
     {
@@ -373,8 +373,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 44428,
-      "sha256": "e2fb28b0d628569b30af140accffd0b143126c3af52b42bfa7dc883ce433a3b2",
+      "bytes": 46580,
+      "sha256": "7b3fb1809cd3278e77bb8ef2f94ee902c5958fce6b404918cc57738397e62f60",
       "mode": "0644"
     },
     {
@@ -1123,8 +1123,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/ingestion.py",
-      "bytes": 23246,
-      "sha256": "cfa449883943be14b479dc05f8de0e114aa8fa692c8a868215dfdbf80cbffce8",
+      "bytes": 23331,
+      "sha256": "50d926b528874da6c6286629f4c03e6b59099729381077ba12eb3024ad4331df",
       "mode": "0644"
     },
     {
@@ -1783,8 +1783,8 @@
     },
     {
       "path": "apps/api/src/korpus/config.py",
-      "bytes": 18870,
-      "sha256": "1b6713eb4fbbc9b6a52b4f301ec7dd56733f7c435f9a7dacce6000ad17b51ec3",
+      "bytes": 20054,
+      "sha256": "a6edb55b0cee1cb62af3e75d42731810a1051d1f4f9bf19655c49d9ce734dadc",
       "mode": "0644"
     },
     {
@@ -1945,8 +1945,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
-      "bytes": 25282,
-      "sha256": "b392d904ef7bbbe660767567e46e4e086083f8bd1b5cf87223543909f3ab1300",
+      "bytes": 25284,
+      "sha256": "d4427cb2d3bc9b4e93aa5d8e5692804ee5bd4e08e26e3ae27b47a1ed1d8624fe",
       "mode": "0644"
     },
     {
@@ -2893,8 +2893,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 43729,
-      "sha256": "a2ea2d4b7b3470a966cb10c4eb74f194243e639b65a61a089e342b8694d27f62",
+      "bytes": 45747,
+      "sha256": "39950e891e1c6a45ef69db0b16a08c62e0026fc4199a45638e61051586362168",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 103821,
-      "sha256": "06602b28f8eba10c23fefc04109c049e064f05ddd5b87ce964042c21922c886e",
+      "bytes": 105880,
+      "sha256": "12d2ba6af7fdc551d8c6ff83f5c76a5598e334bc40192ff99a8e78d3a0e1749d",
       "mode": "0644"
     },
     {
@@ -3583,8 +3583,8 @@
     },
     {
       "path": "apps/api/tests/test_package_mode_integrity.py",
-      "bytes": 2179,
-      "sha256": "f9644c84742d04a65a78921bcd2bead05a48d33d9da8aabba0403b9f81092d46",
+      "bytes": 4307,
+      "sha256": "b7c32a3f5f62667aa7d8df76eac2f1501947d617e4129dfb0fdb4749a107f1fd",
       "mode": "0644"
     },
     {
@@ -4035,6 +4035,12 @@
       "path": "apps/api/tests/test_resilience_and_audit_scope.py",
       "bytes": 7168,
       "sha256": "e2b632da30b4c48d357f05304c114cdfc69386af66ec829e41563ff7c14bfb7b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_resource_ceiling_is_above_the_corpus.py",
+      "bytes": 3417,
+      "sha256": "4ae95e4762c288516116559da80e90c03695bad63f98400a97c13abbadfdb7fa",
       "mode": "0644"
     },
     {
@@ -5490,6 +5496,546 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ADV-CPD-REPORTS-2026.txt",
+      "bytes": 10096,
+      "sha256": "3e1d71c80fe4f6c1390894af494508a0a587a6ad1afb19e2c40945abc095709d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ADV-UKDI-PROBABILITY-2022.txt",
+      "bytes": 5260,
+      "sha256": "d6406b17440b52d96454c3186b8e6e5eec19c907dcd903e16272445f81628083",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ADP-3-90-2019.txt",
+      "bytes": 9694,
+      "sha256": "45b3c2be79ee1ca6de6de7d414237742cabe927aef021e1330b26797ad38d401",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-AJP-3-2-EDB-2022.txt",
+      "bytes": 5301,
+      "sha256": "b9da95662c1f9d7157cd63c152296250336df7dc122a14bf4e6bc2377087b04c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-20-15-2025.txt",
+      "bytes": 8853,
+      "sha256": "95403d42b12997ebd51d02b9f4913a6671f61c30edaa9888627c6c4ec8924716",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-20-96-2016.txt",
+      "bytes": 9671,
+      "sha256": "618cf92085c52c9ffdf5b77503e732362e313f7123d10b89d90a2af3322612cb",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-20-97-2024.txt",
+      "bytes": 10534,
+      "sha256": "485ef11e7e66264a07f2aa1af38977579cc2a482c4961554f9c438bb975fb51a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-20-98-2019.txt",
+      "bytes": 7036,
+      "sha256": "2bcabe30af5c2cc21ec562c0d0b57df73b734694e6925b3ae078d6807a350e04",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-21-11-2020.txt",
+      "bytes": 9656,
+      "sha256": "d12f2a975a30d888716446e208e9c402656466567c52e9935c5f418d5c5c9030",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-21-71-2024.txt",
+      "bytes": 9012,
+      "sha256": "96424cde7885aa3b7342d41cb84eddec6babe293e5956f6abae60976bf5f3c26",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-90-1-2023.txt",
+      "bytes": 7901,
+      "sha256": "9057a8dd78ef4e975f16d377c01a4c749d5f48db866cbb2ad152a99859420cc6",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-3-90-5-2021.txt",
+      "bytes": 11015,
+      "sha256": "2013b98bf06265782fe8de7d9108cec4ea51d1f40529392e53164e32f2107d4d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-ATP-4-33-2024.txt",
+      "bytes": 9123,
+      "sha256": "44437e19852486a194a561d9eabd12b853a064e254f73a19e68ac771a07806d8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-FM-3-90-2023.txt",
+      "bytes": 9010,
+      "sha256": "b189868c18133f028eeed6a290af4ec50a31fdde2300591f8c6fb8845dac06e4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-FM-3-96-2021.txt",
+      "bytes": 9624,
+      "sha256": "e55ed356e3f4ec7e8609874a191a0f08d4423732e16db3f9456d42ad1ce88f34",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-040-2025.txt",
+      "bytes": 12319,
+      "sha256": "35ff86e41786ce5a49f1916d82dc9ec7bb0e37527f8d8f012010b8b06dac43d7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-043-2024.txt",
+      "bytes": 11279,
+      "sha256": "e6fa2a926f2447aa3bde4edf8325625f130435b0d52f4ab8689024325fd8354e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-10-2026.txt",
+      "bytes": 10317,
+      "sha256": "f20105712f467fccb190321e4941828222eced8fd88909f0b65317db635e6e57",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-105-2025.txt",
+      "bytes": 10491,
+      "sha256": "e678a0546a89f5c92080fa12050735af657ca9ab4f6e9d137a716ca83485ec50",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-120-2025.txt",
+      "bytes": 9691,
+      "sha256": "d2840e3cf9e33f794953c823637504c2d7fb9578ad012204c64c230d4062ff7f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-25-2025.txt",
+      "bytes": 9954,
+      "sha256": "931c367ffa8226407fb089c31493f65dd97fea53bbecb78fab57c165126b6b49",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-TC-3-20-31-9-2024.txt",
+      "bytes": 8976,
+      "sha256": "111d098f6d736b48209c3d08dc78cca789ca3e66ba461b7e30467d783073795d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-ADP-3-37-2026.txt",
+      "bytes": 9757,
+      "sha256": "7be96d59b160fd15f4df916de9f89abbf222a52ad02b75bb01920469db03b004",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-AJP-3-14-2024.txt",
+      "bytes": 5158,
+      "sha256": "8a3dd6ba85ff83e4e04c05ecb0803fa5489238b9011ae22d936cc9e463cd625a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-ATP-3-13-3-2019.txt",
+      "bytes": 7427,
+      "sha256": "dd299ed7f6ed740c0ce809a1c48a79757a43dfdb5c325ad73f9e3a13cf204ff4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-ATP-3-34-40-2023.txt",
+      "bytes": 8583,
+      "sha256": "54f98aa7a72a1f97f334138b99296a71c7757e5a12403a2d6b5461c3d0da3e23",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-FM-3-13-4-2019.txt",
+      "bytes": 9446,
+      "sha256": "e7d58a9bf415bdbdbe261b915a2a98ae0720b6647777f0beda715934d80ad728",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-FM-3-34-2025.txt",
+      "bytes": 5056,
+      "sha256": "20c4a65c35303cb32b683c5ee8ab6724bb0b5c54bc134fef7988f14e82a443f5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/CAM-TC-3-90-10-2026.txt",
+      "bytes": 12213,
+      "sha256": "a8d1741652c66e823ea82931894f8096e8042a3db015d7ced066bbccf61e71b1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-ATP-4-02-11-2026.txt",
+      "bytes": 9098,
+      "sha256": "c9c11fb90c1d944f2dd280eae05a0b2797288ddec2edf7b659fc990f648dba7d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-ATP-4-02-13-2021.txt",
+      "bytes": 9180,
+      "sha256": "a52360f81aca2a82875f31686c4c5c4773b69f468ffa21bcfa54add29393ecec",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-TC-3-21-75-2013.txt",
+      "bytes": 9493,
+      "sha256": "459d0335b5bacfd3aad1724a2a0df507592c6fbd589cdb5eac3e33b900cb3388",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-ARMYINFORM-SENIOR-SGT.txt",
+      "bytes": 8645,
+      "sha256": "38c3260293f036fc4d288dbfe6210dc6b64c17b85b83f24e4765acdad4b2d56a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-KYIVPOST-RANKS.txt",
+      "bytes": 5140,
+      "sha256": "646e440e2da8c51d35e3ea72271c082ce463c6aa7138f781195ca4f18a27ca1d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MECH-STATUTE-P2.txt",
+      "bytes": 8579,
+      "sha256": "3fa7e8fecb941a2b6d00e529ccf984b60dfc3f7fda802462be5ef20f7e3412c0",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MECH-STATUTE-P3.txt",
+      "bytes": 8510,
+      "sha256": "a63329fc75ff029a3f3dd774c4a601a3abf91d9b3edd00b8f7142541dccc15d9",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-NV-NCO-REFORM.txt",
+      "bytes": 4195,
+      "sha256": "697ed560caa17c8cab5316032291ff9f65f3acd0d38de8a34ebfce85421fe4db",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-UKRMILITARY-NCO.txt",
+      "bytes": 9907,
+      "sha256": "62abd8d531cd3ee4aed8ced3af3c4e4e158996f5ca015b1f0d1aa70f02f12315",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-AJP-3.20-2020.txt",
+      "bytes": 5414,
+      "sha256": "9c4e06301d3c133b059f6909fa191b0de9282e0a63b696dbbc876a3a6fee42d6",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-AJP-6-2024.txt",
+      "bytes": 5261,
+      "sha256": "a9dde422e47473e256ce585a64aee46736e70d8a95920fa77977beb7b15dafc1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-3-12.3-2023.txt",
+      "bytes": 6782,
+      "sha256": "c86c6a16055275fb48e4dba1f0dc58b71366756d7a080b55fb1717335b13113f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-3-12.4-2023.txt",
+      "bytes": 9224,
+      "sha256": "623e65672df4b348f684289056426465952f7e98a32fbb25bef10e530780d020",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.2-2026.txt",
+      "bytes": 8602,
+      "sha256": "d41e39d3d3105bac5dbbbdecad6946e3b1a96cec80ee873a7dd2c3e9f46869f1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.45-2019.txt",
+      "bytes": 8879,
+      "sha256": "4d2c87e52d30e273b0756a878e0c57cc0b922f7d9fc31a28b0ebed53fd7d0f3a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.46-2025.txt",
+      "bytes": 8364,
+      "sha256": "20d7fe2615cdd2b49cceaffe1082b95e802b18711bf3832053f99631093de5cf",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.53-2025.txt",
+      "bytes": 10672,
+      "sha256": "ab0d26303d5d7826d4a8f6c4585672a4e24534b3fd539439b805c3977bb7dc32",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.54-2020.txt",
+      "bytes": 9010,
+      "sha256": "fe3a6cce7841701ec2b9afd8f63849e3245ede350d4cdd566067727497805cec",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.70-2025.txt",
+      "bytes": 10832,
+      "sha256": "a95cc2fdd3550b527bd0d12e56b9ba54d9277e695ddda6eea93336c127c02773",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.71-2025.txt",
+      "bytes": 8964,
+      "sha256": "74224ecf293d966874c21bc4f6cf92e18b90b264e4dc208ba6bcb28b0a981ec7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-ATP-6-02.75-2020.txt",
+      "bytes": 9852,
+      "sha256": "7d41a2fcdec8eeb4a157d17cd1154157affb38d878ab148996191fb6f7ac7f31",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-FM-3-12-2025.txt",
+      "bytes": 5256,
+      "sha256": "4c8834d1fecb3f8bb86d5e5b79ff34f396155013bc6ebd3e192a951964cc5ded",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-FM-6-02-2019.txt",
+      "bytes": 8777,
+      "sha256": "466c5863d7a874901e4c3001d24de7e09f5911210b6c78f4949336b7f3bae173",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-TC-9-64-2004.txt",
+      "bytes": 11085,
+      "sha256": "73bf3a9d67b3e2b3337f1e35724c280eff3a5bff67faddb6790173f695201160",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-AC-DRONE-WALL.txt",
+      "bytes": 5443,
+      "sha256": "c187c57f727ec095c21b4e936d198a971ee476d1a12bc8abc6e9b720869f116f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-CSIS-DRONE-WAR.txt",
+      "bytes": 5271,
+      "sha256": "641c53746b87d7b5f050591309707f6e5644b5e573f6980a2c9fd7b8a3dab9e1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-FOI-MEMO-8897.txt",
+      "bytes": 5413,
+      "sha256": "ed5ce2500008a233bebc6d58307a49257e5144be4729221ec1bf2cfabf56afef",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-JAPCC-UAS-CONCEPT.txt",
+      "bytes": 5378,
+      "sha256": "1ce9a6b6235b3e81351e52d31bcc62e15ef752fb27c189c8411c4491687b5af5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-KSE-DRONE-INNOVATIONS.txt",
+      "bytes": 5363,
+      "sha256": "65b041306d85ef2b490050912bf2bda931ef5dbe92b2a319b2a3b2417f4048e9",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-OSW-GAME-OF-DRONES.txt",
+      "bytes": 5252,
+      "sha256": "6aeae11bed610870a9b87e936e3dfcbaa5adc738983d9bbaa0988eae08bc2468",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-RUSI-COMBINED-ARMS.txt",
+      "bytes": 5057,
+      "sha256": "63383a5be2b06f43d195392dffb763e985077c6bbfd75742ba6681b2ed8a3621",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-RUSI-MEATGRINDER.txt",
+      "bytes": 5229,
+      "sha256": "c19b5c9f78cb04bbed85cfce3aeff4a3e73cf4501eb89192ff3a7cd35430745a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-RUSI-TACTICAL-Y3.txt",
+      "bytes": 5940,
+      "sha256": "e638c3a46f068e0be3ef5b5d0ebd6c740a440589b6db9ad1af629b6f3c2f5d89",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-UAV-ARTY-RECON-2024.txt",
+      "bytes": 9423,
+      "sha256": "d98a3cef07d450b7fea368e9cf952df6f42f8a35519a96183371f0024391473b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-USF-ARMYINFORM-2026.txt",
+      "bytes": 5071,
+      "sha256": "69b19ca5b51211777bca4d226f2906fd7142f9a87ba8e110a9155bd09bfefc9d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-VP-7-0003-01.txt",
+      "bytes": 13884,
+      "sha256": "e525212f9a9c32e72af35435b7da0c3ce44e2d3ac925c7667b579fddc2f702bc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1A-VP-7-4612-01.txt",
+      "bytes": 9751,
+      "sha256": "d3e7db9c77755e4c51bfc01a5f60bf6cd366dd8bf7ccbc01efaf13f21e244395",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-CSIS-CJADC2.txt",
+      "bytes": 5326,
+      "sha256": "7cb8050e1a11310e0e76e1e10131f900a3bd57636ccfc73c2db8bbac0148c5be",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-DELTA-IMPLEMENTATION.txt",
+      "bytes": 5074,
+      "sha256": "2682c68a6b48842f67141c129d5044510bafeba36f6f89e7f3678c98bdcdbfe5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-DELTA-NATO-ACT.txt",
+      "bytes": 5682,
+      "sha256": "ec52983262add298a410d1f5a3113d4c9d30b415e92c555ef6db6addce464c2a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-KROPYVA-DEFENCEUA.txt",
+      "bytes": 5114,
+      "sha256": "c45d5d620cc219d61240e0268b5563a44273cc043587d5598d77bae889605aaa",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-KROPYVA-MILITARNYI.txt",
+      "bytes": 5179,
+      "sha256": "9d2aede087432ac7ad56a3dec4db487c78f520a6b89400dbd82a53c10bcd1135",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T1B-KROPYVA-NANGU.txt",
+      "bytes": 5712,
+      "sha256": "81b2cdeca478f05634ae661571fe5f97757b0ce476acc2fffee79a6587d8d67d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2A-BRAVE1-MARKET.txt",
+      "bytes": 3738,
+      "sha256": "14103f74618806bb2ca85e81c293209429618f6c0af1254627d245bb14f54f7a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2A-DEFENSENEWS-UGV.txt",
+      "bytes": 5071,
+      "sha256": "4b5d72a99e62dc0780eea45dbd0e7f12729fdfb62cd1ada157bed6fb03b21707",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2A-MWI-GROUND-ROBOTS.txt",
+      "bytes": 5140,
+      "sha256": "40cd3814aac4e6eb84e375f07bad0510a316ccb4a6b29e3f26a459da239f6be9",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2A-NV-GROUND-ROBOTS.txt",
+      "bytes": 5929,
+      "sha256": "c0f73ce98a923a3e4da82c42b78a721498724454441b070b2585f30d5c8e718e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-AJP-3-2-LAND.txt",
+      "bytes": 5836,
+      "sha256": "41f83ee23881933e1082ff86019224f2ac5d78629deac5b4252888499c496cdf",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-KYIVINDEP-EW.txt",
+      "bytes": 5081,
+      "sha256": "9309b79ee3c0826cd3b7b52ed0c6afc281afc9ad207087edd725991841050b41",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-PVP-3-0027253.txt",
+      "bytes": 10528,
+      "sha256": "b112abd1189d6d4f0f446c2c289d685c9379ebbb6e4d8fe2c5e079ebd0b596c8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-RUSI-EW.txt",
+      "bytes": 5073,
+      "sha256": "2f35e14991ce53bed82e6fa92caccc1a6963fee7f836d2f143a8c3037f91dceb",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-VKDP-10-2756-01.txt",
+      "bytes": 9753,
+      "sha256": "a201c0cef7564c9c4c32b0fa8b822c417f1f9903c2d17dae59ee4a89e3d9158b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T2B-ZVP-6-0027269-01.txt",
+      "bytes": 10990,
+      "sha256": "07825cfa354af0d1d9332999ed723abaacdf96036a8f6357143b5026e1728701",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T3A-ARTY-STATUTE-P2.txt",
+      "bytes": 9748,
+      "sha256": "85eee82ff2418dffb9dcc52490120956309ef6b9605165927930b4f224d7763c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T3A-ATP-3-09-30.txt",
+      "bytes": 10087,
+      "sha256": "b46e66e442dc69d6fbb82401da3176159bd940ed5d727439a59bd163ec84422a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T3A-ATP-3-09-42.txt",
+      "bytes": 7213,
+      "sha256": "936edf3fe5b7f5af15570e8ee0e3dfb02df122f15bf799a5b296a4c21b2da6d4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T3B-FM-5-15.txt",
+      "bytes": 4567,
+      "sha256": "5a1777883c05afd0186dfed093944b13da8c445664ffb36fe191757aa74acbf2",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/T3B-UKRINFORM-STRONGPOINTS.txt",
+      "bytes": 5156,
+      "sha256": "44805c0e854399dd70fdebe453d54a5dbc8f5d42a12fab21166780bde1f13fea",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/XC-COTCCC-JTS.txt",
+      "bytes": 4891,
+      "sha256": "298374637fe1a9987193354f9dde31c70bf3238b7a98559bc4d7e7a630ec6965",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/XC-TCCC-GUIDELINES-2026.txt",
+      "bytes": 5400,
+      "sha256": "6d20a6a95d59371b0148a8284d0b295fd6f1bc144173feb4258dc921bf9929ae",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/XC-UMMA-TACTICAL-MED.txt",
+      "bytes": 9542,
+      "sha256": "d0a067c6fa81d63e76646c5d63123586581db651589b7399cb1367840314a5a7",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/doctrine_catalog_2026.candidate2.json",
       "bytes": 112738,
       "sha256": "d77ed7e2c41da0a1083d09bc89d2886aa2501954e45c21da6e3002093e3917a0",
@@ -5497,14 +6043,14 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.candidate3.json",
-      "bytes": 354981,
-      "sha256": "1b94c35e4abc5a7c0b68adb090aa606395b419f91f4545704ee0c557263b5a3b",
+      "bytes": 794831,
+      "sha256": "e932e809a04112aa0bfaf8cd723948264ac2e3dc82126146eb64fbeaf922253c",
       "mode": "0644"
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 476851,
-      "sha256": "c9dd8a349c60f0305eaf78168b037893f5f4df9615079ec1efebae60b509f98f",
+      "bytes": 906245,
+      "sha256": "c8d8828c205727229255aa3185cd0a8b66bf820e9735bdc7de1044c2c7ef2b86",
       "mode": "0644"
     },
     {
@@ -5606,13 +6152,19 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "468c0a7948fbdd2afc465daf0398feb02a270197fed0615887329e3e1c1e4b8c",
+      "sha256": "162ff2d9577c19524952d8f4bee4b84f4ca438eec50a50061e6a973b74e4afa4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/operations/gate-liveness.yaml",
+      "bytes": 10950,
+      "sha256": "2c07fb4a1d548828f706100941377b83792b984c9a89cbdd0aa76621945c2ec3",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 233509,
-      "sha256": "3325be477eaffb93af2f66ec5b695160198ec499c48ac0c1ee0bfb7b20031b0d",
+      "bytes": 242657,
+      "sha256": "8fcaf990171866c06a25bad484d6601b87b14120ec5d792423e677e5a2222031",
       "mode": "0644"
     },
     {
@@ -6979,8 +7531,8 @@
     },
     {
       "path": "mypy-scripts.ini",
-      "bytes": 1778,
-      "sha256": "89e73404db7bf03fc4f19332f31dd42ab0a6bec4ea740c97a73b526a52131c56",
+      "bytes": 2438,
+      "sha256": "0cd0f5a74d653231a331a1408fe4b4c7a9d4519b3b09c9a1706f4cd3ead941ad",
       "mode": "0644"
     },
     {
@@ -7134,6 +7686,18 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/capture_source_evidence.py",
+      "bytes": 39134,
+      "sha256": "036dad191b9dd592492bb70ce43a9883f7585f120505db7488c68366501a2c59",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/catalog_merge.py",
+      "bytes": 3440,
+      "sha256": "fe12d8482517eff488429a72e55ae10f038c43beba73a53e8963882fc113cbdf",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/chaos_matrix.py",
       "bytes": 14745,
       "sha256": "2ec559a6223cec61de94d14309e6e1d67246db2491d375189a85b5e33ffe5e1b",
@@ -7207,14 +7771,14 @@
     },
     {
       "path": "scripts/current_truth_admission.py",
-      "bytes": 2455,
-      "sha256": "ff2f43f5a559882770f7fe59fc048e79e792f7a5d990721af20a89ce3921d57c",
+      "bytes": 2429,
+      "sha256": "9128002875dfc55d9d562291c28401cc6d9b1afd15c34b0178ea4a9eaff26d3c",
       "mode": "0644"
     },
     {
       "path": "scripts/current_truth_aliases.py",
-      "bytes": 1410,
-      "sha256": "21cf6046dc580e95fd539de7f8ec7a7b3686eb4e2ae0892da90bd7bd221ccfd8",
+      "bytes": 1375,
+      "sha256": "3aef930e3bcfb3ea90f15c51ae6a0e63f6743a0e1f00f2b2da7ce7875bdf0153",
       "mode": "0644"
     },
     {
@@ -7771,8 +8335,8 @@
     },
     {
       "path": "scripts/pec_replay_run.py",
-      "bytes": 3106,
-      "sha256": "1d9826e5cd6948ee01ab3580f78b5ddb6d95f3100073cab30e49bfdbaf99e919",
+      "bytes": 3596,
+      "sha256": "3865bf2b090c2cda235b76d102b74a4695ef0e270086000f6cba5ae9e1550cf1",
       "mode": "0644"
     },
     {
@@ -7863,6 +8427,12 @@
       "path": "scripts/publish_release_evidence.py",
       "bytes": 5563,
       "sha256": "c30ab4717b4205e7ed4574b9f25a64443fc378c18894badb994764d2441dcda6",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/recheck_blocked_sources.py",
+      "bytes": 15015,
+      "sha256": "60d1320dd4a05e3b6ed36265a43c8a3addc7418bd6535f6748b7bbea44c0e478",
       "mode": "0755"
     },
     {
@@ -8011,8 +8581,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 185375,
-      "sha256": "0f23aafc1b47c38ad269d2177a261b62b4f1d0d4c696b2d7e2f177aff33a7e61",
+      "bytes": 185754,
+      "sha256": "111053742c80b8e404273dd686a23735bad7e455792dedea645f9386a8d38484",
       "mode": "0755"
     },
     {
@@ -8077,8 +8647,8 @@
     },
     {
       "path": "scripts/run_quality_gate.py",
-      "bytes": 6291,
-      "sha256": "c7484517682e23f78b6dff1aed31b52e3077f3ea82fe261601f6f56bf133447c",
+      "bytes": 8184,
+      "sha256": "c8b4067b27112d3efaf17c1d4ad6d162357b906f9c02a8df7a4561dba1b33f9a",
       "mode": "0755"
     },
     {
@@ -8251,14 +8821,20 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 45801,
-      "sha256": "d762005cc7a01ca7ecec91e806f8879981f9fe5d0a632e31946e0f6fd3607ce4",
+      "bytes": 48654,
+      "sha256": "2d9881fd124b02ca00fba645c6d8369c18680faa4f34dbd16c4019ab4e387b6e",
       "mode": "0755"
     },
     {
       "path": "scripts/validate_document_probe.py",
-      "bytes": 13451,
-      "sha256": "2891cabb5ccb693f48020cff2db41ff45674f463c10ef8f2b530f6e98a923338",
+      "bytes": 18077,
+      "sha256": "86025a84df33df69b10cf5fbab0811ad1239a96dd1aea992be13534846c671fe",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/validate_evidence_refusal.py",
+      "bytes": 18348,
+      "sha256": "f5f94c28dde8638d599fa2a8185bf1b8d1950de0faa89be7ea2f495ed931811a",
       "mode": "0755"
     },
     {
@@ -8353,8 +8929,8 @@
     },
     {
       "path": "scripts/verify_package.py",
-      "bytes": 3207,
-      "sha256": "8b0e0eb472599a36ab43f7debc6bfc72d1d428eb8dbd6adead32c8a600651364",
+      "bytes": 3699,
+      "sha256": "c0344a7e30a7634ed14fb74468516acc573b12f2b450d8a373be8d9a0fef4d97",
       "mode": "0755"
     },
     {
@@ -8401,8 +8977,8 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2745,
-      "sha256": "e38866712ad4de78c16fa1a91cb73b19a7b9c0acb0e99f6a7db97df28e48c3d7",
+      "bytes": 3467,
+      "sha256": "8b962114aad033b80ac4d10ed641de6208e60d9d854caa79500f3de8307b98ca",
       "mode": "0755"
     },
     {

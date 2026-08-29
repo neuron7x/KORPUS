@@ -1,0 +1,25 @@
+# KORPUS extract record — T1A-OSW-GAME-OF-DRONES
+# Game of drones: the production and use of Ukrainian battlefield UAVs (OSW)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.osw.waw.pl/en/publikacje/osw-commentary/2025-10-14/game-drones-production-and-use-ukrainian-battlefield-unmanned
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 2a3954d184b7abe578d661598bdbc87d55e40e724b46e5ca1d545ed64f2a7a7b
+bytes_as_served.bytes: 89177
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: a4d83e1a7ac1f025e101c275b61753b75e8153c6de5d64d1854d4c2e39341197
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 3813
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Game of drones: the production and use of Ukrainian battlefield unmanned aerial vehicles | OSW Centre for Eastern Studies Skip to main content EN PL Search Search Toggle navigation Main navigation Centre About us Team OSW Board Library Projects OSW for the Media BIP Publications Podcasty Wideo Contact Home Publications OSW Commentary 2025-10-14 Game of drones: the production and use of Ukrainian battlefield unmanned aerial vehicles Krzysztof Nieczypor Sławomir Matuszak Text in PDF 453.15 KB Source: mod.gov.ua The Russian–Ukrainian war has been marked by the unprecedented use of unmanned aerial vehicles. The effectiveness of drones on the battlefield has led to their widespread deployment by the Armed Forces of Ukraine (AFU), enabled by their low cost and ease of production. Kyiv sees the development of unmanned systems as a potential way to offset the enemy’s superiority in conventional firepower, particularly artillery. Russia’s continued dominance in this domain means that the number of drones on the front line and their importance to Ukrainian defenders will continue to grow. This trend is further reinforced by Ukraine’s military and political leadership, which views drones as a possible solution to the army’s manpower shortages. The full-scale invasion has triggered a boom in drone production in Ukraine, elevating this sector to one of the most promising segments of the economy, with considerable future export potential. At the same time, attaining lasting quantitative and qualitative superiority in the use of these systems at the front will significantly influence the future course of the conflict. The widespread use of drones within the Ukrainian Armed Forces Unmanned aerial vehicles have been used in military operations in Ukraine since 2014. Initially, they were employed for reconnaissance, observation, and artillery fire correction. By 2015, they had begun to be used for carrying and releasing explosives. With the onset of full-scale war, Kyiv prioritised the development of these systems as an effective asymmetric response to the aggressor’s superiority, particularly in armoured vehicles and aviation. Over time, drones became the primary strike asset of the Armed Forces of Ukraine at the front, often compensating for shortages in artillery shells and air-defence systems. As drones were used more frequently, they came to dominate the battlefield almost entirely. They carried out a wide range of tasks: from reconnaissance operations providing precise data on enemy positions, to delivering ammunition, equipment, and supplies to soldiers in combat, to being used as weapons in direct engagements and
+
+[…]
+
+Ling, ‘ Inside Ukraine’s Killer-Drone Startup Industry ’, Wired, 2 May 2024, wired.com. [10] J. Watling, N. Reynolds, Tactical Developments During the Third Year of the Russo–Ukrainian War , Royal United Services Institute, February 2025, rusi.org. [11] Б. Мірошниченко, ‘ Рій дронів та божевільні покупці. Як інженери перетворюють виробництво FPV на велику індустрію , Економічна правда, 25 July 2024, epravda . com . ua . [12] ‘ Генерал однієї з країн НАТО заявив, що дрони вже через пару років можуть втратити домінування ’, Defense Express , 20 June 2024, defence - ua . com . Related to the topic Sloviansk has become a combat zone. Day 1644 of the war A massive Ukrainian attack on Novorossiysk. Day 1637 of the war North Korean missiles strike Kyiv and Zaporizhzhia. Day 1630 of the war Ukrainian attacks pose a growing problem for the Russian economy Russia: The Kremlin strips political exiles of their civil rights Do wysłuchania w serwisie Spotify Pagination Next page starsze Privacy Policy Biuletyn Informacji Publicznej Centre for Eastern Studies (OSW) ul. Koszykowa 6a, 00-564 Warszawa, tel.: (+48) 22 525 80 00, fax: (+48) 22 525 80 40 email: info@osw.waw.pl © OSW | Ośrodek Studiów Wschodnich im. Marka Karpia

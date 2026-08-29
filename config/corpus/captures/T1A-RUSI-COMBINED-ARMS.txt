@@ -1,0 +1,25 @@
+# KORPUS extract record — T1A-RUSI-COMBINED-ARMS
+# Emergent Approaches to Combined Arms Manoeuvre in Ukraine (RUSI, Watling)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.rusi.org/explore-our-research/publications/insights-papers/emergent-approaches-combined-arms-manoeuvre-ukraine
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 638d8b0dbd2b1f814a062530c9dfbd1df0c9dc66d4a12e9af5818b5f206413e2
+bytes_as_served.bytes: 692546
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: be58c20b325af1da5503e58f8a666321112350cd98c34c65313d3016bab9402d
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 9371
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Emergent Approaches to Combined Arms Manoeuvre in Ukraine | Royal United Services Institute Explore our Research Events News & Comment Membership Support us About Our Offices Log in / Register Explore our Research Events News & Comment Membership Support us About Our Offices Log in / Register Explore Our Research Publications Insights Papers Insights Papers Emergent Approaches to Combined Arms Manoeuvre in Ukraine Dr Jack Watling 23 October 2025 Long Read Read Full Report (PDF 2MB) Ukrainian assault infantry fire and advance. Image: © Jack Watling, Ukraine, August 2025 Ukrainian forces have begun to develop novel approaches to combined arms manoeuvre, incorporating new capabilities, that bear scrutiny for NATO armies. Introduction Since the start of Russia’s full-scale invasion of Ukraine, there has been a debate as to the usefulness of various platforms on the contemporary battlefield and the implications of new technology for established concepts of combined arms manoeuvre. 1 There have also been extensive descriptions of how Russian and Ukrainian forces have adapted to these challenges. 2 It is not axiomatic, however, that NATO forces – preparing their first echelon to fight a reclamation battle against Russia in 2028 – should adopt the practices of Ukrainian units which are optimising their third or fourth echelon to attrit Russian forces as part of an area defence in 2025. This paper presents the conclusions of forces in Ukraine that are developing and experimenting with approaches to conducting combined arms manoeuvre under modern conditions. The paper is not an attempt to describe how most units are operating, other than highlighting the pressures that forces must manage in modern operations. Instead, it explores the concepts of operation being developed and successfully employed by a subset of units that have had disproportionate success. Because of the function they serve, these units are analogous to NATO battlegroups. The paper describes how these Ukrainian units combine the tools of modern war, and endeavours to highlight the specific utility of different capabilities and their complementarity. The emerging concept presented in this paper envisages a contact battle within a demarcated geographic area bounded by open terrain. Beyond the contact battle area, Ukrainian forces describe a middle battle area from which enemy supporting fires and enablers operate, and a deep battle area where forces out of contact can assemble and be resupplied. Ukrainian forces work to survey the middle battle area while countering enemy sensor coverage of the contact
+
+[…]
+
+Air Defence Command Posts at battalion, brigade and regional task force level, and observation of interceptor teams and mobile fire groups on the ground, Ukraine, August 2025. 29 : Author observation of deconfliction issues in selecting positions between air defence and manoeuvre forces, Ukraine, August 2025. 30 : Author participation in NATO working groups on division of function by echelon, London, Poland, Germany and the US, January, March, May and June 2025. Explore our related content Stay up to date with RUSI Receive updates on publications and events from RUSI straight into your inbox. Sign up Connect with us Explore RUSI Topics Regions Research Groups & Experts Publications Popular Links Events News & Comment Membership About Our Offices Report a problem Google preferred source As an independent institution, we produce evidence-based research, publications and events on defence, security and international affairs to help build a safer UK and a more secure, equitable and stable world. Cookie Policy Privacy Policy Ethics Statement Ts&Cs Legal DEI Policy Carbon Reduction Plan Copyright 2026 | The Royal United Services Institute for Defence and Security Studies | RUSI is registered as a charity in England and Wales - Charity number: 210639 | VAT number: GB752275038

@@ -1924,7 +1924,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 426,
+      "lines": 434,
       "max_complexity": 4,
       "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one.",
       "max_function_lines": 60,
@@ -3601,7 +3601,7 @@
       "max_nesting": 4
     },
     "scripts/pec_replay_run.py": {
-      "lines": 93,
+      "lines": 97,
       "max_complexity": 6,
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
@@ -3830,7 +3830,7 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4142,
+      "lines": 4145,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 3857->4140: thirty mutants added for the doctrine catalog's provenance rules 9-14 (scripts/validate_doctrine_catalog.py), the module budget's own ceiling guard and the production-predicate floor. The catalogue is a data table: its size is the number of predicates under mutation, so refusing to grow it means refusing to cover new rules. Five of the thirty survived every existing test and each is now cited against a test written for it.",
       "max_function_lines": 60,
@@ -3905,7 +3905,7 @@
       "max_nesting": 4
     },
     "scripts/run_quality_gate.py": {
-      "lines": 184,
+      "lines": 207,
       "max_complexity": 8,
       "max_function_lines": 60,
       "max_function_args": 8,
@@ -4074,9 +4074,9 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 1014,
+      "lines": 1048,
       "max_complexity": 30,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 rule 13: an attachment the extractor cannot read carries a survey — word count, opening line and the tool that produced it. Fourteen of thirty captures are OLE2 .doc; the alternative was a new supply-chain dependency for 2716 words of blank forms.",
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks | 2026-08-30: 1040→1048. Склад 1048 фізичних рядків: докстрінги 166, коментарі 74, порожні 122 ⇒ коду ~686; проби selftest 0 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число.",
       "max_function_lines": 100,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4182,9 +4182,9 @@
       "max_nesting": 4
     },
     "scripts/verify_package.py": {
-      "lines": 94,
-      "max_complexity": 5,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling",
+      "lines": 101,
+      "max_complexity": 6,
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29: +7 рядків — обидва маніфестні верифікатори писали `missing=`/`extra=` у ПРОТИЛЕЖНИХ значеннях; названо за напрямком (in_manifest_not_in_archive / in_archive_not_in_manifest), бо випадок підкладеного файлу — один із них, і читач, який узяв не той, дивиться повз нього. Плюс пропуск порожнього запису: він давав `mode mismatch: None expected=None` по рядку на файл, жоден не називав шляху.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4242,9 +4242,9 @@
       "max_nesting": 4
     },
     "scripts/verify_source_manifest.py": {
-      "lines": 67,
+      "lines": 78,
       "max_complexity": 12,
-      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling",
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29: +11 рядків, та сама пара виправлень; негативний контроль у test_package_mode_integrity.py доводить, що підкладений файл і далі НАЗИВАЄТЬСЯ, а не лише рахується.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4425,12 +4425,44 @@
       "max_nesting": 4
     },
     "scripts/validate_document_probe.py": {
-      "lines": 269,
+      "lines": 313,
       "max_complexity": 28,
       "reason": "registered 2026-08-29 by a parallel session; ceiling recorded at first measurement, not reviewed here | 2026-08-29: мутаційний прогін (kill-rate 0.740 і 0.658) виявив вижилих мутантів у самій логіці гейтів; закрито 17 негативними контролями. Щоб стеля не тиснула проти покриття, проби ПЕРЕРОБЛЕНО з тіла функції на декларативну таблицю PROBES — той самий клас, що каталог мутантів у run_mutation_tests.py: це дані, а не логіка. Файли після цього ЗМЕНШИЛИСЬ (421→362 і 286→252), функційні стелі пройдені без підняття, а kill-rate виріс 0.740→0.833. Лишок над стелею — сама таблиця проб. | 2026-08-29: стеля опущена 280→245 — рядки selftest (17) більше не рахуються як програма; проби ростуть під власною стелею. | 2026-08-29: 245→269 — mypy на scripts показав `dict(changes)` з object; звужено явною відмовою TypeError замість cast.",
       "max_function_lines": 100,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/capture_source_evidence.py": {
+      "lines": 725,
+      "max_complexity": 13,
+      "max_function_lines": 65,
+      "max_function_args": 4,
+      "max_nesting": 2,
+      "reason": "registered 2026-08-29 при першому вимірі. Стеля 560 вища за типову 400, і це записано, а не приховано: з 594 фізичних рядків 100 — докстрінги, 26 — коментарі, 76 — порожні, тобто коду ~392, нижче типової стелі. Ратчет спіймав файл одразу при появі (534 рядки й capture_one на 76): функційні стелі закрито витягуванням _obtain, _record і _parser, після чого ЖОДНА функційна стеля не піднята — 59/13/2/4 проти типових 60/15/4/8. Лишок над 400 — проза, не логіка. | 2026-08-29: делеговано `_has_evidence` гейтові замість власної копії арифметики — гейт сьогодні змінив набір (document_probe увійшов, remote_digest ні), і друге визначення розійшлося б тихо. | 2026-08-29: 570→670 — запис переведено зі знімка на старті на перечитання в момент запису (`commit`). Прогін тримає каталог хвилинами; запис копії, з якою він стартував, НЕ мерджиться погано — він стирає геть усе, що інші написали за це вікно. Спіймано за секунди до втрати 5245 рядків третьої сесії. +2 проби: правка іншої сесії переживає запис; зняте кимось джерело не відтворюється. | 2026-08-30: 698→725. Склад 787 фізичних рядків: докстрінги 149, коментарі 48, порожні 100 ⇒ коду ~490; проби selftest 62 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число."
+    },
+    "scripts/recheck_blocked_sources.py": {
+      "lines": 260,
+      "max_complexity": 10,
+      "max_function_lines": 47,
+      "max_function_args": 4,
+      "max_nesting": 2,
+      "reason": "registered 2026-08-29 при першому вимірі. Причина існування: 3 з 8 джерел, заблокованих як «URI не резолвиться, документа за ним немає», віддають PDF просто зараз (17.8 МБ, 145.8 МБ, 1.9 МБ), і ще 3 віддають КАРТКУ замість документа. Відмова, яку ніхто не переміряв, стоїть як факт."
+    },
+    "scripts/validate_evidence_refusal.py": {
+      "lines": 370,
+      "max_complexity": 15,
+      "max_function_lines": 100,
+      "max_function_args": 3,
+      "max_nesting": 3,
+      "reason": "registered 2026-08-30 при першому вимірі | 2026-08-30: 184→246. Склад 264 фізичних рядків: докстрінги 28, коментарі 24, порожні 26 ⇒ коду ~186; проби selftest 18 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число. | 2026-08-30: гейт довчено трьом станам замість двох. `extractor_misclassified` виведено в ОКРЕМУ категорію: «ми прочитали неправильно, вміст справний» — це не суперечність з ingestible, і блокувати джерело за нашою ж помилкою було б рівно тим, від чого гейт захищає (перша версія так і робила й почервоніла на двох валідних документах). Плюс вікно повтору для retryable: свіжа мережева невдача — застарілий вимір, не вирок. Приріст — 13 нових негативних контролів (14→27) у декларативній таблиці PROBES, тобто дані, і логіка правил. | max_function_args 1→3: `problems` розбито на `_shape_problems` (чи запис є записом) і `_contradiction` (чи ingestible уже суперечить, з урахуванням віку). Складність 17→нижче стелі, а трьох аргументів вимагає сам предмет: ідентифікатор для тексту вироку, сам запис і ВІК — без віку правило не відрізнить свіжу мережеву невдачу від невиміряного джерела. | 300→370 після `ruff format`: канонічне форматування розгортає таблицю PROBES по одному полю на рядок. Приріст механічний, поведінка й складність незмінні. Форматування тут не косметика: каталог мутантів прив'язаний до НОМЕРІВ РЯДКІВ, і одне переформатування вже знесло 18 мутантів і 2 тести."
+    },
+    "scripts/catalog_merge.py": {
+      "lines": 77,
+      "max_complexity": 4,
+      "max_function_lines": 30,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "registered 2026-08-30 при першому вимірі"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -5699,6 +5731,33 @@
       "reason": "2026-08-29: мутаційний прогін (kill-rate 0.740 і 0.658) виявив вижилих мутантів у самій логіці гейтів; закрито 17 негативними контролями. Щоб стеля не тиснула проти покриття, проби ПЕРЕРОБЛЕНО з тіла функції на декларативну таблицю PROBES — той самий клас, що каталог мутантів у run_mutation_tests.py: це дані, а не логіка. Файли після цього ЗМЕНШИЛИСЬ (421→362 і 286→252), функційні стелі пройдені без підняття, а kill-rate виріс 0.740→0.833. Лишок над стелею — сама таблиця проб.",
       "to": {
         "grown": 2,
+        "new_modules": 0
+      }
+    },
+    {
+      "on": "2026-08-29",
+      "path": "scripts/validate_doctrine_catalog.py",
+      "reason": "2026-08-29: визначення доказу винесено у `_has_evidence` і розширене класом document_probe (вимір вмісту файла: сторінки, слова, структура, text_sha256), тоді як remote_digest свідомо НЕ рахується доказом — він доводить тотожність байтів, не вміст. Плюс два нові виміри: document_probed і ingestible_total. Другий — знаменник для governing_authority: без нього ратчет карав за коректне зняття джерела з інжесту за правами. Підрахунок став КОРОТШИМ (дві генерації замість двох десятирядкових), приріст +11 — це докстрінг helper'а й коментарі до полів, тобто рівно та причина, яку не можна викинути, не втративши правило.",
+      "to": {
+        "grown": 1,
+        "new_modules": 0
+      }
+    },
+    {
+      "on": "2026-08-30",
+      "path": "scripts/validate_evidence_refusal.py",
+      "reason": "2026-08-30: гейт довчено трьом станам замість двох. `extractor_misclassified` виведено в ОКРЕМУ категорію: «ми прочитали неправильно, вміст справний» — це не суперечність з ingestible, і блокувати джерело за нашою ж помилкою було б рівно тим, від чого гейт захищає (перша версія так і робила й почервоніла на двох валідних документах). Плюс вікно повтору для retryable: свіжа мережева невдача — застарілий вимір, не вирок. Приріст — 13 нових негативних контролів (14→27) у декларативній таблиці PROBES, тобто дані, і логіка правил.",
+      "to": {
+        "grown": 1,
+        "new_modules": 0
+      }
+    },
+    {
+      "on": "2026-08-30",
+      "path": "scripts/validate_evidence_refusal.py",
+      "reason": "ruff format розгорнув декларативну таблицю PROBES; приріст механічний.",
+      "to": {
+        "grown": 1,
         "new_modules": 0
       }
     }

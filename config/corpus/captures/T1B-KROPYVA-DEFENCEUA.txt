@@ -1,0 +1,25 @@
+# KORPUS extract record — T1B-KROPYVA-DEFENCEUA
+# How the 'Kropyva' Combat Control System Helps in the Most Difficult Situations (Defense Express)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://en.defence-ua.com/news/how_the_kropyva_combat_control_system_helps_in_the_most_difficult_situations_fortified_positions_couldnt_save_russian_army-3646.html
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: a24a368a1e8fabd9b7bb6c8d5883ef1018f8f04de80e21d18916bc0e06af76f1
+bytes_as_served.bytes: 43471
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 424f9e8b28c8ed968da85cb74ce66594bceeba3ea3fa41ce51ebd09ab0dbe89a
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 928
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+​How the "Kropyva" Combat Control System Helps in the Most Difficult Situations: Fortified Positions Couldn’t Save russian Army | Defense Express Journals Handbooks Books Partners Archive 2001-2020 About us Our team Contacts ми у соцмережах УВІЙТИ ПЕРЕДПЛАТА українська english Home News Weapons & Technology Industries Analysis Events Video About us Our team Journals Handbooks Books Partners Contacts Archive 2001-2020 Home News ​How the "Kropyva" Combat Control System Helps in the Most Difficult Situations: Fortified Positions Couldn’t Save russian Army Defense Express [email protected] July 23, 2022 13174 Ukrainian tankers / Illustrative photo The Armed Forces of Ukraine use all available equipment to destroy the russian army Enemy’s BMP-3 combat vehicles had been a trouble for Ukrainian forces, until they got destroyed with the help of the "Kropyva" (Nettle) combat control system. How it happened, is told by a story from ArmyInform. A group of russian soldiers on their BMP-3 IFVs were quite a problem to the Ukrainian military since it was almost impossible to destroy the vehicles with direct aim: russians hit the Ukrainian troops from prepared positions and were well camouflaged; when Ukrainian tanks and ATGMs fired on them, russian artillery was there to cover. Read more: ​Poland Continues to Reinforce Ukraine With Armor, Now the BMP-1 On the Turn (Video) The occupiers managed to destroy several tanks and other Ukrainian armored vehicles – "they practically blocked the advance of our units", said the platoon commander of a tank brigade with the call sign "Balu". His main task was to destroy enemy BMPs. The question was how to do it. And here another Ukrainian development came in handy – the "Kropyva" combat control system. "I remember well the 2015 experience, when the tankers used for the first time the tablets with the "Kropyva" artillery software provided by "Army-SOS" (ed. – a non-profit organization). Even back then, this program allowed one of our units to destroy with indirect fire a "wandering" mortar that really bothered us by firing from different locations," says the Ukrainian officer. An illustrative photo of a destroyed russian infantry vighting vehicle According to him, the advantage of working with this system is that the enemy not only doesn’t see the tanks of the Ukrainian military, but also cannot even hear the shots, instead getting a "fervent greeting". So when the commander of the infantry unit told him about the problem, "Balu" knew exactly what to do.
+
+[…]
+
+Social networks Our publications Journals 3 Defense Express 1 2020 1 №10, 2020 Ukrainian Defense Review 1 2020 1 №3, 2020 Ukrainian Technology 1 2020 1 №4, 2020 Книги 23 Книги#1, 2019 23 Книги#2, 2019 23 Книги#3, 2019 23 Latest Most viewed August 29, 2026 ​Colombian Advices Future Volunteers to Come Prepared as russia-Ukraine War is Not Adventure August 29, 2026 ​Why Germany Delayed Purchase of 900-km JASSM-ER Missiles for F-35 Fighters Due to War Against Ukraine August 29, 2026 ​Whether Volkswagen Will Produce Weapons, As It Turned Out, Depends on Position of Qatar August 25, 2026 ​Sweden Develops a 1,000-km Cruise Missile Engine in Less Than a Year That Is ITAR-Free and 3D-Printed August 20, 2026 New Details Emerge About Ukraine's Vyrivnyuvach Glide Bomb, Which Can Be Dropped From MiG-29, Su-24, Su-27 Fighter Jets August 25, 2026 Why Was Massive C-17 Strategic Airlifter Capable of Carrying 77 Tons Used to Fly CIA Director to Moscow? Defense Express Media & Consulting Company has a 22 years experience in systematic analysis of matters pertaining to defense-industrial policy, military cooperation, defense policy and national security. Register to Receive Our Free Newsletters Subscribe © 2019-2026, All Rights Reserved Services & Advertising Subscription Contacts

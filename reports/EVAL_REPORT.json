@@ -58,9 +58,9 @@
       "https://crfm.stanford.edu/helm/capabilities/latest/"
     ]
   },
-  "system_manifest_sha256": "5f05b5efb84e911efec77b9f5a0542f2a421b546a2bc1ccf58b73db690f4312f",
-  "system_manifest_root_sha256": "9582f1fa24a803c5e4c87ed7855d63414b0c4f38a92685086842afa5cbaff352",
-  "source_commit": "e2371e79f2490e3093ac051183fe4095fe243d7c",
+  "system_manifest_sha256": "6985c7bdf19af0c132ec8fe632247352f8ed57cfb8b00fd0d288860389102025",
+  "system_manifest_root_sha256": "7ba008b12184347c9da1d1c04478cadc1413cdd9c800ae9c2e99e8b6ef3ab194",
+  "source_commit": "7268ddc8da5a3991e353ac91ceda29b51ae13657",
   "calibration_status": "UNVALIDATED_TEST_FIXTURE",
   "tevv": {
     "schema_version": 1,
@@ -102,7 +102,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.5804461579117394,
+      "retrieval_score": 0.5810397972791923,
       "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
@@ -119,8 +119,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.4142529536373607,
-      "query_coverage": 0.5,
+      "retrieval_score": 0.4546294316075196,
+      "query_coverage": 0.6666666666666666,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Кожен запис журналу має містити дату, час, відповідальну особу та короткий опис виконаної перевірки."
@@ -135,8 +135,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.48269011267538076,
-      "query_coverage": 0.6666666666666666,
+      "retrieval_score": 0.5146901126753808,
+      "query_coverage": 0.8,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Кожен запис журналу має містити дату, час, відповідальну особу та короткий опис виконаної перевірки."
@@ -151,7 +151,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.5590164342475036,
+      "retrieval_score": 0.5589475397011967,
       "query_coverage": 0.75,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
@@ -167,8 +167,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.4520881447314114,
-      "query_coverage": 0.5,
+      "retrieval_score": 0.47548933649750647,
+      "query_coverage": 0.6,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Перед використанням документа користувач зобов’язаний перевірити його редакцію, чинність і джерело оприлюднення."
@@ -199,8 +199,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.6008716505314359,
-      "query_coverage": 0.75,
+      "retrieval_score": 0.526231365205258,
+      "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Резервну копію перевіряють відновленням у тестовому середовищі."
@@ -215,7 +215,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.6783252896221756,
+      "retrieval_score": 0.6772943277503811,
       "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
@@ -231,8 +231,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.6259866652835513,
-      "query_coverage": 0.8,
+      "retrieval_score": 0.6729557034117567,
+      "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Журнал аудиту повинен зберігати послідовність подій та виявляти зміну запису."
@@ -247,8 +247,8 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.5377642820240915,
-      "query_coverage": 0.6,
+      "retrieval_score": 0.4502715610296501,
+      "query_coverage": 0.5,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
         "Для доступу до документа система перевіряє роль і рівень доступу користувача."
@@ -497,7 +497,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.26249822903286246,
+      "retrieval_score": 0.2623052467798611,
       "query_coverage": 0.0,
       "decision_reason": "retrieval_gate_failed",
       "claims": []
@@ -525,7 +525,7 @@
       "reason_ok": true,
       "leaked": false,
       "deterministic": true,
-      "retrieval_score": 0.5226016395211388,
+      "retrieval_score": 0.5230380425655285,
       "query_coverage": 1.0,
       "decision_reason": "extractive_claims_passed_calibrated_gates",
       "claims": [
@@ -550,8 +550,8 @@
   ],
   "provenance": {
     "schema_version": 1,
-    "source_digest": "baea6f778c824470652c1464cb146f84758d22518f1e4ccd7ae5278cc7fd7588",
+    "source_digest": "d8ec2019a23f8438ff894fbcd98dfb4444673beec7bf832405e54a91f554c367",
     "generator": "scripts/run_evals.py",
-    "generated_at": "2026-08-26T12:46:06+00:00"
+    "generated_at": "2026-08-29T22:44:05+00:00"
   }
 }

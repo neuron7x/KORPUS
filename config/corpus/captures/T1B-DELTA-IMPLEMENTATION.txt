@@ -1,0 +1,25 @@
+# KORPUS extract record — T1B-DELTA-IMPLEMENTATION
+# DELTA implemented at all levels (The Defender)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://thedefender.media/en/2025/08/delta-full-implementation/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 94d2659b6a5bb401b21f50d72045ad168a10c806f58af657774f3747f0f9bbd4
+bytes_as_served.bytes: 131868
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 999d7db5bbda17e98b31380c6c4091b4e28d26e85907a9753e89b9afc41d2cf1
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 1144
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+The DELTA system has been implemented at all levels in the AFU Skip to content | Latest Topics State Focusing on government policies, defence strategies, and national security Ecosystem Analyzing the broader industry ecosystem, including partnerships and collaborations Startups Exploring emerging defence tech companies and their innovative solutions Events Updates on conferences, exhibitions, and other key industry events Investments News on the latest funding rounds, and investment opportunities Innovation Highlighting cutting-edge advancements in defence tech Sections Dorozvidka A weekly roundup of key insights from publications in Ukrainian and global media Black Mirror Overview of the main news in Russian military technology Defence tech jobs Open positions in companies developing defence innovations in Ukraine On the light side A review of defence tech news from the free world, primarily Ukraine’s allies Special Projects Rewiring European Defense Tech A special project from Defender Media in partnership with the European Defense Tech Hub General Channel Special project by Defender Media and General Cherry Defense Tech Investor Playbook Special project by Defender Media and Network.VC Defense Arming with Talents Special project by Defender Media and CORE Team Insights Calendar Advertising 0 My Bookmarks Ecosystem State August 7, 2025 Home ◆ Feed ◆ Ukraine’s Defence Minister announces official adoption of DELTA system long used by the Armed Forces — what does it mean? Ukraine’s Defence Minister announces official adoption of DELTA system long used by the Armed Forces — what does it mean? DELTA provides over 150,000 parallel viewings of video broadcasts from UAVs Olha Pokotylo A A Resize Text size A Small A Medium A Large 2 min Зберегти Illustrative photo by Ministry of Defence Copied! On 6 August, Ukraine’s Minister of Defence, Denys Shmyhal, signed an order to implement the DELTA system – a digital situational awareness platform for the military – across all levels of the Defence Forces. The minister announced this via his Telegram channel. Ukraine’s Defence Forces have been using the DELTA system since the very beginning of the full-scale invasion. The platform is developed by the Ministry of Defence’s Centre for Innovations and Defence Technologies Development (CIDTR). A CIDTR representative told Defender Media that, until yesterday, the use of DELTA had not been fully formalised. “The system had the status of ‘approved for operation’, but from a legal standpoint, it had not been officially implemented,” the source explained. Shmyhal’s order brings the system’s actual use in the Ukrainian military
+
+[…]
+
+certificate 🇺🇦 All about Ukrainian Defence Tech Images - Pexels Fonts - Arsenal , Brinky All rights reserved. Use of the materials on this site is subject to a link to us. We use cookies to collect statistics and improve the content. They also help us to display the most relevant ads. You can find information about cookies files and change the settings in your browser. Topics Ecosystem Events Innovation Insights Investments Startups State Sections Dorozvidka Black Mirror Defence tech jobs On the light side Event Calendar Projects Rewiring European Defense Tech General Channel Defense Tech Investor Playbook Arming with Talents Defender Media About the project Advertise Pitch your startup Support the project Editorial policy User Content Policy AI use Privacy policy User agreement Tags drones industry uav ugv startups investments ministry of defence brave1 interceptor drones fpv ew vacancies russia ai baza it core team general cherry mykhailo fedorov codification recruiting shaheds fire point joint ventures taf industries events air defence systems fibre optic legislation usa swarmer © 2024-2026 DEFENDER MEDIA LLC. All rights reserved. Online media entity · Media ID: R40-06247 We use cookies to enhance your experience. By accepting cookies, you agree to our Privacy Policy. Accept

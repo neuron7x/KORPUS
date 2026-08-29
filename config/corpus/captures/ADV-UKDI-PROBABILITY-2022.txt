@@ -1,0 +1,25 @@
+# KORPUS extract record — ADV-UKDI-PROBABILITY-2022
+# Defence Intelligence — communicating probability (UK «probability yardstick»)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.gov.uk/government/news/defence-intelligence-communicating-probability
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 4223355922cd1b4a0cb060769785f3806db4f7229a1eb2c530b49286efb34ae1
+bytes_as_served.bytes: 71584
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: f75b0087bb35ca51404452a1da43174dd2abb1fe546c0f97b6dfcc29ed8fc87f
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 791
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Defence Intelligence – communicating probability - GOV.UK Cookies on GOV.UK We use some essential cookies to make this website work. We’d like to set additional cookies to understand how you use GOV.UK, remember your settings and improve government services. We also use cookies set by other sites to help us deliver content from their services. You have accepted additional cookies. You can change your cookie settings at any time. You have rejected additional cookies. You can change your cookie settings at any time. Accept additional cookies Reject additional cookies View cookies Hide cookie message Skip to main content Navigation menu Menu Menu Services and information Benefits Births, death, marriages and care Business and self-employed Childcare and parenting Citizenship and living in the UK Crime, justice and the law Disabled people Driving and transport Education and learning Employing people Environment and countryside Housing and local services Money and tax Passports, travel and living abroad Visas and immigration Working, jobs and pensions Government activity Departments Departments, agencies and public bodies News News stories, speeches, letters and notices Guidance and regulation Detailed guidance, regulations and rules Research and statistics Reports, analysis and official statistics Policy papers and consultations Consultations and strategy Transparency Data, Freedom of Information releases and corporate reports Search GOV.UK × Search GOV.UK Search Search GOV.UK Search Home Defence and armed forces News story Defence Intelligence – communicating probability Have you ever wondered why Defence Intelligence uses terms like “unlikely” or “realistic possibility” when we assess Russia’s war in Ukraine? From: Ministry of Defence Published: 17 February 2023 Defence Intelligence logo Defence Intelligence tweeted President Putin’s invasion plan the week before Russian forces entered Ukraine. Defence Intelligence continues to publish regular intelligence assessments on Twitter to help explain the conflict. It uses a specific language to communicate probability within these assessments. Intelligence assessments aim to explain something that has happened (insight), or to predict what might happen next (foresight). Intelligence analysts piece together assessments from an incomplete number of jigsaw pieces. Analysts therefore use a shared vocabulary of likelihood that aids clarity for both analysts and their readers, whilst communicating the probability that explanation or prediction is correct. A common yardstick to convey the language of uncertainty was developed by Defence Intelligence in the early 2000s, and an updated form is now in use across the UK intelligence assessment community. This ensures that government officials understand how likely it is that
+
+[…]
+
+No this page is not useful Thank you for your feedback Report a problem with this page Help us improve GOV.UK Do not include personal or financial information like your National Insurance number or credit card details. This field is for robots only. Please leave blank What were you doing? What went wrong? Send Cancel Help us improve GOV.UK To help us improve GOV.UK, we’d like to know more about your visit today. Please fill in this survey (opens in a new tab ) . Cancel Services and information Benefits Births, death, marriages and care Business and self-employed Childcare and parenting Citizenship and living in the UK Crime, justice and the law Disabled people Driving and transport Education and learning Employing people Environment and countryside Housing and local services Money and tax Passports, travel and living abroad Visas and immigration Working, jobs and pensions Government activity Departments News Guidance and regulation Research and statistics Policy papers and consultations Transparency How government works Get involved Support links Help Privacy Cookies Accessibility statement Contact Terms and conditions Rhestr o Wasanaethau Cymraeg Government Digital Service All content is available under the Open Government Licence v3.0 , except where otherwise stated © Crown copyright

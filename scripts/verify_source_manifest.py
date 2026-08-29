@@ -34,13 +34,24 @@ def verify(root: Path) -> dict[str, object]:
     authoritative = [p.as_posix() for p in source_paths(root)]
     failures = manifest_failures(manifest, records)
     if sorted(by_path) != authoritative:
+        # `missing=` read as "missing from the tree" and named the exact opposite: files
+        # that ARE in the tree and are not described. On an unpacked archive that is the
+        # injected-file case, and the word pointed the reader away from it.
         failures.append(
-            f"path parity mismatch missing={sorted(set(authoritative) - set(by_path))} extra={sorted(set(by_path) - set(authoritative))}"
+            "path parity mismatch "
+            f"in_tree_not_in_manifest={sorted(set(authoritative) - set(by_path))} "
+            f"in_manifest_not_in_tree={sorted(set(by_path) - set(authoritative))}"
         )
     for relative in authoritative:
-        file, record = root / relative, by_path.get(relative, {})
+        file, record = root / relative, by_path.get(relative)
         if not file.is_file():
             failures.append(f"missing source file: {relative}")
+        elif record is None:
+            # The parity line above already names this file. Running record_failures on an
+            # empty record produced `source mode mismatch: None expected=None actual=0644`
+            # once per unlisted file — a wall of messages naming no path, in front of the
+            # one line that did. Measured on a copy carrying 29 uncommitted files.
+            continue
         else:
             failures.extend(
                 f"source {item}"

@@ -1,0 +1,25 @@
+# KORPUS extract record — T3B-FM-5-15
+# FM 5-15 — Field Fortifications (US Army, 1968)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.bits.de/NRANEU/others/amd-us-archive/FM5-15(68).pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: 3d0d596679bacde050f9dd7fa3c7c8b286115b0f4fb41cfb84da3f9c9a1b685b
+bytes_as_served.bytes: 3400027
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 1447b283d5054f891bfe536398395adea0e38a979bb011c8e6625d5118d60f09
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 131
+text_as_extracted.words: 48816
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+MHI MHI· FM 5-15 Copy 3 DEPARTMENT OF THE ARMY FIELD MANUAL FIELD FORTIFICATIONS HEADQUARTERS, DEPARTMENT OF THE ARMY AUGUST 1968 TAGO 20013A *FM 5-15 FIELD MANUAL HEADQUARTERS DEPARTMENT OF THE ARMY No. 5-15 WASHINGTON, D.C., 9 August 1968 FIELD FORTIFICATIONS Pargsraph Page CHAPTER 1. GENERAL Section I. Introduction -.. ----------------------- 1-1,1-2 1-1 II. Basic considerations -.. ----------------- 1-3-1-8 1-1 CHAPTER 2. PERSONNEL AND EQUIPMENT PROTECTIVE MEANS Section I. Principles and methods ..------------------- 2-1-2-3 2-1 II. Individual emplacements .-.---------------- 2-4, 2-5 2-3 III. Crew-served infantry weapons emplacements 2-6--2-10 2-9 IV. Vehicle and artillery emplacements . .-------- 2-11-2-14 2-12 V. Aircraft revetments ------------------------- 2-15, 2-16 2-19 CHAPTER 3. SHELTERS Section I. Hasty shelters ..........--------------. 3-1--3-4 3-1 II. Deliberate shelters ..--.--------------- - 35--3-12 3-6 CHAPTER 4. TRENCHES AND FIELDWORKS Section I. Trenches---------------------------------- 4-1--4-6 4-1 II. Fieldworks ---------------------------------- 4-7-4-12 4-14 CHAPTER 5. OBSTACLE EMPLOYMENT Section I. Principles ....-.. ----------------- 5-1, 5-2 5-1 II. Artificial land obstacles -....... .---- 5-3--6-8 5-4 III. Beach and river line obstacles -.... ........ 5-9-5-12 5-7 CHAPTER 6. BARBED WIRE ENTANGLEMENTS Section I. Materials .....-.....---. ------- 6-1,6-5 6-1 II. Construction procedures ---------------------- 6-6-6-16 6-9 III. Material and labor estimates ----------------- 6-17, 6-18 6-23 CHAPTER 7. ANTIVEHICULAR OBSTACLES .-.. . ...... 7-1-7-11 7-1 8. BEACH AND RIVER LINE OBSTACLES -.-- 8-1-8-6 8-1 APPENDIX A. REFERENCES -.------------- -- -- - ---- A-1 B. CONVERSION FACTORS-ENGLISH- METRIC SYSTEMS -... .........- --- --- B-1 C. FORTIFICATION PROTECTION FACTORS - -....--- C-1 D. USE OF EXPLOSIVES IN EXCAVATION OF EMPLACEMENTS .-... --- --- D-1 INDEX - ..-..-..-...-- --. ------ -------- Index-1 'This manul wuprsedes FM 5-15, 26 Febnvry 1965. TAGO 20018A FM 5-15 CHAPTER 1 GENERAL Section I. INTRODUCTION 1-1. Purpose gether with devices and equipment under de- This manual is a training guide for small units velopment which may be available in the near in the construction of field fortifications, in- future are illustrated and discussed. cluding protected firing positions for weapons, c. Application. The material contained here- personnel shelters, and defensive obstacles. in is applicable without modification to both nuclear and nonnuclear warfare. 1-2. Scope d. Changes. Users of this manual are encour- a. Fortifications. Detailed information on aged to submit recommended changes or com- the construction and progressive development ments to improve the manual. Comments should of emplacements, intrenchments, shelters, en- be keyed to the specific page, paragraph, and tanglements, and obstacles under varied cli- line of the text in which
+
+[…]
+
+b i . , i i ;i ,>>I C> > : , : :1 ' :.~ , , ,O : ~ :3 :'^9 > .E , 0a 'a ' '. N. ' ' = i 44 C 4"" 5 5 5 o 5 A = -. c N O ON t O NO S a a 0 5 a N8a No . .. zN NX 6 ~ t t 1 '~2 2~ ~~~~a -·8~~ ,0f 0 0 H~~~ ~ < sotCooo~4) 4' 6.01 N N. (SE Z O Ce t 4 ~~ S 4) 4) 4) 4)4 4 44 o Z a . E -- qo Z e ZZZ ; E = '= c_ z z ZZZ¢ a 0= D Z Z Z Zz t'Z Z tO tZZo E -4'- 8 z ¢ o aS t w E o 0oo¢¢eo Ao u 'u '' .- '' 3 2; '4 o , ,,,..... = ZZZE ~: ~ e t o 0 I!~~~~ C CCCC. .~2 - C~~ N*B f~~'p2 Z Z - eq~ l 50 ___ _____________ 0 A s e Il ' ~00 0~ %' -'" 4~~ ' 6 ' -~~~~Mi~ II '00 '4' ~ ~ Cl ' ' 000~

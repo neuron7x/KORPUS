@@ -1,0 +1,25 @@
+# KORPUS extract record — T2B-RUSI-EW
+# Competitive Electronic Warfare in Modern Land Operations (RUSI, Watling & Sylvia)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://static.rusi.org/competitive-electronic-warfare-in-land-operations_1.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: 38cb323980b95cf15bc4ce4d9ea19a0273b8061246f1576c2b60fd7f63f64db0
+bytes_as_served.bytes: 1044083
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 8694bcf2dfc91f1c47841ff7c880e6724609af5e7524455c10800a212ae069ba
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 38
+text_as_extracted.words: 14398
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Competitive Electronic Warfare in Modern Land Operations Jack Watling and Noah Sylvia Occasional Paper www.rusi.org www.rusi.org Occasional Paper 194 years of independent thinking on defence and security The Royal United Services Institute (RUSI) is the world’s oldest and the UK’s leading defence and security think tank. Its mission is to inform, influence and enhance public debate on a safer and more stable world. RUSI is a research-led institute, producing independent, practical and innovative analysis to address today’s complex challenges. Since its foundation in 1831, RUSI has relied on its members to support its activities. Together with revenue from research, publications and conferences, RUSI has sustained its political independence for 194 years. Royal United Services Institute for Defence and Security Studies Whitehall London SW1A 2ET United Kingdom +44 (0)20 7747 2600 www.rusi.org RUSI is a registered charity (No. 210639) The content in this publication is provided for general information only. It is not intended to amount to advice on which you should rely. You must obtain professional or specialist advice before taking, or refraining from, any action based on the content in this publication. The views expressed in this publication are those of the authors, and do not necessarily reflect the views of RUSI or any other institution. For terms of use, see Website Ts&Cs of Use. To the fullest extent permitted by law, RUSI shall not be liable for any loss or damage of any nature whether foreseeable or unforeseeable (including, without limitation, in defamation) arising from or in connection with the reproduction, reliance on or use of the publication or any of the information contained in the publication by you or any third party. References to RUSI include its directors and employees. © 2025 The Royal United Services Institute for Defence and Security Studies This work is licensed under a Creative Commons Attribution – Non-Commercial – No-Derivatives 4.0 International Licence. For more information, see <http://creativecommons.org/licenses/by-nc-nd/4.0/>. RUSI Occasional Paper, January 2025. ISSN 2397-0286 (online) Cover image: Science Photo Library / Alamy Stock Photo ii Contents Executive Summary 1 Preparing the British Army 2 Introduction 3 Structure and Focus 4 I. The Principles of EW 5 The Electromagnetic Environment 5 Frequency, Alignment and Power 7 Surveillance, Attack and Defence 8 Manoeuvre in the EMS 11 II. Emerging EW Capabilities 13 Integrated Sensing 13 Adaptive Payloads 15 Dynamic Command and Control 17 Multi-Domain Effects 20 III. Fielding Competitive EW 24 Distributed Effectors
+
+[…]
+
+under current budgetary conditions to fund such a high density of systems across the whole force, but iteratively rolling out capabilities within units would allow the relevant tactics and distribution of capabilities to be refined without massively increasing in-year spending. Regardless of the roll-out mode that is employed, the end result must be that British forces are competitive in the EMS if they are committed into action. 35 About the Authors Jack Watling is the Senior Research Fellow for Land Warfare at RUSI. He works closely with the British military on the development of concepts of operation and assessments of the future operating environment, and conducts operational analysis of contemporary conflicts. Jack’s PhD examined the evolution of Britain’s policy responses to civil war in the early 20th century. Jack has worked extensively on Ukraine, Iraq, Yemen, Mali, Rwanda and further afield. He is a Global Fellow at the Wilson Center in Washington, DC. Noah Sylvia is Research Analyst for C4ISR in the Military Sciences team at RUSI. Noah holds a BA in International Relations and Russia & Eastern Europe from the University of Pennsylvania. He has previously researched asymmetric warfare, emerging technologies in the military and military coalitions during wartime.

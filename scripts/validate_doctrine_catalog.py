@@ -148,6 +148,13 @@ class Summary(TypedDict):
     rights_blocked: int
     integrity_anchored: int
     content_probed: int
+    #: Вимір ВМІСТУ файлового джерела: сторінки, слова, структура, text_sha256.
+    #: Окрема вісь від content_probed (той про варіанти card/print веб-сторінки)
+    #: і від remote_digest, який вмісту не міряє взагалі й доказом не рахується.
+    document_probed: int
+    #: Знаменник для governing_authority. Без нього ратчет карає за КОРЕКТНЕ звуження
+    #: корпусу: зняв джерело за грифом — governing впав — підлога почервоніла.
+    ingestible_total: int
     sources_without_evidence: int
     ingestible_without_evidence: int
     sources_without_uri: int
@@ -174,6 +181,8 @@ EMPTY_SUMMARY: Summary = {
     "rights_blocked": 0,
     "integrity_anchored": 0,
     "content_probed": 0,
+    "document_probed": 0,
+    "ingestible_total": 0,
     "sources_without_evidence": 0,
     "ingestible_without_evidence": 0,
     "sources_without_uri": 0,
@@ -691,6 +700,33 @@ def _mandatory_evidence_problems(entry: dict[str, object]) -> list[str]:
     return problems
 
 
+def _has_evidence(entry: dict[str, object]) -> bool:
+    """Whether anything about this source has been MEASURED, not merely asserted.
+
+    `document_probe` belongs here and `remote_digest` does not, and the line between them
+    is the whole point. A document_probe records pages, words, structure and a
+    `text_sha256` of the extracted text — a later reading of the same URL either
+    reproduces those or contradicts them, which is what makes it evidence about content,
+    the same job content_probe does for a web page whose card and print variants differ.
+    A remote_digest records the first and last 64 KB and the length: it proves the artifact
+    existed and was this one, and says nothing whatever about what it contains. Counting
+    it here would hand every large PDF an evidence object without anyone reading a line
+    of it, which is precisely the substitution these counts exist to make visible.
+    """
+    return bool(
+        entry.get("content_probe")
+        or entry.get("integrity_anchor")
+        or entry.get("attachment_anchors")
+        or entry.get("document_probe")
+    )
+
+
+#: Публічне ім'я для того самого предиката: визначення «прочитаного» має бути одне
+#: на все дерево, інакше два модулі рахують доказ по-різному й обидва звітують правду.
+#: Сесія 5cb14ff імпортує його; приватне ім'я для міжмодульного контракту — крихке.
+has_evidence = _has_evidence
+
+
 def _anchor_sharing_problems(entries: list[dict[str, object]]) -> list[str]:
     """One captured file may anchor exactly one source.
 
@@ -781,10 +817,21 @@ def _committed_floor() -> tuple[dict[str, object] | None, str]:
 
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     history = catalog.get("evidence_floor_history")
-    if isinstance(history, list) and history:
-        last = history[-1]
-        if isinstance(last, dict) and isinstance(last.get("floor"), dict):
-            return last["floor"], "catalog_history"
+    # Backwards for the most recent entry that actually carries a floor, and both shapes
+    # count. Reading only `history[-1]["floor"]` turned the fallback off the moment a
+    # second shape appeared: an entry recording a deliberate change is written
+    # `{from, to, reason}`, its `to` IS the new floor, and one such entry appended on top
+    # made `history[-1].get("floor")` None. The tree never showed it — Git answers there —
+    # and the fallback exists precisely for the place Git does not: an unpacked archive.
+    # Measured 2026-08-30 on a gitless copy: origin=unverifiable, ratchet off.
+    if isinstance(history, list):
+        for entry in reversed(history):
+            if not isinstance(entry, dict):
+                continue
+            for key in ("floor", "to"):
+                recorded_floor = entry.get(key)
+                if isinstance(recorded_floor, dict) and recorded_floor:
+                    return recorded_floor, "catalog_history"
     return None, "unverifiable"
 
 
@@ -899,24 +946,11 @@ def evaluate(catalog: dict[str, object]) -> Result:
         "rights_blocked": len([e for e in dicts if str(e.get("rights_status", "open")) != "open"]),
         "integrity_anchored": len([e for e in dicts if e.get("integrity_anchor")]),
         "content_probed": len([e for e in dicts if e.get("content_probe")]),
-        "sources_without_evidence": len(
-            [
-                e
-                for e in dicts
-                if not e.get("content_probe")
-                and not e.get("integrity_anchor")
-                and not e.get("attachment_anchors")
-            ]
-        ),
+        "document_probed": len([e for e in dicts if e.get("document_probe")]),
+        "ingestible_total": len(ingestible),
+        "sources_without_evidence": len([e for e in dicts if not _has_evidence(e)]),
         "ingestible_without_evidence": len(
-            [
-                e
-                for e in dicts
-                if e.get("ingestible")
-                and not e.get("content_probe")
-                and not e.get("integrity_anchor")
-                and not e.get("attachment_anchors")
-            ]
+            [e for e in dicts if e.get("ingestible") and not _has_evidence(e)]
         ),
         "sources_without_uri": len([e for e in dicts if not str(e.get("source_uri", "")).strip()]),
         "attachments_captured": sum(

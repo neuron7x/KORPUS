@@ -11,12 +11,19 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
+# Файл вантажить `scripts/validate_doctrine_catalog.py` напряму, а той імпортує сусідів
+# (`iso_dates`, `catalog_merge`). Раніше шлях додавав ОДИН тест, тож порядок вирішував,
+# чи пройде решта: файл окремо падав трьома ModuleNotFoundError, а в повному прогоні — ні.
+# Порядок тестів не сміє бути частиною умови проходження.
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
 
 
 def _validator():
@@ -1011,9 +1018,6 @@ def test_the_same_moment_written_differently(written: str, accepted: bool) -> No
     """An equivalent-input probe, not a poison: every live date in the catalog is
     YYYY-MM-DD, so no corruption of the data could have exposed this. Only the same moment
     written another way could."""
-    import sys as _sys
-
-    _sys.path.insert(0, str(ROOT / "scripts"))
     from iso_dates import iso_date
 
     if accepted:
@@ -1021,3 +1025,31 @@ def test_the_same_moment_written_differently(written: str, accepted: bool) -> No
     else:
         with pytest.raises(ValueError):
             iso_date(written)
+
+
+def test_the_floor_fallback_survives_a_history_of_mixed_shapes() -> None:
+    """A second entry shape turned the gitless fallback off in silence.
+
+    `evidence_floor_history` holds two kinds of entry: a snapshot `{on, floor, note}` and
+    a deliberate change `{on, from, to, reason}`. The fallback read `history[-1]["floor"]`,
+    so one change entry appended on top made it None and the ratchet reported
+    `origin=unverifiable`. Never visible in the tree, where Git answers first — and the
+    fallback exists precisely for where Git does not: an unpacked archive.
+    """
+    import importlib.util
+
+    script = ROOT / "scripts/validate_doctrine_catalog.py"
+    spec = importlib.util.spec_from_file_location("validate_doctrine_catalog_probe", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    history = json.loads(module.CATALOG.read_text(encoding="utf-8"))["evidence_floor_history"]
+    assert len(history) >= 2, "one entry cannot show the mixed-shape failure"
+    assert not isinstance(history[-1].get("floor"), dict), (
+        "the last entry now carries a floor, so this test no longer reproduces the case "
+        "it exists for — pick another fixture rather than deleting the check"
+    )
+    recorded, origin = module._committed_floor()
+    assert origin in {"git", "catalog_history"}, origin
+    assert isinstance(recorded, dict) and recorded, recorded

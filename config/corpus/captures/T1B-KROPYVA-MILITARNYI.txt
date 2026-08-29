@@ -1,0 +1,25 @@
+# KORPUS extract record — T1B-KROPYVA-MILITARNYI
+# Volunteers to provide 100 Kropyva command and control systems (Militarnyi)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://militarnyi.com/en/news/volunteers-to-provide-100-kropyva-command-and-control-systems-to-the-ukrainian-military/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: a73ff43deb701865e94ba06bf40964fad4e450e6f6f04f3503c6c7c73141dc9f
+bytes_as_served.bytes: 240062
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: b7377e424d19a57e33567a688ffb3ac5bbb8f9fa7611b7309452b0958a9c7ab8
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 1033
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Volunteers to provide 100 Kropyva command and control systems to the Ukrainian military Sat, 29 August 2026 Ukr Eng Donate Ukr Eng News Articles Blogs Videocontent About Us Advertising Special projects Donate Volunteers to provide 100 Kropyva command and control systems to the Ukrainian military #Defense Tech & Miltech #Ukraine #Volunteers Vadim Kushnikov February 5, 2023 21:24 A tablet with an information map of combat operations. Photo illustration of the Kropyva system. Photo credits: ARMY SOS News U.S. Army Received First XM30 Wolf IFV, Developed to Replace the Bradley August 29, 2026 19:01 Attempted Coup in Republic of Niger: Fighting Erupts in Capital Over Presidential Palace and Airport August 29, 2026 18:36 Five Additional F-35 Fighter Jets Arrive in Poland August 29, 2026 18:21 In Donetsk, Missiles Struck Russian Command Post in Two Places August 29, 2026 17:20 Saab Takes Two-Seat Gripen F Fighter into Air for the First Time August 29, 2026 16:24 All news Volunteers plan to purchase 100 Kropyva command and control systems (abbr. C2) for the Ukrainian Defense Forces. The fundraising campaign is carried out by volunteers from ARMY SOS . Command and control (abbr. C2) systems help commanders see all the information that flows from the military tablets on the front line on the big screen. “Thus, this makes it easier to make important decisions on the battlefield and manage units,” the volunteers say. The Kropyva software is based on the “MAPA” program, which allows the unit to orient its actions on the ground and provides calculations and targeting. A soldier of the Armed Forces using a tablet with “Kropyva” software. Photo credits: “SOS ARMY” The first MAPA program was installed on ARMY SOS tablets, but later it became obvious that a larger format was needed This system allows combining reconnaissance, control and targeting for fire teams. Currently, there are entire brigades that have combined reconnaissance, control units and artillery into a single command center on the basis of Kropyva. Kropyva system provides: access to a digital map of the terrain with the display of its own GPS position; communication with other subscribers of the system. The data generally includes friendly unit positions, identified target coordinates, and short text messages; solving individual tasks, such as calculating the march, fire strike zones or artillery amendments; providing coordination and data transmission from reconnaissance means – UAVs, radar and artillery sound ranging systems – in automated mode. “Thanks
+
+[…]
+
+& Miltech #Interceptor drone #UAV #Ukraine #War with Russia August 21, 2026 22:49 Destinus to Develop Naval Air Defense System With Hornet Interceptors Destinus, CUBEDIN A/S, and OMT Group A/S plan to combine Hornet interceptor technology, naval platform engineering, and standardized ship interface... #Air Defense #Defense Tech & Miltech #Europe #World August 21, 2026 16:53 Button Text NGO "MILITARNYI" Donate Submit news or press releases: [email protected] | Advertising inquiries: [email protected] Publications may be cited under condition of source indication Web resources are required to provide a direct hyperlink available for search engines for the original publication Offline media should provide MILITARNYI.COM website address. Materials of "Special Projects" are published as advertising. Content News Articles Blogs Special projects Videocontent About Militarnyi Advertisement Contact us Popular tags #Defense industry of Ukraine #Ukraine #World #War with Russia #Europe #Russia #UAV #USA Follow us X Facebook LinkedIn Youtube Instagram Telegram Threads BlueSky © 2026 Militarnyi All rights reserved. Developed by: Privacy Policy Terms of Service Підтримати нас можна через: Приват: 5169 3351 0164 7408 PayPal - [email protected] Стати нашим патроном за лінком ⬇ Patreon Subscribe to our newsletter Subscribe or on ours Telegram Thank you!! You are subscribed to our newsletter

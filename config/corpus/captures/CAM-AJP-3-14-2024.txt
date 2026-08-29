@@ -1,0 +1,25 @@
+# KORPUS extract record — CAM-AJP-3-14-2024
+# AJP-3.14 — Allied Joint Doctrine for Force Protection, Edition B Version 1 (NATO)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.gov.uk/government/publications/allied-joint-doctrine-for-force-protection-ajp-314
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 043396f5907329a2bab128f29e5fb8e6e7c5ed66c79d4aee9b09a160f30bfb48
+bytes_as_served.bytes: 75204
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: e8333c5a2b53d03daa59bff33aea8614c036fa6963d1270670bfb389329ea833
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 712
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Allied Joint Doctrine for Force Protection (AJP-3.14) - GOV.UK Cookies on GOV.UK We use some essential cookies to make this website work. We’d like to set additional cookies to understand how you use GOV.UK, remember your settings and improve government services. We also use cookies set by other sites to help us deliver content from their services. You have accepted additional cookies. You can change your cookie settings at any time. You have rejected additional cookies. You can change your cookie settings at any time. Accept additional cookies Reject additional cookies View cookies Hide cookie message Skip to main content Navigation menu Menu Menu Services and information Benefits Births, death, marriages and care Business and self-employed Childcare and parenting Citizenship and living in the UK Crime, justice and the law Disabled people Driving and transport Education and learning Employing people Environment and countryside Housing and local services Money and tax Passports, travel and living abroad Visas and immigration Working, jobs and pensions Government activity Departments Departments, agencies and public bodies News News stories, speeches, letters and notices Guidance and regulation Detailed guidance, regulations and rules Research and statistics Reports, analysis and official statistics Policy papers and consultations Consultations and strategy Transparency Data, Freedom of Information releases and corporate reports Search GOV.UK × Search GOV.UK Search Search GOV.UK Search Home Defence and armed forces Armed Forces Covenant Guidance Allied Joint Doctrine for Force Protection (AJP-3.14) Allied Joint Publication-3.14 describes the fundamental aspects of force protection and provides guidance on the planning and implementation of force protection. From: Ministry of Defence Published: 19 August 2015 Last updated: 7 November 2024 — See all updates Get emails about this page Documents Allied Joint Publication-3.14, Allied Joint Doctrine for Force Protection (Edition B Version 1) Ref: AJP-3.14 PDF , 3.17 MB , 109 pages Details Allied Joint Publication (AJP)-3.14, Allied Joint Doctrine for Force Protection (Edition B Version 1) describes the fundamental aspects of force protection and provides guidance to commanders and their staff on the planning and implementation of force protection, primarily at the joint operational level, but it can be used at any level. Who should read this publication This publication is intended primarily as guidance for NATO commanders and their staff. However, the doctrine may also be instructive to those planning for activities being carried out by a coalition of NATO member states, partners and non-NATO nations. It also provides a
+
+[…]
+
+No this page is not useful Thank you for your feedback Report a problem with this page Help us improve GOV.UK Do not include personal or financial information like your National Insurance number or credit card details. This field is for robots only. Please leave blank What were you doing? What went wrong? Send Cancel Help us improve GOV.UK To help us improve GOV.UK, we’d like to know more about your visit today. Please fill in this survey (opens in a new tab ) . Cancel Services and information Benefits Births, death, marriages and care Business and self-employed Childcare and parenting Citizenship and living in the UK Crime, justice and the law Disabled people Driving and transport Education and learning Employing people Environment and countryside Housing and local services Money and tax Passports, travel and living abroad Visas and immigration Working, jobs and pensions Government activity Departments News Guidance and regulation Research and statistics Policy papers and consultations Transparency How government works Get involved Support links Help Privacy Cookies Accessibility statement Contact Terms and conditions Rhestr o Wasanaethau Cymraeg Government Digital Service All content is available under the Open Government Licence v3.0 , except where otherwise stated © Crown copyright

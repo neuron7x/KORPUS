@@ -42,12 +42,19 @@ def _verify_tree(
         if p.is_file() and p.relative_to(root).as_posix() != "DISTRIBUTION_MANIFEST.json"
     )
     if sorted(records) != actual:
+        # The same two words meant the opposite thing in verify_source_manifest.py — there
+        # `missing` was tree-minus-manifest, here it is manifest-minus-tree. Both are now
+        # named by direction, because the injected-file case is one of them and a reader
+        # picking the wrong one looks away from it.
         failures.append(
-            f"path parity mismatch missing={sorted(set(records) - set(actual))} "
-            f"extra={sorted(set(actual) - set(records))}"
+            "path parity mismatch "
+            f"in_manifest_not_in_archive={sorted(set(records) - set(actual))} "
+            f"in_archive_not_in_manifest={sorted(set(actual) - set(records))}"
         )
     for relative in actual:
-        record = records.get(relative, {})
+        record = records.get(relative)
+        if record is None:
+            continue  # named by the parity line above; an empty record reports path=None
         failures.extend(record_failures(root / relative, record, archive_modes.get(relative)))
     return failures
 

@@ -1,0 +1,167 @@
+# Чи кожен гейт КОРПУСа взагалі здатен почервоніти.
+#
+#   make gate-liveness
+#
+# Мутаційне тестування питає, чи ТЕСТИ бачать зміну в коді. Ніхто не питає того самого
+# про самі ГЕЙТИ: валідатори, CI-джоби, батареї перевірок. Гейт, який не може стати
+# червоним, звітує PASS вічно і лишає ланцюг доказів без нагляду, а виглядає при цьому
+# як суворість.
+#
+# Закон, сформульований один раз: гейт заслуговує ARMED лише показавши ОБИДВА вироки на
+# реальному вході. Один напрямок — це константа в одязі гейта, і напрямок «відхиляє
+# завжди» помітити важче, бо він читається як строгість.
+#
+# Три види проб:
+#   позитивний контроль — додається автоматично, чистий стан мусить пройти;
+#   отрута (kind без equivalent) — пошкодження, яке гейт ЗОБОВ'ЯЗАНИЙ відхилити;
+#   еквівалентна варіація (equivalent: true) — той самий вміст, записаний інакше;
+#     гейт мусить ПРИЙНЯТИ. Отрути питають «що проходить, а не мало б»; тільки ця питає
+#     «що відхиляється без підстав». Друга помилка тихіша: відмова приходить у вигляді
+#     факту («STALE», «dead»), а факт ніхто не переміряє.
+#
+# Отрути взято з дефектів, які реально ловилися на цьому дереві 29.08.2026: регістр і
+# трейлінг-крапка хоста обходили правило 14; digest у репозиторії й архіві розходився;
+# ратчет підлоги мовчав без git; таймаут зараховувався як проходження.
+#
+# Проба, чия find-строка застаріла, НЕ пропускається мовчки — вона падає з «проба не
+# застосувалась» і псує вирок гейта. Застаріла отрута не перевіряє нічого.
+
+# `ignore` зливається з типовим (.git, dist, __pycache__, .venv), не замінює його.
+# var/ — кеш байтів захоплення, 83 МБ на 29.08.2026; жоден гейт його не читає, а
+# копіювати його в кожну з 18 проб означало б годинний прогін.
+gates:
+  - name: doctrine-catalog
+    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/validate_doctrine_catalog.py"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      # Отрути на ДАНИХ. Перша версія псувала правила в коді й гейт лишався зеленим —
+      # не тому, що правила мертві, а тому, що жодне джерело каталогу їх уже не запускає:
+      # 28 content_probe і 102 якорі стоять там, де правила їх вимагають. Гейт на реальних
+      # даних ARMED лише тоді, коли дані містять негативний приклад.
+      - name: у джерела на probeable-хості прибрано content_probe
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"content_probe": {'
+        payload: '"content_probe_removed": {'
+      - name: прибрано integrity_anchor — стеля непрочитаних мусить піднятись
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"integrity_anchor": {'
+        payload: '"integrity_anchor_removed": {'
+      - name: захоплений файл видалено з дерева, якір лишився
+        kind: delete
+        target: config/corpus/captures/ADV-CPD-REPORTS-2026.txt
+      - name: каталог зник — гейт мусить впасти, а не звітувати про порожнечу
+        kind: delete
+        target: config/corpus/doctrine_catalog_2026.json
+      - name: джерел немає — ключ перейменовано
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"sources": ['
+        payload: '"sources_disabled": ['
+
+  - name: content-signals
+    run: ["/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/validate_content_signals.py"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      # Отрути тут на ДАНИХ, не на коді. Перша версія цих проб псувала правила в
+      # scripts/validate_content_signals.py і гейт лишався зеленим — не тому, що правила
+      # мертві, а тому, що жодне джерело каталогу їх не запускає. Гейт на реальних даних
+      # ARMED лише тоді, коли дані містять негативний приклад; каталог, у якому все
+      # правильно, не може довести, що гейт ловить неправильне.
+      - name: оператор застеріг вміст проти нас, а джерело лишилось ingestible
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"verdict": "no_restriction"'
+        payload: '"verdict": "reserved_against_us"'
+      - name: вимір сигналу застарілий на роки
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"read_on": "2026-08-29"'
+        payload: '"read_on": "2019-01-01"'
+      - name: сам запис несе заборону проти нас, а вердикт каже «без обмежень»
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"against_us": []'
+        payload: '"against_us": ["ai-train=no"]'
+      - name: той самий день, записаний як ISO з часом — гейт мусить ПРИЙНЯТИ
+        kind: replace
+        target: config/corpus/doctrine_catalog_2026.json
+        find: '"read_on": "2026-08-29"'
+        payload: '"read_on": "2026-08-29T00:00:00"'
+        equivalent: true
+
+  - name: source-manifest-verify
+    run: ["env", "PYTHONPATH=scripts", "python3", "scripts/verify_source_manifest.py"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: файл, описаний маніфестом, змінено
+        kind: append
+        target: scripts/source_digest.py
+        payload: "\n# POISON\n"
+      - name: файл поза маніфестом підкладено в дерево
+        kind: create
+        target: scripts/_injected_by_probe.py
+        payload: "VALUE = 1\n"
+      - name: маніфест зник
+        kind: delete
+        target: SOURCE_MANIFEST.json
+
+  # `--require-bound`, не типова форма. Виміряно 29.08.2026: без прапорця гейт приймає і
+  # звіт із чужим digest, і звіт без оголошеної області — тобто саме те, від чого він
+  # нібито захищає. Вимірювати треба ту форму, яка щось зв'язує.
+  - name: handoff-verify
+    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/verify_handoff_contract.py", "--require-bound"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: звіт оголошує чужу область вимірювання
+        kind: replace
+        target: reports/RESEARCH_ASSURANCE_REPORT.json
+        find: '{'
+        payload: '{"digest_scope": "evidence_paths",'
+      - name: digest у звіті не той, що в дереві
+        kind: replace
+        target: reports/RESEARCH_ASSURANCE_REPORT.json
+        find: 'baea6f778c824470652c1464cb146f84758d22518f1e4ccd7ae5278cc7fd'
+        payload: '0000000000000000000000000000000000000000000000000000000000'
+      - name: перевірка scope знята
+        kind: replace
+        target: scripts/verify_handoff_contract.py
+        find: "    if promoted_scope != DIGEST_SCOPE:"
+        payload: "    if False:"
+
+  - name: module-budget
+    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/check_module_budget.py"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: модуль виріс над стелею
+        kind: append
+        target: scripts/check_module_budget.py
+        payload: "\n# POISON\nZ0 = 0\nZ1 = 0\nZ2 = 0\nZ3 = 0\nZ4 = 0\nZ5 = 0\nZ6 = 0\nZ7 = 0\nZ8 = 0\nZ9 = 0\n"
+      - name: бюджет зник — новий модуль лишається невиміряним
+        kind: delete
+        target: config/operations/module-budget.json
+      - name: selftest виріс — це доказ, а не код, гейт мусить ПРИЙНЯТИ
+        kind: replace
+        target: scripts/validate_remote_digest.py
+        find: "def selftest() -> int:"
+        payload: "def selftest() -> int:\n    _p0 = _p1 = _p2 = _p3 = _p4 = _p5 = _p6 = _p7 = _p8 = _p9 = 0\n    _q0 = _q1 = _q2 = _q3 = _q4 = _q5 = _q6 = _q7 = _q8 = _q9 = 0"
+        equivalent: true
+
+  - name: verdict-ledger
+    run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/verify_verdict_ledger.py"]
+    timeout: 600
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: журнал зник
+        kind: delete
+        target: .verdict-ledger.jsonl
+      - name: рядок журналу пошкоджено
+        kind: append
+        target: .verdict-ledger.jsonl
+        payload: "{не json\n"

@@ -73,7 +73,11 @@ def validate_observations(
     dataset_by_id: dict[str, dict[str, object]],
     actions: tuple[str, ...],
     expected_corpus_release_id: str,
-    expected_protocol_sha256: str,
+    # `str | None`, бо `None` тут — реальний стан: протокол оцінювання не заданий. Обидва
+    # сусіди це знають (`pec_replay_cli` передає `None`, `pec_replay_validation` приймає
+    # `str | None`), і лише ця проміжна ланка оголошувала `str`. Розбіжність була невидима,
+    # поки mypy бачив сусідні модулі scripts/ як Any.
+    expected_protocol_sha256: str | None,
     expected_answer_calibration_id: str,
     require_bindings: bool,
 ) -> list[str]:

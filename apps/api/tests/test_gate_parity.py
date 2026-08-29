@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -1334,7 +1335,8 @@ def test_every_script_is_reachable_from_a_runner() -> None:
         "scripts": "\n".join(
             path.read_text(encoding="utf-8", errors="ignore")
             for path in (ROOT / "scripts").rglob("*")
-            if path.is_file() and "__pycache__" not in path.parts
+            if path.is_file()
+            and not {"__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache"} & set(path.parts)
         ),
         # A documented tool a human runs by hand is reached; a tool nothing mentions
         # at all is not.
@@ -1348,23 +1350,32 @@ def test_every_script_is_reachable_from_a_runner() -> None:
     # A script naming only itself is not referenced. `text.count(script) > 1` was meant to
     # say that, and did not: scripts/stage_doctrine_corpus.py names itself three times in its
     # own docstring, so the count cleared the threshold and 256 lines with no Makefile
-    # target, no CI job and no test passed as reached. The file is excluded from its own
+    # target, no CI job and no test passed as reached. A file is excluded from its own
     # haystack instead of being counted against a threshold.
-    sibling_text = {
-        script: "\n".join(
-            path.read_text(encoding="utf-8", errors="ignore")
-            for path in (ROOT / "scripts").rglob("*")
-            if path.is_file() and "__pycache__" not in path.parts and path.name != script
+    #
+    # Excluded per file, not per script. Building {script: text-of-every-other-file} held
+    # one copy of scripts/ per script: 25.6 MB × 205 = 5.3 GB, and the OOM killer took the
+    # whole pytest process with SIGTERM at 38% — no failure, no name, just "Припинено".
+    # Measured 2026-08-30 after the directory grew past the machine's memory. Each file is
+    # read once and asked which scripts it mentions.
+    # Кеші не рахуються згадкою. `scripts/.mypy_cache/3.12/cache.7.db` містить імена
+    # УСІХ модулів, тож один прогін mypy із cwd=scripts робив досяжним кожен скрипт —
+    # виправлення типізації мовчки вимикало цей гейт. Ловиться лише в чистому клоні,
+    # де кешу немає.
+    ignored = {"__pycache__", ".mypy_cache", ".pytest_cache", ".ruff_cache"}
+    reached_by_sibling: set[str] = set()
+    for path in (ROOT / "scripts").rglob("*"):
+        if not path.is_file() or ignored & set(path.parts):
+            continue
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        reached_by_sibling.update(
+            script for script in scripts if script != path.name and script in text
         )
-        for script in scripts
-    }
     unreachable = [
         script
         for script in scripts
-        if not any(
-            script in (sibling_text[script] if name == "scripts" else text)
-            for name, text in haystacks.items()
-        )
+        if script not in reached_by_sibling
+        and not any(script in text for name, text in haystacks.items() if name != "scripts")
     ]
 
     assert not unreachable, f"no runner mentions these scripts: {unreachable}"
@@ -1758,14 +1769,31 @@ def test_the_scripts_type_configuration_is_strict() -> None:
 
 
 def test_scripts_type_check_clean_right_now() -> None:
+    """Run it the way the gate runs it, from inside scripts/ — the difference is the check.
+
+    From the repository root, mypy resolves every import BETWEEN files in scripts/ as
+    `Any`: `from manifest_paths import source_paths` checks nothing. This test passed for a
+    day over 217 files whose contracts with each other were unchecked. Measured 2026-08-30
+    from inside the directory: 7 errors at once, two of them real.
+    """
     result = subprocess.run(
-        [sys.executable, "-m", "mypy", "--config-file", "mypy-scripts.ini", "scripts/"],
-        cwd=ROOT,
+        [sys.executable, "-m", "mypy", "--config-file", "../mypy-scripts.ini", "."],
+        cwd=ROOT / "scripts",
+        env={**os.environ, "MYPYPATH": str(ROOT / "apps/api/src")},
         capture_output=True,
         text=True,
         check=False,
     )
     assert result.returncode == 0, result.stdout[-3000:]
+
+
+def test_the_type_check_is_run_from_inside_scripts_not_from_the_root() -> None:
+    """The dual: running it from the root is what made it check nothing between files."""
+    source = QUALITY_GATE.read_text(encoding="utf-8")
+    assert "SCRIPTS_DIR" in source and "MYPYPATH" in source, (
+        "run_quality_gate.py no longer runs the scripts type check from inside scripts/, "
+        "so sibling imports resolve to Any and the contracts between scripts are unchecked"
+    )
 
 
 def test_canonical_formatting_is_a_gate_because_the_mutants_depend_on_it() -> None:

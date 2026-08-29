@@ -1,0 +1,21 @@
+# KORPUS extract record — ORG-NV-NCO-REFORM
+# Ukraine launches major reform of sergeant corps (The New Voice of Ukraine)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://english.nv.ua/amp/syrskyi-approves-plan-to-expand-and-strengthen-ukraine-s-nco-corps-50617300.html
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: bbc45f816a392c00d69e5e7a121ee36609a9b7f36e50c9f921e38879f62edd1e
+bytes_as_served.bytes: 42811
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 656a7ff5569e41b4f2ec96e02816c9de70ad0d51699e078a07cec5d35f49db27
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 430
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Syrskyi approves plan to expand and strengthen Ukraine's NCO corps / The New Voice of Ukraine Business Opinion Life Russian war Nation Ukraine launches major reform of sergeant corps under new military plan Russian war 18 June, 01:08 PM Commander-in-Chief of the Armed Forces of Ukraine Oleksandr Syrskyi has approved a comprehensive plan aimed at restoring, strengthening and further developing Ukraine's non-commissioned officer (NCO) corps through the end of 2027, he announced on June 18. Syrskyi said the reform effort will be built around modern military leadership principles, including the Mission Command philosophy, which emphasizes decentralized decision-making, disciplined initiative and delegated authority at all levels of command. "The development of the NCO corps remains one of the key priorities in building a modern army that meets NATO standards and the realities of contemporary warfare," Syrskyi said. Read also: Ukraine prepares new military contract system and procurement tenders — Fedorov Expanding NCO responsibilities According to the commander-in-chief, the plan includes expanding the instructor corps at training centers, introducing drill sergeant positions in basic military training battalions and increasing the number of NCO positions within headquarters and military command structures at all levels. The changes are intended to make greater use of combat-experienced NCOs and increase their involvement in training, leadership and decision-making processes. Syrskyi stressed that particular attention will be given to combat units, where senior platoon sergeants must be capable of assuming command responsibilities without compromising a unit's effectiveness or operational control. "A separate area of work involves expanding the rights and authorities of NCO personnel and improving the distribution of responsibilities between sergeants and officers," Syrskyi said. "It remains equally important to clearly define areas of responsibility between commanders and senior sergeants." Preparing for modern warfare The ultimate goal of the reform is to improve professional military education and bring training as close as possible to the realities of modern combat, Syrskyi said. He also acknowledged that a number of unresolved issues continue to hinder the long-term development of the NCO corps, including military service regulations for NCO positions and the creation of effective career management mechanisms. Those challenges have been incorporated into the approved reform plan, according to Syrskyi. The announcement follows Syrskyi's June 9 approval of a separate development strategy for Ukraine's missile forces and artillery through 2030, which focuses on weapons modernization, domestic missile development and enhanced artillery reconnaissance capabilities. Read also: First phase of Ukraine’s military changes to begin in June with higher pay and contract updates Editor: Demian Shevko Tags: Oleksandr Syrskyi Ukrainian military reform Armed Forces of Ukraine Share Інші новини Все новости

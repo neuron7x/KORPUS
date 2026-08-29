@@ -193,7 +193,7 @@ def extract_pages_from_path(
     ocr_enabled: bool,
     ocr_languages: str,
     *,
-    max_pdf_pages: int = 500,
+    max_pdf_pages: int = 1000,
     ocr_total_timeout_seconds: int = 300,
 ) -> tuple[list[ExtractedPage], str]:
     if not path.is_file() or path.stat().st_size == 0:
@@ -238,7 +238,7 @@ def extract_pages(
     ocr_enabled: bool,
     ocr_languages: str,
     *,
-    max_pdf_pages: int = 500,
+    max_pdf_pages: int = 1000,
     ocr_timeout_seconds: int = 300,
 ) -> tuple[list[ExtractedPage], str]:
     if not content:

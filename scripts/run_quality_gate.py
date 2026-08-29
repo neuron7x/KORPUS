@@ -69,24 +69,47 @@ MYPY = [
     "--config-file",
     "apps/api/pyproject.toml",
 ]
+#: Run from INSIDE scripts/, not from the repository root, and this is the whole point of
+#: the entry. With `mypy … scripts/` from the root, mypy resolved every intra-scripts
+#: import as `Any`: `from manifest_paths import source_paths` type-checked to nothing, and
+#: so did every other sibling import in the directory. The gate reported PASS over 217
+#: files while the contracts BETWEEN them were unchecked. Measured 2026-08-30 by running
+#: it the other way: 7 errors appeared at once, two of them real — `str | None` passed
+#: where `str` was declared in the replay CLI, and `int | None` from a timed-out
+#: subprocess handed to a function typed `int` in the mutation runner.
+#:
+#: The base directory decides the module names. From the root, `scripts/gcp/x.py` is
+#: `scripts.gcp.x` and `mypy_path` cannot also contain scripts/ without the same file
+#: acquiring two names and mypy refusing to start. From inside, it is `gcp.x`, siblings
+#: are top-level modules, and the application still resolves through MYPYPATH.
+#: `--cache-dir` поза scripts/ — інакше mypy лишає там `.mypy_cache`, і той кеш містить
+#: імена всіх модулів. `test_every_script_is_reachable_from_a_runner` шукає згадки скрипта
+#: серед файлів scripts/ і після одного прогону mypy визнавав досяжним КОЖЕН скрипт.
+#: Тобто виправлення типізації мовчки вимкнуло сусідній гейт. Виявлено 2026-08-30 у
+#: чистому клоні: там кешу немає, і тест упав на скрипті, якого справді ніхто не кличе.
 MYPY_SCRIPTS = [
     sys.executable,
     "-m",
     "mypy",
     "--config-file",
-    "mypy-scripts.ini",
-    "scripts/",
+    "../mypy-scripts.ini",
+    "--cache-dir",
+    "../var/mypy-cache-scripts",
+    ".",
 ]
+SCRIPTS_DIR = ROOT / "scripts"
 
 
 def _run(
-    command: list[str], env_extra: dict[str, str] | None = None
+    command: list[str],
+    env_extra: dict[str, str] | None = None,
+    cwd: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
     environment.update(env_extra or {})
     return subprocess.run(
         command,
-        cwd=ROOT,
+        cwd=cwd or ROOT,
         env=environment,
         text=True,
         stdout=subprocess.PIPE,
@@ -136,7 +159,7 @@ def _mypy_result() -> dict[str, object]:
 
 def _mypy_scripts_result() -> dict[str, object]:
     """The second configuration: scripts/, which the application's config excludes."""
-    completed = _run(MYPY_SCRIPTS)
+    completed = _run(MYPY_SCRIPTS, {"MYPYPATH": str(ROOT / "apps/api/src")}, cwd=SCRIPTS_DIR)
     return {
         "command": " ".join(MYPY_SCRIPTS),
         "exit_code": completed.returncode,

@@ -1,0 +1,25 @@
+# KORPUS extract record — T3B-UKRINFORM-STRONGPOINTS
+# Ukraine builds 2,130 platoon strongpoints in frontline regions (Ukrinform)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.ukrinform.net/rubric-defense/4071742-ukraine-builds-2130-platoon-strongpoints-in-frontline-regions-dm-shmyhal.html
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: 12588da184b0fa2d01e8c777ba160b11cee972e5e05a6fe6696c03572360b4a5
+bytes_as_served.bytes: 53048
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 18073c562b6c94a923bbe78f113af4bf4521d0d757bebc6c126911d3dd033dcd
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 745
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Ukraine builds 2,130 platoon strongpoints in frontline regions – DM Shmyhal Subscription Newsletters Photobank Ukrinform - Ukrainian National News Agency Founded in 1918 Saturday, 29 August 2026, 22:46 War Economy Sports More ☰ Contacts Eng Укр Eng Esp Deu عربي Fra 日本語 Pol × All topics War Recovery of Ukraine Politics Economy Fact checks Defense Society and Culture Sports Crime Accidents and Emergencies Agency Information on Agency Our Contacts Subscribtion Terms Our Services Privacy policy and personal data protection Additional Publications Interviews Photo Video Longreads Releases Services Subscription Newsletters Photobank War Recovery of Ukraine Politics Economy Fact checks Defense Society and Culture Sports Crime Accidents and Emergencies Publications Interviews Photo Video Longreads Releases Contacts More » Latest news 29 August 2026 22:29 Russian drone strikes gas station in Kharkiv, causing fire 22:02 Zelensky pays tribute to fallen Ukrainian soldiers 21:27 Russian drones injure two residents of Kherson 20:58 Russian forces attack Dnipropetrovsk region nearly 50 times 20:27 Air defense forces shoot down 199 of 224 Russian drones during day 19:58 Russian shelling kills police officer in Kharkiv region 19:17 photos Drone attack on Kyiv: Injury toll rises to eight, two-year-old child dies 18:56 video Four people missing after Russian strike on warehouses in Myla, Kyiv region – Vyhivskyi 18:36 Defense Ministry calls on defense industry leaders to audit storage of weapons and ammunition 18:18 photos, video Zelensky presents awards to families of fallen heroes on Ukraine's Defenders Remembrance Day 17:59 Around 80 sites damaged in Bucha district — Tkachenko 17:37 Russian forces strike hospital in Kramatorsk with drones 17:19 Russian forces strike high-rise building in Sloviansk 16:59 video Debris removal continues in Myla, Kyiv region, death toll can rise — Zelensky 16:37 'We stand with people of Ukraine': Finland responds to Russian strike on Kyiv region's Bucha district All news Ukraine builds 2,130 platoon strongpoints in frontline regions – DM Shmyhal 21.12.2025 02:25 Ukrinform Defensive fortification work continues in Ukraine’s frontline regions, with 2,130 platoon strongpoints already built and more than 3,000 kilometers of anti-tank ditches completed. According to Ukrinform, this was reported on Telegram by Denys Shmyhal, Minister of Defense of Ukraine. During a visit to Zaporizhzhia region, Shmyhal heard a briefing from Major General Oleksandr Yakovets, Head of the State Special Transport Service, on the construction of fortifications in Zaporizhzhia, Donetsk, Sumy, Kharkiv, Chernihiv, and Kyiv regions. According to the report, the State Special Transport Service has already
+
+[…]
+
+than 100,000 missions this year Ukraine, UK sign landmark AI deal More news Top news Topics Agency Information on Agency Our Contacts Subscribtion Terms Our Services Privacy policy and personal data protection While citing and using any materials on the Internet, links to the website ukrinform.net not lower than the first paragraph are mandatory. In addition, citing the translated materials of foreign media outlets is possible only if there is a link to the website ukrinform.net and the website of a foreign media outlet. Materials marked as "Advertisement" or with a disclaimer reading "The material has been posted in accordance with Part 3 of Article 9 of the Law of Ukraine "On Advertising" No. 270/96-VR of July 3, 1996 and the Law of Ukraine "On the Media" No. 2849-Х of March 31, 2023 and on the basis of an agreement/invoice. Online media entity; Media identifier - R40-01421. © 2015-2026 Ukrinform. All rights reserved. Extended search Hide extended search All topics War Recovery of Ukraine Politics Economy Fact checks Defense Society and Culture Sports Crime Accidents and Emergencies By period: - We use cookies. By continuing to browse the site, you accept our Privacy and Data Protection Policy . Accept ×

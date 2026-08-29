@@ -1,0 +1,25 @@
+# KORPUS extract record — T2A-DEFENSENEWS-UGV
+# Ukraine to field 25,000 ground robots (Defense News)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://www.defensenews.com/unmanned/2026/04/24/ukraine-to-field-25000-ground-robots-in-push-to-replace-soldiers-for-frontline-logistics/
+fetched_on: 2026-08-30
+media_type: text/html
+bytes_as_served.sha256: bf71fd6a8c70ece0dddb2f07267eb2812a826450f66230586d6d0bfc8ddc235e
+bytes_as_served.bytes: 241096
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: d73e282868e41e950c72306c636e08fd02b4639e7c183908a76b99b84d76371b
+text_as_extracted.extractor: plain_text
+text_as_extracted.pages: 1
+text_as_extracted.words: 984
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Ukraine to field 25,000 ground robots in push to replace soldiers for frontline logistics Sections Search Sections Sections Air Warfare Land Naval Space Cyber Opens in new window C4ISR Opens in new window Pentagon Congress Global Video Thought Leadership Search Close Subscribe Now Air Warfare Land Naval Pentagon Congress Show Congress sub sections Budget Cyber Opens in new window C4ISR Opens in new window Space Training & Sim Unmanned Global Show Global sub sections Asia Pacific Europe Mideast Africa The Americas Industry Show Industry sub sections MilTech Interviews Opinion Top 100 Companies Video Show Video sub sections Defense News Weekly Money Minute Outlook Press Releases Thought Leadership Show Thought Leadership sub sections Whitepapers & eBooks Opens in new window DSDs & SMRs Opens in new window Webcasts Opens in new window Events Opens in new window Newsletters Opens in new window Events Calendar Native Early Bird Brief Digital Edition Opens in new window Featured: Coverage: Farnborough Airshow 2026 Strategic Architects List 40 Years of Defense News Unmanned Ukraine to field 25,000 ground robots in push to replace soldiers for frontline logistics By Katie Livingstone Friday, Apr 24, 2026 Ukrainian servicemen fire an RPG-7 grenade launcher mounted on an unmanned ground vehicle during testing near the frontline on April 10, 2026. (Reuters) KYIV, Ukraine — Ukraine will contract 25,000 unmanned ground vehicles in the first half of 2026, more than double the 2025 total, as the Defense Ministry moves to shift all frontline logistics off soldiers and onto robots. Defense Minister Mykhailo Fedorov shared the target after meeting with domestic UGV manufacturers last week, where he also announced that the ministry had already begun signing contracts for 2027 to stabilize long-term manufacturer pipelines. “UGVs perform important logistics and evacuation tasks on the front line,” Fedorov wrote in a Facebook post on April 18. “In March alone, the military carried out more than 9,000 missions using them.” “Our goal — 100% of frontline logistics should be performed by robotic systems,” the minister said. Ukraine’s Defense Ministry has spent over 14 billion hryvnia, or roughly $330 million, to push more than 181,000 drones, UGVs and electronic warfare systems to the front since January through a digital procurement system that allows frontline units to order equipment directly from domestic manufacturers, Fedorov said Thursday. Within days of Fedorov’s announcement, Kyiv codified the Bizon-L — a 300-kilogram-payload logistics robot with a 50-kilometer range — under NATO
+
+[…]
+
+much more. Pentagon stages first ‘Top Drone’ school for operators to hone skills Industry and military drone operators flew tethered and untethered first-person drones through a course designed to test endurance and maneuverability. Featured Video Ride the skies over D.C. in a UH-1N Huey with airmen from Joint Base Andrews Air Force Academy to sport B-21 Raider-inspired uniforms against Navy Expanding U.S. Missile Production Through Domestic Rocket Motor Capacity See the military monument displaying the names of 41 million service members… and counting Trending Now The devastation of NSA Bahrain is a national security warning Russia is running out of cash due to its war in Ukraine: report Pentagon awards contract in race to field cheaper interceptors, missiles 15,000 operational days lost due to US submarine maintenance delays, GAO finds Rolls-Royce, Safran vie for India’s next-generation fighter engine Facebook page Twitter feed RSS feed Defense News © 2026 Terms of Use Privacy Policy Terms of Service Get Us Subscribe Now Newsletters Opens in new window Events Opens in new window RSS Feeds Opens in new window Shop Merch Opens in new window Contact Us Advertise General Contacts, Subscription Services Editorial Staff About Us About Us Careers Opens in new window

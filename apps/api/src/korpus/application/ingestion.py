@@ -39,7 +39,7 @@ ALLOWED_TRANSITIONS: dict[ReviewState, frozenset[ReviewState]] = {
 class ExtractionSettings:
     ocr_enabled: bool
     ocr_languages: str
-    max_pdf_pages: int = 500
+    max_pdf_pages: int = 1000  # див. korpus/config.py: 500 стояла всередині розподілу
     max_spans_per_document: int = 20_000
     max_chunk_chars: int = 1400
     chunk_overlap_chars: int = 180

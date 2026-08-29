@@ -1,0 +1,25 @@
+# KORPUS extract record — T1A-RUSI-MEATGRINDER
+# Meatgrinder: Russian Tactics in the Second Year of Its Invasion of Ukraine (RUSI, Watling & Reynolds)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://static.rusi.org/403-SR-Russian-Tactics-web-final.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: 0b50c942f5da2308adfc7545ef105d2855989329db8c3137f51c728961f0988a
+bytes_as_served.bytes: 11768824
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: a1bacf4acc273adf3fd3b6fbe3bd47749aae2c040d9fd0a35ee508285c6c4e4a
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 37
+text_as_extracted.words: 13874
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+Meatgrinder: Russian Tactics in the Second Year of Its Invasion of Ukraine Jack Watling and Nick Reynolds Royal United Services Institute for Defence and Security Studies Special Report 19 May 2023 Meatgrinder: Russian Tactics in the Second Year of Its Invasion of Ukraine Watling and Reynolds Contents Executive Summary ii Introduction 1 Infantry 3 Engineers 9 Artillery 11 Armour 15 Electronic Warfare 18 Air Defence 20 Aviation 22 Command and Control 24 Priority Assistance for the Armed Forces of Ukraine 25 Conclusions 29 About the Authors 31 Meatgrinder: Russian Tactics in the Second Year of Its Invasion of Ukraine ii Watling and Reynolds Executive Summary T HE SCALE OF Russian losses in 2022, combined with the Armed Forces of the Russian Federation confronting NATO systems they had not previously contended with, has caused a significant deviation in Russian operations from the country’s doctrine. This report seeks to outline how Russian forces have adapted their tactics in the Ukrainian conflict and the challenges this has created for the Ukrainian military that must be overcome. The report examines Russian military adaptation by combat function. Russian infantry tactics have shifted from trying to deploy uniform Battalion Tactical Groups as combined arms units of action to a stratified division by function into line, assault, specialised and disposable troops. These are formed into task-organised groupings. Line infantry are largely used for ground holding and defensive operations. Disposable infantry are used for continuous skirmishing to either identify Ukrainian firing positions, which are then targeted by specialised infantry, or to find weak points in Ukrainian defences to be prioritised for assault. Casualties are very unevenly distributed across these functions. The foremost weakness across Russian infantry units is low morale, which leads to poor unit cohesion and inter-unit cooperation. Russian engineering has proven to be one of the stronger branches of the Russian military. Russian engineers have been constructing complex obstacles and field fortifications across the front. This includes concrete reinforced trenches and command bunkers, wire-entanglements, hedgehogs, anti-tank ditches, and complex minefields. Russian mine laying is extensive and mixes anti-tank and victim-initiated anti-personnel mines, the latter frequently being laid with multiple initiation mechanisms to complicate breaching. These defences pose a major tactical challenge to Ukrainian offensive operations. Russian armour is rarely used for attempts at breakthrough. Instead, armour is largely employed in a fire support function to deliver accurate fire against Ukrainian positions. Russia has started to employ
+
+[…]
+
+of independent thinking on defence and security The Royal United Services Institute (RUSI) is the world’s oldest and the UK’s leading defence and security think tank. Its mission is to inform, influence and enhance public debate on a safer and more stable world. RUSI is a research-led institute, producing independent, practical and innovative analysis to address today’s complex challenges. Since its foundation in 1831, RUSI has relied on its members to support its activities. Together with revenue from research, publications and conferences, RUSI has sustained its political independence for 192 years. The views expressed in this publication are those of the authors, and do not reflect the views of RUSI or any other institution. Published in 2023 by the Royal United Services Institute for Defence and Security Studies. This work is licensed under a Creative Commons Attribution – Non-Commercial – No-Derivatives 4.0 International Licence. For more information, see < http://creativecommons.org/licenses/by-nc-nd/4.0/ >. RUSI Special Report, 19 May 2023. Cover image: Ukrainian Mechanised Infantry riding a BMP , Ukraine, April 2023. Courtesy of Jack Watling Royal United Services Institute for Defence and Security Studies Whitehall London SW1A 2ET United Kingdom +44 (0)20 7747 2600 www.rusi.org RUSI is a registered charity (No. 210639)

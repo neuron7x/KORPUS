@@ -6,11 +6,11 @@
   "lockfiles": [
     {
       "path": "apps/api/requirements.runtime.lock",
-      "sha256": "4f0b7f24034a898ce73ff1d464b0c9c17a1e52197753940b40380035b1e2a938"
+      "sha256": "9c6541e111184db619e8957725039268a7048ac208e3eeaa35137e2dabcd213d"
     },
     {
       "path": "apps/api/requirements.dev.lock",
-      "sha256": "b5028d055efc2d8f72be91c1e6efdd9f82203f2506a63865bff26e3489a6e6bc"
+      "sha256": "9d5ed9851ad4d01ac350ec48576f9fb70345770e0198bd7f9963f109b063f134"
     }
   ],
   "publisher_metadata": {
@@ -272,6 +272,20 @@
     },
     {
       "type": "library",
+      "name": "httpcore2",
+      "version": "2.12.0",
+      "purl": "pkg:pypi/httpcore2@2.12.0",
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_INSTALLED_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "license_evidence": null,
+      "installed_in_inventory_environment": true,
+      "artifact_hashes_present": true,
+      "sources": [
+        "apps/api/requirements.dev.lock"
+      ]
+    },
+    {
+      "type": "library",
       "name": "httptools",
       "version": "0.8.0",
       "purl": "pkg:pypi/httptools@0.8.0",
@@ -300,9 +314,23 @@
     },
     {
       "type": "library",
+      "name": "httpx2",
+      "version": "2.12.0",
+      "purl": "pkg:pypi/httpx2@2.12.0",
+      "license": "BSD-3-Clause",
+      "license_status": "DECLARED_BY_INSTALLED_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "license_evidence": null,
+      "installed_in_inventory_environment": true,
+      "artifact_hashes_present": true,
+      "sources": [
+        "apps/api/requirements.dev.lock"
+      ]
+    },
+    {
+      "type": "library",
       "name": "idna",
-      "version": "3.17",
-      "purl": "pkg:pypi/idna@3.17",
+      "version": "3.18",
+      "purl": "pkg:pypi/idna@3.18",
       "license": "BSD-3-Clause",
       "license_status": "DECLARED_BY_INSTALLED_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
       "license_evidence": null,
@@ -870,6 +898,20 @@
       "artifact_hashes_present": true,
       "sources": [
         "apps/api/requirements.runtime.lock"
+      ]
+    },
+    {
+      "type": "library",
+      "name": "truststore",
+      "version": "0.10.4",
+      "purl": "pkg:pypi/truststore@0.10.4",
+      "license": "MIT",
+      "license_status": "DECLARED_BY_INSTALLED_PACKAGE_METADATA_NOT_LEGAL_CLEARANCE",
+      "license_evidence": null,
+      "installed_in_inventory_environment": true,
+      "artifact_hashes_present": true,
+      "sources": [
+        "apps/api/requirements.dev.lock"
       ]
     },
     {

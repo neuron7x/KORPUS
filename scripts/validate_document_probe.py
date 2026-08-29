@@ -34,6 +34,46 @@ SHA = re.compile(r"^[0-9a-f]{64}$")
 PROBE_MAX_AGE_DAYS = 365
 #: Below this a "text layer" is page furniture — headers, page numbers, a stamp — not text.
 MIN_WORDS_PER_PAGE = 20
+#: У скільки разів найближче спостереження може перевищувати поріг, щоб поріг ще
+#: вважався таким, що щось розділяє. Понад це — він стоїть у порожнечі.
+NEAR_FACTOR = 3.0
+
+
+def threshold_liveness(entries: list[dict]) -> tuple[str, float | None]:
+    """Чи поріг читаності взагалі здатен щось розділити — і чи він це вже робив.
+
+    Дзеркало перевірки стелі з сесії 5cb14ff: там межа стояла ВСЕРЕДИНІ робочого
+    діапазону (504 сторінки при ліміті 500) і спрацьовувала як підкидання монети.
+    Тут вада протилежна й непомітніша: поріг стоїть у ПОРОЖНЕЧІ. Найнижча виміряна
+    щільність — 117 слів/сторінку, поріг — 20, тобто розрив у 5,8 раза, і жодної пари
+    документів він не розділив. Число, яке ніколи не спрацьовувало, не перевірене
+    даними, хай яким зеленим буде гейт.
+
+    Правило не робить це падінням: сканів у корпусі поки немає, і вимагати їх — значить
+    вимагати даних, яких нема. Воно робить інше — змушує гейт СКАЗАТИ про себе, що він
+    не спрацьовував, і назвати число, з якого це видно. Дуальність: щойно зайде документ
+    ближче за NEAR_FACTOR до порога, рядок зміниться сам.
+    """
+    observed = [
+        float(e["document_probe"]["words"]) / float(e["document_probe"]["pages"])
+        for e in entries
+        if isinstance(e.get("document_probe"), dict)
+        and int(str(e["document_probe"].get("pages", 0)) or 0) > 0
+    ]
+    if not observed:
+        return "поріг не перевірявся: жодного виміру вмісту в каталозі", None
+    nearest = min(observed)
+    if nearest <= MIN_WORDS_PER_PAGE:
+        return (
+            f"поріг спрацьовував: є документ із {nearest:.1f} слів/стор. "
+            f"на порозі {MIN_WORDS_PER_PAGE}"
+        ), nearest
+    gap = nearest / MIN_WORDS_PER_PAGE
+    verdict = "розділяє" if gap <= NEAR_FACTOR else "НЕ розділяв нічого"
+    return (
+        f"поріг {MIN_WORDS_PER_PAGE} слів/стор. {verdict}: найближче спостереження "
+        f"{nearest:.1f}, розрив {gap:.1f}×"
+    ), nearest
 
 
 def _named_system_problems(identifier: str, probe: dict) -> list[str]:
@@ -253,13 +293,36 @@ def selftest() -> int:
             print(f"  ✗ {name}: очікували {'падіння' if want_fail else 'PASS'}")
         else:
             print(f"  ✓ {name}")
+
+    # Дуальна перевірка: сама перевірка живості порога мусить уміти змінити вирок.
+    # Інакше рядок «НЕ розділяв нічого» був би написаний раз і назавжди.
+    def doc(pages: int, words: int) -> dict[str, Any]:
+        return {"id": "X", "document_probe": {"pages": pages, "words": words}}
+
+    liveness_cases: tuple[tuple[str, list[dict[str, Any]], str], ...] = (
+        ("порожній каталог — немає що розділяти", [], "не перевірявся"),
+        ("щільні документи — поріг у порожнечі", [doc(100, 40000), doc(10, 1170)], "НЕ розділяв"),
+        ("документ біля порога — поріг розділяє", [doc(100, 40000), doc(10, 500)], "розділяє"),
+        (
+            "документ ПІД порогом — поріг спрацював",
+            [doc(100, 40000), doc(100, 500)],
+            "спрацьовував",
+        ),
+    )
+    live_bad = 0
+    for name, entries, want in liveness_cases:
+        text, _ = threshold_liveness(entries)
+        ok = want in text
+        live_bad += not ok
+        print(f"  {'✓' if ok else '✗'} живість порога: {name}" + ("" if ok else f" → {text}"))
+
     ok_floors = (MIN_WORDS_PER_PAGE, PROBE_MAX_AGE_DAYS) == (20, 365)
     bad += not ok_floors
     print(
         f"  {'✓' if ok_floors else '✗'} пороги: {MIN_WORDS_PER_PAGE} слів/стор., "
         f"{PROBE_MAX_AGE_DAYS} днів"
     )
-    total = len(PROBES) + 1
+    total = len(PROBES) + 1 + len(liveness_cases)  # + пороги + живість порога
     print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
@@ -278,9 +341,13 @@ def main() -> int:
     probed = [e for e in entries if isinstance(e.get("document_probe"), dict)]
     pages = sum(int(e["document_probe"]["pages"]) for e in probed)
     words = sum(int(e["document_probe"]["words"]) for e in probed)
+    # Число вже всередині `liveness`; окремо воно тут не потрібне, і мовчазне
+    # відкидання під іменем без підкреслення читається як забутий рядок.
+    liveness, _nearest = threshold_liveness(entries)
     print("document probes: PASS")
     print(f"  {len(probed)} documents read: {pages} pages, {words} words")
     print("  its own axis: volume and structure, never an assessment of what the text claims")
+    print(f"  {liveness}")
     return 0
 
 

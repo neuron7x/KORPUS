@@ -6,12 +6,12 @@ try:
     from .current_truth_contract import alias_checks as base_alias_checks
     from .current_truth_contract import load_object
 except ImportError:  # pragma: no cover - the plain-script import path
-    from current_truth_contract import alias_checks as base_alias_checks  # type: ignore[no-redef]
-    from current_truth_contract import load_object  # type: ignore[no-redef]
+    from current_truth_contract import alias_checks as base_alias_checks
+    from current_truth_contract import load_object
 
 
 def alias_checks(root: Path, release: str) -> dict[str, bool]:
-    checks = base_alias_checks(root, release)
+    checks: dict[str, bool] = base_alias_checks(root, release)
     identity_path = root / "apps/api/src/korpus/release.json"
     if not identity_path.is_file():
         return checks | {"release_identity.present": False}
