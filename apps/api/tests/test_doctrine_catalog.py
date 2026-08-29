@@ -139,7 +139,10 @@ def test_every_anchored_snapshot_in_the_catalog_still_matches_its_digest() -> No
 
 def test_a_changed_page_snapshot_is_caught() -> None:
     entry = _valid_entry()
-    entry["integrity_anchor"] = {"path": "config/corpus/mod_snapshots/sukhoputni.txt", "sha256": "0" * 64}
+    entry["integrity_anchor"] = {
+        "path": "config/corpus/mod_snapshots/sukhoputni.txt",
+        "sha256": "0" * 64,
+    }
     problems = _validator()._entry_problems(entry)
     assert any("integrity_anchor mismatch" in p for p in problems), problems
 
@@ -168,7 +171,10 @@ def test_an_anchor_that_is_not_an_object_is_refused() -> None:
 
 def test_an_anchor_digest_that_is_not_a_sha256_is_refused() -> None:
     entry = _valid_entry()
-    entry["integrity_anchor"] = {"path": "config/corpus/mod_snapshots/sukhoputni.txt", "sha256": "deadbeef"}
+    entry["integrity_anchor"] = {
+        "path": "config/corpus/mod_snapshots/sukhoputni.txt",
+        "sha256": "deadbeef",
+    }
     problems = _validator()._entry_problems(entry)
     assert any("not a sha256 digest" in p for p in problems), problems
 
@@ -267,3 +273,95 @@ def test_every_probed_source_in_the_catalog_points_at_its_measured_content() -> 
     result = _validator().evaluate(catalog)
     assert result["status"] == "PASS", result["problems"]
     assert result["summary"]["content_probed"] == len(probed)
+
+
+def _attached_entry() -> dict:
+    """A source whose page names a DOCX carrying most of its normative content."""
+    entry = _probed_entry()
+    entry["content_probe"]["required_attachments"] = [
+        "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
+    ]
+    entry["attachment_anchors"] = [
+        {
+            "uri": "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx",
+            "path": "config/corpus/attachments/ORG-MOD-ORDER-317__f499126n54.docx",
+            "sha256": "0be50eaef9e67c5c68f1fcb91f71b772f457fb834a7e5a82b5f02dcb6e97b1ed",
+            "bytes": 98419,
+            "captured_on": "2026-08-29",
+            "extractor_supports_format": True,
+        }
+    ]
+    return entry
+
+
+def test_a_captured_attachment_matching_its_digest_passes() -> None:
+    assert _validator()._entry_problems(_attached_entry()) == []
+
+
+def test_a_required_attachment_nobody_captured_is_refused() -> None:
+    """Three quarters of order 317 lives in that DOCX; naming it is not fetching it."""
+    entry = _attached_entry()
+    entry["attachment_anchors"] = []
+    problems = _validator()._entry_problems(entry)
+    assert any("no attachment anchor captured it" in p for p in problems), problems
+
+
+def test_a_required_attachment_with_no_anchors_field_at_all_is_refused() -> None:
+    entry = _attached_entry()
+    entry.pop("attachment_anchors")
+    problems = _validator()._entry_problems(entry)
+    assert any("attachment_anchors is absent" in p for p in problems), problems
+
+
+def test_a_tampered_attachment_is_refused() -> None:
+    entry = _attached_entry()
+    entry["attachment_anchors"][0]["sha256"] = "c" * 64
+    problems = _validator()._entry_problems(entry)
+    assert any("integrity_anchor mismatch" in p for p in problems), problems
+
+
+def test_an_attachment_claiming_a_format_the_extractor_cannot_read_is_refused() -> None:
+    """The .doc annexes of 548-XIV are captured but unreadable; the catalog must say so."""
+    entry = _attached_entry()
+    entry["attachment_anchors"][0]["path"] = (
+        "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc"
+    )
+    entry["attachment_anchors"][0]["sha256"] = _digest_of(
+        "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc"
+    )
+    problems = _validator()._entry_problems(entry)
+    assert any("SUPPORTED_SUFFIXES" in p for p in problems), problems
+
+
+def test_an_unreadable_attachment_marked_honestly_passes() -> None:
+    entry = _attached_entry()
+    anchor = entry["attachment_anchors"][0]
+    anchor["path"] = "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc"
+    anchor["sha256"] = _digest_of(anchor["path"])
+    anchor["extractor_supports_format"] = False
+    entry["content_probe"]["required_attachments"] = [anchor["uri"]]
+    assert _validator()._entry_problems(entry) == []
+
+
+def test_an_attachment_anchor_that_is_not_an_object_is_refused() -> None:
+    entry = _attached_entry()
+    entry["attachment_anchors"] = ["f499126n54.docx"]
+    problems = _validator()._entry_problems(entry)
+    assert any("not an object" in p for p in problems), problems
+
+
+def test_every_captured_attachment_in_the_catalog_still_matches_its_digest() -> None:
+    catalog = _catalog()
+    anchored = [e for e in catalog["sources"] if e.get("attachment_anchors")]
+    assert anchored, "the catalog captured no attachments at all"
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "PASS", result["problems"]
+    assert result["summary"]["attachments_captured"] == sum(
+        len(e["attachment_anchors"]) for e in anchored
+    )
+
+
+def _digest_of(relative: str) -> str:
+    import hashlib
+
+    return hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()

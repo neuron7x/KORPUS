@@ -4069,10 +4069,10 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 353,
-      "max_complexity": 19,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe.",
-      "max_function_lines": 72,
+      "lines": 437,
+      "max_complexity": 20,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls.",
+      "max_function_lines": 79,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4372,9 +4372,9 @@
       "reason": "New 2026-08-29: carries run artefacts into the release directory the preflight reads, refusing any bound to another tree."
     },
     "scripts/probe_source_content.py": {
-      "lines": 169,
-      "max_complexity": 7,
-      "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline.",
+      "lines": 251,
+      "max_complexity": 8,
+      "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -5593,6 +5593,16 @@
         "lines": 353,
         "max_complexity": 19,
         "max_function_lines": 72
+      }
+    },
+    {
+      "on": "2026-08-29",
+      "path": "scripts/probe_source_content.py",
+      "reason": "attachment capture and variant normalisation; the second concern was found by re-running the probe after it had already repointed three sources.",
+      "to": {
+        "lines": 251,
+        "max_complexity": 8,
+        "max_function_lines": 42
       }
     }
   ],

@@ -22,22 +22,36 @@ the catalog as `content_probe`; `validate_doctrine_catalog.py` rule 10 then enfo
 offline that `source_uri` is the variant the probe found richest. The measurement is
 evidence with a date on it; the gate is the part that cannot drift.
 
+It also captures the attachments it finds. For order №317 the /print page is 4790 words
+and the roster it publishes — 1068 rows, 1773 distinct MOS codes — is a DOCX that page only
+links to; naming an attachment is not fetching one. Captures land in
+config/corpus/attachments/ and rule 11 holds their digests, along with an honest mark of
+whether this system's extractor can read each format (six of the seven are OLE2 .doc and it
+cannot).
+
     probe_source_content.py            # report only
-    probe_source_content.py --write    # record content_probe and repoint source_uri
+    probe_source_content.py --write    # record, repoint source_uri, capture attachments
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import subprocess
+import sys
 from datetime import date
 from pathlib import Path
 from typing import TypedDict
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "apps/api/src"))
+
+from korpus.infrastructure.extraction import SUPPORTED_SUFFIXES
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
+ATTACHMENTS = ROOT / "config/corpus/attachments"
 
 PROBED_HOSTS = ("zakon.rada.gov.ua",)
 ATTACHMENT = re.compile(r'href="([^"]+\.(?:docx|doc|rtf|xlsx|xls|pdf))"', re.IGNORECASE)
@@ -53,6 +67,15 @@ class Measurement(TypedDict):
     attachments: list[str]
 
 
+class Anchor(TypedDict):
+    uri: str
+    path: str
+    sha256: str
+    bytes: int
+    captured_on: str
+    extractor_supports_format: bool
+
+
 class Probe(TypedDict):
     probed_on: str
     variants: dict[str, Measurement]
@@ -60,6 +83,51 @@ class Probe(TypedDict):
     chosen_uri: str
     chosen_words: int
     required_attachments: list[str]
+
+
+def _capture_attachments(identifier: str, probe: Probe, timeout: int) -> list[Anchor]:
+    """Fetch what the page only points to, so rule 11 has something to hold."""
+    ATTACHMENTS.mkdir(parents=True, exist_ok=True)
+    anchors: list[Anchor] = []
+    for uri in probe["required_attachments"]:
+        name = f"{identifier}__{uri.rsplit('/', 1)[-1]}"
+        target = ATTACHMENTS / name
+        payload = _fetch_bytes(uri, probe["chosen_uri"], timeout)
+        target.write_bytes(payload)
+        target.chmod(0o644)
+        anchors.append(
+            {
+                "uri": uri,
+                "path": str(target.relative_to(ROOT)),
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "bytes": len(payload),
+                "captured_on": probe["probed_on"],
+                "extractor_supports_format": target.suffix.lower() in SUPPORTED_SUFFIXES,
+            }
+        )
+    return anchors
+
+
+def _fetch_bytes(uri: str, referer: str, timeout: int) -> bytes:
+    result = subprocess.run(
+        [
+            "curl",
+            "-sS",
+            "-L",
+            "--max-time",
+            str(timeout),
+            "-A",
+            "Mozilla/5.0 (KORPUS provenance probe)",
+            "-e",
+            referer,
+            uri,
+        ],
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"curl exit {result.returncode} on {uri}")
+    return result.stdout
 
 
 def _fetch(uri: str, timeout: int) -> str:
@@ -102,7 +170,17 @@ def _absolute(href: str, base: str) -> str:
 
 
 def _variants(uri: str) -> dict[str, str]:
-    return {"card": uri, "print": uri.rstrip("/") + "/print"}
+    """Variants of the *act*, not of whatever the catalog currently points at.
+
+    A second run reads back a source_uri the first run already repointed to /print. Without
+    stripping it the probe would compare /print against /print/print, label the first "card",
+    and report a card richer than its print variant — the measurement inverted by its own
+    previous success. Normalise to the act's base URI so the run is idempotent.
+    """
+    base = uri.rstrip("/")
+    if base.endswith("/print"):
+        base = base[: -len("/print")]
+    return {"card": base, "print": base + "/print"}
 
 
 def probe(entry: dict[str, object], timeout: int) -> Probe | None:
@@ -154,6 +232,10 @@ def main() -> int:
         if arguments.write:
             entry["content_probe"] = result
             entry["source_uri"] = result["chosen_uri"]
+            if result["required_attachments"]:
+                entry["attachment_anchors"] = _capture_attachments(
+                    str(entry["id"]), result, arguments.timeout
+                )
 
     if arguments.write:
         CATALOG.write_text(

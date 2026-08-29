@@ -911,7 +911,57 @@
           "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
           "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc"
         ]
-      }
+      },
+      "attachment_anchors": [
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2372.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc",
+          "sha256": "1a54e29a8632141effba3f0ef8746296ff7e3d625dec35fe3db4ee27b50cec12",
+          "bytes": 30720,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2373.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2373.doc",
+          "sha256": "aa722fccc6be1d1366751f352db3ec81668a8da1958bd9ed7cc8bd94e7d25af5",
+          "bytes": 30208,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2375.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2375.doc",
+          "sha256": "fb20971126df15a7c70340e127e35d25e399917e383fb4c48144f8b99cfdc00a",
+          "bytes": 29184,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3116.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3116.doc",
+          "sha256": "467da8ced71c7fd5ee04c8f3f49125a9ac3692c20dcdb8e4478efce67a5bea5e",
+          "bytes": 35840,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3119.doc",
+          "sha256": "6c9aaed5b7043872b51d4a9df33edcdc4d498f060705a22ac43640fc95155c2e",
+          "bytes": 31232,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        },
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc",
+          "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n3121.doc",
+          "sha256": "6aab76323d0123bd4a4ed7a05894af7588a496c4ee593de625d5731ac5fb3297",
+          "bytes": 56320,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": false
+        }
+      ]
     },
     {
       "id": "ORG-MECH-STATUTE-P3",
@@ -1062,7 +1112,17 @@
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
         ]
-      }
+      },
+      "attachment_anchors": [
+        {
+          "uri": "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx",
+          "path": "config/corpus/attachments/ORG-MOD-ORDER-317__f499126n54.docx",
+          "sha256": "0be50eaef9e67c5c68f1fcb91f71b772f457fb834a7e5a82b5f02dcb6e97b1ed",
+          "bytes": 98419,
+          "captured_on": "2026-08-29",
+          "extractor_supports_format": true
+        }
+      ]
     },
     {
       "id": "ORG-MOD-ORDER-444",

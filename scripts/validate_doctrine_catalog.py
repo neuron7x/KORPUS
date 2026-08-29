@@ -20,6 +20,8 @@ Fail-closed. Any violation is a non-zero exit and the entry is named. The rules:
   8. ids are unique
   9. integrity_anchor, where present, resolves inside the repository and its sha256 matches
  10. content_probe, where present, is self-consistent and source_uri is its richest variant
+ 11. every attachment content_probe declares required is captured in-tree, digest matching,
+     and is honestly marked as to whether this system's extractor can read its format
 
 Rule 9 exists because a source with no publication date and no revision trail (a ministry
 web page) can be silently rewritten. The anchor is a captured snapshot whose digest is
@@ -33,6 +35,15 @@ annexes are reachable only at the /print variant (measured: 548-14 card 725 word
 error. probe_source_content.py measures both variants over the network and records the
 result as content_probe; this rule holds offline that source_uri is the variant that
 measurement found richest, so a later edit cannot quietly point the catalog back at a card.
+
+Rule 11 closes the same failure one level down. The /print page for order №317 is 4790
+words; the roster it exists to publish — 1068 table rows, 13383 words, 1773 distinct MOS
+codes — is a DOCX linked from it. Three quarters of the act's normative content sits in a
+file the page merely mentions. So a declared attachment must be captured in the tree with
+a matching digest, and each capture must say whether this system can actually read it —
+computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES, not from a copy of that
+list. Six of the seven captured attachments are OLE2 .doc, which the extractor does not
+accept; the catalog says so rather than implying the content is available.
 
 Nothing here approves anything. Ingestible means "may be staged"; every source still
 passes through the human review workflow, and an unverified one may not be approved until
@@ -55,6 +66,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.domain.models import AccessTier, AuthorityClass, Classification  # noqa: E402
+from korpus.infrastructure.extraction import SUPPORTED_SUFFIXES  # noqa: E402
 
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 
@@ -70,6 +82,8 @@ class Summary(TypedDict):
     rights_blocked: int
     integrity_anchored: int
     content_probed: int
+    attachments_captured: int
+    attachments_extractor_readable: int
 
 
 class Result(TypedDict):
@@ -89,6 +103,8 @@ EMPTY_SUMMARY: Summary = {
     "rights_blocked": 0,
     "integrity_anchored": 0,
     "content_probed": 0,
+    "attachments_captured": 0,
+    "attachments_extractor_readable": 0,
 }
 
 REQUIRED_FIELDS = (
@@ -176,6 +192,60 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
         _probe_problems(identifier, entry.get("content_probe"), str(entry.get("source_uri", "")))
     )
 
+    # (11) A declared attachment is captured, digest-matched, and honest about its format.
+    problems.extend(
+        _attachment_problems(
+            identifier, entry.get("content_probe"), entry.get("attachment_anchors")
+        )
+    )
+
+    return problems
+
+
+def _required_attachments(probe: object) -> list[str]:
+    if not isinstance(probe, dict):
+        return []
+    required = probe.get("required_attachments")
+    return [str(uri) for uri in required] if isinstance(required, list) else []
+
+
+def _attachment_problems(identifier: str, probe: object, anchors: object) -> list[str]:
+    required = _required_attachments(probe)
+    if anchors is None and not required:
+        return []
+    if not isinstance(anchors, list):
+        return [
+            f"{identifier}: content_probe requires {len(required)} attachment(s) but "
+            "attachment_anchors is absent — the page names content nothing captured"
+        ]
+
+    problems: list[str] = []
+    captured: set[str] = set()
+    for anchor in anchors:
+        if not isinstance(anchor, dict):
+            problems.append(f"{identifier}: an attachment anchor is not an object")
+            continue
+        uri = str(anchor.get("uri", ""))
+        captured.add(uri)
+        target = ROOT / str(anchor.get("path", ""))
+        digest_problems = _anchor_problems(f"{identifier} [{uri}]", anchor)
+        problems.extend(digest_problems)
+        if digest_problems:
+            continue
+        readable = target.suffix.lower() in SUPPORTED_SUFFIXES
+        if bool(anchor.get("extractor_supports_format")) is not readable:
+            problems.append(
+                f"{identifier} [{uri}]: extractor_supports_format claims "
+                f"{anchor.get('extractor_supports_format')!r} but {target.suffix!r} is "
+                f"{'in' if readable else 'not in'} SUPPORTED_SUFFIXES"
+            )
+
+    for uri in required:
+        if uri not in captured:
+            problems.append(
+                f"{identifier}: content_probe requires {uri} but no attachment anchor "
+                "captured it — the source would ingest without the content it points to"
+            )
     return problems
 
 
@@ -300,6 +370,16 @@ def evaluate(catalog: dict[str, object]) -> Result:
         "rights_blocked": len([e for e in dicts if str(e.get("rights_status", "open")) != "open"]),
         "integrity_anchored": len([e for e in dicts if e.get("integrity_anchor")]),
         "content_probed": len([e for e in dicts if e.get("content_probe")]),
+        "attachments_captured": sum(
+            len(e["attachment_anchors"])
+            for e in dicts
+            if isinstance(e.get("attachment_anchors"), list)
+        ),
+        "attachments_extractor_readable": sum(
+            len([a for a in e["attachment_anchors"] if a.get("extractor_supports_format")])
+            for e in dicts
+            if isinstance(e.get("attachment_anchors"), list)
+        ),
     }
     return {
         "status": "PASS" if not problems else "FAIL",
@@ -338,6 +418,10 @@ def main() -> int:
             print(
                 f"  {summary['integrity_anchored']} pinned by an in-tree snapshot digest, "
                 f"{summary['content_probed']} content-probed"
+            )
+            print(
+                f"  {summary['attachments_captured']} attachments captured in-tree, "
+                f"{summary['attachments_extractor_readable']} in a format the extractor reads"
             )
             print(
                 f"  blocked: {summary['blocked']} "
