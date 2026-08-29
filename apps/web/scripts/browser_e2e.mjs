@@ -81,6 +81,12 @@ async function commandOutput(command, args, cwd = ROOT) {
     let out = "", err = "";
     child.stdout.on("data", chunk => { out += chunk; });
     child.stderr.on("data", chunk => { err += chunk; });
+    // A missing binary emits 'error', never 'exit'. Without this listener the promise
+    // never settles and node re-throws the unhandled event, which walks straight past the
+    // caller's try/catch: `git rev-parse` on an image without git took the whole run down
+    // instead of falling back to `gitless_package`, and that fallback was therefore dead
+    // code from the day it was written.
+    child.once("error", reject);
     child.once("exit", code => code === 0 ? resolve(out.trim()) : reject(new Error(err || `${command} exit ${code}`)));
   });
 }

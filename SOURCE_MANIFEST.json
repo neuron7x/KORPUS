@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1290,
-  "root_sha256": "8ffefa441f8c445b814e084e34ca67345c0d6a106c37696883770d205fb90ef2",
+  "root_sha256": "9a9de82605193969becef224dd4e8a09964f103550e3f8ad50a9677a277a2848",
   "files": [
     {
       "path": ".dockerignore",
@@ -4681,8 +4681,8 @@
     },
     {
       "path": "apps/web/scripts/browser_e2e.mjs",
-      "bytes": 31843,
-      "sha256": "78ff524ff87f41ba5780bb8a496a5168c01992d57f52e298c1bd437b8070d249",
+      "bytes": 32276,
+      "sha256": "a07d689a7b44cef3211ec9492e6e4fc96ff0aa6dacee6cdc489876aff9d1d014",
       "mode": "0644"
     },
     {
