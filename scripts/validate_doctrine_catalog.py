@@ -69,6 +69,7 @@ import zipfile
 from datetime import date
 from pathlib import Path
 from typing import TypedDict
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -140,6 +141,9 @@ class Summary(TypedDict):
     rights_blocked: int
     integrity_anchored: int
     content_probed: int
+    sources_without_evidence: int
+    ingestible_without_evidence: int
+    sources_without_uri: int
     attachments_captured: int
     attachments_extractor_readable: int
     attachments_surveyed: int
@@ -163,6 +167,9 @@ EMPTY_SUMMARY: Summary = {
     "rights_blocked": 0,
     "integrity_anchored": 0,
     "content_probed": 0,
+    "sources_without_evidence": 0,
+    "ingestible_without_evidence": 0,
+    "sources_without_uri": 0,
     "attachments_captured": 0,
     "attachments_extractor_readable": 0,
     "attachments_surveyed": 0,
@@ -607,21 +614,75 @@ PROBEABLE_HOSTS = ("zakon.rada.gov.ua",)
 UNDATED_HOSTS = ("mod.gov.ua",)
 
 
+def _host_matches(uri: str, hosts: tuple[str, ...]) -> bool:
+    """Does this URI's host belong to one of these, as a host and not as a substring.
+
+    `any(h in uri for h in hosts)` was wrong in four ways out of seven cases, and only one
+    of them mattered: `https://ZAKON.RADA.GOV.UA/laws/show/548-14` did NOT match, so rule 14
+    could be bypassed by changing the case of the URL. The other three were false positives
+    — the host name appearing in a path, a query parameter, or as a prefix of
+    `zakon.rada.gov.ua.evil.com` — which cost an unnecessary demand for evidence rather than
+    letting a source through unmeasured.
+
+    `hostname` is already lowercase and port-free; `endswith("." + h)` admits real
+    subdomains and rejects a domain that merely starts with the name.
+    """
+    host = (urlsplit(uri).hostname or "").lower()
+    return any(host == known or host.endswith("." + known) for known in hosts)
+
+
 def _mandatory_evidence_problems(entry: dict[str, object]) -> list[str]:
     """(14, per entry) The evidence a source's own host makes possible is not optional."""
     identifier = str(entry.get("id", "<no id>"))
     uri = str(entry.get("source_uri", ""))
     problems: list[str] = []
-    if any(host in uri for host in PROBEABLE_HOSTS) and entry.get("content_probe") is None:
+    if _host_matches(uri, PROBEABLE_HOSTS) and entry.get("content_probe") is None:
         problems.append(
             f"{identifier}: {uri} is measurable by the content probe and carries no "
             "content_probe — an unmeasured source on a probeable host is a gap, not a choice"
         )
-    if any(host in uri for host in UNDATED_HOSTS) and entry.get("integrity_anchor") is None:
+    if _host_matches(uri, UNDATED_HOSTS) and entry.get("integrity_anchor") is None:
         problems.append(
             f"{identifier}: {uri} has no publication date or revision trail and carries no "
             "integrity_anchor — nothing here could notice the page being rewritten"
         )
+    return problems
+
+
+def _ceiling_problems(catalog: dict[str, object], summary: Summary) -> list[str]:
+    """(14, per catalog) The count of sources carrying no evidence at all may not grow.
+
+    The floor is a scalar: it says how many sources carry evidence, never which. Measured
+    2026-08-29, 128 of 168 sources carry no content_probe, no integrity_anchor and no
+    captured attachment — 96 of them ingestible — because their hosts are in neither
+    PROBEABLE_HOSTS nor UNDATED_HOSTS and rule 14 therefore asks them for nothing. Raising
+    the floor does not make those 128 measured.
+
+    Adding armypubs.army.mil and the rest to PROBEABLE_HOSTS is the real repair and it turns
+    the gate red until 57 sources are probed, which is work somebody has to schedule. A
+    ceiling makes the debt visible and stops it growing in the meantime: one more unmeasured
+    source is a verdict, today, without waiting for that work.
+    """
+    declared = catalog.get("evidence_ceiling")
+    if not isinstance(declared, dict):
+        return [
+            "catalog declares no evidence_ceiling — the floor counts evidence that exists "
+            "and never notices a source that carries none, so unmeasured sources grow free"
+        ]
+    problems: list[str] = []
+    for key, maximum in sorted(declared.items()):
+        if key not in summary:
+            problems.append(f"evidence_ceiling names {key!r}, which is not a measured count")
+            continue
+        if not isinstance(maximum, int) or isinstance(maximum, bool):
+            problems.append(f"evidence_ceiling.{key} is not an integer")
+            continue
+        actual = summary[key]  # type: ignore[literal-required]
+        if actual > maximum:
+            problems.append(
+                f"evidence_ceiling.{key}: {actual} is above the recorded ceiling of {maximum} "
+                "— a source carrying no evidence object was added, not measured"
+            )
     return problems
 
 
@@ -696,6 +757,26 @@ def evaluate(catalog: dict[str, object]) -> Result:
         "rights_blocked": len([e for e in dicts if str(e.get("rights_status", "open")) != "open"]),
         "integrity_anchored": len([e for e in dicts if e.get("integrity_anchor")]),
         "content_probed": len([e for e in dicts if e.get("content_probe")]),
+        "sources_without_evidence": len(
+            [
+                e
+                for e in dicts
+                if not e.get("content_probe")
+                and not e.get("integrity_anchor")
+                and not e.get("attachment_anchors")
+            ]
+        ),
+        "ingestible_without_evidence": len(
+            [
+                e
+                for e in dicts
+                if e.get("ingestible")
+                and not e.get("content_probe")
+                and not e.get("integrity_anchor")
+                and not e.get("attachment_anchors")
+            ]
+        ),
+        "sources_without_uri": len([e for e in dicts if not str(e.get("source_uri", "")).strip()]),
         "attachments_captured": sum(
             len(e["attachment_anchors"])
             for e in dicts
@@ -727,6 +808,7 @@ def evaluate(catalog: dict[str, object]) -> Result:
         ),
     }
     problems.extend(_floor_problems(catalog, summary))
+    problems.extend(_ceiling_problems(catalog, summary))
     return {
         "status": "PASS" if not problems else "FAIL",
         "problems": problems,
@@ -764,6 +846,11 @@ def main() -> int:
             print(
                 f"  {summary['integrity_anchored']} pinned by an in-tree snapshot digest, "
                 f"{summary['content_probed']} content-probed"
+            )
+            print(
+                f"  {summary['sources_without_evidence']} carry no evidence object at all "
+                f"({summary['ingestible_without_evidence']} of them ingestible), "
+                f"{summary['sources_without_uri']} have no source_uri"
             )
             print(
                 f"  {summary['attachments_captured']} attachments captured in-tree, "

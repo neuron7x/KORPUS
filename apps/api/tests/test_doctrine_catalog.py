@@ -726,3 +726,65 @@ def test_a_placeholder_survey_is_refused() -> None:
     )
     problems = _validator()._entry_problems(entry)
     assert len([p for p in problems if "unreadable_content_survey" in p]) >= 3, problems
+
+
+def test_the_ceiling_refuses_one_more_unmeasured_source() -> None:
+    """The floor is a scalar: it counts evidence that exists, never notices a source with
+    none. 128 of 168 sources hold no probe, no anchor and no capture — their hosts are in
+    neither list, so rule 14 asks them for nothing and the floor never drops."""
+    catalog = _catalog()
+    donor = next(
+        entry
+        for entry in catalog["sources"]
+        if entry.get("ingestible") and not entry.get("content_probe")
+    )
+    unmeasured = copy.deepcopy(donor)
+    unmeasured["id"] = "TEST-UNMEASURED"
+    for key in ("content_probe", "integrity_anchor", "attachment_anchors"):
+        unmeasured.pop(key, None)
+    catalog["sources"].append(unmeasured)
+
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("above the recorded ceiling" in p for p in result["problems"])
+
+
+def test_a_catalog_with_no_declared_ceiling_is_refused() -> None:
+    catalog = _catalog()
+    catalog.pop("evidence_ceiling")
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("declares no evidence_ceiling" in p for p in result["problems"])
+
+
+def test_deleting_half_the_catalog_is_refused() -> None:
+    """At a floor computed for 84 sources, exactly half of a 168-source catalog could be
+    deleted with the gate still green — 9 content probes and 52 captured attachments gone."""
+    catalog = _catalog()
+    keep = len(catalog["sources"]) // 2
+    catalog["sources"] = catalog["sources"][:keep]
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("below the recorded floor" in p for p in result["problems"])
+
+
+@pytest.mark.parametrize(
+    ("uri", "matches"),
+    [
+        ("https://zakon.rada.gov.ua/laws/show/548-14", True),
+        # The one that mattered: rule 14 was bypassed by changing the case of the URL.
+        ("https://ZAKON.RADA.GOV.UA/laws/show/548-14", True),
+        ("https://zakon.rada.gov.ua:443/laws/show/548-14", True),
+        ("https://www.zakon.rada.gov.ua/laws/show/548-14", True),
+        ("https://zakon.rada.gov.ua.evil.com/laws", False),
+        ("https://evil.com/?u=zakon.rada.gov.ua", False),
+        ("https://evil.com/zakon.rada.gov.ua/laws", False),
+        ("https://mod.gov.ua/pro-nas", False),
+    ],
+)
+def test_host_matching_reads_the_host_not_the_string(uri: str, matches: bool) -> None:
+    """`any(h in uri for h in hosts)` was wrong in four of seven cases. Three were false
+    positives that cost an unnecessary demand for evidence; the fourth let an uppercase
+    host through unmeasured, which is the gate not firing at all."""
+    validator = _validator()
+    assert validator._host_matches(uri, validator.PROBEABLE_HOSTS) is matches

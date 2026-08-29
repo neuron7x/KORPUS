@@ -47,7 +47,13 @@ def _release_evidence_state() -> str:
     # them reports STALE, which reads as "the tree changed" when nothing changed and two
     # different measurements were put side by side. A report that names a different scope
     # is not stale — it is incomparable, and it says so.
-    promoted_scope = assurance.get("digest_scope", DIGEST_SCOPE)
+    # No default. `assurance.get("digest_scope", DIGEST_SCOPE)` assumed an unlabelled report
+    # was measured the way this check measures — the same assumption `host in uri` made, and
+    # it would silently absorb every future report that forgets the field. A third state
+    # instead: a report that does not name its scope cannot be judged, and says so.
+    promoted_scope = assurance.get("digest_scope")
+    if promoted_scope is None:
+        return "SCOPE_UNDECLARED"
     if promoted_scope != DIGEST_SCOPE:
         raise AssertionError(
             f"release evidence is measured over {promoted_scope!r} and this check measures "

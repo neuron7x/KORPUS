@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1345,
-  "root_sha256": "3b5cd5a608481e094d13f8adc8fc50e70922b1361e2a6e83e55438a6c39b746b",
+  "file_count": 1346,
+  "root_sha256": "f95a328aed763bf6131fcde4f3d0894d9112d0e8ed21edbdf2de48008dea126a",
   "files": [
     {
       "path": ".dockerignore",
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 29803,
-      "sha256": "5a84084510e8f61f729a1ec2892a2c9faba35195f4f897a1d2152c66abcddec9",
+      "bytes": 32584,
+      "sha256": "2b5baeda46ea89e7edc9ab62a65000e46bb88d021d90943aa5cfb8bb12d01000",
       "mode": "0644"
     },
     {
@@ -5179,8 +5179,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 406053,
-      "sha256": "c45c59b57b87c7bdf1f5df1e60948786d457e5818a4307a781555aafdad140a7",
+      "bytes": 407150,
+      "sha256": "2849ca8b70ca262f3b295916a3bd96570f5a112ebdbff1e66d3d6be77c5e4379",
       "mode": "0644"
     },
     {
@@ -5288,7 +5288,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 226999,
-      "sha256": "5372d94a89499f50fe0e765f7873cb6d0629646edffb987f425ecf860c32d567",
+      "sha256": "0379d6e31a04d78f84b96db444b54139dd86670f4d55e4e4e181d033343fa8a7",
       "mode": "0644"
     },
     {
@@ -7908,9 +7908,15 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/validate_content_signals.py",
+      "bytes": 8778,
+      "sha256": "5e9e9ad498d6b76c830ed3937b7a7d4728a36b31ecd9333a414e64d35dd835cf",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 34430,
-      "sha256": "674f55821382701d447a30b8b087037d6ebaefc3732bbebd098442db83c879d0",
+      "bytes": 38561,
+      "sha256": "7ac2c480a9cf273c8925a3022a8029d1c170c707cb1a0f1dfbfd2ad6790e7932",
       "mode": "0755"
     },
     {
@@ -7981,8 +7987,8 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 13020,
-      "sha256": "3238b39fa25522cb531a58aa627a36d63e8cda4b038609940f60191868db042f",
+      "bytes": 13432,
+      "sha256": "7b8a534eef78140bfd7439b6d99a54878f791c17f59f101540bcf9fb2f525cdb",
       "mode": "0644"
     },
     {
