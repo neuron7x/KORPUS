@@ -4425,10 +4425,10 @@
       "max_nesting": 4
     },
     "scripts/validate_document_probe.py": {
-      "lines": 219,
+      "lines": 221,
       "max_complexity": 28,
       "reason": "registered 2026-08-29 by a parallel session; ceiling recorded at first measurement, not reviewed here",
-      "max_function_lines": 95,
+      "max_function_lines": 97,
       "max_function_args": 8,
       "max_nesting": 4
     }

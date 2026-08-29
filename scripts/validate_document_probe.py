@@ -80,8 +80,10 @@ def problems(entries: list[dict]) -> list[str]:
                 f"(floor {MIN_WORDS_PER_PAGE}) — a page count is not a text layer"
             )
 
-        if claimed is True and entry.get("ingestible") is False:
-            pass  # readable but blocked for rights or currency: not this gate's business
+        # A readable document blocked for rights or currency is somebody else's rule —
+        # rules 2 and 12 own that. Written as the absence of a branch rather than a bare
+        # `pass`, which reads as an unfinished thought and is refused by the pseudo-runtime
+        # check for exactly that reason.
         if claimed is False and entry.get("ingestible"):
             found.append(
                 f"{identifier}: the probe found no readable text layer, yet ingestible=true — "

@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1406,
-  "root_sha256": "826ba7cc3a08dfe03ab54d13967a9f716c16bacf16beed910644d0c70a6729aa",
+  "root_sha256": "2655870fb6bc1913a144292a316c790130767584f4fe5656dc9eed189d2ca966",
   "files": [
     {
       "path": ".dockerignore",
@@ -175,8 +175,8 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "bytes": 1085,
-      "sha256": "8658ca93ade2a2ae7b3e90641fa2d0085b4509137d3c8e197672982714840a1c",
+      "bytes": 1831,
+      "sha256": "51f5c8b40ab8f1d8c54cd98f841447f70a3fccfd949d7f60482285efb42d6334",
       "mode": "0644"
     },
     {
@@ -5612,7 +5612,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 229077,
-      "sha256": "e3c5d34031218dc05e16a99e6bdd771e949acea8e60b47316528a889d7cd2f06",
+      "sha256": "fdc21fc65655dcfb0055d864f9214c696ed81b1bc7c5e864bf720b891fe5b00b",
       "mode": "0644"
     },
     {
@@ -8257,8 +8257,8 @@
     },
     {
       "path": "scripts/validate_document_probe.py",
-      "bytes": 9778,
-      "sha256": "92f04d92d820a9dd9c82aed36c5eabf9a027eb22df63436ebe0377fc2aba5518",
+      "bytes": 9934,
+      "sha256": "8b6a67be9f08f59c9c1252ebb63d5a71fd0709d605f812a6ca3b0e83776c80fd",
       "mode": "0755"
     },
     {
