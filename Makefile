@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -128,6 +128,17 @@ bootstrap:
 
 eval:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_evals.py
+
+# A measurement, not a gate. The curated catalogue covers 126 modules and reports 100%
+# over itself; 162 modules and 15 853 lines carry no mutant at all, so that number says
+# nothing about them. This samples ordinary operator mutations there — a comparison
+# flipped, a boolean swapped — and reports what the suite kills. Survivors are candidates
+# for the curated catalogue, not defects on their own: an equivalent mutation is always a
+# possible explanation and has to be checked one at a time.
+#   make mutation-probe SAMPLE=60
+mutation-probe:
+	PYTHONPATH=apps/api/src $(PY) scripts/probe_uncatalogued_mutation.py \
+	  $(if $(SAMPLE),--sample $(SAMPLE)) $(if $(SEED),--seed $(SEED))
 
 mutation:
 	PYTHONPATH=apps/api/src PYTHON=$(PY) KORPUS_MUTATION_SHARDS=6 scripts/run_mutation_shards.sh

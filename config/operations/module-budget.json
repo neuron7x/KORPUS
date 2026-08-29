@@ -4338,6 +4338,22 @@
       "max_function_args": 8,
       "max_nesting": 4,
       "reason": "New 2026-08-28: unions SQLite and PostgreSQL branch coverage for the gap plan."
+    },
+    "scripts/compare_sbom_sources.py": {
+      "lines": 108,
+      "max_complexity": 9,
+      "max_function_lines": 61,
+      "max_function_args": 8,
+      "max_nesting": 4,
+      "reason": "New 2026-08-29: lock-SBOM against tree-scan SBOM; unpinned material is the finding."
+    },
+    "scripts/probe_uncatalogued_mutation.py": {
+      "lines": 295,
+      "max_complexity": 12,
+      "max_function_lines": 63,
+      "max_function_args": 8,
+      "max_nesting": 4,
+      "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

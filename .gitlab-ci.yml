@@ -415,9 +415,19 @@ source:sbom:
     # /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/busybox and the
     # binary sits at the root — read from the image config in the registry, after a
     # bare `syft` exited 127 and a `command -v || find` fallback exited 1 under set -e.
-    - /syft dir:. -o cyclonedx-json=source-sbom.cdx.json
+    # Writes its own path, not the committed one. Both files are SBOMs of this tree and
+    # they answer different questions: `source-sbom.cdx.json` is generated from the
+    # dependency locks, is deterministic and is hashed by the source manifest, while this
+    # is a scan of what is actually on disk. Pointing syft at the committed file replaced
+    # it mid-pipeline, and `source:package` then refused the tree with
+    # `source digest mismatch: source-sbom.cdx.json` — the manifest was right and the job
+    # had overwritten the thing it hashed.
+    - /syft dir:. -o cyclonedx-json=var/tree-sbom.cdx.json
+    # The pair is the control: a component in the scan and not in the locks is material
+    # nothing pinned, which neither SBOM can report on its own.
+    - python3 scripts/compare_sbom_sources.py --allow-unpinned
   artifacts:
-    paths: [source-sbom.cdx.json]
+    paths: [var/tree-sbom.cdx.json, var/sbom-comparison.json]
 
 container:build:
   stage: build
