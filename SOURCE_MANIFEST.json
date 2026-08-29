@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1348,
-  "root_sha256": "ad6e94fe8003c8b1f16807ad5951dff59c3974a939450b9250e734d54ac2453c",
+  "file_count": 1400,
+  "root_sha256": "0c5bb7e9cbe8d62ba9b781dc7e44b876063154a23995d981b860a56c223ce784",
   "files": [
     {
       "path": ".dockerignore",
@@ -4998,6 +4998,306 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1296.doc",
+      "bytes": 73728,
+      "sha256": "37670c506275ae5d03c529a104cdce9b2beb93d6241db0aed2aaaaafe17b50a5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1297.doc",
+      "bytes": 76800,
+      "sha256": "9d7d23f815649b8b73b368c718b9b054c9f1ad046567dd45a18839c1625a13c4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1298.doc",
+      "bytes": 38912,
+      "sha256": "c296a48cf4371dccb0ffd40f5563e462972d42083ea2da8f82bde63e51a4231a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1299.doc",
+      "bytes": 38400,
+      "sha256": "a51d1a128dd0275604b54094619b5aaaa0ac9828cd4fd5906431f8b850cbead6",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1300.doc",
+      "bytes": 38912,
+      "sha256": "dcee6827d30a277bedb82666b5e82663a9fa839f82a1453d3aa6282036aae0ed",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1301.doc",
+      "bytes": 35328,
+      "sha256": "ceed431b3d8e30eb099884ebe0ff14c432f7c72924e0e932d01863e887082ce3",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1302.doc",
+      "bytes": 40960,
+      "sha256": "35b8467a7b0c7dbe97fed59752dace746d323ca63d7146d9f8380ba27b6b10cc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1303.doc",
+      "bytes": 44544,
+      "sha256": "5ba94566701e9ad859147bda67ca6be0d26b4288b02ce1d0f8d1c9a5b35996b1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1304.doc",
+      "bytes": 39424,
+      "sha256": "ded0b4b2fea7d895b5ece837478cdaacde0891a4da12916f7190e12ccc07eb35",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1305.doc",
+      "bytes": 50176,
+      "sha256": "ae396ffa2ae3add90627cd0e2a87032af686bef9adc512bb46c3ceb1b413ec59",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1307.doc",
+      "bytes": 39424,
+      "sha256": "827316ce40bcdeb116886bb0ac40c319d34d006d776630e3aff73417c01c9149",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1308.doc",
+      "bytes": 43520,
+      "sha256": "6fd46e80d57b426405290fd925f3db760b5515a064aa0bbd8355047b169d7742",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1310.doc",
+      "bytes": 41472,
+      "sha256": "4ef0ded31fbb053fceb95b2d67b2b8437c70724a1a89029f6044d97953a63766",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1311.doc",
+      "bytes": 41984,
+      "sha256": "de28e718d099385dfe041867833f9945d61ce8eba28a2374851a1c84086a91bf",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1312.doc",
+      "bytes": 68608,
+      "sha256": "8b8daa634afedcbcfde9b853badf5346e0d05d5eb56e609c9cc8defe9d63523e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1313.doc",
+      "bytes": 44544,
+      "sha256": "d29fd752a906d3f45135dfaf3378b919ef67682f5d72905a0bba0628f8ecdd4a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1314.doc",
+      "bytes": 34816,
+      "sha256": "675bea1599d7dd4e77c0075b2496314797da48bf1510533d03bc55612109cbb2",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1315.doc",
+      "bytes": 94208,
+      "sha256": "ba3e04bc73db3965143c391f483ae666a9c6a27d1f39f79ff14ea5dc49513c39",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1316.doc",
+      "bytes": 35328,
+      "sha256": "e36862ac25717e7ae482f1c520e91942149b8588abb20881cdb834f351f0e674",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1317.doc",
+      "bytes": 38912,
+      "sha256": "9c9a91c6db7fd48d4f2e5c1afbd15dabfd91f5e81e80ae251f3d3d85a538167e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1318.doc",
+      "bytes": 38400,
+      "sha256": "63e22e9d5dc6ac63e41486669c2de7f49cc3ca5358db936de85eee0d83c1b0c6",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1319.doc",
+      "bytes": 30208,
+      "sha256": "4683b908d3be0beeae1fb82bbbe7aec7f3cf7eee6d3e0cd44772dfb88b07cbab",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1320.doc",
+      "bytes": 37376,
+      "sha256": "ff4955a3e268f34f630e7396846834b9b909b68aba132e1bf804b991c37b07dc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1322.doc",
+      "bytes": 47616,
+      "sha256": "6a1c0cdb77ff3f87b02ce8362f96835073608b8e335bd5de280609c18da824e5",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1323.doc",
+      "bytes": 46592,
+      "sha256": "e67572fb9aec3a054320b4400f117a7ff4b4607c4edba4f42982d8fbb481536c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1333.doc",
+      "bytes": 68096,
+      "sha256": "925c0b62758231d575f457b212ab89264df4cc05d73217d2a891c5368e9c7efb",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1338.doc",
+      "bytes": 140800,
+      "sha256": "e52dcfc5ffd019a534ab54aae09727f045ccb67667e172b5ce68817f3e2fd29f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1339.doc",
+      "bytes": 48640,
+      "sha256": "b2376accf76df02c9000e65089ab386bf5569fd240b62f7df26d4ca9cad51816",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1341.doc",
+      "bytes": 66048,
+      "sha256": "0d88a0a282337ede6fe7c4462fac670db278a888e80b2e84d88e309525234516",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1342.doc",
+      "bytes": 67584,
+      "sha256": "a1629f85be620d0dcf20eec369bfb5820688382b5d95d2a88d9fe4062724df72",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1343.doc",
+      "bytes": 50176,
+      "sha256": "f05eda6106bb370e2415db0542fdc3a7c5f6ebe5678aa436f7fdc29ff21103f7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1344.doc",
+      "bytes": 62464,
+      "sha256": "0b683c31550a6691fa0ff62321be5e6614592c7a2b5de4712166c9f488365535",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1345.doc",
+      "bytes": 53760,
+      "sha256": "b4950cffe38d813847c9478624667b2daaeaa1da787ce7888fa16fe194823c62",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1347.doc",
+      "bytes": 48128,
+      "sha256": "9bcad3cf2108656bd5c90c39adb804a8eadadd4027a4e6f40910571469a47823",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1349.doc",
+      "bytes": 35328,
+      "sha256": "cd3508c4275e3bf26d45a81907bd7e12f3693162bd66141ab7e2c7db6c782829",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/ARM-MVS-1313-2016__f464655n1350.doc",
+      "bytes": 27648,
+      "sha256": "24858dc049d51e3281aa5a46bcbc17a57fcff191ef94f1e3c71e9bde0fea8ad7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n126.docx",
+      "bytes": 15994,
+      "sha256": "30b016726aa14e87b8244e4068f4f5ee55218c771a7eb21d4e177f4913c8bb3b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n127.docx",
+      "bytes": 21489,
+      "sha256": "33b11fcfd628debdca9867d7c2b5a4628b0c0d9ba8ac467cde01cbd1c5f07207",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n128.docx",
+      "bytes": 19384,
+      "sha256": "ca6895fceb52aa9cf4a705c1fa1980aa82379347f616dfe3f874652b5a75671b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n129.docx",
+      "bytes": 21915,
+      "sha256": "ad7c69d0112a76c1844247e686b9613145946ca6dc988b681c9b5d88512aef5a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n130.docx",
+      "bytes": 20472,
+      "sha256": "2e1218c909201cfd6e8d0cd4388839691e1a6cf6ed9656e8d15d7b9213c780c8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n131.docx",
+      "bytes": 17611,
+      "sha256": "d3fe28104e3e7d4d14d29b9a023b8806965607c3b53c49b389e24bc05d760b5b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n132.docx",
+      "bytes": 19948,
+      "sha256": "2b9eebaf0c4c221bd6b39d31cd6ce37c09a7125891779f29edd0433680f680fa",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n133.docx",
+      "bytes": 17445,
+      "sha256": "74e52661c677ad5e24f7673de61631f7131116a8a1ad789c89a1ec8d45d31892",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n134.docx",
+      "bytes": 19649,
+      "sha256": "07b7653ce72273f9dfa2de78aa435c2fce9a251c4f3c19bd5d90c93180f9aafd",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n135.docx",
+      "bytes": 19621,
+      "sha256": "4cd7b280a91db837fc315832fc14a44651e335cde4ffe4764f3ee3e29522ac09",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n136.docx",
+      "bytes": 19983,
+      "sha256": "3f1cf79bb15fdec5c0b6d60e5d195f10f49924fcf99d56ba5c72a77dee453793",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n138.docx",
+      "bytes": 32879,
+      "sha256": "66308a73d9b15d1aa8b7d3481613820975e81aa1e750b35bfbc92eaf4f765f4c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n139.docx",
+      "bytes": 20909,
+      "sha256": "e7821cc9bcf67afee17bc0cd57caaad0cf4ab32738b753856776ee6b0927b3af",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/MED-MOU-516-2025__f548532n140.docx",
+      "bytes": 175189,
+      "sha256": "b922b7385cf51f1eb3f1b0155e83d09f946d47e92ee5a51e0e6e337b46cf87bf",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc",
       "bytes": 30720,
       "sha256": "1a54e29a8632141effba3f0ef8746296ff7e3d625dec35fe3db4ee27b50cec12",
@@ -5178,6 +5478,18 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/attachments/SIG-KMU-1340-2023__f531833n287.docx",
+      "bytes": 72868,
+      "sha256": "d0d5ba70406f86fd42771e93cfce905114a54c6f66d1482692f5fdbd9d11bc51",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/attachments/SIG-KMU-1340-2023__f531833n453.docx",
+      "bytes": 113092,
+      "sha256": "c727dd905b6a8cb6e8ea3372dd6bf16d8e8dd393100f7ed3b553b746dcbde4a5",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/doctrine_catalog_2026.candidate2.json",
       "bytes": 112738,
       "sha256": "d77ed7e2c41da0a1083d09bc89d2886aa2501954e45c21da6e3002093e3917a0",
@@ -5293,8 +5605,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 228161,
-      "sha256": "39a094ddffdde820b67e10818fd2c0ffe40c4f1d6e994bb750918632bf4abfa6",
+      "bytes": 228162,
+      "sha256": "1e0d898f5a5ae1c9cf1cbccc5cc1a0e5ae3a9d985b5e1b69f77c16f815f6d243",
       "mode": "0644"
     },
     {
@@ -7915,8 +8227,8 @@
     },
     {
       "path": "scripts/validate_content_signals.py",
-      "bytes": 10937,
-      "sha256": "c62fd93eaac0b3d1bd08fef834ac928d4b57c3213995812dc0f75f1d20cbdf80",
+      "bytes": 13513,
+      "sha256": "f91e42c538d9f037caadffbe52a655f9e0fdc67cc9f059a47bf8d252e651a3da",
       "mode": "0755"
     },
     {

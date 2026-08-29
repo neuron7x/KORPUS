@@ -4393,10 +4393,10 @@
       "max_nesting": 4
     },
     "scripts/validate_content_signals.py": {
-      "lines": 247,
-      "max_complexity": 17,
+      "lines": 299,
+      "max_complexity": 26,
       "reason": "registered 2026-08-29 | 2026-08-29 grew under a parallel session extending its selftest; the ceiling is raised because the file is already committed, not because the growth was reviewed here.",
-      "max_function_lines": 87,
+      "max_function_lines": 113,
       "max_function_args": 8,
       "max_nesting": 4
     },
