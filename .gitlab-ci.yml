@@ -107,6 +107,7 @@ repository:validate:
     - PYTHONPATH=apps/api/src python scripts/validate_content_signals.py
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
+    - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py
     - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT

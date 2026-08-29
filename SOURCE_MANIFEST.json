@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1404,
-  "root_sha256": "885a00979d13d2882c7dccc99e8d0e58b387618358ee2ef10e0f5ced8784b9a7",
+  "file_count": 1406,
+  "root_sha256": "826ba7cc3a08dfe03ab54d13967a9f716c16bacf16beed910644d0c70a6729aa",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36472,
-      "sha256": "c718b9ed75b3bd9fb2e628e7ef0f309291771ff1865331de995c19c48c2f5360",
+      "bytes": 36544,
+      "sha256": "48787e2411953ba33d8f6ee200fd8f6f266d4b58a7835f087feb808dd972d09d",
       "mode": "0644"
     },
     {
@@ -5606,7 +5606,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "8af1b69181b3c74d6780ee43b73cdaa6d8d6cc7b10b534b6e933a782eb612861",
+      "sha256": "468c0a7948fbdd2afc465daf0398feb02a270197fed0615887329e3e1c1e4b8c",
       "mode": "0644"
     },
     {
@@ -7560,6 +7560,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/guarded_commit.sh",
+      "bytes": 1595,
+      "sha256": "946602d0522f039243ca5a053c99531d69c64a580f06cf7917b3247ec5c33ae5",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/import_corpus.py",
       "bytes": 17653,
       "sha256": "f5fe872abe95d9785cfd8d3b119c266c2a76566e930f64d5b087d53ed3d111f7",
@@ -8247,6 +8253,12 @@
       "path": "scripts/validate_doctrine_catalog.py",
       "bytes": 45801,
       "sha256": "d762005cc7a01ca7ecec91e806f8879981f9fe5d0a632e31946e0f6fd3607ce4",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/validate_document_probe.py",
+      "bytes": 9778,
+      "sha256": "92f04d92d820a9dd9c82aed36c5eabf9a027eb22df63436ebe0377fc2aba5518",
       "mode": "0755"
     },
     {

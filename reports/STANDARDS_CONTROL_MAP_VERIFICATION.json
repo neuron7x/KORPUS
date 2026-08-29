@@ -2,7 +2,7 @@
   "schema": "korpus.standards-control-map-verification.v2",
   "status": "PASS",
   "release": "v0.9.7",
-  "source_tree_sha256": "6aff39572c8305e9bf02c98d951d8d34bf6a1b430a2c4e9bcc15476472139232",
+  "source_tree_sha256": "ff35d953998ebf7d197b159eb6b0fedc5a304f43f67a4969f097f0dd6321edf6",
   "references": 15,
   "controls": 12,
   "executable_controls": 10,
