@@ -66,11 +66,23 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
     return sorted(set(files), key=lambda path: path.relative_to(root).as_posix())
 
 
+#: What this digest covers. Two digests exist in this repository and both were written into
+#: a field called `source_tree_sha256`: this one over EVIDENCE_SOURCE_PATHS, and
+#: scripts/source_digest over the whole tracked tree minus reports/var/dist. A report signed
+#: by one and checked against the other reads as "unbound", which says the tree changed when
+#: what actually happened is that two different measurements were compared. Carrying the
+#: scope makes that failure name itself.
+DIGEST_SCOPE = "evidence_paths"
+
+
 def compute_source_digest(root: Path, sources: Iterable[str] = EVIDENCE_SOURCE_PATHS) -> str:
     """Digest the evidence-bearing source surface of a working tree.
 
     Length-prefixed path and content are both fed to the hash so that moving a
     byte from a file name into its content cannot produce the same digest.
+
+    Scope is DIGEST_SCOPE. It is NOT the whole tree — see scripts/source_digest for that,
+    and never compare the two.
     """
 
     hasher = hashlib.sha256()

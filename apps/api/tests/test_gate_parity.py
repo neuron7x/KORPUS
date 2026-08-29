@@ -1865,9 +1865,72 @@ def test_the_source_manifest_takes_path_parity_from_the_tree_not_itself() -> Non
 
 
 def test_the_handoff_refuses_unbound_release_evidence() -> None:
-    """UNAVAILABLE and STALE were both printed beside status: PASS and never asserted on."""
+    """UNAVAILABLE and STALE were both printed beside status: PASS and never asserted on.
+
+    The refusal lives on the release path, not the code path: BOUND needs the full evidence
+    cycle including the PostgreSQL recovery drill, which only CI runs. Demanding it from
+    `make validate` would make the code gate unpassable without a database, and a gate
+    nobody can pass gets deleted rather than satisfied.
+    """
     source = (ROOT / "scripts/verify_handoff_contract.py").read_text(encoding="utf-8")
     assert 'release_evidence != "BOUND"' in source
+    assert "--require-bound" in source
+
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    assert "handoff-verify-bound" in _makefile_prerequisites("release"), (
+        "the release path no longer refuses release evidence bound to another tree"
+    )
+    assert "--require-bound" in makefile
+
+
+def test_two_source_digests_exist_and_are_not_interchangeable() -> None:
+    """scripts/source_digest and korpus.application.provenance both write the field name
+    `source_tree_sha256`, and they measure different things.
+
+    source_digest covers the whole tracked tree minus reports/var/dist; provenance covers
+    twenty declared paths that can affect evidence. Both are deliberate. The hazard is the
+    shared field name: a report signed by one and checked against the other is unbound for
+    a reason that has nothing to do with the tree changing. This pins the fact so a future
+    reader does not treat a mismatch as corruption.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, str(ROOT / "scripts"))
+    _sys.path.insert(0, str(ROOT / "apps/api/src"))
+    from korpus.application.provenance import compute_source_digest
+    from source_digest import source_tree_digest
+
+    whole = source_tree_digest()
+    evidence = compute_source_digest(ROOT)
+    assert whole != evidence, (
+        "the two digests now agree; if that is intentional, one of them is redundant "
+        "and the duplicate definition should go"
+    )
+
+    # The fix is not the test: each module names its own scope, so a comparison across
+    # them can refuse by name instead of reporting a tree change that did not happen.
+    from korpus.application.provenance import DIGEST_SCOPE as evidence_scope
+    from source_digest import DIGEST_SCOPE as tracked_scope
+
+    assert tracked_scope == "tracked_tree"
+    assert evidence_scope == "evidence_paths"
+    assert tracked_scope != evidence_scope
+
+
+def test_the_handoff_refuses_a_digest_from_the_other_scope() -> None:
+    """A report signed over evidence_paths and checked against tracked_tree is not stale.
+
+    It is incomparable. Reporting STALE there says "the tree changed" about a tree that did
+    not change — the failure mode that cost several hours on 2026-08-29 before the two
+    measurements were noticed.
+    """
+    source = (ROOT / "scripts/verify_handoff_contract.py").read_text(encoding="utf-8")
+    assert "digest_scope" in source
+    assert "not comparable" in source
+    # Scope is checked before the hash: an incomparable report must not fall through to STALE.
+    scope_at = source.index("promoted_scope")
+    stale_at = source.index('"BOUND" if source_tree_digest()')
+    assert scope_at < stale_at, "the scope check runs after the comparison it should prevent"
 
 
 def test_an_empty_control_map_does_not_verify() -> None:

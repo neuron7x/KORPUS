@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Digest the complete release source tree, excluding generated evidence."""
+"""Digest the complete release source tree, excluding generated evidence.
+
+Scope is DIGEST_SCOPE below. This is NOT the same measurement as
+korpus.application.provenance.compute_source_digest, which covers twenty declared
+evidence-bearing paths. Both were written into a field named `source_tree_sha256`, so a
+report signed by one and verified against the other fails as "unbound" — a message about
+the tree changing, when the tree did not change and two different scopes were compared.
+Carry `digest_scope` beside the value and compare scopes before hashes.
+"""
 
 from __future__ import annotations
 
@@ -9,6 +17,7 @@ import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+DIGEST_SCOPE = "tracked_tree"
 EXCLUDED_PREFIXES = ("reports/", "handoff/evidence/", "dist/", "var/")
 EXCLUDED_FILES = {"SOURCE_MANIFEST.json", "DISTRIBUTION_MANIFEST.json", "REPOSITORY_MANIFEST.json"}
 

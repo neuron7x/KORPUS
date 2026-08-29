@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1343,
-  "root_sha256": "d59aba463de3b5456febbd369f4daad9b7fb663a3a370771ba24f6e4bc3b146b",
+  "file_count": 1345,
+  "root_sha256": "3b5cd5a608481e094d13f8adc8fc50e70922b1361e2a6e83e55438a6c39b746b",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36099,
-      "sha256": "dea4a88d5b67f02e503824ccd8f4575f26811e5f494b3932081526280caa1191",
+      "bytes": 36355,
+      "sha256": "691fbb58eb5f1587cbec7a2d2d5a4b3d8516652f3e370cce69081d086d08e6eb",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 40904,
-      "sha256": "b253b4670c893a51ab4eb02dfd45d1a531f27ad904c3fa4fee4e5ddb6d823bb0",
+      "bytes": 41972,
+      "sha256": "d192dff73bf5b72b0146399cafa1fccec11d6d17e7e96b2f49e772d2d3d3e766",
       "mode": "0644"
     },
     {
@@ -1495,8 +1495,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/provenance.py",
-      "bytes": 7018,
-      "sha256": "895818944a9b3531550a63e7ddfc165b1aa0b6558ee1b491d40bb5ad8639c807",
+      "bytes": 7665,
+      "sha256": "5232985221dba4e1b156063e05153525df8d2a8489050839e3f91fbaa3aa4eb3",
       "mode": "0644"
     },
     {
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 88906,
-      "sha256": "9d0f54675ea1d4ace9975db0d31639e060336aa9c9bbd2c0e85484329d9721f5",
+      "bytes": 91960,
+      "sha256": "6b24cd1a1ca444f8bd2c1600c51d46c662646430e8c09b6e8d59d14e2d74e61e",
       "mode": "0644"
     },
     {
@@ -4896,6 +4896,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/assurance/production-predicate-floor.json",
+      "bytes": 484,
+      "sha256": "5516aa32234b9754fe069cb65a59c7b348601982003fea710ed5c4ef4c352de5",
+      "mode": "0644"
+    },
+    {
       "path": "config/assurance/production-v1.json",
       "bytes": 979,
       "sha256": "c1a1ccbfad28bd69eb90580ac8560dfaa521a131b7ef0080c08925f224214909",
@@ -5173,8 +5179,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 124478,
-      "sha256": "d8dc69de7d6e0f2688651ab76e253e99a03216063057ef6b2793986de785eb93",
+      "bytes": 406053,
+      "sha256": "c45c59b57b87c7bdf1f5df1e60948786d457e5818a4307a781555aafdad140a7",
       "mode": "0644"
     },
     {
@@ -5276,13 +5282,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "b4cc6f333fc90756221bc3a80d130122ad724d1f8274a89c262fe52f122bac34",
+      "sha256": "469657e19a181f994e796384f139cf09d3f359fd5473b0f233527f2daf488f46",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 226773,
-      "sha256": "58f80b3c43f4458becd8061a2a6597a4b195165d023f5043cd64812100aaf3bb",
+      "bytes": 226999,
+      "sha256": "5372d94a89499f50fe0e765f7873cb6d0629646edffb987f425ecf860c32d567",
       "mode": "0644"
     },
     {
@@ -7867,8 +7873,14 @@
     },
     {
       "path": "scripts/source_digest.py",
-      "bytes": 3071,
-      "sha256": "c4d3b6b6ce147f87bda66526812a7b3a13003ec364dd9969db65d9fec69e9ae3",
+      "bytes": 3589,
+      "sha256": "1f795ca4b360f729319896ad285cb18d9fab9007bf4a045ed0952bd148fbd1c0",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/stage_doctrine_corpus.py",
+      "bytes": 10245,
+      "sha256": "4150946a6807487629cbcfbdd02cc308989493fd852059e3ac6b021017419eeb",
       "mode": "0755"
     },
     {
@@ -7969,8 +7981,8 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 11666,
-      "sha256": "f800d307ba61471411b3a8bc7c00acae4222c58e3b8548bc3baef6694198959e",
+      "bytes": 13020,
+      "sha256": "3238b39fa25522cb531a58aa627a36d63e8cda4b038609940f60191868db042f",
       "mode": "0644"
     },
     {

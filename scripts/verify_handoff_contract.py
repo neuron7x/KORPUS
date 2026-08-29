@@ -15,7 +15,7 @@ from korpus.application.calibration import CalibrationProfile
 from korpus.application.retrieval import AUTHORITY_PRIOR, BM25Parameters, RetrievalWeights
 from korpus.config import Settings
 from release_identity import release_tag
-from source_digest import source_tree_digest
+from source_digest import DIGEST_SCOPE, source_tree_digest
 
 ROOT = Path(__file__).resolve().parents[1]
 HANDOFF = ROOT / "handoff" / "machine"
@@ -42,6 +42,18 @@ def _release_evidence_state() -> str:
     promoted_digest = assurance.get("source_tree_sha256")
     if promoted_digest is None:
         raise AssertionError("release evidence has no source-tree binding")
+    # Scope before hash. Two digests in this repository share the field name
+    # `source_tree_sha256`: tracked_tree (this one) and evidence_paths. Comparing across
+    # them reports STALE, which reads as "the tree changed" when nothing changed and two
+    # different measurements were put side by side. A report that names a different scope
+    # is not stale — it is incomparable, and it says so.
+    promoted_scope = assurance.get("digest_scope", DIGEST_SCOPE)
+    if promoted_scope != DIGEST_SCOPE:
+        raise AssertionError(
+            f"release evidence is measured over {promoted_scope!r} and this check measures "
+            f"{DIGEST_SCOPE!r} — the two digests are not comparable, and a mismatch between "
+            "them says nothing about whether the tree changed"
+        )
     return "BOUND" if source_tree_digest() == promoted_digest else "STALE"
 
 
@@ -231,4 +243,16 @@ def verify(*, require_bound: bool = True) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    print(json.dumps(verify(), ensure_ascii=False, indent=2, sort_keys=True))
+    # BOUND is a release property, not a property of the code. It requires the full
+    # evidence cycle including the PostgreSQL recovery drill, which only CI runs, so
+    # demanding it from `make validate` would make the code gate unpassable on a
+    # developer machine — and a gate nobody can pass gets removed, not satisfied.
+    # `make release` and canonical-release-cycle pass --require-bound; validate does not.
+    print(
+        json.dumps(
+            verify(require_bound="--require-bound" in sys.argv),
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+    )

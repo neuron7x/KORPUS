@@ -1570,7 +1570,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/provenance.py": {
-      "lines": 176,
+      "lines": 188,
       "max_complexity": 9,
       "max_function_lines": 60,
       "max_function_args": 8,
@@ -4044,7 +4044,7 @@
       "max_nesting": 4
     },
     "scripts/source_digest.py": {
-      "lines": 83,
+      "lines": 92,
       "max_complexity": 10,
       "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest",
       "max_function_lines": 60,
@@ -4166,7 +4166,7 @@
       "max_nesting": 4
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 234,
+      "lines": 258,
       "max_complexity": 43,
       "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused | 2026-08-29 +3 lines: release_evidence is now asserted on. UNAVAILABLE and STALE were both printed beside status: PASS and never checked, so the first target of `make validate` was green with the release evidence absent entirely and green with it describing a different tree.",
       "max_function_lines": 183,
@@ -4389,6 +4389,14 @@
       "max_complexity": 14,
       "reason": "registered 2026-08-29: catalog→corpus staging bridge and the gate hardening an adversarial pass required",
       "max_function_lines": 76,
+      "max_function_args": 8,
+      "max_nesting": 4
+    },
+    "scripts/validate_content_signals.py": {
+      "lines": 212,
+      "max_complexity": 17,
+      "reason": "registered 2026-08-29",
+      "max_function_lines": 70,
       "max_function_args": 8,
       "max_nesting": 4
     }
