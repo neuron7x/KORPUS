@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: content-signals deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: content-signals remote-digest deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -272,6 +272,15 @@ content-signals:
 	$(PY) scripts/validate_content_signals.py
 	$(PY) scripts/validate_content_signals.py --selftest
 
+# Evidence for an artifact too large for the tree: sha256 of the first and last 64 KB plus
+# Content-Length. Rechecking costs 128 KB, so a third party can actually contradict it —
+# which an integrity_anchor with no file never could. Kept as its OWN axis: it proves the
+# artifact existed and was this one, and says nothing about its content, so it must never
+# be folded into content_probe or attachments_captured.
+remote-digest:
+	$(PY) scripts/validate_remote_digest.py
+	$(PY) scripts/validate_remote_digest.py --selftest
+
 # Not a gate: it needs the network, so it can never run in CI. It measures what each
 # zakon.rada URL actually returns — the card variant carries the act's title and none of
 # its text — and records the measurement as content_probe. doctrine-catalog then holds
@@ -424,7 +433,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals github-actions-validate production-hard-predicates
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py

@@ -13,7 +13,10 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${1:-${TMPDIR:-/tmp}/korpus-clean-clone-$$}"
-TARGETS="${GATES:-validate}"
+# `validate` alone leaves the tests out, and a fixture or test datum that exists only in
+# the working tree would pass it. api-test is the cheapest target that reads those files.
+# mutation stays out on purpose: eleven minutes per commit does not pay for itself here.
+TARGETS="${GATES:-validate api-test}"
 
 rm -rf "$TARGET"
 git clone --quiet --no-local "$ROOT" "$TARGET"

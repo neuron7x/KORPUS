@@ -73,6 +73,8 @@ from pathlib import Path
 from typing import TypedDict
 from urllib.parse import urlsplit
 
+from iso_dates import iso_date
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
@@ -337,7 +339,7 @@ def _freshness_problems(identifier: str, probed_on: object) -> list[str]:
     if not isinstance(probed_on, str):
         return [f"{identifier}: records no probe date"]
     try:
-        taken = date.fromisoformat(probed_on)
+        taken = iso_date(probed_on)
     except ValueError:
         return [f"{identifier}: content_probe.probed_on {probed_on!r} is not a date"]
     age = (date.today() - taken).days

@@ -2117,3 +2117,58 @@ def test_only_one_definition_of_what_a_source_is() -> None:
     )
     source = (ROOT / "scripts/source_digest.py").read_text(encoding="utf-8")
     assert "EXCLUDED_PREFIXES" not in source, "the second exclusion list is back"
+
+
+def test_every_ukrainian_apostrophe_tokenizes_the_same() -> None:
+    """zakon.rada publishes U+2019; a phone keyboard emits U+0027.
+
+    Measured 2026-08-29: "обов'язки чатового" with the ASCII apostrophe returned four
+    citations, none about a sentry, while the same question with the typographic one found
+    the article that defines the duty. A soldier does not choose which apostrophe his
+    keyboard produces, and neither does the corpus.
+    """
+    from korpus.application.retrieval_math import tokenize
+
+    spellings = ["обов'язки", "обов’язки", "обовʼязки", "обов‘язки"]
+    tokenized = {tuple(tokenize(word)) for word in spellings}
+    assert len(tokenized) == 1, f"apostrophe variants tokenize differently: {tokenized}"
+
+    for base in ("зв'язку", "здоров'я", "об'єкт"):
+        typographic = base.replace("'", "’")
+        assert tokenize(base) == tokenize(typographic), base
+
+
+def test_function_words_do_not_carry_coverage() -> None:
+    """A question is three or four words, so one match is a third of the coverage.
+
+    "як налаштувати wifi-роутер" was answered on the strength of "як" alone appearing in
+    four unrelated citations, each clearing the 0.25 threshold. This does not make coverage
+    a measure of relevance — no threshold on it separates valid from invalid, which is a
+    separate finding — it removes the cheapest way to reach one without saying anything.
+    """
+    from korpus.application.retrieval_math import tokenize
+
+    for question, forbidden in (
+        ("як налаштувати wifi-роутер", "як"),
+        ("які виплати належать при пораненні", "при"),
+        ("яка ставка податку на прибуток", "на"),
+        ("хто такий начальник зв'язку", "хто"),
+    ):
+        assert forbidden not in tokenize(question), (
+            f"{forbidden!r} still carries coverage in {question!r}"
+        )
+    # And the content words survive: stripping too much would refuse valid questions.
+    assert "налашт" in tokenize("як налаштувати wifi-роутер")
+    assert "пораненн" in tokenize("які виплати належать при пораненні")
+
+
+def test_bulk_approval_failure_does_not_end_the_run() -> None:
+    """The ingest loop has carried a broad except since a PdfReadError ended a
+    1740-document run at 918. Approval did not: the first undated document raised through
+    main, and with 132 of 151 documents undated that first one comes early — the run died
+    with the database half filled and no report."""
+    source = (ROOT / "scripts/import_corpus.py").read_text(encoding="utf-8")
+    approval = source[source.index("if arguments.approve_as:") :]
+    approval = approval[: approval.index("    finally:")]
+    assert "try:" in approval, "bulk approval runs without a failure boundary"
+    assert "record_approval_refusal" in approval, "an approval refusal is not recorded"

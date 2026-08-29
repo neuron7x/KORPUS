@@ -989,3 +989,35 @@ def test_a_suffix_this_gate_cannot_inspect_is_refused() -> None:
         assert any("cannot inspect" in p for p in problems), problems
     finally:
         fake.unlink()
+
+
+@pytest.mark.parametrize(
+    ("written", "accepted"),
+    [
+        ("2026-08-29", True),
+        # The most common way to write when a measurement was taken. date.fromisoformat
+        # refuses it and said "is not an ISO date", which sends the reader to look for a
+        # defect in the data rather than in the parser.
+        ("2026-08-29T10:00:00", True),
+        ("2026-08-29T10:00:00+00:00", True),
+        # Both name a real day and neither is written by any probe here: their appearance
+        # is a data error, and silently accepting them hid that.
+        ("20260829", False),
+        ("2026-W35-6", False),
+        ("не дата", False),
+    ],
+)
+def test_the_same_moment_written_differently(written: str, accepted: bool) -> None:
+    """An equivalent-input probe, not a poison: every live date in the catalog is
+    YYYY-MM-DD, so no corruption of the data could have exposed this. Only the same moment
+    written another way could."""
+    import sys as _sys
+
+    _sys.path.insert(0, str(ROOT / "scripts"))
+    from iso_dates import iso_date
+
+    if accepted:
+        assert iso_date(written).isoformat() == "2026-08-29"
+    else:
+        with pytest.raises(ValueError):
+            iso_date(written)

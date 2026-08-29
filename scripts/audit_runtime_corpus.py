@@ -129,6 +129,19 @@ def audit(
         checks["referenced_object_hashes_valid"] = not objects["sha256_mismatches"]
     blockers = [name for name, passed in checks.items() if not passed]
     report = _report(database, checks, counts, reference, blockers)
+    # Stated in the body, deliberately NOT in `checks`. Every entry there is a predicate
+    # whose False becomes a blocker, so putting this among them made "the semantic index is
+    # populated" the failing case — the exact inversion this file spent the day catching
+    # elsewhere. `require_embeddings` defaults to False, so a corpus whose semantic index
+    # was never filled reported no problem at all and every answer came from word matching
+    # with nothing saying so. Measured 2026-08-29: 7608 spans, 0 embeddings, and the system
+    # answered "what is the corporate tax rate in 2019" with four verbatim citations —
+    # "Ставка" in "Ставка Верховного Головнокомандувача" is a homonym no word index can see.
+    # The defect is not a threshold. It is retrieval that reads letters rather than meaning,
+    # and a reader is entitled to know which of the two answered them.
+    report["retrieval_mode"] = (
+        "lexical_only" if counts["span_embeddings"] == 0 else "lexical_and_semantic"
+    )
     report["object_store"] = objects
     return report
 

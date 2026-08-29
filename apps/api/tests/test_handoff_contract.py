@@ -79,8 +79,18 @@ def test_complete_release_evidence_from_another_digest_is_stale(tmp_path: Path) 
     module.source_tree_digest = lambda: "b" * 64
     reports = tmp_path / "reports"
     reports.mkdir()
+    # digest_scope is required now: a report that does not name what it measured cannot be
+    # compared with anything, and the checker returns SCOPE_UNDECLARED rather than assuming
+    # its own scope. STALE is the verdict for a report measured the same way and no longer
+    # matching — which needs the label to be established first.
     (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text(
-        json.dumps({"status": "PASS", "source_tree_sha256": "a" * 64}),
+        json.dumps(
+            {
+                "status": "PASS",
+                "source_tree_sha256": "a" * 64,
+                "digest_scope": module.DIGEST_SCOPE,
+            }
+        ),
         encoding="utf-8",
     )
     (reports / "OPERATIONAL_GATE.json").write_text(
@@ -88,3 +98,29 @@ def test_complete_release_evidence_from_another_digest_is_stale(tmp_path: Path) 
     )
 
     assert module._release_evidence_state() == "STALE"
+
+
+def test_release_evidence_that_names_no_scope_cannot_be_judged(tmp_path: Path) -> None:
+    """Two digests in this repository write the same field name over different scopes.
+
+    An unlabelled report used to be compared as if measured this way, which reported STALE —
+    "the tree changed" — about a report that may have been measured with the other ruler
+    entirely. A third state says what is true: this cannot be judged.
+    """
+    script = ROOT / "scripts" / "verify_handoff_contract.py"
+    spec = importlib.util.spec_from_file_location("verify_handoff_contract_unlabelled", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.ROOT = tmp_path
+    module.source_tree_digest = lambda: "b" * 64
+    reports = tmp_path / "reports"
+    reports.mkdir()
+    (reports / "RESEARCH_ASSURANCE_REPORT.json").write_text(
+        json.dumps({"status": "PASS", "source_tree_sha256": "a" * 64}), encoding="utf-8"
+    )
+    (reports / "OPERATIONAL_GATE.json").write_text(
+        json.dumps({"production_authorized": False}), encoding="utf-8"
+    )
+
+    assert module._release_evidence_state() == "SCOPE_UNDECLARED"

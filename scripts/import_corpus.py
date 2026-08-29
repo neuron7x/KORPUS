@@ -102,6 +102,14 @@ class Outcome:
     #: publication_date. Measured 2026-08-29: all 90 doctrine documents imported cleanly
     #: and all 90 were in this state, which the report did not say.
     undated: list[str] = field(default_factory=list)
+    #: Imported, and the bulk approval refused them. Each stays quarantined, which is the
+    #: correct state for a document nobody can approve — the run reports it rather than
+    #: dying on it.
+    unapproved: list[dict[str, str]] = field(default_factory=list)
+
+    def record_approval_refusal(self, relative: str, error: Exception) -> None:
+        """A document the bulk approval could not clear. Recorded, not swallowed."""
+        self.unapproved.append({"file": relative, "reason": f"{type(error).__name__}: {error}"})
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -111,6 +119,8 @@ class Outcome:
             "refused": len(self.refused),
             "skipped_files_not_in_manifest": len(self.skipped),
             "undated_and_therefore_unapprovable": len(self.undated),
+            "imported_but_not_approved": len(self.unapproved),
+            "approval_refusals": self.unapproved[:50],
             "refusals": self.refused,
             "undated": self.undated[:50],
             "skipped": self.skipped[:50],
@@ -323,24 +333,33 @@ def main() -> int:
                     clearance=AccessTier.RESTRICTED,
                     corpora=frozenset({corpus_id}),
                 )
-                for state in (
-                    ReviewState.METADATA_REVIEWED,
-                    ReviewState.CONTENT_REVIEWED,
-                    ReviewState.APPROVED,
-                ):
-                    service.transition(
-                        approver,
-                        result.version.id,
-                        ReviewTransition(
-                            target=state,
-                            note=(
-                                "bulk import approval: not an individual review of this "
-                                "document, recorded as such"
+                try:
+                    for state in (
+                        ReviewState.METADATA_REVIEWED,
+                        ReviewState.CONTENT_REVIEWED,
+                        ReviewState.APPROVED,
+                    ):
+                        service.transition(
+                            approver,
+                            result.version.id,
+                            ReviewTransition(
+                                target=state,
+                                note=(
+                                    "bulk import approval: not an individual review of this "
+                                    "document, recorded as such"
+                                ),
+                                acknowledge_near_duplicate=True,
+                                acknowledge_extraction_quality=True,
                             ),
-                            acknowledge_near_duplicate=True,
-                            acknowledge_extraction_quality=True,
-                        ),
-                    )
+                        )
+                except Exception as error:  # noqa: BLE001 — same reason as ingest above
+                    # The ingest loop has carried this shape since a PdfReadError ended a
+                    # 1740-document run at 918. Approval did not, so the first undated
+                    # document raised through main and the run died with the database half
+                    # filled and no report at all — and with `undated` naming 132 of 151
+                    # documents, that first one comes early. The document stays imported and
+                    # quarantined, which is what an unapprovable document should be.
+                    outcome.record_approval_refusal(relative, error)
     finally:
         repository.close()
 

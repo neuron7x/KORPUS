@@ -71,6 +71,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2022/04/%D0%92%D0%9F-7-0003.01-%D0%91%D0%BE%D1%80%D0%BE%D1%82%D1%8C%D0%B1%D0%B0-%D0%B7-%D0%91%D0%9F%D0%9B%D0%90.pdf",
+        "http_status": "206",
+        "content_length": "1579384",
+        "last_modified": "Thu, 07 Apr 2022 13:17:35 GMT",
+        "etag": "\"624ee46f-181978\"",
+        "window_bytes": 65536,
+        "head_sha256": "1d62efaa8a894cc4e683bdf4831ea63045fc5536ef74a81ad2c9f0bdb4f467ae",
+        "head_len": 65536,
+        "tail_sha256": "3c6889b58a2045336e095229eae97b63d36624ae292e45fd664eaf00b98c3d94",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -99,6 +116,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2022/04/%D0%92%D0%9F-7-4612.01-%D0%9C%D0%B5%D1%82%D0%BE%D0%B4%D0%B8%D1%87%D0%BD%D1%96-%D1%80%D0%B5%D0%BA%D0%BE%D0%BC%D0%B5%D0%BD%D0%B4%D0%B0%D1%86%D1%96%D1%96%CC%88-%D0%9A%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B8%D1%80%D1%83-%D0%BF%D1%96%D0%B4%D1%80%D0%BE%D0%B7%D0%B4%D1%96%D0%BB%D1%83-%D0%BF%D0%BE-%D0%B7%D0%B0%D1%81%D1%82%D0%BE%D1%81%D1%83%D0%B2%D0%B0%D0%BD%D0%BD%D1%8E.pdf",
+        "http_status": "206",
+        "content_length": "3881704",
+        "last_modified": "Sat, 09 Apr 2022 13:05:14 GMT",
+        "etag": "\"6251848a-3b3ae8\"",
+        "window_bytes": 65536,
+        "head_sha256": "609dc0803a54a5ddbb997836cf8600953cbfc9e7eb6827ef6056696aa40be454",
+        "head_len": 65536,
+        "tail_sha256": "02c0be9e1e5972ab5d6fb97d9e8e8a923293e5c8290067391e8bffe393191fb6",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -127,6 +161,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2024/10/Boyova_robota_uav_artillery.pdf",
+        "http_status": "206",
+        "content_length": "2693515",
+        "last_modified": "Thu, 17 Oct 2024 13:05:47 GMT",
+        "etag": "\"67110bab-29198b\"",
+        "window_bytes": 65536,
+        "head_sha256": "6d5915bf1c1a3fb3bdb0c54672959a4a1bb7ad1070c24f5431d9aace1ce2c493",
+        "head_len": 65536,
+        "tail_sha256": "6023234994129132425fba6909ded8936101a53ac1a5107ddf657eed6102c77e",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -310,6 +361,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://www.armyupress.army.mil/Portals/7/military-review/Archives/English/so25/Lessons-from-Ukraine/Lessons-from-Ukraine-ua.pdf",
+        "http_status": "206",
+        "content_length": "1846362",
+        "last_modified": "Wed, 03 Sep 2025 10:40:40 GMT",
+        "etag": "",
+        "window_bytes": 65536,
+        "head_sha256": "77c9561d1b7da80d580c2fc6f82cac89ca3a636ec5cc2b65cb7e0ead03b2dede",
+        "head_len": 65536,
+        "tail_sha256": "c77cedb3c05d7b91b2033b9bacdb8cbf198639222fdac06ca84c75a32e91fc66",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -394,6 +462,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://static.rusi.org/403-SR-Russian-Tactics-web-final.pdf",
+        "http_status": "206",
+        "content_length": "11768824",
+        "last_modified": "Tue, 01 Apr 2025 10:22:00 GMT",
+        "etag": "\"5c7b01163e5e8ae56e6c1ddc9ea28628-2\"",
+        "window_bytes": 65536,
+        "head_sha256": "7783adbfaff3e73bc73b785262d24c5c31f9aa4b516f4c44bf718e35403e95c8",
+        "head_len": 65536,
+        "tail_sha256": "90dba125cc3c9d214f4cb3210d1c98b4908dfa46dfc3d86892bf5f2fbfe11179",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -510,6 +595,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://kse.ua/wp-content/uploads/2025/11/KSE_Institute_Report_Harnessing_Ukraines_Drone_Innovations_to_Advance.pdf",
+        "http_status": "206",
+        "content_length": "1915575",
+        "last_modified": "Tue, 25 Nov 2025 14:19:03 GMT",
+        "etag": "",
+        "window_bytes": 65536,
+        "head_sha256": "667db8de43f3b2e47554d3622c5a37ddd2306fc6781a513a30ccf17c8c746394",
+        "head_len": 65536,
+        "tail_sha256": "adeeb32415188800582a6c29e424f584613d971ac8450ecbca1f8e88e170ea89",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -940,6 +1042,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2024/06/2_%D0%92%D0%9A%D0%94%D0%9F-10-2756.01-%D0%9D%D0%90%D0%A1-%D0%92%D0%98%D0%9A-%D0%97%D0%90%D0%A5-%D0%A0%D0%A0%D0%9A-%D0%A1%D0%A6%D0%9E%D0%92%D1%96%D0%B4-%D0%A0%D0%95%D0%91-%D0%A3-%D0%A5%D0%9E%D0%94-%D0%97%D0%90%D0%A1-%D0%92%D0%A1.pdf",
+        "http_status": "206",
+        "content_length": "825844",
+        "last_modified": "Tue, 18 Jun 2024 20:01:32 GMT",
+        "etag": "\"6671e79c-c99f4\"",
+        "window_bytes": 65536,
+        "head_sha256": "f453ff621cac0f97f8941dc796d50faf5533b1495ba4d925eebd3da70bc45cba",
+        "head_len": 65536,
+        "tail_sha256": "0b3e945a6ee934960e129928422131236063353bf814750f1cd78c4acc0fe360",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -968,6 +1087,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2024/09/2_%D0%97%D0%92%D0%9F-6-0027269.01-%D0%94%D0%9E%D0%92_%D0%92%D0%86%D0%99_%D0%97%D0%92_%D0%97%D0%90%D0%A1_%D0%A0%D0%95%D0%91-%D0%A0%D0%95%D0%A0_%D0%AF%D0%9A%D0%86_%D0%92%D0%98%D0%9A%D0%9E%D0%A0_%D0%A0%D0%A4.pdf",
+        "http_status": "206",
+        "content_length": "3359807",
+        "last_modified": "Thu, 12 Sep 2024 19:19:32 GMT",
+        "etag": "\"66e33ec4-33443f\"",
+        "window_bytes": 65536,
+        "head_sha256": "25711b7cb02d2c39b9b8a1b96b7f8309e6851c80c02fc097e456631b7c2396e9",
+        "head_len": 65536,
+        "tail_sha256": "f69d7aa7fd592b66765cd657778d344e4d53230e6507fcab8a3184f8c04a8a77",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -996,6 +1132,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2023/03/%D0%95%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%BD_%D0%BF%D1%80%D0%BE%D1%82%D0%B8%D0%B4%D1%96%D1%8F_%D0%91%D0%9F%D0%9B%D0%90_G2_%D1%81%D0%BF%D1%80.pdf",
+        "http_status": "206",
+        "content_length": "1992820",
+        "last_modified": "Wed, 29 Mar 2023 15:26:12 GMT",
+        "etag": "\"64245894-1e6874\"",
+        "window_bytes": 65536,
+        "head_sha256": "c33dbb61818615f0df5c6534a5fe236ad92c4c3b37a9574cf45f7bf26d3331ce",
+        "head_len": 65536,
+        "tail_sha256": "d827b73ed7636da42e19ae461cb906b5ed6511b20aa19a7ca3eb6c57e3e0eb76",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1043,6 +1196,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://www.coemed.org/files/stanags/01_AJP/AJP-3.2_EDB_V1_E_2288.pdf",
+        "http_status": "206",
+        "content_length": "1795524",
+        "last_modified": "Thu, 01 Aug 2024 09:54:20 GMT",
+        "etag": "\"1b65c4-61e9c31d46b00\"",
+        "window_bytes": 65536,
+        "head_sha256": "afa91bfcfddb43975d68b414a2d4e0bb0ea44b041bca789d8429f0dc9f393e09",
+        "head_len": 65536,
+        "tail_sha256": "c49014d788e7c33d609a9fa3e00128f0030cd65ce403237bc520f9c00d164fd5",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1155,6 +1325,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/ARN5011_ATP%203-09x30%20FINAL%20WEB.pdf",
+        "http_status": "206",
+        "content_length": "6775834",
+        "last_modified": "Tue, 07 Jul 2020 14:23:25 GMT",
+        "etag": "\"80acdd2c6a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "3e3757e30c50700ab2453d1cb75be421ffe0622c200ab7015e6219e9da96cbb3",
+        "head_len": 65536,
+        "tail_sha256": "63f60d79a03f0b4207bbb43cecedf8a39b39948773464996bf6b96919bf6f043",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1183,6 +1370,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://www.bits.de/NRANEU/others/amd-us-archive/ATP3-09-42(16).pdf",
+        "http_status": "206",
+        "content_length": "4731602",
+        "last_modified": "Wed, 28 Dec 2016 14:19:57 GMT",
+        "etag": "\"4832d2-544b8a9ccdd40\"",
+        "window_bytes": 65536,
+        "head_sha256": "ac85846fa75d278efb0658cae8ebf1a44bf88b481cc610278c787d5580c95258",
+        "head_len": 65536,
+        "tail_sha256": "f88b61ebd764aa04410bd666c37f1f66a5fd5f350e05c9e15113797c6460cafb",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1239,6 +1443,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://www.bits.de/NRANEU/others/amd-us-archive/FM5-15(68).pdf",
+        "http_status": "206",
+        "content_length": "3400027",
+        "last_modified": "Sun, 12 Jul 2015 11:38:59 GMT",
+        "etag": "\"33e15b-51aac0d09dac0\"",
+        "window_bytes": 65536,
+        "head_sha256": "4d4932ec89745696de477ae11a66ff93a99c3194d2dc55418921f6a326507915",
+        "head_len": 65536,
+        "tail_sha256": "31d7f0852f9a0ad9410e1f278c0f4fca74358e1b22f747c12af23ea18ce103f0",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1379,6 +1600,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://vzp-sm.uvma.mil.gov.ua/assets/files/TM.pdf",
+        "http_status": "206",
+        "content_length": "1344644",
+        "last_modified": "Tue, 22 Nov 2022 17:51:08 GMT",
+        "etag": "\"637d0c0c-148484\"",
+        "window_bytes": 65536,
+        "head_sha256": "ef2bee0a424d030f907a8dc7de05ec6360acbe216dfa48746daab3fb88d559ca",
+        "head_len": 65536,
+        "tail_sha256": "bf9afe2879d1ad326841f80fd8ff9b2b302b7066bfc7f77363e1fe49247b1d54",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1605,6 +1843,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2023/12/2_%D0%A1%D0%91%D0%9F-3-010204.5859-%D0%91%D0%A1-%D0%9C%D0%A2%D0%92-%D0%A7-%D0%86%D0%86%D0%86-%D0%92_%D0%92%D0%86%D0%94_%D0%95.pdf",
+        "http_status": "206",
+        "content_length": "20383114",
+        "last_modified": "Wed, 06 Dec 2023 18:12:52 GMT",
+        "etag": "\"6570b9a4-137058a\"",
+        "window_bytes": 65536,
+        "head_sha256": "4101dca7f56e500e5ac7a74ebf380ce200f4406680c9c04674a60b7b85289377",
+        "head_len": 65536,
+        "tail_sha256": "437419d9093fc62cc759319d9ca18fe038788e6c25b21761b568ca2cdbcd8ec0",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -1633,6 +1888,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://sprotyvg7.com.ua/wp-content/uploads/2022/11/2_%D0%A1%D0%91%D0%9F-3-010204.5657-%D0%91%D0%9E%D0%99-%D0%A1%D0%A2%D0%90%D0%A2%D0%A3%D0%A2-%D0%9C%D0%A2%D0%92-%D0%A7-%D0%86%D0%86.pdf",
+        "http_status": "206",
+        "content_length": "6075144",
+        "last_modified": "Sat, 26 Nov 2022 13:22:13 GMT",
+        "etag": "\"63821305-5cb308\"",
+        "window_bytes": 65536,
+        "head_sha256": "5913e2e9d7329abce2945185223741bd6f803dead641e59f94b20eb77fa253df",
+        "head_len": 65536,
+        "tail_sha256": "c02683b538b8ae41602d77b45aa7449e1b9a3a2a428356ce7d9e0499555f14e6",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3648,6 +3920,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44282-ATP_3-20.15-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "20818381",
+        "last_modified": "Mon, 16 Mar 2026 14:38:10 GMT",
+        "etag": "\"cf4178352b5dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "200e5565a8e8e92a11396f05b46dac4516ca829e461789570b1c55191734a9c0",
+        "head_len": 65536,
+        "tail_sha256": "975a821e64e1ba7c338b686f8cd09464ec3d96d6b98626cec59d73282a00e88a",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3677,6 +3966,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44795-ATP_3-90.1-001-WEB-3.pdf",
+        "http_status": "206",
+        "content_length": "14316572",
+        "last_modified": "Fri, 29 Aug 2025 13:21:15 GMT",
+        "etag": "\"487b1ccce718dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "b2ae55dbcb59a7a5c677854fca584e34a6b32236bf8bd0cc9dee5524790e18ae",
+        "head_len": 65536,
+        "tail_sha256": "21c0a79c87713d7464d66c97fcb2cebbc5ad174f2292705ff092c428ab28f66b",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3706,6 +4012,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN32974-ATP_3-90.5-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "17811347",
+        "last_modified": "Tue, 12 Nov 2024 14:19:44 GMT",
+        "etag": "\"08088ebd35db1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "5b2cc10fbde9f9cf11ccd3e0cf0aa32b94433c0e19a35b60deddb268cce0d8df",
+        "head_len": 65536,
+        "tail_sha256": "eef62d45c1cf5b7270df967f3025415e87b847453b38d6eb674fd5b1e6d573a1",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3735,6 +4058,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN42245-ATP_3-21.71-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "19534678",
+        "last_modified": "Mon, 16 Mar 2026 13:59:29 GMT",
+        "etag": "\"4db881b4db5dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "4d8e0d2537b695ffc6f6340d36e34d32f3454401260e572cf3affaf7e5ae1ecf",
+        "head_len": 65536,
+        "tail_sha256": "95807d16a9560bc63b2a359d73de14ddb35416cf7c5f118f0f584609ced07b13",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3764,6 +4104,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN39444-ATP_3-20.96-000-WEB-0.pdf",
+        "http_status": "206",
+        "content_length": "12721905",
+        "last_modified": "Mon, 16 Dec 2024 14:13:46 GMT",
+        "etag": "\"08931b8c44fdb1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "36d61ba244ea8f150961daf4c7b45a8ce9feb149677f2d34b213b4dafafb9026",
+        "head_len": 65536,
+        "tail_sha256": "938ae0bd71433840cf67e80ce8fc4c04f0653566a84e11857ed76678f6a9c53b",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3793,6 +4150,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN41996-ATP_3-20.97-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "10701170",
+        "last_modified": "Tue, 21 Jan 2025 20:35:52 GMT",
+        "etag": "\"084610446cdb1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "7feadb964ed8085e973903d49ebdde8f6e41db27c40730419564e5024a512f49",
+        "head_len": 65536,
+        "tail_sha256": "a2f3daf14bdc2432a2bb10c29faae774adf8ea3c1a4dcdfb3b1fc0dc9c3a2eff",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3822,6 +4196,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44397-ATP_3-20.98-001-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "19262508",
+        "last_modified": "Wed, 30 Jul 2025 12:48:41 GMT",
+        "etag": "\"3d2ddc46501dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "d0fcdfb52d8c3bafa00cabd26e2cfffe7fb452d6411da061048364a79e30986a",
+        "head_len": 65536,
+        "tail_sha256": "1a35aeed8e564f7dcafc8d199be6289b82a5c802ead4a7a3e76e924f2ddb778e",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3851,6 +4242,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN31150-ATP_3-21.11-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "30860254",
+        "last_modified": "Tue, 16 Mar 2021 16:01:37 GMT",
+        "etag": "\"8086dea47d1ad71:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "e46cbfc54dc060f00e767be4af79558b13d16978909cdfcdba091d98fe9be157",
+        "head_len": 65536,
+        "tail_sha256": "ab522fc5ef8384ec3b9db421c5d7b03bfe6bc2242a381da5f3742cb13db16db0",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3880,6 +4288,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN31505-FM_3-96-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "24199876",
+        "last_modified": "Tue, 16 Mar 2021 15:56:38 GMT",
+        "etag": "\"0bfa6f27c1ad71:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "436f8f4f0fa2ee49c7c1397db79b5a1508e2469aa7b0dc305675658e824bd8fb",
+        "head_len": 65536,
+        "tail_sha256": "42e71c8233d000070833131e663a6939721eb8e5237c061efd0c3d8127cf957f",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3909,6 +4334,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN38160-FM_3-90-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "21288742",
+        "last_modified": "Tue, 17 Oct 2023 12:57:41 GMT",
+        "etag": "\"80504483f90da1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "ff6c46978622f034652990ac5beb6762367f21de8b2f03957bf1740b7fe64479",
+        "head_len": 65536,
+        "tail_sha256": "e23304f39cf5d5a6d2d094db10e9636629851a9969e0b8a34b00cbb16e570a96",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3938,6 +4380,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN34828-ADP_3-90-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "7670908",
+        "last_modified": "Mon, 16 Dec 2024 14:16:46 GMT",
+        "etag": "\"05b7b23c54fdb1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "d88b08fb859245dfc0558dab1f74850e46835272d839f231511a475a9e6062dc",
+        "head_len": 65536,
+        "tail_sha256": "e893aa7d260090498defd7e0f68de69e4235cf751d568aec3a86342cb826cdf3",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3967,6 +4426,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44809-ATP_4-33-001-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "5615477",
+        "last_modified": "Mon, 25 Aug 2025 14:36:50 GMT",
+        "etag": "\"c0bcb9b1cd15dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "520f72913814b25037855bf0fd411c2b7b689d87e38cedfc4320e3e60ce8838f",
+        "head_len": 65536,
+        "tail_sha256": "301736035c59b7bfd88002429ff7d3c209430747b0dfe2011a4be2d46bdfc9cb",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -3996,6 +4472,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN41253-TC_3-20.31-9-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "3424136",
+        "last_modified": "Thu, 12 Mar 2026 17:23:16 GMT",
+        "etag": "\"a328e0e944b2dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "79b553c23f7f07e90d9459bb8afc478d6ef7acfc7554800efd56517f5d3adb61",
+        "head_len": 65536,
+        "tail_sha256": "30caf172e32716050d6ddca1c79a37ba32eba17da49baba0a63bfad247fa5ab9",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4025,6 +4518,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46148-TC_3-20.31-10-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "1341339",
+        "last_modified": "Wed, 18 Mar 2026 13:43:02 GMT",
+        "etag": "\"36fe523ddb6dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "3d25751d4a7cc45fa9f95a134f892878ad04b2001babc996457046e482e65f9b",
+        "head_len": 65536,
+        "tail_sha256": "f4c11f191668d3996f97f29bbb3dbd8c6dde0ef412a726c821eb7fefe8b0024b",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4083,6 +4593,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44389-TC_3-20.31-120-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "145793253",
+        "last_modified": "Mon, 16 Mar 2026 14:09:32 GMT",
+        "etag": "\"eab1ff824eb5dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "bf4aba46a876fb1445fe9e0dd37937af350aaa1fb8e787860c034f5f3a1fd4b0",
+        "head_len": 65536,
+        "tail_sha256": "6a4251d617b02c1860217519399f3ea762c0ededcadd306b63646022d9e35497",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4112,6 +4639,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44385-TC_3-20.31-25-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "105908589",
+        "last_modified": "Tue, 13 Jan 2026 21:28:28 GMT",
+        "etag": "\"9c39f58ed384dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "479658a99337dcdf32e7d6aaf7c7b3f4debafa66a143144f89aa1d8c7725d7d0",
+        "head_len": 65536,
+        "tail_sha256": "b35c51d3d4e0550e2fce1929c85d4464471683d29872550e683cd031cc8b0aca",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4141,6 +4685,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43383-TC_3-20.31-105-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "71021803",
+        "last_modified": "Wed, 07 Jan 2026 21:10:18 GMT",
+        "etag": "\"6c8ab461a80dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "4e2a513f97be5271a4069be6af87bb927d3f620771aaf7a0171a1a262f1aca18",
+        "head_len": 65536,
+        "tail_sha256": "5601556bd1992abd0d9ced918189758f7a8b9877d0727560952b5f9813c6b739",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4170,6 +4731,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN42191-TC_3-20.31-043-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "2088100",
+        "last_modified": "Tue, 08 Oct 2024 12:36:13 GMT",
+        "etag": "\"80dc7a97e19db1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "b50e382de276bf3d0d81e6e486e3fed46e987f724cbdb585dd92efa2e4df2330",
+        "head_len": 65536,
+        "tail_sha256": "95e57ed5e852381ca5d2bb736850d50d34f3f7c79af2a3bfe38018b3601f438f",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4199,6 +4777,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44092-TC_3-20.31-040-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "34582144",
+        "last_modified": "Tue, 13 Jan 2026 21:29:24 GMT",
+        "etag": "\"d9365b0d384dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "19c8e9a6f3612095f3ad6c94960b42c9db6bb36bb80815fee6b3cc9816de6011",
+        "head_len": 65536,
+        "tail_sha256": "6846b8a94876910c6cc648c3f8311a6a323ea1de5f7f111cff8468553080efd6",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4344,6 +4939,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://assets.publishing.service.gov.uk/media/62b45b2de90e0765cdf62e03/20220207-AJP3-2_EDB_Land_Ops.pdf",
+        "http_status": "206",
+        "content_length": "4672202",
+        "last_modified": "Thu, 23 Jun 2022 12:23:09 GMT",
+        "etag": "\"62b45b2d-474aca\"",
+        "window_bytes": 65536,
+        "head_sha256": "29cc5450064d975d682264e7ce3dc7951e0719b316e6bfd479b02ce74a34f9ec",
+        "head_len": 65536,
+        "tail_sha256": "bb0e6f94212c82b051da1bc7fc6d8c5a6c0c91518088532a9bac867ddd2c3b7e",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -4373,6 +4985,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://assets.publishing.service.gov.uk/media/677fe2d4d721a08c0066560c/Army_Doctrine_Publication_land_operations__withdrawn_25_May_2022_.pdf",
+        "http_status": "206",
+        "content_length": "6675364",
+        "last_modified": "Thu, 09 Jan 2025 14:53:09 GMT",
+        "etag": "\"677fe2d5-65dba4\"",
+        "window_bytes": 65536,
+        "head_sha256": "83222707ab477145704659600bcbdb74596c61ba9650635e4ff019c0db8799f6",
+        "head_len": 65536,
+        "tail_sha256": "23372bd4eff39cf6f1338e7199901a8d152549ac200964cbed834199a3273ff4",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5148,6 +5777,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46874-TC_3-90.10-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "12884165",
+        "last_modified": "Thu, 25 Jun 2026 13:04:52 GMT",
+        "etag": "\"aecc1536a34dd1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "52fc5a08601563ba0ac6e8ceae6eb11d43df263c4e58f9030a6721900a0ebc80",
+        "head_len": 65536,
+        "tail_sha256": "c21c9ff05ace1b55241de58fcddf28d8b114415961fb9f0726b32478a7cbddda",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5322,6 +5968,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN15310-FM_3-13.4-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "4864672",
+        "last_modified": "Wed, 20 Sep 2023 13:24:14 GMT",
+        "etag": "\"0939dbfc5ebd91:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "3cb0fbc4a336f288fc0c3765af115d08282ba6f0cc818ef7ae210a34f1febc3b",
+        "head_len": 65536,
+        "tail_sha256": "36b0703403d87b76501aab8588db133421e38dec711d471b41e411beb6c0d84a",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5351,6 +6014,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/ARN17805_ATP%203-13x3%20FINAL%20WEB.pdf",
+        "http_status": "206",
+        "content_length": "1419547",
+        "last_modified": "Tue, 07 Jul 2020 14:23:17 GMT",
+        "etag": "\"80f818286a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "a01bfff06d40922333100e0934ba1cb37e114ae65a8084f234f9da820aa9da9f",
+        "head_len": 65536,
+        "tail_sha256": "c38b2c4a91d77d96eece63fc12a8f11c39a81efbd2817bb053347c72ff165c7d",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5409,6 +6089,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN37985-ATP_3-34.40-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "3892511",
+        "last_modified": "Tue, 18 Apr 2023 15:34:19 GMT",
+        "etag": "\"80cfba3db72d91:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "ff3ab55c46d76cfe84edf13c3d3d02b8adf6bf5baf77396ca285a247c06f7f57",
+        "head_len": 65536,
+        "tail_sha256": "d3dc6833cff86ef784bb1bf8cc65791f49743a927622927f54cf4707c46526ac",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5467,6 +6164,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46285-ADP_3-37-000-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "7087978",
+        "last_modified": "Thu, 21 May 2026 09:53:39 GMT",
+        "etag": "\"a74f1b27e9dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "c906dd7247016ca3766300e381ca6e2a278f8604b30cc39754f1ab8e1b762912",
+        "head_len": 65536,
+        "tail_sha256": "8ef540ba2ad566726261e0ae79f70a1b9e89ce383efe6409fdb95b9496024bc7",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5554,6 +6268,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://ivms.mil.gov.ua/wp-content/uploads/2023/01/poryadok-oformlennya-ta-vedennya-dokumentiv-pro-inzhenerni-zagorodzhennya.pdf",
+        "http_status": "206",
+        "content_length": "3648239",
+        "last_modified": "Tue, 09 Jan 2024 14:32:38 GMT",
+        "etag": "\"659d5906-37aaef\"",
+        "window_bytes": 65536,
+        "head_sha256": "89f9370d75b4bff4cb94cb95c1c2ae994b86e69591b336434cee92d29b986fa4",
+        "head_len": 65536,
+        "tail_sha256": "5170325f5d63272406f551667a1572a645ef66f817e07412df50e2a8699ac610",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5583,6 +6314,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://ivms.mil.gov.ua/wp-content/uploads/2023/01/inzhenerna-pidgotovka.pdf",
+        "http_status": "206",
+        "content_length": "1299491",
+        "last_modified": "Tue, 09 Jan 2024 14:32:37 GMT",
+        "etag": "\"659d5905-13d423\"",
+        "window_bytes": 65536,
+        "head_sha256": "d338ffb85bd12c84ed7404d4af61500251f3fe066ef69904e7d874f259770318",
+        "head_len": 65536,
+        "tail_sha256": "69b1ee2b74c1f171f0ae55b8ca41b25e94fae65571cb6b0e7494564c29c1f1e7",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5612,6 +6360,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://ivms.mil.gov.ua/wp-content/uploads/2023/01/navchalnyj-kurs-inzhenerna-pidgotovka.pdf",
+        "http_status": "206",
+        "content_length": "531626",
+        "last_modified": "Tue, 09 Jan 2024 14:32:37 GMT",
+        "etag": "\"659d5905-81caa\"",
+        "window_bytes": 65536,
+        "head_sha256": "085b11c90a64625c4579ca042d153e168506c149512b8886c20a8913e416dbd4",
+        "head_len": 65536,
+        "tail_sha256": "d3a36e22553c7eff7b1fc9e2b134962979857726319b9770635dd6626080bee0",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5640,6 +6405,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/ARN19185_FM%206-02_FINAL_WEB.pdf",
+        "http_status": "206",
+        "content_length": "5588078",
+        "last_modified": "Tue, 07 Jul 2020 14:23:18 GMT",
+        "etag": "\"08fb1286a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "ffb352b6298f1a4e7cb783c6a9fd28c33370fe9b67cffcc41897d0f2153d43be",
+        "head_len": 65536,
+        "tail_sha256": "72f6faf7f91d5fe249c1b56d8fb9d9209562335522ab56fc95741ab80449716b",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5668,6 +6450,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45009-FM_3-12-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "11105500",
+        "last_modified": "Wed, 17 Sep 2025 17:18:52 GMT",
+        "etag": "\"1215c423f727dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "9c18cc7c82feb9012643198677250d611b66fe3d95ead424fa56feb2b8de96e0",
+        "head_len": 65536,
+        "tail_sha256": "a9461bf6daf4101003fa578cf8400535422b520ed59665564f0d3ba1ca1dae26",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5696,6 +6495,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44803-ATP_3-12.3-002-WEB-3.pdf",
+        "http_status": "206",
+        "content_length": "5448345",
+        "last_modified": "Fri, 22 Aug 2025 17:13:09 GMT",
+        "etag": "\"5f529288813dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "3fe475a1c8da6386502e25b5de16f22ad92121284d8362f34d5bc5d1b7cae0a0",
+        "head_len": 65536,
+        "tail_sha256": "925d687edd6960eff8a77833d7b181bf018d761061a263e104953b1dd13fa8b8",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5724,6 +6540,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN37162-ATP_3-12.4-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "6568288",
+        "last_modified": "Mon, 09 Jan 2023 16:55:01 GMT",
+        "etag": "\"8020e41c4b24d91:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "4414299e8c91045fe227ebfdb56f47d591dc21a99ffbf21be7cba1d2b9a70117",
+        "head_len": 65536,
+        "tail_sha256": "8578bcc3d8a84635c23fa1e49eb147e4ad3b09b545a61aef23e14e8b96d416ac",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5752,6 +6585,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45020-ATP_6-02.70-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "2655317",
+        "last_modified": "Tue, 16 Sep 2025 13:15:26 GMT",
+        "etag": "\"29877cf7b27dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "35add3d70318a1418d82de6354a78b1624f42f1e469cb2d03cefad2429478145",
+        "head_len": 65536,
+        "tail_sha256": "8d676c611e9199c2ded3f445e310250e525171ff735b37abf14e891074dfc611",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5780,6 +6630,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44497-ATP_6-02.53-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "6346432",
+        "last_modified": "Thu, 31 Jul 2025 16:13:29 GMT",
+        "etag": "\"354e9cd362dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "4a5514c8ee429ac2e050df0c3923ca4a7831db8910ccff1254fbadb0196f16d0",
+        "head_len": 65536,
+        "tail_sha256": "dba3c744865790b3d3c43275bb7f8fc62b300c59fa28bfc4d13b012992d24537",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5808,6 +6675,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN31089-ATP_6-02.54-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "5744548",
+        "last_modified": "Mon, 09 Nov 2020 18:46:23 GMT",
+        "etag": "\"8029ec9ec8b6d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "6d9330d38185c67502355dcc6acf69d68e1378b889ccfe983c1983ab7ef3e55d",
+        "head_len": 65536,
+        "tail_sha256": "03fc94e7fba2d112dbafdd24c137d5a0ce0ff8ba984bd0c91a418c2fc98aad34",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5836,6 +6720,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44595-ATP_6-02.71-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "2384259",
+        "last_modified": "Wed, 13 Aug 2025 16:50:13 GMT",
+        "etag": "\"504df65672cdc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "a61196c29f0f4ae32bede22f3c67118837900c0ff7b11390d3c7879915e9b601",
+        "head_len": 65536,
+        "tail_sha256": "623e1e7a953c2968b367dbc9d4d3ad73887786353e7a8aa12b76a71a465d372f",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5864,6 +6765,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/ARN22144_ATP_6-02x75_FINAL_WEB.pdf",
+        "http_status": "206",
+        "content_length": "1976412",
+        "last_modified": "Tue, 07 Jul 2020 14:23:21 GMT",
+        "etag": "\"80527b2a6a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "9499d4c49cdc3ad26d4226114246d4c9a24a584b791508133a4458623d1ccfdd",
+        "head_len": 65536,
+        "tail_sha256": "742f2d773cd1cee467f5994326d6545e5d94fd69dbf69bd27ff3e365f7f5ddaa",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5892,6 +6810,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN47029-ATP_6-02.2-000-WEB-1.pdf",
+        "http_status": "206",
+        "content_length": "6079026",
+        "last_modified": "Tue, 07 Jul 2026 18:25:43 GMT",
+        "etag": "\"e614a653eedd1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "a39abfb9adec5da2cb35d0daf3d4e887e8a45234fdbbfb1426d16947b953414f",
+        "head_len": 65536,
+        "tail_sha256": "6c9f1bd6908c4ba2f6bd8f1b28a66c053e94f10039ed18be77e56318801f2e21",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5921,6 +6856,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/ARN19745_ATP%206-02.45%20FINAL%20WEB.pdf",
+        "http_status": "206",
+        "content_length": "1888103",
+        "last_modified": "Tue, 07 Jul 2020 14:23:19 GMT",
+        "etag": "\"80254a296a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "c847223433c501f8f869b40fb42292fc514b57b9b2fbf2d955399b4baa91943e",
+        "head_len": 65536,
+        "tail_sha256": "ce73efec6007850cb2eb0f0f7aa8dc4ad4bb2ba8f548a443dd6224e1aca04d70",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5949,6 +6901,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44893-ATP_6-02.46-001-WEB-2.pdf",
+        "http_status": "206",
+        "content_length": "4447166",
+        "last_modified": "Wed, 03 Sep 2025 16:12:08 GMT",
+        "etag": "\"142c547fed1cdc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "f53d1c7dd4557896165b94ecf8b5713de1469c8f4d8108b93780fc94f6ba7fc4",
+        "head_len": 65536,
+        "tail_sha256": "0865249d6cc08313322c5deee5a269d71c1b8b1d4ecf8db231d8e64e517ed4ef",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -5977,6 +6946,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/tc9_64.pdf",
+        "http_status": "206",
+        "content_length": "4403604",
+        "last_modified": "Tue, 07 Jul 2020 14:23:59 GMT",
+        "etag": "\"80a921416a54d61:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "a18435d3358c1acfd5e7cfc233fa482ae7d4aac2303f8de2ebf5d55460f7a87b",
+        "head_len": 65536,
+        "tail_sha256": "d64950afb1117185a90dfbbcbc77c879f9f1fd6f1030895b00dca1dc55e504dc",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6005,6 +6991,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://assets.publishing.service.gov.uk/media/666ad4f52f424458f904f31b/AJP-6_with_UK_national_elements.pdf",
+        "http_status": "206",
+        "content_length": "4775871",
+        "last_modified": "Thu, 13 Jun 2024 11:16:05 GMT",
+        "etag": "\"666ad4f5-48dfbf\"",
+        "window_bytes": 65536,
+        "head_sha256": "3a1c69cb1df1412820dc6bc43bc87cddbba3ecddd9068da3022e2fc2f0c1be2b",
+        "head_len": 65536,
+        "tail_sha256": "d3cd011b38a949c11326cb2b317b7d27dd494c9752140c7ef1444a46d2864c58",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6033,6 +7036,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://assets.publishing.service.gov.uk/media/5f086ec4d3bf7f2bef137675/doctrine_nato_cyberspace_operations_ajp_3_20_1_.pdf",
+        "http_status": "206",
+        "content_length": "993850",
+        "last_modified": "Fri, 10 Jul 2020 13:36:04 GMT",
+        "etag": "\"5f086ec4-f2a3a\"",
+        "window_bytes": 65536,
+        "head_sha256": "cad5994e501bd5c23de3fc9f3c1f0ec4818edc9e956afb13911bdaa1d20f49a9",
+        "head_len": 65536,
+        "tail_sha256": "cae32e1eedda59d8c06ae490d0cccdc9e9d67e31a99af088a29dcf7493385fb0",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6081,6 +7101,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://assets.publishing.service.gov.uk/media/666adc6fffd07973a043d106/ARCHIVE_CIS_Support_JDP_6_00_Ed_3_Chg_1.pdf",
+        "http_status": "206",
+        "content_length": "2779373",
+        "last_modified": "Thu, 13 Jun 2024 11:47:59 GMT",
+        "etag": "\"666adc6f-2a68ed\"",
+        "window_bytes": 65536,
+        "head_sha256": "50f5b41c8941ad49a1f12a546f93a7c14271421576c2e4de2408de65b5c80297",
+        "head_len": 65536,
+        "tail_sha256": "7de889ee96889e426631c81a09003f3cdc5b9f5b49f5345b1e4b808729623715",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6509,6 +7546,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://jts.health.mil/assets/docs/cpgs/CPG_Index.pdf",
+        "http_status": "206",
+        "content_length": "1390099",
+        "last_modified": "Fri, 31 Jul 2026 14:40:28 GMT",
+        "etag": "\"0569b87fa20dd1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "3251bc7d542dcc3db05715d959f6f67b08c87fb8a8c65dc0b9895323f027abb7",
+        "head_len": 65536,
+        "tail_sha256": "7c0145a0c47ded028e0ded260a487f060fb296d4ed9bd3d0f33da51e3e86ba0d",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6538,6 +7592,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://jts.health.mil/assets/docs/cpgs/Airway_Management_in_Trauma_28_Jan_2026_ID39.pdf",
+        "http_status": "206",
+        "content_length": "2006311",
+        "last_modified": "Fri, 13 Feb 2026 16:02:56 GMT",
+        "etag": "\"038723729ddc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "6201758e89e233b23ccc48f8092d3e7a7970f8ac5cc9bb6a3fe00938b9e3dbb1",
+        "head_len": 65536,
+        "tail_sha256": "110de3391aa0a8d511f66d31744c968b706e31d8fe82d8e0e1de9c4a6bb62d43",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6567,6 +7638,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://jts.health.mil/assets/docs/cpgs/Prolonged_Casualty_Care_Guidelines_21_Dec_2021_ID91.pdf",
+        "http_status": "206",
+        "content_length": "12512557",
+        "last_modified": "Mon, 29 Sep 2025 20:22:46 GMT",
+        "etag": "\"9f4e4cd17e31dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "68078db03756db33b4c03e26b7f276456ea20e4c95b3f88dc17fe01e3b1e2dba",
+        "head_len": 65536,
+        "tail_sha256": "59ab8e0c68115837af2a65a9988f05647cd16e921d34175963a258416f22f74c",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6596,6 +7684,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://jts.health.mil/assets/docs/cpgs/CoERCCC%20Guidelines%20FY26.pdf",
+        "http_status": "206",
+        "content_length": "3182245",
+        "last_modified": "Fri, 17 Apr 2026 14:13:33 GMT",
+        "etag": "\"d2bb96074cedc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "e50d351a19b9c8ed5b6bb9a4e9001723d0ba7f5b47020cbc85ececb7dac7b2a4",
+        "head_len": 65536,
+        "tail_sha256": "e2799b26a5618e5e5952f7ba18a6313b5e6b0435a1d3780d1eb4e8be1fd886d7",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -6625,6 +7730,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://jts.health.mil/assets/docs/forms/DD_Form_1380_TCCC_Card.pdf",
+        "http_status": "206",
+        "content_length": "472876",
+        "last_modified": "Tue, 09 Sep 2025 14:41:26 GMT",
+        "etag": "\"0afecd19721dc1:0\"",
+        "window_bytes": 65536,
+        "head_sha256": "9efdd3632ddae3767e61699bb1d617cc6eb9fdcd13bc362bb3f0562953d0867f",
+        "head_len": 65536,
+        "tail_sha256": "99f509deed5b476b216de55b8e2d8c0bc8edcbfeee7d8f19e33c8b1e3f363649",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     },
     {
@@ -7153,6 +8275,23 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "remote_digest": {
+        "class": "remote_digest",
+        "uri": "https://ivms.mil.gov.ua/wp-content/uploads/2023/01/nastanova-z-pidgotovky-personalu-u-zsu.pdf",
+        "http_status": "206",
+        "content_length": "1480966",
+        "last_modified": "Tue, 09 Jan 2024 14:32:37 GMT",
+        "etag": "\"659d5905-169906\"",
+        "window_bytes": 65536,
+        "head_sha256": "228dd730f3b7c6224b735b284c5ce26a92040724639837d27d0c2fc4494ea9b3",
+        "head_len": 65536,
+        "tail_sha256": "6475a8225f838448cf8ac01a013b34dfa26d6f7b4ce864b866820fbd96aae2bf",
+        "tail_len": 65536,
+        "probed_on": "2026-08-29",
+        "tool": "curl Range-запити, sha256",
+        "recheck": "curl -r 0-65535 <uri> | sha256sum  та  curl -r -65536 <uri> | sha256sum",
+        "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       }
     }
   ]

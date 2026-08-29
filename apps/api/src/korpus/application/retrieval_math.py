@@ -14,7 +14,32 @@ from collections import Counter
 from dataclasses import dataclass
 
 TOKEN_PATTERN = re.compile(r"[\w'’\-]{2,}", re.UNICODE)
+#: Words that carry no claim about the subject. A question is three or four words long, so
+#: one of them matching is a third of the coverage — and "як налаштувати wifi-роутер" was
+#: answered on the strength of "як" alone appearing in four unrelated citations, each
+#: clearing the 0.25 threshold. Measured 2026-08-29 across eleven questions: the function
+#: words below were doing the coverage in every out-of-domain answer the system gave.
+#:
+#: This does not make coverage a measure of relevance — no threshold on it separates the
+#: valid from the invalid, which is a separate finding with its own numbers. It removes the
+#: cheapest way to reach a threshold without saying anything.
 STOP_WORDS = {
+    "як",
+    "при",
+    "на",
+    "за",
+    "до",
+    "від",
+    "хто",
+    "таке",
+    "чи",
+    "де",
+    "чому",
+    "скільки",
+    "або",
+    "чим",
+    "ким",
+    "кому",
     "але",
     "без",
     "був",
@@ -96,8 +121,16 @@ UKRAINIAN_SUFFIXES = tuple(
 )
 
 
+#: Every apostrophe Ukrainian is written with, folded to one. zakon.rada publishes U+2019;
+#: a phone keyboard produces U+0027. Measured 2026-08-29: "обов'язки чатового" typed with
+#: the ASCII apostrophe returned four citations, none of them about a sentry, while the same
+#: question with the typographic one found the article that defines the duty. A soldier does
+#: not choose which apostrophe his keyboard emits, and the corpus does not choose either.
+APOSTROPHES = str.maketrans({"\u2019": "'", "\u02bc": "'", "\u2018": "'", "\u00b4": "'", "`": "'"})
+
+
 def normalize_text(text: str) -> str:
-    return unicodedata.normalize("NFC", text).casefold()
+    return unicodedata.normalize("NFC", text).casefold().translate(APOSTROPHES)
 
 
 def _ukrainian_stem(token: str) -> str:

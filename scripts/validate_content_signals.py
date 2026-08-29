@@ -30,6 +30,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
+from iso_dates import iso_date
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 #: How long a reading of a live robots.txt stays a reading.
@@ -50,14 +52,14 @@ def host_of(uri: str) -> str:
     """
     netloc = urlsplit(uri).netloc.lower().rstrip(".")
     netloc = netloc.rsplit("@", 1)[-1]
-    if netloc.startswith("["):                       # IPv6 literal keeps its brackets
+    if netloc.startswith("["):  # IPv6 literal keeps its brackets
         return netloc.split("]", 1)[0] + "]"
     return netloc.split(":", 1)[0]
 
 
 def _age_days(stamp: str) -> int | None:
     try:
-        return (date.today() - date.fromisoformat(stamp)).days
+        return int((date.today() - iso_date(stamp)).days)
     except ValueError:
         return None
 
@@ -120,16 +122,22 @@ def problems(entries: list[dict]) -> list[str]:
         bots = [str(b) for b in bots] if isinstance(bots, list) else []
         named_us = sorted(b for b in bots if b.lower() in OURS)
         binding = sorted(
-            f"{k}={raw[k]}"
-            for k in ("ai-train", "ai-input")
-            if str(raw.get(k, "")).lower() == "no"
+            f"{k}={raw[k]}" for k in ("ai-train", "ai-input") if str(raw.get(k, "")).lower() == "no"
         )
         if str(raw.get("use", "")).lower() in {"reference", "immediate"}:
             binding.append(f"use={raw['use']}")
-        if (named_us or binding) and verdict != "reserved_against_us":
+        # `against_us` is the most direct record of a restriction aimed at us, and the
+        # first version of this check read everything EXCEPT it: raw signals and bot
+        # names, but not the field whose name says what it holds. Reported by session
+        # 80352ff0 as MUTATION 1 — `against_us: ["ai-train=no"]` with
+        # `verdict: no_restriction` stayed ingestible. Symmetry laid in one place and
+        # omitted in the one that mattered.
+        declared = sorted(str(x) for x in (signal.get("against_us") or []) if str(x).strip())
+        if (named_us or binding or declared) and verdict != "reserved_against_us":
             found.append(
                 f"{identifier}: verdict is {verdict!r} but the reading itself carries "
-                f"{', '.join(named_us + binding)} — a restriction aimed at us cannot be "
+                f"{', '.join(named_us + binding + declared)} — a restriction aimed at us "
+                f"cannot be "
                 "recorded as someone else's; this is a defect in the prober, not the data"
             )
             continue
@@ -254,6 +262,28 @@ def selftest() -> int:
         (
             "search=yes сам по собі нічого не забороняє",
             mutate(signals={"search": "yes"}),
+            False,
+        ),
+        # Мутація 1 сесії 80352ff0: непорожній `against_us` при будь-якому іншому
+        # вердикті. Три випадки, а не один — `no_robots` пропускав так само.
+        (
+            "against_us непорожній при no_restriction",
+            mutate(against_us=["ai-train=no"]),
+            True,
+        ),
+        (
+            "against_us непорожній при reserved_against_others",
+            mutate(verdict="reserved_against_others", against_us=["tdm-reservation"]),
+            True,
+        ),
+        (
+            "against_us непорожній при no_robots",
+            mutate(verdict="no_robots", against_us=["ai-input=no"]),
+            True,
+        ),
+        (
+            "against_us із самих пробілів не рахується підставою",
+            mutate(against_us=["   ", ""]),
             False,
         ),
     ]
