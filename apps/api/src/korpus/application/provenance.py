@@ -18,6 +18,7 @@ Executable behavior, public contracts, deployment behavior and release-control d
 from __future__ import annotations
 
 import hashlib
+import subprocess
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -42,7 +43,35 @@ class ProvenanceError(ValueError):
     """Raised when an artifact cannot be bound to a source tree."""
 
 
+def _tracked_paths(root: Path) -> frozenset[str] | None:
+    """What Git tracks, or None where Git cannot answer (an unpacked archive).
+
+    A digest that walks the filesystem is not a property of a commit. Measured 2026-08-29:
+    53 untracked files written by a parallel session sat inside config/, so this tree's
+    digest and the digest of the commit made from it were different numbers — every report
+    generated locally was unbound the moment anyone checked it out, and `make validate` was
+    green here and red in a clean clone of the same revision. Several hours went into
+    chasing that as a moving tree.
+
+    Where Git is unavailable the filesystem walk is the only answer there is, and an archive
+    has no untracked files by construction, so the fallback is sound.
+    """
+    try:
+        listing = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=False,
+        )
+    except (OSError, ValueError):  # pragma: no cover - git absent from the image
+        return None
+    if listing.returncode != 0:
+        return None
+    names = listing.stdout.decode("utf-8", "surrogateescape").split("\0")
+    return frozenset(name for name in names if name) or None
+
+
 def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
+    tracked = _tracked_paths(root)
     files: list[Path] = []
     for relative in sources:
         target = root / relative
@@ -59,6 +88,9 @@ def _digest_candidates(root: Path, sources: Iterable[str]) -> list[Path]:
             if not path.is_file():
                 continue
             if any(part in _EXCLUDED_DIRECTORY_NAMES for part in path.relative_to(root).parts):
+                continue
+            if tracked is not None and path.relative_to(root).as_posix() not in tracked:
+                # Untracked: present in this working tree, absent from the commit.
                 continue
             if path.suffix in _EXCLUDED_SUFFIXES:
                 continue

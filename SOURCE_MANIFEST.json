@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1346,
-  "root_sha256": "f95a328aed763bf6131fcde4f3d0894d9112d0e8ed21edbdf2de48008dea126a",
+  "root_sha256": "5a2a3844b1d5b5e06297657925592fbe781cfeca706526886763592a04e6612b",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 41972,
-      "sha256": "d192dff73bf5b72b0146399cafa1fccec11d6d17e7e96b2f49e772d2d3d3e766",
+      "bytes": 42533,
+      "sha256": "45c28d1e732123af40a0b7f36023e62e0f4d9f2033d5f752b1fcd599e18b0c05",
       "mode": "0644"
     },
     {
@@ -1495,8 +1495,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/provenance.py",
-      "bytes": 7665,
-      "sha256": "5232985221dba4e1b156063e05153525df8d2a8489050839e3f91fbaa3aa4eb3",
+      "bytes": 9167,
+      "sha256": "cb400bbb0c8349ba6e04b2569721165a8bb10d16693b27554661777d15dc461f",
       "mode": "0644"
     },
     {
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 32584,
-      "sha256": "2b5baeda46ea89e7edc9ab62a65000e46bb88d021d90943aa5cfb8bb12d01000",
+      "bytes": 36877,
+      "sha256": "dd909d2c035fe5998e70f1c8c6bf00bbb12e92d444baaf48f509c2b6b1415973",
       "mode": "0644"
     },
     {
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 91960,
-      "sha256": "6b24cd1a1ca444f8bd2c1600c51d46c662646430e8c09b6e8d59d14e2d74e61e",
+      "bytes": 95618,
+      "sha256": "4d440f607673e83e62d65bcdf9de08be25cfc75bc3ece1d8bcac420a408bdf18",
       "mode": "0644"
     },
     {
@@ -5287,8 +5287,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 226999,
-      "sha256": "0379d6e31a04d78f84b96db444b54139dd86670f4d55e4e4e181d033343fa8a7",
+      "bytes": 227452,
+      "sha256": "8685361cb5dc51f9dc6e025e99f74617062d47dc73013d1171fe0b9b465bb39c",
       "mode": "0644"
     },
     {
@@ -7675,8 +7675,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 172916,
-      "sha256": "61755a848fc70d82902293f8c951d2266263ff49a2fb54870f8b00ae27fd4e62",
+      "bytes": 185335,
+      "sha256": "02625279fbe42ec1171aba7a275125abc21cba4c18f6b9654cdaa8e0c93b7389",
       "mode": "0755"
     },
     {
@@ -7915,8 +7915,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 38561,
-      "sha256": "7ac2c480a9cf273c8925a3022a8029d1c170c707cb1a0f1dfbfd2ad6790e7932",
+      "bytes": 41783,
+      "sha256": "6c6ac1c2e015c75acb2438189275b6411d8c1b6fedc64a710fca962b59fcfdbd",
       "mode": "0755"
     },
     {
@@ -8029,8 +8029,8 @@
     },
     {
       "path": "scripts/verify_production_hard_predicates.py",
-      "bytes": 4891,
-      "sha256": "eed0a8f21a56429646e952b9b9999008619d6d577bba3e5a32556f82a4f1730b",
+      "bytes": 5611,
+      "sha256": "92db08ad2d60fc1dcc0b1ccfefdb40df7312173b6573466892968899e2aaed7d",
       "mode": "0755"
     },
     {

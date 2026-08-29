@@ -80,10 +80,24 @@ FLOOR = ROOT / "config/assurance/production-predicate-floor.json"
 
 
 def _floor() -> int:
+    """The recorded floor, or a refusal. Never a silent zero.
+
+    Returning 0 for a missing or malformed file made the ratchet disappear exactly when it
+    was tampered with: `production_satisfied: "14"` and `rm` of the file both produced
+    exit 0. A ratchet that vanishes under attack is decoration.
+    """
     if not FLOOR.is_file():
-        return 0
-    value = _json(FLOOR).get("production_satisfied", 0)
-    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+        raise SystemExit(
+            f"{FLOOR.relative_to(ROOT)} is missing — the external-proof ratchet cannot be "
+            "read, and a floor that disappears when deleted is not a floor"
+        )
+    value = _json(FLOOR).get("production_satisfied")
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise SystemExit(
+            f"{FLOOR.relative_to(ROOT)}: production_satisfied is {value!r}, not an integer — "
+            'a string like "14" compares against nothing and lifts the ratchet in silence'
+        )
+    return value
 
 
 def main() -> int:

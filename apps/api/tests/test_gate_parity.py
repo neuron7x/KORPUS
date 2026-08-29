@@ -96,6 +96,17 @@ def _ci_script(job: str) -> list[str]:
     return out
 
 
+def _ci_jobs() -> list[str]:
+    """Top-level job names, excluding YAML anchors and the reserved keys."""
+    reserved = {"stages", "variables", "workflow", "default", "include"}
+    names: list[str] = []
+    for line in CI.read_text(encoding="utf-8").splitlines():
+        match = re.match(r"^([A-Za-z][\w:.-]*):\s*$", line)
+        if match and match.group(1) not in reserved:
+            names.append(match.group(1))
+    return names
+
+
 def _ci_artifact_paths(job: str) -> list[str]:
     """Return the `artifacts: paths:` entries of one CI job, in the same textual style.
 
@@ -1280,12 +1291,11 @@ def test_the_bootstrap_produces_a_corpus_that_can_actually_answer() -> None:
 
 
 def test_ci_secret_scan_is_bound_to_the_pipeline_revision() -> None:
-    ci = CI.read_text(encoding="utf-8")
 
     command = (
         'gitleaks detect --source . --no-banner --redact --exit-code 1 --log-opts "$CI_COMMIT_SHA"'
     )
-    assert command in ci
+    assert command in CI.read_text(encoding="utf-8")
 
 
 def test_every_script_is_reachable_from_a_runner() -> None:
@@ -1335,14 +1345,25 @@ def test_every_script_is_reachable_from_a_runner() -> None:
         + (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8"),
     }
 
+    # A script naming only itself is not referenced. `text.count(script) > 1` was meant to
+    # say that, and did not: scripts/stage_doctrine_corpus.py names itself three times in its
+    # own docstring, so the count cleared the threshold and 256 lines with no Makefile
+    # target, no CI job and no test passed as reached. The file is excluded from its own
+    # haystack instead of being counted against a threshold.
+    sibling_text = {
+        script: "\n".join(
+            path.read_text(encoding="utf-8", errors="ignore")
+            for path in (ROOT / "scripts").rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts and path.name != script
+        )
+        for script in scripts
+    }
     unreachable = [
         script
         for script in scripts
-        # A script naming only itself is not referenced: `scripts` includes the file.
         if not any(
-            script in text
+            script in (sibling_text[script] if name == "scripts" else text)
             for name, text in haystacks.items()
-            if name != "scripts" or text.count(script) > 1
         )
     ]
 
@@ -1924,18 +1945,48 @@ def test_the_handoff_refuses_a_digest_from_the_other_scope() -> None:
     not change — the failure mode that cost several hours on 2026-08-29 before the two
     measurements were noticed.
     """
-    source = (ROOT / "scripts/verify_handoff_contract.py").read_text(encoding="utf-8")
-    assert "digest_scope" in source
-    assert "not comparable" in source
-    # Scope is checked before the hash: an incomparable report must not fall through to STALE.
-    scope_at = source.index("promoted_scope")
-    stale_at = source.index('"BOUND" if source_tree_digest()')
-    assert scope_at < stale_at, "the scope check runs after the comparison it should prevent"
+    # Executed, not grepped: replacing the condition with `if False` left every string in
+    # place and this test green while a report from the other scope passed.
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_handoff_contract as handoff
+
+    reports = ROOT / "reports"
+    assurance = reports / "RESEARCH_ASSURANCE_REPORT.json"
+    original = assurance.read_bytes()
+    try:
+        payload = json.loads(original)
+        payload["digest_scope"] = "evidence_paths"
+        assurance.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        with pytest.raises(AssertionError, match="not comparable"):
+            handoff._release_evidence_state()
+
+        payload["digest_scope"] = None
+        del payload["digest_scope"]
+        assurance.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        assert handoff._release_evidence_state() == "SCOPE_UNDECLARED", (
+            "an unlabelled report must be a third state, not this checker's own scope"
+        )
+    finally:
+        assurance.write_bytes(original)
 
 
-def test_an_empty_control_map_does_not_verify() -> None:
-    source = (ROOT / "scripts/verify_standards_control_map.py").read_text(encoding="utf-8")
-    assert "MINIMUM_CONTROLS" in source and "MINIMUM_EXECUTABLE_CONTROLS" in source
+def test_an_empty_control_map_does_not_verify(tmp_path: Path) -> None:
+    """Executed, not grepped. Setting both minimums to 0 left the constants in the file and
+    this test green while `controls: []` verified successfully."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_standards_control_map as gate
+
+    assert gate.MINIMUM_CONTROLS > 0, "a minimum of zero is the absence of a minimum"
+    assert gate.MINIMUM_EXECUTABLE_CONTROLS > 0
+
+    failures, executable, _external = gate._verify_controls(ROOT, [], set())
+    below = failures + (
+        [f"controls: 0 declared, below the floor of {gate.MINIMUM_CONTROLS}"]
+        if len([]) < gate.MINIMUM_CONTROLS
+        else []
+    )
+    assert below, "an empty control map produced no failure at all"
+    assert executable == 0
 
 
 def test_every_validate_target_runs_in_the_pipeline() -> None:
@@ -1950,14 +2001,23 @@ def test_every_validate_target_runs_in_the_pipeline() -> None:
     scripts directly and never runs `make`, so names would not correspond.
     """
     makefile = MAKEFILE.read_text(encoding="utf-8")
-    ci = CI.read_text(encoding="utf-8")
     absent: list[str] = []
     for target in _makefile_prerequisites("validate"):
         recipe = re.search(rf"^{re.escape(target)}:[^\n]*\n((?:\t[^\n]*\n)*)", makefile, re.M)
         if recipe is None:
             continue
         scripts = re.findall(r"scripts/([a-z_0-9]+\.py)", recipe.group(1))
-        if scripts and not any(name in ci for name in scripts):
+        # Invoked, not mentioned. Searching the raw YAML made a comment satisfy this:
+        # deleting the verify_dependency_locks step and adding
+        # `# TODO one day: scripts/verify_dependency_locks.py` turned it green with the
+        # step still gone. Only executable script lines count.
+        invoked = {
+            name
+            for job in _ci_jobs()
+            for line in _ci_script(job)
+            for name in re.findall(r"scripts/([a-z_0-9]+\.py)", line)
+        }
+        if scripts and not any(name in invoked for name in scripts):
             absent.append(f"{target} ({', '.join(scripts)})")
     assert not absent, f"targets of `make validate` that no CI job runs: {absent}"
 
@@ -1973,9 +2033,8 @@ def test_no_job_runs_a_python_step_in_an_image_without_python() -> None:
     """source:sbom runs anchore/syft:-debug, whose shell is busybox and which has no
     interpreter. A `python3 scripts/...` step added there on 2026-08-29 exited 127 and took
     container:build, source:package and both verify-image jobs down as skipped."""
-    ci = CI.read_text(encoding="utf-8")
     offenders: list[str] = []
-    for block in re.split(r"^(?=\S)", ci, flags=re.M):
+    for block in re.split(r"^(?=\S)", CI.read_text(encoding="utf-8"), flags=re.M):
         name = block.split(":", 1)[0].strip()
         # The job's own image, at two spaces. `services:` entries are nested deeper and
         # name a database, not the interpreter the script steps run under.
@@ -1988,3 +2047,24 @@ def test_no_job_runs_a_python_step_in_an_image_without_python() -> None:
             if re.match(r"(PYTHONPATH=\S+ )?python3? ", line):
                 offenders.append(f"{name}: {line[:60]} (image {image[:40]})")
     assert not offenders, offenders
+
+
+def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """M342: the floor above is asserted by reading the source for the words
+    `production_satisfied` and `floor`, which stay in the file with the comparison deleted.
+    This runs the comparison: below the floor is exit 1, at the floor is exit 0.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_production_hard_predicates as gate
+
+    report = {"software_ready": 3, "predicates_total": 3, "production_satisfied": 1}
+    monkeypatch.setattr(gate, "ROOT", tmp_path)
+    monkeypatch.setattr(gate, "build", lambda: dict(report))
+
+    monkeypatch.setattr(gate, "_floor", lambda: 2)
+    assert gate.main() == 1, "external proof below the recorded floor did not fail the gate"
+
+    monkeypatch.setattr(gate, "_floor", lambda: 1)
+    assert gate.main() == 0, "a report sitting exactly on its floor must still pass"

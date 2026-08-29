@@ -1,8 +1,8 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-08-29T17:03:56.096388+00:00",
+  "generated_at": "2026-08-29T17:27:02.736475+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "55550280d6253c784a81a87dda669faff1ef7ba9a8cde927b5e7c06e44368576",
+  "source_tree_sha256": "24169fd1cfdecc441aa82b317bb0a76de8cfe6439d1b62b6be852e792d9f0c02",
   "items": [
     {
       "id": "external_independent_redteam",

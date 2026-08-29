@@ -3538,6 +3538,292 @@ MUTANTS = (
             "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation",
         ),
     ),
+    # --- doctrine catalog provenance rules 9-14 (scripts/validate_doctrine_catalog.py) ----
+    # Added 2026-08-29. The catalogue carried 349 mutants and none of them touched the rules
+    # that decide whether a doctrine source may be staged at all: every one of the 73 tests
+    # in test_doctrine_catalog.py was a negative control nobody had falsified.
+    Mutant(
+        "M313_CATALOG_EVIDENCE_FLOOR_DISABLED",
+        "scripts/validate_doctrine_catalog.py",
+        "        if actual < minimum:",
+        "        if False:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_deleting_the_evidence_is_refused_by_the_floor",
+        ),
+    ),
+    Mutant(
+        # The ratchet's off-by-one: losing exactly one probe or one anchor still passes.
+        "M314_CATALOG_EVIDENCE_FLOOR_TOLERATES_ONE_LOSS",
+        "scripts/validate_doctrine_catalog.py",
+        "        if actual < minimum:",
+        "        if actual < minimum - 1:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_losing_exactly_one_anchor_is_refused_by_the_floor",
+        ),
+    ),
+    Mutant(
+        # Kills only while some count sits exactly on its floor (integrity_anchored == 12 on
+        # 2026-08-29). A floor with slack under every key would let this survive.
+        "M315_CATALOG_EVIDENCE_FLOOR_REFUSES_ITS_OWN_MINIMUM",
+        "scripts/validate_doctrine_catalog.py",
+        "        if actual < minimum:",
+        "        if actual <= minimum:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_the_real_catalog_passes",),
+    ),
+    Mutant(
+        # The guard reading what it guards: compare the floor with itself and it always holds.
+        "M316_CATALOG_FLOOR_COMPARES_ITSELF_NOT_THE_COUNT",
+        "scripts/validate_doctrine_catalog.py",
+        "        actual = summary[key]  # type: ignore[literal-required]\n        if actual < minimum:",
+        "        actual = minimum\n        if actual < minimum:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_deleting_the_evidence_is_refused_by_the_floor",
+        ),
+    ),
+    Mutant(
+        "M317_CATALOG_NO_HOST_IS_PROBEABLE",
+        "scripts/validate_doctrine_catalog.py",
+        'PROBEABLE_HOSTS = ("zakon.rada.gov.ua",)',
+        "PROBEABLE_HOSTS: tuple[str, ...] = ()",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_probeable_source_without_a_probe_is_refused",
+        ),
+    ),
+    Mutant(
+        "M318_CATALOG_NO_HOST_IS_UNDATED",
+        "scripts/validate_doctrine_catalog.py",
+        'UNDATED_HOSTS = ("mod.gov.ua",)',
+        "UNDATED_HOSTS: tuple[str, ...] = ()",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_an_undated_ministry_page_without_an_anchor_is_refused",
+        ),
+    ),
+    Mutant(
+        "M319_CATALOG_MANDATORY_EVIDENCE_RULE_RETURNS_NOTHING",
+        "scripts/validate_doctrine_catalog.py",
+        '    identifier = str(entry.get("id", "<no id>"))\n    uri = str(entry.get("source_uri", ""))',
+        '    return []\n    identifier = str(entry.get("id", "<no id>"))\n    uri = str(entry.get("source_uri", ""))',
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_probeable_source_without_a_probe_is_refused",
+        ),
+    ),
+    Mutant(
+        # Rule 14 per-entry is exercised by calling it directly. This asks whether the gate
+        # calls it at all.
+        "M320_CATALOG_MANDATORY_EVIDENCE_UNWIRED_FROM_THE_GATE",
+        "scripts/validate_doctrine_catalog.py",
+        "        problems.extend(_entry_problems(entry))\n        problems.extend(_mandatory_evidence_problems(entry))",
+        "        problems.extend(_entry_problems(entry))",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_the_gate_entry_point_applies_the_mandatory_evidence_rule",
+        ),
+    ),
+    Mutant(
+        # Same question for rules 1-13: every negative control calls _entry_problems itself.
+        "M321_CATALOG_ENTRY_RULES_UNWIRED_FROM_THE_GATE",
+        "scripts/validate_doctrine_catalog.py",
+        "        problems.extend(_entry_problems(entry))\n        problems.extend(_mandatory_evidence_problems(entry))",
+        "        problems.extend(_mandatory_evidence_problems(entry))",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_the_gate_entry_point_applies_the_per_entry_rules",
+        ),
+    ),
+    Mutant(
+        "M322_CATALOG_REPEALED_MARKER_READ_IN_THE_WRONG_CASE",
+        "scripts/validate_doctrine_catalog.py",
+        '    if status == "invalid" and ingestible:',
+        '    if status == "INVALID" and ingestible:',
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_repealed_act_may_not_be_ingestible",),
+    ),
+    Mutant(
+        # Rule 12 refuses a repealed act that is *ingestible*; a repealed act kept as history
+        # is legitimate. Dropping the conjunct blocks the legitimate case.
+        "M323_CATALOG_REPEALED_ACT_BLOCKED_EVEN_WHEN_NOT_INGESTIBLE",
+        "scripts/validate_doctrine_catalog.py",
+        '    if status == "invalid" and ingestible:',
+        '    if status == "invalid":',
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_repealed_act_kept_for_reference_but_blocked_is_allowed",
+        ),
+    ),
+    Mutant(
+        "M324_CATALOG_LEGAL_STATUS_VOCABULARY_WIDENED",
+        "scripts/validate_doctrine_catalog.py",
+        'LEGAL_STATUSES = frozenset({"valid", "invalid", "unknown"})',
+        'LEGAL_STATUSES = frozenset({"valid", "invalid", "unknown", "INVALID", ""})',
+        ("apps/api/tests/test_doctrine_catalog.py::test_an_unrecognised_legal_status_is_refused",),
+    ),
+    Mutant(
+        "M325_CATALOG_UNRECOGNISED_LEGAL_STATUS_ACCEPTED",
+        "scripts/validate_doctrine_catalog.py",
+        "    if not isinstance(status, str) or status not in LEGAL_STATUSES:",
+        "    if not isinstance(status, str):",
+        ("apps/api/tests/test_doctrine_catalog.py::test_an_unrecognised_legal_status_is_refused",),
+    ),
+    Mutant(
+        "M326_CATALOG_ZIP_MEMBER_CHECK_REMOVED",
+        "scripts/validate_doctrine_catalog.py",
+        'ZIP_MEMBER = {".docx": "word/document.xml", ".xlsx": "xl/workbook.xml"}',
+        "ZIP_MEMBER: dict[str, str] = {}",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_jar_renamed_docx_is_refused",),
+    ),
+    Mutant(
+        "M327_CATALOG_TEXTUAL_CAPTURE_FLOOR_REMOVED",
+        "scripts/validate_doctrine_catalog.py",
+        "MIN_TEXTUAL_BYTES = 512",
+        "MIN_TEXTUAL_BYTES = 0",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_tiny_html_capture_is_refused",),
+    ),
+    Mutant(
+        "M328_CATALOG_FILE_SIGNATURE_COMPARISON_INVERTED",
+        "scripts/validate_doctrine_catalog.py",
+        "        if prefix != expected:",
+        "        if prefix == expected:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_captured_error_page_under_a_docx_name_is_refused",
+        ),
+    ),
+    Mutant(
+        "M329_CATALOG_EXTRACTOR_HONESTY_CHECK_REMOVED",
+        "scripts/validate_doctrine_catalog.py",
+        '        if bool(anchor.get("extractor_supports_format")) is not readable:',
+        "        if False:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_an_attachment_claiming_a_format_the_extractor_cannot_read_is_refused",
+        ),
+    ),
+    Mutant(
+        "M330_CATALOG_UNCAPTURED_REQUIRED_ATTACHMENT_ACCEPTED",
+        "scripts/validate_doctrine_catalog.py",
+        "        if uri not in captured:",
+        "        if False:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_required_attachment_nobody_captured_is_refused",
+        ),
+    ),
+    Mutant(
+        "M331_CATALOG_ONE_MEASURED_VARIANT_IS_ENOUGH",
+        "scripts/validate_doctrine_catalog.py",
+        '    missing = [name for name in ("card", "print") if name not in measured]',
+        "    missing: list[str] = []",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_dropping_the_richer_variant_no_longer_hides_the_thinner_one",
+        ),
+    ),
+    Mutant(
+        "M332_CATALOG_THINNER_VARIANT_ACCEPTED",
+        "scripts/validate_doctrine_catalog.py",
+        "    if measured[chosen] < measured[richest]:",
+        "    if False:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_choosing_the_thinner_variant_is_refused",),
+    ),
+    Mutant(
+        "M333_CATALOG_RICHEST_VARIANT_REFUSES_ITSELF",
+        "scripts/validate_doctrine_catalog.py",
+        "    if measured[chosen] < measured[richest]:",
+        "    if measured[chosen] <= measured[richest]:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_a_probed_entry_pointing_at_its_richest_variant_passes",
+        ),
+    ),
+    Mutant(
+        "M334_CATALOG_SOURCE_URI_PROBE_PARITY_DROPPED",
+        "scripts/validate_doctrine_catalog.py",
+        "    elif source_uri and source_uri != chosen_uri:",
+        "    elif False:",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_pointing_at_the_card_after_the_probe_found_the_text_elsewhere_is_refused",
+        ),
+    ),
+    Mutant(
+        "M335_CATALOG_ANCHOR_MAY_BE_ANY_FILE_IN_THE_TREE",
+        "scripts/validate_doctrine_catalog.py",
+        "        target.relative_to(CAPTURE_ROOT)",
+        "        target.relative_to(ROOT)",
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_an_anchor_on_an_arbitrary_repository_file_is_refused",
+        ),
+    ),
+    Mutant(
+        "M336_CATALOG_ANCHOR_DIGEST_COMPARISON_INVERTED",
+        "scripts/validate_doctrine_catalog.py",
+        "    if actual != declared:",
+        "    if actual == declared:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_changed_page_snapshot_is_caught",),
+    ),
+    Mutant(
+        "M337_CATALOG_PROBE_NEVER_GOES_STALE",
+        "scripts/validate_doctrine_catalog.py",
+        "    if age > PROBE_MAX_AGE_DAYS:",
+        "    if age > 100000:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_stale_probe_is_refused",),
+    ),
+    Mutant(
+        "M338_CATALOG_PROBE_DATED_IN_THE_FUTURE_ACCEPTED",
+        "scripts/validate_doctrine_catalog.py",
+        "    if age < 0:",
+        "    if False:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_probe_dated_in_the_future_is_refused",),
+    ),
+    Mutant(
+        # A probe with no date is not stale, ever: the freshness rule reads a field nothing
+        # requires to be there.
+        "M339_CATALOG_UNDATED_PROBE_ACCEPTED",
+        "scripts/validate_doctrine_catalog.py",
+        "    if not isinstance(probed_on, str):",
+        "    if False:",
+        ("apps/api/tests/test_doctrine_catalog.py::test_a_probe_with_no_date_at_all_is_refused",),
+    ),
+    Mutant(
+        # The floor is only as honest as the counts it reads.
+        "M340_CATALOG_PROBE_COUNT_INFLATED_TO_EVERY_SOURCE",
+        "scripts/validate_doctrine_catalog.py",
+        '        "content_probed": len([e for e in dicts if e.get("content_probe")]),',
+        '        "content_probed": len(dicts),',
+        (
+            "apps/api/tests/test_doctrine_catalog.py::"
+            "test_every_probed_source_in_the_catalog_points_at_its_measured_content",
+        ),
+    ),
+    Mutant(
+        # `"lines": "999999"` lifted the ratchet for a module and reported PASS.
+        "M341_MODULE_BUDGET_STRING_CEILING_ACCEPTED",
+        "scripts/check_module_budget.py",
+        "    return value if isinstance(value, int) and not isinstance(value, bool) else fallback",
+        "    return value if not isinstance(value, bool) else fallback",
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_a_string_line_ceiling_does_not_lift_the_ratchet",
+        ),
+    ),
+    Mutant(
+        # External production proof unbound by a later commit must fail the gate, not be
+        # printed beside a zero exit.
+        "M342_PRODUCTION_PREDICATE_FLOOR_DISABLED",
+        "scripts/verify_production_hard_predicates.py",
+        '    if payload["production_satisfied"] < floor:',
+        "    if False:",
+        (
+            "apps/api/tests/test_gate_parity.py::"
+            "test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost",
+        ),
+    ),
 )
 
 

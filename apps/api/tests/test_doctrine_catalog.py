@@ -788,3 +788,90 @@ def test_host_matching_reads_the_host_not_the_string(uri: str, matches: bool) ->
     host through unmeasured, which is the gate not firing at all."""
     validator = _validator()
     assert validator._host_matches(uri, validator.PROBEABLE_HOSTS) is matches
+
+
+# --- what the mutation catalogue found on 2026-08-29 --------------------------------------
+# Rules 9-14 were covered by 73 tests and by no mutant. Four mutations survived all of them.
+
+
+def test_losing_exactly_one_anchor_is_refused_by_the_floor() -> None:
+    """M314: `actual < minimum` weakened to `actual < minimum - 1` survived every test here,
+    because the only floor test deletes eighteen probes and eleven anchors at once. A ratchet
+    that tolerates losing one piece of evidence per commit is not a ratchet.
+
+    The count is driven to exactly `minimum - 1` rather than "one fewer than today", so this
+    keeps separating the two predicates as the catalog grows past its recorded floor.
+    """
+    catalog = _catalog()
+    floor = int(catalog["evidence_floor"]["integrity_anchored"])
+    anchored = [e for e in catalog["sources"] if e.get("integrity_anchor")]
+    assert len(anchored) >= floor, "the catalog already sits below its own recorded floor"
+    for entry in anchored[: len(anchored) - floor + 1]:
+        entry.pop("integrity_anchor")
+
+    result = _validator().evaluate(catalog)
+    assert result["summary"]["integrity_anchored"] == floor - 1
+    assert result["status"] == "FAIL"
+    assert any(
+        f"integrity_anchored: {floor - 1} is below the recorded floor of {floor}" in p
+        for p in result["problems"]
+    ), result["problems"]
+
+
+def test_the_gate_entry_point_applies_the_mandatory_evidence_rule() -> None:
+    """M320: every rule-14 negative control calls `_mandatory_evidence_problems` itself, so
+    deleting its call from `evaluate` disconnected the rule from the gate with all 73 tests
+    still green. The rule existed, and ran nowhere."""
+    catalog = _catalog()
+    unmeasured = _valid_entry()
+    unmeasured["id"] = "TEST-UNMEASURED-ON-A-PROBEABLE-HOST"
+    unmeasured["source_uri"] = "https://zakon.rada.gov.ua/laws/show/548-14/print"
+    catalog["sources"].append(unmeasured)
+
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("carries no content_probe" in p for p in result["problems"]), result["problems"]
+
+
+def test_the_gate_entry_point_applies_the_per_entry_rules() -> None:
+    """M321: the same hole one function over, and a wider one — rules 1-13 are reached only
+    through `_entry_problems`, which every negative control calls directly. Dropping its call
+    from `evaluate` left the catalog gate checking ids for duplication and nothing else."""
+    catalog = _catalog()
+    restricted = _valid_entry()
+    restricted["id"] = "TEST-RESTRICTED-AND-INGESTIBLE"
+    restricted["classification"] = "restricted"
+    catalog["sources"].append(restricted)
+
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("classification=restricted but ingestible=true" in p for p in result["problems"]), (
+        result["problems"]
+    )
+
+
+def test_a_probe_with_no_date_at_all_is_refused() -> None:
+    """M339: freshness reads `probed_on`, and nothing tested that it has to be there. A probe
+    with the field deleted is never stale — the same act-repealed-tomorrow hole rule 14 closed
+    for old dates, reopened by removing the date."""
+    entry = _probed_entry()
+    entry["content_probe"].pop("probed_on")
+    problems = _validator()._entry_problems(entry)
+    assert any("records no probe date" in p for p in problems), problems
+
+
+def test_lowering_the_floor_is_refused_on_its_own_terms() -> None:
+    """`actual < minimum` compares the count with the floor and never the floor with what it
+    used to be, so one commit that lowers the floor and deletes the evidence together passes.
+
+    Rule 14 happens to catch that today, because every anchor sits on a host it covers — but
+    that is a property of the current catalog, not of this rule. One probe on a host in
+    neither list and the protection is gone.
+    """
+    validator = _validator()
+    committed = validator._floor_lowered_problems({"content_probed": 1, "total": 1})
+    assert committed, "a floor lowered below the committed one produced no problem"
+    assert any("was lowered from" in p for p in committed)
+
+    unchanged = validator._floor_lowered_problems(_catalog()["evidence_floor"])
+    assert unchanged == [], f"the committed floor flags itself: {unchanged}"

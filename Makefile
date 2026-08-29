@@ -267,6 +267,14 @@ content-signals:
 source-probe:
 	PYTHONPATH=apps/api/src $(PY) scripts/probe_source_content.py
 
+# The bridge from bibliography to corpus: fetch every ingestible source at the URI the
+# content probe measured as richest, run each download through this system's own extractor,
+# and emit the import manifest. Nothing is approved — every version lands in quarantine,
+# because approval is a person taking responsibility in the audit chain. Network-bound, so
+# never a gate; `make import-corpus MANIFEST=var/doctrine-staging/manifest.json` is next.
+doctrine-staging:
+	PYTHONPATH=apps/api/src $(PY) scripts/stage_doctrine_corpus.py --out var/doctrine-staging
+
 source-probe-write:
 	PYTHONPATH=apps/api/src $(PY) scripts/probe_source_content.py --write
 

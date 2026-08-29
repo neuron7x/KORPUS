@@ -64,6 +64,7 @@ import argparse
 import ast
 import hashlib
 import json
+import subprocess
 import sys
 import zipfile
 from datetime import date
@@ -604,6 +605,23 @@ def _anchor_problems(identifier: str, anchor: object) -> list[str]:
     return []
 
 
+#: The counters a floor must name to be a floor. Chosen as the evidence classes that cannot
+#: be reconstructed without going back to the network: probes, anchors, captured bytes.
+REQUIRED_FLOOR_KEYS = frozenset(
+    {
+        "total",
+        "governing_authority",
+        "integrity_anchored",
+        "content_probed",
+        "attachments_captured",
+        "attachments_surveyed",
+    }
+)
+#: The counters a ceiling must name. These are debts, and a debt nobody counts grows.
+REQUIRED_CEILING_KEYS = frozenset(
+    {"sources_without_evidence", "ingestible_without_evidence", "sources_without_uri"}
+)
+
 #: Hosts whose sources are measurable by probe_source_content.py. A source on one of these
 #: without a probe is unmeasured, not un-measurable, and rule 14 says so.
 PROBEABLE_HOSTS = ("zakon.rada.gov.ua",)
@@ -669,6 +687,12 @@ def _ceiling_problems(catalog: dict[str, object], summary: Summary) -> list[str]
             "catalog declares no evidence_ceiling — the floor counts evidence that exists "
             "and never notices a source that carries none, so unmeasured sources grow free"
         ]
+    missing = REQUIRED_CEILING_KEYS - set(declared)
+    if missing:
+        return [
+            f"evidence_ceiling names none of {sorted(missing)} — same failure as an empty "
+            "floor: a ceiling over no counter is not a ceiling"
+        ]
     problems: list[str] = []
     for key, maximum in sorted(declared.items()):
         if key not in summary:
@@ -686,6 +710,43 @@ def _ceiling_problems(catalog: dict[str, object], summary: Summary) -> list[str]
     return problems
 
 
+def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
+    """The floor against its own previous value, not only against the count.
+
+    `if actual < minimum` compares the measurement with the floor and never compares the
+    floor with what it used to be, so one commit that lowers the floor and deletes the
+    evidence together passes silently. Today rule 14 catches that per entry — every anchor
+    happens to sit on a host rule 14 covers — but that is a property of the current catalog,
+    not of this rule. Add one probe on a host in neither host list and the protection is
+    gone. This reads the committed floor and refuses a lowering on its own terms.
+    """
+    previous = subprocess.run(
+        ["git", "-C", str(ROOT), "show", f"HEAD:{CATALOG.relative_to(ROOT).as_posix()}"],
+        capture_output=True,
+        check=False,
+    )
+    if previous.returncode != 0:
+        # No HEAD version to compare against: a fresh repository or an unpacked archive.
+        return []
+    try:
+        committed = json.loads(previous.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):  # pragma: no cover - corrupt HEAD blob
+        return []
+    recorded = committed.get("evidence_floor")
+    if not isinstance(recorded, dict):
+        return []
+    problems: list[str] = []
+    for key, was in sorted(recorded.items()):
+        now = declared.get(key)
+        if isinstance(was, int) and isinstance(now, int) and now < was:
+            problems.append(
+                f"evidence_floor.{key} was lowered from {was} to {now} — a ratchet that only "
+                "compares itself with the count can be moved down in the same commit that "
+                "removes what it counted"
+            )
+    return problems
+
+
 def _floor_problems(catalog: dict[str, object], summary: Summary) -> list[str]:
     """(14, per catalog) The recorded floor is a ratchet: counts rise, never fall.
 
@@ -698,7 +759,16 @@ def _floor_problems(catalog: dict[str, object], summary: Summary) -> list[str]:
             "catalog declares no evidence_floor — every rule above is conditional on the "
             "evidence existing, so without a floor deleting all of it passes"
         ]
-    problems: list[str] = []
+    # `{}` passed isinstance and then iterated over nothing. A floor that names no counter
+    # is the absence of a floor wearing its name, and it was the single edit that disarmed
+    # the whole ratchet: `evidence_floor: {}` plus a deleted probe returned exit 0.
+    missing = REQUIRED_FLOOR_KEYS - set(declared)
+    if missing:
+        return [
+            f"evidence_floor names none of {sorted(missing)} — a floor over no counter "
+            "holds nothing, and an empty one is indistinguishable from having none"
+        ]
+    problems: list[str] = list(_floor_lowered_problems(declared))
     for key, minimum in sorted(declared.items()):
         if key not in summary:
             problems.append(f"evidence_floor names {key!r}, which is not a measured count")
