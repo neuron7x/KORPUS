@@ -4,8 +4,10 @@ import hashlib
 import zipfile
 from pathlib import Path
 
+
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
 
 def archive_root(tmp: Path) -> Path:
     entries = list(tmp.iterdir())
@@ -27,14 +29,22 @@ def file_record(path: Path, relative: Path, *, source: bool = False) -> dict[str
         "mode": mode_string(path, source=source),
     }
 
+
 def manifest_root(records: list[dict[str, object]]) -> str:
     canonical = "".join(
-        f'{item["path"]}\0{item["mode"]}\0{item["sha256"]}\n' for item in records
+        f"{item['path']}\0{item['mode']}\0{item['sha256']}\n" for item in records
     ).encode()
     return hashlib.sha256(canonical).hexdigest()
 
+
 def manifest_failures(manifest: dict[str, object], records: list[dict[str, object]]) -> list[str]:
-    return [] if manifest.get("file_count") == len(records) and manifest.get("root_sha256") == manifest_root(records) else ["manifest aggregate integrity mismatch"]
+    return (
+        []
+        if manifest.get("file_count") == len(records)
+        and manifest.get("root_sha256") == manifest_root(records)
+        else ["manifest aggregate integrity mismatch"]
+    )
+
 
 def archive_modes(zf: zipfile.ZipFile, root_name: str) -> dict[str, str]:
     prefix = f"{root_name}/" if root_name else ""
@@ -42,19 +52,30 @@ def archive_modes(zf: zipfile.ZipFile, root_name: str) -> dict[str, str]:
     for info in zf.infolist():
         if info.is_dir():
             continue
-        name = info.filename[len(prefix):] if prefix and info.filename.startswith(prefix) else info.filename
+        name = (
+            info.filename[len(prefix) :]
+            if prefix and info.filename.startswith(prefix)
+            else info.filename
+        )
         if name != "DISTRIBUTION_MANIFEST.json":
             result[name] = f"{(info.external_attr >> 16) & 0o777:04o}"
     return result
 
 
-def record_failures(path: Path, record: dict[str, object], archive_mode: str | None = None) -> list[str]:
+def record_failures(
+    path: Path, record: dict[str, object], archive_mode: str | None = None
+) -> list[str]:
     content = path.read_bytes()
     relative = str(record.get("path"))
     failures: list[str] = []
-    if record.get("bytes") != len(content) or record.get("sha256") != hashlib.sha256(content).hexdigest():
+    if (
+        record.get("bytes") != len(content)
+        or record.get("sha256") != hashlib.sha256(content).hexdigest()
+    ):
         failures.append(f"digest mismatch: {relative}")
     actual_mode = archive_mode if archive_mode is not None else mode_string(path)
     if record.get("mode") != actual_mode:
-        failures.append(f"mode mismatch: {relative} expected={record.get('mode')} actual={actual_mode}")
+        failures.append(
+            f"mode mismatch: {relative} expected={record.get('mode')} actual={actual_mode}"
+        )
     return failures

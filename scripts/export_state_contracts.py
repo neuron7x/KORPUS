@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Mapping
+from enum import Enum
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,9 +19,14 @@ from korpus.domain.tenancy import ALLOWED_SUBSCRIPTION_TRANSITIONS, Subscription
 from release_identity import release_tag  # noqa: E402
 
 
-def _matrix(
-    states: list[object], transitions: dict[object, frozenset[object]]
+def _matrix[StateT: Enum](
+    states: list[StateT], transitions: Mapping[StateT, frozenset[StateT]]
 ) -> dict[str, dict[str, bool]]:
+    """Generic over the enum, because `list[object]` accepts no concrete enum list.
+
+    dict and list are invariant, so `list[ReviewState]` is not a `list[object]`: the
+    annotation made every call site an error while describing the intent correctly.
+    """
     return {
         str(source.value): {str(target.value): target in transitions[source] for target in states}
         for source in states

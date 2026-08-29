@@ -95,7 +95,9 @@ def audit(
 
     integrity, counts, present_versions, object_keys = _database_state(database)
 
-    retrieval = [case for case in load_reference_cases(reference_set) if case["kind"] == "retrieval"]
+    retrieval = [
+        case for case in load_reference_cases(reference_set) if case["kind"] == "retrieval"
+    ]
     covered = [
         str(case["id"])
         for case in retrieval
@@ -105,7 +107,9 @@ def audit(
         "retrieval_cases": len(retrieval),
         "covered_cases": len(covered),
         "coverage_ratio": len(covered) / len(retrieval) if retrieval else 0.0,
-        "missing_case_ids": [str(case["id"]) for case in retrieval if str(case["id"]) not in covered],
+        "missing_case_ids": [
+            str(case["id"]) for case in retrieval if str(case["id"]) not in covered
+        ],
     }
     checks.update(
         {

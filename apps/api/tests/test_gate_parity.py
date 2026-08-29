@@ -96,6 +96,41 @@ def _ci_script(job: str) -> list[str]:
     return out
 
 
+def _ci_artifact_paths(job: str) -> list[str]:
+    """Return the `artifacts: paths:` entries of one CI job, in the same textual style.
+
+    An artifact produced and not carried is, one job later, indistinguishable from one
+    never produced.
+    """
+    lines = CI.read_text(encoding="utf-8").splitlines()
+    out: list[str] = []
+    in_job = in_artifacts = in_paths = False
+    for line in lines:
+        if re.match(rf"^{re.escape(job)}\s*:\s*$", line):
+            in_job = True
+            continue
+        if in_job and re.match(r"^\S", line):
+            break
+        if in_job and re.match(r"^\s{2}artifacts:\s*$", line):
+            in_artifacts = True
+            continue
+        if in_artifacts and re.match(r"^\s{2}\S", line):
+            break
+        if in_artifacts and re.match(r"^\s{4}paths:\s*$", line):
+            in_paths = True
+            continue
+        if in_paths:
+            if re.match(r"^\s{6}- ", line):
+                out.append(line.strip()[2:])
+                continue
+            if line.strip() == "" or re.match(r"^\s{6}#", line):
+                continue
+            break
+    if not out:
+        pytest.fail(f".gitlab-ci.yml declares no artifact paths for {job!r}")
+    return out
+
+
 def _ruff_paths(command: str) -> list[str]:
     """Extract the path arguments of a `ruff check ...` invocation."""
     tokens = shlex.split(command)
@@ -1629,3 +1664,84 @@ def test_the_file_mode_gate_refuses_a_tree_it_cannot_read_instead_of_crashing(
     report = json.loads(result.stdout)
     assert report["status"] == "UNAVAILABLE"
     assert report["files_checked"] == 0
+
+
+def test_the_branch_ratchet_runs_in_the_pipeline_and_not_only_locally() -> None:
+    """A frozen ceiling nothing enforces on push is a number in a file.
+
+    Until 2026-08-29 only check_coverage_thresholds.py ran in CI. coverage-ratchet — the
+    gate that holds the missing-branch count from growing — existed as a make target and
+    was invoked by no job, because it needs the union of both dialect reports and
+    api:postgres-and-restore passed --no-cov. A push could add uncovered branches and every
+    job stayed green.
+    """
+    package = _ci_script("source:package")
+    assert any("merge_dialect_coverage.py" in line for line in package), (
+        "source:package no longer builds the dialect coverage union"
+    )
+    assert any(
+        "coverage_gap_plan.py" in line and "coverage-union.json" in line for line in package
+    ), "source:package no longer runs the branch ratchet over the union"
+
+
+def test_the_postgres_job_measures_coverage_so_the_union_can_exist() -> None:
+    """Half a union is not a union; it is the SQLite report wearing the union's name."""
+    postgres = _ci_script("api:postgres-and-restore")
+    pytest_lines = [line for line in postgres if "pytest" in line and "apps/api/tests" in line]
+    assert pytest_lines, "the PostgreSQL job no longer runs the suite"
+    assert not any("--no-cov" in line for line in pytest_lines), (
+        "the PostgreSQL suite runs with --no-cov again; the union has no second half"
+    )
+    assert any("var/coverage-postgres.json" in line for line in pytest_lines), (
+        "the PostgreSQL run does not write the report merge_dialect_coverage.py reads"
+    )
+
+
+def test_the_postgres_coverage_report_is_published_to_the_job_that_merges_it() -> None:
+    """Produced and not carried is the same as not produced, one job later."""
+    paths = _ci_artifact_paths("api:postgres-and-restore")
+    assert "var/coverage-postgres.json" in paths, (
+        "api:postgres-and-restore does not publish the PostgreSQL coverage report"
+    )
+
+
+def test_the_quality_gate_type_checks_scripts_as_well_as_the_application() -> None:
+    """apps/api/pyproject.toml sets packages = ["korpus"], so it checks nothing else.
+
+    Every runner, gate and generator under scripts/ decides whether a release is admissible,
+    and none of them was type-checked until 2026-08-29. The first run of mypy-scripts.ini
+    over that directory found 198 errors in 58 files.
+    """
+    source = QUALITY_GATE.read_text(encoding="utf-8")
+    assert "mypy-scripts.ini" in source, (
+        "run_quality_gate.py no longer type-checks scripts/ against its own configuration"
+    )
+    assert '"mypy_scripts"' in source, "the scripts result is no longer part of the verdict"
+
+
+def test_the_scripts_type_configuration_is_strict() -> None:
+    """A second configuration is only worth having if it is not weaker than the first."""
+    config = (ROOT / "mypy-scripts.ini").read_text(encoding="utf-8")
+    for setting in (
+        "disallow_untyped_defs = True",
+        "disallow_incomplete_defs = True",
+        "warn_return_any = True",
+        "warn_unused_ignores = True",
+        "strict_equality = True",
+        "check_untyped_defs = True",
+    ):
+        assert setting in config, f"mypy-scripts.ini no longer sets {setting!r}"
+    # Without the plugin, model_dump() is untyped and every pydantic spread reports as an
+    # error inside the application rather than in the script being checked.
+    assert "plugins = pydantic.mypy" in config, "the pydantic plugin is no longer loaded"
+
+
+def test_scripts_type_check_clean_right_now() -> None:
+    result = subprocess.run(
+        [sys.executable, "-m", "mypy", "--config-file", "mypy-scripts.ini", "scripts/"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout[-3000:]

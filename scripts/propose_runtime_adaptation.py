@@ -12,6 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
+from korpus.application.numeric_contracts import (  # noqa: E402
+    require_positive_number,
+    require_rate,
+)
 from korpus.application.plasticity import (  # noqa: E402
     AdaptationState,
     ObservationWindow,
@@ -20,6 +24,36 @@ from korpus.application.plasticity import (  # noqa: E402
     validate_proposal,
 )
 from korpus.application.plasticity_config import load_plasticity_policy  # noqa: E402
+
+
+def _int_field(payload: dict[str, object], key: str, default: int) -> int:
+    """A JSON field is `object`; int() of one is a type error, not a conversion."""
+    value = payload.get(key, default)
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError(f"state.{key} must be an integer")
+    return value
+
+
+def _observation_window(payload: dict[str, object]) -> ObservationWindow:
+    """Build the window field by field so each one is refused at its own name.
+
+    `ObservationWindow(**payload)` type-checks as one opaque spread: mypy cannot see which
+    key is wrong, and at runtime a wrong type surfaces as a TypeError naming the dataclass
+    rather than the field the operator has to fix.
+    """
+    return ObservationWindow(
+        sequence=_int_field(payload, "sequence", 0),
+        samples=_int_field(payload, "samples", 0),
+        p95_latency_ms=require_positive_number(
+            payload.get("p95_latency_ms"), label="window.p95_latency_ms"
+        ),
+        error_rate=require_rate(payload.get("error_rate"), label="window.error_rate"),
+        contradiction_rate=require_rate(
+            payload.get("contradiction_rate"), label="window.contradiction_rate"
+        ),
+        overload_rate=require_rate(payload.get("overload_rate"), label="window.overload_rate"),
+        recall_at_20=require_rate(payload.get("recall_at_20"), label="window.recall_at_20"),
+    )
 
 
 def _object(path: Path) -> dict[str, object]:
@@ -48,10 +82,10 @@ def main() -> int:
             raise ValueError("state.knobs must be an object")
         state = AdaptationState(
             knobs=RuntimeKnobs(**knobs_raw),
-            last_change_sequence=int(state_raw.get("last_change_sequence", -1)),
-            consecutive_healthy_windows=int(state_raw.get("consecutive_healthy_windows", 0)),
+            last_change_sequence=_int_field(state_raw, "last_change_sequence", -1),
+            consecutive_healthy_windows=_int_field(state_raw, "consecutive_healthy_windows", 0),
         )
-        window = ObservationWindow(**_object(args.window))
+        window = _observation_window(_object(args.window))
         policy, _policy_sha256 = load_plasticity_policy(args.policy)
         proposal = propose_adaptation(state, window, policy)
         validate_proposal(proposal, policy)

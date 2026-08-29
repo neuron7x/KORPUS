@@ -11,6 +11,11 @@ from pathlib import Path
 EXPECTED = {"gitleaks", "pip-audit:runtime", "pip-audit:dev", "trivy"}
 
 
+def _exit_code(value: object) -> int:
+    """A missing or non-integer exit code is the worst case, not a zero."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else 127
+
+
 def _load(path: Path) -> dict[str, object]:
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -53,7 +58,9 @@ def main() -> int:
         "status": "PASS" if not failures else "FAIL",
         "commit_sha": next(iter(commits)) if len(commits) == 1 else "UNKNOWN",
         "scanners": sorted(records, key=lambda item: str(item.get("scanner"))),
-        "worst_exit_code": max((int(item.get("exit_code", 127)) for item in records), default=127),
+        "worst_exit_code": max(
+            (_exit_code(item.get("exit_code")) for item in records), default=127
+        ),
         "checks": checks,
         "failures": failures,
         "interpretation": "Aggregated only from scanner jobs that executed in their pinned CI images.",

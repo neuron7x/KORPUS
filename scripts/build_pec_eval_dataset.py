@@ -11,6 +11,14 @@ from pec_common import read_jsonl, receipt, sha256_file, write_json, write_jsonl
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def _sequence(row: dict[str, object], key: str) -> list[object]:
+    """A dataset field is `object`; iterating one without checking is a runtime surprise."""
+    value = row.get(key, [])
+    if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)):
+        raise ValueError(f"dataset field {key!r} must be a list")
+    return list(value)
+
+
 def normalize(row: dict[str, object]) -> dict[str, object]:
     query = str(row.get("query", "")).strip()
     if not query:
@@ -29,7 +37,7 @@ def normalize(row: dict[str, object]) -> dict[str, object]:
         "group_id": group,
         "partition": partition,
         "expected_status": row.get("expected_status") or row.get("expect") or "review",
-        "gold_version_ids": sorted(str(x) for x in row.get("must_cite_one_of_if_answered", [])),
+        "gold_version_ids": sorted(str(x) for x in _sequence(row, "must_cite_one_of_if_answered")),
         "stratum": str(row.get("stratum", "unspecified")),
         "kind": str(row.get("kind", "answer")),
         "source_record_sha256": hashlib.sha256(

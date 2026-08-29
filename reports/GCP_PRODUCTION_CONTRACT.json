@@ -1,5 +1,5 @@
 {
-  "passed": 72,
+  "passed": 73,
   "predicates": [
     {
       "evidence": "bootstrap/foundation/runtime pin Terraform 1.15.8",
@@ -282,6 +282,11 @@
       "passed": true
     },
     {
+      "evidence": "Cloud SQL refuses unencrypted database connections independently of network placement",
+      "id": "CLOUDSQL_TLS_ENFORCED",
+      "passed": true
+    },
+    {
       "evidence": "API, ingestion worker, migration job, and PostgreSQL verifier use Direct VPC egress; web remains off the data-plane VPC",
       "id": "RUNTIME_DIRECT_VPC_DB_PLANE",
       "passed": true
@@ -363,6 +368,6 @@
     }
   ],
   "schema_version": "1.0",
-  "total": 72,
+  "total": 73,
   "verdict": "PASS"
 }

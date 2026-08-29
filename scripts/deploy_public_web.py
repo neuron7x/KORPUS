@@ -24,6 +24,7 @@ FORBIDDEN = {"console.html", "console.js", "console_rules.js"}
 GENERATED = {"PUBLIC_MANIFEST.json"}
 REQUIRED = {"index.html", "app.js", "styles.css", "tokens.css", "sw.js", "config.js"}
 
+
 def canonical_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
@@ -42,7 +43,9 @@ def artifact_manifest(source: Path) -> dict[str, object]:
             continue
         data = path.read_bytes()
         names.add(relative)
-        records.append({"path": relative, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+        records.append(
+            {"path": relative, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+        )
     missing = sorted(REQUIRED - names)
     if missing:
         raise ValueError(f"public artifact is incomplete: {', '.join(missing)}")
@@ -93,16 +96,44 @@ def run(command: list[str]) -> None:
 
 def start_edge(release: Path, nginx_config: Path) -> None:
     run(["docker", "build", "--quiet", "-f", "deploy/public/Dockerfile.edge", "-t", IMAGE, "."])
-    subprocess.run(["docker", "rm", "-f", CONTAINER], cwd=ROOT, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    run([
-        "docker", "run", "-d", "--name", CONTAINER, "--restart", "unless-stopped",
-        "--network", "host", "--add-host", "api:127.0.0.1",
-        "-v", f"{nginx_config.resolve()}:/etc/nginx/nginx.conf:ro",
-        "-v", f"{release.resolve()}:/usr/share/nginx/html:ro",
-        "--read-only", "--tmpfs", "/tmp:size=64m,mode=1777",
-        "--tmpfs", "/var/cache/nginx:size=32m", "--security-opt", "no-new-privileges:true",
-        "--entrypoint", "sh", IMAGE, "-c", 'mkdir -p /tmp/nginx && exec nginx -g "daemon off;"',
-    ])
+    subprocess.run(
+        ["docker", "rm", "-f", CONTAINER],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    run(
+        [
+            "docker",
+            "run",
+            "-d",
+            "--name",
+            CONTAINER,
+            "--restart",
+            "unless-stopped",
+            "--network",
+            "host",
+            "--add-host",
+            "api:127.0.0.1",
+            "-v",
+            f"{nginx_config.resolve()}:/etc/nginx/nginx.conf:ro",
+            "-v",
+            f"{release.resolve()}:/usr/share/nginx/html:ro",
+            "--read-only",
+            "--tmpfs",
+            "/tmp:size=64m,mode=1777",
+            "--tmpfs",
+            "/var/cache/nginx:size=32m",
+            "--security-opt",
+            "no-new-privileges:true",
+            "--entrypoint",
+            "sh",
+            IMAGE,
+            "-c",
+            'mkdir -p /tmp/nginx && exec nginx -g "daemon off;"',
+        ]
+    )
 
 
 def probe(base_url: str, attempts: int = 15) -> None:
@@ -123,12 +154,16 @@ def probe(base_url: str, attempts: int = 15) -> None:
     raise RuntimeError(f"deployment probes failed: {last_error}")
 
 
-def write_receipt(path: Path, *, status: str, manifest: dict[str, object], previous: str | None) -> None:
+def write_receipt(
+    path: Path, *, status: str, manifest: dict[str, object], previous: str | None
+) -> None:
     body = {
         "schema": "korpus.public-web-deployment-receipt.v1",
         "status": status,
         "generated_at": datetime.now(UTC).isoformat(),
-        "git_head": subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip(),
+        "git_head": subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True
+        ).stdout.strip(),
         "release_sha256": manifest["tree_sha256"],
         "previous_release_sha256": previous,
         "manifest_sha256": hashlib.sha256(canonical_bytes(manifest)).hexdigest(),
@@ -136,7 +171,9 @@ def write_receipt(path: Path, *, status: str, manifest: dict[str, object], previ
     body["receipt_sha256"] = hashlib.sha256(canonical_bytes(body)).hexdigest()
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(".tmp")
-    temporary.write_bytes(json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True).encode() + b"\n")
+    temporary.write_bytes(
+        json.dumps(body, ensure_ascii=False, indent=2, sort_keys=True).encode() + b"\n"
+    )
     os.replace(temporary, path)
 
 
@@ -161,7 +198,9 @@ def main() -> int:
     release, manifest = stage_release(ROOT / "apps/web/dist", releases)
     config = state / "edge/nginx.conf"
     if not config.is_file():
-        raise RuntimeError("rendered public nginx config is missing; run scripts/serve_public.sh once")
+        raise RuntimeError(
+            "rendered public nginx config is missing; run scripts/serve_public.sh once"
+        )
     try:
         start_edge(release, config)
         probe(args.base_url)
@@ -172,7 +211,12 @@ def main() -> int:
                 raise RuntimeError("no verified previous release is available")
             start_edge(releases / previous, config)
             probe(args.base_url)
-        except (OSError, RuntimeError, subprocess.CalledProcessError, urllib.error.URLError) as error:
+        except (
+            OSError,
+            RuntimeError,
+            subprocess.CalledProcessError,
+            urllib.error.URLError,
+        ) as error:
             rollback_error = error
         write_receipt(
             state / "DEPLOYMENT_RECEIPT.json",
@@ -181,11 +225,19 @@ def main() -> int:
             previous=previous,
         )
         if rollback_error:
-            raise RuntimeError(f"deployment failed ({deployment_error}); rollback failed ({rollback_error})") from deployment_error
+            raise RuntimeError(
+                f"deployment failed ({deployment_error}); rollback failed ({rollback_error})"
+            ) from deployment_error
         raise
     current.write_text(str(manifest["tree_sha256"]) + "\n", encoding="utf-8")
-    write_receipt(state / "DEPLOYMENT_RECEIPT.json", status="PASS", manifest=manifest, previous=previous)
-    print(json.dumps({"status": "PASS", "release_sha256": manifest["tree_sha256"], "release": str(release)}))
+    write_receipt(
+        state / "DEPLOYMENT_RECEIPT.json", status="PASS", manifest=manifest, previous=previous
+    )
+    print(
+        json.dumps(
+            {"status": "PASS", "release_sha256": manifest["tree_sha256"], "release": str(release)}
+        )
+    )
     return 0
 
 

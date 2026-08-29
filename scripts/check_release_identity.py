@@ -13,6 +13,20 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 from korpus.release import DISTRIBUTION_ARTIFACT, RELEASE_TAG, RELEASE_VERSION  # noqa: E402
 
 
+def _nested(payload: dict[str, object], *keys: str) -> object:
+    """Walk a JSON object one key at a time; a missing or non-object level reads as absent.
+
+    `payload.get("a", {}).get("b")` type-checks only if every level is known to be a dict,
+    and none of these are: they come out of package.json and package-lock.json.
+    """
+    value: object = payload
+    for key in keys:
+        if not isinstance(value, dict):
+            return None
+        value = value.get(key)
+    return value
+
+
 def _read_json(relative: str) -> dict[str, object]:
     value = json.loads((ROOT / relative).read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -55,10 +69,10 @@ def main() -> int:
     desired = _read_json("config/operations/desired-state.json")
     prefix = f"# KORPUS v{RELEASE_VERSION}"
     checks = {
-        "api_pyproject": pyproject.get("project", {}).get("version") == RELEASE_VERSION,
+        "api_pyproject": _nested(pyproject, "project", "version") == RELEASE_VERSION,
         "web_package": web.get("version") == RELEASE_VERSION,
         "web_lock_root": lock.get("version") == RELEASE_VERSION,
-        "web_lock_package": lock.get("packages", {}).get("", {}).get("version") == RELEASE_VERSION,
+        "web_lock_package": _nested(lock, "packages", "", "version") == RELEASE_VERSION,
         "desired_state": desired.get("release") == RELEASE_TAG,
         "readme": (ROOT / "README.md").read_text(encoding="utf-8").startswith(prefix),
         "package_index": (ROOT / "FINAL_PACKAGE_CONTENTS.md")

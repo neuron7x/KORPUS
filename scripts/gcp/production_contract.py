@@ -41,6 +41,20 @@ class Sources:
     versions: tuple[str, str, str]
 
 
+def _captured(pattern: str, text: str, group: str = "body") -> str:
+    """The named group, or a refusal — never `None.group(...)`.
+
+    A predicate that reads a Terraform block by regex is asserting the block exists. When
+    it does not, `re.search(...).group(...)` raises AttributeError halfway through building
+    the contract report, which reads as a crashed generator rather than as the finding it
+    is: the file no longer has the shape the predicate is about.
+    """
+    match = re.search(pattern, text, re.S)
+    if match is None:
+        raise ValueError(f"production contract source no longer contains the block: {pattern!r}")
+    return match.group(group)
+
+
 def _read(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
 
@@ -84,7 +98,7 @@ def load_sources(root: Path) -> Sources:
 def _group_01(s: Sources) -> list[Predicate]:
     p: list[Predicate] = []
 
-    def add(i, ok, e):
+    def add(i: str, ok: object, e: str) -> None:
         return p.append(Predicate(i, bool(ok), e))
 
     add(
@@ -178,7 +192,7 @@ def _group_01(s: Sources) -> list[Predicate]:
 def _group_02(s: Sources) -> list[Predicate]:
     p: list[Predicate] = []
 
-    def add(i, ok, e):
+    def add(i: str, ok: object, e: str) -> None:
         return p.append(Predicate(i, bool(ok), e))
 
     add(
@@ -223,28 +237,26 @@ def _group_02(s: Sources) -> list[Predicate]:
         )
         and (
             "roles/secretmanager.admin"
-            not in re.search(
+            not in _captured(
                 "locals \\{\\n  runtime_deployer_project_roles = toset\\(\\[(?P<body>.*?)\\n  \\]\\)\\n\\}",
                 s.foundation,
-                re.S,
-            ).group("body")
+            )
         )
         and (
             "roles/cloudsql.admin"
-            not in re.search(
+            not in _captured(
                 "locals \\{\\n  runtime_deployer_project_roles = toset\\(\\[(?P<body>.*?)\\n  \\]\\)\\n\\}",
                 s.foundation,
-                re.S,
-            ).group("body")
+            )
         ),
         "routine runtime identity can deploy app/edge, write images/governance, and read scanner evidence but has no Secret Manager or Cloud SQL admin",
     )
     add(
         "WEB_NO_DATA_PLANE_IAM",
         "web      = google_service_account.web.email"
-        not in re.search(
-            "locals \\{\\n  database_clients = \\{(?P<body>.*?)\\n  \\}\\n\\}", s.foundation, re.S
-        ).group("body")
+        not in _captured(
+            "locals \\{\\n  database_clients = \\{(?P<body>.*?)\\n  \\}\\n\\}", s.foundation
+        )
         if re.search(
             "locals \\{\\n  database_clients = \\{(?P<body>.*?)\\n  \\}\\n\\}", s.foundation, re.S
         )
@@ -308,7 +320,7 @@ def _group_02(s: Sources) -> list[Predicate]:
 def _group_03(s: Sources) -> list[Predicate]:
     p: list[Predicate] = []
 
-    def add(i, ok, e):
+    def add(i: str, ok: object, e: str) -> None:
         return p.append(Predicate(i, bool(ok), e))
 
     add(
@@ -431,7 +443,7 @@ def _group_03(s: Sources) -> list[Predicate]:
 def _group_04(s: Sources) -> list[Predicate]:
     p: list[Predicate] = []
 
-    def add(i, ok, e):
+    def add(i: str, ok: object, e: str) -> None:
         return p.append(Predicate(i, bool(ok), e))
 
     add(

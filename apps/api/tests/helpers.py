@@ -56,7 +56,8 @@ def ingest_text(
         files={"file": ("document.txt", text.encode("utf-8"), "text/plain")},
     )
     assert response.status_code == 201, response.text
-    return response.json()
+    payload: dict[str, object] = response.json()
+    return payload
 
 
 def ingest_version(
@@ -82,7 +83,8 @@ def ingest_version(
         files={"file": (f"v{revision}.txt", text.encode("utf-8"), "text/plain")},
     )
     assert response.status_code == 201, response.text
-    return response.json()
+    payload: dict[str, object] = response.json()
+    return payload
 
 
 def transition(client: TestClient, version_id: str, target: str) -> dict[str, object]:
@@ -98,7 +100,8 @@ def transition(client: TestClient, version_id: str, target: str) -> dict[str, ob
         json=payload,
     )
     assert response.status_code == 200, response.text
-    return response.json()
+    reviewed: dict[str, object] = response.json()
+    return reviewed
 
 
 def approve(client: TestClient, version_id: str) -> dict[str, object]:

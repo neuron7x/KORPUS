@@ -35,7 +35,9 @@ TESTS = (
 def _counts(path: Path) -> tuple[int, int, int, int]:
     root = ET.parse(path).getroot()
     counts = junit_counts(root)
-    return tuple(counts[name] for name in ("tests", "failures", "errors", "skipped"))
+    # Spelled out rather than tuple(...) over a generator: that produces tuple[int, ...],
+    # which says nothing about arity, and the caller unpacks exactly four.
+    return (counts["tests"], counts["failures"], counts["errors"], counts["skipped"])
 
 
 def main() -> int:
@@ -69,19 +71,21 @@ def main() -> int:
                 timeout=120,
                 check=False,
             )
-            tests, failures, errors, skipped = _counts(junit) if junit.is_file() else (0, 1, 1, 0)
+            cycle_tests, cycle_failures, cycle_errors, cycle_skipped = (
+                _counts(junit) if junit.is_file() else (0, 1, 1, 0)
+            )
             runs.append(
                 {
                     "cycle": cycle + 1,
                     "exit_code": proc.returncode,
-                    "tests": tests,
-                    "failures": failures,
-                    "errors": errors,
-                    "skipped": skipped,
+                    "tests": cycle_tests,
+                    "failures": cycle_failures,
+                    "errors": cycle_errors,
+                    "skipped": cycle_skipped,
                 }
             )
     cardinalities = {(r["tests"], r["skipped"]) for r in runs}
-    failures = []
+    failures: list[str] = []
     if policy.get("require_identical_test_cardinality") and len(cardinalities) != 1:
         failures.append("stress cycles did not execute identical test cardinality")
     if policy.get("require_zero_failures") and any(

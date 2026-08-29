@@ -7,6 +7,12 @@ Until 2026-08-04 the assurance report carried the string
 tell a green run from a run that never happened — the aggregate verdict was the
 same either way. This writes the run itself down: command, exit code, violation
 count, and the source tree the run applies to.
+
+mypy runs twice, over two configurations, because one file could not describe both. The
+application is checked with apps/api/pyproject.toml, whose `packages = ["korpus"]` also
+means it type-checked nothing else: every runner, gate and generator under scripts/ — the
+code that decides whether a release is admissible — was unchecked until 2026-08-29, and the
+first run of mypy-scripts.ini over it found 198 errors in 58 files.
 """
 
 from __future__ import annotations
@@ -40,6 +46,14 @@ MYPY = [
     "mypy",
     "--config-file",
     "apps/api/pyproject.toml",
+]
+MYPY_SCRIPTS = [
+    sys.executable,
+    "-m",
+    "mypy",
+    "--config-file",
+    "mypy-scripts.ini",
+    "scripts/",
 ]
 
 
@@ -87,8 +101,23 @@ def _mypy_result() -> dict[str, object]:
     }
 
 
+def _mypy_scripts_result() -> dict[str, object]:
+    """The second configuration: scripts/, which the application's config excludes."""
+    completed = _run(MYPY_SCRIPTS)
+    return {
+        "command": " ".join(MYPY_SCRIPTS),
+        "exit_code": completed.returncode,
+        "status": "PASS" if completed.returncode == 0 else "FAIL",
+        "output_tail": completed.stdout[-2000:],
+    }
+
+
 def main() -> int:
-    tools = {"ruff": _ruff_result(), "mypy": _mypy_result()}
+    tools = {
+        "ruff": _ruff_result(),
+        "mypy": _mypy_result(),
+        "mypy_scripts": _mypy_scripts_result(),
+    }
     report = {
         "schema_version": 1,
         "status": "PASS" if all(tool["status"] == "PASS" for tool in tools.values()) else "FAIL",
@@ -104,6 +133,9 @@ def main() -> int:
                 "status": report["status"],
                 "ruff": {k: v for k, v in tools["ruff"].items() if k != "output_tail"},
                 "mypy": {k: v for k, v in tools["mypy"].items() if k != "output_tail"},
+                "mypy_scripts": {
+                    k: v for k, v in tools["mypy_scripts"].items() if k != "output_tail"
+                },
             },
             indent=2,
         )

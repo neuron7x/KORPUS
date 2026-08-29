@@ -106,4 +106,6 @@ def load_verified_manifest(
     )
     if failures:
         raise RuntimeError("invalid regression collection manifest: " + ",".join(failures))
+    if not isinstance(payload, dict):
+        raise RuntimeError("regression collection manifest is not an object")
     return payload

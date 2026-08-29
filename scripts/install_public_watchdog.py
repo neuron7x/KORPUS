@@ -26,7 +26,9 @@ def main() -> int:
         temporary.write_text(render(name), encoding="utf-8")
         os.replace(temporary, destination)
     subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
-    subprocess.run(["systemctl", "--user", "enable", "--now", "korpus-public-watchdog.timer"], check=True)
+    subprocess.run(
+        ["systemctl", "--user", "enable", "--now", "korpus-public-watchdog.timer"], check=True
+    )
     subprocess.run(["systemctl", "--user", "start", "korpus-public-watchdog.service"], check=True)
     return 0
 

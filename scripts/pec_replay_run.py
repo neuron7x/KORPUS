@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import argparse
+from collections.abc import Callable
+from pathlib import Path
+
 
 def validate_actions(actions: tuple[str, ...], allowed: tuple[str, ...]) -> list[str]:
     errors: list[str] = []
@@ -14,8 +18,12 @@ def validate_actions(actions: tuple[str, ...], allowed: tuple[str, ...]) -> list
 
 
 def collect_observations(
-    args, dataset: list[dict[str, object]], actions: tuple[str, ...], read_jsonl, execute
-):
+    args: argparse.Namespace,
+    dataset: list[dict[str, object]],
+    actions: tuple[str, ...],
+    read_jsonl: Callable[[Path], list[dict[str, object]]],
+    execute: Callable[..., dict[str, object]],
+) -> tuple[list[dict[str, object]], list[str]]:
     errors: list[str] = []
     if args.observations:
         return read_jsonl(args.observations), errors
@@ -31,7 +39,11 @@ def collect_observations(
     return observations, errors
 
 
-def coverage_issues(dataset, actions, observations) -> tuple[list[str], list[str]]:
+def coverage_issues(
+    dataset: list[dict[str, object]],
+    actions: tuple[str, ...],
+    observations: list[dict[str, object]],
+) -> tuple[list[str], list[str]]:
     coverage = {(str(row.get("query_id")), str(row.get("action"))) for row in observations}
     missing = [
         f"{row['id']}:{action}"
@@ -55,15 +67,15 @@ def replay_status(
 
 
 def validate_observations(
-    observations,
+    observations: list[dict[str, object]],
     *,
-    record_issues,
-    dataset_by_id,
-    actions,
-    expected_corpus_release_id,
-    expected_protocol_sha256,
-    expected_answer_calibration_id,
-    require_bindings,
+    record_issues: Callable[..., list[str]],
+    dataset_by_id: dict[str, dict[str, object]],
+    actions: tuple[str, ...],
+    expected_corpus_release_id: str,
+    expected_protocol_sha256: str,
+    expected_answer_calibration_id: str,
+    require_bindings: bool,
 ) -> list[str]:
     issues: list[str] = []
     for row in observations:

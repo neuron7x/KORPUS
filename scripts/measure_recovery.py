@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import Engine
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -26,7 +27,7 @@ from release_identity import release_tag  # noqa: E402
 OUTPUT = ROOT / "var/recovery-report.json"
 
 
-def _scalar(engine, statement: str) -> int:
+def _scalar(engine: Engine, statement: str) -> int:
     with engine.begin() as connection:
         # Row-level security reads the subject from session settings, and `set_config` is
         # PostgreSQL's. SQLite has no RLS at all, so there is nothing to tell — and the
@@ -73,14 +74,14 @@ def _interval(newest: object, newest_restored: object) -> float | None:
     return (left - right).total_seconds()
 
 
-def _engine_version(engine) -> str:
+def _engine_version(engine: Engine) -> str:
     with engine.begin() as connection:
         if connection.dialect.name == "postgresql":
             return str(connection.execute(text("SHOW server_version")).scalar_one())
         return str(connection.execute(text("SELECT sqlite_version()")).scalar_one())
 
 
-def _latest_protected_write(engine) -> datetime | None:
+def _latest_protected_write(engine: Engine) -> datetime | None:
     """Newest durable write across the document and audit streams."""
     statement = """
         SELECT max(ts) FROM (

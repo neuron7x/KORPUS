@@ -237,7 +237,7 @@ def verify(root: Path = ROOT) -> dict[str, object]:
         }
         for item in sorted(runtime_index.values(), key=lambda item: item.canonical_name)
     ]
-    report = {
+    report: dict[str, object] = {
         "schema": "korpus.dependency-lock-verification.v2",
         "status": "PASS" if not failures else "FAIL",
         "release": release_tag(),

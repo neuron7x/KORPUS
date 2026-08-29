@@ -1164,9 +1164,9 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/numeric_contracts.py": {
-      "lines": 87,
+      "lines": 95,
       "max_complexity": 5,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption",
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2738,9 +2738,9 @@
       "max_nesting": 4
     },
     "scripts/aggregate_ci_security_summary.py": {
-      "lines": 68,
+      "lines": 75,
       "max_complexity": 14,
-      "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling",
+      "reason": "ACT-007: aggregate pinned CI scanner execution markers; initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2753,9 +2753,9 @@
       "max_nesting": 4
     },
     "scripts/assemble_production_assurance.py": {
-      "lines": 77,
+      "lines": 105,
       "max_complexity": 5,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling",
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2769,9 +2769,9 @@
       "max_nesting": 4
     },
     "scripts/audit_runtime_corpus.py": {
-      "lines": 191,
+      "lines": 195,
       "max_complexity": 10,
-      "reason": "Initial measured ceiling for fail-closed runtime corpus, reference-version and object-integrity admission",
+      "reason": "Initial measured ceiling for fail-closed runtime corpus, reference-version and object-integrity admission | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2799,9 +2799,9 @@
       "max_nesting": 4
     },
     "scripts/bounded_process.py": {
-      "lines": 15,
+      "lines": 18,
       "max_complexity": 1,
-      "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition",
+      "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2839,9 +2839,9 @@
       "max_nesting": 4
     },
     "scripts/build_pec_eval_dataset.py": {
-      "lines": 74,
+      "lines": 82,
       "max_complexity": 7,
-      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down",
+      "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2886,9 +2886,9 @@
       "max_nesting": 4
     },
     "scripts/chaos_matrix.py": {
-      "lines": 386,
+      "lines": 392,
       "max_complexity": 8,
-      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling",
+      "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 144,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2917,17 +2917,17 @@
       "max_nesting": 4
     },
     "scripts/check_module_budget.py": {
-      "lines": 215,
+      "lines": 239,
       "max_complexity": 13,
       "max_function_lines": 80,
       "max_function_args": 8,
       "max_nesting": 4,
-      "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number."
+      "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_release_identity.py": {
-      "lines": 90,
+      "lines": 104,
       "max_complexity": 4,
-      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling",
+      "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -2980,17 +2980,17 @@
       "max_nesting": 4
     },
     "scripts/deploy_public_web.py": {
-      "lines": 193,
+      "lines": 245,
       "max_complexity": 12,
-      "reason": "Initial measured ceiling for content-addressed public web promotion and verified rollback",
-      "max_function_lines": 60,
+      "reason": "Initial measured ceiling for content-addressed public web promotion and verified rollback | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
+      "max_function_lines": 62,
       "max_function_args": 8,
       "max_nesting": 5
     },
     "scripts/embedding_candidate_metrics.py": {
-      "lines": 30,
+      "lines": 32,
       "max_complexity": 13,
-      "reason": "Initial measured ceiling for deterministic dense candidate ranking metrics",
+      "reason": "Initial measured ceiling for deterministic dense candidate ranking metrics | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3048,9 +3048,9 @@
       "max_nesting": 4
     },
     "scripts/export_state_contracts.py": {
-      "lines": 66,
+      "lines": 73,
       "max_complexity": 6,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling",
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3087,9 +3087,9 @@
       "max_nesting": 4
     },
     "scripts/gcp/canary_numeric.py": {
-      "lines": 41,
-      "max_complexity": 5,
-      "reason": "Strict canary admission numeric contract",
+      "lines": 50,
+      "max_complexity": 6,
+      "reason": "Strict canary admission numeric contract | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3103,9 +3103,9 @@
       "max_nesting": 4
     },
     "scripts/gcp/live_smoke.py": {
-      "lines": 145,
+      "lines": 153,
       "max_complexity": 12,
-      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling",
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 72,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3119,105 +3119,105 @@
       "max_nesting": 4
     },
     "scripts/gcp/production_contract.py": {
-      "lines": 550,
+      "lines": 562,
       "max_complexity": 12,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 128,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_canary.py": {
-      "lines": 41,
+      "lines": 46,
       "max_complexity": 4,
-      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling",
+      "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_capacity.py": {
-      "lines": 22,
+      "lines": 27,
       "max_complexity": 2,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_database.py": {
-      "lines": 44,
+      "lines": 49,
       "max_complexity": 3,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_delivery.py": {
-      "lines": 16,
+      "lines": 21,
       "max_complexity": 2,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_edge.py": {
-      "lines": 61,
+      "lines": 66,
       "max_complexity": 7,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_external.py": {
-      "lines": 32,
+      "lines": 37,
       "max_complexity": 2,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_migration.py": {
-      "lines": 17,
+      "lines": 22,
       "max_complexity": 2,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_network.py": {
-      "lines": 59,
+      "lines": 64,
       "max_complexity": 5,
-      "reason": "Exact measured ceiling after adding independent Cloud SQL transport-encryption enforcement",
+      "reason": "Exact measured ceiling after adding independent Cloud SQL transport-encryption enforcement | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_observability.py": {
-      "lines": 89,
+      "lines": 94,
       "max_complexity": 11,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 84,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_supply.py": {
-      "lines": 34,
+      "lines": 39,
       "max_complexity": 3,
-      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling",
+      "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_terraform.py": {
-      "lines": 17,
+      "lines": 22,
       "max_complexity": 2,
-      "reason": "Terraform structural admission predicate; exact current measurement is the ratchet ceiling",
+      "reason": "Terraform structural admission predicate; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/gcp/production_contract_tls.py": {
-      "lines": 16,
+      "lines": 21,
       "max_complexity": 2,
-      "reason": "explicit edge TLS policy predicate; exact current measurement is the ratchet ceiling",
+      "reason": "explicit edge TLS policy predicate; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3295,10 +3295,10 @@
       "max_nesting": 4
     },
     "scripts/gcp/verify_governance_bundle.py": {
-      "lines": 140,
+      "lines": 141,
       "max_complexity": 14,
-      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling",
-      "max_function_lines": 77,
+      "reason": "production-plane module introduced in the v0.9 GCP deployment hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
+      "max_function_lines": 78,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -3341,18 +3341,20 @@
       "max_nesting": 4
     },
     "scripts/generate_status.py": {
-      "lines": 117,
+      "lines": 122,
       "max_complexity": 7,
       "max_function_lines": 60,
       "max_function_args": 8,
-      "max_nesting": 4
+      "max_nesting": 4,
+      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/generate_supply_chain_inventory.py": {
-      "lines": 154,
+      "lines": 157,
       "max_complexity": 8,
       "max_function_lines": 60,
       "max_function_args": 8,
-      "max_nesting": 4
+      "max_nesting": 4,
+      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/generate_transport_contract.py": {
       "lines": 73,
@@ -3395,9 +3397,9 @@
       "max_nesting": 4
     },
     "scripts/install_public_watchdog.py": {
-      "lines": 35,
+      "lines": 37,
       "max_complexity": 2,
-      "reason": "Initial measured ceiling for idempotent user-systemd watchdog installation",
+      "reason": "Initial measured ceiling for idempotent user-systemd watchdog installation | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3419,27 +3421,28 @@
       "max_nesting": 4
     },
     "scripts/manifest_lib/integrity.py": {
-      "lines": 60,
+      "lines": 81,
       "max_complexity": 7,
-      "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings",
+      "reason": "v6.8.1: new bounded helper centralizes POSIX mode/digest integrity without raising existing manifest verifier ceilings | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/manifest_paths.py": {
-      "lines": 82,
+      "lines": 83,
       "max_complexity": 5,
-      "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling",
+      "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/measure_recovery.py": {
-      "lines": 182,
+      "lines": 183,
       "max_complexity": 5,
       "max_function_lines": 84,
       "max_function_args": 8,
-      "max_nesting": 4
+      "max_nesting": 4,
+      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/mint_review_token.py": {
       "lines": 82,
@@ -3489,9 +3492,9 @@
       "max_nesting": 4
     },
     "scripts/pec_ablation_cli.py": {
-      "lines": 121,
+      "lines": 129,
       "max_complexity": 14,
-      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling",
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3512,9 +3515,9 @@
       "max_nesting": 4
     },
     "scripts/pec_controller_export_impl.py": {
-      "lines": 213,
+      "lines": 216,
       "max_complexity": 13,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption",
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 95,
       "max_function_args": 9,
       "max_nesting": 4
@@ -3527,9 +3530,9 @@
       "max_nesting": 4
     },
     "scripts/pec_controller_training_impl.py": {
-      "lines": 167,
+      "lines": 179,
       "max_complexity": 10,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption",
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3550,9 +3553,9 @@
       "max_nesting": 4
     },
     "scripts/pec_controller_verify_logic.py": {
-      "lines": 57,
+      "lines": 63,
       "max_complexity": 8,
-      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling",
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3566,9 +3569,9 @@
       "max_nesting": 4
     },
     "scripts/pec_oracle_impl.py": {
-      "lines": 179,
+      "lines": 209,
       "max_complexity": 15,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption",
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3597,9 +3600,9 @@
       "max_nesting": 4
     },
     "scripts/pec_replay_run.py": {
-      "lines": 81,
+      "lines": 93,
       "max_complexity": 6,
-      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling",
+      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3659,17 +3662,17 @@
       "max_nesting": 4
     },
     "scripts/propose_runtime_adaptation.py": {
-      "lines": 82,
+      "lines": 116,
       "max_complexity": 5,
-      "reason": "operator CLI that emits validated content-addressed adaptation proposals",
+      "reason": "operator CLI that emits validated content-addressed adaptation proposals | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/public_health_controller.py": {
-      "lines": 122,
+      "lines": 146,
       "max_complexity": 11,
-      "reason": "Initial measured ceiling for bounded public-service health recovery transitions",
+      "reason": "Initial measured ceiling for bounded public-service health recovery transitions | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3683,9 +3686,9 @@
       "max_nesting": 4
     },
     "scripts/release_attestation.py": {
-      "lines": 51,
+      "lines": 147,
       "max_complexity": 6,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling",
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3739,9 +3742,9 @@
       "max_nesting": 4
     },
     "scripts/run_embedding_backfill.py": {
-      "lines": 190,
+      "lines": 195,
       "max_complexity": 5,
-      "reason": "Exact rebaseline adds singleton orchestration and post-coverage deterministic index promotion without increasing complexity",
+      "reason": "Exact rebaseline adds singleton orchestration and post-coverage deterministic index promotion without increasing complexity | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 64,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3795,9 +3798,9 @@
       "max_nesting": 4
     },
     "scripts/run_local_production_preflight.py": {
-      "lines": 140,
+      "lines": 143,
       "max_complexity": 7,
-      "reason": "v0.6.0: plasticity evidence joins fail-closed local preflight",
+      "reason": "v0.6.0: plasticity evidence joins fail-closed local preflight | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3826,9 +3829,9 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 3855,
+      "lines": 3857,
       "max_complexity": 11,
-      "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet.",
+      "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3877,9 +3880,9 @@
       "max_nesting": 4
     },
     "scripts/run_plasticity_gate.py": {
-      "lines": 63,
-      "max_complexity": 4,
-      "reason": "exhaustive bounded-plasticity model check and invariant evidence",
+      "lines": 64,
+      "max_complexity": 5,
+      "reason": "exhaustive bounded-plasticity model check and invariant evidence | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3901,24 +3904,25 @@
       "max_nesting": 4
     },
     "scripts/run_quality_gate.py": {
-      "lines": 115,
-      "max_complexity": 6,
+      "lines": 147,
+      "max_complexity": 7,
       "max_function_lines": 60,
       "max_function_args": 8,
-      "max_nesting": 4
+      "max_nesting": 4,
+      "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 172,
+      "lines": 173,
       "max_complexity": 24,
-      "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest",
+      "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 5
     },
     "scripts/run_regression_shards.py": {
-      "lines": 298,
+      "lines": 302,
       "max_complexity": 10,
-      "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition",
+      "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 89,
       "max_function_args": 8,
       "max_nesting": 4
@@ -3954,10 +3958,10 @@
       "max_nesting": 4
     },
     "scripts/run_stress_gate.py": {
-      "lines": 106,
+      "lines": 110,
       "max_complexity": 13,
-      "reason": "v0.6.0: plasticity soak joins bounded stress campaign",
-      "max_function_lines": 62,
+      "reason": "v0.6.0: plasticity soak joins bounded stress campaign | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
+      "max_function_lines": 64,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -3993,9 +3997,9 @@
       "max_nesting": 4
     },
     "scripts/service_objectives.py": {
-      "lines": 105,
+      "lines": 108,
       "max_complexity": 5,
-      "reason": "what the deployment promises, judged against what it was measured doing",
+      "reason": "what the deployment promises, judged against what it was measured doing | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4069,18 +4073,18 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 517,
+      "lines": 518,
       "max_complexity": 22,
-      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced.",
-      "max_function_lines": 82,
+      "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
+      "max_function_lines": 85,
       "max_function_args": 8,
       "max_nesting": 4
     },
     "scripts/validate_external_redteam_evidence.py": {
-      "lines": 40,
+      "lines": 86,
       "max_complexity": 6,
-      "reason": "ACT-010: external independent red-team validator with protected runtime trust-root injection; prior line ceiling preserved",
-      "max_function_lines": 60,
+      "reason": "ACT-010: external independent red-team validator with protected runtime trust-root injection; prior line ceiling preserved | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
+      "max_function_lines": 62,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4206,9 +4210,9 @@
       "max_nesting": 4
     },
     "scripts/verify_production_assurance.py": {
-      "lines": 32,
+      "lines": 82,
       "max_complexity": 4,
-      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling",
+      "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4276,9 +4280,9 @@
       "max_nesting": 4
     },
     "scripts/regression_collection.py": {
-      "lines": 109,
+      "lines": 111,
       "max_complexity": 10,
-      "reason": "v0.9.7 deterministic regression collection manifest; initial measured ratchet ceiling",
+      "reason": "v0.9.7 deterministic regression collection manifest; initial measured ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4292,9 +4296,9 @@
       "max_nesting": 4
     },
     "scripts/process_tree_runtime.py": {
-      "lines": 62,
+      "lines": 65,
       "max_complexity": 10,
-      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption",
+      "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4340,20 +4344,20 @@
       "reason": "New 2026-08-28: unions SQLite and PostgreSQL branch coverage for the gap plan."
     },
     "scripts/compare_sbom_sources.py": {
-      "lines": 108,
+      "lines": 109,
       "max_complexity": 9,
-      "max_function_lines": 61,
+      "max_function_lines": 62,
       "max_function_args": 8,
       "max_nesting": 4,
-      "reason": "New 2026-08-29: lock-SBOM against tree-scan SBOM; unpinned material is the finding."
+      "reason": "New 2026-08-29: lock-SBOM against tree-scan SBOM; unpinned material is the finding. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/probe_uncatalogued_mutation.py": {
-      "lines": 295,
+      "lines": 302,
       "max_complexity": 12,
-      "max_function_lines": 63,
+      "max_function_lines": 68,
       "max_function_args": 8,
       "max_nesting": 4,
-      "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable."
+      "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/publish_backend_report.py": {
       "lines": 95,
@@ -5613,6 +5617,14 @@
         "lines": 488,
         "max_complexity": 22,
         "max_function_lines": 82
+      }
+    },
+    {
+      "on": "2026-08-29",
+      "path": "scripts/",
+      "reason": "scripts/ entered type checking under mypy-scripts.ini (198 errors -> 0). The growth is annotations, TypedDicts and explicit JSON refusals; no ceiling was raised to accommodate untyped code.",
+      "to": {
+        "modules_touched": 59
       }
     }
   ],

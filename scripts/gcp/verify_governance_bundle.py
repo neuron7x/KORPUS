@@ -109,8 +109,9 @@ def verify(directory: Path, *, oidc_issuer: str, oidc_audience: str) -> dict[str
         },
     }
     canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    manifest["release_id"] = hashlib.sha256(canonical).hexdigest()
-    return manifest
+    bundle: dict[str, object] = dict(manifest)
+    bundle["release_id"] = hashlib.sha256(canonical).hexdigest()
+    return bundle
 
 
 def main() -> int:

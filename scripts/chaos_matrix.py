@@ -29,10 +29,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
+
+if TYPE_CHECKING:  # imported after the sys.path insert above at runtime
+    from korpus.application.query_plan import QueryPlanner
 
 DECLARATION = {"given_name": "Хаос", "family_name": "Тестенко", "specialty": "перевірка"}
 QUESTION = "маскування позиції"
@@ -139,7 +142,7 @@ class _WithPlanner:
     would pass by exercising nothing.
     """
 
-    def __init__(self, planner: object) -> None:
+    def __init__(self, planner: QueryPlanner | None) -> None:
         self.planner = planner
         self.previous: Any = None
 
@@ -379,7 +382,10 @@ def _seed(client: Any) -> None:
             " Позиція обирається з урахуванням фону місцевості."
         ),
     )
-    approve(client, result["version"]["id"])
+    version = result["version"]
+    if not isinstance(version, dict):  # pragma: no cover - the API always returns one
+        raise TypeError("ingest response carried no version object")
+    approve(client, str(version["id"]))
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 {
   "schema": "korpus.blocker-registry.v2",
-  "generated_at": "2026-08-29T09:14:58.479725+00:00",
+  "generated_at": "2026-08-29T10:06:36.630466+00:00",
   "release": "v0.9.7",
-  "source_tree_sha256": "5ff7074ff79e0a3b3957bd3734b34b3b8be7b63cfa11f281e85c679d8c301895",
+  "source_tree_sha256": "24ead5ea41bbe49546ae0f7b67b76d9248cd92ac6c8f992d897353aadfd31e62",
   "items": [
     {
       "id": "external_independent_redteam",
@@ -24,11 +24,11 @@
     },
     {
       "id": "live_postgres_rls",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "required_proof_class": "REAL_POSTGRESQL"
     },
     {
@@ -105,11 +105,11 @@
     },
     {
       "id": "exact_python_3_12_13_environment",
-      "state": "EXTERNAL_REQUIRED",
+      "state": "CLOSED_ANCHORED",
       "evidence": "reports/PRODUCTION_HARD_PREDICATES.json",
       "evidence_current": true,
       "software_ready": true,
-      "externally_satisfied": false,
+      "externally_satisfied": true,
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT"
     },
     {
@@ -132,10 +132,11 @@
     }
   ],
   "counts": {
-    "EXTERNAL_REQUIRED": 14
+    "EXTERNAL_REQUIRED": 12,
+    "CLOSED_ANCHORED": 2
   },
   "internal_executable_unresolved": 0,
-  "production_external_or_runtime_unresolved": 14,
+  "production_external_or_runtime_unresolved": 12,
   "hard_predicates_total": 14,
   "hard_predicate_report_current": true
 }

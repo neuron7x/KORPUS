@@ -3,15 +3,23 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeGuard, cast
+from typing import Any, cast
+
+from typing_extensions import TypeIs
 
 
-def strict_int(value: object) -> TypeGuard[int]:
-    """Narrow an untrusted value to an integer while explicitly rejecting bool."""
+def strict_int(value: object) -> TypeIs[int]:
+    """Narrow an untrusted value to an integer while explicitly rejecting bool.
+
+    TypeIs rather than TypeGuard: TypeGuard narrows only where the predicate is true, so
+    `if not strict_int(v): raise` left `v` as `object` for every line after it and callers
+    had to re-cast or ignore. These predicates are exact — they return true for precisely
+    the type they name — which is what TypeIs requires, and it narrows both branches.
+    """
     return isinstance(value, int) and not isinstance(value, bool)
 
 
-def finite_number(value: object) -> TypeGuard[int | float]:
+def finite_number(value: object) -> TypeIs[int | float]:
     """Narrow an untrusted value to a finite real scalar, excluding bool."""
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return False
@@ -21,7 +29,7 @@ def finite_number(value: object) -> TypeGuard[int | float]:
         return False
 
 
-def finite_rate(value: object) -> TypeGuard[int | float]:
+def finite_rate(value: object) -> TypeIs[int | float]:
     return finite_number(value) and 0.0 <= float(value) <= 1.0
 
 

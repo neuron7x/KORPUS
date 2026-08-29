@@ -78,14 +78,17 @@ def main() -> int:
     parser.add_argument("--out", type=Path, default=ROOT / "var/service-objectives.json")
     args = parser.parse_args()
     if not args.measurements.is_file():
-        result = {"status": "UNMEASURED", "reason": f"no load report at {args.measurements}"}
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+        unmeasured: dict[str, object] = {
+            "status": "UNMEASURED",
+            "reason": f"no load report at {args.measurements}",
+        }
+        print(json.dumps(unmeasured, ensure_ascii=False, indent=2))
         return 2
     report = json.loads(args.measurements.read_text(encoding="utf-8"))
     checks = evaluate_load_slos(report)
     objectives = _objective_rows(report, checks)
     unmet = [row["name"] for row in objectives if not row["met"]]
-    result = {
+    result: dict[str, object] = {
         "schema_version": 2,
         "assessed_at": datetime.now(UTC).isoformat(),
         "measurements": str(args.measurements),

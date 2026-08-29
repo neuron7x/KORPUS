@@ -24,7 +24,7 @@ def _known_target(candidate: str, known: set[str]) -> str | None:
 
 
 def _imports(tree: ast.AST, known: set[str]) -> set[str]:
-    candidates = []
+    candidates: list[str] = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             candidates.extend(alias.name for alias in node.names if alias.name.startswith(PREFIX))
@@ -41,7 +41,7 @@ def _imports(tree: ast.AST, known: set[str]) -> set[str]:
 def internal_graph() -> dict[str, set[str]]:
     files = sorted(PACKAGE.rglob("*.py"))
     known = {module_name(path) for path in files}
-    graph = {name: set() for name in known}
+    graph: dict[str, set[str]] = {name: set() for name in known}
     for path in files:
         source = module_name(path)
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

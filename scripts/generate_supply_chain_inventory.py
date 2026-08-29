@@ -62,7 +62,10 @@ def _python_components() -> dict[tuple[str, str], dict[str, object]]:
                     "sources": [],
                 },
             )
-            component["sources"].append(lock.relative_to(ROOT).as_posix())
+            sources = component["sources"]
+            if not isinstance(sources, list):  # pragma: no cover - built above as a list
+                raise TypeError("component sources must be a list")
+            sources.append(lock.relative_to(ROOT).as_posix())
     return components
 
 

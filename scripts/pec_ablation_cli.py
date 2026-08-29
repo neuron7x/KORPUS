@@ -27,6 +27,13 @@ BINDING_KEYS = (
 )
 
 
+def _status_of(comparison: object) -> str:
+    """A comparison entry is JSON; a missing one is UNKNOWN, not an attribute error."""
+    if not isinstance(comparison, dict):
+        return "UNKNOWN"
+    return str(comparison.get("status", "UNKNOWN"))
+
+
 def _named(value: str) -> tuple[str, Path]:
     if "=" not in value:
         raise argparse.ArgumentTypeError("expected NAME=PATH")
@@ -37,7 +44,10 @@ def _named(value: str) -> tuple[str, Path]:
 
 
 def _rows(raw: dict[str, object]) -> dict[str, dict[str, object]]:
-    values = next((raw.get(key) for key in ROW_KEYS if isinstance(raw.get(key), list)), None)
+    values = next(
+        (value for key in ROW_KEYS if isinstance(value := raw.get(key), list)),
+        None,
+    )
     if values is None:
         raise ValueError("ablation result has no cases/rows/observations/details array")
     output: dict[str, dict[str, object]] = {}
@@ -92,9 +102,7 @@ def main() -> int:
         args.candidate, baseline_rows, baseline_binding, args.minimum_informative_pairs
     )
     required = args.required_candidate or (args.candidate[0][0] if len(args.candidate) == 1 else "")
-    required_status = (
-        str(comparisons.get(required, {}).get("status", "UNKNOWN")) if required else "UNKNOWN"
-    )
+    required_status = _status_of(comparisons.get(required)) if required else "UNKNOWN"
     status = (
         "FAIL"
         if binding_failures or required_status == "FAIL"

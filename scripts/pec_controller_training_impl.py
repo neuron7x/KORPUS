@@ -5,6 +5,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -17,6 +18,7 @@ from korpus.application.pec_training import (
     select_hyperparameters,
     train_tree,
 )
+from korpus.application.pec_training_model import TreeModel
 from pec_common import read_jsonl, receipt, sha256_file, write_json
 
 
@@ -79,8 +81,16 @@ def _calibration_rows(
     ]
 
 
-def _leaf_stats(model: object, calibration: list[tuple[dict, dict]]) -> dict[str, dict]:
-    stats = {leaf.leaf_id: {"samples": 0, "errors": 0, "support": {}} for leaf in model.leaves}
+class LeafStats(TypedDict):
+    samples: int
+    errors: int
+    support: dict[str, list[float]]
+
+
+def _leaf_stats(model: TreeModel, calibration: list[tuple[dict, dict]]) -> dict[str, LeafStats]:
+    stats: dict[str, LeafStats] = {
+        leaf.leaf_id: {"samples": 0, "errors": 0, "support": {}} for leaf in model.leaves
+    }
     for _, decision in calibration:
         leaf = model.predict_leaf(dict(decision["features"]))
         if leaf is None:
@@ -103,11 +113,13 @@ def _update_support(support: dict[str, list[float]], features: dict) -> None:
         bounds[0], bounds[1] = min(bounds[0], number), max(bounds[1], number)
 
 
-def _export_leaves(model: object, stats: dict[str, dict], args: argparse.Namespace) -> list[dict]:
+def _export_leaves(
+    model: TreeModel, stats: dict[str, LeafStats], args: argparse.Namespace
+) -> list[dict]:
     leaves: list[dict] = []
     for leaf in model.leaves:
         state = stats[leaf.leaf_id]
-        upper = hoeffding_upper(int(state["errors"]), int(state["samples"]), args.delta)
+        upper = hoeffding_upper(state["errors"], state["samples"], args.delta)
         admitted = state["samples"] >= args.minimum_leaf_samples and upper <= args.risk_limit
         leaves.append(
             {

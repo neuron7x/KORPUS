@@ -25,9 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def assurance_policy(root: Path) -> dict[str, object]:
-    return json.loads((root / "config/operations/reference-v5.json").read_text(encoding="utf-8"))[
+    policy = json.loads((root / "config/operations/reference-v5.json").read_text(encoding="utf-8"))[
         "assurance"
     ]
+    if not isinstance(policy, dict):
+        raise ValueError("reference-v5.json assurance section is not an object")
+    return policy
 
 
 REPORT_NAMES = {
@@ -63,7 +66,7 @@ INHERENT_EXTERNAL = (
 
 
 def release_report_dir(root: Path) -> Path:
-    return root / "reports" / "release" / release_tag(root)
+    return root / "reports" / "release" / str(release_tag(root))
 
 
 def _load(path: Path) -> dict[str, object]:

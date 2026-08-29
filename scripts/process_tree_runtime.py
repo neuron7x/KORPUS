@@ -9,11 +9,12 @@ import tempfile
 import time
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import IO
 
 from process_group_control import process_group_alive, terminate_process_tree
 
 
-def _capture_text(handle) -> str:
+def _capture_text(handle: IO[str]) -> str:
     handle.flush()
     handle.seek(0)
     return handle.read()
@@ -28,16 +29,18 @@ def execute_bounded_process(
         tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stdout_file,
         tempfile.TemporaryFile(mode="w+t", encoding="utf-8", errors="replace") as stderr_file,
     ):
-        kwargs: dict[str, object] = {
-            "cwd": cwd,
-            "env": dict(env),
-            "text": True,
-            "stdout": stdout_file,
-            "stderr": stderr_file,
-        }
-        if os.name == "posix":
-            kwargs["start_new_session"] = True
-        process = subprocess.Popen(list(cmd), **kwargs)
+        # Popen is overloaded on the exact combination of text/encoding arguments, so a
+        # dict[str, object] of keyword arguments matches no overload. start_new_session is
+        # the one that varies by platform, and it is a bool either way.
+        process = subprocess.Popen(
+            list(cmd),
+            cwd=cwd,
+            env=dict(env),
+            text=True,
+            stdout=stdout_file,
+            stderr=stderr_file,
+            start_new_session=os.name == "posix",
+        )
         timed_out = False
         termination = "not_required"
         if os.name == "posix":

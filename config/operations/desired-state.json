@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "970401975d7ce9eea3850f3dada62cc645e2d4c5043cc853611863d159f948bb",
+  "root_sha256": "ad2c170597650d4954e672dbb957f796f6fc8b861bf1fcf869355422606cc56f",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -60,8 +60,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "sha256": "e0df2ef60b35582eeb4a21511ca5a345a97c242743d5778c2a53f8307307553c",
-      "bytes": 33104
+      "sha256": "c0c0425d0a1a1cdef58b7dd711f576a988bbcaed797955b25cebc3465e8b45c8",
+      "bytes": 34175
     },
     {
       "path": "apps/api/Dockerfile",

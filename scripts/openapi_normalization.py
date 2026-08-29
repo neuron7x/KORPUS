@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-def normalize_openapi(value):
+def normalize_openapi(value: object) -> object:
     """Canonicalize schema-generator encodings that are HTTP-equivalent."""
     if isinstance(value, list):
         return [normalize_openapi(item) for item in value]

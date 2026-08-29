@@ -72,7 +72,8 @@ def main() -> int:
     unpinned = sorted(set(scanned) - set(locked))
     unseen = sorted(set(locked) - set(scanned))
     drifted = sorted(
-        name for name in set(locked) & set(scanned)
+        name
+        for name in set(locked) & set(scanned)
         if scanned[name] and locked[name] and scanned[name] != locked[name]
     )
 

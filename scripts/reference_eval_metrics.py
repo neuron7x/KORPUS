@@ -6,9 +6,7 @@ from typing import Any
 ABSTAINED = {"insufficient_evidence", "requires_human_review"}
 
 
-def wilson_interval(
-    successes: int, total: int, z: float = 1.959963984540054
-) -> list[float]:
+def wilson_interval(successes: int, total: int, z: float = 1.959963984540054) -> list[float]:
     if total <= 0:
         return [0.0, 0.0]
     proportion = successes / total
@@ -16,9 +14,7 @@ def wilson_interval(
     center = (proportion + z * z / (2 * total)) / denominator
     margin = (
         z
-        * math.sqrt(
-            proportion * (1 - proportion) / total + z * z / (4 * total * total)
-        )
+        * math.sqrt(proportion * (1 - proportion) / total + z * z / (4 * total * total))
         / denominator
     )
     return [max(0.0, center - margin), min(1.0, center + margin)]

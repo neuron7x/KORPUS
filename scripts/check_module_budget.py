@@ -34,6 +34,7 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+from typing import TypedDict
 
 ROOT = Path(__file__).resolve().parents[1]
 BUDGET = ROOT / "config/operations/module-budget.json"
@@ -88,8 +89,22 @@ def function_lines(node: ast.FunctionDef | ast.AsyncFunctionDef) -> int:
     return (node.end_lineno or node.lineno) - node.lineno + 1
 
 
-def measure() -> dict[str, dict[str, object]]:
-    measurements: dict[str, dict[str, object]] = {}
+class Shape(TypedDict):
+    """One module's measured shape. Typed so the ratchet cannot compare object to int."""
+
+    lines: int
+    max_complexity: int
+    worst_function: str
+    max_function_lines: int
+    longest_function: str
+    max_function_args: int
+    widest_function: str
+    max_nesting: int
+    deepest_function: str
+
+
+def measure() -> dict[str, Shape]:
+    measurements: dict[str, Shape] = {}
     for source in SOURCES:
         for path in sorted((ROOT / source).rglob("*.py")):
             if "__pycache__" in path.parts:
@@ -130,18 +145,26 @@ SHAPES = (
 )
 
 
-def shape_violations(
-    path: str, measured: dict[str, object], ceiling: dict[str, object]
-) -> list[str]:
+def shape_violations(path: str, measured: Shape, ceiling: dict[str, object]) -> list[str]:
     reported = []
     for key, name_key, default, shape in SHAPES:
-        limit = int(ceiling.get(key, default))  # type: ignore[arg-type]
-        if int(measured[key]) > limit:  # type: ignore[call-overload]
+        limit = _as_int(ceiling.get(key, default), default)
+        value = int(measured[key])  # type: ignore[literal-required]
+        if value > limit:
+            name = measured[name_key]  # type: ignore[literal-required]
             reported.append(
-                f"{path}: {measured[name_key]} has {shape} {measured[key]}, "
-                f"above the recorded ceiling {limit}"
+                f"{path}: {name} has {shape} {value}, above the recorded ceiling {limit}"
             )
     return reported
+
+
+def _as_int(value: object, fallback: int) -> int:
+    """A recorded ceiling is JSON, so it is `object` until something narrows it.
+
+    A ceiling that is not a number is a corrupt budget entry, not a licence to skip the
+    shape: falling back to the default keeps the check running and keeps it strict.
+    """
+    return value if isinstance(value, int) and not isinstance(value, bool) else fallback
 
 
 def main() -> int:
@@ -201,11 +224,12 @@ def main() -> int:
         "unbudgeted": sorted(set(measurements) - set(budget)),
         "violations": violations,
         "improvements_to_record": improvements[:20],
-        "largest": sorted(
-            ({"path": path, **measured} for path, measured in measurements.items()),
-            key=lambda item: int(item["lines"]),
-            reverse=True,
-        )[:5],
+        "largest": [
+            {"path": path, **measurements[path]}
+            for path in sorted(
+                measurements, key=lambda name: measurements[name]["lines"], reverse=True
+            )[:5]
+        ],
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 1 if violations else 0

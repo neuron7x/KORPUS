@@ -12,12 +12,17 @@ from contextlib import ExitStack
 from pathlib import Path
 
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 from korpus.application.embedding_backfill_promotion import finalize_backfill_report  # noqa: E402
-from korpus.application.embedding_backfill_run import run_backfill  # noqa: E402
+from korpus.application.embedding_backfill_run import (  # noqa: E402
+    BackfillRunReceipt,
+    run_backfill,
+)
+from korpus.application.embedding_coverage import EmbeddingCoverage  # noqa: E402
 from korpus.config import Settings  # noqa: E402
 from korpus.domain.models import AccessTier, Identity  # noqa: E402
 from korpus.infrastructure.embedding_backfill import PgVectorEmbeddingBackfill  # noqa: E402
@@ -62,9 +67,9 @@ def _configured(settings: Settings) -> tuple[str, str, Path, str] | None:
         settings.corpus_governance_profile_path,
         settings.corpus_governance_profile_sha256,
     )
-    if any(value is None for value in values):
-        return None
     endpoint, model_id, profile_path, profile_sha256 = values
+    if profile_path is None or endpoint is None or model_id is None or profile_sha256 is None:
+        return None
     return str(endpoint), str(model_id), Path(profile_path), str(profile_sha256)
 
 
@@ -135,14 +140,14 @@ def _execute(args: argparse.Namespace, settings: Settings) -> int:
 
 
 def _run_locked(
-    engine: object,
+    engine: Engine,
     provider: HttpEmbeddingProvider,
     worker: PgVectorEmbeddingBackfill,
     semantic_index: PgVectorSemanticIndex,
     identity: Identity,
     profile: CorpusGovernanceProfile,
     max_batches: int,
-) -> tuple[object, object, str | None]:
+) -> tuple[BackfillRunReceipt, EmbeddingCoverage, str | None]:
     with exclusive_backfill_run(engine, provider.model_id, provider.dimensions):
         receipt = run_backfill(
             worker, identity, model_id=provider.model_id, max_batches=max_batches

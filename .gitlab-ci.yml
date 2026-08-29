@@ -275,7 +275,12 @@ api:postgres-and-restore:
     # a schema revision pin the code had outgrown, an audit verdict that called a
     # delayed anchor a broken chain, and forty concurrent appends exhausting the retry
     # budget — none of which SQLite can show.
-    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --no-cov
+    # Measured, not just run. The union of both dialects is what coverage-ratchet reads:
+    # a branch reachable only under PostgreSQL was invisible to the SQLite report and
+    # counted as untested debt, and a branch only SQLite takes was equally unseen here.
+    # This used to pass --no-cov, so the PostgreSQL half of the union did not exist and
+    # the ratchet could not run in the pipeline at all.
+    - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" pytest -q apps/api/tests --cov=apps/api/src/korpus --cov-branch --cov-report=json:var/coverage-postgres.json --cov-report= --cov-fail-under=0
     # Materialize the PostgreSQL/RLS production gate while the real pg17 service is alive.
     - KORPUS_TEST_DATABASE_URL="$KORPUS_POSTGRES_TEST_URL" KORPUS_TEST_DATABASE_ADMIN_URL="$KORPUS_POSTGRES_ADMIN_URL" PYTHONPATH=apps/api/src:scripts python scripts/run_postgres_security_gate.py
     - python -c "import secrets, pathlib; pathlib.Path('var/backup-encryption.key').write_text(secrets.token_hex(32))"
@@ -325,6 +330,7 @@ api:postgres-and-restore:
       - var/recovery-report.json
       - var/load-probe.json
       - var/load-api.log
+      - var/coverage-postgres.json
       - var/production/postgres_security-gate.json
 
 secret:scan:
@@ -548,6 +554,12 @@ source:package:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends zip && rm -rf /var/lib/apt/lists/*
     - PYTHONPATH=scripts python scripts/assemble_assurance.py
     - python scripts/snapshot_assurance.py
+    # The dialect union and the branch ratchet, in the one job that holds both coverage
+    # reports. Until 2026-08-29 only check_coverage_thresholds ran anywhere in the
+    # pipeline: the frozen missing-branch ceiling was a local-only gate, so a push could
+    # add uncovered branches and no pipeline said so.
+    - PYTHONPATH=apps/api/src python scripts/merge_dialect_coverage.py
+    - PYTHONPATH=apps/api/src:. python scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
     # Bind all locally reproducible production gates to this exact source tree.
     - PYTHONPATH=apps/api/src:scripts python scripts/run_engineering_production_gate.py --report var/research-assurance-report.json
     - PYTHONPATH=apps/api/src:scripts python scripts/run_exact_environment_gate.py

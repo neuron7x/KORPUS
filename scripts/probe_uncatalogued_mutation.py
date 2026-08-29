@@ -173,7 +173,9 @@ def source_tree_is_clean() -> bool:
     return listing.returncode == 0 and not listing.stdout.strip()
 
 
-def wilson_interval(successes: int, total: int, z: float = 1.959963984540054) -> tuple[float, float]:
+def wilson_interval(
+    successes: int, total: int, z: float = 1.959963984540054
+) -> tuple[float, float]:
     """Two-sided Wilson score interval; the same estimator the assurance layer uses."""
     if total <= 0:
         return 0.0, 1.0
@@ -258,20 +260,20 @@ def probe(args: argparse.Namespace) -> int:
             flush=True,
         )
 
-    killed = sum(1 for row in results if row["killed"])
+    killed_total = sum(1 for row in results if row["killed"])
     # A sampled rate without its interval invites reading 60/60 as "the suite kills
     # everything". It does not: it means the rate is not below the lower bound, and with
     # sixty draws that bound is 0.94, not 1.0.
-    lower, upper = wilson_interval(killed, len(sample)) if sample else (0.0, 1.0)
+    lower, upper = wilson_interval(killed_total, len(sample)) if sample else (0.0, 1.0)
     report = {
         "schema": "korpus.uncatalogued-mutation-probe.v1",
         "modules_uncatalogued": len(modules),
         "mutations_available": len(population),
         "sampled": len(sample),
         "seed": args.seed,
-        "killed": killed,
-        "survived": len(sample) - killed,
-        "kill_rate": round(killed / len(sample), 4) if sample else None,
+        "killed": killed_total,
+        "survived": len(sample) - killed_total,
+        "kill_rate": round(killed_total / len(sample), 4) if sample else None,
         "kill_rate_interval_95": [round(lower, 4), round(upper, 4)],
         "survivors": [row for row in results if not row["killed"]],
         "results": results,
@@ -286,8 +288,13 @@ def probe(args: argparse.Namespace) -> int:
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({k: v for k, v in report.items() if k not in {"results", "survivors"}},
-                     ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {k: v for k, v in report.items() if k not in {"results", "survivors"}},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0
 
 

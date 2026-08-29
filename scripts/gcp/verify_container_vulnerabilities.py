@@ -60,7 +60,7 @@ def _effective_severity(vulnerability: Mapping[str, Any]) -> str:
     unknown = [s for s in severities if s not in SEVERITY_RANK]
     if unknown:
         raise GateError(f"unknown vulnerability severity values: {unknown!r}")
-    return max(severities, key=SEVERITY_RANK.__getitem__)
+    return str(max(severities, key=SEVERITY_RANK.__getitem__))
 
 
 def _finding(occ: Mapping[str, Any]) -> Finding:

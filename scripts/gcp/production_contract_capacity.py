@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 
-def evaluate(s: object) -> list[tuple[str, bool, str]]:
+if TYPE_CHECKING:  # the group modules are imported *by* production_contract, not before it
+    from scripts.gcp.production_contract import Sources
+
+
+def evaluate(s: Sources) -> list[tuple[str, bool, str]]:
     return [
         (
             "FINITE_RUNTIME_CAPACITY",

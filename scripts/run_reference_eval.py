@@ -32,6 +32,7 @@ from reference_eval_metrics import ABSTAINED, retrieval_effectiveness
 ROOT = Path(__file__).resolve().parents[1]
 DECLARATION = {"given_name": "Еталон", "family_name": "Тестенко", "specialty": "перевірка"}
 
+
 def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[str, Any]:
     payload: dict[str, Any] = {"text": case["query"], "declaration": DECLARATION}
     if case.get("as_of"):

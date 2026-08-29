@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # the group modules are imported *by* production_contract, not before it
+    from scripts.gcp.production_contract import Sources
+
 from scripts.gcp.production_contract_canary import evaluate as canary
 from scripts.gcp.production_contract_capacity import evaluate as capacity
 from scripts.gcp.production_contract_database import evaluate as database
@@ -13,7 +18,7 @@ from scripts.gcp.production_contract_terraform import evaluate as terraform
 from scripts.gcp.production_contract_tls import evaluate as tls
 
 
-def evaluate(s: object) -> list[tuple[str, bool, str]]:
+def evaluate(s: Sources) -> list[tuple[str, bool, str]]:
     predicates: list[tuple[str, bool, str]] = []
     for evaluator in (
         canary,

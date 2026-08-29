@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import yaml
@@ -58,11 +59,20 @@ def test_package_materializes_all_externally_bound_required_gates() -> None:
 
 
 def test_redteam_validator_uses_protected_runtime_trust_without_source_mutation() -> None:
+    """The trust root comes from the config file and the protected variable, not the source.
+
+    Asserted as the call's parts rather than one exact line: the assertion is about which
+    trust root is read, and a formatter wrapping the call across three lines is not a change
+    to that. The previous single-string form broke the moment `ruff format` reached this
+    file, which made a formatting pass look like a security regression.
+    """
     source = (ROOT / "scripts/validate_external_redteam_evidence.py").read_text(encoding="utf-8")
-    assert (
-        'trusted_fingerprints(TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256")'
-        in source
-    )
+    call = re.search(r"trusted\s*=\s*trusted_fingerprints\((.*?)\)", source, re.S)
+    assert call is not None, "the validator no longer reads a trust root at all"
+    arguments = " ".join(call.group(1).split())
+    assert "TRUST" in arguments
+    assert '"ed25519_public_key_sha256"' in arguments
+    assert '"KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256"' in arguments
 
 
 def test_container_scan_marker_is_handed_to_supply_chain_gate() -> None:

@@ -31,7 +31,11 @@ def canonical_bytes(value: object) -> bytes:
 
 
 def initial_state() -> dict[str, Any]:
-    return {"schema": "korpus.public-health-state.v1", "failures": {name: 0 for name in COMPONENTS}, "last_recovery": {}}
+    return {
+        "schema": "korpus.public-health-state.v1",
+        "failures": {name: 0 for name in COMPONENTS},
+        "last_recovery": {},
+    }
 
 
 def load_state(path: Path) -> dict[str, Any]:
@@ -44,7 +48,14 @@ def load_state(path: Path) -> dict[str, Any]:
     return cast(dict[str, Any], value)
 
 
-def transition(state: dict[str, Any], health: dict[str, bool], now: int, *, threshold: int = 2, cooldown: int = 300) -> tuple[dict[str, Any], list[str]]:
+def transition(
+    state: dict[str, Any],
+    health: dict[str, bool],
+    now: int,
+    *,
+    threshold: int = 2,
+    cooldown: int = 300,
+) -> tuple[dict[str, Any], list[str]]:
     """Advance counters and select only recoveries justified by current dependencies."""
     updated = json.loads(json.dumps(state))
     failures = updated.setdefault("failures", {})
@@ -79,13 +90,24 @@ def probe(url: str, marker: bytes) -> bool:
 
 
 def execute(action: str) -> bool:
-    return subprocess.run(ACTION_COMMANDS[action], cwd=ROOT, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    return (
+        subprocess.run(
+            ACTION_COMMANDS[action],
+            cwd=ROOT,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        == 0
+    )
 
 
 def atomic_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(".tmp")
-    temporary.write_bytes(json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True).encode() + b"\n")
+    temporary.write_bytes(
+        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True).encode() + b"\n"
+    )
     os.replace(temporary, path)
 
 
@@ -110,7 +132,9 @@ def main() -> int:
         "requested_actions": requested,
         "action_outcomes": outcomes,
         "observe_only": args.observe_only,
-        "status": "PASS" if all(health.values()) else ("RECOVERY_REQUESTED" if requested else "DEGRADED"),
+        "status": "PASS"
+        if all(health.values())
+        else ("RECOVERY_REQUESTED" if requested else "DEGRADED"),
     }
     body["receipt_sha256"] = hashlib.sha256(canonical_bytes(body)).hexdigest()
     atomic_json(RECEIPT_PATH, body)

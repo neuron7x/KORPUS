@@ -235,7 +235,7 @@ EXTERNAL_DEBT = {
 # generated file, so it survives regeneration and a commander reading the register sees
 # that the enforcement exists and only the human decision remains. The status is
 # unchanged: a delivered code half does not clear a debt whose acceptance is a signature.
-CODE_HALF = {
+CODE_HALF: dict[str, dict[str, object]] = {
     "GOV-006": {
         "status": "DELIVERED",
         "on": "2026-08-08",

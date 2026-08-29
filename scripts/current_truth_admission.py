@@ -6,7 +6,7 @@ from pathlib import Path
 try:
     from .current_truth_contract import load_object
 except ImportError:  # direct script execution with scripts/ on sys.path
-    from current_truth_contract import load_object
+    from current_truth_contract import load_object  # type: ignore[no-redef]
 
 
 def _current_json(path: Path, release: str, digest: str) -> bool:

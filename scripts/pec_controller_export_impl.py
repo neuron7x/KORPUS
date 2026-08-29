@@ -74,7 +74,10 @@ def _strict_bool(value: object, *, label: str) -> bool:
 
 def _rules(training: dict[str, object]) -> tuple[ControllerRule, ...]:
     rules: list[ControllerRule] = []
-    for item in training.get("leaves", []):
+    leaves = training.get("leaves", [])
+    if not isinstance(leaves, (list, tuple)):
+        raise ValueError("training leaves must be a list")
+    for item in leaves:
         if not isinstance(item, dict):
             raise ValueError("training leaf must be an object")
         rules.append(

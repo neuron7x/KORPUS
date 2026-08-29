@@ -287,7 +287,7 @@ def _destructive_actions_denied(denials: dict[str, Any]) -> bool:
 def evaluate(snapshot: dict[str, Any], app_role: str = "korpus_app") -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
 
-    def add(i, ok, evidence):
+    def add(i: str, ok: object, evidence: object) -> None:
         return checks.append({"id": i, "passed": bool(ok), "evidence": evidence})
 
     version = int(snapshot.get("server_version_num", 0))

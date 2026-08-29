@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
@@ -54,7 +55,7 @@ def _git_tracked_paths(root: Path) -> list[Path] | None:
     return sorted((path for path in paths if source_included(path)), key=Path.as_posix)
 
 
-def _walk_files(root: Path, predicate) -> list[Path]:
+def _walk_files(root: Path, predicate: Callable[[Path], bool]) -> list[Path]:
     return sorted(
         (
             path.relative_to(root)

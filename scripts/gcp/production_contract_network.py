@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # the group modules are imported *by* production_contract, not before it
+    from scripts.gcp.production_contract import Sources
+
 
 def _direct_vpc(text: str) -> bool:
     return (
@@ -12,7 +17,7 @@ def _direct_vpc(text: str) -> bool:
     )
 
 
-def evaluate(s: object) -> list[tuple[str, bool, str]]:
+def evaluate(s: Sources) -> list[tuple[str, bool, str]]:
     all_tf = s.all_tf
     return [
         (

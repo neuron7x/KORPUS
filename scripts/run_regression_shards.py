@@ -42,7 +42,8 @@ def _env() -> dict[str, str]:
 
 
 def collect_nodeids(pytest_args: list[str]) -> list[str]:
-    return collect_manifest_nodeids(root=ROOT, env=_env(), pytest_args=pytest_args)
+    collected = collect_manifest_nodeids(root=ROOT, env=_env(), pytest_args=pytest_args)
+    return [str(nodeid) for nodeid in collected]
 
 
 def prepare_collection(args: argparse.Namespace) -> int:
@@ -185,7 +186,7 @@ def _receipt_identity(receipts: list[dict[str, Any]]) -> tuple[dict[str, Any], l
             "collection_digest": None,
             "shard_count": 0,
         }, ["no_receipts"]
-    fields = {
+    fields: dict[str, set[Any]] = {
         "release_tag": {r.get("release_tag") for r in receipts},
         "source_digest": {r.get("source_digest") for r in receipts},
         "collection_digest": {r.get("collection_digest") for r in receipts},
@@ -194,11 +195,14 @@ def _receipt_identity(receipts: list[dict[str, Any]]) -> tuple[dict[str, Any], l
     }
     failures = [f"{name}_mismatch" for name, values in fields.items() if len(values) != 1]
     shard_count = _single(fields["shard_count"])
+    counted = (
+        shard_count if isinstance(shard_count, int) and not isinstance(shard_count, bool) else 0
+    )
     return {
         "release_tag": _single(fields["release_tag"]),
         "source_digest": _single(fields["source_digest"]),
         "collection_digest": _single(fields["collection_digest"]),
-        "shard_count": int(shard_count) if shard_count is not None else 0,
+        "shard_count": counted,
     }, failures
 
 

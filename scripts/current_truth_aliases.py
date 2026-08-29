@@ -5,9 +5,9 @@ from pathlib import Path
 try:
     from .current_truth_contract import alias_checks as base_alias_checks
     from .current_truth_contract import load_object
-except ImportError:
-    from current_truth_contract import alias_checks as base_alias_checks
-    from current_truth_contract import load_object
+except ImportError:  # pragma: no cover - the plain-script import path
+    from current_truth_contract import alias_checks as base_alias_checks  # type: ignore[no-redef]
+    from current_truth_contract import load_object  # type: ignore[no-redef]
 
 
 def alias_checks(root: Path, release: str) -> dict[str, bool]:

@@ -2733,8 +2733,8 @@ MUTANTS = (
     Mutant(
         "M224_MANIFEST_ROOT_IGNORES_MODE",
         "scripts/manifest_lib/integrity.py",
-        '        f\'{item["path"]}\\0{item["mode"]}\\0{item["sha256"]}\\n\' for item in records',
-        '        f\'{item["path"]}\\0{item["sha256"]}\\n\' for item in records',
+        '        f"{item[\'path\']}\\0{item[\'mode\']}\\0{item[\'sha256\']}\\n" for item in records',
+        '        f"{item[\'path\']}\\0{item[\'sha256\']}\\n" for item in records',
         (
             "apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes",
         ),
@@ -2877,8 +2877,8 @@ MUTANTS = (
     Mutant(
         "M240_RELEASE_TRUST_REQUIREMENT_IGNORED",
         "scripts/release_attestation.py",
-        '    if not require_trusted: checks.pop("trusted_signer", None)',
-        '    if True: checks.pop("trusted_signer", None)',
+        '    if not require_trusted:\n        checks.pop("trusted_signer", None)',
+        '    if True:\n        checks.pop("trusted_signer", None)',
         (
             "apps/api/tests/test_release_attestation_trust.py::test_release_attestation_requires_pretrusted_signer",
         ),
@@ -2946,7 +2946,7 @@ MUTANTS = (
     Mutant(
         "M247_EXTERNAL_REDTEAM_RUNTIME_TRUST_DISCONNECTED",
         "scripts/validate_external_redteam_evidence.py",
-        '    trusted = trusted_fingerprints(TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256")',
+        '    trusted = trusted_fingerprints(\n        TRUST, "ed25519_public_key_sha256", "KORPUS_TRUSTED_EXTERNAL_REDTEAM_SIGNER_SHA256"\n    )',
         "    trusted = set()",
         (
             "apps/api/tests/test_ci_production_evidence_plumbing.py::"
@@ -2956,7 +2956,7 @@ MUTANTS = (
     Mutant(
         "M248_PRODUCTION_ASSURANCE_RUNTIME_TRUST_DISCONNECTED",
         "scripts/verify_production_assurance.py",
-        '    trusted = trusted_fingerprints(ROOT / "config/assurance/trusted-assurance-signers.json", "production_assurance_ed25519_public_key_sha256", "KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256")',
+        '    trusted = trusted_fingerprints(\n        ROOT / "config/assurance/trusted-assurance-signers.json",\n        "production_assurance_ed25519_public_key_sha256",\n        "KORPUS_TRUSTED_PRODUCTION_ASSURANCE_SIGNER_SHA256",\n    )',
         "    trusted = set()",
         (
             "apps/api/tests/test_production_promotion_plumbing.py::"
@@ -2966,7 +2966,7 @@ MUTANTS = (
     Mutant(
         "M249_RELEASE_RUNTIME_TRUST_IGNORED",
         "scripts/release_attestation.py",
-        'trusted = trusted_fingerprints(trust_config or Path("/nonexistent"), trust_field, trust_env) if trust_env else _trusted(trust_config, trust_field)',
+        'trusted = (\n        trusted_fingerprints(trust_config or Path("/nonexistent"), trust_field, trust_env)\n        if trust_env\n        else _trusted(trust_config, trust_field)\n    )',
         "trusted = _trusted(trust_config, trust_field)",
         (
             "apps/api/tests/test_production_promotion_plumbing.py::"
@@ -2996,7 +2996,7 @@ MUTANTS = (
     Mutant(
         "M252_EXTERNAL_REDTEAM_PREREGISTRATION_BYPASSED",
         "scripts/validate_external_redteam_evidence.py",
-        '        "preregistered": report.get("preregistration_sha256") == hashlib.sha256(PROFILE.read_bytes()).hexdigest(),',
+        '        "preregistered": report.get("preregistration_sha256")\n        == hashlib.sha256(PROFILE.read_bytes()).hexdigest(),',
         '        "preregistered": True,',
         (
             "apps/api/tests/test_external_redteam_admissibility.py::"
@@ -3096,7 +3096,7 @@ MUTANTS = (
     Mutant(
         "M262_PRODUCTION_ASSURANCE_RELATIVE_PATHS_BROKEN",
         "scripts/assemble_production_assurance.py",
-        "    profile_path, gate_dir, out_path = args.profile.resolve(), args.gate_dir.resolve(), args.out.resolve()",
+        "    profile_path, gate_dir, out_path = (\n        args.profile.resolve(),\n        args.gate_dir.resolve(),\n        args.out.resolve(),\n    )",
         "    profile_path, gate_dir, out_path = args.profile, args.gate_dir, args.out",
         (
             "apps/api/tests/test_production_assurance_cli.py::"
@@ -3847,7 +3847,9 @@ def main() -> int:
     report, output = _run_catalogue(args)
     _write_report(report, output, portable=args.merge)
     _print_summary(report)
-    expected = len(MUTANTS) if args.merge or args.shard_count == 1 else len(report["results"])
+    results = report["results"]
+    counted = len(results) if isinstance(results, (list, tuple)) else 0
+    expected = len(MUTANTS) if args.merge or args.shard_count == 1 else counted
     return 0 if report["mutation_score"] == 1.0 and report["valid_mutants"] == expected else 1
 
 

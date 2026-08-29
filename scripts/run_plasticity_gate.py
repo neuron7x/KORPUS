@@ -33,7 +33,7 @@ def main() -> int:
     try:
         policy, policy_sha256 = load_plasticity_policy(args.policy)
     except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
-        payload = {
+        payload: dict[str, object] = {
             "schema": "korpus.plasticity-model-check.v2",
             "status": "FAIL",
             "release": release_tag(),
@@ -43,7 +43,8 @@ def main() -> int:
         _write(args.out, payload)
         return 1
     result = check_grid(policy)
-    failures = list(result["failures"])
+    reported = result["failures"]
+    failures = list(reported) if isinstance(reported, (list, tuple)) else [str(reported)]
     payload = {
         "schema": "korpus.plasticity-model-check.v2",
         "status": "FAIL" if failures else "PASS",

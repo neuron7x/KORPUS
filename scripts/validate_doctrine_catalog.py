@@ -187,7 +187,10 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
         problems.append(f"{identifier}: unknown classification {entry['classification']!r}")
         classification = None
     try:
-        AccessTier.parse(entry["access_tier"])
+        tier = entry["access_tier"]
+        if not isinstance(tier, (str, int, AccessTier)):
+            raise ValueError("access_tier must be a string or integer")
+        AccessTier.parse(tier)
     except (KeyError, ValueError):
         problems.append(f"{identifier}: unparseable access_tier {entry['access_tier']!r}")
 

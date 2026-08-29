@@ -63,7 +63,7 @@ def main() -> int:
     entries = infrastructure + repository + kubernetes + controlled
     subjects: dict[str, list[dict[str, str]]] = {}
     for entry in entries:
-        subjects.setdefault(str(entry["subject"]), []).append(entry)
+        subjects.setdefault(str(entry["subject"]), []).append(dict(entry))
 
     lines = [
         "# Реєстр вимог КОРПУСу",

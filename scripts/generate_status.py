@@ -23,6 +23,7 @@ import argparse
 import json
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEBT = ROOT / "docs/audit/closure/KORPUS_v5_REMAINING_DEBT.json"
@@ -31,8 +32,12 @@ GATE = ROOT / "reports/OPERATIONAL_GATE.json"
 OUT = ROOT / "docs/operations/CURRENT_STATUS.md"
 
 
-def _load(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _load(path: Path) -> dict[str, Any]:
+    """json.loads returns Any; a loader that promises an object must refuse a list."""
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} is not a JSON object")
+    return value
 
 
 def render() -> str:

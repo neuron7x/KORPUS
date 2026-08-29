@@ -5,6 +5,7 @@ import json
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import cast
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -14,6 +15,7 @@ from korpus.application.decision_sensitivity import (
     decision_transitions,
 )
 from korpus.application.numeric_contracts import finite_number, strict_int
+from korpus.application.pec_oracle_policy import Outcome
 from korpus.application.pec_replay import ReplayOutcome, solve_oracle
 from korpus.application.predictive_evidence_control import RetrievalAction
 from pec_common import receipt, sha256_file, write_json
@@ -34,15 +36,22 @@ def _strict_int(row: dict[str, object], key: str, default: int | None = None) ->
 
 
 def _strict_nonnegative_number(row: dict[str, object], key: str) -> float:
+    # Split, not `not finite_number(value) or value < 0`: a TypeGuard does not narrow the
+    # right-hand side of an `or` whose left side is its negation, so the comparison would
+    # still be against `object`.
     value = row.get(key)
-    if not finite_number(value) or float(value) < 0.0:
+    if not finite_number(value):
+        raise ValueError(f"replay observation {key} must be a finite non-negative number")
+    if value < 0.0:
         raise ValueError(f"replay observation {key} must be a finite non-negative number")
     return float(value)
 
 
 def _strict_rank(item: dict[str, object]) -> int:
     value = item.get("rank")
-    if not strict_int(value) or value < 1:
+    if not strict_int(value):
+        raise ValueError("replay retrieved span rank must be a positive integer")
+    if value < 1:
         raise ValueError("replay retrieved span rank must be a positive integer")
     return value
 
@@ -53,13 +62,28 @@ def _strict_quality(value: object) -> float:
     return float(value)
 
 
+def _strict_mapping(row: dict[str, object], key: str) -> dict[str, object]:
+    """A replay row is JSON: every field is `object` until something refuses the alternative."""
+    value = row.get(key, {})
+    if not isinstance(value, dict):
+        raise ValueError(f"replay observation {key} must be an object")
+    return {str(name): item for name, item in value.items()}
+
+
+def _strict_sequence(row: dict[str, object], key: str) -> list[object]:
+    value = row.get(key, ())
+    if isinstance(value, (str, bytes)) or not isinstance(value, (list, tuple)):
+        raise ValueError(f"replay observation {key} must be a list")
+    return list(value)
+
+
 def parse(row: dict[str, object]) -> ReplayOutcome:
     return ReplayOutcome(
         query_id=str(row["query_id"]),
         group_id=str(row["group_id"]),
         action=RetrievalAction(str(row["action"])),
         state_fingerprint=str(row["state_fingerprint"]),
-        features=dict(row["features"]),
+        features=_strict_mapping(row, "features"),
         authorization_ok=_strict_bool(row, "authorization_ok"),
         answer_error=_strict_bool(row, "answer_error"),
         quality_ok=_strict_bool(row, "quality_ok"),
@@ -73,7 +97,9 @@ def parse(row: dict[str, object]) -> ReplayOutcome:
         external_tokens=_strict_int(row, "external_tokens", 0),
         provider_cost_microunits=_strict_int(row, "provider_cost_microunits", 0),
         decision_reason=str(row.get("decision_reason", "")),
-        evidence_fingerprints=tuple(str(value) for value in row.get("evidence_fingerprints", ())),
+        evidence_fingerprints=tuple(
+            str(value) for value in _strict_sequence(row, "evidence_fingerprints")
+        ),
         corpus_release_id=str(row.get("corpus_release_id", "")),
         evaluation_protocol_sha256=str(row.get("evaluation_protocol_sha256", "")),
         answer_calibration_id=str(row.get("answer_calibration_id", "")),
@@ -81,18 +107,22 @@ def parse(row: dict[str, object]) -> ReplayOutcome:
         judgment=str(row.get("judgment", "")),
         retrieved_spans=tuple(
             (str(item.get("span_id", "")), _strict_rank(item))
-            for item in row.get("retrieved_spans", ())
+            for item in _strict_sequence(row, "retrieved_spans")
             if isinstance(item, dict)
         ),
         retrieval_quality={
             str(key): _strict_quality(value)
-            for key, value in dict(row.get("retrieval_quality", {})).items()
+            for key, value in _strict_mapping(row, "retrieval_quality").items()
         },
     )
 
 
 def decision_record(rows: list[ReplayOutcome]) -> dict[str, object]:
-    decision = solve_oracle(rows)
+    # ReplayOutcome satisfies the Outcome protocol structurally, but the protocol declares
+    # query_id and action as mutable attributes while ReplayOutcome is a frozen dataclass —
+    # so the two are not assignment-compatible and list is invariant besides. The cast says
+    # what the runtime already relies on; solve_oracle only reads.
+    decision = solve_oracle(cast("list[Outcome]", rows))
     transitions = decision_transitions(rows)
     transition_by_action = {row.candidate_action: row for row in transitions}
     chosen = transition_by_action.get(decision.action)

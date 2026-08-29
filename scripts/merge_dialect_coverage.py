@@ -29,11 +29,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _load(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    """json.loads returns Any; a coverage report that is not an object is not a report."""
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} is not a JSON object")
+    return value
 
 
 def merge(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[str, Any]:
-    merged = json.loads(json.dumps(primary))
+    merged: dict[str, Any] = json.loads(json.dumps(primary))
     files: dict[str, Any] = merged["files"]
     other: dict[str, Any] = secondary.get("files", {})
     for path, entry in files.items():
@@ -73,9 +77,7 @@ def merge(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[str, Any]:
     totals["percent_statements_covered"] = (
         100.0 * totals["covered_lines"] / totals["num_statements"]
     )
-    totals["percent_branches_covered"] = (
-        100.0 * totals["covered_branches"] / totals["num_branches"]
-    )
+    totals["percent_branches_covered"] = 100.0 * totals["covered_branches"] / totals["num_branches"]
     merged["dialect_union"] = {
         "schema": "korpus.dialect-coverage-union.v1",
         "runs": ["sqlite", "postgresql"],
@@ -110,9 +112,7 @@ def main() -> int:
                 "out": str(args.out.relative_to(ROOT)),
                 "missing_branches": totals["missing_branches"],
                 "branch_rate": round(totals["covered_branches"] / totals["num_branches"], 6),
-                "statement_rate": round(
-                    totals["covered_lines"] / totals["num_statements"], 6
-                ),
+                "statement_rate": round(totals["covered_lines"] / totals["num_statements"], 6),
             },
             ensure_ascii=False,
             indent=2,

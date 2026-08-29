@@ -99,7 +99,7 @@ def _ingest(
     effective_from: date | None = None,
     supersedes: Any = None,
     document_id: Any = None,
-):
+) -> Any:
     version = VersionCreate(
         revision=revision,
         authority=AuthorityClass.OFFICIAL_UA,
@@ -140,7 +140,7 @@ def _ingest(
 
 
 def _projection(answer: Any) -> dict[str, Any]:
-    value = answer.model_dump(mode="json")
+    value: dict[str, Any] = answer.model_dump(mode="json")
     value.pop("id", None)
     value.pop("created_at", None)
     return value

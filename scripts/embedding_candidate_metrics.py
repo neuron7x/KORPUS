@@ -13,8 +13,10 @@ def retrieval_metrics(
         if not holders or max(holders) >= len(candidates):
             raise ValueError("every query must name an in-range relevant candidate")
         scored = sorted(
-            ((sum(x * y for x, y in zip(query, candidate, strict=True)), index)
-             for index, candidate in enumerate(candidates)),
+            (
+                (sum(x * y for x, y in zip(query, candidate, strict=True)), index)
+                for index, candidate in enumerate(candidates)
+            ),
             key=lambda item: (-item[0], item[1]),
         )
         ranks.append(min(rank for rank, (_, index) in enumerate(scored, 1) if index in holders))

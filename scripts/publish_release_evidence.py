@@ -68,12 +68,8 @@ def coverage_projection(digest: str, release: str) -> dict[str, Any] | None:
             "status": "PASS",
             "release": release,
             "source_tree_sha256": digest,
-            "statement_coverage_percent": round(
-                100.0 * totals["covered_lines"] / statements, 4
-            ),
-            "branch_coverage_percent": round(
-                100.0 * totals["covered_branches"] / branches, 4
-            ),
+            "statement_coverage_percent": round(100.0 * totals["covered_lines"] / statements, 4),
+            "branch_coverage_percent": round(100.0 * totals["covered_branches"] / branches, 4),
             "measured_from": candidate,
         }
     return None
