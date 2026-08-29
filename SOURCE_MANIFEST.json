@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1400,
-  "root_sha256": "5991cd8a162b00bdac2d47c56178b8caaf5e6802a95138338bd8b7bea47cc339",
+  "file_count": 1402,
+  "root_sha256": "2c3e1a19888ded13d5b279327f4226e38f379fe106ac7ec9a4c4be50bab820aa",
   "files": [
     {
       "path": ".dockerignore",
@@ -5496,6 +5496,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/doctrine_catalog_2026.candidate3.json",
+      "bytes": 354981,
+      "sha256": "1b94c35e4abc5a7c0b68adb090aa606395b419f91f4545704ee0c557263b5a3b",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/doctrine_catalog_2026.json",
       "bytes": 407712,
       "sha256": "56fed3841af9c9d449c81316698f4a89511e83606194dee687dc02050230d911",
@@ -8272,6 +8278,12 @@
       "bytes": 309,
       "sha256": "05633878458398cf30a0a2159988df97b1aa9e8d0a52919ab718b3f3dcfd9524",
       "mode": "0644"
+    },
+    {
+      "path": "scripts/verify_clean_clone.sh",
+      "bytes": 1359,
+      "sha256": "a32e9c53a116447d6fb4d333611b654ee97bcad6dac791a40dacafd75dec6d1f",
+      "mode": "0755"
     },
     {
       "path": "scripts/verify_current_truth.py",
