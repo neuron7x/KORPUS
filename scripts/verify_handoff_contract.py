@@ -45,7 +45,7 @@ def _release_evidence_state() -> str:
     return "BOUND" if source_tree_digest() == promoted_digest else "STALE"
 
 
-def verify() -> dict[str, Any]:
+def verify(*, require_bound: bool = True) -> dict[str, Any]:
     required = [
         ROOT / "handoff" / "START_HERE_UA.md",
         ROOT / "handoff" / "SSOT_AND_PROVENANCE.md",
@@ -202,6 +202,20 @@ def verify() -> dict[str, Any]:
     if unknown_findings:
         raise AssertionError(
             f"planned iterations reference unknown audit findings: {unknown_findings}"
+        )
+
+    # UNAVAILABLE and STALE were both reported beside "status": "PASS" and nothing asserted
+    # on them. This is the first target of `make validate`, so it was green with the release
+    # evidence absent entirely and green with it describing a different tree. Measured
+    # 2026-08-29. BOUND is the only state that says the handoff describes this revision.
+    # `require_bound=False` is for the contract test, which runs inside the very pytest run
+    # that produces the assurance evidence: asserting BOUND there would make the check
+    # depend on its own output. The CLI below is the gate, and it always requires it.
+    if require_bound and release_evidence != "BOUND":
+        raise AssertionError(
+            f"release evidence is {release_evidence}, not BOUND — the handoff would describe "
+            "a tree that is not this one. Run `make assurance operational-gate` against this "
+            "revision, or say plainly that the handoff is unbound."
         )
 
     return {

@@ -1792,3 +1792,136 @@ def test_the_format_gate_leaves_applied_migrations_alone() -> None:
         "the format gate covers applied migrations again; it will report them as mutated"
     )
     assert '"apps/api/src"' in block and '"scripts"' in block
+
+
+def test_numeric_predicates_are_typeguard_not_typeis() -> None:
+    """TypeIs promises the predicate is true for precisely the named type. None of these is.
+
+    strict_int(True) is False though bool is an int; finite_number(nan) is False though nan
+    is a float; finite_rate(1.5) is False though 1.5 is one. Under TypeIs mypy narrowed the
+    negative branch to Never and stopped checking it — five guard bodies went unreachable and
+    four real errors in them stopped being reported. Measured 2026-08-29.
+    """
+    from korpus.application.numeric_contracts import finite_number, finite_rate, strict_int
+
+    assert strict_int(True) is False
+    assert finite_number(float("nan")) is False
+    assert finite_rate(1.5) is False
+
+    source = (ROOT / "apps/api/src/korpus/application/numeric_contracts.py").read_text(
+        encoding="utf-8"
+    )
+    # The docstring says why TypeIs is wrong here; what must not come back is the import
+    # and the annotation.
+    assert "from typing_extensions import TypeIs" not in source
+    assert "-> TypeIs[" not in source, (
+        "these predicates are not exact, so TypeIs silences the branches that guard them"
+    )
+    assert source.count("-> TypeGuard[") == 3
+
+
+def test_the_module_budget_guards_every_ceiling_it_reads() -> None:
+    """int() of a JSON value parses "999999". The guard was on three keys and not the two
+    through which a ceiling actually lifts."""
+    source = (ROOT / "scripts/check_module_budget.py").read_text(encoding="utf-8")
+    for forbidden in ('int(ceiling["lines"])', 'int(ceiling["max_complexity"])'):
+        assert forbidden not in source, f"{forbidden} reads a ceiling without _as_int"
+
+
+def test_a_string_line_ceiling_does_not_lift_the_ratchet(tmp_path: Path) -> None:
+    budget = json.loads((ROOT / "config/operations/module-budget.json").read_text("utf-8"))
+    target = "scripts/run_mutation_tests.py"
+    budget["modules"][target]["lines"] = "999999"
+    staged = tmp_path / "module-budget.json"
+    staged.write_text(json.dumps(budget, ensure_ascii=False), encoding="utf-8")
+
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import check_module_budget
+
+    measured = check_module_budget.measure()[target]
+    ceiling = budget["modules"][target]
+    limit = check_module_budget._as_int(ceiling["lines"], check_module_budget.DEFAULT_LINES)
+    assert limit == check_module_budget.DEFAULT_LINES
+    assert measured["lines"] > limit, "the fallback must still be a ceiling this file exceeds"
+
+
+def test_the_hard_predicate_report_ratchets_external_proof() -> None:
+    """Two predicates were closed against one source digest and unbound by the next commit;
+    the script exited 0 throughout because it only checked software readiness."""
+    source = (ROOT / "scripts/verify_production_hard_predicates.py").read_text(encoding="utf-8")
+    assert "production_satisfied" in source and "floor" in source.lower()
+    floor = json.loads(
+        (ROOT / "config/assurance/production-predicate-floor.json").read_text("utf-8")
+    )
+    assert isinstance(floor["production_satisfied"], int)
+
+
+def test_the_source_manifest_takes_path_parity_from_the_tree_not_itself() -> None:
+    """In an unpacked archive the fallback compared the manifest with the manifest, so a file
+    injected into the zip passed with valid: true."""
+    source = (ROOT / "scripts/verify_source_manifest.py").read_text(encoding="utf-8")
+    assert "sorted(by_path)\n" not in source.replace(" ", ""), "parity falls back to the manifest"
+    assert "source_paths(root)" in source
+
+
+def test_the_handoff_refuses_unbound_release_evidence() -> None:
+    """UNAVAILABLE and STALE were both printed beside status: PASS and never asserted on."""
+    source = (ROOT / "scripts/verify_handoff_contract.py").read_text(encoding="utf-8")
+    assert 'release_evidence != "BOUND"' in source
+
+
+def test_an_empty_control_map_does_not_verify() -> None:
+    source = (ROOT / "scripts/verify_standards_control_map.py").read_text(encoding="utf-8")
+    assert "MINIMUM_CONTROLS" in source and "MINIMUM_EXECUTABLE_CONTROLS" in source
+
+
+def test_every_validate_target_runs_in_the_pipeline() -> None:
+    """A gate declared in the Makefile and absent from CI is a gate that never runs on push.
+
+    Measured 2026-08-29: nine of the seventeen targets of `make validate` appeared nowhere in
+    .gitlab-ci.yml, including doctrine-catalog — the fourteen provenance rules governing what
+    may answer a question. Two of the nine existed only under .github/workflows, on a host
+    this project no longer uses, so they ran nowhere at all.
+
+    Matched by the script each target invokes rather than by target name: CI calls the
+    scripts directly and never runs `make`, so names would not correspond.
+    """
+    makefile = MAKEFILE.read_text(encoding="utf-8")
+    ci = CI.read_text(encoding="utf-8")
+    absent: list[str] = []
+    for target in _makefile_prerequisites("validate"):
+        recipe = re.search(rf"^{re.escape(target)}:[^\n]*\n((?:\t[^\n]*\n)*)", makefile, re.M)
+        if recipe is None:
+            continue
+        scripts = re.findall(r"scripts/([a-z_0-9]+\.py)", recipe.group(1))
+        if scripts and not any(name in ci for name in scripts):
+            absent.append(f"{target} ({', '.join(scripts)})")
+    assert not absent, f"targets of `make validate` that no CI job runs: {absent}"
+
+
+def test_the_doctrine_catalog_rules_run_in_the_pipeline() -> None:
+    """Named separately because this is the gate deciding what may govern an answer."""
+    assert any(
+        "validate_doctrine_catalog.py" in line for line in _ci_script("repository:validate")
+    ), "the catalog's provenance rules are not enforced on push"
+
+
+def test_no_job_runs_a_python_step_in_an_image_without_python() -> None:
+    """source:sbom runs anchore/syft:-debug, whose shell is busybox and which has no
+    interpreter. A `python3 scripts/...` step added there on 2026-08-29 exited 127 and took
+    container:build, source:package and both verify-image jobs down as skipped."""
+    ci = CI.read_text(encoding="utf-8")
+    offenders: list[str] = []
+    for block in re.split(r"^(?=\S)", ci, flags=re.M):
+        name = block.split(":", 1)[0].strip()
+        # The job's own image, at two spaces. `services:` entries are nested deeper and
+        # name a database, not the interpreter the script steps run under.
+        own = re.search(r"^  image:\s*\n(?:\s+#[^\n]*\n)*\s+name:\s*(\S+)", block, re.M)
+        inline = re.search(r"^  image:\s*(\S+)\s*$", block, re.M)
+        image = (own or inline).group(1) if (own or inline) else None
+        if image is None or "python" in image:
+            continue
+        for line in re.findall(r"^    - (.*)$", block, re.M):
+            if re.match(r"(PYTHONPATH=\S+ )?python3? ", line):
+                offenders.append(f"{name}: {line[:60]} (image {image[:40]})")
+    assert not offenders, offenders

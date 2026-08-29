@@ -16,7 +16,7 @@ def test_local_handoff_contract_is_consistent_with_code_and_evidence() -> None:
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    result = module.verify()
+    result = module.verify(require_bound=False)
     assert result["status"] == "PASS"
     assert result["weights_sum"] == 1.0
     assert result["next_iterations"] == 10

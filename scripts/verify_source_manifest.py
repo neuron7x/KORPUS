@@ -26,9 +26,12 @@ def verify(root: Path) -> dict[str, object]:
     if not isinstance(records, list):
         return {"valid": False, "failures": ["invalid source manifest records"]}
     by_path = {str(record.get("path")): record for record in records if isinstance(record, dict)}
-    authoritative = (
-        [p.as_posix() for p in source_paths(root)] if (root / ".git").exists() else sorted(by_path)
-    )
+    # Path parity has to come from the tree, not from the manifest. Falling back to
+    # `sorted(by_path)` compared the manifest with itself: in an unpacked archive — the one
+    # place this check is the only thing standing between a reader and an injected file —
+    # `scripts/backdoor.py` added to the tree passed with valid: true, because the manifest
+    # did not list it and the manifest was the authority. Measured 2026-08-29.
+    authoritative = [p.as_posix() for p in source_paths(root)]
     failures = manifest_failures(manifest, records)
     if sorted(by_path) != authoritative:
         failures.append(

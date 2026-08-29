@@ -3,23 +3,24 @@
 from __future__ import annotations
 
 import math
-from typing import Any, cast
-
-from typing_extensions import TypeIs
+from typing import Any, TypeGuard, cast
 
 
-def strict_int(value: object) -> TypeIs[int]:
+def strict_int(value: object) -> TypeGuard[int]:
     """Narrow an untrusted value to an integer while explicitly rejecting bool.
 
-    TypeIs rather than TypeGuard: TypeGuard narrows only where the predicate is true, so
-    `if not strict_int(v): raise` left `v` as `object` for every line after it and callers
-    had to re-cast or ignore. These predicates are exact — they return true for precisely
-    the type they name — which is what TypeIs requires, and it narrows both branches.
+    TypeGuard, not TypeIs. TypeIs was tried on 2026-08-29 to make `if not p(v): raise`
+    narrow, and it is wrong here: TypeIs promises the predicate is true for *precisely* the
+    named type, and none of these are. strict_int(True) is False though bool is an int;
+    finite_number(nan) is False though nan is a float; finite_rate(1.5) is False though 1.5
+    is one. Under that false promise mypy narrows the negative branch to Never and stops
+    checking it — five guard bodies went unreachable and four real errors in them stopped
+    being reported. Callers narrow by splitting the check instead.
     """
     return isinstance(value, int) and not isinstance(value, bool)
 
 
-def finite_number(value: object) -> TypeIs[int | float]:
+def finite_number(value: object) -> TypeGuard[int | float]:
     """Narrow an untrusted value to a finite real scalar, excluding bool."""
     if not isinstance(value, (int, float)) or isinstance(value, bool):
         return False
@@ -29,7 +30,7 @@ def finite_number(value: object) -> TypeIs[int | float]:
         return False
 
 
-def finite_rate(value: object) -> TypeIs[int | float]:
+def finite_rate(value: object) -> TypeGuard[int | float]:
     return finite_number(value) and 0.0 <= float(value) <= 1.0
 
 

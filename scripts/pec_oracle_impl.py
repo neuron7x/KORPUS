@@ -62,8 +62,15 @@ def _strict_quality(value: object) -> float:
     return float(value)
 
 
-def _strict_mapping(row: dict[str, object], key: str) -> dict[str, object]:
-    """A replay row is JSON: every field is `object` until something refuses the alternative."""
+def _strict_mapping(row: dict[str, object], key: str, *, required: bool) -> dict[str, object]:
+    """A replay row is JSON: every field is `object` until something refuses the alternative.
+
+    `required` matters. Reading `features` with a default of {} turned a row that carries no
+    features from a KeyError into an accepted observation whose decision record says
+    "features": {} — the oracle then reasons about a row it never saw.
+    """
+    if required and key not in row:
+        raise KeyError(key)
     value = row.get(key, {})
     if not isinstance(value, dict):
         raise ValueError(f"replay observation {key} must be an object")
@@ -83,7 +90,7 @@ def parse(row: dict[str, object]) -> ReplayOutcome:
         group_id=str(row["group_id"]),
         action=RetrievalAction(str(row["action"])),
         state_fingerprint=str(row["state_fingerprint"]),
-        features=_strict_mapping(row, "features"),
+        features=_strict_mapping(row, "features", required=True),
         authorization_ok=_strict_bool(row, "authorization_ok"),
         answer_error=_strict_bool(row, "answer_error"),
         quality_ok=_strict_bool(row, "quality_ok"),
@@ -112,7 +119,7 @@ def parse(row: dict[str, object]) -> ReplayOutcome:
         ),
         retrieval_quality={
             str(key): _strict_quality(value)
-            for key, value in _strict_mapping(row, "retrieval_quality").items()
+            for key, value in _strict_mapping(row, "retrieval_quality", required=False).items()
         },
     )
 

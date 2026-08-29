@@ -74,6 +74,13 @@ def _control_reference_failures(index: int, refs: object, known: set[str]) -> li
     return [f"control[{index}].unknown_reference:{ref}" for ref in refs if ref not in known]
 
 
+#: Ratchet. Measured 2026-08-29: 12 controls, 10 of them executable. Recorded because an
+#: adversarial pass showed `controls: []` returning PASS with zero of each — a loop over
+#: nothing raises nothing, and Makefile installs that verdict into reports/ as current.
+MINIMUM_CONTROLS = 12
+MINIMUM_EXECUTABLE_CONTROLS = 10
+
+
 def _verify_controls(
     root: Path, controls: list[object], known_references: set[str]
 ) -> tuple[list[str], int, int]:
@@ -126,6 +133,19 @@ def verify(root: Path, config: Path) -> dict[str, object]:
 
     reference_failures, reference_ids = _verify_references(references)
     control_failures, executable, external = _verify_controls(root, controls, reference_ids)
+    # A loop over nothing raises nothing. `controls: []` returned PASS with 0 controls and 0
+    # executable controls, and Makefile installs that verdict into reports/ with a fresh
+    # source digest — so the current-truth check would then read it as bound and current.
+    if len(controls) < MINIMUM_CONTROLS:
+        control_failures.append(
+            f"controls: {len(controls)} declared, below the floor of {MINIMUM_CONTROLS} — "
+            "an empty control map verifies successfully and proves nothing"
+        )
+    if executable < MINIMUM_EXECUTABLE_CONTROLS:
+        control_failures.append(
+            f"executable controls: {executable}, below the floor of "
+            f"{MINIMUM_EXECUTABLE_CONTROLS} — a map where nothing is executable is a document"
+        )
     failures.extend(reference_failures)
     failures.extend(control_failures)
     failures.extend(_draft_classification_failure(references))

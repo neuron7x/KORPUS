@@ -162,7 +162,9 @@ def _as_int(value: object, fallback: int) -> int:
     """A recorded ceiling is JSON, so it is `object` until something narrows it.
 
     A ceiling that is not a number is a corrupt budget entry, not a licence to skip the
-    shape: falling back to the default keeps the check running and keeps it strict.
+    check: falling back to the default keeps it running and keeps it strict. Measured
+    2026-08-29: with `int()` here instead, `"lines": "999999"` disabled the line ratchet for
+    that module and reported PASS with zero violations.
     """
     return value if isinstance(value, int) and not isinstance(value, bool) else fallback
 
@@ -189,11 +191,18 @@ def main() -> int:
         # `"lines": null`, and it is per-file with a reason recorded beside it, because
         # a blanket exemption is how a ratchet stops holding anything. Complexity is
         # never exempt: a registry that grew a branch is no longer a registry.
-        if ceiling["lines"] is not None and int(measured["lines"]) > int(ceiling["lines"]):
-            violations.append(
-                f"{path}: {measured['lines']} lines exceeds the recorded ceiling {ceiling['lines']}"
-            )
-        if int(measured["max_complexity"]) > int(ceiling["max_complexity"]):
+        # int() of a JSON value parses "999999" happily. `_as_int` was added for the three
+        # shape keys and these two were left on int(), so a string line ceiling lifted the
+        # ratchet entirely while a string shape ceiling fell back to the default. The guard
+        # belongs on every ceiling read, not on the ones that were already integers.
+        line_ceiling = ceiling["lines"]
+        if line_ceiling is not None:
+            limit = _as_int(line_ceiling, DEFAULT_LINES)
+            if int(measured["lines"]) > limit:
+                violations.append(
+                    f"{path}: {measured['lines']} lines exceeds the recorded ceiling {limit}"
+                )
+        if int(measured["max_complexity"]) > _as_int(ceiling["max_complexity"], DEFAULT_COMPLEXITY):
             violations.append(
                 f"{path}: {measured['worst_function']} has complexity "
                 f"{measured['max_complexity']}, above the recorded ceiling "
@@ -212,9 +221,10 @@ def main() -> int:
         and (
             (
                 budget[path]["lines"] is not None
-                and int(measured["lines"]) < int(budget[path]["lines"])
+                and int(measured["lines"]) < _as_int(budget[path]["lines"], DEFAULT_LINES)
             )
-            or int(measured["max_complexity"]) < int(budget[path]["max_complexity"])
+            or int(measured["max_complexity"])
+            < _as_int(budget[path]["max_complexity"], DEFAULT_COMPLEXITY)
         )
     ]
 

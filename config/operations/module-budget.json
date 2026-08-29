@@ -1164,7 +1164,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/numeric_contracts.py": {
-      "lines": 95,
+      "lines": 96,
       "max_complexity": 5,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
@@ -2918,7 +2918,7 @@
       "max_nesting": 4
     },
     "scripts/check_module_budget.py": {
-      "lines": 239,
+      "lines": 249,
       "max_complexity": 13,
       "max_function_lines": 80,
       "max_function_args": 8,
@@ -3570,7 +3570,7 @@
       "max_nesting": 4
     },
     "scripts/pec_oracle_impl.py": {
-      "lines": 209,
+      "lines": 216,
       "max_complexity": 15,
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
@@ -3663,7 +3663,7 @@
       "max_nesting": 4
     },
     "scripts/propose_runtime_adaptation.py": {
-      "lines": 116,
+      "lines": 132,
       "max_complexity": 5,
       "reason": "operator CLI that emits validated content-addressed adaptation proposals | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,
@@ -4074,10 +4074,10 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 560,
+      "lines": 784,
       "max_complexity": 25,
       "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks repealed may not be ingestible) and the attachment signature check. The status marker is read structurally because grepping 'втратив чинність' out of the text calls order 402 and resolution 704 dead — each says it of something it repeals — while law 565-XII, actually repealed, is the case the marker catches. The signature check exists because a captured 404 is HTML under a .docx name and hashes as cleanly as the annex it replaced. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 rule 13: an attachment the extractor cannot read carries a survey — word count, opening line and the tool that produced it. Fourteen of thirty captures are OLE2 .doc; the alternative was a new supply-chain dependency for 2716 words of blank forms.",
-      "max_function_lines": 85,
+      "max_function_lines": 97,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4166,10 +4166,10 @@
       "max_nesting": 4
     },
     "scripts/verify_handoff_contract.py": {
-      "lines": 220,
-      "max_complexity": 41,
-      "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused",
-      "max_function_lines": 169,
+      "lines": 234,
+      "max_complexity": 43,
+      "reason": "v0.1.1: clean-source handoff validation is separated from post-test release evidence; missing evidence remains unavailable, partial/stale evidence is refused | 2026-08-29 +3 lines: release_evidence is now asserted on. UNAVAILABLE and STALE were both printed beside status: PASS and never checked, so the first target of `make validate` was green with the release evidence absent entirely and green with it describing a different tree.",
+      "max_function_lines": 183,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4219,7 +4219,7 @@
       "max_nesting": 4
     },
     "scripts/verify_production_hard_predicates.py": {
-      "lines": 85,
+      "lines": 116,
       "max_complexity": 6,
       "reason": "v0.9.7: verifier binds every gate to the current source and release; measured implementation is the ratchet ceiling",
       "max_function_lines": 60,
@@ -4242,7 +4242,7 @@
       "max_nesting": 4
     },
     "scripts/verify_source_manifest.py": {
-      "lines": 64,
+      "lines": 67,
       "max_complexity": 12,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling",
       "max_function_lines": 60,
@@ -4250,7 +4250,7 @@
       "max_nesting": 4
     },
     "scripts/verify_standards_control_map.py": {
-      "lines": 166,
+      "lines": 186,
       "max_complexity": 7,
       "reason": "v0.5.0: standards evidence now source/release-bound; exact expanded ceiling",
       "max_function_lines": 60,
@@ -4381,6 +4381,14 @@
       "max_complexity": 8,
       "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success. | 2026-08-29 records the portal's legal-status marker alongside the measurement. | 2026-08-29 samples each variant three times and scores it by the largest reading. The portal returned 736 and 5583 words for the same card minutes apart, both 200, and a single sample let the thin one repoint three sources onto the weaker variant. It also surveys unreadable captures via LibreOffice when present.",
       "max_function_lines": 60,
+      "max_function_args": 8,
+      "max_nesting": 4
+    },
+    "scripts/stage_doctrine_corpus.py": {
+      "lines": 256,
+      "max_complexity": 14,
+      "reason": "registered 2026-08-29: catalog→corpus staging bridge and the gate hardening an adversarial pass required",
+      "max_function_lines": 76,
       "max_function_args": 8,
       "max_nesting": 4
     }
@@ -5634,6 +5642,15 @@
       "reason": "ruff format --check became part of run_quality_gate. 62 files were rewrapped; the growth is line wrapping, not new code. It is a gate because 18 mutants and 2 tests matched on exact source lines and silently lost their targets when the tree was formatted — a mutant whose target is absent cannot fail.",
       "to": {
         "modules_touched": 25
+      }
+    },
+    {
+      "on": "2026-08-29",
+      "path": "scripts/validate_doctrine_catalog.py, scripts/verify_production_hard_predicates.py",
+      "reason": "an adversarial pass found 12 ways past the catalog gates and 7 places where a green verdict meant no check ran. Rules 9-13 gained type strictness, freshness, ZIP member checks and capture-root binding; rule 14 makes evidence mandatory where the host makes it possible and ratchets the counts. The hard-predicate script gained a floor: two predicates were closed and silently unbound by the next commit.",
+      "to": {
+        "new_modules": 1,
+        "grown": 4
       }
     }
   ],

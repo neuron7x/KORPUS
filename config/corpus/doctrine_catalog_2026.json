@@ -2,6 +2,7 @@
   "schema": "korpus.doctrine-catalog.v1",
   "compiled_on": "2026-08-29",
   "scope": "Curated source registry for the Ukrainian defence-tech doctrine corpus. Metadata only — no document bytes. Each entry carries the fields import_corpus.py needs (canonical_title, issuer, authority, access_tier, classification, source_uri) plus curation fields the validator enforces. A curator fetches the open documents (a rights decision, GOV-006), runs build_import_manifest.py against the fetched directory, copies these fields in, and ingests. Nothing here is authoritative until a human approves it through the review workflow.",
+  "authority_note": "sprotyvg7.com.ua is a volunteer aggregator, not a government portal. Its documents appear to be genuine released AFU publications, but every index number and date is marked unverified until cross-checked. Mirror availability is not evidence of current-edition status.",
   "gating_rules": {
     "restricted_never_ingestible": "classification=restricted => ingestible=false. RESTRICTED material (AJP-3.6) is quarantined at the door; cite it only through the open documents that reference it.",
     "commercial_rights_blocked": "rights_status=commercial_restricted => ingestible=false with reason. Rights clearance is a legal/owner decision (GOV-006), not code.",
@@ -10,7 +11,15 @@
     "block_reason_required": "ingestible=false => ingest_block_reason is present.",
     "taxonomy_is_the_systems": "authority, classification and access_tier are validated against korpus.domain.models enums, so this catalog cannot drift from what the system accepts."
   },
-  "authority_note": "sprotyvg7.com.ua is a volunteer aggregator, not a government portal. Its documents appear to be genuine released AFU publications, but every index number and date is marked unverified until cross-checked. Mirror availability is not evidence of current-edition status.",
+  "evidence_floor": {
+    "integrity_anchored": 12,
+    "content_probed": 19,
+    "attachments_captured": 30,
+    "attachments_surveyed": 14,
+    "governing_authority": 52,
+    "total": 84
+  },
+  "evidence_floor_note": "Ratchet, not a target. Rules 1-13 each measure the quality of evidence that happens to exist; none of them required any to exist. On 2026-08-29 an adversarial pass deleted 18 of 19 content probes and 11 of 12 anchors and the gate returned PASS with all 51 tests green. These counts may only rise: lowering one is an edit somebody makes on purpose, and it shows up in the diff.",
   "sources": [
     {
       "id": "T1A-VP-7-0003-01",

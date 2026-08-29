@@ -84,6 +84,25 @@ repository:validate:
     # leave it describing a tree that no longer exists and nothing failed until packaging
     # time. It costs a second here and it is the anchor the evidence hangs from.
     - python scripts/verify_source_manifest.py
+    # Every current-truth report binds itself to a source digest. Nothing ran this outside
+    # full-ssot-package, so a commit could leave BLOCKER_REGISTRY and CLAIM_LEDGER bound to
+    # a tree that no longer exists and every gate stayed green — the evidence claiming to
+    # describe this revision described an earlier one.
+    - PYTHONPATH=apps/api/src:. python scripts/verify_current_truth.py
+    # Nine targets of `make validate` ran nowhere in this pipeline until 2026-08-29. The
+    # doctrine catalog's fourteen provenance rules were among them: green locally and
+    # unexecuted on push, which is the same state as not having them. Two more
+    # (release-identity, production-hard-predicates) existed only in .github/workflows,
+    # so they ran nowhere at all.
+    - PYTHONPATH=apps/api/src:. python scripts/verify_handoff_contract.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_dependency_locks.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/model_check_assurance.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_standards_control_map.py
+    - PYTHONPATH=apps/api/src python scripts/check_import_cycles.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/check_release_identity.py
+    - PYTHONPATH=apps/api/src python scripts/export_requirements.py
+    - PYTHONPATH=apps/api/src python scripts/validate_doctrine_catalog.py
+    - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT
     - python scripts/validate_infrastructure.py
@@ -434,11 +453,13 @@ source:sbom:
     # `source digest mismatch: source-sbom.cdx.json` — the manifest was right and the job
     # had overwritten the thing it hashed.
     - /syft dir:. -o cyclonedx-json=var/tree-sbom.cdx.json
-    # The pair is the control: a component in the scan and not in the locks is material
-    # nothing pinned, which neither SBOM can report on its own.
-    - python3 scripts/compare_sbom_sources.py --allow-unpinned
+    # The comparison itself runs in source:package. This image is anchore/syft:-debug,
+    # whose shell is busybox and which has no interpreter at all: the comparison was put
+    # here on 2026-08-29 and the job died with `python3: not found`, exit 127, taking
+    # container:build, source:package and both verify-image jobs down as skipped. A step
+    # belongs in a job whose image can run it.
   artifacts:
-    paths: [var/tree-sbom.cdx.json, var/sbom-comparison.json]
+    paths: [var/tree-sbom.cdx.json]
 
 container:build:
   stage: build
@@ -558,6 +579,10 @@ source:package:
     # reports. Until 2026-08-29 only check_coverage_thresholds ran anywhere in the
     # pipeline: the frozen missing-branch ceiling was a local-only gate, so a push could
     # add uncovered branches and no pipeline said so.
+    # The pair is the control: a component in the tree scan and not in the locks is
+    # material nothing pinned, which neither SBOM can report on its own. It runs here
+    # because this job has both artifacts and a Python image.
+    - python scripts/compare_sbom_sources.py --allow-unpinned
     - PYTHONPATH=apps/api/src python scripts/merge_dialect_coverage.py
     - PYTHONPATH=apps/api/src:. python scripts/coverage_gap_plan.py --coverage var/coverage-union.json --out var/coverage-gap-plan.json
     # Bind all locally reproducible production gates to this exact source tree.

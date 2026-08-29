@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1343,
-  "root_sha256": "111bfa6bbb322a46a383593fd363e3eadcd9128b36ca18af67f227ed51da27a6",
+  "root_sha256": "d59aba463de3b5456febbd369f4daad9b7fb663a3a370771ba24f6e4bc3b146b",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 34175,
-      "sha256": "c0c0425d0a1a1cdef58b7dd711f576a988bbcaed797955b25cebc3465e8b45c8",
+      "bytes": 36099,
+      "sha256": "dea4a88d5b67f02e503824ccd8f4575f26811e5f494b3932081526280caa1191",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 40883,
-      "sha256": "43c22b61fa3b2b9e8530be83473a87c78db1398de9b326160d7cc0ffc2747ff5",
+      "bytes": 40904,
+      "sha256": "b253b4670c893a51ab4eb02dfd45d1a531f27ad904c3fa4fee4e5ddb6d823bb0",
       "mode": "0644"
     },
     {
@@ -1183,8 +1183,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/numeric_contracts.py",
-      "bytes": 3595,
-      "sha256": "b0f42d6f282dc15a3972269c0b8c312249bcd2aa697b3e765b15d381d29a9c4f",
+      "bytes": 3824,
+      "sha256": "848db4d2edd6716388a3d841ab79909588124c29c1c765101acb659d45840824",
       "mode": "0644"
     },
     {
@@ -2887,8 +2887,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 20968,
-      "sha256": "47f1b1b192d1e8fafa97687df31c85005a786534f793051371d913ae32d6a041",
+      "bytes": 29803,
+      "sha256": "5a84084510e8f61f729a1ec2892a2c9faba35195f4f897a1d2152c66abcddec9",
       "mode": "0644"
     },
     {
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 82028,
-      "sha256": "64446b59bb81596b7d8b9478364f748d834818bf59e3f31cdc3a146ba8345ad5",
+      "bytes": 88906,
+      "sha256": "9d0f54675ea1d4ace9975db0d31639e060336aa9c9bbd2c0e85484329d9721f5",
       "mode": "0644"
     },
     {
@@ -3235,8 +3235,8 @@
     },
     {
       "path": "apps/api/tests/test_handoff_contract.py",
-      "bytes": 3951,
-      "sha256": "fba31dce636b40af120dcdce4b9802c2d3dfca12a0c0d036c54e61fd9a4cb24c",
+      "bytes": 3970,
+      "sha256": "5226d306712e95cc6fb71bb299829c398be2b9e5768fb59b2aa6bcc13a38413f",
       "mode": "0644"
     },
     {
@@ -5173,8 +5173,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 123879,
-      "sha256": "ce30408df76b67a3aafadb31bd2cc96d559d2baea3964a822705befe57d86aaa",
+      "bytes": 124478,
+      "sha256": "d8dc69de7d6e0f2688651ab76e253e99a03216063057ef6b2793986de785eb93",
       "mode": "0644"
     },
     {
@@ -5276,13 +5276,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "ed3e885c9515e7802f6f4f0b191aeb15290d29aad33c3bee540e8068c36ebd37",
+      "sha256": "b4cc6f333fc90756221bc3a80d130122ad724d1f8274a89c262fe52f122bac34",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 225559,
-      "sha256": "1d19d4bd9beeb7b18d8984385efc54d0fde7a3fc16546eaff72674d097f17b29",
+      "bytes": 226773,
+      "sha256": "58f80b3c43f4458becd8061a2a6597a4b195165d023f5043cd64812100aaf3bb",
       "mode": "0644"
     },
     {
@@ -6835,8 +6835,8 @@
     },
     {
       "path": "scripts/check_module_budget.py",
-      "bytes": 9996,
-      "sha256": "bfb8cbaf4915e24439a55fbd8d8edf3de8c4a4450fcba71ecadf89de5232b4c7",
+      "bytes": 10675,
+      "sha256": "08a2b88993edd09d2781e17e92b18ace6349918da971af4b8a03541caf66e59d",
       "mode": "0755"
     },
     {
@@ -7405,8 +7405,8 @@
     },
     {
       "path": "scripts/pec_oracle_impl.py",
-      "bytes": 8994,
-      "sha256": "c7d179ba5ce48cd5f33a37154a2ce7d355b84e52d407748f8e48813319a61030",
+      "bytes": 9365,
+      "sha256": "4ce45e7a0f0175760d779dca6269a739bd894df1ba2fff67073d6ca279142d27",
       "mode": "0644"
     },
     {
@@ -7495,8 +7495,8 @@
     },
     {
       "path": "scripts/propose_runtime_adaptation.py",
-      "bytes": 4624,
-      "sha256": "d3cdf81a937e23eb8aef9f62fc3d0818ccf328eaafe7c798650b57691b0c4f16",
+      "bytes": 5461,
+      "sha256": "debd1d14acab3c528759a4fd9d95dd74123596c79c17a313fbdea8fd0f3710ca",
       "mode": "0755"
     },
     {
@@ -7897,8 +7897,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 23694,
-      "sha256": "0a172c3027f5a23a3833629a3bb3384d5ed7de113f97d14168f1def9b0b92c59",
+      "bytes": 34430,
+      "sha256": "674f55821382701d447a30b8b087037d6ebaefc3732bbebd098442db83c879d0",
       "mode": "0755"
     },
     {
@@ -7969,8 +7969,8 @@
     },
     {
       "path": "scripts/verify_handoff_contract.py",
-      "bytes": 10656,
-      "sha256": "9a5bb43bc4bf06856b0148e656a36cefae363bef24c4be6441ba6321acb01437",
+      "bytes": 11666,
+      "sha256": "f800d307ba61471411b3a8bc7c00acae4222c58e3b8548bc3baef6694198959e",
       "mode": "0644"
     },
     {
@@ -8011,8 +8011,8 @@
     },
     {
       "path": "scripts/verify_production_hard_predicates.py",
-      "bytes": 3309,
-      "sha256": "c7259fbbb626e2fe2c9e0b11c498537a9dabc610bab6ab68f8a19607f972a8da",
+      "bytes": 4891,
+      "sha256": "eed0a8f21a56429646e952b9b9999008619d6d577bba3e5a32556f82a4f1730b",
       "mode": "0755"
     },
     {
@@ -8029,14 +8029,14 @@
     },
     {
       "path": "scripts/verify_source_manifest.py",
-      "bytes": 2369,
-      "sha256": "956fdc72487900ee8428c8a7646474a0d8163ddb93f6e8fa16a7158478d348f3",
+      "bytes": 2745,
+      "sha256": "e38866712ad4de78c16fa1a91cb73b19a7b9c0acb0e99f6a7db97df28e48c3d7",
       "mode": "0755"
     },
     {
       "path": "scripts/verify_standards_control_map.py",
-      "bytes": 6144,
-      "sha256": "7dc811a07850c19ac6b20f9318e30e3c063bee8632cfe9e225709881c1825877",
+      "bytes": 7256,
+      "sha256": "bc3fa70a091368ac32e550b3046a76bbd3829e051028dd384ae229b2ce10687c",
       "mode": "0755"
     },
     {

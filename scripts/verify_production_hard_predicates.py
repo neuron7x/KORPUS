@@ -72,13 +72,44 @@ def build() -> dict[str, Any]:
     }
 
 
+#: What this tree has already proved. External proof is expensive to obtain and trivial to
+#: lose: a gate file is bound to the source digest it was produced against, so any later
+#: commit unbinds it silently. Recording the count makes losing it a failure instead of a
+#: number nobody reads. Raising it is what closing a predicate looks like in the diff.
+FLOOR = ROOT / "config/assurance/production-predicate-floor.json"
+
+
+def _floor() -> int:
+    if not FLOOR.is_file():
+        return 0
+    value = _json(FLOOR).get("production_satisfied", 0)
+    return value if isinstance(value, int) and not isinstance(value, bool) else 0
+
+
 def main() -> int:
     payload = build()
     out = ROOT / "reports/PRODUCTION_HARD_PREDICATES.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0 if payload["software_ready"] == payload["predicates_total"] else 1
+
+    failures: list[str] = []
+    if payload["software_ready"] != payload["predicates_total"]:
+        failures.append(f"software_ready {payload['software_ready']}/{payload['predicates_total']}")
+    floor = _floor()
+    if payload["production_satisfied"] < floor:
+        # Measured 2026-08-29: two predicates were closed against source digest 24ead5ea and
+        # the next commit moved the tree to 040321ed. Both gate files stayed on disk, both
+        # reported gate_source_bound false, externally_satisfied fell to 0 — and this script
+        # still exited 0, because it only ever looked at software readiness.
+        failures.append(
+            f"production_satisfied {payload['production_satisfied']} is below the recorded "
+            f"floor of {floor}: external proof was unbound by a later commit, not withdrawn "
+            "on purpose. Re-run the gate that produced it against this tree."
+        )
+    for failure in failures:
+        print(f"  x {failure}", file=sys.stderr)
+    return 1 if failures else 0
 
 
 if __name__ == "__main__":

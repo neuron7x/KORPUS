@@ -11,6 +11,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,11 @@ def _validator():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def _today() -> str:
+    """Probes age out (rule 14 freshness), so a fixture with a fixed date rots."""
+    return date.today().isoformat()
 
 
 def _catalog() -> dict:
@@ -193,7 +199,7 @@ def _probed_entry() -> dict:
     entry = _valid_entry()
     entry["source_uri"] = "https://zakon.rada.gov.ua/laws/show/548-14/print"
     entry["content_probe"] = {
-        "probed_on": "2026-08-29",
+        "probed_on": _today(),
         "variants": {
             "card": {"uri": "https://zakon.rada.gov.ua/laws/show/548-14", "words": 725},
             "print": {"uri": "https://zakon.rada.gov.ua/laws/show/548-14/print", "words": 66069},
@@ -201,6 +207,9 @@ def _probed_entry() -> dict:
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
         "chosen_words": 66069,
+        # Rule 12 reads the portal's marker; an absent one is not "not invalid".
+        "legal_status": "valid",
+        "legal_status_text": "чинний",
     }
     return entry
 
@@ -460,9 +469,9 @@ def _unreadable_entry() -> dict:
     anchor["extractor_supports_format"] = False
     anchor["unreadable_content_survey"] = {
         "words": 93,
-        "opening": "Зразок Діє в межах",
+        "opening": "Зразок Діє в межах ______ (найменування військової частини)",
         "surveyed_with": "LibreOffice 24.2",
-        "surveyed_on": "2026-08-29",
+        "surveyed_on": _today(),
     }
     entry["content_probe"]["required_attachments"] = [anchor["uri"]]
     return entry
@@ -489,16 +498,16 @@ def test_a_survey_that_names_no_tool_is_refused() -> None:
 
 def test_a_survey_with_no_word_count_is_refused() -> None:
     entry = _unreadable_entry()
-    entry["attachment_anchors"][0]["unreadable_content_survey"]["words"] = 0
+    entry["attachment_anchors"][0]["unreadable_content_survey"]["words"] = 3
     problems = _validator()._entry_problems(entry)
-    assert any("not a positive count" in p for p in problems), problems
+    assert any("below the floor of" in p for p in problems), problems
 
 
 def test_a_survey_with_no_opening_text_is_refused() -> None:
     entry = _unreadable_entry()
-    entry["attachment_anchors"][0]["unreadable_content_survey"]["opening"] = "   "
+    entry["attachment_anchors"][0]["unreadable_content_survey"]["opening"] = "  .  "
     problems = _validator()._entry_problems(entry)
-    assert any("records no opening text" in p for p in problems), problems
+    assert any("has to identify the document" in p for p in problems), problems
 
 
 def test_a_survey_that_is_not_an_object_is_refused() -> None:
@@ -521,3 +530,199 @@ def test_every_unreadable_capture_in_the_catalog_is_surveyed() -> None:
     assert summary["attachments_surveyed"] == (
         summary["attachments_captured"] - summary["attachments_extractor_readable"]
     )
+
+
+# --- rule 14 and the type strictness an adversarial pass on 2026-08-29 required -----------
+# Each of these reproduces a way the gate returned PASS while measuring nothing.
+
+
+def test_deleting_the_evidence_is_refused_by_the_floor() -> None:
+    """The finding that made rule 14 necessary: 18 of 19 probes and 11 of 12 anchors gone,
+    gate PASS, every test green. Each rule measured the quality of evidence that existed and
+    none required any to."""
+    catalog = _catalog()
+    dropped_probe = dropped_anchor = 0
+    for entry in catalog["sources"]:
+        if entry.get("content_probe") and dropped_probe < 18:
+            entry.pop("content_probe")
+            dropped_probe += 1
+        if entry.get("integrity_anchor") and dropped_anchor < 11:
+            entry.pop("integrity_anchor")
+            dropped_anchor += 1
+    assert (dropped_probe, dropped_anchor) == (18, 11)
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("below the recorded floor" in p for p in result["problems"])
+
+
+def test_a_catalog_with_no_declared_floor_is_refused() -> None:
+    catalog = _catalog()
+    catalog.pop("evidence_floor")
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "FAIL"
+    assert any("declares no evidence_floor" in p for p in result["problems"])
+
+
+def test_a_probeable_source_without_a_probe_is_refused() -> None:
+    entry = _probed_entry()
+    entry.pop("content_probe")
+    problems = _validator()._mandatory_evidence_problems(entry)
+    assert any("carries no content_probe" in p for p in problems), problems
+
+
+def test_an_undated_ministry_page_without_an_anchor_is_refused() -> None:
+    entry = _valid_entry()
+    entry["source_uri"] = "https://mod.gov.ua/pro-nas/suhoputni-vijska"
+    problems = _validator()._mandatory_evidence_problems(entry)
+    assert any("carries no integrity_anchor" in p for p in problems), problems
+
+
+def test_dropping_the_richer_variant_no_longer_hides_the_thinner_one() -> None:
+    """Rule 10 compared only declared variants, so deleting `print` made
+    'points at the thinner variant' unreachable — the exact substitution it guards."""
+    entry = _probed_entry()
+    entry["source_uri"] = "https://zakon.rada.gov.ua/laws/show/548-14"
+    probe = entry["content_probe"]
+    probe["variants"].pop("print")
+    probe["chosen_variant"] = "card"
+    probe["chosen_uri"] = "https://zakon.rada.gov.ua/laws/show/548-14"
+    probe["chosen_words"] = 725
+    problems = _validator()._entry_problems(entry)
+    assert any("declares no print variant" in p for p in problems), problems
+
+
+def test_a_float_word_count_is_refused() -> None:
+    """66069.0 == 66069 is True, so the contradiction check passed on a number nobody read."""
+    entry = _probed_entry()
+    entry["content_probe"]["chosen_words"] = 66069.0
+    problems = _validator()._entry_problems(entry)
+    assert any("is not an integer" in p for p in problems), problems
+
+
+def test_a_boolean_word_count_is_refused() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["variants"]["print"]["words"] = True
+    problems = _validator()._entry_problems(entry)
+    assert any("has no word count" in p for p in problems), problems
+
+
+def test_a_stale_probe_is_refused() -> None:
+    """An act repealed tomorrow keeps legal_status: valid forever if nothing ages it out."""
+    entry = _probed_entry()
+    entry["content_probe"]["probed_on"] = "1999-01-01"
+    problems = _validator()._entry_problems(entry)
+    assert any("days old" in p for p in problems), problems
+
+
+def test_a_probe_dated_in_the_future_is_refused() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["probed_on"] = (date.today() + timedelta(days=2)).isoformat()
+    problems = _validator()._entry_problems(entry)
+    assert any("in the future" in p for p in problems), problems
+
+
+@pytest.mark.parametrize("status", ["INVALID", "втратив чинність", "", None])
+def test_an_unrecognised_legal_status_is_refused(status: object) -> None:
+    """Four separate ways past rule 12: it compared for equality with 'invalid'."""
+    entry = _probed_entry()
+    if status is None:
+        entry["content_probe"].pop("legal_status")
+    else:
+        entry["content_probe"]["legal_status"] = status
+    problems = _validator()._entry_problems(entry)
+    assert any("not one of" in p for p in problems), problems
+
+
+def test_a_status_that_contradicts_its_own_text_is_refused() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["legal_status_text"] = "втратив чинність"
+    problems = _validator()._entry_problems(entry)
+    assert any("disagree" in p for p in problems), problems
+
+
+def test_an_unreadable_status_may_not_be_ingestible() -> None:
+    entry = _probed_entry()
+    entry["content_probe"]["legal_status"] = "unknown"
+    problems = _validator()._entry_problems(entry)
+    assert any("nobody established" in p for p in problems), problems
+
+
+def test_a_string_ingestible_flag_is_refused() -> None:
+    """bool("false") is True: the source counted as ingestible and skipped rule 5."""
+    entry = _valid_entry()
+    entry["ingestible"] = "false"
+    problems = _validator()._entry_problems(entry)
+    assert any("must be a boolean" in p for p in problems), problems
+
+
+def test_a_string_second_source_flag_is_refused() -> None:
+    entry = _valid_entry()
+    entry["provenance_status"] = "unverified_mirror"
+    entry["requires_second_source"] = "no"
+    problems = _validator()._entry_problems(entry)
+    assert any("must be a boolean" in p for p in problems), problems
+
+
+def test_an_anchor_on_an_arbitrary_repository_file_is_refused() -> None:
+    """Inside the repository was the whole test; an anchor on this validator's own source
+    passed, proving a digest rather than that anything was captured."""
+    entry = _valid_entry()
+    entry["integrity_anchor"] = {
+        "path": "scripts/validate_doctrine_catalog.py",
+        "sha256": _digest_of("scripts/validate_doctrine_catalog.py"),
+    }
+    problems = _validator()._entry_problems(entry)
+    assert any("is not under" in p for p in problems), problems
+
+
+def test_a_jar_renamed_docx_is_refused(tmp_path: Path) -> None:
+    """Every ZIP starts with PK\\x03\\x04, so the signature alone admitted a .jar."""
+    import zipfile
+
+    fake = ROOT / "config/corpus/attachments/__jar_probe__.docx"
+    with zipfile.ZipFile(fake, "w") as archive:
+        archive.writestr("META-INF/MANIFEST.MF", "Manifest-Version: 1.0\n")
+        archive.writestr("Evil.class", "\xca\xfe\xba\xbe")
+    try:
+        entry = _attached_entry()
+        anchor = entry["attachment_anchors"][0]
+        anchor["path"] = "config/corpus/attachments/__jar_probe__.docx"
+        anchor["sha256"] = _digest_of(anchor["path"])
+        problems = _validator()._entry_problems(entry)
+        assert any("ZIP without word/document.xml" in p for p in problems), problems
+    finally:
+        fake.unlink()
+
+
+def test_a_tiny_html_capture_is_refused() -> None:
+    """.html has no signature to check, so a saved 404 page passed as an annex."""
+    fake = ROOT / "config/corpus/attachments/__tiny_probe__.html"
+    fake.write_text("<html>404</html>", encoding="utf-8")
+    try:
+        entry = _attached_entry()
+        anchor = entry["attachment_anchors"][0]
+        anchor["path"] = "config/corpus/attachments/__tiny_probe__.html"
+        anchor["sha256"] = _digest_of(anchor["path"])
+        anchor["extractor_supports_format"] = True
+        problems = _validator()._entry_problems(entry)
+        assert any("not an annex" in p for p in problems), problems
+    finally:
+        fake.unlink()
+
+
+def test_required_attachments_as_a_string_no_longer_disables_the_rule() -> None:
+    entry = _attached_entry()
+    entry["content_probe"]["required_attachments"] = "https://example.org/a.docx"
+    entry.pop("attachment_anchors")
+    problems = _validator()._entry_problems(entry)
+    assert problems, "a mistyped required_attachments silently switched rule 11 off"
+
+
+def test_a_placeholder_survey_is_refused() -> None:
+    """words: 1, opening: "." satisfied "positive" and "non-empty" and described nothing."""
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0]["unreadable_content_survey"].update(
+        {"words": 1, "opening": ".", "surveyed_with": "."}
+    )
+    problems = _validator()._entry_problems(entry)
+    assert len([p for p in problems if "unreadable_content_survey" in p]) >= 3, problems

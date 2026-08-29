@@ -12,10 +12,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "apps/api/src"), str(ROOT)]
 
-from korpus.application.numeric_contracts import (  # noqa: E402
-    require_positive_number,
-    require_rate,
-)
 from korpus.application.plasticity import (  # noqa: E402
     AdaptationState,
     ObservationWindow,
@@ -26,11 +22,18 @@ from korpus.application.plasticity import (  # noqa: E402
 from korpus.application.plasticity_config import load_plasticity_policy  # noqa: E402
 
 
-def _int_field(payload: dict[str, object], key: str, default: int) -> int:
-    """A JSON field is `object`; int() of one is a type error, not a conversion."""
+def _int_field(payload: dict[str, object], key: str, default: int | None = None) -> int:
+    """A JSON field is `object`; int() of one is a type error, not a conversion.
+
+    `default=None` means required. Giving `sequence` and `samples` a default of 0 made a
+    window with no sequence pass, and the plasticity cooldown is
+    `window.sequence - state.last_change_sequence` — computed against an invented zero.
+    """
+    if default is None and key not in payload:
+        raise ValueError(f"{key} is required and absent")
     value = payload.get(key, default)
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ValueError(f"state.{key} must be an integer")
+        raise ValueError(f"{key} must be an integer, not {value!r}")
     return value
 
 
@@ -42,18 +45,31 @@ def _observation_window(payload: dict[str, object]) -> ObservationWindow:
     rather than the field the operator has to fix.
     """
     return ObservationWindow(
-        sequence=_int_field(payload, "sequence", 0),
-        samples=_int_field(payload, "samples", 0),
-        p95_latency_ms=require_positive_number(
-            payload.get("p95_latency_ms"), label="window.p95_latency_ms"
-        ),
-        error_rate=require_rate(payload.get("error_rate"), label="window.error_rate"),
-        contradiction_rate=require_rate(
-            payload.get("contradiction_rate"), label="window.contradiction_rate"
-        ),
-        overload_rate=require_rate(payload.get("overload_rate"), label="window.overload_rate"),
-        recall_at_20=require_rate(payload.get("recall_at_20"), label="window.recall_at_20"),
+        sequence=_int_field(payload, "sequence"),
+        samples=_int_field(payload, "samples"),
+        p95_latency_ms=_real_field(payload, "p95_latency_ms"),
+        error_rate=_real_field(payload, "error_rate"),
+        contradiction_rate=_real_field(payload, "contradiction_rate"),
+        overload_rate=_real_field(payload, "overload_rate"),
+        recall_at_20=_real_field(payload, "recall_at_20"),
     )
+
+
+def _real_field(payload: dict[str, object], key: str) -> float:
+    """A measurement, not a string that looks like one.
+
+    require_rate and require_positive_number route through bounded_number, which parses
+    numeric strings on purpose at a configuration boundary. A metrics window is not that
+    boundary: `{"error_rate": "0.01"}` is an exporter that lost its types, and accepting it
+    is how a rate nobody measured governs an adaptation. ObservationWindow's own
+    __post_init__ then enforces the ranges.
+    """
+    if key not in payload:
+        raise ValueError(f"window.{key} is required and absent")
+    value = payload[key]
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"window.{key} must be a number, not {value!r}")
+    return float(value)
 
 
 def _object(path: Path) -> dict[str, object]:

@@ -1,0 +1,5 @@
+{
+  "schema": "korpus.production-predicate-floor.v1",
+  "production_satisfied": 0,
+  "note": "Ratchet on external proof. Two predicates (live_postgres_rls, exact_python_3_12_13_environment) were closed on 2026-08-29 against source digest 24ead5ea and unbound by the next commit; the script exited 0 throughout because it only checked software readiness. The floor stays 0 until a gate is re-run against a tree that then stops changing, which is what closing one actually requires."
+}
