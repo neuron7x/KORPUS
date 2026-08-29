@@ -37,6 +37,24 @@ SIGNAL_MAX_AGE_DAYS = 180
 VERDICTS = {"reserved_against_us", "reserved_against_others", "no_restriction", "no_robots"}
 
 
+def host_of(uri: str) -> str:
+    """The host, in one spelling.
+
+    `https://ZAKON.RADA.GOV.UA/x`, `https://zakon.rada.gov.ua./x` and
+    `https://zakon.rada.gov.ua:443/x` are one host to DNS and three strings to a
+    comparison. A rule keyed on the raw netloc is bypassed by choosing a spelling —
+    reported by session 80352ff0 against rule 14 of the catalog validator, and this
+    gate had the same hole: a signal recorded for `example.org` and a source_uri of
+    `https://example.org./a` compared unequal and failed a source that was measured.
+    Port is dropped too: a userinfo@ or :443 spelling is the same site.
+    """
+    netloc = urlsplit(uri).netloc.lower().rstrip(".")
+    netloc = netloc.rsplit("@", 1)[-1]
+    if netloc.startswith("["):                       # IPv6 literal keeps its brackets
+        return netloc.split("]", 1)[0] + "]"
+    return netloc.split(":", 1)[0]
+
+
 def _age_days(stamp: str) -> int | None:
     try:
         return (date.today() - date.fromisoformat(stamp)).days
@@ -58,7 +76,7 @@ def problems(entries: list[dict]) -> list[str]:
             if ingestible:
                 found.append(
                     f"{identifier}: ingestible web source with no content_signal — "
-                    f"nothing read {urlsplit(uri).netloc}/robots.txt, so an express "
+                    f"nothing read {host_of(uri)}/robots.txt, so an express "
                     "reservation of rights would enter the corpus unnoticed"
                 )
             continue
@@ -71,12 +89,12 @@ def problems(entries: list[dict]) -> list[str]:
             found.append(f"{identifier}: unknown content_signal.verdict {verdict!r}")
             continue
         host = str(signal.get("host", ""))
-        if host and host != urlsplit(uri).netloc.lower():
+        if host and host.lower().rstrip(".") != host_of(uri):
             # A signal copied from a neighbouring entry describes the wrong site and
             # would clear a source nobody measured.
             found.append(
                 f"{identifier}: content_signal.host {host!r} is not the source's host "
-                f"{urlsplit(uri).netloc.lower()!r} — this reading is of another site"
+                f"{host_of(uri)!r} — this reading is of another site"
             )
             continue
         age = _age_days(str(signal.get("read_on", "")))
@@ -168,6 +186,23 @@ def selftest() -> int:
             "не-http джерело ігнорується",
             [{"id": "T", "source_uri": "file:///x", "ingestible": True}],
             False,
+        ),
+        # Обхід правила вибором написання хоста — знахідка сесії 80352ff0 проти правила 14
+        # каталогу. Написання, які DNS вважає одним хостом, мусять і тут бути одним;
+        # інакше застережене джерело проходить під іншим рядком того самого сайту.
+        ("трейлінг-крапка в хості", mutate(source_uri="https://example.org./a"), False),
+        ("ВЕЛИКІ літери в хості", mutate(source_uri="https://EXAMPLE.ORG/a"), False),
+        ("явний порт :443", mutate(source_uri="https://example.org:443/a"), False),
+        ("userinfo перед хостом", mutate(source_uri="https://u:p@example.org/a"), False),
+        ("справді інший хост усе ще падає", mutate(source_uri="https://evil.org/a"), True),
+        (
+            "застережений хост із трейлінг-крапкою не тікає",
+            mutate(
+                source_uri="https://example.org./a",
+                verdict="reserved_against_us",
+                against_us=["ai-train=no"],
+            ),
+            True,
         ),
     ]
     bad = 0

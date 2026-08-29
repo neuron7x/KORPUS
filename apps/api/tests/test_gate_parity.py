@@ -2086,3 +2086,34 @@ def test_the_assurance_producer_declares_which_ruler_it_used() -> None:
     assert DIGEST_SCOPE == "tracked_tree", (
         "assemble_assurance uses source_tree_digest; the scope it declares must match it"
     )
+
+
+def test_only_one_definition_of_what_a_source_is() -> None:
+    """source_digest kept its own exclusion list and disagreed with manifest_paths on six
+    release artefacts — CANONICAL_RELEASE_REPORT.json/.md, FULL_SSOT_PACKAGE_RECEIPT.json,
+    PACKAGE_BOUNDARY.md, PACKAGE_BUILD.json and a LINEAGE manifest.
+
+    Worse than a mismatch: the release cycle writes those files, so the digest moved every
+    time a report was regenerated with no change to any code. BOUND was unstable by
+    construction and the release unbound itself, reporting it as a tree that had changed.
+    Adding six names would have fixed the difference; deleting the second definition makes
+    it impossible.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import manifest_paths
+    import source_digest
+
+    tracked = subprocess.run(
+        ["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True
+    ).stdout.split()
+    assert tracked, "git ls-files returned nothing — this test is measuring an empty set"
+    disagreements = [
+        name
+        for name in tracked
+        if source_digest._included(name) != manifest_paths.source_included(Path(name))
+    ]
+    assert not disagreements, (
+        f"two definitions of a source disagree on {len(disagreements)} paths: {disagreements[:6]}"
+    )
+    source = (ROOT / "scripts/source_digest.py").read_text(encoding="utf-8")
+    assert "EXCLUDED_PREFIXES" not in source, "the second exclusion list is back"

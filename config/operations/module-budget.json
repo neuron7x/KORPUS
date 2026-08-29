@@ -4044,9 +4044,9 @@
       "max_nesting": 4
     },
     "scripts/source_digest.py": {
-      "lines": 92,
+      "lines": 114,
       "max_complexity": 10,
-      "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest",
+      "reason": "v0.9.7 source-tree digest scope retained after null attack proved it differs intentionally from evidence-source digest | 2026-08-29 the second definition of what a source is was deleted: source_digest carried its own exclusion list and disagreed with manifest_paths.source_included on six release artefacts, which the release cycle itself rewrites — so the digest moved with no code change and BOUND was unstable by construction.",
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
@@ -4393,7 +4393,7 @@
       "max_nesting": 4
     },
     "scripts/validate_content_signals.py": {
-      "lines": 212,
+      "lines": 230,
       "max_complexity": 17,
       "reason": "registered 2026-08-29",
       "max_function_lines": 70,
