@@ -13,6 +13,8 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 ACT = "https://zakon.rada.gov.ua/laws/show/548-14"
 
@@ -62,3 +64,42 @@ def test_an_absolute_attachment_link_is_left_alone() -> None:
 def test_a_source_on_an_unprobed_host_is_skipped() -> None:
     entry = {"id": "X", "source_uri": "https://mod.gov.ua/pro-nas/suhoputni-vijska"}
     assert _probe_module().probe(entry, timeout=1) is None
+
+
+def test_one_thin_response_cannot_lower_a_variant_score(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The portal is not deterministic, so a single sample is not a measurement.
+
+    On 2026-08-29 the card for z0927-20 returned 736 words in one run and 5583 in another,
+    minutes apart, both HTTP 200. With one sample per variant, the thin reading repointed
+    three sources onto the weaker variant and rewrote the recorded numbers to match — the
+    probe undoing its own earlier, better reading. Scoring by the largest of several
+    readings means a short response can only fail to raise a score, never lower one.
+    """
+    module = _probe_module()
+    full = "<html>" + " ".join(["слово"] * 500) + "<table></table></html>"
+    thin = "<html>сторінка недоступна</html>"
+    responses = {ACT: [thin, full, thin], ACT + "/print": [thin, thin, thin]}
+
+    def fake_fetch(uri: str, timeout: int) -> str:
+        queue = responses[uri]
+        return queue.pop(0) if queue else thin
+
+    monkeypatch.setattr(module, "_fetch", fake_fetch)
+    result = module.probe({"id": "X", "source_uri": ACT}, timeout=1, sample_count=3)
+    assert result is not None
+    assert result["chosen_variant"] == "card", result["word_readings"]
+    assert result["chosen_words"] == 500  # the full reading, not the thin one
+    assert result["word_readings"]["card"] == [2, 2, 500]
+    assert result["samples_per_variant"] == 3
+
+
+def test_a_single_sample_reproduces_the_defect_this_guards(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The negative control: with one sample the thin reading wins and the score collapses."""
+    module = _probe_module()
+    thin = "<html>сторінка недоступна</html>"
+    monkeypatch.setattr(module, "_fetch", lambda uri, timeout: thin)
+    result = module.probe({"id": "X", "source_uri": ACT}, timeout=1, sample_count=1)
+    assert result is not None
+    assert result["chosen_words"] == 2

@@ -903,6 +903,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
         "chosen_words": 66069,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            725,
+            725,
+            725
+          ],
+          "print": [
+            66069,
+            66069,
+            66069
+          ]
+        },
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2372.doc",
           "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2373.doc",
@@ -921,7 +934,14 @@
           "sha256": "1a54e29a8632141effba3f0ef8746296ff7e3d625dec35fe3db4ee27b50cec12",
           "bytes": 30720,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 92,
+            "opening": "Зразок Діє в межах _______________________________________ (найменування гарнізону) ЗАПИСКА ПРО ЗВІЛЬНЕННЯ _____________",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2373.doc",
@@ -929,7 +949,14 @@
           "sha256": "aa722fccc6be1d1366751f352db3ec81668a8da1958bd9ed7cc8bd94e7d25af5",
           "bytes": 30208,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 38,
+            "opening": "Зразок КНИГА ОБЛІКУ ЗВІЛЬНЕНИХ __________________________________________________________________________ (найменування ",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/72/f33093n2375.doc",
@@ -937,7 +964,14 @@
           "sha256": "fb20971126df15a7c70340e127e35d25e399917e383fb4c48144f8b99cfdc00a",
           "bytes": 29184,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 40,
+            "opening": "Зразок КНИГА запису відвідувачів ___________________________________________________________________________ (найменуван",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3116.doc",
@@ -945,7 +979,14 @@
           "sha256": "467da8ced71c7fd5ee04c8f3f49125a9ac3692c20dcdb8e4478efce67a5bea5e",
           "bytes": 35840,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 127,
+            "opening": "Зразок ЛИСТОК НАРЯДІВ ______ взводу ____ роти на ____________ (місяць, рік) Військове звання, прізвище, ініціали Наряд н",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3119.doc",
@@ -953,7 +994,14 @@
           "sha256": "6c9aaed5b7043872b51d4a9df33edcdc4d498f060705a22ac43640fc95155c2e",
           "bytes": 31232,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 43,
+            "opening": "Зразок КНИГА запису хворих ___________________________________________________________________________ (найменування під",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f33093n3121.doc",
@@ -961,7 +1009,14 @@
           "sha256": "6aab76323d0123bd4a4ed7a05894af7588a496c4ee593de625d5731ac5fb3297",
           "bytes": 56320,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 639,
+            "opening": "Зразок ПЕРЕЛІК написів на дверях приміщень, біля входів до будинків та опис їх оформлення I. Перелік приблизних написів ",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         }
       ]
     },
@@ -1083,7 +1138,7 @@
       "authority": "official_ua",
       "access_tier": 0,
       "classification": "public",
-      "source_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
       "source_kind": "primary",
       "provenance_status": "verified",
       "requires_second_source": false,
@@ -1095,9 +1150,11 @@
         "variants": {
           "card": {
             "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
-            "words": 736,
-            "tables": 0,
-            "attachments": []
+            "words": 5525,
+            "tables": 12,
+            "attachments": [
+              "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
+            ]
           },
           "print": {
             "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
@@ -1108,9 +1165,22 @@
             ]
           }
         },
-        "chosen_variant": "print",
-        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20/print",
-        "chosen_words": 4790,
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
+        "chosen_words": 5525,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            5525,
+            5525,
+            5525
+          ],
+          "print": [
+            4790,
+            4790,
+            4790
+          ]
+        },
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/135/f499126n54.docx"
         ],
@@ -1164,6 +1234,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
         "chosen_words": 16881,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            736,
+            736,
+            736
+          ],
+          "print": [
+            16881,
+            16881,
+            16881
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1205,6 +1288,19 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
         "chosen_words": 714,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            714,
+            714,
+            714
+          ],
+          "print": [
+            432,
+            432,
+            432
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1246,6 +1342,19 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
         "chosen_words": 1194,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            1194,
+            1194,
+            1194
+          ],
+          "print": [
+            470,
+            470,
+            470
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1287,6 +1396,19 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
         "chosen_words": 6906,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            6906,
+            6906,
+            6906
+          ],
+          "print": [
+            6207,
+            6207,
+            6207
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1578,7 +1700,7 @@
       "authority": "official_ua",
       "access_tier": 0,
       "classification": "public",
-      "source_uri": "https://zakon.rada.gov.ua/laws/show/549-14/print",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/549-14",
       "source_kind": "primary",
       "provenance_status": "verified",
       "requires_second_source": false,
@@ -1590,8 +1712,8 @@
         "variants": {
           "card": {
             "uri": "https://zakon.rada.gov.ua/laws/show/549-14",
-            "words": 708,
-            "tables": 0,
+            "words": 24143,
+            "tables": 19,
             "attachments": []
           },
           "print": {
@@ -1601,9 +1723,22 @@
             "attachments": []
           }
         },
-        "chosen_variant": "print",
-        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/549-14/print",
-        "chosen_words": 23072,
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/549-14",
+        "chosen_words": 24143,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            24143,
+            24143,
+            24143
+          ],
+          "print": [
+            23072,
+            23072,
+            23072
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1654,6 +1789,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
         "chosen_words": 43725,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            724,
+            724,
+            724
+          ],
+          "print": [
+            43725,
+            43725,
+            43725
+          ]
+        },
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1574.doc",
           "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1577.doc",
@@ -1674,7 +1822,14 @@
           "sha256": "25d4f48baba9af519ef1add0b7b4c18e8d13c5c20f0e9ead270cea74e3685fc9",
           "bytes": 33280,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 194,
+            "opening": "Додаток 6 до Статуту гарнізонної та вартової служб (статті 34, 120, 122) \"ЗАТВЕРДЖУЮ\" Начальник гарнізону (командир війс",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1577.doc",
@@ -1682,7 +1837,14 @@
           "sha256": "5e954fb31046cb84de11aedef010de7af32262334fc5b8172af1034c45c8cb80",
           "bytes": 32256,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 126,
+            "opening": "Додаток 9 до Статуту гарнізонної та вартової служб (стаття 181) РАЗОВЕ ПОСВІДЧЕННЯ НА ПРАВО ПЕРЕВІРКИ ВАРТИ Видане _____",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1578.doc",
@@ -1690,7 +1852,14 @@
           "sha256": "fb2f1ccf54d5f5fdc7de57b9ead51ea0ec0a79b3b12643a2d82adac4ed1aa96a",
           "bytes": 36864,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 214,
+            "opening": "Додаток 10 до Статуту гарнізонної та вартової служб (стаття 110) КНИГА ОБЛІКУ ЗАПАСУ БОЙОВИХ НАБОЇВ ВАРТИ № ________ ___",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1579.doc",
@@ -1698,7 +1867,14 @@
           "sha256": "341968a7adfdb8a43a5454022e5dd51279e761a0422a4cbdcdd4cb2e0cd9481f",
           "bytes": 31744,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 113,
+            "opening": "Додаток 11 до Статуту гарнізонної та вартової служб (стаття 182) ФОРМА ДОПУСКУ ДЛЯ РОЗПЕЧАТУВАННЯ ОБ’ЄКТА Штамп військов",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1581.doc",
@@ -1706,7 +1882,14 @@
           "sha256": "a20d9fc078a25c0767f94ece340da08b25aced1af7564c1a783a3498799ea528",
           "bytes": 35328,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 136,
+            "opening": "Додаток 16 до Статуту гарнізонної та вартової служб (стаття 261) ЖУРНАЛ обліку роботи технічних засобів охорони варти № ",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1770.doc",
@@ -1714,7 +1897,14 @@
           "sha256": "1237c488fca15df1c6988258da6e966015fc05b3ade59948b6abe88ee31e32a1",
           "bytes": 35328,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 215,
+            "opening": "Додаток 7 до Статуту гарнізонної та вартової служб (статті 103, 120-122) \"ЗАТВЕРДЖУЮ\" Начальник гарнізону (командир війс",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/76/f32720n1771.doc",
@@ -1722,7 +1912,14 @@
           "sha256": "b5a1984fa1ef85cdedbccf63112d37e8c74a655dd97c1be8162deebd566946f2",
           "bytes": 42496,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 386,
+            "opening": "Додаток 8 до Статуту гарнізонної та вартової служб (стаття 133) (Перша сторінка постової відомості) ПОСТОВА ВІДОМІСТЬ __",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         },
         {
           "uri": "https://zakon.rada.gov.ua/laws/file/text/89/f32720n1860.doc",
@@ -1730,7 +1927,14 @@
           "sha256": "ee817000a5ba3a0e8905df7d9b8e351cde2222263aeaf896949c5958eab55a96",
           "bytes": 34304,
           "captured_on": "2026-08-29",
-          "extractor_supports_format": false
+          "extractor_supports_format": false,
+          "unreadable_content_survey": {
+            "words": 339,
+            "opening": "Додаток 2 до Статуту гарнізонної та вартової служб (статті 23, 25) ПОРЯДОК ОБЛІКУ ВІЙСЬКОВОСЛУЖБОВЦІВ, ЯКІ ПЕРЕБУВАЮТЬ У",
+            "surveyed_with": "LibreOffice 24.2.7.2 420(Build:2)",
+            "surveyed_on": "2026-08-29",
+            "note": "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений одноразово стороннім конвертером і не є інжестом: вміст залишається поза корпусом, а не поза відомістю."
+          }
         }
       ]
     },
@@ -1770,6 +1974,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
         "chosen_words": 10844,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            704,
+            704,
+            704
+          ],
+          "print": [
+            10844,
+            10844,
+            10844
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1811,6 +2028,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
         "chosen_words": 39509,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            698,
+            698,
+            698
+          ],
+          "print": [
+            39509,
+            39509,
+            39509
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1852,6 +2082,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
         "chosen_words": 5216,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            663,
+            663,
+            663
+          ],
+          "print": [
+            5216,
+            5216,
+            5216
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1893,6 +2136,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
         "chosen_words": 10002,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            664,
+            664,
+            664
+          ],
+          "print": [
+            10002,
+            10002,
+            10002
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1934,6 +2190,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
         "chosen_words": 15175,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            674,
+            674,
+            674
+          ],
+          "print": [
+            15175,
+            15175,
+            15175
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -1975,6 +2244,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
         "chosen_words": 23355,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            718,
+            718,
+            718
+          ],
+          "print": [
+            23355,
+            23355,
+            23355
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -2016,6 +2298,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
         "chosen_words": 24537,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            707,
+            707,
+            707
+          ],
+          "print": [
+            24537,
+            24537,
+            24537
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -2031,7 +2326,7 @@
       "authority": "official_ua",
       "access_tier": 0,
       "classification": "public",
-      "source_uri": "https://zakon.rada.gov.ua/laws/show/2262-12/print",
+      "source_uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
       "source_kind": "primary",
       "provenance_status": "verified",
       "requires_second_source": false,
@@ -2043,8 +2338,8 @@
         "variants": {
           "card": {
             "uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
-            "words": 710,
-            "tables": 0,
+            "words": 22660,
+            "tables": 2,
             "attachments": []
           },
           "print": {
@@ -2054,9 +2349,22 @@
             "attachments": []
           }
         },
-        "chosen_variant": "print",
-        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2262-12/print",
-        "chosen_words": 21198,
+        "chosen_variant": "card",
+        "chosen_uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
+        "chosen_words": 22660,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            22660,
+            22660,
+            22660
+          ],
+          "print": [
+            21198,
+            21198,
+            21198
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -2130,6 +2438,19 @@
         "chosen_variant": "card",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
         "chosen_words": 94916,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            94916,
+            94916,
+            94916
+          ],
+          "print": [
+            93567,
+            93567,
+            93567
+          ]
+        },
         "required_attachments": [
           "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7455.docx",
           "https://zakon.rada.gov.ua/laws/file/text/122/f277457n7459.docx",
@@ -2309,6 +2630,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
         "chosen_words": 7170,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            725,
+            725,
+            725
+          ],
+          "print": [
+            7170,
+            7170,
+            7170
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"
@@ -2350,6 +2684,19 @@
         "chosen_variant": "print",
         "chosen_uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
         "chosen_words": 5281,
+        "samples_per_variant": 3,
+        "word_readings": {
+          "card": [
+            727,
+            727,
+            727
+          ],
+          "print": [
+            5281,
+            5281,
+            5281
+          ]
+        },
         "required_attachments": [],
         "legal_status": "valid",
         "legal_status_text": "чинний"

@@ -37,9 +37,7 @@ from korpus.application.printed_numbers import parse_printed_decimal
         ("12.345.678,90", "12345678.90"),
     ],
 )
-def test_printed_quantities_parse_to_the_number_a_reader_would_say(
-    raw: str, expected: str
-) -> None:
+def test_printed_quantities_parse_to_the_number_a_reader_would_say(raw: str, expected: str) -> None:
     """With both separators present the reading is unambiguous: the last one is decimal."""
     assert parse_printed_decimal(raw) == Decimal(expected)
 
@@ -85,8 +83,7 @@ def test_a_grouping_that_is_not_three_digits_is_refused(raw: str) -> None:
     assert parse_printed_decimal(raw) is None
 
 
-def test_a_leading_group_longer_than_three_digits_is_refused_when_grouping(
-) -> None:
+def test_a_leading_group_longer_than_three_digits_is_refused_when_grouping() -> None:
     """The first group may be one to three digits; beyond that it is not grouping."""
     assert parse_printed_decimal("1234.567.890") is None
     assert parse_printed_decimal("123.456.789") == Decimal("123456789")

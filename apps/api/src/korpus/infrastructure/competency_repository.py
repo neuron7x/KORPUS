@@ -95,49 +95,69 @@ class SqlCompetencyRepository:
         with self.engine.connect() as connection:
             if connection.execute(select(competency_frameworks).where(*key)).first() is None:
                 return None
-            roles = connection.execute(
-                select(operational_roles)
-                .where(
-                    operational_roles.c.framework_id == framework_id,
-                    operational_roles.c.framework_revision == revision,
+            roles = (
+                connection.execute(
+                    select(operational_roles)
+                    .where(
+                        operational_roles.c.framework_id == framework_id,
+                        operational_roles.c.framework_revision == revision,
+                    )
+                    .order_by(operational_roles.c.id)
                 )
-                .order_by(operational_roles.c.id)
-            ).mappings().all()
-            tasks = connection.execute(
-                select(operational_tasks)
-                .where(
-                    operational_tasks.c.framework_id == framework_id,
-                    operational_tasks.c.framework_revision == revision,
+                .mappings()
+                .all()
+            )
+            tasks = (
+                connection.execute(
+                    select(operational_tasks)
+                    .where(
+                        operational_tasks.c.framework_id == framework_id,
+                        operational_tasks.c.framework_revision == revision,
+                    )
+                    .order_by(operational_tasks.c.id)
                 )
-                .order_by(operational_tasks.c.id)
-            ).mappings().all()
-            competencies = connection.execute(
-                select(operational_competencies)
-                .where(
-                    operational_competencies.c.framework_id == framework_id,
-                    operational_competencies.c.framework_revision == revision,
+                .mappings()
+                .all()
+            )
+            competencies = (
+                connection.execute(
+                    select(operational_competencies)
+                    .where(
+                        operational_competencies.c.framework_id == framework_id,
+                        operational_competencies.c.framework_revision == revision,
+                    )
+                    .order_by(operational_competencies.c.id)
                 )
-                .order_by(operational_competencies.c.id)
-            ).mappings().all()
-            role_edges = connection.execute(
-                select(operational_role_tasks)
-                .where(
-                    operational_role_tasks.c.framework_id == framework_id,
-                    operational_role_tasks.c.framework_revision == revision,
+                .mappings()
+                .all()
+            )
+            role_edges = (
+                connection.execute(
+                    select(operational_role_tasks)
+                    .where(
+                        operational_role_tasks.c.framework_id == framework_id,
+                        operational_role_tasks.c.framework_revision == revision,
+                    )
+                    .order_by(operational_role_tasks.c.role_id, operational_role_tasks.c.task_id)
                 )
-                .order_by(operational_role_tasks.c.role_id, operational_role_tasks.c.task_id)
-            ).mappings().all()
-            task_edges = connection.execute(
-                select(operational_task_competencies)
-                .where(
-                    operational_task_competencies.c.framework_id == framework_id,
-                    operational_task_competencies.c.framework_revision == revision,
+                .mappings()
+                .all()
+            )
+            task_edges = (
+                connection.execute(
+                    select(operational_task_competencies)
+                    .where(
+                        operational_task_competencies.c.framework_id == framework_id,
+                        operational_task_competencies.c.framework_revision == revision,
+                    )
+                    .order_by(
+                        operational_task_competencies.c.task_id,
+                        operational_task_competencies.c.competency_id,
+                    )
                 )
-                .order_by(
-                    operational_task_competencies.c.task_id,
-                    operational_task_competencies.c.competency_id,
-                )
-            ).mappings().all()
+                .mappings()
+                .all()
+            )
 
         tasks_by_role: dict[str, set[str]] = defaultdict(set)
         for row in role_edges:

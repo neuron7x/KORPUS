@@ -124,9 +124,7 @@ def test_a_transition_from_a_state_the_version_is_no_longer_in_is_refused(
         )
 
 
-def _advance_to_content_reviewed(
-    repository: SqlRepository, actor: Identity, version_id
-) -> None:
+def _advance_to_content_reviewed(repository: SqlRepository, actor: Identity, version_id) -> None:
     repository.transition_version(
         actor, version_id, ReviewState.QUARANTINED, ReviewState.METADATA_REVIEWED, "metadata"
     )
@@ -286,9 +284,7 @@ def test_an_approved_version_is_rescinded_once_and_not_twice(
         access_tier=AccessTier.RESTRICTED,
     )
 
-    rescinded = repository.rescind_version(
-        curator, ingested.version.id, note="withdrawn by issuer"
-    )
+    rescinded = repository.rescind_version(curator, ingested.version.id, note="withdrawn by issuer")
     assert rescinded.rescinded_at is not None
     assert rescinded.review_state is ReviewState.APPROVED, (
         "rescission records an authority's act; it is not a review verdict"

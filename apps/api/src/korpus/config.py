@@ -31,7 +31,6 @@ def _read_optional_secret_file(path: Path | None, fallback: str | None) -> str |
 from korpus.config_namespace import OPERATIONAL_VARIABLES
 
 
-
 def unknown_settings_variables(environ: Mapping[str, str]) -> list[str]:
     """`KORPUS_*` names this system does not recognise.
 
@@ -50,9 +49,7 @@ def unknown_settings_variables(environ: Mapping[str, str]) -> list[str]:
     return sorted(
         name
         for name in environ
-        if name.startswith("KORPUS_")
-        and name not in known
-        and name not in OPERATIONAL_VARIABLES
+        if name.startswith("KORPUS_") and name not in known and name not in OPERATIONAL_VARIABLES
     )
 
 
@@ -256,6 +253,7 @@ class Settings(BaseSettings):
     ocr_languages: str = "ukr+eng"
     cors_origins: str = "http://127.0.0.1:3000,http://localhost:3000"
     trusted_hosts: str = "localhost,127.0.0.1,testserver"
+
     @field_validator("environment")
     @classmethod
     def validate_environment(cls, value: str) -> str:
@@ -345,9 +343,7 @@ class Settings(BaseSettings):
             AccessTier.parse(value)
         except (KeyError, ValueError) as error:
             permitted = ", ".join(tier.label() for tier in AccessTier)
-            raise ValueError(
-                f"model_egress_max_tier must be one of {permitted}"
-            ) from error
+            raise ValueError(f"model_egress_max_tier must be one of {permitted}") from error
         return value
 
     @model_validator(mode="after")
@@ -378,42 +374,53 @@ class Settings(BaseSettings):
     @property
     def resolved_oidc_client_secret(self) -> str | None:
         return _read_optional_secret_file(self.oidc_client_secret_file, self.oidc_client_secret)
+
     @property
     def resolved_browser_session_key(self) -> str | None:
         return _read_optional_secret_file(self.browser_session_key_file, self.browser_session_key)
+
     @property
     def resolved_billing_webhook_secret(self) -> str | None:
         return _read_optional_secret_file(
             self.billing_webhook_secret_file, self.billing_webhook_secret or None
         )
+
     @property
     def resolved_liqpay_private_key(self) -> str | None:
         return _read_optional_secret_file(
             self.liqpay_private_key_file, self.liqpay_private_key or None
         )
+
     @property
     def billing_plan_corpus_set(self) -> frozenset[str]:
         return frozenset(
             part.strip() for part in self.billing_plan_corpora.split(",") if part.strip()
         )
+
     @property
     def free_corpus_set(self) -> frozenset[str]:
         return frozenset(part.strip() for part in self.free_corpora.split(",") if part.strip())
+
     @property
     def oidc_scope_list(self) -> list[str]:
         scopes = [part.strip() for part in self.oidc_scopes.split() if part.strip()]
         if "openid" not in scopes:
             scopes.insert(0, "openid")
         return scopes
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [part.strip() for part in self.cors_origins.split(",") if part.strip()]
+
     @property
     def oidc_algorithm_list(self) -> list[str]:
         return [part.strip() for part in self.oidc_algorithms.split(",") if part.strip()]
+
     @property
     def trusted_host_list(self) -> list[str]:
         return [part.strip() for part in self.trusted_hosts.split(",") if part.strip()]
+
+
 @lru_cache
 def get_settings() -> Settings:
     return Settings()

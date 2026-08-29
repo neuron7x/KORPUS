@@ -104,7 +104,9 @@ def test_database_state_is_resume_checkpoint_and_stale_writes_are_discarded(
     assert result.complete is False
     assert provider.inputs == [["alpha", "beta"]]
     assert governance.calls == [frozenset({"public"})]
-    assert any("s.text_hash = CAST(:text_hash AS varchar(64))" in sql for sql in connection.statements)
+    assert any(
+        "s.text_hash = CAST(:text_hash AS varchar(64))" in sql for sql in connection.statements
+    )
 
 
 def test_empty_selection_is_complete_without_provider_call(monkeypatch, identity) -> None:

@@ -488,6 +488,11 @@ def _cut_point(window: str, minimum: int) -> int:
     return len(window)
 
 
+def _page_key(value: object) -> int | None:
+    """A span's page number as the page map keys it, or None for an unpaged span."""
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
 def make_spans(
     pages: list[ExtractedPage],
     max_chars: int = 1400,
@@ -552,8 +557,11 @@ def make_spans(
     if any(len(str(span["text"])) > max_chars for span in output):  # pragma: no cover
         raise AssertionError("chunking invariant violated")
     by_page = {page.page: page.text for page in pages}
+    # The page key is `object` out of the span dict; narrowing it here rather than ignoring
+    # the index error keeps the check honest after a formatter moves the comment off the
+    # line it applied to — which is exactly how this one stopped covering anything.
     if any(  # pragma: no cover - see the invariant above
-        str(span["text"]) not in by_page[span["page"]] for span in output  # type: ignore[index]
+        str(span["text"]) not in by_page.get(_page_key(span["page"]), "") for span in output
     ):
         raise AssertionError("span is not a substring of its page")
     return output

@@ -713,13 +713,13 @@ def test_a_yearly_plan_advances_the_period_by_a_year(tmp_path: Path) -> None:
     assert _period_end(start, BillingInterval.MONTHLY) == datetime(2026, 4, 15, 12, 0, tzinfo=UTC)
 
     # A day that does not exist in the target month clamps rather than overflowing.
-    assert _period_end(
-        datetime(2026, 1, 31, tzinfo=UTC), BillingInterval.MONTHLY
-    ) == datetime(2026, 2, 28, tzinfo=UTC)
-    assert _period_end(
-        datetime(2028, 2, 29, tzinfo=UTC), BillingInterval.YEARLY
-    ) == datetime(2029, 2, 28, tzinfo=UTC)
+    assert _period_end(datetime(2026, 1, 31, tzinfo=UTC), BillingInterval.MONTHLY) == datetime(
+        2026, 2, 28, tzinfo=UTC
+    )
+    assert _period_end(datetime(2028, 2, 29, tzinfo=UTC), BillingInterval.YEARLY) == datetime(
+        2029, 2, 28, tzinfo=UTC
+    )
     # December rolls the year over rather than producing month 13.
-    assert _period_end(
-        datetime(2026, 12, 31, tzinfo=UTC), BillingInterval.MONTHLY
-    ) == datetime(2027, 1, 31, tzinfo=UTC)
+    assert _period_end(datetime(2026, 12, 31, tzinfo=UTC), BillingInterval.MONTHLY) == datetime(
+        2027, 1, 31, tzinfo=UTC
+    )

@@ -39,8 +39,16 @@ so far that returns `invalid`. Rule 12 refuses to let a repealed act stay ingest
 soldier asking what he is entitled to must not be answered out of a law that no longer
 applies.
 
+Each variant is fetched more than once and scored by its largest reading. The portal is not
+deterministic: on 2026-08-29 the card for z0927-20 returned 736 words in one run and 5583 in
+another, minutes apart, both HTTP 200. A single sample let one thin response repoint a
+source onto the weaker variant and rewrite the recorded measurement to match — the probe
+undoing its own earlier, better reading. Taking the maximum over samples means a short
+response can only fail to raise the score, never lower it.
+
     probe_source_content.py            # report only
     probe_source_content.py --write    # record, repoint source_uri, capture attachments
+    probe_source_content.py --samples 5
 """
 
 from __future__ import annotations
@@ -49,8 +57,10 @@ import argparse
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import date
 from pathlib import Path
 from typing import TypedDict
@@ -79,13 +89,22 @@ class Measurement(TypedDict):
     attachments: list[str]
 
 
-class Anchor(TypedDict):
+class Survey(TypedDict):
+    words: int
+    opening: str
+    surveyed_with: str
+    surveyed_on: str
+    note: str
+
+
+class Anchor(TypedDict, total=False):
     uri: str
     path: str
     sha256: str
     bytes: int
     captured_on: str
     extractor_supports_format: bool
+    unreadable_content_survey: Survey
 
 
 class Probe(TypedDict):
@@ -94,6 +113,8 @@ class Probe(TypedDict):
     chosen_variant: str
     chosen_uri: str
     chosen_words: int
+    samples_per_variant: int
+    word_readings: dict[str, list[int]]
     required_attachments: list[str]
     legal_status: str
     legal_status_text: str
@@ -109,17 +130,70 @@ def _capture_attachments(identifier: str, probe: Probe, timeout: int) -> list[An
         payload = _fetch_bytes(uri, probe["chosen_uri"], timeout)
         target.write_bytes(payload)
         target.chmod(0o644)
-        anchors.append(
-            {
-                "uri": uri,
-                "path": str(target.relative_to(ROOT)),
-                "sha256": hashlib.sha256(payload).hexdigest(),
-                "bytes": len(payload),
-                "captured_on": probe["probed_on"],
-                "extractor_supports_format": target.suffix.lower() in SUPPORTED_SUFFIXES,
-            }
-        )
+        readable = target.suffix.lower() in SUPPORTED_SUFFIXES
+        anchor: Anchor = {
+            "uri": uri,
+            "path": str(target.relative_to(ROOT)),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "bytes": len(payload),
+            "captured_on": probe["probed_on"],
+            "extractor_supports_format": readable,
+        }
+        if not readable:
+            survey = _survey(target, probe["probed_on"])
+            if survey is not None:
+                anchor["unreadable_content_survey"] = survey
+        anchors.append(anchor)
     return anchors
+
+
+def _survey(target: Path, probed_on: str) -> Survey | None:
+    """Say what an unreadable capture holds, without pretending it was ingested.
+
+    Fourteen of the captures are OLE2 .doc — forms and specimen registers annexed to the
+    statutes. The extractor does not accept the format and should not grow a parser for it:
+    that is a new supply-chain dependency for 2716 words of blank forms. Rule 13 asks for a
+    survey instead, so the material sits outside the corpus rather than outside anyone's
+    knowledge. LibreOffice does the reading; if it is absent the anchor carries no survey
+    and rule 13 fails, which is the correct outcome — a missing survey is a missing fact.
+    """
+    if shutil.which("soffice") is None:
+        return None
+    with tempfile.TemporaryDirectory() as workdir:
+        converted = subprocess.run(
+            [
+                "soffice",
+                "--headless",
+                "--convert-to",
+                "txt:Text (encoded):UTF8",
+                "--outdir",
+                workdir,
+                str(target),
+            ],
+            capture_output=True,
+            check=False,
+            timeout=180,
+        )
+        if converted.returncode != 0:
+            return None
+        produced = Path(workdir) / f"{target.stem}.txt"
+        if not produced.is_file():
+            return None
+        text = re.sub(r"\s+", " ", produced.read_text(encoding="utf-8").lstrip("\ufeff")).strip()
+    version = subprocess.run(
+        ["soffice", "--version"], capture_output=True, text=True, check=False
+    ).stdout.strip()
+    return {
+        "words": len(text.split()),
+        "opening": text[:120],
+        "surveyed_with": version or "LibreOffice",
+        "surveyed_on": probed_on,
+        "note": (
+            "Формат, який korpus.infrastructure.extraction не приймає. Опис зроблений "
+            "одноразово стороннім конвертером і не є інжестом: вміст залишається поза "
+            "корпусом, а не поза відомістю."
+        ),
+    }
 
 
 def _fetch_bytes(uri: str, referer: str, timeout: int) -> bytes:
@@ -197,22 +271,33 @@ def _variants(uri: str) -> dict[str, str]:
     return {"card": base, "print": base + "/print"}
 
 
-def probe(entry: dict[str, object], timeout: int) -> Probe | None:
+def probe(entry: dict[str, object], timeout: int, sample_count: int = 3) -> Probe | None:
     uri = str(entry.get("source_uri", ""))
     if not any(host in uri for host in PROBED_HOSTS):
         return None
 
     variants = _variants(uri)
-    pages = {name: _fetch(variant, timeout) for name, variant in variants.items()}
-    measured = {name: _measure(pages[name], variants[name]) for name in variants}
+    samples = {
+        name: [_measure(_fetch(variant, timeout), variant) for _ in range(sample_count)]
+        for name, variant in variants.items()
+    }
+    measured = {
+        name: max(readings, key=lambda reading: reading["words"])
+        for name, readings in samples.items()
+    }
     richest = max(measured, key=lambda name: measured[name]["words"])
-    status, status_text = _legal_status(pages["card"])
+    status, status_text = _legal_status(_fetch(variants["card"], timeout))
     return {
         "probed_on": date.today().isoformat(),
         "variants": measured,
         "chosen_variant": richest,
         "chosen_uri": measured[richest]["uri"],
         "chosen_words": measured[richest]["words"],
+        "samples_per_variant": sample_count,
+        "word_readings": {
+            name: sorted(reading["words"] for reading in readings)
+            for name, readings in samples.items()
+        },
         "required_attachments": measured[richest]["attachments"],
         "legal_status": status,
         "legal_status_text": status_text,
@@ -231,6 +316,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--write", action="store_true", help="record results in the catalog")
     parser.add_argument("--timeout", type=int, default=60)
+    parser.add_argument(
+        "--samples",
+        type=int,
+        default=3,
+        help="fetches per variant; the largest reading scores it (the portal varies)",
+    )
     arguments = parser.parse_args()
 
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
@@ -238,7 +329,7 @@ def main() -> int:
     probed = 0
 
     for entry in catalog["sources"]:
-        result = probe(entry, arguments.timeout)
+        result = probe(entry, arguments.timeout, arguments.samples)
         if result is None:
             continue
         probed += 1

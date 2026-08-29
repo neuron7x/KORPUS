@@ -28,8 +28,12 @@ from typing import Any
 from korpus.security.url_policy import is_https_origin, is_https_url
 from korpus.security.destination_predicates import is_external_https_url
 from korpus.controlled_requirement_core import (
-    API_ONLY, WORKER_ONLY, ControlledRequirement, browser_settings_present,
-    file_present, verified_database_transport,
+    API_ONLY,
+    WORKER_ONLY,
+    ControlledRequirement,
+    browser_settings_present,
+    file_present,
+    verified_database_transport,
 )
 
 CONTROLLED_ENVIRONMENTS = frozenset({"production", "controlled", "isolated"})
@@ -77,8 +81,9 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "browser_session_key",
-        lambda s: bool(s.resolved_browser_session_key)
-        and len(s.resolved_browser_session_key) >= 32,
+        lambda s: (
+            bool(s.resolved_browser_session_key) and len(s.resolved_browser_session_key) >= 32
+        ),
         "controlled browser sessions require a strong session key",
         roles=API_ONLY,
     ),
@@ -143,8 +148,10 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "audit_key",
-        lambda s: len(s.resolved_audit_hmac_key) >= 32
-        and not s.resolved_audit_hmac_key.startswith("replace-"),
+        lambda s: (
+            len(s.resolved_audit_hmac_key) >= 32
+            and not s.resolved_audit_hmac_key.startswith("replace-")
+        ),
         "production audit key is missing or weak",
     ),
     ControlledRequirement(
@@ -160,14 +167,18 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "remote_audit_anchor",
-        lambda s: (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))
-        or (s.audit_anchor_mode == "gcs" and bool(s.gcs_audit_bucket)),
+        lambda s: (
+            (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))
+            or (s.audit_anchor_mode == "gcs" and bool(s.gcs_audit_bucket))
+        ),
         "controlled environments require a remote HTTPS audit anchor or GCS audit anchor",
     ),
     ControlledRequirement(
         "audit_anchor_authentication",
-        lambda s: (s.audit_anchor_mode == "http" and bool(s.resolved_audit_anchor_token))
-        or s.audit_anchor_mode == "gcs",
+        lambda s: (
+            (s.audit_anchor_mode == "http" and bool(s.resolved_audit_anchor_token))
+            or s.audit_anchor_mode == "gcs"
+        ),
         "controlled environments require audit anchor authentication",
     ),
     ControlledRequirement(
@@ -201,14 +212,18 @@ CONTROLLED_REQUIREMENTS: tuple[ControlledRequirement, ...] = (
     ),
     ControlledRequirement(
         "object_governance_retention",
-        lambda s: (s.object_store_mode == "s3" and s.s3_governance_retention_days >= 1)
-        or (s.object_store_mode == "gcs" and s.gcs_retention_seconds >= 1),
+        lambda s: (
+            (s.object_store_mode == "s3" and s.s3_governance_retention_days >= 1)
+            or (s.object_store_mode == "gcs" and s.gcs_retention_seconds >= 1)
+        ),
         "controlled object storage requires governance retention",
     ),
     ControlledRequirement(
         "gcs_quarantine_separation",
-        lambda s: s.object_store_mode != "gcs"
-        or (bool(s.gcs_quarantine_bucket) and s.gcs_quarantine_bucket != s.gcs_bucket),
+        lambda s: (
+            s.object_store_mode != "gcs"
+            or (bool(s.gcs_quarantine_bucket) and s.gcs_quarantine_bucket != s.gcs_bucket)
+        ),
         "controlled GCS deployments require a separate quarantine bucket",
     ),
     ControlledRequirement(

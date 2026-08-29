@@ -42,9 +42,7 @@ REQUIRED_SERVICES = frozenset(
 # a reviewer nothing about which version moved.
 EXACT_TAG = re.compile(r"^[^:@\s]+:[^:@\s]+(?:@sha256:[0-9a-f]{64})?$")
 DIGEST_PINNED = re.compile(r"@sha256:[0-9a-f]{64}$")
-ALLOWED_POSTGRES_CAPABILITIES = frozenset(
-    {"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"}
-)
+ALLOWED_POSTGRES_CAPABILITIES = frozenset({"CHOWN", "DAC_OVERRIDE", "FOWNER", "SETGID", "SETUID"})
 WORKER_COMMAND = ["python", "-m", "korpus.cli", "worker-loop", "--idle-seconds", "1"]
 
 
@@ -92,11 +90,7 @@ class InfrastructureContext:
 
     def ci_block(self, job: str) -> str:
         return next(
-            (
-                block
-                for block in re.split(r"\n(?=\S)", self.ci_text)
-                if block.startswith(f"{job}:")
-            ),
+            (block for block in re.split(r"\n(?=\S)", self.ci_text) if block.startswith(f"{job}:")),
             "",
         )
 
@@ -188,34 +182,39 @@ def _service_requirements() -> list[Requirement]:
                     f"compose.{name}.no_new_privileges",
                     "docker-compose",
                     f"{name} sets no-new-privileges",
-                    lambda c, n=name: "no-new-privileges:true"
-                    in (c.service(n).get("security_opt", []) or []),
+                    lambda c, n=name: (
+                        "no-new-privileges:true" in (c.service(n).get("security_opt", []) or [])
+                    ),
                     "without it a setuid binary inside the image escalates",
                 ),
                 _requirement(
                     f"compose.{name}.init",
                     "docker-compose",
                     f"{name} runs under an init process unless it is a one-shot",
-                    lambda c, n=name: c.service(n).get("restart") == "no"
-                    or bool(c.service(n).get("init")),
+                    lambda c, n=name: (
+                        c.service(n).get("restart") == "no" or bool(c.service(n).get("init"))
+                    ),
                     "no init means zombie processes and signals that never arrive",
                 ),
                 _requirement(
                     f"compose.{name}.resource_ceiling",
                     "docker-compose",
                     f"{name} declares memory and CPU ceilings",
-                    lambda c, n=name: bool(c.service(n).get("mem_limit"))
-                    and bool(c.service(n).get("cpus")),
+                    lambda c, n=name: (
+                        bool(c.service(n).get("mem_limit")) and bool(c.service(n).get("cpus"))
+                    ),
                     "one unbounded service takes the host down with it",
                 ),
                 _requirement(
                     f"compose.{name}.exact_image_tag",
                     "docker-compose",
                     f"{name} pins an exact image tag",
-                    lambda c, n=name: not c.service(n).get("image")
-                    or (
-                        bool(EXACT_TAG.fullmatch(str(c.service(n)["image"])))
-                        and not str(c.service(n)["image"]).endswith(":latest")
+                    lambda c, n=name: (
+                        not c.service(n).get("image")
+                        or (
+                            bool(EXACT_TAG.fullmatch(str(c.service(n)["image"])))
+                            and not str(c.service(n)["image"]).endswith(":latest")
+                        )
                     ),
                     "latest is whatever the registry served that morning",
                 ),
@@ -223,8 +222,10 @@ def _service_requirements() -> list[Requirement]:
                     f"compose.{name}.digest_pinned",
                     "docker-compose",
                     f"{name} pins its image by digest",
-                    lambda c, n=name: not c.service(n).get("image")
-                    or bool(DIGEST_PINNED.search(str(c.service(n)["image"]))),
+                    lambda c, n=name: (
+                        not c.service(n).get("image")
+                        or bool(DIGEST_PINNED.search(str(c.service(n)["image"])))
+                    ),
                     "a tag is a name the registry may repoint; a digest is the bytes. "
                     "SUP-001, and the reason a version number invented on 2026-08-05 "
                     "reached a pipeline before anything noticed",
@@ -235,11 +236,13 @@ def _service_requirements() -> list[Requirement]:
                     f"{name} publishes no host ports"
                     if name != "web"
                     else "web publishes only on loopback",
-                    lambda c, n=name: (not c.service(n).get("ports"))
-                    if n != "web"
-                    else all(
-                        str(port).startswith("127.0.0.1:")
-                        for port in (c.service(n).get("ports", []) or [])
+                    lambda c, n=name: (
+                        (not c.service(n).get("ports"))
+                        if n != "web"
+                        else all(
+                            str(port).startswith("127.0.0.1:")
+                            for port in (c.service(n).get("ports", []) or [])
+                        )
                     ),
                     "a published port is reachable from wherever the host is",
                 ),
@@ -255,8 +258,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.api.schema_mode",
         "docker-compose",
         "the API runs migration-managed schema",
-        lambda c: str(c.environment("api").get("KORPUS_SCHEMA_MODE", "")).lower()
-        == "migrations",
+        lambda c: str(c.environment("api").get("KORPUS_SCHEMA_MODE", "")).lower() == "migrations",
     ),
     _requirement(
         "compose.api.object_store_mode",
@@ -268,15 +270,16 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.api.s3_path_style",
         "docker-compose",
         "the API addresses S3 by path style",
-        lambda c: str(c.environment("api").get("KORPUS_S3_FORCE_PATH_STYLE", "")).lower()
-        == "true",
+        lambda c: str(c.environment("api").get("KORPUS_S3_FORCE_PATH_STYLE", "")).lower() == "true",
     ),
     _requirement(
         "compose.api.postgres_url",
         "docker-compose",
         "the API connects through the psycopg PostgreSQL driver",
-        lambda c: "postgresql+psycopg"
-        in str(c.environment("api").get("KORPUS_DATABASE_URL_TEMPLATE", "")),
+        lambda c: (
+            "postgresql+psycopg"
+            in str(c.environment("api").get("KORPUS_DATABASE_URL_TEMPLATE", ""))
+        ),
     ),
     *[
         _requirement(
@@ -298,22 +301,23 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.api.ingestion_mode",
         "docker-compose",
         "the API uses durable asynchronous ingestion",
-        lambda c: str(c.environment("api").get("KORPUS_INGESTION_MODE", "")).lower()
-        == "durable_async",
+        lambda c: (
+            str(c.environment("api").get("KORPUS_INGESTION_MODE", "")).lower() == "durable_async"
+        ),
     ),
     _requirement(
         "compose.api.malware_scan",
         "docker-compose",
         "the API scans uploads through clamd",
-        lambda c: str(c.environment("api").get("KORPUS_MALWARE_SCAN_MODE", "")).lower()
-        == "clamd",
+        lambda c: str(c.environment("api").get("KORPUS_MALWARE_SCAN_MODE", "")).lower() == "clamd",
     ),
     _requirement(
         "compose.api.parser_sandbox",
         "docker-compose",
         "the API isolates the parser in its own process",
-        lambda c: str(c.environment("api").get("KORPUS_PARSER_SANDBOX_ENABLED", "")).lower()
-        == "true",
+        lambda c: (
+            str(c.environment("api").get("KORPUS_PARSER_SANDBOX_ENABLED", "")).lower() == "true"
+        ),
         "the parser reads bytes chosen by whoever uploaded them",
     ),
     _requirement(
@@ -349,8 +353,9 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.worker.ingestion_mode",
         "docker-compose",
         "the worker runs in durable asynchronous mode",
-        lambda c: str(c.environment("worker").get("KORPUS_INGESTION_MODE", "")).lower()
-        == "durable_async",
+        lambda c: (
+            str(c.environment("worker").get("KORPUS_INGESTION_MODE", "")).lower() == "durable_async"
+        ),
     ),
     _requirement(
         "compose.worker.network_isolation",
@@ -409,11 +414,13 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "minio.policy.no_unexpected_prefix",
         "minio-policy",
         "the application policy grants no object prefix beyond objects and quarantine",
-        lambda c: not any(
-            resource.endswith("/*")
-            and resource
-            not in {"arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"}
-            for resource in c.minio_resources()
+        lambda c: (
+            not any(
+                resource.endswith("/*")
+                and resource
+                not in {"arn:aws:s3:::korpus/objects/*", "arn:aws:s3:::korpus/quarantine/*"}
+                for resource in c.minio_resources()
+            )
         ),
     ),
     # --- database ---------------------------------------------------------------
@@ -421,8 +428,10 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.postgres.capabilities",
         "docker-compose",
         "postgres adds no Linux capability beyond the documented set",
-        lambda c: not (
-            set(c.service("postgres").get("cap_add", []) or []) - ALLOWED_POSTGRES_CAPABILITIES
+        lambda c: (
+            not (
+                set(c.service("postgres").get("cap_add", []) or []) - ALLOWED_POSTGRES_CAPABILITIES
+            )
         ),
     ),
     # --- networks ---------------------------------------------------------------
@@ -453,9 +462,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "compose.web.no_data_plane",
         "docker-compose",
         "web touches neither the data plane nor egress",
-        lambda c: not (
-            {"backend", "egress"} & set(c.service("web").get("networks", []) or [])
-        ),
+        lambda c: not ({"backend", "egress"} & set(c.service("web").get("networks", []) or [])),
         "a static server with a route to postgres or the internet is more surface than it needs",
     ),
     *[
@@ -463,8 +470,9 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             f"compose.network.{network}.internal",
             "docker-compose",
             f"the {network} network is internal",
-            lambda c, n=network: (c.compose.get("networks", {}) or {}).get(n, {}).get("internal")
-            is True,
+            lambda c, n=network: (
+                (c.compose.get("networks", {}) or {}).get(n, {}).get("internal") is True
+            ),
             "an external bridge exposes every service on it to the host network",
         )
         for network in ("edge", "backend")
@@ -551,7 +559,10 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "packaging.from_committed_tree",
         "packaging",
         "the release archive originates from the committed Git tree",
-        lambda c: 'git archive --format=tar "$source_commit"' in c.package_text and 'source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"' in c.package_text,
+        lambda c: (
+            'git archive --format=tar "$source_commit"' in c.package_text
+            and 'source_commit="${KORPUS_PACKAGE_SOURCE_COMMIT:-$current_head}"' in c.package_text
+        ),
         "packaging a working directory ships whatever happened to be lying in it",
     ),
     _requirement(
@@ -572,8 +583,10 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
             f"backup.{script}.encryption_key_required",
             "backup",
             f"{script}.sh requires the backup encryption key",
-            lambda c, s=script: "KORPUS_BACKUP_ENCRYPTION_KEY_FILE"
-            in (c.backup_text if s == "backup_postgres" else c.restore_text),
+            lambda c, s=script: (
+                "KORPUS_BACKUP_ENCRYPTION_KEY_FILE"
+                in (c.backup_text if s == "backup_postgres" else c.restore_text)
+            ),
         )
         for script in ("backup_postgres", "restore_postgres")
     ],
@@ -581,15 +594,18 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "backup.manifest.authenticated_schema",
         "backup",
         "the backup manifest carries the current authenticated schema",
-        lambda c: "korpus-postgres-backup-v4" in c.manifest_text
-        and "manifest_hmac_sha256" in c.manifest_text,
+        lambda c: (
+            "korpus-postgres-backup-v4" in c.manifest_text
+            and "manifest_hmac_sha256" in c.manifest_text
+        ),
     ),
     _requirement(
         "backup.key_identity_mandatory",
         "backup",
         "backup and restore both require the encryption key identity",
-        lambda c: "KORPUS_BACKUP_KEY_ID" in c.backup_text
-        and "KORPUS_BACKUP_KEY_ID" in c.restore_text,
+        lambda c: (
+            "KORPUS_BACKUP_KEY_ID" in c.backup_text and "KORPUS_BACKUP_KEY_ID" in c.restore_text
+        ),
         "a backup encrypted under an unknown key cannot be restored deliberately",
     ),
     _requirement(
@@ -603,9 +619,11 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "backup.no_file_flag",
         "backup",
         "pg_dump is never given --file",
-        lambda c: "--file="
-        not in "\n".join(
-            line for line in c.backup_text.splitlines() if not line.lstrip().startswith("#")
+        lambda c: (
+            "--file="
+            not in "\n".join(
+                line for line in c.backup_text.splitlines() if not line.lstrip().startswith("#")
+            )
         ),
         "on PostgreSQL 17 --file=- wrote a file named '-' and encrypted nothing",
     ),
@@ -613,8 +631,7 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "backup.manifest_verified_on_both_sides",
         "backup",
         "backup and restore both verify the authenticated manifest",
-        lambda c: "backup_manifest.py" in c.backup_text
-        and "backup_manifest.py" in c.restore_text,
+        lambda c: "backup_manifest.py" in c.backup_text and "backup_manifest.py" in c.restore_text,
     ),
     # --- developer entry points --------------------------------------------------
     _requirement(
@@ -645,10 +662,12 @@ INFRASTRUCTURE_REQUIREMENTS: tuple[Requirement, ...] = (
         "dockerfile.api.hashed_lock",
         "build",
         "the API image installs the runtime lock with pinned hashes",
-        lambda c: "requirements.runtime.lock" in c.api_dockerfile
-        and "pip install --no-cache-dir --no-deps --require-hashes --requirement"
-        in c.api_dockerfile
-        and "pip check" in c.api_dockerfile,
+        lambda c: (
+            "requirements.runtime.lock" in c.api_dockerfile
+            and "pip install --no-cache-dir --no-deps --require-hashes --requirement"
+            in c.api_dockerfile
+            and "pip check" in c.api_dockerfile
+        ),
         "a version pin says which release; a hash says which bytes",
     ),
     _requirement(

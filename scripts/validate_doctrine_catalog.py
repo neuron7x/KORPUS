@@ -24,6 +24,7 @@ Fail-closed. Any violation is a non-zero exit and the entry is named. The rules:
      carrying the file signature its extension claims, and is honestly marked as to whether
      this system's extractor can read its format
  12. a source the portal marks as repealed is not ingestible
+ 13. an attachment the extractor cannot read carries a survey of what it contains
 
 Rule 9 exists because a source with no publication date and no revision trail (a ministry
 web page) can be silently rewritten. The anchor is a captured snapshot whose digest is
@@ -125,6 +126,7 @@ class Summary(TypedDict):
     content_probed: int
     attachments_captured: int
     attachments_extractor_readable: int
+    attachments_surveyed: int
     repealed_and_blocked: int
 
 
@@ -147,6 +149,7 @@ EMPTY_SUMMARY: Summary = {
     "content_probed": 0,
     "attachments_captured": 0,
     "attachments_extractor_readable": 0,
+    "attachments_surveyed": 0,
     "repealed_and_blocked": 0,
 }
 
@@ -251,6 +254,29 @@ def _entry_problems(entry: dict[str, object]) -> list[str]:
     return problems
 
 
+def _survey_problems(identifier: str, anchor: dict[str, object]) -> list[str]:
+    survey = anchor.get("unreadable_content_survey")
+    if survey is None:
+        return [
+            f"{identifier}: the extractor cannot read this format and nothing describes it — "
+            "an attachment nobody can read and nobody has surveyed is an unknown, not a record"
+        ]
+    if not isinstance(survey, dict):
+        return [f"{identifier}: unreadable_content_survey is not an object"]
+    problems = []
+    words = survey.get("words")
+    if not isinstance(words, int) or isinstance(words, bool) or words < 1:
+        problems.append(f"{identifier}: unreadable_content_survey.words is not a positive count")
+    if not str(survey.get("opening", "")).strip():
+        problems.append(f"{identifier}: unreadable_content_survey records no opening text")
+    if not str(survey.get("surveyed_with", "")).strip():
+        problems.append(
+            f"{identifier}: unreadable_content_survey does not name the tool that produced it — "
+            "an unattributed reading of an unreadable file is a claim without a method"
+        )
+    return problems
+
+
 def _legal_status_problems(identifier: str, probe: object, ingestible: bool) -> list[str]:
     if not isinstance(probe, dict):
         return []
@@ -312,6 +338,10 @@ def _attachment_problems(identifier: str, probe: object, anchors: object) -> lis
                 f"{anchor.get('extractor_supports_format')!r} but {target.suffix!r} is "
                 f"{'in' if readable else 'not in'} SUPPORTED_SUFFIXES"
             )
+            continue
+        # (13) What the extractor cannot read still has to be described.
+        if not readable:
+            problems.extend(_survey_problems(f"{identifier} [{uri}]", anchor))
 
     for uri in required:
         if uri not in captured:
@@ -456,6 +486,17 @@ def evaluate(catalog: dict[str, object]) -> Result:
                 and e["content_probe"].get("legal_status") == "invalid"
             ]
         ),
+        "attachments_surveyed": sum(
+            len(
+                [
+                    a
+                    for a in e["attachment_anchors"]
+                    if isinstance(a, dict) and a.get("unreadable_content_survey")
+                ]
+            )
+            for e in dicts
+            if isinstance(e.get("attachment_anchors"), list)
+        ),
         "attachments_extractor_readable": sum(
             len([a for a in e["attachment_anchors"] if a.get("extractor_supports_format")])
             for e in dicts
@@ -502,7 +543,8 @@ def main() -> int:
             )
             print(
                 f"  {summary['attachments_captured']} attachments captured in-tree, "
-                f"{summary['attachments_extractor_readable']} in a format the extractor reads"
+                f"{summary['attachments_extractor_readable']} in a format the extractor reads, "
+                f"{summary['attachments_surveyed']} surveyed but not ingestible"
             )
             print(
                 f"  blocked: {summary['blocked']} "

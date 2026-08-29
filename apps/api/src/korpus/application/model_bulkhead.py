@@ -10,7 +10,9 @@ from typing import Literal
 MODEL_WORKERS_PER_ROLE = 4
 _POOLS = {
     "planner": ThreadPoolExecutor(max_workers=MODEL_WORKERS_PER_ROLE, thread_name_prefix="planner"),
-    "composer": ThreadPoolExecutor(max_workers=MODEL_WORKERS_PER_ROLE, thread_name_prefix="composer"),
+    "composer": ThreadPoolExecutor(
+        max_workers=MODEL_WORKERS_PER_ROLE, thread_name_prefix="composer"
+    ),
 }
 
 

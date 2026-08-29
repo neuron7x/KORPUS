@@ -1745,3 +1745,50 @@ def test_scripts_type_check_clean_right_now() -> None:
         check=False,
     )
     assert result.returncode == 0, result.stdout[-3000:]
+
+
+def test_canonical_formatting_is_a_gate_because_the_mutants_depend_on_it() -> None:
+    """Formatting drift is not cosmetic here: it silently disarms mutants.
+
+    The catalogue matches on exact source lines. When 62 files were finally formatted on
+    2026-08-29, 18 mutants and 2 gate-parity tests lost their targets — and a mutant whose
+    target string is absent cannot fail, so the score stays 1.0 while the evidence is gone.
+    """
+    source = QUALITY_GATE.read_text(encoding="utf-8")
+    assert '"ruff", "format"' in source or '"format",' in source, (
+        "run_quality_gate.py no longer checks canonical formatting"
+    )
+    assert '"ruff_format"' in source, "the formatting result is no longer part of the verdict"
+
+
+def test_every_mutant_target_is_present_exactly_once_right_now() -> None:
+    """The live check: a re-formatted tree fails here rather than at mutation time."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from run_mutation_tests import MUTANTS
+
+    missing = []
+    for mutant in MUTANTS:
+        source = ROOT / mutant.file
+        if not source.is_file():
+            missing.append(f"{mutant.id}: {mutant.file} does not exist")
+            continue
+        occurrences = source.read_text(encoding="utf-8").count(mutant.old)
+        if occurrences != 1:
+            missing.append(f"{mutant.id}: target appears {occurrences}× in {mutant.file}")
+    assert not missing, missing
+
+
+def test_the_format_gate_leaves_applied_migrations_alone() -> None:
+    """Two immutability rules would otherwise fight, and the migration one must win.
+
+    check_gcp_migration_compatibility.py pins every baseline migration by digest and reports
+    "baseline migration mutated" for any change, formatting included. Running ruff format
+    over apps/api/migrations rewrote 18 of them and failed that gate — the rule protecting a
+    deployed database, against a rule about line wrapping.
+    """
+    source = QUALITY_GATE.read_text(encoding="utf-8")
+    block = source[source.index("RUFF_FORMAT = [") : source.index("MYPY = [")]
+    assert '"apps/api/migrations"' not in block, (
+        "the format gate covers applied migrations again; it will report them as mutated"
+    )
+    assert '"apps/api/src"' in block and '"scripts"' in block

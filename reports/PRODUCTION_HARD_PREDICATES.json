@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "24ead5ea41bbe49546ae0f7b67b76d9248cd92ac6c8f992d897353aadfd31e62",
+  "source_tree_sha256": "040321edd43b20e1f603ac6843b547e18c1f1db56ef03de44bb60b0a282c03fd",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 2,
-  "production_satisfied": 2,
+  "externally_satisfied": 0,
+  "production_satisfied": 0,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 14.285714,
-  "production_completion_percent": 14.285714,
+  "external_completion_percent": 0.0,
+  "production_completion_percent": 0.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -63,10 +63,12 @@
       "gate": "postgres_security",
       "required_proof_class": "REAL_POSTGRESQL",
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": []
+      "failed_external_checks": [
+        "gate_source_bound"
+      ]
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -87,7 +89,8 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families"
+        "attack_families",
+        "gate_source_bound"
       ]
     },
     {
@@ -102,7 +105,8 @@
         "independent_class",
         "assessor_structured",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -116,7 +120,8 @@
       "failed_external_checks": [
         "environment_class",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -205,10 +210,12 @@
       "gate": "exact_environment",
       "required_proof_class": "EXACT_LOCKED_ENVIRONMENT",
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": []
+      "failed_external_checks": [
+        "gate_source_bound"
+      ]
     },
     {
       "id": "pec_human_production_authority",

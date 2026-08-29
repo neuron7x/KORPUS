@@ -72,16 +72,12 @@ def test_a_rephrasing_that_lowers_the_risk_class_is_reported() -> None:
 
 @pytest.mark.parametrize("rank", ["3", None, 3.5, False])
 def test_an_authority_rank_that_is_not_a_strict_integer_is_reported(rank: object) -> None:
-    assert "invalid_authority_rank" in metamorphic_issues(
-        BASE, _transformed(authority_rank=rank)
-    )
+    assert "invalid_authority_rank" in metamorphic_issues(BASE, _transformed(authority_rank=rank))
 
 
 def test_a_rephrasing_answered_from_weaker_evidence_is_reported() -> None:
     """Same question, lower-authority source, is a different answer wearing the same words."""
-    assert "evidence_authority_degraded" in metamorphic_issues(
-        BASE, _transformed(authority_rank=2)
-    )
+    assert "evidence_authority_degraded" in metamorphic_issues(BASE, _transformed(authority_rank=2))
 
 
 @pytest.mark.parametrize("value", ["true", None, 1, 0])

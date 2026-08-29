@@ -1,4 +1,5 @@
 """Statistical, fail-closed mission assurance for military knowledge delivery."""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
@@ -54,8 +55,14 @@ class MissionAssuranceVerdict:
             "observations": self.observations,
             "hard_failure_count": self.hard_failure_count,
             "hard_failure_rate_interval": self.hard_failure_interval.as_dict(),
-            "atomic_claim_correctness_interval": self.atomic_claim_interval.as_dict() if self.atomic_claim_interval else None,
-            "latency_ms": {"p50": self.p50_latency_ms, "p95": self.p95_latency_ms, "p99": self.p99_latency_ms},
+            "atomic_claim_correctness_interval": self.atomic_claim_interval.as_dict()
+            if self.atomic_claim_interval
+            else None,
+            "latency_ms": {
+                "p50": self.p50_latency_ms,
+                "p95": self.p95_latency_ms,
+                "p99": self.p99_latency_ms,
+            },
             "reasons": list(self.reasons),
         }
 
@@ -65,17 +72,21 @@ def _quantile(values: list[float], q: float) -> float:
         return 0.0
     ordered = sorted(values)
     position = (len(ordered) - 1) * q
-    lower = int(position); upper = min(lower + 1, len(ordered) - 1)
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
     fraction = position - lower
     return ordered[lower] * (1 - fraction) + ordered[upper] * fraction
 
 
-def evaluate_mission_assurance(observations: Iterable[MissionObservation], *,
-                               minimum_cases: int = 400,
-                               maximum_hard_failure_rate_upper_95: float = 0.01,
-                               independent: bool,
-                               real_domain: bool,
-                               operational_environment: bool) -> MissionAssuranceVerdict:
+def evaluate_mission_assurance(
+    observations: Iterable[MissionObservation],
+    *,
+    minimum_cases: int = 400,
+    maximum_hard_failure_rate_upper_95: float = 0.01,
+    independent: bool,
+    real_domain: bool,
+    operational_environment: bool,
+) -> MissionAssuranceVerdict:
     rows = tuple(observations)
     if minimum_cases < 1:
         raise ValueError("minimum_cases must be positive")
@@ -89,13 +100,20 @@ def evaluate_mission_assurance(observations: Iterable[MissionObservation], *,
     correct = sum(row.correct_atomic_claims for row in rows)
     claim_interval = wilson_interval(correct, claims) if claims else None
     reasons: list[str] = []
-    if len(rows) < minimum_cases: reasons.append(f"{len(rows)} cases below minimum {minimum_cases}")
-    if failures: reasons.append(f"{failures} cases contain hard mission-assurance failures")
+    if len(rows) < minimum_cases:
+        reasons.append(f"{len(rows)} cases below minimum {minimum_cases}")
+    if failures:
+        reasons.append(f"{failures} cases contain hard mission-assurance failures")
     if hard_interval.upper > maximum_hard_failure_rate_upper_95:
-        reasons.append(f"hard-failure upper 95% bound {hard_interval.upper:.6f} exceeds {maximum_hard_failure_rate_upper_95:.6f}")
-    if not independent: reasons.append("evaluation is not independent")
-    if not real_domain: reasons.append("evaluation is not real-domain")
-    if not operational_environment: reasons.append("evaluation is not operationally representative")
+        reasons.append(
+            f"hard-failure upper 95% bound {hard_interval.upper:.6f} exceeds {maximum_hard_failure_rate_upper_95:.6f}"
+        )
+    if not independent:
+        reasons.append("evaluation is not independent")
+    if not real_domain:
+        reasons.append("evaluation is not real-domain")
+    if not operational_environment:
+        reasons.append("evaluation is not operationally representative")
     latencies = [row.latency_ms for row in rows]
     return MissionAssuranceVerdict(
         admissible=not reasons,

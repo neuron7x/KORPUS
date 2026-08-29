@@ -122,9 +122,7 @@ def test_a_revoked_pack_is_refused_even_though_its_signature_still_verifies() ->
     now = datetime(2026, 8, 20, 12, tzinfo=UTC)
     pack, signer = make_pack(now)
     revoked = {**pack, "revoked": True}
-    result = verify_offline_pack(
-        revoked, trusted_public_key_b64=signer.public_key_b64, now=now
-    )
+    result = verify_offline_pack(revoked, trusted_public_key_b64=signer.public_key_b64, now=now)
     assert result.state is OfflinePackState.REVOKED
     assert result.usable is False
 
@@ -159,9 +157,7 @@ def test_a_pack_from_the_future_is_not_yet_valid_rather_than_valid() -> None:
     assert early.state is OfflinePackState.NOT_YET_VALID
     assert early.usable is False
 
-    at_issue = verify_offline_pack(
-        pack, trusted_public_key_b64=signer.public_key_b64, now=now
-    )
+    at_issue = verify_offline_pack(pack, trusted_public_key_b64=signer.public_key_b64, now=now)
     assert at_issue.state is OfflinePackState.VALID
 
 

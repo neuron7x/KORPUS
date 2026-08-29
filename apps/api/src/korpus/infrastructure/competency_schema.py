@@ -65,12 +65,20 @@ operational_role_tasks = Table(
     Column("task_id", String(128), primary_key=True),
     ForeignKeyConstraint(
         ["framework_id", "framework_revision", "role_id"],
-        ["operational_roles.framework_id", "operational_roles.framework_revision", "operational_roles.id"],
+        [
+            "operational_roles.framework_id",
+            "operational_roles.framework_revision",
+            "operational_roles.id",
+        ],
         ondelete="CASCADE",
     ),
     ForeignKeyConstraint(
         ["framework_id", "framework_revision", "task_id"],
-        ["operational_tasks.framework_id", "operational_tasks.framework_revision", "operational_tasks.id"],
+        [
+            "operational_tasks.framework_id",
+            "operational_tasks.framework_revision",
+            "operational_tasks.id",
+        ],
         ondelete="CASCADE",
     ),
 )
@@ -84,12 +92,20 @@ operational_task_competencies = Table(
     Column("competency_id", String(128), primary_key=True),
     ForeignKeyConstraint(
         ["framework_id", "framework_revision", "task_id"],
-        ["operational_tasks.framework_id", "operational_tasks.framework_revision", "operational_tasks.id"],
+        [
+            "operational_tasks.framework_id",
+            "operational_tasks.framework_revision",
+            "operational_tasks.id",
+        ],
         ondelete="CASCADE",
     ),
     ForeignKeyConstraint(
         ["framework_id", "framework_revision", "competency_id"],
-        ["operational_competencies.framework_id", "operational_competencies.framework_revision", "operational_competencies.id"],
+        [
+            "operational_competencies.framework_id",
+            "operational_competencies.framework_revision",
+            "operational_competencies.id",
+        ],
         ondelete="CASCADE",
     ),
 )

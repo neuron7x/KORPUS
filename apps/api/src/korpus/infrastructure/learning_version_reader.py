@@ -140,9 +140,15 @@ def load_course_version(connection: Connection, version_id: str) -> CourseVersio
     return _assemble_course_version(
         version_row,
         _CourseRows(
-            module_rows, lesson_rows, objective_rows,
-            objective_competency_rows, binding_rows, span_rows,
-            block_rows, block_source_rows, prerequisite_rows,
+            module_rows,
+            lesson_rows,
+            objective_rows,
+            objective_competency_rows,
+            binding_rows,
+            span_rows,
+            block_rows,
+            block_source_rows,
+            prerequisite_rows,
         ),
     )
 

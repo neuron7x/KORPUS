@@ -153,9 +153,7 @@ def test_openai_oversized_input_is_refused_before_transport(
     with pytest.raises(ValueError, match="model input exceeds"):
         OpenAIQueryPlanner("secret", model="model-under-test").variants("я" * 70_000, [])
     with pytest.raises(ValueError, match="model input exceeds"):
-        OpenAIAnswerComposer("secret", model="model-under-test").compose(
-            "питання", ["д" * 70_000]
-        )
+        OpenAIAnswerComposer("secret", model="model-under-test").compose("питання", ["д" * 70_000])
 
 
 def test_repeated_provider_failure_opens_process_scoped_circuit(

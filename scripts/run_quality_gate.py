@@ -13,6 +13,14 @@ application is checked with apps/api/pyproject.toml, whose `packages = ["korpus"
 means it type-checked nothing else: every runner, gate and generator under scripts/ — the
 code that decides whether a release is admissible — was unchecked until 2026-08-29, and the
 first run of mypy-scripts.ini over it found 198 errors in 58 files.
+
+`ruff format --check` is here because formatting drift is not cosmetic in this repository.
+The mutation catalogue and several gate-parity tests match on exact source lines; when 62
+files were finally formatted, 18 mutants and 2 tests silently lost their targets, and a
+mutant whose target string is absent is a mutant that cannot fail. Held as a check, the
+tree cannot drift out of canonical form and take the mutation evidence with it. Migrations
+are excluded: an applied migration is pinned by digest as an immutable baseline, and
+reformatting one reads to that gate as a mutated migration.
 """
 
 from __future__ import annotations
@@ -38,6 +46,20 @@ RUFF = [
     "apps/api/src",
     "apps/api/tests",
     "apps/api/migrations",
+    "scripts",
+]
+# apps/api/migrations is deliberately absent. An applied migration is an immutable
+# artifact: check_gcp_migration_compatibility.py pins every baseline file by digest and
+# reports "baseline migration mutated" for any change at all, formatting included. The two
+# rules would fight, and the migration rule is the one that protects a deployed database.
+RUFF_FORMAT = [
+    sys.executable,
+    "-m",
+    "ruff",
+    "format",
+    "--check",
+    "apps/api/src",
+    "apps/api/tests",
     "scripts",
 ]
 MYPY = [
@@ -91,6 +113,17 @@ def _ruff_result() -> dict[str, object]:
     }
 
 
+def _ruff_format_result() -> dict[str, object]:
+    """Canonical formatting, held as a gate because the mutation catalogue depends on it."""
+    completed = _run(RUFF_FORMAT)
+    return {
+        "command": " ".join(RUFF_FORMAT),
+        "exit_code": completed.returncode,
+        "status": "PASS" if completed.returncode == 0 else "FAIL",
+        "output_tail": completed.stdout[-2000:],
+    }
+
+
 def _mypy_result() -> dict[str, object]:
     completed = _run(MYPY, {"MYPYPATH": str(ROOT / "apps/api/src")})
     return {
@@ -115,6 +148,7 @@ def _mypy_scripts_result() -> dict[str, object]:
 def main() -> int:
     tools = {
         "ruff": _ruff_result(),
+        "ruff_format": _ruff_format_result(),
         "mypy": _mypy_result(),
         "mypy_scripts": _mypy_scripts_result(),
     }
@@ -132,6 +166,9 @@ def main() -> int:
             {
                 "status": report["status"],
                 "ruff": {k: v for k, v in tools["ruff"].items() if k != "output_tail"},
+                "ruff_format": {
+                    k: v for k, v in tools["ruff_format"].items() if k != "output_tail"
+                },
                 "mypy": {k: v for k, v in tools["mypy"].items() if k != "output_tail"},
                 "mypy_scripts": {
                     k: v for k, v in tools["mypy_scripts"].items() if k != "output_tail"

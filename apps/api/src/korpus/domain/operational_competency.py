@@ -61,7 +61,10 @@ class CompetencyFramework(BaseModel):
 
         known_tasks = set(task_ids)
         dangling_tasks = {
-            task_id for role in self.roles for task_id in role.task_ids if task_id not in known_tasks
+            task_id
+            for role in self.roles
+            for task_id in role.task_ids
+            if task_id not in known_tasks
         }
         if dangling_tasks:
             raise ValueError(f"roles reference unknown tasks: {sorted(dangling_tasks)}")
@@ -75,7 +78,7 @@ class CompetencyFramework(BaseModel):
         }
         if dangling_competencies:
             raise ValueError(
-                "tasks reference unknown competencies: " f"{sorted(dangling_competencies)}"
+                f"tasks reference unknown competencies: {sorted(dangling_competencies)}"
             )
         return self
 

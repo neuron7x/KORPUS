@@ -101,7 +101,11 @@ learning_objective_competencies = Table(
     Column("competency_id", String(128), primary_key=True),
     ForeignKeyConstraint(
         ["course_version_id", "lesson_id", "objective_id"],
-        ["learning_objectives.course_version_id", "learning_objectives.lesson_id", "learning_objectives.id"],
+        [
+            "learning_objectives.course_version_id",
+            "learning_objectives.lesson_id",
+            "learning_objectives.id",
+        ],
         ondelete="CASCADE",
     ),
 )

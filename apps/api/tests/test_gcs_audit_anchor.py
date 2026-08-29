@@ -87,7 +87,9 @@ def test_a_prefix_that_could_escape_the_anchor_namespace_is_refused() -> None:
 
     # A prefix that only needs trimming is normalised rather than refused.
     _, backend = anchor()
-    forgiving = GcsAuditAnchorStore("korpus-audit", b"a" * 40, prefix="/audit/anchors/", gcs=backend)  # type: ignore[arg-type]
+    forgiving = GcsAuditAnchorStore(
+        "korpus-audit", b"a" * 40, prefix="/audit/anchors/", gcs=backend
+    )  # type: ignore[arg-type]
     assert forgiving.prefix == "audit/anchors"
 
 
@@ -262,13 +264,17 @@ def test_a_retention_policy_shorter_than_required_fails_the_healthcheck() -> Non
     required = 3600
     assert (
         GcsObjectStore(
-            bucket="korpus-objects", retention_seconds=required, gcs=Retained(required - 1)  # type: ignore[arg-type]
+            bucket="korpus-objects",
+            retention_seconds=required,
+            gcs=Retained(required - 1),  # type: ignore[arg-type]
         ).healthcheck()
         is False
     )
     assert (
         GcsObjectStore(
-            bucket="korpus-objects", retention_seconds=required, gcs=Retained(required)  # type: ignore[arg-type]
+            bucket="korpus-objects",
+            retention_seconds=required,
+            gcs=Retained(required),  # type: ignore[arg-type]
         ).healthcheck()
         is True
     )

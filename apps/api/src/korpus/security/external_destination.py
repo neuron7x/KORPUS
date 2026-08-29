@@ -9,7 +9,8 @@ from korpus.security.url_policy import parse_https_url
 
 
 def parse_external_https_url(
-    value: str, *, name: str = "external URL", allow_query: bool = True) -> SplitResult:
+    value: str, *, name: str = "external URL", allow_query: bool = True
+) -> SplitResult:
     parts = parse_https_url(value, name=name, allow_query=allow_query)
     if not (hostname := parts.hostname):
         raise ValueError(f"{name} must include a host")

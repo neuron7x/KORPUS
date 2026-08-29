@@ -1,4 +1,5 @@
 """Constrained PEC oracle: decision value first, resource Pareto second."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -12,6 +13,7 @@ from korpus.application.predictive_evidence_control import RetrievalAction
 class Outcome(Protocol):
     query_id: str
     action: RetrievalAction
+
     def resources(self) -> tuple[float, ...]: ...
     def admissible(self) -> bool: ...
 
@@ -43,9 +45,14 @@ def dominates(left: Outcome, right: Outcome) -> bool:
     )
 
 
-def _decision(query_id: str, action: RetrievalAction, status: str, reason: str, rows: list[Outcome]) -> OracleDecision:
+def _decision(
+    query_id: str, action: RetrievalAction, status: str, reason: str, rows: list[Outcome]
+) -> OracleDecision:
     return OracleDecision(
-        query_id, action, status, reason,
+        query_id,
+        action,
+        status,
+        reason,
         tuple(sorted(row.action.value for row in rows if row.admissible())),
     )
 
@@ -60,26 +67,55 @@ def solve_oracle(outcomes: Iterable[Outcome]) -> OracleDecision:
     vectors = [_resource_vector(row) for row in rows]
     if len({len(vector) for vector in vectors}) != 1:
         raise ValueError("oracle resource vectors must have equal dimensionality")
-    baseline = next((row for row in rows if row.action is RetrievalAction.STOP_USE_CURRENT_EVIDENCE), None)
+    baseline = next(
+        (row for row in rows if row.action is RetrievalAction.STOP_USE_CURRENT_EVIDENCE), None
+    )
     if baseline is None:
-        return _decision(query_id, RetrievalAction.BASELINE, "UNKNOWN", "missing_original_query_stop_baseline", [])
+        return _decision(
+            query_id,
+            RetrievalAction.BASELINE,
+            "UNKNOWN",
+            "missing_original_query_stop_baseline",
+            [],
+        )
     admissible = [row for row in rows if row.admissible()]
     if baseline.admissible():
-        return _decision(query_id, RetrievalAction.STOP_USE_CURRENT_EVIDENCE, "PASS", "baseline_decision_already_admissible", admissible)
-    if not admissible:
-        return _decision(query_id, RetrievalAction.ABSTAIN, "PASS", "no_admissible_answer_action", [])
-    nondominated = [row for row in admissible if not any(dominates(other, row) for other in admissible)]
-    if len(nondominated) == 1:
-        return _decision(query_id, nondominated[0].action, "PASS", "unique_pareto_minimum", admissible)
-    if len({row.resources() for row in nondominated}) == 1:
-        order = {action: index for index, action in enumerate((
+        return _decision(
+            query_id,
             RetrievalAction.STOP_USE_CURRENT_EVIDENCE,
-            RetrievalAction.PLAN_QUERY_VARIANTS,
-            RetrievalAction.ENABLE_SEMANTIC_RETRIEVAL,
-            RetrievalAction.PLAN_AND_SEMANTIC,
-            RetrievalAction.ABSTAIN,
-            RetrievalAction.BASELINE,
-        ))}
+            "PASS",
+            "baseline_decision_already_admissible",
+            admissible,
+        )
+    if not admissible:
+        return _decision(
+            query_id, RetrievalAction.ABSTAIN, "PASS", "no_admissible_answer_action", []
+        )
+    nondominated = [
+        row for row in admissible if not any(dominates(other, row) for other in admissible)
+    ]
+    if len(nondominated) == 1:
+        return _decision(
+            query_id, nondominated[0].action, "PASS", "unique_pareto_minimum", admissible
+        )
+    if len({row.resources() for row in nondominated}) == 1:
+        order = {
+            action: index
+            for index, action in enumerate(
+                (
+                    RetrievalAction.STOP_USE_CURRENT_EVIDENCE,
+                    RetrievalAction.PLAN_QUERY_VARIANTS,
+                    RetrievalAction.ENABLE_SEMANTIC_RETRIEVAL,
+                    RetrievalAction.PLAN_AND_SEMANTIC,
+                    RetrievalAction.ABSTAIN,
+                    RetrievalAction.BASELINE,
+                )
+            )
+        }
         winner = min(nondominated, key=lambda row: (order[row.action], row.action.value))
-        return _decision(query_id, winner.action, "PASS", "resource_equivalent_canonical_action", admissible)
-    return _decision(query_id, RetrievalAction.BASELINE, "UNKNOWN", "incomparable_pareto_minima", admissible)
+        return _decision(
+            query_id, winner.action, "PASS", "resource_equivalent_canonical_action", admissible
+        )
+    return _decision(
+        query_id, RetrievalAction.BASELINE, "UNKNOWN", "incomparable_pareto_minima", admissible
+    )

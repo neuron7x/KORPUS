@@ -87,9 +87,12 @@ class SqlLearningRepository:
                     competency_frameworks.c.id == version.competency_framework_id,
                     competency_frameworks.c.revision == version.competency_framework_revision,
                 )
-                if connection.execute(
-                    select(competency_frameworks.c.id).where(*framework_key)
-                ).scalar_one_or_none() is None:
+                if (
+                    connection.execute(
+                        select(competency_frameworks.c.id).where(*framework_key)
+                    ).scalar_one_or_none()
+                    is None
+                ):
                     raise LearningStateError("competency framework revision not found")
                 known_competencies = set(
                     connection.execute(

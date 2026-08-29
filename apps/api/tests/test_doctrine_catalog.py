@@ -335,14 +335,20 @@ def test_an_attachment_claiming_a_format_the_extractor_cannot_read_is_refused() 
     assert any("SUPPORTED_SUFFIXES" in p for p in problems), problems
 
 
-def test_an_unreadable_attachment_marked_honestly_passes() -> None:
+def test_marking_an_attachment_unreadable_is_not_enough_on_its_own() -> None:
+    """Honest about the format, silent about the content — rule 13 closes that gap.
+
+    Until 2026-08-29 this entry passed: the catalog said "the extractor cannot read this"
+    and stopped, which is accurate and tells nobody what the file holds.
+    """
     entry = _attached_entry()
     anchor = entry["attachment_anchors"][0]
     anchor["path"] = "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc"
     anchor["sha256"] = _digest_of(anchor["path"])
     anchor["extractor_supports_format"] = False
     entry["content_probe"]["required_attachments"] = [anchor["uri"]]
-    assert _validator()._entry_problems(entry) == []
+    problems = _validator()._entry_problems(entry)
+    assert any("nobody has surveyed" in p for p in problems), problems
 
 
 def test_an_attachment_anchor_that_is_not_an_object_is_refused() -> None:
@@ -442,4 +448,76 @@ def test_the_validator_runs_without_the_extractor_s_dependencies(tmp_path: Path)
     source = (ROOT / "scripts/validate_doctrine_catalog.py").read_text(encoding="utf-8")
     assert "from korpus.infrastructure.extraction import" not in source, (
         "the validator imports the extractor again; it will fail on a bare interpreter"
+    )
+
+
+def _unreadable_entry() -> dict:
+    """A capture in a format the extractor refuses — 14 of the catalog's 30 are these."""
+    entry = _attached_entry()
+    anchor = entry["attachment_anchors"][0]
+    anchor["path"] = "config/corpus/attachments/ORG-LAW-548-XIV__f33093n2372.doc"
+    anchor["sha256"] = _digest_of(anchor["path"])
+    anchor["extractor_supports_format"] = False
+    anchor["unreadable_content_survey"] = {
+        "words": 93,
+        "opening": "Зразок Діє в межах",
+        "surveyed_with": "LibreOffice 24.2",
+        "surveyed_on": "2026-08-29",
+    }
+    entry["content_probe"]["required_attachments"] = [anchor["uri"]]
+    return entry
+
+
+def test_a_surveyed_unreadable_attachment_passes() -> None:
+    assert _validator()._entry_problems(_unreadable_entry()) == []
+
+
+def test_an_unreadable_attachment_with_no_survey_is_refused() -> None:
+    """Rule 13: outside the corpus is acceptable; outside anyone's knowledge is not."""
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0].pop("unreadable_content_survey")
+    problems = _validator()._entry_problems(entry)
+    assert any("nobody has surveyed" in p for p in problems), problems
+
+
+def test_a_survey_that_names_no_tool_is_refused() -> None:
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0]["unreadable_content_survey"]["surveyed_with"] = ""
+    problems = _validator()._entry_problems(entry)
+    assert any("claim without a method" in p for p in problems), problems
+
+
+def test_a_survey_with_no_word_count_is_refused() -> None:
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0]["unreadable_content_survey"]["words"] = 0
+    problems = _validator()._entry_problems(entry)
+    assert any("not a positive count" in p for p in problems), problems
+
+
+def test_a_survey_with_no_opening_text_is_refused() -> None:
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0]["unreadable_content_survey"]["opening"] = "   "
+    problems = _validator()._entry_problems(entry)
+    assert any("records no opening text" in p for p in problems), problems
+
+
+def test_a_survey_that_is_not_an_object_is_refused() -> None:
+    entry = _unreadable_entry()
+    entry["attachment_anchors"][0]["unreadable_content_survey"] = "93 words"
+    problems = _validator()._entry_problems(entry)
+    assert any("survey is not an object" in p for p in problems), problems
+
+
+def test_a_readable_attachment_needs_no_survey() -> None:
+    """Rule 13 constrains what cannot be read; it does not tax what can."""
+    assert _validator()._entry_problems(_attached_entry()) == []
+
+
+def test_every_unreadable_capture_in_the_catalog_is_surveyed() -> None:
+    catalog = _catalog()
+    result = _validator().evaluate(catalog)
+    assert result["status"] == "PASS", result["problems"]
+    summary = result["summary"]
+    assert summary["attachments_surveyed"] == (
+        summary["attachments_captured"] - summary["attachments_extractor_readable"]
     )

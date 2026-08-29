@@ -192,9 +192,7 @@ def test_a_claim_whose_row_moved_underneath_it_is_refused(
 
     def bump_attempts(connection: object) -> None:
         connection.execute(  # type: ignore[attr-defined]
-            update(ingestion_jobs)
-            .where(ingestion_jobs.c.id == str(created.id))
-            .values(attempts=2)
+            update(ingestion_jobs).where(ingestion_jobs.c.id == str(created.id)).values(attempts=2)
         )
 
     with (

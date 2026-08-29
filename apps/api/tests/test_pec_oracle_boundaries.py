@@ -162,11 +162,9 @@ def test_an_empty_resource_vector_is_refused() -> None:
         dominates(_Vector(()), _Vector(()))  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize(
-    "values", [(math.nan,), (math.inf,), (-math.inf,), (-1.0,), (1.0, -0.5)]
-)
+@pytest.mark.parametrize("values", [(math.nan,), (math.inf,), (-math.inf,), (-1.0,), (1.0, -0.5)])
 def test_a_resource_vector_that_is_not_finite_and_non_negative_is_refused(
-    values: tuple[float, ...]
+    values: tuple[float, ...],
 ) -> None:
     """NaN makes `<=` false and `<` false at once, so a NaN row dominates nothing and is
     dominated by nothing — it would silently become an incomparable minimum."""

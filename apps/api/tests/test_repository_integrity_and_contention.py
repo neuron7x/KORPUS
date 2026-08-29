@@ -54,11 +54,14 @@ def test_a_sound_database_is_healthy(repository: SqlRepository) -> None:
 
 def test_a_probe_that_answers_anything_but_one_is_unhealthy(repository: SqlRepository) -> None:
     """A connection that answers `SELECT 1` wrongly is not a connection to trust."""
-    with patch.object(SqlRepository, "_integrity_ok", return_value=True) as integrity, patch(
-        "korpus.infrastructure.repository.select",
-        side_effect=lambda *a, **k: __import__(
-            "sqlalchemy"
-        ).select(__import__("sqlalchemy").literal(2)),
+    with (
+        patch.object(SqlRepository, "_integrity_ok", return_value=True) as integrity,
+        patch(
+            "korpus.infrastructure.repository.select",
+            side_effect=lambda *a, **k: __import__("sqlalchemy").select(
+                __import__("sqlalchemy").literal(2)
+            ),
+        ),
     ):
         assert repository.healthcheck() is False
     integrity.assert_not_called()
@@ -234,9 +237,10 @@ def test_a_reader_whose_corpora_do_not_intersect_reaches_no_query_at_all(
     with patch.object(
         repository.engine, "begin", side_effect=AssertionError("the database was reached")
     ):
-        assert repository.list_retrievable_spans(
-            outsider, frozenset({"public"}), date(2026, 1, 1)
-        ) == []
+        assert (
+            repository.list_retrievable_spans(outsider, frozenset({"public"}), date(2026, 1, 1))
+            == []
+        )
         assert (
             repository.get_retrievable_spans_by_ids(
                 outsider, frozenset({"public"}), date(2026, 1, 1), [uuid4()]
@@ -305,7 +309,9 @@ def test_a_schema_at_the_wrong_revision_is_refused(tmp_path: Path) -> None:
     repository = _unmigrated(tmp_path, "stale.db")
     repository.initialize()
     with repository.engine.begin() as connection:
-        connection.execute(sql_text("CREATE TABLE IF NOT EXISTS alembic_version (version_num TEXT)"))
+        connection.execute(
+            sql_text("CREATE TABLE IF NOT EXISTS alembic_version (version_num TEXT)")
+        )
         connection.execute(sql_text("DELETE FROM alembic_version"))
         connection.execute(sql_text("INSERT INTO alembic_version VALUES ('0001_initial')"))
 
@@ -333,7 +339,9 @@ def test_a_migrated_schema_without_an_audit_head_is_refused(tmp_path: Path) -> N
     repository = _unmigrated(tmp_path, "headless.db")
     repository.initialize()
     with repository.engine.begin() as connection:
-        connection.execute(sql_text("CREATE TABLE IF NOT EXISTS alembic_version (version_num TEXT)"))
+        connection.execute(
+            sql_text("CREATE TABLE IF NOT EXISTS alembic_version (version_num TEXT)")
+        )
         connection.execute(sql_text("DELETE FROM alembic_version"))
         connection.execute(sql_text(f"INSERT INTO alembic_version VALUES ('{SCHEMA_REVISION}')"))
         connection.execute(delete(audit_heads))

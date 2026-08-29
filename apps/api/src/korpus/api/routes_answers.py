@@ -112,9 +112,7 @@ def read_span(
     except AuthorizationError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     effective = as_of or datetime.now(UTC).date()
-    rows = repository.get_retrievable_spans_by_ids(
-        identity, identity.corpora, effective, [span_id]
-    )
+    rows = repository.get_retrievable_spans_by_ids(identity, identity.corpora, effective, [span_id])
     if not rows:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="span not found")
     return DisclosedSpan.build(*rows[0])

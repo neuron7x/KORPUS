@@ -11,10 +11,28 @@ from korpus.application.retrieval import normalize_text, tokenize
 
 _ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), None)
 _ZERO_WIDTH_AS_SPACE = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"), " ")
-_HOMOGLYPHS = str.maketrans({
-    "а": "a", "е": "e", "о": "o", "р": "p", "с": "c", "у": "y", "х": "x", "і": "i", "ј": "j",
-    "А": "A", "Е": "E", "О": "O", "Р": "P", "С": "C", "У": "Y", "Х": "X", "І": "I", "Ј": "J",
-})
+_HOMOGLYPHS = str.maketrans(
+    {
+        "а": "a",
+        "е": "e",
+        "о": "o",
+        "р": "p",
+        "с": "c",
+        "у": "y",
+        "х": "x",
+        "і": "i",
+        "ј": "j",
+        "А": "A",
+        "Е": "E",
+        "О": "O",
+        "Р": "P",
+        "С": "C",
+        "У": "Y",
+        "Х": "X",
+        "І": "I",
+        "Ј": "J",
+    }
+)
 _ROLE_MARKER = re.compile(
     r"(?:^|\n)\s*(system|developer|assistant|tool|користувач|система)\s*[:>]", re.I
 )
@@ -36,8 +54,25 @@ _TOOL_DIRECTIVE = re.compile(
 )
 
 _ABBREVIATIONS = {
-    "р.", "ст.", "п.", "пп.", "рис.", "табл.", "ім.", "напр.", "див.", "т.д.", "т.п.",
-    "mr.", "mrs.", "dr.", "prof.", "etc.", "e.g.", "i.e.", "no.",
+    "р.",
+    "ст.",
+    "п.",
+    "пп.",
+    "рис.",
+    "табл.",
+    "ім.",
+    "напр.",
+    "див.",
+    "т.д.",
+    "т.п.",
+    "mr.",
+    "mrs.",
+    "dr.",
+    "prof.",
+    "etc.",
+    "e.g.",
+    "i.e.",
+    "no.",
 }
 _SENTENCE_END = {".", "!", "?", "…"}
 _NEGATIONS = {"не", "ні", "немає", "заборонено", "not", "no", "never", "prohibited", "forbidden"}
@@ -48,7 +83,11 @@ _NUMBER_UNIT = re.compile(
     re.I,
 )
 
-from korpus.application.quantity_math import UNIT_TOKENS as _UNIT_TOKENS, canonical_quantity as _canonical_quantity
+from korpus.application.quantity_math import (
+    UNIT_TOKENS as _UNIT_TOKENS,
+    canonical_quantity as _canonical_quantity,
+)
+
 
 @dataclass(frozen=True)
 class InjectionAssessment:
@@ -67,8 +106,9 @@ def assess_control_injection(text: str) -> InjectionAssessment:
     # Evaluate zero-width characters both as deletion and as whitespace, then project homoglyphs.
     collapsed = nfkc.translate(_ZERO_WIDTH).casefold()
     separated = nfkc.translate(_ZERO_WIDTH_AS_SPACE).casefold()
-    canonical = "\n".join((collapsed, collapsed.translate(_HOMOGLYPHS), separated,
-                           separated.translate(_HOMOGLYPHS)))
+    canonical = "\n".join(
+        (collapsed, collapsed.translate(_HOMOGLYPHS), separated, separated.translate(_HOMOGLYPHS))
+    )
     reasons: list[str] = []
     if _ROLE_MARKER.search(canonical):
         reasons.append("role_marker")
@@ -82,7 +122,7 @@ def assess_control_injection(text: str) -> InjectionAssessment:
         reasons.append("encoding_evasion")
     if _TOOL_DIRECTIVE.search(canonical):
         reasons.append("tool_directive")
-    if canonical.count("```" ) >= 2 and (override or target):
+    if canonical.count("```") >= 2 and (override or target):
         reasons.append("instruction_fence")
     score = len(set(reasons))
     blocked = (override and target) or "role_marker" in reasons or score >= 3
@@ -103,7 +143,7 @@ def segment_sentences(text: str) -> list[tuple[str, int, int]]:
         char = text[index]
         boundary = False
         if char in _SENTENCE_END:
-            prefix = text[max(start, index - 12): index + 1].strip().casefold()
+            prefix = text[max(start, index - 12) : index + 1].strip().casefold()
             token = prefix.split()[-1] if prefix.split() else ""
             decimal = (
                 char == "."
@@ -114,10 +154,10 @@ def segment_sentences(text: str) -> list[tuple[str, int, int]]:
             )
             boundary = not decimal and token not in _ABBREVIATIONS
         elif char == "\n":
-            next_chunk = text[index + 1:index + 12]
+            next_chunk = text[index + 1 : index + 12]
             boundary = (
                 bool(re.match(r"\s*(?:[-•*]|\d+[.)]|[А-ЯA-Z][.)])\s+", next_chunk))
-                or text[index:index + 2] == "\n\n"
+                or text[index : index + 2] == "\n\n"
             )
         if boundary:
             end = index + 1
@@ -163,7 +203,11 @@ def proposition_signature(text: str) -> PropositionSignature:
     # score as less alike precisely when the disagreement is sharpest ("строк … 24 год"
     # against "строк … 72 год" measured 0.50 against a 0.55 floor, so a numeric
     # conflict inside one span was never reached).
-    content = {token for token in tokens.difference(_NEGATIONS) if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS}
+    content = {
+        token
+        for token in tokens.difference(_NEGATIONS)
+        if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS
+    }
     return PropositionSignature(frozenset(content), negated, frozenset(quantities))
 
 
@@ -179,6 +223,7 @@ class SupportVerdict:
     referenced span is present among the answer's own citations, and a claim that
     references a span the answer does not carry earns no partial credit.
     """
+
     coverage: float
     unsupported_claim_indexes: tuple[int, ...]
     reasons: tuple[str, ...]

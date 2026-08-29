@@ -39,7 +39,11 @@ def _flag(profile: dict[str, Any], field: str) -> bool:
 
 def _labels(profile: dict[str, Any], field: str) -> list[str]:
     value = profile.get(field)
-    if not isinstance(value, list) or not value or any(not isinstance(v, str) or not v for v in value):
+    if (
+        not isinstance(value, list)
+        or not value
+        or any(not isinstance(v, str) or not v for v in value)
+    ):
         raise ValueError(f"{field} must be a non-empty string list")
     if len(value) != len(set(value)):
         raise ValueError(f"{field} must contain unique values")

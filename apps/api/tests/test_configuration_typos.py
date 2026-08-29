@@ -124,9 +124,7 @@ def test_compose_exposes_model_assistance_only_to_the_api_and_defaults_it_off() 
     import yaml
 
     root = Path(__file__).resolve().parents[3]
-    services = yaml.safe_load((root / "docker-compose.yml").read_text(encoding="utf-8"))[
-        "services"
-    ]
+    services = yaml.safe_load((root / "docker-compose.yml").read_text(encoding="utf-8"))["services"]
     api = services["api"]["environment"]
 
     assert api["KORPUS_QUERY_PLANNER_ENABLED"].endswith(":-false}")

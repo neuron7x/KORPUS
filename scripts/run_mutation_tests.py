@@ -190,8 +190,8 @@ MUTANTS = (
     Mutant(
         "M13_OPERATIONAL_LEAKAGE_GATE_INVERTED",
         "apps/api/src/korpus/application/operational_math.py",
-        '_count_at_most(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
-        '_count_at_least(evaluation.get("leakage_failures"), eval_policy.get("maximum_leakage_failures")),',
+        '        "access_noninterference": _count_at_most(',
+        '        "access_noninterference": _count_at_least(',
         (
             "apps/api/tests/test_operations.py::test_operational_gate_fails_closed_on_trust_regression",
         ),
@@ -256,10 +256,9 @@ MUTANTS = (
         "M19_NEAR_DUPLICATE_ACK_BYPASS",
         "apps/api/src/korpus/infrastructure/review_transitions.py",
         (
-            "            current.near_duplicate_of_version_id is not None\n"
-            "            and not acknowledge_near_duplicate\n"
+            "        if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:"
         ),
-        ("            False\n            and False\n"),
+        ("        if False and False:"),
         (
             "apps/api/tests/test_near_duplicate_governance.py::test_near_duplicate_requires_explicit_metadata_acknowledgement",
         ),
@@ -917,8 +916,7 @@ MUTANTS = (
     Mutant(
         "M80_NUMERALS_POLLUTE_PROPOSITION_SIMILARITY",
         "apps/api/src/korpus/application/evidence.py",
-        "    content = {token for token in tokens.difference(_NEGATIONS) "
-        "if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS}",
+        "    content = {\n        token\n        for token in tokens.difference(_NEGATIONS)\n        if not _NUMERAL.fullmatch(token) and token not in _UNIT_TOKENS\n    }",
         "    content = {token for token in tokens.difference(_NEGATIONS) if token not in _UNIT_TOKENS}",
         (
             "apps/api/tests/test_intra_span_contradiction.py::test_a_numeric_reversal_inside_one_span_stops_the_answer",
@@ -955,8 +953,8 @@ MUTANTS = (
     Mutant(
         "M84_LEAKAGE_DENOMINATOR_NOT_REQUIRED_BY_GATE",
         "apps/api/src/korpus/application/operational_math.py",
-        '"access_noninterference_measured": _count_at_least(evaluation.get("leakage_checks"), eval_policy.get("minimum_leakage_checks")),',
-        '"access_noninterference_measured": True,',
+        '        "access_noninterference_measured": _count_at_least(\n            evaluation.get("leakage_checks"), eval_policy.get("minimum_leakage_checks")\n        ),',
+        '        "access_noninterference_measured": True,',
         (
             "apps/api/tests/test_leakage_measurement.py::test_the_gate_fails_when_the_metric_had_nothing_to_measure",
         ),
@@ -1087,8 +1085,8 @@ MUTANTS = (
     Mutant(
         "M98_SPAN_DISCLOSURE_BYPASSES_THE_RETRIEVAL_FILTER",
         "apps/api/src/korpus/api/routes_answers.py",
-        "    rows = repository.get_retrievable_spans_by_ids(\n        identity, identity.corpora, effective, [span_id]\n    )",
-        "    rows = repository.get_retrievable_spans_by_ids(\n        identity.model_copy(update={'clearance': 3, 'corpora': frozenset({'public', 'restricted-demo'})}),\n        frozenset({'public', 'restricted-demo'}), effective, [span_id]\n    )",
+        "    rows = repository.get_retrievable_spans_by_ids(identity, identity.corpora, effective, [span_id])",
+        '    rows = repository.get_retrievable_spans_by_ids(\n        identity.model_copy(\n            update={"clearance": 3, "corpora": frozenset({"public", "restricted-demo"})}\n        ),\n        frozenset({"public", "restricted-demo"}),\n        effective,\n        [span_id],\n    )',
         (
             "apps/api/tests/test_span_lookup.py::test_a_reader_cannot_open_a_span_they_could_not_have_been_cited",
         ),
@@ -1344,8 +1342,7 @@ MUTANTS = (
     Mutant(
         "M149_IMAGE_MAY_BE_PINNED_BY_TAG_ALONE",
         "apps/api/src/korpus/infrastructure_requirements.py",
-        '                    lambda c, n=name: not c.service(n).get("image")\n'
-        '                    or bool(DIGEST_PINNED.search(str(c.service(n)["image"]))),',
+        '                    lambda c, n=name: (\n                        not c.service(n).get("image")\n                        or bool(DIGEST_PINNED.search(str(c.service(n)["image"])))\n                    ),',
         "                    lambda c, n=name: True,",
         ("apps/api/tests/test_image_pinning.py::test_a_tag_without_a_digest_is_refused",),
     ),
@@ -2117,15 +2114,15 @@ MUTANTS = (
     Mutant(
         "M174_TYPO_DETECTOR_ACCEPTS_EVERYTHING",
         "apps/api/src/korpus/config.py",
-        "        and name not in known",
-        "        and name not in known and False",
+        '        if name.startswith("KORPUS_") and name not in known and name not in OPERATIONAL_VARIABLES',
+        '        if name.startswith("KORPUS_")\n        and name not in known\n        and False\n        and name not in OPERATIONAL_VARIABLES',
         ("apps/api/tests/test_configuration_typos.py::test_a_misspelled_setting_is_named",),
     ),
     Mutant(
         "M175_OPERATIONAL_VARIABLES_REPORTED_AS_TYPOS",
         "apps/api/src/korpus/config.py",
-        "        and name not in OPERATIONAL_VARIABLES",
-        "        and True",
+        '        name\n        for name in environ\n        if name.startswith("KORPUS_") and name not in known and name not in OPERATIONAL_VARIABLES',
+        '        name for name in environ if name.startswith("KORPUS_") and name not in known and True',
         ("apps/api/tests/test_configuration_typos.py::test_operational_variables_are_not_flagged",),
     ),
     Mutant(
@@ -2616,8 +2613,8 @@ MUTANTS = (
     Mutant(
         "M211_INTERNAL_REDTEAM_PROMOTED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "redteam.independent": redteam.get("evidence_class") == external.get("redteam_evidence_class"),',
-        '        "redteam.independent": redteam.get("evidence_class") != external.get("redteam_evidence_class"),',
+        '        == external.get("redteam_evidence_class"),',
+        '        != external.get("redteam_evidence_class"),',
         (
             "apps/api/tests/test_production_assurance.py::test_internal_redteam_cannot_promote_production",
         ),
@@ -2643,7 +2640,7 @@ MUTANTS = (
     Mutant(
         "M214_PARTIAL_SUPPLY_CHAIN_PROMOTED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "supply_chain.complete": supply.get("completeness") == external.get("supply_chain_completeness"),',
+        '        "supply_chain.complete": supply.get("completeness")\n        == external.get("supply_chain_completeness"),',
         '        "supply_chain.complete": True,',
         (
             "apps/api/tests/test_production_assurance.py::test_partial_supply_chain_evidence_cannot_promote_production",
@@ -2670,7 +2667,7 @@ MUTANTS = (
     Mutant(
         "M217_EXTERNAL_REDTEAM_ATTESTATION_BYPASSED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "redteam.attestation_verified": redteam.get("attestation_verified") is external.get("redteam_attestation_verified"),',
+        '        "redteam.attestation_verified": redteam.get("attestation_verified")\n        is external.get("redteam_attestation_verified"),',
         '        "redteam.attestation_verified": True,',
         (
             "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
@@ -2679,7 +2676,7 @@ MUTANTS = (
     Mutant(
         "M218_UNTRUSTED_REDTEAM_SIGNER_ACCEPTED",
         "apps/api/src/korpus/application/production_assurance_external.py",
-        '        "redteam.trusted_signer": redteam.get("trusted_signer") is external.get("redteam_trusted_signer_required"),',
+        '        "redteam.trusted_signer": redteam.get("trusted_signer")\n        is external.get("redteam_trusted_signer_required"),',
         '        "redteam.trusted_signer": True,',
         (
             "apps/api/tests/test_production_assurance.py::test_self_declared_external_redteam_without_trusted_attestation_is_rejected",
@@ -2733,8 +2730,8 @@ MUTANTS = (
     Mutant(
         "M224_MANIFEST_ROOT_IGNORES_MODE",
         "scripts/manifest_lib/integrity.py",
-        '        f"{item[\'path\']}\\0{item[\'mode\']}\\0{item[\'sha256\']}\\n" for item in records',
-        '        f"{item[\'path\']}\\0{item[\'sha256\']}\\n" for item in records',
+        "        f\"{item['path']}\\0{item['mode']}\\0{item['sha256']}\\n\" for item in records",
+        "        f\"{item['path']}\\0{item['sha256']}\\n\" for item in records",
         (
             "apps/api/tests/test_manifest_generation.py::test_manifest_root_changes_when_only_mode_changes",
         ),
@@ -2916,7 +2913,7 @@ MUTANTS = (
     Mutant(
         "M244_UNPROTECTED_CI_RUNTIME_TRUST_ACCEPTED",
         "apps/api/src/korpus/application/assurance_trust.py",
-        '    if injected and os.getenv("GITLAB_CI") == "true" and os.getenv("CI_COMMIT_REF_PROTECTED") != "true":',
+        '    if (\n        injected\n        and os.getenv("GITLAB_CI") == "true"\n        and os.getenv("CI_COMMIT_REF_PROTECTED") != "true"\n    ):',
         "    if False:",
         (
             "apps/api/tests/test_assurance_trust.py::"
@@ -3133,8 +3130,8 @@ MUTANTS = (
     Mutant(
         "M266_MISSION_HARD_FAILURE_COMPENSATED",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
-        '    if failures: reasons.append(f"{failures} cases contain hard mission-assurance failures")',
-        '    if False: reasons.append(f"{failures} cases contain hard mission-assurance failures")',
+        "    if failures:",
+        "    if False:",
         (
             "apps/api/tests/test_mission_assurance_v2.py::test_one_hard_failure_cannot_be_compensated_by_perfect_claim_accuracy",
         ),
@@ -3151,8 +3148,8 @@ MUTANTS = (
     Mutant(
         "M268_MISSION_INDEPENDENCE_BYPASSED",
         "apps/api/src/korpus/application/mission_assurance_v2.py",
-        '    if not independent: reasons.append("evaluation is not independent")',
-        '    if False: reasons.append("evaluation is not independent")',
+        "    if not independent:",
+        "    if False:",
         (
             "apps/api/tests/test_mission_assurance_v2.py::test_independence_alone_is_required_for_admission",
         ),
@@ -3212,8 +3209,8 @@ MUTANTS = (
     Mutant(
         "M275_AUDIT_ANCHOR_EXTERNAL_HTTPS_BYPASSED",
         "apps/api/src/korpus/controlled_requirements.py",
-        '        lambda s: (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))',
-        '        lambda s: (s.audit_anchor_mode == "http" and bool(s.audit_anchor_url))',
+        '            (s.audit_anchor_mode == "http" and is_external_https_url(s.audit_anchor_url))',
+        '            (s.audit_anchor_mode == "http" and bool(s.audit_anchor_url))',
         (
             "apps/api/tests/test_controlled_configuration_refusals.py::test_a_controlled_deployment_refuses_each_weakening",
         ),
@@ -3257,7 +3254,7 @@ MUTANTS = (
     Mutant(
         "M280_DGC_ORIGINAL_QUERY_BASELINE_OPTIONAL",
         "apps/api/src/korpus/application/pec_oracle_policy.py",
-        '        return _decision(query_id, RetrievalAction.BASELINE, "UNKNOWN", "missing_original_query_stop_baseline", [])',
+        '        return _decision(\n            query_id,\n            RetrievalAction.BASELINE,\n            "UNKNOWN",\n            "missing_original_query_stop_baseline",\n            [],\n        )',
         '        return _decision(query_id, RetrievalAction.PLAN_QUERY_VARIANTS, "PASS", "mutated", [])',
         ("apps/api/tests/test_pec_replay.py::test_oracle_requires_original_query_stop_baseline",),
     ),
@@ -3535,7 +3532,7 @@ MUTANTS = (
     Mutant(
         "M312_SLSA_ARTIFACT_SUBJECT_MUTATION_ACCEPTED",
         "apps/api/src/korpus/application/supply_chain_attestation.py",
-        '    return item.get("name") == artifact_name and isinstance(digest, Mapping) and digest.get("sha256") == hashlib.sha256(artifact_bytes).hexdigest()',
+        '    return (\n        item.get("name") == artifact_name\n        and isinstance(digest, Mapping)\n        and digest.get("sha256") == hashlib.sha256(artifact_bytes).hexdigest()\n    )',
         '    return item.get("name") == artifact_name and isinstance(digest, Mapping)',
         (
             "apps/api/tests/test_supply_chain_attestation_v097.py::test_in_toto_subject_rejects_artifact_mutation",

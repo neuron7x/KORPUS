@@ -84,9 +84,7 @@ def _version(**changes: object) -> VersionCreate:
 
 def test_an_entitled_curator_ingests(service: IngestionService, curator: Identity) -> None:
     """The dual: every refusal below is vacuous if nothing can be ingested at all."""
-    result = service.ingest(
-        curator, _document(), _version(), "order.txt", "text/plain", CONTENT
-    )
+    result = service.ingest(curator, _document(), _version(), "order.txt", "text/plain", CONTENT)
     assert result.document.canonical_title == "Order 21"
 
 
@@ -135,9 +133,7 @@ def test_a_new_document_cannot_supersede_another_documents_version(
     superseded version stopped being retrievable while it stayed `is_current` in the
     database, which is a state no reader could explain.
     """
-    existing = service.ingest(
-        curator, _document(), _version(), "order.txt", "text/plain", CONTENT
-    )
+    existing = service.ingest(curator, _document(), _version(), "order.txt", "text/plain", CONTENT)
     with pytest.raises(ValueError, match="cannot supersede a version of another document"):
         service.ingest(
             curator,
@@ -162,9 +158,7 @@ def test_a_version_for_a_document_in_another_corpus_is_refused(
     service: IngestionService, curator: Identity
 ) -> None:
     """`get_document` returns the row; it does not decide access."""
-    existing = service.ingest(
-        curator, _document(), _version(), "order.txt", "text/plain", CONTENT
-    )
+    existing = service.ingest(curator, _document(), _version(), "order.txt", "text/plain", CONTENT)
     outsider = Identity(
         subject="curator-training",
         roles=frozenset({"user", "curator", "admin"}),
@@ -234,11 +228,15 @@ def test_a_document_with_compartments_writes_them_as_rows(
         CONTENT,
     )
     with repository.engine.connect() as connection:
-        rows = connection.execute(
-            select(document_compartments.c.compartment).where(
-                document_compartments.c.document_id == str(result.document.id)
+        rows = (
+            connection.execute(
+                select(document_compartments.c.compartment).where(
+                    document_compartments.c.document_id == str(result.document.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     assert sorted(rows) == ["alpha", "bravo"]
 
     plain = service.ingest(
@@ -250,9 +248,13 @@ def test_a_document_with_compartments_writes_them_as_rows(
         b"An uncompartmented order.\n",
     )
     with repository.engine.connect() as connection:
-        none = connection.execute(
-            select(document_compartments.c.compartment).where(
-                document_compartments.c.document_id == str(plain.document.id)
+        none = (
+            connection.execute(
+                select(document_compartments.c.compartment).where(
+                    document_compartments.c.document_id == str(plain.document.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     assert none == []

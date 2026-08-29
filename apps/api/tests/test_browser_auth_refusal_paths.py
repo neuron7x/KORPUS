@@ -58,9 +58,9 @@ def test_login_and_callback_are_not_found_when_browser_auth_is_off(tmp_path: Pat
     app = create_app(settings)
     with TestClient(app, follow_redirects=False) as client:
         assert client.get("/v1/auth/login").status_code == 404
-        assert client.get(
-            "/v1/auth/callback", params={"code": "c", "state": STATE}
-        ).status_code == 404
+        assert (
+            client.get("/v1/auth/callback", params={"code": "c", "state": STATE}).status_code == 404
+        )
 
 
 def test_login_refuses_when_the_oidc_client_was_never_wired(tmp_path: Path) -> None:

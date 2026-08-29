@@ -123,8 +123,11 @@ def test_a_non_boolean_production_judged_flag_is_recorded_as_invalid() -> None:
     )
     invalid = result.get("invalid")
     assert isinstance(invalid, list)
-    assert {"invalid_production_judged:r2", "invalid_production_judged:r3",
-            "invalid_production_judged:r4"} <= set(invalid)
+    assert {
+        "invalid_production_judged:r2",
+        "invalid_production_judged:r3",
+        "invalid_production_judged:r4",
+    } <= set(invalid)
 
 
 def test_an_unusable_information_gain_input_is_unknown_rather_than_zero() -> None:

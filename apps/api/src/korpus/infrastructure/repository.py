@@ -145,7 +145,6 @@ def _is_contention(exc: OperationalError) -> bool:
     return any(phrase in message for phrase in CONTENTION_PHRASES)
 
 
-
 class SqlRepository:
     def __init__(
         self,

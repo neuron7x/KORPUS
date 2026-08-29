@@ -8,12 +8,20 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.engine import Connection
 
-from korpus.domain.models import AccessTier, DocumentRecord, DocumentVersionRecord, Identity, ReviewState
+from korpus.domain.models import (
+    AccessTier,
+    DocumentRecord,
+    DocumentVersionRecord,
+    Identity,
+    ReviewState,
+)
 from korpus.infrastructure.schema import documents, versions
 
 VersionMapper = Callable[[Any], DocumentVersionRecord]
 DocumentMapper = Callable[[Any], DocumentRecord]
-AuditAppender = Callable[[Connection, Identity, str, str, str | None, dict[str, Any]], tuple[int, str]]
+AuditAppender = Callable[
+    [Connection, Identity, str, str, str | None, dict[str, Any]], tuple[int, str]
+]
 
 
 class ReviewTransitionConflict(RuntimeError):
@@ -26,9 +34,11 @@ def _load_current(
     expected_state: ReviewState,
     version_mapper: VersionMapper,
 ) -> DocumentVersionRecord:
-    row = connection.execute(
-        select(versions).where(versions.c.id == str(version_id))
-    ).mappings().first()
+    row = (
+        connection.execute(select(versions).where(versions.c.id == str(version_id)))
+        .mappings()
+        .first()
+    )
     if row is None:
         raise LookupError("version not found")
     current = version_mapper(row)
@@ -47,10 +57,7 @@ def _reviewer_changes(
     reviewer_credential_id: str | None,
 ) -> dict[str, Any]:
     if target_state is ReviewState.METADATA_REVIEWED:
-        if (
-            current.near_duplicate_of_version_id is not None
-            and not acknowledge_near_duplicate
-        ):
+        if current.near_duplicate_of_version_id is not None and not acknowledge_near_duplicate:
             raise ValueError("near-duplicate finding must be explicitly acknowledged")
         if current.extraction_quality_flags and not acknowledge_extraction_quality:
             raise ValueError("extraction-quality findings must be explicitly acknowledged")
@@ -76,13 +83,17 @@ def _retire_existing_approved(
     current: DocumentVersionRecord,
     version_mapper: VersionMapper,
 ) -> None:
-    existing_row = connection.execute(
-        select(versions)
-        .where(versions.c.document_id == str(current.document_id))
-        .where(versions.c.review_state == ReviewState.APPROVED.value)
-        .where(versions.c.is_current.is_(True))
-        .where(versions.c.id != str(current.id))
-    ).mappings().first()
+    existing_row = (
+        connection.execute(
+            select(versions)
+            .where(versions.c.document_id == str(current.document_id))
+            .where(versions.c.review_state == ReviewState.APPROVED.value)
+            .where(versions.c.is_current.is_(True))
+            .where(versions.c.id != str(current.id))
+        )
+        .mappings()
+        .first()
+    )
     if existing_row is not None:
         existing = version_mapper(existing_row)
         if current.supersedes_version_id != existing.id:
@@ -96,9 +107,13 @@ def _retire_existing_approved(
         return
     if current.supersedes_version_id is None:
         return
-    predecessor_row = connection.execute(
-        select(versions).where(versions.c.id == str(current.supersedes_version_id))
-    ).mappings().first()
+    predecessor_row = (
+        connection.execute(
+            select(versions).where(versions.c.id == str(current.supersedes_version_id))
+        )
+        .mappings()
+        .first()
+    )
     if predecessor_row is None or predecessor_row["review_state"] != ReviewState.APPROVED.value:
         raise ValueError("superseded version must be approved")
 
@@ -112,9 +127,11 @@ def _apply_access_tier(
 ) -> None:
     if access_tier is None:
         return
-    document_row = connection.execute(
-        select(documents).where(documents.c.id == str(current.document_id))
-    ).mappings().one()
+    document_row = (
+        connection.execute(select(documents).where(documents.c.id == str(current.document_id)))
+        .mappings()
+        .one()
+    )
     document = document_mapper(document_row)
     if access_tier < document.classification.minimum_tier:
         raise ValueError("access_tier is below classification minimum")
@@ -230,9 +247,9 @@ def transition_version_in_connection(
     if result.rowcount != 1:
         raise ReviewTransitionConflict("optimistic review transition failed")
     updated = version_mapper(
-        connection.execute(
-            select(versions).where(versions.c.id == str(version_id))
-        ).mappings().one()
+        connection.execute(select(versions).where(versions.c.id == str(version_id)))
+        .mappings()
+        .one()
     )
     anchor = append_audit(
         connection,

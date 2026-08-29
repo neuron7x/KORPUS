@@ -117,8 +117,7 @@ def evaluate_tevv_ledger(evidence: dict[str, Any], profile: dict[str, Any]) -> d
         "null_control_ids_unique": len(null_ids) == len(set(null_ids)),
         "required_attack_families_covered": required.issubset(set(metrics["attack_families"])),
         "required_cohorts_covered": all(
-            metrics["cohort_counts"].get(cohort, 0) >= minimum_cohort
-            for cohort in required_cohorts
+            metrics["cohort_counts"].get(cohort, 0) >= minimum_cohort for cohort in required_cohorts
         ),
         "declared_aggregates_consistent": _declared_consistent(evidence, metrics),
     }

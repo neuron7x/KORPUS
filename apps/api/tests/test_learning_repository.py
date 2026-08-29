@@ -160,14 +160,15 @@ def test_learning_repository_round_trips_framework_and_competency_edges(stores) 
                     competency_ids={"competency.safety"},
                 ),
             ),
-            competencies=(
-                Competency(id="competency.safety", statement="Apply the safety check"),
-            ),
+            competencies=(Competency(id="competency.safety", statement="Apply the safety check"),),
         )
     )
     version = _version()
-    objective = version.modules[0].lessons[0].objectives[0].model_copy(
-        update={"competency_ids": frozenset({"competency.safety"})}
+    objective = (
+        version.modules[0]
+        .lessons[0]
+        .objectives[0]
+        .model_copy(update={"competency_ids": frozenset({"competency.safety"})})
     )
     lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
     module = version.modules[0].model_copy(update={"lessons": (lesson,)})
@@ -211,8 +212,11 @@ def test_learning_repository_refuses_unknown_framework_and_competency(stores) ->
             competencies=(Competency(id="known", statement="Known competency"),),
         )
     )
-    objective = version.modules[0].lessons[0].objectives[0].model_copy(
-        update={"competency_ids": frozenset({"invented"})}
+    objective = (
+        version.modules[0]
+        .lessons[0]
+        .objectives[0]
+        .model_copy(update={"competency_ids": frozenset({"invented"})})
     )
     lesson = version.modules[0].lessons[0].model_copy(update={"objectives": (objective,)})
     module = version.modules[0].model_copy(update={"lessons": (lesson,)})
