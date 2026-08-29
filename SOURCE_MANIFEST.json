@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1402,
-  "root_sha256": "d3df8f228c6442a291f46a2328ccfc4e57c55ca2ac6fd2d0eafbf514b6284cc5",
+  "file_count": 1404,
+  "root_sha256": "885a00979d13d2882c7dccc99e8d0e58b387618358ee2ef10e0f5ced8784b9a7",
   "files": [
     {
       "path": ".dockerignore",
@@ -373,8 +373,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 43843,
-      "sha256": "03ebd2bc92f21479edee884307b21f63b6fe66849ca40c120e0a0aacf711e2f6",
+      "bytes": 44428,
+      "sha256": "e2fb28b0d628569b30af140accffd0b143126c3af52b42bfa7dc883ce433a3b2",
       "mode": "0644"
     },
     {
@@ -5611,8 +5611,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 228772,
-      "sha256": "43308977beac47557b8750b5b659d284ce6915f80d0ee873a047570c3441b82b",
+      "bytes": 229077,
+      "sha256": "e3c5d34031218dc05e16a99e6bdd771e949acea8e60b47316528a889d7cd2f06",
       "mode": "0644"
     },
     {
@@ -7590,6 +7590,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/iso_dates.py",
+      "bytes": 1553,
+      "sha256": "5bac3f07ff86affb76199050c15e5632e8a6ba18405c71f64804284f2005467b",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/load_probe.py",
       "bytes": 8327,
       "sha256": "73b636a59354dc6b35f3fb87d739700511a7e982acbe8f5a775190575363c254",
@@ -8265,6 +8271,12 @@
       "path": "scripts/validate_kubernetes.py",
       "bytes": 2565,
       "sha256": "61bd574f0ee61e28c46a149596892162a3f49427909dc5cd87d41fb2e2b15f7a",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/validate_remote_digest.py",
+      "bytes": 9204,
+      "sha256": "dd3453a9dd4d26018cc2cae0645c8a0b17b859b8688f291a9b4b8f85bc7fe263",
       "mode": "0755"
     },
     {
