@@ -110,29 +110,43 @@ gates:
         kind: delete
         target: SOURCE_MANIFEST.json
 
+  # `keep: [".git"]` — цей гейт міряє САМЕ git-стан: `source_tree_digest` бере перелік
+  # відстежуваних шляхів у git, а в копії без `.git` падає на обхід файлової системи й
+  # рахує інший набір. Виміряно 2026-08-30: без `.git` чистий стан давав STALE, що
+  # читається як «гейт зламаний», хоча він працює правильно на іншому предметі.
+  # 124 МБ на пробу — ціна за те, щоб міряти той предмет, про який гейт говорить.
   # `--require-bound`, не типова форма. Виміряно 29.08.2026: без прапорця гейт приймає і
   # звіт із чужим digest, і звіт без оголошеної області — тобто саме те, від чого він
   # нібито захищає. Вимірювати треба ту форму, яка щось зв'язує.
   - name: handoff-verify
     run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/verify_handoff_contract.py", "--require-bound"]
-    timeout: 600
+    timeout: 900
     ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    keep: [".git"]
     poisons:
+      # Правити ЗНАЧЕННЯ, не вставляти ключ на початок: json бере ОСТАННЄ входження
+      # дубльованого ключа, тож вставка зверху нічого не міняла й отрута мовчки проходила.
       - name: звіт оголошує чужу область вимірювання
         kind: replace
         target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: '{'
-        payload: '{"digest_scope": "evidence_paths",'
+        find: '"digest_scope": "tracked_tree"'
+        payload: '"digest_scope": "evidence_paths"'
+      # Не жорстко вписаний digest: він змінюється щоразу, коли змінюється дерево, і
+      # застаріла отрута «не застосувалась» замість того, щоб щось перевірити. Псується
+      # ПРЕФІКС поля, який стабільний.
       - name: digest у звіті не той, що в дереві
         kind: replace
         target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: 'baea6f778c824470652c1464cb146f84758d22518f1e4ccd7ae5278cc7fd'
-        payload: '0000000000000000000000000000000000000000000000000000000000'
-      - name: перевірка scope знята
+        find: '"source_tree_sha256": "'
+        payload: '"source_tree_sha256": "0000'
+      # Не «зняти перевірку, яка й так не спрацьовує на правильних даних» — це був
+      # еквівалентний мутант, і він проходив заслужено. Знімається третій стан: звіт БЕЗ
+      # оголошеної області мусить лишатись SCOPE_UNDECLARED, а не мовчки прийматись.
+      - name: незаявлена область перестає бути окремим станом
         kind: replace
-        target: scripts/verify_handoff_contract.py
-        find: "    if promoted_scope != DIGEST_SCOPE:"
-        payload: "    if False:"
+        target: reports/RESEARCH_ASSURANCE_REPORT.json
+        find: '"digest_scope": "tracked_tree",'
+        payload: ''
 
   - name: module-budget
     run: ["env", "PYTHONPATH=apps/api/src", "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python", "scripts/check_module_budget.py"]
