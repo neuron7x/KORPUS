@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1604,
-  "root_sha256": "dbfaf460465ca80e77c1ec31dcf1e19b86cb8266cdf1c84f5df52551f52b9db1",
+  "root_sha256": "5d0fb4810a897f531a8e8478fe3c59f7f01fd26777837cb1c36ecde27aaffaca",
   "files": [
     {
       "path": ".dockerignore",
@@ -6667,8 +6667,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 261645,
-      "sha256": "356ff673554961fc2d54d989c7026325bf41538c92ea3df1e00d22bc3821948d",
+      "bytes": 263061,
+      "sha256": "518c1f21f22dda2b2d5d9bfeafbe50bfe917a46815d330293eb003fd6eec7e63",
       "mode": "0644"
     },
     {
@@ -8101,8 +8101,8 @@
     },
     {
       "path": "scripts/agent_protocol.py",
-      "bytes": 27107,
-      "sha256": "35305cd9b09293e413bb85d6739f148fef7e1621eb15ce0cb2b1e27135b27f2f",
+      "bytes": 33579,
+      "sha256": "cd45eeb4cb11f98beccf5305073ce7e3cb18fed2274a9c6063cf6c19398a843f",
       "mode": "0755"
     },
     {
@@ -8797,8 +8797,8 @@
     },
     {
       "path": "scripts/open_claims.py",
-      "bytes": 2086,
-      "sha256": "9477daf0599ff068f87c549edde935ce42f5720e9778ecb82a43763050ddec12",
+      "bytes": 2100,
+      "sha256": "dd9c1d2b34622cf2fef313ab199e7b3d0262f732b561efb063bff868310f890b",
       "mode": "0755"
     },
     {
