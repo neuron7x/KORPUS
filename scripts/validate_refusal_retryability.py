@@ -26,6 +26,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
@@ -89,7 +90,7 @@ def check(sources: list[dict]) -> list[str]:
 
 
 def selftest() -> int:
-    def rec(i, cls, **extra):
+    def rec(i: str, cls: str, **extra: object) -> dict[Any, Any]:
         return {"id": i, "evidence_refusal": {"class": cls, **extra}}
 
     cases = [

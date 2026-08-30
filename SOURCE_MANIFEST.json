@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1607,
-  "root_sha256": "73cfa4339e4154089fa8494c8f015a4f0b6292a6d5c04179ef2180e516e6633e",
+  "root_sha256": "153a6f5d231450f0f6070e3103a7d296a86f34e1f062cc34a19d9fcaa5b727d4",
   "files": [
     {
       "path": ".dockerignore",
@@ -6656,7 +6656,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "80fb2064414a5fd840c60d078b025ce7c65cbdd43cc9f8df27a867d3c3c88484",
+      "sha256": "6dab3079862bda7cf5023ebb302ee75e2e99d14794539e9d10428be5506c2b77",
       "mode": "0644"
     },
     {
@@ -9481,14 +9481,14 @@
     },
     {
       "path": "scripts/validate_publication_mirrors.py",
-      "bytes": 10342,
-      "sha256": "2c212aa191ddd8f38990ee027a72917e0bb574f7b9e6ab5b66ebac82b8c345b5",
+      "bytes": 10386,
+      "sha256": "e153c7743affe81c501c8d5c8fefa12fcf34258e86addd4f339a649c557df6ca",
       "mode": "0755"
     },
     {
       "path": "scripts/validate_refusal_retryability.py",
-      "bytes": 7727,
-      "sha256": "cd27de050c2aeaa596fbbcc697e3d6d4c15049399943896b4b6440e1638f1e1d",
+      "bytes": 7786,
+      "sha256": "948d6813b2ec4cc0f824ae6a76886c84af15bedebd72d15b2d295de45faef093",
       "mode": "0755"
     },
     {

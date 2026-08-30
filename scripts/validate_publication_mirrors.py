@@ -96,7 +96,7 @@ def check(sources: list[dict]) -> list[str]:
 
 
 def selftest() -> int:
-    def rec(i, title, uri, **extra):
+    def rec(i: str, title: str, uri: str, **extra: object) -> dict[str, object]:
         return {"id": i, "canonical_title": title, "source_uri": uri, **extra}
 
     cases: list[tuple[str, list[dict], bool]] = [
