@@ -1,0 +1,21 @@
+[Unit]
+Description=Isolated bounded KORPUS agent routine %i
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@KORPUS_ROOT@
+ExecStart=/usr/bin/python3 @KORPUS_ROOT@/scripts/run_isolated_routine.py --name %i --prompt-file %h/.claude/routines/%i.prompt --repository @KORPUS_ROOT@ --timeout-seconds 1800
+TimeoutStartSec=35min
+KillMode=control-group
+CPUAccounting=true
+CPUQuota=300%
+MemoryAccounting=true
+MemoryHigh=3G
+MemoryMax=5G
+TasksMax=512
+OOMPolicy=stop
+Nice=5
+NoNewPrivileges=true
+PrivateTmp=true

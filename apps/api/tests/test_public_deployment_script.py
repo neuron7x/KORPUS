@@ -26,7 +26,7 @@ def _argv(source: str, *head: str) -> list[str] | None:
 def test_public_worker_control_does_not_leak_into_strict_api_environment() -> None:
     script = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
 
-    consume = script.index('WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"')
+    consume = script.index('WORKERS="${KORPUS_PUBLIC_WORKERS:-2}"')
     remove = script.index("unset KORPUS_PUBLIC_WORKERS")
     launch = script.index('nohup "$PY" -m uvicorn')
 
@@ -79,3 +79,16 @@ def test_public_edge_runs_the_hardened_image_in_both_deployment_paths() -> None:
     assert _argv(deployer, "docker", "build") is not None
     assert "RUN apk upgrade --no-cache" in dockerfile
     assert "USER nginx:nginx" in dockerfile
+
+
+def test_public_api_is_loopback_only_and_resource_bounded() -> None:
+    script = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
+    config = (ROOT / "deploy/public/nginx.conf").read_text(encoding="utf-8")
+
+    assert "export KORPUS_BIND_HOST=127.0.0.1" in script
+    assert 'export KORPUS_TRUSTED_HOSTS="localhost,127.0.0.1"' in script
+    assert 'KORPUS_TRUSTED_HOSTS="*"' not in script
+    assert "KORPUS_MAX_CONCURRENT_ANSWERS:-4}" in script
+    assert "KORPUS_PUBLIC_WORKERS:-2}" in script
+    assert "--host 127.0.0.1" in script
+    assert "proxy_set_header Host 127.0.0.1;" in config
