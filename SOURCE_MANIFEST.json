@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1505,
-  "root_sha256": "9ebba28cbb48ac48d681116f03fdd2108eb7811485af299f89db7015ac690cb7",
+  "root_sha256": "e8807291c0d1de115afeb24aeb1083deb86be06ac9d022b2d92efb8cba2a22fa",
   "files": [
     {
       "path": ".dockerignore",
@@ -6175,8 +6175,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 248973,
-      "sha256": "ef3b6832e848361f608c4926774daf338426629dfa6bfa993a30c6b66c872203",
+      "bytes": 252471,
+      "sha256": "2912a6198e8d1a0145689b513fb1f3f73127c7fd3253268345ad0028b13d4ac1",
       "mode": "0644"
     },
     {
@@ -7699,8 +7699,8 @@
     },
     {
       "path": "scripts/capture_source_evidence.py",
-      "bytes": 43287,
-      "sha256": "282266cbab83eb0ce4a65c605cdd8f67361719aa00e78dc6fcd51ee697afd290",
+      "bytes": 44587,
+      "sha256": "a1ad9f901626d94d11410f5eac04c5547903b7aa9531d5ca033e3590cad636fa",
       "mode": "0755"
     },
     {
@@ -8443,8 +8443,8 @@
     },
     {
       "path": "scripts/recheck_blocked_sources.py",
-      "bytes": 15015,
-      "sha256": "60d1320dd4a05e3b6ed36265a43c8a3addc7418bd6535f6748b7bbea44c0e478",
+      "bytes": 17742,
+      "sha256": "80d0d6fb9108e3cce85aafe90acfbe1c112ddc5253ca7fdfa8c5001f9649d9f1",
       "mode": "0755"
     },
     {
@@ -8821,8 +8821,8 @@
     },
     {
       "path": "scripts/threshold_distance.py",
-      "bytes": 10724,
-      "sha256": "ae6224f6cd73087d37c794b3618dbae2469c0d9dbfe3502b13b2fe0b98af0f80",
+      "bytes": 14105,
+      "sha256": "76e87ff54d1aa3d8394e2e7a486462d7f91ca24d2a08b33c42b6ef43ac52489a",
       "mode": "0755"
     },
     {
@@ -8845,8 +8845,8 @@
     },
     {
       "path": "scripts/validate_document_probe.py",
-      "bytes": 18056,
-      "sha256": "2e1d4c6d6b7c8018a4966fd170cc179306fec0b3ad980ed50dc74efaa81ca3a4",
+      "bytes": 19995,
+      "sha256": "808a758ef95d9005c5eae7ddefb0b91a79622fb6a24aaf2349a0efab4b57c16f",
       "mode": "0755"
     },
     {

@@ -133,6 +133,42 @@ def place(threshold: float, observations: list[float], unit: str = "") -> Placem
     return _one_sided(threshold, below, above, len(values), unit)
 
 
+def separability(
+    lower_class: list[float],
+    upper_class: list[float],
+    unit: str = "",
+) -> tuple[str, str]:
+    """Чи ця ВІСЬ узагалі здатна розділити два відомі класи — питання перед вибором порога.
+
+    `place()` відповідає на «чи поріг перевірений даними» і мовчить про те, чи вісь,
+    на якій він стоїть, розділяє класи взагалі. Знайдено на реальному випадку:
+    `CARD_CEILING_BYTES = 200_000` давало `separates` (56 нижче, 25 вище), а класи
+    за цією віссю ПЕРЕКРИВАЮТЬСЯ — картки 41 553–43 491 байт, документи
+    34 559–1 443 866, і вісім справжніх документів лежать усередині смуги карток.
+    Найменший документ МЕНШИЙ за найменшу картку. Жодне значення порога цього не
+    виправить: вада не в числі, а у виборі того, що міряти.
+
+    Вирок `axis_cannot_separate` сильніший за всі інші саме тому, що не пропонує
+    підкрутити число — він каже, що шукати треба іншу величину.
+    """
+    u = f" {unit}" if unit else ""
+    if not lower_class or not upper_class:
+        return "unmeasured", "один із класів порожній: про роздільність сказати нічого"
+    lo_max, up_min = max(lower_class), min(upper_class)
+    lo_min, up_max = min(lower_class), max(upper_class)
+    if lo_max < up_min:
+        return "separable", (
+            f"вісь РОЗДІЛЯЄ класи: {lo_min}–{lo_max}{u} проти {up_min}–{up_max}{u}, "
+            f"проміжок {up_min - lo_max}{u} — поріг має де стати"
+        )
+    overlap = [v for v in upper_class if v <= lo_max]
+    return "axis_cannot_separate", (
+        f"вісь НЕ РОЗДІЛЯЄ класи: {lo_min}–{lo_max}{u} і {up_min}–{up_max}{u} "
+        f"перекриваються, {len(overlap)} зі старшого класу лежать у смузі молодшого — "
+        "жодне значення порога цього не виправить, треба інша величина"
+    )
+
+
 def selftest() -> int:
     cases: list[tuple[str, float, list[float], str]] = [
         ("поріг між спостереженнями", 200, [41, 372, 625, 9341], "separates"),
@@ -168,7 +204,25 @@ def selftest() -> int:
         ok = got == want
         bad += not ok
         print(f"  {'✓' if ok else '✗'} {name}: {got}" + ("" if ok else f" (очікували {want})"))
-    print(f"негативний контроль: {len(cases) - bad}/{len(cases)}")
+    sep_cases = [
+        ("класи не перетинаються", [1.0, 2.0, 3.0], [10.0, 20.0], "separable"),
+        # Реальний випадок: картки 41553–43491, документи 34559–1443866.
+        (
+            "класи перекриваються — вісь не годиться",
+            [41553.0, 43491.0],
+            [34559.0, 43207.0, 1443866.0],
+            "axis_cannot_separate",
+        ),
+        ("дотик межа-в-межу ще не роздільність", [1.0, 5.0], [5.0, 9.0], "axis_cannot_separate"),
+        ("порожній клас", [], [1.0], "unmeasured"),
+    ]
+    for name, low, high, want in sep_cases:
+        got, _note = separability(low, high)
+        ok = got == want
+        bad += not ok
+        print(f"  {'✓' if ok else '✗'} роздільність осі: {name}: {got}")
+    total = len(cases) + len(sep_cases)
+    print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
 

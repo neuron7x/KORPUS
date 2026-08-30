@@ -66,8 +66,17 @@ RIGHTS_MARKERS = (
     "гриф",
     "not open",
 )
-#: Below this a 200 is a card, a stub or an error page — not the document.
-CARD_CEILING_BYTES = 200_000
+#: НЕ розділювач карток і документів: така вісь не існує. Виміряно 2026-08-30 на власних
+#: даних — 92 захоплені документи 41 609 … 145 793 253 байт, 6 карток каталогу
+#: 41 553 … 42 459. `max(картки) < min(документи)` = False: XC-COTCCC-JTS (41 609 Б) лежить
+#: усередині діапазону карток, і жодне значення порога цього не змінить.
+#:
+#: Що це насправді: стеля «завелике, щоб бути карткою» — 4.7× над найбільшою відомою
+#: карткою. Вона працює лише тому, що розмір тут НЕ єдиний сигнал: `%PDF-` перевіряється
+#: раніше й вирішує сам, а `card_not_document` лишається наслідком «200, не PDF, і
+#: невелике». Спрощення умови до самого розміру мовчки перетворило б справжні документи
+#: на картки — і саме тому назва каже про роль, а не про поділ.
+NOT_A_CARD_ABOVE_BYTES = 200_000
 PDF_SIGNATURE = b"%PDF-"
 #: Розповсюдження читається З ПРЕФІКСА ШЛЯХУ, бо на сторінці запису його немає взагалі.
 #: `armypubs Details.aspx` коду не показує; він видний у `Details_Printer.aspx` і в шляху
@@ -99,7 +108,7 @@ def verdict(status: int | None, head: bytes, size: int, dist: str = "unknown") -
         # Віддається ≠ можна брати. Гриф обмеженого кола робить це не спростуванням
         # причини блокування, а її підтвердженням з іншого боку.
         return "served_but_restricted" if dist == "restricted" else "document_served"
-    if status == 200 and size > CARD_CEILING_BYTES:
+    if status == 200 and size > NOT_A_CARD_ABOVE_BYTES:
         return "large_response_unknown_format"
     return "card_not_document" if status == 200 else "still_unreachable"
 
@@ -174,12 +183,18 @@ SELFTEST_CASES: tuple[tuple[str, int | None, bytes, int, str], ...] = (
     ),
     ("справді недосяжне", None, b"", 0, "still_unreachable"),
     ("404 — не суперечить", 404, b"", 0, "still_unreachable"),
-    ("рівно на порозі картки — ще картка", 200, b"<html>", CARD_CEILING_BYTES, "card_not_document"),
+    (
+        "рівно на порозі картки — ще картка",
+        200,
+        b"<html>",
+        NOT_A_CARD_ABOVE_BYTES,
+        "card_not_document",
+    ),
     (
         "на байт вище порога",
         200,
         b"<html>",
-        CARD_CEILING_BYTES + 1,
+        NOT_A_CARD_ABOVE_BYTES + 1,
         "large_response_unknown_format",
     ),
 )
@@ -213,6 +228,22 @@ def selftest() -> int:
         if got_dist != expected_dist:
             bad += 1
             print(f"  ✗ {name}: очікували {expected_dist!r}, отримали {got_dist!r}")
+    # Розмір НЕ вирішує сам. Найменший захоплений документ (41 609 Б, XC-COTCCC-JTS)
+    # лежить усередині діапазону карток каталогу (41 553 … 42 459) — вісь розміру класи
+    # не розділяє. Тримається все на тому, що `%PDF-` перевіряється РАНІШЕ: PDF розміром
+    # із картку мусить лишитись документом.
+    if verdict(200, b"%PDF-1.7", 41_609) != "document_served":
+        bad += 1
+        print("  ✗ PDF розміром із картку названо карткою — розмір вирішив сам")
+    # І нижче ВСІХ карток: 34 559 Б — найменший документ у ширшій вибірці паралельної
+    # сесії, менший за найменшу картку (41 553). Обидві проби ловлять одне майбутнє
+    # спрощення — «розмір і є ознакою картки», — але з різних боків діапазону.
+    if verdict(200, b"%PDF-1.7", 34_559) != "document_served":
+        bad += 1
+        print("  ✗ документ, менший за будь-яку картку, названо карткою")
+    if verdict(200, b"<html>", 41_609) != "card_not_document":
+        bad += 1
+        print("  ✗ HTML розміром із картку перестав бути карткою")
     # Той самий PDF під грифом НЕ сміє дати той самий вирок, що відкритий.
     if verdict(200, b"%PDF-1.7", 900_000, "restricted") != "served_but_restricted":
         bad += 1
@@ -235,7 +266,7 @@ def selftest() -> int:
     if targets({"sources": [rights]}):
         bad += 1
         print("  ✗ блок на грифі взято на перемір — мережа про нього нічого не каже")
-    total = len(SELFTEST_CASES) + len(DISTRIBUTION_CASES) + 6
+    total = len(SELFTEST_CASES) + len(DISTRIBUTION_CASES) + 9
     print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 

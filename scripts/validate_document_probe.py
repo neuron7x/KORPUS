@@ -28,7 +28,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
-from threshold_distance import place
+from threshold_distance import place, separability
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
@@ -74,7 +74,34 @@ def threshold_report(entries: list[dict]) -> list[str]:
         "in_the_void": "У ПОРОЖНЕЧІ, даними не перевірений",
         "unmeasured": "не виміряний",
     }[placement.verdict]
-    return [f"machine_readable {mark}: {placement.note}"]
+    lines = [f"machine_readable {mark}: {placement.note}"]
+    #: Третє питання, якого сам поріг не ставить: чи ця ВІСЬ узагалі розділяє класи.
+    #: Тут класи відомі — сторінка-джерело проти картки каталогу, — тож відповідь
+    #: рахується прямо. Знайдено на CARD_CEILING_BYTES: там `separates` було здорове,
+    #: а класи за розміром перекривались, і жодне значення порога цього не виправило б.
+    pages = [e for e in entries if isinstance(e.get("page_probe"), dict)]
+    cards = [
+        float(e["page_probe"]["words"])
+        for e in pages
+        if e["page_probe"].get("subject") == "catalog_record"
+    ]
+    docs = [
+        float(e["page_probe"]["words"])
+        for e in pages
+        if e["page_probe"].get("subject") == "document"
+    ]
+    if cards and docs:
+        _verdict, note = separability(cards, docs, "слів")
+        lines.append(f"картка проти джерела за КІЛЬКІСТЮ СЛІВ: {note}")
+        #: Наслідок, який варто прочитати вголос: жодна ЧИСЛОВА вісь тут не годиться —
+        #: ні розмір відповіді, ні кількість слів. `subject` тому й береться зі
+        #: СТРУКТУРНОЇ ознаки (`link_state`), а не з порога. Це рішення було зроблене
+        #: до цього виміру як судження; тепер воно доведене, а не лише вибране.
+        lines.append(
+            "⇒ subject береться зі СТРУКТУРНОЇ ознаки (link_state), не з числа — "
+            "і цей вимір показує, чому інакше не можна"
+        )
+    return lines
 
 
 def _named_system_problems(identifier: str, probe: dict) -> list[str]:
