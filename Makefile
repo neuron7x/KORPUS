@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -611,6 +611,21 @@ embedding-candidate-screen:
 
 embedding-backfill:
 	PYTHONPATH=apps/api/src $(PY) scripts/run_embedding_backfill.py
+
+## Той самий крок, але для SQLite-рантайму: `run_embedding_backfill.py` іде в
+## PostgreSQL і на рантайм-корпусі незастосовний. Ціль потрібна ще й тому, що
+## скрипт без раннера тест досяжності вважає не частиною системи — і має рацію.
+embedding-backfill-sqlite:
+	@test -n "$(DATABASE)" || { echo "вжиток: make embedding-backfill-sqlite DATABASE=/шлях/до/korpus.db" >&2; exit 64; }
+	PYTHONPATH=apps/api/src $(PY) scripts/backfill_span_embeddings_sqlite.py --database "$(DATABASE)"
+
+## Складач маніфесту рантайм-корпусу. Не гейт і не в `validate`: він БУДУЄ дані,
+## а не судить їх, і потребує шляху до перевіреного корпусу. Але ціль тут мусить
+## бути: скрипт, якого не запускає жоден раннер, не є частиною системи — це
+## документація у вигляді коду, і тест досяжності ловить саме це.
+runtime-corpus-manifest:
+	@test -n "$(SOURCE)" || { echo "вжиток: make runtime-corpus-manifest SOURCE=/шлях/до/corpus.sqlite" >&2; exit 64; }
+	$(PY) scripts/build_runtime_manifest.py --source "$(SOURCE)" $(if $(OUT),--out "$(OUT)")
 
 runtime-corpus-audit:
 	@test -n "$(DATABASE)" || { echo "DATABASE is required" >&2; exit 64; }

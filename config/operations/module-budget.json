@@ -2786,6 +2786,14 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/backfill_span_embeddings_sqlite.py": {
+      "lines": 104,
+      "max_complexity": 11,
+      "reason": "Точна виміряна початкова стеля. Донаповнення ембедингів для SQLite-рантайму: PostgreSQL-варіант на рантайм-корпусі незастосовний.",
+      "max_function_lines": 55,
+      "max_function_args": 5,
+      "max_nesting": 2
+    },
     "scripts/backup_crypto.py": {
       "lines": 164,
       "max_complexity": 10,
@@ -4460,7 +4468,7 @@
       "max_nesting": 4
     },
     "scripts/validate_refusal_retryability.py": {
-      "lines": 111,
+      "lines": 112,
       "proof_lines": 63,
       "max_complexity": 11,
       "reason": "Точна виміряна початкова стеля. Гейт семантики відмови: клас відмови мусить казати, чи її можна повторити — інакше «недосяжно» назавжди ховає джерело, доступне просто зараз.",
@@ -4576,6 +4584,17 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-30",
+      "path": "scripts/validate_refusal_retryability.py",
+      "from": {
+          "lines": 111
+      },
+      "to": {
+          "lines": 112
+      },
+      "reason": "Один рядок: `from typing import Any`, потрібний, щоб тип у самоперевірці сходився з підписом `check` і mypy проходив. Записано, бо гейт назвав це підняттям — межа не має винятку для одного рядка."
+  },
   {
       "on": "2026-08-30",
       "paths": [
