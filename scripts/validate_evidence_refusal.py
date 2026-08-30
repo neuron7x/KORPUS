@@ -60,6 +60,27 @@ OURS = {
 #: почервоніла на двох валідних документах. Запис лишається видимим і старіє —
 #: якщо класифікатор ніхто не полагодив, мовчазний «відомий баг» стає вироком.
 MISCLASSIFIED = {"extractor_misclassified"}
+#: ЧЕТВЕРТА категорія, і вона має власну дію. `THEIRS` каже «ніщо, що ми змінимо, їх не
+#: досягне» — і це неправда для хоста, недосяжного САМЕ ЗВІДСИ. Виміряно 2026-08-30 на
+#: корені хостів: oe.t2com.army.mil · rdl.train.army.mil · odin.tradoc.army.mil віддають
+#: HTTP 000, www.armyupress.army.mil — 403, тоді як jts.health.mil і armypubs.army.mil з
+#: тієї самої машини віддають 200. Документ, найімовірніше, цілий; недосяжна наша ТОЧКА
+#: СПОСТЕРЕЖЕННЯ. Дія тут не «змінити налаштування» і не «нічого», а «під'єднатися
+#: звідкись інде» — і плутати її з рештою означає або марно повторювати запит, або
+#: списати живий документ як недоступний назавжди.
+VANTAGE = {"host_unreachable_from_here"}
+#: ЯК ВІДРІЗНИТИ недосяжність від відмови, і чому це не очевидно: **будь-який HTTP-код
+#: від кореня означає, що ми дістались** — 403 і 404 приходять ВІД СЕРВЕРА. Недосяжність
+#: — це транспортна невдача (HTTP 000) і на корені теж. Моє перше правило зарахувало
+#: 403 на armyupress до недосяжності; паралельна сесія виміряла корінь окремо й розбіжність
+#: викрила. Дія від цього міняється: `vantage` каже «під'єднайся звідкись інде»,
+#: `http_forbidden` каже «подивись на заголовки або визнай, що доступ обмежений».
+#:
+#: І межа цієї межі: 403 від WAF МОЖЕ залежати від точки доступу, але відрізнити
+#: «відмовляє всім» від «відмовляє цій адресі» без другої точки неможливо. Тому такий
+#: випадок лишається `http_forbidden` — заявляти залежність від точки, не маючи чим її
+#: показати, було б рівно тією підміною, від якої ці категорії й відділені.
+VANTAGE_ONLY_FROM = {"transport_reset", "transport_timeout", "transport_error"}
 #: Скільки днів «наш класифікатор помилився» лишається відомим багом, а не боргом.
 MISCLASSIFICATION_GRACE_DAYS = 30
 #: Відмова з боку джерела: наші налаштування на неї не впливають.
@@ -77,7 +98,7 @@ THEIRS = {
     #: в OURS: зміна наших налаштувань не змусить сторінку віддати HTML.
     "content_type_mismatch",
 }
-CLASSES = OURS | THEIRS | MISCLASSIFIED
+CLASSES = OURS | THEIRS | MISCLASSIFIED | VANTAGE
 REFUSAL_MAX_AGE_DAYS = 365
 #: Скільки днів відмова, позначена `retryable`, лишається «спробуй ще», а не вироком.
 #: Мережева невдача сьогодні — це не факт про джерело, і записати за нею `ingestible:
@@ -138,6 +159,19 @@ def _contradiction(identifier: str, refusal: dict, age: int) -> str | None:
         )
     if retryable and age <= RETRY_WINDOW_DAYS:
         return None
+    #: Недосяжність саме ЗВІДСИ поводиться як наша помилка класифікації, не як
+    #: суперечність: `ingestible` означає «права й форма дозволяють це взяти», а не
+    #: «ми зараз можемо дотягнутись». Документ цілий, недосяжна наша точка. Блокувати
+    #: за цим означало б записати НАШУ мережу як факт про джерело — рівно те, від чого
+    #: цей гейт відділяє три інші категорії. Але й лежати вічно воно не сміє: якщо за
+    #: місяць ніхто не знайшов іншої точки доступу, це вже не «дотягнемось», а прогалина.
+    if klass in VANTAGE:
+        if age <= MISCLASSIFICATION_GRACE_DAYS:
+            return None
+        return (
+            f"{identifier}: unreachable from this vantage point for {age} days and nobody "
+            "found another access route — at some point 'we will reach it' becomes a gap"
+        )
     if klass in MISCLASSIFIED:
         if age <= MISCLASSIFICATION_GRACE_DAYS:
             return None
@@ -145,7 +179,13 @@ def _contradiction(identifier: str, refusal: dict, age: int) -> str | None:
             f"{identifier}: our classifier has been wrong about this source for {age} days "
             "and nobody fixed it — a known bug nobody acts on is a debt recorded as a fact"
         )
-    side = "our own extractor" if klass in OURS else "the source"
+    side = (
+        "our own extractor"
+        if klass in OURS
+        else "this vantage point"
+        if klass in VANTAGE
+        else "the source"
+    )
     stale = f" and nobody retried it in {age} days" if retryable else ""
     return (
         f"{identifier}: ingestible=true while {side} refused it "
@@ -202,6 +242,34 @@ PROBES: tuple[tuple[str, object, bool], ...] = (
     ("відмова рівно на межі віку", {"_observed_days_ago": REFUSAL_MAX_AGE_DAYS}, False),
     ("дата в майбутньому", {"_observed_days_ago": -1}, True),
     ("клас із боку джерела на заблокованому — норма", {"class": "dns_unresolved"}, False),
+    # Четверта категорія: недосяжність саме звідси. Дія — інша точка доступу.
+    (
+        # Недосяжність саме ЗВІДСИ — це наша мережа, не вада джерела: НЕ червоніє.
+        "хост недосяжний ЗВІДСИ при ingestible",
+        {
+            "ingestible": True,
+            "class": "host_unreachable_from_here",
+            "reason": "HTTP 000 на корені хоста",
+            "retryable": False,
+        },
+        False,
+    ),
+    (
+        "недосяжність, якої ніхто не обійшов за місяць — червоніє",
+        {
+            "ingestible": True,
+            "class": "host_unreachable_from_here",
+            "reason": "HTTP 000 на корені хоста",
+            "retryable": False,
+            "_observed_days_ago": MISCLASSIFICATION_GRACE_DAYS + 1,
+        },
+        True,
+    ),
+    (
+        "хост недосяжний ЗВІДСИ на заблокованому — норма",
+        {"class": "host_unreachable_from_here", "reason": "HTTP 000 на корені"},
+        False,
+    ),
     # content_type_mismatch: відмовився наш екстрактор, причина на боці джерела.
     (
         "невідповідність типу вмісту при ingestible",
@@ -343,17 +411,16 @@ def selftest() -> int:
             print(f"  ✗ {name}: очікували {'падіння' if want_fail else 'PASS'}")
         else:
             print(f"  ✓ {name}")
+    groups = (OURS, THEIRS, MISCLASSIFIED, VANTAGE)
     split_ok = (
-        OURS.isdisjoint(THEIRS)
-        and OURS.isdisjoint(MISCLASSIFIED)
-        and THEIRS.isdisjoint(MISCLASSIFIED)
-        and CLASSES >= OURS | MISCLASSIFIED
+        all(a.isdisjoint(b) for i, a in enumerate(groups) for b in groups[i + 1 :])
+        and CLASSES >= OURS | MISCLASSIFIED | VANTAGE
     )
     bad += not split_ok
     print(
-        f"  {'✓' if split_ok else '✗'} три категорії не перетинаються "
-        f"(наш ліміт {len(OURS)} · бік джерела {len(THEIRS)} · "
-        f"наша помилка {len(MISCLASSIFIED)})"
+        f"  {'✓' if split_ok else '✗'} чотири категорії не перетинаються "
+        f"(наш ліміт {len(OURS)} · бік джерела {len(THEIRS)} · наша помилка "
+        f"{len(MISCLASSIFIED)} · недосяжно звідси {len(VANTAGE)})"
     )
     total = len(PROBES) + 1
     print(f"негативний контроль: {total - bad}/{total}")
@@ -372,6 +439,7 @@ def main() -> int:
         return [e for e in recorded if e["evidence_refusal"].get("class") in group]
 
     ours, theirs, wrong = by(OURS), by(THEIRS), by(MISCLASSIFIED)
+    vantage = by(VANTAGE)
     if found:
         print("evidence refusals: FAIL")
         for item in found:
@@ -401,7 +469,8 @@ def main() -> int:
     print(
         f"  {len(recorded)} refusals recorded · {len(ours)} a limit of ours to lift · "
         f"{len(theirs)} the source's, nothing we change reaches them · "
-        f"{len(wrong)} our own classifier was wrong and the content is fine"
+        f"{len(wrong)} our own classifier was wrong and the content is fine · "
+        f"{len(vantage)} unreachable from HERE — another access point would reach them"
     )
     return 0
 

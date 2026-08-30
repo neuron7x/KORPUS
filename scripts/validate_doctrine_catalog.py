@@ -835,17 +835,67 @@ def _committed_floor() -> tuple[dict[str, object] | None, str]:
     # and the fallback exists precisely for the place Git does not: an unpacked archive.
     # Measured 2026-08-30 on a gitless copy: origin=unverifiable, ratchet off.
     if isinstance(history, list):
-        for entry in reversed(history):
+        # Відновлення, а не «останній запис». Історія має дві форми: повний знімок
+        # `{on, floor, note}` і зміну `{on, from, to, reason}`, і `to` буває ЧАСТКОВИМ —
+        # один ключ. Читати просто останній запис із підлогою означало б, що часткова
+        # зміна ЗАТІНЯЄ повний знімок: після запису про `ingestible_total` фолбек знав би
+        # рівно один лічильник, а ратчет на решті мовчав би. Тому: беремо останній повний
+        # знімок і накладаємо на нього кожну пізнішу зміну по ключах.
+        rebuilt: dict[str, object] = {}
+        for entry in history:
             if not isinstance(entry, dict):
                 continue
-            for key in ("floor", "to"):
-                recorded_floor = entry.get(key)
-                if isinstance(recorded_floor, dict) and recorded_floor:
-                    return recorded_floor, "catalog_history"
+            snapshot = entry.get("floor")
+            if isinstance(snapshot, dict) and snapshot:
+                rebuilt = dict(snapshot)
+                continue
+            change = entry.get("to")
+            if isinstance(change, dict) and change and rebuilt:
+                rebuilt.update(change)
+        if rebuilt:
+            return rebuilt, "catalog_history"
     return None, "unverifiable"
 
 
-def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
+#: Скільки символів причини робить зниження підлоги записом, а не заповнювачем.
+MIN_LOWERING_REASON = 40
+
+
+def _licensed_lowering(catalog: dict[str, object], key: str, was: int, now: int) -> bool:
+    """Чи зниження підлоги по цьому ключу записане в історії — з ключем, обома числами
+    й причиною.
+
+    Ратчет мусив би заборонити, а не змусити брехати. `ingestible_total` міряє РОЗМІР
+    КОРПУСУ, а не кількість доказів: він падає рівно тоді, коли ми стаємо чеснішими —
+    зняли 404, зняли те, що сервер відмовляє на корені й на документі, зняли за грифом.
+    `total`, `governing_authority`, `content_probed` ростуть від роботи; цей — ні.
+    Тричі за 2026-08-29/30 підлога зупиняла паралельну сесію: двічі справедливо (тихий
+    відкіт, запис нашої мережі як факту про документ), а на третій раз дізнатися, що
+    сервер відмовляє, — це поповнення знання, і ратчет читав його як втрату доказу.
+
+    Тому не «не можна», а «не мовчки»: зниження дозволене рівно тоді, коли в
+    `evidence_floor_history` є запис, який називає САМЕ цей ключ, обидва числа й причину.
+    Тиха зміна лишається неможливою — тепер вона коштує речення, яке хтось прочитає.
+    """
+    history = catalog.get("evidence_floor_history")
+    if not isinstance(history, list):
+        return False
+    for entry in history:
+        if not isinstance(entry, dict):
+            continue
+        came = entry.get("from")
+        went = entry.get("to")
+        if not isinstance(came, dict) or not isinstance(went, dict):
+            continue
+        if came.get(key) != was or went.get(key) != now:
+            continue
+        reason = entry.get("reason")
+        if isinstance(reason, str) and len(reason.strip()) >= MIN_LOWERING_REASON:
+            return True
+    return False
+
+
+def _floor_lowered_problems(declared: dict[str, object], catalog: dict[str, object]) -> list[str]:
     """The floor against its own previous value, not only against the count.
 
     `if actual < minimum` compares the measurement with the floor and never compares the
@@ -883,10 +933,14 @@ def _floor_lowered_problems(declared: dict[str, object]) -> list[str]:
             )
             continue
         if isinstance(now, int) and not isinstance(now, bool) and now < was:
+            if _licensed_lowering(catalog, key, was, now):
+                continue
             problems.append(
                 f"evidence_floor.{key} was lowered from {was} to {now} (previous floor read "
                 f"from {origin}) — a ratchet that only compares itself with the count can be "
-                "moved down in the same commit that removes what it counted"
+                "moved down in the same commit that removes what it counted. Зниження "
+                "дозволене лише записом у evidence_floor_history, який називає цей ключ, "
+                f"обидва числа й причину не коротшу за {MIN_LOWERING_REASON} символів"
             )
         elif not isinstance(now, int) or isinstance(now, bool):
             problems.append(
@@ -917,7 +971,7 @@ def _floor_problems(catalog: dict[str, object], summary: Summary) -> list[str]:
             f"evidence_floor names none of {sorted(missing)} — a floor over no counter "
             "holds nothing, and an empty one is indistinguishable from having none"
         ]
-    problems: list[str] = list(_floor_lowered_problems(declared))
+    problems: list[str] = list(_floor_lowered_problems(declared, catalog))
     for key, minimum in sorted(declared.items()):
         if key not in summary:
             problems.append(f"evidence_floor names {key!r}, which is not a measured count")

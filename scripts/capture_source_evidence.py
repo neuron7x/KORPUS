@@ -53,6 +53,7 @@ import zlib
 from datetime import date
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -112,6 +113,11 @@ TEXT_SCOPE = "text_as_extracted"
 #: які з дев'яти недосяжних варто перепробувати. 403 від фільтра — не те саме, що 404
 #: від зниклого джерела, і рішення «пробувати ще» приймається за класом, не за прозою.
 RETRYABLE = frozenset({"http_forbidden", "transport_reset", "transport_timeout"})
+#: Класи, які МОЖУТЬ виявитись питанням точки доступу, а не джерела. `dns_unresolved`
+#: свідомо поза списком: ім'я, якого немає в DNS, не з'явиться від іншого підключення —
+#: це джерело, яке зникло. `tls_refused` теж: сертифікат не залежить від того, звідки ми
+#: дивимось.
+VANTAGE_CANDIDATES = frozenset({"transport_reset", "transport_timeout", "transport_error"})
 
 
 class Capture(dict[str, Any]):
@@ -271,22 +277,56 @@ def _extractor_class(message: str, payload: bytes = b"") -> str:
     return "extractor_misclassified" if _looks_like_html(payload) else "content_type_mismatch"
 
 
-def _transport_class(error: BaseException) -> str:
+def _host_answers(uri: str, timeout: int) -> bool | None:
+    """Чи відповідає КОРІНЬ хоста — байдуже яким статусом. `None`, якщо uri не розібрати.
+
+    Будь-який HTTP-код означає «так»: 403 і 404 приходять від сервера, тобто ми до нього
+    дістались. Лише транспортна невдача на корені означає, що хоста немає ЗВІДСИ.
+    """
+    parts = urlsplit(uri)
+    if not parts.scheme or not parts.hostname:
+        return None
+    request = urllib.request.Request(
+        f"{parts.scheme}://{parts.netloc}/", headers={"User-Agent": USER_AGENT}
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout):
+            return True
+    except urllib.error.HTTPError:
+        return True
+    except Exception:  # noqa: BLE001 — одна річ: звідси хоста не видно
+        return False
+
+
+def _transport_class(error: BaseException, uri: str = "", timeout: int = 30) -> str:
     """A reset is a filter; a timeout may be a route; a DNS failure is a source that is gone.
 
     Nine sources were unreachable on 2026-08-29 and the difference decides which of them is
     worth trying again. Folded into one string, that decision is lost by next month.
+
+    Четверта категорія, названа паралельною сесією 2026-08-30 і виміряна нею на родині
+    хостів TRADOC: `host_unreachable_from_here`. `oe.t2com`, `rdl.train`, `odin.tradoc`
+    дають HTTP 000 з ЦІЄЇ машини, тоді як `jts.health.mil` і `armypubs.army.mil` з неї ж
+    відповідають 200. Повтор цього не змінить ніколи — а інша точка доступу змінить.
+    Плутати це з «бік джерела» означає списати живий документ як недоступний назавжди;
+    плутати з «наш ліміт» означає марно крутити налаштування.
+    Вимір, а не здогад: питаємо КОРІНЬ хоста. Транспортна невдача й на ньому — хоста не
+    видно звідси; будь-який HTTP-код від кореня означає, що ми дістались, і тоді причина
+    в шляху, а не в точці доступу.
     """
     text = str(error).lower()
+    fine = "transport_error"
     if "reset by peer" in text or "connection refused" in text:
-        return "transport_reset"
-    if "timed out" in text or "timeout" in text:
-        return "transport_timeout"
-    if "name or service not known" in text or "nodename nor servname" in text:
-        return "dns_unresolved"
-    if "certificate" in text or "ssl" in text:
-        return "tls_refused"
-    return "transport_error"
+        fine = "transport_reset"
+    elif "timed out" in text or "timeout" in text:
+        fine = "transport_timeout"
+    elif "name or service not known" in text or "nodename nor servname" in text:
+        fine = "dns_unresolved"
+    elif "certificate" in text or "ssl" in text:
+        fine = "tls_refused"
+    if uri and fine in VANTAGE_CANDIDATES and _host_answers(uri, timeout) is False:
+        return "host_unreachable_from_here"
+    return fine
 
 
 def _cached(staging: Path, identifier: str) -> tuple[bytes, str] | None:
@@ -328,7 +368,9 @@ def _obtain(
         )
     except Exception as error:  # noqa: BLE001 — every transport failure is one fact: unread
         return record_refusal(
-            identifier, f"{type(error).__name__}: {str(error)[:160]}", _transport_class(error)
+            identifier,
+            f"{type(error).__name__}: {str(error)[:160]}",
+            _transport_class(error, uri, timeout),
         )
 
 
@@ -561,7 +603,8 @@ def selftest() -> int:
     bad += _ratchet_probes()
     bad += _concurrency_probe()
     bad += _derived_cache_probe()
-    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 8
+    bad += _vantage_probe()
+    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 16
     print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
@@ -740,6 +783,63 @@ def _derived_cache_probe() -> int:
         if _recall(staging, payload, "A") is not None:
             bad += 1
             print("  ✗ побитий кеш прочитано як дійсний")
+    return bad
+
+
+#: Проби на четверту категорію. `answers` — що каже КОРІНЬ хоста: True (будь-який HTTP-код),
+#: False (транспортна невдача), None (uri не розібрати).
+VANTAGE_PROBES: tuple[tuple[str, str, bool | None, str], ...] = (
+    ("корінь мовчить теж — точка доступу", "reset by peer", False, "host_unreachable_from_here"),
+    ("корінь відповідає — причина у шляху", "reset by peer", True, "transport_reset"),
+    ("таймаут при мертвому корені", "timed out", False, "host_unreachable_from_here"),
+    ("таймаут при живому корені", "timed out", True, "transport_timeout"),
+    # DNS і TLS не залежать від точки доступу: імені немає ніде, сертифікат той самий.
+    ("DNS не резолвиться — не точка доступу", "Name or service not known", False, "dns_unresolved"),
+    ("сертифікат — не точка доступу", "CERTIFICATE_VERIFY_FAILED ssl", False, "tls_refused"),
+)
+
+
+def _vantage_probe() -> int:
+    """Четверта категорія вимірюється, а не вгадується: питається корінь хоста."""
+    bad = 0
+    for name, message, answers, expected in VANTAGE_PROBES:
+        original = globals()["_host_answers"]
+        globals()["_host_answers"] = lambda _uri, _timeout, _a=answers: _a
+        try:
+            got = _transport_class(OSError(message), "https://example.invalid/x", 1)
+        finally:
+            globals()["_host_answers"] = original
+        if got != expected:
+            bad += 1
+            print(f"  ✗ {name}: очікували {expected}, отримали {got}")
+    # Без uri перевірка кореня не робиться взагалі — інакше кожен виклик коштував би запиту.
+    if _transport_class(OSError("reset by peer")) != "transport_reset":
+        bad += 1
+        print("  ✗ без uri вирок змінився — перевірка кореня не сміє бути обов'язковою")
+    # Сам `_host_answers`: БУДЬ-ЯКИЙ HTTP-код означає «дістались». Без цієї проби внутрішня
+    # гілка не перевіряється взагалі — стуб у пробах вище підміняє всю функцію.
+    forbidden: BaseException = urllib.error.HTTPError("https://x/", 403, "Forbidden", {}, None)  # type: ignore[arg-type]
+    for label, raise_with, reachable in (
+        ("403 від кореня — ми дістались", forbidden, True),
+        ("транспортна невдача на корені", OSError("reset by peer"), False),
+    ):
+        original = urllib.request.urlopen
+
+        def _boom(*_a: object, _error: BaseException = raise_with, **_k: object) -> None:
+            raise _error
+
+        urllib.request.urlopen = _boom
+        try:
+            answered = _host_answers("https://example.invalid/x", 1)
+        finally:
+            urllib.request.urlopen = original
+        if answered is not reachable:
+            bad += 1
+            print(f"  ✗ {label}: очікували {reachable}, отримали {answered}")
+    # І розбір uri: без схеми чи хоста питати нема кого.
+    if _host_answers("не-uri", 1) is not None:
+        bad += 1
+        print("  ✗ нерозбірний uri дав вирок замість None")
     return bad
 
 

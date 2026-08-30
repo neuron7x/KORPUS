@@ -881,11 +881,11 @@ def test_lowering_the_floor_is_refused_on_its_own_terms() -> None:
     neither list and the protection is gone.
     """
     validator = _validator()
-    committed = validator._floor_lowered_problems({"content_probed": 1, "total": 1})
+    committed = validator._floor_lowered_problems({"content_probed": 1, "total": 1}, {})
     assert committed, "a floor lowered below the committed one produced no problem"
     assert any("was lowered from" in p for p in committed)
 
-    unchanged = validator._floor_lowered_problems(_catalog()["evidence_floor"])
+    unchanged = validator._floor_lowered_problems(_catalog()["evidence_floor"], _catalog())
     assert unchanged == [], f"the committed floor flags itself: {unchanged}"
 
 
@@ -909,7 +909,7 @@ def test_the_floor_ratchet_still_holds_without_git(monkeypatch: pytest.MonkeyPat
 
     lowered = dict(_catalog()["evidence_floor"])
     lowered["content_probed"] = 1
-    problems = validator._floor_lowered_problems(lowered)
+    problems = validator._floor_lowered_problems(lowered, {})
     assert any("was lowered from" in p for p in problems), problems
     assert any("catalog_history" in p for p in problems)
 
@@ -932,7 +932,7 @@ def test_an_unverifiable_floor_says_so_instead_of_passing(
     stripped.write_text(json.dumps(catalog, ensure_ascii=False), encoding="utf-8")
     monkeypatch.setattr(validator, "CATALOG", stripped)
 
-    problems = validator._floor_lowered_problems(catalog["evidence_floor"])
+    problems = validator._floor_lowered_problems(catalog["evidence_floor"], catalog)
     assert any("cannot be checked against any previous value" in p for p in problems), problems
     assert any("origin=unverifiable" in p for p in problems)
 
@@ -1089,7 +1089,80 @@ def test_a_floor_key_cannot_be_removed_or_untyped_in_silence(
         declared.pop("document_probed")
     else:
         declared["document_probed"] = change
-    problems = module._floor_lowered_problems(declared)
+    # Порожній каталог: ліцензувати зниження нічим, тож правило міряється саме.
+    problems = module._floor_lowered_problems(declared, {})
     assert any(expected in problem for problem in problems), (name, problems)
     # Дуальність: незмінена підлога не сміє давати жодної скарги.
-    assert module._floor_lowered_problems(dict(recorded)) == []
+    assert module._floor_lowered_problems(dict(recorded), {}) == []
+
+
+def test_lowering_the_floor_needs_a_licence_naming_the_key_and_both_numbers() -> None:
+    """Ратчет мусив би заборонити, а не змусити брехати.
+
+    `ingestible_total` міряє РОЗМІР КОРПУСУ, а не кількість доказів: він падає рівно тоді,
+    коли ми стаємо чеснішими — зняли 404, зняли те, що сервер відмовляє, зняли за грифом.
+    Тричі за добу підлога зупиняла паралельну сесію: двічі справедливо, а на третій раз
+    дізнатися, що сервер відмовляє, — це поповнення знання, і ратчет читав його як втрату.
+
+    Тому не «не можна», а «не мовчки»: зниження ліцензується записом в історії, який
+    називає САМЕ цей ключ, ОБИДВА числа й причину. Тиха зміна лишається неможливою.
+    """
+    import importlib.util
+
+    script = ROOT / "scripts/validate_doctrine_catalog.py"
+    spec = importlib.util.spec_from_file_location("vdc_licence_probe", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    reason = "причина, достатньо довга, щоб бути реченням, яке хтось прочитає, а не заповнювачем"
+    licensed = {
+        "evidence_floor_history": [
+            {"on": "2026-08-30", "from": {"k": 10}, "to": {"k": 9}, "reason": reason}
+        ]
+    }
+    assert module._licensed_lowering(licensed, "k", 10, 9)
+    # Заповнювач замість причини не ліцензує.
+    short = {"evidence_floor_history": [{"from": {"k": 10}, "to": {"k": 9}, "reason": "бо так"}]}
+    assert not module._licensed_lowering(short, "k", 10, 9)
+    # Числа мусять збігтися рівно: запис про інше зниження не ліцензує це.
+    other = {
+        "evidence_floor_history": [
+            {"from": {"k": 99}, "to": {"k": 9}, "reason": reason},
+            {"from": {"j": 10}, "to": {"j": 9}, "reason": reason},
+        ]
+    }
+    assert not module._licensed_lowering(other, "k", 10, 9)
+    # Історії немає — ліцензувати нічим.
+    assert not module._licensed_lowering({}, "k", 10, 9)
+
+
+def test_a_partial_change_does_not_shadow_the_full_floor_snapshot() -> None:
+    """Часткова зміна затінювала повний знімок, і ратчет мовчав про решту ключів.
+
+    Історія має дві форми: знімок `{on, floor, note}` і зміну `{on, from, to, reason}`,
+    і `to` буває частковим — один ключ. Читання «останнього запису з підлогою» після
+    запису про `ingestible_total` лишало фолбек із рівно одним лічильником: без Git
+    ратчет на `content_probed` і `attachments_captured` не тримав нічого. Відновлення:
+    останній повний знімок плюс кожна пізніша зміна по ключах.
+    """
+    import importlib.util
+
+    script = ROOT / "scripts/validate_doctrine_catalog.py"
+    spec = importlib.util.spec_from_file_location("vdc_rebuild_probe", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    history = json.loads(module.CATALOG.read_text(encoding="utf-8"))["evidence_floor_history"]
+    last = history[-1]
+    assert isinstance(last.get("to"), dict) and "floor" not in last, (
+        "останній запис більше не є частковою зміною — проба перестала відтворювати випадок"
+    )
+    assert len(last["to"]) < 3, "часткова зміна мусить називати менше ключів, ніж знімок"
+
+    recorded, origin = module._committed_floor()
+    assert isinstance(recorded, dict)
+    # Ключі повного знімка мусять пережити часткову зміну зверху.
+    for key in ("content_probed", "attachments_captured", "governing_authority", "total"):
+        assert key in recorded, (key, origin, sorted(recorded))

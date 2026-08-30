@@ -22,7 +22,7 @@
     "attachments_extractor_readable": 32,
     "repealed_and_blocked": 2,
     "page_probed": 71,
-    "ingestible_total": 166
+    "ingestible_total": 165
   },
   "evidence_floor_note": "Ratchet, recalculated 2026-08-29 for 168 sources. At the previous floor of 84 an adversarial pass deleted exactly half the catalog and the gate stayed PASS, taking 9 content probes and 52 captured attachments with it. attachments_extractor_readable and repealed_and_blocked were added because nothing held them: swapping a .docx for a .doc lowered readability without a verdict, and deleting both repealed records removed the only proof the legal-status probe can return 'invalid' at all. Deliberately NOT ratcheted: restricted_quarantined, rights_blocked, blocked, ingestible — a floor on those forbids a lawful declassification or a rights clearance.",
   "evidence_floor_history": [
@@ -113,6 +113,16 @@
         "ingestible_total": 166
       },
       "reason": "Ключ `ingestible_total` зник із підлоги під час перенесення лічильників і був повернений: правило про зникнення ключа (додане того ж дня) показало, що видалення нічим не відрізняється від зниження до нуля. Значення 166 — фактичне після зняття XC-PROMETHEUS-MED з інжесту за виміром 404 (3 запити, живий корінь)."
+    },
+    {
+      "on": "2026-08-30",
+      "from": {
+        "ingestible_total": 166
+      },
+      "to": {
+        "ingestible_total": 165
+      },
+      "reason": "T1A-MILREVIEW-LESSONS знято з інжесту за виміром: www.armyupress.army.mil віддає HTTP 403 і на КОРЕНІ (379 Б), і на шляху документа (531 Б) — тобто сервер відмовляє нам, а не мережа нас не пускає. Клас `http_forbidden`, не `host_unreachable_from_here`: 403 приходить ВІД сервера, отже ми дістались. Vantage тут правдоподібний і недоведений — відрізнити «відмовляє всім» від «відмовляє цій адресі» без другої точки доступу неможливо, і заявляти залежність від точки, не маючи чим її показати, було б тією самою підміною, від якої ці категорії відділені. `ingestible_total` міряє РОЗМІР КОРПУСУ, а не кількість доказів: він падає рівно тоді, коли ми стаємо чеснішими. Зниження ліцензоване цим записом, а не мовчазне."
     }
   ],
   "evidence_ceiling": {
@@ -605,7 +615,7 @@
       "requires_second_source": false,
       "rights_status": "open",
       "ingestible": true,
-      "notes": "Observed-environment study, not binding doctrine — held as analytical so it cannot govern an answer.",
+      "notes": "Observed-environment study, not binding doctrine — held as analytical so it cannot govern an answer. | НЕДОСЯЖНІСТЬ ЗВІДСИ, НЕ ВАДА ДЖЕРЕЛА (2026-08-30): відтворено на КОРЕНІ хоста після 6+ годин — oe.t2com/rdl.train/odin.tradoc віддають HTTP 000, armyupress 403, тоді як jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. `ingestible` означає «права й форма дозволяють це взяти», а не «ми зараз дотягнемось»; блокувати за нашою мережею означало б записати її як факт про документ. Пільга 30 днів, далі гейт червоніє.",
       "content_signal": {
         "host": "oe.t2com.army.mil",
         "read_on": "2026-08-29",
@@ -617,17 +627,18 @@
         "informational": []
       },
       "evidence_refusal": {
-        "reason": "URLError: <urlopen error [Errno 104] Connection reset by peer>",
-        "class": "transport_reset",
+        "reason": "URLError: <urlopen error [Errno 104] Connection reset by peer> | Перевірено на КОРЕНІ хоста, не на документі, 2026-08-30 після 6+ годин від першого виміру: oe.t2com.army.mil, rdl.train.army.mil, odin.tradoc.army.mil віддають HTTP 000 (з'єднання розірвано), www.armyupress.army.mil — 403. При цьому jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. Тобто відмова НЕ мережевий збій і не властивість документа: це властивість НАШОЇ точки спостереження — родина хостів TRADOC недосяжна звідси, тоді як інші .mil доступні. Повтор запиту цього не змінить ніколи; змінить лише інша точка доступу. Той самий хост пояснює й недосяжність GTA-посібників розпізнавання наземних сил РФ, які публікуються на ODIN.",
+        "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
-        "retryable": true
+        "retryable": false
       },
       "reachability_recheck": {
         "id": "T1A-TRADOC-UAS-TACTICS",
         "verdict": "still_unreachable",
         "read_on": "2026-08-30",
         "detail": "URLError: <urlopen error [Errno 104] Connection reset by peer>"
-      }
+      },
+      "ingest_block_reason": ""
     },
     {
       "id": "T1A-MILREVIEW-LESSONS",
@@ -644,8 +655,8 @@
       "provenance_status": "verified",
       "requires_second_source": false,
       "rights_status": "open",
-      "ingestible": true,
-      "notes": "Sep-Oct 2025. Lessons-learned, non-binding.",
+      "ingestible": false,
+      "notes": "Sep-Oct 2025. Lessons-learned, non-binding. | НЕДОСЯЖНІСТЬ ЗВІДСИ, НЕ ВАДА ДЖЕРЕЛА (2026-08-30): відтворено на КОРЕНІ хоста після 6+ годин — oe.t2com/rdl.train/odin.tradoc віддають HTTP 000, armyupress 403, тоді як jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. `ingestible` означає «права й форма дозволяють це взяти», а не «ми зараз дотягнемось»; блокувати за нашою мережею означало б записати її як факт про документ. Пільга 30 днів, далі гейт червоніє.",
       "content_signal": {
         "host": "www.armyupress.army.mil",
         "read_on": "2026-08-29",
@@ -674,17 +685,18 @@
         "limit": "Доказ існування й тотожності артефакта, НЕ вимір його вмісту. Не зараховується як content_probe і не входить у attachments_captured."
       },
       "evidence_refusal": {
-        "reason": "HTTP 403 from https://www.armyupress.army.mil/Portals/7/military-review/Archives/English/so25/Lessons-from-Ukraine/Lessons-from-Ukraine-ua.pdf",
+        "reason": "HTTP 403 і на шляху документа, і на КОРЕНІ www.armyupress.army.mil (379 Б). Виправлено з host_unreachable_from_here: 403 приходить ВІД СЕРВЕРА, тобто ми дістались — недосяжність означає транспортну невдачу й на корені теж. Моє попереднє правило зараховувало 403 до недосяжності й було хибним; паралельна сесія виміряла корінь окремо й розбіжність викрила. НЕ ВСТАНОВЛЕНО, чи 403 залежить від точки доступу: корінь відмовляє глобально (WAF/гео/UA), і відрізнити «сервер відмовляє всім» від «сервер відмовляє цій адресі» без іншої точки неможливо. Тому клас — http_forbidden, а не vantage: заявляти залежність від точки, не маючи чим її показати, було б тим самим, від чого ці категорії відділяють одна одну.",
         "class": "http_forbidden",
         "observed_on": "2026-08-30",
-        "retryable": true
+        "retryable": false
       },
       "reachability_recheck": {
         "id": "T1A-MILREVIEW-LESSONS",
         "verdict": "still_unreachable",
         "read_on": "2026-08-30",
         "http": 403
-      }
+      },
+      "ingest_block_reason": "Сервер відмовляє: HTTP 403 на корені й на документі, відтворено 2026-08-30. Це рішення сервера, а не наша мережа й не наш ліміт. Знімається, якщо з'ясується причина відмови (заголовки, гео) — а не повтором запиту."
     },
     {
       "id": "T1A-RUSI-TACTICAL-Y3",
@@ -2732,7 +2744,7 @@
       "requires_second_source": false,
       "rights_status": "open",
       "ingestible": true,
-      "notes": "Aug 2024. Implements NATO STANAG 2484, 3680.",
+      "notes": "Aug 2024. Implements NATO STANAG 2484, 3680. | НЕДОСЯЖНІСТЬ ЗВІДСИ, НЕ ВАДА ДЖЕРЕЛА (2026-08-30): відтворено на КОРЕНІ хоста після 6+ годин — oe.t2com/rdl.train/odin.tradoc віддають HTTP 000, armyupress 403, тоді як jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. `ingestible` означає «права й форма дозволяють це взяти», а не «ми зараз дотягнемось»; блокувати за нашою мережею означало б записати її як факт про документ. Пільга 30 днів, далі гейт червоніє.",
       "content_signal": {
         "host": "rdl.train.army.mil",
         "read_on": "2026-08-29",
@@ -2744,17 +2756,18 @@
         "informational": []
       },
       "evidence_refusal": {
-        "reason": "URLError: <urlopen error timed out>",
-        "class": "transport_timeout",
+        "reason": "URLError: <urlopen error timed out> | Перевірено на КОРЕНІ хоста, не на документі, 2026-08-30 після 6+ годин від першого виміру: oe.t2com.army.mil, rdl.train.army.mil, odin.tradoc.army.mil віддають HTTP 000 (з'єднання розірвано), www.armyupress.army.mil — 403. При цьому jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. Тобто відмова НЕ мережевий збій і не властивість документа: це властивість НАШОЇ точки спостереження — родина хостів TRADOC недосяжна звідси, тоді як інші .mil доступні. Повтор запиту цього не змінить ніколи; змінить лише інша точка доступу. Той самий хост пояснює й недосяжність GTA-посібників розпізнавання наземних сил РФ, які публікуються на ODIN.",
+        "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
-        "retryable": true
+        "retryable": false
       },
       "reachability_recheck": {
         "id": "T3A-FM-3-09",
         "verdict": "still_unreachable",
         "read_on": "2026-08-30",
         "detail": "URLError: <urlopen error timed out>"
-      }
+      },
+      "ingest_block_reason": ""
     },
     {
       "id": "T3A-ATP-3-09-30",
