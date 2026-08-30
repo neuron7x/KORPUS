@@ -82,6 +82,7 @@ repository:validate:
     - python scripts/generate_supply_chain_inventory.py
     # A ratchet on module size, function shape and complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
+    - PYTHONPATH=scripts python scripts/check_budget_raises_are_named.py
     # Permissions as a rule over every tracked file. Ruff states it for Python under four
     # directories; the shell scripts, Dockerfiles, Terraform and manifests had no check.
     - python scripts/check_file_modes.py

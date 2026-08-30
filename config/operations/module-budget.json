@@ -4519,6 +4519,15 @@
       "max_function_args": 1,
       "max_nesting": 3,
       "reason": "registered 2026-08-30"
+    },
+    "scripts/check_budget_raises_are_named.py": {
+      "lines": 142,
+      "max_complexity": 12,
+      "max_function_lines": 40,
+      "max_function_args": 2,
+      "max_nesting": 4,
+      "reason": "гейт, що робить виконуваним правило «стелю можна лише знижувати»",
+      "worst_function": "_named_paths"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

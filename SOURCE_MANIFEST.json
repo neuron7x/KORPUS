@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1598,
-  "root_sha256": "47bdbb90c6e26e2271a6418a486c3aa2a18b154113f49274feed6b29dee345f8",
+  "file_count": 1600,
+  "root_sha256": "474873443195029d01bd70f1a476b85ea42b3e63e98764d7033656dec5f5110d",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 39468,
-      "sha256": "6b7259943ec4949ec04b11d3eef9820b60a3a14818181157d7b0c09bf291e9e2",
+      "bytes": 39541,
+      "sha256": "edad2212cece2cc33bac116065003edb99fc9874d03eab20df013029b86f6e8d",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 51186,
-      "sha256": "956ae34bcfaf75492b65db30920a02a87e92da0878a4a360de0cc8b8b130617f",
+      "bytes": 51266,
+      "sha256": "1d70a25bcfa2c37cae1ed309e3954d21d444c9251af07068d92df19cee803307",
       "mode": "0644"
     },
     {
@@ -2697,6 +2697,12 @@
       "path": "apps/api/tests/test_browser_session_refusals.py",
       "bytes": 3815,
       "sha256": "1a3f74e3d962af5897991cd5dc8afd3845af2fb188f1da63067238d08d7feb26",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_budget_raises_are_named.py",
+      "bytes": 4727,
+      "sha256": "2a65e79a2636c4b0243aa61f3d8719e8b5cc5a8c17decc170858b85efc0be430",
       "mode": "0644"
     },
     {
@@ -6638,7 +6644,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "d18c82f001966f7c12db64a2532916cd0b65acde66004c79099e71a517e47a02",
+      "sha256": "80fb2064414a5fd840c60d078b025ce7c65cbdd43cc9f8df27a867d3c3c88484",
       "mode": "0644"
     },
     {
@@ -6649,8 +6655,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 259319,
-      "sha256": "a342ac9ad1a3ce02f9109921dfd4456db8288e27663d8b75bd6969145390830d",
+      "bytes": 259688,
+      "sha256": "9ea3317c84b10ed566213825930bcd1af04df864e0a3411ccf07b64fceead219",
       "mode": "0644"
     },
     {
@@ -8223,6 +8229,12 @@
       "path": "scripts/chaos_matrix.py",
       "bytes": 14745,
       "sha256": "2ec559a6223cec61de94d14309e6e1d67246db2491d375189a85b5e33ffe5e1b",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_budget_raises_are_named.py",
+      "bytes": 6602,
+      "sha256": "a55f967e76bccdfc00ad464f61a16c0a90309deccbe3cec77bdb78775bb81f65",
       "mode": "0755"
     },
     {

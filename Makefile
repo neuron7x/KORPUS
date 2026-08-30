@@ -236,6 +236,7 @@ slsa-provenance-verify:
 
 module-budget:
 	PYTHONPATH=apps/api/src $(PY) scripts/check_module_budget.py
+	PYTHONPATH=apps/api/src:scripts $(PY) scripts/check_budget_raises_are_named.py
 
 # Ruff states the same rule as EXE001/EXE002, but it reads only Python under four
 # directories: the shell scripts, Dockerfiles, Terraform and manifests had no mode check
