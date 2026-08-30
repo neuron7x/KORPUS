@@ -7,7 +7,7 @@
   "profile_sha256": "c1a1ccbfad28bd69eb90580ac8560dfaa521a131b7ef0080c08925f224214909",
   "checks": {
     "engineering.present": true,
-    "engineering.pass": false,
+    "engineering.pass": true,
     "engineering.source_bound": true,
     "engineering.release_bound": true,
     "tevv.present": true,
@@ -16,16 +16,16 @@
     "tevv.release_bound": true,
     "observability.present": true,
     "observability.pass": true,
-    "observability.source_bound": false,
+    "observability.source_bound": true,
     "observability.release_bound": true,
-    "state_contracts.present": false,
-    "state_contracts.pass": false,
-    "state_contracts.source_bound": false,
-    "state_contracts.release_bound": false,
-    "authorization.present": false,
-    "authorization.pass": false,
-    "authorization.source_bound": false,
-    "authorization.release_bound": false,
+    "state_contracts.present": true,
+    "state_contracts.pass": true,
+    "state_contracts.source_bound": true,
+    "state_contracts.release_bound": true,
+    "authorization.present": true,
+    "authorization.pass": true,
+    "authorization.source_bound": true,
+    "authorization.release_bound": true,
     "redteam.present": true,
     "redteam.pass": false,
     "redteam.source_bound": true,
@@ -34,13 +34,13 @@
     "reliability.pass": false,
     "reliability.source_bound": true,
     "reliability.release_bound": true,
-    "inference_security.present": false,
-    "inference_security.pass": false,
-    "inference_security.source_bound": false,
-    "inference_security.release_bound": false,
+    "inference_security.present": true,
+    "inference_security.pass": true,
+    "inference_security.source_bound": true,
+    "inference_security.release_bound": true,
     "postgres_security.present": true,
     "postgres_security.pass": true,
-    "postgres_security.source_bound": false,
+    "postgres_security.source_bound": true,
     "postgres_security.release_bound": true,
     "supply_chain.present": true,
     "supply_chain.pass": false,
@@ -50,10 +50,10 @@
     "exact_environment.pass": false,
     "exact_environment.source_bound": true,
     "exact_environment.release_bound": true,
-    "mutation.present": false,
-    "mutation.pass": false,
-    "mutation.source_bound": false,
-    "mutation.release_bound": false,
+    "mutation.present": true,
+    "mutation.pass": true,
+    "mutation.source_bound": true,
+    "mutation.release_bound": true,
     "pec_authority.present": false,
     "pec_authority.pass": false,
     "pec_authority.source_bound": false,
@@ -70,33 +70,14 @@
     "tevv.trusted_assessor": false,
     "postgres.real_backend": true,
     "supply_chain.complete": false,
-    "mutation.full_catalogue": false
+    "mutation.full_catalogue": true
   },
   "failures": [
-    "engineering.pass",
     "tevv.pass",
-    "observability.source_bound",
-    "state_contracts.present",
-    "state_contracts.pass",
-    "state_contracts.source_bound",
-    "state_contracts.release_bound",
-    "authorization.present",
-    "authorization.pass",
-    "authorization.source_bound",
-    "authorization.release_bound",
     "redteam.pass",
     "reliability.pass",
-    "inference_security.present",
-    "inference_security.pass",
-    "inference_security.source_bound",
-    "inference_security.release_bound",
-    "postgres_security.source_bound",
     "supply_chain.pass",
     "exact_environment.pass",
-    "mutation.present",
-    "mutation.pass",
-    "mutation.source_bound",
-    "mutation.release_bound",
     "pec_authority.present",
     "pec_authority.pass",
     "pec_authority.source_bound",
@@ -110,34 +91,35 @@
     "tevv.environment",
     "tevv.independent",
     "tevv.trusted_assessor",
-    "supply_chain.complete",
-    "mutation.full_catalogue"
+    "supply_chain.complete"
   ],
   "gate_sha256": {
-    "engineering": "47e77b3e93b247a902677639b57ff2f6377c04bdbca897868687998c4a61fc5d",
+    "engineering": "5407ceacb8b1c86da68a0cba034961293a3bdbd02ca5301a37649e796181b689",
     "tevv": "efe4f55e5b23165cdf291a310b373873e998f922227275f108f6bb4ed13a2015",
-    "observability": "f61895817fd33b4f07101298cb7ea23a0de304ff847abcd035aebc016ee1ddc2",
+    "observability": "cdb2af57ea1379580f15ca79dbcf987b7e35845196c3630dc1891689fd1d9fd8",
+    "state_contracts": "9ac5b68327b3108a6fb6e856b93e569da33517384026f41d5797a5b99be22917",
+    "authorization": "0943ba6d7eaaadfb351e35fb5af9ab16efe5dd398e55f2492c25dbe9ab649cd6",
     "redteam": "03648ee4b8f66247890dbd744949639ca6865a8fa3a8211c7aef7cf4c0797fab",
     "reliability": "720f1a47534162abc2bdb401a1e09910887825a3fe0b32442b499396596bf44a",
-    "postgres_security": "a8f8492718a0581c42ab0438ec384da92257b1d0fd097094eaa4ce35438640b7",
+    "inference_security": "7da7ea0aa9c60b11573ab20acc67e2894655236929593226711090d9930e1aee",
+    "postgres_security": "28beb6da533f5803e2d22d953ae6727446f6216918076bd9f1cc4329591c01e3",
     "supply_chain": "ca2078b109bbd392240a45cfef048e918d29037d0a87c1a3390c72d604bf5d55",
-    "exact_environment": "3c1d05ea6544d2ae25e995100b83902b815620a0773c46c8c1b882372e72feab"
+    "exact_environment": "3c1d05ea6544d2ae25e995100b83902b815620a0773c46c8c1b882372e72feab",
+    "mutation": "a59f88a778d0461a2e251a50e1de530dd4c1b54bb05a09e8f656074570a1e0b1"
   },
   "gates": {
     "engineering": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "engineering",
-      "status": "FAIL",
+      "status": "PASS",
       "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
       "release": "v0.9.7",
       "checks": {
         "report_present": true,
         "research_assurance_pass": true,
-        "source_bound": false
+        "source_bound": true
       },
-      "failures": [
-        "source_bound"
-      ],
+      "failures": [],
       "evidence_class": "FRESH_LOCAL_ENGINEERING",
       "report": "reports/RESEARCH_ASSURANCE_REPORT.json"
     },
@@ -244,7 +226,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "observability",
       "status": "PASS",
-      "source_tree_sha256": "b703f5545106bcef5ca01ac3deb1005d536ccfca6a6a527b17cd9afc8ab48ef4",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
       "release": "v0.9.7",
       "checks": {
         "no_identity_or_user_text_labels": true,
@@ -286,8 +268,194 @@
       "forbidden_label_hits": {},
       "evidence_class": "STATIC_PLUS_RUNTIME_METRIC_CONTRACT"
     },
-    "state_contracts": {},
-    "authorization": {},
+    "state_contracts": {
+      "schema": "korpus.production-gate.v1",
+      "gate_id": "state_contracts",
+      "status": "PASS",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "release": "v0.9.7",
+      "checks": {
+        "review_total": true,
+        "subscription_total": true,
+        "rejected_terminal": true,
+        "canceled_terminal": true,
+        "expired_terminal": true,
+        "review_no_self_loops": true,
+        "terminal_subscriptions_never_reactivate": true
+      },
+      "failures": [],
+      "review_matrix": {
+        "quarantined": {
+          "quarantined": false,
+          "metadata_reviewed": true,
+          "content_reviewed": false,
+          "approved": false,
+          "rejected": true
+        },
+        "metadata_reviewed": {
+          "quarantined": false,
+          "metadata_reviewed": false,
+          "content_reviewed": true,
+          "approved": false,
+          "rejected": true
+        },
+        "content_reviewed": {
+          "quarantined": false,
+          "metadata_reviewed": false,
+          "content_reviewed": false,
+          "approved": true,
+          "rejected": true
+        },
+        "approved": {
+          "quarantined": false,
+          "metadata_reviewed": false,
+          "content_reviewed": false,
+          "approved": false,
+          "rejected": true
+        },
+        "rejected": {
+          "quarantined": false,
+          "metadata_reviewed": false,
+          "content_reviewed": false,
+          "approved": false,
+          "rejected": false
+        }
+      },
+      "subscription_matrix": {
+        "incomplete": {
+          "incomplete": false,
+          "active": true,
+          "past_due": false,
+          "canceled": true,
+          "expired": true
+        },
+        "active": {
+          "incomplete": false,
+          "active": true,
+          "past_due": true,
+          "canceled": true,
+          "expired": true
+        },
+        "past_due": {
+          "incomplete": false,
+          "active": true,
+          "past_due": false,
+          "canceled": true,
+          "expired": true
+        },
+        "canceled": {
+          "incomplete": false,
+          "active": false,
+          "past_due": false,
+          "canceled": false,
+          "expired": false
+        },
+        "expired": {
+          "incomplete": false,
+          "active": false,
+          "past_due": false,
+          "canceled": false,
+          "expired": false
+        }
+      },
+      "evidence_class": "EXHAUSTIVE_ENUM_MATRIX"
+    },
+    "authorization": {
+      "schema": "korpus.production-gate.v1",
+      "gate_id": "authorization",
+      "status": "PASS",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "release": "v0.9.7",
+      "checks": {
+        "matrix_matches_role_contract": true,
+        "unknown_permissions_fail_closed": true,
+        "admin_is_not_vocabulary_bypass": true
+      },
+      "failures": [],
+      "matrix": {
+        "admin": {
+          "account:manage": true,
+          "answer:read": true,
+          "audit:read": true,
+          "audit:verify": true,
+          "document:approve": true,
+          "document:ingest": true,
+          "document:list": true,
+          "document:review": true,
+          "document:review_metadata": true,
+          "training:manage": true
+        },
+        "auditor": {
+          "account:manage": false,
+          "answer:read": false,
+          "audit:read": true,
+          "audit:verify": true,
+          "document:approve": false,
+          "document:ingest": false,
+          "document:list": true,
+          "document:review": false,
+          "document:review_metadata": false,
+          "training:manage": false
+        },
+        "curator": {
+          "account:manage": false,
+          "answer:read": true,
+          "audit:read": false,
+          "audit:verify": false,
+          "document:approve": false,
+          "document:ingest": true,
+          "document:list": true,
+          "document:review": false,
+          "document:review_metadata": true,
+          "training:manage": false
+        },
+        "instructor": {
+          "account:manage": false,
+          "answer:read": true,
+          "audit:read": false,
+          "audit:verify": false,
+          "document:approve": false,
+          "document:ingest": false,
+          "document:list": true,
+          "document:review": false,
+          "document:review_metadata": false,
+          "training:manage": true
+        },
+        "reviewer": {
+          "account:manage": false,
+          "answer:read": true,
+          "audit:read": false,
+          "audit:verify": false,
+          "document:approve": true,
+          "document:ingest": false,
+          "document:list": true,
+          "document:review": true,
+          "document:review_metadata": false,
+          "training:manage": false
+        },
+        "user": {
+          "account:manage": false,
+          "answer:read": true,
+          "audit:read": false,
+          "audit:verify": false,
+          "document:approve": false,
+          "document:ingest": false,
+          "document:list": true,
+          "document:review": false,
+          "document:review_metadata": false,
+          "training:manage": false
+        }
+      },
+      "unknown_permission_denied": {
+        "admin": true,
+        "auditor": true,
+        "curator": true,
+        "instructor": true,
+        "reviewer": true,
+        "user": true
+      },
+      "evidence_class": "EXECUTABLE_MATRIX"
+    },
     "redteam": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "redteam",
@@ -404,12 +572,68 @@
       "load_signer_fingerprint": "",
       "recovery_signer_fingerprint": ""
     },
-    "inference_security": {},
+    "inference_security": {
+      "schema": "korpus.production-gate.v1",
+      "gate_id": "inference_security",
+      "status": "PASS",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "release": "v0.9.7",
+      "checks": {
+        "profile_gate_id": true,
+        "evidence_class_internal_adversarial": true,
+        "attack_families_nonempty": true,
+        "attack_families_unique": true,
+        "pytest_targets_nonempty": true,
+        "pytest_targets_unique": true,
+        "pytest_targets_exist": true,
+        "family_target_mapping_complete": true,
+        "every_family_has_executable_target": true,
+        "family_targets_declared_in_suite": true,
+        "family_targets_exist": true,
+        "pytest_exit_zero": true,
+        "tests_executed": true,
+        "no_test_failures": true,
+        "no_test_errors": true,
+        "no_test_skips": true
+      },
+      "failures": [],
+      "evidence_class": "INTERNAL_ADVERSARIAL",
+      "profile": "config/assurance/inference-security-v1.json",
+      "profile_sha256": "3167fa8fd4d2fef47dfc15b8169a117af7b4697f51d9f827f6dda10ea29a74a1",
+      "attack_families": [
+        "direct_prompt_injection",
+        "indirect_prompt_injection",
+        "retrieval_poisoning",
+        "egress_leakage",
+        "planner_control_injection",
+        "evidence_boundary",
+        "cross_scope_retrieval"
+      ],
+      "pytest_targets": [
+        "apps/api/tests/test_query_planner_boundary.py",
+        "apps/api/tests/test_model_egress.py",
+        "apps/api/tests/test_noninterference_measurement.py",
+        "apps/api/tests/test_leakage_measurement.py",
+        "apps/api/tests/test_answer_composition.py",
+        "apps/api/tests/test_retriever_scope.py",
+        "apps/api/tests/test_egress_material_ceiling.py",
+        "apps/api/tests/test_indirect_prompt_injection_boundary.py"
+      ],
+      "pytest_exit_code": 0,
+      "pytest": {
+        "tests": 65,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "junit_sha256": "55d70e2d3f06b780b81c1f49778615434a35bcc784a8669d495523cd7185aea8",
+      "output_tail": ".................................................................        [100%]\n"
+    },
     "postgres_security": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "postgres_security",
       "status": "PASS",
-      "source_tree_sha256": "db5811b579f06d08f937f132eab1a7c81f8ab03a31ee951601a82c855c989813",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
       "release": "v0.9.7",
       "checks": {
         "target_files_present": true,
@@ -427,7 +651,7 @@
         "apps/api/tests/test_audit.py"
       ],
       "runtime_exit_code": 0,
-      "runtime_tail": "........................................................................ [  2%]\n........................................................................ [  4%]\n........................................................................ [  6%]\n........................................................................ [  9%]\n........................................................................ [ 11%]\n........................................................................ [ 13%]\n........................................................................ [ 15%]\n........................................................................ [ 18%]\n........................................................................ [ 20%]\n........................................................................ [ 22%]\n........................................................................ [ 24%]\n........................................................................ [ 27%]\n........................................................................ [ 29%]\n........................................................................ [ 31%]\n........................................................................ [ 33%]\n........................................................................ [ 36%]\n........................................................................ [ 38%]\n........................................................................ [ 40%]\n........................................................................ [ 42%]\n........................................................................ [ 45%]\n........................................................................ [ 47%]\n........................................................................ [ 49%]\n........................................................................ [ 51%]\n........................................................................ [ 54%]\n........................................................................ [ 56%]\n........................................................................ [ 58%]\n........................................................................ [ 60%]\n........................................................................ [ 63%]\n........................................................................ [ 65%]\n........................................................................ [ 67%]\n........................................................................ [ 69%]\n........................................................................ [ 72%]\n........................................................................ [ 74%]\n........................................................................ [ 76%]\n........................................................................ [ 78%]\n........................................................................ [ 81%]\n........................................................................ [ 83%]\n........................................................................ [ 85%]\n........................................................................ [ 87%]\n........................................................................ [ 90%]\n........................................................................ [ 92%]\n........................................................................ [ 94%]\n........................................................................ [ 96%]\n........................................................................ [ 99%]\n..........................                                               [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3194 passed, 1 warning in 184.53s (0:03:04)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\n",
+      "runtime_tail": "... [ 42%]\n........................................................................ [ 45%]\n........................................................................ [ 47%]\n........................................................................ [ 49%]\n........................................................................ [ 51%]\n........................................................................ [ 54%]\n........................................................................ [ 56%]\n........................................................................ [ 58%]\n........................................................................ [ 60%]\n........................................................................ [ 63%]\n........................................................................ [ 65%]\n........................................................................ [ 67%]\n........................................................................ [ 69%]\n........................................................................ [ 72%]\n........................................................................ [ 74%]\n........................................................................ [ 76%]\n........................................................................ [ 78%]\n........................................................................ [ 81%]\n........................................................................ [ 83%]\n........................................................................ [ 85%]\n........................................................................ [ 87%]\n........................................................................ [ 90%]\n........................................................................ [ 92%]\n........................................................................ [ 94%]\n........................................................................ [ 96%]\n........................................................................ [ 99%]\n...........................                                              [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3195 passed, 1 warning in 274.43s (0:04:34)\nUnable to find image 'pgvector/pgvector:0.8.5-pg17-trixie@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f' locally\ndocker.io/pgvector/pgvector@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f: Pulling from pgvector/pgvector\ne95a6c7ea7d4: Pulling fs layer\n397e13aa3325: Pulling fs layer\n49ed57357e05: Pulling fs layer\n8fcb70d8b974: Pulling fs layer\nad11f5d50ef7: Pulling fs layer\n04205d6cb1bf: Pulling fs layer\n51a0c66b25f7: Pulling fs layer\nad11f5d50ef7: Waiting\n77f1b155d335: Pulling fs layer\n04205d6cb1bf: Waiting\n51a0c66b25f7: Waiting\n8fcb70d8b974: Waiting\n2b7fa82a0940: Pulling fs layer\n77f1b155d335: Waiting\nd969443128b3: Pulling fs layer\n2b7fa82a0940: Waiting\n1304d72d7b87: Pulling fs layer\nd969443128b3: Waiting\nc5cae5db83ce: Pulling fs layer\n1304d72d7b87: Waiting\nf115814a192a: Pulling fs layer\nc5cae5db83ce: Waiting\n2feed4d8fca6: Pulling fs layer\nf115814a192a: Waiting\n4759a2af7b58: Pulling fs layer\n2feed4d8fca6: Waiting\n945b8365734f: Pulling fs layer\n4759a2af7b58: Waiting\n945b8365734f: Waiting\n397e13aa3325: Verifying Checksum\n397e13aa3325: Download complete\n49ed57357e05: Download complete\n8fcb70d8b974: Verifying Checksum\n8fcb70d8b974: Download complete\n04205d6cb1bf: Download complete\n51a0c66b25f7: Verifying Checksum\n51a0c66b25f7: Download complete\nad11f5d50ef7: Verifying Checksum\nad11f5d50ef7: Download complete\n77f1b155d335: Verifying Checksum\n77f1b155d335: Download complete\ne95a6c7ea7d4: Verifying Checksum\ne95a6c7ea7d4: Download complete\nd969443128b3: Download complete\ne95a6c7ea7d4: Pull complete\n397e13aa3325: Pull complete\n49ed57357e05: Pull complete\n8fcb70d8b974: Pull complete\nad11f5d50ef7: Pull complete\n04205d6cb1bf: Pull complete\n51a0c66b25f7: Pull complete\n77f1b155d335: Pull complete\n1304d72d7b87: Verifying Checksum\n1304d72d7b87: Download complete\nc5cae5db83ce: Verifying Checksum\nc5cae5db83ce: Download complete\n2b7fa82a0940: Download complete\n2feed4d8fca6: Verifying Checksum\n2feed4d8fca6: Download complete\nf115814a192a: Verifying Checksum\nf115814a192a: Download complete\n4759a2af7b58: Verifying Checksum\n4759a2af7b58: Download complete\n945b8365734f: Verifying Checksum\n945b8365734f: Download complete\n2b7fa82a0940: Pull complete\nd969443128b3: Pull complete\n1304d72d7b87: Pull complete\nc5cae5db83ce: Pull complete\nf115814a192a: Pull complete\n2feed4d8fca6: Pull complete\n4759a2af7b58: Pull complete\n945b8365734f: Pull complete\nDigest: sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f\nStatus: Downloaded newer image for pgvector/pgvector@sha256:69573b32242ca232f65871d4cb916ba7210a372b9bd74068204c1a9a57bada4f\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\n",
       "static_tail": "...                                                                      [100%]\n"
     },
     "supply_chain": {
@@ -490,7 +714,28 @@
       "mismatched": {},
       "unmanaged_distributions": []
     },
-    "mutation": {},
+    "mutation": {
+      "schema": "korpus.production-gate.v1",
+      "gate_id": "mutation",
+      "status": "PASS",
+      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "release": "v0.9.7",
+      "checks": {
+        "report_present": true,
+        "source_bound": true,
+        "counts_well_formed": true,
+        "catalogue_nonempty": true,
+        "all_mutants_valid": true,
+        "all_valid_mutants_killed": true,
+        "catalogue_score_one": true
+      },
+      "failures": [],
+      "scope": "FULL_CATALOGUE",
+      "evidence_class": "EXECUTED_FIRST_ORDER_MUTATION",
+      "mutants": 379,
+      "valid_mutants": 379,
+      "killed": 379
+    },
     "pec_authority": {},
     "pec_canary": {}
   },
