@@ -2092,8 +2092,7 @@ IMAGES_MEASURED_TO_SHIP_PYTHON = {
     # docker run --rm --entrypoint sh google/cloud-sdk@sha256:cb08e90d… -c 'python3 -V'
     # → Python 3.13.5 (/usr/bin/python3), Debian GNU/Linux 13 (trixie). Голого
     # `python` там немає, тож крок `python …` лишається порушенням і тут.
-    "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0":
-        "google/cloud-sdk:578.0.0-slim — виміряно 2026-08-30, python3 3.13.5",
+    "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0": "google/cloud-sdk:578.0.0-slim — виміряно 2026-08-30, python3 3.13.5",
 }
 
 
@@ -2151,20 +2150,24 @@ def test_the_python_image_rule_still_catches_an_image_without_an_interpreter() -
     Правило мусить лишитись червоним.
     """
     assert not _ships_python(
-        "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b0000000000000000000000000000000000000000000000000000")
+        "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b0000000000000000000000000000000000000000000000000000"
+    )
     assert not _ships_python("anchore/syft:v1.44.0-debug"), "образ без digest не сміє проходити"
     assert _ships_python(
         "google/cloud-sdk:578.0.0-slim@"
-        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0")
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0"
+    )
 
     #: Той самий digest, зміщений на один символ, — інший образ.
     assert not _ships_python(
         "google/cloud-sdk:578.0.0-slim@"
-        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec1")
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec1"
+    )
 
     every = {v for v in IMAGES_MEASURED_TO_SHIP_PYTHON.values()}
-    assert all("виміряно" in v for v in every), \
+    assert all("виміряно" in v for v in every), (
         "запис у переліку без слова про вимір — це здогад, а не доказ"
+    )
 
     # Саме ПРАВИЛО, а не лише помічник. Перша редакція цього контролю
     # перевіряла тільки `_ships_python`, і мутація `if True: continue`, що
@@ -2176,13 +2179,15 @@ def test_the_python_image_rule_still_catches_an_image_without_an_interpreter() -
         "  script:\n"
         "    - python3 scripts/build_sbom.py\n"
     )
-    assert python_steps_without_an_interpreter(incident), \
+    assert python_steps_without_an_interpreter(incident), (
         "правило перестало ловити інцидент, заради якого написане"
+    )
 
     allowed = incident.replace(
         "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b",
         "google/cloud-sdk:578.0.0-slim@"
-        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0")
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0",
+    )
     assert not python_steps_without_an_interpreter(allowed)
 
 
