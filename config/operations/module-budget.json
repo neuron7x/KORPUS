@@ -3120,7 +3120,7 @@
       "max_nesting": 4
     },
     "scripts/gcp/production_contract.py": {
-      "lines": 562,
+      "lines": 636,
       "max_complexity": 12,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 128,
@@ -5820,6 +5820,17 @@
         "grown": 1,
         "new_modules": 0
       }
+    },
+    {
+      "on": "2026-08-30",
+      "path": "scripts/gcp/production_contract.py",
+      "from": {
+        "lines": 562
+      },
+      "to": {
+        "lines": 636
+      },
+      "reason": "the GitLab WIF predicate registry: eight `assertion.*` claims pinning the deploy identity to a protected branch and a protected production environment, plus the delivery order they gate. Each line is one property the production plane states about itself. Complexity and function shape are unchanged."
     }
   ],
   "recorded_at": "2026-08-24",

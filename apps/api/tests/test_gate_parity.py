@@ -2080,24 +2080,110 @@ def test_the_doctrine_catalog_rules_run_in_the_pipeline() -> None:
     ), "the catalog's provenance rules are not enforced on push"
 
 
-def test_no_job_runs_a_python_step_in_an_image_without_python() -> None:
-    """source:sbom runs anchore/syft:-debug, whose shell is busybox and which has no
-    interpreter. A `python3 scripts/...` step added there on 2026-08-29 exited 127 and took
-    container:build, source:package and both verify-image jobs down as skipped."""
+#: Образи, ПРО ЯКІ ВИМІРЯНО, що інтерпретатор у них є. Ключ — digest, не тег:
+#: тег можна перенаправити на інший вміст, digest — ні.
+#:
+#: Правило вище судило за ІМЕНЕМ образу («чи є в ньому підрядок python»). Це
+#: та сама вада, яку ловить решта файлу: перевірка дивиться на назву замість
+#: предмета. `google/cloud-sdk` не містить слова python і має /usr/bin/python3.
+#:
+#: Кожен запис мусить нести, ЧИМ це доведено. Здогад сюди не кладеться.
+IMAGES_MEASURED_TO_SHIP_PYTHON = {
+    # docker run --rm --entrypoint sh google/cloud-sdk@sha256:cb08e90d… -c 'python3 -V'
+    # → Python 3.13.5 (/usr/bin/python3), Debian GNU/Linux 13 (trixie). Голого
+    # `python` там немає, тож крок `python …` лишається порушенням і тут.
+    "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0":
+        "google/cloud-sdk:578.0.0-slim — виміряно 2026-08-30, python3 3.13.5",
+}
+
+
+def _ships_python(image: str) -> bool:
+    """Чи виміряно, що в цьому образі є інтерпретатор.
+
+    Порівнюється digest. Образ без digest не може бути в переліку: без нього
+    невідомо, що саме перевіряли.
+    """
+    if "@" not in image:
+        return False
+    return image.split("@", 1)[1] in IMAGES_MEASURED_TO_SHIP_PYTHON
+
+
+def python_steps_without_an_interpreter(ci_text: str) -> list[str]:
+    """Кроки `python…` у джобах, чий образ не має інтерпретатора.
+
+    Винесено з тесту НАВМИСНО. Поки правило жило в тілі тесту, його не було чим
+    погодувати синтетичним входом — і мутація `if True: continue`, що вимикає
+    правило цілком, лишала тест зеленим. Тест, який читає лише реальний CI,
+    доводить стан цього файлу, а не те, що правило працює.
+    """
     offenders: list[str] = []
-    for block in re.split(r"^(?=\S)", CI.read_text(encoding="utf-8"), flags=re.M):
+    for block in re.split(r"^(?=\S)", ci_text, flags=re.M):
         name = block.split(":", 1)[0].strip()
         # The job's own image, at two spaces. `services:` entries are nested deeper and
         # name a database, not the interpreter the script steps run under.
         own = re.search(r"^  image:\s*\n(?:\s+#[^\n]*\n)*\s+name:\s*(\S+)", block, re.M)
         inline = re.search(r"^  image:\s*(\S+)\s*$", block, re.M)
         image = (own or inline).group(1) if (own or inline) else None
-        if image is None or "python" in image:
+        if image is None or "python" in image or _ships_python(image):
             continue
         for line in re.findall(r"^    - (.*)$", block, re.M):
             if re.match(r"(PYTHONPATH=\S+ )?python3? ", line):
                 offenders.append(f"{name}: {line[:60]} (image {image[:40]})")
-    assert not offenders, offenders
+    return offenders
+
+
+def test_no_job_runs_a_python_step_in_an_image_without_python() -> None:
+    """source:sbom runs anchore/syft:-debug, whose shell is busybox and which has no
+    interpreter. A `python3 scripts/...` step added there on 2026-08-29 exited 127 and took
+    container:build, source:package and both verify-image jobs down as skipped."""
+    assert not python_steps_without_an_interpreter(CI.read_text(encoding="utf-8"))
+
+
+def test_the_python_image_rule_still_catches_an_image_without_an_interpreter() -> None:
+    """Негативний контроль на послаблення, яке я щойно вніс у правило вище.
+
+    Уточнення `_ships_python` пропускає образи, ПРО ЯКІ ВИМІРЯНО, що
+    інтерпретатор у них є. Без цієї проби уточнення нічим не відрізнити від
+    зняття правила: обидва роблять гейт зеленим.
+
+    Відтворено інцидент із докстрінга правила — `python3 scripts/...` у
+    `anchore/syft:-debug`, чия оболонка busybox і де інтерпретатора немає.
+    Правило мусить лишитись червоним.
+    """
+    assert not _ships_python(
+        "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b0000000000000000000000000000000000000000000000000000")
+    assert not _ships_python("anchore/syft:v1.44.0-debug"), "образ без digest не сміє проходити"
+    assert _ships_python(
+        "google/cloud-sdk:578.0.0-slim@"
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0")
+
+    #: Той самий digest, зміщений на один символ, — інший образ.
+    assert not _ships_python(
+        "google/cloud-sdk:578.0.0-slim@"
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec1")
+
+    every = {v for v in IMAGES_MEASURED_TO_SHIP_PYTHON.values()}
+    assert all("виміряно" in v for v in every), \
+        "запис у переліку без слова про вимір — це здогад, а не доказ"
+
+    # Саме ПРАВИЛО, а не лише помічник. Перша редакція цього контролю
+    # перевіряла тільки `_ships_python`, і мутація `if True: continue`, що
+    # вимикає правило цілком, лишала його зеленим.
+    incident = (
+        "source:sbom:\n"
+        "  image:\n"
+        "    name: anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b\n"
+        "  script:\n"
+        "    - python3 scripts/build_sbom.py\n"
+    )
+    assert python_steps_without_an_interpreter(incident), \
+        "правило перестало ловити інцидент, заради якого написане"
+
+    allowed = incident.replace(
+        "anchore/syft:v1.44.0-debug@sha256:6dd8fb28e1b",
+        "google/cloud-sdk:578.0.0-slim@"
+        "sha256:cb08e90df56365a0a0b68e019ca06f90174bc064c4b0a5edfc3a5cf4415b5ec0")
+    assert not python_steps_without_an_interpreter(allowed)
 
 
 def test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost(

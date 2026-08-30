@@ -8,3 +8,7 @@ audit_retention_seconds  = 31536000
 governance_retention_seconds = 31536000
 # Irreversible. Keep false until retention policy has explicit operational/legal approval.
 lock_retention_policies = false
+github_runtime_deployer_service_account = "korpus-github-runtime@replace-korpus-prod-project.iam.gserviceaccount.com"
+github_drill_deployer_service_account   = "korpus-github-drill@replace-korpus-prod-project.iam.gserviceaccount.com"
+gitlab_runtime_deployer_service_account = "korpus-gitlab-runtime@replace-korpus-prod-project.iam.gserviceaccount.com"
+gitlab_drill_deployer_service_account   = "korpus-gitlab-drill@replace-korpus-prod-project.iam.gserviceaccount.com"

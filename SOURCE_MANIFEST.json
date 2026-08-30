@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1507,
-  "root_sha256": "869469df47872382202cc61a95106bbc317d16c56ad7a706267abf7cb18b3993",
+  "file_count": 1513,
+  "root_sha256": "a909ea6ad45cf370b555f0e1643b8e2317c3d5cd5621affd964936dafe05e3a2",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36692,
-      "sha256": "f26a462df3c5a20551c069476ecdf24ef8dbbddeb784b468a960cd6905744494",
+      "bytes": 38774,
+      "sha256": "365c0a83389cf8c5a7f1bbb07b36b7c6f19e8c8f76f383235a06bc8fa64c039e",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 114218,
-      "sha256": "809ca0d0139b446348fcd3309cc44658a074a596641d6f5f8eedd24ac6fb204e",
+      "bytes": 119363,
+      "sha256": "4e5246c0db812fe33ee7f70bf1fda6a98b5c0b65905892d87b41557ec95e2069",
       "mode": "0644"
     },
     {
@@ -3225,6 +3225,12 @@
       "path": "apps/api/tests/test_github_actions_policy.py",
       "bytes": 3140,
       "sha256": "dd6df459bc5c3bb6e960ec51d6f8039bf2a922c432959bf72e62c2102a2fafbb",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_gitlab_gcp_production.py",
+      "bytes": 3571,
+      "sha256": "fe4306bd10b133fc851b6feb4ba4fbb0d7a3a8a602402e645f0f2df3b7e1c1ed",
       "mode": "0644"
     },
     {
@@ -6164,7 +6170,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "f8801c1ebe3f8ac257b705c3f7b8dd2570edf6198264926ae772f3d3a7e0a2da",
+      "sha256": "8cee00f7da332b4c7c3787390f4444e34899c7b596192dc2a93c05f3a46261b9",
       "mode": "0644"
     },
     {
@@ -6175,8 +6181,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 256614,
-      "sha256": "da68791c4f131cefeec7f99f402c81763ebb6158b4c139e52e8180599f98d64f",
+      "bytes": 257113,
+      "sha256": "abd8ae73be213a6beddafe64516f76e3696e03756c9424fc3cccc58a103cc801",
       "mode": "0644"
     },
     {
@@ -7356,33 +7362,45 @@
       "mode": "0644"
     },
     {
+      "path": "infra/gcp/bootstrap/.terraform.lock.hcl",
+      "bytes": 1184,
+      "sha256": "bd9858d187bd9f82e8cd272666fc623b457dcf65f189b4394c34b04221117cb6",
+      "mode": "0644"
+    },
+    {
       "path": "infra/gcp/bootstrap/main.tf",
-      "bytes": 5327,
-      "sha256": "b582a157b3395135ab265382addc326e860d40a6180403902b8e4eefbad95933",
+      "bytes": 8799,
+      "sha256": "2c8e3dcb9bd2ac7798654e67f72d66b3a821986f5b48dbc8b3ccad5564b73f5e",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/bootstrap/outputs.tf",
-      "bytes": 615,
-      "sha256": "2e7851c1dadb4c4fa99902ceac44ac96ba2fc42bbbcaf569682561e23ee82283",
+      "bytes": 1071,
+      "sha256": "5ef841d08ebcedcdc58c37333afc94caabed2496ad37a58f0d8f6d3748563f15",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/bootstrap/terraform.tfvars.example",
-      "bytes": 252,
-      "sha256": "ebc4593230a1591cbc6ffc343dabba5048f090c56c092fa31ed176097ad7005f",
+      "bytes": 388,
+      "sha256": "07db13d6910279ddfde862190622e7e30a80fc77543d7bc57c4e73947e8c43f4",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/bootstrap/variables.tf",
-      "bytes": 1642,
-      "sha256": "38290711d4b587478bb108db815105a909040ec70f9d1fe95e867cdbb2c8c47c",
+      "bytes": 2418,
+      "sha256": "033b36da4b5dfb2cb05eaa9fa6fda7bc820afcd310b0104c382469ec6ab386e7",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/bootstrap/versions.tf",
       "bytes": 177,
       "sha256": "4021b8b74c61736b98ff0167379037cd24b367e5d77dfb7b664fd3cd2539060f",
+      "mode": "0644"
+    },
+    {
+      "path": "infra/gcp/foundation/.terraform.lock.hcl",
+      "bytes": 1184,
+      "sha256": "bd9858d187bd9f82e8cd272666fc623b457dcf65f189b4394c34b04221117cb6",
       "mode": "0644"
     },
     {
@@ -7399,8 +7417,8 @@
     },
     {
       "path": "infra/gcp/foundation/main.tf",
-      "bytes": 13840,
-      "sha256": "e63aad5d9f19063ab760259146c18f1980f84bd1c69c9fa6307ed0b02646cd0c",
+      "bytes": 16466,
+      "sha256": "73c88d16df8b752a369e7b45de609effaddc6d7e8540835e7d86cd26f00b1937",
       "mode": "0644"
     },
     {
@@ -7417,20 +7435,26 @@
     },
     {
       "path": "infra/gcp/foundation/terraform.tfvars.example",
-      "bytes": 448,
-      "sha256": "8c5eef3032aec51b2745fc42fed395cd1dfbfc70f443da87c68d81e696eef299",
+      "bytes": 916,
+      "sha256": "afb3c077bcdff8dc3ae21d85621af901670283cc250a27a7df6b9c865a4aab18",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/foundation/variables.tf",
-      "bytes": 3440,
-      "sha256": "7276679f863711e35a5f73d9f224a171b7f1f227b6f7c1e84f7c0bc49feafb29",
+      "bytes": 4372,
+      "sha256": "a53bfd8645875e2ad47b1a3b0c8b83c621b299b3436ad6d290bcb3f5f5c04dfb",
       "mode": "0644"
     },
     {
       "path": "infra/gcp/foundation/versions.tf",
       "bytes": 177,
       "sha256": "a95285a4e74b84839f31d5eaa681494b078fe058b14716b1fc4d21a6f2d4e224",
+      "mode": "0644"
+    },
+    {
+      "path": "infra/gcp/runtime/.terraform.lock.hcl",
+      "bytes": 1184,
+      "sha256": "bd9858d187bd9f82e8cd272666fc623b457dcf65f189b4394c34b04221117cb6",
       "mode": "0644"
     },
     {
@@ -7878,6 +7902,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/gcp/authenticate_gitlab_wif.sh",
+      "bytes": 1815,
+      "sha256": "4da431188215b3f964fa3da54812d0bdd3be7cdf9fd7392cbda0007170bd43bc",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/gcp/bootstrap_production.sh",
       "bytes": 10544,
       "sha256": "fb6e7d03848ff05d5c791fd05b411ac604da90710d0bd82371a6b266a3434f21",
@@ -7908,6 +7938,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/gcp/deploy_gitlab_production.sh",
+      "bytes": 9058,
+      "sha256": "23a8a194841fe7ef8e5d1414fda2890ca261db5813abe43832324d6591e99e1b",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/gcp/drill_cloudsql_pitr.sh",
       "bytes": 7096,
       "sha256": "bb5cb8b3276d9f717cf2c6f59cf921312372928ee73c03e15e1406a47243eb89",
@@ -7933,8 +7969,8 @@
     },
     {
       "path": "scripts/gcp/production_contract.py",
-      "bytes": 23701,
-      "sha256": "e843034d89cca2be6daca388c2c0591afa8ff8650d201f910fafb801129ffc9a",
+      "bytes": 27078,
+      "sha256": "94204abe81a4b0f5b052d4f1d974cb8b8794b39e242061aed788e7bf4c81bb03",
       "mode": "0644"
     },
     {
