@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1604,
-  "root_sha256": "0afa03b8a4a6e342b5597b0ed57fa2c7cd40e2b27dbe60771ac418e0af5e1be5",
+  "file_count": 1606,
+  "root_sha256": "d06adfa096cc67f5d8ae7a389a07f7657350090a69e5151ed8242ef36c3ec05a",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 52382,
-      "sha256": "f24122ced32f29afc072f482fa9b96ab2934559e94460ea28ce862da6efd44cf",
+      "bytes": 53050,
+      "sha256": "6ea650104d7d6c54615aa471fa8617b9eb90348a4f4e673d3327f45ee9080e9a",
       "mode": "0644"
     },
     {
@@ -6553,8 +6553,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1159638,
-      "sha256": "485592a29616e346ce075ed8e5ecb5c178efb9a653de28ab7a0790aa4fcb2d03",
+      "bytes": 1163270,
+      "sha256": "efe84104ef425fcccc1feca938471342445735dcc9e56a376e5e0115c036d115",
       "mode": "0644"
     },
     {
@@ -6667,8 +6667,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 263061,
-      "sha256": "518c1f21f22dda2b2d5d9bfeafbe50bfe917a46815d330293eb003fd6eec7e63",
+      "bytes": 265431,
+      "sha256": "fd6d8532d853ca0c0716109828d409b4686731860190baf661d8208ae66899e4",
       "mode": "0644"
     },
     {
@@ -7549,14 +7549,14 @@
     },
     {
       "path": "evals/datasets/reference.jsonl",
-      "bytes": 104055,
-      "sha256": "fdc0b66b1bccf816a63476a2525f46fe7adec71dcaf426cb612c8938b09c2063",
+      "bytes": 10667,
+      "sha256": "4672f22ca7858299a77431561be9222a6f91ac71a880685265982048cd5d77d7",
       "mode": "0644"
     },
     {
       "path": "evals/datasets/reference.meta.json",
-      "bytes": 1092,
-      "sha256": "07b9903a91f3d8986c416056155abe58537ead442cb240e846ec6e24d793e953",
+      "bytes": 1159,
+      "sha256": "d72ae127ed24367acb46ac5483fc6caf99109098cba079f976d5bc6f245a34ea",
       "mode": "0644"
     },
     {
@@ -8101,8 +8101,8 @@
     },
     {
       "path": "scripts/agent_protocol.py",
-      "bytes": 33579,
-      "sha256": "cd45eeb4cb11f98beccf5305073ce7e3cb18fed2274a9c6063cf6c19398a843f",
+      "bytes": 34805,
+      "sha256": "91eea5dd483e7e1ad7e0674a360568c135bdec33e5a972b38eb0e8b96d1ef938",
       "mode": "0755"
     },
     {
@@ -9474,6 +9474,18 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/validate_publication_mirrors.py",
+      "bytes": 9722,
+      "sha256": "e37581347376a9ab409e8edd3d2faae283b0ca5847b0b79e9ed443f58caf176d",
+      "mode": "0644"
+    },
+    {
+      "path": "scripts/validate_refusal_retryability.py",
+      "bytes": 7176,
+      "sha256": "9b8e3439beb276cabecbafd40f391baacbacfef1965f4856dc0bcf2f385a6445",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/validate_remote_digest.py",
       "bytes": 9204,
       "sha256": "dd3453a9dd4d26018cc2cae0645c8a0b17b859b8688f291a9b4b8f85bc7fe263",
@@ -9601,8 +9613,8 @@
     },
     {
       "path": "scripts/verify_verdict_ledger.py",
-      "bytes": 6983,
-      "sha256": "e591ecb2bb5c65c9e542df6a6a279ec6efeab369f8d2bf22bcebc9ae3b8bbd74",
+      "bytes": 12703,
+      "sha256": "cb31c44bd176bf64362aa771265b5018cc97a2083fd12b76f2ed0b4f91fd5c31",
       "mode": "0755"
     },
     {

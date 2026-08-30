@@ -2739,8 +2739,8 @@
       "max_nesting": 4
     },
     "scripts/agent_protocol.py": {
-      "lines": 325,
-      "proof_lines": 413,
+      "lines": 332,
+      "proof_lines": 426,
       "max_complexity": 15,
       "reason": "Реєстр осей агентів, журнал тверджень і план: точна виміряна початкова стеля. `check_registry` мала складність 23 і `check_ledger` 16 — стелю не піднімали, обидві розділені на функції-правила по одній властивості кожна, вивід --selftest/--registry/--ledger доведено незмінним до і після.",
       "max_function_lines": 42,
@@ -4442,11 +4442,30 @@
       "max_nesting": 4
     },
     "scripts/verify_verdict_ledger.py": {
-      "lines": 145,
+      "lines": 187,
+      "proof_lines": 60,
       "max_complexity": 16,
       "reason": "registered 2026-08-29 | 2026-08-30: словник вироків. Невідоме слово не зараховувалось до тих, що закривають твердження, тож друкарська помилка в ACCEPTED мовчки ставала тишею, а журнал звітував PASS. Плюс CANNOT_ADJUDICATE як записаний стан: «не маю власного виміру» — твердження про рецензента, і воно каже, чому справу не закрито.",
       "max_function_lines": 60,
       "max_function_args": 8,
+      "max_nesting": 4
+    },
+    "scripts/validate_publication_mirrors.py": {
+      "lines": 113,
+      "proof_lines": 50,
+      "max_complexity": 21,
+      "reason": "Точна виміряна початкова стеля. Гейт дзеркал публікацій: пара «оригінал і дзеркало» мусить бути оголошена, інакше дзеркало починає правити за джерело.",
+      "max_function_lines": 41,
+      "max_function_args": 4,
+      "max_nesting": 4
+    },
+    "scripts/validate_refusal_retryability.py": {
+      "lines": 92,
+      "proof_lines": 35,
+      "max_complexity": 11,
+      "reason": "Точна виміряна початкова стеля. Гейт семантики відмови: клас відмови мусить казати, чи її можна повторити — інакше «недосяжно» назавжди ховає джерело, доступне просто зараз.",
+      "max_function_lines": 28,
+      "max_function_args": 3,
       "max_nesting": 4
     },
     "scripts/validate_remote_digest.py": {
@@ -4549,6 +4568,28 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-30",
+      "path": "scripts/agent_protocol.py",
+      "from": {
+          "lines": 325
+      },
+      "to": {
+          "lines": 332
+      },
+      "reason": "Сусідня сесія злила своє розширення з моїми анотаціями; приріст — її, стеля переміряна на злитому файлі."
+  },
+  {
+      "on": "2026-08-30",
+      "path": "scripts/verify_verdict_ledger.py",
+      "from": {
+          "lines": 145
+      },
+      "to": {
+          "lines": 187
+      },
+      "reason": "Словник вироків перестав бути другою копією й читається з config/agents/axes.json — разом із fail-closed на кожному кроці (немає файла, немає ключа, порожній перелік, слово в обох переліках, піднімає не закриваючи). Приріст — ця застава плюс вбудований негативний контроль --selftest: сім отрут ПО ДАНИХ, бо гейт, що читає критерій із дерева, роззброюється правкою дерева, і це треба ловити, а не пояснювати."
+  },
   {
       "on": "2026-08-30",
       "path": "scripts/open_claims.py",

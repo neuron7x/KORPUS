@@ -291,6 +291,7 @@ capture-evidence-selftest:
 # made the claim is refused: producer and acceptor being the same is the defect a full day
 # of cross-session work was spent finding, and it is the one that repeats.
 verdict-ledger:
+	$(PY) scripts/verify_verdict_ledger.py --selftest
 	$(PY) scripts/verify_verdict_ledger.py
 
 # Does the commit stand on its own? Four defects this session passed in the working tree and
