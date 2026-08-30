@@ -3430,7 +3430,7 @@
       "max_nesting": 4
     },
     "scripts/manifest_paths.py": {
-      "lines": 83,
+      "lines": 90,
       "max_complexity": 5,
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
       "max_function_lines": 60,

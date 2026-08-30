@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1585,
-  "root_sha256": "4e52359ddfe9a3ac8d99c412b82912d7915869a8813e0ee5b6274e9ad4c8bcc1",
+  "file_count": 1584,
+  "root_sha256": "f13936d08f13845cc6d110a53393e4b7bf363f2e88abac03bf814ba82b31607b",
   "files": [
     {
       "path": ".dockerignore",
@@ -147,12 +147,6 @@
       "path": ".trivyignore.yaml",
       "bytes": 1115,
       "sha256": "4e06e917612cb752eb0466caa54826c92a53c4a9a68805f09d01eb7531d01da8",
-      "mode": "0644"
-    },
-    {
-      "path": ".verdict-ledger.jsonl",
-      "bytes": 81810,
-      "sha256": "1048bf26cbd0959a7903dd7e3cce37f500246520cd666218e1d3a0290c13c52f",
       "mode": "0644"
     },
     {
@@ -3121,8 +3115,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 121886,
-      "sha256": "fc2a15d092b1e3330f972fbaf3b2dd0b986b90672fa864dba35af2fb6d819989",
+      "bytes": 123376,
+      "sha256": "6433fd682646cf66d32609af29e40992f8133e303a3afeeb4ddf7e1552108fb0",
       "mode": "0644"
     },
     {
@@ -6608,7 +6602,7 @@
     {
       "path": "config/operations/module-budget.json",
       "bytes": 257348,
-      "sha256": "e89cdf28e653bd4026d1d4af7c43af7c6139d5128f0f0f66d2d55625fad5199b",
+      "sha256": "42123e3361cf2c874bafc7692d1a929f03d58f533f16802cfa19da99a31c3fc1",
       "mode": "0644"
     },
     {
@@ -8659,8 +8653,8 @@
     },
     {
       "path": "scripts/manifest_paths.py",
-      "bytes": 2866,
-      "sha256": "4e0fb95b97c08451f7ee6ce79b496bd00b9cdd1bb070e327c42aaa88fa9f205d",
+      "bytes": 3715,
+      "sha256": "ad036883df60929b56012ed51a5825f6688f8588fbc0a1bb160c00c0ded13a3c",
       "mode": "0644"
     },
     {

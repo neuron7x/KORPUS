@@ -2531,3 +2531,25 @@ def test_the_stager_takes_a_cross_listed_document_once() -> None:
         "збірник більше не читає canonical_id — оголошення знову описує дедуп замість "
         "того, щоб його робити"
     )
+
+
+def test_the_verdict_ledger_is_not_part_of_the_digest_it_describes() -> None:
+    """Твердження про систему не сміє мінятися разом із самою системою.
+
+    Поки `.verdict-ledger.jsonl` входив у `source_tree_sha256`, кожен дописаний вирок
+    зсував digest і робив `handoff --require-bound` STALE: звіт описував дерево, яке
+    щойно перестало бути цим. Дві сесії за добу по черзі втрачали 15-хвилинні прогони, і
+    вигравав той, хто писав останнім, а не той, хто правий.
+
+    Дуальність тут обов'язкова: правило мусить виключати ЖУРНАЛ, а не «щось» — інакше
+    воно легко виродиться у виключення половини дерева.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from manifest_paths import source_included
+
+    assert not source_included(Path(".verdict-ledger.jsonl"))
+    assert not source_included(Path("reports/ANY.json")), "reports/ теж поза digest"
+    for kept in ("scripts/check_module_budget.py", "config/corpus/doctrine_catalog_2026.json"):
+        assert source_included(Path(kept)), (
+            f"{kept} випав із digest — виключення журналу забрало з собою джерела"
+        )

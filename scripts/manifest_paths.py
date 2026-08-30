@@ -7,6 +7,13 @@ from pathlib import Path
 EXCLUDED_PARTS = {".git", "dist", "var", "node_modules", ".venv", "__pycache__", ".pytest_cache"}
 SOURCE_GENERATED_PREFIXES = {
     ("reports",),
+    # Журнал вироків — запис ПРО дерево, у тому самому класі, що reports/. Поки він був
+    # у складі digest'а, кожен дописаний вирок зсував source_tree_sha256 і робив
+    # `handoff --require-bound` STALE: звіт описував дерево, яке щойно перестало бути цим.
+    # Дві сесії за добу по черзі втрачали 15-хвилинні прогони на цьому, і вигравав той,
+    # хто писав останнім, а не той, хто правий. Твердження про систему не сміє мінятися
+    # разом із самою системою — інакше воно не може її описувати.
+    (".verdict-ledger.jsonl",),
     ("handoff", "evidence"),
     ("evidence",),
     ("PACKAGE_BOUNDARY.md",),
