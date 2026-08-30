@@ -2950,6 +2950,14 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/compare_retrieval_configs.py": {
+      "lines": 124,
+      "max_complexity": 9,
+      "reason": "Точна виміряна початкова стеля. Порівнює конфігурації пошуку на еталонному наборі — вимір, а не гейт.",
+      "max_function_lines": 35,
+      "max_function_args": 4,
+      "max_nesting": 3
+    },
     "scripts/conversation_retention.py": {
       "lines": 142,
       "max_complexity": 12,
@@ -3751,6 +3759,14 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/remap_reference_versions.py": {
+      "lines": 87,
+      "max_complexity": 10,
+      "reason": "Точна виміряна початкова стеля. Перепривʼязує випадки еталонного набору до чинних версій документів після перезбирання корпусу.",
+      "max_function_lines": 39,
+      "max_function_args": 1,
+      "max_nesting": 3
+    },
     "scripts/retention_policy.py": {
       "lines": 258,
       "max_complexity": 25,
@@ -3782,6 +3798,15 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/restore_document_types.py": {
+      "lines": 119,
+      "proof_lines": 48,
+      "max_complexity": 8,
+      "reason": "Точна виміряна початкова стеля. Повертає документам тип із курованого каталогу за ТОЧНИМ source_uri: імпорт звів 41 тип до 4, і набір оцінювання не міг стратифікуватись. Зіставлення лише точне — вгаданий тип документа гірший за відсутній.",
+      "max_function_lines": 36,
+      "max_function_args": 3,
+      "max_nesting": 2
     },
     "scripts/run_embedding_backfill.py": {
       "lines": 195,

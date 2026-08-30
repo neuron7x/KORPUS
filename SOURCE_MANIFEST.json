@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1607,
-  "root_sha256": "6f28fb5e910b9d059dada3b70ccb87e317e581090906c6c32478500d197a63f0",
+  "file_count": 1612,
+  "root_sha256": "08e45163849a1c0164ffb299f7bd0f7fef2d4a059e74ecb478affda6bbfdc439",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 54511,
-      "sha256": "8ba084adcc0c6fda5e0d3833ac9c267ea81daf6d4793b619a097c727ac81ad94",
+      "bytes": 55111,
+      "sha256": "252893971b8b72b0a2e4ea5d82d960373e75bc3a6b59fee9dfe657dea0cfde41",
       "mode": "0644"
     },
     {
@@ -6636,6 +6636,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/governance/public-corpus-v1.json",
+      "bytes": 1421,
+      "sha256": "832bf02a608efec940d8525b49fef32e5a4bc108438ab12a265419fa50772820",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/admission-grounds.json",
       "bytes": 7885,
       "sha256": "da2c6ffa2949c36dfa8026251af7cb67850381dc9446a513e31b1a3e1ccaa6f0",
@@ -6667,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 267669,
-      "sha256": "163435e10fb40c6c938925f2dbd57f6197e6accb966b6482566036478d60eb1d",
+      "bytes": 269154,
+      "sha256": "95cfe70559cef7efd15c8cf796b147e72c256113dafa16686697ea00cd640ae3",
       "mode": "0644"
     },
     {
@@ -7549,14 +7555,14 @@
     },
     {
       "path": "evals/datasets/reference.jsonl",
-      "bytes": 10667,
-      "sha256": "4672f22ca7858299a77431561be9222a6f91ac71a880685265982048cd5d77d7",
+      "bytes": 57893,
+      "sha256": "7d39bc1298bbf690d9b33137919ff1c268b1e3bcdddf5eaa63edaaebcbc47c9a",
       "mode": "0644"
     },
     {
       "path": "evals/datasets/reference.meta.json",
-      "bytes": 1159,
-      "sha256": "d72ae127ed24367acb46ac5483fc6caf99109098cba079f976d5bc6f245a34ea",
+      "bytes": 1161,
+      "sha256": "6cbd2f8cd10e66d3e0951b69b075a3891831b12f6644edd5626b8dc7f8ca3dda",
       "mode": "0644"
     },
     {
@@ -8148,6 +8154,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/backfill_span_embeddings_sqlite.py",
+      "bytes": 5150,
+      "sha256": "832e4585bfc9a2af6eae1655c6f9facd4a4e1939325421af0bd4bd7805e4b2ca",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/backup_crypto.py",
       "bytes": 6191,
       "sha256": "437a918392703201d65f0ac4d5d036044e5c248b3327fdb93263806db495404c",
@@ -8295,6 +8307,12 @@
       "path": "scripts/check_release_identity.py",
       "bytes": 3832,
       "sha256": "7c184b999e7210868ce72da5c9faf84b4529ecc0163f0807935c979c10b953ca",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/compare_retrieval_configs.py",
+      "bytes": 6765,
+      "sha256": "72e15857ad450233924395177d3af33ecd518cfc0a55a01757ac8a2e5ec8aa64",
       "mode": "0755"
     },
     {
@@ -9060,6 +9078,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/remap_reference_versions.py",
+      "bytes": 3988,
+      "sha256": "4829c6045ae0c8e0917cb0309be9cde702957835c1f0311bb514ccbf6a83f5ba",
+      "mode": "0644"
+    },
+    {
       "path": "scripts/reproducible_build_probe.sh",
       "bytes": 4529,
       "sha256": "dee0f59341f6fbd6a50e1aa4c4c08175a5c092853af33be620891d4df1e151b7",
@@ -9339,6 +9363,12 @@
       "path": "scripts/serve_public.sh",
       "bytes": 9766,
       "sha256": "b729c46fb0288886b9d65e08d52e11460ef721da249b186a7626191971506f5a",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/serve_semantic_local.sh",
+      "bytes": 2465,
+      "sha256": "d7125a34f873277a669f4dc2f7749128cf94531be4ee12788af578caf24d9056",
       "mode": "0755"
     },
     {
