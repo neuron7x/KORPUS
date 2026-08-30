@@ -2077,12 +2077,12 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 657,
+      "lines": 716,
       "max_complexity": 25,
       "max_function_lines": 72,
       "max_function_args": 12,
       "max_nesting": 6,
-      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями."
+      "reason": "Raised 610 -> 618 on 2026-08-28 for three coverage exclusions with their reasons: RLIMIT_NPROC is absent only on macOS, and the two chunking self-checks are unreachable by construction and kept for the day the construction changes. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one. | 2026-08-30: +31 рядок — вирок нюхача `file` більше не остаточний для .html. Дві сторінки (офіційна позиція НАТО щодо РФ і аналітика ICDS) відхилялись як «HTML content detected as application/javascript», віддаючи 8209 і 2311 слів справжнього тексту: нюхача збиває довгий рядок вбудованого скрипту. Додано структурну перевірку розмітки в перших 1024 байтах; це не послаблення — три сигнали й далі мусять збігтися, а перейменований PDF/ZIP і справжній скрипт відхиляються п'ятьма негативними контролями. | 2026-08-30: 657 -> 716. Обстановка сторінки перестала бути текстом документа. Питання поза доменом «Яка ставка податку на прибуток підприємств у 2019 році?» мало покриття 0.500 при порозі відмови 0.25: найкращим реченням корпусу для нього був `<title>` сторінки zakon.rada.gov.ua з написами кнопок панелі. Додано NON_DOCUMENT_ELEMENTS (title, button, select, nav, aside) і поступку незакритому `<title>`, без якої зламана розмітка давала б ПОРОЖНІЙ документ замість шумного. Стеля поза доменом 0.500 -> 0.250, жодне з семи питань у домені не змінилось; сім тестів, три отрути вбито."
     },
     "apps/api/src/korpus/infrastructure/gcp_identity.py": {
       "lines": 122,
@@ -2737,6 +2737,15 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/agent_protocol.py": {
+      "lines": 282,
+      "proof_lines": 133,
+      "max_complexity": 15,
+      "reason": "Реєстр осей агентів, журнал тверджень і план: точна виміряна початкова стеля. `check_registry` мала складність 23 і `check_ledger` 16 — стелю не піднімали, обидві розділені на функції-правила по одній властивості кожна, вивід --selftest/--registry/--ledger доведено незмінним до і після.",
+      "max_function_lines": 38,
+      "max_function_args": 3,
+      "max_nesting": 3
     },
     "scripts/aggregate_ci_security_summary.py": {
       "lines": 75,
@@ -3460,6 +3469,14 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/open_claims.py": {
+      "lines": 45,
+      "max_complexity": 13,
+      "reason": "Перелік тверджень без вироку за актором: точна виміряна початкова стеля.",
+      "max_function_lines": 27,
+      "max_function_args": 0,
+      "max_nesting": 2
     },
     "scripts/openapi_contract.py": {
       "lines": 46,

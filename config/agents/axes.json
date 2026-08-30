@@ -1,0 +1,73 @@
+{
+  "note": "Реєстр ОСЕЙ, а не ролей. Агент виправдовує своє існування інструментом, якого немає в інших: своїми даними, своїм критерієм, своєю мережевою позицією. Два агенти на одній осі — це один агент за подвійну ціну, і реєстр таке відмовляє.",
+  "verdict_vocabulary": {
+    "settles": [
+      "ACCEPTED",
+      "REFUTED",
+      "AMENDED"
+    ],
+    "does_not_settle": [
+      "CANNOT_ADJUDICATE",
+      "OPEN_FOR_REVIEW",
+      "ACKNOWLEDGED"
+    ],
+    "why": "UNKNOWN не є PASS. Вирок, який не може вирішити, лишає твердження відкритим і НЕ звільняє бюджет — інакше «не можу судити» стало б дешевим способом закрити борг.",
+    "raising": [
+      "ACCEPTED"
+    ],
+    "self_verdict": "Автор може ЗНИЗИТИ або відкрити власне твердження (REFUTED, AMENDED, OPEN_FOR_REVIEW) — це коштує йому. Підняти власне (ACCEPTED) не може: конфлікт інтересу однонапрямлений."
+  },
+  "claim_budget_per_actor": 12,
+  "budget_why": "Кожне твердження коштує. Актор із вичерпаним бюджетом мусить домогтися вироку по старих, перш ніж додавати нові — тоді дешевше поміряти, ніж наполягати.",
+  "agents": [
+    {
+      "agent": "korpus-verifier",
+      "axis": "independent-verdict",
+      "data_scope": "korpus-repo",
+      "instrument": "читає канонічне дерево без права правити код; виносить вирок про чужу роботу",
+      "can_accept": true,
+      "accept_basis": "no-write-tools",
+      "residual_write_paths": [
+        "Bash"
+      ],
+      "residual_note": "`Bash` дозволяє запис через оболонку. Підстава означає «запис незручний», а не «запис неможливий», і саме тому залишковий шлях оголошено, а не описано в коментарі."
+    },
+    {
+      "agent": "korpus-mutation",
+      "axis": "poison-in-code",
+      "data_scope": "korpus-repo",
+      "instrument": "мутує код і доводить, чи тест справді щось охороняє; знаходить еквівалентних мутантів",
+      "can_accept": false
+    },
+    {
+      "agent": "korpus-gate-doctor",
+      "axis": "gate-liveness",
+      "data_scope": "korpus-repo",
+      "instrument": "лагодить червоні гейти без маскування і перевіряє, чи ЗЕЛЕНИЙ гейт узагалі здатен почервоніти",
+      "can_accept": false
+    },
+    {
+      "agent": "korpus-evidence",
+      "axis": "provenance-and-packaging",
+      "data_scope": "korpus-repo",
+      "instrument": "провенанс, маніфести й канонічна упаковка; перевіряє пакет ВІДНОВЛЕННЯМ, а не складанням",
+      "can_accept": false
+    },
+    {
+      "agent": "retrieval-measurer",
+      "axis": "held-out-measurement",
+      "data_scope": "zsu-dataset",
+      "instrument": "власний корпус і власні набори питань; міряє пошук на відкладених наборах, оракул/саботажник як контроль",
+      "can_accept": false
+    },
+    {
+      "agent": "cross-session-peer",
+      "axis": "different-vantage",
+      "data_scope": "korpus-repo+own-captures",
+      "instrument": "інша мережева точка доступу й інший корпус захоплень; те саме джерело може бути 403 у нас і прочитане в них",
+      "can_accept": true,
+      "accept_basis": "different-vantage",
+      "vantage": "інша мережева точка доступу, власний корпус захоплень і власні набори питань; те саме джерело віддає нам 403 і їм повний текст"
+    }
+  ]
+}

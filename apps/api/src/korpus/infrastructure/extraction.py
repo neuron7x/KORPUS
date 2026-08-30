@@ -33,15 +33,54 @@ SUPPORTED_MIME_TYPES = {
 TEXT_MIME_PREFIXES = ("text/plain", "text/html", "application/json")
 
 
+#: Вміст цих елементів не є текстом документа ні за яких обставин: він або не
+#: показується читачеві, або є органами керування сторінкою.
+#:
+#: `title`, `button`, `select` і `nav` додано 2026-08-30 за виміром, а не за
+#: здогадом. Питання «Яка ставка податку на прибуток підприємств у 2019 році?»
+#: — свідомо поза доменом — отримувало покриття 0.500 при порозі відмови 0.25 і
+#: НЕ відхилялось. Найкраще речення корпусу для нього:
+#:
+#:   «| від 30.08.2017 № 704 (Текст для друку) Друкувати Допомога Шрифт:
+#:    + збільшити − зменшити»
+#:
+#: Це `<title>` сторінки, зчеплений із написами на `<button>` і `<a class="btn">`
+#: панелі zakon.rada.gov.ua. Жодне слово тут не належить постанові № 704. Гейт
+#: відмови стояв правильно; його перемагала обстановка сайту, записана нами як
+#: текст документа.
+#:
+#: Правило структурне, не словникове: жодного українського слова в ньому немає,
+#: тож воно не ламається на англомовній доктрині й не залежить від верстки
+#: конкретного сайту. `option` свідомо ВІДСУТНІЙ — його часто не закривають, і
+#: підрахунок глибини проковтнув би решту документа; він і так покритий `select`.
+NON_DOCUMENT_ELEMENTS = frozenset(
+    {
+        "script",
+        "style",
+        "iframe",
+        "object",
+        "svg",
+        "template",
+        "noscript",
+        "title",
+        "button",
+        "select",
+        "nav",
+        "aside",
+    }
+)
+
+
 class _VisibleTextParser(HTMLParser):
-    def __init__(self) -> None:
+    def __init__(self, ignored: frozenset[str] = NON_DOCUMENT_ELEMENTS) -> None:
         super().__init__(convert_charrefs=True)
+        self._ignored = ignored
         self._ignored_depth = 0
         self.parts: list[str] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         del attrs
-        if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
+        if tag.casefold() in self._ignored:
             self._ignored_depth += 1
         elif self._ignored_depth == 0 and tag.casefold() in {
             "p",
@@ -63,7 +102,7 @@ class _VisibleTextParser(HTMLParser):
             self.parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:
-        if tag.casefold() in {"script", "style", "iframe", "object", "svg", "template", "noscript"}:
+        if tag.casefold() in self._ignored:
             self._ignored_depth = max(0, self._ignored_depth - 1)
         elif self._ignored_depth == 0 and tag.casefold() in {
             "p",
@@ -121,8 +160,28 @@ def _normalize(text: str) -> str:
     return text.strip()
 
 
+#: `<title>` без закриття — не дрібниця розмітки, а втрата документа.
+#:
+#: `HTMLParser` віддає все після незакритого `<title>` одним шматком ДАНИХ цього
+#: ж елемента: `<body>` і `<p>` усередині вже не є тегами. Доки заголовок
+#: потрапляв у текст, наслідком був шум; щойно він став ігнорованим — наслідком
+#: стала б ПОРОЖНЯ сторінка, невідрізненна від сторінки без тексту.
+#:
+#: Тому набір обирається за самою розміткою, а не за припущенням про її
+#: правильність: якщо заголовок не закрито, він лишається у тексті. Це свідомий
+#: обмін шуму на цілість документа, і він не мовчазний — умова названа тут.
+_TITLE_OPENS = re.compile(r"<title[\s>]", re.IGNORECASE)
+_TITLE_CLOSES = re.compile(r"</title\s*>", re.IGNORECASE)
+
+
+def _elements_to_ignore(content: str) -> frozenset[str]:
+    if len(_TITLE_OPENS.findall(content)) > len(_TITLE_CLOSES.findall(content)):
+        return NON_DOCUMENT_ELEMENTS - {"title"}
+    return NON_DOCUMENT_ELEMENTS
+
+
 def _strip_html(content: str) -> str:
-    parser = _VisibleTextParser()
+    parser = _VisibleTextParser(_elements_to_ignore(content))
     try:
         parser.feed(content)
         parser.close()
