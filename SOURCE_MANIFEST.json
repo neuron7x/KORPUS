@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1607,
-  "root_sha256": "f8a3d09b55128716ff67b572deb9f5e2eef058e17df9c0fb8692942d1ee4360d",
+  "root_sha256": "ae35d16c3b0b4f42c3321738bcdb0d773ed96de754d487d6094e5d5876a6b906",
   "files": [
     {
       "path": ".dockerignore",
@@ -8223,7 +8223,7 @@
       "path": "scripts/build_runtime_manifest.py",
       "bytes": 5226,
       "sha256": "7e4b67ac59b9dc774666936c39b1eb6053a66c335aa72535094e6c67fbafa8b0",
-      "mode": "0644"
+      "mode": "0755"
     },
     {
       "path": "scripts/build_supply_chain_evidence_manifest.py",
