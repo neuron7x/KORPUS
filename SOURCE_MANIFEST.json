@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1590,
-  "root_sha256": "56e7faa708a3d9de5edb3fc1af3f025cabaaed67fba8e3915640a4495cceaa8d",
+  "file_count": 1598,
+  "root_sha256": "978fb9e5e7c6affcd63324bd3ae15bfa2bd3dbfdf73e0e284e85abe3fdf0da78",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 39445,
-      "sha256": "4fcdcea8d6e2cfba400cc1ef23333374ca739700f67c93d3cc90fa097a999f05",
+      "bytes": 39468,
+      "sha256": "6b7259943ec4949ec04b11d3eef9820b60a3a14818181157d7b0c09bf291e9e2",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 51007,
-      "sha256": "5b905d246abf1c1b9af4871a0fcdf671d9fc33517b5bd3e92314dfe61289f35d",
+      "bytes": 51186,
+      "sha256": "956ae34bcfaf75492b65db30920a02a87e92da0878a4a360de0cc8b8b130617f",
       "mode": "0644"
     },
     {
@@ -2484,6 +2484,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_agent_runtime_contract.py",
+      "bytes": 6391,
+      "sha256": "63c58483d59afcc9197206893985ff4e0ee329f83716052a0cb4e0c161e6019f",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_ai_risk_profile.py",
       "bytes": 1035,
       "sha256": "a0b984167494b3d9821c0deaa4c3040884027d0824f8411f3b63e9152950538a",
@@ -3817,14 +3823,20 @@
     },
     {
       "path": "apps/api/tests/test_public_deployment_script.py",
-      "bytes": 3477,
-      "sha256": "c98b7c9152c429a7ce662b57f1064a17837c8e3e4f198dd5ebc52bf880851ea4",
+      "bytes": 4086,
+      "sha256": "714cd884b971ddd74d0763089c9c987bc29f59a236defdd542a728f1099f85eb",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_public_health_controller.py",
       "bytes": 2496,
       "sha256": "37b7c6d16e6bd28cdbc363948fee6919a0eb0ed542e6239d82fe711c5c0a13b3",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_public_runtime_units.py",
+      "bytes": 1802,
+      "sha256": "62345a27a254d5b386f08c118d1e2b7793ec5e788832508a1821a17809539210",
       "mode": "0644"
     },
     {
@@ -6626,7 +6638,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "dfb9da59f60a2fe22bcd90663f41efb55f3038a4a75844f770ee31d44181bc28",
+      "sha256": "d18c82f001966f7c12db64a2532916cd0b65acde66004c79099e71a517e47a02",
       "mode": "0644"
     },
     {
@@ -6637,8 +6649,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 257348,
-      "sha256": "42123e3361cf2c874bafc7692d1a929f03d58f533f16802cfa19da99a31c3fc1",
+      "bytes": 258300,
+      "sha256": "f12712f2b33706742c900331b4845edec4771440117cca404d140176f9f6722d",
       "mode": "0644"
     },
     {
@@ -6693,6 +6705,12 @@
       "path": "contracts/openapi.json",
       "bytes": 52521,
       "sha256": "703dcd26b2f553a4fe818c398215463dc7cb0239d69a8fb13d99f570ac8e00b5",
+      "mode": "0644"
+    },
+    {
+      "path": "deploy/agents/korpus-routine@.service",
+      "bytes": 547,
+      "sha256": "1e56c98aa45b892aede68dd5b12b6ce9fa94fe96165d1270e38e7b70c9ec277a",
       "mode": "0644"
     },
     {
@@ -6780,6 +6798,12 @@
       "mode": "0644"
     },
     {
+      "path": "deploy/public/korpus-public-api.service",
+      "bytes": 1316,
+      "sha256": "a233214a944bba0604013d2872c0643a7be7be70a47256f6fe9a677ef2ecd028",
+      "mode": "0644"
+    },
+    {
       "path": "deploy/public/korpus-public-watchdog.service",
       "bytes": 325,
       "sha256": "2e46461a7b81284209b60b5c4378dea849e1c76696e27af5337726d7f31e2cf3",
@@ -6792,9 +6816,15 @@
       "mode": "0644"
     },
     {
+      "path": "deploy/public/korpus-worker.service",
+      "bytes": 1203,
+      "sha256": "792a5b4ed6ec9fed66fb066080cef0f9ed181d815868c754303e08746486ca3f",
+      "mode": "0644"
+    },
+    {
       "path": "deploy/public/nginx.conf",
-      "bytes": 11092,
-      "sha256": "f3fddbd2c348d14d601de59caf24f1a9dd6f6d11a681ad042422a7624dc14908",
+      "bytes": 11096,
+      "sha256": "c69a564cf62880fb134210b4fde18bf8d4e2490cb8a7972cc501993cbcc69195",
       "mode": "0644"
     },
     {
@@ -8658,6 +8688,18 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/install_agent_runtime.py",
+      "bytes": 871,
+      "sha256": "fb1875156e43a502e5bbc01f7a8adde5a62ae93e467f9eee4c46ee478202ac00",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/install_public_runtime.py",
+      "bytes": 1174,
+      "sha256": "5eeb9a8e5f0a50456e3d970fb6c4b6e4b499eb36ebbb2cf6fa67dd800a22915f",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/install_public_watchdog.py",
       "bytes": 1222,
       "sha256": "f1fed80bf9053d5267bfd402666e354e6c7aa70584692f9a36dd2b4417c2b37c",
@@ -9060,6 +9102,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_isolated_routine.py",
+      "bytes": 9636,
+      "sha256": "df18bcc08880b47b220208dd4ea3645a66386a79ada1fc1b5c823322ffeca547",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_local_production_preflight.py",
       "bytes": 5587,
       "sha256": "f048720fffc87b1be64d6613e177c182516d5f0d0c9e0e1e7b366f997933f38d",
@@ -9085,8 +9133,8 @@
     },
     {
       "path": "scripts/run_mutation_shards.sh",
-      "bytes": 1822,
-      "sha256": "b239a812ae78da2e533fe1cd1773570c38d88deb6e771f57cac2e4260925d267",
+      "bytes": 1997,
+      "sha256": "99022557931ea4460e36d3b18a19071970330acb6eb5dce5d257b932d2a3ae19",
       "mode": "0755"
     },
     {
@@ -9247,8 +9295,8 @@
     },
     {
       "path": "scripts/serve_public.sh",
-      "bytes": 10268,
-      "sha256": "61f864500994e36e0e18a510216aa832ac8d60af411d22ef919bd774b3fe9085",
+      "bytes": 9766,
+      "sha256": "b729c46fb0288886b9d65e08d52e11460ef721da249b186a7626191971506f5a",
       "mode": "0755"
     },
     {

@@ -493,7 +493,13 @@ github-actions-validate:
 public-web-deploy:
 	$(PY) scripts/deploy_public_web.py
 
-.PHONY: public-watchdog-install public-health
+.PHONY: agent-runtime-install public-runtime-install public-watchdog-install public-health
+agent-runtime-install:
+	python3 scripts/install_agent_runtime.py
+
+public-runtime-install:
+	python3 scripts/install_public_runtime.py
+
 public-watchdog-install:
 	python3 scripts/install_public_watchdog.py
 
