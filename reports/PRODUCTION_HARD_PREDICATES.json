@@ -1,7 +1,7 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "b703f5545106bcef5ca01ac3deb1005d536ccfca6a6a527b17cd9afc8ab48ef4",
+  "source_tree_sha256": "4c752388f9584451b259dba10a15511b5d9f3e315e4e8064effe2c484e93384f",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
@@ -33,7 +33,8 @@
         "findings_structured",
         "blocking_findings_closed",
         "declared_status_consistent",
-        "metadata:status"
+        "metadata:status",
+        "gate_source_bound"
       ]
     },
     {

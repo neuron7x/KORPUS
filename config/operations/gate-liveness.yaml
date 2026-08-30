@@ -39,16 +39,14 @@ gates:
       # не тому, що правила мертві, а тому, що жодне джерело каталогу їх уже не запускає:
       # 28 content_probe і 102 якорі стоять там, де правила їх вимагають. Гейт на реальних
       # даних ARMED лише тоді, коли дані містять негативний приклад.
-      - name: у джерела на probeable-хості прибрано content_probe
+      # Вставка, не правка наявного рядка: `"content_probe"` трапляється 28 разів, і отрута
+      # на першому збігу псувала б те джерело, яке випадково стоїть першим. Після того як
+      # `_poison` став відмовляти при неоднозначному `find`, це стало видно.
+      - name: джерело на probeable-хості без жодного доказу
         kind: replace
         target: config/corpus/doctrine_catalog_2026.json
-        find: '"content_probe": {'
-        payload: '"content_probe_removed": {'
-      - name: прибрано integrity_anchor — стеля непрочитаних мусить піднятись
-        kind: replace
-        target: config/corpus/doctrine_catalog_2026.json
-        find: '"integrity_anchor": {'
-        payload: '"integrity_anchor_removed": {'
+        find: '"sources": ['
+        payload: '"sources": [{"id": "PROBE-NOEVIDENCE", "tier": "probe", "canonical_title": "проба", "issuer": "проба", "jurisdiction": "UA", "document_type": "probe", "authority": "official_ua", "access_tier": 0, "classification": "public", "source_uri": "https://zakon.rada.gov.ua/laws/show/000-00", "source_kind": "official", "provenance_status": "verified", "requires_second_source": false, "rights_status": "open", "ingestible": true, "notes": "проба"},'
       - name: захоплений файл видалено з дерева, якір лишився
         kind: delete
         target: config/corpus/captures/ADV-CPD-REPORTS-2026.txt
@@ -66,31 +64,34 @@ gates:
     timeout: 600
     ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
     poisons:
-      # Отрути тут на ДАНИХ, не на коді. Перша версія цих проб псувала правила в
-      # scripts/validate_content_signals.py і гейт лишався зеленим — не тому, що правила
-      # мертві, а тому, що жодне джерело каталогу їх не запускає. Гейт на реальних даних
-      # ARMED лише тоді, коли дані містять негативний приклад; каталог, у якому все
-      # правильно, не може довести, що гейт ловить неправильне.
+      # Отрути тут на ДАНИХ, не на коді: правила живі, але жодне джерело каталогу їх не
+      # запускає — гейт на реальних даних ARMED лише тоді, коли дані містять негативний
+      # приклад. І вони ВСТАВЛЯЮТЬ рядок, а не правлять наявний: перша версія міняла
+      # `"verdict": "no_restriction"` на перший збіг із 184, тобто псувала те джерело, яке
+      # випадково стоїть першим. Після того як `_poison` став відмовляти при
+      # неоднозначному `find`, це стало видно; до того отрута мовчки міряла іншу річ,
+      # ніж називала. Вставка в `"sources": [` однозначна за побудовою й не залежить від
+      # порядку даних.
       - name: оператор застеріг вміст проти нас, а джерело лишилось ingestible
         kind: replace
         target: config/corpus/doctrine_catalog_2026.json
-        find: '"verdict": "no_restriction"'
-        payload: '"verdict": "reserved_against_us"'
+        find: '"sources": ['
+        payload: '"sources": [{"id": "PROBE-RESERVED", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "reserved_against_us", "read_on": "2026-08-30", "against_us": []}},'
       - name: вимір сигналу застарілий на роки
         kind: replace
         target: config/corpus/doctrine_catalog_2026.json
-        find: '"read_on": "2026-08-29"'
-        payload: '"read_on": "2019-01-01"'
+        find: '"sources": ['
+        payload: '"sources": [{"id": "PROBE-STALE", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2019-01-01", "against_us": []}},'
       - name: сам запис несе заборону проти нас, а вердикт каже «без обмежень»
         kind: replace
         target: config/corpus/doctrine_catalog_2026.json
-        find: '"against_us": []'
-        payload: '"against_us": ["ai-train=no"]'
+        find: '"sources": ['
+        payload: '"sources": [{"id": "PROBE-SYMM", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30", "against_us": ["ai-train=no"]}},'
       - name: той самий день, записаний як ISO з часом — гейт мусить ПРИЙНЯТИ
         kind: replace
         target: config/corpus/doctrine_catalog_2026.json
-        find: '"read_on": "2026-08-29"'
-        payload: '"read_on": "2026-08-29T00:00:00"'
+        find: '"sources": ['
+        payload: '"sources": [{"id": "PROBE-ISO", "ingestible": true, "source_uri": "https://probe.example/x", "content_signal": {"verdict": "no_restriction", "read_on": "2026-08-30T00:00:00", "against_us": []}},'
         equivalent: true
 
   - name: source-manifest-verify
@@ -132,13 +133,15 @@ gates:
         find: '"digest_scope": "tracked_tree"'
         payload: '"digest_scope": "evidence_paths"'
       # Не жорстко вписаний digest: він змінюється щоразу, коли змінюється дерево, і
-      # застаріла отрута «не застосувалась» замість того, щоб щось перевірити. Псується
-      # ПРЕФІКС поля, який стабільний.
+      # застаріла отрута «не застосувалась» замість того, щоб щось перевірити. Але й не
+      # голий префікс: `"source_tree_sha256"` трапляється у звіті ДВІЧІ — на верхньому
+      # рівні й усередині вкладеного прогону, — і отрута на першому збігу залежала б від
+      # порядку ключів. Анкеримо сусіднім рядком, який робить збіг однозначним.
       - name: digest у звіті не той, що в дереві
         kind: replace
         target: reports/RESEARCH_ASSURANCE_REPORT.json
-        find: '"source_tree_sha256": "'
-        payload: '"source_tree_sha256": "0000'
+        find: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\": \""
+        payload: "\"provenance\": \"ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES\",\n  \"source_tree_sha256\": \"0000"
       # Не «зняти перевірку, яка й так не спрацьовує на правильних даних» — це був
       # еквівалентний мутант, і він проходив заслужено. Знімається третій стан: звіт БЕЗ
       # оголошеної області мусить лишатись SCOPE_UNDECLARED, а не мовчки прийматись.
