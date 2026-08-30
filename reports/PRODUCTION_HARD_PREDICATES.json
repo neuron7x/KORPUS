@@ -33,8 +33,7 @@
         "findings_structured",
         "blocking_findings_closed",
         "declared_status_consistent",
-        "metadata:status",
-        "gate_source_bound"
+        "metadata:status"
       ]
     },
     {
@@ -53,8 +52,7 @@
         "container_sboms_valid",
         "evidence_manifest_bound",
         "evidence_attestation_verified",
-        "evidence_trusted_signer",
-        "gate_source_bound"
+        "evidence_trusted_signer"
       ]
     },
     {
@@ -88,8 +86,7 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families",
-        "gate_source_bound"
+        "attack_families"
       ]
     },
     {
@@ -104,8 +101,7 @@
         "independent_class",
         "assessor_structured",
         "assessor_attestation_verified",
-        "assessor_trusted_signer",
-        "gate_source_bound"
+        "assessor_trusted_signer"
       ]
     },
     {
@@ -119,8 +115,7 @@
       "failed_external_checks": [
         "environment_class",
         "assessor_attestation_verified",
-        "assessor_trusted_signer",
-        "gate_source_bound"
+        "assessor_trusted_signer"
       ]
     },
     {
@@ -136,8 +131,7 @@
         "load_source_bound",
         "load_environment",
         "load_slo_steady_p95",
-        "load_slo_cold_start",
-        "gate_source_bound"
+        "load_slo_cold_start"
       ]
     },
     {
@@ -150,8 +144,7 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "load_attestation_verified",
-        "load_trusted_signer",
-        "gate_source_bound"
+        "load_trusted_signer"
       ]
     },
     {
@@ -166,8 +159,7 @@
         "recovery_source_bound",
         "recovery_environment",
         "recovery_attestation_verified",
-        "recovery_trusted_signer",
-        "gate_source_bound"
+        "recovery_trusted_signer"
       ]
     },
     {
@@ -213,8 +205,7 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "production_python_exact",
-        "metadata:status",
-        "gate_source_bound"
+        "metadata:status"
       ]
     },
     {
