@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1604,
-  "root_sha256": "5d0fb4810a897f531a8e8478fe3c59f7f01fd26777837cb1c36ecde27aaffaca",
+  "root_sha256": "953a972d92c2905523e07719b378eb9a36f9b69f7a5f3ee2bd5f4b89a4868584",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 51930,
-      "sha256": "6ba5522b72927120a04456cb431ae73d6d813729ca70326ef91fdc92d0a77e0b",
+      "bytes": 52382,
+      "sha256": "f24122ced32f29afc072f482fa9b96ab2934559e94460ea28ce862da6efd44cf",
       "mode": "0644"
     },
     {
@@ -6553,8 +6553,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1159638,
-      "sha256": "485592a29616e346ce075ed8e5ecb5c178efb9a653de28ab7a0790aa4fcb2d03",
+      "bytes": 1163270,
+      "sha256": "efe84104ef425fcccc1feca938471342445735dcc9e56a376e5e0115c036d115",
       "mode": "0644"
     },
     {
@@ -8101,8 +8101,8 @@
     },
     {
       "path": "scripts/agent_protocol.py",
-      "bytes": 33579,
-      "sha256": "cd45eeb4cb11f98beccf5305073ce7e3cb18fed2274a9c6063cf6c19398a843f",
+      "bytes": 28349,
+      "sha256": "fbf0f8dd6b9c6cb8b32980524334f6972bf560bf8691eb91ce49de61f3c71f89",
       "mode": "0755"
     },
     {

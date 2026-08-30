@@ -360,6 +360,10 @@ agent-protocol:
 	$(PY) scripts/agent_protocol.py --selftest
 	$(PY) scripts/agent_protocol.py --registry
 	-$(PY) scripts/agent_protocol.py --ledger
+	#: Перелік незакритих тверджень — вхід приймальника, і саме тому він мусить
+	#: запускатися звідси, а не лежати поруч. Тест досяжності скриптів упіймав
+	#: його як недосяжний: скрипт, якого ніхто не запускає, не є частиною гейта.
+	-$(PY) scripts/open_claims.py --limit 5
 
 # Not a gate: it needs the network, so it can never run in CI. It measures what each
 # zakon.rada URL actually returns — the card variant carries the act's title and none of
