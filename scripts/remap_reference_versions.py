@@ -15,6 +15,7 @@
 Випадок, чию ціль не вдалося зіставити, НЕ переноситься мовчки — він вибувае з набору
 з іменем, бо тихо зменшений знаменник це те, чим вимір бреше найчастіше.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -29,17 +30,25 @@ sys.path.insert(0, str(ROOT / "apps/api/src"))
 
 def sqlite_map(path: Path) -> dict[str, str]:
     con = sqlite3.connect(path)
-    return {vid: sh for vid, sh in con.execute(
-        "SELECT id, source_hash FROM document_versions WHERE source_hash IS NOT NULL")}
+    return {
+        vid: sh
+        for vid, sh in con.execute(
+            "SELECT id, source_hash FROM document_versions WHERE source_hash IS NOT NULL"
+        )
+    }
 
 
 def target_map(url: str) -> dict[str, str]:
     from sqlalchemy import create_engine, text
+
     engine = create_engine(url)
     with engine.connect() as con:
-        return {sh: vid for vid, sh in con.execute(
-            text("SELECT id, source_hash FROM document_versions "
-                 "WHERE source_hash IS NOT NULL"))}
+        return {
+            sh: vid
+            for vid, sh in con.execute(
+                text("SELECT id, source_hash FROM document_versions WHERE source_hash IS NOT NULL")
+            )
+        }
 
 
 def main() -> int:
@@ -75,8 +84,9 @@ def main() -> int:
         case["must_cite_one_of_if_answered"] = mapped
         kept.append(case)
 
-    args.out.write_text("".join(json.dumps(c, ensure_ascii=False) + "\n" for c in kept),
-                        encoding="utf-8")
+    args.out.write_text(
+        "".join(json.dumps(c, ensure_ascii=False) + "\n" for c in kept), encoding="utf-8"
+    )
     print(f"  перенесено {len(kept)} випадків · вибуло {len(dropped)}")
     if dropped:
         print("  вибули поіменно:", ", ".join(dropped))

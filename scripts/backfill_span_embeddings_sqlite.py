@@ -14,11 +14,11 @@
 запуском наново, а не починається спочатку — 38 863 спани це година роботи, і
 втратити її через обрив було б утретє за добу.
 """
+
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import sqlite3
 import sys
 import time
@@ -27,17 +27,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
 
+import httpx  # noqa: E402
 from korpus.infrastructure.embedding_validation import normalize_vector  # noqa: E402
 
-import httpx  # noqa: E402
 
-
-def embed_batch(endpoint: str, model: str, texts: list[str], dims: int,
-                timeout: float) -> list[list[float]]:
+def embed_batch(
+    endpoint: str, model: str, texts: list[str], dims: int, timeout: float
+) -> list[list[float]]:
     resp = httpx.post(endpoint, json={"model": model, "input": texts}, timeout=timeout)
     resp.raise_for_status()
     payload = resp.json()
-    vectors = payload.get("embeddings") or ([payload["embedding"]] if "embedding" in payload else None)
+    vectors = payload.get("embeddings") or (
+        [payload["embedding"]] if "embedding" in payload else None
+    )
     if vectors is None or len(vectors) != len(texts):
         raise RuntimeError("провайдер повернув інше число векторів, ніж запитано")
     return [normalize_vector(v, dims) for v in vectors]
@@ -61,42 +63,48 @@ def main() -> int:
         "SELECT s.id, s.text, s.text_hash FROM evidence_spans s "
         "LEFT JOIN span_embeddings e ON e.span_id = s.id AND e.model_id = ? "
         "WHERE e.span_id IS NULL AND length(trim(s.text)) > 0 ORDER BY s.id",
-        (args.model,)).fetchall()
+        (args.model,),
+    ).fetchall()
     if args.limit:
         todo = todo[: args.limit]
     total = len(todo)
-    print(f"без вектора: {total} спанів · модель {args.model} · {args.dimensions} вимірів",
-          flush=True)
+    print(
+        f"без вектора: {total} спанів · модель {args.model} · {args.dimensions} вимірів", flush=True
+    )
     done = failed = 0
     started = time.time()
     for i in range(0, total, args.batch):
         chunk = todo[i : i + args.batch]
         texts = [(t or "")[: args.max_chars] for _, t, _ in chunk]
         try:
-            vectors = embed_batch(args.endpoint, args.model, texts, args.dimensions,
-                                  args.timeout)
-        except Exception as error:
+            vectors = embed_batch(args.endpoint, args.model, texts, args.dimensions, args.timeout)
+        except Exception as error:  # noqa: BLE001 — збій партії рахується, а не спиняє прогін
             failed += len(chunk)
-            print(f"  партія {i}: {type(error).__name__}: {error}"[:160], file=sys.stderr,
-                  flush=True)
+            print(
+                f"  партія {i}: {type(error).__name__}: {error}"[:160], file=sys.stderr, flush=True
+            )
             continue
         now = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
         con.executemany(
             "INSERT OR REPLACE INTO span_embeddings "
             "(span_id, model_id, dimensions, embedding_json, text_hash, created_at) "
             "VALUES (?,?,?,?,?,?)",
-            [(sid, args.model, args.dimensions, json.dumps(vec), th, now)
-             for (sid, _, th), vec in zip(chunk, vectors)])
+            [
+                (sid, args.model, args.dimensions, json.dumps(vec), th, now)
+                for (sid, _, th), vec in zip(chunk, vectors, strict=True)
+            ],
+        )
         con.commit()
         done += len(chunk)
         if (i // args.batch) % 20 == 0 or done >= total:
             rate = done / max(time.time() - started, 1e-9)
             left = (total - done) / rate if rate else 0
-            print(f"  {done}/{total} · {rate:.1f}/с · лишилось ~{left/60:.0f} хв", flush=True)
-    have = con.execute("SELECT count(*) FROM span_embeddings WHERE model_id=?",
-                       (args.model,)).fetchone()[0]
+            print(f"  {done}/{total} · {rate:.1f}/с · лишилось ~{left / 60:.0f} хв", flush=True)
+    have = con.execute(
+        "SELECT count(*) FROM span_embeddings WHERE model_id=?", (args.model,)
+    ).fetchone()[0]
     spans = con.execute("SELECT count(*) FROM evidence_spans").fetchone()[0]
-    print(f"\nвекторів: {have} із {spans} спанів ({have/spans:.1%}) · невдалих {failed}")
+    print(f"\nвекторів: {have} із {spans} спанів ({have / spans:.1%}) · невдалих {failed}")
     return 0 if failed == 0 else 1
 
 

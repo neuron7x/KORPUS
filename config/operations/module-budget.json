@@ -2787,10 +2787,10 @@
       "max_nesting": 4
     },
     "scripts/backfill_span_embeddings_sqlite.py": {
-      "lines": 104,
+      "lines": 112,
       "max_complexity": 11,
       "reason": "Точна виміряна початкова стеля. Донаповнення ембедингів для SQLite-рантайму: PostgreSQL-варіант на рантайм-корпусі незастосовний.",
-      "max_function_lines": 55,
+      "max_function_lines": 61,
       "max_function_args": 5,
       "max_nesting": 2
     },
@@ -2951,10 +2951,10 @@
       "max_nesting": 4
     },
     "scripts/compare_retrieval_configs.py": {
-      "lines": 124,
+      "lines": 135,
       "max_complexity": 9,
       "reason": "Точна виміряна початкова стеля. Порівнює конфігурації пошуку на еталонному наборі — вимір, а не гейт.",
-      "max_function_lines": 35,
+      "max_function_lines": 38,
       "max_function_args": 4,
       "max_nesting": 3
     },
@@ -3760,10 +3760,10 @@
       "max_nesting": 4
     },
     "scripts/remap_reference_versions.py": {
-      "lines": 87,
+      "lines": 97,
       "max_complexity": 10,
       "reason": "Точна виміряна початкова стеля. Перепривʼязує випадки еталонного набору до чинних версій документів після перезбирання корпусу.",
-      "max_function_lines": 39,
+      "max_function_lines": 40,
       "max_function_args": 1,
       "max_nesting": 3
     },
@@ -4609,6 +4609,15 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-30",
+      "paths": [
+          "scripts/backfill_span_embeddings_sqlite.py",
+          "scripts/compare_retrieval_configs.py",
+          "scripts/remap_reference_versions.py"
+      ],
+      "reason": "Канонічне форматування `ruff format` і три закриті зауваги ruff/mypy (noqa з причиною для навмисно широкого except, `zip(strict=True)`, анотація повернення). Логіка не змінена; стелі переміряні ПІСЛЯ форматування, щоб наступний прогін їх не рухав."
+  },
   {
       "on": "2026-08-30",
       "path": "scripts/validate_refusal_retryability.py",

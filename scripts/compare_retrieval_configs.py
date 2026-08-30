@@ -16,6 +16,7 @@
 Друкується не лише «краще/гірше», а й `decision_reason` і покриття: два однакові
 відсотки, отримані різними шляхами, — різні події.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -58,13 +59,15 @@ def ask(base: str, token: str, text: str, timeout: float = 120.0) -> dict:
     request = urllib.request.Request(
         f"{base}/v1/answers",
         data=json.dumps({"text": text}).encode(),
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"})
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+    )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
-            return json.loads(response.read())
+            payload: dict = json.loads(response.read())
+            return payload
     except urllib.error.HTTPError as error:
         return {"status": f"http_{error.code}"}
-    except Exception as error:  # мережа, таймаут — це теж результат, не виняток
+    except Exception as error:  # noqa: BLE001 — мережа й таймаут це результат, не виняток
         return {"status": f"error_{type(error).__name__}"}
 
 
@@ -74,10 +77,15 @@ def run(base: str, token: str) -> dict:
         rows = []
         for q in questions:
             d = ask(base, token, q)
-            rows.append({"q": q, "status": d.get("status"),
-                         "citations": len(d.get("citations") or []),
-                         "query_coverage": d.get("query_coverage"),
-                         "reason": d.get("decision_reason")})
+            rows.append(
+                {
+                    "q": q,
+                    "status": d.get("status"),
+                    "citations": len(d.get("citations") or []),
+                    "query_coverage": d.get("query_coverage"),
+                    "reason": d.get("decision_reason"),
+                }
+            )
         answered = sum(1 for r in rows if r["status"] == "answered")
         out[name] = {"n": len(rows), "answered": answered, "rows": rows}
     return out
@@ -104,19 +112,22 @@ def main() -> int:
         on, off = data["у темі"], data["поза темою"]
         print(f"{label:<14}{on['answered']}/{on['n']:<18}{off['answered']}/{off['n']:<22}")
     if len(result) == 2:
-        a, b = result.get("лексична"), result.get("гібридна")
-        print(f"\n  у темі     {a['у темі']['answered']} → {b['у темі']['answered']}"
-              f"   (більше — краще)")
-        print(f"  поза темою {a['поза темою']['answered']} → {b['поза темою']['answered']}"
-              f"   (менше — краще)")
+        a, b = result["лексична"], result["гібридна"]
+        print(
+            f"\n  у темі     {a['у темі']['answered']} → {b['у темі']['answered']}"
+            f"   (більше — краще)"
+        )
+        print(
+            f"  поза темою {a['поза темою']['answered']} → {b['поза темою']['answered']}"
+            f"   (менше — краще)"
+        )
         for q in OFF_TOPIC:
             ra = next(r for r in a["поза темою"]["rows"] if r["q"] == q)
             rb = next(r for r in b["поза темою"]["rows"] if r["q"] == q)
             if ra["status"] != rb["status"]:
                 print(f"    змінилось: {q[:44]:<46} {ra['status']} → {rb['status']}")
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-                        encoding="utf-8")
+    args.out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return 0
 
 

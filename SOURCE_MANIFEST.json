@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1612,
-  "root_sha256": "08e45163849a1c0164ffb299f7bd0f7fef2d4a059e74ecb478affda6bbfdc439",
+  "file_count": 1613,
+  "root_sha256": "300f12211c4d84e04414c4c1594ff49b34ce81062bae51427de67b5a5dbcdc2c",
   "files": [
     {
       "path": ".dockerignore",
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 269154,
-      "sha256": "95cfe70559cef7efd15c8cf796b147e72c256113dafa16686697ea00cd640ae3",
+      "bytes": 269794,
+      "sha256": "d3f7b44ce897b4869d990d688d2da24633fcf376a53c88ecfc80288391a59585",
       "mode": "0644"
     },
     {
@@ -8155,9 +8155,9 @@
     },
     {
       "path": "scripts/backfill_span_embeddings_sqlite.py",
-      "bytes": 5150,
-      "sha256": "832e4585bfc9a2af6eae1655c6f9facd4a4e1939325421af0bd4bd7805e4b2ca",
-      "mode": "0644"
+      "bytes": 5279,
+      "sha256": "61b0e971c9af0c002fc6378d4f4835442d9e44c860b41e2187c96cea0ba6952c",
+      "mode": "0755"
     },
     {
       "path": "scripts/backup_crypto.py",
@@ -8311,8 +8311,8 @@
     },
     {
       "path": "scripts/compare_retrieval_configs.py",
-      "bytes": 6765,
-      "sha256": "72e15857ad450233924395177d3af33ecd518cfc0a55a01757ac8a2e5ec8aa64",
+      "bytes": 6898,
+      "sha256": "a95ab14b89d591fd114ab30c7780997c376aeae97bc82540b1db5bf58735d463",
       "mode": "0755"
     },
     {
@@ -9079,14 +9079,20 @@
     },
     {
       "path": "scripts/remap_reference_versions.py",
-      "bytes": 3988,
-      "sha256": "4829c6045ae0c8e0917cb0309be9cde702957835c1f0311bb514ccbf6a83f5ba",
-      "mode": "0644"
+      "bytes": 4046,
+      "sha256": "d91dd1928795dc7c19994fb98cbdc48aef0b56e2ee041503f899510a76311b1f",
+      "mode": "0755"
     },
     {
       "path": "scripts/reproducible_build_probe.sh",
       "bytes": 4529,
       "sha256": "dee0f59341f6fbd6a50e1aa4c4c08175a5c092853af33be620891d4df1e151b7",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/restore_document_types.py",
+      "bytes": 7574,
+      "sha256": "e9433a853880e4416199699f719db1f39fbffc3ca1c5a63cc677c183ac060fda",
       "mode": "0755"
     },
     {
