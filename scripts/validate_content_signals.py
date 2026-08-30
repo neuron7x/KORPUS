@@ -31,6 +31,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from iso_dates import iso_date
+from threshold_distance import place
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
@@ -395,7 +396,18 @@ def main() -> int:
         for item in found:
             print(f"  ✗ {item}")
         return 1
+    ages = [
+        float(a)
+        for a in (
+            _age_days(str((e.get("content_signal") or {}).get("read_on", ""))) for e in entries
+        )
+        if a is not None
+    ]
     print("content signals: PASS")
+    print(
+        f"  SIGNAL_MAX_AGE_DAYS = {SIGNAL_MAX_AGE_DAYS}: "
+        f"{place(SIGNAL_MAX_AGE_DAYS, ages, 'днів').note}"
+    )
     print(f"  {counts['web']} web sources · {counts['probed']} with a robots.txt reading")
     print(
         f"  {counts['reserved_against_us']} expressly reserved against us and blocked · "

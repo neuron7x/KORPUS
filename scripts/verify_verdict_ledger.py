@@ -14,6 +14,8 @@ The rules are the ones that made the findings worth having:
   2. Refuting yourself is exempt. Withdrawing a claim needs no second party, and making it
      hard would only buy silence.
   3. OPEN_FOR_REVIEW from the producer is a request, not a verdict. It stays unsigned.
+     CANNOT_ADJUDICATE from a reviewer is the same shape from the other side: a statement
+     that this reviewer has no measurement of their own, recorded rather than left silent.
   4. One independent REFUTED outranks any number of ACCEPTED. A defect found once is found.
   5. Append-only. A later entry supersedes an earlier one; nothing is edited or deleted,
      so being wrong earlier stays visible.
@@ -34,7 +36,18 @@ LEDGER = ROOT / ".verdict-ledger.jsonl"
 
 #: A verdict that settles a claim. OPEN_FOR_REVIEW deliberately does not.
 SETTLING = frozenset({"ACCEPTED", "REFUTED", "ACKNOWLEDGED"})
-SELF_ALLOWED = frozenset({"REFUTED", "OPEN_FOR_REVIEW"})
+SELF_ALLOWED = frozenset({"REFUTED", "OPEN_FOR_REVIEW", "CANNOT_ADJUDICATE"})
+#: Кожне слово, яким узагалі можна винести вирок. Невідоме слово раніше просто не
+#: зараховувалось до тих, що закривають твердження, — тобто друкарська помилка в
+#: `ACCEPTED` мовчки перетворювала вирок на тишу, і журнал звітував PASS. Тиша в одязі
+#: вироку — це рівно те, від чого журнал існує.
+#:
+#: `CANNOT_ADJUDICATE` — окреме слово, а не мовчання. «Я не маю власного виміру, і
+#: підписати означало б перетворити довіру на вирок» — це твердження про рецензента, і
+#: воно варте запису: воно каже, ЧОМУ твердження досі не закрите, і кому його показати.
+#: Той самий клас, що SCOPE_UNDECLARED у handoff-перевірці: «не можу судити» — інше
+#: речення, ніж «усе гаразд», і правдиве з них лише одне.
+KNOWN_VERDICTS = SETTLING | {"OPEN_FOR_REVIEW", "CANNOT_ADJUDICATE"}
 
 
 def _rows() -> list[dict[str, Any]]:
@@ -66,6 +79,11 @@ def evaluate(rows: list[dict[str, Any]]) -> dict[str, Any]:
             problems.append(f"verdict on {identifier!r} names no claim in this ledger")
             continue
         outcome = str(verdict.get("verdict", ""))
+        if outcome not in KNOWN_VERDICTS:
+            problems.append(
+                f"{identifier}: {outcome!r} не є вироком — слово поза словником не закриває "
+                f"твердження й не відрізняється від мовчання (відомі: {sorted(KNOWN_VERDICTS)})"
+            )
         if claim.get("actor") == verdict.get("actor") and outcome not in SELF_ALLOWED:
             problems.append(
                 f"{identifier}: {outcome} signed by the actor who made the claim — "

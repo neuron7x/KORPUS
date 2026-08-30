@@ -36,6 +36,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
+from threshold_distance import place
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 
@@ -375,7 +377,27 @@ def main() -> int:
         for item in found:
             print(f"  ✗ {item}")
         return 1
+    #: Часові пороги цього гейта не мають ЖОДНОГО спостереження в перший день: усе
+    #: виміряно щойно. Мовчати про це означало б дати зеленому числу вигляд перевіреного.
+    ages = []
+    for e in recorded:
+        try:
+            ages.append(
+                float(
+                    (
+                        date.today()
+                        - date.fromisoformat(str(e["evidence_refusal"].get("observed_on")))
+                    ).days
+                )
+            )
+        except ValueError:
+            continue
     print("evidence refusals: PASS")
+    for label, value in (
+        ("RETRY_WINDOW_DAYS", RETRY_WINDOW_DAYS),
+        ("MISCLASSIFICATION_GRACE_DAYS", MISCLASSIFICATION_GRACE_DAYS),
+    ):
+        print(f"  {label} = {value}: {place(value, ages, 'днів').note}")
     print(
         f"  {len(recorded)} refusals recorded · {len(ours)} a limit of ours to lift · "
         f"{len(theirs)} the source's, nothing we change reaches them · "

@@ -262,6 +262,15 @@ gate-liveness:
 capture-evidence:
 	PYTHONPATH=apps/api/src $(PY) scripts/capture_source_evidence.py --write $(ARGS)
 
+# Де стоїть поріг відносно даних, які він мав би ділити. Відповідає на «чи він узагалі
+# перевірений», НЕ на «чи він перевірений правильно»: `separates` означає лише, що межа
+# проходить крізь дані, і запрошує подивитися, ЩО опинилось по різні боки.
+threshold-distance:
+	PYTHONPATH=apps/api/src $(PY) scripts/threshold_distance.py $(ARGS)
+
+threshold-distance-selftest:
+	PYTHONPATH=apps/api/src $(PY) scripts/threshold_distance.py --selftest
+
 # Переміряти відмови: причина без дати ніколи не пропонує себе перечитати.
 recheck-blocked:
 	PYTHONPATH=apps/api/src $(PY) scripts/recheck_blocked_sources.py $(ARGS)

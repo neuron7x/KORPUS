@@ -321,6 +321,43 @@ def _obtain(
         )
 
 
+#: Витягнутий текст, збережений ПОЗА каталогом і ключований байтами, з яких він постав.
+#: Ратчет, який відмовляє у записі, не сміє коштувати роботи: 92 документи — це 11 743
+#: сторінки екстракції, і поки вимір жив лише всередині каталогу, кожен відкіт платив за
+#: них знову. Названо паралельною сесією 2026-08-30, яка втратила так 81 вимір: «вимір —
+#: це факт, знятий тоді-то; він не має жити в одному місці з файлом, який редагують троє».
+#: Ключ — sha256 самих байтів, а не id: тоді запис, відновлений із кешу, доведено походить
+#: рівно з того вмісту, а не з того самого імені.
+DERIVED = "derived"
+
+
+def _derived_path(staging: Path, payload: bytes) -> Path:
+    return staging / DERIVED / f"{hashlib.sha256(payload).hexdigest()}.json"
+
+
+def _remember(staging: Path, payload: bytes, result: Capture) -> None:
+    target = _derived_path(staging, payload)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps({"meta": result["meta"], "text": result["text"]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+def _recall(staging: Path, payload: bytes, identifier: str) -> Capture | None:
+    target = _derived_path(staging, payload)
+    if not target.is_file():
+        return None
+    try:
+        stored = json.loads(target.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        # Пошкоджений кеш — не привід узяти з нього щось: перечитуємо з байтів.
+        return None
+    if not isinstance(stored.get("meta"), dict) or not isinstance(stored.get("text"), str):
+        return None
+    return Capture(id=identifier, text=stored["text"], meta=stored["meta"])
+
+
 def capture_one(
     source: dict[str, Any], timeout: int, staging: Path, from_cache: bool = False
 ) -> Capture:
@@ -331,6 +368,9 @@ def capture_one(
     if isinstance(obtained, Capture):
         return obtained
     payload, media = obtained
+    remembered = _recall(staging, payload, identifier) if from_cache else None
+    if remembered is not None:
+        return remembered
 
     suffix = MEDIA_SUFFIX.get(media, ".html")
     staging.mkdir(parents=True, exist_ok=True)
@@ -357,7 +397,7 @@ def capture_one(
             remote_bytes=len(payload),
             media_type=media,
         )
-    return Capture(
+    result = Capture(
         id=identifier,
         text=text,
         meta={
@@ -380,6 +420,8 @@ def capture_one(
             "body_is_bounded": f"first {HEAD_WORDS} and last {TAIL_WORDS} words",
         },
     )
+    _remember(staging, payload, result)
+    return result
 
 
 def commit(
@@ -507,7 +549,8 @@ def selftest() -> int:
     bad += _metamorphic()
     bad += _ratchet_probes()
     bad += _concurrency_probe()
-    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 4
+    bad += _derived_cache_probe()
+    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 8
     print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
@@ -658,6 +701,35 @@ def _record(
         "reason": str(entry["reason"]),
         "class": str(entry["class"]),
     }
+
+
+def _derived_cache_probe() -> int:
+    """Кеш мусить віддавати той самий запис — і мовчати, коли байти інші або він побитий."""
+    bad = 0
+    with tempfile.TemporaryDirectory() as box:
+        staging = Path(box)
+        payload = b"<html><body>" + b"word " * 400 + b"</body></html>"
+        stored = Capture(id="A", text="слово " * 300, meta={"words": 300})
+        _remember(staging, payload, stored)
+        back = _recall(staging, payload, "A")
+        if back is None or back["text"] != stored["text"] or back["meta"] != stored["meta"]:
+            bad += 1
+            print(f"  ✗ кеш не повернув збережене: {back}")
+        # Ті самі байти під іншим id — це той самий вміст, і запис має бути той самий.
+        other = _recall(staging, payload, "B")
+        if other is None or other["id"] != "B" or other["text"] != stored["text"]:
+            bad += 1
+            print("  ✗ ключ за байтами не працює під іншим id")
+        # Інші байти — інший ключ, і кеш мусить мовчати, а не віддавати сусідній запис.
+        if _recall(staging, payload + b" ", "A") is not None:
+            bad += 1
+            print("  ✗ кеш віддав запис для ІНШИХ байтів")
+        # Побитий кеш не є підставою взяти з нього щось.
+        _derived_path(staging, payload).write_text("{не json", encoding="utf-8")
+        if _recall(staging, payload, "A") is not None:
+            bad += 1
+            print("  ✗ побитий кеш прочитано як дійсний")
+    return bad
 
 
 def _concurrency_probe() -> int:

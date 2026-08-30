@@ -28,6 +28,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
+from threshold_distance import place
+
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 SHA = re.compile(r"^[0-9a-f]{64}$")
@@ -39,41 +41,40 @@ MIN_WORDS_PER_PAGE = 20
 NEAR_FACTOR = 3.0
 
 
-def threshold_liveness(entries: list[dict]) -> tuple[str, float | None]:
-    """Чи поріг читаності взагалі здатен щось розділити — і чи він це вже робив.
+def threshold_report(entries: list[dict]) -> list[str]:
+    """Де стоїть кожен поріг цього гейта відносно даних, які він міряє.
 
-    Дзеркало перевірки стелі з сесії 5cb14ff: там межа стояла ВСЕРЕДИНІ робочого
-    діапазону (504 сторінки при ліміті 500) і спрацьовувала як підкидання монети.
-    Тут вада протилежна й непомітніша: поріг стоїть у ПОРОЖНЕЧІ. Найнижча виміряна
-    щільність — 117 слів/сторінку, поріг — 20, тобто розрив у 5,8 раза, і жодної пари
-    документів він не розділив. Число, яке ніколи не спрацьовувало, не перевірене
-    даними, хай яким зеленим буде гейт.
+    Заміна однобічної `threshold_liveness`, яка питала лише «чи є спостереження нижче
+    порога». Цього замало: поріг може стояти ВСЕРЕДИНІ робочого діапазону (і спрацьовувати
+    як підкидання монети), у ПОРОЖНЕЧІ (і не спрацьовувати ніколи) або поруч із даними, але
+    ще жодного разу не спрацювати. Три різні стани, три різні дії.
 
-    Правило не робить це падінням: сканів у корпусі поки немає, і вимагати їх — значить
-    вимагати даних, яких нема. Воно робить інше — змушує гейт СКАЗАТИ про себе, що він
-    не спрацьовував, і назвати число, з якого це видно. Дуальність: щойно зайде документ
-    ближче за NEAR_FACTOR до порога, рядок зміниться сам.
+    МЕЖА, яку цей звіт мусить називати вголос: `separates` каже лише, що межа проходить
+    крізь дані, і НІЧОГО не каже про те, чи вона поділила правильно. Поріг 4 слів/КБ на
+    цьому ж каталозі давав `separates` — і ставив сторінки mod.gov.ua з 372–625 словами
+    справжнього тексту на бік «каркасів». Зелений `separates` буває гіршим за червоний
+    `in_the_void`, бо не запрошує подивитись, ЩО опинилось по різні боки.
+
+    Звіт нічого не валить. Він існує, щоб число всередині зеленого гейта не читалось як
+    виміряне, коли воно є судженням.
     """
-    observed = [
-        float(e["document_probe"]["words"]) / float(e["document_probe"]["pages"])
+    dp = [
+        e["document_probe"]
         for e in entries
         if isinstance(e.get("document_probe"), dict)
         and int(str(e["document_probe"].get("pages", 0)) or 0) > 0
     ]
-    if not observed:
-        return "поріг не перевірявся: жодного виміру вмісту в каталозі", None
-    nearest = min(observed)
-    if nearest <= MIN_WORDS_PER_PAGE:
-        return (
-            f"поріг спрацьовував: є документ із {nearest:.1f} слів/стор. "
-            f"на порозі {MIN_WORDS_PER_PAGE}"
-        ), nearest
-    gap = nearest / MIN_WORDS_PER_PAGE
-    verdict = "розділяє" if gap <= NEAR_FACTOR else "НЕ розділяв нічого"
-    return (
-        f"поріг {MIN_WORDS_PER_PAGE} слів/стор. {verdict}: найближче спостереження "
-        f"{nearest:.1f}, розрив {gap:.1f}×"
-    ), nearest
+    density = [
+        float(d["words"]) / float(d["pages"]) for d in dp if int(str(d.get("pages", 0)) or 0) > 0
+    ]
+    placement = place(MIN_WORDS_PER_PAGE, density, "слів/стор.")
+    mark = {
+        "separates": "перевірений",
+        "untested": "ще не спрацьовував",
+        "in_the_void": "У ПОРОЖНЕЧІ, даними не перевірений",
+        "unmeasured": "не виміряний",
+    }[placement.verdict]
+    return [f"machine_readable {mark}: {placement.note}"]
 
 
 def _named_system_problems(identifier: str, probe: dict) -> list[str]:
@@ -299,22 +300,28 @@ def selftest() -> int:
     def doc(pages: int, words: int) -> dict[str, Any]:
         return {"id": "X", "document_probe": {"pages": pages, "words": words}}
 
+    #: Звіт про положення порога мусить МІНЯТИСЯ зі зміною даних — інакше рядок
+    #: «у порожнечі» був би написаний раз і назавжди. Чотири стани, чотири дані.
     liveness_cases: tuple[tuple[str, list[dict[str, Any]], str], ...] = (
-        ("порожній каталог — немає що розділяти", [], "не перевірявся"),
-        ("щільні документи — поріг у порожнечі", [doc(100, 40000), doc(10, 1170)], "НЕ розділяв"),
-        ("документ біля порога — поріг розділяє", [doc(100, 40000), doc(10, 500)], "розділяє"),
+        ("порожній каталог — немає що міряти", [], "не виміряний"),
+        ("щільні документи — поріг у порожнечі", [doc(100, 40000), doc(10, 1170)], "У ПОРОЖНЕЧІ"),
         (
-            "документ ПІД порогом — поріг спрацював",
+            "документ трохи вище порога — ще не спрацьовував",
+            [doc(100, 4000), doc(10, 300)],
+            "ще не спрацьовував",
+        ),
+        (
+            "документи по ОБИДВА боки — поріг перевірений",
             [doc(100, 40000), doc(100, 500)],
-            "спрацьовував",
+            "перевірений",
         ),
     )
     live_bad = 0
     for name, entries, want in liveness_cases:
-        text, _ = threshold_liveness(entries)
+        text = threshold_report(entries)[0]
         ok = want in text
         live_bad += not ok
-        print(f"  {'✓' if ok else '✗'} живість порога: {name}" + ("" if ok else f" → {text}"))
+        print(f"  {'✓' if ok else '✗'} положення порога: {name}" + ("" if ok else f" → {text}"))
 
     ok_floors = (MIN_WORDS_PER_PAGE, PROBE_MAX_AGE_DAYS) == (20, 365)
     bad += not ok_floors
@@ -341,13 +348,11 @@ def main() -> int:
     probed = [e for e in entries if isinstance(e.get("document_probe"), dict)]
     pages = sum(int(e["document_probe"]["pages"]) for e in probed)
     words = sum(int(e["document_probe"]["words"]) for e in probed)
-    # Число вже всередині `liveness`; окремо воно тут не потрібне, і мовчазне
-    # відкидання під іменем без підкреслення читається як забутий рядок.
-    liveness, _nearest = threshold_liveness(entries)
     print("document probes: PASS")
     print(f"  {len(probed)} documents read: {pages} pages, {words} words")
     print("  its own axis: volume and structure, never an assessment of what the text claims")
-    print(f"  {liveness}")
+    for line in threshold_report(entries):
+        print(f"  {line}")
     return 0
 
 

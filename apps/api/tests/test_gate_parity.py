@@ -2299,3 +2299,45 @@ def test_every_exemption_in_the_budget_carries_its_reason() -> None:
     assert exemptions, "у бюджеті немає жодного звільнення — це правило нічого не охороняє"
     for path, entry in exemptions.items():
         assert len(str(entry.get("reason", "")).strip()) >= 20, path
+
+
+def test_a_word_outside_the_verdict_vocabulary_is_refused(tmp_path: Path) -> None:
+    """Друкарська помилка в `ACCEPTED` мовчки перетворювала вирок на тишу.
+
+    Невідоме слово просто не зараховувалось до тих, що закривають твердження, і журнал
+    звітував PASS: тиша в одязі вироку — рівно те, від чого журнал існує. `REFUTED` в
+    однині ловиться тим самим правилом.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_verdict_ledger
+
+    claim = {"kind": "claim", "id": "abc", "claim": "щось", "actor": "A"}
+    typo = {"kind": "verdict", "id": "abc", "verdict": "ACCEPTEDD", "actor": "B", "note": "ok"}
+    report = verify_verdict_ledger.evaluate([claim, typo])
+    assert report["status"] == "FAIL", report
+    assert any("не є вироком" in problem for problem in report["problems"]), report
+
+    good = {"kind": "verdict", "id": "abc", "verdict": "ACCEPTED", "actor": "B", "note": "ok"}
+    assert verify_verdict_ledger.evaluate([claim, good])["status"] == "PASS"
+
+
+def test_cannot_adjudicate_is_a_recorded_state_not_a_settlement() -> None:
+    """«Я не маю власного виміру» — твердження про рецензента, і воно варте запису.
+
+    Той самий клас, що SCOPE_UNDECLARED: «не можу судити» — інше речення, ніж «усе
+    гаразд». Воно не закриває твердження і не є порушенням, навіть від самого автора.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import verify_verdict_ledger
+
+    claim = {"kind": "claim", "id": "abc", "claim": "щось", "actor": "A"}
+    abstain = {
+        "kind": "verdict",
+        "id": "abc",
+        "verdict": "CANNOT_ADJUDICATE",
+        "actor": "B",
+        "note": "не міряв сам",
+    }
+    report = verify_verdict_ledger.evaluate([claim, abstain])
+    assert report["status"] == "PASS", report
+    assert "abc" in report["unsigned"], "утримання не сміє закривати твердження"

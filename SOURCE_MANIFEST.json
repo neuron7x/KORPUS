@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1504,
-  "root_sha256": "7ba833d0dc314ee4c49a3bb5a33a62a59b4b4d041e1c3569fc214ad2d23445b6",
+  "file_count": 1505,
+  "root_sha256": "9ebba28cbb48ac48d681116f03fdd2108eb7811485af299f89db7015ac690cb7",
   "files": [
     {
       "path": ".dockerignore",
@@ -151,8 +151,8 @@
     },
     {
       "path": ".verdict-ledger.jsonl",
-      "bytes": 9512,
-      "sha256": "e2dfc54fe90c02dfcdab948cf4c845928618d5d367a0aea97adb2bdffed54639",
+      "bytes": 24357,
+      "sha256": "2da21cd6c9b1fd87d6aba020104b07886542e27e66efedfe182f39e1e8abd7f6",
       "mode": "0644"
     },
     {
@@ -373,8 +373,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 46580,
-      "sha256": "7b3fb1809cd3278e77bb8ef2f94ee902c5958fce6b404918cc57738397e62f60",
+      "bytes": 47209,
+      "sha256": "97b1ec002887f85629ae2bded0cad9d34e6411a27a1404d154e5478fc01132af",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 108010,
-      "sha256": "10788f63dcff2b5f7f462a43abc72b5f06edc4b2dfe181fdadb5c6f2b4854a25",
+      "bytes": 110288,
+      "sha256": "945cbc483850997914b3847e9c637769623bacf6040f6f114850d2437a888034",
       "mode": "0644"
     },
     {
@@ -6175,8 +6175,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 245068,
-      "sha256": "189cd8ec8d6b9db962a0eeac55723e5b2c62376bb74174c855283988ce4c6861",
+      "bytes": 248973,
+      "sha256": "ef3b6832e848361f608c4926774daf338426629dfa6bfa993a30c6b66c872203",
       "mode": "0644"
     },
     {
@@ -7699,8 +7699,8 @@
     },
     {
       "path": "scripts/capture_source_evidence.py",
-      "bytes": 39134,
-      "sha256": "036dad191b9dd592492bb70ce43a9883f7585f120505db7488c68366501a2c59",
+      "bytes": 43287,
+      "sha256": "282266cbab83eb0ce4a65c605cdd8f67361719aa00e78dc6fcd51ee697afd290",
       "mode": "0755"
     },
     {
@@ -8820,6 +8820,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/threshold_distance.py",
+      "bytes": 10724,
+      "sha256": "ae6224f6cd73087d37c794b3618dbae2469c0d9dbfe3502b13b2fe0b98af0f80",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/train_pec_controller.py",
       "bytes": 161,
       "sha256": "5bf54557b05e2adf9a7a97beba9cbc34b5aaeaff46f78030448140aba7b8963e",
@@ -8827,8 +8833,8 @@
     },
     {
       "path": "scripts/validate_content_signals.py",
-      "bytes": 19842,
-      "sha256": "1a7b8ae004d2e025d106b64a3ee2b25d2713109e31e1251c2d39dc04bfe01361",
+      "bytes": 20204,
+      "sha256": "b4bdd440a6ebdff983cf1168ecf80edd1048413451d0b7649fc6bfe9a13aa7ce",
       "mode": "0755"
     },
     {
@@ -8839,14 +8845,14 @@
     },
     {
       "path": "scripts/validate_document_probe.py",
-      "bytes": 18077,
-      "sha256": "86025a84df33df69b10cf5fbab0811ad1239a96dd1aea992be13534846c671fe",
+      "bytes": 18056,
+      "sha256": "2e1d4c6d6b7c8018a4966fd170cc179306fec0b3ad980ed50dc74efaa81ca3a4",
       "mode": "0755"
     },
     {
       "path": "scripts/validate_evidence_refusal.py",
-      "bytes": 18348,
-      "sha256": "f5f94c28dde8638d599fa2a8185bf1b8d1950de0faa89be7ea2f495ed931811a",
+      "bytes": 19279,
+      "sha256": "d9970c88d88d33054cbc08b2fef99cf27b418c3592fba67e7701ba4c3d782a57",
       "mode": "0755"
     },
     {
@@ -9001,8 +9007,8 @@
     },
     {
       "path": "scripts/verify_verdict_ledger.py",
-      "bytes": 5161,
-      "sha256": "18ab989c5ba5f17f55fb196c9372a5ca17bc6e66dd4c3ba3970cdbd2940191c5",
+      "bytes": 6983,
+      "sha256": "e591ecb2bb5c65c9e542df6a6a279ec6efeab369f8d2bf22bcebc9ae3b8bbd74",
       "mode": "0755"
     },
     {
