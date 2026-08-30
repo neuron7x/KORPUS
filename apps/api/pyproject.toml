@@ -46,7 +46,12 @@ packages = ["src/korpus"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
-addopts = "-q --strict-markers --strict-config"
+# `-p no:cacheprovider` тут, а не в кожному виклику: pytest створює .pytest_cache при
+# БУДЬ-ЯКОМУ запуску, зокрема ручному, і кеш усередині дерева вміє відмивати гейти —
+# scripts/.mypy_cache містив імена всіх модулів і зробив зеленим тест досяжності скриптів.
+# Прапорець у восьми місцях не закривав нічого, бо дев'ятий виклик створював його знову:
+# виняток законний лише там, де усунення причини неможливе, а тут воно — один рядок.
+addopts = "-q --strict-markers --strict-config -p no:cacheprovider"
 filterwarnings = [
   "error:Using httpx with starlette\\.testclient.*:starlette.exceptions.StarletteDeprecationWarning",
 ]

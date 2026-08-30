@@ -1,0 +1,21 @@
+# KORPUS extract record — MED-DD1380-2025
+# DD Form 1380, Tactical Combat Casualty Care (TCCC) Card
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://jts.health.mil/assets/docs/forms/DD_Form_1380_TCCC_Card.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: 9b0bd11398fec18f74ead4e6310f844f19e48e7ad4802f319c09d2647b54ea5b
+bytes_as_served.bytes: 472876
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 816b4558ef3a3ca5d1b8bb9396213485f2f3f002362e63efb092b836a55fcf9d
+text_as_extracted.extractor: pdf_text_owner_restricted_lenient
+text_as_extracted.pages: 2
+text_as_extracted.words: 233
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+DD FORM 1380, JUL 2025 TCCC CARD Controlled by: DHA CUI Category: PRVCY Distribution/Dissemination Control: FEDCON POC: dha.ncr.bus-ops.mbx.dha-formsmanagement@health.mil (Updated 20250721)Prescribed by: DoDI 6040.45, DoDD 6490.02E, DHA-PI 6040.01 CUI (when filled in) CUI (when filled in) TACTICAL COMBAT CASUALTY CARE (TCCC) CARD BATTLE ROSTER #: EVAC: Urgent Priority Routine NAME (Last, First): LAST 4: SEX: M F DATE (DD-MMM-YY): TIME: SERVICE: UNIT: ALLERGIES: Mechanism of Injury: (X all that apply) Artillery Blunt Burn Fall Grenade GSW IED Landmine MVC RPG Other: Injury: (Mark injuries with an X) TQ: R Arm TYPE: TIME: TQ: R Leg TYPE: TIME: TQ: L Arm TYPE: TIME: TQ: L Leg TYPE: TIME: Signs & Symptoms: (Fill in the blank) Time Pulse (Rate & Location) Blood Pressure / / / / Respiratory Rate Pulse Ox % O2 Sat AVPU Pain Scale (0-10) DD FORM 1380, JUL 2025 (Back) TCCC CARD (Updated 20250721) CUI (when filled in) CUI (when filled in) BATTLE ROSTER #: EVAC: Urgent Priority Routine Treatments: (X all that apply, and fill in the blank) Type C: TQ- Extremity Junctional Truncal Dressing- Hemostatic Pressure Other A: Intact NPA CRIC ET-Tube SGA B: O2 Needle-D Chest-Tube Chest-Seal C: Name Volume Route Time Fluid Blood Product MEDS: Name Dose Route Time Analgesic (e.g., Ketamine, Fentanyl, Morphine) Antibiotic (e.g., Moxifloxacin, Ertapenem) Other (e.g., TXA) OTHER: Combat-Pill-Pack Eye-Shield ( R L) Splint Hypothermia-Prevention Type: NOTES: FIRST RESPONDER NAME (Last, First): LAST 4:

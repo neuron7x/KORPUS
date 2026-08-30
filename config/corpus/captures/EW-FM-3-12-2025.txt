@@ -1,0 +1,25 @@
+# KORPUS extract record — EW-FM-3-12-2025
+# FM 3-12 — CYBERSPACE AND ELECTROMAGNETIC WARFARE OPERATIONS
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45009-FM_3-12-000-WEB-1.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: d097e7c123c9476b951d8ab48aea2b96015ffc39389393a705d003b5a564dfee
+bytes_as_served.bytes: 11105500
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 7385efb9d95b2332d5a4d0c8d94a3c0ab92e34a9a75834a5c0d477ea9bb2733d
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 238
+text_as_extracted.words: 97560
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+FM 3-12 CYBERSPACE AND ELECTROMAGNETIC WARFARE OPERATIONS SEPTEMBER 2025 DISTRIBUTION RESTRICTION: Approved for public release; distribution is unlimited. This publication supersedes FM 3-12, dated 24 August 2021. HEADQUARTERS, DEPARTMENT OF THE ARMY Foreword Over the past several years, the global security environment has changed in ways once considered unthinkable in the post-Cold War world order. Where the Department of Defense once believed the future of warfare was antiterrorism and limited contingency operations, it is now clear that the prospect of large-scale combat against a regional peer is much more likely than once believed. In recent years, Russia has engaged in the largest land war in Europe of the past 80 years. China, with an economy nearly equal in size to ours, is fostering new international partnerships through its Belt and Road Initiative and building a world -class military to challenge the United States, its allies, and neighbors in the Pacific Rim, including in Taiwan. China and Russia, alon g with other regional peers, have heavily invested in and demonstrated formidable capabilities to challenge U.S. dominance in multiple domains, including cyberspace and the electromagnetic spectrum. The Army’s operating concept of multidomain operations anticipates the return of great power competition and large-scale combat operations and stresses the need to integrate and converge warfighting capabilities in all domains to achieve and press position s of relative advantage. At the same time, the Army’s newest doctrine for information presents a new paradigm for how the Army views information in a military context. Data and information are central to command and control, for our adversaries as much as for ourselves. Advances in sensors, networking technologies, and global connectivity provide commanders an unprecedented amount of data and information to support informed decision making. These capabilities are almost wholly dependent on cyberspace and the electromagnetic spectrum. Peer threats continually attempt to infiltrate, exploit, and degrade access to and ability to use our networks and data. It is therefore vital that the Army not only protect its own information and cyberspace capabilities, but also deny our adversaries the use of similar capabilities. Creating effects in cyberspace and the electromagnetic spectrum across the competition continuum is key to achieving relative advantages. To maximize these advantages, commanders must integrate and synchronize cyberspace operations and electromagnetic warf are with all other available military capabilities through a combined arms approach. Competent leadership, informed by sound doctrine, is critical as the Army prepares
+
+[…]
+
+restrictions. 4-87 targeting coordination board. B-83 terrain masking. 3-45 theater army. 5-33, 5-90, 5-140 threat. 1-72 activities. 1-73 cyberspace. 1-75 electromagnetic spectrum. 1-88 hybrid. 1-119 insider. 1-134 non-state. 1-131 peer. 1-95 tactics. 1-114 state. 1-92 China. 1-99 Index Entries are by paragraph number. 222 FM 3-12 17 September 2025 Iran. 1-107 North Korea. 1-111 Russia. 1-103 threat warning. 3-54 threat, persistent. 1-33 training classroom. G-6 field training exercise. G-10 home station. G-5 institutional. G-3 lane. G-9 transitions. 5-58, 5-95, 5-137 U United States Army Cyber Command. A-64, F-35 United States Army Network Enterprise Technology Command. F-38 United States Army Reserve. F-21 United States Cyber Command. A-63, F-22 USCYBERCOM. See United States Cyber Command, See United States Cyber Command W wartime reserve modes. 3-48 working groups. 4-40, B-72 assessment. B-87 cyberspace electromagnetic activities. 4-42 information collection. B-73 protection. B-85 targeting. B-79 FM 3-12 By Order of the Secretary of the Army: Official: MATTHEW L. SANNITO Administrative Assistant to the Secretary of the Army 2525310 DISTRIBUTION: Active Army, Army National Guard, and United States Army Reserve. Distributed in electronic media only (EMO). 17 September 2025 RANDY A. GEORGE General, United States Army Chief of Staff This page intentionally left blank. PIN: 201561-000

@@ -23,11 +23,11 @@ def _remaining(deadline: float) -> float:
     return remaining
 
 
-def _open_pdf(
-    path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]
+def _open_strict(
+    path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any], *, strict: bool
 ) -> tuple[PdfReader, bool]:
     try:
-        reader = reader_factory(str(path), strict=True)
+        reader = reader_factory(str(path), strict=strict)
     except (OSError, ValueError, TypeError, PdfReadError) as exc:
         raise ValueError("malformed PDF") from exc
     owner_restricted = False
@@ -46,6 +46,35 @@ def _open_pdf(
     if page_count > max_pdf_pages:
         raise ValueError("PDF page count exceeds configured limit")
     return reader, owner_restricted
+
+
+def _open_pdf(
+    path: Path, max_pdf_pages: int, reader_factory: Callable[..., Any]
+) -> tuple[PdfReader, bool, bool]:
+    """Строго, а якщо не виходить — терпимо, і ТЕРПИМІСТЬ ЗАПИСУЄТЬСЯ.
+
+    `DD Form 1380` — картка тактичної допомоги пораненому — падала з `malformed PDF page
+    tree`. Причина глибша за назву: файл зашифрований порожнім паролем, і розшифрування
+    впирається в `Invalid padding bytes`, яку сама pypdf зі `strict=False` ігнорує з
+    повідомленням «Ignoring padding error». Терпимо це дві сторінки справжнього тексту
+    документа, який каталог законно вважає публічним (порожній бланк; заповнена картка —
+    CUI із даними пораненого і не входить у корпус ніколи).
+
+    Ліміт сторінок перевіряється в ОБОХ спробах, а не лише в строгій: інакше терпима
+    гілка обходила б запобіжник, і послаблення читання тихо послабило б і його.
+
+    Просто зняти `strict` означало б послабити читання для ВСІХ файлів і не сказати про
+    це жодним словом. Тому третій стан: `lenient` доїжджає до режиму витягу, і запис
+    каже, що файл нестандартний. Той самий підхід, що `extractor_misclassified`.
+    """
+    try:
+        reader, owner_restricted = _open_strict(path, max_pdf_pages, reader_factory, strict=True)
+    except ValueError as strict_error:
+        if "page count exceeds" in str(strict_error):
+            raise
+        reader, owner_restricted = _open_strict(path, max_pdf_pages, reader_factory, strict=False)
+        return reader, owner_restricted, True
+    return reader, owner_restricted, False
 
 
 def _embedded_pages(
@@ -121,10 +150,11 @@ def extract_pdf_pages(
     reader_factory: Callable[..., Any] = PdfReader,
 ) -> tuple[list[ExtractedPage], str]:
     deadline = time.monotonic() + ocr_total_timeout_seconds
-    reader, owner_restricted = _open_pdf(path, max_pdf_pages, reader_factory)
+    reader, owner_restricted, lenient = _open_pdf(path, max_pdf_pages, reader_factory)
     pages = _embedded_pages(reader, deadline, normalize)
     if sum(len(page.text) for page in pages) >= max(80, len(pages) * 30):
-        return pages, "pdf_text_owner_restricted" if owner_restricted else "pdf_text"
+        mode = "pdf_text_owner_restricted" if owner_restricted else "pdf_text"
+        return pages, f"{mode}_lenient" if lenient else mode
     if not ocr_enabled:
         raise ValueError("PDF has insufficient embedded text and OCR is disabled")
     try:

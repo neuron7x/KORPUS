@@ -127,7 +127,7 @@
   ],
   "evidence_ceiling": {
     "sources_without_evidence": 47,
-    "ingestible_without_evidence": 3,
+    "ingestible_without_evidence": 2,
     "sources_without_uri": 3
   },
   "evidence_ceiling_note": "Стеля, бо підлога — скаляр: вона рахує доказ, який є, і ніколи не помічає джерела, яке не має жодного. ОПУЩЕНО 2026-08-29 з 128/96 до 103/59 — не послабленням правила, а ремонтом, який попередня нотатка й називала: «додати ці хости й проміряти 57 джерел». Проміряно 72 документи (13 008 сторінок, 4,58 млн слів) новим класом document_probe: сторінки, слова, структура, індекс названих зразків техніки та text_sha256 витягнутого тексту — пізніше читання того самого URL або відтворює ці числа, або їм суперечить. Саме тому document_probe рахується доказом, а remote_digest — НІ: другий доводить, що артефакт існував і був цей, і не каже про вміст нічого. Зарахувати його означало б видати доказ кожному великому PDF, не прочитавши в ньому жодного рядка. Лишається 103 джерела без доказу (59 придатних) — це переважно HTML-сторінки, для яких потрібен content_probe. Ще одне невиміряне джерело — вирок сьогодні. ОПУЩЕНО 2026-08-30 до 50/5: 102 знімки в дереві від сесії 5cb14ff плюс 72 виміри вмісту doc ОПУЩЕНО 2026-08-30 до 47/3: 71 вимірів веб-сторінок класом page_probe. 13 джерел НЕ міряли НАВМИСНО — права або поіменне застереження проти нас: вимір теж є забором вмісту, і отримати доказ, порушивши те саме обмеження, яке цей доказ мав би поважати, гірше за відсутність доказу.",
@@ -627,7 +627,7 @@
         "informational": []
       },
       "evidence_refusal": {
-        "reason": "URLError: <urlopen error [Errno 104] Connection reset by peer> | Перевірено на КОРЕНІ хоста, не на документі, 2026-08-30 після 6+ годин від першого виміру: oe.t2com.army.mil, rdl.train.army.mil, odin.tradoc.army.mil віддають HTTP 000 (з'єднання розірвано), www.armyupress.army.mil — 403. При цьому jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. Тобто відмова НЕ мережевий збій і не властивість документа: це властивість НАШОЇ точки спостереження — родина хостів TRADOC недосяжна звідси, тоді як інші .mil доступні. Повтор запиту цього не змінить ніколи; змінить лише інша точка доступу. Той самий хост пояснює й недосяжність GTA-посібників розпізнавання наземних сил РФ, які публікуються на ODIN.",
+        "reason": "URLError: <urlopen error [Errno 104] Connection reset by peer>",
         "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
         "retryable": false
@@ -2756,7 +2756,7 @@
         "informational": []
       },
       "evidence_refusal": {
-        "reason": "URLError: <urlopen error timed out> | Перевірено на КОРЕНІ хоста, не на документі, 2026-08-30 після 6+ годин від першого виміру: oe.t2com.army.mil, rdl.train.army.mil, odin.tradoc.army.mil віддають HTTP 000 (з'єднання розірвано), www.armyupress.army.mil — 403. При цьому jts.health.mil і armypubs.army.mil з тієї самої машини віддають 200. Тобто відмова НЕ мережевий збій і не властивість документа: це властивість НАШОЇ точки спостереження — родина хостів TRADOC недосяжна звідси, тоді як інші .mil доступні. Повтор запиту цього не змінить ніколи; змінить лише інша точка доступу. Той самий хост пояснює й недосяжність GTA-посібників розпізнавання наземних сил РФ, які публікуються на ODIN.",
+        "reason": "URLError: <urlopen error timed out>",
         "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
         "retryable": false
@@ -3702,6 +3702,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-548-XIV.txt",
+        "sha256": "9a6d1bee0adc6a3584c188098b3dd3b9d1ed4d5af8fe414d1e7e486ca907ffdf",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/548-14/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "f2e136b912c77ead2028c5cee05deef60c59bb7e21ad80304078ea7fe93ca526",
+          "bytes": 1185753,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "077779971f7920f7b031bf4dd46cb18db17c32cc7c98743db60ec523cbbe1a70",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 66049,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4282,6 +4306,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-317.txt",
+        "sha256": "4e1af31b7001cf202a25f0222311eec2975aa27470e4fcfba4ea005548be6458",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0927-20",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "d481d9684ddf80ecbb90e406c4c1104ceb9b1540e8442b820c26e13ef0749dfa",
+          "bytes": 36544,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "682ea99b712bf8fd96012b2df79e6c4c75df67f2ec8276824ebb22f523965bb7",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 502,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4371,6 +4419,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-444.txt",
+        "sha256": "c5f28846151a0c48f3f09857ca0ffc5ed1b756b1cd126f9c9ac900e4a8910c30",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1562-23/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "743a2b5e8592ffa5baab5f7329d09619d16915fd82ea94c574c1a658e88a5ed9",
+          "bytes": 604719,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "bf6e735959e89d52d6469cd9e29154315567831bfb9b9bfc7c0346ecf687ad93",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 16861,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4460,6 +4532,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-444-RESERVE.txt",
+        "sha256": "51dc8c41f6950ae792fc4e02ab186509c36db6ef612c6fe13152a45c15fc2a9a",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1563-23",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "677d3d4197fbe44beeae97cec4b95e18504f0a895a8a26a2d621caaa72ef7347",
+          "bytes": 35822,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "0aebdf2ef11b37782e198a393151a5efb1909c130e8477257210f8e7f46d5be5",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 480,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4549,6 +4645,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-124-2026.txt",
+        "sha256": "e827d14f44edbee69366b2978b2a83891cc0f49aa37a802706e7814311b7904a",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0372-26",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "2a453288d095335a855f81bd24d5c5437e66cc1d12c2f9782826685a121495b8",
+          "bytes": 57137,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "61693c0e23ad2903ed9039a43a9e69526987d9c88cac98b88fb5c55cde7b1e1e",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 938,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4639,6 +4759,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-825-2024.txt",
+        "sha256": "4cfc3b0cd0491143f8113f002d2966ea57558f39477a0fd75e44c9c62d458612",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1934-24",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "8be88df6b9e6f78b04af8fdaad21c3dde8e210d65494badfe75100ff4fd3d5e6",
+          "bytes": 402198,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "844afeb980122c0a0dc9a20c93619e5f5e08774262fc61d87df25ae0c73d169f",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 6650,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4659,9 +4803,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/sukhoputni.txt",
-        "sha256": "963c86a3ee63eaa81a4394f31b19d7b95e7640c62c7e9e69ca4508153e0ed973",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-SV.txt",
+        "sha256": "ff59b38f933266d03c1268814e42c4765bebeea761d583c2b7054f491d5240a7",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -4704,6 +4848,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/suhoputni-vijska-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "16ca3b8ff192de7cea5e23e0020002a590ca4b4f68773bedb524e9de586bbb3a",
+          "bytes": 189151,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "5f82cdbb0b571ac8a1da10d13a1c9c8a506297c5dbf6ebff937ca97fad8f7115",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 607,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4724,9 +4887,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/povitryani.txt",
-        "sha256": "9e4c76b592f3a4f11064682683f7295e829ed39282b9ba3fb9383739a50fb7ca",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-PS.txt",
+        "sha256": "3076f9fbc99c8dd526334b3f843d64e0fe42da407c9dbeda8f0915408f609806",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -4769,6 +4932,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/povitryani-sili",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "7d5d8ac7893a29528956a75781899992eadf7eb61521871d480dfe531c693b83",
+          "bytes": 195112,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "2f66a98bddf664b4a690a18016adc668863a66c6b874eacf1556e2cb806101ef",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 515,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4789,9 +4971,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/vms.txt",
-        "sha256": "706e2e7214fcce4af626b06da5e80be50ea2304d89f8fa793fa9030eca19f932",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-VMS.txt",
+        "sha256": "07571ed2d151358b3ac79261940c8b13650d0d3a1da949e88cf154d174341cee",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -4834,6 +5016,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/vijskovo-morski-sili-1",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "b8946d76f78e352f840ea4896de54b8ead1514cd7c1e6d3bb8a40af4366682b9",
+          "bytes": 194982,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "73d883026abdfb31453a5da1475f2561732319415011c3f50c523bb818bd8977",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 599,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4854,9 +5055,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/dshv.txt",
-        "sha256": "1296d8c63171af2cc1f914a2ad5ef496399ac2553ebc97b759de05420c3a4128",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-DSHV.txt",
+        "sha256": "be3c49fe4be40982e2bbed3689c80705bde22f213d0288ae0a9f06ce8bf1fdf1",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -4898,6 +5099,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/desantno-shturmovi-vijska",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "fe50fd052a13aacf95d76e4f4339fc69d9a4947e8b93fc211e1f69374a982117",
+          "bytes": 192961,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "4b22bb2d7b6804d6c61d5fcf01d51dedf8c4decbefde2c2fdcb90e7a0a37286c",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 616,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4918,9 +5138,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/sso.txt",
-        "sha256": "87a438395abf63eadcc02d631c4a11eb6149ee96d7fcf4717ceb923edc89cc5a",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-SSO.txt",
+        "sha256": "017f02ea5527de91bb5109bce0030ed90b3ca750e36f706df0fd0c9f51ef9103",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -4963,6 +5183,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/sili-speczialnih-operaczij",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "a0a8ac50c4c5a14fbecadad6130679abe8520162cc1226bd30f9222df5091b0e",
+          "bytes": 186077,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "ac233b0ff915411aa01ef1c98a06e6ab3edfec53c65d87d6cf1ac213c7bf31aa",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 513,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -4983,9 +5222,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/tro.txt",
-        "sha256": "fa761d7984e918a22f7f0b60bcee336df7bba0e773fc2c7c6b3e6931f2c80dde",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-TRO.txt",
+        "sha256": "da17fe3070b0f9930d22a19181a4d1d55f72baeecc7b548586d5ff5cbc54e011",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5028,6 +5267,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/sili-teritorialnoyi-oboroni-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "ceaa0026221a3343f33775e16252a7cc6f9d38bdfb561b5ff48d54050b7c01bc",
+          "bytes": 182970,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "f5d493466bde89be61bffb2d59d3a43b615735786efacc42a36e3598b60df146",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 478,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5048,9 +5306,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/sbs.txt",
-        "sha256": "230a3175882946ffa437832160429b3e97028b3ae5f8a810ff5a469a05af539f",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-SBS.txt",
+        "sha256": "e8e25d569b3534256302f0637fec33e526b7fbd45d1a666d2a46877078b765a8",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5093,6 +5351,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/sili-bezpilotnih-sistem",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "ae157e508be1abc758d727a29742565d6255a971ec74cca178a1f4c870702bd4",
+          "bytes": 184278,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "3d92ce0ff73b08f7e85c3c04e9c605792c3f392caa12054f979bc7d78e849ae3",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 350,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5113,9 +5390,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/pidtrymky.txt",
-        "sha256": "3f1f93169b5526ac70898037e3cfd27f4896863f7c2bfccc960a47033bfdd348",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-SUPPORT.txt",
+        "sha256": "135c91afb8bcf759cc91da94da5c86f09644b7b715479a213436cf7c1547950e",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5158,6 +5435,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/sili-pidtrimki-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "280f9a6350caf29cc7630c1a0a5f4e87febcf62bca70c76e6a81cf662d8ec088",
+          "bytes": 183151,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "3801270ad99dff39caaf7dd96732cdbfd9d4bc2779a27fdefaf6e225aad7d343",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 464,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5178,9 +5474,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/logistyky.txt",
-        "sha256": "47107c6080ca065cfe2a97d1ce42112692b0dce9a5af178c79015a7141889de8",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-LOG.txt",
+        "sha256": "7adef2ea7919293f9bd6b10212b2f43d47d1e14c1a7d47b0dc71c26c11153f38",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5222,6 +5518,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/sili-logistiki-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "58e94e327c772f08d4d01ce2769b9d74d55918dac0fd9f8b9160a64bb8b4c71e",
+          "bytes": 183626,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "a412facafec33f47492b259d27dba2068520ee1eb8a408f764fce8a211f8ed21",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 521,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5242,9 +5557,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/medychni.txt",
-        "sha256": "9783fb515471d6392753ad426a656d20521de5d0a1f69b6c7f871de68b0f3bce",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-MED.txt",
+        "sha256": "d8700393cf5bd0b8214da6edfe49980a25c98f63ae70d5490f7af06970f1d6c8",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5287,6 +5602,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/medichni-sili-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "1d436987f712fb1518b9c13d111a4f380f8239f982998a9386aa2611abf07d12",
+          "bytes": 180922,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "30c71d828d52841b41d3fdf89fed77a2e9cf9768cdb3e2e5c378f034b9b85add",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 541,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5307,9 +5641,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/zvyazku.txt",
-        "sha256": "494bbfa05b7e7fc7a9ff1e7788e944f7e111c593282eca0b7406ca738b7b9f7a",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-SIGNAL.txt",
+        "sha256": "caacb1c151966c24085344f45a657f1395158a1a548fcb6b7a1d00b66773fa92",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5351,6 +5685,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/vijska-zv-yazku-ta-kiberbezpeki",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "df4c162c378b54475bf2d35cc71070dac68c2b0bed2739ce238b0841277428cb",
+          "bytes": 174977,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "57c2063c87df41ae0cf30fac95d964acdf23e8a8cef6fc25ddfed2fe8926a168",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 471,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5371,9 +5724,9 @@
       "ingestible": true,
       "notes": "Сторінка не має ані дати оновлення, ані траси редакцій. Якір цілісності — знімок тексту в репозиторії, поле integrity_anchor.txt.",
       "integrity_anchor": {
-        "path": "config/corpus/mod_snapshots/genshtab.txt",
-        "sha256": "2853e1ec5f474103e8ac6051fb3c0886373d109018b74cea5a0edeed53778337",
-        "captured_on": "2026-08-29"
+        "path": "config/corpus/captures/ORG-MOD-WEB-GS.txt",
+        "sha256": "417a417b10f111cb288fe9a068a117391c5ac7b29d52d942204cf82396134e7d",
+        "captured_on": "2026-08-30"
       },
       "content_signal": {
         "host": "mod.gov.ua",
@@ -5416,6 +5769,25 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "capture": {
+        "uri": "https://mod.gov.ua/pro-nas/generalnij-shtab-zbrojnih-sil-ukrayini",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "9dd5122d7a5c6638f1e299a1be07728b9b4ad8cd596203c3877f30173a4ec5ff",
+          "bytes": 173092,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "8a5b5d08ca2f8a06c6a56698fc9fac2dfce64f5b08e76adf6c37cbcd44d246db",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 460,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5506,6 +5878,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-549-XIV.txt",
+        "sha256": "5a99b8f762c8954af5badacf728dbbaabcb14a39d7eb6609710f4034e5a801fd",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/549-14",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "57ce0a48318b98de123b8896da13cf62601fc214ac5c116e7d5cf3a646cd992d",
+          "bytes": 35300,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "1d37ee651aa0bf060e9e003344ae9f96d4f82730f9d88fecb7aa5ff5797f27ad",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 474,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5736,6 +6132,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-550-XIV.txt",
+        "sha256": "ed7f154115315b0e64635194cbc586f1cfe9e9607bb05c4ce477b413b6667ccc",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/550-14/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "4d470d183b87e47f3f82a0cecdf1fd5821e620407b3d1f861b1718f7bb231f0c",
+          "bytes": 1443866,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "49048b53a1568295530b5e997b5a7aa38ca9426a52d3e97ae1ecda4a86f0f24c",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 43705,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5825,6 +6245,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-551-XIV.txt",
+        "sha256": "943b6e16131022a86284a12969b6ed77476db9b3cc5f28e813e4d7bc8f47aafd",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/551-14/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "f825de978637c14a18ba29dcd14600d4b25d4985defa4b8d1d90f2da9b18e77c",
+          "bytes": 220723,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "2737996edc12497f57843772ec1d2cbf05d67c680e5706b18df5832cbdbae18c",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 10824,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -5914,6 +6358,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-2232-XII.txt",
+        "sha256": "8b5df0367b87427fb1baf1767f87873f83f91e36edec4615707c3f7d2775ab60",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/2232-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "e11ac553263f947d456e132506d6be5e0e48ec6b9267db09d42b2dd44087953a",
+          "bytes": 739634,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "6b771cd215fc243a77647b97e084a81beab5ed8b0d196d51b0d0f0ebac3842e4",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 39489,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6003,6 +6471,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-1934-XII.txt",
+        "sha256": "653a73b92316c648ef25c7fc5337336f8220f493de9a97cebb3b2790423443ba",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/1934-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "972d394a9dddaa242ccc4c813fb211fa5f4e513018af9b274e298594f19075d3",
+          "bytes": 105521,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "ac1614f3e55f718f9e77578d168cbd12ce3e7c5e1934fa2229c5f7a8c2767bba",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 5196,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6092,6 +6584,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-1932-XII.txt",
+        "sha256": "f079103e15b69fa821b6d979dbff10367a1d92ec0edb1e5795d984aacf0bfbd1",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/1932-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "1d0d079475f9ed1b1ddfba0dc72322a1fd6a641c90f2cc22879db15457b8930f",
+          "bytes": 191241,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "0b993a2c17033cf6569d46f019e827cb5ec0f753bbca1f6d26b974b1c3748672",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 9982,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6181,6 +6697,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-3543-XII.txt",
+        "sha256": "5be3ff6b8235d630d926773bc016f3784bbce3f65324a3652549c0f7e3bcd19e",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/3543-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "f9d1b8e48ea934c117ba9afa1cf1628b5ba90095258cf8173abb08731daa503f",
+          "bytes": 284016,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "30ac07abed6ece70084f154cb07bee5f85d15018f5efe9fb3f5a7d956cd1b029",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 15155,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6270,6 +6810,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-2011-XII.txt",
+        "sha256": "771249dea915170269c412eddbf4dee5edae005d0688e843ffc2b8ce73e15797",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/2011-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "3b1c6946b3a3703074c96ec1670d0d07384c5b0e6183b1c7d0cb89f1fbad32d6",
+          "bytes": 413926,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "2ff19e0469e88a745cdaba51701cf3c2e12bedbed63f924bc4daed6df89ffc9c",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 23335,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6359,6 +6923,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-3551-XII.txt",
+        "sha256": "1f39a79647b4e81dc6faea9e73e60221e170fb844ebac5ff960ec3afa9216db8",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/3551-12/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "380fede9d781792c4f2613b301e6996241bc0aae2fbb891026188169f918d3c1",
+          "bytes": 434663,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "2e816630b5860b098abcbe280d66b06ba9cc3c6ea78162aed1c761c69b4d3b77",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 24517,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6449,6 +7037,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-LAW-2262-XII.txt",
+        "sha256": "b92cb7329a4106ebe479745c1436ba94f5362f19576784e7a406458c7640b888",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/2262-12",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "e4f19e096d6b78726f62ae219f6858432fb18c7fc4723b37b86bf49f3b9ae3b8",
+          "bytes": 35184,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "d2e2b42bd267221de723b2e4e9f31e0e3a3606c685fc526c33f90779f165d5d4",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 476,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6709,6 +7321,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-MOD-ORDER-402-VLK.txt",
+        "sha256": "afc13c7c59781ffc9277d9a915a51908e233ca46b08778a031cd27ff07f74b5e",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1109-08",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "3d36b2131dbc296ff3c55910b9fc0df445714a294057b40edaf3bb8d84136352",
+          "bytes": 35492,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "a61505ff86bd40fd7d04b1617df986d06753b528d2b9ad9765d9ffc3684a8479",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 475,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6798,6 +7434,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-CMU-704-2017.txt",
+        "sha256": "b01109679b36bf203dab099685f4e9afd716e403eb756cae9e52a048b3bd75a2",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/704-2017-п/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "53bb0a4759259ee524943491a4c73c8ac700370ca5c60e2c62c142682bd99994",
+          "bytes": 188687,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "f7a335925554423f5369442a25e12df4cda19e812c74e8d4ef4e31551342445b",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 7150,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -6887,6 +7547,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ORG-CMU-168-2022.txt",
+        "sha256": "f01c8d0097b2b850ebac725049f7da59d41f284072fd2345e3397b2c761115f0",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/168-2022-п/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "10ce2af89f76645c2e7cd8428dbb01a3a40201e3c38a080c2a89b2deddf1e91b",
+          "bytes": 109578,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "8dd829db2190c337f1d05010d5a64fed2e8f901db59858a9cac551ba94fd419a",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 5261,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -8270,7 +8954,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "LOG-ATP-4-33-2024"
+      ],
+      "canonical_id": "ARM-ATP-4-33-2024",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "ARM-TC-3-20-31-9-2024",
@@ -10050,6 +10739,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ARM-MVS-1313-2016.txt",
+        "sha256": "48f98630733612976f8cae9ba046312126008e1873aa6266aa0eb08906b11b7a",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0059-17/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "2dd3ea5d0eff5faa0c6c986622d480e783c52a34e413ab9b7aacadae94e74c81",
+          "bytes": 757532,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "3fa7e4547a267dd6013275bbdb8b3b857b3dd29ae69fac487c23e0e11fd591b7",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 33069,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -10142,6 +10855,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ARM-MOU-578-2018.txt",
+        "sha256": "13a114c6e8b175fa6765ec71550e6912e099d26d0d82e65c182dfe64ae98005c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0277-19",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "b1e1aa0fd85d1f5f1b949f5c9a660e83e47ff3a806495b7f7bed4c7cc3e8cb36",
+          "bytes": 105584,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "731e0ccaf794c31c7bf6875570b7b88325a2f68cae9164cbe9287d7087a777ec",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 3692,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -10864,7 +11601,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "ENG-ATP-3-34-40-2023"
+      ],
+      "canonical_id": "CAM-ATP-3-34-40-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "CAM-FM-3-34-2025",
@@ -10936,7 +11678,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "ENG-FM-3-34-2025"
+      ],
+      "canonical_id": "CAM-FM-3-34-2025",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "CAM-ADP-3-37-2026",
@@ -11595,7 +12342,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "EW-FM-3-12-2025"
+      ],
+      "canonical_id": "EW-FM-3-12-2025",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "SIG-ATP-3-12.3-2023",
@@ -11708,7 +12460,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "EW-ATP-3-12-3-2023"
+      ],
+      "canonical_id": "EW-ATP-3-12-3-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "SIG-ATP-3-12.4-2023",
@@ -11814,7 +12571,12 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      }
+      },
+      "cross_listed_as": [
+        "EW-ATP-3-12-4-2023"
+      ],
+      "canonical_id": "EW-ATP-3-12-4-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі."
     },
     {
       "id": "SIG-ATP-6-02.70-2025",
@@ -13336,6 +14098,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/SIG-KMU-1340-2023.txt",
+        "sha256": "6f713fc0e236279cca3e65df3c5546f7cca92dc3c8030bc080b20f9ac25b6df8",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/1340-2023-%D0%BF/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "7754b9ec5d28ff04c700ba8310b09e6ee9f5cf08e8f7fc06f264e8215e352576",
+          "bytes": 216791,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "b622a00709e0a09f2328948f92b4925dece228f8e86ca25fe9f9307fcee42193",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 9914,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13618,6 +14404,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-JTS-CPGINDEX-2026.txt",
+        "sha256": "b4963eb2b949158cff0fe33dad163f3fe2ab00ebeb4f0e027254d8d4d07d431d",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://jts.health.mil/assets/docs/cpgs/CPG_Index.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "c3a49840c9d7eed397a3fb0fdd6b29673b426aae00ed57fff4742245e986dd09",
+          "bytes": 1390099,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "b677adf21fe689dc52bc016d955ccb11bd0669d34a0a9cc035681b155db15076",
+          "extractor": "pdf_text",
+          "pages": 4,
+          "words": 1032,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13699,6 +14509,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-JTS-CPG-AIRWAY-2026.txt",
+        "sha256": "b9a82535fd27dc7d1d4214ed727366b27b1830921eab90af04c27c1daa839af7",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://jts.health.mil/assets/docs/cpgs/Airway_Management_in_Trauma_28_Jan_2026_ID39.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "a1e8ae0c8f538dfdd3e536828c2cc0a9f39c7d48e6b1220606b687b1e9c78524",
+          "bytes": 2006311,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "bf5aabe7c2faeaaacdec8f3a30822d8325390a867fd76919c9dcfd2a90f17f5c",
+          "extractor": "pdf_text",
+          "pages": 32,
+          "words": 10801,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13774,6 +14608,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-JTS-CPG-PCC-2021.txt",
+        "sha256": "1c5a80e98cbd38a913ca3c13e3dc9579f1e1d943a9e9f6ff02f633c0df2dd32c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://jts.health.mil/assets/docs/cpgs/Prolonged_Casualty_Care_Guidelines_21_Dec_2021_ID91.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "c5620d061392dbad4a46765fd2b015789c5ffcafbb9fdf71fa4858a2341b0756",
+          "bytes": 12512557,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "63f3f3c453d46d21ed37136c21be12c4dc080c27f2e12e048d8de52ff9e452cb",
+          "extractor": "pdf_text",
+          "pages": 75,
+          "words": 25349,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13855,6 +14713,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-COERCCC-ERC-FY2026.txt",
+        "sha256": "aeb0bc2dd452a307f3810e34a653808d7234cc068c7170d2bf242337a2969bd7",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://jts.health.mil/assets/docs/cpgs/CoERCCC%20Guidelines%20FY26.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "2b809c13e61eb07cc3ec5144353e937a0b9a9b7b89342b4472bda4ba07aee2f1",
+          "bytes": 3182245,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "47d8bb810c45fa5b7301bfec5ad444941e95750ad20b91d3497c301bac85aa25",
+          "extractor": "pdf_text",
+          "pages": 58,
+          "words": 14954,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -13922,6 +14804,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-DD1380-2025.txt",
+        "sha256": "12106905bf01a5fc3f58cb1cc91973c18a13ee0af1f0da95ac2d1ce39bbfd9ee",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://jts.health.mil/assets/docs/forms/DD_Form_1380_TCCC_Card.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "9b0bd11398fec18f74ead4e6310f844f19e48e7ad4802f319c09d2647b54ea5b",
+          "bytes": 472876,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "816b4558ef3a3ca5d1b8bb9396213485f2f3f002362e63efb092b836a55fcf9d",
+          "extractor": "pdf_text_owner_restricted_lenient",
+          "pages": 2,
+          "words": 233,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -14389,6 +15295,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-MOU-436-2024.txt",
+        "sha256": "a578288b55ab28e4edbb936e0ff0ccd3f57b482874080022b629f66b3e68b44c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z0984-24/print",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "148646d391aaddeb555f84b6e72c3bcb3d460f38858b63409a46ca7f75d5579d",
+          "bytes": 119262,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "fcdbefb21ca2e82e6bb85cce72aff5c029f920866474b38a89550219c50aec43",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 2594,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -14640,6 +15570,30 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "document",
         "counts_as_evidence": true
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-MOU-516-2025.txt",
+        "sha256": "7a01c014b4a1dc0815ae0edc2b11be4e067187c07c4f70f2303a959e9c9d565b",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://zakon.rada.gov.ua/laws/show/z1331-25",
+        "fetched_on": "2026-08-30",
+        "media_type": "text/html",
+        "bytes_as_served": {
+          "sha256": "f69f9587aadbc25892936a65ecede9eb47e8551a9d841a1f685953d84a2d2a20",
+          "bytes": 118981,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "e03084deb98820c1fee972b862a54975345786f1fe23e1c11373f46ef304e2e0",
+          "extractor": "plain_text",
+          "pages": 1,
+          "words": 4154,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -14712,6 +15666,30 @@
         "tool": "pdfinfo + pdftotext (poppler)",
         "limit": "Вимір обсягу й структури, а НЕ оцінка достовірності вмісту. Не замінює content_probe (варіанти card/print) — окрема вісь. named_systems — індекс ЗРАЗКІВ ТЕХНІКИ ПРОТИВНИКА; нуль у документі, який про противника не йдеться, означає нерелевантність індексу, а НЕ ваду джерела. Читати цей нуль як межу можна лише в розділі 90.",
         "index_scope": "adversary_equipment"
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/MED-VKP-7-00-01-01-2020.txt",
+        "sha256": "4de4d0d839256f452e10a5b3229378e84800f7954cf4c2ea9b119afbfe83a60c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://ivms.mil.gov.ua/wp-content/uploads/2023/01/nastanova-z-pidgotovky-personalu-u-zsu.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "9ba4b4d2c4b35ebd3f786161bd3195e5d8899e5f0f5adefecf6bfe67c3299f0a",
+          "bytes": 1480966,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "0aea2e750b3918017589779347b4379efb52614051491f2d583187f4ef2ed903",
+          "extractor": "pdf_text",
+          "pages": 52,
+          "words": 12493,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -14840,6 +15818,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ADV-ATP-7-100.1-2024.txt",
+        "sha256": "1761ac97d56e22826315b53f0a8fe9d8e72188b2a3b55da95b4057b0202cfd50",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN40737-ATP_7-100.1-001-WEB-4.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "72b041ef7eb4da89e6edd17bb37e214252f636969e4e0a00163c1068dff5c9a4",
+          "bytes": 22619825,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "72acdac7a1b28686fb88106fa91fd5b74d3f3f67f8da2db65ebcd525a6c61640",
+          "extractor": "pdf_text",
+          "pages": 280,
+          "words": 102270,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -14950,6 +15952,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ADV-TC-7-100.4-2015.txt",
+        "sha256": "5c1325c88fd3aecc3979d4860f3140b80b5ed6a6f0564169cff4842bb880e2ac",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/tc7_100x4.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "61ae955e38db7d1e0f1ac6e75fb7110236870c4ec7e8c398d97365ce406944f6",
+          "bytes": 1791468,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "c2177863627204d19a43f27a774a22c8783f37b9b4e6abee29d1ee1037aea02f",
+          "extractor": "pdf_text",
+          "pages": 232,
+          "words": 89514,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -15030,6 +16056,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ADV-FM-7-100.1-2004.txt",
+        "sha256": "db5feb608210247e54a358af32166bbee0f69afea7db265ddc76980cfa03d555",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/fm7_100x1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "a84151c73bd676e3a7bb9dc1c038392e9f00137cda7e6ba5b38f6c933ec6526c",
+          "bytes": 2963376,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "487677d3c8651417b23e7e94e309d5fd0c310eb4dcbeb1a0d1116638887572b2",
+          "extractor": "pdf_text",
+          "pages": 368,
+          "words": 149236,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -15103,6 +16153,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ADV-ATP-3-37.15-2020.txt",
+        "sha256": "76e1e0f0f5cbf0df3561c7233bba447bde8dd9ec95dade7c3555b817d1069f0b",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43785-ATP_3-37.15-001-WEB-2.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "c995fc7077ae9bdcc61296294af75adc30048181a3a3c75c0b2d83d4a18a06d7",
+          "bytes": 1623913,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "32438d1401434cb8b8c8cdfe6513393d5166a5fa83236d980e93bc527d3f69c6",
+          "extractor": "pdf_text",
+          "pages": 76,
+          "words": 31266,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -15811,6 +16885,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "CAM-FM-3-34-2025"
+      ],
+      "canonical_id": "CAM-FM-3-34-2025",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ENG-FM-3-34-2025.txt",
+        "sha256": "9f36e265ca16af34e8da99fe6bc0bf5c74bff2f2b90978cf3eced2c9f5a7ff78",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45471-FM_3-34-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "d52dbf62c0f139dcdcc87229792b48269ffb636bc79868bce77f212e18f735c0",
+          "bytes": 4490902,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "90f04e973aa86617ebbc1dbfc4da0575ade3074641ac6c412d6024beea4fc644",
+          "extractor": "pdf_text",
+          "pages": 160,
+          "words": 75769,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -15892,6 +16995,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ENG-ATP-3-34-22-2021.txt",
+        "sha256": "ff5bde1f47dfcd4c0e0e1e48c82a21d469a42ea105733c38abcc2b71c050a3c4",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN32097-ATP_3-34.22-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "9660f23a7c5c5cd09f602830b6d0179cfd42a7d7169f4d98f4985ed0517d361e",
+          "bytes": 2893276,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "a4a9e223984cfb1e8e6f43146b9dea17c26b218f8e03063f5020ca03d5bb27f2",
+          "extractor": "pdf_text",
+          "pages": 138,
+          "words": 63694,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -15976,6 +17103,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "CAM-ATP-3-34-40-2023"
+      ],
+      "canonical_id": "CAM-ATP-3-34-40-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ENG-ATP-3-34-40-2023.txt",
+        "sha256": "1377ced3b4d1d719726113c17a784067d63600f86ae51d9b7f7672b38c73118a",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN37985-ATP_3-34.40-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "b691b3d33032deb5c067d0b8a6ed1b6adab571a8acd45177b9297b29df3526a4",
+          "bytes": 3892511,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "88a4dcedfa5e3ec78d418e8ab43c95bc1d7901e95139f8211d70c6f45ec89d5b",
+          "extractor": "pdf_text",
+          "pages": 222,
+          "words": 104544,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16137,6 +17293,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ARTY-FM-3-09-2024.txt",
+        "sha256": "b17e3e24e19272ea5abdb965083a2a1d8b2051f1b688a61b66b623bebcb35bbd",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN41659-FM_3-09-000-WEB-2.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "1fd2a14b86c57f2b7af7d757fd5acba80f0abda59f65e313f5b67526a33303ba",
+          "bytes": 9934904,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "db3a76234d812028590eb76e44e2a4a0e90e9d79f661dd853585245b16d3e72e",
+          "extractor": "pdf_text",
+          "pages": 284,
+          "words": 128271,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16246,6 +17426,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ARTY-ATP-3-09-23-2026.txt",
+        "sha256": "ff3b087f1e45709b9e3a545b263440e0996ea7d6c31cc54e7942ae290965eba7",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46039-ATP_3-09.23-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "90aa5eb1ac0ec4982f1ddab1c5c68b4f47ee75fe09bf63bb2df0e64452a7953e",
+          "bytes": 3540994,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "817c3345d3aaf40de4afdeb60ea41e947f562bb8919cfa3ac43c55c21ccba3a2",
+          "extractor": "pdf_text",
+          "pages": 168,
+          "words": 67424,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16390,6 +17594,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ARTY-ATP-3-09-12-2021.txt",
+        "sha256": "f888070b7e101dbaf3f425acaf8a51864e048dcdbf3057350763d2cb3a48bc5a",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN33999-ATP_3-09.12-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "35137c115b000e95760e842d50116d50935c68015bffc063641fcbfd52f5f606",
+          "bytes": 5677129,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "506e660d11933f57144aa5d42fa57077ee220b79f4d393bc19b968f95d309cd4",
+          "extractor": "pdf_text",
+          "pages": 150,
+          "words": 48384,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16520,6 +17748,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ISR-FM-2-0-2023.txt",
+        "sha256": "d3ea0e0188ac4b6a5140977c2c8dbf0883532a9193b115e89dc130f386ca49fd",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN39259-FM_2-0-000-WEB-2.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "1fa30a47ed8db31185ac0add9e13582f33ebbd092faddbd52c6eb408d7ccd52f",
+          "bytes": 29867957,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "6e03ced02cd1329c4f221e451430cec6f4796cb24b0bbe66e28efe1945e60c35",
+          "extractor": "pdf_text",
+          "pages": 328,
+          "words": 148861,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16616,6 +17868,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ISR-FM-3-60-2023.txt",
+        "sha256": "74d64e9edd53251d1404f2910b437c6dd677e07a66a1e4a8f71b9d00679f6cad",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN39048-FM_3-60-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "b40d208ac91f8634db158ea0a9faa805f369e0812125b0b5c4f34c50cad9ee04",
+          "bytes": 14456993,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "6326e9b26e16a6c5f9e518fb1af622c604dc91d92372ac4d5208b6748f6b93f9",
+          "extractor": "pdf_text",
+          "pages": 158,
+          "words": 48755,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16721,6 +17997,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/ISR-ATP-2-01-4-2026.txt",
+        "sha256": "f8ec63e22edc8a450fac9d26794dbb0c09fcaa028157d7f79f9ba89d54641513",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46059-ATP_2-01.4-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "82cc30edeae116240932bcb25631513896fbeb775614c06d157f8c8f40ec2b26",
+          "bytes": 11363216,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "1ad24491b0b7876541a9dd3d97a9d0f993c937516f9c31f6f846b6450598822a",
+          "extractor": "pdf_text",
+          "pages": 108,
+          "words": 37025,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16866,6 +18166,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LDR-ADP-6-22-2019.txt",
+        "sha256": "7870620c7c4fb48cf0a0dac0de26404f2651ce93cd21494939e240d97115ac3c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN42975-ADP_6-22-002-WEB-8.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "58690a01d9ee2ddf6365ea51bd04d1b31317e2a56fc9832dfb3c836212786383",
+          "bytes": 4508515,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "6d79400e3da851999a2771bcd5a0deb736b08292fdf8c8079727d69f18cb911d",
+          "extractor": "pdf_text",
+          "pages": 136,
+          "words": 59686,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -16956,6 +18280,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/TRN-FM-7-0-2021.txt",
+        "sha256": "a272698f7dc06c53738c7a119a3d7bed1e935cd53c51b5c222df6b7f33dc874c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN35076-FM_7-0-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "3c7ab09fbbe262bdd4058dae68bb2d52885ee632eb0b327873487805b12e122a",
+          "bytes": 4888051,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "d89443dbe65ae076598038fb8cd05322e0dbb67efe6616c35e37807fc8fd122c",
+          "extractor": "pdf_text",
+          "pages": 116,
+          "words": 36189,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17039,6 +18387,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LDR-FM-6-22-2022.txt",
+        "sha256": "c79aa609f7385a329283bbe0edee0b468f305deb41cc5db0617200153cddf24c",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43044-FM_6-22-002-WEB-5.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "6acb7b6d9234f23fc73558cc90894bcc1944b7e4f406b1c36b4c7be7e83b7925",
+          "bytes": 3908423,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "a2e9e9160a00c8ec970e7374a0a202a84bd002109299ab08e440e0849395b35d",
+          "extractor": "pdf_text",
+          "pages": 192,
+          "words": 82797,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17118,6 +18490,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/TRN-ADP-7-0-2024.txt",
+        "sha256": "9ae0dab73e8152dc7e7ea5e0ca46dedcec9979c7f2cb99b2a67994e49c630061",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN40738-ADP_7-0-000-WEB-2.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "0bcb1db2398fb69ae93a691dc36b7e1e96a774e85934e993b4643f23656c3bb1",
+          "bytes": 4447715,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "7d26c0ecf48059e29ca99198fb72db970d7b4c69a8ff401176918a988369d578",
+          "extractor": "pdf_text",
+          "pages": 36,
+          "words": 8787,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17195,6 +18591,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LDR-ATP-6-22-1-2024.txt",
+        "sha256": "1f4c9df26ba5deefe8bf5ce4e00c86dac99f67585d967fb2dc81c8cce1458c5f",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN40232-ATP_6-22.1-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "e27694c46e972a403d14ca6b6517d18e282bc1c9ba5b2d3dd63b340b02e21f18",
+          "bytes": 1796616,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "1d94e27638a029e5bf9787b954deee712959e891b2f0688278671d82309574bf",
+          "extractor": "pdf_text",
+          "pages": 88,
+          "words": 37549,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17304,6 +18724,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LOG-FM-4-0-2026.txt",
+        "sha256": "70c81e7804dc1a1bb18ad04a5f20d6f20604969a1840a807908376e585034178",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46157-FM_4-0-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "90bc9a57f6508a73edd47f1e3a9f0f491e73c1e289da2d32d70c2ca626778d35",
+          "bytes": 9196569,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "e57e33178627f3185abcd8d50c75e9d6e988d07bb09df2a2d8a517f1ef334f4d",
+          "extractor": "pdf_text",
+          "pages": 256,
+          "words": 124384,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17387,6 +18831,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LOG-ATP-4-90-2026.txt",
+        "sha256": "a160b8f35b699b6e85a6f18f8e5df1985e1c62d860ff4998da3b1fca313d4138",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45712-ATP_4-90-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "3fbbe6db3b0e488c4bff62113491d2a6f7a87f46a0e641e04ad0301fecc2ba50",
+          "bytes": 2854977,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "a00d8fe28b35e98ed0f0f724d0f6402673f2fa08310e9613fe52c7cca2810882",
+          "extractor": "pdf_text",
+          "pages": 82,
+          "words": 34013,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17466,6 +18934,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LOG-ATP-4-93-2023.txt",
+        "sha256": "3f61dd59070f0b5d67225c66f39492de0c60fad3fb677b0e10bca5a7d2b40ab4",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN38149-ATP_4-93-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "f81525bc16a6eeea5aa19e1e9f38fc4527169de5601d7e4f956adefcd5d42a44",
+          "bytes": 5414774,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "2ac854ad62183a13f620ceaaa8d0c3c0704d6ae31b2521b97bbdb6fdeb614bc5",
+          "extractor": "pdf_text",
+          "pages": 168,
+          "words": 79300,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17549,6 +19041,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "ARM-ATP-4-33-2024"
+      ],
+      "canonical_id": "ARM-ATP-4-33-2024",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LOG-ATP-4-33-2024.txt",
+        "sha256": "5f1720710650d9f81e4169cee3c12a8c5fc2c234b5311db88688ed388042267d",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44809-ATP_4-33-001-WEB-2.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "cbfe05827afb5ccd97d3e2afba377f55f43add74696e6cf557e5059a9ebae77b",
+          "bytes": 5615477,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "e86d7a73f554b82a3156bc576aa91b4b7a71d1b90de3dbdfb9266a9029143275",
+          "extractor": "pdf_text",
+          "pages": 154,
+          "words": 63291,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17636,6 +19157,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/LOG-ATP-4-90-5-2021.txt",
+        "sha256": "949bcb5fc882f7e145a045ac1398a314991f0699ba03d5e4760c901f752052cc",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN34147-ATP_4-90.5-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "37b14f49c96f44bdcef7dc217af1a89b3503f124092d2057fec6353518c20a0a",
+          "bytes": 6073517,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "4eaa8686911ddfdf7722aa91dca89aeebfe15ad8af5b4ea18bc15f0715ee2088",
+          "extractor": "pdf_text",
+          "pages": 130,
+          "words": 44022,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17726,6 +19271,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/UAS-ATP-3-01-81-2025.txt",
+        "sha256": "18026a30bf8ff57aead682056456c72a02d03daf5f8c28954cbf74925bd0b9d0",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43877-ATP_3-01.81-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "3f58223d4a871677209d53fb0b40445557865fdfc83f2d3d306889eec80890f7",
+          "bytes": 26322968,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "b458fafd717c0de632d067c9cefdaefeb1cb1988de6eadf957aa8e3b77cd0d63",
+          "extractor": "pdf_text",
+          "pages": 106,
+          "words": 31551,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17812,6 +19381,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/UAS-TC-3-01-81-2025.txt",
+        "sha256": "031ea83eccc6d5a4c0450994f8691154a6e23670e810c0958b69ec9a937a0625",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN43695-TC_3-01.81-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "5e139a70c65e27c65fb196d62ff99681c16c636a3e1eba4dd58510c1a7f6bd27",
+          "bytes": 1574223,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "05ab965464f3cae481902510ea3533d336530e8cddd3191b4c237c841bd46ade",
+          "extractor": "pdf_text",
+          "pages": 80,
+          "words": 26061,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -17967,6 +19560,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "SIG-ATP-3-12.3-2023"
+      ],
+      "canonical_id": "EW-ATP-3-12-3-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/EW-ATP-3-12-3-2023.txt",
+        "sha256": "36e2386b74b3b905430b144f3cf9f20dbc537f8bfb27eb19718d2c57dbb30e28",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44803-ATP_3-12.3-002-WEB-3.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "606dd3eaa40f9b21762f10331897f5b821337599f60816eecd0e697045cd2f84",
+          "bytes": 5448345,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "4d3ac477291744a92f434fa8d7987e2c2bb178d0fa8f5ac090c2a2ca4ce17b46",
+          "extractor": "pdf_text",
+          "pages": 164,
+          "words": 41064,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -18051,6 +19673,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "SIG-ATP-3-12.4-2023"
+      ],
+      "canonical_id": "EW-ATP-3-12-4-2023",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/EW-ATP-3-12-4-2023.txt",
+        "sha256": "d9213ee4b8377370e1af832fb792fd597d28dd53514c708a1ff66460ceb9e8e8",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN37162-ATP_3-12.4-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "2eaa82e07ff0c14a83932ac56fc294c54732a2d9655bd20cfd81dc93ae1776dc",
+          "bytes": 6568288,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "d12d66c65c4078efd7ca4d054d193dd3a5638203052db66459d260e2c316e22c",
+          "extractor": "pdf_text",
+          "pages": 178,
+          "words": 49338,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -18157,6 +19808,35 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "cross_listed_as": [
+        "SIG-FM-3-12-2025"
+      ],
+      "canonical_id": "EW-FM-3-12-2025",
+      "cross_listing_note": "Той самий файл заведено двічі, різними проходами й під різними розділами. Канонічним обрано перший за абеткою — вибір ДОВІЛЬНИЙ і в цьому вся суть: рішення «який розділ володіє документом» лишається відкритим, рішення «не інжестити ті самі байти двічі» ухвалено. Виявлено 2026-08-30 з іншого кінця: у корпусі 5 груп дублікатів на 1084 фрагменти (7%), і кожна копія займала окреме місце у видачі.",
+      "integrity_anchor": {
+        "path": "config/corpus/captures/EW-FM-3-12-2025.txt",
+        "sha256": "b1243f9cc20db5077995e011efff6b4d9db1e524ca17506c999e386683a69ac1",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45009-FM_3-12-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "d097e7c123c9476b951d8ab48aea2b96015ffc39389393a705d003b5a564dfee",
+          "bytes": 11105500,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "7385efb9d95b2332d5a4d0c8d94a3c0ab92e34a9a75834a5c0d477ea9bb2733d",
+          "extractor": "pdf_text",
+          "pages": 238,
+          "words": 97560,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {
@@ -18261,6 +19941,30 @@
         "ai_bots_disallowed": [],
         "against_us": [],
         "informational": []
+      },
+      "integrity_anchor": {
+        "path": "config/corpus/captures/AMD-FM-3-01-2025.txt",
+        "sha256": "78e97e032c23084e866ca9d1c5f15af8c212756e1416bd2dfcf542b13a6e16cb",
+        "captured_on": "2026-08-30"
+      },
+      "capture": {
+        "uri": "https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN44767-FM_3-01-000-WEB-1.pdf",
+        "fetched_on": "2026-08-30",
+        "media_type": "application/pdf",
+        "bytes_as_served": {
+          "sha256": "9b6f72d4f42904c401bd5857bf1115322fb02bf67034fc73158f40b464268ca9",
+          "bytes": 6359302,
+          "means": "точні байти, які віддав сервер, після зняття Content-Encoding"
+        },
+        "text_as_extracted": {
+          "sha256": "060d5f10d681bcb3fc7cf31e662ed599fb8ccaf36ff697dc628ec16837ff93c2",
+          "extractor": "pdf_text",
+          "pages": 218,
+          "words": 100341,
+          "canonicalised": "CRLF→LF, NFC",
+          "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
+        },
+        "body_is_bounded": "first 400 and last 200 words"
       }
     },
     {

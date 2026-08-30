@@ -186,7 +186,23 @@ def _reportable(path: Path) -> str:
 
 def stage(out: Path, timeout: int, limit: int | None, min_words: int) -> dict[str, Any]:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
-    sources = [s for s in catalog["sources"] if s.get("ingestible") and s.get("source_uri")]
+    # Канонічний запис групи, не кожен її член. Шість пар id у каталозі вказують на ОДИН
+    # файл (ARM/LOG, CAM/ENG, SIG/EW): документ заводили двічі, під різними розділами.
+    # Взяти обидва означає покласти ті самі байти в корпус двічі — і кожна копія займає
+    # окреме місце у видачі, тобто дублікати їдять top-5 напряму.
+    #
+    # `ingestible` при цьому лишається TRUE в обох: воно означає «права й форма дозволяють
+    # це взяти», і для перехресного розміщення це правда. Зняти його з неканонічного
+    # означало б записати властивість НАШОГО конвеєра як факт про документ — та сама
+    # підміна, через яку недосяжність хоста мало не стала грифом. Пропускає той, хто
+    # збирає, а не той, хто описує.
+    sources = [
+        s
+        for s in catalog["sources"]
+        if s.get("ingestible")
+        and s.get("source_uri")
+        and str(s.get("canonical_id", s.get("id"))) == str(s.get("id"))
+    ]
     if limit is not None:
         sources = sources[:limit]
 

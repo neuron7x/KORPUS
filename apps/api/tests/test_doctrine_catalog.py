@@ -1166,3 +1166,59 @@ def test_a_partial_change_does_not_shadow_the_full_floor_snapshot() -> None:
     # Ключі повного знімка мусять пережити часткову зміну зверху.
     for key in ("content_probed", "attachments_captured", "governing_authority", "total"):
         assert key in recorded, (key, origin, sorted(recorded))
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("оголошення знято з одного боку", "cross_listed_as не називає"),
+        ("canonical_id вказує в нікуди", "не є жодним із"),
+        ("група розходиться в canonical_id", "різні canonical_id"),
+    ],
+)
+def test_an_undeclared_duplicate_source_uri_is_refused(name: str, expected: str) -> None:
+    """Один файл під двома id інжеститься двічі й займає два місця у видачі.
+
+    Знайдено 2026-08-30 з іншого кінця: паралельна сесія побачила в корпусі 5 груп
+    дублікатів на 1084 фрагменти (7%). Причина не в корпусі — у каталозі ШІСТЬ пар id
+    вказують на один файл (ARM/LOG, CAM/ENG двічі, SIG/EW тричі), заведених різними
+    проходами під різними розділами.
+
+    Правило не забороняє перехресне розміщення, а вимагає його оголосити. Третій випадок
+    знайдено власною пробою на це саме правило: належність кожного `canonical_id` окремо
+    не робить групу узгодженою — два записи можуть назвати різні існуючі id, і збірник
+    дістане дві відповіді на питання «який брати».
+    """
+    import importlib.util
+
+    script = ROOT / "scripts/validate_doctrine_catalog.py"
+    spec = importlib.util.spec_from_file_location("vdc_crosslist_probe", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    shared = "https://example.invalid/one.pdf"
+    left: dict[str, object] = {
+        "id": "A-1",
+        "source_uri": shared,
+        "cross_listed_as": ["B-1"],
+        "canonical_id": "A-1",
+    }
+    right: dict[str, object] = {
+        "id": "B-1",
+        "source_uri": shared,
+        "cross_listed_as": ["A-1"],
+        "canonical_id": "A-1",
+    }
+    assert module._cross_listing_problems([left, right]) == [], "оголошена пара мусить проходити"
+
+    if name == "оголошення знято з одного боку":
+        right.pop("cross_listed_as")
+    elif name == "canonical_id вказує в нікуди":
+        right["canonical_id"] = "НЕМА-ТАКОГО"
+    else:
+        right["canonical_id"] = "B-1"
+    problems = module._cross_listing_problems([left, right])
+    assert any(expected in problem for problem in problems), (name, problems)
+    # Дуальність: одиночний запис не є групою й не має чого оголошувати.
+    assert module._cross_listing_problems([{"id": "C-1", "source_uri": shared}]) == []
