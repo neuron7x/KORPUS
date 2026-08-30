@@ -213,13 +213,20 @@ def _verdicts(records: list[dict], claims: dict, vocab: dict) -> tuple[set[str],
     return settled, bad
 
 
-def _evidence_floor(claims: dict) -> list[str]:
-    """Твердження без доказу коштує нуль і варте нуля."""
+def _evidence_floor(claims: dict, settled: set[str]) -> list[str]:
+    """Тонкий доказ — вада ВІДКРИТОГО твердження, не закритого.
+
+    Поки ніхто не судив, твердження тримається лише на власному доказі, і одного
+    рядка мало. Після вироку його тримає вирок разом із доказами приймальника, і
+    вимагати того самого від автора означає карати за роботу, яку вже зроблено:
+    правило червоніло на двох твердженнях, розсуджених ще напередодні.
+    """
     return [
-        f"твердження {cid}: доказів {len(c.get('evidence') or [])} "
-        f"(треба ≥{MIN_EVIDENCE}) — твердження без доказу коштує нуль і варте нуля"
+        f"ВІДКРИТЕ твердження {cid}: доказів {len(c.get('evidence') or [])} "
+        f"(треба ≥{MIN_EVIDENCE}) — поки вироку немає, воно тримається лише на "
+        f"власному доказі"
         for cid, c in claims.items()
-        if len(c.get("evidence") or []) < MIN_EVIDENCE
+        if cid not in settled and len(c.get("evidence") or []) < MIN_EVIDENCE
     ]
 
 
@@ -239,7 +246,7 @@ def check_ledger(reg: dict, records: list[dict]) -> list[str]:
     settled, bad = _verdicts(records, claims, reg["verdict_vocabulary"])
     return (
         bad
-        + _evidence_floor(claims)
+        + _evidence_floor(claims, settled)
         + _claim_budget(claims, settled, int(reg["claim_budget_per_actor"]))
     )
 
@@ -599,9 +606,22 @@ def selftest() -> int:
             check_ledger(base_reg(), [verdict("нема", "acc")]),
         ),
         (
-            "одного доказу мало — червоний",
+            "одного доказу мало у ВІДКРИТОМУ — червоний",
             True,
+            check_ledger(base_reg(), [claim("c1", "prod", ev=1)]),
+        ),
+        (
+            "одного доказу досить у РОЗСУДЖЕНОМУ — зелений",
+            False,
             check_ledger(base_reg(), [claim("c1", "prod", ev=1), verdict("c1", "acc")]),
+        ),
+        (
+            "одного доказу мало, якщо вирок НЕ закриває — червоний",
+            True,
+            check_ledger(
+                base_reg(),
+                [claim("c1", "prod", ev=1), verdict("c1", "acc", "CANNOT_ADJUDICATE")],
+            ),
         ),
         (
             "CANNOT_ADJUDICATE не звільняє бюджет — червоний",
