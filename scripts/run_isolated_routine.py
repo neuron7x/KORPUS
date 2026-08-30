@@ -22,6 +22,7 @@ BUSY_EXIT = 75
 DIRTY_EXIT = 76
 TIMEOUT_EXIT = 124
 PR_SET_CHILD_SUBREAPER = 36
+PR_GET_CHILD_SUBREAPER = 37
 
 
 class RepositoryBusy(RuntimeError):
@@ -103,11 +104,41 @@ def _remove_worktree(repository: Path, worktree: Path) -> None:
     )
 
 
-def _become_child_subreaper() -> None:
+def _set_child_subreaper(value: int) -> None:
     libc = ctypes.CDLL(None, use_errno=True)
-    if libc.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) != 0:
+    if libc.prctl(PR_SET_CHILD_SUBREAPER, value, 0, 0, 0) != 0:
         error = ctypes.get_errno()
         raise OSError(error, os.strerror(error))
+
+
+def _child_subreaper_state() -> int:
+    libc = ctypes.CDLL(None, use_errno=True)
+    current = ctypes.c_int(0)
+    if libc.prctl(PR_GET_CHILD_SUBREAPER, ctypes.byref(current), 0, 0, 0) != 0:
+        error = ctypes.get_errno()
+        raise OSError(error, os.strerror(error))
+    return int(current.value)
+
+
+@contextmanager
+def _as_child_subreaper() -> Iterator[None]:
+    """Стати жнецем-усиновлювачем НА ЧАС прогону і повернути прапорець як був.
+
+    Прапорець несучий: дитина йде з `start_new_session=True`, її власні нащадки
+    можуть зробити те саме, і осиротівши переприв'язались би до PID 1. Саме як
+    усиновлених їх знаходить `_terminate_descendants`, тож знімати прапорець до
+    підмітання не можна.
+
+    Але `prctl` діє на ПОТОЧНИЙ процес і сам не скасовується. Без відновлення
+    кожен виклик усередині чужого процесу робив той процес жнецем назавжди —
+    і наступні спроби вбити групу процесів переставали діставати онуків.
+    """
+    previous = _child_subreaper_state()
+    _set_child_subreaper(1)
+    try:
+        yield
+    finally:
+        _set_child_subreaper(previous)
 
 
 def _descendant_pids(root_pid: int) -> set[int]:
@@ -162,7 +193,13 @@ def _terminate_descendants() -> None:
 def _run_bounded(
     command: Sequence[str], worktree: Path, log: IO[bytes], timeout_seconds: int
 ) -> int:
-    _become_child_subreaper()
+    with _as_child_subreaper():
+        return _run_bounded_as_subreaper(command, worktree, log, timeout_seconds)
+
+
+def _run_bounded_as_subreaper(
+    command: Sequence[str], worktree: Path, log: IO[bytes], timeout_seconds: int
+) -> int:
     process = subprocess.Popen(
         list(command),
         cwd=worktree,

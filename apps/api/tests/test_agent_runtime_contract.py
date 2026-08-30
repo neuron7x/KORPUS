@@ -175,3 +175,31 @@ def test_every_timer_uses_the_isolated_bounded_runner() -> None:
     assert "CPUQuota=300%" in unit
     assert "MemoryHigh=3G" in unit
     assert "MemoryMax=5G" in unit
+
+
+def test_bounded_run_restores_the_subreaper_flag_of_its_caller(tmp_path: Path) -> None:
+    """`prctl(PR_SET_CHILD_SUBREAPER)` діє на ПОТОЧНИЙ процес і сам не скасовується.
+
+    Поки `_run_bounded` ставив його без відновлення, кожен виклик усередині чужого
+    процесу робив той процес жнецем НАЗАВЖДИ. Цей файл виконує модуль у процесі
+    pytest через `exec_module`, тож платив саме pytest: осиротілі онуки НАСТУПНИХ
+    тестів переприв'язувались до нього замість PID 1, і вбивство групи процесів їх
+    більше не діставало. Три тести в `test_regression_shard_contract.py` падали —
+    поодинці зелені, після цього файлу червоні.
+
+    Перевіряється не «прапорець можна прочитати», а що після прогону він ТОЙ САМИЙ,
+    що був до нього. Без цього твердження регресія повертається мовчки й проявляється
+    в іншому файлі, за яким її не знайти.
+    """
+    import ctypes
+
+    def state() -> int:
+        libc = ctypes.CDLL(None, use_errno=True)
+        current = ctypes.c_int(-1)
+        assert libc.prctl(MODULE.PR_GET_CHILD_SUBREAPER, ctypes.byref(current), 0, 0, 0) == 0
+        return int(current.value)
+
+    before = state()
+    with (tmp_path / "log").open("wb") as log:
+        MODULE._run_bounded([sys.executable, "-c", "pass"], tmp_path, log, 10)
+    assert state() == before, "прогін лишив викликача жнецем-усиновлювачем"

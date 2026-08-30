@@ -3815,7 +3815,7 @@
       "max_nesting": 4
     },
     "scripts/run_isolated_routine.py": {
-      "lines": 302,
+      "lines": 339,
       "max_complexity": 6,
       "reason": "Issue #42: repository-wide lease and disposable worktree enforcement for unattended agents; exact initial measured ceiling.",
       "max_function_lines": 54,
@@ -5863,6 +5863,17 @@
         "lines": 636
       },
       "reason": "the GitLab WIF predicate registry: eight `assertion.*` claims pinning the deploy identity to a protected branch and a protected production environment, plus the delivery order they gate. Each line is one property the production plane states about itself. Complexity and function shape are unchanged."
+    },
+    {
+      "on": "2026-08-30",
+      "path": "scripts/run_isolated_routine.py",
+      "from": {
+        "lines": 302
+      },
+      "to": {
+        "lines": 339
+      },
+      "reason": "prctl(PR_SET_CHILD_SUBREAPER) діє на поточний процес і сам не скасовується. Він ставився без відновлення, тож кожен виклик _run_bounded усередині чужого процесу робив той процес жнецем назавжди: pytest, що виконує цей модуль через exec_module, лишався жнецем до кінця сесії, і три тести test_regression_shard_contract падали через переприв'язку онуків. Приріст — контекстний менеджер, який відновлює прапорець, і пояснення, чому прибрати його не можна. Складність і форма функцій не змінились."
     }
   ],
   "recorded_at": "2026-08-24",
