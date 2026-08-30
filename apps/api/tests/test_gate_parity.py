@@ -224,8 +224,23 @@ def test_mypy_is_invoked_so_that_its_configuration_applies() -> None:
         "mypy is called without --config-file, so [tool.mypy] in "
         "apps/api/pyproject.toml does not apply and strict mode is silently off"
     )
+    # Прапорці, які ЗАБИРАЮТЬ наступний токен. Без цього списку значення `--cache-dir`
+    # читалося як позиційний аргумент, і перевірка звинувачувала у підміні `packages`
+    # рівно ту зміну, що виносить кеш із дерева. Модель аргументів мусить знати, які з
+    # них мають значення, інакше вона міряє форму рядка, а не те, що mypy побачить.
+    consuming = {"--config-file", "--cache-dir", "-p", "--python-executable"}
     tail = tokens[tokens.index("--config-file") + 2 :]
-    positional = [token for token in tail if not token.startswith("-")]
+    positional: list[str] = []
+    skip = False
+    for token in tail:
+        if skip:
+            skip = False
+            continue
+        if token in consuming:
+            skip = True
+            continue
+        if not token.startswith("-"):
+            positional.append(token)
     assert not positional, (
         f"passing {positional} overrides packages = ['korpus'] from the config file, "
         "which leaves mypy unable to resolve the project's own imports"

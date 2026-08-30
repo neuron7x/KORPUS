@@ -1,0 +1,30 @@
+{
+  "fingerprint": {
+    "corpus_keys": "823a16f5aec9d6e2",
+    "corpus_size": "1976",
+    "question_ids": "1b3f79afd19ff3de",
+    "question_count": "252",
+    "strata": "direct,paraphrase",
+    "criterion": "6d84679c15c77580",
+    "top_k": "5"
+  },
+  "method": "ембединги за змістом + перевага обовʼязкам названої ролі",
+  "per_stratum": {
+    "direct": {
+      "n": 156,
+      "top1": 146,
+      "top5": 153
+    },
+    "paraphrase": {
+      "n": 96,
+      "top1": 94,
+      "top5": 94
+    }
+  },
+  "total": {
+    "n": 252,
+    "top1": 240,
+    "top5": 247
+  },
+  "promotion_authorized": false
+}

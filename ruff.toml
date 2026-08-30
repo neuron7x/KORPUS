@@ -1,3 +1,10 @@
+# Кеш ПОЗА деревом. Той самий урок, що з mypy: `.ruff_cache` у корені —
+# відтворюваний каталог усередині checkout, тобто одна рутинна операція від
+# зникнення, і потенційний матеріал для будь-якого пошуку текстом по дереву.
+# Місце кешу належить КОНФІГУ, а не тому, хто викликає: виправлення в аргументах
+# тримається доти, доки хтось не викличе інакше.
+cache-dir = "var/ruff-cache"
+
 # One lint configuration for the whole repository.
 #
 # It lives at the root on purpose. With the only ruff section buried in

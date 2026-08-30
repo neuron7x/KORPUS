@@ -137,7 +137,7 @@ def _execute(sandbox: Path, tests: tuple[str, ...]) -> subprocess.CompletedProce
     env = os.environ.copy()
     env["PYTHONPATH"] = f"{sandbox / 'apps/api/src'}:{sandbox}"
     return subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", *tests],
+        [sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-q", *tests],
         cwd=sandbox,
         env=env,
         capture_output=True,

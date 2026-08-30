@@ -28,11 +28,27 @@ BASELINE = [
     ("package_identity", [sys.executable, "scripts/verify_package_build_identity.py"]),
     (
         "module_ratchet",
-        [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_branch_cycle2_ratchet_v050.py"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-q",
+            "apps/api/tests/test_branch_cycle2_ratchet_v050.py",
+        ],
     ),
     (
         "evaluation_validity",
-        [sys.executable, "-m", "pytest", "-q", "apps/api/tests/test_evaluation_validity.py"],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-q",
+            "apps/api/tests/test_evaluation_validity.py",
+        ],
     ),
     (
         "military_assurance",

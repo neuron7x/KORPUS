@@ -3791,7 +3791,7 @@
       "max_nesting": 4
     },
     "scripts/run_inference_security_gate.py": {
-      "lines": 171,
+      "lines": 173,
       "max_complexity": 8,
       "reason": "ACT-007: deterministic inference-security evidence generator; initial ratchet ceiling",
       "max_function_lines": 60,
@@ -3814,7 +3814,7 @@
       "max_nesting": 4
     },
     "scripts/run_military_readiness_campaign.py": {
-      "lines": 192,
+      "lines": 208,
       "max_complexity": 9,
       "reason": "ITER5 integrated readiness orchestrator: deterministic disjoint regression batches with fail-closed timeout/failure aggregation; exact ratchet ceiling.",
       "max_function_lines": 60,
@@ -3830,7 +3830,7 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4145,
+      "lines": 4154,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 3857->4140: thirty mutants added for the doctrine catalog's provenance rules 9-14 (scripts/validate_doctrine_catalog.py), the module budget's own ceiling guard and the production-predicate floor. The catalogue is a data table: its size is the number of predicates under mutation, so refusing to grow it means refusing to cover new rules. Five of the thirty survived every existing test and each is now cited against a test written for it.",
       "max_function_lines": 60,
@@ -3889,7 +3889,7 @@
       "max_nesting": 4
     },
     "scripts/run_postgres_security_gate.py": {
-      "lines": 59,
+      "lines": 70,
       "max_complexity": 6,
       "reason": "Reduced after interpreter-bound process execution was extracted; exact measured ratchet ceiling",
       "max_function_lines": 60,
@@ -3897,7 +3897,7 @@
       "max_nesting": 4
     },
     "scripts/run_pytest_campaign.py": {
-      "lines": 66,
+      "lines": 75,
       "max_complexity": 6,
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling",
       "max_function_lines": 60,
@@ -3905,7 +3905,7 @@
       "max_nesting": 4
     },
     "scripts/run_quality_gate.py": {
-      "lines": 207,
+      "lines": 212,
       "max_complexity": 8,
       "max_function_lines": 60,
       "max_function_args": 8,
@@ -3921,10 +3921,10 @@
       "max_nesting": 5
     },
     "scripts/run_regression_shards.py": {
-      "lines": 302,
+      "lines": 311,
       "max_complexity": 10,
       "reason": "v0.9.7 reduced exact measured ceiling after canonicalization/decomposition | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
-      "max_function_lines": 89,
+      "max_function_lines": 98,
       "max_function_args": 8,
       "max_nesting": 4
     },

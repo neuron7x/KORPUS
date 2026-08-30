@@ -3902,7 +3902,7 @@ def run_mutant(mutant: Mutant) -> dict[str, object]:
             }
         target.write_text(original.replace(mutant.old, mutant.new), encoding="utf-8")
         environment = mutation_test_environment(pythonpath=source_root)
-        command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1"]
+        command = [sys.executable, "-m", "pytest", "-p", "no:cacheprovider", "-q", "--maxfail=1"]
         if api_overlay:
             command += ["-o", f"pythonpath={source_root}"]
         command += list(mutant.tests)
@@ -4040,7 +4040,16 @@ def verify_mutation_baseline(mutants: list[Mutant]) -> None:
     tests = list(dict.fromkeys(spec for mutant in mutants for spec in mutant.tests))
     if not tests:
         return
-    command = [sys.executable, "-m", "pytest", "-q", "--maxfail=1", *tests]
+    command = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "--maxfail=1",
+        *tests,
+    ]
     returncode, stdout, stderr, timed_out, termination = run_bounded(
         command,
         cwd=ROOT,

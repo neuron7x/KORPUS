@@ -62,12 +62,17 @@ RUFF_FORMAT = [
     "apps/api/tests",
     "scripts",
 ]
+#: `--cache-dir` у var/, як і для scripts/: кеш усередині дерева вміє відмивати гейти —
+#: `scripts/.mypy_cache` містить імена всіх модулів і зробив зеленим тест досяжності
+#: скриптів. Прибрати причину дешевше, ніж вести список винятків.
 MYPY = [
     sys.executable,
     "-m",
     "mypy",
     "--config-file",
     "apps/api/pyproject.toml",
+    "--cache-dir",
+    "var/mypy-cache-api",
 ]
 #: Run from INSIDE scripts/, not from the repository root, and this is the whole point of
 #: the entry. With `mypy … scripts/` from the root, mypy resolved every intra-scripts

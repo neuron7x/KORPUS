@@ -102,7 +102,16 @@ def run_shard(args: argparse.Namespace) -> int:
     out = args.out.resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     junit = out.with_suffix(".junit.xml")
-    cmd = [sys.executable, "-m", "pytest", "-q", f"--junitxml={junit}", *selected]
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        f"--junitxml={junit}",
+        *selected,
+    ]
     started = time.monotonic()
     exit_code, stdout, stderr, timed_out, termination = run_bounded(
         cmd, cwd=ROOT, env=_env(), timeout_seconds=args.timeout_seconds

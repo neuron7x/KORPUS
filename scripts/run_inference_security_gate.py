@@ -85,6 +85,8 @@ def _execute(targets: list[str], junit: Path, timeout: int) -> tuple[int, str]:
         sys.executable,
         "-m",
         "pytest",
+        "-p",
+        "no:cacheprovider",
         "-q",
         "--disable-warnings",
         f"--junitxml={junit}",

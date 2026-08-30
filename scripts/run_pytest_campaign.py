@@ -27,7 +27,16 @@ def main() -> int:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT / "apps/api/src")
     completed = subprocess.run(
-        [sys.executable, "-m", "pytest", "-q", "--disable-warnings", *targets],
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-q",
+            "--disable-warnings",
+            *targets,
+        ],
         cwd=ROOT,
         env=env,
         capture_output=True,

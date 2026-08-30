@@ -1,0 +1,41 @@
+{
+  "model": "qwen3-embedding:0.6b",
+  "fingerprint": {
+    "corpus_keys": "823a16f5aec9d6e2",
+    "corpus_size": "1976",
+    "question_ids": "65ddc8031541172b",
+    "question_count": "271",
+    "strata": "direct,homonym,paraphrase",
+    "criterion": "6d84679c15c77580",
+    "top_k": "5"
+  },
+  "corpus": 1976,
+  "questions": 271,
+  "per_stratum": {
+    "direct": {
+      "n": 156,
+      "top1": 75,
+      "top5": 121,
+      "miss": 35
+    },
+    "paraphrase": {
+      "n": 96,
+      "top1": 25,
+      "top5": 54,
+      "miss": 42
+    },
+    "homonym": {
+      "n": 19,
+      "top1": 0,
+      "top5": 0,
+      "miss": 19
+    }
+  },
+  "total": {
+    "n": 271,
+    "top1": 100,
+    "top5": 175,
+    "miss": 96
+  },
+  "promotion_authorized": false
+}

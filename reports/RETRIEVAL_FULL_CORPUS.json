@@ -1,0 +1,22 @@
+{
+  "chunks": 16129,
+  "documents": 253,
+  "per_stratum": {
+    "direct": {
+      "n": 156,
+      "top1": 130,
+      "top5": 141
+    },
+    "paraphrase": {
+      "n": 96,
+      "top1": 84,
+      "top5": 85
+    }
+  },
+  "total": {
+    "n": 252,
+    "top1": 214,
+    "top5": 226
+  },
+  "unresolved_targets": 0
+}

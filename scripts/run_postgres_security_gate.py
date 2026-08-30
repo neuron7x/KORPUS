@@ -24,7 +24,18 @@ TARGETS = [
 def main() -> int:
     targets_present = all((ROOT / target).is_file() for target in TARGETS)
     static = process_run(
-        ROOT, [sys.executable, "-m", "pytest", "-q", "--disable-warnings", TARGETS[0]], 120
+        ROOT,
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-p",
+            "no:cacheprovider",
+            "-q",
+            "--disable-warnings",
+            TARGETS[0],
+        ],
+        120,
     )
     available, runtime_exit, runtime_tail = process_runtime(ROOT, TARGETS, targets_present)
     checks = {
