@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "profile_id": "korpus-public-doctrine-v1",
+  "corpora": {
+    "public": {
+      "data_owner": "Власник КОРПУСа (neuron7x)",
+      "security_owner": "Власник КОРПУСа (neuron7x)",
+      "rights_reference": "Кожне джерело має rights_status=open у config/corpus/doctrine_catalog_2026.json і пройшло схему-гейт корпусу: не-open фізично не потрапляє в базу (CHECK при ЗАПИСІ). Публікації армії США — гриф DR_a «Approved for public release; distribution is unlimited»; українські акти — zakon.rada.gov.ua.",
+      "releasability": "Публічно: лише матеріал, який першоджерело розповсюджує без обмежень",
+      "allowed_classifications": ["public"],
+      "allowed_authorities": ["official_ua", "official_allied", "analytical"],
+      "allowed_operations": ["index", "cite", "external_embedding"],
+      "retention_days": 3650,
+      "legal_hold": false,
+      "declassification_rule": "Не застосовується: корпус містить лише матеріал, уже відкритий першоджерелом. Зміна грифа в першоджерелі вимагає перегляду запису в каталозі, а не в цьому профілі."
+    }
+  }
+}
