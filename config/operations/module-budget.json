@@ -4492,6 +4492,14 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/build_runtime_manifest.py": {
+      "lines": 103,
+      "max_complexity": 17,
+      "reason": "Точна виміряна початкова стеля. Складач маніфесту рантайм-корпусу: перелічує, що саме розгорнутий застосунок вважає своїм корпусом, щоб відповідь можна було привʼязати до конкретного стану даних.",
+      "max_function_lines": 59,
+      "max_function_args": 1,
+      "max_nesting": 2
+    },
     "scripts/capture_source_evidence.py": {
       "lines": 979,
       "max_complexity": 13,
