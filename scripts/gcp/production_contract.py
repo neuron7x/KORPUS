@@ -17,6 +17,7 @@ class Predicate:
 @dataclass(frozen=True)
 class Sources:
     bootstrap: str
+    bootstrap_vars: str
     foundation: str
     foundation_vars: str
     runtime_versions: str
@@ -30,6 +31,9 @@ class Sources:
     edge_security: str
     installer: str
     production_workflow: str
+    gitlab_ci: str
+    gitlab_auth: str
+    gitlab_deploy: str
     foundation_workflow: str
     drill_workflow: str
     assurance_workflow: str
@@ -59,6 +63,11 @@ def _read(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
 
 
+def _read_optional(root: Path, path: str) -> str:
+    candidate = root / path
+    return candidate.read_text(encoding="utf-8") if candidate.is_file() else ""
+
+
 def load_sources(root: Path) -> Sources:
     bootstrap = _read(root, "infra/gcp/bootstrap/main.tf")
     foundation = _read(root, "infra/gcp/foundation/main.tf")
@@ -70,6 +79,7 @@ def load_sources(root: Path) -> Sources:
     )
     return Sources(
         bootstrap=bootstrap,
+        bootstrap_vars=_read_optional(root, "infra/gcp/bootstrap/variables.tf"),
         foundation=foundation,
         foundation_vars=_read(root, "infra/gcp/foundation/variables.tf"),
         runtime_versions=runtime_versions,
@@ -83,6 +93,9 @@ def load_sources(root: Path) -> Sources:
         edge_security=_read(root, "infra/gcp/foundation/edge_security.tf"),
         installer=_read(root, "scripts/gcp/install_terraform_verified.sh"),
         production_workflow=_read(root, ".github/workflows/gcp-production.yml"),
+        gitlab_ci=_read_optional(root, ".gitlab-ci.yml"),
+        gitlab_auth=_read_optional(root, "scripts/gcp/authenticate_gitlab_wif.sh"),
+        gitlab_deploy=_read_optional(root, "scripts/gcp/deploy_gitlab_production.sh"),
         foundation_workflow=_read(root, ".github/workflows/gcp-foundation.yml"),
         drill_workflow=_read(root, ".github/workflows/gcp-drill.yml"),
         assurance_workflow=_read(root, ".github/workflows/assurance.yml"),
@@ -558,5 +571,66 @@ def evaluate(root: Path) -> list[Predicate]:
         *_group_02(s),
         *_group_03(s),
         *_group_04(s),
+        *_gitlab_predicates(s),
         *(Predicate(i, ok, evidence) for i, ok, evidence in external_predicates(s)),
+    ]
+
+
+def _gitlab_predicates(s: Sources) -> list[Predicate]:
+    claims = (
+        "assertion.project_id == '${var.gitlab_project_id}'",
+        "assertion.namespace_id == '${var.gitlab_namespace_id}'",
+        "assertion.ref_type == 'branch'",
+        "assertion.ref == '${var.gitlab_deploy_branch}'",
+        "assertion.ref_protected == 'true'",
+        "assertion.environment == 'production'",
+        "assertion.environment_protected == 'true'",
+        "assertion.deployment_tier == 'production'",
+    )
+    delivery_order = (
+        "verify_container_vulnerabilities.py",
+        "validate_migration_compatibility.py",
+        "korpus-migrate",
+        "korpus-postgres-verify",
+        "terraform -chdir=infra/gcp/runtime plan",
+        "korpus-candidate-probe",
+        "canary_metrics.py",
+        "--to-tags=candidate=100",
+        "live_smoke.py",
+    )
+    positions = [s.gitlab_deploy.find(token) for token in delivery_order]
+    return [
+        Predicate(
+            "GITLAB_WIF_CLAIMS_BOUND",
+            all(claim in s.bootstrap for claim in claims)
+            and 'issuer_uri = "https://gitlab.com"' in s.bootstrap
+            and "gitlab_project_id" in s.bootstrap_vars
+            and "gitlab_namespace_id" in s.bootstrap_vars,
+            "GitLab WIF admission binds immutable project/namespace, protected main, and protected production environment claims",
+        ),
+        Predicate(
+            "GITLAB_WIF_KEYLESS",
+            "create-cred-config" in s.gitlab_auth
+            and "service-account-token-lifetime-seconds=900" in s.gitlab_auth
+            and "activate-service-account" not in s.gitlab_auth
+            and "credentials_json" not in s.gitlab_ci,
+            "GitLab exchanges an environment-bound ID token for 15-minute credentials and has no service-account-key path",
+        ),
+        Predicate(
+            "GITLAB_PRODUCTION_JOB_PROTECTED",
+            'CI_COMMIT_BRANCH == "main"' in s.gitlab_ci
+            and 'CI_COMMIT_REF_PROTECTED == "true"' in s.gitlab_ci
+            and 'GCP_PRODUCTION_ENABLED == "true"' in s.gitlab_ci
+            and "resource_group: gcp-production" in s.gitlab_ci
+            and "deployment_tier: production" in s.gitlab_ci,
+            "GitLab production mutation is manual, serialized, disabled by default, and limited to protected main",
+        ),
+        Predicate(
+            "GITLAB_PRODUCTION_ORDER_AND_ROLLBACK",
+            all(position >= 0 for position in positions)
+            and positions == sorted(positions)
+            and "trap rollback ERR" in s.gitlab_deploy
+            and "rollback_traffic.py" in s.gitlab_deploy,
+            "GitLab preserves scan -> migration -> live DB -> plan/apply -> exact probe -> canary -> full promotion with automatic traffic rollback",
+        ),
     ]
