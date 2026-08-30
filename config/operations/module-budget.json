@@ -2787,10 +2787,10 @@
       "max_nesting": 4
     },
     "scripts/backfill_span_embeddings_sqlite.py": {
-      "lines": 112,
+      "lines": 123,
       "max_complexity": 11,
       "reason": "Точна виміряна початкова стеля. Донаповнення ембедингів для SQLite-рантайму: PostgreSQL-варіант на рантайм-корпусі незастосовний.",
-      "max_function_lines": 61,
+      "max_function_lines": 71,
       "max_function_args": 5,
       "max_nesting": 2
     },
@@ -2951,7 +2951,7 @@
       "max_nesting": 4
     },
     "scripts/compare_retrieval_configs.py": {
-      "lines": 135,
+      "lines": 138,
       "max_complexity": 9,
       "reason": "Точна виміряна початкова стеля. Порівнює конфігурації пошуку на еталонному наборі — вимір, а не гейт.",
       "max_function_lines": 38,
@@ -4609,6 +4609,14 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-30",
+      "paths": [
+          "scripts/backfill_span_embeddings_sqlite.py",
+          "scripts/compare_retrieval_configs.py"
+      ],
+      "reason": "Звуження `except Exception` до переліку мережевих і розбірних винятків. Мій перший підхід був `noqa` — і його відкинув ВЛАСНИЙ тест проєкту `test_no_broad_handler_turns_a_fault_into_evidence_of_health`, суворіший за лінтер: глушіння правила лишає викликача без змоги відрізнити збій від успіху. Приріст — перелік винятків і пояснення, чому саме ці."
+  },
   {
       "on": "2026-08-30",
       "paths": [

@@ -22,6 +22,7 @@ import json
 import sqlite3
 import sys
 import time
+import urllib.error
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -78,7 +79,17 @@ def main() -> int:
         texts = [(t or "")[: args.max_chars] for _, t, _ in chunk]
         try:
             vectors = embed_batch(args.endpoint, args.model, texts, args.dimensions, args.timeout)
-        except Exception as error:  # noqa: BLE001 — збій партії рахується, а не спиняє прогін
+        #: Звужено з `Exception`: збій партії рахується й друкується, а не спиняє
+        #: прогін. Ширший except ховав би помилку в самому складачі під виглядом
+        #: мережевої — а це різні речі з різною ціною.
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            ConnectionError,
+            OSError,
+            ValueError,
+            KeyError,
+        ) as error:
             failed += len(chunk)
             print(
                 f"  партія {i}: {type(error).__name__}: {error}"[:160], file=sys.stderr, flush=True

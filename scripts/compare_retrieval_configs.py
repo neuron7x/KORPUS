@@ -67,7 +67,10 @@ def ask(base: str, token: str, text: str, timeout: float = 120.0) -> dict:
             return payload
     except urllib.error.HTTPError as error:
         return {"status": f"http_{error.code}"}
-    except Exception as error:  # noqa: BLE001 — мережа й таймаут це результат, не виняток
+    #: Звужено з `Exception`: недосяжність — це РЕЗУЛЬТАТ порівняння конфігурацій, а не
+    #: збій вимірювача, тому вона записується у відповідь. Але ловити все підряд не
+    #: можна: помилка в самому скрипті виглядала б тоді як мовчазна недосяжність мережі.
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
         return {"status": f"error_{type(error).__name__}"}
 
 

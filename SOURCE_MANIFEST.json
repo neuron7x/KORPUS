@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1613,
-  "root_sha256": "300f12211c4d84e04414c4c1594ff49b34ce81062bae51427de67b5a5dbcdc2c",
+  "root_sha256": "aa47401c8fdec4c42f68c67fd6ad96be7fe31bf3ac9c5d1dfbe2dc5f324e946f",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 55111,
-      "sha256": "252893971b8b72b0a2e4ea5d82d960373e75bc3a6b59fee9dfe657dea0cfde41",
+      "bytes": 56257,
+      "sha256": "68548601027a3d8e19a9f5df03c3ece59a202032625b4cc03f987987696115bf",
       "mode": "0644"
     },
     {
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 269794,
-      "sha256": "d3f7b44ce897b4869d990d688d2da24633fcf376a53c88ecfc80288391a59585",
+      "bytes": 270544,
+      "sha256": "21580db76ed85617b2705e247846e90de61a559051b95d1e67c691a0a3a7daf3",
       "mode": "0644"
     },
     {
@@ -8155,8 +8155,8 @@
     },
     {
       "path": "scripts/backfill_span_embeddings_sqlite.py",
-      "bytes": 5279,
-      "sha256": "61b0e971c9af0c002fc6378d4f4835442d9e44c860b41e2187c96cea0ba6952c",
+      "bytes": 5714,
+      "sha256": "9f3b0c5a725fa36d27dd1455acf48b94dfaced527b3de7a6a1d96d8d3a679f9b",
       "mode": "0755"
     },
     {
@@ -8311,8 +8311,8 @@
     },
     {
       "path": "scripts/compare_retrieval_configs.py",
-      "bytes": 6898,
-      "sha256": "a95ab14b89d591fd114ab30c7780997c376aeae97bc82540b1db5bf58735d463",
+      "bytes": 7306,
+      "sha256": "1d3404136191756b73b0dc2cfd512607991c3787ca3c37e2db71bc2738e32a89",
       "mode": "0755"
     },
     {
