@@ -21,7 +21,12 @@ stages:
   - deploy
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  # НЕ $CI_PROJECT_DIR: pip писав 90.6 МБ у `.cache/` всередині дерева збірки, і
+  # доданий 30.08 гейт `cache-in-tree` валив КОЖЕН пайплайн — і main, і гілки.
+  # Блоку `cache:` у цьому файлі немає, тож між джобами цей кеш ніколи не
+  # перевикористовувався: чистий баласт, який ще й ламав перевірку.
+  # Причину прибрано, а не додано виняток — як у 57bfa5c, що цей гейт і завів.
+  PIP_CACHE_DIR: "/tmp/pip-cache"
   PYTHONDONTWRITEBYTECODE: "1"
   PYTHONUNBUFFERED: "1"
   PYTHONPATH: "$CI_PROJECT_DIR:$CI_PROJECT_DIR/apps/api/src"
