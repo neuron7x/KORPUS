@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -17,7 +17,7 @@ api-run:
 # very end of the pipeline — so branch coverage sat below policy for as long as anyone
 # had been writing tests. check_coverage_thresholds.py reads both from the policy.
 api-test:
-	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
+	PYTHONPATH=apps/api/src $(PY) -m pytest apps/api/tests -p no:cacheprovider --junitxml=var/pytest.xml --cov=apps/api/src/korpus --cov-branch --cov-report=term-missing --cov-report=xml:var/coverage.xml --cov-report=json:var/coverage.json --cov-fail-under=82
 	PYTHONPATH=apps/api/src $(PY) scripts/check_coverage_thresholds.py
 
 # The ratchet reads the union of both dialects, because both are what the suite runs.
@@ -262,6 +262,11 @@ gate-liveness:
 capture-evidence:
 	PYTHONPATH=apps/api/src $(PY) scripts/capture_source_evidence.py --write $(ARGS)
 
+# Чи вісь значення розділяє те, чого вісь слова не розділяла. Потребує локального
+# embedding-сервера, тому не гейт. Нічого не вмикає — див. promotion_authorized у звіті.
+semantic-separation:
+	PYTHONPATH=apps/api/src $(PY) scripts/measure_semantic_separation.py $(ARGS)
+
 # Де стоїть поріг відносно даних, які він мав би ділити. Відповідає на «чи він узагалі
 # перевірений», НЕ на «чи він перевірений правильно»: `separates` означає лише, що межа
 # проходить крізь дані, і запрошує подивитися, ЩО опинилось по різні боки.
@@ -331,6 +336,16 @@ document-probe:
 evidence-refusal:
 	$(PY) scripts/validate_evidence_refusal.py
 	$(PY) scripts/validate_evidence_refusal.py --selftest
+
+# Ніщо не пише кеш, похідні дані чи тимчасове ВСЕРЕДИНІ дерева. Перевіряється СТАН
+# дерева, а не текст коду: правило, що шукає відомий рядок, знає лише ту помилку, яку
+# вже зробили. Два випадки за добу: `scripts/.mypy_cache` (24 МБ) робив гейт досяжності
+# зеленим назавжди, а кеш витягнутого тексту в `var/evidence-capture/derived` зник разом
+# із 580 МБ від одного `make clean`. Спільне: вимір мусить жити там, де його не дістане
+# ані редагування, ані прибирання, ані відкіт.
+cache-in-tree:
+	$(PY) scripts/validate_no_cache_in_tree.py
+	$(PY) scripts/validate_no_cache_in_tree.py --selftest
 
 # Not a gate: it needs the network, so it can never run in CI. It measures what each
 # zakon.rada URL actually returns — the card variant carries the act's title and none of
@@ -484,7 +499,7 @@ public-health:
 # audit-closure is deliberately NOT here: it resolves citations that include
 # var/mutation-report.json, which `mutation` produces. As a prerequisite of `validate`
 # it ran first and passed only on a tree where an earlier run had left the file behind.
-validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal github-actions-validate production-hard-predicates
+validate: handoff-verify openapi desired-state supply-chain-inventory dependency-locks assurance-model-check standards-control-map import-cycles release-identity module-budget file-modes source-manifest-verify current-truth-verify verdict-ledger requirements-register doctrine-catalog content-signals remote-digest document-probe evidence-refusal cache-in-tree github-actions-validate production-hard-predicates
 	python3 scripts/validate_repository.py --context FULL_SSOT_DISTRIBUTION
 	python3 scripts/validate_infrastructure.py
 	python3 scripts/validate_kubernetes.py
@@ -631,8 +646,33 @@ infra-down:
 package:
 	bash scripts/package_repository.sh
 
+# `clean` прибирає ЛИШЕ те, що відтворюється безкоштовно: кеші й артефакти збірки.
+# Раніше цей самий рядок ніс `var`, і одного запуску як НЕГАТИВНОГО КОНТРОЛЮ до правки
+# самої цілі вистачило, щоб знести 50 МБ бази доктрини (7608 спанів) і 530 МБ захоплених
+# байтів чужої сесії. Та дія була перевірена на тому, що вона МАЛА зробити, і не
+# перевірена на тому, що вона робить ЩЕ.
+#
+# Тому знищення СТАНУ винесене в окрему ціль із підтвердженням. Це не обережність —
+# обережність не працює о сьомій ранку. Це конструкція: щоб знести стан, треба назвати
+# інше слово й підтвердити, а `clean` цього більше не вміє за жодних обставин.
 clean:
-	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov coverage.xml var dist apps/web/dist apps/web/.next
+	rm -rf htmlcov coverage.xml dist apps/web/dist apps/web/.next
+	find . -type d \( -name .pytest_cache -o -name .mypy_cache -o -name .ruff_cache \
+	  -o -name __pycache__ \) -not -path './.git/*' -prune -exec rm -rf {} +
+	@echo "clean: кеші й артефакти збірки прибрано; var/ НЕ чіпався (див. clean-state)"
+
+# Знищує СТАН: бази, захоплені байти, проміжні прогони. Це те, що коштує годин, а не
+# секунд, і чого немає в git. Вимагає CONFIRM=DESTROY-STATE у командному рядку — не
+# тому, що хтось неуважний, а тому, що ціна помилки тут вимірюється в мегабайтах
+# чужої роботи, і жодне попередження в тексті цього не спинить.
+clean-state:
+	@test "$(CONFIRM)" = "DESTROY-STATE" || (echo >&2 \
+	  "ВІДМОВЛЕНО: clean-state знищує var/ — бази, захоплені байти, прогони."; \
+	  echo >&2 "Нічого з цього немає в git. Запусти: make clean-state CONFIRM=DESTROY-STATE"; \
+	  exit 2)
+	@du -sh var 2>/dev/null || true
+	rm -rf var
+	@echo "clean-state: var/ знищено"
 
 # Production assurance is deliberately separate from local research assurance.
 # These targets generate evidence; the final assembler still fails unless every

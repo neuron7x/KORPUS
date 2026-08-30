@@ -1,0 +1,30 @@
+{
+  "corpus": 1976,
+  "questions": 271,
+  "per_stratum": {
+    "direct": {
+      "n": 156,
+      "top1": 63,
+      "top5": 98,
+      "miss": 58
+    },
+    "paraphrase": {
+      "n": 96,
+      "top1": 19,
+      "top5": 58,
+      "miss": 38
+    },
+    "homonym": {
+      "n": 19,
+      "top1": 1,
+      "top5": 2,
+      "miss": 17
+    }
+  },
+  "total": {
+    "n": 271,
+    "top1": 83,
+    "top5": 158,
+    "miss": 113
+  }
+}

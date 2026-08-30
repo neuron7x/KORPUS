@@ -4433,7 +4433,7 @@
       "max_nesting": 4
     },
     "scripts/capture_source_evidence.py": {
-      "lines": 906,
+      "lines": 912,
       "max_complexity": 13,
       "max_function_lines": 65,
       "max_function_args": 4,
@@ -4471,6 +4471,22 @@
       "max_function_args": 5,
       "max_nesting": 1,
       "reason": "registered 2026-08-30 | 2026-08-30: додано `separability` — третє питання, якого сам поріг не ставить: чи ця ВІСЬ узагалі здатна розділити два відомі класи. Знайдено на реальному випадку CARD_CEILING_BYTES=200000: `place` давав здорове `separates` (56/25), а класи за розміром ПЕРЕКРИВАЮТЬСЯ — картки 41553–43491 байт, документи 34559–1443866, і найменший документ менший за найменшу картку. Вирок `axis_cannot_separate` сильніший за решту, бо не пропонує підкрутити число: вада не в значенні, а у виборі того, що міряти. +4 проби (14/14)."
+    },
+    "scripts/measure_semantic_separation.py": {
+      "lines": 231,
+      "max_complexity": 6,
+      "max_function_lines": 66,
+      "max_function_args": 6,
+      "max_nesting": 4,
+      "reason": "registered 2026-08-30. Експеримент, який міряє, чи вісь значення розділяє те, що вісь слова не розділяла: омонім «ставка» (податку / Верховного Головнокомандувача) зламав лексичний пошук, і поріг на лексичному покритті було спростовано на власних даних. Нічого не вмикає: promotion_authorized=false."
+    },
+    "scripts/validate_no_cache_in_tree.py": {
+      "lines": 113,
+      "max_complexity": 8,
+      "max_function_lines": 17,
+      "max_function_args": 1,
+      "max_nesting": 2,
+      "reason": "registered 2026-08-30"
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",

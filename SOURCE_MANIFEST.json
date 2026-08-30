@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1505,
-  "root_sha256": "f1ee86e1ad638e59abfd45444ffe5ec7c3dfca2e21bc8c328f45ffb982113005",
+  "root_sha256": "87bf8c03ea402cae08e40f9d9c72b15b69a1fea0e0bea59414836f968a7f9766",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 36618,
-      "sha256": "404db017dfde5a78b34c5d45a5358b1c35812bfed62c43c169a7daa929659009",
+      "bytes": 36692,
+      "sha256": "f26a462df3c5a20551c069476ecdf24ef8dbbddeb784b468a960cd6905744494",
       "mode": "0644"
     },
     {
@@ -151,8 +151,8 @@
     },
     {
       "path": ".verdict-ledger.jsonl",
-      "bytes": 24357,
-      "sha256": "2da21cd6c9b1fd87d6aba020104b07886542e27e66efedfe182f39e1e8abd7f6",
+      "bytes": 40096,
+      "sha256": "851d1c9c286773633540073d01f45d0dd50c79225674e7fc8f279a6b69500b4c",
       "mode": "0644"
     },
     {
@@ -373,8 +373,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 47209,
-      "sha256": "97b1ec002887f85629ae2bded0cad9d34e6411a27a1404d154e5478fc01132af",
+      "bytes": 50825,
+      "sha256": "550acd93c41784e19c2c5c98da73370a6c408c4147903434afe713d484cac922",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 110288,
-      "sha256": "945cbc483850997914b3847e9c637769623bacf6040f6f114850d2437a888034",
+      "bytes": 113348,
+      "sha256": "68f41748dedbc10c78b2a0f23d5a3ccfa694b6c9162b00116b57945752d77fde",
       "mode": "0644"
     },
     {
@@ -6164,7 +6164,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "162ff2d9577c19524952d8f4bee4b84f4ca438eec50a50061e6a973b74e4afa4",
+      "sha256": "f8801c1ebe3f8ac257b705c3f7b8dd2570edf6198264926ae772f3d3a7e0a2da",
       "mode": "0644"
     },
     {
@@ -6175,8 +6175,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 255678,
-      "sha256": "dea7741da0738d1bdb97d3f88cd76e4a9c33cbaa46a3994ad8cc1b288c694e52",
+      "bytes": 256614,
+      "sha256": "a43e178bbf642b6fa61151cb284ea737f6d3b0f74ffd3e6a334c8f6c0ac2c09a",
       "mode": "0644"
     },
     {
@@ -7543,8 +7543,8 @@
     },
     {
       "path": "mypy-scripts.ini",
-      "bytes": 2438,
-      "sha256": "0cd0f5a74d653231a331a1408fe4b4c7a9d4519b3b09c9a1706f4cd3ead941ad",
+      "bytes": 3332,
+      "sha256": "2480dabcad11386fe082efc9a2b0d0bf96a2f771a114e9405a1878cf4434b9ae",
       "mode": "0644"
     },
     {
@@ -7567,8 +7567,8 @@
     },
     {
       "path": "ruff.toml",
-      "bytes": 7584,
-      "sha256": "cbeed27210069ee64bcffa0ece7d048c1423ba11888e9aeffb7866c09fa0e8e3",
+      "bytes": 8227,
+      "sha256": "207cb269c194f13ffd520e9fb0a4c6f458347e442c50f7b7f2102c5b6a51e752",
       "mode": "0644"
     },
     {
@@ -7699,8 +7699,8 @@
     },
     {
       "path": "scripts/capture_source_evidence.py",
-      "bytes": 51185,
-      "sha256": "41a3eea878b81cef04e8383f75f8255862361313055b6a3b06cedd7665271991",
+      "bytes": 52023,
+      "sha256": "38703004e412f3b15ce5852eec595469f4a38660c680677dffb6c0bd7914feaf",
       "mode": "0755"
     },
     {

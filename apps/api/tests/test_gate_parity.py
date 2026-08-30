@@ -30,6 +30,14 @@ MAKEFILE = ROOT / "Makefile"
 CI = ROOT / ".gitlab-ci.yml"
 
 
+def _makefile_targets() -> list[str]:
+    """Імена цілей Makefile: перевірка не має бути прив'язана до однієї назви."""
+    return [
+        match.group(1)
+        for match in re.finditer(r"^([a-z][a-z0-9-]*)\s*:", MAKEFILE.read_text("utf-8"), re.M)
+    ]
+
+
 def _makefile_recipe(target: str) -> list[str]:
     """Return the command lines of one Makefile target, comments and blanks dropped."""
     lines = MAKEFILE.read_text(encoding="utf-8").splitlines()
@@ -2341,3 +2349,43 @@ def test_cannot_adjudicate_is_a_recorded_state_not_a_settlement() -> None:
     report = verify_verdict_ledger.evaluate([claim, abstain])
     assert report["status"] == "PASS", report
     assert "abc" in report["unsigned"], "утримання не сміє закривати твердження"
+
+
+def test_no_cache_of_measurements_lives_where_a_clean_target_deletes_it() -> None:
+    """Кеш вимірів не сміє лежати під жодним шляхом, який прибирає будь-яка ціль `clean*`.
+
+    2026-08-30 о 07:58 `make clean` забрав `var/` — 530 МБ вихідних байтів, корпусну базу
+    на 7608 спанів і кеш витягнутого тексту, зроблений годиною раніше саме для того, щоб
+    відкіт не коштував повторної екстракції. Правило «вимір не має жити в одному місці з
+    файлом, який редагують троє» було застосоване наполовину: кеш винесли з файлу, але в
+    директорію, чиє призначення — бути видаленою.
+
+    Перевірка загальна, а не про один шлях: збирає, ЩО САМЕ видаляє кожна ціль `clean*`
+    (їх тепер дві — `clean` для кешів і `clean-state` під CONFIRM), і вимагає, щоб кеш
+    вимірів не лежав під жодним із них. Прив'язка до одного рядка зламалася б від
+    перейменування — і зламалася того ж дня, коли `clean` перестав чіпати `var/`.
+    """
+    removed: set[str] = set()
+    for target in (name for name in _makefile_targets() if name.startswith("clean")):
+        for line in _makefile_recipe(target):
+            if "rm -rf" not in line:
+                continue
+            for token in line.split("rm -rf", 1)[1].split():
+                if not token.startswith(("$", "-")):
+                    removed.add(token.strip().rstrip("/"))
+    assert removed, "жодна ціль clean* нічого не видаляє — перевірці нема що охороняти"
+    assert "var" in removed, (
+        "жодна ціль більше не прибирає var/ — або стан не прибирається взагалі, або "
+        "перевірка дивиться не туди"
+    )
+
+    caches = [
+        line
+        for line in (ROOT / "scripts/capture_source_evidence.py").read_text("utf-8").splitlines()
+        if line.startswith("DERIVED = ")
+    ]
+    assert caches, "кеш витягнутого тексту зник — перевірці нема що охороняти"
+    for line in caches:
+        assert "Path.home()" in line, line
+        for path in sorted(removed):
+            assert f'"{path}/' not in line and f"'{path}/" not in line, (line, path)

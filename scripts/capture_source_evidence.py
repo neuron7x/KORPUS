@@ -381,11 +381,17 @@ def _obtain(
 #: це факт, знятий тоді-то; він не має жити в одному місці з файлом, який редагують троє».
 #: Ключ — sha256 самих байтів, а не id: тоді запис, відновлений із кешу, доведено походить
 #: рівно з того вмісту, а не з того самого імені.
-DERIVED = "derived"
+#: ПОЗА деревом. Перша версія клала кеш у `var/evidence-capture/derived/` — тобто в
+#: єдиний каталог, призначення якого бути видаленим: `make clean` робить `rm -rf var`.
+#: 2026-08-30 о 07:58 він так і зник разом із 530 МБ вихідних байтів і корпусною базою.
+#: Правило «вимір не має жити в одному місці з файлом, який редагують троє» я почув і
+#: застосував наполовину; повне звучить так: **вимір не має жити там, де його зносить
+#: рутинна операція**. `var/` існує рівно для того, щоб його зносили.
+DERIVED = Path.home() / ".korpus-cache/derived-text"
 
 
 def _derived_path(staging: Path, payload: bytes) -> Path:
-    return staging / DERIVED / f"{hashlib.sha256(payload).hexdigest()}.json"
+    return DERIVED / f"{hashlib.sha256(payload).hexdigest()}.json"
 
 
 def _remember(staging: Path, payload: bytes, result: Capture) -> None:
