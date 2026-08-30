@@ -110,6 +110,7 @@ repository:validate:
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py
     - PYTHONPATH=apps/api/src python scripts/validate_evidence_refusal.py
     - PYTHONPATH=apps/api/src python scripts/validate_no_cache_in_tree.py
+    - PYTHONPATH=apps/api/src python scripts/validate_catalog_uri_uniqueness.py
     - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT

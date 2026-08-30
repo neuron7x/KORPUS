@@ -1,0 +1,25 @@
+# KORPUS extract record — MED-JTS-CPGINDEX-2026
+# JTS Clinical Practice Guidelines Index (list current as of 31 July 2026)
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://jts.health.mil/assets/docs/cpgs/CPG_Index.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: c3a49840c9d7eed397a3fb0fdd6b29673b426aae00ed57fff4742245e986dd09
+bytes_as_served.bytes: 1390099
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: b677adf21fe689dc52bc016d955ccb11bd0669d34a0a9cc035681b155db15076
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 4
+text_as_extracted.words: 1032
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+JTS Clinical Practice Guidelines Index Airway Management in Trauma, 28 Jan 2026 Altitude Emergencies in a Prehospital Environment, 05 Mar 2024 Amputation: Evaluation and Treatment, 10 Oct 2024 (High Bilateral) Amputations and Dismounted Complex Blast Injury, 05 Aug 2024 Analgesia and Sedation Management during Prolonged Field Care, 11 May 2017 Anesthesia for Trauma Patients, 05 Apr 2021 Aural Blast Injury/Acoustic Trauma and Hearing Loss, 14 Aug 2025 (Prehospital) Blood Transfusion, 30 Oct 2020 Blunt Abdominal Trauma, Splenectomy, and Post-Splenectomy Vaccination, 13 May 2020 Burn Care, 10 June 2025 Burn Wound Management in Prolonged Field Care, 13 Jan 2017 CPG Author Guidance, 28 Aug 2024 CPG Development Process, 04 Oct 2024 Catastrophic Non-Survivable Brain Injury, 27 Feb 2017 Cervical and Thoracolumbar Spine Injury Evaluation, Transport and Surgery in the Deployed Setting, 19 Jun 2020 Chemical, Biological, Radiological and Nuclear (CBRN) Injury Part I: Initial Response to CBRN Agents, 08 Apr 2026 CBRN Injury Response Part 2: Medical Management of Chemical Agent Exposure, 25 Mar 2022 CBRN Injury Response Part 3: Medical Management of Radiation Exposure and Nuclear Events, 20 Aug 2024 CBRN Injury Response Part 4: General Approach to Biological Casualties, 27 Feb 2025 (Acute Extremity) Compartment Syndrome (CS) and the Role of Fasciotomy in Extremity War Wounds, 21 May 2026 (Acute) Coronary Syndrome, 14 May 2021 (Management of) COVID-19 in Austere Operational Environments, 23 Apr 2021 Crush Syndrome - Prolonged Field Care, 28 Dec 2016 Damage Control Resuscitation, 12 Jul 2019 Damage Control Resuscitation (DCR) in Prolonged Field Care, 01 Oct 2018 Documentation in Prolonged Field Care, 13 Nov 2018 Documentation Requirements for Combat Casualty Care, 18 Sep 2020 (The Use of) Dried Plasma in the Deployed Trauma System and Contingency Operations, 09 Jun 2026 Drowning Management, 17 Mar 2025 Emergency General Surgery in Deployed Locations, 01 Aug 2018 Emergency Life-Saving Cranial Procedures by Non-Neurosurgeons in Deployed Setting, 10 June 2025 Emergent Resuscitative Thoracotomy (ERT), 18 Jul 2018 (Joint) En Route Care Guidelines, Committee on En Route Combat Casualty Care FY 2026 En Route Care Patient Packaging, 21 Aug 2024 Eye Trauma: Initial Care, 1 Jun 2021 Frostbite and Immersion Foot Care, 26 Jan 2017 Frozen and Deglycerolized Red Blood Cells, 05 Aug 2024 Genitourinary (GU) Injury Trauma Management, 29 Mar 2024 Hyperkalemia and Dialysis in the Deployed Setting, 25 Apr 2022 JTS Clinical Practice Guidelines Index Hypothermia: Prevention and Treatment, 07 Jun 2023 Infection Prevention in Combat-Related Injuries, 27
+
+[…]
+
+Records Documentation, 01 Apr 2026 Normal Clinical Parameters, 05 May 2025 Ocular Injuries, 30 Dec 2025 Wound Management, 18 Dec 2025 Transfusion for MWD, 10 Dec 2019 CPGs hosted by JTS – not included in the JTS CPG ZIP file Guideline for Forward Management of Acute Behavioral Health Conditions by Non-specialty Medical Personnel, Jan 2024 Aerial Delivery of Fresh and Stored Blood Products, 01 Dec 2025 (Acute) Concussion Management and Progressive Return to Activity, Jan 2021 (Management of) Exertional Rhabdomyolysis in Warfighters 2020 SERIES: FRAME - Fostering Resilience and Managing Emotions, 18 Jun 2025 SERIES: iCOVER, 06 Feb 2026 Prevention, Diagnosis and Management of Exertional Heat Illness, June 2024 (Human) Space Flight Emergencies in the Prehospital Environment, 23 Dec 2025 (Management of) Stroke and Cerebrovascular Emergencies in the Deployed Setting, 03 Jul 2024 Treatment of Ocular Trauma and Vision-threatening Conditions by Deployed Ophthalmologists (Eye Surgeons)External link, 5 May 2022 SERIES: Troubleshooting Negative Pressure Wound Therapy (Wound Vacs) in Austere & Resource Limited Environments, Dec 2024 Universal Portable Anesthesia Complete (UPAC) Vaporizer And Mechanical Ventilation, Feb 2025 U.S. Army Aeromedical Evacuation Standard Medical Operating Guidelines (SMOG), 26 Nov 2025. JTS Clinical Practice Guidelines Index List current as of 31 July 2026

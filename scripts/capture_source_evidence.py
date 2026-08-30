@@ -53,7 +53,7 @@ import zlib
 from datetime import date
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
@@ -163,8 +163,32 @@ def canonical(text: str) -> str:
     return unicodedata.normalize("NFC", text.replace("\r\n", "\n").replace("\r", "\n"))
 
 
+def encode_uri(uri: str) -> str:
+    """Відсоткове кодування шляху й запиту: urllib не вміє не-ASCII в URL.
+
+    Дві постанови КМУ мають кирилицю в шляху, і прогін відмовив їх із
+    `UnicodeEncodeError: 'ascii' codec can't encode character '\u043f'`. Записалось як
+    `transport_error` — тобто **наша вада пішла в каталог як факт про джерело**, рівно та
+    підміна, від якої відділені класи відмов. Кодування — наш бік, і робиться тут.
+    """
+    parts = urlsplit(uri)
+    return urlunsplit(
+        (
+            parts.scheme,
+            parts.netloc.encode("idna").decode("ascii")
+            if parts.netloc.isascii() is False
+            else parts.netloc,
+            quote(parts.path, safe="/%"),
+            quote(parts.query, safe="=&%"),
+            parts.fragment,
+        )
+    )
+
+
 def fetch(uri: str, timeout: int) -> tuple[bytes, str]:
-    request = urllib.request.Request(uri, headers={"User-Agent": USER_AGENT, "Accept": "*/*"})
+    request = urllib.request.Request(
+        encode_uri(uri), headers={"User-Agent": USER_AGENT, "Accept": "*/*"}
+    )
     with urllib.request.urlopen(request, timeout=timeout) as response:
         raw = response.read()
         media = str(response.headers.get("Content-Type", "")).split(";")[0].strip()
@@ -218,11 +242,22 @@ def render(source: dict[str, Any], meta: dict[str, Any], text: str) -> str:
     )
 
 
-def _needs_evidence(source: dict[str, Any], refresh: bool) -> bool:
+def _needs_evidence(source: dict[str, Any], refresh: bool, unread: bool = False) -> bool:
+    """ВИМІРЯНО і ПРОЧИТАНО — різні предмети, і сплутати їх коштувало корпусу.
+
+    `has_evidence` — предикат ГЕЙТА: чи про джерело щось виміряно. `document_probe`
+    рахується там законно (сторінки, слова, `text_sha256`), але від виміру документ
+    прочитаним не стає. 2026-08-30: 73 зі 165 придатних джерел мали доказ і НЕ мали
+    запису прочитання — серед них усі чотири ключові документи розділу «Противник»,
+    включно з ATP 7-100.1 про тактику РФ. Прогін захоплення пропускав їх мовчки, бо питав
+    гейтівським предикатом, а якість пошуку мірялася на корпусі, де їх немає.
+    """
     if not source.get("ingestible"):
         return False
     if refresh:
         return True
+    if unread:
+        return not (CAPTURES / f"{source['id']}.txt").is_file()
     return not has_evidence(source)
 
 
@@ -609,8 +644,9 @@ def selftest() -> int:
     bad += _ratchet_probes()
     bad += _concurrency_probe()
     bad += _derived_cache_probe()
+    bad += _uri_encoding_probe()
     bad += _vantage_probe()
-    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 16
+    total = len(PROBES) + 11 + len(EQUIVALENT) + len(RATCHET_PROBES) + 16 + len(URI_CASES)
     print(f"негативний контроль: {total - bad}/{total}")
     return 1 if bad else 0
 
@@ -735,6 +771,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="skip sources with no staged bytes instead of fetching them",
     )
+    parser.add_argument(
+        "--unread",
+        action="store_true",
+        help="джерела без ЗАПИСУ ПРОЧИТАННЯ, навіть якщо про них щось виміряно",
+    )
     parser.add_argument("--selftest", action="store_true")
     return parser
 
@@ -761,6 +802,31 @@ def _record(
         "reason": str(entry["reason"]),
         "class": str(entry["class"]),
     }
+
+
+#: Кодування URL — НАШ бік. Дві постанови КМУ з кирилицею в шляху відмовились із
+#: UnicodeEncodeError і записались у каталог класом `transport_error`, тобто наша вада
+#: пішла туди як факт про джерело. Ідемпотентність окремо: подвійне кодування зробило б
+#: `%20` з `%2520` і зламало б уже правильні посилання.
+URI_CASES: tuple[tuple[str, str], ...] = (
+    ("кирилиця у шляху", "https://x.ua/законодавство/704"),
+    ("пробіл у шляху", "https://x.ua/a b"),
+    ("вже закодоване лишається як є", "https://x.ua/already%20encoded"),
+    ("запит зі знаками", "https://x.ua/p?a=1&b=2"),
+)
+
+
+def _uri_encoding_probe() -> int:
+    bad = 0
+    for name, uri in URI_CASES:
+        encoded = encode_uri(uri)
+        if not encoded.isascii():
+            bad += 1
+            print(f"  ✗ {name}: після кодування лишився не-ASCII: {encoded}")
+        elif encode_uri(encoded) != encoded:
+            bad += 1
+            print(f"  ✗ {name}: кодування не ідемпотентне: {encoded} → {encode_uri(encoded)}")
+    return bad
 
 
 def _derived_cache_probe() -> int:
@@ -923,7 +989,9 @@ def main() -> int:
 
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     staging = ROOT / "var/evidence-capture"
-    targets = [s for s in catalog["sources"] if _needs_evidence(s, arguments.refresh)]
+    targets = [
+        s for s in catalog["sources"] if _needs_evidence(s, arguments.refresh, arguments.unread)
+    ]
     if arguments.cached_only:
         targets = [s for s in targets if _cached(staging, str(s["id"])) is not None]
     if arguments.limit is not None:
