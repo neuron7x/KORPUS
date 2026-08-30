@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1585,
-  "root_sha256": "b29da209b2b3a15d4c6bb1382cbe7f5aaf9c536038a5930d34aa9b5fb7ab5b83",
+  "root_sha256": "4e52359ddfe9a3ac8d99c412b82912d7915869a8813e0ee5b6274e9ad4c8bcc1",
   "files": [
     {
       "path": ".dockerignore",
@@ -151,8 +151,8 @@
     },
     {
       "path": ".verdict-ledger.jsonl",
-      "bytes": 78057,
-      "sha256": "cc21236bf7c333d66a24cb91701fcc9ecf1489b230d55234715b6823456cfb0b",
+      "bytes": 81810,
+      "sha256": "1048bf26cbd0959a7903dd7e3cce37f500246520cd666218e1d3a0290c13c52f",
       "mode": "0644"
     },
     {
