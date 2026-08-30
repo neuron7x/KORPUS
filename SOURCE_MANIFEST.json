@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1602,
-  "root_sha256": "cb3a071ae0bf7b172d56f26572e3feaae94476056efc9ef0ab5417cacc6931d7",
+  "file_count": 1600,
+  "root_sha256": "524e8a4c010200d858c314bc2b2bb31d5d60132e7c27a8c064c9984fe6718179",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 39468,
-      "sha256": "6b7259943ec4949ec04b11d3eef9820b60a3a14818181157d7b0c09bf291e9e2",
+      "bytes": 39541,
+      "sha256": "edad2212cece2cc33bac116065003edb99fc9874d03eab20df013029b86f6e8d",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 51850,
-      "sha256": "40783a2748ffa83267a59fec6aa96335d22e0887b26e7bc6f6b961c4edfe3c20",
+      "bytes": 51266,
+      "sha256": "1d70a25bcfa2c37cae1ed309e3954d21d444c9251af07068d92df19cee803307",
       "mode": "0644"
     },
     {
@@ -1939,8 +1939,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
-      "bytes": 30904,
-      "sha256": "520a3e100f5fcc3118d54b86e3f384a4307c1f7bb3d43fcb6dfb4dd82c77dc07",
+      "bytes": 27404,
+      "sha256": "f4f03f097b9b7a7a41a401c9c3e7a023895805e6e46759e7d9827b37ff39487a",
       "mode": "0644"
     },
     {
@@ -2700,6 +2700,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_budget_raises_are_named.py",
+      "bytes": 4741,
+      "sha256": "3306188be7447ebe410ab10178c45c4020cd0e0bb21dd290d3311a04077dd200",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_build_provenance.py",
       "bytes": 4812,
       "sha256": "ca99955c6480e774d12f0d48c9cbaf32cc2d357952f6fb44239741981e7c8165",
@@ -3081,12 +3087,6 @@
       "path": "apps/api/tests/test_extraction.py",
       "bytes": 8488,
       "sha256": "58816bd8186cfda7a485d9ee99d659a5533a3bf1ffc5619c0fd6ea7bae3eacad",
-      "mode": "0644"
-    },
-    {
-      "path": "apps/api/tests/test_extraction_drops_page_furniture.py",
-      "bytes": 5516,
-      "sha256": "17f32166c801e77a607989a3857131d51fd95e2ae727a2fbcbbd5fe5a20d2f4c",
       "mode": "0644"
     },
     {
@@ -4902,12 +4902,6 @@
       "mode": "0644"
     },
     {
-      "path": "config/agents/axes.json",
-      "bytes": 4390,
-      "sha256": "18ff39e2e6674eea6766e32083879f2ef3212e77d0127d559c1262a6e42dec30",
-      "mode": "0644"
-    },
-    {
       "path": "config/assurance/ASSURANCE_SOURCE_REGISTRY_2026.json",
       "bytes": 2073,
       "sha256": "ca43adce6501732fe628d58832487e82913905927dcd2d3e5c710784422a9b27",
@@ -6650,7 +6644,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "d18c82f001966f7c12db64a2532916cd0b65acde66004c79099e71a517e47a02",
+      "sha256": "80fb2064414a5fd840c60d078b025ce7c65cbdd43cc9f8df27a867d3c3c88484",
       "mode": "0644"
     },
     {
@@ -6661,8 +6655,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 261276,
-      "sha256": "4c1a0c2c3462db7dced825306df3ed9de62cb4215878ae4495783b75e70917b8",
+      "bytes": 259688,
+      "sha256": "9ea3317c84b10ed566213825930bcd1af04df864e0a3411ccf07b64fceead219",
       "mode": "0644"
     },
     {
@@ -8094,12 +8088,6 @@
       "mode": "0644"
     },
     {
-      "path": "scripts/agent_protocol.py",
-      "bytes": 27107,
-      "sha256": "35305cd9b09293e413bb85d6739f148fef7e1621eb15ce0cb2b1e27135b27f2f",
-      "mode": "0755"
-    },
-    {
       "path": "scripts/aggregate_ci_security_summary.py",
       "bytes": 2856,
       "sha256": "f152f2209711975c995e7a23347e3164aeeeae1c7a5cf6cf6fe5e6b1b971b802",
@@ -8241,6 +8229,12 @@
       "path": "scripts/chaos_matrix.py",
       "bytes": 14745,
       "sha256": "2ec559a6223cec61de94d14309e6e1d67246db2491d375189a85b5e33ffe5e1b",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_budget_raises_are_named.py",
+      "bytes": 6602,
+      "sha256": "a55f967e76bccdfc00ad464f61a16c0a90309deccbe3cec77bdb78775bb81f65",
       "mode": "0755"
     },
     {
@@ -8781,12 +8775,6 @@
       "path": "scripts/model_check_assurance.py",
       "bytes": 9462,
       "sha256": "37ddcca75930c95d88b9bd05355e5dddb52d6ca3d555cd93962effde5b968299",
-      "mode": "0755"
-    },
-    {
-      "path": "scripts/open_claims.py",
-      "bytes": 2086,
-      "sha256": "9477daf0599ff068f87c549edde935ce42f5720e9778ecb82a43763050ddec12",
       "mode": "0755"
     },
     {
