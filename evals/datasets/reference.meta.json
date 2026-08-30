@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "frozen_at": "2026-08-30T18:32:43.862498+00:00",
-  "database": "/home/neuro7/Desktop/Ядро основний проект Корпус/var/runtime/corpus-v6-20260807/korpus.db",
+  "frozen_at": "2026-08-30T20:20:28.882412+00:00",
+  "database": "var/runtime/corpus-v6-20260807/korpus.db",
   "seed": 20260807,
-  "cases": 96,
+  "cases": 95,
   "by_kind": {
-    "retrieval": 80,
+    "retrieval": 79,
     "refusal": 12,
     "adversarial": 4
   },
   "strata": 35,
-  "content_digest": "7d39bc1298bbf690d9b33137919ff1c268b1e3bcdddf5eaa63edaaebcbc47c9a",
+  "content_digest": "f128bbe643bad1682699d5cda4b505abbe8ded47279db8be5aaa53e92442aab4",
   "judges": [
     "retrieval: a sentence exists verbatim in one approved version; if the system answers, it must cite that version",
     "citation integrity: every quote appears character for character in the span it names",

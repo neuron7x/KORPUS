@@ -56,6 +56,9 @@ def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
     status = str(answer.get("status", ""))
     citations = list(answer.get("citations") or [])
     reasons: list[str] = []
+    cited_versions = sorted(
+        {str(citation.get("version_id")) for citation in citations if citation.get("version_id")}
+    )
 
     # Citation integrity applies to every case that answered, whatever its kind. A quote
     # that is not in the span it names is the one failure this system cannot survive,
@@ -70,7 +73,7 @@ def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
     kind = case["kind"]
     if kind == "retrieval":
         if status == "answered":
-            cited = {str(citation.get("version_id")) for citation in citations}
+            cited = set(cited_versions)
             holders = set(case["must_cite_one_of_if_answered"])
             if not (cited & holders):
                 # Not a miss. The system answered from *somewhere else* while the
@@ -97,7 +100,7 @@ def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
             if not limitations:
                 reasons.append("an analytical corpus answered with no limitations stated")
 
-    return {
+    verdict: dict[str, Any] = {
         "id": case["id"],
         "kind": kind,
         "stratum": case["stratum"],
@@ -107,6 +110,17 @@ def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
         "passed": not reasons,
         "reasons": reasons,
     }
+    # Two different failures produce the same sentence, and the report could not tell them
+    # apart: the system retrieved the wrong document, or it retrieved the right document
+    # carrying an identifier minted by a different generation of the database than the one
+    # the set was frozen against. The first is a retrieval defect and is fixed in ranking;
+    # the second is an identity defect and is fixed by mapping on content hash, with the
+    # ranking already correct. Recording both sides of the comparison makes the question
+    # decidable from the report instead of by re-running against a live server.
+    if kind == "retrieval":
+        verdict["cited_versions"] = cited_versions
+        verdict["expected_versions"] = sorted(case["must_cite_one_of_if_answered"])
+    return verdict
 
 
 def main() -> int:

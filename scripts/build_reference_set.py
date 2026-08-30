@@ -84,6 +84,29 @@ def _is_contents(text: str) -> bool:
     return numbered / len(lines) >= 0.5
 
 
+#: The chrome of the delivery medium is not the text of the document. A scraped page
+#: carries its cookie banner, its navigation rail and its undecoded entities into the span
+#: store, and a question built from one of those asks a military library about a consent
+#: notice. Found 2026-08-30: four of ten reference failures were cases of exactly this —
+#: "cookies like understand additional", whose evidence sentence was GOV.UK's cookie
+#: banner, and "1997 1991 href council partnerships content", whose sentence was a raw
+#: anchor tag. The system was marked wrong for not retrieving them, which it should not.
+#:
+#: The rule is written about what a proposition is, not about which cases failed. It is
+#: applied to every candidate in every stratum, so it also removes such sentences from
+#: cases that were passing, and the sampler moves on to the next sentence in the span
+#: rather than dropping the case — the set keeps its size and changes its content.
+_MARKUP = re.compile(r"&#\d{2,5};|&[a-z]{2,8};|</?[a-z][a-z0-9]*[\s/>]|href\s*=|\bhttps?://")
+_CHROME = re.compile(
+    r"(?i)\bcookies?\b|\bconsent\b|skip to (main )?content|javascript|\bnewsletter\b"
+    r"|\bsubscribe\b|privacy (policy|notice)|all rights reserved"
+)
+
+
+def _is_boilerplate(text: str) -> bool:
+    return bool(_MARKUP.search(text) or _CHROME.search(text))
+
+
 def _sentences(text: str) -> list[str]:
     return [
         candidate.strip()
@@ -147,7 +170,11 @@ def _retrieval_cases(
             # Applied to the candidate, not to the span: a span can open with a contents
             # block and continue into prose, so the ratio over the whole span stayed
             # under the threshold while the sentence taken from it was pure table.
-            sentences = [line for line in _sentences(text) if not _is_contents(line)]
+            sentences = [
+                line
+                for line in _sentences(text)
+                if not _is_contents(line) and not _is_boilerplate(line)
+            ]
             if not sentences:
                 continue
             sentence = sentences[0]
