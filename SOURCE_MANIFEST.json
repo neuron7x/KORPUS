@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1607,
-  "root_sha256": "ae35d16c3b0b4f42c3321738bcdb0d773ed96de754d487d6094e5d5876a6b906",
+  "root_sha256": "73cfa4339e4154089fa8494c8f015a4f0b6292a6d5c04179ef2180e516e6633e",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 39541,
-      "sha256": "edad2212cece2cc33bac116065003edb99fc9874d03eab20df013029b86f6e8d",
+      "bytes": 40109,
+      "sha256": "5f5365265ff6538a9b2f26c081181609752576389e88abe6da4fff30191ae54e",
       "mode": "0644"
     },
     {
@@ -6667,8 +6667,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 265995,
-      "sha256": "aa91daeca527f996815cb687d91f43338b07ff19d820a99dceccff0d6c6e9227",
+      "bytes": 266704,
+      "sha256": "0e48fd848c0b26efea201810d45d989daadae1339b3e476c78187c34d7d80d6c",
       "mode": "0644"
     },
     {
@@ -8221,8 +8221,8 @@
     },
     {
       "path": "scripts/build_runtime_manifest.py",
-      "bytes": 5226,
-      "sha256": "7e4b67ac59b9dc774666936c39b1eb6053a66c335aa72535094e6c67fbafa8b0",
+      "bytes": 5327,
+      "sha256": "c4bd6e212ed605051bb61d4691f744a3c6a857664d619be4bb80c770fd220532",
       "mode": "0755"
     },
     {
@@ -9481,14 +9481,14 @@
     },
     {
       "path": "scripts/validate_publication_mirrors.py",
-      "bytes": 9722,
-      "sha256": "e37581347376a9ab409e8edd3d2faae283b0ca5847b0b79e9ed443f58caf176d",
+      "bytes": 10342,
+      "sha256": "2c212aa191ddd8f38990ee027a72917e0bb574f7b9e6ab5b66ebac82b8c345b5",
       "mode": "0755"
     },
     {
       "path": "scripts/validate_refusal_retryability.py",
-      "bytes": 7176,
-      "sha256": "9b8e3439beb276cabecbafd40f391baacbacfef1965f4856dc0bcf2f385a6445",
+      "bytes": 7727,
+      "sha256": "cd27de050c2aeaa596fbbcc697e3d6d4c15049399943896b4b6440e1638f1e1d",
       "mode": "0755"
     },
     {

@@ -24,6 +24,7 @@ FM 3-09, який уже лежить у корпусі як `ARTY-FM-3-09-2024`
 Гейт НЕ вимагає видалення: друга адреса законна як запасна. Він вимагає, щоб зв'язок
 був СКАЗАНИЙ — інакше недосяжність дзеркала читається як відсутність документа.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -69,24 +70,28 @@ def check(sources: list[dict]) -> list[str]:
                 problems.append(
                     f"публікація {key}: {len(items)} записів під РІЗНИМИ адресами "
                     f"({', '.join(ids)}); {s['id']} не оголошує `{FIELD}` — недосяжність "
-                    f"однієї адреси читатиметься як відсутність документа")
+                    f"однієї адреси читатиметься як відсутність документа"
+                )
             elif sorted(named if isinstance(named, list) else [named]) != others:
                 problems.append(
-                    f"{s['id']}: `{FIELD}`={named} не збігається з рештою групи {others}")
+                    f"{s['id']}: `{FIELD}`={named} не збігається з рештою групи {others}"
+                )
 
     for s in sources:
         named = s.get(FIELD)
         if not named:
             continue
-        for other in (named if isinstance(named, list) else [named]):
+        for other in named if isinstance(named, list) else [named]:
             if other not in by_id:
                 problems.append(f"{s['id']}: `{FIELD}` вказує на {other!r}, якого в каталозі немає")
             elif pub_key(by_id[other].get("canonical_title", "")) != pub_key(
-                    s.get("canonical_title", "")):
+                s.get("canonical_title", "")
+            ):
                 problems.append(
                     f"{s['id']}: оголошено ту саму публікацію, що {other}, але номери "
-                    f"різні ({pub_key(s.get('canonical_title',''))} проти "
-                    f"{pub_key(by_id[other].get('canonical_title',''))})")
+                    f"різні ({pub_key(s.get('canonical_title', ''))} проти "
+                    f"{pub_key(by_id[other].get('canonical_title', ''))})"
+                )
     return problems
 
 
@@ -95,42 +100,81 @@ def selftest() -> int:
         return {"id": i, "canonical_title": title, "source_uri": uri, **extra}
 
     cases: list[tuple[str, list[dict], bool]] = [
-        ("різні публікації — зелений",
-         [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "ATP 3-12.4 — EW Platoon", "u2")],
-         False),
-        ("та сама публікація, різні адреси, без оголошення — червоний",
-         [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3-09 — Fire Support", "u2")],
-         True),
-        ("та сама публікація, різні адреси, оголошено з обох боків — зелений",
-         [rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
-          rec("B", "FM 3-09 — Fire Support", "u2", same_publication_as=["A"])], False),
-        ("оголошено лише з одного боку — червоний",
-         [rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
-          rec("B", "FM 3-09 — Fire Support", "u2")], True),
-        ("той самий URI — предмет іншого гейта, тут зелений",
-         [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3-09 — Fire Support", "u1")],
-         False),
-        ("`3-09` і `3.09` — той самий номер, червоний без оголошення",
-         [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3.09 — Fire Support", "u2")],
-         True),
+        (
+            "різні публікації — зелений",
+            [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "ATP 3-12.4 — EW Platoon", "u2")],
+            False,
+        ),
+        (
+            "та сама публікація, різні адреси, без оголошення — червоний",
+            [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3-09 — Fire Support", "u2")],
+            True,
+        ),
+        (
+            "та сама публікація, різні адреси, оголошено з обох боків — зелений",
+            [
+                rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
+                rec("B", "FM 3-09 — Fire Support", "u2", same_publication_as=["A"]),
+            ],
+            False,
+        ),
+        (
+            "оголошено лише з одного боку — червоний",
+            [
+                rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
+                rec("B", "FM 3-09 — Fire Support", "u2"),
+            ],
+            True,
+        ),
+        (
+            "той самий URI — предмет іншого гейта, тут зелений",
+            [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3-09 — Fire Support", "u1")],
+            False,
+        ),
+        (
+            "`3-09` і `3.09` — той самий номер, червоний без оголошення",
+            [rec("A", "FM 3-09 — Fire Support", "u1"), rec("B", "FM 3.09 — Fire Support", "u2")],
+            True,
+        ),
         #: ДОВЕДЕНО СЬОГОДНІ ВИМІРОМ: різні серії під одним номером співіснують.
         #: `ATP 7-100.1` ніде не заявляє заміщення `FM 7-100.1`; `ADP 7-0` заміщує
         #: `ADP 7-0`. Тому такі пари МУСЯТЬ лишатись зеленими.
-        ("FM 7-100.1 і ATP 7-100.1 — різні серії, співіснують, зелений",
-         [rec("A", "FM 7-100.1 — OPFOR", "u1"), rec("B", "ATP 7-100.1 — Russian Tactics", "u2")],
-         False),
-        ("ADP 7-0 і FM 7-0 — різні рівні доктрини, зелений",
-         [rec("A", "ADP 7-0 — Training", "u1"), rec("B", "FM 7-0 — Training", "u2")], False),
-        ("ATP 3-01.81 і TC 3-01.81 — різні серії, зелений",
-         [rec("A", "ATP 3-01.81 — C-UAS", "u1"), rec("B", "TC 3-01.81 — C-UAS", "u2")], False),
-        ("оголошення на неіснуючий id — червоний",
-         [rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["ZZ"]),
-          rec("B", "FM 3-09 — Fire Support", "u2", same_publication_as=["A"])], True),
-        ("оголошення між РІЗНИМИ публікаціями — червоний",
-         [rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
-          rec("B", "ATP 3-12.4 — EW Platoon", "u2", same_publication_as=["A"])], True),
-        ("назва без номера публікації — не групується",
-         [rec("A", "Бойовий статут", "u1"), rec("B", "Статут внутрішньої служби", "u2")], False),
+        (
+            "FM 7-100.1 і ATP 7-100.1 — різні серії, співіснують, зелений",
+            [rec("A", "FM 7-100.1 — OPFOR", "u1"), rec("B", "ATP 7-100.1 — Russian Tactics", "u2")],
+            False,
+        ),
+        (
+            "ADP 7-0 і FM 7-0 — різні рівні доктрини, зелений",
+            [rec("A", "ADP 7-0 — Training", "u1"), rec("B", "FM 7-0 — Training", "u2")],
+            False,
+        ),
+        (
+            "ATP 3-01.81 і TC 3-01.81 — різні серії, зелений",
+            [rec("A", "ATP 3-01.81 — C-UAS", "u1"), rec("B", "TC 3-01.81 — C-UAS", "u2")],
+            False,
+        ),
+        (
+            "оголошення на неіснуючий id — червоний",
+            [
+                rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["ZZ"]),
+                rec("B", "FM 3-09 — Fire Support", "u2", same_publication_as=["A"]),
+            ],
+            True,
+        ),
+        (
+            "оголошення між РІЗНИМИ публікаціями — червоний",
+            [
+                rec("A", "FM 3-09 — Fire Support", "u1", same_publication_as=["B"]),
+                rec("B", "ATP 3-12.4 — EW Platoon", "u2", same_publication_as=["A"]),
+            ],
+            True,
+        ),
+        (
+            "назва без номера публікації — не групується",
+            [rec("A", "Бойовий статут", "u1"), rec("B", "Статут внутрішньої служби", "u2")],
+            False,
+        ),
     ]
     bad = 0
     for name, sources, want_red in cases:

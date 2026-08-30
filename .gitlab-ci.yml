@@ -118,6 +118,12 @@ repository:validate:
     - PYTHONPATH=apps/api/src python scripts/validate_evidence_refusal.py
     - PYTHONPATH=apps/api/src python scripts/validate_no_cache_in_tree.py
     - PYTHONPATH=apps/api/src python scripts/validate_catalog_uri_uniqueness.py
+    # Знову той самий клас 2026-08-30: обидва гейти додано в `make validate`, у CI — ні.
+    # Ціль у Makefile без джоби — це зелений колір без виконання.
+    - PYTHONPATH=apps/api/src python scripts/validate_publication_mirrors.py --selftest
+    - PYTHONPATH=apps/api/src python scripts/validate_publication_mirrors.py
+    - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py --selftest
+    - PYTHONPATH=apps/api/src python scripts/validate_refusal_retryability.py
     - PYTHONPATH=apps/api/src:scripts python scripts/verify_production_hard_predicates.py
     - python scripts/validate_github_actions.py
     - python scripts/validate_repository.py --context SOURCE_CHECKOUT

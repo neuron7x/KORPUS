@@ -19,6 +19,7 @@ false`: недосяжність прив'язана до НАШОЇ мереж�
 
 Гейт не вимагає лізти в мережу. Він вимагає, щоб запис не обіцяв більше, ніж знає.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -31,8 +32,16 @@ CATALOG = ROOT / "config/corpus/doctrine_catalog_2026.json"
 
 VANTAGE = {"host_unreachable_from_here"}
 OURS = {"extractor_refused", "too_few_words", "extractor_misclassified"}
-THEIRS = {"http_forbidden", "http_error", "transport_error", "dns_unresolved",
-          "tls_refused", "content_type_mismatch", "rights_reserved", "no_uri"}
+THEIRS = {
+    "http_forbidden",
+    "http_error",
+    "transport_error",
+    "dns_unresolved",
+    "tls_refused",
+    "content_type_mismatch",
+    "rights_reserved",
+    "no_uri",
+}
 KNOWN = VANTAGE | OURS | THEIRS
 #: Що саме мусить змінитися, щоб повтор мав сенс. Закритий словник: слово поза ним
 #: перетворює поле на вільний текст, який ніхто не звірить.
@@ -47,25 +56,35 @@ def check(sources: list[dict]) -> list[str]:
             continue
         cls, sid = r.get("class"), s.get("id", "?")
         if cls not in KNOWN:
-            bad.append(f"{sid}: клас відмови {cls!r} поза словником — слово поза "
-                       f"словником стає тишею, а не вироком")
+            bad.append(
+                f"{sid}: клас відмови {cls!r} поза словником — слово поза "
+                f"словником стає тишею, а не вироком"
+            )
             continue
         if cls in VANTAGE:
             if "retryable_from" not in r:
-                bad.append(f"{sid}: клас {cls} без поля `retryable_from` — «недосяжно "
-                           f"з цієї точки» нічого не каже про повтор з іншої, а "
-                           f"`retryable: {r.get('retryable')}` каже, і це не його справа")
+                bad.append(
+                    f"{sid}: клас {cls} без поля `retryable_from` — «недосяжно "
+                    f"з цієї точки» нічого не каже про повтор з іншої, а "
+                    f"`retryable: {r.get('retryable')}` каже, і це не його справа"
+                )
             elif r["retryable_from"] not in FROM_VALUES:
-                bad.append(f"{sid}: `retryable_from`={r['retryable_from']!r} поза "
-                           f"словником ({', '.join(sorted(FROM_VALUES))})")
+                bad.append(
+                    f"{sid}: `retryable_from`={r['retryable_from']!r} поза "
+                    f"словником ({', '.join(sorted(FROM_VALUES))})"
+                )
         elif cls in OURS and r.get("retryable") is True:
-            bad.append(f"{sid}: клас {cls} — вада НАША, повтор без змін марний, "
-                       f"а `retryable: true` обіцяє протилежне")
+            bad.append(
+                f"{sid}: клас {cls} — вада НАША, повтор без змін марний, "
+                f"а `retryable: true` обіцяє протилежне"
+            )
         if "retryable" in r and not isinstance(r["retryable"], bool):
             #: `bool("False")` істинне — рядок замість булевого значення робить
             #: КОЖНУ відмову придатною до повтору й нічого про це не каже
-            bad.append(f"{sid}: `retryable` має тип {type(r['retryable']).__name__}, "
-                       f"а не bool — рядок «False» істинний")
+            bad.append(
+                f"{sid}: `retryable` має тип {type(r['retryable']).__name__}, "
+                f"а не bool — рядок «False» істинний"
+            )
     return bad
 
 
@@ -75,26 +94,54 @@ def selftest() -> int:
 
     cases = [
         ("джерело без відмови — зелений", [{"id": "A"}], False),
-        ("VANTAGE із retryable_from — зелений",
-         [rec("A", "host_unreachable_from_here", retryable=True,
-              retryable_from="another_network")], False),
-        ("VANTAGE без retryable_from — червоний",
-         [rec("A", "host_unreachable_from_here", retryable=False)], True),
-        ("VANTAGE із retryable_from поза словником — червоний",
-         [rec("A", "host_unreachable_from_here", retryable=True, retryable_from="колись")],
-         True),
-        ("THEIRS із retryable false — зелений (сервер може передумати або ні)",
-         [rec("A", "http_forbidden", retryable=False)], False),
-        ("OURS із retryable true — червоний",
-         [rec("A", "extractor_refused", retryable=True)], True),
-        ("OURS із retryable false — зелений",
-         [rec("A", "extractor_refused", retryable=False)], False),
+        (
+            "VANTAGE із retryable_from — зелений",
+            [
+                rec(
+                    "A",
+                    "host_unreachable_from_here",
+                    retryable=True,
+                    retryable_from="another_network",
+                )
+            ],
+            False,
+        ),
+        (
+            "VANTAGE без retryable_from — червоний",
+            [rec("A", "host_unreachable_from_here", retryable=False)],
+            True,
+        ),
+        (
+            "VANTAGE із retryable_from поза словником — червоний",
+            [rec("A", "host_unreachable_from_here", retryable=True, retryable_from="колись")],
+            True,
+        ),
+        (
+            "THEIRS із retryable false — зелений (сервер може передумати або ні)",
+            [rec("A", "http_forbidden", retryable=False)],
+            False,
+        ),
+        (
+            "OURS із retryable true — червоний",
+            [rec("A", "extractor_refused", retryable=True)],
+            True,
+        ),
+        (
+            "OURS із retryable false — зелений",
+            [rec("A", "extractor_refused", retryable=False)],
+            False,
+        ),
         ("клас поза словником — червоний", [rec("A", "щось_нове", retryable=False)], True),
-        ("retryable рядком замість bool — червоний",
-         [rec("A", "http_error", retryable="False")], True),
-        ("VANTAGE із retryable_from unknown — зелений, бо невідомість НАЗВАНА",
-         [rec("A", "host_unreachable_from_here", retryable=True, retryable_from="unknown")],
-         False),
+        (
+            "retryable рядком замість bool — червоний",
+            [rec("A", "http_error", retryable="False")],
+            True,
+        ),
+        (
+            "VANTAGE із retryable_from unknown — зелений, бо невідомість НАЗВАНА",
+            [rec("A", "host_unreachable_from_here", retryable=True, retryable_from="unknown")],
+            False,
+        ),
     ]
     bad = 0
     for name, sources, want_red in cases:

@@ -4451,20 +4451,20 @@
       "max_nesting": 4
     },
     "scripts/validate_publication_mirrors.py": {
-      "lines": 113,
-      "proof_lines": 50,
+      "lines": 118,
+      "proof_lines": 89,
       "max_complexity": 21,
       "reason": "Точна виміряна початкова стеля. Гейт дзеркал публікацій: пара «оригінал і дзеркало» мусить бути оголошена, інакше дзеркало починає правити за джерело.",
-      "max_function_lines": 41,
+      "max_function_lines": 45,
       "max_function_args": 4,
       "max_nesting": 4
     },
     "scripts/validate_refusal_retryability.py": {
-      "lines": 92,
-      "proof_lines": 35,
+      "lines": 111,
+      "proof_lines": 63,
       "max_complexity": 11,
       "reason": "Точна виміряна початкова стеля. Гейт семантики відмови: клас відмови мусить казати, чи її можна повторити — інакше «недосяжно» назавжди ховає джерело, доступне просто зараз.",
-      "max_function_lines": 28,
+      "max_function_lines": 38,
       "max_function_args": 3,
       "max_nesting": 4
     },
@@ -4493,10 +4493,10 @@
       "max_nesting": 4
     },
     "scripts/build_runtime_manifest.py": {
-      "lines": 103,
+      "lines": 123,
       "max_complexity": 17,
       "reason": "Точна виміряна початкова стеля. Складач маніфесту рантайм-корпусу: перелічує, що саме розгорнутий застосунок вважає своїм корпусом, щоб відповідь можна було привʼязати до конкретного стану даних.",
-      "max_function_lines": 59,
+      "max_function_lines": 70,
       "max_function_args": 1,
       "max_nesting": 2
     },
@@ -4576,6 +4576,15 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-30",
+      "paths": [
+          "scripts/build_runtime_manifest.py",
+          "scripts/validate_publication_mirrors.py",
+          "scripts/validate_refusal_retryability.py"
+      ],
+      "reason": "Канонічне форматування `ruff format`, яке ці три файли не проходили: гейт CI, якого немає в `make validate`. Логіка не змінена — зросли лише перенесення довгих рядків, разом із тілами самоперевірок. Стелі переміряні ПІСЛЯ форматування, щоб наступний прогін не рухав їх знову."
+  },
   {
       "on": "2026-08-30",
       "path": "scripts/agent_protocol.py",
