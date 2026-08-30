@@ -3397,6 +3397,14 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/install_agent_runtime.py": {
+      "lines": 30,
+      "max_complexity": 1,
+      "reason": "Issue #42: installs the bounded isolated systemd runner used by every KORPUS agent timer; exact initial measured ceiling.",
+      "max_function_lines": 7,
+      "max_function_args": 0,
+      "max_nesting": 0
+    },
     "scripts/install_public_watchdog.py": {
       "lines": 37,
       "max_complexity": 2,
@@ -3404,6 +3412,14 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/install_public_runtime.py": {
+      "lines": 35,
+      "max_complexity": 2,
+      "reason": "Issue #42: idempotent installation of bounded local API and worker services; exact initial measured ceiling.",
+      "max_function_lines": 11,
+      "max_function_args": 1,
+      "max_nesting": 1
     },
     "scripts/load_probe.py": {
       "lines": 182,
@@ -3797,6 +3813,14 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/run_isolated_routine.py": {
+      "lines": 302,
+      "max_complexity": 6,
+      "reason": "Issue #42: repository-wide lease and disposable worktree enforcement for unattended agents; exact initial measured ceiling.",
+      "max_function_lines": 54,
+      "max_function_args": 6,
+      "max_nesting": 3
     },
     "scripts/run_local_production_preflight.py": {
       "lines": 143,

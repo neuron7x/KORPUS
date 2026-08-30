@@ -7,7 +7,9 @@ shards="${KORPUS_MUTATION_SHARDS:-6}"
 # Each mutant works in its own copy of the tree, so concurrency inside a shard
 # changes wall-clock and nothing else. Without it the gate takes long enough that
 # it gets run at the end of the work instead of during it.
-jobs="${KORPUS_MUTATION_JOBS:-2}"
+# Six shards already run concurrently. One mutant per shard keeps the local default at
+# six Python workers instead of twelve; CI opts into two jobs after assigning a runner.
+jobs="${KORPUS_MUTATION_JOBS:-1}"
 if ! [[ "$shards" =~ ^[1-9][0-9]*$ ]]; then
   echo "KORPUS_MUTATION_SHARDS must be a positive integer" >&2
   exit 2

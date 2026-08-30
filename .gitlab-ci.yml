@@ -203,7 +203,7 @@ api:assurance:
     - mkdir -p var/objects
     - python scripts/build_system_manifest.py --output var/system-manifest.json
     - python scripts/run_evals.py
-    - KORPUS_MUTATION_SHARDS=6 PYTHON=python scripts/run_mutation_shards.sh
+    - KORPUS_MUTATION_SHARDS=6 KORPUS_MUTATION_JOBS=2 PYTHON=python scripts/run_mutation_shards.sh
     - python scripts/run_migration_gate.py
     - python scripts/run_scale_probe.py
     - python scripts/run_operational_gate.py
