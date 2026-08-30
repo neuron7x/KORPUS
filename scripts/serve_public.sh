@@ -75,13 +75,12 @@ export KORPUS_JWT_SECRET="$(cat "$SECRET_DIR/jwt-secret.txt")"
 export KORPUS_JWT_ISSUER=korpus-public
 export KORPUS_JWT_AUDIENCE=korpus
 export KORPUS_JWT_MAX_LIFETIME_MINUTES=1440
-export KORPUS_BIND_HOST=0.0.0.0
-export KORPUS_TRUSTED_HOSTS="*"
+export KORPUS_BIND_HOST=127.0.0.1
+export KORPUS_TRUSTED_HOSTS="localhost,127.0.0.1"
 # Admission control is per *identity*, and on this edge there is one: every visitor
-# arrives as `public`. The default of 16 is therefore a global limit, and at thirty-two
-# concurrent readers it refused twenty-six of sixty-four with 503 — correct behaviour
-# under the wrong number. Set from what the workers were measured serving.
-export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-64}"
+# arrives as `public`. The limit is process-local: four per each of two Uvicorn workers
+# is an aggregate budget of eight, aligned with the edge.
+export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-4}"
 export PYTHONPATH="$ROOT/apps/api/src"
 
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing
@@ -115,21 +114,16 @@ if [[ "$EDGE_ONLY" != "true" ]]; then
 
   pkill -f "uvicorn korpus.main:app" 2>/dev/null || true
   sleep 1
-# More than one worker because an answer is CPU-bound Python. Uvicorn serves a sync
-# endpoint on a thread pool, and threads share one GIL, so four concurrent questions did
-# not run concurrently — they queued behind each other and each paid the others' cost.
-# Measured 2026-08-06: at four concurrent, better than half of all answers came back
-# `retrieval_deadline_exceeded`, which the reader is told is "пошук не завершено" about a
-# rule that exists. Separate processes have separate interpreters; SQLite in WAL mode
-# takes concurrent readers across them.
-WORKERS="${KORPUS_PUBLIC_WORKERS:-8}"
+# Two processes preserve parallel answers without letting the API claim half of this
+# 16-thread laptop before Codex, the worker, or the browser gets scheduled.
+WORKERS="${KORPUS_PUBLIC_WORKERS:-2}"
 # Deployment-only controls are not application settings. If the caller supplied this
 # one through the environment it retained Bash's export attribute and leaked into each
 # Uvicorn worker, where strict KORPUS_* validation correctly rejected it as unknown.
   unset KORPUS_PUBLIC_WORKERS
   unset KORPUS_RUNTIME_RELEASE KORPUS_PUBLIC_RUNTIME_ROOT KORPUS_PUBLIC_EDGE_ONLY
   nohup "$PY" -m uvicorn korpus.main:app \
-    --host 0.0.0.0 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
+    --host 127.0.0.1 --port "$PORT_API" --log-level warning --workers "$WORKERS" \
     > "$STATE/api.log" 2>&1 &
 fi
 
