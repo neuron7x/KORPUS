@@ -21,11 +21,22 @@ SECRET_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/korpus-public"
 export KORPUS_ENVIRONMENT=local
 export KORPUS_DATABASE_URL="postgresql+psycopg://postgres:${PGPW}@${IP}:5432/korpus"
 export KORPUS_OBJECT_ROOT="$ROOT/var/runtime/pg-objects"
-export KORPUS_AUDIT_ANCHOR_PATH="$ROOT/var/runtime/pg-audit.anchor"
+# Прив'язаний до ПОРТУ, а не до бази. Два API на одному якорі лишають обидва
+# неперевірними — «якір попереду голови ланцюга» це те, що верифікатор каже про
+# ланцюг, який не рухався, поки рухався чужий. Контрольний прогін піднімає другий
+# процес на тій самій базі, тож спільний якір був би вадою за побудовою.
+export KORPUS_AUDIT_ANCHOR_PATH="$ROOT/var/runtime/pg-audit-${PORT}.anchor"
 export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
 export KORPUS_AUTH_MODE=jwt
 export KORPUS_JWT_SECRET="$(cat "$SECRET_DIR/jwt-secret.txt")"
-export KORPUS_SEMANTIC_RETRIEVAL_ENABLED=true
+# Перемикається, бо без цього семантику не можна відокремити від бази. Прогін
+# 2026-08-30 показав гібридну краще за лексичну за кількістю проходів (92/95 проти
+# 89/95) і вдвічі гірше за часткою відповідей — і лише КОНТРОЛЬ на тій самій
+# PostgreSQL із KORPUS_SEMANTIC_RETRIEVAL_ENABLED=false довів, що причина в
+# семантиці, а не в другій базі: PG-лексична дала 0.835, майже як SQLite-лексична
+# 0.861, а гібридна — 0.468.
+#   KORPUS_SEMANTIC_RETRIEVAL_ENABLED=false KORPUS_SEMANTIC_PORT=8011 scripts/serve_semantic_local.sh
+export KORPUS_SEMANTIC_RETRIEVAL_ENABLED="${KORPUS_SEMANTIC_RETRIEVAL_ENABLED:-true}"
 export KORPUS_SEMANTIC_WEIGHT="${KORPUS_SEMANTIC_WEIGHT:-0.20}"
 export KORPUS_EMBEDDING_ENDPOINT="http://127.0.0.1:11434/api/embed"
 export KORPUS_EMBEDDING_MODEL_ID="qwen3-embedding:0.6b"

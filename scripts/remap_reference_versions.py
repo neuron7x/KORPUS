@@ -19,9 +19,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -86,6 +88,42 @@ def main() -> int:
 
     args.out.write_text(
         "".join(json.dumps(c, ensure_ascii=False) + "\n" for c in kept), encoding="utf-8"
+    )
+
+    # Набір без свого meta не набір: `run_reference_eval.py` вимагає його і без нього
+    # мовчки виходить, тож перенесений еталон був непридатний до вжитку, а помилка
+    # виглядала як «немає замороженого набору». Свій відбиток тут ОБОВʼЯЗКОВО новий —
+    # ідентифікатори цілей інші, отже це інший набір, — але він носить відбиток
+    # джерела, бо порівнювати число проти перенесеного набору можна лише з числом
+    # проти набору, з якого його перенесли.
+    source_meta_path = args.reference.with_suffix(".meta.json")
+    source_meta = (
+        json.loads(source_meta_path.read_text(encoding="utf-8"))
+        if source_meta_path.is_file()
+        else {}
+    )
+    digest = hashlib.sha256()
+    for case in kept:
+        digest.update(json.dumps(case, ensure_ascii=False, sort_keys=True).encode("utf-8"))
+        digest.update(b"\n")
+    args.out.with_suffix(".meta.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "frozen_at": datetime.now(UTC).isoformat(),
+                "database": args.target_url.split("@")[-1],
+                "cases": len(kept),
+                "content_digest": digest.hexdigest(),
+                "remapped_from_digest": source_meta.get("content_digest"),
+                "remapped_from": str(args.reference),
+                "dropped_case_ids": dropped,
+                "cannot_judge": source_meta.get("cannot_judge", []),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
     )
     print(f"  перенесено {len(kept)} випадків · вибуло {len(dropped)}")
     if dropped:

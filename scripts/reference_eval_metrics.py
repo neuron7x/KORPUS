@@ -26,15 +26,20 @@ def retrieval_effectiveness(results: list[dict[str, Any]]) -> dict[str, Any]:
     supported = [result for result in answered if result["passed"]]
     abstained = [result for result in retrieval if result["status"] in ABSTAINED]
     total = len(retrieval)
+    # None, not 0.0. A rate over no cases is absent, and 0.0 reads as a measured floor —
+    # the difference matters most in exactly the run that produced no cases, where a
+    # deployment that never answered would otherwise report perfect failure.
     return {
         "cases": total,
         "answered": len(answered),
         "abstained": len(abstained),
         "answered_wrong_or_invalid_source": len(answered) - len(supported),
         "supported_answers": len(supported),
-        "answer_yield": len(answered) / total if total else 0.0,
-        "supported_answer_rate": len(supported) / total if total else 0.0,
-        "supported_answer_rate_wilson_95": wilson_interval(len(supported), total),
+        "answer_yield": len(answered) / total if total else None,
+        "supported_answer_rate": len(supported) / total if total else None,
+        "supported_answer_rate_wilson_95": wilson_interval(len(supported), total)
+        if total
+        else None,
         "interpretation": (
             "Safety PASS permits abstention. supported_answer_rate measures how often "
             "the system both answered and cited a frozen version that holds the target evidence."

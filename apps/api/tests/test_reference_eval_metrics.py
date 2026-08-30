@@ -54,3 +54,20 @@ def test_wilson_interval_is_bounded_and_not_false_certainty() -> None:
     assert 0.97 < lower < 1.0
     assert upper == 1.0
     assert METRICS["wilson_interval"](0, 0) == [0.0, 0.0]
+
+
+def test_no_cases_reports_absent_rates_rather_than_zero() -> None:
+    """A rate over no cases is absent, and 0.0 reads as a measured floor.
+
+    The distinction is not pedantic. A run against a deployment that answered nothing —
+    every request a 503 — used to report supported_answer_rate 0.0, which is exactly what
+    a deployment that answered everything wrongly would report. One is a broken service
+    and the other is a broken retriever, and they were indistinguishable in the field a
+    reader looks at first.
+    """
+    metrics = MODULE.retrieval_effectiveness([])
+
+    assert metrics["cases"] == 0
+    assert metrics["answer_yield"] is None
+    assert metrics["supported_answer_rate"] is None
+    assert metrics["supported_answer_rate_wilson_95"] is None

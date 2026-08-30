@@ -22,7 +22,7 @@ import json
 import sys
 import urllib.error
 import urllib.request
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -52,8 +52,34 @@ def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[st
         return {"status": type(error).__name__, "citations": [], "decision_reason": ""}
 
 
+#: A status the deployment never chose. `_ask` puts the transport failure in the status
+#: field, so an unreachable server, a 503 from admission control and a database that went
+#: away all arrive shaped exactly like a verdict — and the judge scored them as wrong
+#: answers. Found 2026-08-30: a run of the hybrid configuration reported 49 of 95 with
+#: refusal at 0 of 12, which read as "semantics destroyed the abstention discipline". 38
+#: of those 40 failures were HTTP 503 carrying `{"reason":"database"}`. The configuration
+#: had not answered a single one of them.
+#:
+#: These are not failures and they are not passes. They are the absence of a measurement,
+#: and the report says so rather than folding them into a rate.
+def _unavailable(status: str) -> bool:
+    return status.startswith(("http_5", "URLError", "OSError", "TimeoutError", "socket"))
+
+
 def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
     status = str(answer.get("status", ""))
+    if _unavailable(status):
+        return {
+            "id": case["id"],
+            "kind": case["kind"],
+            "stratum": case["stratum"],
+            "status": status,
+            "decision_reason": answer.get("decision_reason"),
+            "citations": 0,
+            "passed": None,
+            "unavailable": True,
+            "reasons": [f"the deployment did not answer: {status}"],
+        }
     citations = list(answer.get("citations") or [])
     reasons: list[str] = []
     cited_versions = sorted(
@@ -147,14 +173,35 @@ def main() -> int:
         for case in cases
     ]
 
-    per_stratum: dict[str, dict[str, int]] = defaultdict(lambda: {"cases": 0, "passed": 0})
-    per_kind: dict[str, dict[str, int]] = defaultdict(lambda: {"cases": 0, "passed": 0})
+    # A case the deployment never answered is not evidence about the deployment's quality,
+    # so it is kept out of every rate and counted on its own line. Nothing is divided by a
+    # denominator that includes it.
+    unavailable = [result for result in results if result.get("unavailable")]
+    judged = [result for result in results if not result.get("unavailable")]
+
+    per_stratum: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"cases": 0, "passed": 0, "unavailable": 0}
+    )
+    per_kind: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"cases": 0, "passed": 0, "unavailable": 0}
+    )
     for result in results:
         for bucket, key in ((per_stratum, result["stratum"]), (per_kind, result["kind"])):
+            if result.get("unavailable"):
+                bucket[key]["unavailable"] += 1
+                continue
             bucket[key]["cases"] += 1
-            bucket[key]["passed"] += int(result["passed"])
+            bucket[key]["passed"] += int(bool(result["passed"]))
 
-    failures = [result for result in results if not result["passed"]]
+    failures = [result for result in judged if not result["passed"]]
+    # UNKNOWN outranks PASS and does not outrank FAIL: a run with unanswered cases cannot
+    # be called green, and a run that also failed a judged case has still failed it.
+    if failures:
+        status = "FAIL"
+    elif unavailable:
+        status = "UNKNOWN"
+    else:
+        status = "PASS"
     report = {
         "schema_version": 1,
         "ran_at": datetime.now(UTC).isoformat(),
@@ -163,12 +210,18 @@ def main() -> int:
         "reference_set_digest": meta["content_digest"],
         "reference_set_frozen_at": meta["frozen_at"],
         "cases": len(results),
-        "passed": sum(1 for result in results if result["passed"]),
+        "judged": len(judged),
+        "unavailable": len(unavailable),
+        "unavailable_statuses": dict(
+            sorted(Counter(str(result["status"]) for result in unavailable).items())
+        ),
+        "passed": sum(1 for result in judged if result["passed"]),
         "by_kind": {key: value for key, value in sorted(per_kind.items())},
-        "retrieval_effectiveness": retrieval_effectiveness(results),
+        "retrieval_effectiveness": retrieval_effectiveness(judged),
         "by_stratum": {key: value for key, value in sorted(per_stratum.items())},
         "failures": failures[:40],
-        "status": "PASS" if not failures else "FAIL",
+        "unavailable_cases": [result["id"] for result in unavailable],
+        "status": status,
         "cannot_judge": meta["cannot_judge"],
     }
     arguments.out.parent.mkdir(parents=True, exist_ok=True)
@@ -180,7 +233,7 @@ def main() -> int:
             indent=2,
         )
     )
-    return 0 if not failures else 1
+    return 0 if status == "PASS" else 1
 
 
 if __name__ == "__main__":
