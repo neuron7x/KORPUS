@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1604,
-  "root_sha256": "953a972d92c2905523e07719b378eb9a36f9b69f7a5f3ee2bd5f4b89a4868584",
+  "root_sha256": "0afa03b8a4a6e342b5597b0ed57fa2c7cd40e2b27dbe60771ac418e0af5e1be5",
   "files": [
     {
       "path": ".dockerignore",
@@ -6553,8 +6553,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1163270,
-      "sha256": "efe84104ef425fcccc1feca938471342445735dcc9e56a376e5e0115c036d115",
+      "bytes": 1159638,
+      "sha256": "485592a29616e346ce075ed8e5ecb5c178efb9a653de28ab7a0790aa4fcb2d03",
       "mode": "0644"
     },
     {
@@ -8101,8 +8101,8 @@
     },
     {
       "path": "scripts/agent_protocol.py",
-      "bytes": 28349,
-      "sha256": "fbf0f8dd6b9c6cb8b32980524334f6972bf560bf8691eb91ce49de61f3c71f89",
+      "bytes": 33579,
+      "sha256": "cd45eeb4cb11f98beccf5305073ce7e3cb18fed2274a9c6063cf6c19398a843f",
       "mode": "0755"
     },
     {

@@ -630,9 +630,7 @@
         "reason": "URLError: <urlopen error [Errno 104] Connection reset by peer>",
         "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
-        "retryable": true,
-        "retryable_from": "another_network",
-        "retryable_note": "Виміряно 2026-08-30 з цієї машини: oe.t2com.army.mil розриває зʼєднання (Recv failure), rdl.train.army.mil дає тайм-аут 30 с. Це властивість нашої точки доступу, не документа: паралельна сесія з іншої позиції прочитала T1B-DELTA-NATO-ACT, який тут віддає HTTP 403. `retryable: false` тут означало б, що документа не існує, — а він існує."
+        "retryable": false
       },
       "reachability_recheck": {
         "id": "T1A-TRADOC-UAS-TACTICS",
@@ -2761,9 +2759,7 @@
         "reason": "URLError: <urlopen error timed out>",
         "class": "host_unreachable_from_here",
         "observed_on": "2026-08-30",
-        "retryable": true,
-        "retryable_from": "another_network",
-        "retryable_note": "Виміряно 2026-08-30 з цієї машини: oe.t2com.army.mil розриває зʼєднання (Recv failure), rdl.train.army.mil дає тайм-аут 30 с. Це властивість нашої точки доступу, не документа: паралельна сесія з іншої позиції прочитала T1B-DELTA-NATO-ACT, який тут віддає HTTP 403. `retryable: false` тут означало б, що документа не існує, — а він існує."
+        "retryable": false
       },
       "reachability_recheck": {
         "id": "T3A-FM-3-09",
@@ -2771,11 +2767,7 @@
         "read_on": "2026-08-30",
         "detail": "URLError: <urlopen error timed out>"
       },
-      "ingest_block_reason": "",
-      "same_publication_as": [
-        "ARTY-FM-3-09-2024"
-      ],
-      "same_publication_note": "Та сама публікація під ДВОМА адресами: офіційний портал і дзеркало. Це не дублікат каталогу — друга адреса законна як запасна. Але без цього поля недосяжність дзеркала читається як відсутність документа: T3A-FM-3-09 числився серед прогалин корпусу, хоча FM 3-09 уже лежить у ньому з armypubs."
+      "ingest_block_reason": ""
     },
     {
       "id": "T3A-ATP-3-09-30",
@@ -2844,11 +2836,7 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      },
-      "same_publication_as": [
-        "ARTY-ATP-3-09-30-2017"
-      ],
-      "same_publication_note": "Та сама публікація під ДВОМА адресами: офіційний портал і дзеркало. Це не дублікат каталогу — друга адреса законна як запасна. Але без цього поля недосяжність дзеркала читається як відсутність документа: T3A-FM-3-09 числився серед прогалин корпусу, хоча FM 3-09 уже лежить у ньому з armypubs."
+      }
     },
     {
       "id": "T3A-ATP-3-09-42",
@@ -17329,11 +17317,7 @@
           "means": "що з тих байтів зробив екстрактор ЦІЄЇ системи"
         },
         "body_is_bounded": "first 400 and last 200 words"
-      },
-      "same_publication_as": [
-        "T3A-FM-3-09"
-      ],
-      "same_publication_note": "Та сама публікація під ДВОМА адресами: офіційний портал і дзеркало. Це не дублікат каталогу — друга адреса законна як запасна. Але без цього поля недосяжність дзеркала читається як відсутність документа: T3A-FM-3-09 числився серед прогалин корпусу, хоча FM 3-09 уже лежить у ньому з armypubs."
+      }
     },
     {
       "id": "ARTY-ATP-3-09-23-2026",
@@ -17524,11 +17508,7 @@
         "limit": "Вимір обсягу й структури сторінки, НЕ оцінка достовірності написаного. Доказом рахується лише вимір СТОРІНКИ-ДЖЕРЕЛА; вимір картки каталогу доказом про документ не є.",
         "subject": "catalog_record",
         "counts_as_evidence": false
-      },
-      "same_publication_as": [
-        "T3A-ATP-3-09-30"
-      ],
-      "same_publication_note": "Та сама публікація під ДВОМА адресами: офіційний портал і дзеркало. Це не дублікат каталогу — друга адреса законна як запасна. Але без цього поля недосяжність дзеркала читається як відсутність документа: T3A-FM-3-09 числився серед прогалин корпусу, хоча FM 3-09 уже лежить у ньому з armypubs."
+      }
     },
     {
       "id": "ARTY-ATP-3-09-12-2021",
