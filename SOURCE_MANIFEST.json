@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1600,
-  "root_sha256": "474873443195029d01bd70f1a476b85ea42b3e63e98764d7033656dec5f5110d",
+  "root_sha256": "524e8a4c010200d858c314bc2b2bb31d5d60132e7c27a8c064c9984fe6718179",
   "files": [
     {
       "path": ".dockerignore",
@@ -2701,8 +2701,8 @@
     },
     {
       "path": "apps/api/tests/test_budget_raises_are_named.py",
-      "bytes": 4727,
-      "sha256": "2a65e79a2636c4b0243aa61f3d8719e8b5cc5a8c17decc170858b85efc0be430",
+      "bytes": 4741,
+      "sha256": "3306188be7447ebe410ab10178c45c4020cd0e0bb21dd290d3311a04077dd200",
       "mode": "0644"
     },
     {

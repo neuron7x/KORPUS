@@ -32,7 +32,9 @@ def test_silent_raise_is_refused() -> None:
 
 
 def test_named_raise_is_allowed() -> None:
-    after = _doc(150, [{"on": "2026-08-30", "path": "a.py", "reason": "чому", "to": {"lines": 150}}])
+    after = _doc(
+        150, [{"on": "2026-08-30", "path": "a.py", "reason": "чому", "to": {"lines": 150}}]
+    )
     assert MODULE.raises_without_a_reason(_doc(100), after) == []
 
 
