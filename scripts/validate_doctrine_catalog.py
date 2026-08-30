@@ -737,6 +737,57 @@ def _has_evidence(entry: dict[str, object]) -> bool:
 has_evidence = _has_evidence
 
 
+def _cross_listing_problems(entries: list[dict[str, object]]) -> list[str]:
+    """Один `source_uri` — один запис, або оголошене перехресне розміщення.
+
+    Виявлено 2026-08-30 паралельною сесією З ІНШОГО КІНЦЯ: у корпусі знайшлись 5 груп
+    дублікатів, 1084 фрагменти (7%), і кожна копія займає окреме місце у видачі — тобто
+    дублікати їдять top-5 напряму. Причина не в корпусі: у каталозі **шість** пар id
+    вказують на ОДИН І ТОЙ САМИЙ файл (ARM/LOG, CAM/ENG двічі, SIG/EW тричі). Документ
+    заводили двічі, під різними розділами, різними проходами.
+
+    Правило не забороняє перехресне розміщення — той самий статут справді може належати
+    двом розділам. Воно вимагає, щоб це було СКАЗАНО: `cross_listed_as` називає сусідів,
+    `canonical_id` — той запис, який корпус інжестить. Тоді збірник знає, що взяти один
+    раз, а нероздекларований дублікат падає тут, а не проявляється як з'їдена видача.
+    """
+    by_uri: dict[str, list[dict[str, object]]] = {}
+    for entry in entries:
+        uri = str(entry.get("source_uri", "")).strip()
+        if uri:
+            by_uri.setdefault(uri, []).append(entry)
+    problems: list[str] = []
+    for uri, group in sorted(by_uri.items()):
+        if len(group) < 2:
+            continue
+        identifiers = sorted(str(e.get("id")) for e in group)
+        for entry in group:
+            declared = entry.get("cross_listed_as")
+            siblings = sorted(i for i in identifiers if i != str(entry.get("id")))
+            if not isinstance(declared, list) or sorted(map(str, declared)) != siblings:
+                problems.append(
+                    f"{entry.get('id')}: {uri} стоїть під {len(group)} id ({identifiers}), "
+                    f"а cross_listed_as не називає {siblings} — нероздекларований дублікат "
+                    "інжеститься двічі й займає два місця у видачі"
+                )
+            canonical = str(entry.get("canonical_id", ""))
+            if canonical not in identifiers:
+                problems.append(
+                    f"{entry.get('id')}: canonical_id {canonical!r} не є жодним із "
+                    f"{identifiers} — корпус не знає, який із записів брати"
+                )
+        # Належність кожного окремо не робить групу узгодженою: два записи можуть назвати
+        # РІЗНИЙ canonical_id, обидва існуючі, і збірник дістане дві різні відповіді на
+        # питання «який брати». Знайдено власною пробою на це саме правило.
+        chosen = {str(e.get("canonical_id", "")) for e in group}
+        if len(chosen) > 1:
+            problems.append(
+                f"{identifiers}: записи називають різні canonical_id ({sorted(chosen)}) — "
+                "група мусить сходитись на одному, інакше дублікат лишається дублікатом"
+            )
+    return problems
+
+
 def _anchor_sharing_problems(entries: list[dict[str, object]]) -> list[str]:
     """One captured file may anchor exactly one source.
 
@@ -1076,6 +1127,7 @@ def evaluate(catalog: dict[str, object]) -> Result:
         ),
     }
     problems.extend(_anchor_sharing_problems(dicts))
+    problems.extend(_cross_listing_problems(dicts))
     problems.extend(_floor_problems(catalog, summary))
     problems.extend(_ceiling_problems(catalog, summary))
     return {

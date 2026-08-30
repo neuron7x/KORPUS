@@ -1,0 +1,25 @@
+# KORPUS extract record — ADV-FM-7-100.1-2004
+# FM 7-100.1 — OPPOSING FORCE OPERATIONS
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://armypubs.army.mil/epubs/DR_pubs/DR_a/pdf/web/fm7_100x1.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: a84151c73bd676e3a7bb9dc1c038392e9f00137cda7e6ba5b38f6c933ec6526c
+bytes_as_served.bytes: 2963376
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 487677d3c8651417b23e7e94e309d5fd0c310eb4dcbeb1a0d1116638887572b2
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 368
+text_as_extracted.words: 149236
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+FM 7-100.1 OPFOR Opposing Force Operations DECEMBER 2004 HEADQUARTERS, DEPARTMENT OF THE ARMY DISTRIBUTION RESTRICTION: Approved for public release; distribution is unlimited. FOREWORD In today’s complicated and uncertain world, it is impossible to predict the exact nature of future conflict that might involve the U.S. Army. So the Army must be ready to meet the challenges of any type of conflict, in all kinds of places, and against all kinds of threats. This is the nature of the contemporary operational e nvironment (COE), and training for such an environment requires a different type of Opposing Force (OPFOR) than that of the past. The Deputy Chief of Staff for Intelligence (DCSINT) of the U.S. Army Training and Doctrine Command (TRADOC) is the Executive Agent for the development, management, administration, integration, and approval functions of the OPFOR Program across the Army. Thus, the TRADOC DCSINT is responsible for documenting the doctrine, organization, and capabilities of a contemporary OPFOR that is a ppropriate for training the Army’s leaders, soldiers, and units for the COE. In the FM 7-100 series, the TRADOC Office of the Deputy Chief of Staff for Intelligence (ODCSINT) has created a flexible baseline for an OPFOR that can be adapted to meet a variety of different training requirements in a number of different scen arios that reflect the COE. The OPFOR operational doc trine outlined in FM 7-100. 1 represents a realistic composite of potential adversaries the Army might encounter in the real-world situations of the foreseeable future. However, the world is continually changing, as are the threats and challenges for which the Army must be prepared. The Army must remain flexible, as must the OPFOR designed to serve as a challenging sparring partner in the training environment. This manual is approved for use in all Army training venues. However, as the contemporary OPFOR and other aspects of the COE are in tegrated into Army training, the TRADOC ODCSINT and the intelligence community will continue research and analysis of real-world developments and trends. The goal of this con tinued effort is to keep our OPFOR and our understanding of the COE truly contemporary and relevant as the world around us changes. Thus, this manual is intended to be a living document, and the ODCSINT will modify and change it as often as necessary in order to ensure its continued relevance in light of changes and developments in the COE. In
+
+[…]
+
+p. x W warning order. See preliminary instructions. water obstacle crossing, air defense of, 9-167, 9-170 engineer support, 10-5, 10-13, 10-25–10-26, 10-28, 10-61, 10-71–10-72. See also gap crossing. NBC use, 11-41 smoke use, 11-87 water purification, 10-10, 11-63 water supply, 10-10, 10-18, 10-25, 10-30, 10-63 ____________________________________________________________________________________ Index Index-31 weapons of mass destruction, 1-59, p. 11-1 chief of WMD, OSC staff, 2-114, 11-5 in strategic operations, 1-29 offensive use, 2-114, 3-12, 3-13, 3-51, 6-19, 9-63, 11-5, 11-14 WMD conditions, 2-204, 3-55, 4-58, 4-65, 11-33, 11-59 WMD-like events, 11-98 weather, p. viii, ¶1-70, 2-127, p. 6-1, ¶6-3, 6-8, 6-38, 8-35–8-36, 9-17, 9-106, 9-172–9-173, 10-72, 11-12, 11-82, 11-85, 11-87. See also physical environment. wide area network, 2-209 window of opportunity. See opportunity. Z zones. See attack zone; battle zone; disruption zone; kill zone; support zone; (air defense) zones of responsibility. FM 7-100.1 27 DECEMBER 2004 By order of the Secretary of the Army: PETER J. SCHOOMAKER General, United States Army Chief of Staff Official: SANDRA R. RILEY Administrative Assistant to the Secretary of the Army 0432104 DISTRIBUTION: Active Army, Army National Guard and U.S. Army Reserve : To be distributed in accordance with initial distribution number 115362, requirements for FM 7-100.1. PIN: 082016-000

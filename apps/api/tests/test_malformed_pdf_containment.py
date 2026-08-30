@@ -82,6 +82,11 @@ def test_the_construction_guard_is_not_what_catches_it(
 
     Without this, a fixture that failed at `PdfReader(...)` would satisfy the assertion
     above through the guard that was already there, and the fix would be untested.
+
+    Дві спроби, а не одна: з 2026-08-30 строге відкриття, що впало, повторюється терпимо
+    (`DD Form 1380` не читалась через `Invalid padding bytes` у зашифрованому потоці).
+    Перевіряється те саме, що й раніше, — конструкція ВІДБУЛАСЬ, тож упіймала не вона, —
+    але тепер конструкцій дві, і рівність одиниці ловила б сам факт повтору, а не вади.
     """
     document = tmp_path / "order.pdf"
     document.write_bytes(PDF_BYTES)
@@ -96,7 +101,11 @@ def test_the_construction_guard_is_not_what_catches_it(
     with pytest.raises(ValueError):
         _extract(document)
 
-    assert constructed == [True], "the reader never got past construction"
+    assert constructed, "the reader never got past construction"
+    assert len(constructed) <= 2, (
+        f"конструкцій {len(constructed)} — повтор мусить бути рівно один, інакше "
+        "терпима гілка виродилась у цикл"
+    )
 
 
 def test_a_readable_page_tree_is_not_refused(

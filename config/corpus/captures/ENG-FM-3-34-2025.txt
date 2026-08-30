@@ -1,0 +1,25 @@
+# KORPUS extract record — ENG-FM-3-34-2025
+# FM 3-34 — ENGINEER OPERATIONS
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN45471-FM_3-34-000-WEB-1.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: d52dbf62c0f139dcdcc87229792b48269ffb636bc79868bce77f212e18f735c0
+bytes_as_served.bytes: 4490902
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: 90f04e973aa86617ebbc1dbfc4da0575ade3074641ac6c412d6024beea4fc644
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 160
+text_as_extracted.words: 75769
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+FM 3-34 ENGINEER OPERATIONS DECEMBER 2025 DISTRIBUTION RESTRICTION: Approved for public release; distribution is unlimited. This publication supersedes FM 3-34, dated 18 December 2020. HEADQUARTERS, DEPARTMENT OF THE ARMY FM 3-34 Foreword The o perational environment of the 21st century is characterized by rapid techno logical advancements, shifting global power dynamics, and the potential that the United States will become embroiled in a conflict i nvolving large-scale combat operations. The Army is rapidly evolving in response to these complexities of modern warfare. One such evolution was the introduction of a new operating concept, Multidomain O perations, and the Army strategic contexts. B rought to life with the October 2022 publishing of the revision to FM 3- 0, Operations, this new operating concept is built around the understanding that future armed conflicts will require the employment of joint c apabilities across all domains spanning space and time to achieve decisive outcomes. Multidomain O perations is how the Army will contribute to the joint fight. N ested within the competition continuum are the Army strategic contexts. These new contexts detail the r ole the Army plays across the competition continuum as the United States employs the elements of na tional power. This revision of FM 3-34, Engineer Operations, provides the foundational doctrine that outlines how the E ngineer Regiment contributes to Army operations throughout the strategic contexts in support o f national objectives. The expertise and capabilities of Army engineers are more crucial than ever. Observations from conflicts across the globe, including the wars in Ukraine and Gaza, have only served to emphasize the critical and essential role that engineers will play. We must stand ready, with well-trained and properly manned and equipped units, to respond when and where needed. T o that end, the Regiment is transforming. New force desig n updates are being incorporated th at align engineer units with divisions. Experimentation is taking place to discover new, more efficient techniques, t o accomplish our engineering tasks. And concepts are being developed and tested that will make our f ormations more survivable and more lethal. From breaching obstacles and crossing gaps, to building infrastructure and providing a detailed understanding of the terrain, engineers are more pivotal than ever. Success will be dependent upon the effective employment of engineer capabilities across the range of military operations. T he challenges our Nat ion faces ar e m yriad. W e w ill
+
+[…]
+
+of engineer support. 1-16 – 1-19. 1-33, 3-22, M–N mission command. 3-10, 4-54, 6- 79, movement and maneuver warfighting function. 1-20,1-26, 2-91, 2-131, 3-12, 3-30, A-5 definition. 3-12 O obstacles. 1-23,1-28 –1-39, 1-58, 1-72, 1-73, 2-56, 2-63, 2-67, 2- 70 – 2-82, 2-98, 2-103, 2-106 – 2-110, operational environment. 1-66 –1- 75, 6-51, 6-52 P–R protection. 1-33 protection warfighting function. 3- 33, 1 -42, 1-87, 2-64, 3-3, 5-27, 5-28,5-47, 5-60, 6-19 definition. 3-33 S–T survivability operations. 1-39, 1-42 – 1-44, 1-100, 2-93, 3-15, 3-33, sustainment warfighting function. 1-87, 2-14, 2-64, 3-3, 3-19, 3- 29 definition. 3-29 U–Z unified action. 1-17, 1-72, 3-2, definition. 2-12 unified action partner. 1-74, 1-75, 1-78, 1-79, 2-12, 2-18, 2-23, 2- 32, 2-57, 2-85, 2-124, 2-135, 2- 136, 2-148, 4-1, 4-63, 5-53, 5- 54, 6-1, unmanned aircraft systems. 1-98 – 1-101 T his page intentionally left blank. FM 3-34 By Order of the Secretary of the Army: Official: MATTHEW L. SANNITO Administrative Assistant to the Secretary of the Army 2534506 16 December 2025 RANDY A. GEORGE General, United States Army Chief of Staff DISTRIBUTION: Active Army, Army National Guard, and United States Army Reserve. 7REHGLVWULEXWHGLQ DFFRUGDQFHZLWKWKHLQLWLDOGLVWULEXWLRQQXPEHU ,'1 110451UHTXLUHPHQWVIRUFM 3-34 T his page intentionally left blank. PIN:081184-000

@@ -2288,8 +2288,8 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/pdf_extraction.py": {
-      "lines": 136,
-      "max_complexity": 9,
+      "lines": 166,
+      "max_complexity": 10,
       "reason": "v6.9.0: split PDF/OCR parsing from generic extraction to reduce parser-path cyclomatic concentration without changing refusal semantics",
       "max_function_lines": 60,
       "max_function_args": 8,
@@ -4074,7 +4074,7 @@
       "max_nesting": 4
     },
     "scripts/validate_doctrine_catalog.py": {
-      "lines": 1140,
+      "lines": 1192,
       "max_complexity": 32,
       "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks | 2026-08-30: 1040→1048. Склад 1048 фізичних рядків: докстрінги 166, коментарі 74, порожні 122 ⇒ коду ~686; проби selftest 0 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число. | | 2026-08-30: правило «зниклий ключ підлоги = зниження до нуля». Порівняння лише там, де обидва значення цілі, робило видалення ключа тихим способом зняти з нього ратчет; правило одразу спіймало реальне зникнення `ingestible_total` (166) під час перенесення лічильників. | 2026-08-30: 1086→1140. Зниження підлоги стало ЛІЦЕНЗОВАНИМ, а не забороненим: запис в evidence_floor_history мусить назвати той самий ключ, обидва числа й причину від 40 символів. Причина — `ingestible_total` міряє РОЗМІР КОРПУСУ, а не кількість доказів, і падає рівно тоді, коли ми стаємо чеснішими. Заразом виправлено власну ваду: часткова зміна `to` затінювала повний знімок, і без git ратчет тримав рівно один лічильник; тепер підлога ВІДНОВЛЮЄТЬСЯ (останній знімок + усі пізніші зміни по ключах).",
       "max_function_lines": 100,
@@ -4385,10 +4385,10 @@
       "max_nesting": 4
     },
     "scripts/stage_doctrine_corpus.py": {
-      "lines": 299,
+      "lines": 315,
       "max_complexity": 15,
       "reason": "registered 2026-08-29: catalog→corpus staging bridge and the gate hardening an adversarial pass required",
-      "max_function_lines": 89,
+      "max_function_lines": 105,
       "max_function_args": 8,
       "max_nesting": 4
     },
@@ -4433,7 +4433,7 @@
       "max_nesting": 4
     },
     "scripts/capture_source_evidence.py": {
-      "lines": 912,
+      "lines": 979,
       "max_complexity": 13,
       "max_function_lines": 65,
       "max_function_args": 4,
@@ -4486,6 +4486,14 @@
       "max_function_lines": 17,
       "max_function_args": 1,
       "max_nesting": 2,
+      "reason": "registered 2026-08-30"
+    },
+    "scripts/validate_catalog_uri_uniqueness.py": {
+      "lines": 209,
+      "max_complexity": 27,
+      "max_function_lines": 70,
+      "max_function_args": 1,
+      "max_nesting": 3,
       "reason": "registered 2026-08-30"
     }
   },

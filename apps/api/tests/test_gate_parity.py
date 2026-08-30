@@ -2495,3 +2495,39 @@ def test_no_cache_of_measurements_lives_where_a_clean_target_deletes_it() -> Non
         assert "Path.home()" in line, line
         for path in sorted(removed):
             assert f'"{path}/' not in line and f"'{path}/" not in line, (line, path)
+
+
+def test_the_stager_takes_a_cross_listed_document_once() -> None:
+    """Оголосити канонічного й лишити обох придатними — це ОПИСАТИ дедуп, не зробивши.
+
+    Шість пар id у каталозі вказують на один файл. Збірник читає `ingestible`, і поки він
+    не читав `canonical_id`, ті самі байти лягали в корпус двічі — а кожна копія займає
+    окреме місце у видачі. Знайдено паралельною сесією з боку корпусу.
+
+    `ingestible` при цьому лишається true в обох: воно означає «права й форма дозволяють
+    узяти», і для перехресного розміщення це правда. Зняти його з неканонічного означало б
+    записати властивість НАШОГО конвеєра як факт про документ — та сама підміна, через яку
+    недосяжність хоста мало не стала грифом.
+    """
+    catalog = json.loads(
+        (ROOT / "config/corpus/doctrine_catalog_2026.json").read_text(encoding="utf-8")
+    )
+    sources = [s for s in catalog["sources"] if s.get("ingestible") and s.get("source_uri")]
+    groups: dict[str, list[str]] = {}
+    for source in sources:
+        groups.setdefault(str(source["source_uri"]), []).append(str(source["id"]))
+    shared = {uri: ids for uri, ids in groups.items() if len(ids) > 1}
+    assert shared, "у каталозі більше немає спільних URI — перевірці нема що охороняти"
+
+    taken = [s for s in sources if str(s.get("canonical_id", s["id"])) == str(s["id"])]
+    by_uri: dict[str, int] = {}
+    for source in taken:
+        by_uri[str(source["source_uri"])] = by_uri.get(str(source["source_uri"]), 0) + 1
+    twice = {uri: count for uri, count in by_uri.items() if count > 1}
+    assert not twice, f"збірник узяв би ті самі байти двічі: {twice}"
+
+    stager = (ROOT / "scripts/stage_doctrine_corpus.py").read_text(encoding="utf-8")
+    assert "canonical_id" in stager, (
+        "збірник більше не читає canonical_id — оголошення знову описує дедуп замість "
+        "того, щоб його робити"
+    )

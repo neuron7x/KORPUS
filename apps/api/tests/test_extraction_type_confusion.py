@@ -244,3 +244,73 @@ def test_the_markup_must_appear_in_the_first_kilobyte(tmp_path: Path) -> None:
         pytest.raises(ValueError, match="HTML content detected as"),
     ):
         _validate_type_path(path, "padded.html", "text/html")
+
+
+def test_a_pdf_that_only_opens_leniently_is_read_and_marked(tmp_path: Path) -> None:
+    """Терпимість записується, а не ховається.
+
+    `DD Form 1380` (картка тактичної допомоги пораненому) падала з `malformed PDF page
+    tree`: файл зашифрований порожнім паролем, і розшифрування впиралось у `Invalid
+    padding bytes`, яку сама pypdf зі `strict=False` ігнорує. Просто зняти `strict`
+    означало б послабити читання для ВСІХ файлів мовчки; тому дві спроби і третій стан у
+    режимі витягу.
+    """
+    from korpus.infrastructure.pdf_extraction import _open_pdf
+
+    calls: list[bool] = []
+
+    class _Reader:
+        is_encrypted = False
+
+        def __init__(self, _path: str, strict: bool = True) -> None:
+            calls.append(strict)
+            if strict:
+                raise ValueError("Invalid padding bytes")
+
+        @property
+        def pages(self) -> list[object]:
+            return [object(), object()]
+
+    _reader, _owner, lenient = _open_pdf(tmp_path / "x.pdf", 100, _Reader)
+    assert calls == [True, False], "строга спроба мусить бути першою"
+    assert lenient is True, "терпимість не позначена — запис не скаже, що файл нестандартний"
+
+
+def test_a_clean_pdf_is_not_marked_lenient(tmp_path: Path) -> None:
+    """Дуальність: файл, що відкривається строго, не сміє отримати позначку."""
+    from korpus.infrastructure.pdf_extraction import _open_pdf
+
+    class _Reader:
+        is_encrypted = False
+
+        def __init__(self, _path: str, strict: bool = True) -> None:
+            pass
+
+        @property
+        def pages(self) -> list[object]:
+            return [object()]
+
+    _reader, _owner, lenient = _open_pdf(tmp_path / "x.pdf", 100, _Reader)
+    assert lenient is False
+
+
+def test_the_page_ceiling_is_not_bypassed_by_the_lenient_retry(tmp_path: Path) -> None:
+    """Ліміт сторінок перевіряється в ОБОХ спробах.
+
+    Інакше послаблення читання тихо послабило б і запобіжник від вичерпання пам'яті:
+    файл, що не відкрився строго, обходив би стелю через терпиму гілку.
+    """
+    from korpus.infrastructure.pdf_extraction import _open_pdf
+
+    class _Reader:
+        is_encrypted = False
+
+        def __init__(self, _path: str, strict: bool = True) -> None:
+            pass
+
+        @property
+        def pages(self) -> list[object]:
+            return [object()] * 5000
+
+    with pytest.raises(ValueError, match="page count exceeds"):
+        _open_pdf(tmp_path / "x.pdf", 100, _Reader)

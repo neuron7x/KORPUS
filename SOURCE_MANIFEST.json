@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1513,
-  "root_sha256": "a093ad1a35e16756b280e652c0afd38412ae681d59e188acb375d4aca18291a0",
+  "file_count": 1585,
+  "root_sha256": "ecccba3ce8d6687308bf5452734765c773f16149b564af6c8d1bd8924536f318",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 39365,
-      "sha256": "2baf8d6a4568e6e494a4b8f4d3daf32765f15aa7c61ade63e6f21559e9a8ab66",
+      "bytes": 39445,
+      "sha256": "4fcdcea8d6e2cfba400cc1ef23333374ca739700f67c93d3cc90fa097a999f05",
       "mode": "0644"
     },
     {
@@ -151,8 +151,8 @@
     },
     {
       "path": ".verdict-ledger.jsonl",
-      "bytes": 47369,
-      "sha256": "4906df675403af0a2a66e86e33bde3a1522950c732cd9915d78bf5e43d5c6f16",
+      "bytes": 72056,
+      "sha256": "2fcdfdfc39149c4cce41159cd7a0dfd092c515ad77069a777c84334b67d57678",
       "mode": "0644"
     },
     {
@@ -373,8 +373,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 50825,
-      "sha256": "550acd93c41784e19c2c5c98da73370a6c408c4147903434afe713d484cac922",
+      "bytes": 51007,
+      "sha256": "5b905d246abf1c1b9af4871a0fcdf671d9fc33517b5bd3e92314dfe61289f35d",
       "mode": "0644"
     },
     {
@@ -631,8 +631,8 @@
     },
     {
       "path": "apps/api/pyproject.toml",
-      "bytes": 2687,
-      "sha256": "749916cb301229afe490bdd80bd57ca239bec91e1d08371cb7da61e0982cbc24",
+      "bytes": 3439,
+      "sha256": "30eee35c4235066f5f8c56960815c5e9264cc50f704d4bae94626c1d303642b2",
       "mode": "0644"
     },
     {
@@ -2095,8 +2095,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/pdf_extraction.py",
-      "bytes": 4762,
-      "sha256": "fe9e24654fd215c26e13938d31b374a32c7de9edaf2fb4109a08f4425d94d16d",
+      "bytes": 7014,
+      "sha256": "a3f4f6c5b1fa5c8b19dc55911c6c5cb2a2cfc17718a1882bb3e6d770c4fd19ed",
       "mode": "0644"
     },
     {
@@ -2893,8 +2893,8 @@
     },
     {
       "path": "apps/api/tests/test_doctrine_catalog.py",
-      "bytes": 52643,
-      "sha256": "e090fa35d7be09db12a4acd55624580afb2c0bc2ecd9db8bb506e2f18d094c06",
+      "bytes": 55682,
+      "sha256": "70d7d976484927beb9e0bc07dd188c8781625a5cc5b179054212ca730b260641",
       "mode": "0644"
     },
     {
@@ -3091,8 +3091,8 @@
     },
     {
       "path": "apps/api/tests/test_extraction_type_confusion.py",
-      "bytes": 10926,
-      "sha256": "dbe64f81ba73374865ab91f16d4924bddfb69b8ca6d5f60c4b88063366512268",
+      "bytes": 13895,
+      "sha256": "050808e64d3eb33c2aa4888e6dda2689a59b25d33575a630609ddf897282304b",
       "mode": "0644"
     },
     {
@@ -3121,8 +3121,8 @@
     },
     {
       "path": "apps/api/tests/test_gate_parity.py",
-      "bytes": 119388,
-      "sha256": "909d4b0a650a26b7943b31064d15367613e22ba0cae9a840f732639513f1ea1d",
+      "bytes": 121886,
+      "sha256": "fc2a15d092b1e3330f972fbaf3b2dd0b986b90672fa864dba35af2fb6d819989",
       "mode": "0644"
     },
     {
@@ -3379,8 +3379,8 @@
     },
     {
       "path": "apps/api/tests/test_malformed_pdf_containment.py",
-      "bytes": 4380,
-      "sha256": "98021cf9acc968902062e472177649fd9b11a1fc90df9d226bafbd75914dd1b1",
+      "bytes": 5190,
+      "sha256": "5b66e38ae8b57c6ffd15e7a458a32a2f4cad04a8207ded01c2766f041c47a89b",
       "mode": "0644"
     },
     {
@@ -5502,9 +5502,27 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ADV-ATP-3-37.15-2020.txt",
+      "bytes": 8031,
+      "sha256": "76e1e0f0f5cbf0df3561c7233bba447bde8dd9ec95dade7c3555b817d1069f0b",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ADV-ATP-7-100.1-2024.txt",
+      "bytes": 8855,
+      "sha256": "1761ac97d56e22826315b53f0a8fe9d8e72188b2a3b55da95b4057b0202cfd50",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/ADV-CPD-REPORTS-2026.txt",
       "bytes": 10096,
       "sha256": "3e1d71c80fe4f6c1390894af494508a0a587a6ad1afb19e2c40945abc095709d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ADV-FM-7-100.1-2004.txt",
+      "bytes": 4977,
+      "sha256": "db5feb608210247e54a358af32166bbee0f69afea7db265ddc76980cfa03d555",
       "mode": "0644"
     },
     {
@@ -5514,9 +5532,21 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ADV-TC-7-100.4-2015.txt",
+      "bytes": 9365,
+      "sha256": "5c1325c88fd3aecc3979d4860f3140b80b5ed6a6f0564169cff4842bb880e2ac",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/ADV-UKDI-PROBABILITY-2022.txt",
       "bytes": 5260,
       "sha256": "d6406b17440b52d96454c3186b8e6e5eec19c907dcd903e16272445f81628083",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/AMD-FM-3-01-2025.txt",
+      "bytes": 7786,
+      "sha256": "78e97e032c23084e866ca9d1c5f15af8c212756e1416bd2dfcf542b13a6e16cb",
       "mode": "0644"
     },
     {
@@ -5598,6 +5628,18 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ARM-MOU-578-2018.txt",
+      "bytes": 9642,
+      "sha256": "13a114c6e8b175fa6765ec71550e6912e099d26d0d82e65c182dfe64ae98005c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARM-MVS-1313-2016.txt",
+      "bytes": 9014,
+      "sha256": "48f98630733612976f8cae9ba046312126008e1873aa6266aa0eb08906b11b7a",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/ARM-TC-3-20-31-040-2025.txt",
       "bytes": 12319,
       "sha256": "35ff86e41786ce5a49f1916d82dc9ec7bb0e37527f8d8f012010b8b06dac43d7",
@@ -5637,6 +5679,24 @@
       "path": "config/corpus/captures/ARM-TC-3-20-31-9-2024.txt",
       "bytes": 8976,
       "sha256": "111d098f6d736b48209c3d08dc78cca789ca3e66ba461b7e30467d783073795d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARTY-ATP-3-09-12-2021.txt",
+      "bytes": 8332,
+      "sha256": "f888070b7e101dbaf3f425acaf8a51864e048dcdbf3057350763d2cb3a48bc5a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARTY-ATP-3-09-23-2026.txt",
+      "bytes": 9055,
+      "sha256": "ff3b087f1e45709b9e3a545b263440e0996ea7d6c31cc54e7942ae290965eba7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ARTY-FM-3-09-2024.txt",
+      "bytes": 8022,
+      "sha256": "b17e3e24e19272ea5abdb965083a2a1d8b2051f1b688a61b66b623bebcb35bbd",
       "mode": "0644"
     },
     {
@@ -5682,6 +5742,108 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ENG-ATP-3-34-22-2021.txt",
+      "bytes": 8552,
+      "sha256": "ff5bde1f47dfcd4c0e0e1e48c82a21d469a42ea105733c38abcc2b71c050a3c4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ENG-ATP-3-34-40-2023.txt",
+      "bytes": 8579,
+      "sha256": "1377ced3b4d1d719726113c17a784067d63600f86ae51d9b7f7672b38c73118a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ENG-FM-3-34-2025.txt",
+      "bytes": 5046,
+      "sha256": "9f36e265ca16af34e8da99fe6bc0bf5c74bff2f2b90978cf3eced2c9f5a7ff78",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/EW-ATP-3-12-3-2023.txt",
+      "bytes": 6771,
+      "sha256": "36e2386b74b3b905430b144f3cf9f20dbc537f8bfb27eb19718d2c57dbb30e28",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/EW-ATP-3-12-4-2023.txt",
+      "bytes": 9213,
+      "sha256": "d9213ee4b8377370e1af832fb792fd597d28dd53514c708a1ff66460ceb9e8e8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/EW-FM-3-12-2025.txt",
+      "bytes": 5245,
+      "sha256": "b1243f9cc20db5077995e011efff6b4d9db1e524ca17506c999e386683a69ac1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ISR-ATP-2-01-4-2026.txt",
+      "bytes": 10769,
+      "sha256": "f8ec63e22edc8a450fac9d26794dbb0c09fcaa028157d7f79f9ba89d54641513",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ISR-FM-2-0-2023.txt",
+      "bytes": 8906,
+      "sha256": "d3ea0e0188ac4b6a5140977c2c8dbf0883532a9193b115e89dc130f386ca49fd",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ISR-FM-3-60-2023.txt",
+      "bytes": 8548,
+      "sha256": "74d64e9edd53251d1404f2910b437c6dd677e07a66a1e4a8f71b9d00679f6cad",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LDR-ADP-6-22-2019.txt",
+      "bytes": 8329,
+      "sha256": "7870620c7c4fb48cf0a0dac0de26404f2651ce93cd21494939e240d97115ac3c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LDR-ATP-6-22-1-2024.txt",
+      "bytes": 10937,
+      "sha256": "1f4c9df26ba5deefe8bf5ce4e00c86dac99f67585d967fb2dc81c8cce1458c5f",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LDR-FM-6-22-2022.txt",
+      "bytes": 6140,
+      "sha256": "c79aa609f7385a329283bbe0edee0b468f305deb41cc5db0617200153cddf24c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LOG-ATP-4-33-2024.txt",
+      "bytes": 9113,
+      "sha256": "5f1720710650d9f81e4169cee3c12a8c5fc2c234b5311db88688ed388042267d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LOG-ATP-4-90-2026.txt",
+      "bytes": 8966,
+      "sha256": "a160b8f35b699b6e85a6f18f8e5df1985e1c62d860ff4998da3b1fca313d4138",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LOG-ATP-4-90-5-2021.txt",
+      "bytes": 9317,
+      "sha256": "949bcb5fc882f7e145a045ac1398a314991f0699ba03d5e4760c901f752052cc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LOG-ATP-4-93-2023.txt",
+      "bytes": 5423,
+      "sha256": "3f61dd59070f0b5d67225c66f39492de0c60fad3fb677b0e10bca5a7d2b40ab4",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/LOG-FM-4-0-2026.txt",
+      "bytes": 5082,
+      "sha256": "70c81e7804dc1a1bb18ad04a5f20d6f20604969a1840a807908376e585034178",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/MED-ATP-4-02-11-2026.txt",
       "bytes": 9098,
       "sha256": "c9c11fb90c1d944f2dd280eae05a0b2797288ddec2edf7b659fc990f648dba7d",
@@ -5694,9 +5856,57 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/MED-COERCCC-ERC-FY2026.txt",
+      "bytes": 7750,
+      "sha256": "aeb0bc2dd452a307f3810e34a653808d7234cc068c7170d2bf242337a2969bd7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-DD1380-2025.txt",
+      "bytes": 2595,
+      "sha256": "12106905bf01a5fc3f58cb1cc91973c18a13ee0af1f0da95ac2d1ce39bbfd9ee",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-JTS-CPG-AIRWAY-2026.txt",
+      "bytes": 7847,
+      "sha256": "b9a82535fd27dc7d1d4214ed727366b27b1830921eab90af04c27c1daa839af7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-JTS-CPG-PCC-2021.txt",
+      "bytes": 7601,
+      "sha256": "1c5a80e98cbd38a913ca3c13e3dc9579f1e1d943a9e9f6ff02f633c0df2dd32c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-JTS-CPGINDEX-2026.txt",
+      "bytes": 5148,
+      "sha256": "b4963eb2b949158cff0fe33dad163f3fe2ab00ebeb4f0e027254d8d4d07d431d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-MOU-436-2024.txt",
+      "bytes": 9256,
+      "sha256": "a578288b55ab28e4edbb936e0ff0ccd3f57b482874080022b629f66b3e68b44c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-MOU-516-2025.txt",
+      "bytes": 9732,
+      "sha256": "7a01c014b4a1dc0815ae0edc2b11be4e067187c07c4f70f2303a959e9c9d565b",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/MED-TC-3-21-75-2013.txt",
       "bytes": 9493,
       "sha256": "459d0335b5bacfd3aad1724a2a0df507592c6fbd589cdb5eac3e33b900cb3388",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/MED-VKP-7-00-01-01-2020.txt",
+      "bytes": 9427,
+      "sha256": "4de4d0d839256f452e10a5b3229378e84800f7954cf4c2ea9b119afbfe83a60c",
       "mode": "0644"
     },
     {
@@ -5706,9 +5916,87 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/ORG-CMU-168-2022.txt",
+      "bytes": 8456,
+      "sha256": "f01c8d0097b2b850ebac725049f7da59d41f284072fd2345e3397b2c761115f0",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-CMU-704-2017.txt",
+      "bytes": 8017,
+      "sha256": "b01109679b36bf203dab099685f4e9afd716e403eb756cae9e52a048b3bd75a2",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/ORG-KYIVPOST-RANKS.txt",
       "bytes": 5140,
       "sha256": "646e440e2da8c51d35e3ea72271c082ce463c6aa7138f781195ca4f18a27ca1d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-1932-XII.txt",
+      "bytes": 6589,
+      "sha256": "f079103e15b69fa821b6d979dbff10367a1d92ec0edb1e5795d984aacf0bfbd1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-1934-XII.txt",
+      "bytes": 6595,
+      "sha256": "653a73b92316c648ef25c7fc5337336f8220f493de9a97cebb3b2790423443ba",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-2011-XII.txt",
+      "bytes": 6622,
+      "sha256": "771249dea915170269c412eddbf4dee5edae005d0688e843ffc2b8ce73e15797",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-2232-XII.txt",
+      "bytes": 6451,
+      "sha256": "8b5df0367b87427fb1baf1767f87873f83f91e36edec4615707c3f7d2775ab60",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-2262-XII.txt",
+      "bytes": 7296,
+      "sha256": "b92cb7329a4106ebe479745c1436ba94f5362f19576784e7a406458c7640b888",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-3543-XII.txt",
+      "bytes": 6500,
+      "sha256": "5be3ff6b8235d630d926773bc016f3784bbce3f65324a3652549c0f7e3bcd19e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-3551-XII.txt",
+      "bytes": 6286,
+      "sha256": "1f39a79647b4e81dc6faea9e73e60221e170fb844ebac5ff960ec3afa9216db8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-548-XIV.txt",
+      "bytes": 6408,
+      "sha256": "9a6d1bee0adc6a3584c188098b3dd3b9d1ed4d5af8fe414d1e7e486ca907ffdf",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-549-XIV.txt",
+      "bytes": 7228,
+      "sha256": "5a99b8f762c8954af5badacf728dbbaabcb14a39d7eb6609710f4034e5a801fd",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-550-XIV.txt",
+      "bytes": 6822,
+      "sha256": "ed7f154115315b0e64635194cbc586f1cfe9e9607bb05c4ce477b413b6667ccc",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-LAW-551-XIV.txt",
+      "bytes": 7163,
+      "sha256": "943b6e16131022a86284a12969b6ed77476db9b3cc5f28e813e4d7bc8f47aafd",
       "mode": "0644"
     },
     {
@@ -5721,6 +6009,114 @@
       "path": "config/corpus/captures/ORG-MECH-STATUTE-P3.txt",
       "bytes": 8510,
       "sha256": "a63329fc75ff029a3f3dd774c4a601a3abf91d9b3edd00b8f7142541dccc15d9",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-124-2026.txt",
+      "bytes": 8968,
+      "sha256": "e827d14f44edbee69366b2978b2a83891cc0f49aa37a802706e7814311b7904a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-317.txt",
+      "bytes": 8042,
+      "sha256": "4e1af31b7001cf202a25f0222311eec2975aa27470e4fcfba4ea005548be6458",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-402-VLK.txt",
+      "bytes": 7446,
+      "sha256": "afc13c7c59781ffc9277d9a915a51908e233ca46b08778a031cd27ff07f74b5e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-444-RESERVE.txt",
+      "bytes": 7646,
+      "sha256": "51dc8c41f6950ae792fc4e02ab186509c36db6ef612c6fe13152a45c15fc2a9a",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-444.txt",
+      "bytes": 8572,
+      "sha256": "c5f28846151a0c48f3f09857ca0ffc5ed1b756b1cd126f9c9ac900e4a8910c30",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-ORDER-825-2024.txt",
+      "bytes": 8879,
+      "sha256": "4cfc3b0cd0491143f8113f002d2966ea57558f39477a0fd75e44c9c62d458612",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-DSHV.txt",
+      "bytes": 9666,
+      "sha256": "be3c49fe4be40982e2bbed3689c80705bde22f213d0288ae0a9f06ce8bf1fdf1",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-GS.txt",
+      "bytes": 7671,
+      "sha256": "417a417b10f111cb288fe9a068a117391c5ac7b29d52d942204cf82396134e7d",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-LOG.txt",
+      "bytes": 8470,
+      "sha256": "7adef2ea7919293f9bd6b10212b2f43d47d1e14c1a7d47b0dc71c26c11153f38",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-MED.txt",
+      "bytes": 8687,
+      "sha256": "d8700393cf5bd0b8214da6edfe49980a25c98f63ae70d5490f7af06970f1d6c8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-PS.txt",
+      "bytes": 8407,
+      "sha256": "3076f9fbc99c8dd526334b3f843d64e0fe42da407c9dbeda8f0915408f609806",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-SBS.txt",
+      "bytes": 5962,
+      "sha256": "e8e25d569b3534256302f0637fec33e526b7fbd45d1a666d2a46877078b765a8",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-SIGNAL.txt",
+      "bytes": 7909,
+      "sha256": "caacb1c151966c24085344f45a657f1395158a1a548fcb6b7a1d00b66773fa92",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-SSO.txt",
+      "bytes": 8009,
+      "sha256": "017f02ea5527de91bb5109bce0030ed90b3ca750e36f706df0fd0c9f51ef9103",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-SUPPORT.txt",
+      "bytes": 7836,
+      "sha256": "135c91afb8bcf759cc91da94da5c86f09644b7b715479a213436cf7c1547950e",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-SV.txt",
+      "bytes": 9567,
+      "sha256": "ff59b38f933266d03c1268814e42c4765bebeea761d583c2b7054f491d5240a7",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-TRO.txt",
+      "bytes": 7601,
+      "sha256": "da17fe3070b0f9930d22a19181a4d1d55f72baeecc7b548586d5ff5cbc54e011",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/ORG-MOD-WEB-VMS.txt",
+      "bytes": 9406,
+      "sha256": "07571ed2d151358b3ac79261940c8b13650d0d3a1da949e88cf154d174341cee",
       "mode": "0644"
     },
     {
@@ -5817,6 +6213,12 @@
       "path": "config/corpus/captures/SIG-FM-6-02-2019.txt",
       "bytes": 8777,
       "sha256": "466c5863d7a874901e4c3001d24de7e09f5911210b6c78f4949336b7f3bae173",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/SIG-KMU-1340-2023.txt",
+      "bytes": 8784,
+      "sha256": "6f713fc0e236279cca3e65df3c5546f7cca92dc3c8030bc080b20f9ac25b6df8",
       "mode": "0644"
     },
     {
@@ -6036,6 +6438,30 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/captures/TRN-ADP-7-0-2024.txt",
+      "bytes": 9862,
+      "sha256": "9ae0dab73e8152dc7e7ea5e0ca46dedcec9979c7f2cb99b2a67994e49c630061",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/TRN-FM-7-0-2021.txt",
+      "bytes": 5664,
+      "sha256": "a272698f7dc06c53738c7a119a3d7bed1e935cd53c51b5c222df6b7f33dc874c",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/UAS-ATP-3-01-81-2025.txt",
+      "bytes": 10324,
+      "sha256": "18026a30bf8ff57aead682056456c72a02d03daf5f8c28954cbf74925bd0b9d0",
+      "mode": "0644"
+    },
+    {
+      "path": "config/corpus/captures/UAS-TC-3-01-81-2025.txt",
+      "bytes": 9712,
+      "sha256": "031ea83eccc6d5a4c0450994f8691154a6e23670e810c0958b69ec9a937a0625",
+      "mode": "0644"
+    },
+    {
       "path": "config/corpus/captures/XC-COTCCC-JTS.txt",
       "bytes": 4891,
       "sha256": "298374637fe1a9987193354f9dde31c70bf3238b7a98559bc4d7e7a630ec6965",
@@ -6067,8 +6493,8 @@
     },
     {
       "path": "config/corpus/doctrine_catalog_2026.json",
-      "bytes": 1075630,
-      "sha256": "19533f8809d72be8ed660dd19028e4b5ef751241096c0fd3b883553807921358",
+      "bytes": 1159638,
+      "sha256": "485592a29616e346ce075ed8e5ecb5c178efb9a653de28ab7a0790aa4fcb2d03",
       "mode": "0644"
     },
     {
@@ -6170,7 +6596,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "de715d4e1b1e78f7bae6dc24f499759fc269e57be3ea307b0de295a4f245ef19",
+      "sha256": "dfb9da59f60a2fe22bcd90663f41efb55f3038a4a75844f770ee31d44181bc28",
       "mode": "0644"
     },
     {
@@ -6181,8 +6607,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 257113,
-      "sha256": "abd8ae73be213a6beddafe64516f76e3696e03756c9424fc3cccc58a103cc801",
+      "bytes": 257348,
+      "sha256": "e89cdf28e653bd4026d1d4af7c43af7c6139d5128f0f0f66d2d55625fad5199b",
       "mode": "0644"
     },
     {
@@ -7723,8 +8149,8 @@
     },
     {
       "path": "scripts/capture_source_evidence.py",
-      "bytes": 52023,
-      "sha256": "38703004e412f3b15ce5852eec595469f4a38660c680677dffb6c0bd7914feaf",
+      "bytes": 55806,
+      "sha256": "746ea2ebc8509481e46e241d0ff32a079c3d99064bbb77ac76cbc577bc251361",
       "mode": "0755"
     },
     {
@@ -8839,8 +9265,8 @@
     },
     {
       "path": "scripts/stage_doctrine_corpus.py",
-      "bytes": 12322,
-      "sha256": "1ed71b8488290e978690f4d3c64dd31bb02c6f298257cd0e9eabaf923d31d91f",
+      "bytes": 13642,
+      "sha256": "108dd7bdb5473ceadcd1db06f331ac53de6cbc1b80439e2fca553af8b6d42134",
       "mode": "0755"
     },
     {
@@ -8874,6 +9300,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/validate_catalog_uri_uniqueness.py",
+      "bytes": 17388,
+      "sha256": "2835f730d66d6759dc0ca3b39f55cec602da064c7103c507503f63ecbc72d146",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/validate_content_signals.py",
       "bytes": 20204,
       "sha256": "b4bdd440a6ebdff983cf1168ecf80edd1048413451d0b7649fc6bfe9a13aa7ce",
@@ -8881,8 +9313,8 @@
     },
     {
       "path": "scripts/validate_doctrine_catalog.py",
-      "bytes": 55235,
-      "sha256": "dc3aa8f07c8dac86b6fcd7898904576fa9cc6bd6bff93851c40c1de6cf60c941",
+      "bytes": 59008,
+      "sha256": "6ce6912a5ef9b7badc123b7110fb10a8da90646a1c2e7036f92fad55562277f8",
       "mode": "0755"
     },
     {

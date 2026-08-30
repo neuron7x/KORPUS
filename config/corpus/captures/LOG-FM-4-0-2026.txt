@@ -1,0 +1,25 @@
+# KORPUS extract record — LOG-FM-4-0-2026
+# FM 4-0 — SUSTAINMENT OPERATIONS
+#
+# This is not the document. It is a record of having read it: the digests below
+# bind both the bytes served and the text this system extracted from them, and
+# the body is the opening and closing words only.
+uri: https://armypubs.army.mil/epubs/DR_pubs/DR_a/ARN46157-FM_4-0-000-WEB-1.pdf
+fetched_on: 2026-08-30
+media_type: application/pdf
+bytes_as_served.sha256: 90bc9a57f6508a73edd47f1e3a9f0f491e73c1e289da2d32d70c2ca626778d35
+bytes_as_served.bytes: 9196569
+bytes_as_served.means: точні байти, які віддав сервер, після зняття Content-Encoding
+text_as_extracted.sha256: e57e33178627f3185abcd8d50c75e9d6e988d07bb09df2a2d8a517f1ef334f4d
+text_as_extracted.extractor: pdf_text
+text_as_extracted.pages: 256
+text_as_extracted.words: 124384
+text_as_extracted.canonicalised: CRLF→LF, NFC
+text_as_extracted.means: що з тих байтів зробив екстрактор ЦІЄЇ системи
+body_is_bounded: first 400 and last 200 words
+---
+FM 4-0 SUSTAINMENT OPERATIONS MARCH 2026 DISTRIBUTION RESTRICTION: Approved for public release; distribution is unlimited. This publication supersedes FM 4-0, dated 31 July 2019; FM 4-01, dated 3 April 2014; FM 4-30, dated 1 April 2014; and FM 4-40, dated 22 October 2013. HEADQUARTERS, DEPARTMENT OF THE ARMY Foreword Advances in civilian and military technology have changed the character of warfare and the conduct of Army and joint force operations. The dilemmas posed by the integration of new technologies into the future battlefield have changed the way the Army and the joint force sustain multidomain operations. In the future, sustainment will be more complex, demanding, visible to the enemy, vulnerable, and therefore, must be more synchronized, dispersed, and responsive than ever before. FM 4 -0 provides a doctrinal approach for armies, corps, divisions, and brigades to address sustainment challenges across the range of military operations, the competition continuum and the strategic contexts in which Army forces conduct operations. As the keystone sustainment doctrine, it describes how sustainment is embedded into all military operations, tasks, and activities. FM 4-0 also identifies the sustainment implications for the Army’s operating concept and describes how sustainment forces are arrayed against the operational framework to include sustainment considerations for operations in a maritime environment. The currently ongoing Russo-Ukrainian conflict is the most recent example of the current character of war, and it has provided many critical insights into how the U.S. Army will need to support large -scale combat operations in the future. FM 4 -0 integrates many of these lessons learned into its doctrinal framework. The Army and joint force must quickly learn and adapt to the challenges of the modern battlefield to survive, sustain, fight, and win in the future. The wide variety of sensors and intelligence disciplines employed by our adversaries will make the future battlefield transparent and contested across its breadth and depth. Sustainment units, nodes and routes can and will be seen by the enemy. Sustainment nodes and assets will be targeted with direct and indirect fires delivered by air, land, maritime, cyberspace, space, and special operations forces. The enemy will employ unmanned aerial systems of every size and description to find and engage sustainment formations. These fundamental truths of warfa re must be understood by all leaders, especially sustainment leaders, and integrated into all aspects of operations. The geography, terrain, infrastructure, and vast distances in the Pacific and European
+
+[…]
+
+4-77 contested logistics environment, 1-33, 1-52, 7-43 coordinating authority, 1-69 D directive authority for logistics, 1-64, 1-66, 1-76, 2-110, 6-50 E extend operational reach, 1-58, 3-77, 5-97 F-G financial management, 1-5, 3-70, 3-123, 5-64 freedom of action, 1-56, 5-97, 6-51 H health service support, 1-7, 3-84, 5-67, 6-60 I imperatives, 1-27 J-L joint command for logistics, 1-76, 2-46, 2-59 joint operations area opening, 3-22 M-N Military Sealift Command, 2-11, 2-14, 3-26, 6-15, 6-45 United States Army Transportation Command, 2-12, 3-26, 6-14 O operational contract support, 2-26, 3-67, 7-58 P-Q personnel services, 1-6, 3-74 prolong endurance, 1-60, 5-311 R rear operations, 5-106, 5-241, 6-34 S support area operations, 5-112, 5-121, 6-36 support area security, 5-114 T tenets of operations, 1-22 Theater Medical Command, 2-60, 2-149, 2-154, 3-124 U-Z United States Army Financial Management Command, 2-24, 3-70 This page intentionally left blank. FM 4-0 By Order of the Secretary of the Army: Official: MATTHEW L. SANNITO Administrative Assistant to the Secretary of the Army 2607500 DISTRIBUTION: Active Army, Army National Guard, and United States Army Reserve. Distributed in electronic media only (EMO). 20 March 2026 RANDY A. GEORGE General, United States Army Chief of Staff This page intentionally left blank. PIN: 205602-000
