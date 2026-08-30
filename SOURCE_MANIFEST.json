@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1584,
-  "root_sha256": "f13936d08f13845cc6d110a53393e4b7bf363f2e88abac03bf814ba82b31607b",
+  "file_count": 1590,
+  "root_sha256": "56e7faa708a3d9de5edb3fc1af3f025cabaaed67fba8e3915640a4495cceaa8d",
   "files": [
     {
       "path": ".dockerignore",
@@ -4452,6 +4452,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/web/design/icon.svg",
+      "bytes": 1227,
+      "sha256": "5d37b88f3fd44b27a8222488e8d842458145d31c00f9e707616b744dfe142798",
+      "mode": "0644"
+    },
+    {
       "path": "apps/web/design/tokens.json",
       "bytes": 12037,
       "sha256": "f7270ba93d163d1874578a8c453efd8b4487f5a4c7330e550cafc2972e578474",
@@ -4596,15 +4602,39 @@
       "mode": "0644"
     },
     {
+      "path": "apps/web/public/icons/apple-touch-icon.png",
+      "bytes": 650,
+      "sha256": "8c78bba9e54af0e8c88a0e4b1ed3dbb32911656348867703cb32a48f85ceb3b9",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/web/public/icons/icon-192.png",
+      "bytes": 762,
+      "sha256": "6f93d3a2c6df158cde67fb2a744fb1d0283a6b1d6c49539e99b51fe5ea8b884b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/web/public/icons/icon-512.png",
+      "bytes": 2050,
+      "sha256": "37ddc9464e4f464750b633bf18601e80d89f23452c713bc34221d6acfaeefe98",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/web/public/icons/icon-maskable-512.png",
+      "bytes": 2047,
+      "sha256": "db620ca8d5c98761c0fdf874616c45f16944cdeabbdde9bf43da19008dfaaec4",
+      "mode": "0644"
+    },
+    {
       "path": "apps/web/public/index.html",
-      "bytes": 15630,
-      "sha256": "89bc4bc3c704d51ffcc3e7e3c1019d3915818c6b3a7a160fdb891217f48712ab",
+      "bytes": 15820,
+      "sha256": "66dca3c05f7140463c1c19cb6c95669049d247fd1b59953bcca6da95a2daa6b8",
       "mode": "0644"
     },
     {
       "path": "apps/web/public/manifest.webmanifest",
-      "bytes": 250,
-      "sha256": "9032d6c52f897d30e6b0588f6b68470ce4e5f3a58ea3cb3204d63b37a27dc78b",
+      "bytes": 777,
+      "sha256": "ffb22982ec0d45e840405784b59c5b7ff296b728b547820f8bddc89a20384a8c",
       "mode": "0644"
     },
     {
@@ -4663,8 +4693,8 @@
     },
     {
       "path": "apps/web/public/sw.js",
-      "bytes": 2449,
-      "sha256": "661c3c375eeed431e28def4c41e47a315d75f9291908a233dda493fd185acfc2",
+      "bytes": 2804,
+      "sha256": "0b4dd973a003f309fa2466f60941e166937b24019a6ddf8fff26afe47512800b",
       "mode": "0644"
     },
     {
@@ -4732,6 +4762,12 @@
       "bytes": 413,
       "sha256": "a66b12df45ac041315b99bf3d675c25936295764e7d8d1cf566b36999818d8b2",
       "mode": "0644"
+    },
+    {
+      "path": "apps/web/scripts/generate_icons.py",
+      "bytes": 2631,
+      "sha256": "d59d47913a0301236b37c62f60a27532a4eeaa48dc5471976b1b5874a7b0f3b0",
+      "mode": "0755"
     },
     {
       "path": "apps/web/scripts/serve.mjs",

@@ -1,4 +1,4 @@
-const CACHE = "korpus-shell-v84";
+const CACHE = "korpus-shell-v85";
 // Every module app.js imports must be cached: a module whose import is not cached fails to
 // execute offline, and one missing file turns a degraded page into a blank one. /api.js
 // joined when app.js stopped carrying its own fetch handling; /conversations.js joined
@@ -9,7 +9,11 @@ const ASSETS = ["/", "/index.html", "/tokens.css", "/styles.css",
   "/reader_verdicts.js",
   "/reader_conversations.js",
   "/reader_corpus.js",
-  "/reader_declaration.js", "/billing.js", "/transport_contract.js", "/api.js", "/conversations.js", "/config.js", "/manifest.webmanifest"];
+  "/reader_declaration.js", "/billing.js", "/transport_contract.js", "/api.js", "/conversations.js", "/config.js", "/manifest.webmanifest",
+  // Іконки в кеші не для швидкості: без них встановлений застосунок, відкритий
+  // офлайн, показує порожній значок у перемикачі задач.
+  "/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon-maskable-512.png",
+  "/icons/apple-touch-icon.png"];
 // The operator consoles are deliberately absent. They validate against a generated copy
 // of the request contract, and a cached console is a console validating against rules
 // the API may no longer have — the drift scripts/generate_web_contract.py exists to
