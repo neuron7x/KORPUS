@@ -4305,6 +4305,55 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Покриття гейтами. Отрути ламають ОЗНАЧЕННЯ покриття, не його оформлення.
+    Mutant(
+        "M434_COVERAGE_IGNORES_SCRIPT_EQUIVALENCE",
+        "scripts/verify_gate_closure.py",
+        "        if used and used <= running:",
+        "        if False:",
+        (
+            "apps/api/tests/test_gate_closure.py::test_a_target_whose_script_another_target_runs_is_not_a_gap",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M435_RECIPE_EDGES_ARE_NOT_REACHABILITY",
+        "scripts/verify_gate_closure.py",
+        "                for match in _RECURSIVE_MAKE.finditer(line):",
+        '                for match in _RECURSIVE_MAKE.finditer(""):',
+        ("apps/api/tests/test_gate_closure.py::test_recipe_edges_count_as_reachability",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M436_A_DEAD_EXEMPTION_IS_TOLERATED",
+        "scripts/verify_gate_closure.py",
+        "    dead = sorted(t for t in named if t in covered)",
+        "    dead: list[str] = []",
+        (
+            "apps/api/tests/test_gate_closure.py::test_an_exemption_for_something_already_enforced_reddens",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M437_A_GHOST_EXEMPTION_IS_TOLERATED",
+        "scripts/verify_gate_closure.py",
+        "    ghosts = sorted(t for t in named if t not in edges)",
+        "    ghosts: list[str] = []",
+        (
+            "apps/api/tests/test_gate_closure.py::test_an_exemption_for_a_target_that_no_longer_exists_reddens",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M438_AN_UNREGISTERED_GAP_IS_TOLERATED",
+        "scripts/verify_gate_closure.py",
+        "    missing = sorted(t for t in targets if t not in covered and t not in named)",
+        "    missing: list[str] = []",
+        (
+            "apps/api/tests/test_gate_closure.py::test_a_new_unwired_verification_target_reddens_on_the_real_makefile",
+        ),
+        full_copy=True,
+    ),
 )
 
 

@@ -4211,7 +4211,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4633,
+      "lines": 4682,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4653,6 +4653,14 @@
       "max_function_lines": 66,
       "max_nesting": 1,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/verify_gate_closure.py": {
+      "lines": 308,
+      "max_complexity": 15,
+      "max_function_args": 4,
+      "max_function_lines": 66,
+      "max_nesting": 4,
+      "reason": "Гейт покриття гейтами: що саме означає «дерево зелене». Виміряно 193 цілі, 44 перевірочних, 27 не виконуються під `check`. Стеля — виміряне значення дня."
     },
     "scripts/verify_gcp_production.py": {
       "lines": 37,
@@ -6828,6 +6836,17 @@
       "reason": "Форматування ruff двох файлів, які прийшли з другої гілки незачесаними: розбір задовгих функцій там зробили, а `ruff format` після нього не прогнали. Формат додає рядків (перенесення аргументів), і стеля виставлена на виміряне після нього.",
       "to": {
         "max_function_lines": 57
+      }
+    },
+    {
+      "from": {
+        "lines": 4633
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Мутанти M434–M438 на інваріанти покриття гейтами: знята еквівалентність за скриптом, ребра з рецептів, мертвий і примарний винятки, незареєстрована діра. Каталог мутантів — це дані.",
+      "to": {
+        "lines": 4682
       }
     }
   ],
