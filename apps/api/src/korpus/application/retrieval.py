@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import date
 from typing import Any
 
@@ -72,6 +73,27 @@ def _temporal_relevance(
     return max(0.25, 1.0 / (1.0 + age_days / 1461.0))
 
 
+def authority_tier_floor(ranked: Sequence[RetrievedEvidence], relevance_floor: float) -> float:
+    """Оцінка, нижче якої клас джерела перестає щось важити.
+
+    Рахується ОДИН раз по всьому набору кандидатів: якби межа рухалась за вже обраними,
+    клас джерела залежав би від того, кого встигли вибрати раніше, — тобто від порядку
+    вибору, а не від властивості джерела.
+    """
+    return relevance_floor * max((item.score for item in ranked), default=0.0)
+
+
+def authority_tier(
+    item: RetrievedEvidence, priors: dict[AuthorityClass, float], tier_floor: float
+) -> float:
+    """Клас джерела — або нуль, якщо воно не відповідає на це питання.
+
+    Не пом'якшення авторитету, а відмова присвоювати його джерелу, яке лише згадало
+    терміни: нижче межі всі змагаються релевантністю між собою.
+    """
+    return priors[item.version.authority] if item.score >= tier_floor else 0.0
+
+
 def diversify_evidence(
     ranked: list[RetrievedEvidence],
     *,
@@ -80,6 +102,7 @@ def diversify_evidence(
     per_version_cap: int = 1,
     authority_priors: dict[AuthorityClass, float] | None = None,
     subject_documents: frozenset[str] = frozenset(),
+    authority_relevance_floor: float = 0.0,
 ) -> list[RetrievedEvidence]:
     """Maximal-marginal-relevance selection, ordered by authority class first.
 
@@ -89,6 +112,17 @@ def diversify_evidence(
     contradicts. Rank is now lexicographic — authority class first, marginal relevance
     only as a tie-break inside the class — so no amount of lexical similarity promotes
     a weaker source above a stronger one.
+
+    Клас важить лише для джерела, яке САМЕ відповідає. Лексикографія правильна, поки
+    обидва джерела відповідають на питання, і хибна на хвості, де офіційне майже
+    нерелевантне: виміряно 31.08.2026, що в 11 випадках із 79 вищий клас витісняє помітно
+    кращий збіг, подекуди втричі кращий, і в двох це дає читачеві гіршу відповідь. Тому
+    клас зараховується тільки тим, чия оцінка не нижча за `authority_relevance_floor`
+    ЧАСТКУ від найкращої в наборі; решта змагаються між собою релевантністю. Нуль вимикає
+    правило й повертає чисту лексикографію.
+
+    Частка, а не абсолют: шкала оцінки залежить від запиту, тож абсолютний поріг міряв би
+    довжину питання, а не відповідність.
 
     Оголошений предмет стоїть ЩЕ ВИЩЕ за тим самим міркуванням: стаття з обов'язками
     ролі не повторює її назви, тож лексично програє довгому статуту, що згадав роль
@@ -102,6 +136,7 @@ def diversify_evidence(
     if limit < 1 or per_version_cap < 1:
         raise ValueError("limits must be positive")
     priors = authority_priors or AUTHORITY_PRIOR
+    tier_floor = authority_tier_floor(ranked, authority_relevance_floor)
     selected: list[RetrievedEvidence] = []
     remaining = list(ranked)
     version_counts: defaultdict[str, int] = defaultdict(int)
@@ -131,7 +166,7 @@ def diversify_evidence(
                 mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
             return (
                 1.0 if str(item.document.id) in subject_documents else 0.0,
-                priors[item.version.authority],
+                authority_tier(item, priors, tier_floor),
                 mmr,
                 item.score,
                 item.version.source_hash,
@@ -156,6 +191,7 @@ class HybridLexicalRetriever(Retriever):
         *,
         weights: RetrievalWeights = DEFAULT_RETRIEVAL_WEIGHTS,
         diversity_lambda: float = 0.82,
+        authority_relevance_floor: float = 0.0,
         per_version_cap: int = 1,
         timeout_ms: int = 1200,
         semantic_source: Any | None = None,
@@ -169,6 +205,7 @@ class HybridLexicalRetriever(Retriever):
         self.candidate_budget = candidate_budget
         self.weights = weights
         self.diversity_lambda = diversity_lambda
+        self.authority_relevance_floor = authority_relevance_floor
         self.per_version_cap = per_version_cap
         self.timeout_ms = timeout_ms
         self.semantic_source = semantic_source
@@ -243,6 +280,7 @@ class HybridLexicalRetriever(Retriever):
                 temporal_relevance=_temporal_relevance,
                 diversify=diversify_evidence,
                 diversity_lambda=self.diversity_lambda,
+                authority_relevance_floor=self.authority_relevance_floor,
                 per_version_cap=self.per_version_cap,
             )
         except ExecutionDeadlineExceeded as exc:

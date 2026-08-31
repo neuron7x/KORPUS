@@ -79,6 +79,49 @@ def _evidence(
     )
 
 
+def test_a_class_does_not_outrank_a_source_it_is_not_comparably_responsive_to() -> None:
+    """Клас важить для джерела, яке САМЕ відповідає, а не для будь-якого офіційного.
+
+    Лексикографія правильна, поки обидва джерела відповідають на питання, і хибна на
+    хвості. Виміряно 31.08.2026 на еталонному наборі: у 11 випадках із 79 вищий клас
+    витісняв помітно кращий збіг, подекуди втричі кращий.
+
+    Наслідок був не «гірша цитата», а МОВЧАННЯ: слабко релевантне офіційне джерело
+    ставало першим, не проходило допуск доказів — і відповіді не було зовсім. Утримань
+    8 із 79 проти 2 після порога, підтверджених відповідей 68 проти 74.
+    """
+    analytical = _evidence(AuthorityClass.ANALYTICAL, 0.99)
+    official = _evidence(AuthorityClass.OFFICIAL_UA, 0.20)
+
+    selected = diversify_evidence([analytical, official], limit=1, authority_relevance_floor=0.80)
+
+    assert selected[0].version.authority is AuthorityClass.ANALYTICAL
+
+
+def test_a_comparably_responsive_official_source_still_outranks_a_better_match() -> None:
+    """Негативний контроль: поріг НЕ скасовує доктрину, а лише її межу.
+
+    Без цього тесту «поріг» міг би тихо перетворитись на чисте ранжування за схожістю —
+    рівно те, що доктрина забороняє.
+    """
+    analytical = _evidence(AuthorityClass.ANALYTICAL, 0.99)
+    official = _evidence(AuthorityClass.OFFICIAL_UA, 0.85)
+
+    selected = diversify_evidence([analytical, official], limit=1, authority_relevance_floor=0.80)
+
+    assert selected[0].version.authority is AuthorityClass.OFFICIAL_UA
+
+
+def test_a_zero_floor_is_exactly_the_previous_lexicographic_rule() -> None:
+    """Вимикач мусить вимикати: інакше «нуль» був би ще одним значенням, а не спростуванням."""
+    analytical = _evidence(AuthorityClass.ANALYTICAL, 0.99)
+    official = _evidence(AuthorityClass.OFFICIAL_UA, 0.01)
+
+    selected = diversify_evidence([analytical, official], limit=1, authority_relevance_floor=0.0)
+
+    assert selected[0].version.authority is AuthorityClass.OFFICIAL_UA
+
+
 def test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one() -> None:
     """Selection is lexicographic: authority class first, marginal relevance inside it."""
     analytical = _evidence(AuthorityClass.ANALYTICAL, 0.99)

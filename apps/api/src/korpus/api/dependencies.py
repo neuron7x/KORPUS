@@ -209,6 +209,7 @@ def get_answer_service(
         candidate_budget = profile.retrieval_candidate_budget
         timeout_ms = profile.retrieval_timeout_ms
         diversity_lambda = profile.diversity_lambda
+        authority_relevance_floor = getattr(profile, "authority_relevance_floor", 0.80)
         per_version_cap = profile.per_version_cap
         configuration_id = profile.profile_id
         authority_priors = profile.authority_priors
@@ -223,6 +224,7 @@ def get_answer_service(
         candidate_budget = settings.retrieval_candidate_budget
         timeout_ms = settings.retrieval_timeout_ms
         diversity_lambda = 0.82
+        authority_relevance_floor = 0.80
         per_version_cap = 1
         configuration_id = "development-default-ranking-v5"
         authority_priors = None
@@ -232,6 +234,7 @@ def get_answer_service(
         candidate_budget=candidate_budget,
         weights=weights,
         diversity_lambda=diversity_lambda,
+        authority_relevance_floor=authority_relevance_floor,
         per_version_cap=per_version_cap,
         timeout_ms=timeout_ms,
         semantic_source=semantic_source,

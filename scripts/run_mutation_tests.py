@@ -478,7 +478,7 @@ MUTANTS = (
         # lexical similarity.
         "M38_AUTHORITY_BACK_TO_A_SCORE_TERM",
         "apps/api/src/korpus/application/retrieval.py",
-        ("                priors[item.version.authority],\n                mmr,\n"),
+        ("                authority_tier(item, priors, tier_floor),\n                mmr,\n"),
         ("                0.0,\n                mmr,\n"),
         (
             "apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",
@@ -2279,8 +2279,8 @@ MUTANTS = (
         # forwards to with nothing observing it.
         "M182_RETRIEVER_PER_VERSION_CAP_WIDENED",
         "apps/api/src/korpus/application/retrieval.py",
-        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 1,",
-        "        diversity_lambda: float = 0.82,\n        per_version_cap: int = 2,",
+        "        authority_relevance_floor: float = 0.0,\n        per_version_cap: int = 1,",
+        "        authority_relevance_floor: float = 0.0,\n        per_version_cap: int = 2,",
         (
             "apps/api/tests/test_authority_ranking.py::"
             "test_the_retriever_carries_the_same_cap_its_diversifier_defaults_to",
@@ -4326,6 +4326,26 @@ MUTANTS = (
             "test_a_small_number_is_not_trusted_because_it_is_usually_a_part_index",
         ),
         full_copy=True,
+    ),
+    Mutant(
+        "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",
+        "apps/api/src/korpus/application/retrieval.py",
+        "    return priors[item.version.authority] if item.score >= tier_floor else 0.0",
+        "    return priors[item.version.authority]",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_a_class_does_not_outrank_a_source_it_is_not_comparably_responsive_to",
+        ),
+    ),
+    Mutant(
+        "M442_THE_FLOOR_QUIETLY_BECOMES_PURE_SIMILARITY_RANKING",
+        "apps/api/src/korpus/application/retrieval.py",
+        "    return relevance_floor * max((item.score for item in ranked), default=0.0)",
+        "    return 2.0",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_a_comparably_responsive_official_source_still_outranks_a_better_match",
+        ),
     ),
 )
 

@@ -61,6 +61,15 @@ class CalibrationProfile(BaseModel):
     authority_historical: float = Field(default=0.30, ge=0, le=1)
     authority_adversary: float = Field(default=0.00, ge=0, le=1)
     authority_unknown: float = Field(default=0.00, ge=0, le=1)
+    #: Наскільки релевантним мусить бути джерело, щоб його КЛАС узагалі щось важив.
+    #: Ранг лексикографічний: офіційне джерело б'є аналітичне незалежно від збігу. Це
+    #: правильно, поки обидва відповідають на питання, і хибно на хвості, де офіційне
+    #: майже нерелевантне. Виміряно 31.08.2026 на еталонному наборі: у 11 випадках із 79
+    #: (14 %) вищий клас витісняє помітно кращий збіг, подекуди втричі кращий
+    #: (-50.0 проти -15.4 за BM25); у двох це дає читачеві гіршу відповідь.
+    #: Частка, не абсолют: шкала оцінки залежить від запиту, тож абсолютний поріг міряв би
+    #: довжину питання. Нуль вимикає правило й повертає чисту лексикографію.
+    authority_relevance_floor: float = Field(default=0.80, ge=0, le=1)
     diversity_lambda: float = Field(default=0.82, ge=0, le=1)
     per_version_cap: int = Field(default=1, ge=1, le=8)
     retrieval_candidate_budget: int = Field(default=256, ge=8, le=10_000)
