@@ -404,6 +404,11 @@ class Citation(BaseModel):
     #: the field a reader uses to check that the quote came from the document the
     #: system says it did, which is the one place the shape has to be certain.
     source_hash: str = Field(pattern=r"^[a-f0-9]{64}$")
+    #: The quote begins after a sentence had already started, because the span it came
+    #: from does. Carried to the reader rather than hidden: a passage without its subject
+    #: can invert what the source says, and the reader is the only one who can see that
+    #: the beginning is missing once told to look.
+    quote_starts_mid_sentence: bool = False
 
     @model_validator(mode="after")
     def validate_quote_offsets(self) -> Citation:

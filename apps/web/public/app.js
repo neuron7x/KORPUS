@@ -307,7 +307,10 @@ function citationCard(citation, index) {
       <div class="citation-index">${index + 1}</div>
       <div class="citation-body">
         <h3>${escapeHtml(citation.title)} · ред. ${escapeHtml(citation.revision)}</h3>
-        <blockquote>${escapeHtml(citation.quote)}</blockquote>
+        ${citation.quote_starts_mid_sentence
+          ? `<p class="quote-fragment">Уривок починається не з початку речення — початок думки залишився вище. Відкрийте точний фрагмент, перш ніж діяти за ним.</p>`
+          : ""}
+        <blockquote${citation.quote_starts_mid_sentence ? ' class="fragment"' : ""}>${escapeHtml(citation.quote)}</blockquote>
         <div class="meta">${facts}</div>
         <button type="button" class="secondary citation-open" data-open-span="${escapeHtml(String(citation.span_id))}" data-version-id="${escapeHtml(String(citation.version_id))}">Відкрити точний фрагмент</button>
       </div>

@@ -2000,6 +2000,30 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Покриття питання каже, скільки слів збіглося, і мовчить про те, чи вціліла
+        # думка. Знявши цей ключ, уривок із вищим покриттям знову стає головним доказом.
+        "M346_FRAGMENT_MAY_OUTRANK_A_WHOLE_SENTENCE",
+        "apps/api/src/korpus/application/answer_query.py",
+        "                    starts_mid_sentence(candidate.text),\n",
+        "                    False,\n",
+        (
+            "apps/api/tests/test_citation_fragments.py::"
+            "test_a_whole_sentence_outranks_a_fragment_that_matches_more_of_the_question",
+        ),
+    ),
+    Mutant(
+        # Коли показати можна лише уривок, читач мусить це побачити. Константа False
+        # лишає відповідь такою самою на вигляд і знімає єдине попередження.
+        "M347_FRAGMENT_HIDDEN_FROM_THE_READER",
+        "apps/api/src/korpus/application/answer_query.py",
+        "                    quote_starts_mid_sentence=starts_mid_sentence(candidate.text),",
+        "                    quote_starts_mid_sentence=False,",
+        (
+            "apps/api/tests/test_citation_fragments.py::"
+            "test_when_only_a_fragment_can_be_shown_the_reader_is_told",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

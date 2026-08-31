@@ -24,6 +24,7 @@ from korpus.application.evidence import (
     assess_control_injection,
     extractive_support,
     verify_claim_support,
+    starts_mid_sentence,
 )
 from korpus.application.evidence_admission import eligible_evidence
 from korpus.application.pec_retrieval import adaptive_retrieval
@@ -361,9 +362,25 @@ class ExtractiveAnswerService:
         covered_tokens: set[str] = set()
 
         for item in eligible:
+            # Threshold first, then order. Filtering by the same bar the chosen candidate
+            # had to clear leaves the admission decision exactly as it was — the best
+            # candidate is the highest-covering one, so if it fails, all of them do —
+            # and lets the ordering below choose among passages that are already allowed.
+            passing = [
+                candidate
+                for candidate in self._candidates(item.span.text, query_tokens)
+                if candidate.query_coverage >= thresholds.minimum_query_coverage
+            ]
+            # A whole sentence outranks a headless one even when the fragment mentions
+            # more of the question. Query coverage measures overlap with the question;
+            # it says nothing about whether the passage still carries its own subject.
             candidates = sorted(
-                self._candidates(item.span.text, query_tokens),
-                key=lambda candidate: (-candidate.query_coverage, candidate.start),
+                passing,
+                key=lambda candidate: (
+                    starts_mid_sentence(candidate.text),
+                    -candidate.query_coverage,
+                    candidate.start,
+                ),
             )
             candidate = next(
                 (
@@ -374,7 +391,7 @@ class ExtractiveAnswerService:
                 ),
                 None,
             )
-            if candidate is None or candidate.query_coverage < thresholds.minimum_query_coverage:
+            if candidate is None:
                 continue
             # Measured rather than asserted. It used to be the constant 1.0 against a
             # threshold clamped to at most 1.0, so the branch below was unreachable in
@@ -411,6 +428,7 @@ class ExtractiveAnswerService:
                     span_hash=item.span.text_hash,
                     source_uri=item.version.source_uri,
                     source_hash=item.version.source_hash,
+                    quote_starts_mid_sentence=starts_mid_sentence(candidate.text),
                 )
             )
             seen_sentences.add(candidate.text)

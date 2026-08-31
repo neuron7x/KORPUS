@@ -129,6 +129,36 @@ def assess_control_injection(text: str) -> InjectionAssessment:
     return InjectionAssessment(blocked=blocked, score=score, reasons=tuple(sorted(set(reasons))))
 
 
+def starts_mid_sentence(text: str) -> bool:
+    """True when the passage begins after a sentence has already started.
+
+    A span is a fixed-size chunk of the source, not a sentence. Measured on the served
+    corpus 2026-08-31: 32 820 of 38 863 spans (84.5%) begin mid-sentence, and 2 of 12
+    real questions returned a leading passage that began mid-word. The reader cannot
+    tell — the fragment is rendered under the official title of the manual, in a
+    blockquote, beside a hash.
+
+    The case that made this a rule rather than a nicety: a span boundary cut the word
+    "За|лишається", so «Воєнний об'єкт залишається таким навіть у тому випадку, якщо на
+    ньому знаходяться цивільні особи» was shown as «лишається таким навіть у тому
+    випадку…» — without its subject, under a green verdict, to the question "коли
+    дозволяється відкривати вогонь по цивільній особі". The sentence restricts; the
+    fragment reads as permission.
+    """
+    for char in text:
+        if char.isalpha():
+            return char.islower()
+        # A clause opening with a number ("16.", "2) забезпечення") says nothing about
+        # where the sentence began, and guessing there would mark half of a numbered
+        # statute as a fragment until the mark meant nothing.
+        if char.isdigit():
+            return False
+        # Quotes, brackets, bullets and dashes open a sentence without carrying case,
+        # so they are stepped over rather than read as an answer. A passage that is
+        # only punctuation carries no sentence at all.
+    return True
+
+
 def segment_sentences(text: str) -> list[tuple[str, int, int]]:
     """Deterministic segmentation for prose, numbered clauses, and bullets.
 
