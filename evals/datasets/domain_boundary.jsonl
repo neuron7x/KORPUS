@@ -1,0 +1,40 @@
+{"id": "in-00", "query": "Які обов'язки має командир взводу?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-01", "query": "Як накласти турнікет при артеріальній кровотечі?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-02", "query": "Хто відповідає за ведення бойових документів?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-03", "query": "Порядок дій при пневмотораксі?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-04", "query": "Як діяти в разі полону?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-05", "query": "Що таке стройовий статут ЗСУ?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-06", "query": "Обов'язки чергового по роті?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-07", "query": "Порядок вручення бойового прапора?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-08", "query": "Хто здійснює керівництво бойовою підготовкою?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-09", "query": "Обов'язки командира відділення?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-10", "query": "Порядок несення вартової служби?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-11", "query": "Що робити при пораненні в живіт?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-12", "query": "Як евакуювати пораненого з поля бою?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-13", "query": "Обов'язки старшини роти?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-14", "query": "Порядок застосування зброї вартовим?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-15", "query": "Що таке бойовий наказ?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-16", "query": "Права військовослужбовця на відпустку?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-17", "query": "Порядок оголошення тривоги?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-18", "query": "Обов'язки командира батальйону в обороні?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "in-19", "query": "Що входить до індивідуальної аптечки?", "expect": "answer", "stratum": "in_corpus"}
+{"id": "out-00", "query": "Як налаштувати гаманець Ethereum для донатів?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-01", "query": "Скільки коштує свиноферма на 200 голів?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-02", "query": "Порядок оформлення візи до Республіки Корея?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-03", "query": "Як замінити термостат у Renault Duster?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-04", "query": "Який рецепт борщу з пампушками?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-05", "query": "Як налаштувати Kubernetes ingress з cert-manager?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-06", "query": "Скільки калорій у 100 грамах авокадо?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-07", "query": "Як зареєструвати ФОП третьої групи?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-08", "query": "Яка столиця Португалії?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-09", "query": "Як навчити собаку команді сидіти?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-10", "query": "Скільки коштує квиток на потяг Київ-Львів?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-11", "query": "Як полагодити пральну машину Bosch?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-12", "query": "Коли цвіте сакура в Японії?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-13", "query": "Як обрати матрац для сну?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-14", "query": "Що подивитися в Netflix цього тижня?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-15", "query": "Як зробити знімок екрана на iPhone?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-16", "query": "Скільки триває вагітність у кішки?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-17", "query": "Як приготувати капучино вдома?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-18", "query": "Який курс біткоїна сьогодні?", "expect": "withhold", "stratum": "out_of_corpus"}
+{"id": "out-19", "query": "Як вивчити іспанську за три місяці?", "expect": "withhold", "stratum": "out_of_corpus"}

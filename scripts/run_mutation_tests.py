@@ -2112,6 +2112,19 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Стеля на чужих питаннях — єдина вісь, що ловить повернення до стану «17 із 20
+        # чужих питань під зеленим вироком». Знявши її, ратчет лишається однобоким і
+        # приймає систему, яка відповідає на все.
+        "M355_QUALITY_RATCHET_IGNORES_FOREIGN_QUESTIONS",
+        "scripts/check_answer_quality_ratchet.py",
+        "    if outside > ceiling:",
+        "    if False:",
+        (
+            "apps/api/tests/test_answer_quality_ratchet.py::"
+            "test_letting_in_more_foreign_questions_is_caught",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',
