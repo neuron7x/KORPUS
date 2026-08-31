@@ -1,67 +1,11 @@
 {
   "accepted": [
     {
-      "class": "requires_argument",
-      "closes_when": "аргумент стане типовим: SERVED_CORPUS уже є у Makefile, треба лише зважитись зробити його дефолтом",
+      "class": "not_a_gate",
+      "closes_when": "—",
       "on": "2026-08-31",
-      "reason": "Потребує DATABASE і без нього виходить із кодом 64. Ціль, що вимагає аргументу, не може бути частиною беззастережного прогону — її запускає людина проти конкретної бази.",
-      "target": "runtime-corpus-audit"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "реліз корпусу отримає канонічний шлях у дереві",
-      "on": "2026-08-31",
-      "reason": "Потребує MANIFEST конкретного релізу корпусу. Перевіряє підпис і склад релізу, а не дерево.",
-      "target": "corpus-release-verify"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "журнал анотацій житиме в дереві",
-      "on": "2026-08-31",
-      "reason": "Потребує LEDGER із золотими анотаціями; сам файл ведуть анотатори, а не збірка.",
-      "target": "gold-annotation-audit"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "твердження почнуть вироблятись CI і лежати за відомим шляхом",
-      "on": "2026-08-31",
-      "reason": "Потребує STATEMENT — конкретне твердження про походження артефакту.",
-      "target": "provenance-verify"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "реєстр довірених будівників перестане бути порожнім",
-      "on": "2026-08-31",
-      "reason": "Потребує ARTIFACT і довіреного будівника; обидва — зовнішні щодо дерева.",
-      "target": "slsa-provenance-verify"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "пакування стане частиною check і даватиме шлях архіву",
-      "on": "2026-08-31",
-      "reason": "Потребує ARCHIVE; перевіряє конкретний зіп, а не репозиторій.",
-      "target": "zip-safety-verify"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "інвентар версій стане артефактом дерева",
-      "on": "2026-08-31",
-      "reason": "Потребує VERSION_INVENTORY набору PEC.",
-      "target": "pec-dataset-audit"
-    },
-    {
-      "class": "requires_argument",
-      "closes_when": "профіль контролера стане релізним артефактом",
-      "on": "2026-08-31",
-      "reason": "Потребує PEC_PROFILE і PEC_DATASET — обидва з окремого циклу навчання контролера.",
-      "target": "pec-verify"
-    },
-    {
-      "class": "requires_live_service",
-      "closes_when": "з'явиться щоденний прогін проти публічного розгортання",
-      "on": "2026-08-31",
-      "reason": "Б'є навантаженням у ЖИВИЙ API за адресою BASE. Вимір проти сервісу не належить гейту, який мусить проходити там, де сервісу немає.",
-      "target": "load-probe"
+      "reason": "Експортує події аудиту у файл. Це операція; слово audit в імені не робить її перевіркою.",
+      "target": "audit-export"
     },
     {
       "class": "requires_live_service",
@@ -78,60 +22,11 @@
       "target": "corpus-integrity"
     },
     {
-      "class": "accepted_red",
-      "closes_when": "89 стане стелею з ратчетом на погіршення, далі спорожнення по одному",
+      "class": "requires_argument",
+      "closes_when": "реліз корпусу отримає канонічний шлях у дереві",
       "on": "2026-08-31",
-      "reason": "Червона на 89 брудних прольотах — стан, а не дефект дня. Підключати як є означає зробити щоденний гейт червоним для всіх; лишати мовчки означає вдавати, що діри немає.",
-      "target": "span-hygiene"
-    },
-    {
-      "class": "requires_live_service",
-      "closes_when": "проби стануть даними в дереві, як уже сталося з document_probe",
-      "on": "2026-08-31",
-      "reason": "Проба вмісту джерел ходить у зовнішні публікації; мережева відмова зробила б гейт залежним від чужої доступності.",
-      "target": "source-probe"
-    },
-    {
-      "class": "expensive_by_construction",
-      "closes_when": "з'явиться окремий нічний прогін",
-      "on": "2026-08-31",
-      "reason": "Кожна проба КОПІЮЄ дерево, щоб мутувати гейт і перевірити, чи він здатен почервоніти. Ціна — десятки копій за прогін; у Makefile це вже сказано коментарем.",
-      "target": "gate-liveness"
-    },
-    {
-      "class": "expensive_by_construction",
-      "closes_when": "вибірка отримає фіксований бюджет і піде в нічний прогін",
-      "on": "2026-08-31",
-      "reason": "Шукає мутації ПОЗА каталогом випадковою вибіркою; вартість не обмежена зверху й залежить від --sample.",
-      "target": "mutation-probe"
-    },
-    {
-      "class": "expensive_by_construction",
-      "closes_when": "з'явиться нічний прогін або CI-джоба",
-      "on": "2026-08-31",
-      "reason": "Клонує репозиторій начисто й збирає його з нуля.",
-      "target": "verify-clean-clone"
-    },
-    {
-      "class": "long_running_experiment",
-      "closes_when": "бюджет часу буде названий і вміщений у нічний прогін",
-      "on": "2026-08-31",
-      "reason": "Прогін на повторюваність відповіді: багато прогонів того самого запиту заради розкиду.",
-      "target": "determinism-gate"
-    },
-    {
-      "class": "long_running_experiment",
-      "closes_when": "те саме, що й determinism-gate",
-      "on": "2026-08-31",
-      "reason": "Навантажувальний прогін, вимірює деградацію під тиском.",
-      "target": "stress-gate"
-    },
-    {
-      "class": "long_running_experiment",
-      "closes_when": "стани бази стануть фікстурами",
-      "on": "2026-08-31",
-      "reason": "Міряє, як система переносить зміну корпусу; потребує кількох станів бази.",
-      "target": "plasticity-gate"
+      "reason": "Потребує MANIFEST конкретного релізу корпусу. Перевіряє підпис і склад релізу, а не дерево.",
+      "target": "corpus-release-verify"
     },
     {
       "class": "long_running_experiment",
@@ -141,18 +36,88 @@
       "target": "coverage-ratchet"
     },
     {
-      "class": "not_a_gate",
-      "closes_when": "—",
+      "class": "long_running_experiment",
+      "closes_when": "бюджет часу буде названий і вміщений у нічний прогін",
       "on": "2026-08-31",
-      "reason": "Експортує події аудиту у файл. Це операція; слово audit в імені не робить її перевіркою.",
-      "target": "audit-export"
+      "reason": "Прогін на повторюваність відповіді: багато прогонів того самого запиту заради розкиду.",
+      "target": "determinism-gate"
+    },
+    {
+      "class": "requires_external_evidence",
+      "closes_when": "зовнішня сторона віддасть звіт",
+      "on": "2026-08-31",
+      "reason": "Кампанія зовнішніх гейтів за визначенням виконується не тут.",
+      "target": "external-gate-campaign"
+    },
+    {
+      "class": "expensive_by_construction",
+      "closes_when": "з'явиться окремий нічний прогін",
+      "on": "2026-08-31",
+      "reason": "Кожна проба КОПІЮЄ дерево, щоб мутувати гейт і перевірити, чи він здатен почервоніти. Ціна — десятки копій за прогін; у Makefile це вже сказано коментарем.",
+      "target": "gate-liveness"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "журнал анотацій житиме в дереві",
+      "on": "2026-08-31",
+      "reason": "Потребує LEDGER із золотими анотаціями; сам файл ведуть анотатори, а не збірка.",
+      "target": "gold-annotation-audit"
     },
     {
       "class": "not_a_gate",
       "closes_when": "—",
       "on": "2026-08-31",
-      "reason": "Записує результати проби в дерево. Операція запису, не перевірка.",
-      "target": "source-probe-write"
+      "reason": "Будує мініатюрний еталон корпусу, який отруює `gate-liveness`: два документи, об'єкти, прольоти, три події журналу й тестовий ключ. Це ВХІД для перевірки, а не перевірка; слово liveness в імені його гейтом не робить.",
+      "target": "liveness-fixture"
+    },
+    {
+      "class": "requires_live_service",
+      "closes_when": "з'явиться щоденний прогін проти публічного розгортання",
+      "on": "2026-08-31",
+      "reason": "Б'є навантаженням у ЖИВИЙ API за адресою BASE. Вимір проти сервісу не належить гейту, який мусить проходити там, де сервісу немає.",
+      "target": "load-probe"
+    },
+    {
+      "class": "expensive_by_construction",
+      "closes_when": "вибірка отримає фіксований бюджет і піде в нічний прогін",
+      "on": "2026-08-31",
+      "reason": "Шукає мутації ПОЗА каталогом випадковою вибіркою; вартість не обмежена зверху й залежить від --sample.",
+      "target": "mutation-probe"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "інвентар версій стане артефактом дерева",
+      "on": "2026-08-31",
+      "reason": "Потребує VERSION_INVENTORY набору PEC.",
+      "target": "pec-dataset-audit"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "профіль контролера стане релізним артефактом",
+      "on": "2026-08-31",
+      "reason": "Потребує PEC_PROFILE і PEC_DATASET — обидва з окремого циклу навчання контролера.",
+      "target": "pec-verify"
+    },
+    {
+      "class": "long_running_experiment",
+      "closes_when": "стани бази стануть фікстурами",
+      "on": "2026-08-31",
+      "reason": "Міряє, як система переносить зміну корпусу; потребує кількох станів бази.",
+      "target": "plasticity-gate"
+    },
+    {
+      "class": "requires_external_evidence",
+      "closes_when": "хтось, уповноважений вирішувати, внесе ключі підписантів",
+      "on": "2026-08-31",
+      "reason": "Перевіряє підписані докази продакшену; усі дев'ять реєстрів довірених підписантів порожні, тож перевірка недосяжна не через дефект.",
+      "target": "production-assurance-verify"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "твердження почнуть вироблятись CI і лежати за відомим шляхом",
+      "on": "2026-08-31",
+      "reason": "Потребує STATEMENT — конкретне твердження про походження артефакту.",
+      "target": "provenance-verify"
     },
     {
       "class": "not_a_gate",
@@ -170,24 +135,66 @@
     },
     {
       "class": "requires_external_evidence",
-      "closes_when": "хтось, уповноважений вирішувати, внесе ключі підписантів",
-      "on": "2026-08-31",
-      "reason": "Перевіряє підписані докази продакшену; усі дев'ять реєстрів довірених підписантів порожні, тож перевірка недосяжна не через дефект.",
-      "target": "production-assurance-verify"
-    },
-    {
-      "class": "requires_external_evidence",
-      "closes_when": "зовнішня сторона віддасть звіт",
-      "on": "2026-08-31",
-      "reason": "Кампанія зовнішніх гейтів за визначенням виконується не тут.",
-      "target": "external-gate-campaign"
-    },
-    {
-      "class": "requires_external_evidence",
       "closes_when": "релізні звіти ляжуть у дерево за відомим шляхом",
       "on": "2026-08-31",
       "reason": "Звіряє перенесення регресій між релізами; потребує попереднього релізного звіту.",
       "target": "regression-carry-forward-verify"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "аргумент стане типовим: SERVED_CORPUS уже є у Makefile, треба лише зважитись зробити його дефолтом",
+      "on": "2026-08-31",
+      "reason": "Потребує DATABASE і без нього виходить із кодом 64. Ціль, що вимагає аргументу, не може бути частиною беззастережного прогону — її запускає людина проти конкретної бази.",
+      "target": "runtime-corpus-audit"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "реєстр довірених будівників перестане бути порожнім",
+      "on": "2026-08-31",
+      "reason": "Потребує ARTIFACT і довіреного будівника; обидва — зовнішні щодо дерева.",
+      "target": "slsa-provenance-verify"
+    },
+    {
+      "class": "requires_live_service",
+      "closes_when": "проби стануть даними в дереві, як уже сталося з document_probe",
+      "on": "2026-08-31",
+      "reason": "Проба вмісту джерел ходить у зовнішні публікації; мережева відмова зробила б гейт залежним від чужої доступності.",
+      "target": "source-probe"
+    },
+    {
+      "class": "not_a_gate",
+      "closes_when": "—",
+      "on": "2026-08-31",
+      "reason": "Записує результати проби в дерево. Операція запису, не перевірка.",
+      "target": "source-probe-write"
+    },
+    {
+      "class": "accepted_red",
+      "closes_when": "89 стане стелею з ратчетом на погіршення, далі спорожнення по одному",
+      "on": "2026-08-31",
+      "reason": "Червона на 89 брудних прольотах — стан, а не дефект дня. Підключати як є означає зробити щоденний гейт червоним для всіх; лишати мовчки означає вдавати, що діри немає.",
+      "target": "span-hygiene"
+    },
+    {
+      "class": "long_running_experiment",
+      "closes_when": "те саме, що й determinism-gate",
+      "on": "2026-08-31",
+      "reason": "Навантажувальний прогін, вимірює деградацію під тиском.",
+      "target": "stress-gate"
+    },
+    {
+      "class": "expensive_by_construction",
+      "closes_when": "з'явиться нічний прогін або CI-джоба",
+      "on": "2026-08-31",
+      "reason": "Клонує репозиторій начисто й збирає його з нуля.",
+      "target": "verify-clean-clone"
+    },
+    {
+      "class": "requires_argument",
+      "closes_when": "пакування стане частиною check і даватиме шлях архіву",
+      "on": "2026-08-31",
+      "reason": "Потребує ARCHIVE; перевіряє конкретний зіп, а не репозиторій.",
+      "target": "zip-safety-verify"
     }
   ],
   "measured_at": "2026-08-31",
