@@ -1,10 +1,10 @@
 {
   "schema": "korpus.executable-evidence-index.v2",
   "source_python_modules": 297,
-  "test_python_modules": 348,
-  "test_functions_static": 2557,
-  "test_file_prefix_modules": 343,
-  "source_tree_sha256": "a3309085a228618c387cf66a52f450fc8ab4e46be46f534ca50c7295a95a9b9b",
+  "test_python_modules": 351,
+  "test_functions_static": 2587,
+  "test_file_prefix_modules": 346,
+  "source_tree_sha256": "1363dbf0696623ee3e08068527a4bdeb31f7901b1a6c6c01dc4f399b8588e855",
   "release": "v0.9.7",
   "method": "AST enumeration over current source/test tree"
 }
