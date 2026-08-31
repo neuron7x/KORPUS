@@ -409,6 +409,14 @@ class Citation(BaseModel):
     #: can invert what the source says, and the reader is the only one who can see that
     #: the beginning is missing once told to look.
     quote_starts_mid_sentence: bool = False
+    #: Присуд кількох НЕЗАЛЕЖНИХ осей про цю цитату: `supported` — дві осі схвалили і
+    #: жодна не відхилила; `tangential` — схвалила лише одна; `contested` — вісь, яка
+    #: дивиться туди, куди не дивляться інші, відхилила. Типове `supported` лишає
+    #: поведінку старих клієнтів незмінною.
+    presentation: str = "supported"
+    #: Чому саме, словами тієї осі, що заперечила найсильніше. Порожній рядок — не
+    #: «все гаразд», а «ніхто не заперечив».
+    adjudication_reason: str = ""
 
     @model_validator(mode="after")
     def validate_quote_offsets(self) -> Citation:

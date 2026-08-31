@@ -91,8 +91,9 @@ class MisalignedService(ExtractiveAnswerService):
         eligible: list[RetrievedEvidence],
         query_tokens: frozenset[str],
         thresholds: RiskThresholds,
+        question: str = "",
     ) -> tuple[list[Claim], list[Citation], set[str]]:
-        claims, citations, covered = super()._extract(eligible, query_tokens, thresholds)
+        claims, citations, covered = super()._extract(eligible, query_tokens, thresholds, question)
         if claims:
             claims.append(claims[0].model_copy(update={"evidence_span_ids": (uuid4(),)}, deep=True))
         return claims, citations, covered

@@ -2036,6 +2036,68 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Єдина вісь, що вміє спіймати підміну предмета при високому покритті. Без неї
+        # питання про ЦИВІЛЬНІ обʼєкти знову отримує норму про ВОЄННІ під зеленим вироком.
+        "M349_SUBJECT_SUBSTITUTION_AXIS_DISABLED",
+        "apps/api/src/korpus/application/answer_adjudication.py",
+        "        if asked.search(question) and not asked.search(quote) and opposite.search(quote):",
+        "        if False:",
+        (
+            "apps/api/tests/test_answer_adjudication.py::"
+            "test_a_quote_about_the_opposite_category_is_contested",
+        ),
+    ),
+    Mutant(
+        # Поріг на ЧАСТКУ відрізняє колонку від речення, у якому PDF лишив прогалину.
+        # Нуль повертає правило на ФАКТ прогону — і воно знову відхиляє нормальну прозу.
+        "M350_LAYOUT_RULE_BACK_TO_ANY_GAP",
+        "apps/api/src/korpus/application/answer_adjudication.py",
+        "_LAYOUT_SHARE = 0.25",
+        "_LAYOUT_SHARE = 0.0",
+        (
+            "apps/api/tests/test_answer_adjudication.py::"
+            "test_prose_with_one_wide_gap_is_not_a_column",
+        ),
+    ),
+    Mutant(
+        # Голос осі, що відхилила, важить більше за згоду решти: саме одна вісь і давала
+        # «ПІДСТАВА Є» рядку про позивний «Буг».
+        "M351_DISSENTING_AXIS_OUTVOTED",
+        "apps/api/src/korpus/application/answer_adjudication.py",
+        '    if any(item.verdict == "DOES_NOT_SUPPORT" for item in verdicts):',
+        "    if False:",
+        (
+            "apps/api/tests/test_answer_adjudication.py::"
+            "test_one_dissenting_axis_outweighs_the_agreement_of_the_rest",
+        ),
+    ),
+    Mutant(
+        # Осі, що міркують про питання, мусять мовчати на мішку ключових слів — інакше
+        # вони міряють власну вигадку.
+        "M352_SUBJECT_AXIS_JUDGES_A_KEYWORD_BAG",
+        "apps/api/src/korpus/application/answer_adjudication.py",
+        '    if not is_question(question):\n'
+        '        return AxisVerdict("contrast", "CANNOT_ADJUDICATE", "на вході не питання")',
+        '    if False:\n'
+        '        return AxisVerdict("contrast", "CANNOT_ADJUDICATE", "на вході не питання")',
+        (
+            "apps/api/tests/test_answer_adjudication.py::"
+            "test_the_axis_that_can_reject_does_not_judge_a_keyword_bag",
+        ),
+    ),
+    Mutant(
+        # Коли ВСЯ показана підстава спірна, відповідь мусить піти до людини, а не бути
+        # виданою з позначкою, якої читач може не помітити.
+        "M353_CONTESTED_ANSWER_STILL_SHIPS",
+        "apps/api/src/korpus/application/answer_query.py",
+        '        if citations and all(citation.presentation == "contested" for citation in citations):',
+        "        if False:",
+        (
+            "apps/api/tests/test_answer_adjudication.py::"
+            "test_when_every_citation_is_contested_the_answer_goes_to_a_human",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

@@ -19,12 +19,13 @@ from korpus.application.answer_audit import append_answer_audit
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.egress import ModelEgressPolicy
+from korpus.application.answer_adjudication import AxisVerdict, adjudicate, presentation
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,
     extractive_support,
-    verify_claim_support,
     starts_mid_sentence,
+    verify_claim_support,
 )
 from korpus.application.evidence_admission import eligible_evidence
 from korpus.application.pec_retrieval import adaptive_retrieval
@@ -77,6 +78,23 @@ class AnswerPolicy:
             minimum_support_score=self.minimum_support_score,
         )
         return eligible_evidence(evidence, thresholds)
+
+
+#: Порядок присуду: підтверджене попереду дотичного, дотичне попереду спірного.
+_PRESENTATION_RANK = {"supported": 0, "tangential": 1, "contested": 2}
+
+
+def _dissent(verdicts: tuple[AxisVerdict, ...]) -> str:
+    """Найсильніше заперечення словами тієї осі, що його висловила.
+
+    Порожній рядок означає «жодна вісь не заперечила», а не «все перевірено»: осі,
+    які утримались, лишаються утриманими.
+    """
+    for wanted in ("DOES_NOT_SUPPORT", "CANNOT_ADJUDICATE"):
+        for item in verdicts:
+            if item.verdict == wanted:
+                return item.reason
+    return ""
 
 
 class ExtractiveAnswerService:
@@ -187,7 +205,9 @@ class ExtractiveAnswerService:
         thresholds = retrieval_thresholds
         eligible, outranked = self._confine_to_top_authority(eligible)
         query_tokens = frozenset(tokenize(query.text))
-        claims, citations, covered_tokens = self._extract(eligible, query_tokens, thresholds)
+        claims, citations, covered_tokens = self._extract(
+            eligible, query_tokens, thresholds, query.text
+        )
 
         unsourced = self._unsourced_quotes(eligible, citations)
         if unsourced:
@@ -230,24 +250,11 @@ class ExtractiveAnswerService:
                 query_coverage=query_coverage,
             )
         else:
-            contradiction = self._find_contradiction(claims, citations, eligible)
-            if contradiction is not None:
-                answer = Answer(
-                    status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
-                    text=(
-                        "Затверджені джерела містять взаємно несумісні твердження;"
-                        " автоматичну відповідь зупинено."
-                    ),
-                    claims=claims,
-                    citations=citations,
-                    retrieval_score=max(item.score for item in eligible),
-                    evidence_coverage=evidence_coverage,
-                    query_coverage=query_coverage,
-                    decision_reason="contradictory_authoritative_evidence",
-                    calibration_id=self.answer_policy.calibration_id,
-                    limitations=[f"Conflict: {contradiction}"],
-                    corpus_release=release_id,
-                )
+            blocked = self._blocked_answer(
+                claims, citations, eligible, evidence_coverage, query_coverage, release_id
+            )
+            if blocked is not None:
+                answer = blocked
             else:
                 # The model may arrange what was found and open with one line. It may
                 # not add a fact: `compose_answer` refuses an opening that states a
@@ -343,11 +350,97 @@ class ExtractiveAnswerService:
         )
         return self.egress_policy.permits_material(material_tier)
 
+    def _blocked_answer(
+        self,
+        claims: list[Claim],
+        citations: list[Citation],
+        eligible: list[RetrievedEvidence],
+        evidence_coverage: float,
+        query_coverage: float,
+        release_id: str,
+    ) -> Answer | None:
+        """Причина, з якої автоматична відповідь не виходить, або None.
+
+        Дві причини, і обидві ведуть до людини, а не до мовчання: показана підстава
+        не витримала жодної осі, або затверджені джерела суперечать одне одному.
+        Зібрані в одному місці, бо `execute` уже несе стільки гілок, скільки стеля
+        складності дозволяє: кожна нова причина мусить приходити СЮДИ, а не туди.
+
+        Порядок навмисний. Спірність — властивість того, що система збиралася
+        показати; суперечність — властивість корпусу. Перше вирішується без читання
+        другого, і повідомлення про спірність точніше для читача.
+        """
+        if citations and all(citation.presentation == "contested" for citation in citations):
+            return self._contested_answer(
+                claims,
+                citations,
+                max(item.score for item in eligible),
+                evidence_coverage,
+                query_coverage,
+                release_id,
+            )
+        contradiction = self._find_contradiction(claims, citations, eligible)
+        if contradiction is None:
+            return None
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Затверджені джерела містять взаємно несумісні твердження;"
+                " автоматичну відповідь зупинено."
+            ),
+            claims=claims,
+            citations=citations,
+            retrieval_score=max(item.score for item in eligible),
+            evidence_coverage=evidence_coverage,
+            query_coverage=query_coverage,
+            decision_reason="contradictory_authoritative_evidence",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[f"Conflict: {contradiction}"],
+            corpus_release=release_id,
+        )
+
+    def _contested_answer(
+        self,
+        claims: list[Claim],
+        citations: list[Citation],
+        retrieval_score: float,
+        evidence_coverage: float,
+        query_coverage: float,
+        release_id: str,
+    ) -> Answer:
+        """Показана підстава не витримала жодної з осей — це справа для людини.
+
+        Не `answered` із позначкою, якої читач може не помітити, і не «підстав немає»:
+        уривки знайдено, вони просто не витримали перевірки. Причини кожної осі йдуть
+        у `limitations`, щоб людина побачила, ЩО саме заперечили, а не лише що спинили.
+        """
+        return Answer(
+            status=AnswerStatus.REQUIRES_HUMAN_REVIEW,
+            text=(
+                "Знайдені уривки не витримали перевірки незалежними осями:"
+                " автоматичну відповідь зупинено."
+            ),
+            claims=claims,
+            citations=citations,
+            retrieval_score=retrieval_score,
+            evidence_coverage=evidence_coverage,
+            query_coverage=query_coverage,
+            decision_reason="all_citations_contested_by_an_independent_axis",
+            calibration_id=self.answer_policy.calibration_id,
+            limitations=[
+                citation.adjudication_reason
+                for citation in citations
+                if citation.adjudication_reason
+            ][:4],
+            corpus_release=release_id,
+        )
+
     def _extract(
         self,
         eligible: list[RetrievedEvidence],
         query_tokens: frozenset[str],
         thresholds: RiskThresholds,
+        question: str = "",
     ) -> tuple[list[Claim], list[Citation], set[str]]:
         """Build claim/citation pairs from eligible evidence.
 
@@ -374,9 +467,23 @@ class ExtractiveAnswerService:
             # A whole sentence outranks a headless one even when the fragment mentions
             # more of the question. Query coverage measures overlap with the question;
             # it says nothing about whether the passage still carries its own subject.
+            # Судять чотири осі, і порядок серед допущених кандидатів визначає їхній
+            # присуд, а не саме лише покриття питання. Спірне речення програє дотичному,
+            # дотичне — підтвердженому: вісь, яка відхилила, побачила те, куди інші не
+            # дивляться, і її голос важить більше за згоду решти.
             candidates = sorted(
                 passing,
                 key=lambda candidate: (
+                    _PRESENTATION_RANK[
+                        presentation(
+                            adjudicate(
+                                question,
+                                candidate.text,
+                                candidate.query_coverage,
+                                thresholds.minimum_query_coverage,
+                            )
+                        )
+                    ],
                     starts_mid_sentence(candidate.text),
                     -candidate.query_coverage,
                     candidate.start,
@@ -411,6 +518,12 @@ class ExtractiveAnswerService:
                     query_coverage=candidate.query_coverage,
                 )
             )
+            axis_verdicts = adjudicate(
+                question,
+                candidate.text,
+                candidate.query_coverage,
+                thresholds.minimum_query_coverage,
+            )
             quote_hash = hashlib.sha256(candidate.text.encode("utf-8")).hexdigest()
             citations.append(
                 Citation(
@@ -429,6 +542,8 @@ class ExtractiveAnswerService:
                     source_uri=item.version.source_uri,
                     source_hash=item.version.source_hash,
                     quote_starts_mid_sentence=starts_mid_sentence(candidate.text),
+                    presentation=presentation(axis_verdicts),
+                    adjudication_reason=_dissent(axis_verdicts),
                 )
             )
             seen_sentences.add(candidate.text)

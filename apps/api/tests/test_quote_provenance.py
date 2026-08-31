@@ -94,10 +94,11 @@ class ForgingService(ExtractiveAnswerService):
         eligible: list[RetrievedEvidence],
         query_tokens: frozenset[str],
         thresholds: RiskThresholds,
+        question: str = "",
     ) -> tuple[list[Claim], list[Citation], set[str]]:
         import hashlib
 
-        claims, citations, covered = super()._extract(eligible, query_tokens, thresholds)
+        claims, citations, covered = super()._extract(eligible, query_tokens, thresholds, question)
         if citations:
             forged = "Речення, якого немає в жодному документі корпусу."
             citations[0] = citations[0].model_copy(

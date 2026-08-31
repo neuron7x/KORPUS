@@ -718,7 +718,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 605,
+      "lines": 752,
       "max_complexity": 21,
       "max_function_lines": 195,
       "max_function_args": 12,
@@ -1987,7 +1987,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 575,
+      "lines": 587,
       "max_complexity": 8,
       "max_function_lines": 60,
       "max_function_args": 8,
@@ -3929,7 +3929,7 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4229,
+      "lines": 4311,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 3857->4140: thirty mutants added for the doctrine catalog's provenance rules 9-14 (scripts/validate_doctrine_catalog.py), the module budget's own ceiling guard and the production-predicate floor. The catalogue is a data table: its size is the number of predicates under mutation, so refusing to grow it means refusing to cover new rules. Five of the thirty survived every existing test and each is now cited against a test written for it. | 2026-08-31 4154->4193: три мутанти на правила, що закрили три обходи сторожа вступного рядка (M343 об'єднання словника цитат, M344 пропуск коротких токенів, M345 рядки моделі замість спанів), плюс перецілений M207, чия ціль зникла разом зі старою формою правила. Каталог — таблиця даних: відмова йому рости є відмовою покривати нове правило.",
       "max_function_lines": 60,
@@ -4648,6 +4648,14 @@
       "max_nesting": 4,
       "reason": "гейт, що робить виконуваним правило «стелю можна лише знижувати»",
       "worst_function": "_named_paths"
+    },
+    "apps/api/src/korpus/application/answer_adjudication.py": {
+      "lines": 270,
+      "max_complexity": 6,
+      "reason": "Новий шар присуду: чотири незалежні осі судять кожну цитату, вирок виносить механіка. Стеля з виміру на день додавання плюс запас на дві осі; кожна вісь коштує таблицю й функцію, і зростання тут означає покриття нового класу підміни, а не розповзання.",
+      "max_function_lines": 30,
+      "max_function_args": 4,
+      "max_nesting": 3
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -6211,6 +6219,39 @@
         "lines": 4229
       },
       "reason": "31.08.2026: поріг покриття питання піднято 0.25 → 0.5 і причина записана поруч зі значенням. Вимір на 40 питаннях через живий edge (20 у корпусі, 20 поза ним): при 0.25 система відповідала на 17 із 20 чужих під зеленим вироком; при 0.5 — на 4. Своїх лишається 18 із 20. На замороженому еталоні 93/95 проти 89/95, supported_answer_rate 0.886 проти 0.861, answer_yield 0.937 → 0.911. Плюс мутант M348, який повертає чверть і має загинути."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "from": {
+        "lines": 605
+      },
+      "to": {
+        "lines": 752
+      },
+      "reason": "31.08.2026: шар присуду з чотирьох незалежних осей (lexical, structural, interrogative, contrast) + гілка «всі цитати спірні» → requires_human_review. Виміряно: питання «чи є ЦИВІЛЬНІ обʼєкти законними цілями» отримувало зелений вирок і норму про ВОЄННІ обʼєкти; тепер це справа для людини. На 40 питаннях у корпусі 18/20 → 19/20, поза корпусом 4/20; на замороженому еталоні БЕЗ втрат (93/95, yield 0.911, supported 0.886 — рівно базова лінія). Мутанти M349–M353."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/domain/models.py",
+      "from": {
+        "lines": 575
+      },
+      "to": {
+        "lines": 587
+      },
+      "reason": "31.08.2026: шар присуду з чотирьох незалежних осей (lexical, structural, interrogative, contrast) + гілка «всі цитати спірні» → requires_human_review. Виміряно: питання «чи є ЦИВІЛЬНІ обʼєкти законними цілями» отримувало зелений вирок і норму про ВОЄННІ обʼєкти; тепер це справа для людини. На 40 питаннях у корпусі 18/20 → 19/20, поза корпусом 4/20; на замороженому еталоні БЕЗ втрат (93/95, yield 0.911, supported 0.886 — рівно базова лінія). Мутанти M349–M353."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 4229
+      },
+      "to": {
+        "lines": 4311
+      },
+      "reason": "31.08.2026: шар присуду з чотирьох незалежних осей (lexical, structural, interrogative, contrast) + гілка «всі цитати спірні» → requires_human_review. Виміряно: питання «чи є ЦИВІЛЬНІ обʼєкти законними цілями» отримувало зелений вирок і норму про ВОЄННІ обʼєкти; тепер це справа для людини. На 40 питаннях у корпусі 18/20 → 19/20, поза корпусом 4/20; на замороженому еталоні БЕЗ втрат (93/95, yield 0.911, supported 0.886 — рівно базова лінія). Мутанти M349–M353."
     }
   ],
   "recorded_at": "2026-08-24",
