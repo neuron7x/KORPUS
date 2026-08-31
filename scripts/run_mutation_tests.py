@@ -2100,6 +2100,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Гейт, що не помічає ЗНИКЛОГО мутанта, — це той самий стан, у якому звіт на 379
+        # лежав поруч із каталогом на 385 і читався як доказ.
+        "M354_FRESHNESS_GATE_IGNORES_A_MISSING_MUTANT",
+        "scripts/check_mutation_report_freshness.py",
+        "    missing = sorted(expected - reported)",
+        "    missing = []",
+        (
+            "apps/api/tests/test_mutation_report_freshness.py::"
+            "test_a_mutant_the_report_never_saw_is_caught",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

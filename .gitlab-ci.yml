@@ -112,6 +112,9 @@ repository:validate:
     # Added by a parallel session on 2026-08-29 and caught by the parity test the same hour:
     # a target in `make validate` that no CI job runs is a gate that never fires on push.
     - PYTHONPATH=apps/api/src python scripts/validate_content_signals.py
+    # Ціль `make validate`, якої не було в жодній джобі, — гейт, що не спрацьовує на пуші.
+    - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py
+    - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py
