@@ -5705,5 +5705,7 @@
   "limitations": [
     "The package job runs only after required CI gates succeed; their logs remain CI artifacts.",
     "Synthetic evaluation does not authorize real restricted corpus deployment."
-  ]
+  ],
+  "source_tree_sha256": "eeb4f1ced62dc24cd90433599390db456849201c7abfb0a33f3d6f3b2b7f780d",
+  "digest_scope": "tracked_tree"
 }
