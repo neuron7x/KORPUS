@@ -12,6 +12,15 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
 PORT="${KORPUS_SEMANTIC_PORT:-8010}"
+# Знято з оточення ОДРАЗУ. Застосунок відкидає будь-яку незнайому змінну KORPUS_*,
+# бо друкарська помилка в назві мовчки лишає налаштування на типовому значенні — і
+# ця перевірка правильна. Але `KORPUS_SEMANTIC_PORT` адресована СКРИПТУ, не
+# застосунку, і дотепер вона текла до нього й валила запуск:
+# `KORPUS_SEMANTIC_PORT=8011 scripts/serve_semantic_local.sh` падало з
+# «unrecognised KORPUS_* environment variables». Команда була записана в коментарі
+# нижче як спосіб підняти контроль — тобто документація описувала запуск, який не
+# працює. Змінна споживається тут і далі не йде.
+unset KORPUS_SEMANTIC_PORT
 IP="$(docker inspect korpus-postgres-1 --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')"
 PGPW="$(cat infra/secrets/postgres_admin_password.txt)"
 PROFILE="$ROOT/config/governance/public-corpus-v1.json"
