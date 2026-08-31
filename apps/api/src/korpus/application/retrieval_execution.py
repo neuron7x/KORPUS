@@ -114,6 +114,7 @@ def execute_hybrid_search(
     temporal_relevance: Callable[[date, date | None, date | None], float],
     diversify: Callable[..., list[RetrievedEvidence]],
     diversity_lambda: float,
+    authority_relevance_floor: float,
     per_version_cap: int,
 ) -> list[RetrievedEvidence]:
     from korpus.application.retrieval_hybrid import execute_hybrid_search_impl
@@ -138,6 +139,7 @@ def execute_hybrid_search(
         temporal_relevance=temporal_relevance,
         diversify=diversify,
         diversity_lambda=diversity_lambda,
+        authority_relevance_floor=authority_relevance_floor,
         per_version_cap=per_version_cap,
         semantic_candidates=_semantic_candidates,
         scoring_texts=_scoring_texts,

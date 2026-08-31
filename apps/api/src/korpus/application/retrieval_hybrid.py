@@ -46,6 +46,7 @@ class Diversifier(Protocol):
         *,
         limit: int,
         diversity_lambda: float,
+        authority_relevance_floor: float,
         per_version_cap: int,
         authority_priors: dict[AuthorityClass, float],
         #: Документи, чий ОГОЛОШЕНИЙ предмет названо в питанні. Клас, а не вага:
@@ -97,6 +98,7 @@ def execute_hybrid_search_impl(
     temporal_relevance: Callable[[date, date | None, date | None], float],
     diversify: Diversifier,
     diversity_lambda: float,
+    authority_relevance_floor: float,
     per_version_cap: int,
     semantic_candidates: Callable[..., tuple[list[CandidateRow], dict[str, float]]],
     scoring_texts: Callable[[list[CandidateRow], bool, dict[str, tuple[str, ...]]], list[str]],
@@ -162,6 +164,7 @@ def execute_hybrid_search_impl(
         materialize_evidence(candidates, components, authority_priors),
         limit=limit,
         diversity_lambda=diversity_lambda,
+        authority_relevance_floor=authority_relevance_floor,
         per_version_cap=per_version_cap,
         authority_priors=authority_priors,
         subject_documents=subject_documents,
