@@ -81,6 +81,15 @@ export KORPUS_TRUSTED_HOSTS="localhost,127.0.0.1"
 # arrives as `public`. The limit is process-local: four per each of two Uvicorn workers
 # is an aggregate budget of eight, aligned with the edge.
 export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-4}"
+# Публічна поверхня не має виходу назовні, і сказати це треба ТУТ, а не тоді, коли
+# хтось вмикатиме композитор. Виміряно 31.08.2026: `/v1/inference/status` на живому
+# розгортанні оголошував `egress_posture=external_allowed` — типове значення, яке
+# ніхто не помічав рівно тому, що воно інертне, поки інференс вимкнений. Шар стелі
+# матеріалу (`ModelEgressPolicy.max_external_tier`) працює, але він відповідає на
+# питання «скільки можна випустити», а не «чи взагалі є куди». Для поверхні, що
+# дивиться в інтернет, друге питання має відповідь «немає», і вмикання інференсу не
+# повинно мовчки її змінювати: `local_only` лишає лише loopback і приватні адреси.
+export KORPUS_MODEL_EGRESS_POSTURE="${KORPUS_MODEL_EGRESS_POSTURE:-local_only}"
 export PYTHONPATH="$ROOT/apps/api/src"
 
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing
@@ -158,7 +167,23 @@ rm -rf "$EDGE/html" && mkdir -p "$EDGE/html"
 cp -r apps/web/dist/. "$EDGE/html/"
 # Not served, and not staged either: a file that is not there cannot be served by a
 # misconfiguration later.
-rm -f "$EDGE/html/console.html" "$EDGE/html/console.js" "$EDGE/html/console_rules.js"
+#
+# Перелік тут стояв уписаним — `console.html console.js console_rules.js` — і був
+# третьою копією одного правила: те саме тримали `deploy_public_web.py` і
+# `deploy/public/nginx.conf`. Усі три говорили «консоль», усі три перелічували три
+# імені, і всі три відстали разом: 31.08.2026 у публічному edge лежали й віддавалися
+# `console.css`, `console_accounts.js`, `console_mutations.js`, `console_readonly.js`.
+# Тепер перелік один і похідний — закриття `console.html` мінус закриття `index.html`.
+OPERATOR_ONLY="$(mktemp)"
+# Перелік рахується з ДЖЕРЕЛА (`apps/web/public`), а прибирається зі зібраного:
+# `dist` — копія джерела, але саме джерело лежить у git, і саме там правило можна
+# перевірити тестом без попереднього складання.
+"$PY" scripts/deploy_public_web.py --print-operator-only apps/web/public > "$OPERATOR_ONLY"
+[[ -s "$OPERATOR_ONLY" ]] || { echo "порожня операторська поверхня — правило зламане" >&2; exit 70; }
+while IFS= read -r operator_file; do
+  rm -f "$EDGE/html/$operator_file"
+done < "$OPERATOR_ONLY"
+rm -f "$OPERATOR_ONLY"
 # Told to the page, not inferred by it. The reader drops the login button and the token
 # field in this mode: on a public edge the visitor holds no credential, so a control that
 # asks for one invites pasting a real token into a page that has no use for it.
