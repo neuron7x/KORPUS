@@ -4483,6 +4483,24 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
+        "scripts/check_public_env_parity.py",
+        '        if value.startswith("{") and not _parses_as_json(value)',
+        "        if False",
+        ("apps/api/tests/test_public_env_parity.py::test_an_unparsable_json_value_is_refused",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M471_A_QUOTED_VALUE_IS_TRUNCATED_AT_THE_FIRST_QUOTE",
+        "scripts/check_public_env_parity.py",
+        '            found[match.group("qname")] = match.group("qvalue").replace(\'\\\\"\', \'"\').strip()',
+        '            found[match.group("qname")] = match.group("qvalue").split("\\\\")[0].strip()',
+        (
+            "apps/api/tests/test_public_env_parity.py::test_a_quoted_value_with_escaped_quotes_survives_parsing",
+        ),
+        full_copy=True,
+    ),
 )
 
 

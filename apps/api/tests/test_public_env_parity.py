@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -111,3 +112,34 @@ def test_gate_reddens_on_every_defect_separately() -> None:
         [sys.executable, str(SCRIPT), "--selftest"], capture_output=True, text=True, check=False
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
+
+
+def test_a_quoted_value_with_escaped_quotes_survives_parsing() -> None:
+    """Наявність значення не є його придатністю.
+
+    Каблучка ключів приїжджає JSON-об'єктом у формі `Environment="NAME={...}"`.
+    Попередній регекс зупинявся на ПЕРШІЙ лапці, і значення виїжджало як `{\\` —
+    сервіс падав відмовою `pydantic_settings`, а гейт мовчав, бо звіряв ІМЕНА.
+    """
+    unit, _shell = _real()
+    ring = unit["KORPUS_AUDIT_VERIFICATION_KEY_FILES"]
+    parsed = json.loads(ring)
+    assert set(parsed) == {"legacy-unversioned", "serve-public-inline-2026-08"}
+    assert all(path.endswith(".txt") for path in parsed.values())
+
+
+def test_an_unparsable_json_value_is_refused() -> None:
+    unit, shell = _real()
+    broken = {**unit, "KORPUS_AUDIT_VERIFICATION_KEY_FILES": '{"a"'}
+    finding = _finding(GATE.assess(broken, shell), "values_are_usable")
+    assert finding["verdict"] == "FAIL"
+
+
+def test_the_export_form_is_what_a_shell_can_consume() -> None:
+    """`--export` існує, щоб гейт журналу дивився на ту саму базу, що й сервіс."""
+    lines = GATE.export_lines(
+        (ROOT / "deploy/public/korpus-public-api.service").read_text("utf-8"), "/home/x"
+    )
+    ring = next(line for line in lines if line.startswith("KORPUS_AUDIT_VERIFICATION_KEY_FILES="))
+    assert "%h" not in ring, "домашній каталог не розгорнуто — оболонка отримає літерал"
+    assert json.loads(ring.split("=", 1)[1])

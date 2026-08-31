@@ -59,7 +59,16 @@ SAFETY_VALUES = {
     "KORPUS_AUDIT_KEY_ID": "korpus-public-2026-08-31",
 }
 
-_UNIT_ENV = re.compile(r'^Environment="?(?P<name>KORPUS_[A-Z0-9_]+)=(?P<value>[^"\n]*)', re.M)
+#: Дві форми systemd: `Environment=NAME=value` і `Environment="NAME=value"`. Друга
+#: потрібна, коли значення містить пробіли або лапки, і саме на ній попередній регекс
+#: ламався: він зупинявся на ПЕРШІЙ лапці, тож JSON каблучки ключів виїжджав як `{\`.
+#: Виміряно відмовою `pydantic_settings`: «error parsing value for field
+#: audit_verification_key_files». Гейт паритету цього не бачив, бо звіряв ІМЕНА.
+_UNIT_ENV = re.compile(
+    r'^Environment=(?:"(?P<qname>KORPUS_[A-Z0-9_]+)=(?P<qvalue>(?:\\.|[^"\\])*)"'
+    r"|(?P<name>KORPUS_[A-Z0-9_]+)=(?P<value>[^\n]*))",
+    re.M,
+)
 #: Відступ дозволений: `export` усередині `if` чи `{}` — звичайний shell, і парсер,
 #: прибитий до початку рядка, мовчки не побачив би такої змінної. Сьогодні їх нуль, і
 #: саме тому діра була б латентною.
@@ -67,7 +76,14 @@ _SHELL_EXPORT = re.compile(r"^[ \t]*export (?P<name>KORPUS_[A-Z0-9_]+)=(?P<value
 
 
 def unit_environment(text: str) -> dict[str, str]:
-    return {m.group("name"): m.group("value").strip() for m in _UNIT_ENV.finditer(text)}
+    found: dict[str, str] = {}
+    for match in _UNIT_ENV.finditer(text):
+        if match.group("qname"):
+            # Усередині лапок systemd знімає екранування: `\"` → `"`.
+            found[match.group("qname")] = match.group("qvalue").replace('\\"', '"').strip()
+        else:
+            found[match.group("name")] = match.group("value").strip()
+    return found
 
 
 def shell_environment(text: str) -> dict[str, str]:
@@ -85,6 +101,19 @@ def shell_environment(text: str) -> dict[str, str]:
         default = re.fullmatch(r"\$\{[A-Z0-9_]+:-(?P<default>[^}]*)\}", raw)
         found[match.group("name")] = default.group("default") if default else raw
     return found
+
+
+def _parses_as_json(value: str) -> bool:
+    """Наявність значення не є його придатністю.
+
+    Каблучка ключів приїжджає JSON-об'єктом, і покалічений він валить старт сервісу
+    відмовою `pydantic_settings`, а не тихо. Гейт, що звіряє лише ІМЕНА, пропустив би
+    це — саме так і сталося 31.08.2026.
+    """
+    try:
+        return isinstance(json.loads(value), dict)
+    except (TypeError, ValueError):
+        return False
 
 
 def _finding(check: str, verdict: str, detail: str) -> dict[str, str]:
@@ -135,6 +164,19 @@ def assess(unit: dict[str, str], shell: dict[str, str]) -> list[dict[str, str]]:
         else _finding(
             "safety_values", "PASS", f"{len(SAFETY_VALUES)} безпекових значень збігаються"
         )
+    )
+
+    unparsable = sorted(
+        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)
+    )
+    findings.append(
+        _finding(
+            "values_are_usable",
+            "FAIL",
+            "значення JSON-форми не розбирається — сервіс не підніметься: " + ", ".join(unparsable),
+        )
+        if unparsable
+        else _finding("values_are_usable", "PASS", "усі значення придатні до споживання")
     )
 
     leaked = sorted(name for name in unit if name.endswith("_SECRET"))

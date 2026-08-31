@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1669,
-  "root_sha256": "a721e1af17cb555d0aecea011e5917dcc2c741211c366c300fdcd16aebb1183d",
+  "root_sha256": "1ff915c88f1eb48ffb1b6b4107a0a5efa7dbfac7e221b4a7704f5e92bb1a93f7",
   "files": [
     {
       "path": ".dockerignore",
@@ -3925,8 +3925,8 @@
     },
     {
       "path": "apps/api/tests/test_public_env_parity.py",
-      "bytes": 5443,
-      "sha256": "d1270dda4aff2fe80882b781a13cfbd74a224ee095bf1e09e3981594e103725f",
+      "bytes": 7130,
+      "sha256": "7a21cd9f755d1694062dab315264a8e1d6cfd03575c3efad4c33086b39a656ae",
       "mode": "0644"
     },
     {
@@ -6811,8 +6811,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 363941,
-      "sha256": "b3d49dcd61075323fb0118f40dff2140f14eb6c009be326a0bf784f805f2c178",
+      "bytes": 365894,
+      "sha256": "2a4716e3b1443e8c3821b40efa49de61c41eda15d48bcad5a4a3abb536ccf992",
       "mode": "0644"
     },
     {
@@ -8533,8 +8533,8 @@
     },
     {
       "path": "scripts/check_public_env_parity.py",
-      "bytes": 13445,
-      "sha256": "cb742f7fdfc3412ed12a3ec1d843d0dcb1c60da66c25760ef7cb4aa0bf3faa7b",
+      "bytes": 15568,
+      "sha256": "9943b6475623d121edcd31a764f07a4420ac662c56184e4e485838f705b32d58",
       "mode": "0755"
     },
     {
@@ -9511,8 +9511,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 217575,
-      "sha256": "9d41b94897d74d8b2f4a615429b85dd543dc6d8d89741cea976e55e7983afa9a",
+      "bytes": 218407,
+      "sha256": "5f2165df12a9a87802151667aaf98c8ae336e1cc6ae2d2b417db6745bf84dc62",
       "mode": "0755"
     },
     {

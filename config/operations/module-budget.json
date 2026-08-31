@@ -3089,10 +3089,10 @@
       "reason": "Гейт на розбіжність звіту мутацій із каталогом. Стеля з виміру на день додавання плюс запас на дві перевірки; кожен новий клас розбіжності — це рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_public_env_parity.py": {
-      "lines": 216,
-      "max_complexity": 11,
+      "lines": 258,
+      "max_complexity": 14,
       "max_function_args": 3,
-      "max_function_lines": 53,
+      "max_function_lines": 66,
       "max_nesting": 2,
       "reason": "ZBIM: субстрат став абсолютним нулем sRGB, плюс гейт паритету двох оголошень оточення публічного API (скрипт і юніт systemd). Мутанти M450–M452."
     },
@@ -4235,7 +4235,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4811,
+      "lines": 4829,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7378,6 +7378,50 @@
       "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 315
+      }
+    },
+    {
+      "from": {
+        "lines": 216
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Розбір значень юніта в лапках із екранованими лапками (каблучка ключів JSON) плюс перевірка ПРИДАТНОСТІ значення, а не лише його наявності. Мутанти M470–M471.",
+      "to": {
+        "lines": 258
+      }
+    },
+    {
+      "from": {
+        "max_complexity": 11
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Розбір значень юніта в лапках із екранованими лапками (каблучка ключів JSON) плюс перевірка ПРИДАТНОСТІ значення, а не лише його наявності. Мутанти M470–M471.",
+      "to": {
+        "max_complexity": 14
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 53
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Розбір значень юніта в лапках із екранованими лапками (каблучка ключів JSON) плюс перевірка ПРИДАТНОСТІ значення, а не лише його наявності. Мутанти M470–M471.",
+      "to": {
+        "max_function_lines": 66
+      }
+    },
+    {
+      "from": {
+        "lines": 4811
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Розбір значень юніта в лапках із екранованими лапками (каблучка ключів JSON) плюс перевірка ПРИДАТНОСТІ значення, а не лише його наявності. Мутанти M470–M471.",
+      "to": {
+        "lines": 4829
       }
     }
   ],
