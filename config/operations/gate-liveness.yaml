@@ -182,3 +182,75 @@ gates:
         kind: append
         target: .verdict-ledger.jsonl
         payload: "{не json\n"
+
+  # ── Гейти корпусу. Їх не було тут не через недбалість: проба копіює дерево й отруює
+  # копію, а ці гейти читають `var/runtime` — 395 МБ бази й об'єктів, плюс ключі, яких у
+  # дереві немає й бути не може. Отруїти такий вхід ніхто не міг, тож найважливіші
+  # перевірки — ті, що боронять саме твердження системи, — жодного разу не показали, що
+  # здатні почервоніти.
+  #
+  # Розв'язок — еталон у мініатюрі (evals/fixtures/liveness), який будується з ТЕКСТІВ у дереві.
+  # Тому `run` спершу перезбирає його: отрута лежить у вхідному тексті й доходить до
+  # гейта крізь генератор. Перша версія тримала тексти константами в самому генераторі —
+  # перезбирання затирало отруту, і проба питала чистий вхід під виглядом зіпсованого.
+  # Те саме окремо повторилось із журналом і ключем, і теж було спіймано пробою.
+
+  - name: derived-source-links
+    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/validate_derived_source_links.py --database var/liveness-fixture/korpus.db --object-root var/liveness-fixture/objects --out /dev/null"]
+    timeout: 300
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      # Та сама підміна, що пройшла повз `citation_traceability` з кодом 0: вісь міряла
+      # ФОРМУ URI, тож посилання на завідомо чужий документ її не рухало.
+      - name: назване джерело більше не містить цієї статті
+        kind: replace
+        target: evals/fixtures/liveness/sources/statute.txt
+        find: "охороняти пост"
+        payload: "ЗМІНЕНО"
+      - name: похідна стаття взагалі не з цього корпусу
+        kind: replace
+        target: evals/fixtures/liveness/sources/derived.txt
+        find: "Вивідний зобов'язаний"
+        payload: "Командир накладає стягнення на порушника, і цього тексту немає в жодному статуті, тому підтвердити посилання нічим. Вивідний зобов'язаний"
+      - name: рівно той самий текст, інший кінцевий пробіл
+        kind: append
+        target: evals/fixtures/liveness/sources/statute.txt
+        payload: "\n"
+        equivalent: true
+
+  - name: span-hygiene
+    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/validate_span_hygiene.py --database var/liveness-fixture/korpus.db"]
+    timeout: 300
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      - name: сміття веб-сторінки потрапило в доказ
+        kind: append
+        target: evals/fixtures/liveness/sources/statute.txt
+        payload: " We use cookies to understand additional site usage."
+      - name: розмітка, що втекла з витягу
+        kind: append
+        target: evals/fixtures/liveness/sources/statute.txt
+        payload: " &lt;div class=\"cmp-text\"&gt; Reset password &lt;/div&gt;"
+
+  - name: audit-integrity
+    run: ["sh", "-c", "'/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/build_liveness_fixture.py >/dev/null && '/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python' scripts/measure_audit_integrity.py --database var/liveness-fixture/korpus.db --key fixture-2026-08=var/liveness-fixture/audit-key.txt --min-attribution 1.0 --out /dev/null"]
+    timeout: 300
+    ignore: [var, htmlcov, node_modules, .mypy_cache, .pytest_cache, .ruff_cache]
+    poisons:
+      # Журнал, який лишається ЗЧЕПЛЕНИМ і перестає бути засвідченим — стан, у якому
+      # 31.08.2026 перебувала бойова база, і жодна перевірка про це не сказала.
+      - name: підмінено вміст події
+        kind: replace
+        target: evals/fixtures/liveness/sources/audit-events.json
+        find: '"payload_json": "{\"n\":2}"'
+        payload: '"payload_json": "{\"n\":99}"'
+      - name: ключ, який цих подій не підписував
+        kind: replace
+        target: evals/fixtures/liveness/sources/audit-key.txt
+        find: "fixture-only-not-a-deployment-key-2026"
+        payload: "another-key-that-signed-nothing-at-all"
+      - name: розірвано зчеплення з попередньою подією
+        kind: replace
+        target: evals/fixtures/liveness/sources/audit-events.json
+        find: '"previous_hash": "0000000000000000000000000000000000000000000000000000000000000000"'
+        payload: '"previous_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"'

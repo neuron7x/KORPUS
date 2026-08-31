@@ -1,0 +1,48 @@
+{
+  "note": "Події з ПЕРЕДОБЧИСЛЕНИМИ підписами. Гейт судить саме їх, тому вони — вхід у дереві, а не вихід генератора: інакше перезбирання затирало б отруту й проба питала б чистий вхід під виглядом зіпсованого.",
+  "head_hash": "26fdd08443f790eb85258951e7b79b43802b3092f6f211ae024c236e78615fd7",
+  "events": [
+    {
+      "sequence": 1,
+      "event_id": "fixture-event-1",
+      "occurred_at": "2026-08-31T00:00:01+00:00",
+      "actor_subject": "fixture",
+      "action": "document.ingested",
+      "resource_type": "document",
+      "resource_id": "doc-statute",
+      "payload_json": "{\"n\":1}",
+      "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "event_hash": "c9c4dc2eca162e1e7a52663053a3393a1deca49de5de7f639eb547a8bb29295b",
+      "audit_key_id": "fixture-2026-08",
+      "event_schema_version": 1
+    },
+    {
+      "sequence": 2,
+      "event_id": "fixture-event-2",
+      "occurred_at": "2026-08-31T00:00:02+00:00",
+      "actor_subject": "fixture",
+      "action": "document.ingested",
+      "resource_type": "document",
+      "resource_id": "doc-statute",
+      "payload_json": "{\"n\":2}",
+      "previous_hash": "c9c4dc2eca162e1e7a52663053a3393a1deca49de5de7f639eb547a8bb29295b",
+      "event_hash": "fb6b37fcabf6e99added7a98d0712e20fe03bda77a4356c75ca4a897c4e0c0c7",
+      "audit_key_id": "fixture-2026-08",
+      "event_schema_version": 1
+    },
+    {
+      "sequence": 3,
+      "event_id": "fixture-event-3",
+      "occurred_at": "2026-08-31T00:00:03+00:00",
+      "actor_subject": "fixture",
+      "action": "document.ingested",
+      "resource_type": "document",
+      "resource_id": "doc-statute",
+      "payload_json": "{\"n\":3}",
+      "previous_hash": "fb6b37fcabf6e99added7a98d0712e20fe03bda77a4356c75ca4a897c4e0c0c7",
+      "event_hash": "26fdd08443f790eb85258951e7b79b43802b3092f6f211ae024c236e78615fd7",
+      "audit_key_id": "fixture-2026-08",
+      "event_schema_version": 1
+    }
+  ]
+}

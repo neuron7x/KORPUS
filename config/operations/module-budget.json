@@ -3641,12 +3641,12 @@
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/measure_audit_integrity.py": {
-      "lines": 248,
+      "lines": 274,
       "max_complexity": 15,
       "max_function_args": 4,
-      "max_function_lines": 81,
+      "max_function_lines": 84,
       "max_nesting": 4,
-      "reason": "Розрізняє attributed / misattributed / unverifiable, які зливались в одне «audit hash mismatch». Без ключа повертає UNKNOWN, не PASS."
+      "reason": "Додано поріг атрибуції: інструмент, що лише міряв, тепер виносить вирок за власною головною метрикою. Потреба знайдена пробою живучості — отрута «подія називає не той ключ» проходила з кодом 0, бо судити було нікому. Складність main зведено розбором (вирок винесено у `rule`), лишилось зростання рядків від самої здатності."
     },
     "scripts/measure_corpus_integrity.py": {
       "lines": 199,
@@ -4801,6 +4801,14 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/build_liveness_fixture.py": {
+      "lines": 338,
+      "max_complexity": 6,
+      "max_function_lines": 91,
+      "max_function_args": 3,
+      "max_nesting": 2,
+      "reason": "Еталон у мініатюрі, на якому гейти корпусу можна ЗМУСИТИ впасти. Вони не мали проб живучості не через недбалість: проба копіює дерево, а вони читають var/runtime — 395 МБ — і ключі, яких у дереві немає. Тексти, журнал і ключ лежать окремими файлами саме тому, що проба псує ВХІД і перезбирає еталон: константи в генераторі затирали б отруту."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -6829,6 +6837,12 @@
       "to": {
         "max_function_lines": 57
       }
+    },
+    {
+      "module": "scripts/measure_audit_integrity.py",
+      "to": 274,
+      "on": "2026-08-31",
+      "reason": "Додано поріг атрибуції: інструмент, що лише міряв, тепер виносить вирок за власною головною метрикою. Потреба знайдена пробою живучості — отрута «подія називає не той ключ» проходила з кодом 0, бо судити було нікому. Складність main зведено розбором (вирок винесено у `rule`), лишилось зростання рядків від самої здатності."
     }
   ],
   "recorded_at": "2026-08-24",

@@ -253,6 +253,21 @@ doctrine-catalog:
 
 # Чи кожен гейт узагалі здатен почервоніти. Не в `validate`: кожна проба копіює дерево
 # і проганяє гейт заново, тож це хвилини, а не секунди. Запускати перед merge.
+# Еталон, на якому гейти корпусу можна ЗМУСИТИ впасти. Не гейт: він БУДУЄ вхід для проб.
+# Тексти лежать у git, усе побудоване — під `var/`, бо похідний артефакт у джерельному
+# дереві ламає саме ту перевірку, що боронить межу джерел.
+liveness-fixture:
+	$(PY) scripts/build_liveness_fixture.py $(if $(VERIFY),--verify)
+
+# Похідні статті успадковують посилання батьківського статуту. Батько визначається
+# ДОСЛІВНИМ входженням у оригінал з object-store, не назвою: у назві сказано лише
+# «Статут», а їх чотири.
+relink-derived:
+	@test -n "$(DATABASE)" || { echo "вжиток: make relink-derived DATABASE=/шлях/до/korpus.db [APPLY=1]" >&2; exit 64; }
+	$(PY) scripts/relink_derived_articles.py --selftest
+	$(PY) scripts/relink_derived_articles.py --database "$(DATABASE)" $(if $(OBJECT_ROOT),--object-root "$(OBJECT_ROOT)") $(if $(APPLY),--apply)
+	$(PY) scripts/validate_derived_source_links.py --database "$(DATABASE)" $(if $(OBJECT_ROOT),--object-root "$(OBJECT_ROOT)")
+
 gate-liveness:
 	PYTHONPATH=$(HOME)/neuron7x-verdict/src $(PY) -m neuron7x_verdict.cli gates \
 		--config config/operations/gate-liveness.yaml --root . \

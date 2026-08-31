@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1656,
-  "root_sha256": "49d73adc365f9748a5d9bae845c82b1ff793f382b31f1d2bdad6a00841353e5d",
+  "file_count": 1661,
+  "root_sha256": "a017efc7dfaa0aee1864939f44773d740ed7f280dd4b1d43dfba32e995cc69cc",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 64834,
-      "sha256": "86b25d9a97dde378096b3af73bb68fa831a1974007192d5bd0bac2824a507532",
+      "bytes": 66129,
+      "sha256": "7548c1e4f78e7efb71560887d31735d5a9671e18deb4ce59c51fa93a53799968",
       "mode": "0644"
     },
     {
@@ -6775,14 +6775,14 @@
     },
     {
       "path": "config/operations/gate-liveness.yaml",
-      "bytes": 14789,
-      "sha256": "44ecc254bf7092cf7281c718cdf3f476307d96250cb2a90f71d724d4ae5674c7",
+      "bytes": 20697,
+      "sha256": "d443bbe41227a3b71917b1f37b276953d914e001c13fe06f6b3c4be410088416",
       "mode": "0644"
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 333019,
-      "sha256": "b616f31f8ba8715b922a55ceafa8c37ef030357355548e4d7ad57a801bd92136",
+      "bytes": 334935,
+      "sha256": "3f5dd404ff1f98d3572df47e859fa96ea70eddd49f4b52101cdfa5bc2dd1db42",
       "mode": "0644"
     },
     {
@@ -7740,6 +7740,30 @@
       "mode": "0644"
     },
     {
+      "path": "evals/fixtures/liveness/sources/audit-events.json",
+      "bytes": 2131,
+      "sha256": "0c7a1aa3e7797d167c3ec4b1e5d6e4bdcca5130d07e714d547af8260eab8db2c",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/fixtures/liveness/sources/audit-key.txt",
+      "bytes": 38,
+      "sha256": "a27b6a27167ef94d87543789cf4237982b6c3ce142d8af71c6642cf2fe869cbc",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/fixtures/liveness/sources/derived.txt",
+      "bytes": 369,
+      "sha256": "29bd44da59659ce3fead082aca0b747d42dde52481267f8eed48c110ff8e0ca9",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/fixtures/liveness/sources/statute.txt",
+      "bytes": 788,
+      "sha256": "c472541d400e979080b0e0317effe4494a3a7e96bf19fb70ab780b720c5358ac",
+      "mode": "0644"
+    },
+    {
       "path": "evals/fixtures/operations.txt",
       "bytes": 266,
       "sha256": "50a9ad1d49d92cfd9c2017fd13c561b9d50df326b452dc7ea3d67e1ff32db274",
@@ -8349,6 +8373,12 @@
       "path": "scripts/build_import_manifest.py",
       "bytes": 10250,
       "sha256": "064c00ecc739b41ac64bab949c5be192988fa1e5984b155b6d19b535bd355fff",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/build_liveness_fixture.py",
+      "bytes": 15557,
+      "sha256": "51a9eda8b436aef24a98488708b3885aa4936f0e58a4bb932e81094475dc780a",
       "mode": "0755"
     },
     {
@@ -8965,8 +8995,8 @@
     },
     {
       "path": "scripts/measure_audit_integrity.py",
-      "bytes": 14789,
-      "sha256": "e0f7cab30964d224dcf175698866ebea241a05eb58dfc8274915fb21850612db",
+      "bytes": 16393,
+      "sha256": "5128c7fe16e687cd84687e770364d7f933dc89e5df5c3948082a9f75edc4b070",
       "mode": "0755"
     },
     {
