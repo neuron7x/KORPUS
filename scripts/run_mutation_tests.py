@@ -4486,8 +4486,8 @@ MUTANTS = (
     Mutant(
         "M470_AN_UNUSABLE_VALUE_IS_TOLERATED",
         "scripts/check_public_env_parity.py",
-        '        if value.startswith("{") and not _parses_as_json(value)',
-        "        if False",
+        '        name for name, value in unit.items() if value.startswith("{") and not _parses_as_json(value)',
+        "        name for name, value in unit.items() if False and not _parses_as_json(value)",
         ("apps/api/tests/test_public_env_parity.py::test_an_unparsable_json_value_is_refused",),
         full_copy=True,
     ),
