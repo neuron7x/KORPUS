@@ -43,7 +43,12 @@ from korpus.domain.models import (
 
 # ACT-LRN-002: register the normalized learning graph on the shared metadata.
 from korpus.infrastructure import learning_schema as _learning_schema  # noqa: F401
-from korpus.infrastructure import retrieval_queries, review_transitions, row_mapping
+from korpus.infrastructure import (
+    retrieval_queries,
+    retrieval_subject_query,
+    review_transitions,
+    row_mapping,
+)
 from korpus.infrastructure.audit_anchor import AnchorError, AuditAnchorStore, FileAuditAnchorStore
 from korpus.infrastructure.audit_reader import AuditReader, audit_canonical
 
@@ -658,14 +663,55 @@ class SqlRepository:
         prepared = retrieval_queries.candidate_span_query(
             identity, corpora, as_of, query, limit, self.engine.dialect.name
         )
-        if prepared is None:
-            return []
-        statement, parameters = prepared
         if connection is not None:
-            return [row.span_id for row in connection.execute(statement, parameters)]
+            return self._with_subject_candidates(
+                connection, identity, corpora, as_of, query, limit, prepared
+            )
         with self.engine.begin() as owned_connection:
             self._apply_postgres_identity(owned_connection, identity)
-            return [row.span_id for row in owned_connection.execute(statement, parameters)]
+            return self._with_subject_candidates(
+                owned_connection, identity, corpora, as_of, query, limit, prepared
+            )
+
+    def _with_subject_candidates(
+        self,
+        connection: Connection,
+        identity: Identity,
+        corpora: frozenset[str],
+        as_of: date,
+        query: str,
+        limit: int,
+        prepared: tuple[Any, dict[str, Any]] | None,
+    ) -> list[str]:
+        """Прольоти оголошеного предмета — попереду лексичних, решта як була."""
+
+        lexical: list[str] = []
+        if prepared is not None:
+            statement, parameters = prepared
+            lexical = [row.span_id for row in connection.execute(statement, parameters)]
+        titles = [
+            row.canonical_title
+            for row in connection.execute(
+                sql_text("SELECT canonical_title FROM documents WHERE canonical_title LIKE :shape"),
+                {"shape": "Обов%язки:%"},
+            )
+        ]
+        matched = retrieval_subject_query.subjects_in_question(query, titles)
+        subject_prepared = retrieval_subject_query.subject_span_query(
+            identity, corpora, as_of, matched, limit
+        )
+        if subject_prepared is None:
+            return lexical
+        subject_statement, subject_parameters = subject_prepared
+        subject_ids = [
+            row.span_id for row in connection.execute(subject_statement, subject_parameters)
+        ]
+        if not subject_ids:
+            return lexical
+        seen = set(subject_ids)
+        merged = list(subject_ids)
+        merged.extend(span_id for span_id in lexical if span_id not in seen)
+        return merged[:limit]
 
     @staticmethod
     def _apply_postgres_identity(connection: Connection, identity: Identity) -> None:

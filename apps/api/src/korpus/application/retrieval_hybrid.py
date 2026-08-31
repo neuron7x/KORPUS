@@ -8,6 +8,7 @@ from datetime import date
 from typing import Protocol, cast
 from uuid import UUID
 
+from korpus.application.declared_subject import subjects_in_question
 from korpus.application.ports import Repository
 from korpus.application.retrieval_math import (
     BM25Parameters,
@@ -47,6 +48,10 @@ class Diversifier(Protocol):
         diversity_lambda: float,
         per_version_cap: int,
         authority_priors: dict[AuthorityClass, float],
+        #: Документи, чий ОГОЛОШЕНИЙ предмет названо в питанні. Клас, а не вага:
+        #: стаття про роль не повторює своєї назви, тож лексично програє довгому
+        #: статуту, що згадав роль мимохідь.
+        subject_documents: frozenset[str],
     ) -> list[RetrievedEvidence]: ...
 
 
@@ -145,10 +150,19 @@ def execute_hybrid_search_impl(
         ],
         weights=weights,
     )
+    subject_titles = set(
+        subjects_in_question(text, [document.canonical_title for _, document, _ in candidates])
+    )
+    subject_documents = frozenset(
+        str(document.id)
+        for _, document, _ in candidates
+        if document.canonical_title in subject_titles
+    )
     return diversify(
         materialize_evidence(candidates, components, authority_priors),
         limit=limit,
         diversity_lambda=diversity_lambda,
         per_version_cap=per_version_cap,
         authority_priors=authority_priors,
+        subject_documents=subject_documents,
     )

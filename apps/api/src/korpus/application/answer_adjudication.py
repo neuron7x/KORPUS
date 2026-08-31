@@ -219,20 +219,37 @@ def _contrast(question: str, quote: str) -> AxisVerdict:
     return AxisVerdict("contrast", "CANNOT_ADJUDICATE", "протилежної категорії не виявлено")
 
 
-def _lexical(query_coverage: float, threshold: float) -> AxisVerdict:
+def _lexical(query_coverage: float, threshold: float, *, subject_declared: bool) -> AxisVerdict:
     if query_coverage >= threshold:
         return AxisVerdict("lexical", "SUPPORTS", f"покриття питання {query_coverage:.2f}")
+    if subject_declared:
+        # Документ, чий ОГОЛОШЕНИЙ предмет є предметом питання, не повторює ані своєї
+        # назви, ані слова «обов'язки»: заголовок каже «Обов'язки: Вивідний», текст каже
+        # «охороняти за наказом начальника варти». Нульове покриття тут — властивість
+        # ЦІЄЇ осі, а не документа, тож вона утримується замість заперечувати.
+        # Утримання не підвищує впевненість: щоб цитата стала `supported`, її мусять
+        # схвалити дві ІНШІ осі.
+        return AxisVerdict(
+            "lexical",
+            "CANNOT_ADJUDICATE",
+            "документ оголосив предмет питання; покриття тут структурно сліпе",
+        )
     return AxisVerdict(
         "lexical", "DOES_NOT_SUPPORT", f"покриття питання {query_coverage:.2f} нижче порога"
     )
 
 
 def adjudicate(
-    question: str, quote: str, query_coverage: float, threshold: float
+    question: str,
+    quote: str,
+    query_coverage: float,
+    threshold: float,
+    *,
+    subject_declared: bool = False,
 ) -> tuple[AxisVerdict, ...]:
-    """Вироки трьох осей про одну цитату, у сталому порядку."""
+    """Вироки чотирьох осей про одну цитату, у сталому порядку."""
     return (
-        _lexical(query_coverage, threshold),
+        _lexical(query_coverage, threshold, subject_declared=subject_declared),
         _structural(quote),
         _interrogative(question, quote),
         _contrast(question, quote),

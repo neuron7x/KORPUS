@@ -19,6 +19,7 @@ from korpus.application.answer_analysis import (
 from korpus.application.answer_audit import append_answer_audit
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
+from korpus.application.declared_subject import declared_subject_documents, subject_tokens
 from korpus.application.egress import ModelEgressPolicy
 from korpus.application.evidence import (
     SupportVerdict,
@@ -69,7 +70,10 @@ class AnswerPolicy:
     max_claims: int = 4
 
     def eligible(
-        self, evidence: list[RetrievedEvidence], risk: QueryRisk = QueryRisk.STANDARD
+        self,
+        evidence: list[RetrievedEvidence],
+        risk: QueryRisk = QueryRisk.STANDARD,
+        question: str = "",
     ) -> list[RetrievedEvidence]:
         thresholds = risk_adjusted_thresholds(
             risk,
@@ -77,7 +81,9 @@ class AnswerPolicy:
             minimum_query_coverage=self.minimum_query_coverage,
             minimum_support_score=self.minimum_support_score,
         )
-        return eligible_evidence(evidence, thresholds)
+        return eligible_evidence(
+            evidence, thresholds, declared_subject_documents(question, evidence)
+        )
 
 
 #: Порядок присуду: підтверджене попереду дотичного, дотичне попереду спірного.
@@ -459,11 +465,60 @@ class ExtractiveAnswerService:
             # had to clear leaves the admission decision exactly as it was — the best
             # candidate is the highest-covering one, so if it fails, all of them do —
             # and lets the ordering below choose among passages that are already allowed.
+            #: Речення не мусить повторювати те, що документ оголошує про себе сам.
+            #: Стаття «Обов'язки: Головний сержант роти» каже «Він зобов'язаний…» і не
+            #: називає роль жодного разу, тож проти повного питання її покриття нульове
+            #: і вона не давала ЖОДНОЇ цитати. Слова предмета знімаються з вимоги лише
+            #: для документа, який цей предмет оголосив; якщо після зняття не лишається
+            #: чого покривати, вимога стоїть як була — інакше збіг предмета пропускав би
+            #: будь-яке речення.
+            declared = subject_tokens([item.document.canonical_title]).intersection(query_tokens)
+            remaining = query_tokens - declared
+            effective_tokens = remaining if declared and remaining else query_tokens
+            offered = self._candidates(item.span.text, effective_tokens)
             passing = [
                 candidate
-                for candidate in self._candidates(item.span.text, query_tokens)
+                for candidate in offered
                 if candidate.query_coverage >= thresholds.minimum_query_coverage
             ]
+            # Стаття, чий ОГОЛОШЕНИЙ предмет — предмет питання, не повторює ані своєї
+            # назви, ані слова «обов'язки»: заголовок каже «Обов'язки: Вивідний», а текст
+            # каже «охороняти за наказом начальника варти…». Виміряно 31.08.2026: у
+            # правильної статті НУЛЬ спільних токенів із питанням, тож поріг покриття тут
+            # не має на що спрацювати — і саме тому на 92 предмети перша цитата жодного
+            # разу не була документом про предмет.
+            #
+            # Покриття тут структурно сліпе, а не суворе. Замість послаблювати поріг для
+            # всіх, вибір передається тій осі, яка бачить те, чого не бачить лексика:
+            # чи несе речення формулювання ТИПУ ПИТАННЯ. На «Які обов'язки має X?» це
+            # обов'язок — «зобов'язаний», «відповідає за», — і в тілі статті воно є.
+            # Осі судять цитату далі як завжди, тож допущене цим шляхом не стає
+            # непідсудним: воно лише перестає бути невидимим.
+            if declared and not passing:
+                by_type = [
+                    candidate
+                    for candidate in offered
+                    if any(
+                        verdict.axis == "interrogative" and verdict.verdict == "SUPPORTS"
+                        for verdict in adjudicate(
+                            question,
+                            candidate.text,
+                            candidate.query_coverage,
+                            thresholds.minimum_query_coverage,
+                            subject_declared=bool(declared),
+                        )
+                    )
+                ]
+                # Стаття «Обов'язки: Вивідний» подає обов'язки ІНФІНІТИВАМИ —
+                # «охороняти за наказом начальника варти», «попереджувати заарештованого»
+                # — і не каже ані «обов'язки», ані «зобов'язаний». Вісь типу питання
+                # чесно утримується, і це не привід відкинути документ: він про того,
+                # кого спитали, а решта видачі — ні.
+                #
+                # Тому останній крок бере речення статті як вони є. Присуд осей нижче
+                # позначить їх `tangential`: підстава з правильної статті й без
+                # підтвердження другою віссю чесніша за впевнену цитату з чужої.
+                passing = by_type or list(offered)
             # A whole sentence outranks a headless one even when the fragment mentions
             # more of the question. Query coverage measures overlap with the question;
             # it says nothing about whether the passage still carries its own subject.
@@ -481,6 +536,7 @@ class ExtractiveAnswerService:
                                 candidate.text,
                                 candidate.query_coverage,
                                 thresholds.minimum_query_coverage,
+                                subject_declared=bool(declared),
                             )
                         )
                     ],
@@ -523,6 +579,7 @@ class ExtractiveAnswerService:
                 candidate.text,
                 candidate.query_coverage,
                 thresholds.minimum_query_coverage,
+                subject_declared=bool(declared),
             )
             quote_hash = hashlib.sha256(candidate.text.encode("utf-8")).hexdigest()
             citations.append(
@@ -548,6 +605,8 @@ class ExtractiveAnswerService:
             )
             seen_sentences.add(candidate.text)
             covered_tokens.update(set(tokenize(candidate.text)).intersection(query_tokens))
+            #: Слова предмета, який документ оголошує про себе, покриті ним самим.
+            covered_tokens.update(declared)
             if len(claims) >= self.answer_policy.max_claims:
                 break
         return claims, citations, covered_tokens

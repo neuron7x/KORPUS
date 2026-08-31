@@ -478,12 +478,8 @@ MUTANTS = (
         # lexical similarity.
         "M38_AUTHORITY_BACK_TO_A_SCORE_TERM",
         "apps/api/src/korpus/application/retrieval.py",
-        (
-            "            return (\n"
-            "                priors[item.version.authority],\n"
-            "                mmr,\n"
-        ),
-        ("            return (\n                0.0,\n                mmr,\n"),
+        ("                priors[item.version.authority],\n                mmr,\n"),
+        ("                0.0,\n                mmr,\n"),
         (
             "apps/api/tests/test_authority_ranking.py::test_similarity_cannot_promote_a_weaker_source_above_a_stronger_one",
         ),
@@ -2122,6 +2118,44 @@ MUTANTS = (
         (
             "apps/api/tests/test_answer_quality_ratchet.py::"
             "test_letting_in_more_foreign_questions_is_caught",
+        ),
+    ),
+    Mutant(
+        # Ланка, яка тримала «нуль зі ста одного»: пересортування за сирою оцінкою
+        # скасовувало ранжування, побудоване diversify_evidence, і документ, який Й Є
+        # відповіддю, їхав у хвіст саме тому, що не повторює слів питання.
+        "M356_PLAN_SEARCH_RESORTS_BY_RAW_SCORE",
+        "apps/api/src/korpus/application/pec_retrieval.py",
+        "    return [best[key] for key in order]",
+        "    return sorted(best.values(), key=lambda item: -item.score)",
+        (
+            "apps/api/tests/test_declared_subject_admission.py::"
+            "test_the_plan_search_keeps_the_order_the_ranker_built",
+        ),
+    ),
+    Mutant(
+        # Допуск за оголошеним предметом. Без нього стаття з найнижчою сирою оцінкою
+        # (0.181 проти порога 0.25) викидається тим самим порогом, чию сліпоту вона
+        # й ілюструє.
+        "M357_ADMISSION_IGNORES_THE_DECLARED_SUBJECT",
+        "apps/api/src/korpus/application/evidence_admission.py",
+        "    if declares_the_subject:\n        return True",
+        "    if False:\n        return True",
+        (
+            "apps/api/tests/test_subject_admission_floor.py::"
+            "test_a_declared_subject_passes_a_floor_its_wording_cannot_clear",
+        ),
+    ),
+    Mutant(
+        # Лексична вісь мусить УТРИМАТИСЬ там, де вона структурно сліпа. Заперечення
+        # звідти позначає спірною кожну статтю, яка й є відповіддю.
+        "M358_BLIND_AXIS_CONTESTS_INSTEAD_OF_ABSTAINING",
+        "apps/api/src/korpus/application/answer_adjudication.py",
+        "    if subject_declared:",
+        "    if False:",
+        (
+            "apps/api/tests/test_declared_subject_admission.py::"
+            "test_the_lexical_axis_abstains_where_it_is_structurally_blind",
         ),
     ),
     Mutant(

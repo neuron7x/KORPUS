@@ -79,6 +79,7 @@ def diversify_evidence(
     diversity_lambda: float = 0.82,
     per_version_cap: int = 1,
     authority_priors: dict[AuthorityClass, float] | None = None,
+    subject_documents: frozenset[str] = frozenset(),
 ) -> list[RetrievedEvidence]:
     """Maximal-marginal-relevance selection, ordered by authority class first.
 
@@ -88,6 +89,12 @@ def diversify_evidence(
     contradicts. Rank is now lexicographic — authority class first, marginal relevance
     only as a tie-break inside the class — so no amount of lexical similarity promotes
     a weaker source above a stronger one.
+
+    Оголошений предмет стоїть ЩЕ ВИЩЕ за тим самим міркуванням: стаття з обов'язками
+    ролі не повторює її назви, тож лексично програє довгому статуту, що згадав роль
+    мимохідь. Виміряно 0 правильних зі 101. Це не вага, яку схожість може перебити, а
+    клас: документ, чий ОГОЛОШЕНИЙ предмет збігся з предметом питання, не «доречніший»
+    — він про того, кого спитали.
     """
 
     if not 0 <= diversity_lambda <= 1:
@@ -110,7 +117,7 @@ def diversify_evidence(
         if not admissible:
             break
 
-        def utility(item: RetrievedEvidence) -> tuple[float, float, float, str, int]:
+        def utility(item: RetrievedEvidence) -> tuple[float, float, float, float, str, int]:
             if diversity_lambda == 1.0:
                 mmr = item.score
             else:
@@ -123,6 +130,7 @@ def diversify_evidence(
                 )
                 mmr = diversity_lambda * item.score - (1 - diversity_lambda) * redundancy
             return (
+                1.0 if str(item.document.id) in subject_documents else 0.0,
                 priors[item.version.authority],
                 mmr,
                 item.score,

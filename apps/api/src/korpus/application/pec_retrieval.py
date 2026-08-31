@@ -85,6 +85,7 @@ def _search_plan(
     include_asked: bool = True,
 ) -> list[RetrievedEvidence]:
     best: dict[str, RetrievedEvidence] = {}
+    order: list[str] = []
     searches = plan.searches if include_asked else plan.variants
     for text in searches:
         for item in _search_one(
@@ -92,11 +93,21 @@ def _search_plan(
         ):
             key = str(item.span.id)
             previous = best.get(key)
+            if previous is None:
+                order.append(key)
             if previous is None or item.score > previous.score:
                 best[key] = item
-    return sorted(
-        best.values(), key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal)
-    )
+    #: Порядок ЗБЕРІГАЄТЬСЯ, як і в `_merge`. Пересортування за сирою оцінкою тут
+    #: скасовувало ранжування, яке щойно побудував `diversify_evidence` — лексикографічне,
+    #: де схожість є лише тайбрейком усередині класу. Це та сама вада, що була в `_merge`,
+    #: але саме ЦЯ функція стоїть на шляху, яким ходить розгортання: без каліброваного
+    #: контролера `adaptive_retrieval_impl` повертає `search_plan(...)` першим же рядком.
+    #:
+    #: Ціна була виміряна: стаття «Обов'язки: Вивідний» приходить із пошуку ПЕРШОЮ і має
+    #: найнижчу сиру оцінку (0.181), бо не повторює слів питання. Пересортування ставило
+    #: її в кінець, а поріг допуску 0.25 добивав. На 92 оголошені предмети перша цитата
+    #: жодного разу не була документом про предмет — нуль зі ста одного.
+    return [best[key] for key in order]
 
 
 def _merge(*groups: list[RetrievedEvidence]) -> list[RetrievedEvidence]:
@@ -107,6 +118,20 @@ def _merge(*groups: list[RetrievedEvidence]) -> list[RetrievedEvidence]:
             previous = best.get(key)
             if previous is None or item.score > previous.score:
                 best[key] = item
-    return sorted(
-        best.values(), key=lambda item: (-item.score, -item.query_coverage, item.span.ordinal)
-    )
+    #: Порядок груп ЗБЕРІГАЄТЬСЯ, а не перебудовується за оцінкою. Пересортування тут
+    #: скасовувало ранжування, яке щойно побудував `diversify_evidence`: він упорядковує
+    #: лексикографічно — клас авторитету спершу, схожість лише як тайбрейк, — саме щоб
+    #: «no amount of lexical similarity promotes a weaker source above a stronger one».
+    #: Рядок нижче за течією робив рівно те, що той коментар забороняє, і разом із
+    #: авторитетом викидав будь-який інший клас рангу. Варіанти запиту дописуються в
+    #: хвіст: вони доповнюють, а не переставляють те, що вже впорядковано.
+    ordered: list[RetrievedEvidence] = []
+    seen: set[str] = set()
+    for group in groups:
+        for item in group:
+            key = str(item.span.id)
+            if key in seen:
+                continue
+            seen.add(key)
+            ordered.append(best[key])
+    return ordered

@@ -53,9 +53,33 @@ def candidate_margins(
     )
 
 
-def evidence_is_eligible(item: RetrievedEvidence, thresholds: RiskThresholds) -> bool:
+def evidence_is_eligible(
+    item: RetrievedEvidence,
+    thresholds: RiskThresholds,
+    *,
+    declares_the_subject: bool = False,
+) -> bool:
+    """Чи допускається цей уривок до відповіді.
+
+    `declares_the_subject` знімає лексичні пороги — і НЕ знімає структурних.
+    Затвердженість версії та нормативність авторитету стоять для всіх однаково:
+    допуск за предметом каже «це про того, кого спитали», а не «цьому можна більше».
+
+    Навіщо виняток. Стаття, чий ОГОЛОШЕНИЙ предмет є предметом питання, не повторює
+    ані своєї назви, ані слова «обов'язки»: заголовок каже «Обов'язки: Вивідний»,
+    текст каже «охороняти за наказом начальника варти». Виміряно 31.08.2026 на
+    живому розгортанні: правильна стаття приходила з пошуку ПЕРШОЮ (оцінка 0.181,
+    покриття 0.00) і саме тут викидалась порогом 0.25, бо низька оцінка спричинена
+    рівно тією сліпотою, проти якої поріг поставлено. На 92 предмети перша цитата
+    жодного разу не була документом про предмет.
+
+    Це клас, а не вага: збіг береться з ЗАКРИТОГО словника — 101 заголовок, який
+    корпус оголосив про себе сам, — тож обійти його підбором формулювання не можна.
+    """
     if not structurally_admissible(item):
         return False
+    if declares_the_subject:
+        return True
     margins = candidate_margins(item, thresholds)
     return margins.minimum >= 0.0
 
@@ -63,8 +87,15 @@ def evidence_is_eligible(item: RetrievedEvidence, thresholds: RiskThresholds) ->
 def eligible_evidence(
     evidence: list[RetrievedEvidence],
     thresholds: RiskThresholds,
+    subject_documents: frozenset[str] = frozenset(),
 ) -> list[RetrievedEvidence]:
-    return [item for item in evidence if evidence_is_eligible(item, thresholds)]
+    return [
+        item
+        for item in evidence
+        if evidence_is_eligible(
+            item, thresholds, declares_the_subject=str(item.document.id) in subject_documents
+        )
+    ]
 
 
 def admission_boundary_summary(

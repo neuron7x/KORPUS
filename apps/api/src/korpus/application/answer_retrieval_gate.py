@@ -42,7 +42,7 @@ def apply_retrieval_gate(
         )
         service._audit(identity, query, answer, retrieved, [], risk, plan=plan, pec_trace=pec_trace)
         return answer, None
-    eligible = service.answer_policy.eligible(retrieved, risk)
+    eligible = service.answer_policy.eligible(retrieved, risk, query.text)
     if not eligible:
         answer = service._abstain(
             release_id,
