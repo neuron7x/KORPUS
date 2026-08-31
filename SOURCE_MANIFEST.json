@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1625,
-  "root_sha256": "1fecbf020c0c839936150e0cff77fdb16cdf90cef7473f84a01d9899b50c06fb",
+  "root_sha256": "384286ed5807793b56e4691692988a84b66094ae3f38e474486ac1a822185e1b",
   "files": [
     {
       "path": ".dockerignore",
@@ -4555,8 +4555,8 @@
     },
     {
       "path": "apps/web/public/app.js",
-      "bytes": 25410,
-      "sha256": "10de93c7efdd2e338535b6465e480fca389af9d14e6ef04d8931a18f718fad78",
+      "bytes": 26799,
+      "sha256": "faf3effb2d66fdbcb53e8dd9dc7230038a324a535c1251f5a52e78a303d9841a",
       "mode": "0644"
     },
     {
@@ -4651,8 +4651,8 @@
     },
     {
       "path": "apps/web/public/decision_field.js",
-      "bytes": 5486,
-      "sha256": "4c928b0ed62efba4526596f1e5ecfc0fd99f75e18374c995751e3abb93bc577b",
+      "bytes": 6506,
+      "sha256": "87484009e70a120428b0d577495060b78c83620a1508e3290bf4a80523339a37",
       "mode": "0644"
     },
     {
@@ -4843,8 +4843,8 @@
     },
     {
       "path": "apps/web/tests/approved_ui.test.mjs",
-      "bytes": 5969,
-      "sha256": "3080fc3dfa2b9536b93e113eb00bccb56e3db22e1b8c907cce9113d5e776d1e1",
+      "bytes": 7790,
+      "sha256": "0289bcaac0b41e6a026a0118701c1c9d70c2de9a98317972005a8e5ea7f69db0",
       "mode": "0644"
     },
     {
