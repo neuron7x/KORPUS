@@ -1924,7 +1924,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 434,
+      "lines": 450,
       "max_complexity": 4,
       "reason": "ratchet ceiling lowered after production-plane decomposition | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one.",
       "max_function_lines": 60,
@@ -3929,7 +3929,7 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4217,
+      "lines": 4229,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 3857->4140: thirty mutants added for the doctrine catalog's provenance rules 9-14 (scripts/validate_doctrine_catalog.py), the module budget's own ceiling guard and the production-predicate floor. The catalogue is a data table: its size is the number of predicates under mutation, so refusing to grow it means refusing to cover new rules. Five of the thirty survived every existing test and each is now cited against a test written for it. | 2026-08-31 4154->4193: три мутанти на правила, що закрили три обходи сторожа вступного рядка (M343 об'єднання словника цитат, M344 пропуск коротких токенів, M345 рядки моделі замість спанів), плюс перецілений M207, чия ціль зникла разом зі старою формою правила. Каталог — таблиця даних: відмова йому рости є відмовою покривати нове правило.",
       "max_function_lines": 60,
@@ -6189,6 +6189,28 @@
         "lines": 4217
       },
       "reason": "Два мутанти (M346 уривок переважує ціле речення, M347 уривок прихований від читача) на два нові правила. 31.08.2026: цитата, у якої відрізано початок речення, читається як інша норма. На корпусі, що обслуговується, 32 820 із 38 863 спанів (84,5 %) починаються посеред речення; на 12 реальних питаннях 2 головні докази починались посеред СЛОВА. Найдорожчий випадок: межа спана розрізала «За|лишається», і речення «Воєнний об'єкт залишається таким навіть у тому випадку, якщо на ньому знаходяться цивільні особи» показувалось без підмета у відповідь на «коли дозволяється відкривати вогонь по цивільній особі». Додано: вимір starts_mid_sentence, перевагу повного речення над уривком серед тих, що вже пройшли поріг, і поле quote_starts_mid_sentence, яким читача попереджають, коли показати можна лише уривок. Після правки частка обрізків серед головних доказів 16,7 % → 8,3 % (виміряно тими самими 12 питаннями)."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/config.py",
+      "from": {
+        "lines": 434
+      },
+      "to": {
+        "lines": 450
+      },
+      "reason": "31.08.2026: поріг покриття питання піднято 0.25 → 0.5 і причина записана поруч зі значенням. Вимір на 40 питаннях через живий edge (20 у корпусі, 20 поза ним): при 0.25 система відповідала на 17 із 20 чужих під зеленим вироком; при 0.5 — на 4. Своїх лишається 18 із 20. На замороженому еталоні 93/95 проти 89/95, supported_answer_rate 0.886 проти 0.861, answer_yield 0.937 → 0.911. Плюс мутант M348, який повертає чверть і має загинути."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 4217
+      },
+      "to": {
+        "lines": 4229
+      },
+      "reason": "31.08.2026: поріг покриття питання піднято 0.25 → 0.5 і причина записана поруч зі значенням. Вимір на 40 питаннях через живий edge (20 у корпусі, 20 поза ним): при 0.25 система відповідала на 17 із 20 чужих під зеленим вироком; при 0.5 — на 4. Своїх лишається 18 із 20. На замороженому еталоні 93/95 проти 89/95, supported_answer_rate 0.886 проти 0.861, answer_yield 0.937 → 0.911. Плюс мутант M348, який повертає чверть і має загинути."
     }
   ],
   "recorded_at": "2026-08-24",

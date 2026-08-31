@@ -37,7 +37,7 @@
   },
   "development_answer_gates": {
     "minimum_retrieval_score": 0.18,
-    "minimum_query_coverage_runtime_default": 0.25,
+    "minimum_query_coverage_runtime_default": 0.5,
     "minimum_query_coverage_frozen_eval": 0.5,
     "minimum_support_score": 0.18
   },

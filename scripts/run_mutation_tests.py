@@ -2024,6 +2024,18 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Поріг, повернений до чверті питання, знову впускає 17 чужих питань із 20 під
+        # зелений вирок. Значення живе в одному місці, тож і мутант один.
+        "M348_QUERY_COVERAGE_BACK_TO_A_QUARTER",
+        "apps/api/src/korpus/config.py",
+        "    min_query_coverage: float = Field(0.5, ge=0, le=1)",
+        "    min_query_coverage: float = Field(0.25, ge=0, le=1)",
+        (
+            "apps/api/tests/test_query_coverage_threshold.py::"
+            "test_the_shipped_threshold_is_half_the_question",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

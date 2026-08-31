@@ -164,7 +164,17 @@ class Settings(BaseSettings):
     pec_replay_receipt_path: Path | None = None
     contextual_retrieval_enabled: bool = False
     min_retrieval_score: float = Field(0.18, ge=0, le=1)
-    min_query_coverage: float = Field(0.25, ge=0, le=1)
+    #: Скільки змістовних слів питання мусить нести речення, щоб його показали як
+    #: відповідь. Було 0.25 — чверть питання, тобто одне слово з чотирьох. Виміряно
+    #: 31.08.2026 на 40 питаннях через живий edge (20 у корпусі, 20 свідомо поза ним):
+    #: при 0.25 система відповідала на 17 із 20 чужих питань під зеленим вироком —
+    #: «як налаштувати гаманець Ethereum» отримувало обов'язки техніка БпАК. Розподіли
+    #: РОЗДІЛЯЮТЬСЯ: у корпусі максимальне покриття claim'а ≥ 0.5 у 18 із 20, поза
+    #: корпусом ≤ 0.5 у 16 із 20. Поріг 0.5 лишає 18 із 20 своїх і прибирає 13 із 17
+    #: чужих. На замороженому еталоні дерева той самий поріг дає 93/95 проти 89/95 і
+    #: supported_answer_rate 0.886 проти 0.861 — тобто платня зібрана з відмов, а не з
+    #: правильних відповідей. Ціна названа: answer_yield 0.937 → 0.911.
+    min_query_coverage: float = Field(0.5, ge=0, le=1)
     min_support_score: float = Field(0.18, ge=0, le=1)
     #: Optional model assistance; evidence admission remains deterministic.
     answer_composer_enabled: bool = False
