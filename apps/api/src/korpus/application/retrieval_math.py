@@ -7,16 +7,11 @@ change to the inference path.
 
 from __future__ import annotations
 
-import json
 import math
 import re
 import unicodedata
 from collections import Counter
-from collections.abc import Iterable
 from dataclasses import dataclass
-from pathlib import Path
-
-_TABLE_PATH = Path(__file__).resolve().parents[5] / "config/corpus/transliteration.json"
 
 TOKEN_PATTERN = re.compile(r"[\w'’\-]{2,}", re.UNICODE)
 #: Words that carry no claim about the subject. A question is three or four words long, so
@@ -157,57 +152,11 @@ def tokenize(text: str) -> list[str]:
     return [_ukrainian_stem(token) for token in raw_tokens(text)]
 
 
-def fold_aliases(tokens: Iterable[str]) -> set[str]:
-    """Токени документа, зведені до тієї форми, якою про них питають.
-
-    Розширюється бік ДОКУМЕНТА, і це не дрібниця. Перша редакція додавала латинську
-    форму до токенів ПИТАННЯ — і тим піднімала знаменник покриття: «Як застосовується
-    Хаймарс?» ставало трьома токенами, з яких у прольоті може траплятись лише один,
-    тобто стеля покриття падала до 0.33 при порозі 0.5. Питання про транслітеровану
-    систему ставало важчим САМЕ ЧЕРЕЗ ліки. Виміряно 31.08.2026: «Джавелін» (два
-    токени) полагодилось, «Хаймарс» і «Шахед» (три) — ні.
-
-    Синонім — це один клас, а не два слова. Тому «himars» у тексті читається як
-    «хаймарс», знаменник лишається тим, що спитали, і жодна форма не дорожча за іншу.
-    """
-    reverse = {latin: ua for ua, latin in transliteration_aliases().items()}
-    return {reverse.get(token, token) for token in tokens}
-
-
-def transliteration_aliases() -> dict[str, str]:
-    """Українське написання → латинське, і тільки те, що ВИМІРЯНО в корпусі.
-
-    Відмова — теж твердження. Виміряно 31.08.2026: п'ятнадцять названих систем існують
-    у корпусі ЛИШЕ латиницею, тож україномовне питання про них не знаходить нічого —
-    Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113, Stinger 68, HIMARS 62.
-    Солдат робить із мовчання висновок про корпус, і корпус його не спростує.
-
-    Таблиця — ДАНІ, і кожен запис існує лише тому, що латинська форма справді
-    резолвиться, а українська ні. Складена з уяви, вона додавала б синоніми до слів,
-    яких немає, і виглядала б так само; `check_transliteration_table.py` переміряє це.
-    """
-    if not _TABLE_PATH.is_file():
-        return {}
-    payload = json.loads(_TABLE_PATH.read_text(encoding="utf-8"))
-    return {
-        str(entry["ua"]): str(entry["latin"])
-        for entry in payload.get("entries", [])
-        if entry.get("ua") and entry.get("latin")
-    }
-
-
 def candidate_terms(text: str) -> list[tuple[str, bool]]:
     result: list[tuple[str, bool]] = []
     seen: set[tuple[str, bool]] = set()
-    aliases = transliteration_aliases()
     for token in raw_tokens(text):
-        forms = [(token, False), (_ukrainian_stem(token), True)]
-        alias = aliases.get(token) or aliases.get(_ukrainian_stem(token))
-        if alias:
-            # Додається як АЛЬТЕРНАТИВА, не заміна: запит лишається тим, що спитали,
-            # і латинська форма лише перестає бути невидимою.
-            forms.append((alias, True))
-        for value in forms:
+        for value in ((token, False), (_ukrainian_stem(token), True)):
             if len(value[0]) >= 2 and value not in seen:
                 seen.add(value)
                 result.append(value)
@@ -408,7 +357,7 @@ def score_candidates(
     for index, tokens in enumerate(tokenized):
         if not tokens:
             continue
-        token_set = fold_aliases(tokens)
+        token_set = set(tokens)
         scored.append(
             ScoredCandidate(
                 index=index,
