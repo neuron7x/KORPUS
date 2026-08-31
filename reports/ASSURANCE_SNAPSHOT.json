@@ -5,48 +5,48 @@
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 821245,
-      "sha256": "740ddce8976717ad856b311df7ec74359dbc7b54f740fa0419e41365295569ad"
+      "bytes": 831403,
+      "sha256": "7a98f96eb3f32d43c9b7a6ae9f06dc90ac0aaf4a74a7cac69e09f3e5e23fdc41"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
-      "bytes": 461021,
-      "sha256": "b5e8098c4890a9fcf7ebd2e2acfd7e2819d80a934983e640bdc7d17ece330fd8"
+      "bytes": 462562,
+      "sha256": "133fd3f24eb784c4f69de21a3a8287a5c6bb54056066cb8634208e93269dbab0"
     },
     {
       "path": "reports/COVERAGE_REPORT.xml",
-      "bytes": 703614,
-      "sha256": "8df825d38760d010f3cc85d24a829f3724630548b7bce9619ecd4d10db65e4aa"
+      "bytes": 707398,
+      "sha256": "a3f455a3e53dd4ddbe94f583a445f88e26aae07a2dd1efdd459b5af0f4ca4ccf"
     },
     {
       "path": "reports/COVERAGE_REPORT.json",
-      "bytes": 1970252,
-      "sha256": "e321b71927f69066fc13d56ccbc1d67b91a23f39289a45099911c00e91c523ec"
+      "bytes": 1981064,
+      "sha256": "c4ddcd7f87a7d691668f7980e3f6b905a0e39a4d549691e44e1c295b8f6e36bf"
     },
     {
       "path": "reports/EVAL_REPORT.json",
       "bytes": 19171,
-      "sha256": "b1b74b09bc495d80734e97794a508116316ee427efe22558df0f44ab02a0ef27"
+      "sha256": "7456baef8aef6c6e703bcaa179c0d3797323a28d0b5b829c4418a6ff3747f0fb"
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 782379,
-      "sha256": "d0b28290601c9336dd64fdc33a1364f47bc029c9d77e383f44abdef554c0a2cf"
+      "bytes": 790846,
+      "sha256": "c2db10eb2d86bfd42e6520c8ccba5ca6a71738f78d4770c4c508e9799226188b"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
       "bytes": 2171,
-      "sha256": "9aff06a1294028e1682afd6055e7d918a34fbcae520d530a8ea0e3319fa3e24f"
+      "sha256": "d894967835fed0dab5d922338491aa91011b02af26a7aef285d1b985870bad33"
     },
     {
       "path": "reports/SCALE_REPORT.json",
-      "bytes": 1040,
-      "sha256": "f1b6ecd67b474d1a74b4185d6f81e4d94862b2b5f046e0df62113c545ecb2b96"
+      "bytes": 1042,
+      "sha256": "0fa0c9d40893c39e67c96c2aea9803ac615eaebdcdd9abe1493156ed0802075d"
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1499,
-      "sha256": "bcef231657dd0eb5c6fc5194918ca2925c3bbbdd25958ab3842b3dc7a6155fd2"
+      "sha256": "4c6c4f905c8260c58a57b608390c6e7e38a3e59315671597c633fc3d60283bc0"
     },
     {
       "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
@@ -61,12 +61,12 @@
     {
       "path": "reports/KUBERNETES_VALIDATION.json",
       "bytes": 566,
-      "sha256": "24ced6a99642c5c200ba9550d698b72fc1e1a6ccad3fbf4f474473f2406c3503"
+      "sha256": "8a520f8c7212ce5a7b875dbbd29706382c71f682a253816fd10de3c76d92b56d"
     }
   ],
   "limitations": [
-    "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; local fixture evidence cannot promote those claims.",
-    "Synthetic local scale evidence is not a production SLA.",
-    "Passing software gates is not corpus, cyber, regulatory or military authorization."
+    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
+    "PostgreSQL integration is a dedicated CI service-container gate; local report may show it skipped.",
+    "Synthetic evaluation does not authorize real restricted corpus deployment."
   ]
 }

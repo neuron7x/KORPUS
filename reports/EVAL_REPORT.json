@@ -58,9 +58,9 @@
       "https://crfm.stanford.edu/helm/capabilities/latest/"
     ]
   },
-  "system_manifest_sha256": "5b38e2362f25368c68ade1d01f2d08eb55a5d25275d6849387b18cd073a0d6c0",
-  "system_manifest_root_sha256": "6d31e1e9fb53896ed4f78c9548be7ee355b9aa3cdca2ae44859f304acbf22e55",
-  "source_commit": "a3365f7ad8e0b10fab80e6469cfa8a2b22078a9a",
+  "system_manifest_sha256": "22301b4dd0a985a5c3ed8b4dc1fb9d59e711c054dc54fb8ea3e9aa907c9cde45",
+  "system_manifest_root_sha256": "f01c6636efcdcfd5d68c6089dd81ea2d03be62f90f9a7475c7fabf3cb5143635",
+  "source_commit": "020a3b641bcc294512797e05cd800f3a3ea45d85",
   "calibration_status": "UNVALIDATED_TEST_FIXTURE",
   "tevv": {
     "schema_version": 1,
@@ -550,8 +550,8 @@
   ],
   "provenance": {
     "schema_version": 1,
-    "source_digest": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
+    "source_digest": "4f8149b0b3e556acf1ca72ae03815fbc311ff83addd754153696d5cc371ecc60",
     "generator": "scripts/run_evals.py",
-    "generated_at": "2026-08-31T08:17:15+00:00"
+    "generated_at": "2026-08-31T09:45:03+00:00"
   }
 }
