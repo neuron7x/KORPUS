@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1643,
-  "root_sha256": "a52fb686fee44671a457239ac11f81ddf8d9b5c22e4af68f823d33ac2a619070",
+  "file_count": 1644,
+  "root_sha256": "16c82ff15a6705d8962204c40d87d7c53998ca3d4211fffb58d8f82a1bd6f362",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 63136,
-      "sha256": "ff877247837ab486c6087c6f2353a1194df89e366639edea0043af09c16369be",
+      "bytes": 63713,
+      "sha256": "595c669214f26eb1879539cd5cd2bce4a510d63d5ba1d121cf4375684e0301d1",
       "mode": "0644"
     },
     {
@@ -835,8 +835,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/answer_query.py",
-      "bytes": 37100,
-      "sha256": "eae5889d4b5fa22a30ede2a25bac0c88d8279ffeeda9d77a0b98110ae01b7c0a",
+      "bytes": 39282,
+      "sha256": "0d58bd0fb24b99a546ddea28e756740439b6afc6574eabb06dffa028e3162fc9",
       "mode": "0644"
     },
     {
@@ -2779,8 +2779,8 @@
     },
     {
       "path": "apps/api/tests/test_citation_fragments.py",
-      "bytes": 7825,
-      "sha256": "a9cd03baa16d01d4fef03ee2a3d486ba303ef90f0d98536fd8a20bfd83b542d2",
+      "bytes": 10744,
+      "sha256": "29f7b9d33dfb04650b06b9b453297e30a456c7240bf8c10238ca634bb023f302",
       "mode": "0644"
     },
     {
@@ -6721,8 +6721,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 5079,
-      "sha256": "6dfb74dda9791b9393fc60570002faf9749695eaf0bb81f7ac458f991a4a4fac",
+      "bytes": 5335,
+      "sha256": "d25abab6b935f6a5afd46365061d2419fc27eeef1a3639c8687ec59b022c90ac",
       "mode": "0644"
     },
     {
@@ -6757,8 +6757,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 312446,
-      "sha256": "c6d2dedf27697a722974306d6d9b3da715697859cc86cb40473bfba1a4823bb7",
+      "bytes": 313369,
+      "sha256": "869d53e84d87a951ce17e0d1559f18300bf4b74bb9a2833bd9e5b89183e549ab",
       "mode": "0644"
     },
     {
@@ -9198,6 +9198,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/recut_span_boundaries.py",
+      "bytes": 13388,
+      "sha256": "69eb50dcc038a7b0451b6c4ee05bf452521bc9a283f584c4aee7baf2a127f510",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/reference_eval_metrics.py",
       "bytes": 2010,
       "sha256": "35f7651fdbef62ab6e1f09446952b893bdfe05f2fe6571bb9a603ae731dc8b9a",
@@ -9271,8 +9277,8 @@
     },
     {
       "path": "scripts/run_boundary_eval.py",
-      "bytes": 5259,
-      "sha256": "82f5cb7cf97b1ee2e3b93d05ddee8dae8388d89bde7eafd6ae4736727c28ee98",
+      "bytes": 5875,
+      "sha256": "cf0ed087ba5f17023845de84152c10cb8a705ed37323640d0fd3231d53af7d78",
       "mode": "0755"
     },
     {
@@ -9385,8 +9391,8 @@
     },
     {
       "path": "scripts/run_paraphrase_eval.py",
-      "bytes": 7760,
-      "sha256": "775c303191afb956f10654b2f9f65a290fa1d8f3fa5dbe9c22d64c34e9f18e62",
+      "bytes": 8376,
+      "sha256": "23dd3fae06137eaae69a54465017c4125cd3e5bdc4b92842d3ec81f6851cbfbd",
       "mode": "0755"
     },
     {
