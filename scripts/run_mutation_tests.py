@@ -4075,7 +4075,9 @@ MUTANTS = (
         "scripts/public_operator_surface.py",
         "    if essential:",
         "    if False:",
-        ("apps/api/tests/test_public_surface.py::test_rule_that_would_withhold_a_reader_essential_refuses",),
+        (
+            "apps/api/tests/test_public_surface.py::test_rule_that_would_withhold_a_reader_essential_refuses",
+        ),
         full_copy=True,
     ),
     Mutant(
@@ -4083,7 +4085,9 @@ MUTANTS = (
         "scripts/public_health_controller.py",
         "            rung = min(int(attempts.get(component, 0)), len(ladder) - 1)",
         "            rung = 0",
-        ("apps/api/tests/test_public_health_controller.py::test_second_attempt_at_one_outage_is_a_different_action",),
+        (
+            "apps/api/tests/test_public_health_controller.py::test_second_attempt_at_one_outage_is_a_different_action",
+        ),
         full_copy=True,
     ),
     Mutant(
@@ -4091,7 +4095,9 @@ MUTANTS = (
         "scripts/public_health_controller.py",
         "        if health[component]:\n            attempts[component] = 0",
         "        if False:\n            attempts[component] = 0",
-        ("apps/api/tests/test_public_health_controller.py::test_health_resets_the_rung_so_a_new_outage_starts_gently",),
+        (
+            "apps/api/tests/test_public_health_controller.py::test_health_resets_the_rung_so_a_new_outage_starts_gently",
+        ),
         full_copy=True,
     ),
     Mutant(
@@ -4099,7 +4105,9 @@ MUTANTS = (
         "scripts/public_health_controller.py",
         "    for command in ACTION_COMMANDS[action]:",
         "    for command in ACTION_COMMANDS[action][:1]:",
-        ("apps/api/tests/test_public_health_controller.py::test_execute_runs_the_whole_sequence_not_only_its_first_command",),
+        (
+            "apps/api/tests/test_public_health_controller.py::test_execute_runs_the_whole_sequence_not_only_its_first_command",
+        ),
         full_copy=True,
     ),
     Mutant(

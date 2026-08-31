@@ -4171,7 +4171,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4507,
+      "lines": 4515,
       "max_complexity": 11,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -6590,6 +6590,17 @@
       "reason": "Мутанти M420–M422 і негативні контролі до них: закриття як транзитивний замикач (одношаровий обхід, незняте читацьке закриття) і сам гейт назв підняттів, який питав «чи згадано ФАЙЛ» замість «чи записано САМЕ ЦЕ підняття» — виміряно на репозиторії: підняття 4400→4494 проходило з порожнім unnamed_raises.",
       "to": {
         "lines": 4507
+      }
+    },
+    {
+      "from": {
+        "lines": 4507
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Форматування ruff мутантів M399–M408, M420–M422 у канонічний стиль після їхньої вставки.",
+      "to": {
+        "lines": 4515
       }
     }
   ],
