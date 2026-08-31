@@ -35,7 +35,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -287,7 +289,13 @@ def main() -> int:
     parser.add_argument(
         "--export",
         action="store_true",
-        help="вивести оточення юніта як KEY=value для `env $(...)`, і нічого не судити",
+        help="вивести оточення юніта як KEY=value; для запуску вживай --exec, не `env $(...)`",
+    )
+    parser.add_argument(
+        "--exec",
+        nargs=argparse.REMAINDER,
+        help="виконати команду під оточенням юніта; оточення йде ЧЕРЕЗ ПРОЦЕС, не через "
+        "розщеплення слів оболонкою — шляхи цього дерева містять пробіли",
     )
     arguments = parser.parse_args()
     if arguments.selftest:
@@ -296,6 +304,17 @@ def main() -> int:
         for line in export_lines(UNIT.read_text(encoding="utf-8"), str(Path.home())):
             print(line)
         return 0
+    if arguments.exec:
+        # `env $(...)` ділить значення по пробілах, а шлях цього дерева їх містить:
+        # `KORPUS_DATABASE_URL=sqlite:////…/Ядро основний проект Корпус/…` розпадався на
+        # чотири аргументи, і SQLite віддавав «unable to open database file». Оточення
+        # передається через процес, тож розщеплення не існує як явище.
+        environment = dict(os.environ)
+        for line in export_lines(UNIT.read_text(encoding="utf-8"), str(Path.home())):
+            name, _, value = line.partition("=")
+            environment[name] = value
+        environment.setdefault("PYTHONPATH", str(ROOT / "apps/api/src"))
+        return subprocess.run(arguments.exec, cwd=ROOT, env=environment, check=False).returncode
 
     unit = unit_environment(UNIT.read_text(encoding="utf-8"))
     shell = shell_environment(SCRIPT.read_text(encoding="utf-8"))

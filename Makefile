@@ -573,8 +573,7 @@ audit-export:
 # `Settings` і читав базу РОЗРОБНИКА, а вирок «external audit anchor is ahead of the
 # database head» описував не журнал, а дві різні бази під одним якорем.
 audit-verify:
-	env $$($(PY) scripts/check_public_env_parity.py --export) PYTHONPATH=apps/api/src \
-	  $(PY) scripts/verify_audit.py
+	$(PY) scripts/check_public_env_parity.py --exec $(PY) scripts/verify_audit.py
 
 handoff-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_handoff_contract.py
