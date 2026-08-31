@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: install-nightly-gates check-nightly check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: install-nightly-gates check-nightly nightly-evidence check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -864,7 +864,36 @@ restore-sqlite:
 install-nightly-gates:
 	$(PY) scripts/install_nightly_gates.py
 
-check-nightly: gate-liveness mutation-probe verify-clean-clone coverage-ratchet
+# ПОРЯДОК тут не косметика. `handoff-verify` — єдиний із дев'яти гейтів живучості,
+# чий «чистий стан» не є властивістю ДЕРЕВА: він властивість ПАРИ (дерево, докази).
+# Решта вісім міряють вміст і самодостатні. Запускати `gate-liveness` у довільний
+# момент означає ловити його червоним щоразу, коли хтось закомітив після останнього
+# прогону ланцюга — і читати правдиву доповідь проби як ваду харнесу. Саме так я
+# 31.08 прочитав ARMED 8/9 і мало не поліз копіювати `.git`; переліки файлів із git і
+# з обходу теки виявились тотожними (1677 = 1677), тобто гіпотеза була хибна, а проба
+# казала рівно те, що написано.
+#
+# Тому лан спершу ОНОВЛЮЄ докази, а потім міряє живучість. 9/9 стає досяжним станом,
+# а не стелею, і докази заразом свіжішають щоночі.
+check-nightly:
+	$(MAKE) nightly-evidence PY=$(PY)
+	$(MAKE) gate-liveness PY=$(PY)
+	$(MAKE) mutation-probe PY=$(PY)
+	$(MAKE) verify-clean-clone PY=$(PY)
+	$(MAKE) coverage-ratchet PY=$(PY)
+
+# Мутація — ОСТАННІЙ продюсер: її звіт єдиний в'яжеться до дайджесту джерела, тож
+# будь-що після неї робить його звітом про інше дерево.
+nightly-evidence:
+	$(MAKE) api-test PY=$(PY)
+	$(MAKE) eval PY=$(PY)
+	$(MAKE) migration-gate PY=$(PY)
+	$(MAKE) scale PY=$(PY)
+	PYTHONPATH=apps/api/src PYTHON=$(PY) KORPUS_MUTATION_SHARDS=6 scripts/run_mutation_shards.sh
+	$(MAKE) operational-gate PY=$(PY)
+	$(MAKE) assemble-assurance PY=$(PY)
+	$(MAKE) snapshot PY=$(PY)
+	$(MAKE) evidence-refresh PY=$(PY)
 
 check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt
 
