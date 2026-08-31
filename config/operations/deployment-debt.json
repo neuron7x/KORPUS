@@ -1,16 +1,27 @@
 {
-  "schema": "korpus.deployment-debt-registry.v1",
-  "note": "Прийнятий борг РОЗГОРТАННЯ: гейти, які міряють обслуговуваний корпус, а не дерево. Кожен запис має стелю, і гейт відмовляє на погіршенні. Покращення теж не мовчазне — воно вимагає зниження стелі, бо ратчет, який не помічає поліпшення, з часом стає дозволом.",
-  "measured_at": "2026-08-31",
   "accepted": [
     {
-      "target": "span-hygiene",
-      "command": ["apps/api/.venv/bin/python", "scripts/validate_span_hygiene.py"],
-      "metric": "spans_dirty",
       "ceiling": 89,
+      "closes_when": "джерела з розміткою будуть перезняті або виключені з цитування",
+      "command": [
+        "apps/api/.venv/bin/python",
+        "scripts/validate_span_hygiene.py",
+        "--database",
+        "var/runtime/corpus-v6-20260807/korpus.db",
+        "--json"
+      ],
+      "metric": "spans_dirty",
       "on": "2026-08-31",
       "reason": "89 брудних прольотів із 31464 придатних: 76 escaped_markup і 13 chrome, зосереджені у сторонніх публікаціях (тематична сторінка НАТО — 50). Червоний ще до 31.08 і не червонив нічого, бо ціль не була досяжна з жодного входу. Прийнято зі стелею замість мовчання.",
-      "closes_when": "джерела з розміткою будуть перезняті або виключені з цитування"
+      "selftest_command": [
+        "apps/api/.venv/bin/python",
+        "scripts/validate_span_hygiene.py",
+        "--selftest"
+      ],
+      "target": "span-hygiene"
     }
-  ]
+  ],
+  "measured_at": "2026-08-31",
+  "note": "Прийнятий борг РОЗГОРТАННЯ: гейти, які міряють обслуговуваний корпус, а не дерево. Кожен запис має стелю, і гейт відмовляє на погіршенні. Покращення теж не мовчазне — воно вимагає зниження стелі, бо ратчет, який не помічає поліпшення, з часом стає дозволом.",
+  "schema": "korpus.deployment-debt-registry.v1"
 }
