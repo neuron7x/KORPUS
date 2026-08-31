@@ -2159,6 +2159,30 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Згортання аліасів на боці ДОКУМЕНТА. Без нього «himars» у тексті й «хаймарс»
+        # у питанні лишаються різними предметами, і 62 прольоти невидимі.
+        "M359_ALIAS_FOLD_DOES_NOTHING",
+        "apps/api/src/korpus/application/retrieval_math.py",
+        "    return {reverse.get(token, token) for token in tokens}",
+        "    return set(tokens)",
+        (
+            "apps/api/tests/test_transliteration_aliases.py::"
+            "test_the_document_side_folds_to_what_was_asked",
+        ),
+    ),
+    Mutant(
+        # Те саме на рівні речення: покриття рахується тут, і без згортання цитата з
+        # латинською назвою дає нуль покриття українському питанню.
+        "M360_SENTENCE_COVERAGE_IGNORES_ALIASES",
+        "apps/api/src/korpus/application/answer_analysis.py",
+        "        sentence_tokens = fold_aliases(tokenize(sentence))",
+        "        sentence_tokens = set(tokenize(sentence))",
+        (
+            "apps/api/tests/test_transliteration_aliases.py::"
+            "test_coverage_counts_the_pair_as_one_class",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

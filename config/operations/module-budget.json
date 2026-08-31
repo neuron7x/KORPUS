@@ -694,7 +694,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/answer_analysis.py": {
-      "lines": 170,
+      "lines": 189,
       "max_complexity": 10,
       "reason": "ACT-002: new bounded module created by structural defragmentation; current measurement becomes the ratchet ceiling",
       "max_function_lines": 60,
@@ -1732,7 +1732,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
-      "lines": 383,
+      "lines": 454,
       "max_complexity": 13,
       "reason": "2026-08-20 assurance/refactor iteration: exact initial ratchet ceiling",
       "max_function_lines": 60,
@@ -3938,7 +3938,7 @@
       "max_nesting": 4
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4370,
+      "lines": 4391,
       "max_complexity": 11,
       "reason": "Mutation CLI orchestration decomposed into probe/catalogue/report helpers; exact post-refactor complexity ratchet. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 3857->4140: thirty mutants added for the doctrine catalog's provenance rules 9-14 (scripts/validate_doctrine_catalog.py), the module budget's own ceiling guard and the production-predicate floor. The catalogue is a data table: its size is the number of predicates under mutation, so refusing to grow it means refusing to cover new rules. Five of the thirty survived every existing test and each is now cited against a test written for it. | 2026-08-31 4154->4193: три мутанти на правила, що закрили три обходи сторожа вступного рядка (M343 об'єднання словника цитат, M344 пропуск коротких токенів, M345 рядки моделі замість спанів), плюс перецілений M207, чия ціль зникла разом зі старою формою правила. Каталог — таблиця даних: відмова йому рости є відмовою покривати нове правило.",
       "max_function_lines": 60,
@@ -4705,6 +4705,22 @@
       "max_function_lines": 47,
       "max_function_args": 6,
       "max_nesting": 4
+    },
+    "scripts/check_transliteration_table.py": {
+      "lines": 109,
+      "max_complexity": 9,
+      "reason": "31.08.2026: клас синонімів. П'ятнадцять названих систем існують у корпусі ЛИШЕ латиницею (Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113), тож україномовне питання про них не знаходило нічого. Згортання на боці ДОКУМЕНТА, а не питання: додавання латинської форми до токенів питання піднімало знаменник покриття й робило питання про транслітеровану систему важчим саме через ліки. Вимір: згода перефразувань 0.875 → 0.9375; предмет, межа домену і заморожений еталон без змін.",
+      "max_function_lines": 45,
+      "max_function_args": 3,
+      "max_nesting": 3
+    },
+    "scripts/run_paraphrase_eval.py": {
+      "lines": 144,
+      "max_complexity": 11,
+      "reason": "Вимір стабільності до перефразування: чи те саме питання в іншій формі слова або іншою абеткою читається як те саме питання. Три числа замість одного, бо згоду завжди можна отримати мовчанням.",
+      "max_function_lines": 45,
+      "max_function_args": 4,
+      "max_nesting": 3
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -6422,6 +6438,39 @@
         "lines": 4370
       },
       "reason": "Мутанти M356–M358 на три правила класу «оголошений предмет»."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/retrieval_math.py",
+      "from": {
+        "lines": 383
+      },
+      "to": {
+        "lines": 454
+      },
+      "reason": "31.08.2026: клас синонімів. П'ятнадцять названих систем існують у корпусі ЛИШЕ латиницею (Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113), тож україномовне питання про них не знаходило нічого. Згортання на боці ДОКУМЕНТА, а не питання: додавання латинської форми до токенів питання піднімало знаменник покриття й робило питання про транслітеровану систему важчим саме через ліки. Вимір: згода перефразувань 0.875 → 0.9375; предмет, межа домену і заморожений еталон без змін."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/answer_analysis.py",
+      "from": {
+        "lines": 170
+      },
+      "to": {
+        "lines": 189
+      },
+      "reason": "31.08.2026: клас синонімів. П'ятнадцять названих систем існують у корпусі ЛИШЕ латиницею (Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113), тож україномовне питання про них не знаходило нічого. Згортання на боці ДОКУМЕНТА, а не питання: додавання латинської форми до токенів питання піднімало знаменник покриття й робило питання про транслітеровану систему важчим саме через ліки. Вимір: згода перефразувань 0.875 → 0.9375; предмет, межа домену і заморожений еталон без змін."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "from": {
+        "lines": 4370
+      },
+      "to": {
+        "lines": 4391
+      },
+      "reason": "31.08.2026: клас синонімів. П'ятнадцять названих систем існують у корпусі ЛИШЕ латиницею (Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113), тож україномовне питання про них не знаходило нічого. Згортання на боці ДОКУМЕНТА, а не питання: додавання латинської форми до токенів питання піднімало знаменник покриття й робило питання про транслітеровану систему важчим саме через ліки. Вимір: згода перефразувань 0.875 → 0.9375; предмет, межа домену і заморожений еталон без змін."
     }
   ],
   "recorded_at": "2026-08-24",

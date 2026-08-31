@@ -1,0 +1,99 @@
+{
+  "schema": "korpus.transliteration-table.v1",
+  "measured_on": "2026-08-31",
+  "corpus": "var/runtime/corpus-v6-20260807/korpus.db",
+  "why": "Відмова — теж твердження. Виміряно: 17 названих систем існують у корпусі ЛИШЕ латиницею, тож україномовне питання про них не знаходить нічого — Stryker 335 прольотів, Bradley 192, Abrams 130, Javelin 113. Солдат робить висновок про корпус, а корпус його не спростує.",
+  "rule": "Запис існує ЛИШЕ якщо латинська форма справді резолвиться в корпусі, а українська — ні. Таблиця, складена з уяви, додала б синоніми до слів, яких немає, і виглядала б так само. Гейт check_transliteration_table.py переміряє це щоразу.",
+  "entries": [
+    {
+      "ua": "абрамс",
+      "latin": "abrams",
+      "latin_spans": 130,
+      "ua_spans": 0
+    },
+    {
+      "ua": "апач",
+      "latin": "apache",
+      "latin_spans": 7,
+      "ua_spans": 0
+    },
+    {
+      "ua": "байрактар",
+      "latin": "bayraktar",
+      "latin_spans": 2,
+      "ua_spans": 0
+    },
+    {
+      "ua": "бредлі",
+      "latin": "bradley",
+      "latin_spans": 192,
+      "ua_spans": 0
+    },
+    {
+      "ua": "джавелін",
+      "latin": "javelin",
+      "latin_spans": 113,
+      "ua_spans": 0
+    },
+    {
+      "ua": "леопард",
+      "latin": "leopard",
+      "latin_spans": 7,
+      "ua_spans": 0
+    },
+    {
+      "ua": "маврик",
+      "latin": "maverick",
+      "latin_spans": 3,
+      "ua_spans": 0
+    },
+    {
+      "ua": "мавік",
+      "latin": "mavic",
+      "latin_spans": 9,
+      "ua_spans": 0
+    },
+    {
+      "ua": "панцир",
+      "latin": "pantsir",
+      "latin_spans": 1,
+      "ua_spans": 0
+    },
+    {
+      "ua": "старлінк",
+      "latin": "starlink",
+      "latin_spans": 17,
+      "ua_spans": 0
+    },
+    {
+      "ua": "страйкер",
+      "latin": "stryker",
+      "latin_spans": 335,
+      "ua_spans": 0
+    },
+    {
+      "ua": "стінгер",
+      "latin": "stinger",
+      "latin_spans": 68,
+      "ua_spans": 0
+    },
+    {
+      "ua": "хаймарс",
+      "latin": "himars",
+      "latin_spans": 62,
+      "ua_spans": 0
+    },
+    {
+      "ua": "хамві",
+      "latin": "humvee",
+      "latin_spans": 1,
+      "ua_spans": 0
+    },
+    {
+      "ua": "шахед",
+      "latin": "shahed",
+      "latin_spans": 14,
+      "ua_spans": 0
+    }
+  ]
+}
