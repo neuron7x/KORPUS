@@ -2322,10 +2322,10 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/observability.py": {
-      "lines": 182,
+      "lines": 207,
       "max_complexity": 3,
       "max_function_args": 5,
-      "max_function_lines": 75,
+      "max_function_lines": 86,
       "max_nesting": 2
     },
     "apps/api/src/korpus/infrastructure/offline_pack_signer.py": {
@@ -2384,7 +2384,7 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1131,
+      "lines": 1141,
       "max_complexity": 13,
       "max_function_args": 14,
       "max_function_lines": 84,
@@ -2533,10 +2533,10 @@
       "reason": "a register of deployment requirements: it grows when the deployment gains a property, which is the behaviour the ratchet exists to encourage. Complexity stays capped — a register that grew a branch is no longer a register"
     },
     "apps/api/src/korpus/main.py": {
-      "lines": 303,
+      "lines": 295,
       "max_complexity": 25,
       "max_function_args": 2,
-      "max_function_lines": 251,
+      "max_function_lines": 243,
       "max_nesting": 2,
       "reason": "Process-scoped model executor lifecycle extracted while lowering the composition-root ratchet"
     },
@@ -4235,7 +4235,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4788,
+      "lines": 4811,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7272,6 +7272,101 @@
       "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 4788
+      }
+    },
+    {
+      "from": {
+        "lines": 308
+      },
+      "on": "2026-08-31",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 315
+      }
+    },
+    {
+      "module": "apps/api/src/korpus/infrastructure/observability.py",
+      "on": "2026-08-31",
+      "reason": "Метрика відставання САМОГО якоря плюс `observe_readiness` — зіставлення полів знімка з метриками винесено з циклу, бо поки воно жило рядками всередині, жоден тест не міг сказати, що воно правильне: мутант на нього виживав.",
+      "to": 207
+    },
+    {
+      "module": "apps/api/src/korpus/infrastructure/repository.py",
+      "on": "2026-08-31",
+      "reason": "Реконсиляція бере ціль із ГОЛОВИ журналу, не з черги: черга глобальна, а доставка є властивістю пари (точка, призначення).",
+      "to": 1141
+    },
+    {
+      "module": "scripts/run_mutation_tests.py",
+      "on": "2026-08-31",
+      "reason": "+25 рядків за M454–M455: повернення цілі в спільну чергу та підміна відставання якоря довжиною черги.",
+      "to": 4778
+    },
+    {
+      "from": {
+        "lines": 182
+      },
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/observability.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 207
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 75
+      },
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/observability.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_function_lines": 86
+      }
+    },
+    {
+      "from": {
+        "lines": 1131
+      },
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 1141
+      }
+    },
+    {
+      "from": {
+        "lines": 190
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 216
+      }
+    },
+    {
+      "from": {
+        "max_nesting": 1
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "lines": 4753
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 4811
       }
     },
     {

@@ -807,14 +807,24 @@ class SqlRepository:
         rows closed per pass so a very large backlog cannot hold the lock indefinitely.
         """
 
+        # Ціль береться з ГОЛОВИ журналу, не з черги. Черга каже «що ще не доставлено»,
+        # і це твердження ГЛОБАЛЬНЕ, тоді як доставка є властивістю ПАРИ (контрольна
+        # точка, призначення). Два процеси з різними шляхами якоря ділили один прапорець:
+        # хто перший звів чергу, той її й забрав, а другий діставав `row is None`,
+        # повертав нуль і НЕ ПРОБУВАВ писати. Виміряно 31.08.2026: якір розгортання
+        # замерз на 1024 із 7223 і простояв добу без жодної помилки, поки CLI-процеси
+        # клали контрольні точки у власний файл.
+        #
+        # Голова лежить у тій самій транзакції, що й подія, тож незалежність бізнес-
+        # транзакції від доступності якоря збережена. Кожне призначення тепер доганяє
+        # голову САМОСТІЙНО, і спорожнена кимось черга нікого не зупиняє.
         with self.engine.connect() as connection:
             row = connection.execute(
-                select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)
-                .where(audit_anchor_outbox.c.delivered_at.is_(None))
-                .order_by(audit_anchor_outbox.c.sequence.desc())
-                .limit(1)
+                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(
+                    audit_heads.c.singleton_id == 1
+                )
             ).one_or_none()
-        if row is None:
+        if row is None or int(row.sequence) < 1:
             return 0
         # Never hold a database transaction or row lock across network I/O.
         # Duplicate delivery across processes is safe because the anchor PUT is idempotent.
