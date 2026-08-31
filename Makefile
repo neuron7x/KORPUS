@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -569,8 +569,12 @@ review-token:
 audit-export:
 	PYTHONPATH=apps/api/src $(PY) scripts/export_audit.py --limit $(or $(LIMIT),1000)
 
+# Під ТИМ САМИМ оточенням, що й сервіс. Без цього гейт брав типові значення
+# `Settings` і читав базу РОЗРОБНИКА, а вирок «external audit anchor is ahead of the
+# database head» описував не журнал, а дві різні бази під одним якорем.
 audit-verify:
-	PYTHONPATH=apps/api/src $(PY) scripts/verify_audit.py
+	env $$($(PY) scripts/check_public_env_parity.py --export) PYTHONPATH=apps/api/src \
+	  $(PY) scripts/verify_audit.py
 
 handoff-verify:
 	PYTHONPATH=apps/api/src $(PY) scripts/verify_handoff_contract.py
@@ -717,6 +721,7 @@ serve-semantic-local:
 ## аргумент: перевірка, яку не запустили, і перевірка, якої немає, з відстані
 ## однакові.
 SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db
+SERVED_OBJECTS ?= var/runtime/corpus-v6-20260807/objects
 
 ## Обидві діагностики питають ЖИВИЙ API, а не базу: вони міряють, що система
 ## відповідає, а не що в ній лежить. Раннер передавав їм `--database`, якого жодна з
@@ -789,10 +794,13 @@ runtime-corpus-manifest:
 	@test -n "$(SOURCE)" || { echo "вжиток: make runtime-corpus-manifest SOURCE=/шлях/до/corpus.sqlite" >&2; exit 64; }
 	$(PY) scripts/build_runtime_manifest.py --source "$(SOURCE)" $(if $(OUT),--out "$(OUT)")
 
+# Типове — ОБСЛУГОВУВАНИЙ корпус, як уже зроблено в `corpus-integrity`. Ціль, що
+# вимагає аргументу, не може бути частиною беззастережного прогону, і саме тому вона
+# роками не бігла: не через дефект, а через те, що її ніхто не міг запустити без
+# додаткового знання.
 runtime-corpus-audit:
-	@test -n "$(DATABASE)" || { echo "DATABASE is required" >&2; exit 64; }
-	$(PY) scripts/audit_runtime_corpus.py --database "$(DATABASE)" \
-	  $(if $(OBJECT_ROOT),--object-root "$(OBJECT_ROOT)") $(if $(OUT),--out "$(OUT)")
+	$(PY) scripts/audit_runtime_corpus.py --database "$(or $(DATABASE),$(SERVED_CORPUS))" \
+	  --object-root "$(or $(OBJECT_ROOT),$(SERVED_OBJECTS))" $(if $(OUT),--out "$(OUT)")
 
 service-objectives:
 	$(PY) scripts/service_objectives.py $(if $(MEASUREMENTS),--measurements "$(MEASUREMENTS)")
@@ -838,6 +846,22 @@ load-probe:
 #   make restore-sqlite BACKUP=var/backups/sqlite/korpus-<stamp>.tar.enc INTO=var/restored
 restore-sqlite:
 	scripts/restore_sqlite.sh "$(BACKUP)" "$(or $(INTO),var/restored)"
+
+# Другий вхід, і саме його бракувало. `check` доводить властивості ДЕРЕВА і мусить
+# проходити там, де ні корпусу, ні сервісу немає. Гейти, що міряють РОЗГОРТАННЯ —
+# обслуговуваний корпус, його журнал, його прольоти — не могли стояти в ньому, і тому
+# не стояли ніде: `span-hygiene` був червоний ще до 31.08.2026 і не червонив нічого.
+#
+# Ці два входи НЕ взаємозамінні: зелений `check` нічого не каже про розгортання, а
+# зелений `check-deployment` — про дерево. Плутати їх означає повернутись до «зелено»
+# без означення.
+check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt
+
+deployment-debt:
+	$(PY) scripts/check_deployment_debt.py
+
+deployment-debt-selftest:
+	$(PY) scripts/check_deployment_debt.py --selftest
 
 check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate web-build
 

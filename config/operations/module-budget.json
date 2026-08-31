@@ -3040,6 +3040,14 @@
       "max_function_lines": 40,
       "max_nesting": 1
     },
+    "scripts/check_deployment_debt.py": {
+      "lines": 153,
+      "max_complexity": 9,
+      "max_function_args": 2,
+      "max_function_lines": 38,
+      "max_nesting": 2,
+      "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463."
+    },
     "scripts/check_environment_drift.py": {
       "lines": 132,
       "max_complexity": 8,
@@ -3081,11 +3089,11 @@
       "reason": "Гейт на розбіжність звіту мутацій із каталогом. Стеля з виміру на день додавання плюс запас на дві перевірки; кожен новий клас розбіжності — це рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_public_env_parity.py": {
-      "lines": 190,
+      "lines": 216,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
-      "max_nesting": 1,
+      "max_nesting": 2,
       "reason": "ZBIM: субстрат став абсолютним нулем sRGB, плюс гейт паритету двох оголошень оточення публічного API (скрипт і юніт systemd). Мутанти M450–M452."
     },
     "scripts/check_release_identity.py": {
@@ -4227,7 +4235,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4753,
+      "lines": 4788,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4671,7 +4679,7 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "scripts/verify_gate_closure.py": {
-      "lines": 308,
+      "lines": 315,
       "max_complexity": 15,
       "max_function_args": 4,
       "max_function_lines": 66,
@@ -7187,6 +7195,50 @@
       "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 4773
+      }
+    },
+    {
+      "from": {
+        "lines": 190
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463.",
+      "to": {
+        "lines": 216
+      }
+    },
+    {
+      "from": {
+        "max_nesting": 1
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_public_env_parity.py",
+      "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463.",
+      "to": {
+        "max_nesting": 2
+      }
+    },
+    {
+      "from": {
+        "lines": 4753
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463.",
+      "to": {
+        "lines": 4788
+      }
+    },
+    {
+      "from": {
+        "lines": 308
+      },
+      "on": "2026-08-31",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463.",
+      "to": {
+        "lines": 315
       }
     }
   ],

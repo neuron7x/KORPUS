@@ -4425,6 +4425,41 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Ратчет прийнятого боргу розгортання.
+    Mutant(
+        "M460_WORSENING_PAST_THE_CEILING_IS_TOLERATED",
+        "scripts/check_deployment_debt.py",
+        "    if measured > ceiling:",
+        "    if False:",
+        ("apps/api/tests/test_deployment_debt.py::test_worsening_by_one_is_refused",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M461_IMPROVEMENT_DOES_NOT_DEMAND_A_LOWER_CEILING",
+        "scripts/check_deployment_debt.py",
+        '            "lower_ceiling_to": measured,',
+        '            "lower_ceiling_to": ceiling,',
+        ("apps/api/tests/test_deployment_debt.py::test_improvement_demands_a_lower_ceiling",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M462_A_BOOLEAN_COUNTS_AS_A_MEASUREMENT",
+        "scripts/check_deployment_debt.py",
+        "    return node if isinstance(node, int) and not isinstance(node, bool) else None",
+        "    return node if isinstance(node, int) else None",
+        ("apps/api/tests/test_deployment_debt.py::test_a_boolean_is_not_a_measurement",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M463_AN_ENTRY_WITHOUT_A_CEILING_IS_ALLOWED",
+        "scripts/check_deployment_debt.py",
+        '        return {"target": target, "verdict": "FAIL", "detail": "стеля не є цілим числом"}',
+        '        return {"target": target, "verdict": "PASS", "detail": "стеля не є цілим числом"}',
+        (
+            "apps/api/tests/test_deployment_debt.py::test_an_entry_without_a_ceiling_is_refused_not_allowed",
+        ),
+        full_copy=True,
+    ),
 )
 
 

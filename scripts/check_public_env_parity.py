@@ -221,13 +221,39 @@ def selftest() -> int:
     return 1 if bad else 0
 
 
+def export_lines(unit_text: str, home: str) -> list[str]:
+    """Оголошення юніта у формі, придатній до споживання оболонкою.
+
+    Причина існування: гейт, що перевіряє ЖУРНАЛ, мусить дивитись на ту саму базу,
+    той самий якір і ту саму каблучку ключів, що й сервіс. `make audit-verify` цього
+    не робив — він брав типові значення `Settings` і читав базу РОЗРОБНИКА, а вирок
+    «external audit anchor is ahead of the database head» описував не журнал, а
+    розбіжність двох різних баз під одним якорем.
+
+    Оголошення вже є, воно вже під гейтом паритету — лишалось зробити його
+    придатним до споживання, а не переписувати вчетверте.
+    """
+    return [
+        f"{name}={value.replace('%h', home)}" for name, value in unit_environment(unit_text).items()
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=ROOT / "var/public-env-parity.json")
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument(
+        "--export",
+        action="store_true",
+        help="вивести оточення юніта як KEY=value для `env $(...)`, і нічого не судити",
+    )
     arguments = parser.parse_args()
     if arguments.selftest:
         return selftest()
+    if arguments.export:
+        for line in export_lines(UNIT.read_text(encoding="utf-8"), str(Path.home())):
+            print(line)
+        return 0
 
     unit = unit_environment(UNIT.read_text(encoding="utf-8"))
     shell = shell_environment(SCRIPT.read_text(encoding="utf-8"))
