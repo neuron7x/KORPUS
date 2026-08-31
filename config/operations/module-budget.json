@@ -4251,12 +4251,12 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4902,
+      "lines": 4946,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає `touch`."
+      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -4849,6 +4849,14 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/measure_declared_coverage.py": {
+      "lines": 240,
+      "max_complexity": 14,
+      "max_function_lines": 50,
+      "max_function_args": 2,
+      "max_nesting": 3,
+      "reason": "Розрив між тим, що система про себе ОГОЛОСИЛА, і тим, що корпус тримає. Два найбільші відкриті борги знайдені випадково; інструмента, який сказав би це сам, не було. Вибрані з корпусу питання лічаться окремо (підтримка в них є за побудовою), випадки з очікуваною ВІДМОВОЮ виключені."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -7575,6 +7583,14 @@
       "to": {
         "lines": 318
       }
+    },
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "to": {
+        "lines": 4946
+      },
+      "on": "2026-08-31",
+      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
     }
   ],
   "recorded_at": "2026-08-24",

@@ -4444,6 +4444,50 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M483_A_QUESTION_THE_SYSTEM_MUST_REFUSE_COUNTS_AS_A_COVERAGE_GAP",
+        "scripts/measure_declared_coverage.py",
+        '            if str(case.get("kind", "")) in {"refusal", "adversarial"}:',
+        "            if False:",
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_a_question_the_system_must_refuse_is_not_a_coverage_gap",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M484_A_QUESTION_SAMPLED_FROM_THE_CORPUS_IS_COUNTED_AS_A_DECLARATION",
+        "scripts/measure_declared_coverage.py",
+        '                        "sampled": bool(case.get("sampled_from_version")),',
+        '                        "sampled": False,',
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_a_question_sampled_from_the_corpus_is_kept_apart",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M485_COVERAGE_IS_TAKEN_FROM_THE_COMMONEST_TERM_NOT_THE_RAREST",
+        "scripts/measure_declared_coverage.py",
+        "    return (min(count for _, count in counts) if counts else 0), counts",
+        "    return (max(count for _, count in counts) if counts else 0), counts",
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_the_rarest_term_decides_because_one_gap_is_enough",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M486_FUNCTION_WORDS_COUNT_AS_EVIDENCE_OF_COVERAGE",
+        "scripts/measure_declared_coverage.py",
+        "    return [word for word in _WORD.findall(question.lower()) if word not in STOP]",
+        "    return list(_WORD.findall(question.lower()))",
+        (
+            "apps/api/tests/test_declared_coverage.py::"
+            "test_function_words_are_not_evidence_of_coverage",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",
         "apps/api/src/korpus/application/retrieval.py",
         "    return priors[item.version.authority] if item.score >= tier_floor else 0.0",

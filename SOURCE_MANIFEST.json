@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1675,
-  "root_sha256": "86d0a128cc4c21f16a0d0a95ccb9cd41f523fdcba02a21f3765b9a6c064586d9",
+  "file_count": 1677,
+  "root_sha256": "f4bc48c8969077a95037b3b955b1570ca93c1222920e81138f415fb04aeccf5a",
   "files": [
     {
       "path": ".dockerignore",
@@ -2919,6 +2919,12 @@
       "path": "apps/api/tests/test_decision_sensitivity.py",
       "bytes": 6583,
       "sha256": "ffd203497b21e14c076b36ddfaf97b42bdfe66aea4538c2192a8e384b435707d",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_declared_coverage.py",
+      "bytes": 5726,
+      "sha256": "abc8c9fe388932dbabcf0dc6567c74b6a68f9384b873800564c7dbb5b52060a3",
       "mode": "0644"
     },
     {
@@ -6775,8 +6781,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 24704,
-      "sha256": "74f26e3444e13d0dec645c2f0def4c44676e8cee895514d453824722ebf59882",
+      "bytes": 27404,
+      "sha256": "bd01a40fbeb45d6a0da07a4fe3be051837dca5cf4a4bba92179cad2ccac67986",
       "mode": "0644"
     },
     {
@@ -6823,8 +6829,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 372742,
-      "sha256": "ce7f683e748edcb0310b3a27d3b9cde414ea3a9466497762e08fc100a7796bc0",
+      "bytes": 373718,
+      "sha256": "fb2a8958c08c6a59f2d324e119a28500845047e5a35c3f9a1bec243fc9847088",
       "mode": "0644"
     },
     {
@@ -9084,6 +9090,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/measure_declared_coverage.py",
+      "bytes": 12999,
+      "sha256": "50be75e3876482bce315f4d30db931d8d488f6103c470014277dcff2eab6fa0a",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/measure_recovery.py",
       "bytes": 7792,
       "sha256": "4e536d10f4ca735ae022e8cab3299e8eb025169f6cfaeeb57dd8b0fa025843dc",
@@ -9547,8 +9559,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 221450,
-      "sha256": "0370ff773718cfec2d9ed2eaf091ebf2d5e63b0e88b8e85c359245c1629e5fd4",
+      "bytes": 223267,
+      "sha256": "693ccfbd0630a5abc7c2e92b38038ba4e1dd7bb2b4431c1d9ce8d3d3069fbfa5",
       "mode": "0755"
     },
     {
