@@ -7,7 +7,6 @@ import argparse
 import hashlib
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -19,72 +18,18 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# Правило операторської поверхні живе окремим модулем і імпортується сюди. Шлях
+# додається явно, бо цей файл запускають і як скрипт із кореня, і як модуль із тесту,
+# а `PYTHONPATH=scripts` є лише в Makefile — тобто рівно там, де його легше за все
+# забути.
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from public_operator_surface import operator_only  # noqa: E402
+
 IMAGE = "korpus-public-edge-runtime:nginx-1.31.3-alpine-r1"
 CONTAINER = "korpus-public-edge"
 GENERATED = {"PUBLIC_MANIFEST.json"}
 REQUIRED = {"index.html", "app.js", "styles.css", "tokens.css", "sw.js", "config.js"}
-
-#: Дві сторінки-корені. Усе, чого досягає перша й не досягає друга, — операторське.
-OPERATOR_ENTRY = "console.html"
-READER_ENTRY = "index.html"
-
-#: Закриття ходить тим, що сторінка ВАНТАЖИТЬ, а не тим, на що вона ПОСИЛАЄТЬСЯ.
-#: Різниця не косметична: `index.html` містить `<a href="/console.html">Консоль</a>`,
-#: і якби перехід рахувався завантаженням, закриття читача поглинуло б усю консоль,
-#: різниця стала б порожньою, і правило мовчки оголосило б, що операторського немає
-#: взагалі. Тому теґ `<a>` не веде нікуди: вантажать `<script src>` і `<link href>`,
-#: а всередині модуля — статичний і динамічний імпорт. Форма, якої тут бракує, дала б
-#: закриття ЧИТАЧА вужчим за справжнє, тобто прибрала б із публікації те, що він
-#: вантажить, — тому перелік звіряється тестом за значенням, а не лише правилом.
-_LINK_PATTERNS = (
-    re.compile(r'<script[^>]*\ssrc="(?P<target>/?[A-Za-z0-9_.\-]+\.js)"'),
-    re.compile(r'<link[^>]*\shref="(?P<target>/?[A-Za-z0-9_.\-]+\.css)"'),
-    re.compile(r'from\s+"(?P<target>\./[A-Za-z0-9_.\-]+\.js)"'),
-    re.compile(r'import\(\s*"(?P<target>\./[A-Za-z0-9_.\-]+\.js)"'),
-    re.compile(r'serviceWorker\.register\(\s*"(?P<target>/?[A-Za-z0-9_.\-]+\.js)"'),
-)
-
-
-def _reachable(source: Path, entry: str) -> set[str]:
-    """Файли, яких досягає сторінка. Порожньо, якщо самої сторінки немає."""
-    seen: set[str] = set()
-    pending = [entry]
-    while pending:
-        name = pending.pop()
-        if name in seen:
-            continue
-        path = source / name
-        if not path.is_file():
-            continue
-        seen.add(name)
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeDecodeError):
-            continue
-        for pattern in _LINK_PATTERNS:
-            for match in pattern.finditer(text):
-                pending.append(match.group("target").lstrip("./").lstrip("/"))
-    return seen
-
-
-def operator_only(source: Path) -> set[str]:
-    """Операторська поверхня = закриття консолі мінус закриття читача.
-
-    Перелік імен тут стояв раніше, і він відстав: поверхня виросла до семи файлів,
-    перелік лишився з трьома, тож `console.css`, `console_accounts.js`,
-    `console_mutations.js` і `console_readonly.js` пішли в публічний edge і
-    віддавалися з нього. Твердження було про КОНСОЛЬ, а правило — про три імені.
-    Похідне визначення не може відстати: новий файл консолі потрапляє в закриття
-    тим самим імпортом, яким його підключили.
-    """
-    withheld = _reachable(source, OPERATOR_ENTRY) - _reachable(source, READER_ENTRY)
-    # Правило, що зібралося прибрати те, без чого читач не працює, помиляється саме
-    # тоді, коли помилку найважче помітити: сторінка вийде в світ порожньою, а гейт
-    # про консолі при цьому позеленіє. Тому суперечність — відмова, не попередження.
-    essential = REQUIRED & withheld
-    if essential:
-        raise ValueError(f"operator rule would withhold reader essentials: {sorted(essential)}")
-    return withheld
 
 
 def canonical_bytes(value: object) -> bytes:
@@ -244,18 +189,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:8081")
     parser.add_argument("--no-build", action="store_true")
-    parser.add_argument(
-        "--print-operator-only",
-        type=Path,
-        metavar="DIR",
-        help="вивести імена операторської поверхні для DIR і вийти; "
-        "щоб перелік не довелося тримати вдруге в іншому виконавці",
-    )
     args = parser.parse_args()
-    if args.print_operator_only is not None:
-        for name in sorted(operator_only(args.print_operator_only)):
-            print(name)
-        return 0
     state = ROOT / "var/public"
     releases, current = state / "releases", state / "CURRENT"
     previous = current.read_text(encoding="utf-8").strip() if current.is_file() else None

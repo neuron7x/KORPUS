@@ -178,7 +178,7 @@ OPERATOR_ONLY="$(mktemp)"
 # Перелік рахується з ДЖЕРЕЛА (`apps/web/public`), а прибирається зі зібраного:
 # `dist` — копія джерела, але саме джерело лежить у git, і саме там правило можна
 # перевірити тестом без попереднього складання.
-"$PY" scripts/deploy_public_web.py --print-operator-only apps/web/public > "$OPERATOR_ONLY"
+"$PY" scripts/public_operator_surface.py apps/web/public > "$OPERATOR_ONLY"
 [[ -s "$OPERATOR_ONLY" ]] || { echo "порожня операторська поверхня — правило зламане" >&2; exit 70; }
 while IFS= read -r operator_file; do
   rm -f "$EDGE/html/$operator_file"

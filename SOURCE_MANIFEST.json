@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1644,
-  "root_sha256": "16c82ff15a6705d8962204c40d87d7c53998ca3d4211fffb58d8f82a1bd6f362",
+  "file_count": 1646,
+  "root_sha256": "46188eee78858f7060c232bb25d5eba18d0f264aea5e1b97dff0785a8727f2e4",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 63713,
-      "sha256": "595c669214f26eb1879539cd5cd2bce4a510d63d5ba1d121cf4375684e0301d1",
+      "bytes": 64834,
+      "sha256": "86b25d9a97dde378096b3af73bb68fa831a1974007192d5bd0bac2824a507532",
       "mode": "0644"
     },
     {
@@ -3901,14 +3901,20 @@
     },
     {
       "path": "apps/api/tests/test_public_health_controller.py",
-      "bytes": 2496,
-      "sha256": "37b7c6d16e6bd28cdbc363948fee6919a0eb0ed542e6239d82fe711c5c0a13b3",
+      "bytes": 5596,
+      "sha256": "3912b9d7b1b8cd6870d4bfa57968a6d77f20c2d1b176bcc919547960026df566",
       "mode": "0644"
     },
     {
       "path": "apps/api/tests/test_public_runtime_units.py",
       "bytes": 1802,
       "sha256": "62345a27a254d5b386f08c118d1e2b7793ec5e788832508a1821a17809539210",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_public_surface.py",
+      "bytes": 9968,
+      "sha256": "177d1e074d2dce72e9bcdeacc8466c4b9e8e2afb482f91c05a5c83105c5a662d",
       "mode": "0644"
     },
     {
@@ -4537,8 +4543,8 @@
     },
     {
       "path": "apps/web/design/consumer.css",
-      "bytes": 43225,
-      "sha256": "f124ec16f84f41d8adea46ca9d977ca2a0c10df73fa77a8fcd626d1ca46cca2c",
+      "bytes": 44466,
+      "sha256": "13d84839fa3bf9005b9608e197e3fd26bb95854e7df8d64091fdcd82dccf3d81",
       "mode": "0644"
     },
     {
@@ -4597,8 +4603,8 @@
     },
     {
       "path": "apps/web/public/app.js",
-      "bytes": 26799,
-      "sha256": "faf3effb2d66fdbcb53e8dd9dc7230038a324a535c1251f5a52e78a303d9841a",
+      "bytes": 29024,
+      "sha256": "0ca4d45887d9bc3942c3008073f6c28e1dbe6792e16b0742c70432a2bb3d02e0",
       "mode": "0644"
     },
     {
@@ -4783,8 +4789,8 @@
     },
     {
       "path": "apps/web/public/styles.css",
-      "bytes": 38557,
-      "sha256": "9c22c62d0731000dd9e097e6861c1c2b22e739e19f4e8e13af8c929b9f4ddb1f",
+      "bytes": 38897,
+      "sha256": "9ebf98a0d9e90c5aac67e4fbbc176721aa6c1b0155ec2562c43d278b953d094c",
       "mode": "0644"
     },
     {
@@ -4873,8 +4879,8 @@
     },
     {
       "path": "apps/web/scripts/validate.mjs",
-      "bytes": 38701,
-      "sha256": "1d118aadf6c4e31263f1c9f31737101684c360fe38b2644e5bc2e3f8bea30cae",
+      "bytes": 41380,
+      "sha256": "1da591e3e76894aeb826f7bf56442aef95b020846a01824432145b7657bb63c1",
       "mode": "0644"
     },
     {
@@ -4939,8 +4945,8 @@
     },
     {
       "path": "apps/web/tests/validate_gate.test.mjs",
-      "bytes": 25739,
-      "sha256": "621eb8b79ae92c837cc4f4a165f8694c4889b221f7619864df71f52487ca04c4",
+      "bytes": 26122,
+      "sha256": "a9fe8db599a01a2103a1872e90e9ef291ec19568bc952fef897ab7d3dec8cea4",
       "mode": "0644"
     },
     {
@@ -6757,8 +6763,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 313369,
-      "sha256": "869d53e84d87a951ce17e0d1559f18300bf4b74bb9a2833bd9e5b89183e549ab",
+      "bytes": 315954,
+      "sha256": "524a61c04809f5eb973b7aa47587e8cf68ea57c7ed82fc0d83d960307f943e02",
       "mode": "0644"
     },
     {
@@ -6931,8 +6937,8 @@
     },
     {
       "path": "deploy/public/nginx.conf",
-      "bytes": 11096,
-      "sha256": "c69a564cf62880fb134210b4fde18bf8d4e2490cb8a7972cc501993cbcc69195",
+      "bytes": 16675,
+      "sha256": "ced8f54e60c094a78e8e50fccb130d1e2f4879596ac49a189e759252894632a4",
       "mode": "0644"
     },
     {
@@ -8497,8 +8503,8 @@
     },
     {
       "path": "scripts/deploy_public_web.py",
-      "bytes": 9247,
-      "sha256": "25dc3e820a75b3be3814dda5876417fe64dbc03b8359508215ce5a3f5ee187fa",
+      "bytes": 9765,
+      "sha256": "d5ae625bcb9b09b72cb3db7c0f4617cc78fd8ce47005c7b49c4ea17c3c9941a1",
       "mode": "0755"
     },
     {
@@ -9169,8 +9175,8 @@
     },
     {
       "path": "scripts/public_health_controller.py",
-      "bytes": 5106,
-      "sha256": "cc2a08f1fe7cb52036a0f53b6bb199eaaaf31825e8df1716509e264bdac8aac9",
+      "bytes": 9088,
+      "sha256": "c67ae25553c636508fa7d3a92b718bb82cb05431adeff99b1d4936991b58afd8",
       "mode": "0755"
     },
     {
@@ -9541,8 +9547,8 @@
     },
     {
       "path": "scripts/serve_public.sh",
-      "bytes": 9766,
-      "sha256": "b729c46fb0288886b9d65e08d52e11460ef721da249b186a7626191971506f5a",
+      "bytes": 12277,
+      "sha256": "517027e26733fa575cd5fd8ee3287e2b59ea44ca646053d5cad7f8f2b2286dfe",
       "mode": "0755"
     },
     {
@@ -9813,6 +9819,12 @@
       "path": "scripts/verify_production_hard_predicates.py",
       "bytes": 5611,
       "sha256": "92db08ad2d60fc1dcc0b1ccfefdb40df7312173b6573466892968899e2aaed7d",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_public_surface.py",
+      "bytes": 29262,
+      "sha256": "3a5214a78d91a94b3dcf9918fde7974d3aee363e28695c1d71dfbf0e38c8826d",
       "mode": "0755"
     },
     {

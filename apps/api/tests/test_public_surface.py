@@ -31,7 +31,7 @@ def _module(relative: str):
     return module
 
 
-deploy = _module("scripts/deploy_public_web.py")
+surface_rule = _module("scripts/public_operator_surface.py")
 surface = _module("scripts/verify_public_surface.py")
 
 
@@ -40,7 +40,7 @@ surface = _module("scripts/verify_public_surface.py")
 
 def test_operator_surface_is_the_whole_console_not_three_filenames() -> None:
     """Значення, а не лише правило: розбіжність має падати, а не мовчати."""
-    assert deploy.operator_only(WEB_SOURCE) == {
+    assert surface_rule.operator_only(WEB_SOURCE) == {
         "console.html",
         "console.css",
         "console.js",
@@ -65,7 +65,7 @@ def test_navigation_link_to_the_console_does_not_make_the_console_public(tmp_pat
     (tmp_path / "console.html").write_text('<script src="/console.js"></script>', encoding="utf-8")
     (tmp_path / "console.js").write_text("// operator", encoding="utf-8")
     (tmp_path / "app.js").write_text("// reader", encoding="utf-8")
-    assert deploy.operator_only(tmp_path) == {"console.html", "console.js"}
+    assert surface_rule.operator_only(tmp_path) == {"console.html", "console.js"}
 
 
 def test_shared_module_stays_public_when_both_pages_load_it(tmp_path: Path) -> None:
@@ -75,7 +75,7 @@ def test_shared_module_stays_public_when_both_pages_load_it(tmp_path: Path) -> N
     (tmp_path / "app.js").write_text('import {x} from "./shared.js";', encoding="utf-8")
     (tmp_path / "console.js").write_text('import {x} from "./shared.js";', encoding="utf-8")
     (tmp_path / "shared.js").write_text("export const x = 1;", encoding="utf-8")
-    assert deploy.operator_only(tmp_path) == {"console.html", "console.js"}
+    assert surface_rule.operator_only(tmp_path) == {"console.html", "console.js"}
 
 
 def test_rule_that_would_withhold_a_reader_essential_refuses(tmp_path: Path) -> None:
@@ -84,7 +84,7 @@ def test_rule_that_would_withhold_a_reader_essential_refuses(tmp_path: Path) -> 
     (tmp_path / "console.html").write_text('<script src="/app.js"></script>', encoding="utf-8")
     (tmp_path / "app.js").write_text("// потрібен читачеві", encoding="utf-8")
     try:
-        deploy.operator_only(tmp_path)
+        surface_rule.operator_only(tmp_path)
     except ValueError as error:
         assert "app.js" in str(error)
     else:  # pragma: no cover - падіння тесту саме тут і є суть
@@ -101,13 +101,13 @@ def test_no_executor_keeps_its_own_list_of_console_filenames() -> None:
     """
     # Хвороба — саме ЗБІРКА імен, а не згадка про них: пояснення, чому правило таке,
     # має право називати файли, а виконуваний перелік — ні.
-    tree = ast.parse((ROOT / "scripts/deploy_public_web.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "scripts/public_operator_surface.py").read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if not isinstance(node, ast.Set | ast.List | ast.Tuple):
             continue
         names = {item.value for item in node.elts if isinstance(item, ast.Constant)}
         assert not {"console.html", "console.js", "console_rules.js"} & names, (
-            "deploy_public_web.py знову тримає вписаний перелік консолі"
+            "public_operator_surface.py знову тримає вписаний перелік консолі"
         )
 
     shell = "\n".join(

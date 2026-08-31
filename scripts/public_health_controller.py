@@ -75,6 +75,15 @@ def load_state(path: Path) -> dict[str, Any]:
     return cast(dict[str, Any], value)
 
 
+def _recoverable(health: dict[str, bool]) -> list[str]:
+    """Dependency order prevents restarting API merely because its edge is unavailable."""
+    if not health["api"]:
+        return ["api"]
+    if not health["edge"]:
+        return ["edge"]
+    return [] if health["public"] else ["public"]
+
+
 def transition(
     state: dict[str, Any],
     health: dict[str, bool],
@@ -100,15 +109,7 @@ def transition(
         # збій, і починати його з найбільшого втручання не було б підставою.
         if health[component]:
             attempts[component] = 0
-    # Dependency order prevents restarting API merely because its edge is unavailable.
-    candidates = []
-    if not health["api"]:
-        candidates.append("api")
-    if health["api"] and not health["edge"]:
-        candidates.append("edge")
-    if health["api"] and health["edge"] and not health["public"]:
-        candidates.append("public")
-    for component in candidates:
+    for component in _recoverable(health):
         last = int(recovered.get(component, 0))
         if failures[component] >= threshold and now - last >= cooldown:
             ladder = ACTION_LADDERS[component]

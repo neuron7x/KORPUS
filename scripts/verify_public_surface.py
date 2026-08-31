@@ -120,180 +120,171 @@ def _finding(check: str, verdict: str, detail: str) -> dict[str, str]:
     return {"check": check, "verdict": verdict, "detail": detail}
 
 
+#: Кожна перевірка — окрема чиста функція від спостереження до одного вироку, а
+#: `assess` — згортка над їхнім переліком. Раніше це була одна функція зі складністю 38
+#: при стелі 15, і ратчет модулів мав рацію: шість послідовних блоків if/else в одному
+#: тілі неможливо покрити мутацією поокремо — вижилий мутант у п'ятому блоці ховається
+#: за проходом перших чотирьох. Перелік нижче також робить набір перевірок ДАНИМИ:
+#: додати перевірку — дописати функцію і рядок, а не вростити гілку в чуже тіло.
+
+
+def _check_console_surface(observation: dict[str, Any]) -> dict[str, str]:
+    """Твердження шаблону — про консолі, тож і правило має бути про консолі.
+
+    Код МАЛО: `try_files` віддає index.html із 200 на будь-яке ім'я, тож перевірка,
+    що дивиться лише на код, не відрізняє віддану консоль від сторінки під її іменем.
+    """
+    assets = observation.get("console_assets")
+    if not isinstance(assets, dict) or not assets:
+        return _finding("console_surface", "UNKNOWN", "консолі не спостережено")
+    leaked: list[str] = []
+    masquerade: list[str] = []
+    for path, seen in sorted(assets.items()):
+        record = seen if isinstance(seen, dict) else {"status": seen, "content_type": ""}
+        if int(record.get("status", 0)) != 200:
+            continue
+        (masquerade if "text/html" in record.get("content_type", "") else leaked).append(path)
+    if not (leaked or masquerade):
+        return _finding("console_surface", "PASS", f"закрито {len(assets)} шляхів консолі")
+    parts = []
+    if leaked:
+        parts.append("віддано вміст консолі: " + ", ".join(leaked))
+    if masquerade:
+        parts.append("200 з index.html під іменем скрипта: " + ", ".join(masquerade))
+    return _finding(
+        "console_surface",
+        "FAIL",
+        "шаблон каже «operator consoles are not served»; " + "; ".join(parts),
+    )
+
+
+def _check_edge_binding(observation: dict[str, Any]) -> dict[str, str]:
+    """Аргумент шаблону про `real_ip` спирається на «loopback only».
+
+    Поки це не так, аргумент недійсний незалежно від того, чи хтось цим скористався.
+    """
+    listen = observation.get("listen")
+    if not isinstance(listen, dict) or not listen.get("addresses"):
+        return _finding("edge_binding", "UNKNOWN", "адрес прослуховування не спостережено")
+    reachable = sorted(
+        entry["address"]
+        for entry in listen["addresses"]
+        if entry.get("status") == 200 and entry.get("address") not in LOOPBACK
+    )
+    if reachable:
+        return _finding(
+            "edge_binding",
+            "FAIL",
+            "шаблон каже «nginx listens on loopback only», а відповідає з: " + ", ".join(reachable),
+        )
+    return _finding("edge_binding", "PASS", "поза петлею не відповідає жодна адреса")
+
+
+def _check_egress_posture(observation: dict[str, Any]) -> dict[str, str]:
+    """Посада єгресу інертна, поки композитор вимкнений, — і саме тому непомітна.
+
+    Вмикання інференсу не повинно ВІДКРИВАТИ вихід назовні: хто його вмикає, той не
+    думає в ту мить про права на матеріал.
+    """
+    status = observation.get("inference_status")
+    if not isinstance(status, dict) or "egress_posture" not in status:
+        return _finding("egress_posture", "UNKNOWN", "стан інференсу не спостережено")
+    if status["egress_posture"] == "external_allowed":
+        return _finding(
+            "egress_posture",
+            "FAIL",
+            "публічна поверхня оголошує egress_posture=external_allowed; "
+            f"інертно лише поки enabled={status.get('enabled')!r}",
+        )
+    return _finding("egress_posture", "PASS", f"egress_posture={status['egress_posture']}")
+
+
+def _check_injected_identity(observation: dict[str, Any]) -> dict[str, str]:
+    """Особу не видно в браузері, тому цей вимір — єдине місце, де надмірність спливе."""
+    identity = observation.get("identity")
+    if not isinstance(identity, dict) or "roles" not in identity:
+        return _finding("injected_identity", "UNKNOWN", "особу не спостережено")
+    lifetime = int(identity.get("lifetime_seconds") or 0)
+    excess = sorted(set(identity.get("roles") or []) - {"user"})
+    problems = []
+    if identity.get("subject") != "public":
+        problems.append(f"subject={identity.get('subject')!r}")
+    if excess:
+        problems.append("зайві ролі: " + ", ".join(excess))
+    if identity.get("clearance") != "public":
+        problems.append(f"clearance={identity.get('clearance')!r}")
+    if lifetime > MAX_IDENTITY_LIFETIME_SECONDS:
+        problems.append(f"життя {lifetime} с понад стелю {MAX_IDENTITY_LIFETIME_SECONDS}")
+    if problems:
+        return _finding("injected_identity", "FAIL", "; ".join(problems))
+    return _finding("injected_identity", "PASS", f"public/user/public, життя {lifetime} с")
+
+
+def _check_edge_denied_routes(observation: dict[str, Any]) -> dict[str, str]:
+    """Для завантаження відмова застосунку запізнюється.
+
+    FastAPI читає тіло ДО виконання залежностей, тож коректний анонімний multipart на
+    `/v1/documents/ingest` діставав 422 від валідації `DocumentCreate` — файл уже був
+    прочитаний. Спинити це можна лише на межі.
+    """
+    routes = observation.get("edge_denied_routes")
+    if not isinstance(routes, dict) or not routes:
+        return _finding("edge_denied_routes", "UNKNOWN", "маршрутів не спостережено")
+    passed = sorted(
+        f"{route}={code}" for route, code in routes.items() if code not in REFUSED_AT_EDGE
+    )
+    if passed:
+        return _finding(
+            "edge_denied_routes",
+            "FAIL",
+            "межа пропускає записовий маршрут углиб: " + ", ".join(passed),
+        )
+    return _finding(
+        "edge_denied_routes", "PASS", f"{len(routes)} записових маршрутів спинено межею"
+    )
+
+
+def _check_role_refusal(observation: dict[str, Any]) -> dict[str, str]:
+    """Другий рубіж міряється ПОВЗ межу — інакше зелена межа ховала б мертву роль.
+
+    401 сюди не рахується: невпізнаний відвідувач нічого не доводить про роль, а
+    зарахований як відмова він тихо стер би саму перевірку.
+    """
+    direct = observation.get("role_refusal_direct")
+    if not isinstance(direct, dict) or not direct:
+        return _finding("role_refusal", "UNKNOWN", "прямої перевірки ролі не було")
+    allowed = sorted(f"{route}={code}" for route, code in direct.items() if code not in (401, 403))
+    if allowed:
+        return _finding(
+            "role_refusal", "FAIL", "застосунок не відмовив на ролі: " + ", ".join(allowed)
+        )
+    unproven = sorted(route for route, code in direct.items() if code == 401)
+    if unproven:
+        return _finding(
+            "role_refusal",
+            "UNKNOWN",
+            "401 без пред'явленої особи не доводить відмову на ролі: " + ", ".join(unproven),
+        )
+    return _finding("role_refusal", "PASS", f"{len(direct)} маршрутів відмовлено на ролі")
+
+
+CHECKS = (
+    _check_console_surface,
+    _check_edge_binding,
+    _check_egress_posture,
+    _check_injected_identity,
+    _check_edge_denied_routes,
+    _check_role_refusal,
+)
+
+
 def assess(observation: dict[str, Any]) -> list[dict[str, str]]:
     """Вирок над спостереженням. Жодного мережевого виклику — тому й перевірюваний.
 
     UNKNOWN — окремий вирок, і він НЕ PASS: спостереження, якого не сталося, не
     доводить нічого, а зарахований у зелене мовчазно стирає саму перевірку.
     """
-    findings: list[dict[str, str]] = []
-
-    # 1. Операторська поверхня. Твердження шаблону — про консолі, тож і правило має
-    #    бути про консолі. Один 404 на index не закриває сім файлів.
-    assets = observation.get("console_assets")
-    if not isinstance(assets, dict) or not assets:
-        findings.append(_finding("console_surface", "UNKNOWN", "консолі не спостережено"))
-    else:
-        leaked: list[str] = []
-        masquerade: list[str] = []
-        for path, seen in sorted(assets.items()):
-            record = seen if isinstance(seen, dict) else {"status": seen, "content_type": ""}
-            if int(record.get("status", 0)) != 200:
-                continue
-            # HTML на шляху скрипта — це фолбек, а не файл консолі: витоку немає,
-            # але код 200 бреше про існування, і саме він ховав витік поруч.
-            (masquerade if "text/html" in record.get("content_type", "") else leaked).append(path)
-        if leaked or masquerade:
-            parts = []
-            if leaked:
-                parts.append("віддано вміст консолі: " + ", ".join(leaked))
-            if masquerade:
-                parts.append("200 з index.html під іменем скрипта: " + ", ".join(masquerade))
-            findings.append(
-                _finding(
-                    "console_surface",
-                    "FAIL",
-                    "шаблон каже «operator consoles are not served»; " + "; ".join(parts),
-                )
-            )
-        else:
-            findings.append(
-                _finding("console_surface", "PASS", f"закрито {len(assets)} шляхів консолі")
-            )
-
-    # 2. Де слухає. Аргумент шаблону про real_ip спирається на «loopback only»; поки
-    #    це не так, аргумент недійсний незалежно від того, чи хтось цим скористався.
-    listen = observation.get("listen")
-    if not isinstance(listen, dict) or not listen.get("addresses"):
-        findings.append(
-            _finding("edge_binding", "UNKNOWN", "адрес прослуховування не спостережено")
-        )
-    else:
-        reachable = sorted(
-            entry["address"]
-            for entry in listen["addresses"]
-            if entry.get("status") == 200 and entry.get("address") not in LOOPBACK
-        )
-        if reachable:
-            findings.append(
-                _finding(
-                    "edge_binding",
-                    "FAIL",
-                    "шаблон каже «nginx listens on loopback only», а відповідає з: "
-                    + ", ".join(reachable),
-                )
-            )
-        else:
-            findings.append(
-                _finding("edge_binding", "PASS", "поза петлею не відповідає жодна адреса")
-            )
-
-    # 3. Посада єгресу. Сьогодні інертна, бо композитор вимкнений, — і саме тому її
-    #    ніхто не бачить. Вмикання композитора не повинно ВІДКРИВАТИ вихід назовні:
-    #    хто вмикає інференс, той не думає в ту мить про права на матеріал.
-    status = observation.get("inference_status")
-    if not isinstance(status, dict) or "egress_posture" not in status:
-        findings.append(_finding("egress_posture", "UNKNOWN", "стан інференсу не спостережено"))
-    elif status["egress_posture"] == "external_allowed":
-        findings.append(
-            _finding(
-                "egress_posture",
-                "FAIL",
-                "публічна поверхня оголошує egress_posture=external_allowed; "
-                f"інертно лише поки enabled={status.get('enabled')!r}",
-            )
-        )
-    else:
-        findings.append(
-            _finding("egress_posture", "PASS", f"egress_posture={status['egress_posture']}")
-        )
-
-    # 4. Підставлена особа. Її ніхто не бачить у браузері, тому єдине місце, де її
-    #    надмірність могла б проявитись, — цей вимір.
-    identity = observation.get("identity")
-    if not isinstance(identity, dict) or "roles" not in identity:
-        findings.append(_finding("injected_identity", "UNKNOWN", "особу не спостережено"))
-    else:
-        excess = sorted(set(identity.get("roles") or []) - {"user"})
-        lifetime = int(identity.get("lifetime_seconds") or 0)
-        problems = []
-        if identity.get("subject") != "public":
-            problems.append(f"subject={identity.get('subject')!r}")
-        if excess:
-            problems.append("зайві ролі: " + ", ".join(excess))
-        if identity.get("clearance") != "public":
-            problems.append(f"clearance={identity.get('clearance')!r}")
-        if lifetime > MAX_IDENTITY_LIFETIME_SECONDS:
-            problems.append(f"життя {lifetime} с понад стелю {MAX_IDENTITY_LIFETIME_SECONDS}")
-        if problems:
-            findings.append(_finding("injected_identity", "FAIL", "; ".join(problems)))
-        else:
-            findings.append(
-                _finding("injected_identity", "PASS", f"public/user/public, життя {lifetime} с")
-            )
-
-    # 5. Записові маршрути. Застосунок відмовляє на ролі — це другий рубіж і він
-    #    живий. Але для завантаження він запізнюється: FastAPI читає тіло ДО
-    #    виконання залежностей, тож 31.08.2026 коректний анонімний multipart на
-    #    `/v1/documents/ingest` діставав 422 від валідації `DocumentCreate` — файл
-    #    уже був прочитаний. Спинити це можна лише на межі.
-    routes = observation.get("edge_denied_routes")
-    if not isinstance(routes, dict) or not routes:
-        findings.append(_finding("edge_denied_routes", "UNKNOWN", "маршрутів не спостережено"))
-    else:
-        passed = sorted(
-            f"{route}={code}" for route, code in routes.items() if code not in REFUSED_AT_EDGE
-        )
-        if passed:
-            findings.append(
-                _finding(
-                    "edge_denied_routes",
-                    "FAIL",
-                    "межа пропускає записовий маршрут углиб: " + ", ".join(passed),
-                )
-            )
-        else:
-            findings.append(
-                _finding(
-                    "edge_denied_routes", "PASS", f"{len(routes)} записових маршрутів спинено межею"
-                )
-            )
-
-    # 6. Другий рубіж мусить лишитись живим. Якщо межа закрила все, а застосунок
-    #    перестав відмовляти на ролі, гейт вище позеленів би на порожньому місці —
-    #    тому роль перевіряється ОКРЕМО, повз межу, прямо на застосунку.
-    #    401 сюди НЕ рахується: невпізнаний відвідувач нічого не доводить про роль,
-    #    а зарахований як відмова він тихо стер би саму перевірку — треба ПРЕД'ЯВИТИ
-    #    публічну особу й дістати 403 від неї.
-    direct = observation.get("role_refusal_direct")
-    if not isinstance(direct, dict) or not direct:
-        findings.append(_finding("role_refusal", "UNKNOWN", "прямої перевірки ролі не було"))
-    else:
-        allowed = sorted(
-            f"{route}={code}" for route, code in direct.items() if code not in (401, 403)
-        )
-        unproven = sorted(route for route, code in direct.items() if code == 401)
-        if allowed:
-            findings.append(
-                _finding(
-                    "role_refusal", "FAIL", "застосунок не відмовив на ролі: " + ", ".join(allowed)
-                )
-            )
-        elif unproven:
-            findings.append(
-                _finding(
-                    "role_refusal",
-                    "UNKNOWN",
-                    "401 без пред'явленої особи не доводить відмову на ролі: "
-                    + ", ".join(unproven),
-                )
-            )
-        else:
-            findings.append(
-                _finding("role_refusal", "PASS", f"{len(direct)} маршрутів відмовлено на ролі")
-            )
-
-    return findings
+    return [check(observation) for check in CHECKS]
 
 
 def verdict(findings: list[dict[str, str]]) -> str:
