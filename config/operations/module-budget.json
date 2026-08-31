@@ -4209,7 +4209,7 @@
       "max_nesting": 4
     },
     "scripts/validate_span_hygiene.py": {
-      "lines": 110,
+      "lines": 150,
       "proof_lines": 30,
       "max_complexity": 6,
       "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям.",
@@ -4634,110 +4634,110 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
-  {
+    {
       "on": "2026-08-31",
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
       "from": {
-          "lines": 716
+        "lines": 716
       },
       "to": {
-          "lines": 745
+        "lines": 745
       },
       "reason": "Подвійно закодована розмітка більше не осідає в прольоті як текст документа. Джерела віддають розмітку, вже екрановану один раз (`&amp;lt;p&amp;gt;`); один прохід `html.unescape` перетворював її на `&lt;p>` і спинявся. Виміряно: 55 із 38 863 ЦИТОВНИХ прольотів несли такий залишок, один — у Стройовому статуті ЗСУ. Приріст — не другий unescape (він дав би СПРАВЖНІ теги в тексті), а переparсинг другого шару з тим самим NON_DOCUMENT_ELEMENTS, межа в два кола й пояснення, чому не «до стабільності». Перевірено на всіх 65 брудних прольотах: 59 стають чистими."
-  },
-  {
+    },
+    {
       "on": "2026-08-31",
       "paths": [
-          "scripts/build_reference_set.py",
-          "scripts/reference_eval_metrics.py",
-          "scripts/remap_reference_versions.py",
-          "scripts/run_reference_eval.py"
+        "scripts/build_reference_set.py",
+        "scripts/reference_eval_metrics.py",
+        "scripts/remap_reference_versions.py",
+        "scripts/run_reference_eval.py"
       ],
       "reason": "Робота сусідньої сесії над еталоном: захист від розмітки в будівнику, cited_versions/expected_versions у звіті оцінювання, перепривʼязка версій за хешем вмісту. Стелі переміряні з дерева, не підняті під факт."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "paths": [
-          "scripts/backfill_span_embeddings_sqlite.py",
-          "scripts/compare_retrieval_configs.py"
+        "scripts/backfill_span_embeddings_sqlite.py",
+        "scripts/compare_retrieval_configs.py"
       ],
       "reason": "Звуження `except Exception` до переліку мережевих і розбірних винятків. Мій перший підхід був `noqa` — і його відкинув ВЛАСНИЙ тест проєкту `test_no_broad_handler_turns_a_fault_into_evidence_of_health`, суворіший за лінтер: глушіння правила лишає викликача без змоги відрізнити збій від успіху. Приріст — перелік винятків і пояснення, чому саме ці."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "paths": [
-          "scripts/backfill_span_embeddings_sqlite.py",
-          "scripts/compare_retrieval_configs.py",
-          "scripts/remap_reference_versions.py"
+        "scripts/backfill_span_embeddings_sqlite.py",
+        "scripts/compare_retrieval_configs.py",
+        "scripts/remap_reference_versions.py"
       ],
       "reason": "Канонічне форматування `ruff format` і три закриті зауваги ruff/mypy (noqa з причиною для навмисно широкого except, `zip(strict=True)`, анотація повернення). Логіка не змінена; стелі переміряні ПІСЛЯ форматування, щоб наступний прогін їх не рухав."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "path": "scripts/validate_refusal_retryability.py",
       "from": {
-          "lines": 111
+        "lines": 111
       },
       "to": {
-          "lines": 112
+        "lines": 112
       },
       "reason": "Один рядок: `from typing import Any`, потрібний, щоб тип у самоперевірці сходився з підписом `check` і mypy проходив. Записано, бо гейт назвав це підняттям — межа не має винятку для одного рядка."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "paths": [
-          "scripts/build_runtime_manifest.py",
-          "scripts/validate_publication_mirrors.py",
-          "scripts/validate_refusal_retryability.py"
+        "scripts/build_runtime_manifest.py",
+        "scripts/validate_publication_mirrors.py",
+        "scripts/validate_refusal_retryability.py"
       ],
       "reason": "Канонічне форматування `ruff format`, яке ці три файли не проходили: гейт CI, якого немає в `make validate`. Логіка не змінена — зросли лише перенесення довгих рядків, разом із тілами самоперевірок. Стелі переміряні ПІСЛЯ форматування, щоб наступний прогін не рухав їх знову."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "path": "scripts/agent_protocol.py",
       "from": {
-          "lines": 325
+        "lines": 325
       },
       "to": {
-          "lines": 332
+        "lines": 332
       },
       "reason": "Сусідня сесія злила своє розширення з моїми анотаціями; приріст — її, стеля переміряна на злитому файлі."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "path": "scripts/verify_verdict_ledger.py",
       "from": {
-          "lines": 145
+        "lines": 145
       },
       "to": {
-          "lines": 187
+        "lines": 187
       },
       "reason": "Словник вироків перестав бути другою копією й читається з config/agents/axes.json — разом із fail-closed на кожному кроці (немає файла, немає ключа, порожній перелік, слово в обох переліках, піднімає не закриваючи). Приріст — ця застава плюс вбудований негативний контроль --selftest: сім отрут ПО ДАНИХ, бо гейт, що читає критерій із дерева, роззброюється правкою дерева, і це треба ловити, а не пояснювати."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "path": "scripts/open_claims.py",
       "from": {
-          "lines": 45
+        "lines": 45
       },
       "to": {
-          "lines": 48
+        "lines": 48
       },
       "reason": "Один рядок від `ruff format`; AST ІДЕНТИЧНЕ. Записано тому, що гейт `budget-raises-are-named` спіймав саме це підняття на один рядок — межа не має винятку для дрібного, інакше дрібне стає способом рухати стелю мовчки."
-  },
-  {
+    },
+    {
       "on": "2026-08-30",
       "path": "scripts/agent_protocol.py",
       "from": {
-          "lines": 282,
-          "max_function_lines": 38
+        "lines": 282,
+        "max_function_lines": 38
       },
       "to": {
-          "lines": 325,
-          "max_function_lines": 42
+        "lines": 325,
+        "max_function_lines": 42
       },
       "reason": "Канонічне форматування, не нова логіка: `ruff format --check` — гейт CI, якого немає в `make validate`, і перша версія файла його не проходила. AST до і після форматування ІДЕНТИЧНЕ, вивід --selftest і --registry збігається; зросли лише перенесення довгих f-рядків. Той самий приріст у `proof_lines` 133 -> 413 з тієї ж причини — тіло самоперевірки складається з довгих рядків."
-  },
+    },
     {
       "on": "2026-08-05",
       "path": "apps/api/src/korpus/application/extraction_quality.py",
@@ -6089,6 +6089,17 @@
         "lines": 339
       },
       "reason": "prctl(PR_SET_CHILD_SUBREAPER) діє на поточний процес і сам не скасовується. Він ставився без відновлення, тож кожен виклик _run_bounded усередині чужого процесу робив той процес жнецем назавжди: pytest, що виконує цей модуль через exec_module, лишався жнецем до кінця сесії, і три тести test_regression_shard_contract падали через переприв'язку онуків. Приріст — контекстний менеджер, який відновлює прапорець, і пояснення, чому прибрати його не можна. Складність і форма функцій не змінились."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "scripts/validate_span_hygiene.py",
+      "from": {
+        "lines": 110
+      },
+      "to": {
+        "lines": 150
+      },
+      "reason": "Гейт умів лише psql, а корпус, який публічний сайт подає солдату, лежить у SQLite (var/runtime/corpus-v6-20260807/korpus.db). Тобто перевірка була зелена на базі, якої в бойовому шляху немає, і не могла подивитись на ту, яка є. Додано другий діалект того самого запиту і другий постачальник рядків; вибір за наявністю файла, а не за префіксом рядка. Прогін проти бойового корпусу одразу дав FAIL: 55 цитовних прольотів із 38863 несуть екрановану розмітку або хром носія, серед них Стройовий статут ЗСУ. Складність і форма функцій не зросли: _rows_from розділено на _rows_from_sqlite і _rows_from_psql, обидві в межах стелі 16."
     }
   ],
   "recorded_at": "2026-08-24",

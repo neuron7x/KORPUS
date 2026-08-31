@@ -25,6 +25,7 @@ import json
 import re
 import sys
 from collections import Counter
+from pathlib import Path
 
 #: ЕКРАНОВАНА розмітка. `&lt;p>` або `&#34;` не є текстом документа НІКОЛИ й ні в
 #: якій доктрині: це наслідок подвійного кодування — джерело віддало вже екрановану
@@ -43,6 +44,19 @@ CHROME = re.compile(r"(?i)\bcmp-|reset password|\bcookies?\b|\bconsent banner\b"
 
 QUERY = (
     "SELECT s.id, d.canonical_title, replace(left(s.text, 300), chr(10), ' ') "
+    "FROM evidence_spans s "
+    "JOIN document_versions v ON v.id = s.version_id "
+    "JOIN documents d ON d.id = v.document_id "
+    "WHERE v.review_state = 'approved' AND v.is_current"
+)
+
+#: Той самий запит на діалекті SQLite. Потрібен не з любові до переносності: гейт умів
+#: лише psql, а корпус, який публічний сайт подає солдату, лежить у SQLite —
+#: `var/runtime/corpus-v6-20260807/korpus.db`. Тобто перевірка була зелена на базі, якої
+#: в бойовому шляху немає, і не могла подивитись на ту, яка є. Це та сама вада, що вже
+#: коштувала нам дня: перевірка читає повз те, що охороняє.
+QUERY_SQLITE = (
+    "SELECT s.id, d.canonical_title, replace(substr(s.text, 1, 300), char(10), ' ') "
     "FROM evidence_spans s "
     "JOIN document_versions v ON v.id = s.version_id "
     "JOIN documents d ON d.id = v.document_id "
@@ -71,7 +85,23 @@ def scan(rows: list[tuple[str, str, str]]) -> dict[str, object]:
     }
 
 
-def _rows_from(database: str) -> list[tuple[str, str, str]]:
+def _rows_from_sqlite(path: str) -> list[tuple[str, str, str]]:
+    import sqlite3
+
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        rows = [
+            (str(sid), str(title), str(text))
+            for sid, title, text in connection.execute(QUERY_SQLITE)
+        ]
+    finally:
+        connection.close()
+    if not rows:
+        raise SystemExit("жодного цитовного прольоту — це відмова, а не чистий корпус")
+    return rows
+
+
+def _rows_from_psql(database: str) -> list[tuple[str, str, str]]:
     import subprocess
 
     result = subprocess.run(
@@ -87,6 +117,16 @@ def _rows_from(database: str) -> list[tuple[str, str, str]]:
     if not rows:
         raise SystemExit("жодного цитовного прольоту — це відмова, а не чистий корпус")
     return rows
+
+
+def _rows_from(database: str) -> list[tuple[str, str, str]]:
+    # Файл на диску — SQLite, усе інше — psql. Розрізняємо за наявністю файла, а не за
+    # префіксом рядка: трапляються обидва написання, а хибний вибір psql дає незрозумілу
+    # відмову сокета замість роботи.
+    candidate = database.removeprefix("sqlite:///").removeprefix("sqlite://")
+    if Path(candidate).is_file():
+        return _rows_from_sqlite(candidate)
+    return _rows_from_psql(database)
 
 
 def selftest() -> int:

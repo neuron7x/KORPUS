@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1616,
-  "root_sha256": "6b3ac2745e8263fc2208ffcf475e88d75f2e16022b021cac19471d8a83d48078",
+  "root_sha256": "43b4a8d20776d7a632c2f2623fcdae3fa29dd0bf210af2dcc7393f3f6a7a6a41",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 57560,
-      "sha256": "6ce01937158f33f690e2a20e2fbeee9b72ed2ef6f86fcba12f20bb6bbd699b4b",
+      "bytes": 58445,
+      "sha256": "f77d89fd9383525ec01a4d9ff2988681768ca166b0eb5ba67cb796ca08d1123a",
       "mode": "0644"
     },
     {
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 273857,
-      "sha256": "50c0f4278eff45c495985b9788c81e86d26c01116663672d3531d876c50c0868",
+      "bytes": 275079,
+      "sha256": "2dcd0e6c2bcda7dc028aaea2af915413efff82cb0e76c86a07d7d0256650f4a1",
       "mode": "0644"
     },
     {
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "scripts/serve_semantic_local.sh",
-      "bytes": 3846,
-      "sha256": "b9291f19e1d468498a3c5220caeba46689f81894266dd64f5596fa350ff68e5e",
+      "bytes": 4822,
+      "sha256": "1b8bda2b91e97c1551cbd196507252c17c971f81b7c3051affa8031c9c3b2949",
       "mode": "0755"
     },
     {
@@ -9553,8 +9553,8 @@
     },
     {
       "path": "scripts/validate_span_hygiene.py",
-      "bytes": 7382,
-      "sha256": "098d3a7b95f86fb17515d801486faebd76f95c89388347e6344c1d33114b72db",
+      "bytes": 9489,
+      "sha256": "6c26c188bd150ffb62461243f07a2ca0e9c7f5644709267f12396fc38964b029",
       "mode": "0755"
     },
     {

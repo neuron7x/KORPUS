@@ -623,15 +623,23 @@ serve-semantic-local:
 ## Дві діагностики гіпотез про пошук: чи запит розводиться зайвими словами і чи
 ## є розмірний зсув. Не гейти — інструменти виміру, але раннер потрібен, бо
 ## скрипт без нього ніхто не запустить і ніхто не помітить, що він зламався.
+## Корпус, який публічний сайт РЕАЛЬНО подає. Типове значення, а не обовʼязковий
+## аргумент: перевірка, яку не запустили, і перевірка, якої немає, з відстані
+## однакові.
+SERVED_CORPUS ?= var/runtime/corpus-v6-20260807/korpus.db
+
+## Обидві діагностики питають ЖИВИЙ API, а не базу: вони міряють, що система
+## відповідає, а не що в ній лежить. Раннер передавав їм `--database`, якого жодна з
+## них не приймає, тож `make diagnose-retrieval` падав на першому рядку — раннер,
+## написаний щоб помітити зламаний скрипт, був зламаний сам.
 diagnose-retrieval:
-	@test -n "$(DATABASE)" || { echo "вжиток: make diagnose-retrieval DATABASE=postgresql://..." >&2; exit 64; }
-	$(PY) scripts/diagnose_query_dilution.py --database "$(DATABASE)"
-	$(PY) scripts/diagnose_size_bias.py --database "$(DATABASE)"
+	@test -n "$(BASE)" || { echo "вжиток: make diagnose-retrieval BASE=http://127.0.0.1:8000 TOKEN=<jwt> [DATABASE=$(SERVED_CORPUS)]" >&2; exit 64; }
+	$(PY) scripts/diagnose_query_dilution.py --base "$(BASE)" --token "$(TOKEN)"
+	$(PY) scripts/diagnose_size_bias.py --base "$(BASE)" --token "$(TOKEN)" --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 
 span-hygiene:
 	$(PY) scripts/validate_span_hygiene.py --selftest
-	@test -n "$(DATABASE)" || { echo "вжиток: make span-hygiene DATABASE=postgresql://..." >&2; exit 64; }
-	-$(PY) scripts/validate_span_hygiene.py --database "$(DATABASE)"
+	$(PY) scripts/validate_span_hygiene.py --database "$(or $(DATABASE),$(SERVED_CORPUS))"
 
 restore-document-types:
 	$(PY) scripts/restore_document_types.py --selftest
