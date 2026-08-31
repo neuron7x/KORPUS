@@ -80,6 +80,11 @@ repository:validate:
     # indistinguishable from a current one.
     - python scripts/check_environment_drift.py --observation var/environment-observation.json
     - python scripts/generate_supply_chain_inventory.py
+    # Що саме означає «дерево зелене»: кожна перевірочна ціль Makefile або виконується
+    # під `check`, або названа в реєстрі з причиною і датою. Виміряно 31.08.2026 — 193
+    # цілі, 44 перевірочних, 27 не виконувались жодною дорогою, і жодна з тих 27 не була
+    # рішенням: усі були тишею.
+    - python scripts/verify_gate_closure.py
     # A ratchet on module size, function shape and complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
     - PYTHONPATH=scripts python scripts/check_budget_raises_are_named.py
