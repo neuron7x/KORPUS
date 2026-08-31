@@ -4,6 +4,7 @@ import hashlib
 from dataclasses import dataclass
 from typing import cast
 
+from korpus.application.answer_adjudication import AxisVerdict, adjudicate, presentation
 from korpus.application.answer_analysis import (
     ScopeBreach,
     SentenceCandidate,
@@ -19,7 +20,6 @@ from korpus.application.answer_audit import append_answer_audit
 from korpus.application.answer_retrieval_gate import apply_retrieval_gate
 from korpus.application.composition import AnswerComposer, Composition, compose_answer
 from korpus.application.egress import ModelEgressPolicy
-from korpus.application.answer_adjudication import AxisVerdict, adjudicate, presentation
 from korpus.application.evidence import (
     SupportVerdict,
     assess_control_injection,

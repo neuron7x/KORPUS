@@ -2076,9 +2076,9 @@ MUTANTS = (
         # вони міряють власну вигадку.
         "M352_SUBJECT_AXIS_JUDGES_A_KEYWORD_BAG",
         "apps/api/src/korpus/application/answer_adjudication.py",
-        '    if not is_question(question):\n'
+        "    if not is_question(question):\n"
         '        return AxisVerdict("contrast", "CANNOT_ADJUDICATE", "на вході не питання")',
-        '    if False:\n'
+        "    if False:\n"
         '        return AxisVerdict("contrast", "CANNOT_ADJUDICATE", "на вході не питання")',
         (
             "apps/api/tests/test_answer_adjudication.py::"

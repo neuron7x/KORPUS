@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from datetime import date
 
-import pytest
 from fastapi.testclient import TestClient
 from korpus.application.answer_adjudication import (
     adjudicate,

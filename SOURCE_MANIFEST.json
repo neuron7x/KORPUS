@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1623,
-  "root_sha256": "3009f34f6bdddbdeabab34a6d2a82a0d8b38d818eb21e85249cc28b59aeec261",
+  "root_sha256": "360e1d19df332e1652154e1a1792cd6c0c1abcae3e7279694971f4489fb6a1bf",
   "files": [
     {
       "path": ".dockerignore",
@@ -836,7 +836,7 @@
     {
       "path": "apps/api/src/korpus/application/answer_query.py",
       "bytes": 32025,
-      "sha256": "adcea21de46767396c7452aacf933e264419269fa60da63ceff813796de63b48",
+      "sha256": "d42da4e16b6cbc8026f445c7d9e574a59493533c997017ff4ef114e9f93e6294",
       "mode": "0644"
     },
     {
@@ -925,8 +925,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/composition.py",
-      "bytes": 11060,
-      "sha256": "03c73dcf3e9c87ebf36a3e2a2da625bff3abffca97ae31351b7da71d0d5ee2e1",
+      "bytes": 11120,
+      "sha256": "3813db78f79ba6eec06a47d90021c0f70ee64d1bd0db49a42184a15712b0c294",
       "mode": "0644"
     },
     {
@@ -2509,8 +2509,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_adjudication.py",
-      "bytes": 10161,
-      "sha256": "7419ecd53e41488fe95f0de54478e6a4a766b469c0a73eea44a1ec88ad1be5db",
+      "bytes": 10147,
+      "sha256": "ef253798c248f56b172fb83cd491db8466a11d0f1eb5f8737b6877e2886bad82",
       "mode": "0644"
     },
     {
@@ -6697,8 +6697,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 291827,
-      "sha256": "ba5c7c2e938b53933fdd31b9da04d6831670aa92f304d528ed3a8eb50f9b7a99",
+      "bytes": 292252,
+      "sha256": "c4909ad96a1b1406d4ca720f18a892b9e14889f51e2327ffbd4f1de5220c7655",
       "mode": "0644"
     },
     {
@@ -9260,7 +9260,7 @@
     {
       "path": "scripts/run_mutation_tests.py",
       "bytes": 193446,
-      "sha256": "9833dfbb6578752f234ee4a4504662a916e8c997badfd3cba6ffa75fedc60254",
+      "sha256": "df9bd40515a571adbad058abe774478cc0d5c25eb6874fb286c9160928df98c3",
       "mode": "0755"
     },
     {

@@ -832,7 +832,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/composition.py": {
-      "lines": 275,
+      "lines": 277,
       "max_complexity": 9,
       "reason": "Lower ratchet after model deadline execution moved to a bounded bulkhead",
       "max_function_lines": 60,
@@ -4669,6 +4669,17 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/composition.py",
+      "from": {
+          "lines": 275
+      },
+      "to": {
+          "lines": 277
+      },
+      "reason": "Два рядки від `ruff format` після посадки шару присуду сусідньої сесії: імпорти впорядковано канонічно. Логіку не змінено."
+  },
     {
       "on": "2026-08-31",
       "path": "scripts/validate_span_hygiene.py",

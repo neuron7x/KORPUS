@@ -28,8 +28,8 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from dataclasses import dataclass
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Protocol
 
 from korpus.application.model_bulkhead import result_before
@@ -168,9 +168,13 @@ def _refuse_uncarried_clauses(text: str, passages: Sequence[str]) -> None:
         content = _content_tokens(clause)
         missing = [token for token in content if token not in pooled]
         if missing:
-            raise CompositionRefused(f"opening states something the evidence does not: {missing[0]!r}")
+            raise CompositionRefused(
+                f"opening states something the evidence does not: {missing[0]!r}"
+            )
         if content and not any(set(content) <= vocabulary for vocabulary in vocabularies):
-            raise CompositionRefused(f"opening combines words from different citations: {content!r}")
+            raise CompositionRefused(
+                f"opening combines words from different citations: {content!r}"
+            )
 
 
 def admissible_opening(opening: str, passages: Sequence[str]) -> str:
