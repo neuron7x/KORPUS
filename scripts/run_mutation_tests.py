@@ -2180,6 +2180,18 @@ MUTANTS = (
         ("apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",),
     ),
     Mutant(
+        # Голий домен, зарахований як посилання на документ, робить простежуваність
+        # 100 % при 42 % реальних. Саме це число і є половиною ціннісної функції.
+        "M363_BARE_DOMAIN_COUNTS_AS_A_DOCUMENT_LINK",
+        "scripts/measure_corpus_integrity.py",
+        "    bare = sum(1 for value in rows if value and _BARE_DOMAIN.fullmatch(value.strip()))",
+        "    bare = 0",
+        (
+            "apps/api/tests/test_corpus_integrity.py::"
+            "test_a_link_to_a_document_counts_and_a_link_to_the_portal_does_not",
+        ),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',
