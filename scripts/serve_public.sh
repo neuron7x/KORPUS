@@ -63,7 +63,36 @@ export KORPUS_ENVIRONMENT=local
 # running site instead of the site waiting hours for the last document.
 export KORPUS_DATABASE_URL="${KORPUS_DATABASE_URL:-sqlite:///$RUNTIME_ROOT/korpus.db}"
 export KORPUS_OBJECT_ROOT="${KORPUS_OBJECT_ROOT:-$RUNTIME_ROOT/objects}"
-export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"
+# Ключ, яким підписується ЖУРНАЛ ДОКАЗУ, більше не вигадується цим скриптом.
+#
+# Тут стояло `${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}` — другий вписаний літерал
+# поруч із `replace-local-audit-key` із `config.py`. Заборона на плейсхолдери ловить
+# лише перший, а ефект однаковий: обидва лежать у git. Виміряно 31.08.2026 на живій
+# базі — 7223 події, з них 4061 під `legacy-unversioned`; ключ живого процесу
+# побайтово дорівнював рядку з цього файла. Тобто засвідчених подій у журналі було
+# НУЛЬ: підписати може будь-хто, хто має клон.
+#
+# Секрет JWT тут уже живе поза деревом і генерується один раз — ключ аудиту робиться
+# тим самим механізмом. Різниця в наслідку: JWT боронить сесію, а цей ключ боронить
+# сам доказ, тож дефолта немає взагалі. Не змогли прочитати й не змогли створити —
+# вихід ненульовий, а не тихий відкат на щось відоме.
+if [[ ! -s "$SECRET_DIR/audit-key.txt" ]]; then
+  "$PY" -c "import secrets;print(secrets.token_urlsafe(48),end='')" > "$SECRET_DIR/audit-key.txt"
+  chmod 600 "$SECRET_DIR/audit-key.txt"
+fi
+[[ -s "$SECRET_DIR/audit-key.txt" ]] || {
+  echo "немає ключа аудиту й не вдалося створити: $SECRET_DIR/audit-key.txt" >&2; exit 69; }
+export KORPUS_AUDIT_HMAC_KEY_FILE="$SECRET_DIR/audit-key.txt"
+
+# Старі константи лишаються НА ДИСКУ, щоб історія журналу лишалась перевірюваною:
+# подія, підписана вчорашнім ключем, мусить читатися й завтра. `printf` без переводу
+# рядка — інакше файл не дорівнює тому, чим підписували.
+[[ -s "$SECRET_DIR/audit-key-legacy-unversioned.txt" ]] || {
+  printf '%s' 'replace-local-audit-key' > "$SECRET_DIR/audit-key-legacy-unversioned.txt"
+  chmod 600 "$SECRET_DIR/audit-key-legacy-unversioned.txt"; }
+[[ -s "$SECRET_DIR/audit-key-serve-public-inline.txt" ]] || {
+  printf '%s' 'local-audit-key' > "$SECRET_DIR/audit-key-serve-public-inline.txt"
+  chmod 600 "$SECRET_DIR/audit-key-serve-public-inline.txt"; }
 # Beside the database it belongs to. The anchor is an external record of where a chain
 # has got to; two databases sharing one file leaves both unverifiable — "the anchor is
 # ahead of the database head" is what a verifier says about a chain that never moved

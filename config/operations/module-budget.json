@@ -4171,7 +4171,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4515,
+      "lines": 4526,
       "max_complexity": 11,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -6601,6 +6601,17 @@
       "reason": "Форматування ruff мутантів M399–M408, M420–M422 у канонічний стиль після їхньої вставки.",
       "to": {
         "lines": 4515
+      }
+    },
+    {
+      "from": {
+        "lines": 4515
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Ключ журналу доказу перестав вигадуватись скриптом розгортання: fail-closed читання з $XDG_STATE_HOME поза деревом, плюс два файли перевірки старих констант, щоб історія журналу лишалась перевірюваною. Мутант M423 доводить, що повернення вписаного ключа червонить гейт.",
+      "to": {
+        "lines": 4526
       }
     }
   ],

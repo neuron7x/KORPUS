@@ -4187,6 +4187,17 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        "M423_PUBLIC_DEPLOY_INVENTS_THE_EVIDENCE_KEY",
+        "scripts/serve_public.sh",
+        'export KORPUS_AUDIT_HMAC_KEY_FILE="$SECRET_DIR/audit-key.txt"',
+        'export KORPUS_AUDIT_HMAC_KEY="${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}"',
+        (
+            "apps/api/tests/test_public_deployment_script.py"
+            "::test_the_public_deploy_does_not_invent_the_key_that_signs_the_evidence",
+        ),
+        full_copy=True,
+    ),
 )
 
 

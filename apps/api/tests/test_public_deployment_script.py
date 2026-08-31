@@ -92,3 +92,30 @@ def test_public_api_is_loopback_only_and_resource_bounded() -> None:
     assert "KORPUS_PUBLIC_WORKERS:-2}" in script
     assert "--host 127.0.0.1" in script
     assert "proxy_set_header Host 127.0.0.1;" in config
+
+
+def test_the_public_deploy_does_not_invent_the_key_that_signs_the_evidence() -> None:
+    """Ключ журналу доказу не сміє походити з дерева, яке кожен може клонувати.
+
+    Тут стояв `${KORPUS_AUDIT_HMAC_KEY:-local-audit-key}` — другий вписаний літерал
+    поруч із `replace-local-audit-key` із `config.py`. Заборона на плейсхолдери ловить
+    лише перший. Виміряно 31.08.2026 на живій базі: 7223 події, 4061 під
+    `legacy-unversioned`, і ключ живого процесу побайтово дорівнював рядку з цього
+    файла — тобто засвідчених подій було НУЛЬ.
+
+    Тест тримає причину, а не наслідок: не «немає цього рядка», а «ключ береться з
+    файла поза деревом, і вписаного дефолта немає взагалі».
+    """
+    source = (Path(__file__).resolve().parents[3] / "scripts/serve_public.sh").read_text(
+        encoding="utf-8"
+    )
+    executable = "\n".join(
+        line for line in source.splitlines() if not line.lstrip().startswith("#")
+    )
+    assert "KORPUS_AUDIT_HMAC_KEY_FILE" in executable, "ключ аудиту більше не читається з файла"
+    assert "export KORPUS_AUDIT_HMAC_KEY=" not in executable, (
+        "ключ аудиту знову передається значенням, а не файлом"
+    )
+    assert "SECRET_DIR/audit-key.txt" in executable, "ключ аудиту вийшов за межі стану поза деревом"
+    # Fail-closed: скрипт мусить ВІДМОВИТИ, а не тихо відкотитись на щось відоме.
+    assert "exit 69" in executable and "audit-key.txt" in executable
