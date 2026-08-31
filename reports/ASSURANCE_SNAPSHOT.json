@@ -5,48 +5,48 @@
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 871109,
-      "sha256": "5fb9ecc453d523b335eb98e807c785b6e258c06531e277d2b925f6fe92e79c5f"
+      "bytes": 877518,
+      "sha256": "f659a123f1c99664ee0af8e1924971b969fb9166993e4b81b1112b9f57a1810b"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
-      "bytes": 470382,
-      "sha256": "29ff6d3b7c3954914dc293a74696604f7a92a72d15541d6f49462760003e9a2a"
+      "bytes": 470000,
+      "sha256": "05d29ee0fdcb231e3039f28b1f664bc56f1605b6e722bfa9e8e7078e6c049390"
     },
     {
       "path": "reports/COVERAGE_REPORT.xml",
       "bytes": 712307,
-      "sha256": "d4272d2087579878b08a5d7a7b1da32d9ed29213b89d136bab3e588143bc52a0"
+      "sha256": "7d76849b054e0273f0b05f8bb0fa97f538a1471d41b253761abeec773e42bacc"
     },
     {
       "path": "reports/COVERAGE_REPORT.json",
       "bytes": 1990522,
-      "sha256": "f679e7082baa41f57ef2d26275ae7948854905e045a64c38b670499a70088f11"
+      "sha256": "0c8977b31f36f64f543c129a52164b6b268ad029700310b185355c82bd6b3fca"
     },
     {
       "path": "reports/EVAL_REPORT.json",
       "bytes": 19171,
-      "sha256": "d1a42cd5abd021a52a73f02aa24c840dd2f89fa1f5a13b1859409bf81a9d1a17"
+      "sha256": "8e6d6535eff7db802a89b4466f58b6b123fee550781bdf062199845f0516f43d"
     },
     {
       "path": "reports/MUTATION_REPORT.json",
-      "bytes": 835216,
-      "sha256": "85d9c81318ecc674dc99bd5834349806f41a6f8e656514e7d68d9914ca3fe9d6"
+      "bytes": 838097,
+      "sha256": "ac89842ce8984e2f1d52fd1934096d0ea9a309219f91b8f16978706d35c7549f"
     },
     {
       "path": "reports/MIGRATION_REPORT.json",
       "bytes": 2171,
-      "sha256": "38a19ce662137fbf16be356f12dc322b9d0a5eb1ab9caf56ee3d6f85202635dc"
+      "sha256": "afc6a8a69a260388fd1228304fae17bb36ac372e8a5a813d225bd87c43f19002"
     },
     {
       "path": "reports/SCALE_REPORT.json",
       "bytes": 1043,
-      "sha256": "feaa5d506cab19e51d917aa8f237fffd2ee0fbb1a807606bca8a27d6e7a74645"
+      "sha256": "b4050d6b0dc30683493cb19194128696d5e9db525413e5323a4b85d1766c0c3a"
     },
     {
       "path": "reports/OPERATIONAL_GATE.json",
       "bytes": 1499,
-      "sha256": "3808fae614b7b5ca87edccb17772ce8cb9c80c5eda9714a66a280da27afc8dba"
+      "sha256": "4bb72a96a0446e7b4675d368141324d499193caec9089a5e974bb696adee8589"
     },
     {
       "path": "reports/SUPPLY_CHAIN_INVENTORY.json",
@@ -61,11 +61,12 @@
     {
       "path": "reports/KUBERNETES_VALIDATION.json",
       "bytes": 566,
-      "sha256": "4b961c5ee523624414a8d4683e5ff53f24d2d69afc91ae1f318e13e39bfda5f3"
+      "sha256": "3883f6d671ca282fa0f19816dc1ce6304603ae65d09db40ef12b3ac727928c89"
     }
   ],
   "limitations": [
-    "The package job runs only after required CI gates succeed; their logs remain CI artifacts.",
-    "Synthetic evaluation does not authorize real restricted corpus deployment."
+    "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; local fixture evidence cannot promote those claims.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
   ]
 }
