@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1623,
-  "root_sha256": "ae97899a2c6bc4c1bb4395174d40dca41c45ed6444c0ecb25715e279be0ff777",
+  "file_count": 1625,
+  "root_sha256": "1fecbf020c0c839936150e0cff77fdb16cdf90cef7473f84a01d9899b50c06fb",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 40109,
-      "sha256": "5f5365265ff6538a9b2f26c081181609752576389e88abe6da4fff30191ae54e",
+      "bytes": 40423,
+      "sha256": "2d3b6203b1c37da7faf2f7b58dd9e6981837d8ea59d575067066aec3924677e7",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 60552,
-      "sha256": "a73a570e8563de81463ed0545c7092684f673da7f55792e20c53d5d1b336d098",
+      "bytes": 61318,
+      "sha256": "4a43ae4ff04069add2b07b167b5e0c017b1bef931c5f4514224127ca9d0024fe",
       "mode": "0644"
     },
     {
@@ -3495,6 +3495,12 @@
       "path": "apps/api/tests/test_more_edges.py",
       "bytes": 2291,
       "sha256": "c3e763ae494216d54cdb23e38688f8239fe2834788e3658f97d1da747b034517",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_mutation_report_freshness.py",
+      "bytes": 2254,
+      "sha256": "c2b1dd384ae2a4ff07b2165e7dab3e8b87bc5aef5218f825c42a57a75f230058",
       "mode": "0644"
     },
     {
@@ -6686,7 +6692,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "6dab3079862bda7cf5023ebb302ee75e2e99d14794539e9d10428be5506c2b77",
+      "sha256": "8f1578588ae48fc235a25c77ad23bd5f1f0bcbb886bf89098f692f3b9baca4ef",
       "mode": "0644"
     },
     {
@@ -6697,8 +6703,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 292252,
-      "sha256": "c4909ad96a1b1406d4ca720f18a892b9e14889f51e2327ffbd4f1de5220c7655",
+      "bytes": 292789,
+      "sha256": "2272a0d15388b18dcbada0de4b67e5052bf89292b0757dbd2788d99edbf78b2b",
       "mode": "0644"
     },
     {
@@ -8334,6 +8340,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_mutation_report_freshness.py",
+      "bytes": 8405,
+      "sha256": "89b8d63e78623fe63c54802a22911904289d2a968640176ffffe7e489824f614",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/check_release_identity.py",
       "bytes": 3832,
       "sha256": "7c184b999e7210868ce72da5c9faf84b4529ecc0163f0807935c979c10b953ca",
@@ -9259,8 +9271,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 193532,
-      "sha256": "0770712d8cffe81be83686e77d620fccf8a6c23a339c34e2f065091617921481",
+      "bytes": 194135,
+      "sha256": "ada6234927636da91d00d0cd1f57857d12e41720e736dd91642b4141e89aa163",
       "mode": "0755"
     },
     {
