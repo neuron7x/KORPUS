@@ -2322,11 +2322,12 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/observability.py": {
-      "lines": 182,
+      "lines": 207,
       "max_complexity": 3,
       "max_function_args": 5,
-      "max_function_lines": 75,
-      "max_nesting": 2
+      "max_function_lines": 86,
+      "max_nesting": 2,
+      "reason": "Метрика відставання САМОГО якоря плюс `observe_readiness` — зіставлення полів знімка з метриками винесено з циклу, бо поки воно жило рядками всередині, жоден тест не міг сказати, що воно правильне: мутант на нього виживав."
     },
     "apps/api/src/korpus/infrastructure/offline_pack_signer.py": {
       "lines": 30,
@@ -2384,12 +2385,12 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1131,
+      "lines": 1141,
       "max_complexity": 13,
       "max_function_args": 14,
       "max_function_lines": 84,
       "max_nesting": 4,
-      "reason": "Raised 1067 -> 1086 on 2026-08-28 for NonRetryableWriteError: a review transition that found the version in another state was converted to a retryable ConcurrentWriteError, so the retry loop spent its whole budget on a conflict that cannot resolve and the caller received 'transaction retry budget exhausted' through the 409 body instead of 'version state changed concurrently'. Earlier entry: _is_contention, SQLSTATE 40001/40P01 instead of a substring PostgreSQL never emits."
+      "reason": "Реконсиляція бере ціль із ГОЛОВИ журналу, не з черги: черга глобальна, а доставка є властивістю пари (точка, призначення)."
     },
     "apps/api/src/korpus/infrastructure/repository_search.py": {
       "lines": 111,
@@ -4227,12 +4228,12 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4753,
+      "lines": 4778,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
-      "reason": "+22 рядки за M439–M440: здогад при нічиї та довіра до номера частини як до номера статті."
+      "reason": "+25 рядків за M454–M455: повернення цілі в спільну чергу та підміна відставання якоря довжиною черги."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -7188,6 +7189,24 @@
       "to": {
         "lines": 4773
       }
+    },
+    {
+      "module": "apps/api/src/korpus/infrastructure/observability.py",
+      "to": 207,
+      "on": "2026-08-31",
+      "reason": "Метрика відставання САМОГО якоря плюс `observe_readiness` — зіставлення полів знімка з метриками винесено з циклу, бо поки воно жило рядками всередині, жоден тест не міг сказати, що воно правильне: мутант на нього виживав."
+    },
+    {
+      "module": "apps/api/src/korpus/infrastructure/repository.py",
+      "to": 1141,
+      "on": "2026-08-31",
+      "reason": "Реконсиляція бере ціль із ГОЛОВИ журналу, не з черги: черга глобальна, а доставка є властивістю пари (точка, призначення)."
+    },
+    {
+      "module": "scripts/run_mutation_tests.py",
+      "to": 4778,
+      "on": "2026-08-31",
+      "reason": "+25 рядків за M454–M455: повернення цілі в спільну чергу та підміна відставання якоря довжиною черги."
     }
   ],
   "recorded_at": "2026-08-24",

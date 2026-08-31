@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
@@ -88,6 +88,17 @@ class Observability:
             "Age of the oldest unanchored checkpoint.",
             registry=self.registry,
         )
+        #: Наскільки САМ якір відстав від голови журналу. Черга каже, скільки точок ще
+        #: не доставлено, і це твердження ГЛОБАЛЬНЕ: коли інший процес зі своїм шляхом
+        #: якоря спорожнив чергу, вона показує нуль, а цей якір стоїть. Виміряно
+        #: 31.08.2026: якір розгортання простояв добу на 1024 із 7223 при порожній черзі
+        #: й зелених гейтах. `readiness_snapshot` рахував `anchor_gap_events` увесь цей
+        #: час — на нього просто ніхто не дивився.
+        self.audit_anchor_gap_events = Gauge(
+            "korpus_audit_anchor_gap_events",
+            "Events between the external anchor and the ledger head.",
+            registry=self.registry,
+        )
         self.audit_anchor_reconcile_failures = Counter(
             "korpus_audit_anchor_reconcile_failures_total",
             "Audit-anchor reconciliation failures.",
@@ -162,9 +173,23 @@ class Observability:
     def observe_answer(self, status: str, reason: str, risk: str) -> None:
         self.answers.labels(status=status, reason=reason, risk=risk).inc()
 
-    def observe_anchor_backlog(self, pending: int, oldest_seconds: float) -> None:
+    def observe_readiness(self, snapshot: Mapping[str, object]) -> None:
+        """Зіставлення полів знімка з метриками — окремо, бо саме воно й розійшлося.
+
+        Цикл спостерігав довжину ЧЕРГИ й не спостерігав відставання САМОГО якоря, хоча
+        `readiness_snapshot` рахував обидва. Поки це зіставлення жило рядками всередині
+        циклу, жоден тест не міг сказати, що воно правильне.
+        """
+        self.observe_anchor_backlog(
+            int(snapshot["pending_anchor_events"]),  # type: ignore[call-overload]
+            float(snapshot["oldest_pending_seconds"]),  # type: ignore[arg-type]
+            int(snapshot["anchor_gap_events"]),  # type: ignore[call-overload]
+        )
+
+    def observe_anchor_backlog(self, pending: int, oldest_seconds: float, gap: int = 0) -> None:
         self.audit_anchor_pending.set(pending)
         self.audit_anchor_oldest_seconds.set(oldest_seconds)
+        self.audit_anchor_gap_events.set(gap)
 
     def observe_anchor_reconcile_failure(self, error: BaseException) -> None:
         self.audit_anchor_reconcile_failures.labels(error_class=type(error).__name__).inc()

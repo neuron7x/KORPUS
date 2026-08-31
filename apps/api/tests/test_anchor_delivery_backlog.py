@@ -69,10 +69,51 @@ def test_delivery_reports_how_many_checkpoints_it_closed(
     assert closed == 10
 
 
-def test_an_empty_outbox_delivers_nothing(client: TestClient, admin_identity: Identity) -> None:
-    """The negative control: no pending rows must not produce a write or a count."""
+def test_an_empty_outbox_closes_nothing_when_the_anchor_is_already_at_the_head(
+    client: TestClient, admin_identity: Identity
+) -> None:
+    """Негативний контроль: наздоганяти нема чого, тож і рядків не закривається."""
     repository = client.app.state.repository
     repository.append_audit(admin_identity, "backlog.probe", "test", "1", {"i": 1})
     repository.reconcile_audit_anchor()
 
     assert repository.reconcile_audit_anchor() == 0
+    assert repository.verify_audit().anchor_pending == 0
+
+
+def test_an_anchor_behind_the_head_catches_up_even_with_an_empty_outbox(
+    client: TestClient, admin_identity: Identity
+) -> None:
+    """Стан, у якому якір розгортання простояв добу, і жоден гейт про це не сказав.
+
+    Черга каже «що ще не доставлено», і це твердження ГЛОБАЛЬНЕ, тоді як доставка є
+    властивістю ПАРИ (контрольна точка, призначення). Два процеси з різними шляхами
+    якоря ділили один прапорець: хто перший звів чергу, той її й забрав, а другий
+    діставав порожній добір, повертав нуль і НЕ ПРОБУВАВ писати.
+
+    Виміряно 31.08.2026: якір стояв на 1024 із 7223 добу, черга була порожня, ланцюг
+    цілий, усі гейти зелені. Мовчання, а не помилка.
+
+    Тому ціль реконсиляції береться з ГОЛОВИ журналу: кожне призначення доганяє її
+    самостійно, і спорожнена кимось черга нікого не зупиняє.
+    """
+    repository = client.app.state.repository
+    for index in range(3):
+        repository.append_audit(admin_identity, "backlog.probe", "test", str(index), {"i": index})
+    repository.reconcile_audit_anchor()
+    assert repository.verify_audit().anchor_pending == 0
+
+    # Інший процес зі СВОЇМ шляхом якоря звів чергу: рядки позначені доставленими,
+    # а ЦЕЙ якір лишився позаду.
+    repository.anchor_store.reset()
+    repository.anchor_store.write(0, "0" * 64)
+    with privileged_connection(client) as connection:
+        connection.execute(text("UPDATE audit_anchor_outbox SET delivered_at = CURRENT_TIMESTAMP"))
+    assert repository.verify_audit().anchor_pending > 0, "передумова тесту: якір відстав"
+
+    repository.reconcile_audit_anchor()
+
+    assert repository.verify_audit().anchor_pending == 0, (
+        "порожня черга не сміє означати «наздоганяти нема чого»: вона глобальна, "
+        "а відставання — властивість цього призначення"
+    )

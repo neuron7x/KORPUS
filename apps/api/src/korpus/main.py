@@ -170,15 +170,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         max_pending_events=selected.audit_max_pending_events,
                         max_pending_age_seconds=selected.audit_max_pending_age_seconds,
                     )
-                    pending_events = snapshot["pending_anchor_events"]
-                    oldest_pending_seconds = snapshot["oldest_pending_seconds"]
-                    # readiness_snapshot is declared dict[str, object]; these two keys
-                    # carry int/float (repository.py:1112-1113). Narrowing belongs in the
-                    # repository return type, which is out of scope for this change.
-                    observability.observe_anchor_backlog(
-                        int(pending_events),  # type: ignore[call-overload]
-                        float(oldest_pending_seconds),  # type: ignore[arg-type]
-                    )
+                    observability.observe_readiness(snapshot)
                 except Exception as exc:
                     # Readiness exposes the backlog; the metric preserves failure visibility.
                     observability.observe_anchor_reconcile_failure(exc)

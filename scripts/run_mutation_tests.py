@@ -1143,15 +1143,13 @@ MUTANTS = (
     Mutant(
         "M105_ANCHOR_DELIVERY_WALKS_ONE_ROW_PER_PASS",
         "apps/api/src/korpus/infrastructure/repository.py",
-        "                .order_by(audit_anchor_outbox.c.sequence.desc())\n"
-        "                .limit(1)\n"
-        "            ).one_or_none()",
-        "                .order_by(audit_anchor_outbox.c.sequence)\n"
-        "                .limit(1)\n"
-        "            ).one_or_none()",
+        "            .where(audit_anchor_outbox.c.sequence <= row.sequence)\n"
+        "            .values(delivered_at=datetime.now(UTC))",
+        "            .where(audit_anchor_outbox.c.sequence == row.sequence)\n"
+        "            .values(delivered_at=datetime.now(UTC))",
         (
             "apps/api/tests/test_anchor_delivery_backlog.py::"
-            "test_one_pass_clears_a_backlog_larger_than_the_batch",
+            "test_delivery_reports_how_many_checkpoints_it_closed",
         ),
     ),
     Mutant(
@@ -4375,6 +4373,31 @@ MUTANTS = (
             "test_a_small_number_is_not_trusted_because_it_is_usually_a_part_index",
         ),
         full_copy=True,
+    ),
+    Mutant(
+        "M454_RECONCILE_TAKES_ITS_TARGET_FROM_THE_SHARED_OUTBOX_AGAIN",
+        "apps/api/src/korpus/infrastructure/repository.py",
+        "                select(audit_heads.c.sequence, audit_heads.c.head_hash).where(\n"
+        "                    audit_heads.c.singleton_id == 1\n"
+        "                )",
+        "                select(audit_anchor_outbox.c.sequence, audit_anchor_outbox.c.head_hash)\n"
+        "                .where(audit_anchor_outbox.c.delivered_at.is_(None))\n"
+        "                .order_by(audit_anchor_outbox.c.sequence.desc())\n"
+        "                .limit(1)",
+        (
+            "apps/api/tests/test_anchor_delivery_backlog.py::"
+            "test_an_anchor_behind_the_head_catches_up_even_with_an_empty_outbox",
+        ),
+    ),
+    Mutant(
+        "M455_THE_ANCHOR_GAP_IS_REPORTED_AS_THE_OUTBOX_LENGTH",
+        "apps/api/src/korpus/infrastructure/observability.py",
+        '            int(snapshot["anchor_gap_events"]),  # type: ignore[call-overload]',
+        '            int(snapshot["pending_anchor_events"]),  # type: ignore[call-overload]',
+        (
+            "apps/api/tests/test_observability.py::"
+            "test_readiness_maps_the_anchor_gap_and_not_the_queue_length",
+        ),
     ),
     Mutant(
         "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",
