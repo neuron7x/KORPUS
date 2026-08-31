@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1641,
-  "root_sha256": "37889e208c8a9ea4d1536ecd1505dbe0c2a4c315c7c975a4ca266d5c10e2b7e9",
+  "file_count": 1643,
+  "root_sha256": "a52fb686fee44671a457239ac11f81ddf8d9b5c22e4af68f823d33ac2a619070",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 62650,
-      "sha256": "a63dd3defda9dcb8b3adb6b40b1aa353d3eb81d7151da0fc9d4ed274491e6fb6",
+      "bytes": 63136,
+      "sha256": "ff877247837ab486c6087c6f2353a1194df89e366639edea0043af09c16369be",
       "mode": "0644"
     },
     {
@@ -2847,6 +2847,12 @@
       "path": "apps/api/tests/test_corpus_governance.py",
       "bytes": 3221,
       "sha256": "acfab19a0bc8e301780c5f6e361545bf82d248694592f0c326b490884b50f725",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_corpus_integrity.py",
+      "bytes": 2615,
+      "sha256": "c2df860161e1bfb84e67c44c13dc596ab6b544cc0df7dfc833667e821d030e60",
       "mode": "0644"
     },
     {
@@ -6715,8 +6721,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 2635,
-      "sha256": "a2723799e00a4bcd8b1780e856739ff4adbecbc9f3dc37c8a692a0a807d27e80",
+      "bytes": 5079,
+      "sha256": "6dfb74dda9791b9393fc60570002faf9749695eaf0bb81f7ac458f991a4a4fac",
       "mode": "0644"
     },
     {
@@ -6751,8 +6757,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 311685,
-      "sha256": "95135e121534a517a22873a277865da81b5645b338d1280bc9494087a9ab7904",
+      "bytes": 312446,
+      "sha256": "c6d2dedf27697a722974306d6d9b3da715697859cc86cb40473bfba1a4823bb7",
       "mode": "0644"
     },
     {
@@ -8928,6 +8934,12 @@
       "mode": "0644"
     },
     {
+      "path": "scripts/measure_corpus_integrity.py",
+      "bytes": 6939,
+      "sha256": "b89628eb341ebd59b2c447cb1191c1f3dae565cd3f26acf0f266086f7eadf7ec",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/measure_recovery.py",
       "bytes": 7792,
       "sha256": "4e536d10f4ca735ae022e8cab3299e8eb025169f6cfaeeb57dd8b0fa025843dc",
@@ -9361,8 +9373,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 198121,
-      "sha256": "144de1a276b2eb758ed70550d26c37a24ef0ee4ba21ee58cd7c0e961b30a94c7",
+      "bytes": 198800,
+      "sha256": "4b6a022817b38d8e9d021a425f7a2b8c02657bc206693febbe87c68c803ffc74",
       "mode": "0755"
     },
     {
