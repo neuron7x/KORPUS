@@ -6,20 +6,17 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=@KORPUS_ROOT@
-Environment=KORPUS_ENVIRONMENT=local
-Environment=KORPUS_RUNTIME_ROLE=api
-Environment="KORPUS_DATABASE_URL=sqlite:///@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db"
-Environment="KORPUS_OBJECT_ROOT=@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/objects"
-Environment="KORPUS_AUDIT_ANCHOR_PATH=@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/audit.anchor"
-Environment=KORPUS_AUTH_MODE=jwt
-Environment=KORPUS_JWT_SECRET_FILE=%h/.local/state/korpus-public/jwt-secret.txt
-Environment=KORPUS_JWT_ISSUER=korpus-public
-Environment=KORPUS_JWT_AUDIENCE=korpus
-Environment=KORPUS_JWT_MAX_LIFETIME_MINUTES=1440
-Environment=KORPUS_BIND_HOST=127.0.0.1
-Environment=KORPUS_TRUSTED_HOSTS=localhost,127.0.0.1
-Environment=KORPUS_MAX_CONCURRENT_ANSWERS=4
-Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src"
+# Оточення береться з ОДНОГО джерела — файла, який `scripts/serve_public.sh` пише як
+# проєкцію власного оточення. Тут стояло п'ятнадцять рядків `Environment=`, тобто друга
+# копія тієї самої властивості, і вона розійшлася з першою саме там, де ніхто не дивився:
+# сторож відновлює API через `systemctl --user restart`, а не через скрипт. Виміряно
+# 31.08.2026 — після відновлення о 21:34 у живому процесі не було ні
+# `KORPUS_MODEL_EGRESS_POSTURE`, ні ключа аудиту, тож посада лишалась `external_allowed`,
+# а журнал підписувався плейсхолдером `replace-local-audit-key` із config.py.
+#
+# Без префікса `-` навмисно: немає файла — юніт НЕ стартує. Публічний API, що піднявся
+# з вгаданим оточенням, гірший за той, що не піднявся зовсім.
+EnvironmentFile=%h/.local/state/korpus-public/api.env
 ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --log-level warning --workers 2
 Restart=on-failure
 RestartSec=5

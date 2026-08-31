@@ -119,3 +119,28 @@ def test_the_public_deploy_does_not_invent_the_key_that_signs_the_evidence() -> 
     assert "SECRET_DIR/audit-key.txt" in executable, "ключ аудиту вийшов за межі стану поза деревом"
     # Fail-closed: скрипт мусить ВІДМОВИТИ, а не тихо відкотитись на щось відоме.
     assert "exit 69" in executable and "audit-key.txt" in executable
+
+
+def test_the_api_environment_has_exactly_one_source() -> None:
+    """Юніт не сміє тримати власну копію оточення API.
+
+    Виміряно 31.08.2026: юніт ніс п'ятнадцять рядків `Environment=`, а `serve_public.sh`
+    експортував свій набір. Сторож відновлює API через `systemctl --user restart`, тобто
+    НЕНАГЛЯДОВИЙ шлях ішов юнітом — і після відновлення о 21:34 у живому процесі не було
+    ні `KORPUS_MODEL_EGRESS_POSTURE`, ні ключа аудиту: посада лишилась `external_allowed`,
+    а журнал підписувався плейсхолдером із `config.py`.
+
+    Тест тримає причину: одна властивість — одне джерело. Не «є ці дві змінні», а
+    «другого списку не існує».
+    """
+    unit = (ROOT / "deploy/public/korpus-public-api.service").read_text(encoding="utf-8")
+    duplicated = [line for line in unit.splitlines() if line.startswith("Environment=KORPUS_")]
+    assert not duplicated, f"юніт знову тримає власну копію оточення: {duplicated}"
+    assert "EnvironmentFile=" in unit, "юніт не читає спільного файла оточення"
+    # Fail-closed: `-` перед шляхом дозволив би старт із вгаданим оточенням.
+    assert "EnvironmentFile=-" not in unit, "відсутній файл оточення став би необов'язковим"
+
+    script = (ROOT / "scripts/serve_public.sh").read_text(encoding="utf-8")
+    assert "api.env" in script, "скрипт більше не пише файла оточення"
+    # Проєкція, а не третій список: імена беруться з оточення процесу.
+    assert "compgen -v" in script, "файл оточення знову складається вписаним переліком"

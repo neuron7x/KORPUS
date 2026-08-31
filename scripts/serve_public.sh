@@ -84,6 +84,17 @@ fi
   echo "немає ключа аудиту й не вдалося створити: $SECRET_DIR/audit-key.txt" >&2; exit 69; }
 export KORPUS_AUDIT_HMAC_KEY_FILE="$SECRET_DIR/audit-key.txt"
 
+# Активний ід ключа і каблучка перевірки. Без ід усі події лягають під
+# `legacy-unversioned` — типове значення `config.py` — і атрибуція падає рівно тоді,
+# коли ключ нарешті став правильним. Виміряно 31.08.2026: 263 події за годину пішли
+# під старий ярлик саме так.
+#
+# Каблучка несе ОБИДВА старі покоління, бо журнал містить три: 4061 подія під
+# плейсхолдером, 3524 під вписаним ключем цього скрипта, далі новий. Прибрати старий
+# файл означає зробити історію неперевірюваною рівно в мить, коли її полагодили.
+export KORPUS_AUDIT_KEY_ID="${KORPUS_AUDIT_KEY_ID:-korpus-public-2026-08-31}"
+export KORPUS_AUDIT_VERIFICATION_KEY_FILES="{\"legacy-unversioned\":\"$SECRET_DIR/audit-key-legacy-unversioned.txt\",\"serve-public-inline-2026-08\":\"$SECRET_DIR/audit-key-serve-public-inline.txt\"}"
+
 # Старі константи лишаються НА ДИСКУ, щоб історія журналу лишалась перевірюваною:
 # подія, підписана вчорашнім ключем, мусить читатися й завтра. `printf` без переводу
 # рядка — інакше файл не дорівнює тому, чим підписували.
@@ -120,6 +131,27 @@ export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-4}"
 # повинно мовчки її змінювати: `local_only` лишає лише loopback і приватні адреси.
 export KORPUS_MODEL_EGRESS_POSTURE="${KORPUS_MODEL_EGRESS_POSTURE:-local_only}"
 export PYTHONPATH="$ROOT/apps/api/src"
+
+# Оточення API — ОДНЕ, і воно тут. Юніт systemd тримав власну копію з п'ятнадцяти
+# рядків `Environment=`, і саме він працює автоматично: сторож відновлює API через
+# `systemctl --user restart korpus-public-api.service`, а не через цей скрипт. Виміряно
+# 31.08.2026 — сторож підняв API о 21:34, і в живому процесі не було ні
+# `KORPUS_MODEL_EGRESS_POSTURE`, ні ключа аудиту: посада лишилась `external_allowed`, а
+# журнал підписувався плейсхолдером `replace-local-audit-key` із config.py. Дві копії
+# однієї властивості розійшлись рівно там, де ніхто не дивився — на НЕНАГЛЯДОВОМУ шляху.
+#
+# Файл — це ПРОЄКЦІЯ цього процесу, а не другий список: беремо те, що справді
+# експортовано. Третій список був би тією самою вадою під іншим ім'ям.
+{
+  printf '# Згенеровано scripts/serve_public.sh — не редагувати вручну.\n'
+  while IFS= read -r name; do
+    [[ "$name" == "KORPUS_JWT_SECRET" ]] && continue   # у юніт іде _FILE, не значення
+    printf '%s="%s"\n' "$name" "${!name}"
+  done < <(compgen -v | grep '^KORPUS_' | sort)
+  printf 'KORPUS_JWT_SECRET_FILE="%s"\n' "$SECRET_DIR/jwt-secret.txt"
+  printf 'PYTHONPATH="%s"\n' "$ROOT/apps/api/src"
+} > "$SECRET_DIR/api.env"
+chmod 600 "$SECRET_DIR/api.env"
 
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing
 # because the token lives in the edge, not in their browser.

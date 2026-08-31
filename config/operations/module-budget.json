@@ -4219,7 +4219,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4724,
+      "lines": 4744,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7146,6 +7146,17 @@
       "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 4724
+      }
+    },
+    {
+      "from": {
+        "lines": 4724
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Оточення API стало одним джерелом: скрипт пише проєкцію власного оточення у $XDG_STATE_HOME/korpus-public/api.env, юніт читає його без префікса `-`. Плюс активний ід ключа аудиту й каблучка перевірки трьох поколінь. Мутанти M443–M444.",
+      "to": {
+        "lines": 4744
       }
     }
   ],
