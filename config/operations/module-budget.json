@@ -2921,6 +2921,14 @@
       "max_nesting": 2,
       "reason": "Exact rebaseline adds byte digests and explicit per-object governance sentinels to the draft"
     },
+    "scripts/build_liveness_fixture.py": {
+      "lines": 338,
+      "max_complexity": 6,
+      "max_function_args": 3,
+      "max_function_lines": 91,
+      "max_nesting": 2,
+      "reason": "Еталон у мініатюрі, на якому гейти корпусу можна ЗМУСИТИ впасти. Вони не мали проб живучості не через недбалість: проба копіює дерево, а вони читають var/runtime — 395 МБ — і ключі, яких у дереві немає. Тексти, журнал і ключ лежать окремими файлами саме тому, що проба псує ВХІД і перезбирає еталон: константи в генераторі затирали б отруту."
+    },
     "scripts/build_pec_eval_dataset.py": {
       "lines": 82,
       "max_complexity": 7,
@@ -3641,10 +3649,10 @@
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/measure_audit_integrity.py": {
-      "lines": 248,
-      "max_complexity": 15,
+      "lines": 274,
+      "max_complexity": 13,
       "max_function_args": 4,
-      "max_function_lines": 81,
+      "max_function_lines": 84,
       "max_nesting": 4,
       "reason": "Розрізняє attributed / misattributed / unverifiable, які зливались в одне «audit hash mismatch». Без ключа повертає UNKNOWN, не PASS."
     },
@@ -6845,6 +6853,45 @@
       "on": "2026-08-31",
       "path": "scripts/run_mutation_tests.py",
       "reason": "Мутанти M434–M438 на інваріанти покриття гейтами: знята еквівалентність за скриптом, ребра з рецептів, мертвий і примарний винятки, незареєстрована діра. Каталог мутантів — це дані.",
+      "to": {
+        "lines": 4682
+      }
+    },
+    {
+      "module": "scripts/measure_audit_integrity.py",
+      "on": "2026-08-31",
+      "reason": "Додано поріг атрибуції: інструмент, що лише міряв, тепер виносить вирок за власною головною метрикою. Потреба знайдена пробою живучості — отрута «подія називає не той ключ» проходила з кодом 0, бо судити було нікому. Складність main зведено розбором (вирок винесено у `rule`), лишилось зростання рядків від самої здатності.",
+      "to": 274
+    },
+    {
+      "from": {
+        "lines": 248
+      },
+      "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 274
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 81
+      },
+      "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_function_lines": 84
+      }
+    },
+    {
+      "from": {
+        "lines": 4633
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 4682
       }

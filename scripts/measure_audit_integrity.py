@@ -139,6 +139,29 @@ def assess(rows: list[dict[str, Any]], keys: dict[str, bytes]) -> dict[str, Any]
     }
 
 
+def rule(report: dict[str, Any], *, floor: float | None, ceiling: int | None) -> None:
+    """Вирок окремо від виміру: інструмент, що лише міряє, лишає судити нікому.
+
+    На еталоні це й виявилось: подія, що називає не той ключ, який її підписав, знижувала
+    частку — і жоден код виходу про це не казав, бо вирок за головною метрикою виносив
+    хтось інший, а насправді не виносив ніхто.
+    """
+    rate = report["rate"]
+    if floor is not None and (rate is None or rate < floor):
+        report["status"] = "REGRESSED"
+        report["regression"] = (
+            f"атрибутовано {rate}, підлога {floor}: подія, що називає не той ключ, який її "
+            "підписав, робить журнал неперевірюваним цілим."
+        )
+    elif ceiling is not None and report["placeholder_signed"] > ceiling:
+        report["status"] = "REGRESSED"
+        report["regression"] = (
+            f"подій, підписаних ключем із вихідного коду: {report['placeholder_signed']}, "
+            f"стеля {ceiling}. Нова така подія означає, що якийсь процес знову пише в цей "
+            "журнал із конфігом за замовчуванням."
+        )
+
+
 def parse_key(spec: str) -> tuple[str, bytes]:
     """`ід=@config` бере плейсхолдер із коду; `ід=шлях` читає файл."""
     if "=" not in spec:
@@ -229,6 +252,16 @@ def main() -> int:
             "не зменшується, а лише не росте."
         ),
     )
+    parser.add_argument(
+        "--min-attribution",
+        type=float,
+        default=None,
+        help=(
+            "підлога на частку подій, які перевіряються ключем, що САМІ називають. Без "
+            "неї інструмент лише міряє: вирок за головною метрикою виносив хтось інший, "
+            "і на еталоні виявилось, що не виносив ніхто."
+        ),
+    )
     parser.add_argument("--out", type=Path, default=ROOT / "var/audit-integrity.json")
     parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args()
@@ -282,14 +315,7 @@ def main() -> int:
             ],
         }
     )
-    ceiling = args.max_placeholder_signed
-    if ceiling is not None and report["placeholder_signed"] > ceiling:
-        report["status"] = "REGRESSED"
-        report["regression"] = (
-            f"подій, підписаних ключем із вихідного коду: {report['placeholder_signed']}, "
-            f"стеля {ceiling}. Нова така подія означає, що якийсь процес знову пише в цей "
-            "журнал із конфігом за замовчуванням."
-        )
+    rule(report, floor=args.min_attribution, ceiling=args.max_placeholder_signed)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, ensure_ascii=False, indent=2))
