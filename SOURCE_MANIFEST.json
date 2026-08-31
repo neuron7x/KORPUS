@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1625,
-  "root_sha256": "384286ed5807793b56e4691692988a84b66094ae3f38e474486ac1a822185e1b",
+  "file_count": 1631,
+  "root_sha256": "e37d6f05f234026dac1b524b79a1fdecef4a45dd1a2e6e82281a347dffdd72d9",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 61318,
-      "sha256": "4a43ae4ff04069add2b07b167b5e0c017b1bef931c5f4514224127ca9d0024fe",
+      "bytes": 61979,
+      "sha256": "4a93dff7a7f27db68eee61f485e13c1df683288b1336acca8a4f2069b7b49664",
       "mode": "0644"
     },
     {
@@ -2529,6 +2529,12 @@
       "path": "apps/api/tests/test_answer_paths_are_bounded.py",
       "bytes": 5369,
       "sha256": "63cd5fb1601eac6c116586485e6eb2b34e892a31542a61c4097e64546176837b",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_answer_quality_ratchet.py",
+      "bytes": 3715,
+      "sha256": "31ab7cae0a8db657240c680a22a99cee1d7cc549e257630c60ece9ec11823d40",
       "mode": "0644"
     },
     {
@@ -6678,6 +6684,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/operations/answer-quality-ratchet.json",
+      "bytes": 1297,
+      "sha256": "9a34c6436cff560e5e8c90f568336967f7210eb7d1d2ea740e2cbb04932c71ae",
+      "mode": "0644"
+    },
+    {
       "path": "config/operations/attestor-keys.json",
       "bytes": 1149,
       "sha256": "697cf705f44712a5beb08cb852eb5996782523a2ec4de21c75ce354e802f8401",
@@ -6703,8 +6715,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 292789,
-      "sha256": "2272a0d15388b18dcbada0de4b67e5052bf89292b0757dbd2788d99edbf78b2b",
+      "bytes": 294210,
+      "sha256": "adc69f0e11c67438387e298dfc5d48d02d414d4808baeac20020f4c367891dfb",
       "mode": "0644"
     },
     {
@@ -7572,6 +7584,18 @@
       "mode": "0644"
     },
     {
+      "path": "evals/datasets/domain_boundary.jsonl",
+      "bytes": 5531,
+      "sha256": "12cef2e250cba405626017a186b69817f152490f1ccfc73f56a4f38ce614b5ea",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/datasets/domain_boundary.meta.json",
+      "bytes": 1220,
+      "sha256": "4c2f13bbb7d64271875d78464e9f8958e2129df9862fe2995d316e139e6bfe01",
+      "mode": "0644"
+    },
+    {
       "path": "evals/datasets/frozen.jsonl",
       "bytes": 731,
       "sha256": "eaef9b457b9bc675741611af96d066071b5fb7aa20d68b3b7ad89f671dbb235d",
@@ -8301,6 +8325,12 @@
       "path": "scripts/chaos_matrix.py",
       "bytes": 14745,
       "sha256": "2ec559a6223cec61de94d14309e6e1d67246db2491d375189a85b5e33ffe5e1b",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_answer_quality_ratchet.py",
+      "bytes": 6435,
+      "sha256": "5cf177fa601a4fe48827d71a31ca8506d21981b78d6a45637369057bab8fc71d",
       "mode": "0755"
     },
     {
@@ -9174,6 +9204,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/run_boundary_eval.py",
+      "bytes": 5259,
+      "sha256": "82f5cb7cf97b1ee2e3b93d05ddee8dae8388d89bde7eafd6ae4736727c28ee98",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/run_builtin_security_gate.py",
       "bytes": 7236,
       "sha256": "c30f71aba0e38686f7d316ef22f7134593d475782cf57eee46ed0040c54b177f",
@@ -9271,8 +9307,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 194135,
-      "sha256": "ada6234927636da91d00d0cd1f57857d12e41720e736dd91642b4141e89aa163",
+      "bytes": 194848,
+      "sha256": "c26b6cc03d4f3f41500cb91171fb8d64b93124b7b01d0186cea5b93b2b5d9fb6",
       "mode": "0755"
     },
     {
