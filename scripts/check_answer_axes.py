@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sqlite3
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -77,6 +78,19 @@ def stale_input(spec: dict[str, Any], payload: dict[str, Any], root: Path) -> st
         return f"бази {database}, яку описує звіт, немає"
     if identity_digest(corpus_identity(database)) != recorded.get("corpus"):
         return "корпус змінився після цього звіту"
+    # Записаний вхід, якого ніхто не звіряє, гірший за відсутній: він створює враження
+    # прив'язки. Голова журналу — вхід звіту про журнал, і живий сервер рухає її на
+    # кожну відповідь; без цієї перевірки звіт про атрибуцію лишався б «свіжим» після
+    # сотні нових подій.
+    head = recorded.get("audit_head")
+    if head is not None:
+        connection = sqlite3.connect(f"file:{database}?mode=ro", uri=True)
+        try:
+            row = connection.execute("select head_hash from audit_heads").fetchone()
+        finally:
+            connection.close()
+        if (str(row[0]) if row else "") != head:
+            return "журнал подій просунувся після цього звіту"
     return None
 
 

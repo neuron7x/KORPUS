@@ -22,7 +22,7 @@
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 #: `Обов'язки: <роль> (…)`. Апостроф у назвах трапляється двома символами.
 DECLARED_SUBJECT = re.compile(r"^Обов[’']язки:\s*(?P<subject>.+?)\s*\(")
@@ -66,12 +66,24 @@ def subject_tokens(titles: Iterable[str]) -> set[str]:
     return tokens
 
 
-def declared_subject_documents(question: str, evidence: Iterable[object]) -> frozenset[str]:
-    """Ідентифікатори документів, чий оголошений предмет названо в питанні.
+def declared_subject_documents(question: str, evidence: Iterable[object]) -> Mapping[str, int]:
+    """Документи, чий оголошений предмет названо в питанні, і НАСКІЛЬКИ точно.
 
     Замикання словника тут суттєве: предмети беруться з ЗАГОЛОВКІВ самих кандидатів,
-    а не з питання. Тому обійти допуск формулюванням не можна — щоб потрапити в цю
-    множину, документ мусить уже існувати в корпусі й оголосити свій предмет сам.
+    а не з питання. Тому обійти допуск формулюванням не можна — щоб потрапити сюди,
+    документ мусить уже існувати в корпусі й оголосити свій предмет сам.
+
+    **Значення — довжина збігу, і це не оформлення.** Раніше поверталася множина, тож
+    клас предмета був БІНАРНИЙ: питання «Які обов'язки має Безпосередні командири?»
+    збігається з трьома оголошеними предметами — «Безпосередні командири» (22 символи)
+    і двома «Командир» (по 8), бо коротший є підрядком довшого. Усі троє потрапляли в
+    один клас і далі змагалися релевантністю, де узагальнення виграє: виміряно
+    31.08.2026, ранжувальник ставив «Командир (начальник)» першим (0.4129) перед
+    «Безпосередні командири» (0.3356).
+
+    Порядок за довжиною вже обчислювався в `subjects_in_question` — і губився при
+    перетворенні на множину. Тепер він доживає до ранжування. Перевірка `x in ...`
+    працює як і раніше: у відображенні членство — це ключі.
     """
     titles: dict[str, list[str]] = {}
     for item in evidence:
@@ -79,7 +91,11 @@ def declared_subject_documents(question: str, evidence: Iterable[object]) -> fro
         title = getattr(document, "canonical_title", None)
         if title:
             titles.setdefault(title, []).append(str(getattr(document, "id", "")))
-    matched = subjects_in_question(question, titles.keys())
-    return frozenset(
-        document_id for title in matched for document_id in titles.get(title, []) if document_id
-    )
+    specificity: dict[str, int] = {}
+    for title in subjects_in_question(question, titles.keys()):
+        subject = declared_subject(title) or ""
+        for document_id in titles.get(title, []):
+            if document_id:
+                # Документ може мати кілька заголовків у видачі; лишається найточніший.
+                specificity[document_id] = max(specificity.get(document_id, 0), len(subject))
+    return specificity

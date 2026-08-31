@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import date
+from types import SimpleNamespace
 from typing import Protocol, cast
 from uuid import UUID
 
-from korpus.application.declared_subject import subjects_in_question
+from korpus.application.declared_subject import declared_subject_documents
 from korpus.application.ports import Repository
 from korpus.application.retrieval_math import (
     BM25Parameters,
@@ -52,7 +53,7 @@ class Diversifier(Protocol):
         #: Документи, чий ОГОЛОШЕНИЙ предмет названо в питанні. Клас, а не вага:
         #: стаття про роль не повторює своєї назви, тож лексично програє довгому
         #: статуту, що згадав роль мимохідь.
-        subject_documents: frozenset[str],
+        subject_documents: Mapping[str, int] | frozenset[str],
     ) -> list[RetrievedEvidence]: ...
 
 
@@ -152,13 +153,17 @@ def execute_hybrid_search_impl(
         ],
         weights=weights,
     )
-    subject_titles = set(
-        subjects_in_question(text, [document.canonical_title for _, document, _ in candidates])
-    )
-    subject_documents = frozenset(
-        str(document.id)
-        for _, document, _ in candidates
-        if document.canonical_title in subject_titles
+    # Довжина збігу, а не членство. `subjects_in_question` уже впорядковує предмети від
+    # довшого до коротшого, бо «Командир» є підрядком «Безпосередні командири» — і цей
+    # порядок губився при перетворенні на множину. Далі всі троє потрапляли в один клас
+    # і змагалися релевантністю, де узагальнення виграє: виміряно 31.08.2026, першим
+    # ставав «Командир (начальник)» (0.4129) перед «Безпосередні командири» (0.3356).
+    # ОДНЕ обчислення на всю систему. Тут стояла власна копія тієї самої логіки, а шлях
+    # відповіді кликав `declared_subject_documents` — два незалежні означення одного
+    # поняття, які мали всі шанси розійтися мовчки. Саме цей клас розходження дав нам
+    # сьогодні два якорі під одну чергу й дві копії оточення під один сервіс.
+    subject_documents = declared_subject_documents(
+        text, [SimpleNamespace(document=document) for _, document, _ in candidates]
     )
     return diversify(
         materialize_evidence(candidates, components, authority_priors),

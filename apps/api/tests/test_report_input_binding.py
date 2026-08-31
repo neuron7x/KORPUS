@@ -155,3 +155,25 @@ def test_a_changed_corpus_is_named_as_the_thing_that_moved(tmp_path: Path) -> No
 
     assert moved is not None
     assert "корпус" in moved
+
+
+def test_a_recorded_input_the_gate_ignores_is_worse_than_none(tmp_path: Path) -> None:
+    """Голова журналу лежала у входах і не звірялась, тож звіт лишався «свіжим».
+
+    Записаний вхід, якого ніхто не перевіряє, створює враження прив'язки там, де її
+    немає, — і це гірше за відсутню, бо виглядає як зроблена робота.
+    """
+    database = _fixture(tmp_path)
+    measurer = Path("scripts/measure_corpus_integrity.py")
+    payload = {
+        "database": str(database),
+        "inputs": {
+            **report_inputs(database, ROOT / measurer),
+            "audit_head": "0" * 64,
+        },
+    }
+
+    moved = stale_input({"measurer": str(measurer)}, payload, ROOT)
+
+    assert moved is not None
+    assert "журнал" in moved

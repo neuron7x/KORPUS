@@ -4488,6 +4488,48 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M487_THE_SUBJECT_CLASS_IS_FLAT_AGAIN",
+        "apps/api/src/korpus/application/retrieval.py",
+        "        return float(subject_documents.get(key, 0))",
+        "        return 1.0 if key in subject_documents else 0.0",
+        (
+            "apps/api/tests/test_authority_ranking.py::"
+            "test_a_more_specific_declared_subject_outranks_one_that_is_merely_its_substring",
+        ),
+    ),
+    Mutant(
+        "M489_A_RECORDED_LEDGER_HEAD_IS_NEVER_COMPARED",
+        "scripts/check_answer_axes.py",
+        '    head = recorded.get("audit_head")',
+        "    head = None",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_a_recorded_input_the_gate_ignores_is_worse_than_none",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M490_THE_CORPUS_IDENTITY_MOVES_WITH_EVERY_ANSWER_AGAIN",
+        "scripts/corpus_identity.py",
+        '        "span_text_digest": digest.hexdigest(),',
+        '        "span_text_digest": digest.hexdigest(),\n        "audit_head": connection.execute("select head_hash from audit_heads").fetchone()[0],',
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_housekeeping_does_not_move_the_identity",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M488_THE_MATCH_LENGTH_IS_DISCARDED_BEFORE_RANKING",
+        "apps/api/src/korpus/application/declared_subject.py",
+        "                specificity[document_id] = max(specificity.get(document_id, 0), len(subject))",
+        "                specificity[document_id] = 1",
+        (
+            "apps/api/tests/test_declared_subject_specificity.py::"
+            "test_the_ranker_receives_the_length_of_the_match",
+        ),
+    ),
+    Mutant(
         "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",
         "apps/api/src/korpus/application/retrieval.py",
         "    return priors[item.version.authority] if item.score >= tier_floor else 0.0",

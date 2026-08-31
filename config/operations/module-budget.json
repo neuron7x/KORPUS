@@ -901,12 +901,12 @@
       "max_nesting": 1
     },
     "apps/api/src/korpus/application/declared_subject.py": {
-      "lines": 85,
-      "max_complexity": 5,
+      "lines": 101,
+      "max_complexity": 7,
       "max_function_args": 2,
-      "max_function_lines": 17,
-      "max_nesting": 2,
-      "reason": "31.08.2026: клас «оголошений предмет». На 92 предмети, які корпус оголошує заголовками «Обов'язки: <роль>», перша цитата була документом про предмет 0 разів. Причина — чотири стадії поспіль винагороджують ПОВТОР слів питання, а стаття про роль своєї назви не повторює. Додано: допуск за предметом повз лексичні пороги (структурні лишаються), клас предмета першим ключем ранжування, збереження порядку в `_search_plan` замість пересортування за сирою оцінкою, і утримання лексичної осі там, де вона структурно сліпа. Вимір: top1 0.000 → 0.826, recall 0.348 → 0.978, confidence_inverted TRUE → FALSE; заморожений еталон і межа домену без змін."
+      "max_function_lines": 33,
+      "max_nesting": 3,
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/deployment.py": {
       "lines": 204,
@@ -1018,11 +1018,12 @@
       "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/evidence_admission.py": {
-      "lines": 139,
+      "lines": 140,
       "max_complexity": 4,
       "max_function_args": 3,
       "max_function_lines": 39,
-      "max_nesting": 1
+      "max_nesting": 1,
+      "reason": "Сигнатури розширені до `Mapping[str, int] | frozenset[str]`: клас предмета став градуйованим, і виклики, які носять лише членство, лишаються чинними."
     },
     "apps/api/src/korpus/application/evidence_fusion.py": {
       "lines": 141,
@@ -1741,11 +1742,12 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 292,
+      "lines": 310,
       "max_complexity": 15,
       "max_function_args": 13,
       "max_function_lines": 84,
-      "max_nesting": 2
+      "max_nesting": 2,
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/retrieval_execution.py": {
       "lines": 148,
@@ -1756,12 +1758,12 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/retrieval_hybrid.py": {
-      "lines": 171,
+      "lines": 176,
       "max_complexity": 13,
       "max_function_args": 25,
-      "max_function_lines": 92,
+      "max_function_lines": 96,
       "max_nesting": 2,
-      "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
       "lines": 383,
@@ -3009,12 +3011,12 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_answer_axes.py": {
-      "lines": 211,
-      "max_complexity": 11,
+      "lines": 225,
+      "max_complexity": 12,
       "max_function_args": 3,
       "max_function_lines": 43,
       "max_nesting": 3,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає `touch`."
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/check_answer_quality_ratchet.py": {
       "lines": 94,
@@ -3128,12 +3130,12 @@
       "max_nesting": 2
     },
     "scripts/corpus_identity.py": {
-      "lines": 87,
+      "lines": 90,
       "max_complexity": 4,
       "max_function_args": 3,
       "max_function_lines": 31,
       "max_nesting": 2,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає touch."
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/corpus_release.py": {
       "lines": 203,
@@ -3681,12 +3683,12 @@
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/measure_audit_integrity.py": {
-      "lines": 285,
-      "max_complexity": 13,
+      "lines": 295,
+      "max_complexity": 15,
       "max_function_args": 4,
-      "max_function_lines": 93,
+      "max_function_lines": 103,
       "max_nesting": 4,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає `touch`."
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
     },
     "scripts/measure_corpus_integrity.py": {
       "lines": 206,
@@ -4251,12 +4253,12 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4946,
+      "lines": 4988,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
       "max_nesting": 2,
-      "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
+      "reason": "+22 рядки за M489–M490: незвірена записана голова журналу та її повернення в ідентичність корпусу."
     },
     "scripts/run_operational_gate.py": {
       "lines": 42,
@@ -7591,6 +7593,85 @@
       },
       "on": "2026-08-31",
       "reason": "+73 рядки за M483–M486: відмова як прогалина покриття, вибране як оголошене, найчастіший термін замість найрідшого, службові слова як свідчення."
+    },
+    {
+      "path": "apps/api/src/korpus/application/declared_subject.py",
+      "to": {
+        "lines": 101,
+        "max_complexity": 7,
+        "max_function_lines": 33,
+        "max_nesting": 3
+      },
+      "on": "2026-09-01",
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
+    },
+    {
+      "path": "apps/api/src/korpus/application/retrieval.py",
+      "to": {
+        "lines": 310
+      },
+      "on": "2026-09-01",
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
+    },
+    {
+      "path": "apps/api/src/korpus/application/retrieval_hybrid.py",
+      "to": {
+        "lines": 176,
+        "max_function_lines": 96
+      },
+      "on": "2026-09-01",
+      "reason": "Клас оголошеного предмета став ГРАДУЙОВАНИМ: довжина збігу замість членства. «Командир» є підрядком «Безпосередні командири», тож бінарний клас ставив узагальнення поруч із конкретним і віддавав перемогу релевантності. Порядок уже обчислювався в `subjects_in_question` і губився при перетворенні на множину. Виміряно: `subject` 0.8352 → 0.9451. Заразом прибрано ДРУГЕ означення того самого поняття — `retrieval_hybrid` мав власну копію логіки поруч із `declared_subject`."
+    },
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "to": {
+        "lines": 4966
+      },
+      "on": "2026-09-01",
+      "reason": "+20 рядків за M487–M488: плаский клас предмета та відкинута довжина збігу."
+    },
+    {
+      "path": "apps/api/src/korpus/application/evidence_admission.py",
+      "to": {
+        "lines": 140
+      },
+      "on": "2026-09-01",
+      "reason": "Сигнатури розширені до `Mapping[str, int] | frozenset[str]`: клас предмета став градуйованим, і виклики, які носять лише членство, лишаються чинними."
+    },
+    {
+      "path": "scripts/check_answer_axes.py",
+      "to": {
+        "lines": 225,
+        "max_complexity": 12
+      },
+      "on": "2026-09-01",
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
+    },
+    {
+      "path": "scripts/corpus_identity.py",
+      "to": {
+        "lines": 90
+      },
+      "on": "2026-09-01",
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
+    },
+    {
+      "path": "scripts/measure_audit_integrity.py",
+      "to": {
+        "lines": 295,
+        "max_complexity": 15,
+        "max_function_lines": 103
+      },
+      "on": "2026-09-01",
+      "reason": "Гейт звіряє записану голову журналу; ідентичність корпусу її БІЛЬШЕ НЕ містить. Перша версія включала — і живий сервер, що пише подію на кожну відповідь, робив усі звіти про корпус несвіжими за секунди. Свіжість звіту мусить залежати від того, ПРО ЩО він."
+    },
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "to": {
+        "lines": 4988
+      },
+      "on": "2026-09-01",
+      "reason": "+22 рядки за M489–M490: незвірена записана голова журналу та її повернення в ідентичність корпусу."
     }
   ],
   "recorded_at": "2026-08-24",
