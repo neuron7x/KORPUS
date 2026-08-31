@@ -66,15 +66,43 @@ def test_every_ceiling_key_is_watched_not_only_lines() -> None:
 
 def test_all_six_record_shapes_count_as_naming() -> None:
     """`raised` накопичив шість форм історично. Вимагати однієї означало б
-    відкинути записи, зроблені сумлінно, — гейт вимагає ПРИЧИНИ, не формату."""
+    відкинути записи, зроблені сумлінно, — гейт вимагає ПРИЧИНИ, не формату.
+
+    Форма лишається вільною, ЧИСЛО — ні: запис мусить назвати стелю, до якої
+    піднімають. Раніше цей тест приймав форми БЕЗ числа, і саме він ніс сліпоту,
+    описану в `test_a_record_for_another_number_does_not_excuse_this_raise`.
+    """
     shapes = [
-        {"path": "a.py", "on": "x", "reason": "r", "to": {}},
-        {"paths": ["a.py"], "on": "x", "reason": "r"},
-        {"entries": [{"path": "a.py"}], "on": "x", "reason": "r"},
-        {"changes": [{"path": "a.py"}], "on": "x", "reason": "r", "release": "v"},
+        {"path": "a.py", "on": "x", "reason": "r", "to": {"lines": 150}},
+        {"paths": ["a.py"], "on": "x", "reason": "r", "to": {"lines": 150}},
+        {"entries": [{"path": "a.py", "to": {"lines": 150}}], "on": "x", "reason": "r"},
+        {"changes": [{"path": "a.py"}], "on": "x", "reason": "r", "to": {"lines": 150}},
     ]
     for shape in shapes:
         assert MODULE.raises_without_a_reason(_doc(100), _doc(150, [shape])) == [], shape
+
+
+def test_a_record_for_another_number_does_not_excuse_this_raise() -> None:
+    """Гейт питав «чи згадано ФАЙЛ», а мусить питати «чи записано САМЕ ЦЕ підняття».
+
+    Виміряно 31.08.2026 на самому репозиторії: `scripts/run_mutation_tests.py` мав
+    у `raised` вісім записів за попередні дні, тож підняття 4400 → 4494 пройшло з
+    вердиктом PASS і порожнім `unnamed_raises`. Один раз названий файл ставав
+    вільним НАЗАВЖДИ, і таких файлів у списку було стільки ж, скільки записів.
+    """
+    stale = [{"on": "2026-08-30", "path": "a.py", "reason": "вчорашнє", "to": {"lines": 120}}]
+    offenders = MODULE.raises_without_a_reason(_doc(100), _doc(150, stale))
+    assert offenders and "100→150" in offenders[0]
+
+
+def test_a_record_naming_another_ceiling_key_does_not_excuse_this_one() -> None:
+    """Запис про рядки не є причиною для складності: ключі стелі незалежні."""
+    named_lines = [{"on": "x", "path": "a.py", "reason": "r", "to": {"lines": 150}}]
+    before = {"modules": {"a.py": {"lines": 100, "max_complexity": 5}}, "raised": []}
+    after = {"modules": {"a.py": {"lines": 150, "max_complexity": 9}}, "raised": named_lines}
+    offenders = MODULE.raises_without_a_reason(before, after)
+    assert offenders and "max_complexity 5→9" in offenders[0]
+    assert "lines" not in offenders[0]
 
 
 def test_the_real_repository_has_no_unnamed_raise_against_head() -> None:

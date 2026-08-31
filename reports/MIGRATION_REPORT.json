@@ -78,8 +78,8 @@
   "sqlite_fts5_present": true,
   "provenance": {
     "schema_version": 1,
-    "source_digest": "020c37dc652f2613da29ed0e9c8595ab3e0f0f6ffaa771141214e1880f0e1058",
+    "source_digest": "f7a6cd81d3193506f52aee943c9d94590dcc01c08b0f9566f3da1c2585eee22f",
     "generator": "scripts/run_migration_gate.py",
-    "generated_at": "2026-08-31T15:11:42+00:00"
+    "generated_at": "2026-08-31T16:09:02+00:00"
   }
 }

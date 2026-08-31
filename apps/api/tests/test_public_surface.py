@@ -197,3 +197,99 @@ def test_fail_outranks_unknown() -> None:
         )
         == "FAIL"
     )
+
+
+# ------------------------------------------------------- закриття як математичний об'єкт
+
+
+def _reference_reachability(edges: dict[str, set[str]], entry: str, nodes: list[str]) -> set[str]:
+    """Незалежне означення досяжності: об'єднання степенів матриці суміжності.
+
+    Написано НАВМИСНО іншим способом, ніж обхід у `public_operator_surface`: той —
+    пошук у глибину зі списком очікування, цей — булева алгебра над матрицею.
+    Спільна залежність між тим, що міряють, і тим, чим міряють, робить згоду
+    беззмістовною: розбіжність двох означень має бути видимою як розбіжність
+    множин, а не схованою в спільній функції.
+
+    R = ⋃_{k≥0} A^k, обчислене до нерухомої точки; крок k не додає нічого нового
+    щонайпізніше при k = |V|, тому цикл скінченний за побудовою.
+    """
+    index = {name: position for position, name in enumerate(nodes)}
+    size = len(nodes)
+    adjacency = [[False] * size for _ in range(size)]
+    for source, targets in edges.items():
+        for target in targets:
+            if source in index and target in index:
+                adjacency[index[source]][index[target]] = True
+    current = [name == entry for name in nodes]
+    while True:
+        nxt = list(current)
+        for row in range(size):
+            if not current[row]:
+                continue
+            for column in range(size):
+                if adjacency[row][column]:
+                    nxt[column] = True
+        if nxt == current:
+            return {nodes[position] for position, on in enumerate(nxt) if on}
+        current = nxt
+
+
+def _write_graph(root: Path, nodes: list[str], edges: dict[str, set[str]]) -> None:
+    for node in nodes:
+        links = "".join(
+            f'<script src="/{target}"></script>' for target in sorted(edges.get(node, ()))
+        )
+        (root / node).write_text(links or "// порожньо", encoding="utf-8")
+
+
+def test_traversal_is_a_true_transitive_closure_over_every_small_graph(tmp_path: Path) -> None:
+    """Вичерпно, не вибірково: усі 256 графів на чотирьох вузлах із ребрами в {a,b}.
+
+    Обхід, що читає лише ОДИН рівень посилань, тут падає негайно: у графі
+    index → a → b він не побачив би `b`, тоді як еталон бачить. Саме такий обхід
+    оголосив би `console_readonly.js` не операторським, бо його тягне не сама
+    сторінка, а `console.js`.
+    """
+    nodes = ["index.html", "console.html", "a.js", "b.js"]
+    sinks = ["a.js", "b.js"]
+    checked = 0
+    for mask in range(1 << (len(nodes) * len(sinks))):
+        edges: dict[str, set[str]] = {}
+        bit = 0
+        for source in nodes:
+            for target in sinks:
+                if mask >> bit & 1:
+                    edges.setdefault(source, set()).add(target)
+                bit += 1
+        for name in tmp_path.iterdir():
+            name.unlink()
+        _write_graph(tmp_path, nodes, edges)
+        for entry in ("index.html", "console.html"):
+            assert surface_rule._reachable(tmp_path, entry) == _reference_reachability(
+                edges, entry, nodes
+            ), f"розбіжність означень на масці {mask} для входу {entry}"
+        checked += 1
+    assert checked == 256
+
+
+def test_a_reader_link_can_only_shrink_the_operator_surface(tmp_path: Path) -> None:
+    """Монотонність у бік, який рятує читача, а не ховає консоль.
+
+    Правило віднімає закриття читача. Тому кожне НОВЕ завантаження з боку читача
+    може лише зменшити операторську поверхню — ніколи не збільшити. Помилка в цей
+    бік коштує зайвого 404 на файлі, який нікому не потрібен; помилка у зворотний
+    бік публікує операторський модуль. Тест тримає саме асиметрію.
+    """
+    base_edges = {"console.html": {"a.js", "b.js"}}
+    nodes = ["index.html", "console.html", "a.js", "b.js"]
+    _write_graph(tmp_path, nodes, base_edges)
+    before = surface_rule.operator_only(tmp_path)
+    assert before == {"console.html", "a.js", "b.js"}
+
+    for name in tmp_path.iterdir():
+        name.unlink()
+    _write_graph(tmp_path, nodes, {**base_edges, "index.html": {"a.js"}})
+    after = surface_rule.operator_only(tmp_path)
+    assert after < before, "поява читацького завантаження не зменшила операторську поверхню"
+    assert after == {"console.html", "b.js"}

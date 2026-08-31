@@ -565,7 +565,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/api/routes_answers.py": {
-      "lines": 120,
+      "lines": 118,
       "max_complexity": 4,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -619,7 +619,7 @@
     },
     "apps/api/src/korpus/api/routes_health.py": {
       "lines": 125,
-      "max_complexity": 9,
+      "max_complexity": 8,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4,
@@ -702,15 +702,15 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/answer_adjudication.py": {
-      "lines": 285,
-      "max_complexity": 6,
+      "lines": 270,
+      "max_complexity": 5,
       "max_function_args": 5,
       "max_function_lines": 30,
       "max_nesting": 3,
       "reason": "Новий шар присуду: чотири незалежні осі судять кожну цитату, вирок виносить механіка. Стеля з виміру на день додавання плюс запас на дві осі; кожна вісь коштує таблицю й функцію, і зростання тут означає покриття нового класу підміни, а не розповзання."
     },
     "apps/api/src/korpus/application/answer_analysis.py": {
-      "lines": 189,
+      "lines": 170,
       "max_complexity": 10,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -734,8 +734,8 @@
       "reason": "v0.6.0: pure source-bound query audit envelope"
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 809,
-      "max_complexity": 21,
+      "lines": 794,
+      "max_complexity": 20,
       "max_function_args": 12,
       "max_function_lines": 195,
       "max_nesting": 4
@@ -901,8 +901,8 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/declared_subject.py": {
-      "lines": 100,
-      "max_complexity": 8,
+      "lines": 85,
+      "max_complexity": 5,
       "max_function_args": 6,
       "max_function_lines": 40,
       "max_nesting": 4,
@@ -1010,7 +1010,7 @@
       "reason": "Exact rebaseline adds deployment simulation, evaluation-cue blinding and dependency-failure TEVV predicates"
     },
     "apps/api/src/korpus/application/evidence.py": {
-      "lines": 360,
+      "lines": 352,
       "max_complexity": 11,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -1018,7 +1018,7 @@
       "reason": "v0.6.0: dual zero-width canonical projections close metamorphic IPI bypass; exact measured expansion | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "apps/api/src/korpus/application/evidence_admission.py": {
-      "lines": 154,
+      "lines": 139,
       "max_complexity": 4,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -1430,7 +1430,7 @@
       "reason": "v0.9.7 exact measured rebaseline after mathematical fail-closed hardening; no blanket exemption"
     },
     "apps/api/src/korpus/application/pec_retrieval.py": {
-      "lines": 152,
+      "lines": 137,
       "max_complexity": 8,
       "max_function_args": 12,
       "max_function_lines": 60,
@@ -1454,7 +1454,7 @@
     },
     "apps/api/src/korpus/application/pec_statistics.py": {
       "lines": 36,
-      "max_complexity": 5,
+      "max_complexity": 4,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4
@@ -1741,7 +1741,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/retrieval.py": {
-      "lines": 269,
+      "lines": 254,
       "max_complexity": 15,
       "max_function_args": 12,
       "max_function_lines": 71,
@@ -1756,7 +1756,7 @@
       "reason": "PEC v1 initial ratchet: bounded primitive measured at first executable integration; ceiling may only move down"
     },
     "apps/api/src/korpus/application/retrieval_hybrid.py": {
-      "lines": 179,
+      "lines": 168,
       "max_complexity": 13,
       "max_function_args": 24,
       "max_function_lines": 90,
@@ -1764,7 +1764,7 @@
       "reason": "v0.9.6 PEC/generalization structural decomposition; exact initial verified ratchet ceiling"
     },
     "apps/api/src/korpus/application/retrieval_math.py": {
-      "lines": 454,
+      "lines": 383,
       "max_complexity": 13,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -1871,7 +1871,7 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "apps/api/src/korpus/application/tevv_evidence.py": {
-      "lines": 125,
+      "lines": 124,
       "max_complexity": 9,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -1888,7 +1888,7 @@
     },
     "apps/api/src/korpus/application/tevv_math.py": {
       "lines": 18,
-      "max_complexity": 9,
+      "max_complexity": 5,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4,
@@ -1964,7 +1964,7 @@
       "reason": "the composition root: the only module that names both an application port and an infrastructure adapter, so neither layer has to"
     },
     "apps/api/src/korpus/config.py": {
-      "lines": 450,
+      "lines": 444,
       "max_complexity": 4,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -2019,7 +2019,7 @@
       "reason": "ACT-LRN-003 exact ceiling after fail-closed framework identity pairing and competency-edge admission; decomposition is required before further growth"
     },
     "apps/api/src/korpus/domain/models.py": {
-      "lines": 587,
+      "lines": 577,
       "max_complexity": 8,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -2384,7 +2384,7 @@
       "reason": "PEC v1 initial ratchet: low-cardinality observability primitive measured at first integration; ceiling may only move down"
     },
     "apps/api/src/korpus/infrastructure/repository.py": {
-      "lines": 1146,
+      "lines": 1131,
       "max_complexity": 13,
       "max_function_args": 14,
       "max_function_lines": 84,
@@ -2424,7 +2424,7 @@
       "reason": "builds retrieval statements without opening a connection; carries the release projection so the corpus fingerprint costs one query rather than 232 458 models"
     },
     "apps/api/src/korpus/infrastructure/retrieval_subject_query.py": {
-      "lines": 86,
+      "lines": 71,
       "max_complexity": 8,
       "max_function_args": 6,
       "max_function_lines": 47,
@@ -2970,7 +2970,7 @@
     },
     "scripts/capture_source_evidence.py": {
       "lines": 979,
-      "max_complexity": 13,
+      "max_complexity": 12,
       "max_function_args": 4,
       "max_function_lines": 65,
       "max_nesting": 4,
@@ -2993,15 +2993,15 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/check_answer_axes.py": {
-      "lines": 146,
-      "max_complexity": 12,
+      "lines": 136,
+      "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 50,
       "max_nesting": 3,
       "reason": "Композиційний гейт над шістьма осями відповіді: вердикт = найслабша, UNMEASURED ніколи не в підлозі. Кожна нова вісь — рядок у профілі, а не гілка в коді."
     },
     "scripts/check_answer_quality_ratchet.py": {
-      "lines": 99,
+      "lines": 94,
       "max_complexity": 9,
       "max_function_args": 4,
       "max_function_lines": 45,
@@ -3009,8 +3009,8 @@
       "reason": "Ратчет на дві протилежні осі якості відповідей. Кожен новий клас порушення — рядок у переліку `problems`, а не гілка."
     },
     "scripts/check_budget_raises_are_named.py": {
-      "lines": 142,
-      "max_complexity": 12,
+      "lines": 165,
+      "max_complexity": 14,
       "max_function_args": 2,
       "max_function_lines": 40,
       "max_nesting": 4,
@@ -3034,7 +3034,7 @@
     },
     "scripts/check_file_modes.py": {
       "lines": 127,
-      "max_complexity": 9,
+      "max_complexity": 8,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4,
@@ -3050,14 +3050,14 @@
     },
     "scripts/check_module_budget.py": {
       "lines": 319,
-      "max_complexity": 13,
+      "max_complexity": 12,
       "max_function_args": 8,
       "max_function_lines": 80,
       "max_nesting": 4,
       "reason": "Raised 136 -> 215 on 2026-08-28 to carry three added shape measurements (function length, parameter count, nesting depth). The ratchet caught its own growth first: complexity was brought back under the ceiling by extracting shape_violations rather than by raising the complexity number. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29: додано відокремлення рядків самоперевірки. Стеля карала за додані негативні контролі так само, як за роздутий код: гейт на реальних даних ARMED лише тоді, коли дані містять негативний приклад, тому синтетичні порушення в selftest — єдине місце, де гейт узагалі перевіряється. Звільнення обмежене двома умовами (ім'я + реальний диспетч --selftest) і власною стелею DEFAULT_PROOF_LINES=220. Ратчет спіймав власне зростання: main пішов на 81 рядок і складність 14 — закрито витягуванням module_violations, не підняттям числа. | 2026-08-30: +27 рядків — звільнення від стелі (`\"lines\": null`) без записаної причини тепер валить гейт. Воно виглядає однаково і коли хтось так вирішив, і коли з'явилось при механічній синхронізації чисел; різницю несе лише текст поруч."
     },
     "scripts/check_mutation_report_freshness.py": {
-      "lines": 129,
+      "lines": 118,
       "max_complexity": 10,
       "max_function_args": 3,
       "max_function_lines": 45,
@@ -3245,7 +3245,7 @@
     },
     "scripts/full_ssot_packager.py": {
       "lines": 149,
-      "max_complexity": 7,
+      "max_complexity": 6,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4
@@ -3633,8 +3633,8 @@
       "reason": "v0.2.0: package-only evidence boundary expanded explicitly; 69-line canonical boundary becomes the new ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/measure_corpus_integrity.py": {
-      "lines": 129,
-      "max_complexity": 9,
+      "lines": 127,
+      "max_complexity": 6,
       "max_function_args": 3,
       "max_function_lines": 40,
       "max_nesting": 3,
@@ -3674,7 +3674,7 @@
     },
     "scripts/model_check_assurance.py": {
       "lines": 265,
-      "max_complexity": 11,
+      "max_complexity": 10,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4,
@@ -3900,7 +3900,7 @@
     },
     "scripts/process_tree_runtime.py": {
       "lines": 65,
-      "max_complexity": 10,
+      "max_complexity": 9,
       "max_function_args": 8,
       "max_function_lines": 60,
       "max_nesting": 4,
@@ -3946,7 +3946,7 @@
       "reason": "New 2026-08-29: projects the sharded regression merge into the preflight's backend report, which had no producer."
     },
     "scripts/publish_release_evidence.py": {
-      "lines": 140,
+      "lines": 136,
       "max_complexity": 8,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -3962,7 +3962,7 @@
       "reason": "registered 2026-08-29 при першому вимірі. Причина існування: 3 з 8 джерел, заблокованих як «URI не резолвиться, документа за ним немає», віддають PDF просто зараз (17.8 МБ, 145.8 МБ, 1.9 МБ), і ще 3 віддають КАРТКУ замість документа. Відмова, яку ніхто не переміряв, стоїть як факт. | 2026-08-30: 260→275. Вимір паралельної сесії показав, що вісь РОЗМІРУ картки й документи не розділяє: 92 захоплені документи 41 609…145 793 253 Б проти 6 карток 41 553…42 459, max(картки) < min(документи) = False. Поріг перейменовано з CARD_CEILING_BYTES на NOT_A_CARD_ABOVE_BYTES — він стеля «завелике, щоб бути карткою» (4.7× над найбільшою карткою), а не розділювач; тримається все на тому, що %PDF- перевіряється РАНІШЕ. Три проби ловлять майбутнє спрощення умови до розміру з обох боків діапазону."
     },
     "scripts/recut_span_boundaries.py": {
-      "lines": 218,
+      "lines": 203,
       "max_complexity": 14,
       "max_function_args": 4,
       "max_function_lines": 65,
@@ -4044,8 +4044,8 @@
       "reason": "backup copies, evidence retention and quotas checked against the disk rather than declared"
     },
     "scripts/run_boundary_eval.py": {
-      "lines": 121,
-      "max_complexity": 8,
+      "lines": 116,
+      "max_complexity": 6,
       "max_function_args": 4,
       "max_function_lines": 45,
       "max_nesting": 3,
@@ -4171,7 +4171,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4400,
+      "lines": 4507,
       "max_complexity": 11,
       "max_function_args": 8,
       "max_function_lines": 60,
@@ -4186,7 +4186,7 @@
       "max_nesting": 4
     },
     "scripts/run_paraphrase_eval.py": {
-      "lines": 144,
+      "lines": 135,
       "max_complexity": 11,
       "max_function_args": 4,
       "max_function_lines": 45,
@@ -4432,7 +4432,7 @@
       "reason": "New 2026-08-28: binds PACKAGE_BUILD.json to the regenerated source manifest."
     },
     "scripts/threshold_distance.py": {
-      "lines": 190,
+      "lines": 181,
       "max_complexity": 10,
       "max_function_args": 5,
       "max_function_lines": 45,
@@ -4455,7 +4455,7 @@
       "reason": "registered 2026-08-30"
     },
     "scripts/validate_content_signals.py": {
-      "lines": 400,
+      "lines": 395,
       "max_complexity": 28,
       "max_function_args": 8,
       "max_function_lines": 135,
@@ -4471,16 +4471,16 @@
       "reason": "the doctrine catalog's provenance rules made executable: one branch per rule (restricted, rights, secondary-is-analytical, unverified-needs-second-source, block-reason, source-uri, taxonomy enums). _entry_problems is a checklist, not a program — its complexity is the rule count, and each rule has a negative-control test in test_doctrine_catalog.py | 2026-08-29 209->257 lines, 64->67 function lines: rule 9 (integrity_anchor resolves in-tree and its sha256 matches) added for undated ministry pages that carry no revision trail. The rule body lives in _anchor_problems; _entry_problems grew by its call and the rule's docstring. Six negative controls in test_doctrine_catalog.py: changed snapshot, forged digest, path escaping the repository, missing file, non-object anchor, non-sha256 digest. | 2026-08-29 rule 10 (content_probe self-consistent, source_uri is its richest measured variant) plus TypedDict Summary/Result that took the file from 14 mypy errors to 0; nine further negative controls cover pointing at the card, choosing the thinner variant, a contradicted word count, an unmeasured variant, no variants, a variant with no count, and a non-object probe. | 2026-08-29 rule 11: a declared attachment must be captured in-tree with a matching digest and marked honestly as to whether the extractor reads its format, computed from korpus.infrastructure.extraction.SUPPORTED_SUFFIXES rather than a copy. Order 317 publishes 1068 roster rows in a DOCX its /print page only links to — three quarters of the act. Eight further negative controls. | 2026-08-29 rule 12 (a source the portal marks | 2026-08-30: 1040→1048. Склад 1048 фізичних рядків: докстрінги 166, коментарі 74, порожні 122 ⇒ коду ~686; проби selftest 0 рахуються окремо. Спроба витягти таксономію відмов в окремий модуль зроблена й ВІДКОЧЕНА: межі не лягли по функціях, і рефактор пізно ввечері коштував би більше, ніж число. | | 2026-08-30: правило «зниклий ключ підлоги = зниження до нуля». Порівняння лише там, де обидва значення цілі, робило видалення ключа тихим способом зняти з нього ратчет; правило одразу спіймало реальне зникнення `ingestible_total` (166) під час перенесення лічильників. | 2026-08-30: 1086→1140. Зниження підлоги стало ЛІЦЕНЗОВАНИМ, а не забороненим: запис в evidence_floor_history мусить назвати той самий ключ, обидва числа й причину від 40 символів. Причина — `ingestible_total` міряє РОЗМІР КОРПУСУ, а не кількість доказів, і падає рівно тоді, коли ми стаємо чеснішими. Заразом виправлено власну ваду: часткова зміна `to` затінювала повний знімок, і без git ратчет тримав рівно один лічильник; тепер підлога ВІДНОВЛЮЄТЬСЯ (останній знімок + усі пізніші зміни по ключах)."
     },
     "scripts/validate_document_probe.py": {
-      "lines": 345,
-      "max_complexity": 28,
+      "lines": 339,
+      "max_complexity": 19,
       "max_function_args": 8,
       "max_function_lines": 100,
       "max_nesting": 4,
       "reason": "registered 2026-08-29 by a parallel session; ceiling recorded at first measurement, not reviewed here | 2026-08-29: мутаційний прогін (kill-rate 0.740 і 0.658) виявив вижилих мутантів у самій логіці гейтів; закрито 17 негативними контролями. Щоб стеля не тиснула проти покриття, проби ПЕРЕРОБЛЕНО з тіла функції на декларативну таблицю PROBES — той самий клас, що каталог мутантів у run_mutation_tests.py: це дані, а не логіка. Файли після цього ЗМЕНШИЛИСЬ (421→362 і 286→252), функційні стелі пройдені без підняття, а kill-rate виріс 0.740→0.833. Лишок над стелею — сама таблиця проб. | 2026-08-29: стеля опущена 280→245 — рядки selftest (17) більше не рахуються як програма; проби ростуть під власною стелею. | 2026-08-29: 245→269 — mypy на scripts показав `dict(changes)` з object; звужено явною відмовою TypeError замість cast. | 2026-08-30: додано `separability` — третє питання, якого сам поріг не ставить: чи ця ВІСЬ узагалі здатна розділити два відомі класи. Знайдено на реальному випадку CARD_CEILING_BYTES=200000: `place` давав здорове `separates` (56/25), а класи за розміром ПЕРЕКРИВАЮТЬСЯ — картки 41553–43491 байт, документи 34559–1443866, і найменший документ менший за найменшу картку. Вирок `axis_cannot_separate` сильніший за решту, бо не пропонує підкрутити число: вада не в значенні, а у виборі того, що міряти. +4 проби (14/14)."
     },
     "scripts/validate_evidence_refusal.py": {
-      "lines": 465,
-      "max_complexity": 15,
+      "lines": 456,
+      "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 100,
       "max_nesting": 3,
@@ -6546,6 +6546,50 @@
       "reason": "31.08.2026: сходинки відновлення. Єдиною дією на мертвий публічний URL була ідемпотентна `funnel --bg 8081` — вона вмикає ввімкнене й рапортує успіх при нулі ефекту, що й сталося цього дня двічі поспіль. Додано ACTION_LADDERS, лічильник спроб у стані і `recycle_funnel` (off→on), плюс запис у файлі, ЧОМУ повторення тієї самої команди не є ескалацією.",
       "to": {
         "lines": 197
+      }
+    },
+    {
+      "from": {
+        "lines": 4400
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Дванадцять мутантів на інваріанти публічної поверхні (M399–M408, M420–M421): закриття консолі через перехід замість завантаження, знята охорона обов'язкових файлів читача, сходинка відновлення, що не росте, здоров'я, що не скидає сходинку, виконання лише першої команди послідовності, UNKNOWN зарахований як PASS, підміна index.html зарахована закритою, 401 зарахований відмовою ролі, ігнорування адрес поза петлею, прийнятий external_allowed, одношаровий обхід і незняте читацьке закриття. Каталог мутантів — це ДАНІ; кожен запис коштує рядків і не має іншого способу існувати.",
+      "to": {
+        "lines": 4494
+      }
+    },
+    {
+      "from": {
+        "lines": 142
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_budget_raises_are_named.py",
+      "reason": "Мутанти M420–M422 і негативні контролі до них: закриття як транзитивний замикач (одношаровий обхід, незняте читацьке закриття) і сам гейт назв підняттів, який питав «чи згадано ФАЙЛ» замість «чи записано САМЕ ЦЕ підняття» — виміряно на репозиторії: підняття 4400→4494 проходило з порожнім unnamed_raises.",
+      "to": {
+        "lines": 165
+      }
+    },
+    {
+      "from": {
+        "max_complexity": 12
+      },
+      "on": "2026-08-31",
+      "path": "scripts/check_budget_raises_are_named.py",
+      "reason": "Мутанти M420–M422 і негативні контролі до них: закриття як транзитивний замикач (одношаровий обхід, незняте читацьке закриття) і сам гейт назв підняттів, який питав «чи згадано ФАЙЛ» замість «чи записано САМЕ ЦЕ підняття» — виміряно на репозиторії: підняття 4400→4494 проходило з порожнім unnamed_raises.",
+      "to": {
+        "max_complexity": 14
+      }
+    },
+    {
+      "from": {
+        "lines": 4494
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Мутанти M420–M422 і негативні контролі до них: закриття як транзитивний замикач (одношаровий обхід, незняте читацьке закриття) і сам гейт назв підняттів, який питав «чи згадано ФАЙЛ» замість «чи записано САМЕ ЦЕ підняття» — виміряно на репозиторії: підняття 4400→4494 проходило з порожнім unnamed_raises.",
+      "to": {
+        "lines": 4507
       }
     }
   ],

@@ -4057,6 +4057,128 @@ MUTANTS = (
             "test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost",
         ),
     ),
+    # ── Публічна поверхня. Отрута по ПОВЕДІНЦІ правила, не по його оформленню:
+    # мутант, що ламає лише текст повідомлення, вижив би й не довів нічого про охорону.
+    Mutant(
+        "M399_CONSOLE_CLOSURE_FOLLOWS_NAVIGATION",
+        "scripts/public_operator_surface.py",
+        r"""re.compile(r'<script[^>]*\ssrc="(?P<target>/?[A-Za-z0-9_.\-]+\.js)"'),""",
+        r"""re.compile(r'(?:src|href)="(?P<target>/?[A-Za-z0-9_.\-]+\.(?:js|css|html))"'),""",
+        (
+            "apps/api/tests/test_public_surface.py::test_navigation_link_to_the_console_does_not_make_the_console_public",
+            "apps/api/tests/test_public_surface.py::test_operator_surface_is_the_whole_console_not_three_filenames",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M400_READER_ESSENTIAL_MAY_BE_WITHHELD",
+        "scripts/public_operator_surface.py",
+        "    if essential:",
+        "    if False:",
+        ("apps/api/tests/test_public_surface.py::test_rule_that_would_withhold_a_reader_essential_refuses",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M401_RECOVERY_LADDER_NEVER_CLIMBS",
+        "scripts/public_health_controller.py",
+        "            rung = min(int(attempts.get(component, 0)), len(ladder) - 1)",
+        "            rung = 0",
+        ("apps/api/tests/test_public_health_controller.py::test_second_attempt_at_one_outage_is_a_different_action",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M402_HEALTH_DOES_NOT_RESET_THE_RUNG",
+        "scripts/public_health_controller.py",
+        "        if health[component]:\n            attempts[component] = 0",
+        "        if False:\n            attempts[component] = 0",
+        ("apps/api/tests/test_public_health_controller.py::test_health_resets_the_rung_so_a_new_outage_starts_gently",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M403_RECOVERY_RUNS_ONLY_ITS_FIRST_COMMAND",
+        "scripts/public_health_controller.py",
+        "    for command in ACTION_COMMANDS[action]:",
+        "    for command in ACTION_COMMANDS[action][:1]:",
+        ("apps/api/tests/test_public_health_controller.py::test_execute_runs_the_whole_sequence_not_only_its_first_command",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M404_UNKNOWN_COUNTED_AS_PASS",
+        "scripts/verify_public_surface.py",
+        '    if "UNKNOWN" in verdicts:',
+        "    if False:",
+        ("apps/api/tests/test_public_surface.py::test_unknown_never_counts_as_pass",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M405_INDEX_MASQUERADE_COUNTED_AS_CLOSED",
+        "scripts/verify_public_surface.py",
+        "    if not (leaked or masquerade):",
+        "    if not leaked:",
+        ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M406_UNAUTHENTICATED_401_COUNTED_AS_ROLE_REFUSAL",
+        "scripts/verify_public_surface.py",
+        "    unproven = sorted(route for route, code in direct.items() if code == 401)",
+        "    unproven: list[str] = []",
+        ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M407_OFF_LOOPBACK_ADDRESSES_IGNORED",
+        "scripts/verify_public_surface.py",
+        '        if entry.get("status") == 200 and entry.get("address") not in LOOPBACK',
+        '        if entry.get("status") == 200 and entry.get("address") in LOOPBACK',
+        ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M408_EXTERNAL_EGRESS_ACCEPTED_ON_PUBLIC_SURFACE",
+        "scripts/verify_public_surface.py",
+        '    if status["egress_posture"] == "external_allowed":',
+        "    if False:",
+        ("apps/api/tests/test_public_surface.py::test_gate_reddens_on_every_defect_separately",),
+        full_copy=True,
+    ),
+    # Закриття як математичний об'єкт. Обидві отрути ламають ВЛАСТИВІСТЬ, не текст:
+    # перша робить обхід одношаровим, друга — знімає віднімання читацького закриття.
+    Mutant(
+        "M420_TRAVERSAL_STOPS_AT_ONE_LEVEL",
+        "scripts/public_operator_surface.py",
+        '                pending.append(match.group("target").lstrip("./").lstrip("/"))',
+        '                seen.add(match.group("target").lstrip("./").lstrip("/"))',
+        (
+            "apps/api/tests/test_public_surface.py::test_traversal_is_a_true_transitive_closure_over_every_small_graph",
+            "apps/api/tests/test_public_surface.py::test_operator_surface_is_the_whole_console_not_three_filenames",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M421_READER_CLOSURE_NOT_SUBTRACTED",
+        "scripts/public_operator_surface.py",
+        "    withheld = _reachable(source, OPERATOR_ENTRY) - _reachable(source, READER_ENTRY)",
+        "    withheld = _reachable(source, OPERATOR_ENTRY)",
+        (
+            "apps/api/tests/test_public_surface.py::test_a_reader_link_can_only_shrink_the_operator_surface",
+            "apps/api/tests/test_public_surface.py::test_shared_module_stays_public_when_both_pages_load_it",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M422_BUDGET_NAMING_MATCHES_THE_PATH_NOT_THE_RAISE",
+        "scripts/check_budget_raises_are_named.py",
+        "            if k in previous and v > previous[k] and (k, v) not in named",
+        "            if k in previous and v > previous[k] and not named",
+        (
+            "apps/api/tests/test_budget_raises_are_named.py"
+            "::test_a_record_for_another_number_does_not_excuse_this_raise",
+            "apps/api/tests/test_budget_raises_are_named.py"
+            "::test_a_record_naming_another_ceiling_key_does_not_excuse_this_one",
+        ),
+        full_copy=True,
+    ),
 )
 
 

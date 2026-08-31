@@ -33,26 +33,43 @@ BUDGET = "config/operations/module-budget.json"
 CEILINGS = ("lines", "max_complexity", "max_function_lines", "max_function_args", "max_nesting")
 
 
-def _named_paths(document: dict[str, Any]) -> set[str]:
-    """Шляхи, згадані в `raised`, у будь-якій із шести наявних форм.
+def _recorded_raises(document: dict[str, Any]) -> dict[str, set[tuple[str, int]]]:
+    """Стелі, ЗАПИСАНІ в `raised`, прив'язані до шляху і до самого числа.
 
-    Форми накопичились історично: `path`, `paths`, вкладені `entries`, `changes`.
-    Вимагати однієї форми означало б відкинути записи, які хтось уже зробив
-    сумлінно — а гейт існує, щоб причина БУЛА, а не щоб вона мала певний вигляд.
+    Раніше тут збиралися самі ШЛЯХИ, і перевірка звучала «чи згадано цей файл у
+    `raised`». Виміряно 31.08.2026: `scripts/run_mutation_tests.py` уже мав три
+    записи, тож підняття 4400 → 4494 пройшло з вердиктом PASS і порожнім
+    `unnamed_raises`. Один раз названий файл ставав вільним НАЗАВЖДИ, а таких
+    файлів у списку на той день було стільки ж, скільки записів. Гейт охороняв
+    сусіднє: наявність згадки замість наявності причини саме для цього підняття.
+
+    Тепер запис мусить назвати число, до якого піднімають. Форми лишаються всі
+    шість — вимагати однієї означало б відкинути сумлінні записи, — але з кожної
+    береться пара (ключ стелі, нове значення).
     """
-    named: set[str] = set()
+    recorded: dict[str, set[tuple[str, int]]] = {}
+
+    def remember(path: object, to: object) -> None:
+        if not isinstance(path, str) or not isinstance(to, dict):
+            return
+        for key in CEILINGS:
+            value = to.get(key)
+            if isinstance(value, int):
+                recorded.setdefault(path, set()).add((key, value))
+
     for record in document.get("raised", ()):
         if not isinstance(record, dict):
             continue
-        if isinstance(record.get("path"), str):
-            named.add(record["path"])
+        remember(record.get("path"), record.get("to"))
         for path in record.get("paths", ()) or ():
-            if isinstance(path, str):
-                named.add(path)
+            remember(path, record.get("to"))
         for nested in (*(record.get("entries") or ()), *(record.get("changes") or ())):
-            if isinstance(nested, dict) and isinstance(nested.get("path"), str):
-                named.add(nested["path"])
-    return named
+            if isinstance(nested, dict):
+                # Вкладений запис має право нести власне число; якщо він його не несе,
+                # береться число зовнішнього запису — інакше сумлінна вкладена форма
+                # втратила б чинність через те, де саме лежить `to`.
+                remember(nested.get("path"), nested.get("to") or record.get("to"))
+    return recorded
 
 
 def _ceilings(document: dict[str, Any]) -> dict[str, dict[str, int]]:
@@ -66,14 +83,20 @@ def _ceilings(document: dict[str, Any]) -> dict[str, dict[str, int]]:
 
 def raises_without_a_reason(before: dict[str, Any], after: dict[str, Any]) -> list[str]:
     """Модулі, чия стеля зросла й ніде не названа."""
-    old, new, named = _ceilings(before), _ceilings(after), _named_paths(after)
+    old, new = _ceilings(before), _ceilings(after)
+    recorded = _recorded_raises(after)
     offenders: list[str] = []
     for path, ceilings in new.items():
         previous = old.get(path)
         if previous is None:
             continue  # новий модуль отримує стелю вперше, а не піднімає її
-        grown = [k for k, v in ceilings.items() if k in previous and v > previous[k]]
-        if grown and path not in named:
+        named = recorded.get(path, set())
+        grown = [
+            k
+            for k, v in ceilings.items()
+            if k in previous and v > previous[k] and (k, v) not in named
+        ]
+        if grown:
             detail = ", ".join(f"{k} {previous[k]}→{ceilings[k]}" for k in grown)
             offenders.append(f"{path}: {detail} — підняття не назване в `raised`")
     return offenders
