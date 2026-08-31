@@ -136,10 +136,69 @@ def test_an_opening_longer_than_a_line_is_refused() -> None:
     words = " ".join(["джгут"] * (MAX_OPENING_WORDS + 1))
 
     with pytest.raises(CompositionRefused, match="words"):
-        admissible_opening(words, "\n".join(SPANS))
+        admissible_opening(words, SPANS)
 
 
 def test_the_gate_checks_against_what_the_reader_is_shown() -> None:
     """A line justified by a passage nobody was shown is a line nobody can check."""
     with pytest.raises(CompositionRefused, match="evidence does not"):
-        admissible_opening("Джгут накладається на плече", SPANS[1])
+        admissible_opening("Джгут накладається на плече", [SPANS[1]])
+
+
+# ── Три обходи, відтворені 2026-08-31 на чинному коді. Кожен тут як негативний
+# контроль: якщо правило приберуть, ці тести червоніють першими.
+
+
+def test_an_opening_that_borrows_words_from_two_citations_is_refused() -> None:
+    """Кожен токен «десь у доказах» — твердження про словник, не про джерело.
+
+    Дві правдиві цитати про вогонь дають словник, у якому складається третє речення,
+    якого не каже жодна з них, — і боєць діяв би саме за ним.
+    """
+    passages = [
+        "Вогонь відкривається за командою командира.",
+        "Вогонь припиняється за сигналом ракети.",
+    ]
+
+    with pytest.raises(CompositionRefused, match="different citations"):
+        admissible_opening("Вогонь відкривається за сигналом", passages)
+
+
+def test_an_opening_carried_by_one_citation_is_admitted() -> None:
+    """Негативний контроль до попереднього: сторож, що не приймає нічого, — не сторож."""
+    passages = [
+        "Вогонь відкривається за командою командира.",
+        "Вогонь припиняється за сигналом ракети.",
+    ]
+
+    assert admissible_opening("Вогонь відкривається за командою", passages)
+
+
+def test_a_short_abbreviation_the_evidence_does_not_carry_is_refused() -> None:
+    """Військове скорочення має рівно ту форму, яку пропускало правило «менш ніж три»."""
+    with pytest.raises(CompositionRefused, match="evidence does not"):
+        admissible_opening("Джгут накладається КП", ["Джгут накладається вище рани."])
+
+
+def test_joined_evidence_is_refused_rather_than_interpreted() -> None:
+    """Склеєний рядок — це та сама спільна калюжа слів, лише під іншим ім'ям."""
+    with pytest.raises(TypeError, match="joined string"):
+        admissible_opening("Джгут накладається", "Джгут накладається вище рани.")
+
+
+def test_the_reader_is_shown_the_retrieved_span_not_the_composer_string() -> None:
+    """Звірка перестановки йде через casefold, тож зміна регістру її проходить.
+
+    Композитор обирає ПОРЯДОК; текст завжди залишається знайденим, бо саме він несе хеш.
+    """
+    spans = ["Вогонь відкривається за командою командира."]
+
+    class _Shouting:
+        def compose(self, question: str, sentences: list[str]) -> tuple[str, list[str]]:
+            return "Вогонь відкривається за командою", [item.upper() for item in sentences]
+
+    composition, reason = compose_answer("коли відкривається вогонь", spans, _Shouting())
+
+    assert reason == "admitted"
+    assert composition is not None
+    assert composition.sentences == tuple(spans)

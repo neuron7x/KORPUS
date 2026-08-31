@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1618,
-  "root_sha256": "c52dc3d6a116cdb8ed9201b8a08ae8b1046bb7b346b581733d21ddf297b059d8",
+  "root_sha256": "2833425c5b7b150af80fd9d669e9181651ee5117a425c8100a09269ea6980fdc",
   "files": [
     {
       "path": ".dockerignore",
@@ -919,8 +919,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/composition.py",
-      "bytes": 8367,
-      "sha256": "45831dc9c83d9910dcd7883a5e493bbfce2ab58c64b851546bd9d4bdd6ce466e",
+      "bytes": 11060,
+      "sha256": "03c73dcf3e9c87ebf36a3e2a2da625bff3abffca97ae31351b7da71d0d5ee2e1",
       "mode": "0644"
     },
     {
@@ -2509,8 +2509,8 @@
     },
     {
       "path": "apps/api/tests/test_answer_composition.py",
-      "bytes": 5971,
-      "sha256": "7af11741c31bbe9450d0ca17518dd801f7770e8577250e6da30aa30de4be0dad",
+      "bytes": 9388,
+      "sha256": "2cc93ae15c8dcf588ef34c2881ddd7cfa3ba7334e30de81c8be86f167227ecb3",
       "mode": "0644"
     },
     {
@@ -2827,8 +2827,8 @@
     },
     {
       "path": "apps/api/tests/test_coverage_risk_closeout_v080.py",
-      "bytes": 7499,
-      "sha256": "2e5da237172b15894ad4903ea4e8834e99d650d809b3fe6f14c445920d4cbfe9",
+      "bytes": 7501,
+      "sha256": "2cc56bd2b83c9548da22a095c90067a29e196b25fa71b01a0f106e22a19b5e9d",
       "mode": "0644"
     },
     {
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 276698,
-      "sha256": "6bf4f30bb967d6e7b956ec906d0c683caf75ca245024e472911c4c8ab741eebe",
+      "bytes": 279158,
+      "sha256": "f6cba6f39d9b58952277e1d44c3235a554f54fab695d6f076ec4bf6060dcbf97",
       "mode": "0644"
     },
     {
@@ -9229,8 +9229,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 185877,
-      "sha256": "9447b31dc6f0bfaf4cb815e8ddc3b4e3e789fd453d1f9a3e98eeb68551828345",
+      "bytes": 187929,
+      "sha256": "3675779e7503263d2c632bf44f5cbb1efc778001582fe9242e2167fa57ea2f9b",
       "mode": "0755"
     },
     {

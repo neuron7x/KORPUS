@@ -82,7 +82,7 @@ def test_tenant_auth_subject_rejects_control_whitespace() -> None:
 
 def test_empty_composer_opening_is_refused() -> None:
     with pytest.raises(CompositionRefused, match="empty opening"):
-        admissible_opening("   ", "evidence")
+        admissible_opening("   ", ["evidence"])
 
 
 def test_local_only_egress_requires_a_hostname() -> None:

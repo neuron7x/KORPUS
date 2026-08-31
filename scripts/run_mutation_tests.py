@@ -1949,15 +1949,54 @@ MUTANTS = (
         # The one rule that keeps a composition a rearrangement rather than a claim.
         "M207_COMPOSED_OPENING_MAY_ADD_A_WORD",
         "apps/api/src/korpus/application/composition.py",
-        "        if token not in available:\n"
+        "        if missing:\n"
         '            raise CompositionRefused(f"opening states something the evidence '
-        'does not: {token!r}")',
+        'does not: {missing[0]!r}")',
         "        if False:\n"
         '            raise CompositionRefused(f"opening states something the evidence '
-        'does not: {token!r}")',
+        'does not: {missing[0]!r}")',
         (
             "apps/api/tests/test_answer_composition.py::"
             "test_an_opening_that_states_something_the_evidence_does_not_is_refused",
+        ),
+    ),
+    Mutant(
+        # Кожен токен «десь у доказах» — твердження про словник, а не про джерело. Дві
+        # правдиві цитати дають третє речення, якого не каже жодна. Виміряно 31.08.2026.
+        "M343_COMPOSED_OPENING_MAY_POOL_CITATIONS",
+        "apps/api/src/korpus/application/composition.py",
+        "        if content and not any(set(content) <= vocabulary for vocabulary in vocabularies):",
+        "        if False:",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_an_opening_that_borrows_words_from_two_citations_is_refused",
+        ),
+    ),
+    Mutant(
+        # «КП», «БК», «ЗС» — рівно та форма, яку правило «менш ніж три літери» пропускало.
+        "M344_COMPOSED_OPENING_MAY_SKIP_SHORT_TOKENS",
+        "apps/api/src/korpus/application/composition.py",
+        "    return [token for token in _tokens(text) if token not in _FUNCTION_WORDS]",
+        "    return [\n"
+        "        token\n"
+        "        for token in _tokens(text)\n"
+        "        if token not in _FUNCTION_WORDS and len(token) >= 3\n"
+        "    ]",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_a_short_abbreviation_the_evidence_does_not_carry_is_refused",
+        ),
+    ),
+    Mutant(
+        # Перестановка звіряється через casefold, тож рядки МОДЕЛІ доходили до читача
+        # замість спанів, які несуть хеші.
+        "M345_READER_MAY_SEE_COMPOSER_STRINGS",
+        "apps/api/src/korpus/application/composition.py",
+        "        arranged = _retrieved_in_composed_order(sentences, ordered)",
+        "        arranged = tuple(ordered)",
+        (
+            "apps/api/tests/test_answer_composition.py::"
+            "test_the_reader_is_shown_the_retrieved_span_not_the_composer_string",
         ),
     ),
     Mutant(
