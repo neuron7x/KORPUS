@@ -2881,12 +2881,12 @@
       "max_nesting": 4
     },
     "scripts/build_reference_set.py": {
-      "lines": 341,
+      "lines": 368,
       "max_complexity": 9,
       "reason": "freezes a reference set from the deployed corpus; objective on retrieval, citation and refusal, silent on quality",
       "max_function_lines": 64,
-      "max_function_args": 8,
-      "max_nesting": 4
+      "max_function_args": 3,
+      "max_nesting": 3
     },
     "scripts/build_supply_chain_evidence_manifest.py": {
       "lines": 55,
@@ -3012,6 +3012,22 @@
       "max_function_lines": 62,
       "max_function_args": 8,
       "max_nesting": 5
+    },
+    "scripts/diagnose_query_dilution.py": {
+      "lines": 128,
+      "max_complexity": 18,
+      "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт.",
+      "max_function_lines": 68,
+      "max_function_args": 4,
+      "max_nesting": 2
+    },
+    "scripts/diagnose_size_bias.py": {
+      "lines": 132,
+      "max_complexity": 18,
+      "reason": "Точна виміряна початкова стеля. Діагностика розведення запиту й розмірного зсуву — інструмент виміру гіпотез про пошук, не гейт.",
+      "max_function_lines": 70,
+      "max_function_args": 4,
+      "max_nesting": 2
     },
     "scripts/embedding_candidate_metrics.py": {
       "lines": 32,
@@ -3728,12 +3744,12 @@
       "max_nesting": 4
     },
     "scripts/reference_eval_metrics.py": {
-      "lines": 46,
-      "max_complexity": 7,
+      "lines": 47,
+      "max_complexity": 8,
       "reason": "Initial measured ceiling for retrieval-yield and Wilson uncertainty reporting",
-      "max_function_lines": 60,
-      "max_function_args": 8,
-      "max_nesting": 4
+      "max_function_lines": 25,
+      "max_function_args": 3,
+      "max_nesting": 1
     },
     "scripts/release_attestation.py": {
       "lines": 147,
@@ -3760,10 +3776,10 @@
       "max_nesting": 4
     },
     "scripts/remap_reference_versions.py": {
-      "lines": 97,
-      "max_complexity": 10,
+      "lines": 135,
+      "max_complexity": 12,
       "reason": "Точна виміряна початкова стеля. Перепривʼязує випадки еталонного набору до чинних версій документів після перезбирання корпусу.",
-      "max_function_lines": 40,
+      "max_function_lines": 76,
       "max_function_args": 1,
       "max_nesting": 3
     },
@@ -3987,11 +4003,11 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 173,
-      "max_complexity": 24,
+      "lines": 240,
+      "max_complexity": 26,
       "reason": "runs the frozen set against a deployment and reports per stratum, carrying the set's digest | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts.",
-      "max_function_lines": 60,
-      "max_function_args": 8,
+      "max_function_lines": 85,
+      "max_function_args": 4,
       "max_nesting": 5
     },
     "scripts/run_regression_shards.py": {
@@ -4191,6 +4207,15 @@
       "max_function_lines": 60,
       "max_function_args": 8,
       "max_nesting": 4
+    },
+    "scripts/validate_span_hygiene.py": {
+      "lines": 110,
+      "proof_lines": 30,
+      "max_complexity": 6,
+      "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям.",
+      "max_function_lines": 16,
+      "max_function_args": 1,
+      "max_nesting": 2
     },
     "scripts/verify_audit.py": {
       "lines": 9,
@@ -4609,6 +4634,16 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-31",
+      "paths": [
+          "scripts/build_reference_set.py",
+          "scripts/reference_eval_metrics.py",
+          "scripts/remap_reference_versions.py",
+          "scripts/run_reference_eval.py"
+      ],
+      "reason": "Робота сусідньої сесії над еталоном: захист від розмітки в будівнику, cited_versions/expected_versions у звіті оцінювання, перепривʼязка версій за хешем вмісту. Стелі переміряні з дерева, не підняті під факт."
+  },
   {
       "on": "2026-08-30",
       "paths": [
