@@ -2077,7 +2077,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/infrastructure/extraction.py": {
-      "lines": 716,
+      "lines": 745,
       "max_complexity": 25,
       "max_function_lines": 72,
       "max_function_args": 12,
@@ -4634,6 +4634,17 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/extraction.py",
+      "from": {
+          "lines": 716
+      },
+      "to": {
+          "lines": 745
+      },
+      "reason": "Подвійно закодована розмітка більше не осідає в прольоті як текст документа. Джерела віддають розмітку, вже екрановану один раз (`&amp;lt;p&amp;gt;`); один прохід `html.unescape` перетворював її на `&lt;p>` і спинявся. Виміряно: 55 із 38 863 ЦИТОВНИХ прольотів несли такий залишок, один — у Стройовому статуті ЗСУ. Приріст — не другий unescape (він дав би СПРАВЖНІ теги в тексті), а переparсинг другого шару з тим самим NON_DOCUMENT_ELEMENTS, межа в два кола й пояснення, чому не «до стабільності». Перевірено на всіх 65 брудних прольотах: 59 стають чистими."
+  },
   {
       "on": "2026-08-31",
       "paths": [

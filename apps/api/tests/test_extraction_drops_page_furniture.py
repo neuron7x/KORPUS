@@ -99,3 +99,44 @@ def test_scripts_and_styles_are_still_dropped():
     assert "contlen" not in text
     assert "color:red" not in text
     assert "Стаття 3. Терміни." in text
+
+
+def test_double_encoded_markup_does_not_survive_as_document_text() -> None:
+    """Джерело віддає розмітку, вже екрановану один раз, і один `unescape` її лишає.
+
+    Виміряно 31.08.2026 на рантайм-корпусі: 55 із 38 863 ЦИТОВНИХ прольотів несли
+    залишок `&lt;p>` або `&#34;`, і один із них — у Стройовому статуті ЗСУ. Тобто на
+    питання солдата система могла віддати уламок розмітки як доказ, із тим самим
+    хешем і тим самим виглядом достовірності, що й стаття статуту.
+
+    Розкодувати «до стабільності» не можна: після другого `unescape` в тексті
+    опиняються справжні теги. Тому другий шар ПЕРЕПАРСЮЄТЬСЯ — і `NON_DOCUMENT_ELEMENTS`
+    діє на нього так само, як на перший.
+    """
+    doubly_encoded = (
+        "<p>&amp;lt;a href=&amp;#34;#&amp;#34;&amp;gt;Reset password&amp;lt;/a&amp;gt;"
+        " Наказ набирає чинності з дня опублікування.</p>"
+    )
+    text = _strip_html(doubly_encoded)
+    assert "&lt;" not in text
+    assert "&#34;" not in text
+    assert "href=" not in text
+    assert "Наказ набирає чинності з дня опублікування." in text
+
+
+def test_single_encoded_entity_in_real_sentence_is_decoded_not_dropped() -> None:
+    """Негативний контроль: сутність у справжньому реченні — не сміття, а символ.
+
+    Правило, що прибирає розмітку, не сміє прибирати текст. `&#8230;` у звіті Центру
+    протидії дезінформації — це три крапки, і речення мусить лишитись цілим.
+    """
+    text = _strip_html("<p>Звіти Центру протидії дезінформації&amp;#8230; за 2026 рік.</p>")
+    assert "Звіти Центру протидії дезінформації" in text
+    assert "за 2026 рік." in text
+    assert "&#" not in text
+
+
+def test_ordinary_page_is_not_reparsed_into_nothing() -> None:
+    """Сторінка без подвійного кодування проходить рівно один розбір і не змінюється."""
+    text = _strip_html("<p>Командир бригади відповідає за бойову готовність.</p>")
+    assert "Командир бригади відповідає за бойову готовність." in text

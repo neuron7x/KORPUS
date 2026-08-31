@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1615,
-  "root_sha256": "eed5d4b9f49441efaa55e64eb5fad1a8934275d4adad693eae8ee7285940783a",
+  "file_count": 1616,
+  "root_sha256": "b866ac3e8b34c5ed286c762635e1f56160739e80e1502d191fb1c1bf2f51f9b2",
   "files": [
     {
       "path": ".dockerignore",
@@ -1939,8 +1939,8 @@
     },
     {
       "path": "apps/api/src/korpus/infrastructure/extraction.py",
-      "bytes": 30904,
-      "sha256": "520a3e100f5fcc3118d54b86e3f384a4307c1f7bb3d43fcb6dfb4dd82c77dc07",
+      "bytes": 32900,
+      "sha256": "40149093ee10d7c5d0c006fef280873275050c6deba70739c205e83fe318149c",
       "mode": "0644"
     },
     {
@@ -3091,8 +3091,8 @@
     },
     {
       "path": "apps/api/tests/test_extraction_drops_page_furniture.py",
-      "bytes": 5516,
-      "sha256": "17f32166c801e77a607989a3857131d51fd95e2ae727a2fbcbbd5fe5a20d2f4c",
+      "bytes": 8320,
+      "sha256": "487649182b1a73a5bc64e60011547fc16c2b18d5e8e8e8bfa807a8b10acb4c4c",
       "mode": "0644"
     },
     {
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 272709,
-      "sha256": "8480f5fe5cebd28baba947238115b66186550ee106a1e3eced11ff760fd7fb9f",
+      "bytes": 273857,
+      "sha256": "50c0f4278eff45c495985b9788c81e86d26c01116663672d3531d876c50c0868",
       "mode": "0644"
     },
     {
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "scripts/serve_semantic_local.sh",
-      "bytes": 3846,
-      "sha256": "b9291f19e1d468498a3c5220caeba46689f81894266dd64f5596fa350ff68e5e",
+      "bytes": 4822,
+      "sha256": "1b8bda2b91e97c1551cbd196507252c17c971f81b7c3051affa8031c9c3b2949",
       "mode": "0755"
     },
     {
@@ -9549,6 +9549,12 @@
       "path": "scripts/validate_repository.py",
       "bytes": 1809,
       "sha256": "d9854733499fd6f77e9c8cfc98458ffc5704d0240bf03ef73c7d80f556f383b6",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/validate_span_hygiene.py",
+      "bytes": 7382,
+      "sha256": "098d3a7b95f86fb17515d801486faebd76f95c89388347e6344c1d33114b72db",
       "mode": "0755"
     },
     {

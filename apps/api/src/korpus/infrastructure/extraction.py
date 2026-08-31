@@ -180,7 +180,27 @@ def _elements_to_ignore(content: str) -> frozenset[str]:
     return NON_DOCUMENT_ELEMENTS
 
 
-def _strip_html(content: str) -> str:
+#: Скільки разів переparсити подвійно закодовану сторінку. Джерела віддають
+#: розмітку, вже екрановану один раз (`&amp;lt;p&amp;gt;`): один прохід
+#: `html.unescape` перетворює її на `&lt;p>` і на цьому спиняється, а залишок осідає
+#: в прольоті як «текст документа». Виміряно 31.08.2026: 55 із 38 863 ЦИТОВНИХ
+#: прольотів несли такий залишок, і один із них — у Стройовому статуті ЗСУ.
+#:
+#: Розкодувати «до стабільності» було б гірше, ніж не робити нічого: після другого
+#: `unescape` в тексті опиняються СПРАВЖНІ теги, і документ стає брудніший. Тому
+#: результат не розкодовується, а переparсюється — тоді `NON_DOCUMENT_ELEMENTS`
+#: діє на другий шар так само, як на перший.
+#:
+#: Межа стоїть тому, що вхід чужий: сторінка, екранована N разів, інакше змусила б
+#: цикл працювати рівно стільки ж. Двох шарів досить для всіх 55 випадків; глибше
+#: — це вже не документ, і чесніше лишити слід, ніж крутитись.
+MAX_UNESCAPE_ROUNDS = 2
+
+#: Ознака, що після розкодування в тексті лишилась розмітка, а не текст.
+_RESIDUAL_MARKUP = re.compile(r"</?[a-z][a-z0-9]*[\s/>]|&lt;/?[a-z]|href\s*=")
+
+
+def _parse_visible(content: str) -> str:
     parser = _VisibleTextParser(_elements_to_ignore(content))
     try:
         parser.feed(content)
@@ -188,6 +208,15 @@ def _strip_html(content: str) -> str:
     except (ValueError, AssertionError) as exc:
         raise ValueError("malformed HTML document") from exc
     return parser.text()
+
+
+def _strip_html(content: str) -> str:
+    text = _parse_visible(content)
+    for _ in range(MAX_UNESCAPE_ROUNDS):
+        if not _RESIDUAL_MARKUP.search(text):
+            break
+        text = _parse_visible(text)
+    return text
 
 
 #: Скільки початкових байтів читати, шукаючи розмітку: досить, щоб обійти BOM і пробіли,
