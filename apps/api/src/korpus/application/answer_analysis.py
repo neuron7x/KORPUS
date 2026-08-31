@@ -19,7 +19,6 @@ from korpus.application.evidence import (
 )
 from korpus.application.policy import PolicyEngine
 from korpus.application.retrieval import AUTHORITY_PRIOR, tokenize
-from korpus.application.retrieval_math import fold_aliases
 from korpus.domain.models import Citation, Claim, Identity, RetrievedEvidence
 
 
@@ -47,10 +46,7 @@ def contains_control_injection(text: str) -> bool:
 def sentence_candidates(text: str, query_tokens: frozenset[str]) -> list[SentenceCandidate]:
     output: list[SentenceCandidate] = []
     for sentence, start, end in segment_sentences(text):
-        # Токени речення зводяться до тієї форми, якою про них питають: у тексті
-        # «himars», у питанні «хаймарс». Синонім — один клас, а не два слова, тож
-        # знаменник лишається тим, що спитали.
-        sentence_tokens = fold_aliases(tokenize(sentence))
+        sentence_tokens = set(tokenize(sentence))
         coverage = len(query_tokens.intersection(sentence_tokens)) / max(len(query_tokens), 1)
         output.append(
             SentenceCandidate(

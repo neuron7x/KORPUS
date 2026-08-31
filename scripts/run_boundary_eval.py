@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import time
 import urllib.error
 import urllib.request
 from datetime import UTC, datetime
@@ -46,12 +47,19 @@ def ask(base: str, question: str, token: str, timeout: float) -> dict[str, Any] 
         },
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload: dict[str, Any] = json.load(response)
-            return payload
-    except (urllib.error.URLError, TimeoutError, ValueError):
-        return None
+    # Одна чесна друга спроба, і не більше. Транспортна гикавка не є виміром, але й
+    # нескінченні повтори не є: вони перетворюють недоступний сервіс на повільний.
+    # Виміряно 31.08.2026: один кейс із сорока не дійшов і зробив UNKNOWN усю вісь,
+    # хоча решта тридцять дев'ять виміряні.
+    for attempt in range(2):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload: dict[str, Any] = json.load(response)
+                return payload
+        except (urllib.error.URLError, TimeoutError, ValueError):
+            if attempt == 0:
+                time.sleep(1.0)
+    return None
 
 
 def evaluate(rows: list[dict[str, Any]], base: str, token: str, timeout: float) -> dict[str, Any]:

@@ -115,7 +115,6 @@ repository:validate:
     # Ціль `make validate`, якої не було в жодній джобі, — гейт, що не спрацьовує на пуші.
     - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py
     - PYTHONPATH=apps/api/src python scripts/check_mutation_report_freshness.py --selftest
-    - PYTHONPATH=apps/api/src python scripts/check_transliteration_table.py --selftest
     - python scripts/verify_verdict_ledger.py
     - PYTHONPATH=apps/api/src python scripts/validate_remote_digest.py
     - PYTHONPATH=apps/api/src python scripts/validate_document_probe.py

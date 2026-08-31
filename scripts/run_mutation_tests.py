@@ -2159,27 +2159,36 @@ MUTANTS = (
         ),
     ),
     Mutant(
-        # Згортання аліасів на боці ДОКУМЕНТА. Без нього «himars» у тексті й «хаймарс»
-        # у питанні лишаються різними предметами, і 62 прольоти невидимі.
-        "M359_ALIAS_FOLD_DOES_NOTHING",
-        "apps/api/src/korpus/application/retrieval_math.py",
-        "    return {reverse.get(token, token) for token in tokens}",
-        "    return set(tokens)",
+        # Вердикт = найслабша вісь. Середнє ховає рівно те, заради чого профіль існує:
+        # одна провалена вісь при п'ятьох відмінних дає «добре».
+        "M361_VERDICT_TAKES_THE_MEAN_INSTEAD_OF_THE_WEAKEST",
+        "scripts/check_answer_axes.py",
+        '    weakest = min(measured, key=lambda item: item["value"])',
+        '    weakest = max(measured, key=lambda item: item["value"])',
         (
-            "apps/api/tests/test_transliteration_aliases.py::"
-            "test_the_document_side_folds_to_what_was_asked",
+            "apps/api/tests/test_answer_axes_composition.py::"
+            "test_the_weakest_axis_is_named_not_just_counted",
         ),
     ),
     Mutant(
-        # Те саме на рівні речення: покриття рахується тут, і без згортання цитата з
-        # латинською назвою дає нуль покриття українському питанню.
-        "M360_SENTENCE_COVERAGE_IGNORES_ALIASES",
-        "apps/api/src/korpus/application/answer_analysis.py",
-        "        sentence_tokens = fold_aliases(tokenize(sentence))",
-        "        sentence_tokens = set(tokenize(sentence))",
+        # Сліпа вісь не є пройденою: вона могла б виявитись найслабшою, а найслабша і є
+        # вироком. Знявши цю гілку, профіль зеленіє від відсутності звіту.
+        "M362_BLIND_AXIS_COUNTS_AS_PASSED",
+        "scripts/check_answer_axes.py",
+        "    if unmeasured:",
+        "    if False:",
+        ("apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",),
+    ),
+    Mutant(
+        # Голий домен, зарахований як посилання на документ, робить простежуваність
+        # 100 % при 42 % реальних. Саме це число і є половиною ціннісної функції.
+        "M363_BARE_DOMAIN_COUNTS_AS_A_DOCUMENT_LINK",
+        "scripts/measure_corpus_integrity.py",
+        "    bare = sum(1 for value in rows if value and _BARE_DOMAIN.fullmatch(value.strip()))",
+        "    bare = 0",
         (
-            "apps/api/tests/test_transliteration_aliases.py::"
-            "test_coverage_counts_the_pair_as_one_class",
+            "apps/api/tests/test_corpus_integrity.py::"
+            "test_a_link_to_a_document_counts_and_a_link_to_the_portal_does_not",
         ),
     ),
     Mutant(
