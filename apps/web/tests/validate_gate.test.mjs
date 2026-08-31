@@ -312,7 +312,7 @@ test("a consumer shell that blows the transfer budget is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source => `${source}\n${payload}\n`));
   assert.notEqual(status, 0);
-  assert.match(output, /exceeds (32|8) KiB gzip budget/);
+  assert.match(output, /exceeds (33|8) KiB gzip budget/);
 });
 
 test("turning plain Enter into a newline-only composer is caught", async () => {

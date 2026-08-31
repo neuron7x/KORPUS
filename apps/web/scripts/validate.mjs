@@ -38,8 +38,20 @@ let consumerGzipBytes = 0;
 for (const file of CONSUMER_ENTRY) {
   consumerGzipBytes += gzipSync(await read(file), {level: 9}).byteLength;
 }
-if (consumerGzipBytes > 32 * 1024) {
-  throw new Error(`consumer shell exceeds 32 KiB gzip budget: ${consumerGzipBytes} bytes`);
+// 2026-08-31: 32 -> 33 KiB, and the reason belongs beside the number. The shell stood at
+// 32 745 bytes, 23 under the cap. Disclosing that a citation begins mid-sentence — the
+// case where a span boundary cut "Воєнний об'єкт за|лишається" and the reader was shown a
+// permission where the source states a restriction — costs 46 bytes as a warning line and
+// 25 as a leading ellipsis. Neither fits. Shaving the disclosure to "⚠ уривок" still
+// missed by 6, so the choice was between a cryptic marker and a recorded raise. The
+// budget exists so a redesign cannot quietly become framework-sized; one kibibyte spent
+// on telling a soldier that the quotation lost its subject is not that, and the next
+// person to add a kibibyte has to write their own reason here.
+const CONSUMER_BUDGET_BYTES = 33 * 1024;
+if (consumerGzipBytes > CONSUMER_BUDGET_BYTES) {
+  throw new Error(
+    `consumer shell exceeds ${CONSUMER_BUDGET_BYTES / 1024} KiB gzip budget: ${consumerGzipBytes} bytes`
+  );
 }
 const cssGzipBytes = gzipSync(await read("public/styles.css"), {level: 9}).byteLength;
 const tokenCssGzipBytes = gzipSync(await read("public/tokens.css"), {level: 9}).byteLength;
