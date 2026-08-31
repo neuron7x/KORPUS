@@ -37,13 +37,17 @@ from pathlib import Path
 #: а не в реченні. Друга міряла ЧАСТКУ сміття — і назвала чистим уламок `href`, а
 #: брудним справжнє речення з одним префіксом `&lt;p>`. Обидві читали повз те, що
 #: охороняли. Екранована розмітка такої двозначності не має.
+#: Обидва запити читають ПОВНИЙ текст прольоту, не перші 300 символів. Обрізання
+#: коштувало точності виміру: гейт бачив 55 брудних там, де їх було 98, бо розмітка
+#: часто сидить у хвості. Недорахунок гірший за відсутність числа — він виглядає
+#: як вимір і заспокоює.
 ESCAPED_MARKUP = re.compile(r"&lt;/?[a-z]|&#34;|&quot;|&amp;nbsp;")
 #: Обстановка носія: те, що належить сторінці, а не документу. Вужче нікуди — кожне
 #: слово тут або службове (`cmp-`), або належить банеру згоди.
 CHROME = re.compile(r"(?i)\bcmp-|reset password|\bcookies?\b|\bconsent banner\b")
 
 QUERY = (
-    "SELECT s.id, d.canonical_title, replace(left(s.text, 300), chr(10), ' ') "
+    "SELECT s.id, d.canonical_title, replace(s.text, chr(10), ' ') "
     "FROM evidence_spans s "
     "JOIN document_versions v ON v.id = s.version_id "
     "JOIN documents d ON d.id = v.document_id "
@@ -56,7 +60,7 @@ QUERY = (
 #: в бойовому шляху немає, і не могла подивитись на ту, яка є. Це та сама вада, що вже
 #: коштувала нам дня: перевірка читає повз те, що охороняє.
 QUERY_SQLITE = (
-    "SELECT s.id, d.canonical_title, replace(substr(s.text, 1, 300), char(10), ' ') "
+    "SELECT s.id, d.canonical_title, replace(s.text, char(10), ' ') "
     "FROM evidence_spans s "
     "JOIN document_versions v ON v.id = s.version_id "
     "JOIN documents d ON d.id = v.document_id "

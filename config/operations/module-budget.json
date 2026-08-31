@@ -3783,6 +3783,15 @@
       "max_function_args": 1,
       "max_nesting": 3
     },
+    "scripts/repair_span_markup.py": {
+      "lines": 137,
+      "proof_lines": 47,
+      "max_complexity": 7,
+      "reason": "Точна виміряна початкова стеля. Ремонт уже збережених прольотів тим самим `_strip_html`, що виправлено в екстракції: фікс діє на нові, а старі лишаються такими, якими їх зберегли. Відмовляється писати, якщо ремонт зʼїдає більше половини тексту або лишає неречення.",
+      "max_function_lines": 33,
+      "max_function_args": 3,
+      "max_nesting": 2
+    },
     "scripts/retention_policy.py": {
       "lines": 258,
       "max_complexity": 25,
@@ -4179,6 +4188,15 @@
       "max_function_args": 8,
       "max_nesting": 4
     },
+    "scripts/validate_fetch_stubs.py": {
+      "lines": 143,
+      "proof_lines": 23,
+      "max_complexity": 7,
+      "reason": "Точна виміряна початкова стеля. Перевірка заглушок вибірки джерел — гейт сусідньої сесії.",
+      "max_function_lines": 46,
+      "max_function_args": 2,
+      "max_nesting": 2
+    },
     "scripts/validate_github_actions.py": {
       "lines": 128,
       "max_complexity": 9,
@@ -4209,7 +4227,7 @@
       "max_nesting": 4
     },
     "scripts/validate_span_hygiene.py": {
-      "lines": 150,
+      "lines": 154,
       "proof_lines": 30,
       "max_complexity": 6,
       "reason": "Точна виміряна початкова стеля. Ловить ЕКРАНОВАНУ розмітку в цитовних прольотах: `&lt;p>` не є текстом документа ні в якій доктрині, це залишок подвійного кодування. Правило звужене після двох хибних спроб, які позначали справжню доктрину сміттям.",
@@ -4634,6 +4652,11 @@
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
   "raised": [
+  {
+      "on": "2026-08-31",
+      "path": "scripts/validate_span_hygiene.py",
+      "reason": "Обидва запити гейта читають ПОВНИЙ текст прольоту замість перших 300 символів. Обрізання недорахувало: гейт бачив 55 брудних там, де їх 98, бо розмітка часто сидить у хвості. Недорахунок гірший за відсутність числа — він виглядає як вимір."
+  },
     {
       "on": "2026-08-31",
       "path": "apps/api/src/korpus/infrastructure/extraction.py",

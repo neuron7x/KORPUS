@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1616,
-  "root_sha256": "9ccab3b8f49d643f7fe30620fc058135a722ea7515dfcb43f49f076604d864eb",
+  "file_count": 1618,
+  "root_sha256": "79078d396f1a69f6cdf6365579f314e7970aa9d039fac5b54555c0213345c3d4",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 59068,
-      "sha256": "b8a92ad87d3263c4d7a92a5237e0263db97552c7ace9186651850e8437f414f8",
+      "bytes": 59640,
+      "sha256": "0510e24cf71508c64cde656d9ab22673c3b808c196ba39e8cab15b063ecb46f3",
       "mode": "0644"
     },
     {
@@ -6673,8 +6673,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 275079,
-      "sha256": "2dcd0e6c2bcda7dc028aaea2af915413efff82cb0e76c86a07d7d0256650f4a1",
+      "bytes": 276698,
+      "sha256": "6bf4f30bb967d6e7b956ec906d0c683caf75ca245024e472911c4c8ab741eebe",
       "mode": "0644"
     },
     {
@@ -9096,6 +9096,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/repair_span_markup.py",
+      "bytes": 9291,
+      "sha256": "bcd919fb25afe36de887c905accdce5c6f2b84443b7b4657728cd77a2dabe9bc",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/reproducible_build_probe.sh",
       "bytes": 4529,
       "sha256": "dee0f59341f6fbd6a50e1aa4c4c08175a5c092853af33be620891d4df1e151b7",
@@ -9504,6 +9510,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/validate_fetch_stubs.py",
+      "bytes": 8755,
+      "sha256": "c4ef06c4adef3aee9d461376267c7231404b2648e2cd92314938a86816bd0a68",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/validate_github_actions.py",
       "bytes": 4830,
       "sha256": "405746777e1170010a62b32bd1de19f625de8d7d0d303c9246fe281dd50dc561",
@@ -9553,8 +9565,8 @@
     },
     {
       "path": "scripts/validate_span_hygiene.py",
-      "bytes": 9489,
-      "sha256": "6c26c188bd150ffb62461243f07a2ca0e9c7f5644709267f12396fc38964b029",
+      "bytes": 9938,
+      "sha256": "0fa87d99de44307da65fcdff72f0d59ed1e24ecf43e8338441e4fb7e3c9e4cbc",
       "mode": "0755"
     },
     {
