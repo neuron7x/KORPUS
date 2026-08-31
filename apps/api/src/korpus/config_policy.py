@@ -119,6 +119,20 @@ def _validate_runtime_integrations(settings: Any, *, controlled: bool) -> None:
         or settings.resolved_jwt_secret.startswith("replace-")
     ):
         raise ValueError("JWT secret is missing or weak")
+    # Той самий поріг, що для JWT, але без умови на режим автентифікації: JWT боронить
+    # сесію й потрібен лише коли ввімкнений, а цим ключем підписується КОЖНА подія
+    # журналу — те, чим система доводить, що доказ не підмінили.
+    #
+    # Виміряно 31.08.2026 на базі, яку обслуговують: 4061 подія з 7223 підписана рядком
+    # `replace-local-audit-key` — літералом із цього ж репозиторію. Підпис ключем, що
+    # лежить у вихідному коді, не є засвідченням. Дозволено там само, де решта
+    # контрольованих вимог не діє — `local`, `test`, `development`: там журнал
+    # одноразовий. У `controlled`, `isolated`, `production` — відмова.
+    if controlled and (
+        len(settings.resolved_audit_hmac_key) < 32
+        or settings.resolved_audit_hmac_key.startswith("replace-")
+    ):
+        raise ValueError("audit HMAC key is missing or weak: every audit event is signed with it")
     if settings.chunk_overlap_chars >= settings.max_chunk_chars:
         raise ValueError("chunk overlap must be smaller than chunk size")
 

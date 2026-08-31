@@ -7,6 +7,7 @@ from pathlib import Path
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from korpus.application.keyring import AuditKeyRing
 from korpus.config_policy import validate_runtime_settings
 
 
@@ -98,6 +99,14 @@ class Settings(BaseSettings):
     audit_max_pending_age_seconds: float = Field(default=30.0, ge=0, le=86_400)
     audit_hmac_key: str = "replace-local-audit-key"
     audit_hmac_key_file: Path | None = None
+    #: Ід ключа, під яким ЦЕ розгортання підписує. Стоїть у кожному записаному рядку, і
+    #: саме він дозволяє замінити ключ, не втративши здатність довести минуле. Поки він
+    #: лишався за замовчуванням, сервер і CLI писали один ярлик на два різні ключі, і
+    #: журнал переставав перевірятись цілим — виміряно 31.08.2026: 4061 подія проти 3162.
+    audit_key_id: str = "legacy-unversioned"
+    #: Ключі, якими можна ПЕРЕВІРЯТИ, але не можна підписувати: ід → файл. Так стара
+    #: історія лишається доказовою після заміни ключа, замість ставати нечитаною.
+    audit_verification_key_files: dict[str, Path] = Field(default_factory=dict)
 
     auth_mode: str = "disabled"
     bind_host: str = "127.0.0.1"
@@ -372,6 +381,17 @@ class Settings(BaseSettings):
     @property
     def resolved_audit_hmac_key(self) -> str:
         return _read_secret_file(self.audit_hmac_key_file, self.audit_hmac_key)
+
+    def resolved_audit_keyring(self) -> AuditKeyRing:
+        """Активний ключ плюс ті, що лишились здатні перевіряти після заміни."""
+        keys = {self.audit_key_id: self.resolved_audit_hmac_key.encode("utf-8")}
+        for key_id, path in self.audit_verification_key_files.items():
+            if key_id == self.audit_key_id:
+                # Мовчазне перезаписування активного ключа зробило б підпис і перевірку
+                # різними речами під одним ім'ям — рівно та вада, яку каблучка лікує.
+                raise ValueError(f"ключ перевірки {key_id!r} має той самий ід, що й активний")
+            keys[key_id] = Path(path).read_bytes().strip()
+        return AuditKeyRing(keys=keys, active_key_id=self.audit_key_id)
 
     @property
     def resolved_jwt_secret(self) -> str:

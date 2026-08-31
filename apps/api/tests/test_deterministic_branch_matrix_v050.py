@@ -70,6 +70,7 @@ def _cfg(**kw):
         object_store_mode="local",
         s3_bucket=None,
         resolved_jwt_secret="j" * 40,
+        resolved_audit_hmac_key="a" * 40,
         chunk_overlap_chars=10,
         max_chunk_chars=100,
         entitlement_profile_path=None,
@@ -115,6 +116,42 @@ def test_config_policy_auth_and_controlled_matrix(monkeypatch: pytest.MonkeyPatc
     )
     with pytest.raises(ValueError, match="missing-X"):
         config_policy._validate_controlled_requirements(_cfg(), controlled=True)
+
+
+#: Контрольований режим відмовляє локальному сховищу раніше, ніж доходить до ключа, тож
+#: без цього тест про ключ зеленів би з іншої причини.
+_DURABLE = {"object_store_mode": "s3", "s3_bucket": "korpus-evidence"}
+
+
+def test_audit_hmac_key_is_refused_when_it_is_the_one_printed_in_the_source() -> None:
+    """Кожна подія журналу підписується цим ключем, тож поріг тут не м'якший за JWT.
+
+    Виміряно 31.08.2026 на базі, яку обслуговують: 4061 подія з 7223 підписана рядком
+    `replace-local-audit-key` з `config.py`. JWT-секрет проєкт від цього боронив, ключ
+    аудиту — ні, хоча JWT боронить сесію, а цей ключ боронить сам доказ.
+    """
+    with pytest.raises(ValueError, match="audit HMAC key"):
+        config_policy._validate_runtime_integrations(
+            _cfg(resolved_audit_hmac_key="replace-local-audit-key", **_DURABLE), controlled=True
+        )
+    with pytest.raises(ValueError, match="audit HMAC key"):
+        config_policy._validate_runtime_integrations(
+            _cfg(resolved_audit_hmac_key="x" * 31, **_DURABLE), controlled=True
+        )
+
+
+def test_a_strong_audit_key_and_an_uncontrolled_environment_are_both_admitted() -> None:
+    """Негативний контроль: сторож, що відмовляє завжди, нічого не розрізняє.
+
+    Другий випадок — навмисна межа, а не недогляд: у `local`/`test`/`development` журнал
+    одноразовий, і саме там лежить робочий стіл, на якому ці 4061 подія й з'явились.
+    """
+    config_policy._validate_runtime_integrations(
+        _cfg(resolved_audit_hmac_key="A" * 32, **_DURABLE), controlled=True
+    )
+    config_policy._validate_runtime_integrations(
+        _cfg(resolved_audit_hmac_key="replace-local-audit-key"), controlled=False
+    )
 
 
 def test_config_policy_browser_model_semantic_and_runtime_matrix(
