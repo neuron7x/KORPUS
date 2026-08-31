@@ -4354,6 +4354,28 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    Mutant(
+        "M439_AN_AMBIGUOUS_PARENT_IS_SETTLED_BY_GUESSING_THE_FIRST",
+        "scripts/relink_derived_articles.py",
+        "    return agreeing[0] if len(agreeing) == 1 else None",
+        "    return agreeing[0] if agreeing else None",
+        (
+            "apps/api/tests/test_derived_source_links.py::"
+            "test_a_number_matching_two_candidates_is_left_unsettled",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M440_A_PART_INDEX_IS_TRUSTED_AS_AN_ARTICLE_NUMBER",
+        "scripts/relink_derived_articles.py",
+        "    if not named or int(named.group(1)) < SMALLEST_TRUSTED_ARTICLE:",
+        "    if not named:",
+        (
+            "apps/api/tests/test_derived_source_links.py::"
+            "test_a_small_number_is_not_trusted_because_it_is_usually_a_part_index",
+        ),
+        full_copy=True,
+    ),
 )
 
 

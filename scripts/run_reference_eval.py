@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import urllib.error
 import urllib.request
 from collections import Counter, defaultdict
@@ -31,6 +32,10 @@ from reference_eval_metrics import ABSTAINED, retrieval_effectiveness
 
 ROOT = Path(__file__).resolve().parents[1]
 DECLARATION = {"given_name": "Еталон", "family_name": "Тестенко", "specialty": "перевірка"}
+#: Скільки разів перепитати, коли розгортання відповіло «зайнято». Мале число навмисно:
+#: прогін, який довбить сервер, міряє чергу, а не пошук.
+RETRY_ON_BUSY = 2
+BUSY_BACKOFF_SECONDS = 1.5
 
 
 def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[str, Any]:
@@ -43,13 +48,22 @@ def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[st
     request = urllib.request.Request(
         f"{base}/v1/answers", data=json.dumps(payload).encode("utf-8"), headers=headers
     )
-    try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            return dict(json.loads(response.read()))
-    except urllib.error.HTTPError as error:
-        return {"status": f"http_{error.code}", "citations": [], "decision_reason": ""}
-    except (OSError, urllib.error.URLError, TimeoutError) as error:
-        return {"status": type(error).__name__, "citations": [], "decision_reason": ""}
+    # 429 — це контроль допуску, а не вирок: розгортання тримає `max_concurrent_answers`,
+    # і прогін на 95 питань його перевищує. Відповідь ІСНУЄ й дістається повторною спробою,
+    # тож спершу пробуємо ще раз, і лише потім називаємо це відсутністю виміру. Виміряно
+    # 31.08.2026: `adv-history-01` рахувався провалом «expected an abstention, got http_429».
+    for attempt in range(RETRY_ON_BUSY + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return dict(json.loads(response.read()))
+        except urllib.error.HTTPError as error:
+            if error.code == 429 and attempt < RETRY_ON_BUSY:
+                time.sleep(BUSY_BACKOFF_SECONDS * (attempt + 1))
+                continue
+            return {"status": f"http_{error.code}", "citations": [], "decision_reason": ""}
+        except (OSError, urllib.error.URLError, TimeoutError) as error:
+            return {"status": type(error).__name__, "citations": [], "decision_reason": ""}
+    return {"status": "http_429", "citations": [], "decision_reason": ""}
 
 
 #: A status the deployment never chose. `_ask` puts the transport failure in the status
@@ -63,7 +77,13 @@ def _ask(base: str, case: dict[str, Any], token: str, timeout: float) -> dict[st
 #: These are not failures and they are not passes. They are the absence of a measurement,
 #: and the report says so rather than folding them into a rate.
 def _unavailable(status: str) -> bool:
-    return status.startswith(("http_5", "URLError", "OSError", "TimeoutError", "socket"))
+    # `http_429` тут разом із 5xx і з тієї ж причини: контроль допуску відхилив за
+    # навантаженням. Він 4xx, тому й не потрапив під `http_5` при попередньому виправленні
+    # цього ж класу 30.08.2026 — префікс описував КОДИ, а спільним є не код, а те, що
+    # розгортання не виносило судження.
+    return status.startswith(("http_5", "URLError", "OSError", "TimeoutError", "socket")) or (
+        status == "http_429"
+    )
 
 
 def _judge(case: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:

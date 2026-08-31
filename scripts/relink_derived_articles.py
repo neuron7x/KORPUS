@@ -59,10 +59,44 @@ _DERIVED = ("Обов'язки:", "Обов’язки:")
 #: Від довшого до коротшого: довший префікс — сильніше свідчення, тож береться перший,
 #: що дає однозначну відповідь.
 PROBE_LENGTHS = (120, 100, 80, 60)
+#: Нижче цього номер у назві не є свідченням: виміряно на 97 прив'язках, що «ст.N» —
+#: номер СТАТТІ у 86 випадках і номер ЧАСТИНИ всередині статті в 11, і всі одинадцять
+#: мають N ≤ 3 або форму «11-1». Тож на малих N цей розв'язувач мовчить.
+SMALLEST_TRUSTED_ARTICLE = 10
+_ARTICLE_IN_TITLE = re.compile(r"ст\.\s*(\d+)")
+_ARTICLE_MARKER = re.compile(r"(?:^|\s)(\d{1,3})\.\s")
+#: Скільки символів перед входженням дивитись у пошуках заголовка статті.
+ARTICLE_LOOKBACK = 4000
 
 
 def normalise(text: str) -> str:
     return " ".join(text.split())
+
+
+def disambiguate(title: str, hits: list[str], bodies: dict[str, str], needle: str) -> str | None:
+    """Другий, НЕЗАЛЕЖНИЙ сигнал, коли текст трапляється в кількох статутах.
+
+    Текст «Начальник служби пожежної безпеки… (ст.195)» дослівно є і в 548-14, і в 550-14.
+    Входженням це не розв'язується — воно вже сказало все, що могло. Але в 548-14 текст
+    стоїть під статтею 195, а в 550-14 під статтею 21; номер у назві збігається рівно з
+    одним. Це вимір іншої властивості, а не глибше вдивляння в ту саму.
+
+    Мовчить, коли збігається нуль або більше одного кандидата: розв'язувач, який
+    вгадує при нічиї, гірший за той, що відмовляється.
+    """
+    named = _ARTICLE_IN_TITLE.search(title)
+    if not named or int(named.group(1)) < SMALLEST_TRUSTED_ARTICLE:
+        return None
+    wanted = int(named.group(1))
+    agreeing = []
+    for candidate in hits:
+        at = bodies[candidate].find(needle)
+        if at < 0:
+            continue
+        markers = _ARTICLE_MARKER.findall(bodies[candidate][:at][-ARTICLE_LOOKBACK:])
+        if markers and int(markers[-1]) == wanted:
+            agreeing.append(candidate)
+    return agreeing[0] if len(agreeing) == 1 else None
 
 
 def resolve(
@@ -90,7 +124,10 @@ def resolve(
                 break
             if len(hits) > 1:
                 # Довший префікс уже не розрізнив — коротший розрізнить тим паче не зможе.
-                found = hits
+                # Лишається сигнал ІНШОЇ природи: номер статті в назві проти нумерації
+                # кандидата.
+                settled = disambiguate(title, hits, bodies, needle)
+                found, used = ([settled], length) if settled else (hits, length)
                 break
         if found is None or not found:
             skipped["not_found"] += 1

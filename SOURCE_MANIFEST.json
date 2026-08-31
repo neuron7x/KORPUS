@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1664,
-  "root_sha256": "eb8262ec331af3c3cbecc1135eb939473662134aaadec22207258506a7acb9c5",
+  "file_count": 1661,
+  "root_sha256": "586ef46d481438786b0d7e0b4546cf435835a1564667e52a8fc3b1c380b61b63",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 40948,
-      "sha256": "213007752e396029a6c0d9923dac38c4655b622e45488c9c628bc34c86a6538a",
+      "bytes": 40423,
+      "sha256": "2d3b6203b1c37da7faf2f7b58dd9e6981837d8ea59d575067066aec3924677e7",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 66935,
-      "sha256": "5778951ed0aa7ba95da577ad9d66d8de5663cc9bb46ed7ccb754773fff4ac0c7",
+      "bytes": 66129,
+      "sha256": "7548c1e4f78e7efb71560887d31735d5a9671e18deb4ce59c51fa93a53799968",
       "mode": "0644"
     },
     {
@@ -2947,8 +2947,8 @@
     },
     {
       "path": "apps/api/tests/test_derived_source_links.py",
-      "bytes": 4926,
-      "sha256": "010345425489741ccc55a1b0c93969d10f2fbd79496f0ac652e4225e3bcb2735",
+      "bytes": 7259,
+      "sha256": "c638c98ff93636a2d4cf76c61fa9ddbcd8a25428dc66bb23743e5cf078340dbb",
       "mode": "0644"
     },
     {
@@ -3189,12 +3189,6 @@
       "path": "apps/api/tests/test_full_ssot_packager.py",
       "bytes": 1908,
       "sha256": "b7b87b5e0a29a99928a3d7bb0e4db4f51c17de445596a1b675a50bc766ffa558",
-      "mode": "0644"
-    },
-    {
-      "path": "apps/api/tests/test_gate_closure.py",
-      "bytes": 6893,
-      "sha256": "e6c1afa1538ae70dfe7f926dc18361b5e2b9791befee00ad9ad1e3c2d21f090e",
       "mode": "0644"
     },
     {
@@ -6751,8 +6745,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 18223,
-      "sha256": "7cd5a2a9d6d61dfeb2101e8562bd3ea4fca23055b83d56cc824b3d16eb8a2e7d",
+      "bytes": 19308,
+      "sha256": "2c15fb2c64ae2ff79616d15f8bbbfb741c68a9921a5b09c4f43f4937cea0f659",
       "mode": "0644"
     },
     {
@@ -6776,13 +6770,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "c9fb7645a44bea4def20dcf0bc99e34b2ef757c55ccc01cf75450a63f91f6758",
-      "mode": "0644"
-    },
-    {
-      "path": "config/operations/gate-closure.json",
-      "bytes": 11907,
-      "sha256": "54c8d889c399520e91a1d5c0c95ded09bc1c31d3f536e21c1d372b2176258e9e",
+      "sha256": "8f1578588ae48fc235a25c77ad23bd5f1f0bcbb886bf89098f692f3b9baca4ef",
       "mode": "0644"
     },
     {
@@ -6793,8 +6781,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 337068,
-      "sha256": "f277ea978f587319b73fb1866e6b9aa6b53587662fb4f4761d05393d07fb1384",
+      "bytes": 335802,
+      "sha256": "27bde3222f8f235eaab1f974229c57264512e53d2c0843e987467bfcb554d7cd",
       "mode": "0644"
     },
     {
@@ -9325,8 +9313,8 @@
     },
     {
       "path": "scripts/relink_derived_articles.py",
-      "bytes": 14914,
-      "sha256": "3c22f5ce6d91f2b7cd2fb2ff3be0ba6fe75617a03ceb23ffe6ffdc97e5e430a7",
+      "bytes": 17497,
+      "sha256": "8575369c53ee4ccdc58a1392628693bc224e12f92be664d495f0dfbbe48fb590",
       "mode": "0755"
     },
     {
@@ -9481,8 +9469,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 211636,
-      "sha256": "b0cc497ef534755f3d3a0efff4802264ee64c3e75c6bede2318c575de5362afd",
+      "bytes": 210494,
+      "sha256": "029187001077b586a4d3ccfb760d914ff82d93df904ad6e5707f12c8d88d721d",
       "mode": "0755"
     },
     {
@@ -9565,8 +9553,8 @@
     },
     {
       "path": "scripts/run_reference_eval.py",
-      "bytes": 10797,
-      "sha256": "f568d387f7c3157491b661683306beac73033d0e27c4fbef6ce22d9584e75edd",
+      "bytes": 12506,
+      "sha256": "4a460be0a10ae3512798085259c4d589a114ad4fb2ac35409d189c95db7f74b1",
       "mode": "0755"
     },
     {
@@ -9861,12 +9849,6 @@
       "path": "scripts/verify_final_release_authorization.py",
       "bytes": 4372,
       "sha256": "a3d2f7f9fa44058745063351939903281a5320936ccd3cde4b55d0a2156aab9e",
-      "mode": "0755"
-    },
-    {
-      "path": "scripts/verify_gate_closure.py",
-      "bytes": 17267,
-      "sha256": "49f185a1e6c4d25a57dd7c68f96bffdcb822d7ecc92cb8ee28b05eed6bde210a",
       "mode": "0755"
     },
     {

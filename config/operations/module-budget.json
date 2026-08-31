@@ -4042,9 +4042,9 @@
       "reason": "v0.4.0: offline JSONL ledger verification/head-anchor surface; initial measured ratchet ceiling"
     },
     "scripts/relink_derived_articles.py": {
-      "lines": 210,
-      "max_complexity": 13,
-      "max_function_args": 2,
+      "lines": 247,
+      "max_complexity": 14,
+      "max_function_args": 4,
       "max_function_lines": 52,
       "max_nesting": 4,
       "reason": "Похідні статті «Обов'язки: X (Статут, ст.N)» власного URL не мають; батько визначається дослівним входженням у ОРИГІНАЛ з object-store, не назвою і не зшитими прольотами. Проба спадає 120→60, бо текст перетікає в наступну роль."
@@ -4219,7 +4219,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4682,
+      "lines": 4704,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4310,7 +4310,7 @@
       "reason": " | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts. | 2026-08-29 grew by canonical formatting: ruff format became a gate, and 62 files were rewrapped in the pass that made it one."
     },
     "scripts/run_reference_eval.py": {
-      "lines": 240,
+      "lines": 260,
       "max_complexity": 26,
       "max_function_args": 4,
       "max_function_lines": 85,
@@ -6894,6 +6894,101 @@
       "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
       "to": {
         "lines": 4682
+      }
+    },
+    {
+      "module": "scripts/relink_derived_articles.py",
+      "on": "2026-08-31",
+      "reason": "Розв'язувач двозначності НЕЗАЛЕЖНИМ сигналом: коли текст трапляється в кількох статутах, розрізняє номер статті в назві проти нумерації кандидата. Мовчить при нічиї й на номерах ≤ 9, бо там «ст.N» зазвичай номер частини (виміряно: 11 випадків із 97). Чотири параметри — мінімум, за якого функція не читає нічого сама: назва, кандидати, тексти, проба.",
+      "to": 247
+    },
+    {
+      "module": "scripts/run_mutation_tests.py",
+      "on": "2026-08-31",
+      "reason": "+22 рядки за M439–M440: здогад при нічиї та довіра до номера частини як до номера статті.",
+      "to": 4655
+    },
+    {
+      "module": "scripts/run_reference_eval.py",
+      "on": "2026-08-31",
+      "reason": "Повтор на `http_429` і його класифікація як відсутності виміру: контроль допуску відхиляв за навантаженням, а судилося це як вирок. Той самий клас лагодили 30.08 для 5xx і проґавили 429, бо префікс описував КОДИ, а спільним є не код, а те, що розгортання не виносило судження.",
+      "to": 260
+    },
+    {
+      "from": {
+        "lines": 248
+      },
+      "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 274
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 81
+      },
+      "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_function_lines": 84
+      }
+    },
+    {
+      "from": {
+        "lines": 210
+      },
+      "on": "2026-08-31",
+      "path": "scripts/relink_derived_articles.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 247
+      }
+    },
+    {
+      "from": {
+        "max_complexity": 13
+      },
+      "on": "2026-08-31",
+      "path": "scripts/relink_derived_articles.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_complexity": 14
+      }
+    },
+    {
+      "from": {
+        "max_function_args": 2
+      },
+      "on": "2026-08-31",
+      "path": "scripts/relink_derived_articles.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "max_function_args": 4
+      }
+    },
+    {
+      "from": {
+        "lines": 4633
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 4704
+      }
+    },
+    {
+      "from": {
+        "lines": 240
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_reference_eval.py",
+      "reason": "Злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін скасував би зниження, зроблене однією з них, а ратчет ходить лише вниз.",
+      "to": {
+        "lines": 260
       }
     }
   ],
