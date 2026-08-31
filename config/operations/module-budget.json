@@ -4227,7 +4227,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4773,
+      "lines": 4753,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,

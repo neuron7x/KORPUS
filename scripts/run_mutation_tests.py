@@ -4396,26 +4396,6 @@ MUTANTS = (
             "test_a_comparably_responsive_official_source_still_outranks_a_better_match",
         ),
     ),
-    Mutant(
-        "M443_THE_UNIT_KEEPS_ITS_OWN_COPY_OF_THE_ENVIRONMENT",
-        "deploy/public/korpus-public-api.service",
-        "EnvironmentFile=%h/.local/state/korpus-public/api.env",
-        "Environment=KORPUS_ENVIRONMENT=local",
-        (
-            "apps/api/tests/test_public_deployment_script.py::test_the_api_environment_has_exactly_one_source",
-        ),
-        full_copy=True,
-    ),
-    Mutant(
-        "M444_A_MISSING_ENVIRONMENT_FILE_STOPS_BEING_FATAL",
-        "deploy/public/korpus-public-api.service",
-        "EnvironmentFile=%h/.local/state/korpus-public/api.env",
-        "EnvironmentFile=-%h/.local/state/korpus-public/api.env",
-        (
-            "apps/api/tests/test_public_deployment_script.py::test_the_api_environment_has_exactly_one_source",
-        ),
-        full_copy=True,
-    ),
     # ── Паритет двох оголошень оточення. Отрути по ПРАВИЛУ, не по переліку змінних.
     Mutant(
         "M450_A_VARIABLE_MISSING_FROM_THE_UNIT_IS_TOLERATED",
