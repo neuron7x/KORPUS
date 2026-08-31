@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1616,
-  "root_sha256": "b866ac3e8b34c5ed286c762635e1f56160739e80e1502d191fb1c1bf2f51f9b2",
+  "root_sha256": "6b3ac2745e8263fc2208ffcf475e88d75f2e16022b021cac19471d8a83d48078",
   "files": [
     {
       "path": ".dockerignore",
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 56860,
-      "sha256": "d971fe5fc10ebb103dd1f6321d1c6564118b7db1473b4a47720b6a55cc03f5bd",
+      "bytes": 57560,
+      "sha256": "6ce01937158f33f690e2a20e2fbeee9b72ed2ef6f86fcba12f20bb6bbd699b4b",
       "mode": "0644"
     },
     {
@@ -9385,8 +9385,8 @@
     },
     {
       "path": "scripts/serve_semantic_local.sh",
-      "bytes": 4822,
-      "sha256": "1b8bda2b91e97c1551cbd196507252c17c971f81b7c3051affa8031c9c3b2949",
+      "bytes": 3846,
+      "sha256": "b9291f19e1d468498a3c5220caeba46689f81894266dd64f5596fa350ff68e5e",
       "mode": "0755"
     },
     {
