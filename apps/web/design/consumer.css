@@ -531,6 +531,18 @@ h1 {
 .answer-opening { color: var(--muted); border-left: 2px solid var(--line-strong); padding-left: .9rem; font-size: .86rem; }
 .answer-opening-mark { display: block; margin-top: .35rem; color: var(--muted-2); font: .55rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
 .answer-text { margin: .8rem 0 1.15rem; color: var(--text); font-size: clamp(1rem, 1.35vw, 1.1rem); line-height: 1.76; }
+/* Кожне твердження — окремий блок зі своїм присудом. Присуд уже приїжджає в payload
+   (`presentation`), а рендер його викидав: уривок, позначений системою як фрагмент
+   верстки, стояв поруч із чинною статтею тим самим кеглем. Смуга зліва несе присуд
+   кольором, чіп — словом: колір без слова не читається в монохромі, слово без кольору
+   не помітне бігцем. Решту беруть наявні `.chip`, `.meta` і `.note` — окремий словник
+   на це коштував би бюджету оболонки, не даючи читачеві нічого нового. */
+.claim { margin: 0 0 .95rem; padding-left: .85rem; border-left: 2px solid var(--line-strong); }
+.claim.supported { border-left-color: var(--accent); }
+.claim.contested { border-left-color: #e0a33c; }
+.claim > p { margin: 0; }
+.claim .meta { margin-top: .4rem; display: flex; flex-wrap: wrap; gap: .32rem; align-items: center; }
+.claim-source { color: var(--muted); font-size: .74rem; }
 .metrics { display: flex; flex-wrap: wrap; gap: .38rem; margin: 1rem 0; }
 .metrics > div { min-width: 112px; padding: .55rem .65rem; border: 1px solid var(--line); background: var(--surface); border-radius: 9px; }
 .metrics dt { color: var(--muted-2); font-size: .52rem; text-transform: uppercase; letter-spacing: .06em; }

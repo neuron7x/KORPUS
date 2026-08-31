@@ -19,10 +19,32 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "var/public/health-state.json"
 RECEIPT_PATH = ROOT / "var/public/HEALTH_RECEIPT.json"
 COMPONENTS = ("api", "edge", "public")
-ACTION_COMMANDS = {
-    "restart_api": ["systemctl", "--user", "restart", "korpus-public-api.service"],
-    "refresh_edge": ["env", "KORPUS_PUBLIC_EDGE_ONLY=true", "bash", "scripts/serve_public.sh"],
-    "restore_funnel": ["tailscale", "funnel", "--bg", "8081"],
+#: Кожна дія — ПОСЛІДОВНІСТЬ команд, бо не всяке відновлення вміщається в одну.
+ACTION_COMMANDS: dict[str, tuple[list[str], ...]] = {
+    "restart_api": (["systemctl", "--user", "restart", "korpus-public-api.service"],),
+    "refresh_edge": (["env", "KORPUS_PUBLIC_EDGE_ONLY=true", "bash", "scripts/serve_public.sh"],),
+    "restore_funnel": (["tailscale", "funnel", "--bg", "8081"],),
+    "recycle_funnel": (
+        ["tailscale", "funnel", "--bg", "off"],
+        ["tailscale", "funnel", "--bg", "8081"],
+    ),
+}
+
+#: Сходинки відновлення на компонент, у порядку зростання втручання.
+#:
+#: Причина існування: 31.08.2026 публічний URL упав, сторож двічі виконав
+#: `restore_funnel`, обидва рази отримав `action_outcomes: {restore_funnel: true}` — і
+#: URL лишався мертвим. Команда ідемпотентна: вона вмикає те, що ВЖЕ ввімкнене, тож
+#: успішно не робить нічого. Повторення тієї самої дії — не ескалація, і сторож, який
+#: уміє лише повторювати, звітує про відновлення, якого не сталося. Тунель піднявся
+#: від `off` → `on`; звідси друга сходинка.
+#:
+#: `api` і `edge` мають по одній сходинці навмисно: вигадана ескалація гірша за її
+#: відсутність — вона зробить щось руйнівніше, не знаючи, чи перше взагалі мало ефект.
+ACTION_LADDERS: dict[str, tuple[str, ...]] = {
+    "api": ("restart_api",),
+    "edge": ("refresh_edge",),
+    "public": ("restore_funnel", "recycle_funnel"),
 }
 
 
@@ -35,6 +57,11 @@ def initial_state() -> dict[str, Any]:
         "schema": "korpus.public-health-state.v1",
         "failures": {name: 0 for name in COMPONENTS},
         "last_recovery": {},
+        # Скільки відновлень уже витрачено на ПОТОЧНИЙ збій. Схема лишається v1
+        # навмисно: поле додається, нічого не змінюючи, а бампінг версії викинув би
+        # живий файл разом із витримками — тобто дозволив би зайве втручання одразу
+        # після оновлення.
+        "attempts": {name: 0 for name in COMPONENTS},
     }
 
 
@@ -56,27 +83,38 @@ def transition(
     threshold: int = 2,
     cooldown: int = 300,
 ) -> tuple[dict[str, Any], list[str]]:
-    """Advance counters and select only recoveries justified by current dependencies."""
+    """Advance counters and select only recoveries justified by current dependencies.
+
+    Крім залежностей і витримки тепер обирається ще й СХОДИНКА: скільки відновлень уже
+    зроблено, відколи компонент востаннє був здоровий. Друга спроба того самого збою —
+    інша дія, бо перша вже довела, що її замало.
+    """
     updated = json.loads(json.dumps(state))
     failures = updated.setdefault("failures", {})
     recovered = updated.setdefault("last_recovery", {})
+    attempts = updated.setdefault("attempts", {})
     actions: list[str] = []
     for component in COMPONENTS:
         failures[component] = 0 if health[component] else int(failures.get(component, 0)) + 1
+        # Здоров'я скидає не лише лічильник відмов, а й сходинку: наступний збій — новий
+        # збій, і починати його з найбільшого втручання не було б підставою.
+        if health[component]:
+            attempts[component] = 0
     # Dependency order prevents restarting API merely because its edge is unavailable.
     candidates = []
     if not health["api"]:
-        candidates.append("restart_api")
+        candidates.append("api")
     if health["api"] and not health["edge"]:
-        candidates.append("refresh_edge")
+        candidates.append("edge")
     if health["api"] and health["edge"] and not health["public"]:
-        candidates.append("restore_funnel")
-    component_for = {"restart_api": "api", "refresh_edge": "edge", "restore_funnel": "public"}
-    for action in candidates:
-        component = component_for[action]
+        candidates.append("public")
+    for component in candidates:
         last = int(recovered.get(component, 0))
         if failures[component] >= threshold and now - last >= cooldown:
-            actions.append(action)
+            ladder = ACTION_LADDERS[component]
+            rung = min(int(attempts.get(component, 0)), len(ladder) - 1)
+            actions.append(ladder[rung])
+            attempts[component] = rung + 1
             recovered[component] = now
     return updated, actions
 
@@ -90,16 +128,28 @@ def probe(url: str, marker: bytes) -> bool:
 
 
 def execute(action: str) -> bool:
-    return (
-        subprocess.run(
-            ACTION_COMMANDS[action],
-            cwd=ROOT,
-            check=False,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        ).returncode
-        == 0
-    )
+    """Виконати послідовність і судити за ОСТАННЬОЮ командою.
+
+    Підготовчий крок має право не вдатися: `funnel off` на вимкненому тунелі нічого не
+    ламає, і зарахувати через нього провал усього відновлення означало б звітувати про
+    невдачу там, де вона сталася. Зворотна помилка — рахувати успіхом сам факт запуску —
+    і є те, через що 31.08 сторож двічі відрапортував `restore_funnel: true` над мертвим
+    URL. Тому тут судиться остання команда, а справжній вирок все одно виносить
+    НАСТУПНА проба здоров'я, не цей рядок.
+    """
+    outcome = False
+    for command in ACTION_COMMANDS[action]:
+        outcome = (
+            subprocess.run(
+                command,
+                cwd=ROOT,
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            ).returncode
+            == 0
+        )
+    return outcome
 
 
 def atomic_json(path: Path, value: object) -> None:

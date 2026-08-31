@@ -47,7 +47,18 @@ for (const file of CONSUMER_ENTRY) {
 // budget exists so a redesign cannot quietly become framework-sized; one kibibyte spent
 // on telling a soldier that the quotation lost its subject is not that, and the next
 // person to add a kibibyte has to write their own reason here.
-const CONSUMER_BUDGET_BYTES = 33 * 1024;
+// 2026-08-31 (друге): 33 -> 34 KiB. Оболонка стояла на 33 372, за 420 до стелі.
+// Відповідь виводилась одним абзацом — склейкою всіх claim'ів. Питання про днювального
+// роти дало чотири: чинна стаття, інший розділ статуту, уривок ЗМІСТУ і текст про
+// танкову роту. Присуд по кожному система вже винесла й поклала в payload — третій ніс
+// `contested` з причиною «фрагмент верстки, а не речення документа», — і рендер його
+// викидав: усі чотири однакові, під заголовком «ПІДСТАВА Є». Розділити твердження,
+// назвати джерело кожного і показати вже обчислений присуд коштує 868 байтів: 730 у
+// app.js і 138 у стилях. Різати було з чого лише власну прозу, і її вже зрізано на 164;
+// решта — сам показ. Бюджет боронить від фреймворка, а не від того, щоб солдат бачив,
+// котре з чотирьох речень система сама вважає уривком верстки. Наступний, хто додасть
+// кібібайт, пише сюди свою причину.
+const CONSUMER_BUDGET_BYTES = 34 * 1024;
 if (consumerGzipBytes > CONSUMER_BUDGET_BYTES) {
   throw new Error(
     `consumer shell exceeds ${CONSUMER_BUDGET_BYTES / 1024} KiB gzip budget: ${consumerGzipBytes} bytes`
@@ -55,8 +66,19 @@ if (consumerGzipBytes > CONSUMER_BUDGET_BYTES) {
 }
 const cssGzipBytes = gzipSync(await read("public/styles.css"), {level: 9}).byteLength;
 const tokenCssGzipBytes = gzipSync(await read("public/tokens.css"), {level: 9}).byteLength;
-if (cssGzipBytes + tokenCssGzipBytes > 9 * 1024) {
-  throw new Error(`consumer CSS exceeds 9 KiB gzip budget: ${cssGzipBytes + tokenCssGzipBytes} bytes`);
+// 2026-08-31: 9 -> 10 KiB, з тієї самої причини, що й оболонка вище, і число теж
+// належить поруч. CSS стояв на 9 199 при стелі 9 216 — сімнадцять байтів. Показ присуду
+// на кожному твердженні коштує 67: смуга зліва, два кольори на неї і знятий типовий
+// відступ абзаца. Спроба вписатися в сімнадцять — приклеїти `.claim .meta` до наявного
+// `.citation .meta` — зекономила СІМ: gzip уже стискав цей повтор, а селектори стали
+// довшими. Тобто вибір був не «економно чи ні», а «показувати чи ні». Сімнадцять
+// байтів — це не бюджет, це його відсутність; піднімаю на кібібайт, щоб наступна
+// потрібна дрібниця не впиралася в округлення.
+const CSS_BUDGET_BYTES = 10 * 1024;
+if (cssGzipBytes + tokenCssGzipBytes > CSS_BUDGET_BYTES) {
+  throw new Error(
+    `consumer CSS exceeds ${CSS_BUDGET_BYTES / 1024} KiB gzip budget: ${cssGzipBytes + tokenCssGzipBytes} bytes`
+  );
 }
 console.log(`consumer transfer budget passed: ${consumerGzipBytes} gzip bytes`);
 const appSourceForBudget = await read("public/app.js");

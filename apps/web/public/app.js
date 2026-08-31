@@ -310,6 +310,39 @@ function axisVerdict(answer) {
   return `${supported} з ${verdicts.length} підтверджено`;
 }
 
+const CLAIM_VERDICT = {
+  supported: "ПІДТВЕРДЖЕНО",
+  tangential: "ДОТИЧНО",
+  contested: "СПІРНО",
+};
+
+// Твердження нарізно: кожне зі своїм присудом і своїм джерелом.
+//
+// `answer.text` — склейка всіх claim'ів, і виводилась одним абзацом. 31.08.2026 на
+// живому корпусі питання про днювального дало чотири claim'и: стаття про днювального,
+// інший розділ статуту, уривок ЗМІСТУ і текст про танкову роту. Присуд по кожному вже
+// був у payload — третій ніс `contested` («фрагмент верстки, а не речення документа») —
+// і губився на рендері: усі чотири однакові, під заголовком «ПІДСТАВА Є». Той самий
+// клас, через який звідси прибрали `evidence_coverage` як міру впевненості.
+// Нових суджень тут не з'являється. Без claim'ів (відмова, ліміт) — один абзац.
+function claimBlocks(answer) {
+  const claims = answer.claims ?? [];
+  const flow = escapeHtml(answer.text ?? "").replaceAll("\n", "<br>");
+  if (!claims.length) return `<p class="answer-text">${flow}</p>`;
+  const bySpan = new Map((answer.citations ?? []).map(one => [String(one.span_id), one]));
+  return `<div class="answer-text">${claims.map(claim => {
+    const cited = (claim.evidence_span_ids ?? []).map(id => bySpan.get(String(id))).find(Boolean);
+    const verdict = cited?.presentation ?? "supported";
+    const reason = cited?.adjudication_reason ?? "";
+    return `<section class="claim ${escapeHtml(verdict)}">`
+      + `<p class="claim-text">${escapeHtml(claim.text ?? "").replaceAll("\n", "<br>")}</p>`
+      + `<p class="meta"><span class="chip">${escapeHtml(CLAIM_VERDICT[verdict] ?? verdict)}</span>`
+      + `<span class="claim-source">${escapeHtml(cited?.title ?? "джерело не назване")}</span></p>`
+      + (reason ? `<p class="note">${escapeHtml(reason)}</p>` : "")
+      + `</section>`;
+  }).join("")}</div>`;
+}
+
 function citationCard(citation, index) {
   const facts = [
     citation.page ? `с. ${escapeHtml(citation.page)}` : "",
@@ -357,7 +390,7 @@ function render(answer, question) {
       <span class="verdict-code">${escapeHtml(answer.decision_reason)}</span>
     </div>
     ${answer.opening ? `<p class="answer-opening">${escapeHtml(answer.opening)}</p>` : ""}
-    <p class="answer-text">${escapeHtml(answer.text).replaceAll("\n", "<br>")}</p>
+    ${claimBlocks(answer)}
     ${withheld}
     <details class="answer-meta"><summary>Деталі перевірки</summary>
       <dl class="metrics">

@@ -312,7 +312,10 @@ test("a consumer shell that blows the transfer budget is caught", async () => {
   const {status, output} = await runWith(edit =>
     edit("public/styles.css", source => `${source}\n${payload}\n`));
   assert.notEqual(status, 0);
-  assert.match(output, /exceeds (33|8) KiB gzip budget/);
+  // Число НЕ вписане: перевіряється, що бюджет узагалі здатен почервоніти, а не яка
+  // саме там стеля. Вписаний тут `33|8` був третьою копією двох чисел — і розійшовся
+  // з ними в ту саму мить, коли їх свідомо підняли.
+  assert.match(output, /exceeds \d+ KiB gzip budget/);
 });
 
 test("turning plain Enter into a newline-only composer is caught", async () => {
