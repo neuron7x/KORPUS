@@ -2,45 +2,45 @@
   "schema": "korpus.production-assurance.v1",
   "status": "FAIL",
   "release": "v0.9.7",
-  "source_tree_sha256": "fa87c47d0a01441543a43aa497fdb86d49e4e51cdd050cc78fed27975e6d8197",
+  "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
   "profile": "config/assurance/production-v1.json",
   "profile_sha256": "c1a1ccbfad28bd69eb90580ac8560dfaa521a131b7ef0080c08925f224214909",
   "checks": {
     "engineering.present": true,
-    "engineering.pass": false,
-    "engineering.source_bound": false,
+    "engineering.pass": true,
+    "engineering.source_bound": true,
     "engineering.release_bound": true,
     "tevv.present": true,
     "tevv.pass": false,
-    "tevv.source_bound": false,
+    "tevv.source_bound": true,
     "tevv.release_bound": true,
     "observability.present": true,
     "observability.pass": true,
-    "observability.source_bound": false,
+    "observability.source_bound": true,
     "observability.release_bound": true,
     "state_contracts.present": true,
     "state_contracts.pass": true,
-    "state_contracts.source_bound": false,
+    "state_contracts.source_bound": true,
     "state_contracts.release_bound": true,
     "authorization.present": true,
     "authorization.pass": true,
-    "authorization.source_bound": false,
+    "authorization.source_bound": true,
     "authorization.release_bound": true,
     "redteam.present": true,
     "redteam.pass": false,
-    "redteam.source_bound": false,
+    "redteam.source_bound": true,
     "redteam.release_bound": true,
     "reliability.present": true,
     "reliability.pass": false,
-    "reliability.source_bound": false,
+    "reliability.source_bound": true,
     "reliability.release_bound": true,
     "inference_security.present": true,
     "inference_security.pass": true,
-    "inference_security.source_bound": false,
+    "inference_security.source_bound": true,
     "inference_security.release_bound": true,
     "postgres_security.present": true,
     "postgres_security.pass": true,
-    "postgres_security.source_bound": false,
+    "postgres_security.source_bound": true,
     "postgres_security.release_bound": true,
     "supply_chain.present": true,
     "supply_chain.pass": false,
@@ -48,11 +48,11 @@
     "supply_chain.release_bound": true,
     "exact_environment.present": true,
     "exact_environment.pass": false,
-    "exact_environment.source_bound": false,
+    "exact_environment.source_bound": true,
     "exact_environment.release_bound": true,
     "mutation.present": true,
     "mutation.pass": true,
-    "mutation.source_bound": false,
+    "mutation.source_bound": true,
     "mutation.release_bound": true,
     "pec_authority.present": false,
     "pec_authority.pass": false,
@@ -73,24 +73,12 @@
     "mutation.full_catalogue": true
   },
   "failures": [
-    "engineering.pass",
-    "engineering.source_bound",
     "tevv.pass",
-    "tevv.source_bound",
-    "observability.source_bound",
-    "state_contracts.source_bound",
-    "authorization.source_bound",
     "redteam.pass",
-    "redteam.source_bound",
     "reliability.pass",
-    "reliability.source_bound",
-    "inference_security.source_bound",
-    "postgres_security.source_bound",
     "supply_chain.pass",
     "supply_chain.source_bound",
     "exact_environment.pass",
-    "exact_environment.source_bound",
-    "mutation.source_bound",
     "pec_authority.present",
     "pec_authority.pass",
     "pec_authority.source_bound",
@@ -107,34 +95,32 @@
     "supply_chain.complete"
   ],
   "gate_sha256": {
-    "engineering": "e2d1ed7d1f302d656ed58d7ecfb949d96c3b1c3e42c97846aabb02b9496742fb",
-    "tevv": "efe4f55e5b23165cdf291a310b373873e998f922227275f108f6bb4ed13a2015",
-    "observability": "9f50c5a60cb67ca787efa31171615182a899e734a5127fff6ae9c2ba30a93bd9",
-    "state_contracts": "18d3a0ab7c2115739e9750be7baa5b607f53a4056db4352baef00b59145e37f7",
-    "authorization": "cd1d1fbc1909d6f95a094209cf0b61ac3b88498a4a6b300f9f0000ed1407e017",
-    "redteam": "03648ee4b8f66247890dbd744949639ca6865a8fa3a8211c7aef7cf4c0797fab",
-    "reliability": "f836f85a86418070e2ede5f5d65c7604f321a31435087e38ef7f64479c71992c",
-    "inference_security": "128da2431f41ca9074f607152ea0d800e045392774aac8ecb02bbc2fd3163f1d",
-    "postgres_security": "945baeee8d6d5070c780e326cf7ea500b01517d4d1cea0a0d295df3d1fec0365",
+    "engineering": "58e717202a3c15049ec0af09b38d3e4444bf59754957896ce6cee5ee46db6fb6",
+    "tevv": "4834867beefd7080752b4e7e859409d5410f1c017bfdb4a4ebb27bf8d01170e2",
+    "observability": "94cf00b00307373f135e81f074020baca8e6443e7613864dd6567719102b4a6f",
+    "state_contracts": "753e6d241319dfba7ed746b238c4a9b6c0e41eecd3ee55853a724315925f74bf",
+    "authorization": "cc2ab345003667d37339af64ec623e1853b6cfff2630888859f9a3435cbeeaaa",
+    "redteam": "4f4b3bd39c7252623d60e1c145e0b340707ec4c0c638f85e40500477b37255d8",
+    "reliability": "4632f00ef3d86a61b2ba0adabfeb742691babce9ecc0f0273f3fb7c7b6e73d30",
+    "inference_security": "6acf50cd7e83a0627eb9e0d190d7fcbe8e542fb81c667ca0c7c392e4c95e4ba1",
+    "postgres_security": "02d712e832cf892e7a576d7df8b3fc82d518b0652633b1686d3caa2da8917d45",
     "supply_chain": "5d0f8ae9c0315c7e441ff7d9d1e63f31d65272928a5a48eb4ef7d27b0c876223",
-    "exact_environment": "590d14dfcb2dcd6aa4984c834f1fa63c5ec4a817899089d13b295581ebcc274a",
-    "mutation": "a59f88a778d0461a2e251a50e1de530dd4c1b54bb05a09e8f656074570a1e0b1"
+    "exact_environment": "3b0b5476e2cf874750397b01f2f97452b0e5eecb1ce959ecd95e9297aa5fa1fa",
+    "mutation": "2e1867c861e1b8ea029a0f2511518149159aeac8c2140f9778e8ef53bbb112ef"
   },
   "gates": {
     "engineering": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "engineering",
-      "status": "FAIL",
-      "source_tree_sha256": "6e5781f0f12b318131fc2b9fa906295e52d050e757c3606724b9d6578dd83c24",
+      "status": "PASS",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "report_present": true,
         "research_assurance_pass": true,
-        "source_bound": false
+        "source_bound": true
       },
-      "failures": [
-        "source_bound"
-      ],
+      "failures": [],
       "evidence_class": "FRESH_LOCAL_ENGINEERING",
       "report": "reports/RESEARCH_ASSURANCE_REPORT.json"
     },
@@ -142,7 +128,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "tevv",
       "status": "FAIL",
-      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "evidence_schema": false,
@@ -241,7 +227,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "observability",
       "status": "PASS",
-      "source_tree_sha256": "6e5781f0f12b318131fc2b9fa906295e52d050e757c3606724b9d6578dd83c24",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "no_identity_or_user_text_labels": true,
@@ -287,7 +273,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "state_contracts",
       "status": "PASS",
-      "source_tree_sha256": "6e5781f0f12b318131fc2b9fa906295e52d050e757c3606724b9d6578dd83c24",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "review_total": true,
@@ -379,7 +365,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "authorization",
       "status": "PASS",
-      "source_tree_sha256": "6e5781f0f12b318131fc2b9fa906295e52d050e757c3606724b9d6578dd83c24",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "matrix_matches_role_contract": true,
@@ -475,7 +461,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "redteam",
       "status": "FAIL",
-      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "report_present": false,
@@ -541,16 +527,16 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "reliability",
       "status": "FAIL",
-      "source_tree_sha256": "bf08ff7567b3d5ab5de786973c5e4ae555296ece902c66141952b92b01cc9160",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
-        "internal_fault_injection": false,
+        "internal_fault_injection": true,
         "chaos_matrix": true,
         "live_load_soak_executed": true,
-        "load_source_bound": true,
+        "load_source_bound": false,
         "load_environment": false,
         "recovery_drill_executed": true,
-        "recovery_source_bound": true,
+        "recovery_source_bound": false,
         "recovery_environment": false,
         "load_slo_steady_p95": true,
         "load_slo_cold_start": true,
@@ -563,8 +549,9 @@
         "recovery_trusted_signer": false
       },
       "failures": [
-        "internal_fault_injection",
+        "load_source_bound",
         "load_environment",
+        "recovery_source_bound",
         "recovery_environment",
         "load_attestation_verified",
         "load_trusted_signer",
@@ -575,55 +562,55 @@
       "load_metrics": {
         "load": {
           "concurrency": 4,
-          "requests": 353,
-          "p50_seconds": 0.237,
-          "p95_seconds": 1.119,
-          "p99_seconds": 2.1,
-          "max_seconds": 2.972,
-          "mean_seconds": 0.341,
+          "requests": 354,
+          "p50_seconds": 0.196,
+          "p95_seconds": 1.407,
+          "p99_seconds": 2.319,
+          "max_seconds": 3.329,
+          "mean_seconds": 0.34,
           "statuses": {
-            "200": 353
+            "200": 354
           },
           "decisions": {
-            "extractive_claims_passed_calibrated_gates": 307,
-            "contradictory_authoritative_evidence": 46
+            "extractive_claims_passed_calibrated_gates": 313,
+            "contradictory_authoritative_evidence": 41
           },
           "refusal_reasons": {}
         },
         "spike": {
           "concurrency": 24,
-          "requests": 519,
-          "p50_seconds": 0.389,
-          "p95_seconds": 6.375,
-          "p99_seconds": 11.331,
-          "max_seconds": 13.886,
-          "mean_seconds": 1.144,
+          "requests": 758,
+          "p50_seconds": 0.289,
+          "p95_seconds": 3.991,
+          "p99_seconds": 6.212,
+          "max_seconds": 8.262,
+          "mean_seconds": 0.697,
           "statuses": {
-            "200": 224,
-            "429": 295
+            "200": 352,
+            "429": 406
           },
           "decisions": {
-            "extractive_claims_passed_calibrated_gates": 203,
-            "contradictory_authoritative_evidence": 21
+            "extractive_claims_passed_calibrated_gates": 304,
+            "contradictory_authoritative_evidence": 48
           },
           "refusal_reasons": {
-            "subject_share_exhausted": 295
+            "subject_share_exhausted": 406
           }
         },
         "soak": {
           "concurrency": 4,
-          "requests": 511,
-          "p50_seconds": 0.305,
-          "p95_seconds": 1.458,
-          "p99_seconds": 2.492,
-          "max_seconds": 3.777,
-          "mean_seconds": 0.477,
+          "requests": 748,
+          "p50_seconds": 0.231,
+          "p95_seconds": 0.957,
+          "p99_seconds": 1.582,
+          "max_seconds": 2.85,
+          "mean_seconds": 0.323,
           "statuses": {
-            "200": 511
+            "200": 748
           },
           "decisions": {
-            "extractive_claims_passed_calibrated_gates": 444,
-            "contradictory_authoritative_evidence": 67
+            "extractive_claims_passed_calibrated_gates": 665,
+            "contradictory_authoritative_evidence": 83
           },
           "refusal_reasons": {}
         }
@@ -637,7 +624,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "inference_security",
       "status": "PASS",
-      "source_tree_sha256": "6e5781f0f12b318131fc2b9fa906295e52d050e757c3606724b9d6578dd83c24",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "profile_gate_id": true,
@@ -682,19 +669,19 @@
       ],
       "pytest_exit_code": 0,
       "pytest": {
-        "tests": 65,
+        "tests": 70,
         "failures": 0,
         "errors": 0,
         "skipped": 0
       },
-      "junit_sha256": "8b0f39bb1630f14022727541e3c0c9081ae39abfdc4eef25cc5091c014eadefe",
-      "output_tail": ".................................................................        [100%]\n"
+      "junit_sha256": "7a7e5b07ed6b7b14d9aa9d91b7024915c207bfa0ac572bf323fd333b1a678639",
+      "output_tail": "......................................................................   [100%]\n"
     },
     "postgres_security": {
       "schema": "korpus.production-gate.v1",
       "gate_id": "postgres_security",
       "status": "PASS",
-      "source_tree_sha256": "bf08ff7567b3d5ab5de786973c5e4ae555296ece902c66141952b92b01cc9160",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "target_files_present": true,
@@ -712,7 +699,7 @@
         "apps/api/tests/test_audit.py"
       ],
       "runtime_exit_code": 0,
-      "runtime_tail": "........................................................................ [  2%]\n........................................................................ [  4%]\n........................................................................ [  6%]\n........................................................................ [  8%]\n........................................................................ [ 11%]\n........................................................................ [ 13%]\n........................................................................ [ 15%]\n........................................................................ [ 17%]\n........................................................................ [ 20%]\n........................................................................ [ 22%]\n........................................................................ [ 24%]\n........................................................................ [ 26%]\n........................................................................ [ 29%]\n........................................................................ [ 31%]\n........................................................................ [ 33%]\n........................................................................ [ 35%]\n........................................................................ [ 37%]\n........................................................................ [ 40%]\n........................................................................ [ 42%]\n........................................................................ [ 44%]\n........................................................................ [ 46%]\n........................................................................ [ 49%]\n........................................................................ [ 51%]\n........................................................................ [ 53%]\n........................................................................ [ 55%]\n........................................................................ [ 58%]\n........................................................................ [ 60%]\n........................................................................ [ 62%]\n........................................................................ [ 64%]\n........................................................................ [ 66%]\n........................................................................ [ 69%]\n........................................................................ [ 71%]\n........................................................................ [ 73%]\n........................................................................ [ 75%]\n........................................................................ [ 78%]\n........................................................................ [ 80%]\n........................................................................ [ 82%]\n........................................................................ [ 84%]\n........................................................................ [ 87%]\n........................................................................ [ 89%]\n........................................................................ [ 91%]\n........................................................................ [ 93%]\n........................................................................ [ 95%]\n........................................................................ [ 98%]\n...........................................................              [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3227 passed, 1 warning in 184.18s (0:03:04)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\n",
+      "runtime_tail": "........................................................................ [  2%]\n........................................................................ [  4%]\n........................................................................ [  6%]\n........................................................................ [  8%]\n........................................................................ [ 11%]\n........................................................................ [ 13%]\n........................................................................ [ 15%]\n........................................................................ [ 17%]\n........................................................................ [ 19%]\n........................................................................ [ 22%]\n........................................................................ [ 24%]\n........................................................................ [ 26%]\n........................................................................ [ 28%]\n........................................................................ [ 31%]\n........................................................................ [ 33%]\n........................................................................ [ 35%]\n........................................................................ [ 37%]\n........................................................................ [ 39%]\n........................................................................ [ 42%]\n........................................................................ [ 44%]\n........................................................................ [ 46%]\n........................................................................ [ 48%]\n........................................................................ [ 51%]\n........................................................................ [ 53%]\n........................................................................ [ 55%]\n........................................................................ [ 57%]\n........................................................................ [ 59%]\n........................................................................ [ 62%]\n........................................................................ [ 64%]\n........................................................................ [ 66%]\n........................................................................ [ 68%]\n........................................................................ [ 71%]\n........................................................................ [ 73%]\n........................................................................ [ 75%]\n........................................................................ [ 77%]\n........................................................................ [ 79%]\n........................................................................ [ 82%]\n........................................................................ [ 84%]\n........................................................................ [ 86%]\n........................................................................ [ 88%]\n........................................................................ [ 90%]\n........................................................................ [ 93%]\n........................................................................ [ 95%]\n........................................................................ [ 97%]\n........................................................................ [ 99%]\n....                                                                     [100%]\n=============================== warnings summary ===============================\ntests/test_package_zip_safety.py::test_duplicate_name_is_rejected\n  /usr/lib/python3.12/zipfile/__init__.py:1620: UserWarning: Duplicate name: 'same.txt'\n    return self._open_to_write(zinfo, force_zip64=force_zip64)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3244 passed, 1 warning in 161.09s (0:02:41)\nINFO  [alembic.runtime.migration] Context impl PostgresqlImpl.\nINFO  [alembic.runtime.migration] Will assume transactional DDL.\nINFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, research-grade controlled-corpus schema\nINFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_db_defense_and_vectors, database defense-in-depth and semantic index substrate\nINFO  [alembic.runtime.migration] Running upgrade 0002_db_defense_and_vectors -> 0003_infrastructure_hardening, infrastructure hardening, schema invariants, and complete corpus RLS\nINFO  [alembic.runtime.migration] Running upgrade 0003_infrastructure_hardening -> 0004_compartmented_authorization, compartmented need-to-know authorization\nINFO  [alembic.runtime.migration] Running upgrade 0004_compartmented_authorization -> 0005_durable_ingestion_jobs, durable ingestion job queue\nINFO  [alembic.runtime.migration] Running upgrade 0005_durable_ingestion_jobs -> 0006_source_authenticity, detached source authenticity metadata\nINFO  [alembic.runtime.migration] Running upgrade 0006_source_authenticity -> 0007_near_duplicate_governance, near-duplicate fingerprint and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0007_near_duplicate_governance -> 0008_extraction_quality_gov, deterministic extraction quality findings and reviewer acknowledgement\nINFO  [alembic.runtime.migration] Running upgrade 0008_extraction_quality_gov -> 0009_reviewer_credentials, content-addressed reviewer credentials for governed transitions\nINFO  [alembic.runtime.migration] Running upgrade 0009_reviewer_credentials -> 0010_revision_identity, a version is identified by its revision, not by its bytes\nINFO  [alembic.runtime.migration] Running upgrade 0010_revision_identity -> 0011_audit_key_id, an audit event records which key signed it\nINFO  [alembic.runtime.migration] Running upgrade 0011_audit_key_id -> 0012_tenancy, accounts, plans, subscriptions, billing events, conversations and messages\nINFO  [alembic.runtime.migration] Running upgrade 0012_tenancy -> 0013_message_verdict, a stored answer remembers whether it was one\nINFO  [alembic.runtime.migration] Running upgrade 0013_message_verdict -> 0014_subscription_last_event, a subscription remembers when its last applied event occurred\nINFO  [alembic.runtime.migration] Running upgrade 0014_subscription_last_event -> 0015_plan_pricing, sellable plan pricing\nINFO  [alembic.runtime.migration] Running upgrade 0015_plan_pricing -> 0016_learning_course_graph, persist immutable evidence-bound learning course graph\nINFO  [alembic.runtime.migration] Running upgrade 0016_learning_course_graph -> 0017_learning_mastery, persist evidence-bound learner mastery projection\nINFO  [alembic.runtime.migration] Running upgrade 0017_learning_mastery -> 0018_operational_competencies, persist operational competency framework revisions\n",
       "static_tail": "...                                                                      [100%]\n"
     },
     "supply_chain": {
@@ -748,7 +735,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "exact_environment",
       "status": "FAIL",
-      "source_tree_sha256": "bf08ff7567b3d5ab5de786973c5e4ae555296ece902c66141952b92b01cc9160",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "all_locked_components_installed": true,
@@ -773,7 +760,7 @@
       "schema": "korpus.production-gate.v1",
       "gate_id": "mutation",
       "status": "PASS",
-      "source_tree_sha256": "ad102439a774d3ee4160798c99334670b5a56ec4857a8cf95815522845d2899c",
+      "source_tree_sha256": "c3c946c3a3b1502cc1e1211a1d6b3838fc51a3677753d794613c8d81cca4fcaf",
       "release": "v0.9.7",
       "checks": {
         "report_present": true,
@@ -787,9 +774,9 @@
       "failures": [],
       "scope": "FULL_CATALOGUE",
       "evidence_class": "EXECUTED_FIRST_ORDER_MUTATION",
-      "mutants": 379,
-      "valid_mutants": 379,
-      "killed": 379
+      "mutants": 385,
+      "valid_mutants": 385,
+      "killed": 385
     },
     "pec_authority": {},
     "pec_canary": {}

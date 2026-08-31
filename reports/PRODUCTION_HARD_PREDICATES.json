@@ -1,15 +1,15 @@
 {
   "schema": "korpus.production-hard-predicate-report.v1",
   "release": "v0.9.7",
-  "source_tree_sha256": "fa87c47d0a01441543a43aa497fdb86d49e4e51cdd050cc78fed27975e6d8197",
+  "source_tree_sha256": "c48487ee97353df895478f7f984d0d9feba0a35b4434890a6c961dd7f65634f5",
   "profile": "config/assurance/production-hard-predicates-v1.json",
   "predicates_total": 14,
   "software_ready": 14,
-  "externally_satisfied": 1,
-  "production_satisfied": 1,
+  "externally_satisfied": 0,
+  "production_satisfied": 0,
   "software_readiness_percent": 100.0,
-  "external_completion_percent": 7.142857,
-  "production_completion_percent": 7.142857,
+  "external_completion_percent": 0.0,
+  "production_completion_percent": 0.0,
   "states": [
     {
       "id": "external_independent_redteam",
@@ -33,7 +33,8 @@
         "findings_structured",
         "blocking_findings_closed",
         "declared_status_consistent",
-        "metadata:status"
+        "metadata:status",
+        "gate_source_bound"
       ]
     },
     {
@@ -56,10 +57,12 @@
       "gate": "postgres_security",
       "required_proof_class": "REAL_POSTGRESQL",
       "software_ready": true,
-      "externally_satisfied": true,
-      "production_satisfied": true,
+      "externally_satisfied": false,
+      "production_satisfied": false,
       "missing_software_artifacts": [],
-      "failed_external_checks": []
+      "failed_external_checks": [
+        "gate_source_bound"
+      ]
     },
     {
       "id": "real_domain_corpus_tevv",
@@ -80,7 +83,8 @@
         "tevv_admissible",
         "pass_rate",
         "null_controls",
-        "attack_families"
+        "attack_families",
+        "gate_source_bound"
       ]
     },
     {
@@ -95,7 +99,8 @@
         "independent_class",
         "assessor_structured",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -109,7 +114,8 @@
       "failed_external_checks": [
         "environment_class",
         "assessor_attestation_verified",
-        "assessor_trusted_signer"
+        "assessor_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -121,7 +127,9 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
-        "load_environment"
+        "load_source_bound",
+        "load_environment",
+        "gate_source_bound"
       ]
     },
     {
@@ -134,7 +142,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "load_attestation_verified",
-        "load_trusted_signer"
+        "load_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -146,9 +155,11 @@
       "production_satisfied": false,
       "missing_software_artifacts": [],
       "failed_external_checks": [
+        "recovery_source_bound",
         "recovery_environment",
         "recovery_attestation_verified",
-        "recovery_trusted_signer"
+        "recovery_trusted_signer",
+        "gate_source_bound"
       ]
     },
     {
@@ -194,7 +205,8 @@
       "missing_software_artifacts": [],
       "failed_external_checks": [
         "production_python_exact",
-        "metadata:status"
+        "metadata:status",
+        "gate_source_bound"
       ]
     },
     {
