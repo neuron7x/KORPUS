@@ -224,6 +224,11 @@ api:assurance:
     - KORPUS_MUTATION_SHARDS=6 KORPUS_MUTATION_JOBS=2 PYTHON=python scripts/run_mutation_shards.sh
     - python scripts/run_migration_gate.py
     - python scripts/run_scale_probe.py
+    # Виміряно 31.08.2026: 6 с, 13 с і 1 с. Вони роками стояли поза будь-яким входом не
+    # тому, що дорогі, а тому, що їх ніхто не міряв — класифікація йшла за рецептом.
+    - PYTHONPATH=apps/api/src:. python scripts/run_determinism_gate.py --out var/determinism-gate.json
+    - PYTHONPATH=apps/api/src:. python scripts/run_stress_gate.py --out var/stress-gate.json
+    - PYTHONPATH=apps/api/src:. python scripts/run_plasticity_gate.py --out var/plasticity-gate.json
     - python scripts/run_operational_gate.py
   artifacts:
     when: always

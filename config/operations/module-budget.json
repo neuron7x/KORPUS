@@ -3127,6 +3127,14 @@
       "max_function_lines": 82,
       "max_nesting": 2
     },
+    "scripts/corpus_identity.py": {
+      "lines": 87,
+      "max_complexity": 4,
+      "max_function_args": 3,
+      "max_function_lines": 31,
+      "max_nesting": 2,
+      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає touch."
+    },
     "scripts/corpus_release.py": {
       "lines": 203,
       "max_complexity": 5,
@@ -3608,6 +3616,14 @@
       "max_nesting": 0,
       "reason": "Issue #42: installs the bounded isolated systemd runner used by every KORPUS agent timer; exact initial measured ceiling."
     },
+    "scripts/install_nightly_gates.py": {
+      "lines": 43,
+      "max_complexity": 2,
+      "max_function_args": 1,
+      "max_function_lines": 13,
+      "max_nesting": 1,
+      "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482."
+    },
     "scripts/install_public_runtime.py": {
       "lines": 35,
       "max_complexity": 2,
@@ -3923,10 +3939,10 @@
       "reason": "network probe recording what each catalogued zakon.rada URL actually returns; measured 2026-08-29 that the card variant of 548-14 carries 725 words against 66069 at /print, so HTTP 200 on the card is a source that ingests to nothing. Not a CI gate — it needs the network; validate_doctrine_catalog rule 10 holds its result offline. | 2026-08-29 the probe now captures the attachments it finds, and normalises an already-repointed /print URI so a second run does not compare /print against /print/print and report the measurement inverted by its own previous success. | 2026-08-29 records the portal's legal-status marker alongside the measurement. | 2026-08-29 samples each variant three times and scores it by the largest reading. The portal returned 736 and 5583 words for the same card minutes apart, both 200, and a single sample let the thin one repoint three sources onto the weaker variant. It also surveys unreadable captures via LibreOffice when present."
     },
     "scripts/probe_uncatalogued_mutation.py": {
-      "lines": 302,
+      "lines": 402,
       "max_complexity": 12,
       "max_function_args": 3,
-      "max_function_lines": 68,
+      "max_function_lines": 93,
       "max_nesting": 4,
       "reason": "New 2026-08-29: samples operator mutations over the 162 modules the curated catalogue does not reach; carries the lock, the clean-tree refusal and the Wilson interval that makes a sampled rate readable. | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
@@ -4235,7 +4251,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4873,
+      "lines": 4902,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4679,7 +4695,7 @@
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
     },
     "scripts/verify_gate_closure.py": {
-      "lines": 315,
+      "lines": 318,
       "max_complexity": 15,
       "max_function_args": 4,
       "max_function_lines": 66,
@@ -4833,14 +4849,6 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
-    },
-    "scripts/corpus_identity.py": {
-      "lines": 90,
-      "max_complexity": 4,
-      "max_function_lines": 31,
-      "max_function_args": 3,
-      "max_nesting": 2,
-      "reason": "Ідентичність корпусу, похідна від ЗМІСТУ: голова журналу, лічильники, сума хешів прольотів і дайджест посилань. Не sha256 файла — той рухається від VACUUM і сторінкового кешу, яких жодна вісь не міряє; не mtime — його рухає touch."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -6704,51 +6712,51 @@
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/config.py",
       "reason": "audit_key_id + audit_verification_key_files + resolved_audit_keyring(): без них журнал підписувався двома ключами під одним ярликом і не перевірявся далі 1025-ї події.",
       "to": {
         "lines": 464
-      },
-      "path": "apps/api/src/korpus/config.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/config_policy.py",
       "reason": "Заборона слабкого ключа аудиту в контрольованих середовищах. Для JWT вона вже була, для ключа, що підписує КОЖНУ подію, — ні.",
       "to": {
         "lines": 215
-      },
-      "path": "apps/api/src/korpus/config_policy.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/runtime.py",
       "reason": "Каблучка ключів передається в репозиторій іменованим аргументом.",
       "to": {
         "lines": 74
-      },
-      "path": "apps/api/src/korpus/infrastructure/runtime.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/check_answer_axes.py",
       "reason": "Вік звіту став умовою: збережене число кредитувало вісь так само впевнено, як щойно виміряне.",
       "to": {
         "lines": 165
-      },
-      "path": "scripts/check_answer_axes.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/measure_corpus_integrity.py",
       "reason": "Орфографічний сурогат замінено точним виміром проти джерела і додано вісь дослівності; сурогат завищував на 0.077 і піднімався на 0.20 від зміни однієї константи.",
       "to": {
         "lines": 199
-      },
-      "path": "scripts/measure_corpus_integrity.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
       "reason": "Каталог мутантів — таблиця даних, і росте рівно тоді, коли з'являється новий спосіб збрехати, який тепер ловиться. +95 рядків за M424–M433: дослівність прольоту, кредит непроіндексованому прольоту, ярлик ключа проти підпису, неперевірюваний журнал, відкат якоря, підтвердження посилання без читання джерела, здогад про двозначного батька, дірка в покритті, стеля прольоту. Усі десять доведені прогоном, не оголошенням.",
       "to": {
         "lines": 4495
-      },
-      "path": "scripts/run_mutation_tests.py"
+      }
     },
     {
       "from": {
@@ -6884,35 +6892,35 @@
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
       "reason": "Додано поріг атрибуції: інструмент, що лише міряв, тепер виносить вирок за власною головною метрикою. Потреба знайдена пробою живучості — отрута «подія називає не той ключ» проходила з кодом 0, бо судити було нікому. Складність main зведено розбором (вирок винесено у `rule`), лишилось зростання рядків від самої здатності.",
       "to": {
         "lines": 274
-      },
-      "path": "scripts/measure_audit_integrity.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/relink_derived_articles.py",
       "reason": "Розв'язувач двозначності НЕЗАЛЕЖНИМ сигналом: коли текст трапляється в кількох статутах, розрізняє номер статті в назві проти нумерації кандидата. Мовчить при нічиї й на номерах ≤ 9, бо там «ст.N» зазвичай номер частини (виміряно: 11 випадків із 97). Чотири параметри — мінімум, за якого функція не читає нічого сама: назва, кандидати, тексти, проба.",
       "to": {
         "lines": 247
-      },
-      "path": "scripts/relink_derived_articles.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
       "reason": "+22 рядки за M439–M440: здогад при нічиї та довіра до номера частини як до номера статті.",
       "to": {
         "lines": 4655
-      },
-      "path": "scripts/run_mutation_tests.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/run_reference_eval.py",
       "reason": "Повтор на `http_429` і його класифікація як відсутності виміру: контроль допуску відхиляв за навантаженням, а судилося це як вирок. Той самий клас лагодили 30.08 для 5xx і проґавили 429, бо префікс описував КОДИ, а спільним є не код, а те, що розгортання не виносило судження.",
       "to": {
         "lines": 260
-      },
-      "path": "scripts/run_reference_eval.py"
+      }
     },
     {
       "from": {
@@ -7015,51 +7023,51 @@
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/api/dependencies.py",
       "reason": "Поріг релевантності авторитету: клас джерела зараховується лише тому, чия оцінка не нижча за 80 % найкращої. Виміряно, що лексикографія змушувала систему МОВЧАТИ — слабко релевантне офіційне джерело ставало першим і не проходило допуск; утримань 8 → 2, підтверджених 68 → 74, решта осей без руху. Зростання параметрів на одиницю — ціна протягування крізь конвеєр; складність зведена розбором (`authority_tier`, `authority_tier_floor`), не стелею.",
       "to": {
         "lines": 256
-      },
-      "path": "apps/api/src/korpus/api/dependencies.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/calibration.py",
       "reason": "Поріг релевантності авторитету: клас джерела зараховується лише тому, чия оцінка не нижча за 80 % найкращої. Виміряно, що лексикографія змушувала систему МОВЧАТИ — слабко релевантне офіційне джерело ставало першим і не проходило допуск; утримань 8 → 2, підтверджених 68 → 74, решта осей без руху. Зростання параметрів на одиницю — ціна протягування крізь конвеєр; складність зведена розбором (`authority_tier`, `authority_tier_floor`), не стелею.",
       "to": {
         "lines": 195
-      },
-      "path": "apps/api/src/korpus/application/calibration.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/retrieval.py",
       "reason": "Поріг релевантності авторитету: клас джерела зараховується лише тому, чия оцінка не нижча за 80 % найкращої. Виміряно, що лексикографія змушувала систему МОВЧАТИ — слабко релевантне офіційне джерело ставало першим і не проходило допуск; утримань 8 → 2, підтверджених 68 → 74, решта осей без руху. Зростання параметрів на одиницю — ціна протягування крізь конвеєр; складність зведена розбором (`authority_tier`, `authority_tier_floor`), не стелею.",
       "to": {
         "lines": 292
-      },
-      "path": "apps/api/src/korpus/application/retrieval.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/retrieval_execution.py",
       "reason": "Поріг релевантності авторитету: клас джерела зараховується лише тому, чия оцінка не нижча за 80 % найкращої. Виміряно, що лексикографія змушувала систему МОВЧАТИ — слабко релевантне офіційне джерело ставало першим і не проходило допуск; утримань 8 → 2, підтверджених 68 → 74, решта осей без руху. Зростання параметрів на одиницю — ціна протягування крізь конвеєр; складність зведена розбором (`authority_tier`, `authority_tier_floor`), не стелею.",
       "to": {
         "lines": 148
-      },
-      "path": "apps/api/src/korpus/application/retrieval_execution.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/retrieval_hybrid.py",
       "reason": "Поріг релевантності авторитету: клас джерела зараховується лише тому, чия оцінка не нижча за 80 % найкращої. Виміряно, що лексикографія змушувала систему МОВЧАТИ — слабко релевантне офіційне джерело ставало першим і не проходило допуск; утримань 8 → 2, підтверджених 68 → 74, решта осей без руху. Зростання параметрів на одиницю — ціна протягування крізь конвеєр; складність зведена розбором (`authority_tier`, `authority_tier_floor`), не стелею.",
       "to": {
         "lines": 171
-      },
-      "path": "apps/api/src/korpus/application/retrieval_hybrid.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
       "reason": "+20 рядків за M441–M442: авторитет без релевантності та поріг, що тихо став чистою схожістю.",
       "to": {
         "lines": 4675
-      },
-      "path": "scripts/run_mutation_tests.py"
+      }
     },
     {
       "from": {
@@ -7327,27 +7335,27 @@
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/observability.py",
       "reason": "Метрика відставання САМОГО якоря плюс `observe_readiness` — зіставлення полів знімка з метриками винесено з циклу, бо поки воно жило рядками всередині, жоден тест не міг сказати, що воно правильне: мутант на нього виживав.",
       "to": {
         "lines": 207
-      },
-      "path": "apps/api/src/korpus/infrastructure/observability.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "apps/api/src/korpus/infrastructure/repository.py",
       "reason": "Реконсиляція бере ціль із ГОЛОВИ журналу, не з черги: черга глобальна, а доставка є властивістю пари (точка, призначення).",
       "to": {
         "lines": 1141
-      },
-      "path": "apps/api/src/korpus/infrastructure/repository.py"
+      }
     },
     {
       "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
       "reason": "+25 рядків за M454–M455: повернення цілі в спільну чергу та підміна відставання якоря довжиною черги.",
       "to": {
         "lines": 4778
-      },
-      "path": "scripts/run_mutation_tests.py"
+      }
     },
     {
       "from": {
@@ -7482,47 +7490,91 @@
       }
     },
     {
+      "on": "2026-08-31",
+      "path": "scripts/check_answer_axes.py",
+      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
       "to": {
         "lines": 211,
         "max_function_lines": 43
-      },
-      "on": "2026-08-31",
-      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
-      "path": "scripts/check_answer_axes.py"
+      }
     },
     {
+      "on": "2026-08-31",
+      "path": "scripts/measure_audit_integrity.py",
+      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
       "to": {
         "lines": 285,
         "max_function_lines": 93
-      },
-      "on": "2026-08-31",
-      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
-      "path": "scripts/measure_audit_integrity.py"
+      }
     },
     {
+      "on": "2026-08-31",
+      "path": "scripts/measure_corpus_integrity.py",
+      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
       "to": {
         "lines": 206
-      },
-      "on": "2026-08-31",
-      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
-      "path": "scripts/measure_corpus_integrity.py"
+      }
     },
     {
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+95 рядків за M464–M467: кредит звіту про зрушений корпус, звіт від іншого вимірювача, ідентичність без посилань і без змісту прольотів.",
       "to": {
         "lines": 4873
-      },
-      "on": "2026-08-31",
-      "reason": "+95 рядків за M464–M467: кредит звіту про зрушений корпус, звіт від іншого вимірювача, ідентичність без посилань і без змісту прольотів.",
-      "path": "scripts/run_mutation_tests.py"
+      }
     },
     {
+      "on": "2026-08-31",
+      "path": "scripts/validate_derived_source_links.py",
+      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
       "to": {
         "lines": 194,
         "max_function_lines": 71
+      }
+    },
+    {
+      "from": {
+        "lines": 302
       },
       "on": "2026-08-31",
-      "reason": "Звіт носить ідентичність своїх ВХОДІВ — змісту корпусу й самого вимірювача — замість покладатися на вік. Вік це сурогат: він каже, КОЛИ міряли, а питання інше — чи те, що міряли, ще те саме.",
-      "path": "scripts/validate_derived_source_links.py"
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482.",
+      "to": {
+        "lines": 402
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 68
+      },
+      "on": "2026-08-31",
+      "path": "scripts/probe_uncatalogued_mutation.py",
+      "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482.",
+      "to": {
+        "max_function_lines": 93
+      }
+    },
+    {
+      "from": {
+        "lines": 4873
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482.",
+      "to": {
+        "lines": 4902
+      }
+    },
+    {
+      "from": {
+        "lines": 315
+      },
+      "on": "2026-08-31",
+      "path": "scripts/verify_gate_closure.py",
+      "reason": "Третій вхід `check-nightly` і безпека проби мутацій: копія дерева замість редагування на місці, обробник сигналів, замок із перевіркою живості. Мутанти M480–M482.",
+      "to": {
+        "lines": 318
+      }
     }
   ],
   "recorded_at": "2026-08-24",

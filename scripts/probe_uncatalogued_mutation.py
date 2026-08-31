@@ -36,8 +36,12 @@ import json
 import math
 import os
 import random
+import re
+import shutil
+import signal
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,6 +50,23 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = ROOT / "apps/api/src/korpus"
 CATALOGUE = ROOT / "scripts/run_mutation_tests.py"
 LOCK = ROOT / "var/mutation-probe.lock"
+
+#: Типове дерево. Робоче передається ПАРАМЕТРОМ: глобал тут був би прихованим
+#: передаванням стану, а стан цієї програми — саме те, що вона лишає в дереві.
+#:
+#: Дерево, яке проба РЕДАГУЄ. За замовчуванням — окрема копія, і це не обережність,
+#: а виправлення класу дефекту.
+#:
+#: 31.08.2026 прогін було вбито `timeout` (SIGTERM). Обробника сигналу не було, тож
+#: `finally` не виконався, і мутація лишилась у дереві:
+#: `adaptive_contracts.py:92` стояв із `or` замість `and` — ослаблений валідатор, що
+#: приймає нецілі значення, бо `x >= 0` істинне для float. Це те саме дерево, з якого
+#: імпортує ЖИВИЙ API: перезапуск сервера у тому вікні підняв би ослаблену перевірку.
+#: Знайдено випадково, суцільним `ruff format`, а не перевіркою.
+#:
+#: Копія прибирає клас цілком: що б не сталося з процесом, редагується не те дерево,
+#: яке обслуговує читача. `--in-place` лишається для налагодження й попереджає про себе.
+DEFAULT_WORKSPACE = ROOT
 
 COMPARISON_FLIP = {
     ast.Lt: ("<", ">="),
@@ -95,9 +116,9 @@ def uncatalogued_modules() -> list[str]:
     return sorted(modules - catalogued)
 
 
-def seed_module(relative: str) -> list[Seeded]:
+def seed_module(relative: str, workspace: Path) -> list[Seeded]:
     """One mutation per eligible source line, so a line is never sampled twice."""
-    text = (ROOT / relative).read_text(encoding="utf-8")
+    text = (workspace / relative).read_text(encoding="utf-8")
     lines = text.splitlines()
     try:
         tree = ast.parse(text)
@@ -123,8 +144,8 @@ def seed_module(relative: str) -> list[Seeded]:
     return list(seeded.values())
 
 
-def apply(mutant: Seeded) -> str:
-    path = ROOT / mutant.module
+def apply(mutant: Seeded, workspace: Path) -> str:
+    path = workspace / mutant.module
     original = path.read_text(encoding="utf-8")
     lines = original.splitlines(keepends=True)
     lines[mutant.line - 1] = lines[mutant.line - 1].replace(mutant.old, mutant.new, 1)
@@ -132,7 +153,7 @@ def apply(mutant: Seeded) -> str:
     return original
 
 
-def suite_kills(timeout_seconds: float) -> tuple[bool, float]:
+def suite_kills(timeout_seconds: float, workspace: Path) -> tuple[bool, float]:
     started = time.monotonic()
     try:
         completed = subprocess.run(
@@ -147,11 +168,11 @@ def suite_kills(timeout_seconds: float) -> tuple[bool, float]:
                 "-p",
                 "no:cacheprovider",
             ],
-            cwd=ROOT,
+            cwd=workspace,
             capture_output=True,
             text=True,
             timeout=timeout_seconds,
-            env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(ROOT / "apps/api/src")},
+            env={"PATH": "/usr/bin:/bin", "PYTHONPATH": str(workspace / "apps/api/src")},
             check=False,
         )
     except subprocess.TimeoutExpired:
@@ -160,6 +181,32 @@ def suite_kills(timeout_seconds: float) -> tuple[bool, float]:
         # test asserting something.
         return True, time.monotonic() - started
     return completed.returncode != 0, time.monotonic() - started
+
+
+def _lock_pid() -> int | None:
+    try:
+        text = LOCK.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    found = re.search(r"pid=(\d+)", text)
+    return int(found.group(1)) if found else None
+
+
+def _lock_holder_alive() -> bool:
+    """Чи справді хтось тримає замок.
+
+    Замок без цієї перевірки блокує НАЗАВЖДИ після будь-якого аварійного виходу, і
+    саме так виглядав стан 31.08.2026: власник мертвий, замок на місці, наступний
+    прогін відмовляється стартувати без пояснення причини.
+    """
+    pid = _lock_pid()
+    if pid is None:
+        return False
+    try:
+        os.kill(pid, 0)
+    except (OSError, ProcessLookupError):
+        return False
+    return True
 
 
 def source_tree_is_clean() -> bool:
@@ -192,6 +239,12 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=20260829)
     parser.add_argument("--timeout", type=float, default=420.0)
     parser.add_argument("--out", type=Path, default=ROOT / "var/uncatalogued-mutation-probe.json")
+    parser.add_argument(
+        "--in-place",
+        action="store_true",
+        help="мутувати САМЕ ЦЕ дерево, а не копію; лише для налагодження — аварійний "
+        "вихід лишає мутацію в дереві, з якого імпортує живий API",
+    )
     parser.add_argument("--allow-dirty", action="store_true")
     args = parser.parse_args()
 
@@ -201,11 +254,23 @@ def main() -> int:
                 {
                     "status": "REFUSED",
                     "reason": f"another probe holds {LOCK.relative_to(ROOT)}",
+                    "holder_pid": _lock_pid(),
+                    "holder_alive": _lock_holder_alive(),
+                    "orphaned": _lock_pid() is not None and not _lock_holder_alive(),
+                    "note": (
+                        "Осиротілий замок — ПОДІЯ, а не тиша: він означає, що попередній "
+                        "прогін урвався, і дерево могло лишитись мутованим. Перевір "
+                        "`git status` перед тим, як прибирати."
+                    ),
                 }
             )
         )
         return 1
-    if not args.allow_dirty and not source_tree_is_clean():
+    # Вимога чистого дерева була наслідком редагування НА МІСЦІ: аварія лишала мутацію
+    # невідрізненною від чужої правки. З копією ця передумова зникла, і тримати
+    # заборону далі означало б боронити те, чого вже немає, ціною працездатності.
+    # Для `--in-place` вона лишається чинною дослівно.
+    if args.in_place and not args.allow_dirty and not source_tree_is_clean():
         print(
             json.dumps(
                 {
@@ -222,28 +287,63 @@ def main() -> int:
 
     LOCK.parent.mkdir(parents=True, exist_ok=True)
     LOCK.write_text(f"pid={os.getpid()}\n", encoding="utf-8")
+
+    # SIGTERM не підіймає винятку, тож `finally` його не бачить — саме так 31.08.2026
+    # `timeout` лишив мутацію в дереві. Обробник переводить сигнал у виняток, і
+    # відновлення відбувається тим самим шляхом, що й при помилці.
+    def _terminate(signum: int, _frame: object) -> None:
+        raise KeyboardInterrupt(f"signal {signum}")
+
+    for received in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(received, _terminate)
+
+    sandbox: str | None = None
+    workspace = DEFAULT_WORKSPACE
     try:
-        return probe(args)
+        if not args.in_place:
+            sandbox = tempfile.mkdtemp(prefix="korpus-mutation-probe-")
+            workspace = Path(sandbox) / "tree"
+            shutil.copytree(
+                ROOT,
+                workspace,
+                symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    ".git",
+                    "var",
+                    "reports",
+                    "node_modules",
+                    "__pycache__",
+                    ".venv",
+                    ".pytest_cache",
+                    ".mypy_cache",
+                    "dist",
+                ),
+            )
+            # venv не копіюємо — він важкий і не змінюється; посилання на оригінал.
+            (workspace / "apps/api/.venv").symlink_to(ROOT / "apps/api/.venv")
+        return probe(args, workspace)
     finally:
         LOCK.unlink(missing_ok=True)
+        if sandbox is not None:
+            shutil.rmtree(sandbox, ignore_errors=True)
 
 
-def probe(args: argparse.Namespace) -> int:
+def probe(args: argparse.Namespace, workspace: Path) -> int:
     modules = uncatalogued_modules()
     population: list[Seeded] = []
     for module in modules:
-        population.extend(seed_module(module))
+        population.extend(seed_module(module, workspace))
 
     rng = random.Random(args.seed)
     sample = rng.sample(population, min(args.sample, len(population)))
 
     results: list[dict[str, object]] = []
     for index, mutant in enumerate(sample, start=1):
-        original = apply(mutant)
+        original = apply(mutant, workspace)
         try:
-            killed, elapsed = suite_kills(args.timeout)
+            killed, elapsed = suite_kills(args.timeout, workspace)
         finally:
-            (ROOT / mutant.module).write_text(original, encoding="utf-8")
+            (workspace / mutant.module).write_text(original, encoding="utf-8")
         results.append(
             {
                 "module": mutant.module,

@@ -1,0 +1,28 @@
+[Unit]
+# Дороге ЗА ПОБУДОВОЮ, і саме тому воно не бігло ніде.
+#
+# `gate-liveness` мутує самі гейти в копіях дерева, `verify-clean-clone` збирає
+# репозиторій з нуля, `mutation-probe` шукає мутації ПОЗА каталогом випадковою
+# вибіркою (виміряно понад 420 с без стелі), `coverage-ratchet` повторно тягне
+# api-test (235 с). Ставити це перед злиттям означало б зробити злиття неможливим;
+# не ставити нікуди означало б, що воно не виконується взагалі. Третій бюджет часу.
+Description=KORPUS nightly gate lane (expensive by construction)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@KORPUS_ROOT@
+ExecStart=/usr/bin/make -C @KORPUS_ROOT@ check-nightly
+# Стеля часу названа: лан, який може бігти нескінченно, з часом перестає бути ланом.
+TimeoutStartSec=90min
+Nice=10
+CPUAccounting=true
+CPUQuota=200%
+MemoryAccounting=true
+MemoryHigh=4G
+MemoryMax=6G
+TasksMax=512
+OOMPolicy=stop
+NoNewPrivileges=true
+PrivateTmp=true

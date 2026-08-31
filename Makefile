@@ -2,7 +2,7 @@ SHELL := /bin/bash
 PY := apps/api/.venv/bin/python
 PIP := apps/api/.venv/bin/pip
 
-.PHONY: check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
+.PHONY: install-nightly-gates check-nightly check-deployment deployment-debt deployment-debt-selftest public-env-parity public-env-parity-selftest gate-closure gate-closure-selftest public-surface public-surface-selftest subject-precision repair-span-markup fetch-stubs diagnose-retrieval span-hygiene fetch-stubs compare-retrieval remap-reference-versions serve-semantic-local restore-document-types embedding-backfill-sqlite runtime-corpus-manifest refusal-retryability publication-mirrors agent-protocol catalog-uri-uniqueness cache-in-tree evidence-refusal gate-liveness capture-evidence capture-evidence-selftest content-signals remote-digest document-probe deterministic-replay provenance provenance-verify reference-set reference-eval embedding-candidate-screen embedding-backfill corpus-admission gold-annotation-audit runtime-corpus-audit service-objectives corpus-release corpus-release-verify security-scan reproducible-build chaos-matrix ingestion-drill load-probe backup-sqlite restore-sqlite drive-snapshot drive-public serve-public public-tunnel draft-manifest import-corpus review-token audit-export web-contract web-contract-check environment-drift environment-observe requirements-register module-budget file-modes import-cycles release-identity source-manifest-verify retention-plan postgres-suite sqlite-recovery-drill quality-gate handoff-verify handoff-verify-bound openapi audit-closure desired-state supply-chain-inventory kubernetes-validate github-actions-validate infra-validate backup-postgres restore-postgres api-install api-run api-test api-lint web-install web-run web-build bootstrap eval mutation migration-gate scale operational-gate assurance assemble-assurance snapshot audit-verify validate check release infra-secrets infra-up infra-support infra-down package clean production-engineering production-tevv production-observability production-state-contracts production-authorization production-redteam-internal production-redteam-external production-inference-security production-reliability-internal production-reliability production-postgres-security production-exact-environment production-sbom production-supply-chain production-mutation production-assurance production-assurance-verify production-release dependency-locks assurance-model-check standards-control-map slsa-provenance slsa-provenance-verify release-mutation-delta package-build-identity evidence-refresh mutation-probe mutation-report-freshness answer-quality answer-axes corpus-integrity recut-spans coverage-ratchet coverage-union determinism-gate stress-gate plasticity-gate canonical-release-cycle production-hard-predicates military-readiness military-readiness-full
 
 api-install:
 	python3 -m venv apps/api/.venv
@@ -854,6 +854,18 @@ restore-sqlite:
 # Ці два входи НЕ взаємозамінні: зелений `check` нічого не каже про розгортання, а
 # зелений `check-deployment` — про дерево. Плутати їх означає повернутись до «зелено»
 # без означення.
+# Третій вхід: те, що дороге ЗА ПОБУДОВОЮ і тому не належить у прогін перед злиттям.
+# Кожна з цих цілей копіює дерево або переганяє повний набір: `gate-liveness` мутує
+# самі гейти в копіях, `verify-clean-clone` збирає репозиторій з нуля, `mutation-probe`
+# шукає мутації ПОЗА каталогом випадковою вибіркою (виміряно: понад 420 с без стелі),
+# `coverage-ratchet` повторно тягне api-test (235 с).
+#
+# Це не «менш важливе». Це інший БЮДЖЕТ ЧАСУ, і без власного лану воно не бігло ніколи.
+install-nightly-gates:
+	$(PY) scripts/install_nightly_gates.py
+
+check-nightly: gate-liveness mutation-probe verify-clean-clone coverage-ratchet
+
 check-deployment: runtime-corpus-audit corpus-integrity audit-verify deployment-debt
 
 deployment-debt:
@@ -862,7 +874,11 @@ deployment-debt:
 deployment-debt-selftest:
 	$(PY) scripts/check_deployment_debt.py --selftest
 
-check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate web-build
+# Три цілі, які я сам записав у реєстр як «довгі експерименти», не вимірявши їх.
+# Вимір: determinism 6 с, stress 13 с, plasticity 1 с — двадцять секунд разом, і всі
+# рівня ДЕРЕВА (проходять у чистому worktree без runtime-корпусу). Класифікація за
+# рецептом замість заміру дала три хибні записи; реєстр 25 → 22.
+check: validate api-test api-lint eval mutation audit-closure migration-gate scale operational-gate determinism-gate stress-gate plasticity-gate web-build
 
 release: assurance snapshot validate handoff-verify-bound package
 

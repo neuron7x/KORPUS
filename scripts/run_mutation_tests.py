@@ -4545,6 +4545,35 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Проба некаталогізованих мутацій не сміє лишати стану в дереві.
+    Mutant(
+        "M480_THE_PROBE_EDITS_THE_SERVED_TREE_BY_DEFAULT",
+        "scripts/probe_uncatalogued_mutation.py",
+        "        if not args.in_place:",
+        "        if False:",
+        ("apps/api/tests/test_mutation_probe_safety.py::test_the_probe_edits_a_copy_by_default",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M481_A_SIGNAL_BYPASSES_THE_RESTORE_AGAIN",
+        "scripts/probe_uncatalogued_mutation.py",
+        "    for received in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):",
+        "    for received in ():",
+        (
+            "apps/api/tests/test_mutation_probe_safety.py::test_a_signal_does_not_bypass_the_restore",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M482_A_DEAD_HOLDER_STILL_HOLDS_THE_LOCK",
+        "scripts/probe_uncatalogued_mutation.py",
+        "    except (OSError, ProcessLookupError):\n        return False",
+        "    except (OSError, ProcessLookupError):\n        return True",
+        (
+            "apps/api/tests/test_mutation_probe_safety.py::test_an_orphaned_lock_is_reported_as_an_event",
+        ),
+        full_copy=True,
+    ),
 )
 
 

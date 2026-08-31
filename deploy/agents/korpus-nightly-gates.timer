@@ -1,0 +1,15 @@
+[Unit]
+Description=Run the KORPUS nightly gate lane once a day
+
+[Timer]
+# Після нічного виміру якості відповідей (04:15) і до ранку — щоб людина бачила
+# вирок разом із рештою нічних звітів, а не посеред робочого дня.
+OnCalendar=*-*-* 05:10:00
+# Пропущений через вимкнену машину прогін відбувається при вмиканні: нічний лан,
+# який мовчки не відбувся, нічим не відрізняється від зеленого.
+Persistent=true
+AccuracySec=5min
+Unit=korpus-nightly-gates.service
+
+[Install]
+WantedBy=timers.target
