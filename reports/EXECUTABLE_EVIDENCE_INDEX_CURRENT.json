@@ -4,7 +4,7 @@
   "test_python_modules": 338,
   "test_functions_static": 2471,
   "test_file_prefix_modules": 333,
-  "source_tree_sha256": "36ab9011cbe7fda99bd1ac0bf1194200ccf6a4c1cb1264013e7c3b33b7f38c01",
+  "source_tree_sha256": "bf08ff7567b3d5ab5de786973c5e4ae555296ece902c66141952b92b01cc9160",
   "release": "v0.9.7",
   "method": "AST enumeration over current source/test tree"
 }

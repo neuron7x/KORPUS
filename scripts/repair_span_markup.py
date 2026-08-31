@@ -62,7 +62,7 @@ def dirty(text: str) -> bool:
     return bool(ESCAPED_MARKUP.search(text) or CHROME.search(text))
 
 
-def repair(text: str) -> tuple[str, str] | None:
+def repair(text: str) -> tuple[str | None, str]:
     """Полагоджений текст і причина відмови — або None, якщо ремонт не потрібен."""
     cleaned = _strip_html(text).strip()
     if not cleaned or len(cleaned) < MIN_LENGTH:
