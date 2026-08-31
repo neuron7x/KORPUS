@@ -1950,11 +1950,13 @@ MUTANTS = (
         "M207_COMPOSED_OPENING_MAY_ADD_A_WORD",
         "apps/api/src/korpus/application/composition.py",
         "        if missing:\n"
-        '            raise CompositionRefused(f"opening states something the evidence '
-        'does not: {missing[0]!r}")',
+        "            raise CompositionRefused(\n"
+        '                f"opening states something the evidence does not: {missing[0]!r}"\n'
+        "            )",
         "        if False:\n"
-        '            raise CompositionRefused(f"opening states something the evidence '
-        'does not: {missing[0]!r}")',
+        "            raise CompositionRefused(\n"
+        '                f"opening states something the evidence does not: {missing[0]!r}"\n'
+        "            )",
         (
             "apps/api/tests/test_answer_composition.py::"
             "test_an_opening_that_states_something_the_evidence_does_not_is_refused",
