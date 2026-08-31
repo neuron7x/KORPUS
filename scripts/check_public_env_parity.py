@@ -34,6 +34,7 @@ API через `systemctl --user restart`, тобто **ненаглядовий
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -265,6 +266,25 @@ def selftest() -> int:
     return 1 if bad else 0
 
 
+def rendered_unit() -> str:
+    """Юніт у тій самій формі, у якій його ставить інсталятор.
+
+    Шаблон містить `@KORPUS_ROOT@`, і його розгортає `install_public_runtime.render`.
+    Друга підстановка тут була б другою копією правила — рівно тією вадою, проти якої
+    написаний цей модуль. Виміряно відмовою: без розгортання плейсхолдера гейт діставав
+    `sqlite:///@KORPUS_ROOT@/var/...` і SQLite казав «unable to open database file».
+    """
+    spec = importlib.util.spec_from_file_location(
+        "install_public_runtime", ROOT / "scripts/install_public_runtime.py"
+    )
+    if spec is None or spec.loader is None:  # pragma: no cover — інсталятор частиною дерева
+        return UNIT.read_text(encoding="utf-8")
+    installer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(installer)
+    rendered: str = installer.render(UNIT.name)
+    return rendered
+
+
 def export_lines(unit_text: str, home: str) -> list[str]:
     """Оголошення юніта у формі, придатній до споживання оболонкою.
 
@@ -301,7 +321,7 @@ def main() -> int:
     if arguments.selftest:
         return selftest()
     if arguments.export:
-        for line in export_lines(UNIT.read_text(encoding="utf-8"), str(Path.home())):
+        for line in export_lines(rendered_unit(), str(Path.home())):
             print(line)
         return 0
     if arguments.exec:
@@ -310,7 +330,7 @@ def main() -> int:
         # чотири аргументи, і SQLite віддавав «unable to open database file». Оточення
         # передається через процес, тож розщеплення не існує як явище.
         environment = dict(os.environ)
-        for line in export_lines(UNIT.read_text(encoding="utf-8"), str(Path.home())):
+        for line in export_lines(rendered_unit(), str(Path.home())):
             name, _, value = line.partition("=")
             environment[name] = value
         environment.setdefault("PYTHONPATH", str(ROOT / "apps/api/src"))

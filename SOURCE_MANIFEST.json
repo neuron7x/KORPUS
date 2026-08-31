@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1669,
-  "root_sha256": "2e080165a369cc792ea74ff4cf9b4c9b6b39c0b739d5342ff33fb3241e37182d",
+  "root_sha256": "f3de220fd2e55e75a71005778346855d58fab0082ad6d9409d1d5f323b563080",
   "files": [
     {
       "path": ".dockerignore",
@@ -3925,8 +3925,8 @@
     },
     {
       "path": "apps/api/tests/test_public_env_parity.py",
-      "bytes": 7130,
-      "sha256": "7a21cd9f755d1694062dab315264a8e1d6cfd03575c3efad4c33086b39a656ae",
+      "bytes": 8148,
+      "sha256": "15cd1603afbb27c398f233c972846615b85725a36cf94f34b9a20529c1912cb3",
       "mode": "0644"
     },
     {
@@ -8533,8 +8533,8 @@
     },
     {
       "path": "scripts/check_public_env_parity.py",
-      "bytes": 16877,
-      "sha256": "186a4fc11cd86ff6aa7b20019e40270da5306aeccc804c669427d66bbf1e8b3c",
+      "bytes": 17993,
+      "sha256": "b61056813da1eb7a50257e5328ba8e3d9502df6003f2ff14a9356289a86d196e",
       "mode": "0755"
     },
     {

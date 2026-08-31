@@ -143,3 +143,24 @@ def test_the_export_form_is_what_a_shell_can_consume() -> None:
     ring = next(line for line in lines if line.startswith("KORPUS_AUDIT_VERIFICATION_KEY_FILES="))
     assert "%h" not in ring, "домашній каталог не розгорнуто — оболонка отримає літерал"
     assert json.loads(ring.split("=", 1)[1])
+
+
+def test_the_exported_environment_carries_no_placeholders() -> None:
+    """Шаблон юніта містить `@KORPUS_ROOT@`, і його розгортає інсталятор.
+
+    Без цього гейт діставав `sqlite:///@KORPUS_ROOT@/var/...` і SQLite казав «unable to
+    open database file» — виглядало як недоступна база, а було нерозгорнутим
+    плейсхолдером. Підстановка береться в інсталятора, а не робиться вдруге тут.
+    """
+    for line in GATE.export_lines(GATE.rendered_unit(), "/home/x"):
+        assert "@KORPUS_ROOT@" not in line, line
+        assert "%h" not in line, line
+
+
+def test_the_exported_database_path_is_absolute() -> None:
+    line = next(
+        item
+        for item in GATE.export_lines(GATE.rendered_unit(), "/home/x")
+        if item.startswith("KORPUS_DATABASE_URL=")
+    )
+    assert line.split("=", 1)[1].startswith("sqlite:////"), line
