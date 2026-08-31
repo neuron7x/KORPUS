@@ -1,0 +1,50 @@
+{
+  "schema": "korpus.answer-axes.v1",
+  "recorded_at": "2026-08-31",
+  "doctrine": [
+    "Вердикт = НАЙСЛАБША вісь, не середнє. Середнє ховає рівно те, заради чого профіль існує.",
+    "UNMEASURED ніколи не кладеться в підлогу 1.0: вісь без свіжого звіту робить вирок UNKNOWN, а не PASS.",
+    "Бал може зрости ЛИШЕ тому, що впав борг. Знаменники ростуть безкоштовно, тож вісь, яка виросла через більший набір, не є покращенням.",
+    "Ніщо не кредитується, що не верифікується ТУТ: кожна вісь читає власний звіт, і звіт мусить називати набір, на якому виміряний."
+  ],
+  "axes": {
+    "subject": {
+      "report": "var/subject-precision.json",
+      "field": "top1_subject_precision",
+      "floor": 0.75,
+      "why": "Чи відповідь про того, кого спитали. Була 0.000 на 92 предмети."
+    },
+    "boundary_own": {
+      "report": "var/boundary-eval.json",
+      "path": ["in_corpus", "rate"],
+      "floor": 0.9,
+      "why": "Скільки СВОЇХ питань система ще тягне."
+    },
+    "boundary_foreign": {
+      "report": "var/boundary-eval.json",
+      "path": ["out_of_corpus", "rate"],
+      "invert": true,
+      "floor": 0.75,
+      "why": "Скільки ЧУЖИХ вона впускає; тримається разом із попередньою, бо кожна окремо рухається тривіально."
+    },
+    "paraphrase": {
+      "report": "var/paraphrase-eval.json",
+      "path": ["overall", "answered_agreement_share"],
+      "floor": 0.7,
+      "why": "Частка пар, де ОБИДВА формулювання отримали відповідь. Не проста згода: її дає і система, що мовчить завжди."
+    },
+    "reference": {
+      "report": "var/reference-eval-clean.json",
+      "path": ["retrieval_effectiveness", "supported_answer_rate"],
+      "floor": 0.8,
+      "why": "Заморожений еталон дерева."
+    },
+    "mutation": {
+      "report": "reports/MUTATION_REPORT.json",
+      "ratio": ["killed", "valid_mutants"],
+      "floor": 1.0,
+      "why": "Мутанти каталогу. Знаменник авторський — це стеля виміру, не його сила."
+    }
+  },
+  "relaxed": []
+}

@@ -2159,6 +2159,27 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        # Вердикт = найслабша вісь. Середнє ховає рівно те, заради чого профіль існує:
+        # одна провалена вісь при п'ятьох відмінних дає «добре».
+        "M361_VERDICT_TAKES_THE_MEAN_INSTEAD_OF_THE_WEAKEST",
+        "scripts/check_answer_axes.py",
+        '    weakest = min(measured, key=lambda item: item["value"])',
+        '    weakest = max(measured, key=lambda item: item["value"])',
+        (
+            "apps/api/tests/test_answer_axes_composition.py::"
+            "test_the_weakest_axis_is_named_not_just_counted",
+        ),
+    ),
+    Mutant(
+        # Сліпа вісь не є пройденою: вона могла б виявитись найслабшою, а найслабша і є
+        # вироком. Знявши цю гілку, профіль зеленіє від відсутності звіту.
+        "M362_BLIND_AXIS_COUNTS_AS_PASSED",
+        "scripts/check_answer_axes.py",
+        "    if unmeasured:",
+        "    if False:",
+        ("apps/api/tests/test_answer_axes_composition.py::test_a_blind_axis_is_not_a_passed_axis",),
+    ),
+    Mutant(
         "M187_DECLARATION_RECORDED_AS_VERIFIED",
         "apps/api/src/korpus/application/answer_audit.py",
         '                    "verified": False,',

@@ -4713,6 +4713,14 @@
       "max_function_lines": 45,
       "max_function_args": 4,
       "max_nesting": 3
+    },
+    "scripts/check_answer_axes.py": {
+      "lines": 146,
+      "max_complexity": 12,
+      "reason": "Композиційний гейт над шістьма осями відповіді: вердикт = найслабша, UNMEASURED ніколи не в підлозі. Кожна нова вісь — рядок у профілі, а не гілка в коді.",
+      "max_function_lines": 50,
+      "max_function_args": 4,
+      "max_nesting": 3
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
