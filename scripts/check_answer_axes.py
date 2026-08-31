@@ -23,18 +23,61 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from corpus_identity import corpus_identity, identity_digest  # noqa: E402
+
 PROFILE = ROOT / "config/operations/answer-axes.json"
 MIN_REASON = 20
 #: Збережене число має ВІК. Звіт, зроблений колись, кредитує вісь так само впевнено, як
 #: зроблений щойно, і саме так гейт починає боронити стан, якого вже немає. Доба — не
 #: властивість предмета, а межа, за якою число описує інше дерево.
 MAX_REPORT_AGE_HOURS = 24.0
+#: Корпус, який обслуговується. Вік звіту — сурогат: він каже, КОЛИ міряли, а питання
+#: інше — чи те, що міряли, ще те саме. Звіт віком 23 години про корпус, змінений п'ять
+#: хвилин тому, проходив; звіт віком 25 годин про нерухомий корпус відхилявся. Обидві
+#: помилки з одного джерела, і обидві лікуються ідентичністю ВХОДІВ.
+SERVED_CORPUS = ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
+
+
+def stale_input(spec: dict[str, Any], payload: dict[str, Any], root: Path) -> str | None:
+    """Що саме зрушило під звітом — або None, якщо він ще про цей стан.
+
+    Порівнюється ПОКОМПОНЕНТНО, бо «звіт застарів» без причини змушує наступного
+    вгадувати, а зрушений корпус і зрушений вимірювач вимагають різних дій.
+    """
+    recorded = payload.get("inputs")
+    measurer = spec.get("measurer")
+    if not isinstance(recorded, dict) or not measurer:
+        return None
+    script = root / str(measurer)
+    if not script.is_file():
+        return f"вимірювача {measurer} немає в дереві"
+    if hashlib.sha256(script.read_bytes()).hexdigest() != recorded.get("measurer"):
+        return f"вимірювач {measurer} змінився після цього звіту"
+    # Корпус беремо той, який НАЗВАВ САМ ЗВІТ, а не константу: звіт стверджує про
+    # конкретну базу, і питання «чи він ще про той самий стан» стосується саме її.
+    # Константа зробила б перевірку правильною лише для одного розгортання й
+    # неперевірюваною на еталоні.
+    named = payload.get("database")
+    database = Path(str(named)) if named else SERVED_CORPUS
+    if not database.is_absolute():
+        database = root / database
+    if not database.is_file():
+        # Бази, яку звіт описує, більше немає. Це не «свіжо» і не «застаріло» — це
+        # відсутність можливості судити, і вона мусить прийти як UNMEASURED.
+        return f"бази {database}, яку описує звіт, немає"
+    if identity_digest(corpus_identity(database)) != recorded.get("corpus"):
+        return "корпус змінився після цього звіту"
+    return None
 
 
 def report_age_hours(path: Path, payload: dict[str, Any]) -> tuple[float, str]:
@@ -71,6 +114,9 @@ def measure_axis(name: str, spec: dict[str, Any], root: Path) -> dict[str, Any]:
     status = payload.get("status")
     if status in {"UNKNOWN", "ERROR"}:
         return {"axis": name, "state": "UNMEASURED", "reason": f"звіт каже status={status}"}
+    moved = stale_input(spec, payload, root)
+    if moved:
+        return {"axis": name, "state": "UNMEASURED", "reason": moved}
     age, age_source = report_age_hours(report_path, payload)
     ceiling = float(spec.get("max_age_hours", MAX_REPORT_AGE_HOURS))
     if age > ceiling:

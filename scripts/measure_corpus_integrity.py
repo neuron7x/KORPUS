@@ -37,11 +37,16 @@ import argparse
 import json
 import re
 import sqlite3
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from corpus_identity import inputs_digest, report_inputs  # noqa: E402
+
 DEFAULT_DB = ROOT / "var/runtime/corpus-v6-20260807/korpus.db"
 #: Голий домен: схема, хост і, найбільше, скісна. Усе інше — шлях до документа.
 _BARE_DOMAIN = re.compile(r"https?://[^/]+/?$")
@@ -135,6 +140,8 @@ def measure(database: Path, object_root: Path) -> dict[str, Any]:
         "schema": "korpus.corpus-integrity.v1",
         "ran_at": datetime.now(UTC).isoformat(),
         "database": str(database),
+        "inputs": report_inputs(database, Path(__file__).resolve()),
+        "inputs_digest": inputs_digest(report_inputs(database, Path(__file__).resolve())),
         "status": "MEASURED" if versions and spans else "UNKNOWN",
         "citation_traceability": traceability(versions),
         "span_sentence_start": span_quality(spans, sources),

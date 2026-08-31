@@ -4400,6 +4400,50 @@ MUTANTS = (
         ),
     ),
     Mutant(
+        "M464_A_REPORT_ABOUT_A_MOVED_CORPUS_STILL_CREDITS_ITS_AXIS",
+        "scripts/check_answer_axes.py",
+        '    if identity_digest(corpus_identity(database)) != recorded.get("corpus"):',
+        "    if False:",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_a_changed_corpus_is_named_as_the_thing_that_moved",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M465_A_REPORT_MADE_BY_A_DIFFERENT_MEASURER_STILL_COUNTS",
+        "scripts/check_answer_axes.py",
+        '    if hashlib.sha256(script.read_bytes()).hexdigest() != recorded.get("measurer"):',
+        "    if False:",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_a_changed_measurer_is_named_as_the_thing_that_moved",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M466_THE_IDENTITY_IGNORES_THE_LINKS_IT_IS_SUPPOSED_TO_COVER",
+        "scripts/corpus_identity.py",
+        "            \"select coalesce(source_uri, '') from document_versions order by id\"",
+        "            \"select '' from document_versions order by id\"",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_the_identity_moves_when_a_link_changes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M467_THE_IDENTITY_IS_TAKEN_FROM_THE_FILE_NOT_THE_CONTENT",
+        "scripts/corpus_identity.py",
+        '            digest.update(str(text_hash).encode("ascii"))',
+        "            pass",
+        (
+            "apps/api/tests/test_report_input_binding.py::"
+            "test_the_identity_moves_when_a_quote_changes",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M441_AUTHORITY_OUTRANKS_A_SOURCE_IT_DOES_NOT_ANSWER_WITH",
         "apps/api/src/korpus/application/retrieval.py",
         "    return priors[item.version.authority] if item.score >= tier_floor else 0.0",

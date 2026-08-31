@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1669,
-  "root_sha256": "f037833307ca84d02dbc224d917ca365a61dd12ffaf57b6762297062a657b0bb",
+  "file_count": 1671,
+  "root_sha256": "bc2557ac05ff1d1ac4b85b684173604135b126d9c9b1ec9b8923d8fe5d34acc3",
   "files": [
     {
       "path": ".dockerignore",
@@ -793,8 +793,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/adaptive_contracts.py",
-      "bytes": 5021,
-      "sha256": "446d1d92acdd5cad8e66d47c810b8e9ed3ef59887c6d5c28f777701a5f4d14fe",
+      "bytes": 5020,
+      "sha256": "01ea0d2cffea072f55e27a1ac11650ad1d3c2660ce8511d4b884329f46d73299",
       "mode": "0644"
     },
     {
@@ -4092,6 +4092,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_report_input_binding.py",
+      "bytes": 6615,
+      "sha256": "ccc9150493a860ad512a6754897bf0cfed6cf58a5e5b0af4fa2a042736a18c2a",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_repository_access_refusals.py",
       "bytes": 11784,
       "sha256": "7496d078fd680c32edf2dcebe747a63038de45cbd414ca9fd58038fdae692ff5",
@@ -6763,8 +6769,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 24048,
-      "sha256": "1e3c970e3cbfa60971ea31e33b050c435a4c1b4e4b6d4e3c8ce09ad80c77495c",
+      "bytes": 24704,
+      "sha256": "74f26e3444e13d0dec645c2f0def4c44676e8cee895514d453824722ebf59882",
       "mode": "0644"
     },
     {
@@ -6811,8 +6817,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 366399,
-      "sha256": "2ba1d46b96b1a553a21eef36929202994c5dadba0ca98f65b6cf1c6700168a65",
+      "bytes": 370332,
+      "sha256": "37691e448f1f54fb662f92b51be0562f25a7278931276a4fd45fdf0542aae1a9",
       "mode": "0644"
     },
     {
@@ -8473,8 +8479,8 @@
     },
     {
       "path": "scripts/check_answer_axes.py",
-      "bytes": 10496,
-      "sha256": "d88df8aa588435d9013b7f641929c33b4162c343e73b506fcd5a279768863e27",
+      "bytes": 13597,
+      "sha256": "481b1e8a1fb3cc2d222a83567ec1eb2569314197aaa45b625b782049e4383a55",
       "mode": "0755"
     },
     {
@@ -8559,6 +8565,12 @@
       "path": "scripts/conversation_retention.py",
       "bytes": 5673,
       "sha256": "b64cc7a00bac813c75b2367fafddb4d4528be1ae79e278ab985a9a9c47946e17",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/corpus_identity.py",
+      "bytes": 5286,
+      "sha256": "c382af27742559f5a517d6e1e927986dd2e3c02b70a80f922e944bc31ef67011",
       "mode": "0755"
     },
     {
@@ -9037,14 +9049,14 @@
     },
     {
       "path": "scripts/measure_audit_integrity.py",
-      "bytes": 16393,
-      "sha256": "5128c7fe16e687cd84687e770364d7f933dc89e5df5c3948082a9f75edc4b070",
+      "bytes": 17178,
+      "sha256": "7b190b9e461ba3ded0b0f549bfcea10c0ea3d17b236d5809b7819be20e3a13e7",
       "mode": "0755"
     },
     {
       "path": "scripts/measure_corpus_integrity.py",
-      "bytes": 12481,
-      "sha256": "db1a3fc1fc06191994f985f2930de466aa87d8de623900d51853f1d16d44d695",
+      "bytes": 12782,
+      "sha256": "5679f89b32f93074c71f5bf4614d2df4718d74c6ac09ec17fa1ce4fb58749f89",
       "mode": "0755"
     },
     {
@@ -9511,8 +9523,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 218512,
-      "sha256": "92f84fd2c2acdb28060d6a6fc29d6d9edbeb214de59f0dfc06fca4951e2eed2c",
+      "bytes": 220196,
+      "sha256": "6bf96a686bd5924f76306f32953c4e219f17e132e4ac3afa0a95e2520d6940ab",
       "mode": "0755"
     },
     {
@@ -9775,8 +9787,8 @@
     },
     {
       "path": "scripts/validate_derived_source_links.py",
-      "bytes": 11832,
-      "sha256": "5b8896952bf100e59991e51419274bf4ed10db2913127977bb8185fde4366969",
+      "bytes": 12133,
+      "sha256": "f283c97791925c0a68ef83d37e794bc975cb5f3b7f960986d8a8c3893393a7e8",
       "mode": "0755"
     },
     {

@@ -50,7 +50,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/api/src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from corpus_identity import inputs_digest, report_inputs  # noqa: E402
 from korpus.infrastructure.audit_canonical import audit_canonical  # noqa: E402
 
 LEGACY_KEY_ID = "legacy-unversioned"
@@ -302,6 +304,15 @@ def main() -> int:
             "schema": "korpus.audit-integrity.v1",
             "ran_at": datetime.now(UTC).isoformat(),
             "database": str(args.database),
+            # Ключі входять у входи звіту ІМЕНАМИ, не матеріалом: змінився набір ключів —
+            # змінилась і атрибуція, тож старе число більше не про цей стан. Матеріал у
+            # звіт не потрапляє ніколи.
+            "inputs": report_inputs(
+                args.database, Path(__file__).resolve(), keys="|".join(sorted(keys))
+            ),
+            "inputs_digest": inputs_digest(
+                report_inputs(args.database, Path(__file__).resolve(), keys="|".join(sorted(keys)))
+            ),
             "keys_offered": sorted(keys),
             "weak_keys": weak,
             "head_matches_last_event": bool(
