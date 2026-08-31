@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1675,
-  "root_sha256": "7719a1f40783cb9c6106b0737cb6780fe1a9f0895b0ac811ab592914fb8c3883",
+  "root_sha256": "86d0a128cc4c21f16a0d0a95ccb9cd41f523fdcba02a21f3765b9a6c064586d9",
   "files": [
     {
       "path": ".dockerignore",
@@ -6811,8 +6811,8 @@
     },
     {
       "path": "config/operations/gate-closure.json",
-      "bytes": 8101,
-      "sha256": "c3e15c41388221e51beec4315dd4deee9b236b3256bf6161301f832a8d597438",
+      "bytes": 8537,
+      "sha256": "4dd87e2d55c7f7211b490bb21a74bedbbf132bb2785d3e479766bd9a99e2e0a4",
       "mode": "0644"
     },
     {
