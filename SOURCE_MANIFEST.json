@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1661,
-  "root_sha256": "a017efc7dfaa0aee1864939f44773d740ed7f280dd4b1d43dfba32e995cc69cc",
+  "root_sha256": "586ef46d481438786b0d7e0b4546cf435835a1564667e52a8fc3b1c380b61b63",
   "files": [
     {
       "path": ".dockerignore",
@@ -2947,8 +2947,8 @@
     },
     {
       "path": "apps/api/tests/test_derived_source_links.py",
-      "bytes": 4926,
-      "sha256": "010345425489741ccc55a1b0c93969d10f2fbd79496f0ac652e4225e3bcb2735",
+      "bytes": 7259,
+      "sha256": "c638c98ff93636a2d4cf76c61fa9ddbcd8a25428dc66bb23743e5cf078340dbb",
       "mode": "0644"
     },
     {
@@ -6745,8 +6745,8 @@
     },
     {
       "path": "config/operations/answer-axes.json",
-      "bytes": 18223,
-      "sha256": "7cd5a2a9d6d61dfeb2101e8562bd3ea4fca23055b83d56cc824b3d16eb8a2e7d",
+      "bytes": 19308,
+      "sha256": "2c15fb2c64ae2ff79616d15f8bbbfb741c68a9921a5b09c4f43f4937cea0f659",
       "mode": "0644"
     },
     {
@@ -6781,8 +6781,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 334935,
-      "sha256": "3f5dd404ff1f98d3572df47e859fa96ea70eddd49f4b52101cdfa5bc2dd1db42",
+      "bytes": 335802,
+      "sha256": "27bde3222f8f235eaab1f974229c57264512e53d2c0843e987467bfcb554d7cd",
       "mode": "0644"
     },
     {
@@ -9313,8 +9313,8 @@
     },
     {
       "path": "scripts/relink_derived_articles.py",
-      "bytes": 14914,
-      "sha256": "3c22f5ce6d91f2b7cd2fb2ff3be0ba6fe75617a03ceb23ffe6ffdc97e5e430a7",
+      "bytes": 17497,
+      "sha256": "8575369c53ee4ccdc58a1392628693bc224e12f92be664d495f0dfbbe48fb590",
       "mode": "0755"
     },
     {
@@ -9469,8 +9469,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 209638,
-      "sha256": "51baf8d663ddfa49613f888c45f8fb334fc12d775f914e29d56f8c4074c61df2",
+      "bytes": 210494,
+      "sha256": "029187001077b586a4d3ccfb760d914ff82d93df904ad6e5707f12c8d88d721d",
       "mode": "0755"
     },
     {
@@ -9553,8 +9553,8 @@
     },
     {
       "path": "scripts/run_reference_eval.py",
-      "bytes": 10797,
-      "sha256": "f568d387f7c3157491b661683306beac73033d0e27c4fbef6ce22d9584e75edd",
+      "bytes": 12506,
+      "sha256": "4a460be0a10ae3512798085259c4d589a114ad4fb2ac35409d189c95db7f74b1",
       "mode": "0755"
     },
     {

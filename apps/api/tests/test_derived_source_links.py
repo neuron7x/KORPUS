@@ -20,7 +20,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from relink_derived_articles import resolve  # noqa: E402
+from relink_derived_articles import disambiguate, resolve  # noqa: E402
 from validate_derived_source_links import confirm  # noqa: E402
 
 GUARD = (
@@ -90,3 +90,42 @@ def test_a_head_no_statute_carries_is_left_alone() -> None:
 
     assert links == []
     assert skipped["not_found"] == 1
+
+
+# ── Двозначність, яку входження розв'язати не може, бо воно вже сказало все, що могло.
+# «Начальник служби пожежної безпеки… (ст.195)» дослівно є І в 548-14, І в 550-14. Але в
+# першому текст стоїть під статтею 195, у другому — під 21, і номер у назві збігається
+# рівно з одним. Це вимір ІНШОЇ властивості, а не глибше вдивляння в ту саму.
+
+BOTH = {
+    "внутрішньої": "195. Начальник служби пожежної безпеки. " + GUARD,
+    "гарнізонної": "21. Інша стаття зовсім. " + GUARD,
+}
+
+
+def test_the_article_number_settles_what_containment_cannot() -> None:
+    settled = disambiguate("Обов'язки: Хтось (Статут, ст.195)", list(BOTH), BOTH, GUARD[:60])
+
+    assert settled == "внутрішньої"
+
+
+def test_a_number_matching_two_candidates_is_left_unsettled() -> None:
+    """Розв'язувач, який вгадує при нічиї, гірший за той, що відмовляється."""
+    tie = {name: "195. Заголовок. " + GUARD for name in BOTH}
+
+    assert disambiguate("Обов'язки: Хтось (Статут, ст.195)", list(tie), tie, GUARD[:60]) is None
+
+
+def test_a_number_matching_nobody_is_left_unsettled() -> None:
+    assert disambiguate("Обов'язки: Хтось (Статут, ст.777)", list(BOTH), BOTH, GUARD[:60]) is None
+
+
+def test_a_small_number_is_not_trusted_because_it_is_usually_a_part_index() -> None:
+    """Виміряно на 97 прив'язках: «ст.N» — номер статті у 86, номер ЧАСТИНИ в 11.
+
+    Усі одинадцять мають N ≤ 3 або форму «11-1» — «(Статут, ст.1)» лежало під
+    «{Стаття 112 із змінами} - 1 .». На таких номерах розв'язувач мовчить, а не вгадує.
+    """
+    small = {"a": "2. Заголовок. " + GUARD, "b": "9. Інший. " + GUARD}
+
+    assert disambiguate("Обов'язки: Хтось (Статут, ст.2)", list(small), small, GUARD[:60]) is None
