@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1635,
-  "root_sha256": "afee84e5f1f083b7dc98503a5bb6dd12ab33a0285e3959b3c114e1b551d1e37f",
+  "file_count": 1641,
+  "root_sha256": "d77d72bc124eeeae38b234b21dc8dbfceb73b3e82de40e1ae2e9b6c65e093475",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 40423,
-      "sha256": "2d3b6203b1c37da7faf2f7b58dd9e6981837d8ea59d575067066aec3924677e7",
+      "bytes": 40510,
+      "sha256": "f49e2ca43bec903147edd6205253462cab85806666dc4323b16b7045fad2a7f0",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 61979,
-      "sha256": "4a93dff7a7f27db68eee61f485e13c1df683288b1336acca8a4f2069b7b49664",
+      "bytes": 62701,
+      "sha256": "85506b1d98f607f93d607d580a4843a50692aea431b5ca602a185201009c64f0",
       "mode": "0644"
     },
     {
@@ -817,8 +817,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/answer_analysis.py",
-      "bytes": 6431,
-      "sha256": "12c7d4aa8adceb8fc69785a7edab56bd8618ea1f18d73adfe21e87dbf3b5e8ad",
+      "bytes": 6846,
+      "sha256": "5accd243a7f995a1e3f6f2fb1f0157399ef03e37bedd11ea0c98a9f720aebde5",
       "mode": "0644"
     },
     {
@@ -1633,8 +1633,8 @@
     },
     {
       "path": "apps/api/src/korpus/application/retrieval_math.py",
-      "bytes": 11903,
-      "sha256": "aa86c365e726e66a59a75aa34daf4e75c4bb9e5c7353be16e5dca25c6689566b",
+      "bytes": 15379,
+      "sha256": "f3b6c1910543d1a1fd2a8628fdf6a42196fb0c9f02231a99d1c5b2c4417a41f7",
       "mode": "0644"
     },
     {
@@ -4422,6 +4422,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_transliteration_aliases.py",
+      "bytes": 3362,
+      "sha256": "3353855dee8a150bfa4ed39863e25008868c28fa1427b28af1301134c8a393c5",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_tuning.py",
       "bytes": 3018,
       "sha256": "2786d3f3a1709842052b5faa7c6692f74ee7489f08b34aa695a4ae511a6f19b8",
@@ -6690,6 +6696,12 @@
       "mode": "0644"
     },
     {
+      "path": "config/corpus/transliteration.json",
+      "bytes": 2710,
+      "sha256": "c1d531f4773913fb7aea93248d7ffacf7db7771a4fa9368b9901ba45d489f114",
+      "mode": "0644"
+    },
+    {
       "path": "config/governance/ai-risk-profile-v1.json",
       "bytes": 5600,
       "sha256": "2801fb289bcc107ffb4a2cc0312580f82557013a983344e1ee366ac14977407e",
@@ -6728,7 +6740,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "8f1578588ae48fc235a25c77ad23bd5f1f0bcbb886bf89098f692f3b9baca4ef",
+      "sha256": "01cf91943c32a428b42a6a8fb6dcf9a29c7daa2dc29b5450ac672245df0c5a9d",
       "mode": "0644"
     },
     {
@@ -6739,8 +6751,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 307547,
-      "sha256": "831869e4a0d0db5f1c732524b381b21f1543abd5f7e1c5af21c7ffaddf28bf7d",
+      "bytes": 312257,
+      "sha256": "fc1d6249ae80210665351dbcb6831472622c51a78811d3e6e7eee18cb2c5ba40",
       "mode": "0644"
     },
     {
@@ -7626,6 +7638,18 @@
       "mode": "0644"
     },
     {
+      "path": "evals/datasets/paraphrase_stability.jsonl",
+      "bytes": 2857,
+      "sha256": "76c17e25b6e0a8898d08722964900c0ea533ffe4156e56bf6ab397f6c7433b7a",
+      "mode": "0644"
+    },
+    {
+      "path": "evals/datasets/paraphrase_stability.meta.json",
+      "bytes": 1546,
+      "sha256": "17868caac97ff26f334fdc62ce54e672d1a7062bbe858bcf684189d9bb96b006",
+      "mode": "0644"
+    },
+    {
       "path": "evals/datasets/pec/pec_eval.jsonl",
       "bytes": 73910,
       "sha256": "e48bb48871f9a96f15d9ced0fca016e6144ebc1bd3d5abe7da9b0e79735e020f",
@@ -8403,6 +8427,12 @@
       "path": "scripts/check_release_identity.py",
       "bytes": 3832,
       "sha256": "7c184b999e7210868ce72da5c9faf84b4529ecc0163f0807935c979c10b953ca",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/check_transliteration_table.py",
+      "bytes": 5783,
+      "sha256": "64cf32d503b0ff47a2aa62ba3044479b1dac66f44e2767b3d6507ea5d4df495d",
       "mode": "0755"
     },
     {
@@ -9331,14 +9361,20 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 196916,
-      "sha256": "467e40f6b559e05f1c026ec7da0b6bca9c6f0ae653bee0a969e366093c76a02f",
+      "bytes": 198223,
+      "sha256": "1b9afd36c2dcb3d8360abc2ab1af93660fca87ad73bc9cf53f29613043454c25",
       "mode": "0755"
     },
     {
       "path": "scripts/run_operational_gate.py",
       "bytes": 1558,
       "sha256": "c7ae8c840489e5695d318285fa7f0f165ed09c6f89ab4fd95bd14ac068e8649e",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/run_paraphrase_eval.py",
+      "bytes": 7760,
+      "sha256": "775c303191afb956f10654b2f9f65a290fa1d8f3fa5dbe9c22d64c34e9f18e62",
       "mode": "0755"
     },
     {
