@@ -678,6 +678,48 @@ const contrast = (a, b) => {
     }
   }
   console.log(`contrast validated for ${surfaces.length} surfaces`);
+
+  // ZBIM: субстрат — нульовий вузол, а не «дуже темний фон».
+  //
+  // `--bg` був `#010101`: відносна яскравість 0.000304, тобто НЕ нуль. Різниця
+  // непомітна оку й помітна контракту — субстрат або є абсолютним нулем sRGB, або є
+  // просто ще однією поверхнею, і тоді вся ієрархія втрачає нижній якір.
+  //
+  // Це твердження про СИГНАЛ, не про яскравість: скільки cd/m² видасть конкретний
+  // дисплей, звідси не випливає й тут не заявляється. Фізичний чорний залежить від
+  // панелі, tone mapping і освітлення кімнати; CSS керує лише кодом.
+  const substrate = token("bg");
+  if (substrate?.toLowerCase() !== "#000000") {
+    throw new Error(
+      `zero-black: substrate --bg is ${substrate}, not #000000 — ` +
+      "the zero node of the palette must be the sRGB zero itself",
+    );
+  }
+
+  // Ненавмисне освітлення субстрату. Градієнт, прозорість чи фільтр на `html`/`body`
+  // піднімають нуль, і жодна перевірка токенів цього не побачить: токен лишається
+  // чорним, а екран — ні. Тут стояв `radial-gradient` на rgba(217,255,104,.055).
+  const consumer = await read("design/consumer.css");
+  // Група 3, не 1. Перша версія брала `body` з деструктуризації — а це група `(^|})`,
+  // тобто порожній рядок: правило не могло почервоніти НІКОЛИ. Спіймано власним
+  // негативним контролем, не читанням; сам гейт про сліпоту гейтів був сліпий.
+  for (const match of consumer.matchAll(/(^|\})\s*(html|body)\s*\{([^}]*)\}/gm)) {
+    const rule = match[3] ?? "";
+    for (const [property, pattern] of [
+      ["gradient", /gradient\(/],
+      ["opacity", /(^|;)\s*opacity\s*:/],
+      ["filter", /(^|;)\s*(backdrop-)?filter\s*:/],
+      ["blend", /mix-blend-mode\s*:/],
+    ]) {
+      if (pattern.test(rule)) {
+        throw new Error(
+          `zero-black: the substrate rule carries ${property} — ` +
+          "the zero node must not be lit by accident",
+        );
+      }
+    }
+  }
+  console.log("zero-black substrate validated: #000000, unlit");
 }
 
 console.log(`accessibility validation passed for ${PAGES.length} pages`);

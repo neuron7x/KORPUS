@@ -132,27 +132,6 @@ export KORPUS_MAX_CONCURRENT_ANSWERS="${KORPUS_MAX_CONCURRENT_ANSWERS:-4}"
 export KORPUS_MODEL_EGRESS_POSTURE="${KORPUS_MODEL_EGRESS_POSTURE:-local_only}"
 export PYTHONPATH="$ROOT/apps/api/src"
 
-# Оточення API — ОДНЕ, і воно тут. Юніт systemd тримав власну копію з п'ятнадцяти
-# рядків `Environment=`, і саме він працює автоматично: сторож відновлює API через
-# `systemctl --user restart korpus-public-api.service`, а не через цей скрипт. Виміряно
-# 31.08.2026 — сторож підняв API о 21:34, і в живому процесі не було ні
-# `KORPUS_MODEL_EGRESS_POSTURE`, ні ключа аудиту: посада лишилась `external_allowed`, а
-# журнал підписувався плейсхолдером `replace-local-audit-key` із config.py. Дві копії
-# однієї властивості розійшлись рівно там, де ніхто не дивився — на НЕНАГЛЯДОВОМУ шляху.
-#
-# Файл — це ПРОЄКЦІЯ цього процесу, а не другий список: беремо те, що справді
-# експортовано. Третій список був би тією самою вадою під іншим ім'ям.
-{
-  printf '# Згенеровано scripts/serve_public.sh — не редагувати вручну.\n'
-  while IFS= read -r name; do
-    [[ "$name" == "KORPUS_JWT_SECRET" ]] && continue   # у юніт іде _FILE, не значення
-    printf '%s="%s"\n' "$name" "${!name}"
-  done < <(compgen -v | grep '^KORPUS_' | sort)
-  printf 'KORPUS_JWT_SECRET_FILE="%s"\n' "$SECRET_DIR/jwt-secret.txt"
-  printf 'PYTHONPATH="%s"\n' "$ROOT/apps/api/src"
-} > "$SECRET_DIR/api.env"
-chmod 600 "$SECRET_DIR/api.env"
-
 # 24h, the policy ceiling. Re-run this script to rotate; the visitor notices nothing
 # because the token lives in the edge, not in their browser.
 TOKEN="$("$PY" scripts/mint_review_token.py \

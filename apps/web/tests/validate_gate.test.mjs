@@ -568,3 +568,30 @@ test("dropping HSTS from a header-carrying location is caught", async () => {
   assert.notEqual(status, 0);
   assert.match(output, /does not repeat Strict-Transport-Security|no HSTS policy/);
 });
+
+test("a substrate that is not the sRGB zero is caught", async () => {
+  // `--bg` був `#010101`: Y = 0.000304, тобто НЕ нуль. Різниця непомітна оку й
+  // помітна контракту — субстрат або є нульовим вузлом, або є ще однією поверхнею,
+  // і тоді вся ієрархія лишається без нижнього якоря.
+  // Труїться і джерело, і згенероване: інакше першою червоніє перевірка дрейфу
+  // токенів, і проба питає не те, що збиралась.
+  // `edit` асинхронна: без await проба труїть копію ВЖЕ ПІСЛЯ запуску валідатора,
+  // і контроль мовчки перевіряє чисте дерево під виглядом зіпсованого.
+  const {status, output} = await runWith(async edit => {
+    await edit("design/tokens.json", source => source.replace('"#000000"', '"#010101"'));
+    await edit("public/tokens.css", source => source.replace("--bg: #000000;", "--bg: #010101;"));
+  });
+  assert.notEqual(status, 0);
+  assert.match(output, /zero-black: substrate/);
+});
+
+test("lighting the substrate by accident is caught", async () => {
+  // Токен лишається чорним, а екран — ні: градієнт на `body` піднімає нуль, і жодна
+  // перевірка токенів цього не бачить.
+  const {status, output} = await runWith(edit =>
+    edit("design/consumer.css", source =>
+      source.replace("  background: var(--bg);\n",
+        "  background: radial-gradient(circle at 84% -10%, rgba(217,255,104,.055), transparent 28rem), var(--bg);\n")));
+  assert.notEqual(status, 0);
+  assert.match(output, /zero-black: the substrate rule carries gradient/);
+});

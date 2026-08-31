@@ -4416,6 +4416,35 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Паритет двох оголошень оточення. Отрути по ПРАВИЛУ, не по переліку змінних.
+    Mutant(
+        "M450_A_VARIABLE_MISSING_FROM_THE_UNIT_IS_TOLERATED",
+        "scripts/check_public_env_parity.py",
+        "    missing_in_unit = sorted(normalised_shell - unit_names)",
+        "    missing_in_unit: list[str] = []",
+        (
+            "apps/api/tests/test_public_env_parity.py::test_a_variable_the_script_declares_and_the_unit_lacks_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M451_A_DRIFTED_SAFETY_VALUE_IS_TOLERATED",
+        "scripts/check_public_env_parity.py",
+        "        if unit.get(name) != expected or shell.get(name) != expected",
+        "        if False",
+        ("apps/api/tests/test_public_env_parity.py::test_a_safety_value_that_drifts_is_refused",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M452_A_SECRET_BY_VALUE_IN_THE_UNIT_IS_TOLERATED",
+        "scripts/check_public_env_parity.py",
+        '    leaked = sorted(name for name in unit if name.endswith("_SECRET"))',
+        "    leaked: list[str] = []",
+        (
+            "apps/api/tests/test_public_env_parity.py::test_a_secret_by_value_in_the_unit_is_refused",
+        ),
+        full_copy=True,
+    ),
 )
 
 

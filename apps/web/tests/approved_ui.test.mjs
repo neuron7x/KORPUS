@@ -13,7 +13,11 @@ test("approved truth surface is integrated into the real consumer shell", async(
 });
 test("approved palette and reduced motion are delivery contracts", async()=>{
   const tokens=await read("public/tokens.css"); const css=await read("public/styles.css");
-  assert.match(tokens,/--bg: #010101;/); assert.match(tokens,/--accent: #c75550;/);
+  // Субстрат — рівно нуль sRGB, не «майже нуль». `#010101` має Y = 0.000304, тобто
+  // не є нульовим вузлом; різниця непомітна оку й вирішальна для контракту, бо на
+  // цьому якорі стоїть уся ієрархія поверхонь. Це твердження про СИГНАЛ: скільки
+  // cd/m² видасть панель, звідси не випливає.
+  assert.match(tokens,/--bg: #000000;/); assert.match(tokens,/--accent: #c75550;/);
   assert.match(tokens,/--radius: 14px;/); assert.doesNotMatch(tokens,/undefined/);
   assert.match(css,/font-size:18px/); assert.match(css,/max-width:68ch/);
   assert.match(css,/prefers-reduced-motion:reduce/); assert.match(css,/\.quick-action\{min-height:var\(--target-min\)/);

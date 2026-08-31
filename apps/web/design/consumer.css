@@ -5,9 +5,11 @@ html { scroll-behavior: smooth; background: var(--bg); }
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 84% -10%, rgba(217,255,104,.055), transparent 28rem),
-    var(--bg);
+  /* Субстрат — рівно `var(--bg)`, без нічого поверх. Тут стояв radial-gradient
+     на rgba(217,255,104,.055): 5,5 % світла по чверті екрана, тобто ненавмисне
+     освітлення нульового вузла. Ієрархія будується ВІД чорного вгору поверхнями,
+     а не підсвічуванням самого чорного. */
+  background: var(--bg);
   color: var(--text);
   font: 400 16px/1.55 var(--font);
   -webkit-font-smoothing: antialiased;
@@ -674,7 +676,9 @@ h1 {
 }
 
 /* KORPUS v6.8.2 — approved consumer surface / abyss + evidence-red. */
-body{background:#010101;color:var(--text)}
+/* Друга копія субстрату жила тут вписаним #010101 — і розійшлася б із токеном
+   при першій же зміні. Одна властивість — одне джерело. */
+body{background:var(--bg);color:var(--text)}
 ::selection{background:rgba(199,85,80,.30);color:#fff}
 .topbar{background:rgba(3,3,3,.94);border-color:var(--line);backdrop-filter:blur(14px);height:var(--topbar-height)}
 .system-signal i,.composer-foot i{background:var(--accent);box-shadow:0 0 0 4px rgba(199,85,80,.07)}

@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1664,
-  "root_sha256": "1e673fcd17e8e5fbe15f446711a3fc3fea9fe930de43bb1cc268fbd44fd03e57",
+  "file_count": 1666,
+  "root_sha256": "cc65dcea404257737806c3775624ce4d5ca62f71d372d63b76da008c0d7f0db7",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 40948,
-      "sha256": "213007752e396029a6c0d9923dac38c4655b622e45488c9c628bc34c86a6538a",
+      "bytes": 41277,
+      "sha256": "4b7085010222cfd76ba1c1017c9bcc308b72ccf098d2f1b724a5779ac1285592",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 66935,
-      "sha256": "5778951ed0aa7ba95da577ad9d66d8de5663cc9bb46ed7ccb754773fff4ac0c7",
+      "bytes": 67530,
+      "sha256": "abf878737038852ecb6c8d316a16b12175c9a4d9e3684df364414256421169c3",
       "mode": "0644"
     },
     {
@@ -3918,6 +3918,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_public_env_parity.py",
+      "bytes": 5443,
+      "sha256": "d1270dda4aff2fe80882b781a13cfbd74a224ee095bf1e09e3981594e103725f",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_public_health_controller.py",
       "bytes": 5596,
       "sha256": "3912b9d7b1b8cd6870d4bfa57968a6d77f20c2d1b176bcc919547960026df566",
@@ -3925,8 +3931,8 @@
     },
     {
       "path": "apps/api/tests/test_public_runtime_units.py",
-      "bytes": 1802,
-      "sha256": "62345a27a254d5b386f08c118d1e2b7793ec5e788832508a1821a17809539210",
+      "bytes": 2526,
+      "sha256": "4ad87a2639364e324b2c3dc7964f8bb3c13b400a1c9152272e3f680fdf95d5cc",
       "mode": "0644"
     },
     {
@@ -4567,8 +4573,8 @@
     },
     {
       "path": "apps/web/design/consumer.css",
-      "bytes": 44466,
-      "sha256": "13d84839fa3bf9005b9608e197e3fd26bb95854e7df8d64091fdcd82dccf3d81",
+      "bytes": 45077,
+      "sha256": "01e8723b41492bbb08dd62bf5db012371a6a746a473dfbdb3a28d8c817ce09c1",
       "mode": "0644"
     },
     {
@@ -4586,7 +4592,7 @@
     {
       "path": "apps/web/design/tokens.json",
       "bytes": 12037,
-      "sha256": "f7270ba93d163d1874578a8c453efd8b4487f5a4c7330e550cafc2972e578474",
+      "sha256": "d9d09c251ec07bb1cc9784b9d36817b98393fdd8420908de211a82654db96d6a",
       "mode": "0644"
     },
     {
@@ -4813,8 +4819,8 @@
     },
     {
       "path": "apps/web/public/styles.css",
-      "bytes": 38897,
-      "sha256": "9ebf98a0d9e90c5aac67e4fbbc176721aa6c1b0155ec2562c43d278b953d094c",
+      "bytes": 38822,
+      "sha256": "094a46e53b9c4b65eec46558a5c747fe7b5b7e97128491b5dc1fad20285af923",
       "mode": "0644"
     },
     {
@@ -4826,7 +4832,7 @@
     {
       "path": "apps/web/public/tokens.css",
       "bytes": 1109,
-      "sha256": "613bcce32fe830407be8ccb03d1228040c761dc59671d10bb1fbeec1c9c39f45",
+      "sha256": "c684add33ad1f3f85ef40f7143cee91d392626a6e085438c37c2fcfefc4e5dc5",
       "mode": "0644"
     },
     {
@@ -4861,8 +4867,8 @@
     },
     {
       "path": "apps/web/scripts/browser_e2e.mjs",
-      "bytes": 32276,
-      "sha256": "a07d689a7b44cef3211ec9492e6e4fc96ff0aa6dacee6cdc489876aff9d1d014",
+      "bytes": 34731,
+      "sha256": "85d60387372196113d1e73a3824e7ec5bf4eb25a96987962a034e200e5eedc60",
       "mode": "0644"
     },
     {
@@ -4903,8 +4909,8 @@
     },
     {
       "path": "apps/web/scripts/validate.mjs",
-      "bytes": 41380,
-      "sha256": "1da591e3e76894aeb826f7bf56442aef95b020846a01824432145b7657bb63c1",
+      "bytes": 44027,
+      "sha256": "129f6d538258b6dc4ffdef162eddcdc189a0b5951721ddd11a16123839f60fa9",
       "mode": "0644"
     },
     {
@@ -4915,8 +4921,8 @@
     },
     {
       "path": "apps/web/tests/approved_ui.test.mjs",
-      "bytes": 7790,
-      "sha256": "0289bcaac0b41e6a026a0118701c1c9d70c2de9a98317972005a8e5ea7f69db0",
+      "bytes": 8283,
+      "sha256": "f41275baa8e2940fd9fbf569399d7ffc86b930ca835b48eea16c404ed3d4371e",
       "mode": "0644"
     },
     {
@@ -4969,8 +4975,8 @@
     },
     {
       "path": "apps/web/tests/validate_gate.test.mjs",
-      "bytes": 26122,
-      "sha256": "a9fe8db599a01a2103a1872e90e9ef291ec19568bc952fef897ab7d3dec8cea4",
+      "bytes": 28030,
+      "sha256": "8832bbf0f2efdd677552ee4e7a62d9b8203ade5e70c89e382cf800183dd60650",
       "mode": "0644"
     },
     {
@@ -6793,8 +6799,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 353278,
-      "sha256": "882863055568a3410d2a1ca7fa935e25bb1dada71c7d14cd1b89e859fa966b25",
+      "bytes": 354155,
+      "sha256": "1e30fea399a4c5ac9469ae0bd314ab011d508a17199a55a550265b52a9f8fc03",
       "mode": "0644"
     },
     {
@@ -6943,8 +6949,8 @@
     },
     {
       "path": "deploy/public/korpus-public-api.service",
-      "bytes": 1751,
-      "sha256": "7498efcf17677c91d3d5fd5afac7ac874f0b35eaf8d6bc4561e8f5fd205754ad",
+      "bytes": 2959,
+      "sha256": "64c66677144d60fbf042b252d463d7c2427ca7d3f6671a5f7b8fff5e9370f86d",
       "mode": "0644"
     },
     {
@@ -8508,6 +8514,12 @@
       "mode": "0755"
     },
     {
+      "path": "scripts/check_public_env_parity.py",
+      "bytes": 11933,
+      "sha256": "0d2d653f9543722b38668a746cbf1727a254fb07ae85608af6478ac6675965d9",
+      "mode": "0755"
+    },
+    {
       "path": "scripts/check_release_identity.py",
       "bytes": 3832,
       "sha256": "7c184b999e7210868ce72da5c9faf84b4529ecc0163f0807935c979c10b953ca",
@@ -9481,8 +9493,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 214218,
-      "sha256": "388f33549c47c5f4694217ae968efca2b182cc8f41999828ed6806c5f31db6cc",
+      "bytes": 215522,
+      "sha256": "08c0ce988446f897d5545f7347678f0cb848642807fac89a488d412042549aa5",
       "mode": "0755"
     },
     {
@@ -9643,8 +9655,8 @@
     },
     {
       "path": "scripts/serve_public.sh",
-      "bytes": 17680,
-      "sha256": "1e662bcf4aba827448a88e0524e0c7df1f8c3512bc0ef9cf3af5c9de05c00e02",
+      "bytes": 16004,
+      "sha256": "e41da4f189867f815237825fa0e172ebe9be908a320c6e6808b80ea0dd3f4675",
       "mode": "0755"
     },
     {

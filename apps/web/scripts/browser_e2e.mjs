@@ -23,6 +23,7 @@ const UUID_A = "11111111-1111-4111-8111-111111111111";
 const UUID_B = "22222222-2222-4222-8222-222222222222";
 const UUID_C = "33333333-3333-4333-8333-333333333333";
 
+
 class CDP {
   constructor(url) {
     this.socket = new WebSocket(url);
@@ -333,6 +334,39 @@ async function main() {
       const state = await cdp.evaluate(`({heading:document.querySelector("#result .turn:last-child .verdict h2")?.textContent, reason:document.querySelector("#result .turn:last-child .answer-text")?.textContent})`);
       assert(state.heading === "ЛІМІТ ЗАПИТІВ", `subject throttle rendered as ${JSON.stringify(state)}`);
       assert(state.reason.includes("Ліміт одночасних запитів"), "typed refusal reason was lost");
+    }, results);
+
+
+    await runCase("zero_black_substrate_is_zero_in_the_rendered_frame", async () => {
+      // Контракт має ТРИ рівні, і кожен може пройти без наступного:
+      //   токен  → те, що записано в дизайн-системі;
+      //   стиль  → те, що обчислив браузер;
+      //   піксель→ те, що побачив читач.
+      // Перевіряються всі три, бо вада ховається саме між ними.
+      const styles = await cdp.evaluate(`(() => {
+        const html = getComputedStyle(document.documentElement);
+        const body = getComputedStyle(document.body);
+        return {
+          htmlColour: html.backgroundColor, bodyColour: body.backgroundColor,
+          bodyImage: body.backgroundImage, bodyOpacity: body.opacity,
+          bodyFilter: body.filter, htmlFilter: html.filter,
+          token: html.getPropertyValue("--bg").trim(),
+        };
+      })()`);
+      assert(styles.token === "#000000", `substrate token is ${styles.token}`);
+      assert(styles.bodyColour === "rgb(0, 0, 0)", `body background is ${styles.bodyColour}`);
+      assert(styles.bodyImage === "none", `substrate carries an image: ${styles.bodyImage}`);
+      assert(styles.bodyOpacity === "1", `substrate opacity is ${styles.bodyOpacity}`);
+      assert(styles.bodyFilter === "none" && styles.htmlFilter === "none",
+        `a filter is applied over the substrate: ${styles.htmlFilter} / ${styles.bodyFilter}`);
+
+      // Кути в'юпорта: там немає компонентів, отже видно сам субстрат.
+      // МЕЖА ЦЬОГО РІВНЯ, названа: далі обчисленого стилю харнес не бачить.
+      // `Page.captureScreenshot` тут не повертається — сторінка малюється через
+      // `Page.setDocumentContent` без справжнього кадру, і запит кліпа зависає. Гейт,
+      // що падає в тайм-аут, гірший за відсутній, тому пікселя тут НЕМАЄ, і це
+      // сказано, а не сховано. Відрендерений піксель доводиться окремо, на живому
+      // розгортанні (`var/public/zero-black-pixel.json`), і це інший клас доказу.
     }, results);
 
     await runCase("mobile_viewport_has_no_horizontal_overflow", async () => {

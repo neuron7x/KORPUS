@@ -84,6 +84,9 @@ repository:validate:
     # під `check`, або названа в реєстрі з причиною і датою. Виміряно 31.08.2026 — 193
     # цілі, 44 перевірочних, 27 не виконувались жодною дорогою, і жодна з тих 27 не була
     # рішенням: усі були тишею.
+    # Скрипт розгортання і юніт systemd описують одне оточення двома копіями; вони
+    # розійшлися 31.08.2026 саме на ненаглядовому шляху (сторож піднімає API юнітом).
+    - python scripts/check_public_env_parity.py
     - python scripts/verify_gate_closure.py
     # A ratchet on module size, function shape and complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py

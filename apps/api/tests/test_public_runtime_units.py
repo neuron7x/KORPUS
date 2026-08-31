@@ -45,4 +45,11 @@ def test_units_use_secret_file_and_do_not_allow_resource_control_overrides() -> 
         unit = INSTALLER.render(name)
         assert "KORPUS_JWT_SECRET=" not in unit
         assert "KORPUS_JWT_SECRET_FILE=%h/.local/state/korpus-public/jwt-secret.txt" in unit
-        assert "EnvironmentFile=" not in unit
+        # Директива, не згадка. Перевірка підрядком ловила власний КОМЕНТАР юніта,
+        # який пояснює, чому цієї директиви тут немає, — тобто карала за документацію
+        # рішення. Намір той самий: юніт оголошує оточення сам, і жодного зовнішнього
+        # файла не читає; тепер він виражений над рядками-директивами.
+        directives = [
+            line.strip() for line in unit.splitlines() if not line.lstrip().startswith("#")
+        ]
+        assert not any(line.startswith("EnvironmentFile=") for line in directives)

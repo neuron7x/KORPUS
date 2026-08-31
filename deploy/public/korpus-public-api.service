@@ -6,17 +6,35 @@ Wants=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=@KORPUS_ROOT@
-# Оточення береться з ОДНОГО джерела — файла, який `scripts/serve_public.sh` пише як
-# проєкцію власного оточення. Тут стояло п'ятнадцять рядків `Environment=`, тобто друга
-# копія тієї самої властивості, і вона розійшлася з першою саме там, де ніхто не дивився:
-# сторож відновлює API через `systemctl --user restart`, а не через скрипт. Виміряно
-# 31.08.2026 — після відновлення о 21:34 у живому процесі не було ні
-# `KORPUS_MODEL_EGRESS_POSTURE`, ні ключа аудиту, тож посада лишалась `external_allowed`,
-# а журнал підписувався плейсхолдером `replace-local-audit-key` із config.py.
+Environment=KORPUS_ENVIRONMENT=local
+Environment=KORPUS_RUNTIME_ROLE=api
+Environment="KORPUS_DATABASE_URL=sqlite:///@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/korpus.db"
+Environment="KORPUS_OBJECT_ROOT=@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/objects"
+Environment="KORPUS_AUDIT_ANCHOR_PATH=@KORPUS_ROOT@/var/runtime/corpus-v6-20260807/audit.anchor"
+Environment=KORPUS_AUTH_MODE=jwt
+Environment=KORPUS_JWT_SECRET_FILE=%h/.local/state/korpus-public/jwt-secret.txt
+Environment=KORPUS_JWT_ISSUER=korpus-public
+Environment=KORPUS_JWT_AUDIENCE=korpus
+Environment=KORPUS_JWT_MAX_LIFETIME_MINUTES=1440
+Environment=KORPUS_BIND_HOST=127.0.0.1
+Environment=KORPUS_TRUSTED_HOSTS=localhost,127.0.0.1
+Environment=KORPUS_MAX_CONCURRENT_ANSWERS=4
+# Ці чотири рядки жили лише в `scripts/serve_public.sh`, і саме тому розійшлися:
+# сторож відновлює API через `systemctl --user restart`, тобто НЕНАГЛЯДОВИЙ шлях іде
+# юнітом. Виміряно 31.08.2026 — після відновлення о 21:34 у живому процесі не було ні
+# посади єгресу, ні ключа аудиту: посада лишалась `external_allowed`, а журнал доказів
+# підписувався плейсхолдером `replace-local-audit-key` із config.py:99.
 #
-# Без префікса `-` навмисно: немає файла — юніт НЕ стартує. Публічний API, що піднявся
-# з вгаданим оточенням, гірший за той, що не піднявся зовсім.
-EnvironmentFile=%h/.local/state/korpus-public/api.env
+# Юніт лишається САМООГОЛОШЕНИМ навмисно: його властивості безпеки мусять читатися в
+# репозиторії, а не у файлі, якого в репозиторії немає — це вже записаний інваріант
+# (директива зовнішнього файла оточення тут заборонена тестом). Тому не одне джерело,
+# а два під ГЕЙТОМ:
+# `check_public_env_parity.py` не дає їм розійтися вдруге.
+Environment=KORPUS_MODEL_EGRESS_POSTURE=local_only
+Environment=KORPUS_AUDIT_HMAC_KEY_FILE=%h/.local/state/korpus-public/audit-key.txt
+Environment=KORPUS_AUDIT_KEY_ID=korpus-public-2026-08-31
+Environment="KORPUS_AUDIT_VERIFICATION_KEY_FILES={\"legacy-unversioned\":\"%h/.local/state/korpus-public/audit-key-legacy-unversioned.txt\",\"serve-public-inline-2026-08\":\"%h/.local/state/korpus-public/audit-key-serve-public-inline.txt\"}"
+Environment="PYTHONPATH=@KORPUS_ROOT@/apps/api/src"
 ExecStart="@KORPUS_ROOT@/apps/api/.venv/bin/python" -m uvicorn korpus.main:app --host 127.0.0.1 --port 8000 --log-level warning --workers 2
 Restart=on-failure
 RestartSec=5

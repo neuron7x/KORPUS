@@ -3080,6 +3080,14 @@
       "max_nesting": 2,
       "reason": "Гейт на розбіжність звіту мутацій із каталогом. Стеля з виміру на день додавання плюс запас на дві перевірки; кожен новий клас розбіжності — це рядок у переліку `problems`, а не гілка."
     },
+    "scripts/check_public_env_parity.py": {
+      "lines": 190,
+      "max_complexity": 11,
+      "max_function_args": 3,
+      "max_function_lines": 53,
+      "max_nesting": 1,
+      "reason": "ZBIM: субстрат став абсолютним нулем sRGB, плюс гейт паритету двох оголошень оточення публічного API (скрипт і юніт systemd). Мутанти M450–M452."
+    },
     "scripts/check_release_identity.py": {
       "lines": 104,
       "max_complexity": 4,
@@ -4219,7 +4227,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 4744,
+      "lines": 4773,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7157,6 +7165,17 @@
       "reason": "Оточення API стало одним джерелом: скрипт пише проєкцію власного оточення у $XDG_STATE_HOME/korpus-public/api.env, юніт читає його без префікса `-`. Плюс активний ід ключа аудиту й каблучка перевірки трьох поколінь. Мутанти M443–M444.",
       "to": {
         "lines": 4744
+      }
+    },
+    {
+      "from": {
+        "lines": 4744
+      },
+      "on": "2026-08-31",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "ZBIM: субстрат став абсолютним нулем sRGB, плюс гейт паритету двох оголошень оточення публічного API (скрипт і юніт systemd). Мутанти M450–M452.",
+      "to": {
+        "lines": 4773
       }
     }
   ],
