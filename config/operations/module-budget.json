@@ -718,7 +718,7 @@
       "max_nesting": 4
     },
     "apps/api/src/korpus/application/answer_query.py": {
-      "lines": 786,
+      "lines": 809,
       "max_complexity": 21,
       "max_function_lines": 195,
       "max_function_args": 12,
@@ -4729,6 +4729,14 @@
       "max_function_lines": 40,
       "max_function_args": 3,
       "max_nesting": 3
+    },
+    "scripts/recut_span_boundaries.py": {
+      "lines": 218,
+      "max_complexity": 14,
+      "reason": "Ремонт меж прольотів: провідний уламок речення переноситься до попереднього прольоту без втрати символів і без виходу за стелю 1400. Кожна нова умова відмови — рядок у `skipped`, а не гілка.",
+      "max_function_lines": 65,
+      "max_function_args": 4,
+      "max_nesting": 4
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -6490,6 +6498,17 @@
         "lines": 4400
       },
       "reason": "Мутант M363: голий домен зарахований як посилання на документ."
+    },
+    {
+      "on": "2026-08-31",
+      "path": "apps/api/src/korpus/application/answer_query.py",
+      "from": {
+        "lines": 786
+      },
+      "to": {
+        "lines": 809
+      },
+      "reason": "Другий рубіж проти задовгого кандидата: речення понад ліміт цитати обвалювало відповідь HTTP 500."
     }
   ],
   "recorded_at": "2026-08-24",
