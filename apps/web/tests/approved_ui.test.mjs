@@ -84,3 +84,29 @@ test("delivery CSS is generated from the readable approved source", async()=>{
 test("CSS minification preserves required calc addition whitespace",()=>{
   assert.equal(minifyCss(".x { bottom: calc(64px + env(safe-area-inset-bottom)); }"),".x{bottom:calc(64px + env(safe-area-inset-bottom));}\n");
 });
+
+test("the reader is shown a verdict that can go red, not a tautological number", async () => {
+  // `evidence_coverage` рахує частку claim'ів, чиї span_id є серед цитат, а кожен claim
+  // будується з цитованого спана: 1.000 у КОЖНІЙ відповіді. Виміряно 31.08.2026, що воно
+  // ще й ВИЩЕ на хибних відповідях (0.9431) ніж на правильних (0.9359) — тобто єдине
+  // число впевненості означало протилежне обіцяному. Присуд осей уміє сказати «спірно».
+  const app = await readFile(new URL("../public/app.js", import.meta.url), "utf8");
+
+  assert.doesNotMatch(app, /Покриття доказом<\/dt>/,
+    "тавтологічне число знову подається читачеві як впевненість");
+  assert.match(app, /Присуд осей<\/dt>/);
+  assert.match(app, /citation\.presentation/);
+  assert.match(app, /є спірні/);
+});
+
+test("the decision dial shows something that can be less than full", async () => {
+  // Друга тавтологія була ще прямішою: `${citations.length}/${citations.length}
+  // ПЕРЕВІРЕНО` — N/N завжди, за побудовою. Число, яке не вміє бути неповним, не є
+  // виміром; воно є написом.
+  const field = await readFile(new URL("../public/decision_field.js", import.meta.url), "utf8");
+
+  assert.doesNotMatch(field, /\$\{citations\.length\}\/\$\{citations\.length\}/,
+    "лічильник знову дорівнює сам собі");
+  assert.match(field, /citation\.presentation/);
+  assert.match(field, /supported \/ verdicts\.length/);
+});

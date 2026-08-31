@@ -295,6 +295,21 @@ $("standing-edit")?.addEventListener("click", () => {
 
 // ---------------------------------------------------------------- answer presentation
 
+// `evidence_coverage` показувалось читачеві як «Покриття доказом» і не могло почервоніти:
+// воно рахує частку claim'ів, чиї span_id є серед цитат, а кожен claim будується з
+// цитованого спана. Тавтологія за побудовою — 1.000 у КОЖНІЙ відповіді. Гірше:
+// паралельний вимір 31.08.2026 показав, що воно ВИЩЕ на хибних відповідях (0.9431) ніж
+// на правильних (0.9359). Тобто єдине число впевненості означало протилежне обіцяному.
+// Тут показано присуд незалежних осей: він уміє сказати «спірно», і саме тому вартий
+// того місця. Число лишається в payload — воно просто перестало вдавати впевненість.
+function axisVerdict(answer) {
+  const verdicts = (answer.citations ?? []).map(citation => citation.presentation ?? "supported");
+  if (!verdicts.length) return "—";
+  if (verdicts.some(verdict => verdict === "contested")) return "є спірні";
+  const supported = verdicts.filter(verdict => verdict === "supported").length;
+  return `${supported} з ${verdicts.length} підтверджено`;
+}
+
 function citationCard(citation, index) {
   const facts = [
     citation.page ? `с. ${escapeHtml(citation.page)}` : "",
@@ -347,7 +362,7 @@ function render(answer, question) {
     <details class="answer-meta"><summary>Деталі перевірки</summary>
       <dl class="metrics">
         <div><dt>Якість ранжування</dt><dd>${Number(answer.retrieval_score).toFixed(3)}</dd></div>
-        <div><dt>Покриття доказом</dt><dd>${Number(answer.evidence_coverage).toFixed(3)}</dd></div>
+        <div><dt>Присуд осей</dt><dd>${axisVerdict(answer)}</dd></div>
         <div><dt>Цитат</dt><dd>${(answer.citations ?? []).length}</dd></div>
         <div><dt>Версія корпусу</dt><dd>${escapeHtml(answer.corpus_release)}</dd></div>
       </dl><p class="note">Якість ранжування не є ймовірністю правильності.</p>

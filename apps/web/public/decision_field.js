@@ -36,26 +36,35 @@ export function createDecisionField(answer) {
   mountStyles();
   const citations = Array.isArray(answer.citations) ? answer.citations : [];
   const limitations = Array.isArray(answer.limitations) ? answer.limitations : [];
-  const coverage = clamp(answer.evidence_coverage);
+  // Шкала показувала `evidence_coverage` як «% доказу». Це число дорівнює 1.000 у
+  // КОЖНІЙ відповіді (кожен claim будується з цитованого спана — тавтологія за
+  // побудовою) і, за паралельним виміром 31.08.2026, ВИЩЕ на хибних відповідях, ніж на
+  // правильних. Найбільша цифра на екрані означала протилежне обіцяному.
+  //
+  // Тепер шкала показує частку цитат, які витримали присуд НЕЗАЛЕЖНИХ осей. Вона вміє
+  // бути неповною, і саме тому їй можна вірити.
+  const verdicts = citations.map(citation => citation.presentation ?? "supported");
+  const supported = verdicts.filter(verdict => verdict === "supported").length;
+  const coverage = clamp(verdicts.length ? supported / verdicts.length : 0);
   const [label, tone, counterfactual] = DECISION[answer.status] ?? ["ЗУПИНЕНО", "withheld", "Потрібен новий серверний вердикт із повним доказовим маршрутом."];
   const field = document.createElement("details");
   field.className = "decision-field";
   field.dataset.tone = tone;
   field.setAttribute("aria-label", "Карта підстави рішення");
   field.innerHTML = `
-    <summary class="field-summary"><span>ПІДСТАВА РІШЕННЯ</span><strong>${label}</strong><b>${Math.round(coverage * 100)}% доказу</b></summary>
+    <summary class="field-summary"><span>ПІДСТАВА РІШЕННЯ</span><strong>${label}</strong><b>${Math.round(coverage * 100)}% підтверджено</b></summary>
     <div class="field-detail"><header class="field-head"><div><span>ПІДСТАВА / ПОХОДЖЕННЯ ДОКАЗУ</span><h3>Карта підстави рішення</h3></div><b>НЕ ЙМОВІРНІСТЬ</b></header>
     <div class="field-grid">
       <div class="field-core">
-        <svg viewBox="0 0 120 120" role="img" aria-label="Покриття доказом ${Math.round(coverage * 100)} відсотків">
+        <svg viewBox="0 0 120 120" role="img" aria-label="Підтверджено незалежними осями: ${Math.round(coverage * 100)} відсотків">
           <circle class="field-track" cx="60" cy="60" r="51"></circle><circle class="field-value" cx="60" cy="60" r="51"></circle>
         </svg>
-        <div><span>СЕРВЕРНИЙ ВЕРДИКТ</span><strong>${label}</strong><small>${Math.round(coverage * 100)}% покриття доказом</small></div>
+        <div><span>СЕРВЕРНИЙ ВЕРДИКТ</span><strong>${label}</strong><small>${Math.round(coverage * 100)}% витримало присуд осей</small></div>
       </div>
       <div class="field-sources" aria-label="Допущені джерела"></div>
       <dl class="field-invariants">
         <div><dt>ПІДСТАВА</dt><dd>${citations.length ? "ПРИВ’ЯЗАНО ДО ДЖЕРЕЛА" : "НЕМАЄ"}</dd></div>
-        <div><dt>ПОХОДЖЕННЯ</dt><dd>${citations.length}/${citations.length} ПЕРЕВІРЕНО</dd></div>
+        <div><dt>ПРИСУД ОСЕЙ</dt><dd>${supported}/${citations.length} ПІДТВЕРДЖЕНО</dd></div>
         <div><dt>ОБМЕЖЕННЯ</dt><dd>${limitations.length || "НЕМАЄ"}</dd></div>
         <div><dt>ВЕРСІЯ</dt><dd></dd></div>
       </dl>
