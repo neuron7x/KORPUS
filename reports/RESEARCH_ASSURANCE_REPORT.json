@@ -1,176 +1,29 @@
 {
-  "schema_version": 2,
+  "schema_version": 5,
   "status": "PASS",
-  "steps": [
-    {
-      "name": "openapi",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/openapi_contract.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.9965504029532894,
-      "log": "var/assurance-openapi.log"
-    },
-    {
-      "name": "desired-state",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/generate_desired_state.py",
-        "--check"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.033858041977509856,
-      "log": "var/assurance-desired-state.log"
-    },
-    {
-      "name": "supply-chain-inventory",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/generate_supply_chain_inventory.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.08803333598189056,
-      "log": "var/assurance-supply-chain-inventory.log"
-    },
-    {
-      "name": "repository",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/validate_repository.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.3656872450374067,
-      "log": "var/assurance-repository.log"
-    },
-    {
-      "name": "infrastructure",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/validate_infrastructure.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.06773763697128743,
-      "log": "var/assurance-infrastructure.log"
-    },
-    {
-      "name": "kubernetes",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/validate_kubernetes.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.36443210300058126,
-      "log": "var/assurance-kubernetes.log"
-    },
-    {
-      "name": "compile",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "-m",
-        "compileall",
-        "-q",
-        "apps/api/src",
-        "apps/api/migrations",
-        "scripts"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.052288415026851,
-      "log": "var/assurance-compile.log"
-    },
-    {
-      "name": "pytest",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "-m",
-        "pytest",
-        "-q",
-        "apps/api/tests",
-        "--junitxml=var/pytest.xml",
-        "--cov=apps/api/src/korpus",
-        "--cov-branch",
-        "--cov-report=xml:var/coverage.xml",
-        "--cov-report=json:var/coverage.json",
-        "--cov-fail-under=82"
-      ],
-      "returncode": 0,
-      "duration_seconds": 273.22011135099456,
-      "log": "var/assurance-pytest.log"
-    },
-    {
-      "name": "eval",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/run_evals.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 2.8625285980524495,
-      "log": "var/assurance-eval.log"
-    },
-    {
-      "name": "migration",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/run_migration_gate.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 1.5546644249698147,
-      "log": "var/assurance-migration.log"
-    },
-    {
-      "name": "scale",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/run_scale_probe.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 1.3800057549960911,
-      "log": "var/assurance-scale.log"
-    },
-    {
-      "name": "web",
-      "command": [
-        "npm",
-        "--prefix",
-        "apps/web",
-        "run",
-        "build"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.31506098597310483,
-      "log": "var/assurance-web.log"
-    },
-    {
-      "name": "mutation",
-      "command": [
-        "bash",
-        "scripts/run_mutation_shards.sh"
-      ],
-      "returncode": 0,
-      "duration_seconds": 141.60373615694698,
-      "log": "var/assurance-mutation.log"
-    },
-    {
-      "name": "audit-closure",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/build_audit_closure.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.32043008296750486,
-      "log": "var/assurance-audit-closure.log"
-    },
-    {
-      "name": "operational",
-      "command": [
-        "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python",
-        "scripts/run_operational_gate.py"
-      ],
-      "returncode": 0,
-      "duration_seconds": 0.3688620940083638,
-      "log": "var/assurance-operational.log"
-    }
-  ],
+  "failures": [],
+  "provenance": "ASSEMBLED_FROM_INDIVIDUALLY_EXECUTED_LOCAL_GATES",
+  "source_tree_sha256": "718da00f7cbd1204c1d92fb3a6f5498ee8cdd23c8b6388fdefe08685fe33015b",
+  "digest_scope": "tracked_tree",
+  "evidence_source_sha256": "4f8149b0b3e556acf1ca72ae03815fbc311ff83addd754153696d5cc371ecc60",
+  "checks": {
+    "tests_executed": true,
+    "tests_not_mostly_skipped": true,
+    "tests_outcome": true,
+    "coverage_line": true,
+    "coverage_branch": true,
+    "quality_tooling_executed": true,
+    "reports_present": true,
+    "evidence_provenance": true,
+    "eval": true,
+    "mutation": true,
+    "migration": true,
+    "scale": true,
+    "operational": true,
+    "recovery_drill_executed": true,
+    "recovery_provenance_complete": true,
+    "recovery_scale_not_overstated": true
+  },
   "pytest": {
     "tests": "3256",
     "failures": "0",
@@ -5610,9 +5463,68 @@
     },
     "interpretation": "Engineering release predicates passed; this is not corpus, security, regulatory, operational-SLA or military authorization."
   },
+  "recovery": {
+    "schema_version": 2,
+    "status": "PASS",
+    "scale_class": "ci-fixture",
+    "environment_class": "CI_FIXTURE",
+    "source_tree_sha256": "fa87c47d0a01441543a43aa497fdb86d49e4e51cdd050cc78fed27975e6d8197",
+    "release": "v0.9.7",
+    "rto_seconds": 0.925,
+    "restore_seconds": 0.923,
+    "verify_seconds": 0.002,
+    "rpo_seconds": 0.62,
+    "lost_events": 0,
+    "lost_documents": 5,
+    "provenance": {
+      "backup_bytes": 481322,
+      "plaintext_bytes": 481280,
+      "document_rows": 4,
+      "audit_event_rows": 4,
+      "source_audit_event_rows": 4,
+      "writes_after_backup": 5,
+      "newest_source_write": "2026-08-31T07:43:51.112834+00:00",
+      "newest_restored_write": "2026-08-31T07:43:50.492421+00:00",
+      "engine_version": "3.45.1",
+      "measured_at": "2026-08-31T07:43:52.527189+00:00",
+      "backup_key_id": "sqlite-drill"
+    },
+    "interpretation": "Recovery time and loss measured against a CI fixture database. It is evidence that the drill runs and that the numbers are collected, not evidence about operational recovery: no RTO or RPO objective has been declared by anyone entitled to declare one (admission ground 2.9)."
+  },
+  "evidence_sha256": {
+    "eval": "7456baef8aef6c6e703bcaa179c0d3797323a28d0b5b829c4418a6ff3747f0fb",
+    "mutation": "c2db10eb2d86bfd42e6520c8ccba5ca6a71738f78d4770c4c508e9799226188b",
+    "migration": "d894967835fed0dab5d922338491aa91011b02af26a7aef285d1b985870bad33",
+    "scale": "0fa0c9d40893c39e67c96c2aea9803ac615eaebdcdd9abe1493156ed0802075d",
+    "operational": "4c6c4f905c8260c58a57b608390c6e7e38a3e59315671597c633fc3d60283bc0",
+    "recovery": "e86d8dd14e23be99c23cdbd03cd58ff345d7ef16bf372b5373b29a11cf89d5f3"
+  },
+  "quality_tooling": {
+    "ruff": {
+      "command": "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python -m ruff check --output-format json apps/api/src apps/api/tests apps/api/migrations scripts",
+      "exit_code": 0,
+      "violations": 0,
+      "status": "PASS"
+    },
+    "ruff_format": {
+      "command": "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python -m ruff format --check apps/api/src apps/api/tests scripts",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    "mypy": {
+      "command": "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python -m mypy --config-file apps/api/pyproject.toml --cache-dir var/mypy-cache-api",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    "mypy_scripts": {
+      "command": "/home/neuro7/Desktop/Ядро основний проект Корпус/apps/api/.venv/bin/python -m mypy --config-file ../mypy-scripts.ini --cache-dir ../var/mypy-cache-scripts .",
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  },
   "limitations": [
-    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
-    "PostgreSQL integration is a dedicated CI service-container gate; local report may show it skipped.",
-    "Synthetic evaluation does not authorize real restricted corpus deployment."
+    "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; local fixture evidence cannot promote those claims.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
   ]
 }

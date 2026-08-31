@@ -5,8 +5,8 @@
   "records": [
     {
       "path": "reports/RESEARCH_ASSURANCE_REPORT.json",
-      "bytes": 831403,
-      "sha256": "7a98f96eb3f32d43c9b7a6ae9f06dc90ac0aaf4a74a7cac69e09f3e5e23fdc41"
+      "bytes": 829834,
+      "sha256": "5178fad62065fb6073b9efef04a487e5f91d89524a9d018df30bda0e964e909f"
     },
     {
       "path": "reports/PYTEST_REPORT.xml",
@@ -65,8 +65,8 @@
     }
   ],
   "limitations": [
-    "Ruff and mypy are separate CI gates and are not claimed unless executed in the current environment.",
-    "PostgreSQL integration is a dedicated CI service-container gate; local report may show it skipped.",
-    "Synthetic evaluation does not authorize real restricted corpus deployment."
+    "PostgreSQL/pgvector and production-like recovery remain dedicated CI gates; local fixture evidence cannot promote those claims.",
+    "Synthetic local scale evidence is not a production SLA.",
+    "Passing software gates is not corpus, cyber, regulatory or military authorization."
   ]
 }
