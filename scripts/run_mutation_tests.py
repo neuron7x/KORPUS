@@ -4057,6 +4057,116 @@ MUTANTS = (
             "test_the_hard_predicate_floor_fails_the_gate_when_external_proof_is_lost",
         ),
     ),
+    Mutant(
+        "M424_A_QUOTE_THAT_IS_NOT_IN_ITS_SOURCE_COUNTS_AS_VERBATIM",
+        "scripts/measure_corpus_integrity.py",
+        "        if needle in source:",
+        "        if True:",
+        (
+            "apps/api/tests/test_corpus_integrity.py::"
+            "test_a_passage_that_is_not_a_verbatim_slice_of_its_source_is_not_credited",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M425_A_SPAN_ITS_SOURCE_DOES_NOT_HOLD_IS_CREDITED_AS_A_BOUNDARY",
+        "scripts/measure_corpus_integrity.py",
+        "            unlocatable += 1\n            continue\n        cursor = at + len(needle)",
+        "            boundary += 1\n            continue\n        cursor = at + len(needle)",
+        (
+            "apps/api/tests/test_corpus_integrity.py::"
+            "test_a_passage_whose_source_is_absent_is_counted_apart_not_credited",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M426_AN_EVENT_SIGNED_BY_ANOTHER_KEY_COUNTS_AS_ATTRIBUTED",
+        "scripts/measure_audit_integrity.py",
+        "        elif actual == named:",
+        "        elif actual is not None:",
+        (
+            "apps/api/tests/test_audit_ledger_attribution.py::"
+            "test_an_event_signed_by_another_held_key_is_misattributed_not_broken",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M427_AN_EVENT_NO_KEY_VERIFIES_IS_NOT_REPORTED",
+        "scripts/measure_audit_integrity.py",
+        "        if actual is None:\n            unverifiable += 1",
+        "        if False:\n            unverifiable += 1",
+        (
+            "apps/api/tests/test_audit_ledger_attribution.py::"
+            "test_an_event_no_offered_key_verifies_is_unverifiable_not_forgery",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M428_RELABELLING_PROCEEDS_OVER_AN_UNVERIFIABLE_LEDGER",
+        "scripts/attribute_audit_keys.py",
+        "        if not matches:\n            refusals.append(",
+        "        if False:\n            refusals.append(",
+        (
+            "apps/api/tests/test_audit_ledger_attribution.py::"
+            "test_an_unverifiable_event_stops_the_whole_relabelling",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M429_THE_ANCHOR_MAY_BE_ROLLED_BACK_BEHIND_THE_HEAD",
+        "scripts/reissue_audit_anchor.py",
+        "    if anchor_sequence > head_sequence:",
+        "    if False:",
+        (
+            "apps/api/tests/test_audit_ledger_attribution.py::"
+            "test_the_anchor_is_only_reissued_over_a_ledger_that_verifies_whole",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M430_A_LINK_IS_CONFIRMED_WITHOUT_READING_THE_SOURCE",
+        "scripts/validate_derived_source_links.py",
+        "        if len(candidate) == length and candidate in body:",
+        "        if len(candidate) == length:",
+        (
+            "apps/api/tests/test_derived_source_links.py::"
+            "test_a_head_the_named_source_does_not_carry_is_refused",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M431_AN_AMBIGUOUS_PARENT_IS_GUESSED_INSTEAD_OF_LEFT_ALONE",
+        "scripts/relink_derived_articles.py",
+        "        if len(found) > 1:\n            skipped[\"ambiguous\"] += 1\n            continue",
+        "        if len(found) > 1:\n            found = found[:1]",
+        (
+            "apps/api/tests/test_derived_source_links.py::"
+            "test_a_head_two_statutes_both_carry_is_left_alone_rather_than_guessed",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M432_A_HOLE_IN_THE_COVERAGE_OF_THE_SOURCE_IS_NOT_REPORTED",
+        "scripts/respan_from_source.py",
+        "        if index and start > spans[index - 1][1]:",
+        "        if False:",
+        (
+            "apps/api/tests/test_respan_from_source.py::"
+            "test_a_hole_is_refused_rather_than_written",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M433_THE_SPAN_CEILING_IS_NOT_ENFORCED",
+        "scripts/respan_from_source.py",
+        "        if end - start > limit:",
+        "        if False:",
+        (
+            "apps/api/tests/test_respan_from_source.py::"
+            "test_a_span_over_the_ceiling_is_refused_by_the_check_not_only_avoided_by_the_cutter",
+        ),
+        full_copy=True,
+    ),
 )
 
 

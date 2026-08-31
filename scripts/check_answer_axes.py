@@ -24,12 +24,33 @@ from __future__ import annotations
 
 import argparse
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / "config/operations/answer-axes.json"
 MIN_REASON = 20
+#: Збережене число має ВІК. Звіт, зроблений колись, кредитує вісь так само впевнено, як
+#: зроблений щойно, і саме так гейт починає боронити стан, якого вже немає. Доба — не
+#: властивість предмета, а межа, за якою число описує інше дерево.
+MAX_REPORT_AGE_HOURS = 24.0
+
+
+def report_age_hours(path: Path, payload: dict[str, Any]) -> tuple[float, str]:
+    """Вік звіту й те, ЗВІДКИ він узятий: `ran_at` сильніший за mtime, який підробляє `touch`."""
+    stamp = payload.get("ran_at")
+    if isinstance(stamp, str):
+        try:
+            moment = datetime.fromisoformat(stamp)
+        except ValueError:
+            moment = None
+        if moment is not None:
+            if moment.tzinfo is None:
+                moment = moment.replace(tzinfo=UTC)
+            return (datetime.now(UTC) - moment).total_seconds() / 3600.0, "ran_at"
+    mtime = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
+    return (datetime.now(UTC) - mtime).total_seconds() / 3600.0, "mtime"
 
 
 def _dig(payload: dict[str, Any], path: list[str]) -> Any:
@@ -50,6 +71,14 @@ def measure_axis(name: str, spec: dict[str, Any], root: Path) -> dict[str, Any]:
     status = payload.get("status")
     if status in {"UNKNOWN", "ERROR"}:
         return {"axis": name, "state": "UNMEASURED", "reason": f"звіт каже status={status}"}
+    age, age_source = report_age_hours(report_path, payload)
+    ceiling = float(spec.get("max_age_hours", MAX_REPORT_AGE_HOURS))
+    if age > ceiling:
+        return {
+            "axis": name,
+            "state": "UNMEASURED",
+            "reason": f"звіту {age:.1f} год за {age_source}, стеля {ceiling:.0f}",
+        }
     if "ratio" in spec:
         numerator, denominator = spec["ratio"]
         top, bottom = payload.get(numerator), payload.get(denominator)

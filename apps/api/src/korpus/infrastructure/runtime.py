@@ -28,6 +28,9 @@ def create_repository(settings: Settings, policy: PolicyEngine | None = None) ->
         connect_timeout_seconds=settings.database_connect_timeout_seconds,
         statement_timeout_ms=settings.database_statement_timeout_ms,
         lock_timeout_ms=settings.database_lock_timeout_ms,
+        # Іменована, бо вставка поруч із ключем зсунула б позиційні аргументи — це вже
+        # ставалось і віддало `FileAuditAnchorStore` самому собі як шлях.
+        audit_keyring=settings.resolved_audit_keyring(),
     )
 
 
