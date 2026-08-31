@@ -131,7 +131,9 @@ def main() -> int:
     connection.row_factory = sqlite3.Row
     rows = [dict(row) for row in connection.execute("select * from audit_events order by sequence")]
     if not rows:
-        print(json.dumps({"status": "UNKNOWN", "reason": "у журналі немає подій"}, ensure_ascii=False))
+        print(
+            json.dumps({"status": "UNKNOWN", "reason": "у журналі немає подій"}, ensure_ascii=False)
+        )
         return 2
     report = assess(rows, keys)
     head_sequence = int(rows[-1]["sequence"])
@@ -178,5 +180,9 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except Exception as error:
-        print(json.dumps({"status": "ERROR", "error": f"{type(error).__name__}: {error}"}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"status": "ERROR", "error": f"{type(error).__name__}: {error}"}, ensure_ascii=False
+            )
+        )
         raise SystemExit(2) from error

@@ -4002,10 +4002,10 @@
       "reason": "v0.9.7 deterministic regression collection manifest; initial measured ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/reissue_audit_anchor.py": {
-      "lines": 158,
+      "lines": 164,
       "max_complexity": 11,
       "max_function_args": 3,
-      "max_function_lines": 58,
+      "max_function_lines": 60,
       "max_nesting": 2,
       "reason": "Перевипуск якоря з шістьма відмовами. main розібрано на resolve_inputs/read_anchor замість підняття стелі."
     },
@@ -4059,10 +4059,10 @@
       "reason": "Точна виміряна початкова стеля. Ремонт уже збережених прольотів тим самим `_strip_html`, що виправлено в екстракції: фікс діє на нові, а старі лишаються такими, якими їх зберегли. Відмовляється писати, якщо ремонт зʼїдає більше половини тексту або лишає неречення."
     },
     "scripts/respan_from_source.py": {
-      "lines": 247,
+      "lines": 265,
       "max_complexity": 14,
       "max_function_args": 5,
-      "max_function_lines": 53,
+      "max_function_lines": 57,
       "max_nesting": 4,
       "reason": "Нарізка заново з оригіналів: кожен проліт — зріз source[start:end], покриття без дірок. Замінює ремонт на місці, який зберігав власний інваріант і зробив 61 % прольотів недослівними. main розібрано на plan_version/write_version/rebuild_index."
     },
@@ -6784,6 +6784,50 @@
       "reason": "Форма функцій після злиття двох гілок: стеля виставлена на ВИМІРЯНЕ значення об'єднаного дерева. Максимум двох сторін тут неприпустимий — він скасував би зниження, зроблене однією з них.",
       "to": {
         "max_function_lines": 47
+      }
+    },
+    {
+      "from": {
+        "lines": 158
+      },
+      "on": "2026-08-31",
+      "path": "scripts/reissue_audit_anchor.py",
+      "reason": "Форматування ruff двох файлів, які прийшли з другої гілки незачесаними: розбір задовгих функцій там зробили, а `ruff format` після нього не прогнали. Формат додає рядків (перенесення аргументів), і стеля виставлена на виміряне після нього.",
+      "to": {
+        "lines": 164
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 58
+      },
+      "on": "2026-08-31",
+      "path": "scripts/reissue_audit_anchor.py",
+      "reason": "Форматування ruff двох файлів, які прийшли з другої гілки незачесаними: розбір задовгих функцій там зробили, а `ruff format` після нього не прогнали. Формат додає рядків (перенесення аргументів), і стеля виставлена на виміряне після нього.",
+      "to": {
+        "max_function_lines": 60
+      }
+    },
+    {
+      "from": {
+        "lines": 247
+      },
+      "on": "2026-08-31",
+      "path": "scripts/respan_from_source.py",
+      "reason": "Форматування ruff двох файлів, які прийшли з другої гілки незачесаними: розбір задовгих функцій там зробили, а `ruff format` після нього не прогнали. Формат додає рядків (перенесення аргументів), і стеля виставлена на виміряне після нього.",
+      "to": {
+        "lines": 265
+      }
+    },
+    {
+      "from": {
+        "max_function_lines": 53
+      },
+      "on": "2026-08-31",
+      "path": "scripts/respan_from_source.py",
+      "reason": "Форматування ruff двох файлів, які прийшли з другої гілки незачесаними: розбір задовгих функцій там зробили, а `ruff format` після нього не прогнали. Формат додає рядків (перенесення аргументів), і стеля виставлена на виміряне після нього.",
+      "to": {
+        "max_function_lines": 57
       }
     }
   ],

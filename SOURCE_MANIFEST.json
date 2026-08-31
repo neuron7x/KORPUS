@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1656,
-  "root_sha256": "2e956e18efeac55e5af908f1197464d72b9b8c526b93c0d3c6072673a7df7490",
+  "root_sha256": "49d73adc365f9748a5d9bae845c82b1ff793f382b31f1d2bdad6a00841353e5d",
   "files": [
     {
       "path": ".dockerignore",
@@ -6781,8 +6781,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 330503,
-      "sha256": "bfb20921684659ec7f197dbce1844cf5c79b999a159afa1a405927cd2c48ca43",
+      "bytes": 333019,
+      "sha256": "b616f31f8ba8715b922a55ceafa8c37ef030357355548e4d7ad57a801bd92136",
       "mode": "0644"
     },
     {
@@ -9259,8 +9259,8 @@
     },
     {
       "path": "scripts/reissue_audit_anchor.py",
-      "bytes": 10287,
-      "sha256": "bef73ec8d30c28b3d8a7233f164bb5164b1b0995e910deeab2a3d798d5e90598",
+      "bytes": 10361,
+      "sha256": "a7f464fda9e005ae304569dc9e025cac990df064c50f89b802684ea4a028a539",
       "mode": "0755"
     },
     {
@@ -9307,8 +9307,8 @@
     },
     {
       "path": "scripts/respan_from_source.py",
-      "bytes": 15090,
-      "sha256": "462e6351c7628c0dc5f39e257ddc044c14e717130764a50a6f667ba44de0a301",
+      "bytes": 15261,
+      "sha256": "187f4ce610990bca888b90d6fc29f20f23328e5728a74dba983f5ad5cda09a77",
       "mode": "0755"
     },
     {

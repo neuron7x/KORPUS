@@ -172,7 +172,11 @@ def plan_version(
 
 
 def write_version(
-    connection: sqlite3.Connection, version_id: str, text: str, spans: list[tuple[int, int]], when: str
+    connection: sqlite3.Connection,
+    version_id: str,
+    text: str,
+    spans: list[tuple[int, int]],
+    when: str,
 ) -> None:
     connection.execute("delete from evidence_spans where version_id=?", (version_id,))
     connection.executemany(
@@ -198,14 +202,20 @@ def write_version(
 def rebuild_index(connection: sqlite3.Connection) -> dict[str, int]:
     """Індекс і вбудовування — частина запису, а не наслідок, який настане сам."""
     connection.execute("delete from evidence_fts")
-    connection.execute("insert into evidence_fts (span_id, text) select id, text from evidence_spans")
-    connection.execute("delete from span_embeddings where span_id not in (select id from evidence_spans)")
+    connection.execute(
+        "insert into evidence_fts (span_id, text) select id, text from evidence_spans"
+    )
+    connection.execute(
+        "delete from span_embeddings where span_id not in (select id from evidence_spans)"
+    )
     connection.commit()
     count = "select count(*) from"
     orphan = "where not exists (select 1 from evidence_spans s where s.id={}.span_id)"
     return {
         "fts_rows": connection.execute(f"{count} evidence_fts").fetchone()[0],
-        "fts_orphans": connection.execute(f"{count} evidence_fts f {orphan.format('f')}").fetchone()[0],
+        "fts_orphans": connection.execute(
+            f"{count} evidence_fts f {orphan.format('f')}"
+        ).fetchone()[0],
         "embedding_orphans": connection.execute(
             f"{count} span_embeddings e {orphan.format('e')}"
         ).fetchone()[0],
@@ -224,7 +234,11 @@ def main() -> int:
     if args.selftest:
         return selftest()
     if not args.database.is_file():
-        print(json.dumps({"status": "UNKNOWN", "reason": f"немає {args.database}"}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"status": "UNKNOWN", "reason": f"немає {args.database}"}, ensure_ascii=False
+            )
+        )
         return 2
     object_root = args.object_root or args.database.parent / "objects"
     connection = sqlite3.connect(str(args.database))
@@ -274,5 +288,9 @@ if __name__ == "__main__":
     except SystemExit:
         raise
     except Exception as error:
-        print(json.dumps({"status": "ERROR", "error": f"{type(error).__name__}: {error}"}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {"status": "ERROR", "error": f"{type(error).__name__}: {error}"}, ensure_ascii=False
+            )
+        )
         raise SystemExit(2) from error
