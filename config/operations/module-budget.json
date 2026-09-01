@@ -4269,7 +4269,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5101,
+      "lines": 5125,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4867,6 +4867,14 @@
       "max_function_lines": 29,
       "max_nesting": 2,
       "reason": "v0.8.1 production hard-predicate/final-authorization hardening; current measured value is the ratchet ceiling"
+    },
+    "scripts/check_serving_freshness.py": {
+      "lines": 176,
+      "max_complexity": 10,
+      "max_function_lines": 40,
+      "max_function_args": 2,
+      "max_nesting": 3,
+      "reason": "Чи процес, який відповідає читачеві, виконує те саме дерево, що лежить у git. Звіт із застарілим КОРПУСОМ ловиться ідентичністю входів; звіт із застарілим ПРОЦЕСОМ не ловиться нічим — корпус той самий, вимірювач той самий, вік малий, а відповідав інший код. Виявлення з оточення живих процесів, не з переліку в конфізі: перелік був би другим оголошенням того самого факту."
     }
   },
   "note": "Module-size and structural-complexity ratchet. v0.9.7 hardening rebaselines only explicitly changed modules to exact measured values; unmodified growth remains forbidden. Function shape (max_function_lines / max_function_args / max_nesting) was added 2026-08-28 after an external audit found a 251-line function and a 24-parameter function inside modules that were under their line ceiling. Ceilings above the default record what was measured that day and may only be lowered.",
@@ -7734,6 +7742,14 @@
       },
       "on": "2026-09-01",
       "reason": "+11 рядків за M522: набір директивних зворотів, дописаний трьома звичайними словами. Без цього мутанта «придатність» піднімається без жодного нового символу в корпусі."
+    },
+    {
+      "path": "scripts/run_mutation_tests.py",
+      "to": {
+        "lines": 5125
+      },
+      "on": "2026-09-01",
+      "reason": "+24 рядки за M523–M524: сервер, старший за код, зараховувався як такий, що його виконує, і нуль обслуговуючих процесів зараховувався як згода. П'ять осей профілю міряються ЗАПИТОМ до сервера, тож без цих двох гейт кредитував би дерево числом, порахованим іншим кодом."
     }
   ],
   "recorded_at": "2026-08-24",
