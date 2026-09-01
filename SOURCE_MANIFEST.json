@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1735,
-  "root_sha256": "4bf3284ef9cc2dcf7d4ee964d7ffb7ea357f91b651effed2d088342d82a53a71",
+  "file_count": 1736,
+  "root_sha256": "415d51ef3e63467630e7cca2fe246e75198b441d36090373fc8dbc5ba7029073",
   "files": [
     {
       "path": ".dockerignore",
@@ -4056,6 +4056,12 @@
       "mode": "0644"
     },
     {
+      "path": "apps/api/tests/test_postgres_role_reprovision_boundary.py",
+      "bytes": 9617,
+      "sha256": "0c3ae27a81228fb89aa390cdd77090716b2071c2f702f931d6d3a232e2e3aaeb",
+      "mode": "0644"
+    },
+    {
       "path": "apps/api/tests/test_postgres_security_gate_runtime.py",
       "bytes": 2010,
       "sha256": "a89fbd3789959278552127bb53065067eb7aeef28653a9063bfb5beb83d9273f",
@@ -7081,8 +7087,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 458264,
-      "sha256": "34a6f80ef12ed0fcbbd3487c35e57f32ec70537c864bc55e87ff9a1fe6703855",
+      "bytes": 459074,
+      "sha256": "8ad25129a84969eb46757c2fdc91b1627cf902e3cfa0c35f28eaace89c983857",
       "mode": "0644"
     },
     {
@@ -9919,8 +9925,8 @@
     },
     {
       "path": "scripts/run_postgres_security_gate.py",
-      "bytes": 2424,
-      "sha256": "fa76e5c2075ac9b7847b34581338702e8ee1740fea3d964860af6a50876ca37c",
+      "bytes": 3726,
+      "sha256": "91cc97219b870c24f4bfd305d3cfc132dc09951f2d32bcbd62ad9ee1de1847f8",
       "mode": "0755"
     },
     {

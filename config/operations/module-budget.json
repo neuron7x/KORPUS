@@ -4950,7 +4950,7 @@
       "reason": "exhaustive bounded-plasticity model check and invariant evidence | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/run_postgres_security_gate.py": {
-      "lines": 70,
+      "lines": 88,
       "max_complexity": 6,
       "max_function_args": 0,
       "max_function_lines": 43,
@@ -8983,6 +8983,17 @@
       "reason": "Розділення прав перегляду. Затвердження перестало бути обіцянкою коду й стало ГРАНТОМ: `korpus_app` не має UPDATE на колонках рішення рецензента, `korpus_review` має; `documents.access_tier` належить затверджувачеві, `canonical_title` — подавцеві. Плюс маркерна група й тригер, бо INSERT видається на таблицю цілком і поколонковий розділ обходився б однією вставкою.",
       "to": {
         "lines": 435
+      }
+    },
+    {
+      "from": {
+        "lines": 70
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_postgres_security_gate.py",
+      "reason": "Гейт зветься «postgres security», а міряв лише гранти й відмови репозиторію. Деструктивні контролі самої МЕЖІ — підробка claim'ів RLS, стан політик, знищення дрейфу прав, походження затвердження — до нього не потрапили б самі: перелік цілей це звичайний список, і викреслений рядок нічого не ламає. Тепер перелік тримає окремий контрактний тест.",
+      "to": {
+        "lines": 88
       }
     }
   ],

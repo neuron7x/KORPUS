@@ -13,11 +13,24 @@ from postgres_gate_process import run as process_run  # noqa: E402
 from postgres_gate_process import runtime as process_runtime  # noqa: E402
 from release_identity import release_tag  # noqa: E402
 
+#: Гейт зветься «postgres security», а міряв лише гранти й відмови репозиторію.
+#: 01.09.2026 до дерева додано деструктивні контролі самої МЕЖІ — підробка claim'ів
+#: RLS, стан політик, знищення дрейфу прав, походження затвердження — і жоден із них
+#: сюди не потрапив би сам. Гейт, який називає властивість, якої не запускає, — це
+#: твердження без виміру. `test_postgres_security_gate_contract.py` тримає цей
+#: перелік проти мовчазного скорочення.
 TARGETS = [
     "apps/api/tests/test_postgres_role_grants.py",
     "apps/api/tests/test_repository_access_refusals.py",
     "apps/api/tests/test_tenancy_threats.py",
     "apps/api/tests/test_audit.py",
+    # Деструктивні контролі межі: кожен питає, що ПРОХОДИТЬ не маючи права.
+    "apps/api/tests/test_postgres_rls_claim_forgery.py",
+    "apps/api/tests/test_postgres_rls_policy_state.py",
+    "apps/api/tests/test_postgres_role_reprovision_boundary.py",
+    "apps/api/tests/test_postgres_approval_provenance.py",
+    # Позитивний контроль: набір, у якому все відмовляє, доводить лише поломку.
+    "apps/api/tests/test_postgres_integration.py",
 ]
 
 
