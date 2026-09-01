@@ -2883,7 +2883,7 @@
       "max_nesting": 2
     },
     "scripts/benchmark_subject_precision.py": {
-      "lines": 337,
+      "lines": 340,
       "max_complexity": 10,
       "max_function_args": 4,
       "max_function_lines": 64,
@@ -3050,6 +3050,14 @@
       "max_nesting": 2,
       "proof_lines": 60,
       "reason": "Другий вхід гейтів — `check-deployment` — і ратчет прийнятого боргу розгортання: стеля, відмова на погіршенні, вимога знизити стелю при поліпшенні. Мутанти M460–M463."
+    },
+    "scripts/check_dormant_subsystems.py": {
+      "lines": 230,
+      "max_complexity": 12,
+      "max_function_args": 4,
+      "max_function_lines": 45,
+      "max_nesting": 4,
+      "reason": "Підсистеми, які СПЛЯТЬ — оголошено, а не залишено без нагляду. 27 із 35 таблиць бази порожні; найбільша група (навчальний шар, 1516 рядків коду й 1036 тестів) не імпортується жодним маршрутом API. Досяжність міряється ГРАФОМ ІМПОРТІВ, бо перелік у конфізі був би другим оголошенням того самого факту. Гейт двобічний: той, що ловить лише пробудження, не помітить тихого видалення."
     },
     "scripts/check_environment_drift.py": {
       "lines": 132,
@@ -4246,6 +4254,14 @@
       "max_nesting": 3,
       "reason": "Issue #42: repository-wide lease and disposable worktree enforcement for unattended agents; exact initial measured ceiling."
     },
+    "scripts/run_lane.py": {
+      "lines": 200,
+      "max_complexity": 10,
+      "max_function_args": 5,
+      "max_function_lines": 45,
+      "max_nesting": 3,
+      "reason": "Що лан ВИМІРЯВ, а що просто не встиг. `make` спиняється на першій відмові, тож ціль після червоної не боронить нічого й виглядає так само, як зелена. `make -k` дає два стани й не має третього: ціль, до якої не дійшли, у ньому не відрізняється від відсутньої. Тут перелік заповнюється NOT_RUN ДО прогону, тож обвал самого бігуна лишає невиконані видимими. Виміряно на першому ж прогоні: `validate` називав ОДНУ проблему, бігун показав ТРИ."
+    },
     "scripts/run_local_production_preflight.py": {
       "lines": 143,
       "max_complexity": 7,
@@ -4278,7 +4294,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5570,
+      "lines": 5645,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -8008,6 +8024,30 @@
     },
     {
       "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+32 рядки за M538–M540: невиконана ціль, зарахована як пройдена; лан із невиміряними цілями, що зве себе виміряним; таймаут як проходження.",
+      "to": {
+        "lines": 5514
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/benchmark_subject_precision.py",
+      "reason": "+3 рядки: поле `ceiling` замінено на запис, ЧОМУ його прибрано — воно рахувало межу з методу, якого я не взяла, і при виміряних 0.8571 читалось би як «уперлись у стелю».",
+      "to": {
+        "lines": 340
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+43 рядки за M549–M552: втрачене ребро пакетного імпорту, підсистема, що прокинулась і зветься сплячою, зниклий модуль без запису, відсутня таблиця, прочитана як порожня.",
+      "to": {
+        "lines": 5557
+      }
+    },
+    {
+      "on": "2026-09-01",
       "path": "scripts/verify_canonical_state.py",
       "reason": "Новий гейт: що саме означає «канонічне». Виміряно 01.09.2026 — кандидатів ТРИ (локальна гілка, main, опубліковане на GitLab), розходяться на 105–125 комітів, жодна перевірка не бачила; продакшенне правило CI вказує на застарілий main. Стеля — виміряне значення дня. Мутанти M538–M543.",
       "to": {
@@ -8052,6 +8092,17 @@
       "reason": "Вік замість кількості комітів: перша версія ставила поріг на числі комітів і почервоніла на першому ж власному коміті. Додано committed_at, days_between, _staleness. Мутанти M538–M545.",
       "to": {
         "lines": 5570
+      }
+    },
+    {
+      "from": {
+        "lines": 5570
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Четверте зведення дня: каталог росте лише додаванням, стеля — вимір об'єднаного дерева. Мої M538–M545 (канонічність) поверх M525+ сусідньої сесії.",
+      "to": {
+        "lines": 5645
       }
     }
   ],

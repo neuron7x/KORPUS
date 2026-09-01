@@ -1,0 +1,58 @@
+{
+  "schema": "korpus.dormant-subsystems.v1",
+  "recorded_at": "2026-09-01",
+  "doctrine": [
+    "Сплячий шар — це РІШЕННЯ, і воно мусить бути записане. Стан, якого ніхто не обирав, виглядає однаково і як задум, і як недогляд.",
+    "Оголошення несе два перевірювані твердження: названі модулі недосяжні з API, названі таблиці порожні. Кожне падає окремо.",
+    "Гейт двобічний навмисно. Той, що ловить лише ПРОБУДЖЕННЯ, не помітить тихого ВИДАЛЕННЯ, і реєстр стане описом неіснуючого.",
+    "Досяжність міряється графом імпортів від `korpus.api.*` і `korpus.main`, а не переліком у конфізі: перелік — це друге оголошення того самого факту."
+  ],
+  "subsystems": {
+    "learning": {
+      "why": "Навчальний шар: курси, уроки, прив'язки до доказів, перевірки знань. 1516 рядків коду й 1036 рядків тестів.\nВиміряно 01.09.2026 графом імпортів: із 297 модулів застосунку 177 досяжні з API; із восьми навчальних досяжні ДВА, і обидва — лише означення таблиць (`repository.py` тягне їх заради метаданих SQLAlchemy, щоб DDL знав про таблиці). Тобто СХЕМА під'єднана, ПОВЕДІНКА ні — саме тому дванадцять таблиць створюються й ніхто в них не пише.\nПеревірка мутацією того ж дня: шість мутантів на шість різних тверджень шару, один ПЕРЕЖИВ свій тест — перевірка «прольоти доказу не збігаються» підміняла їх ЦІЛКОМ, тож «включення» і «будь-який перетин» давали однакову відповідь. Тобто код не мертвий у сенсі якості: він має справжні інваріанти, і принаймні один із них не охоронявся.",
+      "decision_needed": "власник обирає: під'єднати маршрути API (робота) чи прибрати шар разом із міграціями 0016–0018 (зміна схеми розгорнутої бази). Доти стан оголошений, а не помічений.",
+      "modules_unreachable_from_api": [
+        "korpus.application.learning_assessment",
+        "korpus.domain.learning",
+        "korpus.infrastructure.learning_repository",
+        "korpus.infrastructure.learning_source_state",
+        "korpus.infrastructure.learning_version_reader",
+        "korpus.infrastructure.learning_version_writer"
+      ],
+      "modules_reachable_as_schema_only": [
+        "korpus.infrastructure.learning_schema",
+        "korpus.infrastructure.learning_progress_schema"
+      ],
+      "tables_expected_empty": [
+        "learning_courses",
+        "learning_course_versions",
+        "learning_modules",
+        "learning_lessons",
+        "learning_objectives",
+        "learning_objective_competencies",
+        "learning_source_bindings",
+        "learning_source_binding_spans",
+        "learning_lesson_blocks",
+        "learning_block_sources",
+        "learning_prerequisites",
+        "learning_publications",
+        "learning_mastery"
+      ]
+    },
+    "operational_competency": {
+      "why": "Операційні ролі, завдання й компетенції — п'ять таблиць, порожні в обох базах доказів. Той самий стан, що й навчальний шар, і з тієї ж причини: схема створюється міграцією 0018, поведінки з API не досягти.",
+      "decision_needed": "те саме рішення, що й для `learning`: ці таблиці існують заради нього.",
+      "modules_unreachable_from_api": [
+        "korpus.domain.operational_competency"
+      ],
+      "tables_expected_empty": [
+        "competency_frameworks",
+        "operational_competencies",
+        "operational_roles",
+        "operational_role_tasks",
+        "operational_tasks",
+        "operational_task_competencies"
+      ]
+    }
+  }
+}

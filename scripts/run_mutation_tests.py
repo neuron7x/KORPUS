@@ -4908,6 +4908,81 @@ MUTANTS = (
         ),
         full_copy=True,
     ),
+    # ── Сплячі підсистеми. Гейт мусить падати в ОБИДВА боки: той, що ловить лише
+    # пробудження, не помітить тихого видалення, і реєстр стане описом неіснуючого.
+    Mutant(
+        "M549_A_PACKAGE_IMPORT_HIDES_THE_MODULE_IT_BRINGS",
+        "scripts/check_dormant_subsystems.py",
+        '    children = {f"{node.module}.{alias.name}" for alias in node.names}',
+        "    children = set[str]()",
+        (
+            "apps/api/tests/test_dormant_subsystems.py::"
+            "test_the_import_graph_keeps_the_edge_a_package_import_hides",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M550_A_SUBSYSTEM_THAT_WOKE_UP_IS_STILL_CALLED_DORMANT",
+        "scripts/check_dormant_subsystems.py",
+        "        woke = sorted(module for module in declared if module in reachable)",
+        "        woke = []",
+        (
+            "apps/api/tests/test_dormant_subsystems.py::"
+            "test_a_module_wired_into_the_api_wakes_the_subsystem",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M551_A_MODULE_THAT_VANISHED_IS_NOT_REPORTED",
+        "scripts/check_dormant_subsystems.py",
+        "        gone = sorted(module for module in declared if module not in every_module)",
+        "        gone = []",
+        ("apps/api/tests/test_dormant_subsystems.py::test_a_module_that_vanished_is_a_change",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M552_AN_ABSENT_TABLE_IS_READ_AS_AN_EMPTY_ONE",
+        "scripts/check_dormant_subsystems.py",
+        "        absent = sorted(table for table, rows in counts.get(name, {}).items() if rows is None)",
+        "        absent = []",
+        (
+            "apps/api/tests/test_dormant_subsystems.py::"
+            "test_a_table_that_disappeared_is_a_change_too",
+        ),
+        full_copy=True,
+    ),
+    # ── Бігун лану. `make -k` дає два стани; тут первинний саме ТРЕТІЙ, і мутанти
+    # цілять у нього: невиконане, зараховане як пройдене, — це і є та вада.
+    Mutant(
+        "M546_A_TARGET_NEVER_REACHED_IS_COUNTED_AS_PASSED",
+        "scripts/run_lane.py",
+        '        name: {"state": NOT_RUN, "code": None, "seconds": 0.0} for name in targets',
+        '        name: {"state": PASSED, "code": 0, "seconds": 0.0} for name in targets',
+        (
+            "apps/api/tests/test_lane_report.py::"
+            "test_a_target_the_runner_never_reached_stays_not_run_on_disk",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M547_A_LANE_WITH_UNMEASURED_TARGETS_STILL_CALLS_ITSELF_MEASURED",
+        "scripts/run_lane.py",
+        '        "status": "MEASURED" if counts[NOT_RUN] == 0 else "PARTIAL",',
+        '        "status": "MEASURED",',
+        ("apps/api/tests/test_lane_report.py::test_an_unreached_target_makes_the_lane_partial",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M548_A_TIMED_OUT_TARGET_IS_A_PASS",
+        "scripts/run_lane.py",
+        '        return {"state": TIMED_OUT, "code": None, "seconds": round(time.monotonic() - started, 1)}',
+        '        return {"state": PASSED, "code": 0, "seconds": round(time.monotonic() - started, 1)}',
+        (
+            "apps/api/tests/test_lane_report.py::"
+            "test_a_timeout_is_recorded_as_a_timeout_by_the_runner_itself",
+        ),
+        full_copy=True,
+    ),
     # ── Допуск оголошеного предмета за початком слова. Дослівний підрядок вимагав від
     # людини називного відмінка: виміряно 1 із 14 у родовому проти 13 після зміни.
     Mutant(
