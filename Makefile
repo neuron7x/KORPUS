@@ -887,6 +887,7 @@ check-nightly:
 	$(MAKE) mutation-probe PY=$(PY)
 	$(MAKE) verify-clean-clone PY=$(PY)
 	$(MAKE) coverage-ratchet PY=$(PY)
+	$(MAKE) package PY=$(PY)
 
 # Мутація — ОСТАННІЙ продюсер: її звіт єдиний в'яжеться до дайджесту джерела, тож
 # будь-що після неї робить його звітом про інше дерево.
@@ -929,8 +930,13 @@ infra-support: infra-secrets
 infra-down:
 	docker compose down
 
+## Пакування і БЕЗПЕКА пакета — одне діло. `zip_safety.py` існував із тестами й ніколи
+## не дивився на зіп, який ми самі роздаємо: ціль `zip-safety-verify` вимагала ARCHIVE,
+## а шлях архіву не був відомий жодному лану. Тепер ім'я приходить із `dist/LATEST`,
+## яке пише сам пакувальник — одне джерело імені, не друга копія правила.
 package:
 	bash scripts/package_repository.sh
+	PYTHONPATH=apps/api/src:. $(PY) scripts/zip_safety.py "$$(cat dist/LATEST)"
 
 # `clean` прибирає ЛИШЕ те, що відтворюється безкоштовно: кеші й артефакти збірки.
 # Раніше цей самий рядок ніс `var`, і одного запуску як НЕГАТИВНОГО КОНТРОЛЮ до правки

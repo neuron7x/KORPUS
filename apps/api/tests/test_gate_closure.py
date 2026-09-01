@@ -211,3 +211,30 @@ def test_not_measured_is_not_a_pass() -> None:
     findings = GATE.assess(edges, declared, registry, scripts)
     assert _finding_named(findings, "duplicate_target")["verdict"] == "UNKNOWN"
     assert GATE.verdict(findings) == "UNKNOWN"
+
+
+# ------------------------------------------- безпека пакета, який ми самі роздаємо
+
+
+def test_the_packaging_lane_checks_the_archive_it_produces() -> None:
+    """`zip_safety.py` існував із тестами і ніколи не дивився на НАШ зіп.
+
+    Ціль `zip-safety-verify` вимагала ARCHIVE, а шлях архіву не був відомий жодному
+    лану — тож перевірка на zip-slip, симлінки й бомби стиснення жила поруч із
+    пакувальником і не була до нього під'єднана. Тепер ім'я архіву приходить із
+    `dist/LATEST`, яке пише сам пакувальник: одне джерело імені, не друга копія.
+    """
+    text = (ROOT / "Makefile").read_text(encoding="utf-8")
+    recipe = "\n".join(GATE.recipes(text)["package"])
+    assert "scripts/zip_safety.py" in recipe
+    assert "dist/LATEST" in recipe
+
+    script = (ROOT / "scripts/package_repository.sh").read_text(encoding="utf-8")
+    assert '> "dist/LATEST"' in script, "пакувальник мусить називати архів у одному місці"
+
+
+def test_zip_safety_is_no_longer_an_accepted_gap() -> None:
+    edges, _declared, scripts = _real()
+    assert "zip-safety-verify" in GATE.enforced(edges, scripts)
+    registry = json.loads(REGISTRY.read_text(encoding="utf-8"))
+    assert all(entry["target"] != "zip-safety-verify" for entry in registry["accepted"])

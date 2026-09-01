@@ -86,5 +86,8 @@ python3 "$root/scripts/generate_manifest.py" "$tmp" --kind distribution --output
 )
 [[ "$(git rev-parse HEAD)" == "$source_commit" ]] || { echo "HEAD moved during package construction" >&2; exit 1; }
 sha256sum "dist/${name}.zip" > "dist/${name}.zip.sha256"
+# Ім'я архіву має ОДНЕ джерело — `release_identity`. Хто перевіряє архів далі, читає
+# його звідси, а не обчислює вдруге: друга копія правила розійшлася б мовчки.
+printf '%s\n' "dist/${name}.zip" > "dist/LATEST"
 python3 "$root/scripts/verify_package.py" "dist/${name}.zip"
 cat "dist/${name}.zip.sha256"

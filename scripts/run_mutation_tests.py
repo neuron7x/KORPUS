@@ -4507,6 +4507,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M517_THE_PACKAGE_LANE_STOPS_CHECKING_THE_ARCHIVE_IT_SHIPS",
+        "Makefile",
+        '\tPYTHONPATH=apps/api/src:. $(PY) scripts/zip_safety.py "$$(cat dist/LATEST)"',
+        "\t@true",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_the_packaging_lane_checks_the_archive_it_produces",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M518_THE_ARCHIVE_NAME_GETS_A_SECOND_SOURCE",
+        "scripts/package_repository.sh",
+        'printf \'%s\\n\' "dist/${name}.zip" > "dist/LATEST"',
+        ": # ім'я більше не публікується",
+        (
+            "apps/api/tests/test_gate_closure.py::"
+            "test_the_packaging_lane_checks_the_archive_it_produces",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M500_A_MISSING_FILE_SILENTLY_BECOMES_A_DIFFERENT_DATABASE",
         "scripts/validate_span_hygiene.py",
         '    if "/" in database or database.endswith((".db", ".sqlite", ".sqlite3")):',

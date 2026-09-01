@@ -4260,7 +4260,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5130,
+      "lines": 5152,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -7696,6 +7696,17 @@
       "reason": "Типовий вихід перенесено з релізного звіту в чернетку. Виміряно 01.09.2026: щоб дізнатись, чи ціль запускається, її запустили — і вона перезаписала reports/release/v0.7.0/REGRESSION_CARRY_FORWARD.json, той самий артефакт, який build_readiness_947_evidence.py читає як доказ. Мутант M516.",
       "to": {
         "lines": 161
+      }
+    },
+    {
+      "from": {
+        "lines": 5152
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+M517–M518: лан пакування перестає перевіряти архів, який роздає, і ім'я архіву дістає друге джерело. Разом із M500–M516 це 19 мутантів дня.",
+      "to": {
+        "lines": 5152
       }
     }
   ],
