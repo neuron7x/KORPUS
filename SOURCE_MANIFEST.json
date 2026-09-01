@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1728,
-  "root_sha256": "fadc58c087859bcf1e89349a42fade445b31c187f40c493775056e0b8ceabea5",
+  "root_sha256": "e430210d4e151d07ac13ddc30b5251e01a5ba56a622025bfd45aa965d4035daf",
   "files": [
     {
       "path": ".dockerignore",
@@ -6991,8 +6991,8 @@
     },
     {
       "path": "config/operations/branch-integration.json",
-      "bytes": 13224,
-      "sha256": "c14784224072d6d0f2104dd6e0f36026e9ef112bc92410f620512dd700180408",
+      "bytes": 15612,
+      "sha256": "0d3e746dfe3014ad029417a52cdb09b12401cb3f2f6614936aa627d2ac1a4642",
       "mode": "0644"
     },
     {
@@ -7051,8 +7051,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 450885,
-      "sha256": "3b96c98da57eb2ccff533dad997f8ca6c219f82b0d79d20e9e9c83a459ddc1c5",
+      "bytes": 451491,
+      "sha256": "c08ae23f4d38766bc934d0d2981a2dfce02794cbcc91d1b5f8d2acafca51beb1",
       "mode": "0644"
     },
     {
@@ -9757,8 +9757,8 @@
     },
     {
       "path": "scripts/run_evals.py",
-      "bytes": 16871,
-      "sha256": "55c15aee4431d5b925c9172465ccf8db94e0c5ef87a0fb71ca591e0f63474dc3",
+      "bytes": 17413,
+      "sha256": "7f67944f440e66ed238701036a07a94094ea8ec687aad96e04d45b0b7da9140d",
       "mode": "0644"
     },
     {

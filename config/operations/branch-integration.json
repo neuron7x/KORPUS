@@ -23,6 +23,18 @@
       "carries": "CORS-оголошення публічної сторінки та правка поверхні консолі.",
       "into": "main",
       "on": "2026-09-01"
+    },
+    {
+      "branch": "origin/agent/issue-31-nonforgeable-rls",
+      "carries": "Непідробна межа особистості RLS: claim'и кладе окремий логін через SECURITY DEFINER-брокера. Розширено на `ingestion_jobs` і claim `korpus.subject`, яких у GitHub-лінії не було. Загрозу відтворено запуском на каноні до правки.",
+      "into": "main",
+      "on": "2026-09-01"
+    },
+    {
+      "branch": "origin/agent/issue-27-candidate-visibility-equivalence",
+      "carries": "Рівнозначність видимості кандидатів: дешевий добір дістав ті самі два правила, що остаточна проєкція — заміщення лише в межах одного документа й фільтр відсіків. Три тести GitHub-лінії червоніли на каноні ДО правки. Форма фільтра інша: анти-з'єднання без кореляції, бо корельований NOT EXISTS повертав вартість, заради якої перевірку заміщення свого часу винесли в CTE.",
+      "into": "main",
+      "on": "2026-09-01"
     }
   ],
   "integration_order": [
@@ -37,14 +49,6 @@
   "schema": "korpus.branch-integration-registry.v1",
   "stranded": [
     {
-      "branch": "origin/canonical/final-2026-08-15",
-      "carries": "НАДМНОЖИНА: temporal_corpus_snapshot, approval_provenance, nonforgeable_rls, rls_binding_backend_identity, answer_snapshot — п'ять спроможностей, яких у каноні немає ЖОДНОЮ згадкою; 79 файлів лише тут, 57 під apps/api",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 355
-    },
-    {
       "branch": "origin/agent/act-lrn-002-course-domain-model",
       "carries": "доменна модель навчального курсу; міститься в надмножині",
       "clean": false,
@@ -53,28 +57,52 @@
       "unique": 326
     },
     {
-      "branch": "origin/protocol/ai-training-platform-act",
-      "carries": "протокол платформи навчання; міститься в надмножині",
-      "clean": false,
-      "closes_when": "зникне разом із інтеграцією надмножини",
-      "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 288
-    },
-    {
-      "branch": "origin/agent/issue-31-nonforgeable-rls-identity",
-      "carries": "непідробна особа для RLS; міститься в надмножині",
-      "clean": false,
-      "closes_when": "зникне разом із інтеграцією надмножини",
-      "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 286
-    },
-    {
-      "branch": "origin/agent/issue-31-nonforgeable-rls",
-      "carries": "попередня ітерація RLS; 17 комітів ПОЗА надмножиною",
+      "branch": "origin/agent/issue-1-github-governance",
+      "carries": "врядування GitHub; актуальність залежить від рішення про роль origin",
       "clean": false,
       "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
       "contained_in": null,
-      "unique": 225
+      "unique": 2
+    },
+    {
+      "branch": "origin/agent/issue-12-packaged-assurance-snapshot",
+      "carries": "знімок гарантій у пакеті; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 41
+    },
+    {
+      "branch": "origin/agent/issue-14-canonical-zip-inventory",
+      "carries": "інвентар канонічного зіпа; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 48
+    },
+    {
+      "branch": "origin/agent/issue-16-evidence-execution-closure",
+      "carries": "замикання виконання доказів; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 51
+    },
+    {
+      "branch": "origin/agent/issue-18-no-history-bundle",
+      "carries": "пакет без історії; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 54
+    },
+    {
+      "branch": "origin/agent/issue-23-temporal-release-snapshot",
+      "carries": "часовий знімок релізу; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 182
     },
     {
       "branch": "origin/agent/issue-25-approval-provenance",
@@ -93,92 +121,34 @@
       "unique": 203
     },
     {
-      "branch": "origin/tmp/semantic-to-canonical",
-      "carries": "те саме, що issue-26; міститься в надмножині",
-      "clean": false,
-      "closes_when": "зникне разом із інтеграцією надмножини",
-      "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 203
-    },
-    {
-      "branch": "origin/agent/issue-23-temporal-release-snapshot",
-      "carries": "часовий знімок релізу; міститься в надмножині",
-      "clean": false,
-      "closes_when": "зникне разом із інтеграцією надмножини",
-      "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 182
-    },
-    {
       "branch": "origin/agent/issue-27-candidate-visibility-equivalence",
-      "carries": "еквівалентність видимості кандидата; 17 комітів ПОЗА надмножиною",
+      "carries": "ВМІСТ УЖЕ В КАНОНІ (01.09.2026): рівнозначність видимості кандидатів портовано вручну — три тести цієї гілки червоніли на каноні до правки, тепер зелені, плюс M579–M581. Коміти лишаються власними, бо дві лінії ніколи не мали спільної історії: злиття принесло б чужу нумерацію міграцій, а не спроможність. Крім портованого, гілка несе шар assurance-snapshot і package-inventory, спільний з надмножиною.",
       "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
+      "closes_when": "разом із рішенням щодо origin/canonical/final-2026-08-15",
       "unique": 70
     },
     {
-      "branch": "origin/tmp/candidate-to-canonical",
-      "carries": "те саме, що issue-27; 17 комітів ПОЗА надмножиною",
+      "branch": "origin/agent/issue-31-nonforgeable-rls",
+      "carries": "ВМІСТ УЖЕ В КАНОНІ (01.09.2026): непідробна межа особистості RLS портована вручну й РОЗШИРЕНА — `ingestion_jobs` і claim `korpus.subject`, яких у цій гілці немає. Загрозу відтворено запуском до правки, після правки три маршрути підробки відхилено, позитивний контроль проходить. Коміти лишаються власними з тієї ж причини — розбіжність нумерації міграцій, не вмісту. Непортованим лишається approval_provenance.",
       "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 70
+      "closes_when": "коли approval_provenance буде портовано або оголошено зайвим",
+      "unique": 225
     },
     {
-      "branch": "origin/agent/issue-18-no-history-bundle",
-      "carries": "пакет без історії; 1 коміт ПОЗА надмножиною",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 54
-    },
-    {
-      "branch": "origin/tmp/no-history-to-canonical",
-      "carries": "те саме, що issue-18; 1 коміт ПОЗА надмножиною",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 54
-    },
-    {
-      "branch": "origin/agent/issue-16-evidence-execution-closure",
-      "carries": "замикання виконання доказів; 1 коміт ПОЗА надмножиною",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 51
-    },
-    {
-      "branch": "origin/agent/issue-14-canonical-zip-inventory",
-      "carries": "інвентар канонічного зіпа; міститься в надмножині",
+      "branch": "origin/agent/issue-31-nonforgeable-rls-identity",
+      "carries": "непідробна особа для RLS; міститься в надмножині",
       "clean": false,
       "closes_when": "зникне разом із інтеграцією надмножини",
       "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 48
+      "unique": 286
     },
     {
-      "branch": "origin/agent/issue-8-artifact-bound-release-metadata",
-      "carries": "метадані релізу, прив'язані до артефакта; 13 комітів ПОЗА надмножиною",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 42
-    },
-    {
-      "branch": "origin/tmp/artifact-to-canonical",
-      "carries": "те саме, що issue-8; 13 комітів ПОЗА надмножиною",
-      "clean": false,
-      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
-      "contained_in": null,
-      "unique": 42
-    },
-    {
-      "branch": "origin/agent/issue-12-packaged-assurance-snapshot",
-      "carries": "знімок гарантій у пакеті; міститься в надмножині",
+      "branch": "origin/agent/issue-4-release-binding",
+      "carries": "прив'язка релізу; міститься в надмножині",
       "clean": false,
       "closes_when": "зникне разом із інтеграцією надмножини",
       "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 41
+      "unique": 18
     },
     {
       "branch": "origin/agent/issue-6-embedded-source-manifest",
@@ -197,20 +167,28 @@
       "unique": 23
     },
     {
-      "branch": "origin/agent/issue-4-release-binding",
-      "carries": "прив'язка релізу; міститься в надмножині",
-      "clean": false,
-      "closes_when": "зникне разом із інтеграцією надмножини",
-      "contained_in": "origin/canonical/final-2026-08-15",
-      "unique": 18
-    },
-    {
-      "branch": "origin/agent/issue-1-github-governance",
-      "carries": "врядування GitHub; актуальність залежить від рішення про роль origin",
+      "branch": "origin/agent/issue-8-artifact-bound-release-metadata",
+      "carries": "метадані релізу, прив'язані до артефакта; 13 комітів ПОЗА надмножиною",
       "clean": false,
       "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
       "contained_in": null,
-      "unique": 2
+      "unique": 42
+    },
+    {
+      "branch": "origin/canonical/final-2026-08-15",
+      "carries": "НАДМНОЖИНА: temporal_corpus_snapshot, approval_provenance, nonforgeable_rls, rls_binding_backend_identity, answer_snapshot — п'ять спроможностей, яких у каноні немає ЖОДНОЮ згадкою; 79 файлів лише тут, 57 під apps/api",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 355
+    },
+    {
+      "branch": "origin/protocol/ai-training-platform-act",
+      "carries": "протокол платформи навчання; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 288
     },
     {
       "branch": "origin/qualification/v0.9.2-hard-gates",
@@ -219,6 +197,38 @@
       "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
       "contained_in": null,
       "unique": 2
+    },
+    {
+      "branch": "origin/tmp/artifact-to-canonical",
+      "carries": "те саме, що issue-8; 13 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 42
+    },
+    {
+      "branch": "origin/tmp/candidate-to-canonical",
+      "carries": "те саме, що issue-27; 17 комітів ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 70
+    },
+    {
+      "branch": "origin/tmp/no-history-to-canonical",
+      "carries": "те саме, що issue-18; 1 коміт ПОЗА надмножиною",
+      "clean": false,
+      "closes_when": "інтегровано в канон або свідомо відкинуто з причиною",
+      "contained_in": null,
+      "unique": 54
+    },
+    {
+      "branch": "origin/tmp/semantic-to-canonical",
+      "carries": "те саме, що issue-26; міститься в надмножині",
+      "clean": false,
+      "closes_when": "зникне разом із інтеграцією надмножини",
+      "contained_in": "origin/canonical/final-2026-08-15",
+      "unique": 203
     }
   ]
 }

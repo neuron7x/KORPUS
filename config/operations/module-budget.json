@@ -4767,10 +4767,10 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_evals.py": {
-      "lines": 427,
+      "lines": 435,
       "max_complexity": 22,
       "max_function_args": 11,
-      "max_function_lines": 275,
+      "max_function_lines": 282,
       "max_nesting": 4,
       "proof_lines": 0,
       "reason": "v0.6.1: evaluation harness now binds explicit claim, tested system, budget, independence and validity-hazard contract; local fixture cannot self-authorize production"
@@ -8884,6 +8884,19 @@
       "reason": "Один рядок прив'язки особистості: `bind_identity=repository._apply_postgres_identity`. Без нього семантичний шлях під межею RLS мовчки бачив би нуль рядків.",
       "to": {
         "max_function_lines": 80
+      }
+    },
+    {
+      "from": {
+        "lines": 427,
+        "max_function_lines": 275
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_evals.py",
+      "reason": "Читач знімка причеплений до репозиторію оцінки. Без нього відповідь законно відмовляє `corpus_snapshot_unavailable`, бо реліз бере лише знімок — оцінка міряє бойовий шлях і мусить мати те саме, що бойовий.",
+      "to": {
+        "lines": 435,
+        "max_function_lines": 282
       }
     }
   ],

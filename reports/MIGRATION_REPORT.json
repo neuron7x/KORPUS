@@ -8,6 +8,7 @@
     "billing_events",
     "competency_frameworks",
     "conversations",
+    "corpus_state_epoch",
     "document_compartments",
     "document_versions",
     "documents",
@@ -44,6 +45,7 @@
     "billing_events",
     "competency_frameworks",
     "conversations",
+    "corpus_state_epoch",
     "document_compartments",
     "document_versions",
     "documents",
@@ -78,8 +80,8 @@
   "sqlite_fts5_present": true,
   "provenance": {
     "schema_version": 1,
-    "source_digest": "77c2adf7c2177a258ec9e1891c35e3bb61d1ab3bdb79bbbd81899f0609646e4e",
+    "source_digest": "7dcd86c5ddeb9fb36437e88e06eac0304764cc7c6a6fbf6ab57b0eb93bc59b30",
     "generator": "scripts/run_migration_gate.py",
-    "generated_at": "2026-09-01T09:29:34+00:00"
+    "generated_at": "2026-09-01T14:38:06+00:00"
   }
 }
