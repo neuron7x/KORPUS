@@ -4825,8 +4825,8 @@ MUTANTS = (
     Mutant(
         "M549_A_PACKAGE_IMPORT_HIDES_THE_MODULE_IT_BRINGS",
         "scripts/check_dormant_subsystems.py",
-        '                for alias in node.names:\n                    child = f"{node.module}.{alias.name}"',
-        '                for alias in []:\n                    child = f"{node.module}.{alias.name}"',
+        '    children = {f"{node.module}.{alias.name}" for alias in node.names}',
+        "    children = set[str]()",
         (
             "apps/api/tests/test_dormant_subsystems.py::"
             "test_the_import_graph_keeps_the_edge_a_package_import_hides",
