@@ -472,3 +472,54 @@ def test_canary_metric_admission_removal_is_killed(tmp_path: Path) -> None:
         "      - name: Skip candidate metric admission",
     )
     assert _status(root)["STAGED_TRAFFIC_PROMOTION"] is False
+
+
+# ------------------------- прив'язка дій: властивість, а не перелік конкретних SHA
+
+
+def test_action_pins_assert_the_property_not_a_fixed_list_of_shas() -> None:
+    """Предикат звався «дії прив'язані до SHA», а звіряв КОНКРЕТНІ SHA.
+
+    Це різні твердження, і різниця не академічна: законне оновлення прив'язки
+    (`actions/attest` v4.1.1→v4.2.2) поклало контракт 01.09.2026, хоча кожна дія
+    лишалась повністю прив'язаною. Перевірка, яка червоніє, коли охоронювана
+    властивість ТРИМАЄТЬСЯ, привчає правити перевірку, а не систему.
+
+    Властивість, потрібна продакшену: жодна стороння дія не згадана рухомим тегом —
+    тег можна пересунути під релізом уже після рецензії.
+    """
+    from scripts.gcp.production_contract import _FULL_SHA_PIN, _WORKFLOW_USES
+
+    workflow = (ROOT / ".github/workflows/gcp-production.yml").read_text(encoding="utf-8")
+    used = _WORKFLOW_USES.findall(workflow)
+    third_party = [ref for ref in used if not ref.startswith("./")]
+    assert third_party, "потік без жодної дії доводив би лише те, що файл прочитано"
+    assert all(_FULL_SHA_PIN.search(ref) for ref in third_party), third_party
+
+    # Негативні контролі: рухомий тег і коротка прив'язка мусять ловитись.
+    assert not _FULL_SHA_PIN.search("actions/checkout@v4")
+    assert not _FULL_SHA_PIN.search("actions/checkout@3d3c42e")
+    assert _FULL_SHA_PIN.search("actions/checkout@" + "a" * 40)
+    # І порожній потік не дає порожнього успіху — перевіряється на самому предикаті,
+    # а не лише на регексі: `all([])` істинне, тож без явної вимоги «дії є» контракт
+    # зеленів би на потоці, у якому дій немає взагалі.
+    assert _WORKFLOW_USES.findall("jobs:\n  build:\n    steps: []\n") == []
+    assert _pin_predicate("jobs:\n  build:\n    steps: []\n").passed is False
+    assert _pin_predicate("    - uses: actions/checkout@" + "a" * 40 + "\n").passed is True
+    assert _pin_predicate("    - uses: actions/checkout@v4\n").passed is False
+
+
+def _pin_predicate(workflow: str):
+    """Прогнати ОДИН предикат прив'язки на синтетичному потоці."""
+    import dataclasses
+
+    from scripts.gcp.production_contract import Sources, _group_04
+
+    fields = {
+        f.name: ("" if f.type != "tuple[str, str, str]" else ("", "", ""))
+        for f in dataclasses.fields(Sources)
+    }
+    fields["production_workflow"] = workflow
+    return next(
+        p for p in _group_04(Sources(**fields)) if p.id == "PRODUCTION_WORKFLOW_ACTION_PINS"
+    )

@@ -453,6 +453,14 @@ def _group_03(s: Sources) -> list[Predicate]:
     return p
 
 
+#: `uses:` у робочому потоці. Порожній перелік — теж відмова: контракт, який зеленіє на
+#: потоці без жодної дії, доводить лише те, що файл прочитано.
+_WORKFLOW_USES = re.compile(r"^\s*(?:-\s*)?uses:\s*(\S+)", re.MULTILINE)
+#: Прив'язка до 40-шістнадцяткового коміту. Рухомий тег можна пересунути під релізом
+#: після рецензії — саме тому тег тут не прив'язка.
+_FULL_SHA_PIN = re.compile(r"@[0-9a-f]{40}$")
+
+
 def _group_04(s: Sources) -> list[Predicate]:
     p: list[Predicate] = []
 
@@ -468,19 +476,21 @@ def _group_04(s: Sources) -> list[Predicate]:
         and ("credentials_json:" not in s.production_workflow),
         "production workflow uses SHA-pinned Google auth with WIF and no key JSON input",
     )
+    # The predicate is named "action pins" and used to assert a list of exact SHAs. Those
+    # are different claims, and the difference is not academic: a legitimate pin bump made
+    # the contract fail on 2026-09-01 while every action stayed fully pinned. A check that
+    # reddens when the guarded property HOLDS teaches people to edit the check.
+    #
+    # The property itself is what production needs: no third-party action may be referenced
+    # by a mutable tag, because a tag can be moved under the release after review. So the
+    # rule now reads every `uses:` and demands a 40-hex commit, and it covers actions added
+    # tomorrow — which the fixed list never could.
+    used = _WORKFLOW_USES.findall(s.production_workflow)
+    third_party = [ref for ref in used if not ref.startswith("./")]
     add(
         "PRODUCTION_WORKFLOW_ACTION_PINS",
-        all(
-            token in s.production_workflow
-            for token in (
-                "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
-                "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
-                "google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db",
-                "actions/attest@a1948c3f048ba23858d222213b7c278aabede763",
-                "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
-            )
-        ),
-        "all third-party actions in production workflow are full-SHA pinned",
+        bool(third_party) and all(_FULL_SHA_PIN.search(ref) for ref in third_party),
+        "every third-party action in the production workflow is pinned to a full commit SHA",
     )
     ordered = [
         "Publish immutable governance bundle",

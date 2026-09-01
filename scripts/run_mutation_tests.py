@@ -4608,6 +4608,28 @@ MUTANTS = (
         full_copy=True,
     ),
     Mutant(
+        "M574_A_MOVABLE_TAG_COUNTS_AS_A_PINNED_ACTION",
+        "scripts/gcp/production_contract.py",
+        '_FULL_SHA_PIN = re.compile(r"@[0-9a-f]{40}$")',
+        '_FULL_SHA_PIN = re.compile(r"@")',
+        (
+            "apps/api/tests/test_gcp_production_contract.py::"
+            "test_action_pins_assert_the_property_not_a_fixed_list_of_shas",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M575_A_WORKFLOW_WITH_NO_ACTIONS_PASSES_THE_PIN_CONTRACT",
+        "scripts/gcp/production_contract.py",
+        "        bool(third_party) and all(_FULL_SHA_PIN.search(ref) for ref in third_party),",
+        "        all(_FULL_SHA_PIN.search(ref) for ref in third_party),",
+        (
+            "apps/api/tests/test_gcp_production_contract.py::"
+            "test_action_pins_assert_the_property_not_a_fixed_list_of_shas",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
         "M570_A_BRANCH_WITH_ITS_OWN_COMMITS_NEED_NOT_BE_NAMED",
         "scripts/verify_branch_integration.py",
         "    unnamed = sorted(set(diverged) - set(named))",

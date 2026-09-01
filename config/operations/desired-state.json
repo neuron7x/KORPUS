@@ -1,7 +1,7 @@
 {
   "schema": "korpus.desired-state.v1",
   "release": "v0.9.7",
-  "root_sha256": "9d187708b9b19ed9eb0cae5a319afd76e8b915e2d92084cf0241925a565bc595",
+  "root_sha256": "15281e96ca411eea5dcd73a76d107a87e47e485de765d3f9a44d1512936ad7a0",
   "records": [
     {
       "path": ".github/dependabot.yml",
@@ -25,7 +25,7 @@
     },
     {
       "path": ".github/workflows/external-assurance-ingest.yml",
-      "sha256": "04986f884dd26aa6baa278b114ac3e05db29c8a80fb8c43210959d878668f725",
+      "sha256": "6b7ca9139dda8f0a15e722da5a4a708237199598f63acf13c377adb39efcd97d",
       "bytes": 2943
     },
     {
@@ -40,12 +40,12 @@
     },
     {
       "path": ".github/workflows/gcp-production.yml",
-      "sha256": "aed917b4076390399a33aa069c513fb5d217b7a35c05ff096ecf188f480d6fcf",
+      "sha256": "39df867a3d9b49e7f3c217359c2dcf40e031fff9a5c2c831115499d89eaaf7f1",
       "bytes": 26233
     },
     {
       "path": ".github/workflows/pec-production-evidence.yml",
-      "sha256": "f36949cefcc1f53ed6c12ce306298f74137d4ae310b1809500852f1012ed5e29",
+      "sha256": "9f10f665b7b73223ad0085a2c7a6ea2ee13dd6077b804f04ea255151029e0c1a",
       "bytes": 4383
     },
     {
@@ -55,7 +55,7 @@
     },
     {
       "path": ".github/workflows/release.yml",
-      "sha256": "dc09925fb474cd5d83c5fce499367b778646d541e391a986bb8955c17bf04ce5",
+      "sha256": "d9f33342ab06a8d91f61b50005ece102a650c23c61e3cbe8f8335f7c61169d62",
       "bytes": 3088
     },
     {

@@ -3350,11 +3350,12 @@
       "reason": "v0.9.2 staged production promotion admission; exact initial measurement is the ratchet ceiling"
     },
     "scripts/gcp/production_contract.py": {
-      "lines": 636,
-      "max_complexity": 12,
+      "lines": 646,
+      "max_complexity": 14,
       "max_function_args": 3,
       "max_function_lines": 126,
       "max_nesting": 1,
+      "proof_lines": 0,
       "reason": "v0.9 production infrastructure hardening; exact current measurement is the ratchet ceiling | 2026-08-29 grew under type annotation: scripts/ entered mypy for the first time and 198 errors in 58 files were closed with typed signatures, TypedDicts and explicit refusals rather than casts."
     },
     "scripts/gcp/production_contract_canary.py": {
@@ -4294,7 +4295,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5689,
+      "lines": 5711,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -8136,6 +8137,30 @@
       "reason": "Новий гейт: одна канонічна гілка або названий перелік того, що поза нею. Виміряно 01.09.2026 — 21 гілка origin з 18–355 власними комітами і п'ятьма спроможностями, яких у каноні немає; блокер — зіткнення номерів міграцій, якого git не бачить. Мутанти M570–M573.",
       "to": {
         "lines": 5689
+      }
+    },
+    {
+      "from": {
+        "lines": 636,
+        "max_complexity": 12
+      },
+      "on": "2026-09-01",
+      "path": "scripts/gcp/production_contract.py",
+      "reason": "Прив'язка дій стала ВЛАСТИВІСТЮ замість переліку конкретних SHA: предикат звався «дії прив'язані до SHA», а звіряв п'ять фіксованих коммітів, тож законне оновлення прив'язки клало контракт, хоча властивість трималась. Мутанти M574–M575.",
+      "to": {
+        "lines": 646,
+        "max_complexity": 14
+      }
+    },
+    {
+      "from": {
+        "lines": 5689
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "Прив'язка дій стала ВЛАСТИВІСТЮ замість переліку конкретних SHA: предикат звався «дії прив'язані до SHA», а звіряв п'ять фіксованих коммітів, тож законне оновлення прив'язки клало контракт, хоча властивість трималась. Мутанти M574–M575.",
+      "to": {
+        "lines": 5711
       }
     }
   ],

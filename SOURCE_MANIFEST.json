@@ -3,7 +3,7 @@
   "kind": "source",
   "manifest_self_excluded": true,
   "file_count": 1708,
-  "root_sha256": "66ea298f927efe927e1117c13caf7ed185807e1fe5b8a495b1dd21ca8005d365",
+  "root_sha256": "c588dc399b5ec45bdf1826d2943b26f82a461c2ccae7f1dbc4674775a961cfbb",
   "files": [
     {
       "path": ".dockerignore",
@@ -3307,8 +3307,8 @@
     },
     {
       "path": "apps/api/tests/test_gcp_production_contract.py",
-      "bytes": 16302,
-      "sha256": "8f5eb2cba2b350a674f103bc3d5eb3a088f1f3bcf4ccd9d2c322906e1fcc102b",
+      "bytes": 19467,
+      "sha256": "cb3f1ac33d56de1d280c22529f6cd42d0d393cf186191687660293d9f956ca2a",
       "mode": "0644"
     },
     {
@@ -6902,7 +6902,7 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "221ddd0b9aaf55af7c91c224037d267db1dfd36f15ca0d1a629dcd3148ec4217",
+      "sha256": "f7f13636227ae7fa5500b94b9882545833c8220b455f3be5c5f287eaf9b4f539",
       "mode": "0644"
     },
     {
@@ -6937,8 +6937,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 414639,
-      "sha256": "f40f263945034090a62f4cbf72b053603463a57f3060695feb186b0ee094b4bc",
+      "bytes": 415960,
+      "sha256": "aee47e8abf624f802b7d0c9ee0f17ff76b158d504e0c4d54adba608f46a0d066",
       "mode": "0644"
     },
     {
@@ -8929,8 +8929,8 @@
     },
     {
       "path": "scripts/gcp/production_contract.py",
-      "bytes": 27078,
-      "sha256": "94204abe81a4b0f5b052d4f1d974cb8b8794b39e242061aed788e7bf4c81bb03",
+      "bytes": 28094,
+      "sha256": "2d2afb270db8df7b3f1ca679ff01c52a2157d65dc3dde5f62af8be9cbe55da00",
       "mode": "0644"
     },
     {
@@ -9709,8 +9709,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 254128,
-      "sha256": "a2d8997901f9d68eb71c0a55786b85cbd9bc918518406b4ae2ba910f7d7fc8ed",
+      "bytes": 255022,
+      "sha256": "0ffef02cfb524aa6ed02880e1392c2fc7b955d14077d84b01e9b3b901e427d7b",
       "mode": "0755"
     },
     {
