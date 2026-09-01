@@ -88,6 +88,11 @@ repository:validate:
     # розійшлися 31.08.2026 саме на ненаглядовому шляху (сторож піднімає API юнітом).
     - python scripts/check_public_env_parity.py
     - python scripts/verify_gate_closure.py
+    # Негативний контроль, який не бігає, негативним контролем не є. Виміряно
+    # 01.09.2026: 31 скрипт оголошує `--selftest`, 22 не виконувались ЖОДНОЮ дорогою —
+    # серед них ті, що доводять здатність гейтів червоніти. Разом 1,8 с.
+    - python scripts/verify_selftest_coverage.py --selftest
+    - python scripts/verify_selftest_coverage.py
     # A ratchet on module size, function shape and complexity: growth fails, shrinking is free.
     - python scripts/check_module_budget.py
     - PYTHONPATH=scripts python scripts/check_budget_raises_are_named.py

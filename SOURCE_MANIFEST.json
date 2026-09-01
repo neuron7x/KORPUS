@@ -2,8 +2,8 @@
   "schema": "korpus.source-manifest.v2",
   "kind": "source",
   "manifest_self_excluded": true,
-  "file_count": 1681,
-  "root_sha256": "c657833537603a7a8284308b7c38b3407d07fa53b387cc71325c647b94954b60",
+  "file_count": 1683,
+  "root_sha256": "0664c183bce32559ad51a931d6b99944544eacaf43188f16b6fd429eeaf7dc66",
   "files": [
     {
       "path": ".dockerignore",
@@ -109,8 +109,8 @@
     },
     {
       "path": ".gitlab-ci.yml",
-      "bytes": 41856,
-      "sha256": "a35422fda6c380ba320c6e7333013f3583620e24db88cb20073ee4b9d6aa58f8",
+      "bytes": 42355,
+      "sha256": "7e2c4a312e1f5bf4d9280dc16496c5ebb1bb7f95c10b476edb9633d76825583b",
       "mode": "0644"
     },
     {
@@ -367,8 +367,8 @@
     },
     {
       "path": "Makefile",
-      "bytes": 74388,
-      "sha256": "d1fb8f3fc6c383ca3855252cfbc043440d14aa8e6cf7d693b67d2d750e61729e",
+      "bytes": 75259,
+      "sha256": "511197e7d2de84ee91b1c12bd61da789f1d58cc7b38a2573a2af802548ce9e07",
       "mode": "0644"
     },
     {
@@ -3127,8 +3127,8 @@
     },
     {
       "path": "apps/api/tests/test_evidence_stores.py",
-      "bytes": 8373,
-      "sha256": "a9617b47520729bf861cfb71a58c62a124e2c182cf655190080858e644590c37",
+      "bytes": 10602,
+      "sha256": "24c5466a504420ae10ab76b1e5adf25e61b247c7e43b3a5c568452b781a56a09",
       "mode": "0644"
     },
     {
@@ -4305,6 +4305,12 @@
       "path": "apps/api/tests/test_security_auth_api.py",
       "bytes": 3036,
       "sha256": "cf5edd54fc5c3da269acf5cfaee93ad6fa476272d25fa3bee2df4da8f8386aed",
+      "mode": "0644"
+    },
+    {
+      "path": "apps/api/tests/test_selftest_coverage.py",
+      "bytes": 4863,
+      "sha256": "ac004da961c57b0895a8a8f4a13f86b3656847ab6ec04224fcb82b3f6e1b7a66",
       "mode": "0644"
     },
     {
@@ -6824,13 +6830,13 @@
     {
       "path": "config/operations/desired-state.json",
       "bytes": 5539,
-      "sha256": "199eb5b1645a66460b6ce5853ab22e46c6006d3ab71edd66464c504315dd29a3",
+      "sha256": "221ddd0b9aaf55af7c91c224037d267db1dfd36f15ca0d1a629dcd3148ec4217",
       "mode": "0644"
     },
     {
       "path": "config/operations/evidence-stores.json",
-      "bytes": 3946,
-      "sha256": "81ed6c9db686101c0eb0ec05b6fc522279db87ee83e86e704e03acd6d39151a6",
+      "bytes": 4168,
+      "sha256": "d11cbacadb6fa0fb2f66f3c560839ff80dfb0b30c63f51c8b97720f41b791fa0",
       "mode": "0644"
     },
     {
@@ -6847,8 +6853,8 @@
     },
     {
       "path": "config/operations/module-budget.json",
-      "bytes": 379874,
-      "sha256": "3befdcee49fec762ae2f3e6f55d17e8bc64d47062b1d989619589c95d66b13f6",
+      "bytes": 382520,
+      "sha256": "c87700e32255680c98908d1236974e745aefc71c11e9aaded1e48315b476afce",
       "mode": "0644"
     },
     {
@@ -9577,8 +9583,8 @@
     },
     {
       "path": "scripts/run_mutation_tests.py",
-      "bytes": 230816,
-      "sha256": "3065decd68ee0872a94f59bba639b976689ecaa32d67bb0f6ed2005e4885c15f",
+      "bytes": 232296,
+      "sha256": "bf526aec45b533eb4924fa073aa62d63792595e635f587750af293976e23bf4a",
       "mode": "0755"
     },
     {
@@ -9955,8 +9961,8 @@
     },
     {
       "path": "scripts/verify_evidence_stores.py",
-      "bytes": 18602,
-      "sha256": "d75b194f6a0135fca1f6426a3ac922a40a26fedf63e32af2c12820ec68301a00",
+      "bytes": 20482,
+      "sha256": "82cb122c4c8d8f965984a870ca480a7203da6882d65c8da4eef9b1c0ec87fcd8",
       "mode": "0755"
     },
     {
@@ -10047,6 +10053,12 @@
       "path": "scripts/verify_release_evidence.py",
       "bytes": 2053,
       "sha256": "cabb3a63a0c2bb4fea096ffcbf97030494cec04e9b8dfa68b74b549e7b7ca431",
+      "mode": "0755"
+    },
+    {
+      "path": "scripts/verify_selftest_coverage.py",
+      "bytes": 9621,
+      "sha256": "852a7ef08512918853e5eac7a83d9478a72089ff51a31790ab36011b7cf0ba0b",
       "mode": "0755"
     },
     {

@@ -268,8 +268,34 @@ def _check_readable(
     return _finding("unreadable_store", "PASS", "кожне знайдене сховище прочитано")
 
 
+def _check_declared_empty(
+    observation: dict[str, Any], declared: dict[str, dict[str, Any]]
+) -> dict[str, str]:
+    """`must_be_empty` — ТВЕРДЖЕННЯ, і воно міряється, а не записується.
+
+    Записане «0 документів» застаріло б мовчки в той день, коли хтось помилково
+    заллє щось у типовий шлях; саме тоді запис і був би найпотрібніший. Тому реєстр
+    несе властивість, а число бере вимір.
+    """
+    wrong = sorted(
+        f"{path} має {observation['stores'][path].get('documents')} док."
+        for path, entry in declared.items()
+        if entry.get("must_be_empty")
+        and path in observation["stores"]
+        and observation["stores"][path].get("documents") not in (0, None)
+    )
+    if wrong:
+        return _finding(
+            "declared_empty_is_empty",
+            "FAIL",
+            "оголошено порожнім, а воно не порожнє: " + ", ".join(wrong),
+        )
+    return _finding("declared_empty_is_empty", "PASS", "кожне оголошене порожнім — порожнє")
+
+
 CHECKS = (
     _check_readable,
+    _check_declared_empty,
     _check_undeclared,
     _check_ghost,
     _check_one_served,
@@ -376,6 +402,22 @@ def selftest() -> int:
             "FAIL",
         ),
         ("порожнє спостереження — UNKNOWN, не PASS", {"stores": {}}, registry, "UNKNOWN"),
+        (
+            "оголошене порожнім виявилось не порожнім",
+            {**base, "stores": {**stores, "var/korpus.db": {"documents": 4, "spans": 9}}},
+            {
+                "stores": [
+                    {"path": served, "role": "served", "reason": "x"},
+                    {
+                        "path": "var/korpus.db",
+                        "role": "empty_developer_default",
+                        "must_be_empty": True,
+                        "reason": "x",
+                    },
+                ]
+            },
+            "FAIL",
+        ),
         (
             "сховище не читається — подія, не тиша",
             {**base, "stores": {**stores, served: {"unreadable": "database is locked"}}},

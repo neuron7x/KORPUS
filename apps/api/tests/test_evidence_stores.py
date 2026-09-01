@@ -105,7 +105,7 @@ def test_the_config_default_is_actually_the_empty_database_in_this_tree() -> Non
     matched = GATE._DEFAULT_IN_CONFIG.search(config)
     assert matched is not None and matched.group("path") == GATE.CONFIG_DEFAULT
     entry = next(e for e in _registry()["stores"] if e["path"] == GATE.CONFIG_DEFAULT)
-    assert entry["role"] != "served" and entry["documents"] == 0
+    assert entry["role"] != "served" and entry["must_be_empty"] is True
 
 
 def test_the_unit_is_parsed_from_the_real_file() -> None:
@@ -114,16 +114,52 @@ def test_the_unit_is_parsed_from_the_real_file() -> None:
     assert unit == SERVED, unit
 
 
-def test_the_postgres_divergence_is_named_not_discovered() -> None:
-    """Друга база доказів мусить бути записана як РІШЕННЯ, а не знахідка.
+def test_this_registry_carries_no_number_that_ages_silently() -> None:
+    """Предмет цього файла — ФОРМА ландшафту, не зміст баз.
 
-    Ті самі 256 документів і 38863 прольоти проти 31464 означають іншу нарізку:
-    перенесення `span_id` між ними неприпустиме без перерахунку.
+    Кількість документів і прольотів рухається від інжесту й перенарізки. Записана
+    тут, вона застаріла б МОВЧКИ — і саме в той день, коли була б найпотрібніша.
+    Присуд «база проти бази» належить `evidence-bases.json`, чий звіт дає ті самі поля
+    свіжими на кожен прогін. Межу узгоджено між двома сесіями 01.09.2026 саме щоб не
+    було двох оголошень одного факту.
     """
-    external = _registry()["external"]
-    entry = next(e for e in external if "postgres" in e["dsn"])
-    assert entry["consistent_with_served"] is False
-    assert entry["documents"] == 256 and entry["spans"] > 31464
+    registry = _registry()
+    assert "external" not in registry, "числа постгреса живуть у evidence-bases.json"
+    for entry in registry["stores"]:
+        assert "documents" not in entry, entry["path"]
+        assert "spans" not in entry, entry["path"]
+    assert "evidence-bases.json" in registry["note"], "межа мусить бути названа поіменно"
+
+
+def test_a_store_declared_empty_is_measured_not_trusted() -> None:
+    """`must_be_empty` — твердження, і воно міряється.
+
+    Записане «0 документів» було б правдою рівно до дня, коли хтось помилково заллє
+    щось у типовий шлях; саме тоді запис і був би найпотрібніший.
+    """
+    filled = {
+        **_observation(),
+        "stores": {**_observation()["stores"], "var/korpus.db": {"documents": 4, "spans": 9}},
+    }
+    finding = _finding(GATE.assess(filled, _registry()), "declared_empty_is_empty")
+    assert finding["verdict"] == "FAIL" and "var/korpus.db" in finding["detail"]
+    assert (
+        _finding(GATE.assess(_observation(), _registry()), "declared_empty_is_empty")["verdict"]
+        == "PASS"
+    )
+
+
+def test_the_mirror_the_neighbouring_session_created_is_declared() -> None:
+    """Перший справжній випадок роботи гейта: сховище з'явилось і його ніхто не назвав.
+
+    `build_liveness_fixture.py` кладе поруч із еталоном другу копію `mirror.db`, щоб
+    вісь `evidence_bases` мала ДВІ бази. Гейт знайшов її сам — виявлення не спирається
+    на реєстр, інакше «прибрати запис» було б способом стати зеленим.
+    """
+    entry = next(
+        e for e in _registry()["stores"] if e["path"] == "var/liveness-fixture/mirror.db"
+    )
+    assert entry["optional"] is True and entry["role"] == "fixture"
 
 
 def test_unknown_is_never_a_pass() -> None:

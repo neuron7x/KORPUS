@@ -4260,7 +4260,7 @@
       "reason": "v6.7.1 reverse-assurance cycle: new bounded production-assurance module; current measurement is the initial ratchet ceiling"
     },
     "scripts/run_mutation_tests.py": {
-      "lines": 5152,
+      "lines": 5195,
       "max_complexity": 11,
       "max_function_args": 3,
       "max_function_lines": 53,
@@ -4697,12 +4697,12 @@
       "reason": "v0.5.0: dependency closure now source/release-bound; exact expanded ceiling"
     },
     "scripts/verify_evidence_stores.py": {
-      "lines": 340,
+      "lines": 366,
       "max_complexity": 8,
       "max_function_args": 3,
       "max_function_lines": 35,
       "max_nesting": 3,
-      "proof_lines": 94,
+      "proof_lines": 110,
       "reason": "Нова вісь: скільки баз доказів існує і чи та, яку подають, є тією, яку назвали. Виміряно 01.09.2026 — п'ять сховищ у дереві плюс постгрес; порожнє на типовому шляху config.py і постгрес із тими самими 256 документами, але іншою нарізкою. Стеля — виміряне значення дня. Мутанти M507–M512."
     },
     "scripts/verify_final_release_authorization.py": {
@@ -4822,6 +4822,15 @@
       "max_function_args": 1,
       "max_function_lines": 30,
       "max_nesting": 2
+    },
+    "scripts/verify_selftest_coverage.py": {
+      "lines": 159,
+      "max_complexity": 8,
+      "max_function_args": 3,
+      "max_function_lines": 35,
+      "max_nesting": 2,
+      "proof_lines": 50,
+      "reason": "Новий гейт: негативний контроль, який не бігає, негативним контролем не є. Виміряно 01.09.2026 — 31 скрипт оголошує --selftest, 22 не виконувались жодною дорогою. Гейт сам знаходить і сам запускає, щоб перелік не став другим оголошенням того самого факту. Стеля — виміряне значення дня. Мутанти M519, M520, M530."
     },
     "scripts/verify_source_manifest.py": {
       "lines": 78,
@@ -7707,6 +7716,43 @@
       "reason": "+M517–M518: лан пакування перестає перевіряти архів, який роздає, і ім'я архіву дістає друге джерело. Разом із M500–M516 це 19 мутантів дня.",
       "to": {
         "lines": 5152
+      }
+    },
+    {
+      "on": "2026-09-01",
+      "path": "scripts/verify_selftest_coverage.py",
+      "reason": "Новий гейт: негативний контроль, який не бігає, негативним контролем не є. Виміряно 01.09.2026 — 31 скрипт оголошує --selftest, 22 не виконувались жодною дорогою. Гейт сам знаходить і сам запускає, щоб перелік не став другим оголошенням того самого факту. Стеля — виміряне значення дня. Мутанти M519, M520, M530.",
+      "to": {
+        "lines": 159,
+        "max_complexity": 8,
+        "max_function_args": 3,
+        "max_function_lines": 35,
+        "max_nesting": 2,
+        "proof_lines": 50
+      }
+    },
+    {
+      "from": {
+        "lines": 340,
+        "proof_lines": 94
+      },
+      "on": "2026-09-01",
+      "path": "scripts/verify_evidence_stores.py",
+      "reason": "Перевірка declared_empty_is_empty: `must_be_empty` — твердження, і воно міряється, а не записується. Записане «0 документів» застаріло б мовчки саме в день, коли було б найпотрібніше. Мутант M531.",
+      "to": {
+        "lines": 366,
+        "proof_lines": 110
+      }
+    },
+    {
+      "from": {
+        "lines": 5152
+      },
+      "on": "2026-09-01",
+      "path": "scripts/run_mutation_tests.py",
+      "reason": "+M519–M520, M530–M531: пропущена самоперевірка як зелень, згадка прапорця замість оголошення, червона самоперевірка без наслідків, оголошена порожнеча на віру.",
+      "to": {
+        "lines": 5195
       }
     }
   ],

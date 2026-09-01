@@ -4425,7 +4425,7 @@ MUTANTS = (
         "M514_THE_LENGTH_OF_A_NON_LIST_IS_INVENTED",
         "scripts/check_deployment_debt.py",
         "        return len(node) if isinstance(node, list) else None",
-        "        return len(node) if hasattr(node, \"__len__\") else None",
+        '        return len(node) if hasattr(node, "__len__") else None',
         (
             "apps/api/tests/test_deployment_debt.py::"
             "test_length_of_something_that_is_not_a_list_is_unknown",
@@ -4459,9 +4459,7 @@ MUTANTS = (
         "scripts/verify_evidence_stores.py",
         '    extra = sorted(set(observation["stores"]) - set(declared))',
         "    extra = []",
-        (
-            "apps/api/tests/test_evidence_stores.py::test_a_store_nobody_named_is_refused",
-        ),
+        ("apps/api/tests/test_evidence_stores.py::test_a_store_nobody_named_is_refused",),
         full_copy=True,
     ),
     Mutant(
@@ -4469,9 +4467,7 @@ MUTANTS = (
         "scripts/verify_evidence_stores.py",
         '        if path not in observation["stores"] and not entry.get("optional")',
         '        if path not in observation["stores"]',
-        (
-            "apps/api/tests/test_evidence_stores.py::test_an_optional_store_may_be_absent",
-        ),
+        ("apps/api/tests/test_evidence_stores.py::test_an_optional_store_may_be_absent",),
         full_copy=True,
     ),
     Mutant(
@@ -4479,9 +4475,7 @@ MUTANTS = (
         "scripts/verify_evidence_stores.py",
         "    if len(served) == 1:",
         "    if len(served) >= 1:",
-        (
-            "apps/api/tests/test_evidence_stores.py::test_two_served_stores_are_refused",
-        ),
+        ("apps/api/tests/test_evidence_stores.py::test_two_served_stores_are_refused",),
         full_copy=True,
     ),
     Mutant(
@@ -4525,6 +4519,47 @@ MUTANTS = (
         (
             "apps/api/tests/test_gate_closure.py::"
             "test_the_packaging_lane_checks_the_archive_it_produces",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M519_A_DECLARED_SELFTEST_THAT_NEVER_RAN_COUNTS_AS_GREEN",
+        "scripts/verify_selftest_coverage.py",
+        "    missed = sorted(set(expected) - seen)",
+        "    missed = []",
+        (
+            "apps/api/tests/test_selftest_coverage.py::"
+            "test_a_declared_selftest_that_did_not_run_is_not_a_silent_pass",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M520_A_MENTION_OF_THE_FLAG_COUNTS_AS_DECLARING_IT",
+        "scripts/verify_selftest_coverage.py",
+        r'''DECLARES = re.compile(r"""add_argument\(\s*["']--selftest["']""")''',
+        'DECLARES = re.compile(r"--selftest")',
+        (
+            "apps/api/tests/test_selftest_coverage.py::"
+            "test_discovery_finds_the_declarations_not_the_mentions",
+        ),
+        full_copy=True,
+    ),
+    Mutant(
+        "M530_A_FAILING_SELFTEST_DOES_NOT_REDDEN_THE_GATE",
+        "scripts/verify_selftest_coverage.py",
+        '    failed = sorted(item["script"] for item in results if item["verdict"] != "PASS")',
+        "    failed = []",
+        ("apps/api/tests/test_selftest_coverage.py::test_a_failing_selftest_reddens",),
+        full_copy=True,
+    ),
+    Mutant(
+        "M531_A_STORE_DECLARED_EMPTY_IS_TAKEN_ON_TRUST",
+        "scripts/verify_evidence_stores.py",
+        '        and observation["stores"][path].get("documents") not in (0, None)',
+        "        and False",
+        (
+            "apps/api/tests/test_evidence_stores.py::"
+            "test_a_store_declared_empty_is_measured_not_trusted",
         ),
         full_copy=True,
     ),
@@ -4577,10 +4612,7 @@ MUTANTS = (
         "scripts/verify_gate_closure.py",
         "            if current is not None and current not in counted and line.strip():",
         "            if current is not None:",
-        (
-            "apps/api/tests/test_gate_closure.py::"
-            "test_a_second_header_without_a_recipe_is_legal",
-        ),
+        ("apps/api/tests/test_gate_closure.py::test_a_second_header_without_a_recipe_is_legal",),
         full_copy=True,
     ),
     Mutant(
